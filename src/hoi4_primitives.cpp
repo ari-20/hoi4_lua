@@ -174,54 +174,86 @@ int hoi4_read_bytes(lua_State *Ls) {
 // -+ write primitives
 // Same convention as reads: absolute address, SEH-guarded, return true/false.
 // DANGEROUS by design — the Lua layout file owns all offset knowledge.
+// WRITE-DOMAIN GATE (hoi4_memgate.cpp, policy 2026-09-23): every target is
+// checked before the store — committed writable non-executable pages, in no
+// module except hoi4.exe, off the current thread's TEB/stack. Read-only pages
+// (game .text/.rdata/IAT) and foreign-module data are refused with an audit
+// line instead of a bare SEH false; with the call gate there is no reachable
+// VirtualProtect, so this cannot be unlocked from Lua.
 // write_str is CAPACITY-BOUNDED ONLY: if the new text does not fit the existing
 // std::string capacity (SSO 15 or heap cap), it refuses (returns false) rather
 // than calling the engine allocator — a reallocation needs its ABI and risks
 // dangling pointers elsewhere.
 
+// Denial tail: false is already on the stack; log + audit, keep the shape of
+// "refused, never crashed".
+static int wr_denied(lua_State *Ls, const char *api, uint64_t a) {
+    L("[mem] %s denied @%llx (write domain)", api, (unsigned long long)a);
+    audit_mem_deny(Ls, "write", a, "write-domain gate");
+    return 1;
+}
+
 int hoi4_write_u8(lua_State *Ls) {
+    uint64_t a = check_addr(Ls, 1);
+    uint8_t v = (uint8_t)luaL_checkinteger(Ls, 2);
     lua_pushboolean(Ls, 0);
-    __try { *(volatile uint8_t *)check_addr(Ls, 1) = (uint8_t)luaL_checkinteger(Ls, 2); }
+    if (!memgate_write_ok(a, 1)) return wr_denied(Ls, "write_u8", a);
+    __try { *(volatile uint8_t *)a = v; }
     __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
 
 int hoi4_write_u16(lua_State *Ls) {
+    uint64_t a = check_addr(Ls, 1);
+    uint16_t v = (uint16_t)luaL_checkinteger(Ls, 2);
     lua_pushboolean(Ls, 0);
-    __try { *(volatile uint16_t *)check_addr(Ls, 1) = (uint16_t)luaL_checkinteger(Ls, 2); }
+    if (!memgate_write_ok(a, 2)) return wr_denied(Ls, "write_u16", a);
+    __try { *(volatile uint16_t *)a = v; }
     __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
 
 int hoi4_write_u32(lua_State *Ls) {
+    uint64_t a = check_addr(Ls, 1);
+    uint32_t v = (uint32_t)luaL_checkinteger(Ls, 2);
     lua_pushboolean(Ls, 0);
-    __try { *(volatile uint32_t *)check_addr(Ls, 1) = (uint32_t)luaL_checkinteger(Ls, 2); }
+    if (!memgate_write_ok(a, 4)) return wr_denied(Ls, "write_u32", a);
+    __try { *(volatile uint32_t *)a = v; }
     __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
 
 int hoi4_write_u64(lua_State *Ls) {
+    uint64_t a = check_addr(Ls, 1);
+    uint64_t v = (uint64_t)luaL_checkinteger(Ls, 2);
     lua_pushboolean(Ls, 0);
-    __try { *(volatile uint64_t *)check_addr(Ls, 1) = (uint64_t)luaL_checkinteger(Ls, 2); }
+    if (!memgate_write_ok(a, 8)) return wr_denied(Ls, "write_u64", a);
+    __try { *(volatile uint64_t *)a = v; }
     __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
 
 int hoi4_write_f32(lua_State *Ls) {
+    uint64_t a = check_addr(Ls, 1);
+    float v = (float)luaL_checknumber(Ls, 2);
     lua_pushboolean(Ls, 0);
-    __try { *(volatile float *)check_addr(Ls, 1) = (float)luaL_checknumber(Ls, 2); }
+    if (!memgate_write_ok(a, 4)) return wr_denied(Ls, "write_f32", a);
+    __try { *(volatile float *)a = v; }
     __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
 
 int hoi4_write_f64(lua_State *Ls) {
+    uint64_t a = check_addr(Ls, 1);
+    double v = luaL_checknumber(Ls, 2);
     lua_pushboolean(Ls, 0);
-    __try { *(volatile double *)check_addr(Ls, 1) = luaL_checknumber(Ls, 2); }
+    if (!memgate_write_ok(a, 8)) return wr_denied(Ls, "write_f64", a);
+    __try { *(volatile double *)a = v; }
     __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
@@ -229,13 +261,20 @@ int hoi4_write_f64(lua_State *Ls) {
 
 // write text into an existing MSVC std::string at addr, capacity-bounded.
 // short (<=15) text always fits (SSO); long text needs heap cap >= len.
+// Gated on BOTH write targets: the std::string header (SSO buffer + len/cap,
+// [s, s+0x20)) and the heap buffer on the long path ([p, p+tlen+1]).
 int hoi4_write_str(lua_State *Ls) {
     const char *text = luaL_checkstring(Ls, 2);
     size_t tlen = strlen(text);
+    uint64_t s = check_addr(Ls, 1);
     lua_pushboolean(Ls, 0);
     if (tlen > 255) return 1;                    // artificial safety bound
+    if (tlen <= 15) {
+        if (!memgate_write_ok(s, 0x20)) return wr_denied(Ls, "write_str", s);
+    } else {
+        if (!memgate_write_ok(s, 0x18)) return wr_denied(Ls, "write_str", s);
+    }
     __try {
-        uint64_t s = check_addr(Ls, 1);
         uint64_t len = *(volatile uint64_t *)(s + 0x10);
         uint64_t cap = *(volatile uint64_t *)(s + 0x18);
         if (tlen <= 15) {
@@ -251,6 +290,8 @@ int hoi4_write_str(lua_State *Ls) {
             // heap path: keep the existing allocation if it fits
             if (cap < tlen || len <= 15) return 1;   // would need (re)alloc — refuse
             char *p = (char *)(*(volatile char **)(s + 0));
+            if (!memgate_write_ok((uint64_t)(uintptr_t)p, tlen + 1))
+                return wr_denied(Ls, "write_str", (uint64_t)(uintptr_t)p);
             memcpy(p, text, tlen);
             p[tlen] = 0;
             *(volatile uint64_t *)(s + 0x10) = tlen;

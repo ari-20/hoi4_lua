@@ -70,11 +70,24 @@ static uint64_t ca_addr(lua_State *Ls, int n) {
 }
 
 // hoi4.call_u64(addr, a1?, a2?, a3?, a4?) -> u64 or nil
+// CALL-DOMAIN GATE (hoi4_memgate.cpp, policy 2026-09-23): the target must lie
+// in an executable section of the hoi4.exe image. kernel32 exports
+// (VirtualAlloc/VirtualProtect/LoadLibraryA), fresh RWX pages and
+// bridge-internal addresses are unreachable from Lua. All in-corpus callers
+// use BASE+<RVA> engine addresses, which pass unchanged.
+static int call_domain_refused(lua_State *Ls, const char *api, uint64_t addr) {
+    L("[call] %s refused: %llx outside engine exec sections", api,
+      (unsigned long long)addr);
+    audit_mem_deny(Ls, "call", addr, "outside engine exec sections");
+    return 0;
+}
+
 int hoi4_call_u64(lua_State *Ls) {
     uint64_t addr = ca_addr(Ls, 1);
     uint64_t a1 = ca_addr(Ls, 2), a2 = ca_addr(Ls, 3);
     uint64_t a3 = ca_addr(Ls, 4), a4 = ca_addr(Ls, 5);
     if (!addr || !call_guard_ok()) { lua_pushnil(Ls); return 1; }
+    if (!memgate_exec_ok(addr)) { call_domain_refused(Ls, "call_u64", addr); lua_pushnil(Ls); return 1; }
     int nargs = lua_gettop(Ls) - 1;
     uint64_t ret = 0;
     __try {
@@ -101,6 +114,7 @@ int hoi4_call_void(lua_State *Ls) {
     uint64_t a1 = ca_addr(Ls, 2), a2 = ca_addr(Ls, 3);
     uint64_t a3 = ca_addr(Ls, 4), a4 = ca_addr(Ls, 5);
     if (!addr || !call_guard_ok()) { lua_pushnil(Ls); return 1; }
+    if (!memgate_exec_ok(addr)) { call_domain_refused(Ls, "call_void", addr); lua_pushnil(Ls); return 1; }
     int nargs = lua_gettop(Ls) - 1;
     __try {
         switch (nargs <= 0 ? 0 : (nargs > 4 ? 4 : nargs)) {
@@ -204,9 +218,18 @@ int hoi4_load_save(lua_State *Ls) {
 
     uint8_t ok = 0;
     __try {
-        // mgr = app->vt[+880]() — save manager getter (no side effects)
+        // mgr = app->vt[+880]() — save manager getter (no side effects).
+        // Memory-derived target: same exec-domain gate as call_u64 — a forged
+        // heap vtable must not steer an uninstrumented bridge call site.
         void **appVt = *(void ***)app;
-        void *mgr = ((void *(__fastcall *)(void *))appVt[SAVE_MGR_VT_OFF / 8])((void *)(uintptr_t)app);
+        uint64_t getter = (uint64_t)(uintptr_t)appVt[SAVE_MGR_VT_OFF / 8];
+        if (!memgate_exec_ok(getter)) {
+            L("[load_save] mgr getter %llx outside engine exec sections",
+              (unsigned long long)getter);
+            audit_mem_deny(Ls, "call", getter, "outside engine exec sections");
+            __leave;
+        }
+        void *mgr = ((void *(__fastcall *)(void *))getter)((void *)(uintptr_t)app);
         if (!mgr) { lua_pushboolean(Ls, 0); return 1; }
 
         uint8_t desc[SAVEDESC_SIZE];

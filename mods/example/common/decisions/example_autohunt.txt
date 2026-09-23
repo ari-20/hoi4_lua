@@ -1,0 +1,49 @@
+example_decisions = {
+
+	# ---- 自动占地猎手: 三态互斥 (标准 / 激进 / 停) ----
+	# 开-标准: 未处标准档时可见 (含从激进切回)
+	example_autohunt_normal = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = EXAMPLE_AUTOHUNT_ON } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleAutoHuntDesc
+		complete_effect = {
+			clr_global_flag = EXAMPLE_AUTOHUNT_BERSERK
+			set_global_flag = EXAMPLE_AUTOHUNT_ON
+		}
+		ai_will_do = { factor = 0 }
+	}
+	# 开-激进: 未处激进档时可见 (含从标准升级)
+	example_autohunt_berserk = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = EXAMPLE_AUTOHUNT_BERSERK } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleAutoHuntDesc
+		complete_effect = {
+			clr_global_flag = EXAMPLE_AUTOHUNT_ON
+			set_global_flag = EXAMPLE_AUTOHUNT_BERSERK
+		}
+		ai_will_do = { factor = 0 }
+	}
+	# 停: 任一档激活时可见
+	example_autohunt_off = {
+		icon = generic_operation
+		visible = { is_ai = no OR = { has_global_flag = EXAMPLE_AUTOHUNT_ON has_global_flag = EXAMPLE_AUTOHUNT_BERSERK } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleAutoHuntDesc
+		complete_effect = {
+			clr_global_flag = EXAMPLE_AUTOHUNT_ON
+			clr_global_flag = EXAMPLE_AUTOHUNT_BERSERK
+		}
+		ai_will_do = { factor = 0 }
+	}
+}

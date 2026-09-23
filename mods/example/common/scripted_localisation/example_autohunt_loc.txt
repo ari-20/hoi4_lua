@@ -1,0 +1,6 @@
+defined_text = {
+	name = GetExampleAutoHuntDesc
+	text = { trigger = { has_global_flag = EXAMPLE_AUTOHUNT_BERSERK } localization_key = EXAMPLE_DESC_AUTOHUNT_BERSERK }
+	text = { trigger = { has_global_flag = EXAMPLE_AUTOHUNT_ON } localization_key = EXAMPLE_DESC_AUTOHUNT_ON }
+	text = { trigger = { always = yes } localization_key = EXAMPLE_DESC_AUTOHUNT_OFF }
+}

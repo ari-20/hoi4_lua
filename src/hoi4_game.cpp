@@ -70,6 +70,13 @@ int game_pause_invoke_raw(int state) {
     }
     uint64_t vt = h4_rd64(mgr, 0);
     MgrPause_t fn = vt ? (MgrPause_t)h4_rd64(vt + 656, 0) : NULL;
+    // memory-derived target: exec-domain gate (memgate). On refuse the
+    // direct flag write below takes over — same documented semantics.
+    if (fn && !memgate_exec_ok((uint64_t)(uintptr_t)fn)) {
+        L("[pause] mgr->vt[+656] target outside engine exec sections — "
+          "falling back to direct flag write");
+        fn = NULL;
+    }
     if (fn) {
         uint8_t reason[0x20];
         memset(reason, 0, sizeof(reason));

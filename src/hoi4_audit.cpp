@@ -329,6 +329,20 @@ void audit_net(lua_State *Ls, const char *method, const char *host, int port,
     emit("net", mod_of_source(src), src, line, target, detail, 1);
 }
 
+// Memory-domain denial (hoi4_memgate policy, 2026-09-23): a write_* target
+// outside the write domain or a call_u64 target outside the engine's
+// executable sections. Never deduplicated — same reasoning as fs_deny.
+void audit_mem_deny(lua_State *Ls, const char *kind, uint64_t addr,
+                    const char *why) {
+    if (g_level == AUDIT_OFF) return;
+    char src[192]; int line = 0;
+    audit_attribute(Ls, src, sizeof(src), &line);
+    char target[40];
+    snprintf(target, sizeof(target), "%llx", (unsigned long long)addr);
+    emit("mem_deny", mod_of_source(src), src, line, target,
+         why ? why : "", 1);
+}
+
 // Code load (dofile / loadfile). Deduplicated by content hash so a hot reload
 // loop or sv2_export's 57-file reload does not emit 57 lines per call - while a
 // CONTENT change always produces a new line, which incidentally gives a code

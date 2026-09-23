@@ -347,6 +347,10 @@ void audit_net(lua_State *Ls, const char *method, const char *host, int port,
                const char *scheme, long long bytes_out, int status,
                long long bytes_in);
 void audit_code_load(lua_State *Ls, const char *path, const char *sha256_hex);
+// memory-domain denial (memgate): kind = "write" | "call". Denials are never
+// deduplicated (a flood is the evidence), same as fs_deny.
+void audit_mem_deny(lua_State *Ls, const char *kind, uint64_t addr,
+                    const char *why);
 void audit_bump(lua_State *Ls, const char *cls);
 void audit_read_tick(lua_State *Ls);
 void audit_attribute(lua_State *Ls, char *out, size_t cap, int *line);
@@ -358,6 +362,18 @@ int  audit_distinct_count(void);
 // userdir resolution in three places).
 const wchar_t *save_dir_w(void);
 const char *logs_dir_utf8(void);
+
+// ---- memory-domain gates (hoi4_memgate.cpp, policy tightening 2026-09-23) --
+// write: target pages must be committed, writable (PAGE_READWRITE/WRITECOPY),
+//        non-executable, in NO module except hoi4.exe, off the current
+//        thread's TEB region and stack.
+// call:  target must lie in an executable section of the hoi4.exe image.
+// Both are wired INSIDE the primitives (write_*/call_*) so every lua_State is
+// covered; the memory-derived function-pointer call sites (load_save
+// app->vt[+880], game_pause mgr->vt[+656]) pass resolved targets through
+// memgate_exec_ok as well.
+int memgate_exec_ok(uint64_t addr);
+int memgate_write_ok(uint64_t addr, uint64_t len);
 
 // H helpers (hoi4_game.cpp): plain-C invokables for the HTTP module
 int  game_pause_invoke(int state);               // 1 on call, 0 on failure
