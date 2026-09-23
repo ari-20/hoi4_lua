@@ -92,12 +92,11 @@ local function div_final_dest(div)
     return nil
 end
 
--- 空闲 = 无路径 ∧ 无战斗 ∧ 未挂军群令 (front/garrison 类) ∧ 非外派远征师
+-- 空闲 = 没在移动 (无路径) ∧ 没在战斗 ∧ 非外派远征师。
+-- ⚠ 不看 +192 军群回指: 正规军师几乎全挂军群, 挂军群 ≠ 有移动/战斗令。
 local function div_idle(div)
     if div_final_dest(div) then return false end
     if (ru32(div + 436) or 0) ~= 0 then return false end        -- combats count
-    local og = rp(div + 192)
-    if og and og ~= 0 then return false end                     -- _pOrdersGroup
     if (ru32(div + 476) or 0) ~= 0 then return false end        -- expeditionary_owner
     return true
 end
