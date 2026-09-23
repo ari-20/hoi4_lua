@@ -245,7 +245,10 @@ local function autohunt_body(berserk)
                         local npv = rp(parr + 8 * np)
                         if npv and npv ~= 0 then
                             local ctl = ru32(npv + 392) or 0
-                            local occ = ru32(npv + 236) or 0
+                            -- 空格 = 陆军 (type==0) 在场数为 0 — 不能数全省
+                            -- 单位 (+236): 港口停泊的敌舰队 (CTaskForce,
+                            -- t105 实测 12364) 会被误当守军挡住空格
+                            local occ = ru32(npv + 284) or 0
                             if ctl > 0 and enemies[ctl] and occ == 0 then
                                 local div = g.idle[1]
                                 if issue_move(div, np) then
