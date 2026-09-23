@@ -1,0 +1,42 @@
+# Test payloads for meta_effect + GetTokenLocalizedKey.
+# The decision calls test_meta_effect_token_reload.
+#
+# The infantry token is localized by the test Mod to one of the two payload
+# effect names. Change the localization value from A to B, run reload loc,
+# and click the same decision again to test runtime dispatch.
+
+test_meta_effect_payload_a = {
+	set_country_flag = test_meta_effect_payload_a_executed
+	set_variable = { test_meta_effect_last_payload = 1 }
+	log = "TEST_META_PAYLOAD_A_EXECUTED ROOT=[GetLogRoot]"
+	add_political_power = 1
+}
+
+test_meta_effect_payload_b = {
+	set_country_flag = test_meta_effect_payload_b_executed
+	set_variable = { test_meta_effect_last_payload = 2 }
+	log = "TEST_META_PAYLOAD_B_EXECUTED ROOT=[GetLogRoot]"
+	add_political_power = 2
+}
+
+test_meta_effect_token_reload = {
+	# Use an ordinary database token whose localized value is overridden by
+	# the test Mod. GetTokenKey and GetTokenLocalizedKey are logged separately.
+	set_temp_variable = { test_token = token:infantry }
+	log = "TEST_META_TOKEN_KEY=[?test_token.GetTokenKey]"
+	log = "TEST_META_TOKEN_LOCALIZED_KEY=[?test_token.GetTokenLocalizedKey]"
+
+	# The localized token value becomes the scripted effect key here.
+	# Initially it is test_meta_effect_payload_a; after editing the loc file
+	# to test_meta_effect_payload_b and running reload loc, it should dispatch B.
+	meta_effect = {
+		text = {
+			[DYNAMIC_EFFECT] = yes
+		}
+		DYNAMIC_EFFECT = "[?test_token.GetTokenLocalizedKey]"
+		debug = yes
+	}
+
+	set_variable = { test_meta_outer_completed = 1 }
+	log = "TEST_META_OUTER_COMPLETED ROOT=[GetLogRoot]"
+}

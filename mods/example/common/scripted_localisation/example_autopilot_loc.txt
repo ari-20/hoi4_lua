@@ -1,0 +1,27 @@
+defined_text = {
+	name = GetExampleAutosaveDesc
+	text = { trigger = { has_global_flag = EXAMPLE_AUTOSAVE_ON } localization_key = EXAMPLE_DESC_AUTOSAVE_ON }
+	text = { trigger = { always = yes } localization_key = EXAMPLE_DESC_AUTOSAVE_OFF }
+}
+defined_text = {
+	name = GetExampleResearchDesc
+	text = { trigger = { has_global_flag = EXAMPLE_RESEARCH_ON } localization_key = EXAMPLE_DESC_RESEARCH_ON }
+	text = { trigger = { always = yes } localization_key = EXAMPLE_DESC_RESEARCH_OFF }
+}
+defined_text = {
+	name = GetExampleFocusDesc
+	text = { trigger = { has_global_flag = EXAMPLE_FOCUS_ON } localization_key = EXAMPLE_DESC_FOCUS_ON }
+	text = { trigger = { always = yes } localization_key = EXAMPLE_DESC_FOCUS_OFF }
+}
+defined_text = {
+	name = GetExampleBuildDesc
+	text = { trigger = { has_global_flag = EXAMPLE_BUILD_CIV } localization_key = EXAMPLE_DESC_BUILD_CIV }
+	text = { trigger = { has_global_flag = EXAMPLE_BUILD_MIL } localization_key = EXAMPLE_DESC_BUILD_MIL }
+	text = { trigger = { has_global_flag = EXAMPLE_BUILD_REF } localization_key = EXAMPLE_DESC_BUILD_REF }
+	text = { trigger = { always = yes } localization_key = EXAMPLE_DESC_BUILD_OFF }
+}
+defined_text = {
+	name = GetExampleReviewDesc
+	text = { trigger = { has_global_flag = EXAMPLE_REVIEW_PENDING } localization_key = EXAMPLE_DESC_REVIEW_BUSY }
+	text = { trigger = { always = yes } localization_key = EXAMPLE_DESC_REVIEW_READY }
+}

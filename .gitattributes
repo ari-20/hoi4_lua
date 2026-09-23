@@ -1,0 +1,28 @@
+# Line-ending policy: sources are LF in the repo, checked out as-is except
+# for Windows script formats that cmd/PowerShell want with CRLF.
+* text=auto
+
+# Windows scripts require CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# C/C++ sources stay LF everywhere
+*.cpp text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
+
+# Lua sources and headers: LF
+*.lua text eol=lf
+*.c text eol=lf
+
+# Windows-native formats
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+
+# Never normalize binaries
+*.lib binary
+*.dll binary
+*.exe binary
+*.png binary
+*.gif binary

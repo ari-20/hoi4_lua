@@ -1,0 +1,89 @@
+name: release
+
+# Tag-triggered binary release, for users without a local compiler.
+#   git tag v0.1.0 && git push origin v0.1.0
+# -> builds the full chain on windows-latest and publishes a GitHub Release
+#    (hoi4_bridge.dll + hoi4_launcher.exe, zipped) for that framework tag.
+#
+# Tag = framework release version (v<semver>). The supported GAME build is
+# NOT the tag's job: one game build will see many framework releases. The
+# workflow reads the pinned game version from src/hoi4_offsets.h
+# (OFF_VERSION) and states it in the release notes; the DLL itself refuses
+# to activate on any other hoi4.exe build.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # create the release and upload assets
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: recursive   # mbedtls + its own nested framework submodule
+
+      - name: Build Mbed TLS (Release, /MT)
+        shell: cmd
+        run: tools\build_mbedtls.cmd
+
+      - name: Build Lua 5.4.7 static lib
+        shell: cmd
+        run: third-party\lua54\build_lua.cmd
+
+      - name: Build DLL + launcher
+        shell: cmd
+        run: tools\build_dll.cmd
+
+      - name: Verify artifacts
+        shell: powershell
+        run: |
+          if (-not (Test-Path 'hoi4_bridge.dll')) { throw 'hoi4_bridge.dll not produced' }
+          if (-not (Test-Path 'hoi4_launcher.exe')) { throw 'hoi4_launcher.exe not produced' }
+
+      - name: Read the pinned game version
+        id: gamever
+        shell: pwsh
+        run: |
+          $m = Select-String -Path src/hoi4_offsets.h `
+                 -Pattern 'OFF_VERSION\s+"([^"]+)"'
+          $v = $m.Matches[0].Groups[1].Value
+          echo "version=$v" >> $env:GITHUB_OUTPUT
+          echo "pinned game build: $v"
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $name = "hoi4_lua-$($env:GITHUB_REF_NAME -replace '^v','')-win-x64.zip"
+          Compress-Archive -Path hoi4_bridge.dll, hoi4_launcher.exe -DestinationPath $name
+          echo "zip=$name" >> $env:GITHUB_OUTPUT
+        id: pkg
+
+      - name: Create release and attach binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GAMEVER: ${{ steps.gamever.outputs.version }}
+          ZIP: ${{ steps.pkg.outputs.zip }}
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          if (-not $tag) { $tag = "untagged-$(Get-Date -Format yyyyMMddHHmmss)" }
+          $notes = @(
+            "框架版本 $tag；适配游戏 hoi4.exe **$env:GAMEVER**。",
+            "DLL 内建 PE 签名校验，仅在该游戏构建上激活，其他版本拒绝加载。",
+            "",
+            "- ``hoi4_launcher.exe`` 与 ``hoi4_bridge.dll`` 必须放在同一目录",
+            "  （launcher 从自身目录加载 DLL）。",
+            "- 产物未签名：Windows SmartScreen / 杀软可能提示。",
+            "- 构建来源 = 本 tag 源码（GitHub Actions, windows-latest, MSVC /MT）。",
+            "- 许可证见源码树 THIRD-PARTY-NOTICES.md。",
+            "",
+            "Framework $tag, pinned to hoi4.exe $env:GAMEVER (PE-signature",
+            "verified; refuses other builds). Unsigned binaries."
+          ) -join "`n"
+          gh release create $tag --title "hoi4_lua $tag (game $env:GAMEVER)" `
+            --notes $notes "$env:ZIP"

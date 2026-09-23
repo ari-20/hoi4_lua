@@ -1,0 +1,23 @@
+test_meta_effect_token_category = {
+	test_meta_effect_token_decision = {
+		icon = generic_decision
+		fire_only_once = no
+		days_re_enable = 0
+
+		visible = {
+			is_ai = no
+		}
+
+		available = {
+			is_ai = no
+		}
+
+		ai_will_do = {
+			base = 0
+		}
+
+		complete_effect = {
+			test_meta_effect_token_reload = yes
+		}
+	}
+}

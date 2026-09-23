@@ -1,0 +1,5 @@
+﻿l_simp_chinese:
+  test_meta_effect_token_category: "Meta Effect Token 测试"
+  test_meta_effect_token_decision: "执行 meta_effect Token 测试"
+  test_meta_effect_token_decision_desc: "记录 GetTokenKey 和 GetTokenLocalizedKey，然后使用 infantry token 的本地化值动态调用 scripted effect。"
+  infantry: "test_meta_effect_payload_b"

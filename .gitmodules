@@ -1,0 +1,3 @@
+[submodule "third-party/mbedtls"]
+	path = third-party/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls.git

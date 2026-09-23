@@ -1,0 +1,88 @@
+name: security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Pinned third-party actions (see build.yml for the update procedure).
+jobs:
+  gitleaks:
+    name: secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0   # full history: scan every commit, not just the tip
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: false
+
+  # CodeQL: extra static-analysis eyes on the C++ sources. Expect a noisy
+  # rate on raw-Win32/SEH style code; treat findings as advisory, not gates.
+  codeql:
+    name: code analysis (CodeQL)
+    runs-on: windows-latest
+    permissions:
+      security-events: write   # SARIF upload path (currently unused: see analyze step)
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: recursive
+
+      - name: Compute dependency key
+        id: depkey
+        shell: powershell
+        run: |
+          $mbed = (git submodule status third-party/mbedtls) -replace '\s.*$',''
+          $luaHash = (Get-FileHash -Algorithm SHA256 third-party\lua54\build_lua.cmd).Hash.Substring(0,12)
+          $mbedScript = (Get-FileHash -Algorithm SHA256 tools\build_mbedtls.ps1).Hash.Substring(0,12)
+          "key=mbedtls-$($mbed.Trim())-luabuild-$luaHash-mbedscript-$mbedScript" >> $env:GITHUB_OUTPUT
+
+      - name: Cache built third-party libs
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            third-party/mbedtls/build/library/Release
+            third-party/lua54/lua54_static.lib
+          key: ${{ steps.depkey.outputs.key }}
+
+      - uses: github/codeql-action/init@16140ae1a102900babc80a33c44059580f687047 # v4.30.9
+        with:
+          languages: cpp
+          queries: security-extended
+
+      # Only the DLL sources matter for the traced database; restore the
+      # prebuilt third-party libs from cache instead of recompiling them.
+      - name: Build Mbed TLS (Release, /MT)  # no-op when the cache hit provides the libs
+        shell: cmd
+        run: if not exist third-party\mbedtls\build\library\Release\mbedcrypto.lib tools\build_mbedtls.cmd
+
+      - name: Build Lua 5.4.7 static lib
+        shell: cmd
+        run: if not exist third-party\lua54\lua54_static.lib third-party\lua54\build_lua.cmd
+
+      - name: Build DLL (so CodeQL traces the real compilation)
+        shell: cmd
+        run: tools\build_dll.cmd
+
+      - uses: github/codeql-action/analyze@16140ae1a102900babc80a33c44059580f687047 # v4.30.9
+        with:
+          category: "/language:cpp"
+          # Private personal repos cannot use the code-scanning API (GHAS is
+          # paid) — keep results as a downloadable SARIF artifact instead.
+          # Flip upload to true (and drop the artifact step) if the repo
+          # ever goes public; the alerts UI lights up with history intact.
+          upload: false
+
+      - name: Store SARIF results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: codeql-cpp-sarif
+          path: results/cpp.sarif

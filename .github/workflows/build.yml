@@ -1,0 +1,125 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Third-party actions are pinned to full commit SHAs (supply-chain hygiene:
+# a mutable tag can be repointed by the action's owner at any time).
+# Update procedure: resolve the new tag's SHA (gh api repos/<o>/<r>/commits/<tag>)
+# and replace the inline SHA (uses: owner/repo@<sha> # vX.Y) — expressions in uses: are not supported.
+jobs:
+  test:
+    name: unit tests (LDE decoder)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run tests
+        shell: cmd
+        run: tools\run_tests.cmd
+
+  build:
+    runs-on: windows-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: recursive   # mbedtls + its own nested framework submodule
+
+      # built libs depend on: submodule pin (for mbedtls), tool script state,
+      # and the vendored lua sources. Hash all of it into the cache key.
+      - name: Compute dependency key
+        id: depkey
+        shell: powershell
+        run: |
+          $mbed = (git submodule status third-party/mbedtls) -replace '\s.*$',''
+          $luaHash = (Get-FileHash -Algorithm SHA256 third-party\lua54\build_lua.cmd).Hash.Substring(0,12)
+          $mbedScript = (Get-FileHash -Algorithm SHA256 tools\build_mbedtls.ps1).Hash.Substring(0,12)
+          "key=mbedtls-$($mbed.Trim())-luabuild-$luaHash-mbedscript-$mbedScript" >> $env:GITHUB_OUTPUT
+
+      - name: Cache built third-party libs
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            third-party/mbedtls/build/library/Release
+            third-party/lua54/lua54_static.lib
+          key: ${{ steps.depkey.outputs.key }}
+
+      - name: Build Mbed TLS (Release, /MT)  # no-op when the cache hit provides the libs
+        shell: cmd
+        run: if not exist third-party\mbedtls\build\library\Release\mbedcrypto.lib tools\build_mbedtls.cmd
+
+      - name: Build Lua 5.4.7 static lib
+        shell: cmd
+        run: if not exist third-party\lua54\lua54_static.lib third-party\lua54\build_lua.cmd
+
+      - name: Build DLL + launcher
+        shell: cmd
+        run: tools\build_dll.cmd
+
+      - name: "Smoke: launcher --probe resolves and exits cleanly"
+        shell: pwsh
+        run: |
+          # probe resolves DLL/EXE/log paths and exits 0 without launching.
+          # On the runner there is no Steam and no local install, so the
+          # expected outcome is a DIAGNOSTIC failure (exit 1, "hoi4.exe not
+          # found") — proving the exe starts, parses args, and fails closed
+          # instead of crashing. Any other exit code (crash, hang) fails.
+          $p = Start-Process -FilePath .\hoi4_launcher.exe -ArgumentList '--probe' `
+                -NoNewWindow -Wait -PassThru
+          Write-Host "launcher --probe exit code: $($p.ExitCode)"
+          if ($p.ExitCode -notin 0, 1) {
+            throw "unexpected exit code $($p.ExitCode) (expected 0 or 1)"
+          }
+
+      - name: Verify artifacts
+        shell: powershell
+        run: |
+          if (-not (Test-Path 'hoi4_bridge.dll')) { throw 'hoi4_bridge.dll not produced' }
+          if (-not (Test-Path 'hoi4_launcher.exe')) { throw 'hoi4_launcher.exe not produced' }
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bridge-win-x64
+          path: |
+            hoi4_bridge.dll
+            hoi4_bridge.map
+            hoi4_launcher.exe
+
+  book-lint:
+    name: book lint (md_table_check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Lint the book (tables / headings / forbidden residue)
+        run: python3 tools/md_table_check.py book/ --dir
+
+  # ClamAV canary over the built artifacts. Real value here is NOT catching
+  # "our" malware (the artifacts are built from this repo's own source in the
+  # same run) but early warning that the artifacts LOOK suspicious to virus
+  # scanners — game-injection DLLs are prone to generic heuristics flags.
+  # ClamAV's detection set is weaker than commercial AVs: a clean pass is a
+  # weak signal, a hit is a strong one.
+  clamav:
+    name: ClamAV artifact scan
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ClamAV
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clamav
+
+      - name: Update signature database
+        run: |
+          # the runner's stock clamav-freshclam daemon holds the log/db lock
+          sudo systemctl stop clamav-freshclam
+          sudo freshclam --quiet
+          sudo systemctl start clamav-freshclam || true
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: bridge-win-x64
+
+      - name: Scan artifacts
+        run: clamscan --infected --recursive --bell .

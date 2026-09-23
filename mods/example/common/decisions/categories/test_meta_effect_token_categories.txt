@@ -1,0 +1,8 @@
+test_meta_effect_token_category = {
+	icon = generic_decision
+	allowed = {
+	}
+	visible = {
+		always = no
+	}
+}

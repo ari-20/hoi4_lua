@@ -1,0 +1,12 @@
+add_namespace = example_review_event
+
+country_event = {
+	id = example_review_event.1
+	title = example_review_event.1.t
+	desc = example_review_event.1.d
+	picture = GFX_report_event_generic_factory
+	is_triggered_only = yes
+	option = {
+		name = example_review_event.1.a
+	}
+}

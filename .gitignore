@@ -1,0 +1,94 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+*.so.*
+
+
+# Fortran module files
+*.mod
+*.smod
+
+# HOI4 mod 描述文件 (同名后缀) 在 mods/ 下须跟踪: 仓库副本不带机器路径,
+# userdir 注册副本 (带 path=) 由 mods/register_userdir.ps1 在新克隆/搬迁后生成
+!mods/*/descriptor.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directories
+build/
+Build/
+build-*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*.swp
+
+# vcpkg
+vcpkg_installed/
+
+# debug information files
+*.dwo
+
+# test output & cache
+Testing/
+.cache/
+
+# link/map artifacts
+*.map
+*.exp
+
+# mbedtls submodule build output (untracked inside submodule, documented here)
+third-party/mbedtls/build/
+
+# mods generated artifacts (tmp_ prefix = temporary by convention)
+mods/**/tmp_*
+mods/example/review_config.txt
+mods/**/__pycache__/
+
+# example mod: the review event's loc file is rewritten in full on every
+# in-game review, so the .yml is build output. The .tmpl beside it is the
+# tracked source of truth (example_autopilot.lua materialises the .yml on
+# session start when it is missing).
+mods/example/localisation/*/example_review_l_*.yml
+
+# editor state
+.vscode/

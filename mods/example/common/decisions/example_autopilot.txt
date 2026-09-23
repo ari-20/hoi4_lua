@@ -1,0 +1,161 @@
+example_decisions = {
+
+	# ---- 自动驾驶三开关: 双状态决议对, 按旗切换可见 (决议栏一眼读态) ----
+	example_autosave_on = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = EXAMPLE_AUTOSAVE_ON } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleAutosaveDesc
+		complete_effect = { set_global_flag = EXAMPLE_AUTOSAVE_ON }
+		ai_will_do = { factor = 0 }
+	}
+	example_autosave_off = {
+		icon = generic_operation
+		visible = { is_ai = no has_global_flag = EXAMPLE_AUTOSAVE_ON }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleAutosaveDesc
+		complete_effect = { clr_global_flag = EXAMPLE_AUTOSAVE_ON }
+		ai_will_do = { factor = 0 }
+	}
+
+	example_research_on = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = EXAMPLE_RESEARCH_ON } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleResearchDesc
+		complete_effect = { set_global_flag = EXAMPLE_RESEARCH_ON }
+		ai_will_do = { factor = 0 }
+	}
+	example_research_off = {
+		icon = generic_operation
+		visible = { is_ai = no has_global_flag = EXAMPLE_RESEARCH_ON }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleResearchDesc
+		complete_effect = { clr_global_flag = EXAMPLE_RESEARCH_ON }
+		ai_will_do = { factor = 0 }
+	}
+
+	example_focus_on = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = EXAMPLE_FOCUS_ON } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleFocusDesc
+		complete_effect = { set_global_flag = EXAMPLE_FOCUS_ON }
+		ai_will_do = { factor = 0 }
+	}
+	example_focus_off = {
+		icon = generic_operation
+		visible = { is_ai = no has_global_flag = EXAMPLE_FOCUS_ON }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleFocusDesc
+		complete_effect = { clr_global_flag = EXAMPLE_FOCUS_ON }
+		ai_will_do = { factor = 0 }
+	}
+
+	# ---- 自动建造: 三选一互斥 + 停用 ----
+	example_build_civ = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = EXAMPLE_BUILD_CIV } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleBuildDesc
+		complete_effect = {
+			clr_global_flag = EXAMPLE_BUILD_MIL
+			clr_global_flag = EXAMPLE_BUILD_REF
+			set_global_flag = EXAMPLE_BUILD_CIV
+		}
+		ai_will_do = { factor = 0 }
+	}
+	example_build_mil = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = EXAMPLE_BUILD_MIL } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleBuildDesc
+		complete_effect = {
+			clr_global_flag = EXAMPLE_BUILD_CIV
+			clr_global_flag = EXAMPLE_BUILD_REF
+			set_global_flag = EXAMPLE_BUILD_MIL
+		}
+		ai_will_do = { factor = 0 }
+	}
+	example_build_ref = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = EXAMPLE_BUILD_REF } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleBuildDesc
+		complete_effect = {
+			clr_global_flag = EXAMPLE_BUILD_CIV
+			clr_global_flag = EXAMPLE_BUILD_MIL
+			set_global_flag = EXAMPLE_BUILD_REF
+		}
+		ai_will_do = { factor = 0 }
+	}
+	example_build_off = {
+		icon = generic_operation
+		visible = { is_ai = no OR = { has_global_flag = EXAMPLE_BUILD_CIV has_global_flag = EXAMPLE_BUILD_MIL has_global_flag = EXAMPLE_BUILD_REF } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = GetExampleBuildDesc
+		complete_effect = {
+			clr_global_flag = EXAMPLE_BUILD_CIV
+			clr_global_flag = EXAMPLE_BUILD_MIL
+			clr_global_flag = EXAMPLE_BUILD_REF
+		}
+		ai_will_do = { factor = 0 }
+	}
+
+		# ---- 存档锐评 (大模型, 异步) ----
+		# 常显: 旗条目只能置 0 不能删除, "NOT has_global_flag" 会让本决议
+		# 点过一次就永久消失; 重复提交由效果体内按 flag value==1 拦截
+		example_review_request = {
+			icon = generic_operation
+			visible = { is_ai = no }
+			available = { always = yes }
+			days_re_enable = 0
+			is_good = no
+			fire_only_once = no
+			desc = GetExampleReviewDesc
+			complete_effect = { example_review_request = yes }
+			ai_will_do = { factor = 0 }
+		}
+
+	# ---- 刷新随机数 ----
+	example_reseed = {
+		icon = generic_operation
+		visible = { is_ai = no }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		complete_effect = { example_reseed_rng = yes }
+		ai_will_do = { factor = 0 }
+	}
+}

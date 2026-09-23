@@ -1,0 +1,25 @@
+on_actions = {
+	on_daily = {
+		effect = {
+			if = { limit = { has_global_flag = EXAMPLE_AUTOSAVE_ON is_ai = no }
+				example_autosave_tick = yes
+			}
+			if = { limit = { has_global_flag = EXAMPLE_RESEARCH_ON is_ai = no }
+				example_research_tick = yes
+			}
+			if = { limit = { has_global_flag = EXAMPLE_FOCUS_ON is_ai = no }
+				example_focus_tick = yes
+			}
+			if = { limit = {
+					OR = {
+						has_global_flag = EXAMPLE_BUILD_CIV
+						has_global_flag = EXAMPLE_BUILD_MIL
+						has_global_flag = EXAMPLE_BUILD_REF
+					}
+					is_ai = no }
+				example_build_tick = yes
+			}
+			# 锐评回复走 async 回调 (帧边界派发), 无每日轮询
+		}
+	}
+}
