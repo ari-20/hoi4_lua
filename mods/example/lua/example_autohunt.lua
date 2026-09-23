@@ -49,6 +49,42 @@ local function flag_on(store, tok)
     return false
 end
 
+-- 纯陆军 move 令打不可步行邻接 (跨海峡/海岛) 目标, IsValid 内 mil-access
+-- pathing 评估会空指针 (实测 0xc0000005, call_u64 SEH 兜住返回 nil),
+-- 双层防御: ① CMap+16 海峡规则表 {from,to,through} 12B 条 → 屏蔽集
+-- (CMap 靠 gs 槽扫描启发定位, 不在 gs 前 4KB 时留空集); ② 发令失败
+-- (fault=nil / invalid=0) 的 (源省>目标省) 对进黑名单, 会话内不再尝试。
+local strait = {}
+local bl = {}
+local bl_keys = {}
+local strait_scanned = false
+local function bl_key(a, b) return a * 4194304 + b end  -- 省 id < 2^22
+local function scan_cmap()
+    local gs = rp(B + GS_SLOT)
+    if not gs or gs == 0 then return end
+    local pcount = ru32(gs + 0x2BC) or 0
+    if pcount == 0 or pcount > 200000 then return end
+    for off = 0, 4088, 8 do
+        local m = rp(gs + off)
+        if m and m > 0x10000 then
+            if ru32(m + 560) == pcount and (ru32(m + 564) or 0) <= pcount then
+                local d = rp(m + 16)
+                local c = ru32(m + 28) or 0
+                if d and d ~= 0 and c > 0 and c < 65536 then
+                    for i = 0, c - 1 do
+                        local e = d + 12 * i
+                        local a, b = ru32(e) or 0, ru32(e + 4) or 0
+                        strait[bl_key(a, b)] = true; strait[bl_key(b, a)] = true
+                    end
+                    log("autohunt: strait table " .. c .. " rules (CMap=gs+" .. off .. ")")
+                    return
+                end
+            end
+        end
+    end
+    log("autohunt: CMap not found, strait pre-filter off (blacklist only)")
+end
+
 local function player_cc()
     local gs = rp(B + GS_SLOT)
     if not gs or gs == 0 then return nil end
@@ -133,6 +169,14 @@ local function issue_move(div, target_prov)
 end
 
 -- ---------------------------------------------------------------- 主循环
+-- 空闲师的驻扎省必须是陆省 (海上运输中的师 +496 落海区); 目标省同样;
+-- 每轮起点先建一次海峡屏蔽集 (幂等)
+local function prov_is_land(pid, parr)
+    local pv = rp(parr + 8 * pid)
+    local desc = (pv and pv ~= 0) and rp(pv + 184) or nil
+    if not desc or desc == 0 then return false end
+    return (ru32(desc + 210) or 0) % 2 == 1
+end
 local function autohunt_body(berserk)
     local cc = player_cc()
     if not cc then AUTOHUNT_STATE.mode = "no-player" return end
@@ -185,7 +229,7 @@ local function autohunt_body(berserk)
     for pid, g in pairs(groups) do
         if issued >= MAX_PER_TICK or scanned >= MAX_GROUPS then break end
         scanned = scanned + 1
-        if g.total >= min_total and #g.idle >= 1 then
+        if g.total >= min_total and #g.idle >= 1 and prov_is_land(pid, parr) then
             local pv = rp(parr + 8 * pid)
             local desc = (pv and pv ~= 0) and rp(pv + 184) or nil
             local adata = (desc and desc ~= 0) and rp(desc + 112) or nil
@@ -194,7 +238,10 @@ local function autohunt_body(berserk)
                 if acnt > MAX_NEIGHBORS then acnt = MAX_NEIGHBORS end
                 for k = 0, acnt - 1 do
                     local np = ru32(adata + 48 * k + 8) or 0
-                    if np > 0 and np < pcount and not inbound[np] then
+                    local sk = (np > 0 and np < pcount) and bl_key(pid, np) or 0
+                    if np > 0 and np < pcount and not inbound[np]
+                        and not strait[sk] and not bl[sk]
+                        and prov_is_land(np, parr) then
                         local npv = rp(parr + 8 * np)
                         if npv and npv ~= 0 then
                             local ctl = ru32(npv + 392) or 0
@@ -208,6 +255,11 @@ local function autohunt_body(berserk)
                                         " -> prov " .. np ..
                                         " (ctl tag " .. ctl .. ", " ..
                                         (berserk and "berserk" or "normal") .. ")")
+                                else
+                                    -- fault (nil) 或 invalid (0): 本会话不再试这对
+                                    if #bl_keys < 4096 then
+                                        bl[sk] = true; bl_keys[#bl_keys + 1] = sk
+                                    end
                                 end
                                 break          -- 每源格子每轮只发一令
                             end
@@ -229,14 +281,19 @@ local function autohunt_tick()
     local berserk = flag_on(store, hoi4.name_to_token("EXAMPLE_AUTOHUNT_BERSERK"))
     local on = berserk or flag_on(store, hoi4.name_to_token("EXAMPLE_AUTOHUNT_ON"))
     if not on then AUTOHUNT_STATE.mode = "off" return end
+    if not strait_scanned then strait_scanned = true scan_cmap() end
     autohunt_body(berserk)
 end
 
--- 只读探针: 无头/HTTP 验证用 (回模式 + 最近一轮统计)
+-- 只读探针: 无头/HTTP 验证用 (回模式 + 最近一轮统计; print 在 GUI 进程
+-- 无 stdout, 桥日志只见 DLL 侧行, 状态一律走本探针)
 hoi4.effect("example_autohunt_status", function(n, self, ctx)
     local s = AUTOHUNT_STATE
+    local nbl = 0 for _ in pairs(bl) do nbl = nbl + 1 end
+    local nst = 0 for _ in pairs(strait) do nst = nst + 1 end
     return "mode=" .. tostring(s.mode) .. " divisions=" .. tostring(s.divisions) ..
-        " idle=" .. tostring(s.idle) .. " last_issued=" .. tostring(s.issued)
+        " idle=" .. tostring(s.idle) .. " last_issued=" .. tostring(s.issued) ..
+        " straits=" .. (nst / 2) .. " blacklisted=" .. nbl
 end)
 
 -- 5s 实时定时器 (帧顶主线程派发, 菜单/加载不触发; 会话切换 C 侧清表后
