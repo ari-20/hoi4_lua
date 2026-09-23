@@ -90,7 +90,10 @@ mods\register_userdir.cmd    （或 powershell -File mods\register_userdir.ps1�
   空科研槽自动随机研究、空国策槽自动选国策，空闲民工自动建造；另有 RNG 重播种
   （`eval_effect example_reseed_rng = yes`）和 LLM「存档锐评」事件
   （API key 填在 `mods/example/review_config.txt`，模板见
-  `review_config.example`）。
+  `review_config.example`）。**自动跑马**（决议三开关）：每 5 秒检查一次
+  陆军师，把空闲师派往相邻的无人敌方格子占领——标准档只从有 2 个以上
+  己方师的格子出发（留守 1 个），激进档无视师数见空就抢；空格按陆军
+  在场数判定（港内舰队不算守军），跨海峡/海岛的不可步行目标自动屏蔽。
 - **lua_verify**：内存 ↔ 存档数据一致性验证（导出内存世界态并与存档
   文件对拍）。**对普通用户无用**。使用它需要在游戏设置中关闭二进制
   存档（settings.txt：`save_as_binary=no`），否则存档侧无法解析。
@@ -306,7 +309,13 @@ mods\register_userdir.cmd    (or: powershell -File mods\register_userdir.ps1)
   auto-building on idle civilian factories; plus RNG reseeding
   (`eval_effect example_reseed_rng = yes`) and an LLM "save review" event
   (API key goes into `mods/example/review_config.txt`, see
-  `review_config.example`).
+  `review_config.example`). **Auto-capture** (three decisions): every
+  5 seconds idle army divisions are sent to grab adjacent empty
+  enemy-controlled provinces — the standard mode only sends from tiles
+  holding 2+ own divisions (one stays behind), berserk mode grabs
+  regardless; a province counts as empty by its army presence only
+  (fleets docked in port don't defend), and unreachable targets across
+  straits/islands are filtered automatically.
 - **lua_verify** — memory↔save consistency verification: exports the
   in-memory world state and diffs it against the save file. **Useless for
   normal players.** Requires text saves (settings.txt:
