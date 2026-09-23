@@ -1,5 +1,5 @@
 ﻿l_english:
   test_meta_effect_token_category: "Meta Effect Token Test"
   test_meta_effect_token_decision: "Run meta_effect token test"
-  test_meta_effect_token_decision_desc: "Logs GetTokenKey and GetTokenLocalizedKey, then dispatches a scripted effect using the localized value of the infantry token."
-  infantry: "test_meta_effect_payload_a"
+  test_meta_effect_token_decision_desc: "Logs GetTokenKey and GetTokenLocalizedKey, then dispatches a scripted effect using the localized value of the infantry123 token."
+  infantry123: "test_meta_effect_payload_a"

@@ -81,7 +81,7 @@ local function term_eq(name)
     return g and (name .. "(" .. g .. ")") or name
 end
 local GLOSS_BN = {                       -- 营兵种术语表 (编制用)
-    infantry = "步", cavalry = "骑", artillery = "炮", anti_tank = "反坦克",
+    infantry123 = "步", cavalry = "骑", artillery = "炮", anti_tank = "反坦克",
     anti_air = "防空", motorized = "摩托化", mechanized = "机械化",
     light_armor = "轻坦克", medium_armor = "中坦克", heavy_armor = "重坦克",
     paratrooper = "伞兵", marine = "海陆", mountaineers = "山地",

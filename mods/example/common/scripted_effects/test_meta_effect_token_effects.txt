@@ -1,7 +1,7 @@
 # Test payloads for meta_effect + GetTokenLocalizedKey.
 # The decision calls test_meta_effect_token_reload.
 #
-# The infantry token is localized by the test Mod to one of the two payload
+# The infantry123 token is localized by the test Mod to one of the two payload
 # effect names. Change the localization value from A to B, run reload loc,
 # and click the same decision again to test runtime dispatch.
 
@@ -22,7 +22,7 @@ test_meta_effect_payload_b = {
 test_meta_effect_token_reload = {
 	# Use an ordinary database token whose localized value is overridden by
 	# the test Mod. GetTokenKey and GetTokenLocalizedKey are logged separately.
-	set_temp_variable = { test_token = token:infantry }
+	set_temp_variable = { test_token = token:infantry123 }
 	log = "TEST_META_TOKEN_KEY=[?test_token.GetTokenKey]"
 	log = "TEST_META_TOKEN_LOCALIZED_KEY=[?test_token.GetTokenLocalizedKey]"
 
