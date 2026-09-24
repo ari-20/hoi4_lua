@@ -3,7 +3,7 @@
 ### 4.25 世界层全局对象 (CVariables / region 制海 / threat / 选择组 / 游戏规则 / 脚本地图实体)
 
 > 顶层全局块分驻: variables/region/threat/选择组/游戏规则/脚本地图实体 = 本册; power_balance (按国家索引) → §4.3.21/§4.3.22; 海军战史 (沉船总账/运输船月账) → §4.16.14/§4.16.15;
-> 会话与身份注册 → §4.28; 特务/operation → §4.29; 编制模板 → §4.18; factions → §4.5。
+> 会话与身份注册 → §4.28; 特务/operation → §4.11; 编制模板 → §4.18; factions → §4.5。
 
 #### 4.25.1 CVariables (56B, variables)
 

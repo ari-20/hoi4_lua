@@ -19,7 +19,7 @@ M.rva = {
 }
 
 -- 全局 id 计数器槽 (u32; 多数为 i32 语义)。top_meta 与 session_meta 同源,
--- 收敛于此 (原两份拷贝)。键 = 存档叶名。§4.2 会话元数据簇 (writer 族映射)。
+-- 收敛于此 (原两份拷贝)。键 = 存档叶名。§4.1.6 顶格 # 叶 writer 族 (会话元数据簇)。
 M.rva.counters = {
     theater_group_index                 = 0x3087258,
     military_deployment_line_index      = 0x30B1358,
@@ -35,7 +35,7 @@ M.rva.counters = {
     multiplayer_random_count            = 0x3452520,  -- i32 语义
 }
 
--- 全局版本槽 (save_version / minor_save_version; §4.2 顶格 # 叶)
+-- 全局版本槽 (save_version / minor_save_version; §4.1.6 顶格 # 叶)
 M.rva.save_version       = 0x3335FEC
 M.rva.minor_save_version = 0x3336080
 
@@ -325,8 +325,8 @@ M.vt = {
     CCountryIntel        = 0x295f188,   -- cc+4072 (§4.11.7)
     CCountryIntelAgency  = 0x2981f68,   -- cc+4032
     CCountryReportsMgr   = 0x29D10A8,   -- cc+4064 (§4.3.20 CCountryReportsManager; RTTI 定案, 旧 0x29BA4B8 系 1.19.2)
-    CDeployment          = 0x294f5b0,   -- cc+3952 部署模板 (§4.9 CDeployment)
-    CSubUnitStatBonus    = 0x295faa8,   -- §4.9.1 CSubunitBonusPersistent
+    CDeployment          = 0x294f5b0,   -- cc+3952 部署模板 (§4.18 CDeployment)
+    CSubUnitStatBonus    = 0x295faa8,   -- §4.18.11 CSubunitBonusPersistent
     CBuildingStatus      = 0x2999050,   -- 州级/国家级建筑池共用 (§4.13/§4.3)
     -- 国家经济/生产
     COrganisation        = 0x2967a28,   -- §4.8.12 NIndustrialOrganisation::COrganisation
@@ -356,10 +356,10 @@ M.vt = {
     CCharacter           = 0x297ea60,   -- gs+0x6A8 (§4.4 CCharacter)
     CAdvisorTemplate     = 0x29bba98,   -- §4.4.13 CAdvisorTemplate
     -- 情报/谍报
-    CStrategicOperativesMgr = 0x2973b80, -- gs+0x6A0 (§4.29 CStrategicOperativeManager)
-    CStrategicOperative  = 0x29a2358,   -- §4.29 CStrategicOperative
-    COperativesNet       = 0x29a1a58,   -- §4.29 谍报网
-    COperativesSubNet    = 0x29a1aa8,   -- §4.29 子网
+    CStrategicOperativesMgr = 0x2973b80, -- gs+0x6A0 (§4.11 CStrategicOperativeManager)
+    CStrategicOperative  = 0x29a2358,   -- §4.11 CStrategicOperative
+    COperativesNet       = 0x29a1a58,   -- §4.11 谍报网
+    COperativesSubNet    = 0x29a1aa8,   -- §4.11 子网
     -- 战斗
     CCombatManager       = 0x2950688,   -- gs+0x260 (§4.22 CCombatManager)
     CCombatLogManager    = 0x295d8d8,   -- gs+0x268 (§4.22)
@@ -391,7 +391,7 @@ M.vt = {
     CResourceDelivery    = 0x295c320,   -- rs+1928 交付路由元素 (§4.23 CResourceDeliveryRoute)
     CResourceOrigin      = 0x295c370,   -- 资源起源元素
     -- 元素级虚表 (容器内嵌对象)
-    CIntelSource         = 0x295f138,   -- 谍报网内联 @net+168 (§4.29)
+    CIntelSource         = 0x295f138,   -- 谍报网内联 @net+168 (§4.11)
     CActivityElem        = 0x295a5b0,   -- 活动数据 xp_by_template 元素 (§4.3)
     CActivityElemAir     = 0x2965260,   -- 活动数据 xp_by_airwing 元素 (§4.3)
     CCountryCharacters   = 0x298ae18,   -- cc+4080 country_characters (§4.3)
@@ -401,7 +401,7 @@ M.vt = {
 }
 
 -- ---------------------------------------------------------------- 全局哨兵/纪元常量
--- 数值哨兵与历法纪元 (书 §3.7 哨兵全表 + §4.2)。散写数字一律改引此处。
+-- 数值哨兵与历法纪元 (书 §3.7 哨兵全表 + §4.1.1)。散写数字一律改引此处。
 M.const = {
     DATE_EPOCH    = 43800000,   -- 纪元 = 0.1.1.1 常态 (day0 原点)
     DATE_UNSET    = 43808760,   -- CGameDate 默认构造 "1.1.1.1" (双哨兵之一)

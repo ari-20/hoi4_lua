@@ -129,7 +129,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "strategic_air", emit = function(ctx)
         B("allow_equipment_type", tostring(rp(ba + 136) or 0))
     end
 
-    -- §4.15.4 CAirWing transferring_to id 对解析 (§4.2.2 三注册表源
+    -- §4.15.4 CAirWing transferring_to id 对解析 (§4.1.7 三注册表源
     -- RH 槽表 base+0x3451DC0, 24B 桶;
     -- 1.19.3 定案: 旧 0x3438E60 整组 +0x18F60, 旧址现落字符串区,
     -- rp 读到垃圾 → resolve 恒 nil → transfer/deployment 五叶全 MISS)

@@ -1396,7 +1396,7 @@ local function N33_ai_slot(host, i)
   return d, c
 end
 
--- 33.1 operations 顶层 priority (§4.29 CCountryOperationManager
+-- 33.1 operations 顶层 priority (§4.11 CCountryOperationManager
 -- @cc+5544; priority u32@ops+88 = 书)
 function Country.operations_top(self)
   local ops = rp(self.addr + 5544)
@@ -1591,9 +1591,9 @@ function Country.equipment_market_country(self)
   return out
 end
 
--- 33.5 intel_source 三挂载 (§4.29 情报源: radar cc+4416 /
+-- 33.5 intel_source 三挂载 (§4.11 情报源: radar cc+4416 /
 -- tokens cc+5552 / cryptology ag+288; 元素布局/开键条件 = 书
--- §4.3 +4416 行与 §4.29)
+-- §4.3 +4416 行与 §4.11)
 -- 内存观测 (读侧参考): 三挂载 pool 恒 3/1/2, id = 国家数组 idx+1,
 -- discriminant 全 0
 function Country.intel_sources(self)

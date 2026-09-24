@@ -778,8 +778,8 @@ local function sec_history(ctx)
 end
 
 -- ============================================================
--- §4.1.4 全局顶层块 flags (global CFlagStore *(gs+600) = §1.2 +600;
--- 条目布局 = 书 §4.1.4 + CScriptFlag §4.13.3 — 与 country.flags
+-- §4.1.5 全局顶层块 flags (global CFlagStore *(gs+600) = §1.2 +600;
+-- 条目布局 = 书 §4.1.5 + CScriptFlag §4.13.3 — 与 country.flags
 -- 同构同规则, 见 sv2_sec_c_flags.lua)
 -- ============================================================
 local function sec_flags(ctx)
@@ -837,7 +837,7 @@ local function sec_sunk_convoys(ctx)
 end
 
 -- ============================================================
--- §4.2.11 ships_built (挂 §1.2 +2520 std::map; 布局/写门/0 值也写 = 书 §4.2.11)
+-- §4.1.16 ships_built (挂 §1.2 +2520 std::map; 布局/写门/0 值也写 = 书 §4.1.16)
 -- ============================================================
 local function sec_ships_built(ctx)
     local emit, gs = ctx.emit, ctx.gs
@@ -1114,7 +1114,7 @@ end
 
 -- ============================================================
 -- ============================================================
--- §4.1.4 difficulty_settings (挂 §1.2 +1064; 布局/写门 = 书 §4.1.4;
+-- §4.1.5 difficulty_settings (挂 §1.2 +1064; 布局/写门 = 书 §4.1.5;
 -- 键 difficulty 重复编号 [2]..)
 -- ============================================================
 local function sec_difficulty_settings(ctx)
@@ -1161,8 +1161,8 @@ local function sec_game_rules(ctx)
 end
 
 -- ============================================================
--- §4.1.4 to_be_deleted (挂 §1.2 +1224; 元素布局/键序/条目类型 61 =
--- 书 §4.1.4; 同槽 gs+2608 tutorial_chapter 门恒关无标本, 暂不发)
+-- §4.1.5 to_be_deleted (挂 §1.2 +1224; 元素布局/键序/条目类型 61 =
+-- 书 §4.1.5; 同槽 gs+2608 tutorial_chapter 门恒关无标本, 暂不发)
 -- ============================================================
 local function sec_to_be_deleted(ctx)
     local emit, gs = ctx.emit, ctx.gs

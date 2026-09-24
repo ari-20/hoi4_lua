@@ -43,7 +43,7 @@ function SL.idpair(id, ty)
     return string.format("id=%d type=%d", id or -1, ty or 0)
 end
 
--- 同名键出现序计数器 (savefull [N] 契约 §4.2.9 提取路径/序号契约:
+-- 同名键出现序计数器 (savefull [N] 契约 §4.1.14 提取路径/序号契约:
 -- 首现不编号, 第二起 [2] [3]...)
 -- 用法: local seq = SL.seqc; local key = seq("division_template")
 function SL.seqc()

@@ -141,7 +141,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +1168 | CState** | **contested_states_pending 暂存队列数据** (合入 +1144 前的暂存) | AddContestedState 先暂存, points 重算并入 |
 | +1180 | u32 | 上述队列计数 | 高置信 |
 | +1181..+1191 | — | = contested_pending {data@1168, cap@1176, count@1180, alloc@1184..1191} | |
-| +1192 | CState** | cores 容器数据指针 — vector<CState*> 8B 州指针, 经 gs+712 反查州 id, 保容器序 (禁止排序); 与 §4.2 TOPC 条目非同一对象 (TOPC = gs 基) | §4.3.8 起; **GUI: 被占领国 owned states 计数** (cc+1192/{+1204} × state+204==玩家 过滤 → 州数 "x/y"; sub_14155D120) |
+| +1192 | CState** | cores 容器数据指针 — vector<CState*> 8B 州指针, 经 gs+712 反查州 id, 保容器序 (禁止排序); 与 §4.1.2 TOPC 条目非同一对象 (TOPC = gs 基) | §4.3.8 起; **GUI: 被占领国 owned states 计数** (cc+1192/{+1204} × state+204==玩家 过滤 → 州数 "x/y"; sub_14155D120) |
 | +1204 | u32 | cores 容器计数 | §4.3.8 起 |
 | +1205..+1215 | — | = cores {data@1192, cap@1200, count@1204, alloc@1208..1215} | |
 | +1216 | CState** | claims 容器数据指针 — vector<CState*> 与 cores 完全同构; c>0 才写 | §4.3.8 起 |
@@ -167,7 +167,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +3833..+3935 | — | = _pFocusPalette@3832 尾 + **CModifier#2 后 96B** (3840..3935, 按 §4.3.8 通用表) | |
 | +3936 | CTechnologyStatus* | 科技状态 | §4.7 |
 | +3944 | CProductionStatus* | 生产状态 | §4.8; **GUI: 多消费者** — 生产面板直读 (无存储 target) / 师设计装备原型池 (D+264×) / Reorg 可部署池 (+512 库存 × CAirBase+136) / B15 工厂占用条 (详 §4.8 消费链) |
-| +3952 | CDeployment* | 部署 | §4.9; **GUI: 装备可用性校验表** (D+180 16B 条 × cc+3952; def+1448 并入) |
+| +3952 | CDeployment* | 部署 | §4.18; **GUI: 装备可用性校验表** (D+180 16B 条 × cc+3952; def+1448 并入) |
 | +3960 | CReinforcementStatus* | reinforcement_priority (u32@obj+8; **写门 ≠1**, 1=默认值不落盘) | §4.10; vt 0X29D1E48 (探针+RTTI); **GUI: 增援优先级行** (CArmyReinforcementItem GetPriority = 本对象+8, 回退 1 与写门互证; 命令 = CSetCountryReinforcementPriorityCommand {+40 tag / +44 priority}) |
 | +3968 | CArmyUpgradesStatus* | 陆军升级状态 (剧场) | §4.3.8 起; vt 0X29D1FF8 (探针+RTTI); **GUI: 升级优先级行** (CArmyUpgradeItem GetPriority = 本对象+8 — 升级链 = 装备升级优先级状态机; 命令 = CSetCountryUpgradePriorityCommand {+40 tag / +44 priority}) |
 | +3976 | CDiplomacyStatus* | 外交 (capitulated b@+736 / cap_date hours@+752 / last_surrender hours@+696 / hosting tid@+424 / legitimacy ×1e-5@+432 / gov_in_exile_we_host {d@+400, c@+412}, writer 0X140D47400) | §4.10 |
@@ -185,7 +185,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4040 | CLoopHistory* | **CLoopHistory** (0x38B, ctor sub_141516640(5,0)+sub_141516990(·,1); country.history 三队列族; writer L863 ADEC0(0x2835)) | §4.3.11 |
 | +4048 | CCountryOccupationStatus* | **CCountryOccupationStatus** (0x128 字节, vt 0X142982CF0 RTTI 定名); 序列化 writer 0X141000120 — ⚠ a1 = occ+24 基差 24 (division_template_id reader+120 ↔ writer+96 同证) | §4.3.8 起; **GUI: 占领面板数据源**; 布局/日志条目详 §4.3.2 |
 | +4056 | CCountryCollaborationStatus* (vt 0x1429BCC68; 条目 24B = **CCountryCollaborationData**, vt 0x1429BCC18, 槽[2] writer 0x1413F5C70 / [4] reader 0x1413F53A0) | **collaboration (0x4BB0)**: {data@+40, count@+52} 8B 指针数组, 条目 CCountryCollaborationData 24B {vt@0, tag tid u32@+8, value i64×1e-5@+16} (ctor 0X1413F46E0 malloc 0x18; body writer 0X1413F5C70 AE590(776,+16)); 外层块嵌套同名两层 (国家 writer sub_1407191B0 ADEC0(0x4BB0, cc+4056); body 0X1413F5C90; reader 0X1413F53C0), 内层键 = occupier tag — ⚠ 挂载 cc+4056, 非 +4048 occupation | §4.3.8 起; **GUI: 战争盟友行 collaboration 图标** (CWarAllyItem: count@+52 消费) |
-| +4064 | 匿名结构* | **country_reports** | §4.29.4; writer ADEC0 0x4BC3 |
+| +4064 | 匿名结构* | **country_reports** | §4.11.14; writer ADEC0 0x4BC3 |
 | +4072 | 匿名结构* | **intel** | §4.11; writer ADEC0 0x30EC; loader case 12524 同 |
 | +4080 | CCountryCharacters* | **characters 宿主 (0x138 堆对象, ctor malloc 双调用点直证; vt 0X14298AE18, 活体探针 + ASLR 换算 + RTTI 名三证; ctor sub_1410E8A20 / dtor sub_1410E8C70); writer 块键 0x4C14; 断言 "Unit leader without a character" 互证; 8 张指针表; ⚠ sub_1411867E0 = 任命资格校验器 (技能门槛+理由串), 与本对象无代码关系 | §4.4; 内部表见下; **GUI: 阵营指挥官窗候选列表** (Repopulate sub_141BFA2A0; EFilterFactionCommanders 掩码 15 @win+4504) |
 | chars+16 | 容器 | status {d@+16, count@+28} | 16B 元素 {status ref ptr@+0, flags u32@+8}: bit0 country_leader / bit8 advisor / bit16 unit_leader / bit24 scientist |
@@ -323,7 +323,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +5532 | u32 | name_group 计数 | 定案 |
 | +5533..+5543 | — | = name_group 容器尾: count@5532 高 3B + **alloc@5536 哨兵** | |
 | +5544 | scoped_ptr<CCountryOperationManager> | **operations** → **CCountryOperationManager** (0x60B; 内联 ctor: vt + CCountryFinishedOperations vt@+40, f32@+76=0.9) | writer ADEC0 0x4A38, 前置 scopedptr 断言 (定案) |
-| +5552 | scoped_ptr<CCountryOperationTokenManager> | **tokens** → **CCountryOperationTokenManager** (0x48B; ctor sub_141405CF0(cc); 落键 intel_source/operation_assets, 旧键 tokens 兼容 — 布局 §4.29.7) | writer ADEC0 0x4A48 (定案) |
+| +5552 | scoped_ptr<CCountryOperationTokenManager> | **tokens** → **CCountryOperationTokenManager** (0x48B; ctor sub_141405CF0(cc); 落键 intel_source/operation_assets, 旧键 tokens 兼容 — 布局 §4.11.17) | writer ADEC0 0x4A48 (定案) |
 | +5553..+5559 | — | = tokens scopedptr@5552 尾 7B | |
 | +5560 | 匿名结构 (88B 形状)* | **active_ability 数组数据** (88B 条目) | writer 块键 0x3891, 子键 id/start_date/country/leader/num_units/strategic_region/cost 全对位; 消费详 §4.3.5 |
 | +5572 | u32 | active_ability 计数 | 定案 |

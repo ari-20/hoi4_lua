@@ -247,7 +247,7 @@ mask@vo+36 = 0; 无门遍历会把 .rdata 静态区编译时间戳串当变量�
 #### 4.13.3 CFlagManager (脚本旗标; 指针 st+1344)
 
 vt 0X14295BB98; writer 0X140CBFFC0; 条目类 = **CScriptFlag** 48B (0x30); {data@+8, cap@+16, count@+20, alloc@+24} 标准四元组。
-**同族第二宿主**: career profile wrapper+2448 (§4.2.6) / MIO org +504 (§4.8.11) — 布局同本表, 仅宿主与写序差异。
+**同族第二宿主**: career profile wrapper+2448 (§4.1.11) / MIO org +504 (§4.8.11) — 布局同本表, 仅宿主与写序差异。
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|

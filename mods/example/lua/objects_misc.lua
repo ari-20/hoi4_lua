@@ -1,6 +1,6 @@
 -- objects_misc.lua -- 国家快照 / 国家报告 / 杂项状态 / 部署定义库 (对象层域文件)
--- 结构语义详见书: 顶元 §4.2 / 杂项状态 §4.3.2 起 / 国家报告 §4.3.20 /
--- 阵营 §4.5 / 部署 §4.9 / 外交关系 §4.10。
+-- 结构语义详见书: 顶元 §4.1.2–§4.1.16 / 杂项状态 §4.3.2 起 / 国家报告 §4.3.20 /
+-- 阵营 §4.5 / 部署 §4.18 / 外交关系 §4.10。
 -- 共享层惰性获取 (DLL 字母序下 objects_shared 晚于本文件加载)。
 -- 世代判据 (书 §0.2 对象层文件布局) = GAME.layout 表身份: hoi4_layout 每代
 -- 重建该表, 故 SH.LAYOUT == GAME.layout ⟺ 本代层已建 → 直接复用;
@@ -756,10 +756,10 @@ end
 -- 30.1 (legacy STATIC 静态槽位表已删): 原表持 1.19.2 六库/扩展库地址,
 -- 仅 Runtime.definitions 消费; 二者一并移除 (见 30.4 注)。
 
--- §4.9 CDeploymentStatus / §4.9.2 CMilitaryDeploymentConveyor 命令族
+-- §4.18 CDeploymentStatus / §4.18.12 CMilitaryDeploymentConveyor 命令族
 -- 30.2 deployment_conveyors: 存档 deployment.military_deployment_
 -- conveyor 族全链, dep = rp(cc+3952), conveyor 容器 @dep+72
--- (conveyor/line/md 三层布局与写门 = 书 §4.9.2)
+-- (conveyor/line/md 三层布局与写门 = 书 §4.18.12)
 function Country.deployment_conveyors(self)
   local dep = rp(self.addr + 3952)
   if not O.kptr(dep) then return nil end
@@ -872,7 +872,7 @@ function Country.deployment_conveyors(self)
   return out
 end
 
--- 30.3 deployment_hq: §4.9 CDeploymentStatus (default_hq_template/
+-- 30.3 deployment_hq: §4.18 CDeploymentStatus (default_hq_template/
 -- hq_next_deploy_order 写门 = 书); strategic_navy dockyards/
 -- naval_accident (§4.16.5; M = gs+0x698 国家数组)
 function Country.deployment_hq(self)
@@ -913,7 +913,7 @@ end
 -- 调用, 且旧址失效返回垃圾计数。权威静态资源访问 = resource.lua 的
 -- idb 族 (书 §4.26); 布局知识留档于 git 历史。
 
--- 30.5 top_meta: 存档头部顶格叶 (§4.2 会话元数据簇; 布局与写门 = 书):
+-- 30.5 top_meta: 存档头部顶格叶 (§4.1.2 区界表 + §4.1.6–§4.1.16; 布局与写门 = 书):
 -- 全局计数 rva 直读; gs 内存叶 gmem 偏移; id_counter 表@gs+0x7A8
 -- 条目 0x10 {vt@+0, type@+8, id@+12} 连续同 vt; date/start_date 裸
 -- hours; player = gs+1312 → 国家数组 → tag; ideology = 玩家国
@@ -1001,9 +1001,9 @@ function Runtime.top_meta(self)
   return out
 end
 
--- 30.6 deployment_unit_modifiers (DUM 修饰值族; §4.9.1
+-- 30.6 deployment_unit_modifiers (DUM 修饰值族; §4.18.11
 -- CSubunitBonusPersistent: dep = rp(cc+3952) 容器 {d@+8, c@+20}
--- 112B 元素, 两层列表 + stats 对象 obj+64 — 布局/写门 = 书 §4.9.1)
+-- 112B 元素, 两层列表 + stats 对象 obj+64 — 布局/写门 = 书 §4.18.11)
 -- stat_idx → token (writer 0x1413D34D0 switch, 78 项)
 local STAT2TOK = {
   [0] = 11950,
@@ -1086,9 +1086,9 @@ local STAT2TOK = {
   [77] = 11951,
 }
 
--- §4.9/§4.9.1 CDeployment/CSubunitBonusPersistent: dep = cc+3952, 容器
+-- §4.18/§4.18.11 CDeployment/CSubunitBonusPersistent: dep = cc+3952, 容器
 -- {d@dep+8, c@dep+20} 112B 元素; scan_stats 读元素统计块 (+24 combat_width,
--- 78 槽 STAT2TOK 映射, stats 对象 obj+64 — 与书 §4.9.1 表同源)
+-- 78 槽 STAT2TOK 映射, stats 对象 obj+64 — 与书 §4.18.11 表同源)
 function Country.deployment_unit_modifiers(self)
   local dep = rp(self.addr + 3952)
   if not O.kptr(dep) then return nil end

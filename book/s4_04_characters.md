@@ -12,7 +12,7 @@ RTTI 定案。
 | CUnitLeader | 0X2955B90 | _purecall (0X14253C3B8) | **抽象**: SerializeBody 纯虚, 无直接实例 writer |
 | CArmyLeader | 0X2955CA8 | 0X140C28200 | 首行调基 writer 0X140C1CE70 |
 | CNavyLeader | 0X2955DC0 | 0X140C283F0 | 同上 |
-| COperativeLeader | 0X2955F00 | 0X140C28550 | 特有区全字段表见 §4.29 |
+| COperativeLeader | 0X2955F00 | 0X140C28550 | 特有区全字段表见 §4.11 |
 
 谱系 (RTTI 直读):
 

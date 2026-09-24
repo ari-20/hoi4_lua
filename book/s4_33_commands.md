@@ -730,10 +730,10 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 | 13481 | CSetConveyorLocationCommand | 0x142A48618 | sizeof 56; +40 输送带 idpair 8B(13492) / +48 部署省 u32(10349) | 0x141BA3510 定案: 改部署省; IsValid 错误串出口 = 省界 [0,MaxNrProvinces) + 可达细检 |
 | 13498 | CSetConveyorGroupCommand | 0x142A486E0 | sizeof 64; +40 输送带 idpair 8B(13492) / +48 命令组 idpair 8B(63) / +56 orders 实例号 u32(12342) | 0x141BA3450 定案: 带挂 orders 实例（RTDynamicCast→COrdersGroup） |
 | 13482 | CSetConveyorPriorityCommand | 0x142A48870 | sizeof 56; +40 输送带 idpair 8B(13492) / +48 优先级 u32(141, ≤2 门) | 0x141BA35F0 定案: 带优先级（sub_140CEB480） |
-| 14004 | CChangeConveyorPositionCommand | 0x142A48C58 | sizeof 56; +40 输送带 idpair 8B(13492) / +48 position 枚举 u32(76; 0=移至末尾 1=下移 2=上移 3=移至顶部) | 0x141BA2DE0 定案: 带移位（sub_140D13A70; 断言 militarydeploymentconveyorcommands.cpp:729） |
+| 14004 | CChangeConveyorPositionCommand | 0x142A48C58 | sizeof 56; +40 输送带 idpair 8B(13492) / +48 position 枚举 u32(76; 0=移至末尾 1=下移 2=上移 3=移至顶部; shift 变体) | 0x141BA2DE0 定案: 带移位（sub_140D13A70; 断言 militarydeploymentconveyorcommands.cpp:729） |
 | 14003 | CCollapseConveyorCommand | 0x142A48B90 | sizeof 48; +40 输送带 idpair 8B(13492) | 0x141BA3010 定案: 带折叠态翻转 |
-| 13601 | CRemoveConveyorCommand | 0x142A48D20 | sizeof 48; +40 输送带 idpair 8B(13492) | 0x141BA3320 定案: 删整带（sub_140D12E20） |
-| 13487 | CRemoveConveyorLineCommand | 0x142A48F78 | sizeof 48; +40 带内线 idpair 8B(13491) | 0x141BA33A0 定案: 删带内线（sub_140D12FE0） |
+| 13601 | CRemoveConveyorCommand | 0x142A48D20 | sizeof 48; +40 输送带 idpair 8B(13492) | 0x141BA3320 定案: 删整带（sub_140D12E20）; 带内 >20% 占用时弹确认 |
+| 13487 | CRemoveConveyorLineCommand | 0x142A48F78 | sizeof 48; +40 带内线 idpair 8B(13491) | 0x141BA33A0 定案: 删带内线（sub_140D12FE0）; 线进度 L+96 > 20000 弹确认 (CONVEYOR_LINE_CANCEL_ACCEPT_*) |
 | 19870 | CAssignRailwayGunToOrdersGroup | 0x142972960 | sizeof 72; +40 铁路炮 idpair 数组 {容量@48, 计数@52}(19732) / +64 目标命令组 idpair 8B(10397=COrdersGroup 引用) | 0x140E8EE90 定案: 铁路炮组挂接（数组载荷） |
 | 19871 | CUnassignRailwayGunFromOrdersGroup | 0x142972A28 | sizeof 72; 同 19870 读写体（共享 [22]/[23]） | 0x140E8F1F0 定案: 铁路炮摘组（炮+1072/+1088==group+24 才摘） |
 | 19872 | CRailwayGunManualOrderCommand | 0x142972AF0 | sizeof 72; +40 铁路炮 idpair 数组 {容量@48, 计数@52}(19732) / +64 目标省 u32(10304) | 0x140E8EF60 定案: 铁路炮改挂手动目标（省 id） |
@@ -1074,7 +1074,7 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 | 16777 | NDoctrines::CUnlockGrandDoctrineCommand | sizeof 56; +48 tag(串解析)(10394) / +40 直写(16775) | 解锁 grand doctrine(大主义)（R:{10394=country, 16775=grand_doctrine} + 串:"Invalid elements in subdoctrine unlock command"(两命令共用断言)） | 定案 |
 | 16779 | NDoctrines::CUnlockSubDoctrineCommand | sizeof 64; +56 u32(139) / +60 tag(串解析)(10394) | 解锁 sub doctrine(子主义, 按轨道)（R:{139=track, 10394=country} + 同上共用断言） | 定案 |
 | 10191 | NInternationalMarket::CMarketStockpileClearCommand | sizeof 48; +40 tag(串解析)(10754) | 清空国际市场(某 tag 的)装备库存（R:{10754=tag}） | 高置信 |
-| 10105 | NInternationalMarket::CSetMarketRequestAutomationOptionsCommand | sizeof 48; +44 sub_140DEF040(10598) / +40 tag(串解析)(10754) | 设置国际市场请求自动化选项（R:{10598=option, 10754=tag}） | 定案 |
+| 10105 | NInternationalMarket::CSetMarketRequestAutomationOptionsCommand | sizeof 48; +44 sub_140DEF040(10598) / +40 tag(串解析)(10754); 另有读法 +40 = 请求 id((target)+8) / +44/+46 三旗 | 设置国际市场请求自动化选项（R:{10598=option, 10754=tag}） | 定案 |
 | 15473 | ShowScriptedDiplomaticActionSendPopupCommand | 无 case 标签（待人工核） | 显示 scripted 外交动作「已发送」弹窗（链:{107=target, 10542=actor, 10546=action}） | 定案 |
 
 网络 20 类:

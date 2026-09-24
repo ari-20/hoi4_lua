@@ -2,7 +2,7 @@
 -- reader: c:unlocked_subunits / c:deployment_hq /
 -- c:deployment_unit_modifiers / c:deployment_conveyors;
 -- unit_modifiers 头三叶与 ICAW 按 legacy ev2_secB L2896-2996 内联。
--- writer 规则 (布局/逐叶门 = 书 §4.9/§4.9.2): unlocked_subunits 序 =
+-- writer 规则 (布局/逐叶门 = 书 §4.18/§4.18.12): unlocked_subunits 序 =
 -- std::set RB-tree 中序 (按 token 键序, 非字母序); conveyor/line 容器序
 -- = 写序 — 「序可能不同」系未定案注记 (本档 GER id 升序与向量序一致)
 -- stat_idx → token 映射 (78 项) = objects_v2 §30.6 同表段内拷贝
@@ -29,7 +29,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.deployment", emit = function(ctx)
         return v / 100000
     end
 
-    -- ===== §4.9 CDeployment unlocked_subunits.#N (std::set @dep+56, 中序 = 写序) =====
+    -- ===== §4.18 CDeployment unlocked_subunits.#N (std::set @dep+56, 中序 = 写序) =====
     local usu = c:unlocked_subunits()
     for ui, uu in ipairs(usu and usu.list or {}) do
         if uu.name then
@@ -38,7 +38,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.deployment", emit = function(ctx)
         end
     end
 
-    -- ===== §4.9 CDeployment default_hq_template / hq_next_deploy_order =====
+    -- ===== §4.18 CDeployment default_hq_template / hq_next_deploy_order =====
     local hq = c:deployment_hq()
     if hq then
         if hq.default_hq_id then
@@ -51,9 +51,9 @@ SV2.csec[#SV2.csec + 1] = { name = "country.deployment", emit = function(ctx)
         end
     end
 
-    local dep = rp(c.addr + 3952)          -- §4.3 CCountry +3952 → §4.9 CDeployment
+    local dep = rp(c.addr + 3952)          -- §4.3 CCountry +3952 → §4.18 CDeployment
     if SL.kptr(dep) then
-        -- ===== unit_modifiers.#N (§4.9.1 CSubunitBonusPersistent; 头三叶内联 + 修饰值) =====
+        -- ===== unit_modifiers.#N (§4.18.11 CSubunitBonusPersistent; 头三叶内联 + 修饰值) =====
         -- 容器 {d@dep+8, c@dep+20} 112B 条; type u32@E+64 经 TYPE_TOK 映射,
         -- id tok@E+68 (357=哨兵), number u32@E+72; DUM reader 同容器同序
         -- → 按 k 对齐 mods
@@ -80,8 +80,8 @@ SV2.csec[#SV2.csec + 1] = { name = "country.deployment", emit = function(ctx)
                         .. tostring(mv.name),
                         SL.num(mv.value))
                 end
-                -- 嵌套块 (§4.9.1 USSubUnitStats @类别对象+64; battalion_mult/
-                -- 地形块/动态地形/need_equipment 池 = 书 §4.9.1 表)
+                -- 嵌套块 (§4.18.11 USSubUnitStats @类别对象+64; battalion_mult/
+                -- 地形块/动态地形/need_equipment 池 = 书 §4.18.11 表)
                 local function emit_terrain(tb, tnm, CB2)
                     local av, dv, mv2 = sfx(tb + 16), sfx(tb + 24),
                         sfx(tb + 32)
@@ -151,7 +151,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.deployment", emit = function(ctx)
                             end
                         end
                     end
-                    -- need_equipment (§4.9.1; 池/元素/键名/写门/+720 陷阱 = 书)
+                    -- need_equipment (§4.18.11; 池/元素/键名/写门/+720 陷阱 = 书)
                     local ned, nec = rp(sb + 728), ru32(sb + 740)
                     if kptr(ned) and nec and nec > 0
                         and nec < GAME.layout.lim.PTR_SANE then
@@ -197,7 +197,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.deployment", emit = function(ctx)
                 end
             end
         end
-        -- ===== §4.9 CDeployment initial_carrier_air_wing_deployment (ICAW) =====
+        -- ===== §4.18 CDeployment initial_carrier_air_wing_deployment (ICAW) =====
         -- 内嵌 @dep+240 {d@+8, c@+20}, 16B 条 {名对象 ptr, i64×1e-5};
         -- 空壳门 = ru32(o+0)==0 且 ru32(o+8)==0 (legacy 原样)
         local o = dep + 240
@@ -219,7 +219,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.deployment", emit = function(ctx)
         end
     end
 
-    -- ===== §4.9.2 conveyor/line 全链 military_deployment_conveyor[N] =====
+    -- ===== §4.18.12 conveyor/line 全链 military_deployment_conveyor[N] =====
     local dcx = c:deployment_conveyors()
     local cseq = SL.seqc()
     for _, cv in ipairs(dcx and dcx.list or {}) do
@@ -257,7 +257,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.deployment", emit = function(ctx)
             emit(tag, LK .. "id", SL.idpair(lv.id, lv.id_type))
             emit(tag, LK .. "division_name.type",
                 SL.num(lv.dn_type or 0))
-            -- division_name (布局/写门 = 书 §4.9.2); dn = *(line+32)
+            -- division_name (布局/写门 = 书 §4.18.12); dn = *(line+32)
             if (lv.dn_order or 0) ~= 0 then
                 emit(tag, LK .. "division_name.name_order",
                     SL.num(lv.dn_order))

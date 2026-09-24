@@ -194,7 +194,7 @@ end
 -- 国家子系统偏移表 (全部已验证; 语义详见书 §4.3.1 CCountry 字段布局)
 Country.SUBSYS = {
   technology   = 3936,   -- §4.7 CTechnologyStatus
-  deployment   = 3952,   -- §4.9 CDeployment
+  deployment   = 3952,   -- §4.18 CDeployment
   variables    = 536,    -- §4.13.2 CVariables (scripted_gui_random @+0x220)
   tech_arr     = 3936,
 }
@@ -445,7 +445,7 @@ Country.technology_status = function(self)
 end
 
 -- ------------------------------------------------------------
--- 2.2 部署 §4.9 CDeployment (cc+3952)
+-- 2.2 部署 §4.18 CDeployment (cc+3952)
 -- ------------------------------------------------------------
 Country.deployment = function(self)
   local dep = rp(self.addr + 3952)

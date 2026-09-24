@@ -1,12 +1,12 @@
 -- sv2_sec_c_operations.lua -- country.operations 节点 savefull 直出
--- (csec; §4.29.5 country.operations, ops = *(cc+5544))
+-- (csec; §4.11.15 country.operations, ops = *(cc+5544))
 
 SV2.csec[#SV2.csec + 1] = { name = "country.operations", emit = function(ctx)
     local SL, emit, tag = SV2.lib, ctx.emit, ctx.tag
     local cc = ctx.cc
     if not cc then return end
     local rp, ru32, ru8, kptr = SL.rp, SL.ru32, SL.ru8, SL.kptr
-    -- §4.29.5 country.operations (ops = *(cc+5544))
+    -- §4.11.15 country.operations (ops = *(cc+5544))
     local ops = SL.rp(cc + 5544)
     if not kptr(ops) then return end
     local v = SL.ru32(ops + 88)
@@ -27,7 +27,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.operations", emit = function(ctx)
         return nil
     end
 
-    -- ===== finished (§4.29.5 CCountryFinishedOperations @ops+40;
+    -- ===== finished (§4.11.15 CCountryFinishedOperations @ops+40;
     -- 外 48B 桶 RH §3.2 @ops+40; 内 12B 桶) =====
     do
         local fin = ops + 40
@@ -73,7 +73,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.operations", emit = function(ctx)
         end
     end
 
-    -- ===== running (§4.29.5/§4.29.2 operation 块; 8B 指针容器 @ops+16/+28) =====
+    -- ===== running (§4.11.15/§4.11.12 operation 块; 8B 指针容器 @ops+16/+28) =====
     local MISSION_TOK = { [0] = 12789, 15642, 19232, 15643, 19233, 19228,
         19229, 19230, 19231 }
     local rd, rc = rp(ops + 16), ru32(ops + 28)
@@ -107,7 +107,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.operations", emit = function(ctx)
                     if tt2 then tt2 = GAME.layout.as_i64(tt2) end
                     if tt2 and tt2 ~= 0 then
                         emit(tag, B .. "total", SL.num(tt2 * 1e-5)) end
-                    -- resources 块 (§4.29.2/§4.29.6 COperationResources;
+                    -- resources 块 (§4.11.12/§4.11.16 COperationResources;
                     -- 容器/旗分支 = 书)
                     do
                         local rsd, rsc = rp(op + 344), ru32(op + 356)
@@ -139,7 +139,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.operations", emit = function(ctx)
                             end
                         end
                     end
-                    -- return_on_complete (§4.29.2; 容器/存档半行匿名形态/
+                    -- return_on_complete (§4.11.12; 容器/存档半行匿名形态/
                     -- 提取器 @.#N 折叠规则 = 书)
                     do
                         local rod, roc = rp(op + 368), ru32(op + 380)
@@ -156,7 +156,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.operations", emit = function(ctx)
                             end
                         end
                     end
-                    -- equipment 块恒写 (§4.29.5; ADEC0 0x2F4E 无门);
+                    -- equipment 块恒写 (§4.11.15; ADEC0 0x2F4E 无门);
                     -- 池 {d@op+304, c@op+316} 16B {var ptr, amount i64}
                     -- 门 amount≠0 或 az (定案; id 对 {type@var+8, id@+12})
                     local eqd, eqc = rp(op + 272 + 32), ru32(op + 272 + 44)
@@ -187,7 +187,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.operations", emit = function(ctx)
                         emit(tag, B .. "target_provinces",
                             tostring(ru32(tp + 164) or 0))
                     end
-                    -- operative_slots (§4.29.5; #N 匿名块)
+                    -- operative_slots (§4.11.15; #N 匿名块)
                     local sd, sc = rp(op + 224), ru32(op + 236)
                     if kptr(sd) and sc and sc > 0 and sc < GAME.layout.lim.PTR_SANE then
                         for j = 0, sc - 1 do

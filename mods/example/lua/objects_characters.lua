@@ -1,5 +1,5 @@
 -- objects_characters.lua -- 角色 / 情报三节 / 角色深层族 (对象层域文件)
--- 结构语义详见书: 角色 §4.4 / 情报 §4.11 / 特工与情报机构 §4.29 /
+-- 结构语义详见书: 角色 §4.4 / 情报 §4.11 / 特工与情报机构 §4.11 /
 -- 国策进度 §4.3.14 CFocusStatus。
 -- 共享层惰性获取 (DLL 字母序下 objects_shared 晚于本文件加载)。
 -- 世代判据 (书 §0.2 对象层文件布局) = GAME.layout 表身份: hoi4_layout 每代
@@ -136,10 +136,10 @@ end
 
 
 -- ============================================================
--- §10 情报机构 (§4.29.4 CIntelligenceAgency @cc+4032; vt 键名 CCountryIntelAgency)
+-- §10 情报机构 (§4.11.14 CIntelligenceAgency @cc+4032; vt 键名 CCountryIntelAgency)
 -- ============================================================
--- recruitable/training 元素 = §4.29.1 COperativeLeader (基区 = §4.4.2
--- CUnitLeader, nationalities 容器 = §4.11.2; 字段/写门 = 书 §4.29.1)
+-- recruitable/training 元素 = §4.11.11 COperativeLeader (基区 = §4.4.2
+-- CUnitLeader, nationalities 容器 = §4.11.11 特有区 +3944/+3956)
 local MISSION_NAMES = { [1] = "build_intel_network", [2] = "quiet_network",
   [3] = "counter_intelligence", [4] = "root_out_resistance",
   [5] = "boost_ideology", [6] = "control_trade", [7] = "diplomatic_pressure",
@@ -206,7 +206,7 @@ function Country.intelligence_agency(self)
     elapsed_days_for_next_slot = ru32(ag + 248),
     building = ru32(ag + 256),
     defense = U.fix5(ag + 296) }        -- writer 0x140FCA0F0 (0x2A54)
-  -- §4.29.4 recruitment 三容器之一: recruitable {d@48, c@60}
+  -- §4.11.14 recruitment 三容器之一: recruitable {d@48, c@60}
   out.recruitable = { count = ru32(ag + 60) or 0, list = {} }
   for _, e in O.vec(ag, 48, 60, 8, true) do
     if O.kptr(e) then
@@ -216,7 +216,7 @@ function Country.intelligence_agency(self)
   end
   local lv = rp(ag + 200)
   out.upgrade_progress = lv and lv / 100000 or nil
-  -- §4.29.4 operative 池 {d@216, c@228} + §4.29.1 尾段字段
+  -- §4.11.14 operative 池 {d@216, c@228} + §4.11.11 尾段字段
   out.training_operatives = { count = ru32(ag + 228) or 0, list = {} }
   for _, e in O.vec(ag, 216, 228, 8, true) do
     if O.kptr(e) then
@@ -244,7 +244,7 @@ function Country.intelligence_agency(self)
       out.training_operatives.list[#out.training_operatives.list + 1] = r
     end
   end
-  -- §4.29.4 captured {d@264, c@276} stride 56
+  -- §4.11.14 captured {d@264, c@276} stride 56
   out.captured = { count = ru32(ag + 276) or 0, list = {} }
   local od, oc = rp(ag + 264), ru32(ag + 276)
   if O.kptr(od) and oc and oc < 64 then

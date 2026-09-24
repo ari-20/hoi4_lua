@@ -452,7 +452,7 @@ cached_sum); dip+56/+80 瞬时暂存定案 = 外交 UI 不消费 (§4.10)。
 | 国列表 (countries_grid) | sub_1415F0460 (listCtrl) | 行池 +3864{+3876}; 门 **cc+1156 / capital cc+4120 / cc+5210**; 过滤 +3888/+3912/+3936 三表 + byte+3960 | 候选行四门三滤 → 排序 (sub_1415E59D0) 入格 | countries_grid | 定案 (书表命中) |
 | 国列表行 | sub_141C82C50 | **行+1328 tag / +1344/+1348 双向 opinion** | `diplolist_country_flag` / `name` (sub_140BB4BB0) | diplomacy_country_list_country_entry | 定案 |
 | 行点击 → SetTarget | [12] tag 直写 | 行+1328 → win+17664 | 列表选国与点省同链 | — | 高置信 (链) |
-| 动作面板 (22 动作) | actionCtrl ctor sub_1415E2950 | **+2576 池 {win+17528/+17540}; 每动作 = `standard_<token名>` 窗** | 通用 14 token + 8 特化控制器 (§4.2 全表; 19 控制器 ↔ 动作键 ↔ Action 类对照全量 = §4.10.22) | standard_diplomacy_controller | 定案 |
+| 动作面板 (22 动作) | actionCtrl ctor sub_1415E2950 | **+2576 池 {win+17528/+17540}; 每动作 = `standard_<token名>` 窗** | 通用 14 token + 8 特化控制器 (§4.10.13 动作 token 全表; 19 控制器 ↔ 动作键 ↔ Action 类对照全量 = §4.10.22) | standard_diplomacy_controller | 定案 |
 | 动作可用性门/背景 | CDiplomacyStandardController +32/+40 | token dword / GFX 背景 SSO | 例: GFX_diplo_action_offer_peace_bg (12474) | standard_* | 定案 (读法) |
 | 动作提交/取消 | vt[14] 订阅 | **`send_button` / `cancel_button`** → 各控制器 | tooltip handler = 控制器自身 (vt[2] 绑 vt[69]) | send_button | 定案 |
 | 宣战 wargoals 网格 | [7] 0X141C99DA0 | **我方 dip+104/{+116} ∧ wg+60==对方 tag ∧ 对方 dip+368/{+380} 含**; 行 = CDiplomacyWarGoalItem (0x548, wg+8 idpair) | wargoals_grid; 双侧 tag = 选中 item+1328{+20/+28} | wargoals / wargoals_grid | 定案 (书表命中) |
@@ -650,7 +650,7 @@ mod528 (攻防分离)。定名见 §4.3/§4.11。
 
 | 面板元素/行为 | 取值函数 | 对象+偏移 | 语义+出处 | loc key / 元素 | 置信 |
 |---|---|---|---|---|---|
-| 机构面板目标 | 无存储 SetTarget; @48[9] 0X140F2F3A0 现取 | **owner vt[20] tag → cc → ag=\*(cc+4032)** (§4.3/§4.29.4 ✓) | 「自见」变奏 (§4.30.3/§4.30.11 同款); 面板恒显查看国机构 | countryintelligenceagencyview | 定案 |
+| 机构面板目标 | 无存储 SetTarget; @48[9] 0X140F2F3A0 现取 | **owner vt[20] tag → cc → ag=\*(cc+4032)** (§4.3/§4.11.14 ✓) | 「自见」变奏 (§4.30.3/§4.30.11 同款); 面板恒显查看国机构 | countryintelligenceagencyview | 定案 |
 | 机构名/徽标 | Repopulate 0X140F2F3A0 | **ag+128 name SSO → win+1448; ag+160 icon SSO → win+1672 (vt+728)** | 书 ✓ 两恒写槽的 UI 出口 | agency_name / name_logo | 定案 |
 | 分支升级格 | Repopulate + CBranchUpgradeButtonEntry (sub_141A230F0) | **DB qword_14332EDC0 {count@+124, items@+112}** → 窗 `upgrade_button`; ag 回指 @entry+40 | 分支/升级条目 (def@+48); `agency_branches` 格 | agency_branches | 定案 (读法) / DB 类名未定 |
 | 行动列表 (operations) | @48[6] Update 0X140F2F720; [4] 预算 CalcOperations 0X140F29150 | **4×SBufferedOperations 静态 (unk_14333D420/A8/C0/D8)** × tag 过滤 → 0xAC0 行 {+2728 序, +2736 COperation\*, +2744 纪元快照}; 纪元 qword_14333D4C8/14333D528 | 行动页数据流 (tbb 并行预算); 行级 COperation 14 字段定案见 §4.31.14 | — | 定案 (机制) |
@@ -1059,7 +1059,7 @@ RESOURCE_INFRA/SUPPLY_FACTOR_TOOLTIP "MULT")。
 
 **CTemplateEntry (正名纠偏 = CBuildingsNudger 的建筑模板行, 非师模板)**: feed = **建筑库 qword_14332EE28 ✓** (滤 **def+20>0 且 def+84==357**) + null 末条; def 名 = \*(def+8) token (lexer 铁证); 副表槽9 = 选中高亮。
 (入口链/模式条目/命令出口) + §4.30.38 (CMapModeManager 布局补全);
-两部署模式类与 §4.9 互证 (ConveyorView+6800/+6816 scoped_ref
+两部署模式类与 §4.18 互证 (ConveyorView+6800/+6816 scoped_ref
 内嵌同族)。视图侧骨架: 激活流 sub_1417CAB50 = [1]CanActivate→mode+40=目标
 省→[3]Commit; 取消 glue sub_1417CAB20 = +40 非空→[4]Cancel→清; 命令出口 =
 qword_14332F6A0 vt+136 命令队列。
@@ -1329,7 +1329,7 @@ mode id 增补 (映射表):
 
 | 值 | 名称 | 语义 |
 |---|---|---|
-| 20 | CMapModeMilitaryDeployment | +1344 = conveyor; Commit 投 CSetConveyorLocationCommand(conveyor, prov+164); GetInfo 读 prov+392 controller / prov+192 → CState 州名; loc CONVEYOR_ASSIGN_LOCATION_SELECT_{HOME_}AREA |
+| 20 | CMapModeMilitaryDeployment | +1344 = conveyor; Commit 投 CSetConveyorLocationCommand(conveyor, prov+164); GetInfo 读 prov+392 controller / prov+192 → CState 州名; loc CONVEYOR_ASSIGN_LOCATION_SELECT_{HOME_}AREA; 0x558B scoped_ref 内嵌 ConveyorView+6800/+6816 (子对象+1360 = conveyor), [4] Refresh 0X141D87950 激活时退出选址/指派 |
 | 21 | …ToOrder | 投 CSetConveyorGroupCommand; order 源 = *(qword_14332F6A0 vt+200 对象+464); qword_14338C790 = 当前 hover 选中 |
 | 29 | CMapModeOperationSelectTarget | +1344 = 候选 CVector / +1368 = 窗 / +1376 = 上下文 / +1388 = 实现选择子; mapmodeoperationselecttarget.cpp:103 实名; loc SELECT_STATE_ON_CLICK{,_DISABLED}; 槽[10]/[11] 经 prov+192 CState+20 字节旗 |
 

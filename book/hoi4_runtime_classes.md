@@ -127,7 +127,7 @@
 | CLandBorderWarCombat | 0x29bc5f0 | 边境战争战斗 |
 | CCountryIntel | 0x295f188 | cc+4072 (书 §4.11) |
 | CCountryIntelAgency | 0x2981f68 | cc+4032 |
-| CStrategicOperativesMgr | 0x2973b80 | gs+0x6A0 (书 §4.29) |
+| CStrategicOperativesMgr | 0x2973b80 | gs+0x6A0 (书 §4.11) |
 | CStrategicOperative | 0x29a2358 | |
 | COperativesNet / COperativesSubNet | 0x29a1a58 / 0x29a1aa8 | |
 | CCountryReportsMgr | 0x29D10A8 | cc+4064 (书写法 0x1429D10A8 低 32 位; RTTI vt_rtti.json 定案) |
@@ -149,7 +149,7 @@
 | CSupplySystem | 0x2973cf0 | gs+0x3D8 (书 §4.21) |
 | CRailwayManager / CProvinceRailwayInfo | 0x2972cd0 / 0x2972c80 | (书 §4.22) |
 | CProductionStatus | 0x2970788 | 州监听元素 (**非** cc+3944; 书 §4.13) |
-| CIntelSource | 0x295f138 | 谍报网内联 @net+168 (书 §4.29) |
+| CIntelSource | 0x295f138 | 谍报网内联 @net+168 (书 §4.11) |
 | CActivityElem | 0x295a5b0 | 活动 xp_by_template 元素 (书 §4.3) |
 | CActivityElemAir | 0x2965260 | 活动 xp_by_airwing 元素 (书 §4.3) |
 | CCountryCharacters | 0x298ae18 | cc+4080 (书 §4.3; 旧称 legacy DEEP.chars_vt) |
@@ -172,7 +172,10 @@
 #### 0.4.1 层次与标题
 
 1. 主文件节标题 = `## N` / `### N.x` / `#### N.x.y`；分册主标题 =
-   `### 4.x`，小节一律 `#### 4.x.y` 真标题，编号连续不跳号。
+   `### 4.x`，小节一律 `#### 4.x.y` 真标题，**同文件内**编号连续不跳号。
+   跨分册的节号是稳定 ID, 只增不重排: 分册被并入他节时其节号**作废不回收**
+   (后续分册不整体前移 — 全书 §4.x 交叉引用按号寻址, 重排会静默错链);
+   作废号在索引表注明去向, 空号允许存在。
 2. 禁用加粗段落冒充标题；标题只写类名/主题，禁带批次名、日期、
    收编史后缀。
 3. 同文件内同类小节命名风格统一（类名+尺寸/writer 信息格式一致）。
@@ -310,7 +313,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +16 | 匿名结构 (NNB 形状) | top_meta 各行在其内部 |
 | +48 | ironman 比对串 + 旗 (loader 11539: 读串比对, 不符则 +192 清 bit0) | top_meta |
 | +152 | **CGameDate#0 载入快照** (hours@+152, vt2@+160; CPersistent 基类成员) | top_meta ⚠ 非当前日期, 见下注 |
-| +192 | uint8 (bit0 = **ironman 旗**; §4.2「+192 难度/玩家」收窄) | top_meta |
+| +192 | uint8 (bit0 = **ironman 旗**; §4.1.1 位域旗行) | top_meta |
 | +240 | uint8 (ctor 置 1 旗; 未名) | top_meta |
 | +248 | 未名 (ctor 零) | top_meta |
 | +256 | 未名 (ctor 零) | top_meta |
@@ -395,7 +398,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +1472 | CNavalCombatResults** | **naval_combat_result 主数组** {data@1472, cap@1480, count@1484, alloc@1488} (loader case 13564; 元素键 13564) (naval_combat_result) |
 | +1496 | unordered_map | naval_combat_result by-id 索引 (buckets 16; loader 双写) (naval_combat_result) |
 | +1560 | — | 未决区 (q@1560 + u32@1568 + u8@1572; 无消费者、不序列化 — 负定案) |
-| +1576 | 匿名结构 (NNB 形状) | **gameplaysettings** (vt@+1576; loader case 11102; §4.2「difficulty enum@+1584」= 其体内字段) (gameplay) |
+| +1576 | 匿名结构 (NNB 形状) | **gameplaysettings** (vt@+1576; loader case 11102; 难度枚举@+1584 = 其体内字段, §4.1.1) (gameplay) |
 | +1584 | 会话/顶部元数据 (TOPC) | top_meta |
 | +1600 | CArmy* 向量 | (探针 37 项, 元素 vt = CArmy) |
 | +1624 | CSelectionGroup 数组**指针** (10 组 × 240B, 组内 10 槽 × 24B {data@0, cap@8, count@+12, alloc@16}; **指针数组, 非内嵌头**, loader case 10286 `*(gs+1624)+240*组号`) | selection_groups |
@@ -463,7 +466,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 > **+152 CGameDate#0 = 载入快照, 非当前日期** (定案): 只有**读档**路径写它
 > (loader 落档时的 hours), 此后**不随游戏时钟推进**; 新建开局走 ctor 不写,
 > 停在 ctor 哨兵 43808760 (显示 "1.1.1.1")。**当前日期读 gs+1128**
-> (= CGameDate@+1120 的 hours, §4.2 SetCurrentDate sub_1401EDBA0
+> (= CGameDate@+1120 的 hours, §4.1.1 SetCurrentDate sub_1401EDBA0
 > `a1[282] = *a2` 铁证; 与存档头 `date=` 逐刻吻合)。把 +152 当 date 用 =
 > 新建档恒错、读档在载入刻之后全错, 且错得与真值同形 (只差几小时) 极难察觉。
 
@@ -520,7 +523,7 @@ CGameState (gs)
 ├─ [gs+1704] CCharacterManager → historical[] + dynamic[] → CCharacter
 │    └─ CCharacter → leader(CCommander) / operative / advisor / portraits
 ├─ [gs+992] CRailwayManager → CProvinceRailwayInfo (§4.14.6/§4.14.7)
-├─ [gs+2520] ships_built RB-tree 造舰统计 (§4.2.11)
+├─ [gs+2520] ships_built RB-tree 造舰统计 (§4.1.16)
 ├─ [gs+1800/+1812] 装备定义/管理
 └─ [gs+608/616/2176/648] 战斗: CCombatManager / details 容器 / logmgr / CCombatHistory (同 §1.2)
 ```
@@ -558,7 +561,7 @@ CCountry (cc)
   (mask = 表对象内 uint32 字段, extra = 表对象内 uint8 字段, 位置见类条目;
   漏掉 extra 会丢失尾部分裂桶 —— OCC 表实测教训)
 - 值对象仍需 vtable 校验 (残留指针可能是悬垂)
-- ⚠ **桶分型注意 (待裁)**: 上式为通用正形; 在案存在布局不同的变体 — §4.2 gs+2208 桶 {dist uint8@+4, key u32@+8, value@+16} 与 §4.26.5 id 注册表桶 {dist@+4, type u32@+8, id u32@+12, obj@+16}。套用正形前先对表, 勿跨型混读。
+- ⚠ **桶分型注意 (待裁)**: 上式为通用正形; 在案存在布局不同的变体 — §4.1.8 gs+2208 桶 {dist uint8@+4, key u32@+8, value@+16} 与 §4.26.5 id 注册表桶 {dist@+4, type u32@+8, id u32@+12, obj@+16}。套用正形前先对表, 勿跨型混读。
 - **RH 表通用尾**: {…, extra u8, **max_load_factor f32 = 0.9** (0x3F666666 = 1063675494)} — CVariables+44 / CNavalRegionDominance+60 / CModifier+148/+180 四处 ctor 常数同构互证。
 
 ### 3.3 std::map (红黑树)
@@ -868,24 +871,22 @@ writer 的实写行为选变体, 禁止按"显示值看着一样"混用** (两�
 | 节 | 文件 | 内容 |
 |---|---|---|
 | 4.00 | `book/s4_00_bases.md` | 4.00 基类契约层 (接口虚表 / 槽位语义) |
-| 4.1 | `book/s4_01_CGameState.md` | 4.1 CGameState (游戏状态单例) |
-| 4.2 | `book/s4_02_top_meta.md` | 4.2 会话元数据簇 (top_meta) |
+| 4.1 | `book/s4_01_CGameState.md` | 4.1 CGameState (游戏状态单例; 含会话元数据簇 top_meta — 同一对象, 合并于 §4.1.2/§4.1.6–§4.1.16) |
 | 4.3 | `book/s4_03_CCountry.md` | 4.3 CCountry (国家) |
 | 4.4 | `book/s4_04_characters.md` | 4.4 CCharacterManager / CCharacter / CUnitLeader 派生族 (角色族) |
 | 4.5 | `book/s4_05_faction.md` | 4.5 CFactionSystem (阵营) |
 | 4.6 | `book/s4_06_doctrines.md` | 4.6 NDoctrines (学说族) |
 | 4.7 | `book/s4_07_technology.md` | 4.7 CTechnologyStatus (科技) |
 | 4.8 | `book/s4_08_production.md` | 4.8 CProductionStatus (生产) |
-| 4.9 | `book/s4_09_deployment.md` | 4.9 CDeployment (部署) |
 | 4.10 | `book/s4_10_politics.md` | 4.10 CDiplomacyStatus / CPolitics / 自治 / 投降流亡借调族 |
-| 4.11 | `book/s4_11_intelnet.md` | 4.11 情报域 (谍报网 CCountryIntelNetwork / 特工 / 情报账本与来源池 / 密码学) |
+| 4.11 | `book/s4_11_intelnet.md` | 4.11 情报—间谍系统 (谍报网 CCountryIntelNetwork / 特工与特务专项 COperativeLeader / 情报机构 CIntelligenceAgency / operation 块与行动令牌 / 情报账本与来源池 / 密码学; 含原 4.29) |
 | 4.12 | `book/s4_12_events.md` | 4.12 事件与决议域 (CEventOption / CDecisionStatus 与冷却 / 定时·定向决策 / 定时活动与定时条目) |
 | 4.13 | `book/s4_13_CState.md` | 4.13 CState (州) |
 | 4.14 | `book/s4_14_CProvince.md` | 4.14 CProvince (省) |
 | 4.15 | `book/s4_15_air.md` | 4.15 战略空军族 (CStrategicAirManager → CStrategicAir → CAirWingPool → CAirWing) |
 | 4.16 | `book/s4_16_navy.md` | 4.16 海军族 (CStrategicNavyManager → CStrategicNavy → 基地/特混舰队/舰船 + 战史与战果记录) |
-| 4.17 | `book/s4_17_notification.md` | 4.17 通知系统族 (NNotification 六类 / handler 单例 / 派发三层 / 通用消息泵) |
-| 4.18 | `book/s4_18_army.md` | 4.18 陆军师族 (CArmy / CDivisionTemplate / requests) |
+| 4.17 | `book/s4_17_notification.md` | 4.17 通知系统族 (NNotification 六类 / handler 单例 / 派发三层 / 通用消息泵; 容器行件 CNotificationContainer 布局归 §4.31.92) |
+| 4.18 | `book/s4_18_army.md` | 4.18 陆军师族 (CArmy / CDivisionTemplate / requests / 部署 CDeployment 与 conveyor 三层; 含原 4.9) |
 | 4.19 | `book/s4_19_loc_expr.md` | 4.19 本地化绑定/表达式系统族 (CContextLocalizationText `[...]` 求值 / bindable loc / CExpression / 脚本常量与命名集合) |
 | 4.20 | `book/s4_20_weather.md` | 4.20 天气族 (CWeatherManager → 省天气 / 区域天气) |
 | 4.21 | `book/s4_21_supply.md` | 4.21 补给系统 2 (CSupplySystem) |
@@ -896,7 +897,6 @@ writer 的实写行为选变体, 禁止按"显示值看着一样"混用** (两�
 | 4.26 | `book/s4_26_staticres.md` | 4.26 静态资源访问层 (idb 库规格 / 访问器 API / 防御界 / 离线资产 / 验证体系) |
 | 4.27 | `book/s4_27_raid.md` | 4.27 突袭族 (CRaidSystem / CCountryRaidStatus / CRaidInstance / 突袭 def 侧库与成功率族) |
 | 4.28 | `book/s4_28_session.md` | 4.28 会话与身份注册块 (saved_event_target / player / mods / id 注册 / 生涯档案 / CRandom 随机流) |
-| 4.29 | `book/s4_29_operative.md` | 4.29 特务专项 (COperativeLeader 全字段 / CIntelligenceAgency / mission 分发 / operation 块) |
 | 4.30 | `book/s4_30_gui_map.md` | 4.30 GUI 主视图与地图 (面板/视图本体类布局 + 视图侧映射; 地图模式与脚本化 UI 基础设施) |
 | 4.31 | `book/s4_31_gui_items.md` | 4.31 GUI 行件与条目族 (全部行件/条目/图标行类布局 + loc 映射) |
 | 4.32 | `book/s4_32_effect_triggers.md` | 4.32 脚本 effect/trigger 全量逐名定案卡 |

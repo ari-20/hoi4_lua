@@ -371,7 +371,7 @@ CAutonomousState def 侧补行 (def 库 = **0x332EE18** (qword_14332EE18, §4.26
 
 > **理念过期通知接缝**: `politics.daily` 的 `sub_140BA8300` (断言串 `politics.cpp` + `"politics.daily"`) 在理念过期时
 > `malloc(0x5A8)` + ctor `sub_14192F2E0` 建 `NNotification::CIdeaExpiredNotification` 并经
-> `sub_141391400(iface+1240, obj)` 入队 (详见 §4.17.5); 同段紧邻 `*(v54+1204)` = 接口处理器 +1192 历史容器 count
+> `sub_141391400(iface+1240, obj)` 入队 (详见 §4.17.4); 同段紧邻 `*(v54+1204)` = 接口处理器 +1192 历史容器 count
 > (216B 记录, tag=12)。
 
 CIdea (理念 def; 库 = CIdeaDatabase qword_14332EF30) 布局补行:

@@ -159,7 +159,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "naval_combat_result", emit = function(ctx)
         end
     end
 
-    -- §4.2.2 三注册表源 (sub_14221F310 三档 id 库): ty>0x1268 / >=100 / <100
+    -- §4.1.7 三注册表源 (sub_14221F310 三档 id 库): ty>0x1268 / >=100 / <100
     local DB_BIG, DB_MID, DB_ARR = BASE + 0x3451DB0, BASE + 0x3451DB8,
         BASE + 0x3451DC0
     local function ref_resolve(ty, id)

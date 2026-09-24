@@ -4,7 +4,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.tokens", emit = function(ctx)
     local SL, emit, tag, c = SV2.lib, ctx.emit, ctx.tag, ctx.country
     if not c then return end
     -- §4.11.5 intel_source 挂载族 (tokens 挂载 = *(cc+5552)+16)
-    -- / §4.29.7 CCountryOperationTokenManager (cc+5552)
+    -- / §4.11.17 CCountryOperationTokenManager (cc+5552)
     local ok, r = pcall(function() return c:intel_sources() end)
     local s = ok and r and r.tokens or nil
     if not s or not s.country then return end

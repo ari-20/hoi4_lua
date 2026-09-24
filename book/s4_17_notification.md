@@ -4,7 +4,7 @@
 
 > 族 = `NNotification` 命名空间下**恰 6 个类** (RTTI 全量枚举: 类型描述符直扫 + 基类反查 +
 > 独立重建 COL→CHD→TD 链, 三法同解)。命名空间内另有匿名命名空间 `NNotification::?A0x7797ffe3`
-> (容器件所在)。头文件 `source/interfaces/notifications/notification.h`, 实现
+> (容器件所在; 其布局 = GUI 行件, 见 §4.31.92)。头文件 `source/interfaces/notifications/notification.h`, 实现
 > `notification_handler.cpp`; GUI 定义 `interface/notifications/notification.gui`
 > (含 `notification_center` / `notification_entry` 两容器窗)。
 >
@@ -20,7 +20,7 @@
 |---|---|---|---|---|---|
 | NNotification::CNotification | 1440 | 0x142A4B708 | 0x142A4B758 (+40) | sub_141BBE880 | CReloadableInterface → CReloadDispatcher; CTooltipHandler (+40) |
 | NNotification::CNotificationHandler | 96 | 0x1429B59A8 | 0x1429B59E0 (+16) | sub_1413911A0 | CUpdateable; CReloadableInterface (+16) → CReloadDispatcher (+16) |
-| NNotification::CNotificationContainer | 80 | 0x1429B5A08 | 0x1429B5A78 (+56) | sub_1422A9260 (CStandardlistboxItem ctor) | CStandardlistboxItem → COption → COptionObservable → CObservable; TListboxItem (+56) |
+| NNotification::CNotificationContainer | 80 | 0x1429B5A08 | 0x1429B5A78 (+56) | sub_1422A9260 (CStandardlistboxItem ctor) | CStandardlistboxItem → COption → COptionObservable → CObservable; TListboxItem (+56) — **GUI 行件, 布局见 §4.31.92** |
 | NNotification::CExternallyCompletedFocusNotification | 1496 | 0x1429B4378 | 0x1429B43C8 (+40) | sub_141377A40 | CNotification → … |
 | NNotification::CIdeaExpiredNotification | 1448 | 0x142A1BCB0 | 0x142A1BD00 (+40) | sub_14192F2E0 | CNotification → … |
 | NNotification::CLegacyMessagePopUpNotification | 1616 | 0x142A02EA0 | 0x142A02EF0 (+40) | sub_1417C91D0 (三参) / sub_1417C9380 (六参) | CNotification → … |
@@ -106,24 +106,7 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 对 notification_center 与 notification_list 各调 vt+128 并置 +165 / +117 的 0x10 位
 (与 container dtor / OnReload 同款形态, 语义待裁)。
 
-#### 4.17.4 CNotificationContainer (列表行件, 80B)
-
-匿名命名空间类 (`NNotification::?A0x7797ffe3`)。基 ctor = `sub_1422A9260`
-(CStandardlistboxItem 族, `.gui` 名 `notification_entry`)。
-
-| 偏移 | 类型 | 名称/语义 | 证据 |
-|---|---|---|---|
-| +56 | TListboxItem vt | 次虚表 (8 槽, mdisp 56) | ctor `v10[7] = vftable` |
-| +64 | CClass* | **宿主窗元素** (TWindow, 由 `_RTDynamicCast` 校验为 `CContainerWindow`) | sub_141391400; 非容器则断 `notification_handler.cpp:26` "A notifications root element must be a container window" |
-| +72 | CNotification* | **承载的通知对象** (列表条目 ↔ 通知 1:1) | sub_141391400: `v10[9] = a2` |
-
-> 基 ctor 的 .gui 解析: 先 `sub_14225C5A0(guimgr, 名, 0)`, 命中且 `+8 == 612` → `vt+96` 建,
-> 否则 `vt+80` 建; 失败断 `clausewitzlib/graphics/standardlistbox.cpp:26`
-> `"gui element '%s' does not exist."` 并回落 `a2[62]`。
-> 容器 dtor `sub_141391300`: 宿主窗 `+165 &= ~0x10` (解冻) → 回写 `+165 |= 0x10` →
-> `Block[9]` (通知对象) `vt[0](.., 1)` → `sub_1422A97E0`。
-
-#### 4.17.5 三具体通知类字段表
+#### 4.17.4 三具体通知类字段表
 
 **CExternallyCompletedFocusNotification** (1496B; ctor `sub_141377A40(this, focus, &name_str, originator)`;
 窗名 `externally_completed_focus_notification_window`):
@@ -178,14 +161,14 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 | sub_140CAB520 | 海军封锁贸易线 `NAVAL_BLOCKADE_TRADE_ROUTE_{TITLE,INFO}` / `..._REESTABLISHED_*` |
 | sub_1413F71D0 | 敌方密码被破 `CRYPTO_ENEMY_CRYPTO_IS_BROKEN_TITLE` |
 | sub_1413F6A00 | 同上 (第二路) |
-| sub_140F30200 | 通用消息泵 (见 §4.17.7) |
+| sub_140F30200 | 通用消息泵 (见 §4.17.6) |
 | sub_140C24120 | 将领伤病 `NOTIFICATION_OUR_GENERAL_SICK/WOUNDED[_DESC]` |
 | sub_140FE3AA0 | 特殊项目被夺 `SPECIAL_PROJECT_CAPTURED_TITLE/MESSAGE` |
 | sub_141A34910 | 学说奖励解锁 `NOTIFICATION_REWARD_UNLOCKED` (断言 `doctrine_ui_utils.cpp`) |
 | sub_140BABD00 | 理念失效替换 `POLITICS_INVALID_IDEA_REMOVED/REPLACED` |
 | sub_140D93260 | 宗主国下建阵营 `FACTION_CREATED_UNDER_MASTER_{TITLE,MESSAGE}` |
 
-#### 4.17.6 派发三层结构
+#### 4.17.5 派发三层结构
 
 | 层 | 动作 | 证据 |
 |---|---|---|
@@ -197,7 +180,7 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 > **无 `Add` / `Queue` 命名函数** — 入队原语即 `sub_141391400` (未具名, 证据 = 14 处唯一调用形态);
 > 「加通知」= 业务侧 new 派生对象 + 调本函数, 无集中 `CNotificationHandler::Add` API。
 
-#### 4.17.7 通用消息泵 sub_140F30200
+#### 4.17.6 通用消息泵 sub_140F30200
 
 `sub_140F30190(out, iface, &title, &body, &sender_tag, &receiver_tag, flag)` = 载荷打包器
 (64B 结构: 标题串@+0 / 正文串@+32 / 发送方 tag@+64 / 接收方 tag@+68 / 旗@+72 / iface@+80),
@@ -206,3 +189,5 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 
 > ⚠ **双通道辨析**: 书内多处已引的「尾 UI 通知」`sub_140224C30(ui, {code})` (175 处) 是
 > **界面刷新码通道** (只发消息码不建对象), 与本族**真通知对象通道**互不替代, 二者并列。
+
+> **本域 GUI 类布局**: 见 §4.31.92。

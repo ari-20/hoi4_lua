@@ -430,7 +430,7 @@ end
 
 
 -- ============================================================
--- §4.23.2 库存 / §4.8 可用装备 / §4.9 解锁兵种
+-- §4.23.2 库存 / §4.8 可用装备 / §4.18 解锁兵种
 -- ============================================================
 -- §4.23.2 stockpile 装备库存 (mgr=cc+3944 CProductionStatus; 池锚/门/原型 map = 书 §4.23.2)
 function Country.stockpile(self)
@@ -481,7 +481,7 @@ function Country.available_equipments(self)
   return out
 end
 
--- §4.9 CDeployment unlocked_subunits 解锁兵种 (MSVC std::set @dep+56, dep=cc+3952; writer 0x140CFFF30; MSVC tree next)
+-- §4.18 CDeployment unlocked_subunits 解锁兵种 (MSVC std::set @dep+56, dep=cc+3952; writer 0x140CFFF30; MSVC tree next)
 function Country.unlocked_subunits(self)
   local dep = rp(self.addr + 3952)
   if not O.kptr(dep) then return { count = 0, list = {} } end

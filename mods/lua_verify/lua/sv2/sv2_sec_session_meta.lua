@@ -1,5 +1,5 @@
 -- sv2_sec_session_meta.lua -- # 顶格元数据 + all_playthrough_data 节点
--- (§4.2 会话元数据簇)
+-- (§4.1.2 区界表 + §4.1.6–§4.1.16 会话元数据簇)
 
 SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
     local SL, emit, O = SV2.lib, ctx.emit, ctx.O
@@ -8,9 +8,9 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
     local gs = ctx.gs
 
     -- ============================================================
-    -- Part 1: # 顶格叶 (dim = "#"; §4.2.1 顶格 # 叶 writer 族)
+    -- Part 1: # 顶格叶 (dim = "#"; §4.1.6 顶格 # 叶 writer 族)
     -- ============================================================
-    -- §4.2 会话元数据簇 top_meta 计数器访问
+    -- §4.1.2 区界表 top_meta 计数器访问
     local tm = O:top_meta()
     if tm then
         local c = tm.counters or {}
@@ -79,7 +79,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
         if tm.start_date then
             E("start_date", '"' .. tm.start_date .. '"')
         end
-        -- id 叶 (§4.2.2; 三源合并/门/写序 = 书) — reader idreg_maxima
+        -- id 叶 (§4.1.7; 三源合并/门/写序 = 书) — reader idreg_maxima
         -- 已上提 (§4.26.5), 段内只做 type 升序排序 + #N 恒编号
         do
             local merged = GAME.layout.idreg_maxima() or {}
@@ -107,11 +107,11 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
 
     -- ============================================================
     -- Part 2: all_playthrough_data (dim = "all_playthrough_data";
-    -- §4.2.3 all_playthrough_data 宿主 gs+2200)
+    -- §4.1.8 all_playthrough_data 宿主 gs+2200)
     -- ============================================================
     local DIM = "all_playthrough_data"
     if not (gs and gs > 0x10000) then return end
-    if (ru32(gs + 2216) or 0) == 0 then return end  -- writer gate (RH map 计数门@宿主+16, §4.2.2 RH map 头)
+    if (ru32(gs + 2216) or 0) == 0 then return end  -- writer gate (RH map 计数门@宿主+16, §4.1.7 RH map 头)
 
     -- i64 格式化: 整值 %d; 超 2^53 精确 double 用 %.0f (bitset 高位见头注)
     -- C 绑定 lua_pushinteger = 精确 64 位整数, math.type 先判
@@ -127,7 +127,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
         return string.format("%.0f", v)
     end
 
-    -- §4.2.7 SCareerProfileCountryData 164 键 blob 字段表
+    -- §4.1.12 SCareerProfileCountryData 164 键 blob 字段表
     -- (writer sub_14069C280 硬编码序, 逐位对拍定案)
     -- {名, 偏移, 类型}; u32 = ru32(S+off), i64 = rp_i64(S+off)
     local BLOB = {
@@ -322,7 +322,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
         return table.concat(t, " ")
     end
 
-    -- §4.2.5 CTimeSeries (interm+off): 写 count 个 *elem
+    -- §4.1.10 CTimeSeries (interm+off): 写 count 个 *elem
     local function ts_str(base)
         local cnt = ru32(base + 28) or 0
         local data = rp(base + 16)
@@ -350,7 +350,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
         { "last_month_convoys_sunk", 328 },
     }
 
-    -- map 遍历 (§3.2 robin-hood; all_playthrough_data 宿主表 §4.2.3):
+    -- map 遍历 (§3.2 robin-hood; all_playthrough_data 宿主表 §4.1.8):
     -- dist u8@+4 (0=空), key u32@+8, value ptr@+16
     local buckets = rp(gs + 2208)
     local mask = ru32(gs + 2220) or 0
@@ -385,7 +385,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
         -- 契约, 勿仿真)
         emit(DIM, "#" .. K, '"' .. tagstr .. '"')
         local first, second = w + 16, w + 1024
-        -- data.first / data.second (§4.2.4 wrapper SProfileData; 各 4 叶)
+        -- data.first / data.second (§4.1.9 wrapper SProfileData; 各 4 叶)
         for _, pair in ipairs({ { "first", first }, { "second", second } }) do
             local nm, S = pair[1], pair[2]
             emit(DIM, p .. "data." .. nm .. ".playthroughs", blob_str(S))
@@ -396,11 +396,11 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
                 i64s(rp_i64(S + 984)) .. " " .. i64s(rp_i64(S + 992))
                 .. " " .. i64s(rp_i64(S + 1000)))
         end
-        -- data.tag (§3.5 MSVC SSO @w+2032, §4.2.4; writer 空串也写
+        -- data.tag (§3.5 MSVC SSO @w+2032, §4.1.9; writer 空串也写
         -- → 恒引号)
         local ts = SL.sso(w + 2032) or ""
         emit(DIM, p .. "data.tag", '"' .. ts .. '"')
-        -- intermediate_statistics (§4.2.5; interm = w+2064)
+        -- intermediate_statistics (§4.1.10; interm = w+2064)
         local interm = w + 2064
         for _, r in ipairs(RECENTS) do
             local s = ts_str(interm + r[2])
@@ -417,7 +417,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
             string.format(
                 "controlled_provinces=%d province_gaining_weeks_intermediate=%d }",
                 cp, pg))
-        -- flags : wrapper 内嵌 CFlagManager @w+2448 (§4.2.6; 条目布局 =
+        -- flags : wrapper 内嵌 CFlagManager @w+2448 (§4.1.11; 条目布局 =
         -- §4.13.3) — 行序 = 插入序, 逐条 value→date→days(days 门 >0)
         do
             local fm = w + 2448
@@ -442,7 +442,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "session_meta", emit = function(ctx)
                 end
             end
         end
-        -- first_tag (u8@w+2480, §4.2.4; 恒写)
+        -- first_tag (u8@w+2480, §4.1.9; 恒写)
         emit(DIM, p .. "first_tag", SL.yn(ru8(w + 2480)))
     end
 

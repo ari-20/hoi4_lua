@@ -70,7 +70,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.characters", emit = function(ctx)
     end
 
     -- retired_operative_leader: 池 {d@ch+200, c@ch+212} 8B 指针 →
-    -- §4.29.1 COperativeLeader (§4.3 chars+200 行); 叶规则 =
+    -- §4.11.11 COperativeLeader (§4.3 chars+200 行); 叶规则 =
     -- sv2_sec_c_intelligence_agency op_emit 同型 (writer 链相同),
     -- 重复块键 [N] 编号
     do

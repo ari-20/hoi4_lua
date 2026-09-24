@@ -1,5 +1,5 @@
 -- sv2_sec_c_intelligence_agency.lua -- country.intelligence_agency 节点
--- (§4.29.4 CIntelligenceAgency ag = rp(cc+4032))
+-- (§4.11.14 CIntelligenceAgency ag = rp(cc+4032))
 
 local rp, ru32, ru8 = hoi4.read_u64, hoi4.read_u32, hoi4.read_u8
 
@@ -27,7 +27,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.intelligence_agency",
         if tid and tid > 0 and R then return R:tag(tid) end
         return nil
     end
-    -- §4.29.1 COperativeLeader 元素全字段直发 (基链 §4.4.2 CUnitLeader;
+    -- §4.11.11 COperativeLeader 元素全字段直发 (基链 §4.4.2 CUnitLeader;
     -- base = 叶路径前缀)
     local function op_emit(base, e)
         emit(tag, base .. ".id", SL.idpair(ru32(e + 12), ru32(e + 8)))
@@ -118,7 +118,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.intelligence_agency",
                     emit(tag, base .. ".capture_date", SL.Q(cd)) end
             end
         end
-        -- operation id 对 (§4.29.1 +3968; ext writer 0x140C18FF0
+        -- operation id 对 (§4.11.11 +3968; ext writer 0x140C18FF0
         -- {type@e+3968, id@e+3972} 任一非零 → 块 0x2F1B)
         local opty, opid = ru32(e + 3968) or 0, ru32(e + 3972) or 0
         if opty ~= 0 or opid ~= 0 then
@@ -187,7 +187,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.intelligence_agency",
     local ag = r.addr
     if not ag then return end
 
-    -- 头标量族 (§4.29.4; writer 0x140FCA0F0 序)
+    -- 头标量族 (§4.11.14; writer 0x140FCA0F0 序)
     emit(tag, "intelligence_agency.name", SL.Q(r.name) or '""')
     emit(tag, "intelligence_agency.icon", '"' .. (r.icon or "") .. '"')
     if r.is_created then
@@ -197,7 +197,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.intelligence_agency",
     if r.upgrade_progress and r.upgrade_progress ~= 0 then
         emit(tag, "intelligence_agency.upgrade_progress",
             SL.num(r.upgrade_progress)) end
-    -- captured.#N (§4.29.6 CCapturedOperativeReference 56B 元:
+    -- captured.#N (§4.11.16 CCapturedOperativeReference 56B 元:
     -- country idx@+8 / op type@+12 / op id@+16 /
     -- intel 四象限 i64×1e-5@+24/+32/+40/+48)
     do
@@ -217,7 +217,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.intelligence_agency",
             end
         end
     end
-    -- operative[N] (§4.29.4 operative {d@ag+216, c@ag+228})
+    -- operative[N] (§4.11.14 operative {d@ag+216, c@ag+228})
     do
         -- reader 未给元素地址 → 容器直迭代 (序 = 存档序)
         local seqo = SL.seqc()
@@ -248,7 +248,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.intelligence_agency",
             end
         end
     end
-    -- upgrade 裸键 (§4.29.4; writer 0x140FCA0F0 L69: def*@ag+208
+    -- upgrade 裸键 (§4.11.14; writer 0x140FCA0F0 L69: def*@ag+208
     -- 指针门, ADCE0(15356, token@def+8) 裸名)
     do
         local udef = rp(ag + 208)
@@ -302,7 +302,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.intelligence_agency",
     end
     -- cryptology.intel_source.* 归 sv2_sec_c_intel.lua 管辖
     do
-        -- §4.29.4 recruitment 三容器 (generated/recruitable/
+        -- §4.11.14 recruitment 三容器 (generated/recruitable/
         -- recruitable_not_to_spy_master)
         local function rec_list(doff, coff, base)
             local dd, dc = rp(ag + doff), ru32(ag + coff) or 0
@@ -325,7 +325,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.intelligence_agency",
             "intelligence_agency.recruitment.recruitable_operatives"
             .. "_not_to_spy_master")
     end
-    -- 尾标量五件 (§4.29.4; 恒写含 0)
+    -- 尾标量五件 (§4.11.14; 恒写含 0)
     emit(tag, "intelligence_agency.defense", SL.num(r.defense or 0))
     emit(tag, "intelligence_agency.max_operative_count",
         SL.num(r.max_operative_count or 0))

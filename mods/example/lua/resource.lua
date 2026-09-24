@@ -551,7 +551,7 @@ function M.idb_index_of_token(key, tok)
     return nil
 end
 
--- ============ §4.26.3 id 注册表三源 (writer sub_14220A030; §3.9/§4.2) ============
+-- ============ §4.26.3 id 注册表三源 (writer sub_14220A030; §3.9/§4.1.7) ============
 -- (type,id) → 对象; 三源分域/RH 布局/8B 步进勘误 = 书 §4.26.3
 -- (分域偏移见 M.rva.idreg 与 idreg_unit_resolve)。
 -- 对象 = this 调整指针 raw+16 (第二基类 vt1; 师类调用方按需 res-16 取 vt0)。
