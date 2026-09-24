@@ -1,6 +1,6 @@
 ## 中文说明
 
-《钢铁雄心 IV》运行时扩展框架（1.19.3.0, rev c01a3d50）：注入式 DLL
+《钢铁雄心 IV》运行时扩展框架：注入式 DLL
 （`hoi4_bridge.dll`），在游戏内承载 Lua 虚拟机，把 mod 脚本的
 effect/trigger 路由进引擎，并开放环回 HTTP 控制面；配套
 `hoi4_launcher.exe` 确定性注入器（CREATE_SUSPENDED + QueueUserAPC，
@@ -47,18 +47,18 @@ effect/trigger 路由进引擎，并开放环回 HTTP 控制面；配套
 src/                 DLL + launcher 源码（C/C++，MSVC）
 book/                类布局全书
 mods/                Lua mod：lua_verify（内存↔存档一致性验证）与
-                     example（功能样板，见下）
-ref/                 书引用的机器可读数据件（token/defines/rtti 等）
+                     example（功能样板）
+ref/                 书引用的机器可读数据件
 third-party/         httplib 0.56.0（单头 vendor）/ Lua 5.4.7（与官方
                      tarball 逐字节一致，C++ 侧一律经 lua.hpp）/
                      Mbed TLS v3.6.4（submodule）
-tools/               构建脚本（build_mbedtls 逻辑在 PowerShell）
-tests/               纯函数单测（LDE 钩装指令长度译码器 + 路径沙箱判定）
+tools/               构建脚本和一些其他工具
+tests/               单测
 ```
 
 ### DLL 构建
 
-前置：Visual Studio 2022（C++ 工具集 + CMake 组件），按顺序：
+前置：Visual Studio（C++ 工具集 + CMake 组件），按顺序：
 
 ```
 git clone --recurse-submodules <本仓库>
@@ -86,14 +86,13 @@ mods\register_userdir.cmd    （或 powershell -File mods\register_userdir.ps1�
 ### 两个 mod 的作用
 
 - **example**：功能样板 mod，演示桥接能力。游戏内决议开关每日
-  tick：自动轮换存档（`autosave_<时间戳>.hoi4`，滚动保留 12 份）、
+  tick：自动存档额外保留（`autosave_<时间戳>.hoi4`，滚动保留 12 份）、
   空科研槽自动随机研究、空国策槽自动选国策，空闲民工自动建造；另有 RNG 重播种
-  （`eval_effect example_reseed_rng = yes`）和 LLM「存档锐评」事件
+  和 LLM「存档锐评」事件
   （API key 填在 `mods/example/review_config.txt`，模板见
-  `review_config.example`）。**自动跑马**（决议三开关）：每 5 秒检查一次
+  `review_config.example`）。自动跑马：每 5 秒检查一次
   陆军师，把空闲师派往相邻的无人敌方格子占领——标准档只从有 2 个以上
-  己方师的格子出发（留守 1 个），激进档无视师数见空就抢；空格按陆军
-  在场数判定（港内舰队不算守军），跨海峡/海岛的不可步行目标自动屏蔽。
+  己方师的格子出发（留守 1 个），激进档无视师数见空就抢；跨海峡/海岛的不可步行目标自动屏蔽。
 - **lua_verify**：内存 ↔ 存档数据一致性验证（导出内存世界态并与存档
   文件对拍）。**对普通用户无用**。使用它需要在游戏设置中关闭二进制
   存档（settings.txt：`save_as_binary=no`），否则存档侧无法解析。
@@ -125,9 +124,6 @@ mods\register_userdir.cmd    （或 powershell -File mods\register_userdir.ps1�
    EXEMPT（写盘时刻 / 墙钟类豁免叶，清单与裁定规则见 `linediff.py`
    头部；豁免只能人工裁定，勿擅自扩大）。
 
-`sv2_export("<档名>")` 亦可在一次调用内完成重存 + 导出（同帧同刻），
-但嵌套 savegame 偶发崩溃——优先用上面拆分的两步。
-
 ### mod 选择
 
 launcher 不能选择 mod。启用/停用 mod 请用 **Paradox Launcher**（播放
@@ -137,10 +133,11 @@ IV\dlc_load.json` 的 `enabled_mods`。前提是描述文件已注册（见上�
 
 ### 使用
 
-直接运行 `hoi4_launcher.exe` 即可——无需任何参数。launcher 自动定位
+直接运行 `hoi4_launcher.exe` 即可，其他可选启动参数参考下表。launcher 自动定位
 HOI4 安装，在游戏代码运行前把 `hoi4_bridge.dll` 注入游戏进程并启动
 游戏。launcher 与 DLL 必须同目录。DLL 日志写在
-`<文档>\...\logs\hoi4_bridge.log`。
+`<文档>\...\logs\hoi4_bridge.log`。审计日志写在
+`<文档>\...\logs\audit\hoi4_audit.log`。
 
 ### launcher 如何找到 hoi4.exe
 
@@ -204,8 +201,8 @@ HOI4 安装，在游戏代码运行前把 `hoi4_bridge.dll` 注入游戏进程�
 
 ## English
 
-Runtime-extension framework for Hearts of Iron IV (1.19.3.0, rev
-c01a3d50): a DLL (`hoi4_bridge.dll`) injected into the game that hosts a
+Runtime-extension framework for Hearts of Iron IV: a DLL
+(`hoi4_bridge.dll`) injected into the game that hosts a
 Lua VM, routes mod-scripted effects/triggers through the engine, and
 exposes a loopback HTTP control plane — plus `hoi4_launcher.exe`, the
 deterministic injector (CREATE_SUSPENDED + QueueUserAPC) that loads the
@@ -259,19 +256,19 @@ framework. Enabling a mod therefore still requires trust:
 src/                 DLL + launcher sources (C/C++, MSVC)
 book/                the class-layout book
 mods/                Lua mods: lua_verify (memory↔save consistency
-                     verification) and example (functional sample, below)
+                     verification) and example (functional sample)
 ref/                 machine-readable data files the book references
 third-party/         httplib 0.56.0 (vendored single header) / Lua 5.4.7
                      (byte-identical to the official tarball; C++ side
                      always includes via lua.hpp) / Mbed TLS v3.6.4
                      (submodule)
-tools/               build scripts (build_mbedtls logic in PowerShell)
-tests/               unit tests (LDE hook-length decoder + path sandbox)
+tools/               build scripts and some other tools
+tests/               unit tests
 ```
 
 ### Building the DLL
 
-Prerequisites: Visual Studio 2022 (C++ toolset + CMake component), then:
+Prerequisites: Visual Studio (C++ toolset + CMake component), then:
 
 ```
 git clone --recurse-submodules <this repo>
@@ -303,18 +300,17 @@ mods\register_userdir.cmd    (or: powershell -File mods\register_userdir.ps1)
 ### The two mods
 
 - **example** — functional sample mod showing bridge capabilities.
-  In-game decisions toggle daily ticks: autosave rotation
+  In-game decisions toggle daily ticks: autosave extra retention
   (`autosave_<timestamp>.hoi4`, keeps the last 12), auto-research for
   empty research slots, auto-national-focus for empty focus slots, and
-  auto-building on idle civilian factories; plus RNG reseeding
-  (`eval_effect example_reseed_rng = yes`) and an LLM "save review" event
+  auto-building on idle civilian factories; plus RNG reseeding and an
+  LLM "save review" event
   (API key goes into `mods/example/review_config.txt`, see
-  `review_config.example`). **Auto-capture** (three decisions): every
+  `review_config.example`). Auto-capture: every
   5 seconds idle army divisions are sent to grab adjacent empty
   enemy-controlled provinces — the standard mode only sends from tiles
   holding 2+ own divisions (one stays behind), berserk mode grabs
-  regardless; a province counts as empty by its army presence only
-  (fleets docked in port don't defend), and unreachable targets across
+  regardless; unreachable targets across
   straits/islands are filtered automatically.
 - **lua_verify** — memory↔save consistency verification: exports the
   in-memory world state and diffs it against the save file. **Useless for
@@ -354,10 +350,6 @@ if it has been resumed, pause first (the body must be `1` / `0`):
    adjudication rule live in the `linediff.py` header; exemptions are
    human-adjudicated only — do not widen them on your own).
 
-`sv2_export("<name>")` can re-save and export in a single call (same
-frame, same instant), but the nested save occasionally crashes — prefer
-the split two-step above.
-
 ### Choosing mods
 
 The launcher cannot select mods. Enable/disable them with the **Paradox
@@ -368,10 +360,12 @@ hand. Descriptors must be registered first (see above,
 
 ### Usage
 
-Run `hoi4_launcher.exe` — no arguments needed. It locates your HOI4
+Run `hoi4_launcher.exe` — no arguments needed; other optional launch
+options are listed in the table below. It locates your HOI4
 install, injects `hoi4_bridge.dll` into the game process before any game
 code runs, and starts the game. The launcher and the DLL must stay in the
-same folder. The DLL logs to `<Documents>\...\logs\hoi4_bridge.log`.
+same folder. The DLL logs to `<Documents>\...\logs\hoi4_bridge.log`. The
+audit log goes to `<Documents>\...\logs\audit\hoi4_audit.log`.
 
 ### How the launcher finds hoi4.exe
 
