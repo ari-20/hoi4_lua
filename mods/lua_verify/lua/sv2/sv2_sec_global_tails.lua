@@ -810,8 +810,8 @@ local function sec_flags(ctx)
 end
 
 -- ============================================================
--- §4.16.15 sunk_convoys_history (挂 §1.2 +1448 sunk_convoy;
--- 布局/写门 = 书 §4.16.15)
+-- §4.16.14 sunk_convoys_history (挂 §1.2 +1448 sunk_convoy;
+-- 布局/写门 = 书 §4.16.14)
 -- ============================================================
 local function sec_sunk_convoys(ctx)
     local emit, O, gs = ctx.emit, ctx.O, ctx.gs

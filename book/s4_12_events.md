@@ -84,14 +84,8 @@ ds 容器总表:
 | ds+304 | 容器 24B {c@ds+316} | 类别态表 | 类别可见门 +568 ∧ available ∧ should_show ∧ power-balance (+976/+992, 经 gs+1104); 类别行分组键 = *(def+368) = CDecisionCategory* |
 | cc+5360 | 名集合 (定案) | ignored 决议名集合 = player_settings (存档 token 14423) 内 ignored 集 | 写侧: CIgnoreDecisionCommand::Execute 0X141157240 (byte+72=1 插入 / =0 删除); CIgnoreAllAvailableDecisionCommand::Execute 0X141156FD0 全量插入 |
 
-决议命令族 (id 经 vt[11] GetId 实证):
-
-| 命令类 | id | 载荷 | GUI 绑定 |
-|---|---|---|---|
-| CSelectDecisionCommand | 14345 | +40 tag / +48 def* | DecisionItem+1360; TimedItem+1360 复用 |
-| CIgnoreDecisionCommand | 14768 | +48 名表 / +72 目标态 | DecisionItem+2656 |
-| CSelectTargetedDecisionCommand | 14383 | +44/+48 = entry+32/36; +56 def* | TargetedItem+1360 |
-| CIgnoreTargetedDecisionCommand | 14769 | +48 名 / +60 state / +72 = !entry+44 | TargetedItem+2656 |
+决议命令族 (CSelect/Ignore 四枚, id 经 vt[11] GetId 实证): 载荷布局与
+GUI 绑定全表见 §4.33 (id 14345 / 14383 / 14768 / 14769)。
 
 注: CategoryItem cb sub_141D74190 = 折叠切换 (win+1680 表), 非命令。
 

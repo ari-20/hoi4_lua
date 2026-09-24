@@ -802,7 +802,7 @@ CSunkShipInfo** (is_sunk 门 @entry+114)。
 
 | 面板元素/行为 | 取值函数 | 对象+偏移 | 语义+出处 | loc key / 元素 | 置信 |
 |---|---|---|---|---|---|
-| 沉船条目全字段 | populate 0X1417FD790 | **CSunkShipInfo +8 name/+40 killer_name/+72 country/+76 killer_country/+80 date/+104 definition/+112 killer_definition/+124 variant/+144 location** | **10/10 全中 §4.16.15**; killer-type 枚举 helper 0X140C2DFC0 / KILLER_AIR 0X140C2DF50 | naval_losses 族 | 定案 |
+| 沉船条目全字段 | populate 0X1417FD790 | **CSunkShipInfo +8 name/+40 killer_name/+72 country/+76 killer_country/+80 date/+104 definition/+112 killer_definition/+124 variant/+144 location** | **10/10 全中 §4.16.14**; killer-type 枚举 helper 0X140C2DFC0 / KILLER_AIR 0X140C2DF50 | naval_losses 族 | 定案 |
 | 沉船行 (舰队沉船页) | is_sunk 门 @entry+114 | **CShip history 元素 {+114 is_sunk, +120 内嵌 168B CSunkShipInfo}** (sh+2264/+2316 容器) | **history 元素布局定案** (§4.16); assist@+161/level@+120/def@+104 全中 | — | 定案 |
 | 舰队底栏条目 | SetTarget 0X141DE6F60 | **CFleet idpair 快照 @item+32**; fl+224 name (§4.16 ✓) | 解散 = CConfirmDisbandFleet; 候选 fl+24/+44/+56/+184/+196 未决 | navy_leader_window | 定案 (target) |
 | 舰队底栏 | 选择集+1100 idpair | resolve → +32 CFleet\* 数组 | 属主未决 | — | 定案 (形态) |
@@ -829,6 +829,7 @@ CSunkShipInfo** (is_sunk 门 @entry+114)。
 | CMoveShipsWindow | 0x142A4B338 (另 0x142A4B360) | [2] OnReload 0x141BBC770 | 0x141BBAEE0 (malloc 0x5D8) | — |
 | CTaskForceCompositionEditor | 0x142A800D0 (另 0x142A800E8) | — | 0x141E1FA10 (malloc 0x20B0) | 宿主 CNaviesView+22216 |
 | CConfirmDisbandFleet | 0x142A9EF08 (另 0x142A9EFA0) | — | 未复核 | vt 已锚 |
+| CChangeNavyLeaderDialog | 0x142A8ED50 (次 0x142A8EDE8) | — | 未移植 | 基 CDefaultConfirmationPopUpWindow; 海军将领更换确认弹窗 |
 | CFexShipIcon / CDeleteShipCommand / CDisengage…Command | 0x142A04638 / 0x1429B2910 / 0x1429B07B8 | — | 命令 ctor 0x14135FEC0 / 0x1413467C0 | 见下行命令族行 |
 
 **CNaviesView 17 胶水块回调**（块基址 = view+304 + k×1288）：
@@ -1179,9 +1180,9 @@ CPeaceBiddingItem 行 + CStatePeaceAction+76..79 四叠加旗分 12531-12534 组
 UI 字段: +8 tag→旗/名 / +76 当前分→score 文本。未决 8 项: GetWinner
 ICF 别名 / +568/+584 语义 / 五谓词内部等。
 
-#### 4.30.23 科技/国策 (CFacilitiesTabView 五合一 / CFocusInlayWindow def+Instance / CNationalFocus def 余项+旗簇死门 / fp+88 完成图)
+#### 4.30.23 科技面板设施页签 (CFacilitiesTabView 五合一; 国策 def 侧见 §4.3.15)
 
-业务侧: CFacilitiesTabView 全布局见 §4.7; 国策 def/
+业务侧: CFacilitiesTabView 全布局见 §4.7。
 
 类布局 (类名 / target / 锚点):
 
@@ -1200,16 +1201,15 @@ ICF 别名 / +568/+584 语义 / 五谓词内部等。
 CProgramItem (0x2C78B) 行; roster 行引 P+16 链 (§4.31.6)。
 ⚠ ResearchFacility 变体实证在 NFactions FactionView 不在本类; cc+4016 在
 本页签函数群零引用。
-树/inlay/fp 三锚见 §4.3.13 (fp+88/fp+120 行见 §4.3.12)。
 
 | 面板元素/行为 | 取值函数 | 对象+偏移 | 语义+出处 | loc key / 元素 | 置信 |
 |---|---|---|---|---|---|
 | 设施页签五合一 | CProgramList::Populate | **+128 ScientistRoster / +136 HistoryRoster / +144 SimpleRoster / +152 CProgramList / +2896 CProgramView 弹窗** | 行链 = cc+4008→+32{c@44}→CProgramItem 0x2C78; ⚠ +136/144 两独立分配; cc+4016 零引用 | facilities_view / program_window | 定案 |
-| inlay def | ReadKey token 全图 | 216B 项: +16 images/+40 buttons/+64 progressbars / +88 window_name / +120 visible CAndTrigger / +208 internal (**死门**) | **DB 单例 qword_14332EFD0**; 目录 common/focus_inlay_windows | 16520/10233/10275/14957/11562 | 定案 |
-| tree+152 inlay 实例 | 树/档共用 vt[4] 链 | **56B CFocusInlayWindowInstance 内联**: +16 position/+24 def/+32 CPositionOverride 表 {104B 元: +8x/+12y/+16 CAndTrigger} | token id/position/override_position = 11/76/10242 | — | 定案 |
-| 国策 def 余项 | vt 15 槽全图 | **def+1392 prerequisite / +1416 mutually_exclusive (四证) / +1440 互斥配对表 / +1480 will_lead_to_war_with / +888 ai_will_do** | vt[14]=联合谓词 / vt[12]=ShouldBypass / GetWorkingCountry sub_140DF65C0 | token 13242/13243 | 定案 |
-| 旗簇死门 | 机器码 E8/E9 全扫 | **def+1464/1468/1470/1471 + inlay def+208 = 五 token 尾跳空吞 1.19.2 死门**; 唯 +1467/+1469 活 | ⚠ 行为性结论: mods 的 historical=/available_if_capitulated=/dynamic= UI 效果 1.19.2 不生效 | — | 定案 |
-| fp+88 完成图 | CompleteFocus sub_1402DC740→sub_1402CD590 | **fp+88 = 本视角国自有完成图**; **fp+144 = 联合 originator 记录** / fp+120 = 可选候选缓存 (见 §4.3.11) | 状态 2 = 查看国自己完成; 联合进度住工作国 fp | — | 定案 |
+
+> **国策 def 侧布局**: 见 §4.3.15 (CNationalFocus def 全字段 / CJointNationalFocus /
+> CNationalFocusTree / CFocusInlayWindow def+Instance / 旗簇死门); CFocusStatus
+> fp 锚 (fp+88 完成图 / fp+120 候选缓存 / fp+144 originator) 见 §4.3.14。
+
 
 #### 4.30.24 宿主待归杂项 (推定)
 

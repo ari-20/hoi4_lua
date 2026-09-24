@@ -5,7 +5,7 @@
 > **本册边界** (§4.25/§4.28 同为 gs 顶层块, 切分按语义非地址): 本册 = 会话/身份/注册类块
 > + 跨局持久件 + 设置族。
 > 顶层块分驻: variables/region/threat/选择组/游戏规则 → §4.25; power_balance → §4.3.21;
-> 海军战史 → §4.16.14/§4.16.15; 事件状态 (saved_event_target / fired_event_names) → §4.12; factions → §4.5。
+> 海军战史 → §4.16.13/§4.16.14; 事件状态 (saved_event_target / fired_event_names) → §4.12; factions → §4.5。
 > **设置族三条随宿主就地 (非本局存档数据, 与 §4.25 纯 gameplay 全局不同源)**: §4.28.11 CSettings/CSystemSettings
 > (settings.txt) / §4.28.12 CLauncherSettings / §4.28.14 CInGameIdler (GUI 空闲器宿主; 语义偏 GUI 但实体 = 会话 idler) — 归并口径未定, 暂原位。
 > 块族元 writer = sub_1401F2E40 (gamestate.cpp); 根 writer = sub_1401F29A0;

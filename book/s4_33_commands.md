@@ -592,7 +592,7 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 
 > 机动/订单域补充：新 helper sub_1424C0900/C3020（文本标量通道）、u32 数组三件套、find-instance 两株；运行时全局 qword_14333D528 = 当前前线 idpair（三证）；订单实例 +48 类型枚举（1/3/4）、+184 源省、CUnit+704 动作队列。**死命令壳 2（14901/14857, 清偿定案无生效路由）、空操作 1（14987）**。
 
-> **清偿定案（编成/机动域）**: ① XP 刻度不对称 = 引擎原生不一致（内存两命令同 1e-5 XP; 盘上 create cost=原值 i64 通道、update cost=整 XP /100000+u32 通道——重放后 Update 扣减缩水 1e5 倍）; ② 13753 +48 = 动作类型 id 13898; ③ DLC 门 sub_1401AEB50(57) = **Thunder at Our Gates**（dlc052）; ④ 补给 wrapper = **CCountrySupplySystem**（sub_1406CF380 = per-country getter, +16=priority 与 s4_21 同槽）; ⑤ CUnit 虚槽 +424 = SetStrategicRedeploying(bool)→写 +687, +56/+64 = 军官载体 getter; ⑥ CUnit 1.19.3 主虚表 = **0x1429530D8**（0x14293CA88 系 1.19.2 旧址, 勘误）。
+> **清偿定案（编成/机动域）**: ① XP 刻度不对称 = 引擎原生不一致（内存两命令同 1e-5 XP; 盘上 create cost=原值 i64 通道、update cost=整 XP /100000+u32 通道——重放后 Update 扣减缩水 1e5 倍）; ② 13753 +48 = 动作类型 id 13898; ③ DLC 门 sub_1401AEB50(57) = **Thunder at Our Gates**（dlc052）; ④ 补给 wrapper = **CCountrySupplySystem**（sub_1406CF380 = per-country getter, +16=priority 与 §4.21 同槽）; ⑤ CUnit 虚槽 +424 = SetStrategicRedeploying(bool)→写 +687, +56/+64 = 军官载体 getter; ⑥ CUnit 1.19.3 主虚表 = **0x1429530D8**（0x14293CA88 系 1.19.2 旧址, 勘误）。
 
 > 待裁三项：① Update(12198) 载荷经验 writer 除 100000 而 Create(12197) 原值直写，Execute 两侧均按 1e-5 口径——落盘刻度不对称；② DeployAirWing(13091) +128 写侧解引用取 id / 读侧 id 落 +164 且 +128 保持空；③ CAssignArmyToArmyGroupFront(14901) 空桩 Execute 的实际生效路由。
 
@@ -628,7 +628,7 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 
 #### 4.33.7 装备/市场/MIO 域
 
-> 变体写点与书 s4_23 CEquipmentVariant 字段表互证一致（+1060 obsolete / +1061 auto_upgraded / +1062 highlight / +1068 niche_icon / +1072 override_model / +1104..+1151 override_sprite / +1152 name_list）；`*(cc+3944)` = CProductionStatus 与 s4_08 互证。共享 IsValid 桩：0x141165920 四类、0x141162CE0 两类；MIO Add/Remove/Unlock 三胞胎共享 [22]/[23]（0x14199E680/0x14199DE90）。
+> 变体写点与§4.23 CEquipmentVariant 字段表互证一致（+1060 obsolete / +1061 auto_upgraded / +1062 highlight / +1068 niche_icon / +1072 override_model / +1104..+1151 override_sprite / +1152 name_list）；`*(cc+3944)` = CProductionStatus 与 §4.8 互证。共享 IsValid 桩：0x141165920 四类、0x141162CE0 两类；MIO Add/Remove/Unlock 三胞胎共享 [22]/[23]（0x14199E680/0x14199DE90）。
 
 | id | 类 | vtable | sizeof | 载荷（+40 起） | Execute 语义 |
 |---:|---|---|---:|---|---|
@@ -744,7 +744,7 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 
 #### 4.33.10 谍报/行动域
 
-> 横断事实：① **GetTypeId 值 = 命令名 token 同名同值**（本域 20/20 直证，如 create_operation_command=12118）——id 空间与命令名 token 空间同一；② 新挂载点：COperationManager = `*(cc+5544)`（+8 owner / +16,+28 实例表 / +88 优先级 / +1936 种子阶段）；agency+128 名(SSO) / +200,+208 升级槽 / +96,+108 已做清单 / +120 计时；op+288 属主 tag / op+4048 代号宿主 / op+4224 状态（3 可开除 / 4 外派）；fac+2104 间谍首脑槽表（424B 条目@+152，条目+8 tag）；CCountry+8 = 本国 tag（四证）。③ cc+3944 疑异经复核为类属之别：CCountry+3944 = 生产状态（s4_03 ✓，production.cpp:4628 断言佐证），特工 Leader+3944 = 国籍数组（s4_29 ✓），非冲突。
+> 横断事实：① **GetTypeId 值 = 命令名 token 同名同值**（本域 20/20 直证，如 create_operation_command=12118）——id 空间与命令名 token 空间同一；② 新挂载点：COperationManager = `*(cc+5544)`（+8 owner / +16,+28 实例表 / +88 优先级 / +1936 种子阶段）；agency+128 名(SSO) / +200,+208 升级槽 / +96,+108 已做清单 / +120 计时；op+288 属主 tag / op+4048 代号宿主 / op+4224 状态（3 可开除 / 4 外派）；fac+2104 间谍首脑槽表（424B 条目@+152，条目+8 tag）；CCountry+8 = 本国 tag（四证）。③ cc+3944 疑异经复核为类属之别：CCountry+3944 = 生产状态（§4.3 ✓，production.cpp:4628 断言佐证），特工 Leader+3944 = 国籍数组（§4.11.11 ✓），非冲突。
 
 | id | 类 | vtable | 载荷字段 | Execute 语义 |
 |---:|---|---|---:|---|
@@ -884,10 +884,10 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 | 19586 | CGenerateAdvisorCommand | 0x1429954B8 | sizeof 152; +40 目标国 tag u32(10754) / +48 槽类型串 32B(19588, +64 串长 IsValid 消费) / +80 生成规格块 72B(240, 多态 Parse, 内部待裁) | 定案: 按规格块生成顾问 sub_1410EA930 |
 | 19603 | CAddAdvisorRoleToCharacterCommand | 0x1429953F0 | sizeof 152; +40 角色 idpair 8B(19478) / +48 授予国 tag u32(10754) / +56 规格块 96B(240; +16 串指针/+28 dword/+64 区/+80 指针, 整体待裁) | 定案: 角色挂顾问角色 sub_1410E91A0 + 名单重挂 (载荷 +56 规格块 96B = token 240 `data` 多态块) |
 | 10047 | COnRulingPartyChangeActionCommand | 0x14272DEA8 | sizeof 48; +40 目标国 tag u32(10754) / +44 旧意识形态 token u32(19015; 19479=undefined 哨兵) | 定案: 设 temp_var:old_ideology_token（×1e5）后触发 on_ruling_party_change 事件 |
-| 14345 | CSelectDecisionCommand | 0x142996908 | sizeof 56; +40 tag(10394) / +48 decision 对象指针 8B(11142; u32 id 往返 sub_14072B2C0/14072B8A0) | 定案: 激活决议（普通/目标化分派 sub_1407357F0/sub_140735BE0）+ 决议日志; IsValid = 可见 + 未激活 + 可用/有目标分派 |
-| 14383 | CSelectTargetedDecisionCommand | 0x1429969D0 | sizeof 72; +40 tag(10394) / +44 目标国 tag(107) / +48 目标州 u32(14965) / +56 decision 指针 8B(11142) | 定案: 采纳目标化决议 sub_140735910；IsValid 7 条错误串出口（未激活/invalid tag/invalid target/不可用/已采纳/不可采/已标删） |
-| 14768 | CIgnoreDecisionCommand | 0x142996C28 | sizeof 80; +40 tag(10394) / +48 名串数组容器 24B{data@+48, count@+60} 元素 32B 串(11142) / +72 ignore u8(11736) | 定案: 按名清单加/删 cc+5360 忽略集（40B 键 FNV-1a 小写归一 hash@+32）; IsValid = 逐名可解析且条目+280 非零 |
-| 14769 | CIgnoreTargetedDecisionCommand | 0x142996D40 | sizeof 80; +40 决策国 tag u32(10394) / +48 目标清单容器 24B{data@48,cap@56,count@60} 元 48B(15733; 元=vt@0/+8,+12 目标对/+16..47 决议名串) / +72 ignore u8(11736) | 定案: 目标化决议活跃实例 +44 写忽略旗 |
+| 14345 | CSelectDecisionCommand | 0x142996908 | sizeof 56; +40 tag(10394) / +48 decision 对象指针 8B(11142; u32 id 往返 sub_14072B2C0/14072B8A0); **GUI: DecisionItem+1360 / TimedItem+1360 复用** | 定案: 激活决议（普通/目标化分派 sub_1407357F0/sub_140735BE0）+ 决议日志; IsValid = 可见 + 未激活 + 可用/有目标分派 |
+| 14383 | CSelectTargetedDecisionCommand | 0x1429969D0 | sizeof 72; +40 tag(10394) / +44 目标国 tag(107) / +48 目标州 u32(14965) / +56 decision 指针 8B(11142); **GUI: TargetedItem+1360** | 定案: 采纳目标化决议 sub_140735910；IsValid 7 条错误串出口（未激活/invalid tag/invalid target/不可用/已采纳/不可采/已标删） |
+| 14768 | CIgnoreDecisionCommand | 0x142996C28 | sizeof 80; +40 tag(10394) / +48 名串数组容器 24B{data@+48, count@+60} 元素 32B 串(11142) / +72 ignore u8(11736); **GUI: DecisionItem+2656** | 定案: 按名清单加/删 cc+5360 忽略集（40B 键 FNV-1a 小写归一 hash@+32）; IsValid = 逐名可解析且条目+280 非零 |
+| 14769 | CIgnoreTargetedDecisionCommand | 0x142996D40 | sizeof 80; +40 决策国 tag u32(10394) / +48 目标清单容器 24B{data@48,cap@56,count@60} 元 48B(15733; 元=vt@0/+8,+12 目标对/+16..47 决议名串) / +72 ignore u8(11736); **GUI: TargetedItem+2656** | 定案: 目标化决议活跃实例 +44 写忽略旗 |
 | 19412 | CIgnoreAllAvailableDecisionCommand | 0x142996E08 | sizeof 48; +40 决策国 tag u32(10394, 推定) 单字段 | 定案: 全量忽略：目标化进忽略集 + 普通决议 +44 旗 |
 | 10285 | CSelectionGroupCommand | 0x142996F98 | sizeof 80; +40 所属国 tag u32(10754) / +48 SControlGroupData 容器 24B{data@48,cap@56,count@60} 元 32B(63) / +72 控制组槽号 u32(524, 0..9) | 定案: 存编队控制组：gs+1624 表重建 + "SHORTCUT_SAVED" 音效 |
 | 13107 | CCreateUnitLeaderCommand | 0x1429962C8 | sizeof 48; +40 tag(10394) / +44 type u32(225; 0=陆军元帅 1=陆军上将 2=海军上将, reader 收 ≤3 而 IsValid 拒 3) | 定案: 花费扣账后生成将领（sub_1406F1950 取费→sub_1406CFE60 扣账; 四维随机+军衔扣 XP; IsValid = type∈{0,1,2} + tag>0 + 费用可付 sub_1406DD670） |

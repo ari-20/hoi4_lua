@@ -219,15 +219,9 @@ CFleet/舰队视图 GUI 消费表:
 | CFleet idpair @win+7048 | CNavyLeaderWindow target (可空 = 名册态; 双宿主 = 舰队视图+22240 指派态 / CCountryOfficerCorpView **+8592** 名册态) | leader 窗 target |
 | leader 裸指针 @item+3944 | CNavyLeaderItem (ctor a4 直存, 无 SetTarget 槽; 填充器 sub_141AD21D0) | leader 项; 命中 leader+64 名/+288/+3528/+3680/+3708/+3912/四技能 (详见 §4.4) |
 
-命令族:
-
-| 命令 | 载荷 | 用途 |
-|---|---|---|
-| CSetFleetLeaderCommand | {+40 leader, +48 fleet} | 舰队指挥官指派 |
-| CCreateUnitLeaderCommand | {+44 = 2 navy} | 建 navy leader |
-| CChangeNavyLeaderDialog | — | leader 更换对话框 |
-| CSetFleetCommand | — | 拖放重编链 (REASSIGN_ALL_TASKFORCES 确认弹窗) |
-| CConfirmDisbandFleet | — | 舰队解散确认 (RTTI 定名) |
+命令族: 载荷全表见 §4.33 (CSetFleetLeaderCommand 12370 / CCreateUnitLeaderCommand
+13107 / CSetFleetCommand 15165); 确认弹窗 CChangeNavyLeaderDialog /
+CConfirmDisbandFleet = GUI 类, 见 §4.31.57。
 
 舰队块 (cc+360 容器, 0x9C0 结构, tf→ship 两级): taskforce 顶层 id 对;
 ship officer {seed@sh+2120+32, male 位, name; officer[2+] = 追加军官向量
@@ -512,17 +506,7 @@ A6 活体读锚 (-human_ai 现场可直接读):
 | +160 | uint8 | convoy | 恒写 | 写 yes/no |
 | +161 | uint8 | assist | 仅真写 yes | 定名 token 13552 = assist; writer `if(*(a1+161)) AE850(0x34F0, 1)`; 提取器不收 |
 
-#### 4.16.14 战史 GUI 消费
-
-**CSunkShipEntry** (宿主 CNavalLossesOverview, populate 0X1417FD790,
-target = CSunkShipInfo* 裸指针 @entry+32): 10/10 字段全中
-(name/owner/killer/date/definition/killer_definition/eq_variant/location);
-killer-type 枚举 helper 0X140C2DFC0 / KILLER_AIR helper 0X140C2DF50。
-
-**CNaviesViewSunkShipItem**: 经 CShip history 元素 +120 内嵌 CSunkShipInfo,
-is_sunk 门 @entry+114 — sh+2264/+2316 history 容器双中, 详见 §4.16.3 / §4.31.29。
-
-#### 4.16.15 sunk_convoys_history (gs 侧运输船损失月账)
+#### 4.16.14 sunk_convoys_history (gs 侧运输船损失月账)
 
 | 项 | 值 |
 |---|---|

@@ -113,7 +113,7 @@
 | CDeployment | 0x294f5b0 | cc+3952 部署模板 |
 | CSubUnitStatBonus | 0x295faa8 | 解锁兵种 bonus |
 | CArmy_vt0 / CArmy_vt1 | 0x295a2b0 / 0x295a490 | CArmy 双虚表 (书 §4.18) |
-| CNavyLeader | 0x2955dc0 | (书 §4.16) |
+| CNavyLeader | 0x2955dc0 | (书 §4.4.6; 海军将领导出族在角色册) |
 | CNavalBase / CNavalBase_vt2 / CNavalBase_vt3 | 0x29732e0 / 0x2973260 / 0x29731c0 | 海军基地三连 |
 | CUnitHistoryEntry | 0x29c1818 | 部队 history 容器 |
 | CStrategicAirMgr | 0x29588f8 | gs+0x690 (书 §4.15) |
@@ -147,7 +147,7 @@
 | COrganisation | 0x2967a28 | MIO (书 §4.8) |
 | CWeatherManager | 0x2977810 | gs+0x688 (书 §4.20) |
 | CSupplySystem | 0x2973cf0 | gs+0x3D8 (书 §4.21) |
-| CRailwayManager / CProvinceRailwayInfo | 0x2972cd0 / 0x2972c80 | (书 §4.22) |
+| CRailwayManager / CProvinceRailwayInfo | 0x2972cd0 / 0x2972c80 | (书 §4.14.6/§4.14.7) |
 | CProductionStatus | 0x2970788 | 州监听元素 (**非** cc+3944; 书 §4.13) |
 | CIntelSource | 0x295f138 | 谍报网内联 @net+168 (书 §4.11) |
 | CActivityElem | 0x295a5b0 | 活动 xp_by_template 元素 (书 §4.3) |
@@ -518,7 +518,7 @@ CGameState (gs)
 ├─ [gs+1680] CStrategicAirManager → sa_country[] → CAirWingPool[] → CAirWing
 │    └─ CAirWing: mission(嵌) / equipment / combat_history / oc/gix/rdi
 ├─ [gs+1688] 海军 CNavyManager → navy → taskforce → ship
-│    └─ CShip.history(+2264) 内嵌 CSunkShipInfo; gs+1424 沉船总账 / gs+1448 运输船月账 (§4.16.14–§4.16.15)
+│    └─ CShip.history(+2264) 内嵌 CSunkShipInfo; gs+1424 沉船总账 / gs+1448 运输船月账 (§4.16.13/§4.16.14)
 ├─ [gs+1696] CStrategicOperatives mgr → so (COperative 槽)
 ├─ [gs+1704] CCharacterManager → historical[] + dynamic[] → CCharacter
 │    └─ CCharacter → leader(CCommander) / operative / advisor / portraits

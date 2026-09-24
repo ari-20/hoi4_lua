@@ -997,7 +997,7 @@ CNationalFocus def (size 0x620, ctor 0X1402CB440):
 | +888 | — | ai_will_do 值块 (token 10819) |
 | +1392 | — | prerequisite (token 13243 直证) |
 | +1416 | — | mutually_exclusive (token 13242 定案: 名直证 + vt[9] 全链 + sub_1402CFE50 + ExclusiveItem 四证) |
-| +1440 | 匿名结构 (元素待裁) 向量 | **16B 前置反向依赖 (dependents) 表** {依赖方 def*, u8 = 依赖方前置组多备选旗} (写入 = 依赖解析 Finalize sub_1402D4D90, 断言 "Couldn't find dependency" nationalfocus.cpp:2472 直证; 消费 = CompleteFocus sub_1402CD590 → §4.3.12 fp+120 候选增量; 互斥真身 = +1416 组指针表不变) |
+| +1440 | 匿名结构 (元素待裁) 向量 | **16B 前置反向依赖 (dependents) 表** {依赖方 def*, u8 = 依赖方前置组多备选旗} (写入 = 依赖解析 Finalize sub_1402D4D90, 断言 "Couldn't find dependency" nationalfocus.cpp:2472 直证; 消费 = CompleteFocus sub_1402CD590 → §4.3.14 fp+120 候选增量; 互斥真身 = +1416 组指针表不变) |
 | +1464 | uint8 | historical 徽标门 (死门, 见下 ⚠) |
 | +1467 | — | complete_tooltip (token 13748; 活) |
 | +1468 | uint8 | available_if_capitulated (死门, 见下 ⚠) |
@@ -1069,13 +1069,6 @@ CFocusInlayWindow def = 216B 数据库项 (TGameItemDatabase; 单例 qword_14332
 | +208 | — | 本国可见门 (internal; 死门, 见上 ⚠) |
 
 token 全图 16520/10233/10275/14957/11562 定案; 每条目 push 104B CFocusInlayWindowView (池 win+1448 {c@1460}), Setup 建 `<def+88名>_instance`。
-
-CFocusStatus 新二锚 (补 §4.3.12):
-
-| 锚 | 语义 |
-|---|---|
-| fp+144 | 联合国策 originator 记录 (见 §4.3.12 +144 行) |
-| fp+120 | 可选候选缓存 (定案, 见 §4.3.12 +120 行) |
 
 #### 4.3.16 country.fuel_status (fs = rp(cc+5504), vt 0X298B3A8; writer 0X1410F8710 / reader 0X1410F7790 / 条目 0X1410F8650 / 列表 0X1410F09F0)
 

@@ -575,7 +575,7 @@ blob 单叶格式 = `k=v` 空格连接 164 对 + 尾部 ` produced_combat_widths
 #### 4.1.16 ships_built (造舰统计; gs+2520)
 
 RB-tree (std::map 形态): head = *(gs+2520), 规模 = *(gs+2528) (≠0 门); 中序 = 写序; 0 值也写。
-键 = 船型 token — 与 §4.1.8 all_playthrough_data 的 `designed_ships`(§4.1.10 第 10 键) 同族, 故不归海军战史 (§4.16.13/§4.16.15 收沉船总账与运输船月账)。
+键 = 船型 token — 与 §4.1.8 all_playthrough_data 的 `designed_ships`(§4.1.10 第 10 键) 同族, 故不归海军战史 (§4.16.13/§4.16.14 收沉船总账与运输船月账)。
 
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|

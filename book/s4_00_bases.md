@@ -33,7 +33,7 @@ CCommand 的 RTTI 基链均含 `CPersistent @0`, 其主虚表前 6 槽槽位语�
 | [6] | 空桩 (guard_nop/ICF) | — |
 | [7] | 空桩 (guard_nop/ICF) | — |
 
-> 旁证: s4_03 记 CCountry writer = sub_1407191B0; CCountryPlayerSettings
+> 旁证: §4.3 记 CCountry writer = sub_1407191B0; CCountryPlayerSettings
 > serialize = 0X1414E7670 (= 槽[2])、parse = 0X1424BE690 (= 槽[3] Load 入口) ——
 > 与「槽[2]=writer / 槽[4]=reader」定案吻合 (定案, 非推定)。
 > 补证: 槽[5] = return 0 桩 0x14011D220 在装备族 (CEquipmentStats /
