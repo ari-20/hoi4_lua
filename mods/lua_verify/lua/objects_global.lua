@@ -1284,12 +1284,15 @@ G32_RWInfoMT = {
     end
     if k == "construction" then
       -- 建造中边: {邻省id, 进度定点} 16B pair (n=0 返回空表)
+      -- ⚠ progress = i64 fixed×1e-5 (原实现误用 ru32 读低半, 已修)
       local d, n = rp(a + 0x50), ru32(a + 0x5C)
       if not n or n > 256 then return nil end
       local t = {}
       if O.kptr(d) then
         for i = 0, n - 1 do
-          t[#t + 1] = { id = ru32(d + 16 * i), progress = ru32(d + 16 * i + 8) }
+          local p = rp(d + 16 * i + 8)
+          t[#t + 1] = { id = ru32(d + 16 * i),
+            progress = p and LAYOUT.as_i64(p) or nil }
         end
       end
       return t
@@ -1299,7 +1302,8 @@ G32_RWInfoMT = {
   end,
 }
 
--- Runtime.rail_way -> {addr, slots, list=[代理...], by_province={[省id]=代理}}
+-- Runtime.rail_way -> {addr, slots, list=[代理...], by_province={[省id]=代理},
+--                      top_cooldown = {d@mgr+32, c@mgr+44} u32 列表}
 function Runtime.rail_way(self)
   local g = self.gs()
   local mgr = g and rp(g + 0x3E0)
@@ -1317,7 +1321,16 @@ function Runtime.rail_way(self)
       end
     end
   end
-  return { addr = mgr, slots = slots, list = list, by_province = by_id }
+  -- 顶格 cooldown 列表 (§4.14.7; c>0 才写, 段层钳 4096)
+  local top_cooldown = {}
+  local tcd, tcn = rp(mgr + 32), ru32(mgr + 44)
+  if O.kptr(tcd) and tcn and tcn > 0 then
+    for i = 0, math.min(tcn, LAYOUT.lim.PTR_SANE) - 1 do
+      top_cooldown[#top_cooldown + 1] = ru32(tcd + 4 * i) or 0
+    end
+  end
+  return { addr = mgr, slots = slots, list = list, by_province = by_id,
+           top_cooldown = top_cooldown }
 end
 
 -- ------------------------------------------------------------
@@ -1527,6 +1540,47 @@ function Country.operations(self)
           out.running[#out.running + 1] = rec
         end
       end
+    end
+  end
+  return out
+end
+
+-- 33.1b country.history (§4.3.13 CLoopHistory @cc+4040; 固定 3 队列对象
+-- @+16/+24/+32; 队列 {data@+8, rows@+20, max@+32, offset@+36, is_full@+40};
+-- cols = *(qc+56)+52 parent 回读)。
+-- ⚠ index 原样携带: 无效队列在存档里留路径空洞 (queue.0/.2 有 .1 无),
+-- 段层须按原下标发射; cells 仅在 rows/cols 门过且全行有效且非全零时给。
+function Country.history_queues(self)
+  local H = rp(self.addr + 4040)
+  if not O.kptr(H) then return nil end
+  if rp(H) ~= BASE + GAME.layout.vt.CLoopHistory then return nil end
+  local out = { queues = {} }
+  for qi = 0, 2 do
+    local C = rp(H + 16 + 8 * qi)
+    if O.kptr(C) and rp(C) == BASE + GAME.layout.vt.CLoopHistoryEntry then
+      local q = { index = qi, max_elements = ru32(C + 32) or 0,
+                  offset = ru32(C + 36) or 0, is_full = ru8(C + 40) or 0 }
+      local rows = ru32(C + 20) or 0
+      local desc = rp(C + 56)
+      local cols = O.kptr(desc) and (ru32(desc + 52) or 0) or 0
+      local buf = rp(C + 8)
+      if rows > 0 and rows <= LAYOUT.lim.PTR_SANE and cols > 0 and cols <= 64
+          and O.kptr(buf) then
+        local cells, bad, any = {}, false, false
+        for i = 0, rows - 1 do
+          local h1 = rp(buf + 8 * i)          -- 行句柄
+          local row = O.kptr(h1) and rp(h1)   -- 行数据基址
+          if not O.kptr(row) then bad = true break end
+          for j = 0, cols - 1 do
+            local v = rp(row + 8 * j) or 0
+            v = LAYOUT.as_i64(v)
+            if v ~= 0 then any = true end
+            cells[#cells + 1] = v
+          end
+        end
+        if not bad and any then q.cells = cells end
+      end
+      out.queues[#out.queues + 1] = q
     end
   end
   return out
