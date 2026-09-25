@@ -816,3 +816,573 @@ end
 
 
 -- ============================================================
+
+-- ============================================================
+-- §4.24 theatres 导出全量 reader (sv2_sec_c_theatres 只持写序/块键/编号/
+-- 值格式化)。writer 忠实; 与 Runtime.theatres 旧探针形并存 (旧 name 走
+-- cstr、容器门 ≤32 与段实证 ≤64 有差, 发射以本函数为准)。
+-- ⚠ fix5 = i64 ×1e-5 乘式 (本域段实证; 勿改 /100000)。
+local function thr_tagstr(tid)          -- §1.2 tag 串表 (门 >0 <100000)
+  if not tid or tid <= 0 or tid >= 100000 then return nil end
+  return Runtime:tag(tid)
+end
+local function thr_fix5(a) return (rp(a) or 0) * 1e-5 end
+
+-- sub_140C91860 族: u32 数组 {data@c, count@c+12} (门 >0 <1e6)
+local function thr_u32list(c)
+  local d, n = rp(c), ru32(c + 12)
+  if not O.kptr(d) or not n or n <= 0 or n >= 1000000 then return nil end
+  local t = {}
+  for i = 0, n - 1 do t[#t + 1] = ru32(d + 4 * i) or 0 end
+  return t
+end
+-- ptr 数组 {data@c, count@c+12}, 值 = ru32(elem+off) (kptr 过滤)
+local function thr_ptrlist1(c, off)
+  local d, n = rp(c), ru32(c + 12)
+  if not O.kptr(d) or not n or n <= 0 or n >= 1000000 then return nil end
+  local t = {}
+  for i = 0, n - 1 do
+    local e = rp(d + 8 * i)
+    if O.kptr(e) then t[#t + 1] = ru32(e + off) or 0 end
+  end
+  return (#t > 0) and t or nil
+end
+-- 16B 指针对数组平铺 ru32(ptr+164)
+local function thr_pairlist(c)
+  local d, n = rp(c), ru32(c + 12)
+  if not O.kptr(d) or not n or n <= 0 or n >= 1000000 then return nil end
+  local t = {}
+  for i = 0, n - 1 do
+    local pa, pb = rp(d + 16 * i), rp(d + 16 * i + 8)
+    if O.kptr(pa) then t[#t + 1] = ru32(pa + 164) or 0 end
+    if O.kptr(pb) then t[#t + 1] = ru32(pb + 164) or 0 end
+  end
+  return (#t > 0) and t or nil
+end
+-- §4.24.9 member 族: 元素 = unit+184, ref 对在 unit+24 {type@24, id@28}
+local function thr_unit_ref(e)
+  if not O.kptr(e) or e < 0x10000 + 184 then return nil end
+  local b = e - 184
+  local ty, id = ru32(b + 24), ru32(b + 28)
+  if ty and id and ty > 0 and ty < LAYOUT.lim.PTR_HUGE and id < 0xFFFFFFF then
+    return { type = ty, id = id }
+  end
+  return nil
+end
+local function thr_member_list(c)
+  local d, n = rp(c), ru32(c + 12)
+  if not O.kptr(d) or not n or n <= 0 or n >= LAYOUT.lim.PTR_HUGE then
+    return nil end
+  local t = {}
+  for i = 0, n - 1 do
+    local r = thr_unit_ref(rp(d + 8 * i))
+    if r then t[#t + 1] = r end
+  end
+  return t
+end
+
+-- §4.24.5 COrderInstance (order_instance/fallback/virtual_fallback 同类)
+local function thr_oi(oi, sent)
+  if not O.kptr(oi) then return nil end
+  local rec = {}
+  local otype = ru32(oi + 48) or 0
+  rec.otype = otype
+  if otype == 3 then -- convoys 块先于 type (CConvoySubscriber@+8)
+    rec.convoys = { convoys = ru32(oi + 16) or 0, total = ru32(oi + 20) or 0 }
+  end
+  rec.path = thr_u32list(oi + 112)
+  rec.states = thr_u32list(oi + 224)
+  rec.instance_id = ru32(oi + 580) or 0
+  rec.virtual_order = (ru8(oi + 665) or 0) ~= 0
+  local vc = ru32(oi + 668)
+  if vc and vc ~= 0 then rec.virtual_creator = vc end
+  local ch = ru32(oi + 72)
+  if ch and ch ~= 0 then rec.creation_h = ch end
+  local sh = ru32(oi + 96)
+  if sh and sh ~= 0 then rec.starting_h = sh end
+  rec.virtually_created = thr_u32list(oi + 672)
+  local function sso_key(key, base)   -- 门 size@base+16≠0 + 串非空
+    if (rp(base + 16) or 0) ~= 0 then
+      local s = U.sso(base)
+      if s and s ~= "" then rec[key] = s end
+    end
+  end
+  sso_key("operation", oi + 288)
+  sso_key("unique", oi + 384)
+  sso_key("first", oi + 320)
+  sso_key("second", oi + 352)
+  sso_key("prefix", oi + 416)
+  sso_key("postfix", oi + 448)
+  do -- floating_harbor (id 对 +920/+924 非零才写) + hp (i64@+928 ≠0)
+    local fht, fhi = ru32(oi + 920), ru32(oi + 924)
+    if (fht or 0) ~= 0 or (fhi or 0) ~= 0 then
+      rec.floating_harbor = { type = fht or 0, id = fhi or 0 }
+      local fhp = rp(oi + 928) or 0
+      if fhp ~= 0 then rec.floating_harbor_hp = fhp end
+    end
+  end
+  if (ru32(oi + 148) or 0) > 0 then
+    rec.sorted_pairs = thr_pairlist(oi + 136)
+    rec.sorted_pairs_from = ru32(oi + 160) or 0
+    rec.sorted_pairs_to = ru32(oi + 164) or 0
+  end
+  do -- enemy_controller_area 缓存链
+    local ca = rp(oi + 168)
+    if O.kptr(ca) and (ru32(ca + 60) or 0) > 0 then
+      local a2p = rp(ca + 40)
+      local lp = O.kptr(a2p) and rp(a2p + 184) or nil
+      if O.kptr(lp) and ((ru8(lp + 210) or 0) & 1) == 1 then
+        rec.enemy_controller_area = ru32(a2p + 164) or 0
+      end
+    end
+  end
+  local cex = ru8(oi + 584)
+  if cex and cex ~= 0 then rec.can_execute = cex end
+  rec.scheduled_members = thr_member_list(oi + 528)
+  rec.transported_members = thr_member_list(oi + 552)
+  local atm = ru32(oi + 576)
+  if atm and atm ~= 0 then rec.all_transported_members = atm end
+  do -- order_children / virtual: 值 = ru32(elem+580)
+    local cd, cn = rp(oi + 504), ru32(oi + 516)
+    if O.kptr(cd) and cn and cn > 0 and cn < 4096 then
+      rec.order_children = {}
+      for i = 0, cn - 1 do
+        local e = rp(cd + 8 * i)
+        if O.kptr(e) then
+          rec.order_children[#rec.order_children + 1] = ru32(e + 580) or 0
+        end
+      end
+    end
+    local vd, vn = rp(oi + 720), ru32(oi + 732)
+    if O.kptr(vd) and vn and vn > 0 and vn < 4096 then
+      rec.order_virtual_children = {}
+      for i = 0, vn - 1 do
+        local e = rp(vd + 8 * i)
+        if O.kptr(e) then
+          rec.order_virtual_children[#rec.order_virtual_children + 1] =
+            ru32(e + 580) or 0
+        end
+      end
+    end
+  end
+  local inv = ru32(oi + 184)
+  if inv and inv ~= 0 then rec.invasion_source = inv end
+  rec.blitz = (ru8(oi + 280) or 0) ~= 0
+  if rec.blitz then rec.blitz_provinces = thr_u32list(oi + 800) end
+  rec.withdraw = (ru8(oi + 281) or 0) ~= 0
+  if rec.withdraw then
+    local wd, wn = rp(oi + 856), ru32(oi + 868)
+    if O.kptr(wd) and wn and wn > 0 and wn < 4096 then
+      local wl = {}
+      for i = 0, wn - 1 do
+        local e = wd + 24 * i
+        local d2, n2 = rp(e), ru32(e + 12)
+        if O.kptr(d2) and n2 and n2 > 0 and n2 < LAYOUT.lim.PTR_HUGE then
+          local t = {}
+          for j = 0, n2 - 1 do t[#t + 1] = ru32(d2 + 4 * j) or 0 end
+          wl[i + 1] = t                 -- 槽序 (内门失败槽占号不发射)
+        end
+      end
+      rec.withdraw_lines = wl
+      rec.withdraw_lines_n = wn
+    end
+  end
+  if (rp(oi + 600) or 0) ~= sent then -- root_front 守卫 (哨兵=无效)
+    rec.root_front = { type = ru32(oi + 600) or 0, id = ru32(oi + 604) or 0 }
+    local rs = ru32(oi + 608)
+    if rs and rs ~= 0 then rec.root_section = rs end
+    if (rp(oi + 616) or 0) ~= 0 or (rp(oi + 624) or 0) ~= 100000 then
+      rec.root_from = thr_fix5(oi + 616)
+      rec.root_to = thr_fix5(oi + 624)
+    end
+    local sf = ru32(oi + 632)
+    if sf and sf ~= 0 then rec.split_from = sf end
+  end
+  rec.midpoints = thr_u32list(oi + 640)
+  rec.fallback = (ru8(oi + 664) or 0) ~= 0
+  if (rp(oi + 216) or 0) ~= 0 then rec.time = thr_fix5(oi + 216) end
+  local ads = ru32(oi + 248)
+  if ads and ads ~= 0 then rec.area_defense_settings = ads end
+  do -- area_defense_state_assignment: stride32, 每元一单行叶 (重复裸键)
+    local d, n = rp(oi + 256), ru32(oi + 268)
+    if O.kptr(d) and n and n > 0 and n < LAYOUT.lim.PTR_HUGE then
+      rec.area_defense = {}
+      for i = 0, n - 1 do
+        local e = d + 32 * i
+        local t = { ru32(e) or 0 }
+        local d2, n2 = rp(e + 8), ru32(e + 20)
+        if O.kptr(d2) and n2 and n2 > 0 and n2 < 4096 then
+          for j = 0, n2 - 1 do
+            t[#t + 1] = ru32(d2 + 8 * j) or 0
+            t[#t + 1] = ru32(d2 + 8 * j + 4) or 0
+          end
+        end
+        rec.area_defense[#rec.area_defense + 1] = t
+      end
+    end
+  end
+  rec.route_is_ok = (ru8(oi + 282) or 0) ~= 0
+  local att = rp(oi + 888)
+  if O.kptr(att) then
+    rec.attach = { type = ru32(att + 8) or 0, id = ru32(att + 12) or 0 }
+  end
+  rec.manage_child_sections = ru8(oi + 880) or 0 -- 原字节 (yn1 段层)
+  do -- faction_theaters: fix5 数组单行叶
+    local fd, fn = rp(oi + 936), ru32(oi + 948)
+    if O.kptr(fd) and fn and fn > 0 and fn < 4096 then
+      local t = {}
+      for i = 0, fn - 1 do
+        t[#t + 1] = (rp(fd + 8 * i) or 0) * 1e-5 end
+      rec.faction_theaters = t
+    end
+  end
+  return rec
+end
+
+-- §4.24.3 COrdersGroup / §4.24.4 CArmyGroup
+local function thr_og(og, is_fmg, sent)
+  if not O.kptr(og) then return nil end
+  local rec = {}
+  if is_fmg then -- CArmyGroup 先写子 orders_group 引用 + collapse
+    local d, n = rp(og + 560), ru32(og + 572)
+    if O.kptr(d) and n and n > 0 and n < 4096 then
+      rec.sub_orders_groups = {}
+      for i = 0, n - 1 do
+        local e = rp(d + 8 * i)
+        if O.kptr(e) then
+          rec.sub_orders_groups[#rec.sub_orders_groups + 1] = {
+            type = ru32(e + 8) or 0, id = ru32(e + 12) or 0 }
+        end
+      end
+    end
+    rec.collapse = (ru8(og + 584) or 0) ~= 0
+  end
+  rec.id_type = ru32(og + 8) or 0
+  rec.id_id = ru32(og + 12) or 0
+  if (rp(og + 368) or 0) ~= 0 then
+    local nm = U.sso(og + 352)
+    if nm and nm ~= "" then rec.name = nm end
+  end
+  do -- §4.24.9 order_instance 家族树展开 (根 vec +152/+164; 先序去重)
+    local list, seen = {}, {}
+    local function collect(o, offd, offc)
+      local d, n = rp(o + offd), ru32(o + offc)
+      if O.kptr(d) and n and n > 0 and n < 4096 then
+        for i = 0, n - 1 do
+          local ch = rp(d + 8 * i)
+          if O.kptr(ch) then
+            if not seen[ch] then
+              seen[ch] = true
+              list[#list + 1] = ch
+            end
+            collect(ch, offd, offc)
+          end
+        end
+      end
+    end
+    local rd, rn = rp(og + 152), ru32(og + 164)
+    if O.kptr(rd) and rn and rn > 0 and rn < 4096 then
+      for i = 0, rn - 1 do
+        local root = rp(rd + 8 * i)
+        if O.kptr(root) then
+          if not seen[root] then
+            seen[root] = true
+            list[#list + 1] = root
+          end
+          collect(root, 504, 516)  -- order_children
+          collect(root, 720, 732)  -- order_virtual_children
+        end
+      end
+    end
+    rec.order_instances = {}
+    for _, oi in ipairs(list) do
+      local r = thr_oi(oi, sent)
+      if r then rec.order_instances[#rec.order_instances + 1] = r end
+    end
+  end
+  do -- fallback / virtual_fallback (同为 COrderInstance)
+    local fd, fn = rp(og + 176), ru32(og + 188)
+    if O.kptr(fd) and fn and fn > 0 and fn < LAYOUT.lim.PTR_SANE then
+      rec.fallbacks = {}
+      for i = 0, fn - 1 do
+        local o = thr_oi(rp(fd + 8 * i), sent)
+        if o then rec.fallbacks[#rec.fallbacks + 1] = o end
+      end
+    end
+    local vd, vn = rp(og + 200), ru32(og + 212)
+    if O.kptr(vd) and vn and vn > 0 and vn < LAYOUT.lim.PTR_SANE then
+      rec.virtual_fallbacks = {}
+      for i = 0, vn - 1 do
+        local o = thr_oi(rp(vd + 8 * i), sent)
+        if o then rec.virtual_fallbacks[#rec.virtual_fallbacks + 1] = o end
+      end
+    end
+  end
+  do -- member 块 (编号) { unit = id对 }
+    local md, mn = rp(og + 80), ru32(og + 92)
+    if O.kptr(md) and mn and mn > 0 and mn < LAYOUT.lim.PTR_HUGE then
+      rec.members = {}
+      for i = 0, mn - 1 do
+        local r = thr_unit_ref(rp(md + 8 * i))
+        if r then rec.members[#rec.members + 1] = r end
+      end
+    end
+  end
+  local lu = rp(og + 104) -- leader_unit (unit+184 视角)
+  if O.kptr(lu) then rec.leader_unit = thr_unit_ref(lu) end
+  local ld = rp(og + 136) -- §4.4.5 CArmyLeader leader (type@+8 id@+12)
+  if O.kptr(ld) then
+    rec.leader = { type = ru32(ld + 8) or 0, id = ru32(ld + 12) or 0 }
+  end
+  do -- pending_incoming_leader ref 对 (+144/+148, 非零才写)
+    local t0, i0 = ru32(og + 144), ru32(og + 148)
+    if (t0 and t0 ~= 0) or (i0 and i0 ~= 0) then
+      rec.pending_incoming_leader = { type = t0 or 0, id = i0 or 0 }
+    end
+  end
+  do -- color 恒写: (int)(f*255) 截断
+    local r, g2, b = hoi4.read_f32(og + 272), hoi4.read_f32(og + 276),
+      hoi4.read_f32(og + 280)
+    if r and g2 and b then
+      rec.color = { math.floor(r * 255), math.floor(g2 * 255),
+        math.floor(b * 255) }
+      local a = hoi4.read_f32(og + 284)
+      if a and a ~= 1.0 then rec.color_a = math.floor(a * 255) end
+    end
+  end
+  rec.icon = ru32(og + 288) or 0
+  if (rp(og + 292) or 0) ~= sent then -- split_from ref 对
+    rec.split_from = { type = ru32(og + 292) or 0, id = ru32(og + 296) or 0 }
+  end
+  rec.deployed = (ru8(og + 409) or 0) ~= 0
+  rec.deploy_queued = (ru8(og + 410) or 0) ~= 0
+  rec.expeditionaries = (ru8(og + 408) or 0) ~= 0
+  local hq = rp(og + 392) -- §4.24.10 hq_deploy_distributable
+  if O.kptr(hq) then
+    local h = {}
+    local prio = ru32(hq + 8)
+    if prio and prio ~= 1 then h.priority = prio end
+    h.country = thr_tagstr(ru32(hq + 32))
+    do -- §4.24.10 hq_assembled_equipment (16B 元; 门 amt≠0∨az)
+      local d, n = rp(hq + 72), ru32(hq + 84)
+      local az = ru8(hq + 96) or 0
+      h.equipment_az = az
+      if O.kptr(d) and n and n > 0 and n < 4096 then
+        h.assembled_equipment = {}
+        for i = 0, n - 1 do
+          local e = d + 16 * i
+          local amt = rp(e + 8) or 0
+          if amt ~= 0 or az ~= 0 then
+            local v = rp(e)
+            h.assembled_equipment[#h.assembled_equipment + 1] = {
+              type = O.kptr(v) and (ru32(v + 8) or 0) or nil,
+              id = O.kptr(v) and (ru32(v + 12) or 0) or nil,
+              amount = amt * 1e-5 }
+          end
+        end
+      end
+    end
+    do -- §4.24.10 hq_requested_equipment (token 名键)
+      local d, n = rp(hq + 112), ru32(hq + 124)
+      if O.kptr(d) and n and n > 0 and n < 4096 then
+        h.requested_equipment = {}
+        for i = 0, n - 1 do
+          local e = d + 16 * i
+          local amt = rp(e + 8) or 0
+          if amt ~= 0 then
+            local ar = rp(e)
+            local tk = O.kptr(ar) and ru32(ar + 8) or nil
+            local nm = tk and LAYOUT.token_name(tk) or nil
+            if type(nm) == "string" then
+              h.requested_equipment[#h.requested_equipment + 1] = {
+                name = nm, amount = amt * 1e-5 }
+            end
+          end
+        end
+      end
+    end
+    h.assembled_manpower = ru32(hq + 136) or 0
+    h.requested_manpower = ru32(hq + 140) or 0
+    h.deploy_order = ru32(hq + 144) or 0
+    h.requisitioned_from_army = ru8(hq + 148) or 0 -- 原字节 (yn1 段层)
+    rec.hq = h
+  end
+  do -- target_template ref 对 (+400/+404)
+    local t0, i0 = ru32(og + 400), ru32(og + 404)
+    if (t0 and t0 ~= 0) or (i0 and i0 ~= 0) then
+      rec.target_template = { type = t0 or 0, id = i0 or 0 }
+    end
+  end
+  rec.withdrawing = (ru8(og + 411) or 0) ~= 0
+  rec.unassign_on_withdraw = (ru8(og + 412) or 0) ~= 0
+  rec.training = (ru8(og + 413) or 0) ~= 0
+  rec.stop_training_at_max_xp = (ru8(og + 416) or 0) ~= 0
+  rec.plan_value = thr_fix5(og + 304)
+  rec.our_power = thr_fix5(og + 312)
+  rec.enemy_power = thr_fix5(og + 320)
+  rec.members_has_changed = (ru8(og + 414) or 0) ~= 0
+  rec.execution_type = ru32(og + 420) or 0
+  rec.cohesion_type = ru32(og + 424) or 0
+  rec.proximity_type = ru32(og + 428) or 0
+  rec.field_marshal_group = ru8(og + 57) or 0  -- 原字节 (yn1 段层)
+  rec.motorization_level = ru8(og + 56) or 0
+  local function i32_ge0(off)                  -- i32>=0 才写
+    local v = ru32(off)
+    if v and v < 0x80000000 then return v end
+    return nil
+  end
+  rec.distance = i32_ge0(og + 452)
+  rec.hq_nearest_front_province_id = i32_ge0(og + 456)
+  rec.hq_distance_to_naval_invasion_source = i32_ge0(og + 460)
+  rec.cached_hq_naval_invasion_source_province_id = i32_ge0(og + 464)
+  local td = ru32(og + 468)                    -- timeout_days >0 才写
+  if td and td ~= 0 and td < 0x80000000 then rec.timeout_days = td end
+  return rec
+end
+
+-- §4.24.7 CFrontSection
+local function thr_section(sec)
+  if not O.kptr(sec) then return nil end
+  local rec = { id = ru32(sec + 8) or 0 }
+  rec.provinces = thr_ptrlist1(sec + 48, 164)
+  rec.sorted_pairs = thr_pairlist(sec + 72)
+  local pd, pn = rp(sec + 24), ru32(sec + 36)
+  if O.kptr(pd) and pn and pn > 0 and pn < LAYOUT.lim.PTR_SANE then
+    rec.per_country_sections = {}
+    for i = 0, pn - 1 do
+      local e = pd + 24 * i
+      local tstr = thr_tagstr(ru32(e + 8))
+      rec.per_country_sections[#rec.per_country_sections + 1] = {
+        country = tstr or "---", index = ru32(e + 12) or 0,
+        count = ru32(e + 16) or 0 }
+    end
+  end
+  return rec
+end
+
+-- §4.24.6 CFront
+local function thr_front(fr)
+  if not O.kptr(fr) then return nil end
+  local rec = { id_type = ru32(fr + 8) or 0, id_id = ru32(fr + 12) or 0 }
+  rec.dirty = ru8(fr + 125) or 0               -- 原字节 (yn1 段层)
+  rec.provinces = thr_ptrlist1(fr + 32, 164)
+  local ed, en = rp(fr + 56), ru32(fr + 68)
+  if O.kptr(ed) and en and en > 0 and en < 4096 then
+    local t = {}
+    for i = 0, en - 1 do
+      local tstr = thr_tagstr(ru32(ed + 4 * i))
+      if tstr then t[i + 1] = tstr end         -- 槽序稀疏表保洞
+    end
+    rec.enemies = t
+    rec.enemies_n = en
+  end
+  rec.id_counter = ru32(fr + 80) or 0
+  local sd, sn = rp(fr + 88), ru32(fr + 100)
+  if O.kptr(sd) and sn and sn > 0 and sn < 4096 then
+    rec.sections = {}
+    for i = 0, sn - 1 do
+      local sec = thr_section(rp(sd + 8 * i))
+      if sec then rec.sections[#rec.sections + 1] = sec end
+    end
+  end
+  local ap = rp(fr + 112)
+  local aq = O.kptr(ap) and rp(ap + 40) or nil
+  if O.kptr(aq) then rec.area = ru32(aq + 164) or 0 end
+  return rec
+end
+
+-- §4.24.8 CTheaterGroup
+local function thr_tg(tg)
+  if not O.kptr(tg) then return nil end
+  local rec = { id_type = ru32(tg + 8) or 0, id_id = ru32(tg + 12) or 0,
+    priority = ru32(tg + 32) or 0 }
+  rec.name = U.sso(tg + 40)                    -- 恒写 (空串照写)
+  local d, n = rp(tg + 72), ru32(tg + 84)
+  if O.kptr(d) and n and n > 0 and n < 4096 then
+    rec.orders_groups = {}
+    for i = 0, n - 1 do
+      local e = rp(d + 8 * i)
+      if O.kptr(e) then
+        rec.orders_groups[#rec.orders_groups + 1] = {
+          type = ru32(e + 8) or 0, id = ru32(e + 12) or 0 }
+      end
+    end
+  end
+  return rec
+end
+
+-- Country.theatres_full -> list (§4.24.2 CTheatre; 容器 {cc+360, cc+372},
+-- 门 tn ≤64 = 段实证)
+function Country.theatres_full(self)
+  local cc = self.addr
+  if not cc then return nil end
+  local sent = rp(BASE + 0x333D528) or 0
+  local td, tn = rp(cc + 360), ru32(cc + 372)
+  if not (O.kptr(td) and tn and tn > 0 and tn <= 64) then return nil end
+  local out = {}
+  for i = 0, tn - 1 do
+    local th = rp(td + 8 * i)
+    if O.kptr(th) then
+      local rec = { id_type = ru32(th + 8) or 0, id_id = ru32(th + 12) or 0 }
+      local ad, an = rp(th + 24), ru32(th + 36)
+      if O.kptr(ad) and an and an > 0 and an < LAYOUT.lim.PTR_HUGE then
+        local t = {}
+        for j = 0, an - 1 do
+          local e = rp(ad + 8 * j)
+          local q = O.kptr(e) and rp(e + 40) or nil
+          if O.kptr(q) then t[#t + 1] = ru32(q + 164) or 0 end
+        end
+        if #t > 0 then rec.areas = t end
+      end
+      local ogd, ogn = rp(th + 128), ru32(th + 140)
+      if O.kptr(ogd) and ogn and ogn > 0 and ogn < 4096 then
+        rec.orders_groups = {}
+        for j = 0, ogn - 1 do
+          local og = thr_og(rp(ogd + 8 * j), false, sent)
+          if og then rec.orders_groups[#rec.orders_groups + 1] = og end
+        end
+      end
+      local fd, fn = rp(th + 152), ru32(th + 164)
+      if O.kptr(fd) and fn and fn > 0 and fn < 4096 then
+        rec.field_marshal_groups = {}
+        for j = 0, fn - 1 do
+          local ag = thr_og(rp(fd + 8 * j), true, sent)
+          if ag then
+            rec.field_marshal_groups[#rec.field_marshal_groups + 1] = ag
+          end
+        end
+      end
+      local gd, gn = rp(th + 200), ru32(th + 212)
+      if O.kptr(gd) and gn and gn > 0 and gn < LAYOUT.lim.PTR_SANE then
+        rec.theater_groups = {}
+        for j = 0, gn - 1 do
+          local tg = thr_tg(rp(gd + 8 * j))
+          if tg then rec.theater_groups[#rec.theater_groups + 1] = tg end
+        end
+      end
+      local ud, un = rp(th + 104), ru32(th + 116)
+      if O.kptr(ud) and un and un > 0 and un < LAYOUT.lim.PTR_HUGE then
+        rec.units = {}
+        for j = 0, un - 1 do
+          local e = rp(ud + 8 * j)
+          if O.kptr(e) then
+            rec.units[#rec.units + 1] = { type = ru32(e + 24) or 0,
+              id = ru32(e + 28) or 0 }
+          end
+        end
+      end
+      local frd, frn = rp(th + 80), ru32(th + 92)
+      if O.kptr(frd) and frn and frn > 0 and frn < 4096 then
+        rec.fronts = {}
+        for j = 0, frn - 1 do
+          local fr = thr_front(rp(frd + 8 * j))
+          if fr then rec.fronts[#rec.fronts + 1] = fr end
+        end
+      end
+      local vt = ru32(th + 272) -- volunteers_theatre (tag_id>0)
+      if vt and vt > 0 then rec.volunteers_theatre = thr_tagstr(vt) end
+      out[#out + 1] = rec
+    end
+  end
+  return out
+end
