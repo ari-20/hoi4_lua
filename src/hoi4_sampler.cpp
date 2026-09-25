@@ -6,6 +6,17 @@
 //   leaf mode (default)  - RIP histogram, cheapest suspension window.
 //   stack mode           - full call-stack capture per sample, folded-stack
 //                          histogram for flame graphs (sampler_annotate.py).
+//   scope "all"          - additionally sweep EVERY process thread each tick
+//                          (leaf RIP only; the main thread keeps its full
+//                          capture incl. optional stacks) plus per-thread CPU
+//                          deltas via GetThreadTimes. Answers "what are the
+//                          tbb workers actually running". Access:
+//                          hoi4.profile_threads() / GET /profile/threads.
+//   scope "main" (default) - only the calling thread (the game main thread).
+//
+//   Sweep economics: ~90 threads x (suspend+ctx+resume) costs ~1-3 ms per
+//   sweep, so "all" scope refuses intervals below 10 ms (clamped). The
+//   sampler thread itself is excluded from its own sweep.
 //
 // Design invariants:
 //
@@ -30,12 +41,14 @@
 //     gone = process shutdown); profile_stop cleans up after auto-stop too.
 //
 // Lua surface:
-//   hoi4.profile_start([interval_ms[, stacks]]) -> "ok ..." (error if running)
-//   hoi4.profile_stop()                         -> summary string, keeps data
-//   hoi4.profile_top([n])                       -> lines "count rva|rip <hex>"
-//   hoi4.profile_folded([path])                 -> writes folded stacks file
-//   hoi4.profile_status()                       -> counters string
+//   hoi4.profile_start([interval_ms[, stacks[, all]]])  -> "ok ..." (error if running)
+//   hoi4.profile_stop()                                 -> summary string, keeps data
+//   hoi4.profile_top([n])                               -> lines "count rva|rip <hex>"
+//   hoi4.profile_folded([path])                         -> writes folded stacks file
+//   hoi4.profile_threads()                              -> per-tid hits/cpu table
+//   hoi4.profile_status()                               -> counters string
 #include "hoi4_common.h"
+#include <tlhelp32.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -45,9 +58,13 @@
 #define SAMP_TABLE_SIZE      (1u << SAMP_TABLE_BITS)     // 64K slots = 1 MB
 #define SAMP_INTERVAL_MIN_MS 1
 #define SAMP_INTERVAL_MAX_MS 1000
+#define SAMP_ALL_MIN_MS      10                           // sweep ~90 threads per tick is not free
 #define SAMP_TOP_MAX         200                          // fits the 8 KB /lua result
 #define SAMP_FAIL_LIMIT      64                           // consecutive capture failures -> auto stop
 #define SAMP_MAX_FRAMES      64
+#define SAMP_TID_MAX         256
+#define SAMP_TID_REFRESH     2000                         // ms between thread-table rebuilds
+#define SAMP_TID_DEADRUNS    16                           // sweeps failing before tid is dropped
 
 typedef struct {
     uint64_t key;    // 0 = empty slot; bit0 set = raw RIP (unresolved); else func-start RVA
@@ -72,6 +89,26 @@ static struct {
     volatile LONG      running;      // 0 idle, 1 sampling
 } g_smp;
 static int g_diagLogged;             // one-shot first-failure diagnostic
+
+// ---- scope "all": process-wide thread table (worker-owned, no CS needed:
+// only samp_worker reads/mutates it; samp_api_threads copies under CS) ----
+typedef struct {
+    DWORD              tid;
+    HANDLE             h;              // SUSPEND_RESUME|GET_CONTEXT|QUERY_INFORMATION
+    unsigned long long hits;           // samples attributed to this tid
+    unsigned long long cpuPrev;        // kernel+user, 100ns units, last refresh
+    unsigned long long cpuDelta;       // last refresh window's cpu delta (100ns)
+    DWORD              deadRuns;       // consecutive failed SuspendThread calls
+} SampTid;
+static struct {
+    int    all;                        // scope flag
+    SampTid tids[SAMP_TID_MAX];
+    int    count;
+    DWORD  selfTid;                    // sampler worker's own tid (excluded)
+    DWORD  mainTid;                    // target tid (excluded from the sweep:
+                                       // it gets the full capture path)
+    unsigned long long lastRefreshMs;
+} g_scope;
 
 // folded-stack histogram (stack mode; key = "ripA;ripB;ripC" root->leaf)
 static std::unordered_map<std::string, uint64_t> g_folded;
@@ -143,6 +180,126 @@ static uint32_t pdata_func(uint32_t rva)
     }
     return ans >= 0 ? g_pdata[ans] : 0;
 }
+
+// ---- scope "all" thread table ----
+static void samp_add_locked(uint64_t rip);       // defined with the commit helpers below
+
+// Close handles only — rows/stats survive stop (readers need them post-stop,
+// same contract as the leaf histogram; next start's refresh rebuilds handles).
+static void tids_close_handles(void)
+{
+    for (int i = 0; i < g_scope.count; i++)
+        if (g_scope.tids[i].h) { CloseHandle(g_scope.tids[i].h); g_scope.tids[i].h = nullptr; }
+}
+
+static void tids_close_all(void)
+{
+    tids_close_handles();
+    g_scope.count = 0;
+}
+
+// Rebuild the table from a Toolhelp snapshot. Surviving tids keep their
+// hits/cpuPrev; new tids join; gone tids' handles close. Runs on the worker
+// thread between sweeps — no lock needed.
+static void tids_refresh(void)
+{
+    unsigned long long prevCpu[SAMP_TID_MAX];
+    DWORD prevTid[SAMP_TID_MAX];
+    unsigned long long prevHits[SAMP_TID_MAX], prevDelta[SAMP_TID_MAX];
+    int keep = 0;
+    for (int i = 0; i < g_scope.count && keep < SAMP_TID_MAX; i++) {
+        prevTid[keep]   = g_scope.tids[i].tid;
+        prevCpu[keep]   = g_scope.tids[i].cpuPrev;
+        prevHits[keep]  = g_scope.tids[i].hits;
+        prevDelta[keep] = g_scope.tids[i].cpuDelta;
+        keep++;
+    }
+    tids_close_handles();                                   // refresh rebuilds itself
+
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (snap == INVALID_HANDLE_VALUE) return;
+    THREADENTRY32 te;
+    te.dwSize = sizeof(te);
+    DWORD pid = GetCurrentProcessId();
+    DWORD selfTid = GetCurrentThreadId();
+    int n = 0;
+    if (Thread32First(snap, &te)) do {
+        if (te.th32OwnerProcessID != pid) continue;
+        if (te.th32ThreadID == selfTid) continue;          // never sample ourselves
+        if (n >= SAMP_TID_MAX) break;
+        HANDLE h = OpenThread(THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT |
+                              THREAD_QUERY_INFORMATION, FALSE, te.th32ThreadID);
+        if (!h) continue;
+        SampTid *t = &g_scope.tids[n];
+        memset(t, 0, sizeof(*t));
+        t->tid = te.th32ThreadID;
+        t->h   = h;
+        for (int k = 0; k < keep; k++)                     // tiny: carry stats over
+            if (prevTid[k] == t->tid) {
+                t->hits     = prevHits[k];
+                t->cpuPrev  = prevCpu[k];
+                t->cpuDelta = prevDelta[k];
+                break;
+            }
+        n++;
+    } while (Thread32Next(snap, &te));
+    CloseHandle(snap);
+    g_scope.count = n;
+    g_scope.lastRefreshMs = GetTickCount64();
+}
+
+// CPU-time deltas per thread (GetThreadTimes kernel+user), refreshed alongside
+// the table rebuild cadence. Cheap, no suspension.
+static void tids_cpu_refresh(void)
+{
+    for (int i = 0; i < g_scope.count; i++) {
+        SampTid *t = &g_scope.tids[i];
+        FILETIME cr, ex, kr, us;
+        if (!GetThreadTimes(t->h, &cr, &ex, &kr, &us)) continue;
+        unsigned long long now =
+            (((unsigned long long)kr.dwHighDateTime << 32) | kr.dwLowDateTime) +
+            (((unsigned long long)us.dwHighDateTime << 32) | us.dwLowDateTime);
+        if (t->cpuPrev)
+            t->cpuDelta = now - t->cpuPrev;
+        t->cpuPrev = now;
+    }
+}
+
+        // One leaf sample per live thread. Runs in the worker, target threads only
+// briefly suspended. The sampler's own tid and the main tid are skipped (the
+// main tid is captured by the primary path with optional stacks). hits/total
+// move under CS so samp_api_threads never races the counters.
+static void samp_sweep_all(void)
+{
+    CONTEXT ctx;
+    for (int i = 0; i < g_scope.count; i++) {
+        SampTid *t = &g_scope.tids[i];
+        if (t->tid == g_scope.mainTid) continue;
+        DWORD prev = SuspendThread(t->h);
+        if (prev == (DWORD)-1) { if (++t->deadRuns > SAMP_TID_DEADRUNS) t->tid = 0; continue; }
+        memset(&ctx, 0, sizeof(ctx));
+        ctx.ContextFlags = CONTEXT_CONTROL;
+        int got = GetThreadContext(t->h, &ctx);
+        ResumeThread(t->h);
+        if (!got) continue;
+        EnterCriticalSection(&g_smp.cs);
+        samp_add_locked(ctx.Rip);
+        t->hits++;
+        g_smp.total++;
+        LeaveCriticalSection(&g_smp.cs);
+    }
+    // compaction of dropped tids + periodic table/cpu refresh
+    int w = 0;
+    for (int i = 0; i < g_scope.count; i++)
+        if (g_scope.tids[i].tid) g_scope.tids[w++] = g_scope.tids[i];
+    g_scope.count = w;
+    unsigned long long now = GetTickCount64();
+    if (now - g_scope.lastRefreshMs >= SAMP_TID_REFRESH) {
+        tids_refresh();
+        tids_cpu_refresh();
+    }
+}
+
 
 // ---- capture window primitives (target suspended; no locks/allocs) ----
 
@@ -288,6 +445,7 @@ static DWORD WINAPI samp_worker(LPVOID arg)
             failRun = 0;
         }
         LeaveCriticalSection(&g_smp.cs);
+        if (g_scope.all) samp_sweep_all();       // scope "all": one leaf per live thread
         if (failRun > SAMP_FAIL_LIMIT) break;
     }
     InterlockedExchange(&g_smp.running, 0);
@@ -325,6 +483,7 @@ static void samp_teardown(void)
     }
     if (g_smp.hThread) { CloseHandle(g_smp.hThread); g_smp.hThread = nullptr; }
     if (g_smp.hTimer) CancelWaitableTimer(g_smp.hTimer);   // timer itself is reused
+    tids_close_handles();                                   // rows/stats survive stop
 }
 
 // ---- C core (shared by the Lua wrappers and the HTTP endpoints) ----
@@ -333,10 +492,12 @@ static void samp_teardown(void)
 
 // Returns NULL on success (out = info line), else a static error string.
 const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
-                           char *out, size_t cap)
+                           int all, char *out, size_t cap)
 {
     if (InterlockedCompareExchange(&g_smp.running, 1, 0) != 0)
         return "profile already running (profile_stop first)";
+    if (all && interval_ms < SAMP_ALL_MIN_MS)
+        interval_ms = SAMP_ALL_MIN_MS;         // sweeping ~90 threads per tick is not free
     if (interval_ms < SAMP_INTERVAL_MIN_MS || interval_ms > SAMP_INTERVAL_MAX_MS)
         return "interval_ms out of range (1..1000)";
     if (!pdata_build()) { InterlockedExchange(&g_smp.running, 0);
@@ -370,6 +531,9 @@ const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
     g_smp.intervalMs = interval_ms;
     g_smp.stacks     = stacks;
     g_smp.hThread    = h;
+    g_scope.all      = all;
+    g_scope.mainTid  = target_tid;
+    g_scope.lastRefreshMs = 0;                    // worker builds the table on its first sweep
     ResetEvent(g_smp.hStop);
     if (g_smp.hTimer) {
         LARGE_INTEGER due;
@@ -388,11 +552,11 @@ const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
         InterlockedExchange(&g_smp.running, 0);
         return "sampler thread create failed";
     }
-    _snprintf_s(out, cap, _TRUNCATE, "ok tid=%lu interval_ms=%lu stacks=%d pdata=%d",
+    _snprintf_s(out, cap, _TRUNCATE, "ok tid=%lu interval_ms=%lu stacks=%d all=%d pdata=%d",
                 (unsigned long)target_tid, (unsigned long)interval_ms,
-                stacks, g_pdataN);
-    L("[sampler] start tid=%lu interval=%lums stacks=%d pdata=%d",
-      (unsigned long)target_tid, (unsigned long)interval_ms, stacks, g_pdataN);
+                stacks, all, g_pdataN);
+    L("[sampler] start tid=%lu interval=%lums stacks=%d all=%d pdata=%d",
+      (unsigned long)target_tid, (unsigned long)interval_ms, stacks, all, g_pdataN);
     return nullptr;
 }
 
@@ -453,9 +617,11 @@ int samp_api_folded(const char *argPath, char *out, size_t cap)
     if (argPath && *argPath) {
         _snprintf_s(path, sizeof(path), _TRUNCATE, "%s", argPath);
     } else {
-        const char *logs = logs_dir_utf8();
-        if (!logs || !*logs) return 0;
-        _snprintf_s(path, sizeof(path), _TRUNCATE, "%s\\profile_folded.txt", logs);
+        // user dir root, NOT logs/ — the engine wipes logs/ on every launch
+        // and a folded capture must survive the next restart for offline work.
+        const char *user = user_data_dir_utf8();
+        if (!user || !*user) return 0;
+        _snprintf_s(path, sizeof(path), _TRUNCATE, "%s\\profile_folded.txt", user);
     }
 
     std::vector<std::pair<std::string, uint64_t>> rows;
@@ -491,6 +657,48 @@ void samp_api_status(char *out, size_t cap)
     samp_counters_str(out, cap,
                       InterlockedCompareExchange(&g_smp.running, 0, 0)
                           ? "running:" : "idle:");
+    size_t l = strlen(out);
+    _snprintf_s(out + l, cap - l, _TRUNCATE, " scope=%s tids=%d",
+                g_scope.all ? "all" : "main", g_scope.count);
+}
+
+// Per-thread table (scope "all"): lines "tid hits hits% cpu_ms(last window)".
+// Reader path: snapshot under CS (worker bumps tid counters under the same CS),
+// then fresh GetThreadTimes for a live cpu column when sampling is stopped.
+int samp_api_threads(char *out, size_t cap)
+{
+    SampTid snap[SAMP_TID_MAX];
+    int n = 0;
+    EnterCriticalSection(&g_smp.cs);
+    n = g_scope.count < SAMP_TID_MAX ? g_scope.count : SAMP_TID_MAX;
+    memcpy(snap, g_scope.tids, (size_t)n * sizeof(SampTid));
+    unsigned long long total = g_smp.total;
+    int all = g_scope.all;
+    LeaveCriticalSection(&g_smp.cs);
+
+    // hottest threads first: cpu-delta more diagnostic than hits (in a full
+    // sweep every live tid accumulates exactly one hit per sweep — hits only
+    // says "alive", cpu says "working")
+    std::sort(snap, snap + n,
+              [](const SampTid &a, const SampTid &b) {
+                  return a.cpuDelta != b.cpuDelta ? a.cpuDelta > b.cpuDelta
+                                                  : a.hits > b.hits;
+              });
+
+    size_t pos = (size_t)_snprintf_s(out, cap, _TRUNCATE,
+        "scope=%s threads=%d total_samples=%llu\n%6s %8s %6s %10s",
+        all ? "all" : "main", n, total, "tid", "hits", "hits%", "cpu_ms~");
+    for (int i = 0; i < n && pos < cap - 48; i++) {
+        SampTid *t = &snap[i];
+        if (!t->hits && !t->cpuDelta) continue;            // silence is data too
+        int w = _snprintf_s(out + pos, cap - pos, _TRUNCATE, "\n%6lu %8llu %6.2f %10.1f",
+            (unsigned long)t->tid, t->hits,
+            total ? 100.0 * (double)t->hits / (double)total : 0.0,
+            (double)t->cpuDelta / 10000.0);
+        if (w < 0) break;
+        pos += (size_t)w;
+    }
+    return 1;
 }
 
 // ---- Lua surface ----
@@ -500,11 +708,12 @@ int hoi4_profile_start(lua_State *Ls)
     if (ms < (lua_Number)SAMP_INTERVAL_MIN_MS || ms > (lua_Number)SAMP_INTERVAL_MAX_MS)
         luaL_argerror(Ls, 1, "interval_ms out of range (1..1000)");
     int stacks = lua_toboolean(Ls, 2);
+    int all    = lua_toboolean(Ls, 3);
     // Target = whoever called us. /lua and console `lua` both run at frame
     // top on the game's main thread; async workers never see the hoi4 table.
-    char out[96];
+    char out[112];
     const char *err = samp_api_start((unsigned)ms, stacks, GetCurrentThreadId(),
-                                     out, sizeof(out));
+                                     all, out, sizeof(out));
     if (err) return luaL_error(Ls, "%s", err);
     lua_pushstring(Ls, out);
     return 1;
@@ -545,6 +754,14 @@ int hoi4_profile_status(lua_State *Ls)
 {
     char out[200];
     samp_api_status(out, sizeof(out));
+    lua_pushstring(Ls, out);
+    return 1;
+}
+
+int hoi4_profile_threads(lua_State *Ls)
+{
+    static char out[64 * 1024];                // main-thread readers only
+    samp_api_threads(out, sizeof(out));
     lua_pushstring(Ls, out);
     return 1;
 }

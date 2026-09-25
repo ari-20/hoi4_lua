@@ -481,6 +481,7 @@ static const luaL_Reg hoi4_lib[] = {
     {"profile_stop", hoi4_profile_stop},
     {"profile_top", hoi4_profile_top},
     {"profile_folded", hoi4_profile_folded},
+    {"profile_threads", hoi4_profile_threads},
     {"profile_status", hoi4_profile_status},
     {NULL, NULL},
 };

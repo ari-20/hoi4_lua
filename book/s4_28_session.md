@@ -7,7 +7,7 @@
 > 顶层块分驻: variables/region/threat/选择组/游戏规则 → §4.25; power_balance → §4.3.21;
 > 海军战史 → §4.16.13/§4.16.14; 事件状态 (saved_event_target / fired_event_names) → §4.12; factions → §4.5。
 > **设置族三条随宿主就地 (非本局存档数据, 与 §4.25 纯 gameplay 全局不同源)**: §4.28.11 CSettings/CSystemSettings
-> (settings.txt) / §4.28.12 CLauncherSettings / §4.28.14 CInGameIdler (GUI 空闲器宿主; 语义偏 GUI 但实体 = 会话 idler) — 归并口径未定, 暂原位。
+> (settings.txt) / §4.28.12 CLauncherSettings / §4.28.14 CInGameIdler (会话 idler: 暂停域 + 家族虚表 + 实例布局 + 驱动契约 + 六节拍槽) — 时序链契约在 §4.2, 本节 = 布局所有权册。
 > 块族元 writer = sub_1401F2E40 (gamestate.cpp); 根 writer = sub_1401F29A0;
 > 头部 writer = sub_140BC2710 (跨块元信息)。
 
@@ -302,11 +302,56 @@ data 结构 (语义推定):
 | +480h | ≈21 万叶 | 散布随时长混沌放大 |
 
 
-#### 4.28.14 CInGameIdler 暂停域
+#### 4.28.14 CInGameIdler (会话 idler; 暂停域 / 驱动契约 / 实例布局)
 
 对象身份 (全局槽 `BASE+0x332F698` = DLL 侧 APP_MGR_PTR, vt RVA 0x2968FF0)、
 暂停旗位 (+1729 / +1731 / +1680 / +1681)、三写槽 ([82] 设值 / [91] 自动存档 /
 [94] toggle) 与引擎调用链 —— 全表收主文件 §1.1b 与 §1.1b.1。
+时序链中的行为契约 (Idle/生成门/六节拍) 归 §4.2.1/§4.2.4; 本节收家族与实例布局。
+
+**家族虚表** (COL→RTTI 定案): 基 CGameIdler 主表 0x142736280 (槽[4] = Idle,
+槽[11] = OnEnter, 槽[17] = 读 +896 = CSession*); CFrontEndIdler 基表 0x142949D50
+(117 槽, 覆写集中 0-63 与 64-69; 前端态槽[64..69] 全为 return-0 桩 — 菜单态
+节拍空操根源); CInGameIdler 主表 **0x142968FF0** + 三子表 (+8 = 0x1429693B0 /
++1512 = 0x1429693D0 / +1520 = 0x1429693F0)。调试支族 CMapIdler/CNudgeIdler/
+CNullIdler 归 §4.00.9。
+
+**实例布局补全** (ctor sub_140DC1B30, 0xB30B; dtor sub_140DC3C00; 与 §1.1b.1
+暂停域互补):
+
+| 偏移 | 类型 | 语义 | 备注 |
+|---|---|---|---|
+| +1328 | 指针 | **idler 管理器 = CApplication 本体** (字段: +56 current / +112 待入 / +120 旧 / +64 切换请求旗 / +128 保留旗) | SetIdler = sub_14222EA60 |
+| +1512 | vptr | 子对象 C 表 (0x1429693D0) | |
+| +1520 | vptr | 子对象 D 表 (0x1429693F0) | ctor 装 "interface/main.gui" 串 |
+| +1720 | 指针 | **iface = CInGameInterface\*** (§4.30 主视图; s4_17 定案同址) | 其内含六节拍注册表 (年/5月/月/周/日/时 分档, 查询槽[64] 过滤 → 分档执行槽驱动窗口刷新) |
+| +1728 | u8 | toggle 置位旗 (slot[94] 体写 1) | §1.1b.1 |
+| +1729 | u8 | 暂停权威位 (1=冻结) | §1.1b.1 全表 |
+| +1731 | u8 | 连按 pending 伴随位 | §1.1b.1 全表 |
+| +1732 | u8 | Idle 内第二暂停门 (CInGameIdler::Idle 0x140DD3A50 体: `帧耗时 && !+1729 && !+1732` 才调时间调度器) | 与 +1731 (toggle pending) 并存勿混 |
+| +2216 | u32 | **GUI 小时脉冲倒计时** (节拍槽[64] 用) | |
+| +2396 | u32 | **加速脉冲计数** (时间加成 min(2.0, 1+0.2×计数); 每 tick 生成后 sub_140DE4DE0 减 1, clamp 0) | §4.2.2 |
+| +2400 | 容器 | 教程章向量 (§4.28.15 族) | |
+| +2424 | 容器 | hint 向量 (§4.28.15 族) | |
+| +2448 | 内嵌 | CTutorialMinimized (§4.28.15 族) | |
+
+**驱动契约** (定案): Idle = 0x140DD3A50 (基类 CGameIdler 槽[4] 覆写; 每帧经
+管理器派发, §4.2.1); **OnEnter = 0x140DE0150 (jmp thunk → setterB sub_1402A2A30:
+qword_14332F698 = qword_14332F6A0 = this)** — 前端 CFrontEndIdler::OnEnter
+(sub_140B3E1F0) 只写 F698, F6A0=0 → 时间调度器空操 = 「在游戏中」判据根源;
+构造 = malloc 0xB30 (游戏开局 sub_140B3E9A0 尾) / 前端 = malloc 0x640
+(InitGame sub_1401835A0); 前端 ctor sub_140B3B290。
+
+**六节拍槽 64-69** (主表 0x142968FF0; GUI 侧脉冲, 详行为注记 §4.2.4 步骤 15):
+
+| 槽 | 字节偏移 | 函数 | 语义 |
+|---|---|---|---|
+| [64] | +512 | 0x140DDA020 | 每小时: GUI 日期脉冲 + idler+2216 倒计时 / idler+1680 旗 |
+| [65] | +520 | 0x140DD9740 | 日: gs 四连到期清扫 + GUI 日刷 + 游戏条目日期激活 |
+| [66] | +528 | 0x140DDAC60 | 周: GUI 周脉冲 + 超 100MiB 日志轮转 (filelogger.cpp:256, 备份 6) |
+| [67] | +536 | 0x140DDA1B0 | 月: 月脉冲 + GUI 大刷新 |
+| [68] | +544 | 0x140DD9FF0 | 每年 5 月 (month==5) |
+| [69] | +552 | 0x140DDACC0 | 年 |
 
 #### 4.28.15 教程目标族 (CTutorialObjective 系; 非 trigger/effect, 会话级不入档)
 
@@ -348,3 +393,38 @@ data 结构 (语义推定):
 教程族补全 (宿主与装载): 定义宿主 = **CInGameIdler** (ingameidler.cpp): loader 0x140DD7D20 读 tutorial/tutorial.txt, token tutorial (11768) → **CTutorialChapter** (4160B; writer 空桩, reader 0x1419CA5C0) 进 idler+2400 向量, token hint (10274) → **CTutorialHint** (2768B; reader 0x1419CBB00; +2648 提示窗名 / +2688 CHintOpener 向量) 进 +2424 向量; **CTutorialMinimized** (非 CPersistent, 内嵌 idler+2448, Reload 0x1419CCB10 重建句柄, 窗口名 "tutorial_minimized")。CTutorialChapter: +3960 = objective 指针向量 / +4056 末章旗 / +4104 CHintOpener 向量 (键 highlight_provinces/regions/states/open_hint)。CTutorialObjective 主虚表 11 槽: [9] = 完成判定 (单参轮询 / 双参事件处理两型) / [10] = 定义参数解析 (state=int / target=TAG 串 / 无参三组); CTutMoveCameraTo 判定 0x1419D0A90 = 查管理器+124 bool → 防重置 +80 → 发 GUI 事件 "tutorial_objective_done" 字面值 (qword_14332F6A0 槽[31] 广播链 ✓)。全族 17 个 CTut* + 2 库件 writer 全空桩 = 教程纯 UI 引导、零存档面。
 
 **CTriggeredText** (条件触发文本, 128B; vt 0x142999B98; writer=CFG 不入档; reader 0x141180E60): +8 文本键 (143 text / 220 key) / +40 CAndTrigger 内嵌 88B (10595)。
+
+#### 4.28.11 CSession (clausewitz 会话对象; 时序通道与状态机)
+
+CSession = clausewitzlib session.cpp 会话对象 (单机实例 = CDummyServer 挂 CServer
+基 0x142B52AC8, 派生 0x142B52C28; 联机 CNetworkServer 0x142B53020 / CProxyServer
+0x142B53598)。实例获取通道 = idler 虚表槽[17] 读对象+896 (§4.2.1)。命令管线
+(发送 sub_142250B00 / 派发循环 sub_142252D00) 与 CHourlyTickCommand::Execute 的
+状态门行为契约归 §4.2.3; 本节收布局与状态域。
+
+| 偏移 | 类型 | 语义 | 证据 |
+|---|---|---|---|
+| +72 | u32 | **联机状态机** (SetState session.cpp:269; 读者 sub_140CE9520) | 定案 |
+| +84 | u8 | **游戏已开始门** (Execute 侧过滤; 非零才做掉线遍历) | 定案 |
+| +128 | u32 | **会话 tick 号** — 发送侧 `min(session+128, 0x7FFF)` 盖命令 cmd+22 | 定案 |
+| +164 | u32 | 玩家 id — 发送侧写命令 cmd+12 | 定案 |
+| +1852 | u8 | 命令派发重入门 ("Update within execution. Skipping." session.cpp:600/629) | 定案 |
+| +1941 | u8 | 入队即时/本地门之一 (sub_142250B00 三条件) | 定案 |
+| +1968 | u8 | 派发循环状态辅助旗 (置 0 触发观察者广播 3) | 定案 |
+| +1969 | u8 | 派发循环分支判定旗 | 定案 |
+
+状态枚举全表 (session.cpp:269 SetState switch; 定案):
+
+| 值 | 状态名 | 值 | 状态名 | 值 | 状态名 |
+|---|---|---|---|---|---|
+| 0 | DISCONNECTED | 7 | REFUSED | 14 | HOTJOIN_IN_LOBBY |
+| 1 | CONNECTING | 8 | KICKED | 15 | HOTJOIN_REFUSED |
+| 2 | RECONNECTING | 9 | IS_BANNED | 16 | BAD_VERSION |
+| 3 | RECONNECTING_FAILED | 10 | STATE_NAME_TAKEN | 17 | BAD_PASSWORD |
+| 4 | CONNECTED | 11 | STATE_NAME_INVALID | 18 | STATE_JOIN_DISABLED |
+| 5 | WAITING_FOR_GAMESTATE | 12 | HOTJOIN_ASKING_FOR_JOIN | | |
+| 6 | ASYNCHRONOUSLY_CONNECTED | 13 | HOTJOIN_WAITING_FOR_SAVE | | |
+
+> 备注: 13 = HOTJOIN_WAITING_FOR_SAVE — CHourlyTickCommand::Execute 的 `≠13` 门 =
+> 「热加入等待存档的客户端不推进时间」; 单机热加入 toggle (sub_1418AD500) 在
+> 12↔13 间翻转。单机正常态 = 4 (CONNECTED)。

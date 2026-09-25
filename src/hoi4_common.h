@@ -211,15 +211,17 @@ int hoi4_profile_start(lua_State *Ls);
 int hoi4_profile_stop(lua_State *Ls);
 int hoi4_profile_top(lua_State *Ls);
 int hoi4_profile_folded(lua_State *Ls);
+int hoi4_profile_threads(lua_State *Ls);
 int hoi4_profile_status(lua_State *Ls);
 // plain-C cores behind the Lua wrappers — the HTTP /profile/* endpoints call
 // these from the frame-top queue (main thread), same as /lua.
 const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
-                           char *out, size_t cap);   // NULL = ok, else static err
+                           int all, char *out, size_t cap);  // NULL = ok, else static err
 int  samp_api_stop(char *out, size_t cap);          // 1 = stopped something
 int  samp_api_top(int n, char *out, size_t cap);    // 1 = data written
 int  samp_api_folded(const char *path_or_null, char *out, size_t cap);
 void samp_api_status(char *out, size_t cap);
+int  samp_api_threads(char *out, size_t cap);       // scope-all per-tid table
 
 // registry kind names (string literals shared by all modules)
 #define REG_TABLE_EFFECT  "effects"
@@ -379,6 +381,7 @@ int  audit_distinct_count(void);
 // userdir resolution in three places).
 const wchar_t *save_dir_w(void);
 const char *logs_dir_utf8(void);
+const char *user_data_dir_utf8(void);
 
 // ---- memory-domain gates (hoi4_memgate.cpp, policy tightening 2026-09-23) --
 // write: target pages must be committed, writable (PAGE_READWRITE/WRITECOPY),

@@ -10,6 +10,9 @@ local wu32, wu64, wu8, wu16 = hoi4.write_u32, hoi4.write_u64, hoi4.write_u8, hoi
 -- 惰性解析: 本 mod 拷贝的层文件 (hoi4_layout 等) 字母序晚于本文件加载,
 -- 顶层捕获会拿 nil — 一律调用时再取 GAME.layout
 local function LV() return (type(GAME) == "table") and GAME.layout or nil end
+-- 命令发射库 (example_cmd.lua 挂 _G.EXAMPLE_CMD): 字母序晚于本文件加载,
+-- 一律运行期惰性取用, 顶层不得捕获 (同 GAME.layout 纪律)
+local function CMD() return rawget(_G, "EXAMPLE_CMD") end
 local function tok_name(tok)
     local l = LV() return l and l.token_name and l.token_name(tok) or nil
 end
@@ -18,13 +21,9 @@ local function rd_str(o)
 end
 
 -- 引擎定址 (1.19.3.0 rev c01a3d50, dump 定案) — ⚠ ASLR: 一律 base+RVA!
+-- 四令 VFT/IsValid/Execute/size 配方集中在 EXAMPLE_CMD.R (对书 §4.33.18
+-- 外部构造配方详卡), 本文件只留非命令类引擎地址。
 local B = hoi4.base()
-local RESEARCH_EXEC    = B + 0x115D2E0  -- CSetResearchCommand::Execute
-local RESEARCH_ISVALID = B + 0x1166BC0  -- IsValid (槽界/国家/科技可用性全校验)
-local RESEARCH_VFT     = B + 0x2994F40
-local FOCUS_CMD_VFT    = B + 0x2996458  -- CSetNationalFocusCommand
-local FOCUS_ISVALID    = B + 0x1166830  -- IsValid = def 虚槽[9] CanSelect (含 available 触发器)
-local FOCUS_EXEC       = B + 0x115C670  -- Execute = sub_140711660(国, *(+48))
 
 local test_cc = nil
 local function player_cc(ctx)
@@ -73,7 +72,7 @@ end
 -- ⚠ 可用槽数 = cc+4936 (ideas 加成后动态值, BICE: 容量恒 6 而动态 0~6, dyn=0 国禁研);
 -- ts+136 列表 = CTechnology 实例 {+8 名token, +352 模板, +360 联动, +372 等级};
 -- 命令 payload {+40 tid(>0), +48 模板指针(模板+56=1based实例索引), +56 槽号, +60 flag};
--- IsValid(0x141166BC0) = 界检+sub_140ED8F00 可用性神谕, flag=0 短路放行
+-- IsValid = 界检 + sub_140ED8F00 可用性神谕, flag=0 短路放行 (§4.33.9/§4.33.18)
 local function country_index(cc)
     local gs = rp(hoi4.base() + 0x332F260)
     local carr = rp(gs + 0x310)
@@ -83,7 +82,22 @@ local function country_index(cc)
     end
     return nil
 end
+local function arr_has(arr, cnt, ptr)                     -- 指针数组直存扫描
+    for i = 0, cnt - 1 do
+        if rp(arr + 8 * i) == ptr then return true end
+    end
+    return false
+end
+local function research_bound(sdata, total, tech)         -- 科研槽对象 +24 反查
+    for i = 0, total - 1 do
+        local s = rp(sdata + 8 * i)
+        if s and rp(s + 24) == tech then return true end
+    end
+    return false
+end
 local function research_body(cc)
+    local C = CMD()
+    if not C then log("research: cmd 库未加载") return end
     local ts = rp(cc + 3936)
     if not ts then return end
     local sdata = rp(ts + 160)
@@ -105,45 +119,23 @@ local function research_body(cc)
     local rdata = rp(ts + 64)
     local rcnt = ru32(ts + 76) or 0
     if not tdata or tcnt == 0 then return end
-    local cmd = hoi4.engine_alloc(0x48)
-    if not cmd then return end
-    for z = 0, 0x40, 8 do wu64(cmd + z, 0) end           -- engine_alloc 不清零, tag_ref 带脏字节必炸
-    wu64(cmd, RESEARCH_VFT)
-    wu32(cmd + 12, 0xFFFFFFFF); wu32(cmd + 20, 0xFFFF0000)
-    wu32(cmd + 40, cidx)          -- +40 = 国家数组下标 (IsValid: *(gs数组+8*id))
+    local R = C.R.research
     local picked
     for _ = 1, 64 do                                     -- 随机试, IsValid = 可用性神谕
         local k = math.random(0, tcnt - 1)
         local tech = rp(tdata + 8 * k)                   -- CTechnology 实例
-        if tech and tech ~= 0 then
-            local tmpl = rp(tech + 352)                  -- +48 要模板 (实例+352)
-            if tmpl and tmpl ~= 0 then
-                local done = false
-                for j = 0, rcnt - 1 do
-                    if rp(rdata + 8 * j) == tech then done = true; break end
-                end
-                if not done then
-                    local bound = false
-                    for i = 0, total - 1 do
-                        local s = rp(sdata + 8 * i)
-                        if s and rp(s + 24) == tech then bound = true; break end
-                    end
-                    if not bound then
-                        wu64(cmd + 48, tmpl); wu32(cmd + 56, free_idx); wu8(cmd + 60, 0)
-                        -- IsValid 返回 bool 只在 AL (真=mov al,1, 假=xor al,al,
-                        -- RAX 高位是残渣) — 按引擎 test al,al 语义判低字节
-                        local v = hoi4.call_u64(RESEARCH_ISVALID, cmd)
-                        if v and (v % 256) ~= 0 then
-                            hoi4.call_void(RESEARCH_EXEC, cmd)
-                            picked = tech
-                            break
-                        end
-                    end
-                end
-            end
+        local tmpl = (tech and tech ~= 0) and rp(tech + 352) or nil   -- +48 要模板 (实例+352)
+        if tmpl and tmpl ~= 0
+            and not arr_has(rdata, rcnt, tech)           -- 未研完
+            and not research_bound(sdata, total, tech) then -- 未在研
+            -- 单发糖: 构造→填载荷→IsValid 门→Execute→释放 (用后即释)
+            local r = C.fire(R.size, R.vft, R.isvalid, R.exec, function(cmd)
+                wu32(cmd + 40, cidx)          -- +40 = 国家数组下标 (IsValid: *(gs数组+8*id))
+                wu64(cmd + 48, tmpl); wu32(cmd + 56, free_idx); wu8(cmd + 60, 0)
+            end)
+            if r == "valid" then picked = tech; break end
         end
     end
-    hoi4.engine_free(cmd)
     if picked then
         local tok = ru32(picked + 8)
         log("research started: slot=" .. free_idx .. " tech=" ..
@@ -157,6 +149,8 @@ end
 -- fp = *(cc+4992) CFocusStatus; 候选 {d@120, c@132} (引擎维护, 前置满足才入);
 -- 当前国策 fp+16 (非 0 = 占用); 启动 = sub_140711660(cc, CFocus*)
 local function focus_body(cc)
+    local C = CMD()
+    if not C then return "focus: cmd 库未加载" end
     local fp = rp(cc + 4992)
     if not fp or fp == 0 then return "no fp" end
     local cur = rp(fp + 16)
@@ -169,30 +163,27 @@ local function focus_body(cc)
     -- 逐条过筛, 只从通过者里随机; 启动走命令 Execute 而非绕检的内层函数
     local cidx = country_index(cc)
     if not cidx then return "build: 无国家下标" end
-    local cmd = hoi4.engine_alloc(0x48)
+    local R = C.R.focus
+    local cmd = C.new(R.size, R.vft)
     if not cmd then return "focus: alloc 失败" end
-    for z = 0, 0x40, 8 do wu64(cmd + z, 0) end
-    wu64(cmd, FOCUS_CMD_VFT)
-    wu32(cmd + 12, 0xFFFFFFFF); wu32(cmd + 20, 0xFFFF0000)
     wu32(cmd + 40, cidx)
-    local valid = {}
+    local valid = {}                                     -- 两段式: 先筛后发 (一条 cmd 反复过筛)
     for i = 0, c - 1 do
         local fdef = rp(d + 8 * i)
         if fdef and fdef ~= 0 then
             wu64(cmd + 48, fdef)
-            local v = hoi4.call_u64(FOCUS_ISVALID, cmd)
-            if v and (v % 256) ~= 0 then valid[#valid+1] = fdef end
+            if C.valid(cmd, R.isvalid) == true then valid[#valid+1] = fdef end
         end
     end
     if #valid == 0 then
-        hoi4.engine_free(cmd)
+        C.free(cmd)
         return "可选 0/" .. c .. " (available 全不满足)"
     end
     local focus = valid[math.random(1, #valid)]
     wu64(cmd + 48, focus)
-    hoi4.call_void(FOCUS_EXEC, cmd)
+    C.exec(cmd, R.exec)
     local nm = rd_str and rd_str(focus + 24) or "?"
-    hoi4.engine_free(cmd)
+    C.free(cmd)
     return "started [" .. tostring(nm) .. "] 可选 " .. #valid .. "/" .. c ..
         " fp16=" .. string.format("%x", rp(fp + 16) or 0)
 end
@@ -256,10 +247,7 @@ end)
 -- ---------------------------------------------------------------- 5. auto build
 -- CAddConstructionCommand {+40 tag id, +48 内嵌 CBuildingReference{+56 州id,
 -- +60 建筑token, +64 未名0}, +72 数量, +76 插入枚举<3}; IsValid=界检+可建神谕
-local BUILD_VFT     = B + 0x2994770
-local BUILD_ISVALID = B + 0x11616F0
-local BUILD_EXEC    = B + 0x1150FB0
-local REF_VFT       = B + 0x2971F30
+-- (§4.33.9/§4.33.18); 配方 = EXAMPLE_CMD.R.build, 本地只留业务常量
 local BUILD_NAMES   = { "industrial_complex", "arms_factory", "fuel_refinery" }
 local function flag_on(store, tok)
     local d = rp(store + 8)
@@ -343,13 +331,13 @@ local function build_body(cc)
         if st and st ~= 0 and ru32(st + 200) == cidx then owned[#owned+1] = st end
     end
     if #owned == 0 then return "build: 无拥有州" end
-    local cmd = hoi4.engine_alloc(0x50)
+    local C = CMD()
+    if not C then return "build: cmd 库未加载" end
+    local R = C.R.build
+    local cmd = C.new(R.size, R.vft)
     if not cmd then return "build: alloc 失败" end
-    for z = 0, 0x48, 8 do wu64(cmd + z, 0) end
-    wu64(cmd, BUILD_VFT)
-    wu32(cmd + 12, 0xFFFFFFFF); wu32(cmd + 20, 0xFFFF0000)
     wu32(cmd + 40, cidx)
-    wu64(cmd + 48, REF_VFT)
+    wu64(cmd + 48, B + R.ref_vft)                          -- ref.内嵌 CBuildingReference vt
     wu32(cmd + 60, btok)                                   -- ref.建筑token (+12)
     wu32(cmd + 72, 1)                                      -- 数量
     wu8(cmd + 76, 0)                                       -- 插入枚举
@@ -364,9 +352,8 @@ local function build_body(cc)
                 tried[k + 1] = true
                 local st = owned[k + 1]
                 wu32(cmd + 56, ru32(st + 88))              -- ref.州id (+8)
-                local v = hoi4.call_u64(BUILD_ISVALID, cmd)
-                if v and (v % 256) ~= 0 then
-                    hoi4.call_void(BUILD_EXEC, cmd)
+                if C.valid(cmd, R.isvalid) == true then    -- 一条 cmd 复用: 改州id→验→发
+                    C.exec(cmd, R.exec)
                     placed = true
                     break
                 end
@@ -378,7 +365,7 @@ local function build_body(cc)
         idle = civ_idle(ps)
         if idle >= before then break end                   -- 引擎不再吃进 = 到头
     end
-    hoi4.engine_free(cmd)
+    C.free(cmd)
     if idle == 0 then
         return "已铺满(+" .. added .. "条, 共" .. n .. "条在建, cap" .. cap .. ")"
     end

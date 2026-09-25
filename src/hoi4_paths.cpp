@@ -310,6 +310,16 @@ const char *logs_dir_utf8(void) {
     return cache;
 }
 
+// User dir root — files that must survive restarts anchor HERE: the engine
+// wipes logs/ on every launch (the profile_folded default path used to live
+// there and lost whole captures to a relaunch).
+const char *user_data_dir_utf8(void) {
+    static char cache[PATH_BUF];
+    cache[0] = 0;
+    if (g_userDataDir[0]) wide_to_utf8(g_userDataDir, cache, sizeof(cache));
+    return cache;
+}
+
 // -+ mod list
 // hoi4.mods_json() -> raw text of <user_data>/dlc_load.json (or nil).
 // The file lists enabled/disabled mods as written by the Paradox launcher:

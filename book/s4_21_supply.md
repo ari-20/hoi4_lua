@@ -1,4 +1,4 @@
-> 本文件 = 类结构全书 §4 分册 (自 hoi4_runtime_classes.md 拆分)。规范 = 主文件 §0.1。
+
 
 ### 4.21 补给系统 2 (CSupplySystem)
 

@@ -17,13 +17,11 @@ local rp, ru32 = hoi4.read_u64, hoi4.read_u32
 local wu32, wu64 = hoi4.write_u32, hoi4.write_u64
 
 -- 引擎定址 (1.19.3.0 rev c01a3d50) — ⚠ ASLR: 一律 base+RVA!
+-- CMoveCommand 配方 (VFT/IsValid/Execute/size/action 虚表/vector 哨兵) 集中在
+-- EXAMPLE_CMD.R.move (example_cmd.lua, 对书 §4.33.15); 本文件只留读侧校验地址。
+-- ⚠ example_cmd.lua 字母序晚于本文件加载 → 运行期 rawget 惰性取用。
 local B = hoi4.base()
 local GS_SLOT      = 0x332F260   -- 全局 gs 槽
-local MOVE_VFT     = 0x29B1BC8   -- CMoveCommand vtable
-local ACTION_VFT   = 0x29A3A38   -- CUnitMoveAction vtable (+40 内嵌)
-local MOVE_ISVALID = 0x1369CB0   -- CMoveCommand vt[9] (转 action vt[10] dry-run)
-local MOVE_EXEC    = 0x13669E0   -- CMoveCommand vt[10] (转 action vt[9], this=cmd+40)
-local VEC_SENTINEL = 0x3085170   -- off_143085170 引擎空 vector allocator 哨兵
 local ARMY_VT0     = 0x295A2B0   -- CArmy vt0 (师容器元素双校验)
 local ARMY_VT1     = 0x295A490   -- CArmy vt1
 
@@ -138,15 +136,16 @@ local function div_idle(div)
 end
 
 -- CMoveCommand 构造 + IsValid 门 + Execute (同步消费, 用后即释)
+-- 基座基线 (+12 发送方 −1 / +22 tick 戳 0xFFFF = 未投递) 在 EXAMPLE_CMD.new 内
 local function issue_move(div, target_prov)
-    local cmd = hoi4.engine_alloc(0x88)
+    local C = rawget(_G, "EXAMPLE_CMD")
+    if not C then return false end
+    local R = C.R.move
+    local cmd = C.new(R.size, R.vft)
     if not cmd then return false end
     local buf = hoi4.engine_alloc(8)
-    if not buf then hoi4.engine_free(cmd) return false end
-    for z = 0, 0x80, 8 do wu64(cmd + z, 0) end
-    wu64(cmd, B + MOVE_VFT)
-    wu32(cmd + 12, 0xFFFFFFFF); wu32(cmd + 20, 0xFFFF0000)
-    wu64(cmd + 40, B + ACTION_VFT)          -- Execute 桩经此虚表转发, 必填
+    if not buf then C.free(cmd) return false end
+    wu64(cmd + 40, B + R.action_vft)        -- Execute 桩经此虚表转发, 必填
     wu32(cmd + 48, 13896)                   -- action token (ctor 值)
     wu32(cmd + 56, ru32(div + 24) or 0)     -- unit idpair.type
     wu32(cmd + 60, ru32(div + 28) or 0)     -- unit idpair.id
@@ -154,17 +153,14 @@ local function issue_move(div, target_prov)
     wu64(cmd + 64, buf)                     -- 目的省数组 data (u32 元)
     wu64(cmd + 72, 1)                       -- cap (顺带清 count, 先写)
     wu32(cmd + 76, 1)                       -- count = 1
-    wu64(cmd + 80, B + VEC_SENTINEL)        -- 目的省 vector alloc 哨兵
-    wu64(cmd + 104, B + VEC_SENTINEL)       -- 显式路径 vector alloc 哨兵 (空)
+    wu64(cmd + 80, B + R.vec_sentinel)      -- 目的省 vector alloc 哨兵
+    wu64(cmd + 104, B + R.vec_sentinel)     -- 显式路径 vector alloc 哨兵 (空)
     wu32(cmd + 128, 1)                      -- move_priority = ctor 缺省 1
-    local sent = false
-    local v = hoi4.call_u64(B + MOVE_ISVALID, cmd)
-    if v and (v % 256) ~= 0 then
-        hoi4.call_void(B + MOVE_EXEC, cmd)
-        sent = true
-    end
+    local v = C.valid(cmd, R.isvalid)       -- fault(nil)/false/true 三态, 黑名单按假处理
+    local sent = (v == true)
+    if sent then C.exec(cmd, R.exec) end
     hoi4.engine_free(buf)
-    hoi4.engine_free(cmd)
+    C.free(cmd)
     return sent
 end
 

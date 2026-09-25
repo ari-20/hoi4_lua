@@ -1,4 +1,4 @@
-> 本文件 = 类结构全书 §4 分册 (自 hoi4_runtime_classes.md 拆分)。规范 = 主文件 §0.1。
+
 
 ### 4.18 陆军师族 (CArmy / CDivisionTemplate / requests / 部署 CDeployment 与 conveyor 三层)
 
@@ -662,3 +662,33 @@ conveyors 元素布局与 GUI 三视图消费 (九字段 GUI 坐实; cv = 元素
 ⚠ sub_1406CF0F0 = cc+656 CArmy 师列表容器直返 (非「特种部队」专表)。
 
 > **本域 GUI 类布局**: 见 4.30.2 / 4.30.26 / 4.31.19 / 4.31.27 / 4.31.46 / 4.31.48 / 4.31.53 / 4.31.91。
+
+#### 4.18.13 CUnit / CArmy 虚表槽语义 (slot-contract)
+
+CUnit 主 vtable 0x1429530D8 = 58 槽 (0-57); CArmy 主 vtable 0x14295A2B0 = 59 槽 (0-58)。
+两表为多基布局: 主表之后紧邻次级基子对象 vftable (CUnit +16 组 13 槽 = CPersistent 系
+前缀 [1]Save/[2]Writer/[3]Load/[4]Reader + AssignId/AllocateId id 机制 + 登记旗标 setter;
++184 组 8 槽 = 位置/在册状态通知 + GetOuter/GetName/GetOwner; CArmy 另有 +824 组 10 槽)
+—— 次级组槽号独立, 勿与主表连续计数; 派生实体序列化前缀在次级组, 不占主表槽号。
+ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (return this) /
+0x14011D220 = `return 0` / 0x1401807B0 = `return 1`。
+
+| 槽 | 语义 | 证据 |
+|---|---|---|
+| CUnit [13] | GetName (返 +600 名称串首址; CArmy 覆写转向 *(+832)+96) | writer token 27 写该串 |
+| CUnit [21] | IsValid (基 `return 1`; CArmy 覆写 = 战力/组织判定 NO_STRENGTH/NO_ORG) | 覆写错误键直证 |
+| CUnit [24] | TakeDamage (基 = stub; CArmy 覆写 = 伤害按 defines 660-662 修正后累加损失 +1088/+1096/+1104) | 断言 "TakeDamage is not implemented for this unit type" unit.h:182 |
+| CUnit [25] | TakeDamageImmediate (基 = stub) | 断言 unit.h:187 |
+| CUnit [40] | SetName (a2 拷入 +600; CArmy::[40] 覆写 = 禁用断言体) | 断言 "CArmy::SetName( CString ) is forbidden to use!" army.cpp:3887 |
+| CUnit [43] | HasLowSupply (基 = stub) | 断言 "Unit type has not implemented HasLowSupply" unit.h |
+| CUnit [50] | Exile (基 = stub) | 断言 "Can only exile armies and railway guns!" unit.cpp |
+| CUnit [51] | ReturnFromExile (基 = stub) | 断言 unit.cpp:1956 |
+| CArmy [19] | GetTheatre | 断言 "GetTheatre()" army.cpp |
+| CArmy [22] | RefreshAbilities | 断言 "Refreshing abilities from non-serialcontext, OOS may occur!" army.cpp:1743 |
+
+> 待裁项暂不定名: CUnit [5] 可见性判定、[18] 复合状态刷新; 移动族 [14]-[17]/[20]
+> (ExecuteMove/MoveTo/TryMove/CanMoveTo/CanEnterProvince, 错误键 NO_ACCESS_TO_TARGET 等
+> 已锚 unit.cpp 但函数名系行为推定); CArmy [31]-[39] 资源对称族 (A=+1056/+33=国家+648 上限,
+> B=+1064/+38=国家+640 上限, 100000 定点) 游戏语义 (org/str/人力) 未裁。
+> CUnit [7]-[12] 六槽同址 `return 0` 且三派生各覆 2 槽 return this (CArmy 7/8、
+> CTaskForce 9/10、CRailwayGun 11/12) = 按单位类型的转换函数族, 无逐槽直接证据, 整族不命名。

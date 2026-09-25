@@ -291,7 +291,7 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 
 | 基类 | vtable | **虚函数槽数** | 派生规模 |
 |---|---|---|---|
-| **CEffect** | 0x14274E0D8 | **25** (槽 0..24) | 604 |
+| **CEffect** | 0x1427D4990 | **25** (槽 0..24) | 604 |
 | **CTrigger** | 0x1427d55f0 | **23** (槽 0..22) | 639 |
 | CCommand | 0x142977040 | 24 (槽 0..23) | 452 |
 | CCommand 基表 0x1427214C8 | 同上 (派生覆写 [9][10][11][13][22][23] = _purecall; [0] = 析构 sub_1401C94A0 / [5] = ret0 桩 / [6][7][8][14] = CFG 空桩; [17] sub_1401773F0 = 空串 GetDesc 默认) | | |
@@ -308,17 +308,17 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | 槽 | 语义 | 覆盖 | 证据 |
 |---|---|---|---|
 | [0] | 析构 | 148 变 | MSVC 惯例 |
-| [1] | 初始化/拷贝胶水 (无默认覆写) | 468 同 sub_14053FF00 | 全家族同址 |
+| [1] | **GetName** (读 +32 id ≥0 则查注册表返 std::string*; 否则 +44 token 转名并缓存 +56) | 468 同 sub_14053FF00 | 全家族同址 (只触 CEffect 通用字段) |
 | [2] | **固定 getter** `*(a1+32)` (int) | 470 全同 sub_140177730 | 无覆写 |
 | [3] | **块级 Parse** — 逐键分派 (键 token → 各键子解析回调), 未识别键回落 [4] | 42 | sub_140540B90 |
 | [4] | **载荷键解析主体** — 逐类标量键解析 (tooltip/var/value/min/max/array/index/limit/side/gfx 等), 未识别键回落 AddSubEffect (解析期按 token/名实例化子效果并追加, if/else 链 + 作用域校验 + 数据库兜底, effect.cpp:392/435/445) | 180 | sub_140540EE0 (回落) |
 | [5] | 默认 `return 1` | 449 | sub_1401807B0 |
-| [6] | ★ **Parse** (token id switch 填位掩码 + `event_target:` 解析) — **仅作用域键**; 类专属键在 [4] | 29 | sub_14053D4C0: `switch(token){11412/11413/10691/10639/10302/15793/10303/10315/10171 → *(a1+36)\|=位}` + `strncmp(s,"event_target:")` |
+| [6] | ★ **ParseTargetToken** (token id switch 填位掩码 + `event_target:` 解析) — **仅作用域键**; 类专属键在 [4] | 29 | sub_14053D4C0: `switch(token){11412/11413/10691/10639/10302/15793/10303/10315/10171 → *(a1+36)\|=位}` + `strncmp(s,"event_target:")` |
 | **[7]** | ★ **GetDesc** (默认 = 空 MSVC 串) | **309** | sub_1401773F0 写空串; `CEffectShowDependentTooltip` 在此槽有实实现 (sub_141398350), `CEffectTooltipEffect` 用默认空串 |
-| [8] | 逐类 (20) | — | — |
+| [8] | **BuildTooltip** (递归拼 tooltip 串: token→串 + 深度缩进 + [14] 门 + 调 [7] 取键值对 + 子递归 [8]; 覆写多为 CEvery*/循环类) | 20 | sub_14053F090 |
 | [9] | GetDesc wrapper (`调用 [7]` 后返 a2) | 461 同 sub_140177420 | 全家族同址 |
 | [10] | 逐类 (4) | — | — |
-| [11] | **递归子谓词** (默认 sub_140540690: 遍历子效果 → 查子 [7]GetDesc 非空 → 递归子 [11]; `child[56]`=GetDesc, 空则 0, 否则 `child[88]`=本槽递归) | 4 | sub_140540690 |
+| [11] | **HasMultipleTooltipVars** (默认: 叶 0; 单子查子 [7] 串空; 多子数 "非空" 个数 >1) | 4 | sub_140540690 |
 | [12] | **ExecuteChecked** — Execute 作用域校验包装 (过则调 [13]; 不过按 [19] 掩码抛 "Invalid Scope", effect.cpp:555) | 5 | sub_14053D9E0 |
 | **[13]** | ★ **Execute** | **375** | 9 锚点全中: CAddLegitimacyEffect 0X140362C80 / CAddStateClaimEffect / CAddStateCoreEffect / CCreateEquipmentVariantEffect 0X14049BFA0 / CCreateUnitEffect / CAddIntelEffect / CCreateFactionEffect / CSetFactionManifestEffect / CSetFactionRuleEffect |
 | [14] | 默认 `return 1` | 462 | sub_1401807B0 |
@@ -326,40 +326,40 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | [16] | 默认 (恒定) | 470 同 sub_1405404F0 | 无覆写 |
 | [17] | 默认 (恒定) | 470 同 sub_14053FFA0 | 无覆写 |
 | [18] | 默认 (恒定) | 470 同 sub_1405404C0 | 无覆写 |
-| [19] | **类别掩码 getter** (默认 `return 4`) | 246 同 sub_1402E30E0 | 覆写者给自定义掩码 |
-| [20] | **类型 id getter** (默认 `return 2`) | 348 同 sub_140177700 | — |
-| [21] | **类别谓词** `!mask \|\| ([19](a1)&mask)` | 470 全同 sub_14053D7F0 | 调 [19]; 与 modifier 类别掩码同构 |
-| [22] | 旗 `&0x400` 门 + 调 [20] | 470 全同 sub_14053D750 | — |
-| [23] | 空桩 (可覆写, 45) | 396 = guard_nop | ICF |
+| [19] | **GetValidScopeMask** (执行门 sub_140540810 读本槽逐位探 ctx 各子 scope, 全不中报 "invalid effect scope" effect.cpp:685; 基默认 `return 0` = 不限; 覆写全为常数, ICF 折叠: 44 类 return 2 / 265 类 return 4) | 309 变 | sub_140120540 (基) |
+| [20] | **GetSupportedScopeMask** (每类常数位掩码 getter: 基 `return 2`; 覆写 12/16/128/1532 等, 1532 = [22] 校验位集; vtable 旁字符串 "\nSupported scopes: any/state/country" 即其文案) | 348 同 sub_140177700 | [22] 以之校验 +36 旗标 ⊆ 类支持集 |
+| [21] | **IsValidScopeMask** `!a2 \|\| ![19](a1) \|\| ([19](a1)&a2)` | 470 全同 sub_14053D7F0 | 调 [19]; scope 掩码可接受性判定 |
+| [22] | **ValidateTargets** (+36 `&0x400` 门 + 逐位配对 [20] 掩码, 缺位返 0) | 470 全同 sub_14053D750 | — |
+| [23] | **ResolveReferences** (基 = guard_nop; 派生 trait/policy 族实装: 遍历名字数组按名查 gameitemdb 条目后绑定, gameitemdatabase.h:142 断言) | 396 = guard_nop | ICF |
 | [24] | 默认 (恒定) | 468 同 sub_140541A30 | — |
 
-> ⚠ [6] = Parse 槽, **跳过此槽 = token 流错位崩溃**。
+> ⚠ [6] = ParseTargetToken 槽 (作用域键解析), **跳过此槽 = token 流错位崩溃**; 块级 Parse 主入口 = [3]。
 
 **CTrigger 全槽表** (覆盖数 = 546 个实测虚表; 另有可选扩展槽 [23], 仅 241/546 实测虚表含):
 
 | 槽 | 语义 | 覆盖 | 证据 |
 |---|---|---|---|
 | [0] | 析构 | 89 变 | — |
-| [1] | 初始化胶水 | 544 同 sub_14054E9E0 | — |
-| [2] | 默认 `return 0`; 覆写: 变量族 9 类 sub_140177730 (读 a1+32) / 数组·log·find 族 9 类 sub_1401807B0 (恒 1) | 532 同 sub_14011D220 | — |
+| [1] | **GetKey** (建子触发器时存关键字 token 到 +32; 本槽查 lexer 返 token 文本, 未命中经 +44 懒构缓存串 +56) | 544 同 sub_14054E9E0 | 仅 CScriptedTrigger 族覆写返脚本名 |
+| [2] | **IsAssignTrigger** (基 `return 0`; 16 覆写全为变量/数组/日志赋值型 → `return 1`) | 532 同 sub_14011D220 | 与错误串 "Non **assign** trigger is not enclosed in {}" 术语吻合 |
 | [3] | **校验作用域的 Evaluate 外壳** — 作用域合法 → 转 [22]; 非法 → 报 "Invalid Scope, supported/provided" (trigger.cpp:460) 返 0 | 545 同 sub_14054D0B0 | count_triggers 语义建立于此槽 |
-| [4] | **逐类值键解析本体** (bool 族共享 0X1413A2430 / 比较族 0X1413A2540 / 名 token 族 0X14031EDE0 / Per-Key 逐键; 原语 = sub_1424C08D0(整) / sub_1424C0A70(fixed×1e-5 内层 sub_1424C53E0) / sub_1424C0C00(bool) | 47 | 0X140540B90 (块分派) |
-| [5] | **ParseData 外壳** — 包装转 [4] (默认直通) | 19 | 0X1413AAAA0 (bool 族共用) / while_loop 特例 = 内联 CAndTrigger (ctor sub_140549F40) |
-| [6] | ★ **Parse** (通用 trigger 树解析器: 注册表查键 → 子触发器工厂; if/else_if/else 配栈) — 类专属值键走 [5]→[4] | 93 | sub_140550030 (同 CEffect[6] 形态: token switch + 字面串分支) |
-| [7] | 默认 `return 1` | 542 同 sub_1401807B0 | — |
-| [8] | 默认 (恒定) | 546 同址 | — |
-| [9] | 默认 (恒定) | 546 同址 | — |
-| [10] | 默认 (恒定) | 546 同址 | — |
-| [11] | 逐类 (24) | — | — |
-| [12] | 逐类 (24) | — | — |
-| [13] | 默认 `return 1` | 446 | — |
-| [14] | 默认 `return 4` | 295 同 sub_1402E30E0 | 与 CEffect[19] 同址 (掩码默认) |
-| [15] | 类型 id (`return 2`/其它) | 5 变 | — |
-| [16] | 默认 (恒定) | 546 同址 | — |
-| [17] | 默认 (恒定) | 546 同址 | — |
-| [18] | 空桩 (可覆写, 62) | 424 = guard_nop | ICF |
-| [19] | 默认 (恒定) | 546 同 sub_14054ACB0 | — |
-| [20] | 默认 | 545 同 sub_14054AD90 | — |
+| [4] | **ParseValueKeys** (覆写主体 = 逐类值键解析: bool 族共享 0X1413A2430 / 比较族 0X1413A2540 / 名 token 族 0X14031EDE0; 原语 = sub_1424C08D0(整) / sub_1424C0A70(fixed×1e-5 内层 sub_1424C53E0) / sub_1424C0C00(bool); **基实现 = scope-target token 兜底**: switch 9 token → +36 类型码 + `event_target:` 查表, 败报 "Invalid scope target assigned" trigger.cpp:530) | 47 | 0x14054AE70 (基) |
+| [5] | ★ **Parse** — 块解析主入口 (存 lexer 位 +44; 非 assign 触发器无 `{}` 包裹报 "Non assign trigger is not enclosed in {}"; 循环取 token 逐个调 [6]; 收尾校验调 [7], 假 → parser 报错 trigger.cpp:563; 覆写 = 直接数据形态触发器, bool 族共用 0X1413AAAA0 / while_loop 特例 = 内联 CAndTrigger) | 21 | 0x14054FD00 (基) |
+| [6] | ★ **ParseToken** — 逐 token 分派 (值类 token → 消费为本触发器参数落 [4]; 触发器关键字 → 建子触发器工厂 "Unknown trigger-type" + 校验子 scope "Invalid scope type for trigger" trigger.cpp:686 + 挂 +8 子表 + 调子 [5]; if/else_if/else 配栈 = CIfTrigger 在此槽的覆写; 数组/变量族 108 组覆写解析各自值形态) | 93 | sub_140550030 (同 CEffect[4] 形态) |
+| [7] | **Validate** (基恒真; [5] 块解析收尾调用, 假 → parser 报错 trigger.cpp:563; 6 覆写 = 集合/网络/学说族查配置缺失) | 542 同 sub_1401807B0 | 同址三用之一 (与 [13] 基/赋值族 [2] 覆写共享 `mov al,1;ret`) |
+| [8] | **GetScopeTargetID** (按 +36 类型码从 ctx 各字段取 scope 实体, 返实体 +8 缓存 id) | 546 同址 (全继承) | sub_14054EB40 |
+| [9] | GetScopeTargetUID? (推定; 同分派, 直读实体 +168 = 权威 id 源) | 546 同址 (全继承) | sub_14054F360 |
+| [10] | GetScopeTargetObject? (推定; 同分派, 句柄解引用返对象指针; 0x200 位走 event_target 查表) | 546 同址 (全继承) | sub_14054F1B0 |
+| [11] | **GetTooltip** (遍历 +8 子表: 子 [21] 描述 + '\n' + 子 [3] 满足布尔交回调拼行, 递归子 [11]; 容器类 23 组覆写改头部/递归形态) | 24 | sub_14054C580 |
+| [12] | **GetTooltipText** (遍历子表调 [21]+[3], 按 Evaluate==a4 前缀本地化 TRIGGER_UNFULLFILLED_PREFIX / TRIGGER_FULLFILLED_PREFIX, 按缩进参数重复 "   ", 递归子 [12]) | 24 | sub_14054C800 |
+| [13] | **ValidateLate** (基恒真; 批量校验入口遍历触发器队列逐个调本槽, 假 → 抛 "Trigger failed to validate: " trigger.cpp:117; 52 覆写 = 引用数据库条目族: 名字串查表解析 id 后绑定) | 446 同 sub_1401807B0 | 同址三用之二; 与 [7] 分名按调用点 (解析收尾即时 vs 延迟批队列), 引擎原名未决 |
+| [14] | **GetRequiredScopeMask** (纯虚! 派生全常数体: 主流 return 4 国家域 / return 8 角色长域 / return 0 变量赋值类; 消费者 sub_14054F7E0 逐位探 ctx、[3] 错误串、[16] [18]) | 纯虚 | ICF 折叠组: 0x1402E30E0=return 4 等 |
+| [15] | GetAllowedScopeMask? (推定; 纯虚! 派生常数体 return 0/2/316/1532; 唯一消费者 [17]: ==2 直接判无效, 其余按类型码映射逐位验证) | 纯虚 | 0x140177700=return 2 组等 |
+| [16] | **IsScopeCompatible** `!a2 \|\| ![14]() \|\| ([14]()&a2)` (所需掩码与外部掩码有交集; 无覆写) | 546 同址 (全继承) | sub_14054CD60 |
+| [17] | **ValidateAssignedScope** (+36 &0x400 已指派门 → [15] 掩码, ==2 → false, 类型码映射逐位验证; 无覆写) | 546 同址 (全继承) | sub_14054CCD0 |
+| [18] | RegisterTrigger? (推定; 基 = guard_nop 空体; ~112 覆写按 [14] 掩码位把关键字文本注册进不同 per-scope 注册表) | 424 = guard_nop | ICF |
+| [19] | Traverse? (推定; 取 ctx+56 访问器造遍历状态, 递归子 [19] 短路 bool; 无覆写) | 546 同 sub_14054ACB0 | — |
+| [20] | Traverse2? (推定; 同 [19] 形态递归子 [20], 尾多访问器状态清理; 仅 CScriptedTrigger 覆写; 与 [19] 分工待裁) | 545 同 sub_14054AD90 | — |
 | **[21]** | ★ **GetDesc** (返回 CString 描述) | **427** | CAlwaysTrigger sub_1403F2080 ("TRIGGER_ALWAYS_TRUE/FALSE") / CIsDebugTrigger 0X14041E0C0 / CIsGeneralCapturedTrigger sub_1402F9080 (皆 `__m128i*` 输出缓冲组装串) |
 | **[22]** | ★ **Evaluate** (返回 bool) | **402** | CIsDebugTrigger `return byte_14332EC69 == *(a1+88)` / CAlwaysTrigger `return *(u8*)(a1+88)` / CIsGeneralCapturedTrigger sub_1402F8C90 全 bool 返回 |
 | [23] | 逐类扩展槽 (基类 23 函数槽 0..22 之外) | 167 变 | 仅 241/546 实测虚表含此槽 |
@@ -380,10 +380,10 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 > **注册壳**: CEffectEntry<T> (16B {vt@0, desc 串@8}) / CTriggerEntry<T> (24B {vt@0, desc 串@8, 旗 u8@16}) — 虚表仅 2 槽 ([0] 析构/[1] 工厂 malloc+ctor+绑实例), **不含任何键解析**; 注册表 = RB 树 {节点+32=token, +40=entry} (effects qword_143330000 map@+0 / triggers qword_143330050 map@+24)。
 
 > **逐类载荷键解析槽 (定案)**: 脚本键 → 载荷偏移的落点 = **CEffect vtable [4]** /
-> **CTrigger vtable [6]** (部分 CTrigger 类落 [4]/[5]); 实现形态 = 键 token 减法链
+> **CTrigger vtable [4]** (逐类覆写) 与 [6] (通用值消费); 实现形态 = 键 token 减法链
 > (`sub r8d,K ; je …`, 未识别键回落通用 0x1424C2060)。通用槽: CEffect [3] = 0x140540B90
 > (块分派) / [5] = 0x1401807B0 / [6] = 0x14053D4C0 (仅作用域键); CTrigger [3] = 0x14054D0B0 /
-> [4] = 0x14054AE70 / [5] = 0x14054FD00。**查某 effect/trigger 的键落点 → 取该类 [4]/[6]
+> [4] = 0x14054AE70 (基, scope-target 兜底) / [5] = 0x14054FD00 (块 Parse) / [6] = 0x140550030 (token 分派)。**查某 effect/trigger 的键落点 → 取该类 [4]/[6]
 > 。样本 = CAddBuildingConstructionEffect (vt 0x14274DDE0):
 > [4] = 0x14031DB40 逐键 cmp 225 type / 10304 province / 10348 level / 11829 instant_build。
 

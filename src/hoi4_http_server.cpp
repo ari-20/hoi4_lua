@@ -40,14 +40,14 @@
 enum ReqKind {
     RK_CONSOLE = 1, RK_LUA = 2, RK_PAUSE = 3,
     RK_PROF_START = 4, RK_PROF_STOP = 5, RK_PROF_TOP = 6,
-    RK_PROF_FOLDED = 7, RK_PROF_STATUS = 8,
+    RK_PROF_FOLDED = 7, RK_PROF_STATUS = 8, RK_PROF_THREADS = 9,
 };
 
 struct HttpReq {
     uint64_t    id = 0;
     ReqKind     kind = RK_CONSOLE;
     std::string payload;              // cmd / chunk / state string / folded path
-    long        a = 0, b = 0;         // profile params: ms + stacks flag, or n
+    long        a = 0, b = 0;         // profile params: ms + flags(bit0 stacks,bit1 all), or n
     // completion
     HANDLE      done = nullptr;       // manual-reset event, signaled by main
     int         status = 0;           // executor's ok flag
@@ -135,7 +135,8 @@ static void exec_one(HttpReq *r) {
     case RK_PROF_START: {
         // sampler target = this main thread (frame-top execution guarantees it)
         const char *err = samp_api_start((unsigned)(r->a > 0 ? r->a : 1),
-                                         (int)r->b, GetCurrentThreadId(),
+                                         (int)(r->b & 1), GetCurrentThreadId(),
+                                         (int)((r->b >> 1) & 1),
                                          out, sizeof(out));
         r->status = err ? 0 : 1;
         r->result = err ? err : out;
@@ -165,6 +166,12 @@ static void exec_one(HttpReq *r) {
         r->status = 1;
         r->result = out;
         break;
+    case RK_PROF_THREADS: {
+        static char big[65536];                  // exec_one is main-thread-only
+        r->status = samp_api_threads(big, sizeof(big));
+        r->result = big;
+        break;
+    }
     }
 }
 
@@ -339,16 +346,18 @@ static DWORD WINAPI http_server_thread(LPVOID arg) {
 
     // ---- sampling profiler (/profile/*) — thin wrappers over the same
     // frame-top queue; params arrive as query args, results in "result".
-    //   POST /profile/start?ms=1&stacks=1     start (ms 1..1000; stacks 0/1)
+    //   POST /profile/start?ms=1&stacks=1&scope=all    (stacks=栈模式; scope=all=全线程)
     //   POST /profile/stop                     stop, keep data
     //   POST /profile/top?n=40                 leaf histogram top lines
     //   POST /profile/folded?path=...          write folded stacks file
     //   GET  /profile/status                   counters
+    //   GET  /profile/threads                  per-tid hits/cpu (scope=all)
     svr.Post("/profile/start", [](const httplib::Request &req, httplib::Response &res) {
-        long ms = 1, stacks = 0;
+        long ms = 1, flags = 0;
         if (req.has_param("ms"))     ms = strtol(req.get_param_value("ms").c_str(), nullptr, 10);
-        if (req.has_param("stacks")) stacks = strtol(req.get_param_value("stacks").c_str(), nullptr, 10);
-        run_main_thread_req(req, res, RK_PROF_START, "", ms, stacks ? 1 : 0);
+        if (req.has_param("stacks")) flags |= strtol(req.get_param_value("stacks").c_str(), nullptr, 10) ? 1 : 0;
+        if (req.has_param("scope") && req.get_param_value("scope") == "all") flags |= 2;
+        run_main_thread_req(req, res, RK_PROF_START, "", ms, flags);
     });
     svr.Post("/profile/stop", [](const httplib::Request &req, httplib::Response &res) {
         run_main_thread_req(req, res, RK_PROF_STOP, "");
@@ -366,6 +375,9 @@ static DWORD WINAPI http_server_thread(LPVOID arg) {
     });
     svr.Get("/profile/status", [](const httplib::Request &req, httplib::Response &res) {
         run_main_thread_req(req, res, RK_PROF_STATUS, "");
+    });
+    svr.Get("/profile/threads", [](const httplib::Request &req, httplib::Response &res) {
+        run_main_thread_req(req, res, RK_PROF_THREADS, "");
     });
 
     svr.Get("/events", [](const httplib::Request &, httplib::Response &res) {

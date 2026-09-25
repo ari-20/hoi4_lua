@@ -92,29 +92,7 @@ Execute 步骤 (定案):
 > —— `≠13` 门 = 「热加入等待存档的客户端不推进时间」, **不是暂停检查**
 > (暂停门在 §4.2.2 生成侧)。
 
-CSession 状态枚举全表 (session.cpp:269 SetState switch, 定案):
-
-| 值 | 状态名 |
-|---|---|
-| 0 | DISCONNECTED |
-| 1 | CONNECTING |
-| 2 | RECONNECTING |
-| 3 | RECONNECTING_FAILED |
-| 4 | CONNECTED |
-| 5 | WAITING_FOR_GAMESTATE |
-| 6 | ASYNCHRONOUSLY_CONNECTED |
-| 7 | REFUSED |
-| 8 | KICKED |
-| 9 | IS_BANNED |
-| 10 | STATE_NAME_TAKEN |
-| 11 | STATE_NAME_INVALID |
-| 12 | HOTJOIN_ASKING_FOR_JOIN |
-| 13 | HOTJOIN_WAITING_FOR_SAVE |
-| 14 | HOTJOIN_IN_LOBBY |
-| 15 | HOTJOIN_REFUSED |
-| 16 | BAD_VERSION |
-| 17 | BAD_PASSWORD |
-| 18 | STATE_JOIN_DISABLED |
+> CSession 状态枚举全表 (19 值, session.cpp:269 SetState switch, 定案) = **§4.28.11** (CSession 布局所有权册)。
 
 #### 4.2.4 gs hourly tick 顺序骨架 (sub_1401DD370)
 
@@ -137,7 +115,7 @@ CSession 状态枚举全表 (session.cpp:269 SetState switch, 定案):
 | 12 | 周 | (日边界内) **sub_1401F2430(gs)** = weekly update |
 | 13 | 月 | **sub_1401E34F0(gs)** = monthly update (月份==5 即 6 月仅 profiler 包装, 无额外调用) |
 | 14 | 年 | (profiler 域 "gamestate.yearly") 遍历 **gs+784 国家指针数组** ({data@784, cap@792, count@796}, 槽 0=哨兵, InitGameState 尾注册) 逐国调 sub_14071A940 = 清理 cc+656 师列表中师+840 CEquipmentVariantPool 零值条目 (门 = allow_zero u8@师+896==0); 后 sub_140207890 = PDX SDK 遥测批 (country_count / in_game_date / nr_country / nr_dynamic_country) |
-| 15 | 分发 | CInGameIdler 主虚表 0x142968FF0 槽: 槽[64] (字节+512, 0x140DDA020) 每小时 = GUI 日期脉冲 + gs+2216 倒计时/gs+1680 旗 / 槽[65] (+520, 0x140DD9740) 日 = gs 四连到期清扫 + GUI 日刷 + 游戏条目日期激活 / 槽[66] (+528, 0x140DDAC60) 周 = GUI 周脉冲 + 超 100MiB 日志轮转 (filelogger.cpp:256, 备份数 6) / 槽[67] (+536, 0x140DDA1B0) 月 = 月脉冲 + GUI 大刷新 / 槽[68] (+544, 0x140DD9FF0) 月==5 / 槽[69] (+552, 0x140DDACC0) 年 — 均为 GUI 侧薄脉冲 (驱动 idler+1720 游戏内 GUI 根的六档节拍注册表) |
+| 15 | 分发 | CInGameIdler 主虚表 0x142968FF0 槽: 槽[64] (字节+512, 0x140DDA020) 每小时 = GUI 日期脉冲 + idler+2216 倒计时/idler+1680 旗 / 槽[65] (+520, 0x140DD9740) 日 = gs 四连到期清扫 + GUI 日刷 + 游戏条目日期激活 / 槽[66] (+528, 0x140DDAC60) 周 = GUI 周脉冲 + 超 100MiB 日志轮转 (filelogger.cpp:256, 备份数 6) / 槽[67] (+536, 0x140DDA1B0) 月 = 月脉冲 + GUI 大刷新 / 槽[68] (+544, 0x140DD9FF0) 月==5 / 槽[69] (+552, 0x140DDACC0) 年 — GUI 侧薄脉冲 (驱动 iface (idler+1720, CInGameInterface) 的六档节拍注册表; 布局与家族归 §4.28.14) |
 | 16 | 每小时 | **sub_1401D6290(gs)** = hourly 收尾调度 (§4.2.6) |
 | 17 | 每小时 | sub_140BBED50(gs+1248) = CPeaceConferenceManager (§4.1 已载 @+1248) 每小时处理 |
 | 18 | 每小时 | `gs+1216 = 0`; 错误检查 (gamestate.cpp:4980); `gs+1208 = 0` |
@@ -451,18 +429,18 @@ CAirWing::HourlyUpdate 逐翼要点: other_combats 死引用压缩 / 无效任�
 | 符号/字段 | 含义 | 分册 |
 |---|---|---|
 | qword_14332F260 | CGameState* 单例 | §4.1 |
-| qword_14332F698 / qword_14332F6A0 | 全局 idler 单例双槽 — 由 idler **OnEnter (虚表槽[11])** 写入: 游戏内 = **CInGameIdler 实例** (CFrontEndIdler 派生, 主虚表 0x142968FF0; OnEnter = 0x140DE0150 thunk → setterB sub_1402A2A30 双写), 菜单态 = CFrontEndIdler (OnEnter sub_140B3E1F0 只写 F698, F6A0=0 → 时间调度器空操); 槽[17] 读对象+896 = CSession*; **+1328 = 管理器指针 (CApplication 本体: +56 current / +112 待入 / +120 旧 / +64 切换旗 / +128 保留旗)** | 本册 |
+| qword_14332F698 / qword_14332F6A0 | 全局 idler 单例双槽 — 由 idler **OnEnter (虚表槽[11])** 写入: 游戏内 = **CInGameIdler 实例** (CFrontEndIdler 派生, 主虚表 0x142968FF0; OnEnter = 0x140DE0150 thunk → setterB sub_1402A2A30 双写), 菜单态 = CFrontEndIdler (OnEnter sub_140B3E1F0 只写 F698, F6A0=0 → 时间调度器空操); 槽[17] 读对象+896 = CSession*; **+1328 = 管理器指针 (CApplication 本体: +56 current / +112 待入 / +120 旧 / +64 切换旗 / +128 保留旗)** | §4.28.14 |
 | gs+1120 / gs+1128 | 内嵌 CGameDate 当前时刻 / hours | §4.1 |
 | gs+1144..+1160 | 日期分量缓存 (每 tick 刷新) | §4.1 |
-| gs+1208 | 小时进度累积器 (float) | 本册 |
+| gs+1208 | 小时进度累积器 (float) | §4.1 |
 | gs+1212 | 速度档 (键 110) | §4.1 |
-| gs+1216 | tick 进行中标志 (u8) | 本册 |
+| gs+1216 | tick 进行中标志 (u8) | §4.1 |
 | gs+1248 | CPeaceConferenceManager 头 (hourly 处理) | §4.1 |
 | dword_143085210 | 闰年月首累计日表 | 本册 |
 | dword_1433386CC / qword_1433386C0 | 自定义速度表长度/指针 | 本册 |
 | qword_14333CEA8 / dword_14333CEB4 | GS checksum 数组/长度 | 本册 |
-| session+72 | CSession 联机状态枚举 | §4.28 |
-| session+84 | 游戏已开始标志 | 本册 |
-| session+128 | 会话 tick 号 (16 位截断) | §4.28 |
-| idler (CInGameIdler) +1729 / +1732 | 暂停位 / companion 位 (§4.1 旧记 "mgr+1729" 的 mgr 即 CInGameIdler) | §4.1 |
-| idler+2396 | 加速脉冲计数 (每 tick 减 1) | 本册 |
+| session+72 | CSession 联机状态枚举 (19 值全表) | §4.28.11 |
+| session+84 | 游戏已开始标志 | §4.28.11 |
+| session+128 | 会话 tick 号 (16 位截断) | §4.28.11 |
+| idler+1729 / idler+1732 | 暂停权威位 / Idle 第二暂停门 (与 +1731 toggle pending 并存勿混) | §4.28.14 |
+| idler+2396 | 加速脉冲计数 (每 tick 减 1) | §4.28.14 |
