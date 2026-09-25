@@ -1510,3 +1510,108 @@ end
 
 
 -- ============================================================
+
+-- ============================================================
+-- 14.5 combat_log 管理器族 (§4.22.4 NCombatLog::CManager;
+-- gs+2176/2188 按国家 id 索引; SCombatData 同体异名 vt 0x295D8D8)
+-- 结构唯一实现; 段层 sv2_sec_combat_log 只按写序发射。
+-- ⚠ equipment ×4 容器为**合并序** (writer 依次扫 4 容器, 共用一个编号),
+--   故 reader 输出带 src 序号, 段层不得重排。
+local function combat_log_loss(se)
+  -- CLoss 三件套: reason u32@+8 / date@+24 / 内嵌 SEquipmentPool @+40
+  -- (恒写无空判; 元素门 amount≠0∨az = 共享 reader)
+  if not O.kptr(se) then return nil end
+  return { reason = ru32(se + 8) or 0, date_h = ru32(se + 24),
+           pool = U.pool_read(se + 40, { clamp = LAYOUT.lim.PTR_SANE }) }
+end
+
+function Runtime.combat_log_managers(self)
+  local g = self.gs()
+  if not g then return nil end
+  local arr, cnt = rp(g + 0x880), ru32(g + 0x88C) or 0
+  if not O.kptr(arr) or cnt <= 0 then return nil end
+  local out = {}
+  for i = 0, math.min(cnt, 1024) - 1 do
+    local mgr = rp(arr + 8 * i)
+    if O.kptr(mgr) and rp(mgr) == BASE + GAME.layout.vt.CCombatLogManager then
+      local ln = ru32(mgr + 20) or 0
+      local rec = { addr = mgr, tag_tid = ru32(mgr + 32), logs = {},
+                    log_count = ln }
+      local ld = rp(mgr + 8)
+      if O.kptr(ld) and ln > 0 then
+        for j = 0, math.min(ln, 256) - 1 do
+          local le = rp(ld + 8 * j)
+          if O.kptr(le) and rp(le) == BASE + GAME.layout.vt.CCombatLogEntry then
+            local e = { group_id = ru32(le + 228),
+              group_type = ru32(le + 224),
+              equipment = {}, enemy_equipment = {},
+              equipment_recovered = {}, manpower = {},
+              division_template = {}, combat_data_index = {} }
+            -- equipment ×4 容器 (合并序; 8B 指针容器)
+            for _, oc in ipairs({ { 56, 68 }, { 80, 92 },
+                                  { 104, 116 }, { 128, 140 } }) do
+              local d2, n2 = rp(le + oc[1]), ru32(le + oc[2]) or 0
+              if O.kptr(d2) and n2 > 0 then
+                for q = 0, math.min(n2, LAYOUT.lim.PTR_SANE) - 1 do
+                  local r = combat_log_loss(rp(d2 + 8 * q))
+                  if r then e.equipment[#e.equipment + 1] = r end
+                end
+              end
+            end
+            -- enemy_equipment / equipment_recovered
+            for _, spec in ipairs({ { 8, 20, "enemy_equipment" },
+                                    { 32, 44, "equipment_recovered" } }) do
+              local d2, n2 = rp(le + spec[1]), ru32(le + spec[2]) or 0
+              if O.kptr(d2) and n2 > 0 then
+                for q = 0, math.min(n2, LAYOUT.lim.PTR_SANE) - 1 do
+                  local r = combat_log_loss(rp(d2 + 8 * q))
+                  if r then e[spec[3]][#e[spec[3]] + 1] = r end
+                end
+              end
+            end
+            -- manpower 子条目 (reason@+8 / date@+24 / mp_losses 3×u32@+40)
+            local d2, n2 = rp(le + 152), ru32(le + 164) or 0
+            if O.kptr(d2) and n2 > 0 then
+              for q = 0, math.min(n2, LAYOUT.lim.PTR_SANE) - 1 do
+                local se = rp(d2 + 8 * q)
+                if O.kptr(se) then
+                  e.manpower[#e.manpower + 1] = {
+                    reason = ru32(se + 8) or 0, date_h = ru32(se + 24),
+                    losses = { ru32(se + 40) or 0, ru32(se + 44) or 0,
+                               ru32(se + 48) or 0 } }
+                end
+              end
+            end
+            -- CPerTemplateStats division_template (id 对@+8/+12 / win@+24 /
+            -- total@+28 / date@+40)
+            d2, n2 = rp(le + 176), ru32(le + 188) or 0
+            if O.kptr(d2) and n2 > 0 then
+              for q = 0, math.min(n2, LAYOUT.lim.PTR_SANE) - 1 do
+                local se = rp(d2 + 8 * q)
+                if O.kptr(se) then
+                  e.division_template[#e.division_template + 1] = {
+                    id_type = ru32(se + 8), id_id = ru32(se + 12),
+                    win = ru32(se + 24) or 0, total = ru32(se + 28) or 0,
+                    date_h = ru32(se + 40) }
+                end
+              end
+            end
+            -- combat_data_index 内联 8B {id i32, attacker u8}
+            d2, n2 = rp(le + 200), ru32(le + 212) or 0
+            if O.kptr(d2) and n2 > 0 then
+              for q = 0, math.min(n2, LAYOUT.lim.PTR_SANE) - 1 do
+                local v = d2 + 8 * q
+                local id = ru32(v) or 0
+                e.combat_data_index[#e.combat_data_index + 1] = {
+                  id = LAYOUT.as_i32(id), attacker = ru8(v + 4) or 0 }
+              end
+            end
+            rec.logs[#rec.logs + 1] = e
+          end
+        end
+      end
+      out[#out + 1] = rec
+    end
+  end
+  return out
+end
