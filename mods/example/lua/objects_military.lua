@@ -2243,10 +2243,10 @@ local function ncr_naval_hits(d, c)
       out[#out + 1] = {
         target = ru32(en + 8) or 0,
         name = U.sso(en + 16),
-        convoy = (ru8(en + 48) or 0) ~= 0,
+        convoy = ru8(en + 48) or 0,   -- 原字节 (两段 yn 语义不同, 段层换算)
         damage = U.fix5(en + 56),
         strength = U.fix5(en + 64),
-        last_hit = (ru8(en + 72) or 0) ~= 0 }
+        last_hit = ru8(en + 72) or 0 }
     end
   end
   return out
@@ -2549,6 +2549,714 @@ function Country.railway_guns(self)
           or nil,
         intel = intel }
     end
+  end
+  return out
+end
+
+-- ============================================================
+-- 14.7 combat 导出全量 reader (§4.22; sv2_sec_combat 只持写序/块键/编号/
+-- 值格式化)。writer 忠实; 与 §14.1-14.4 旧探针形访问器并存。
+-- 复用: SNavalHit 布局 §4.22.5 ≡ §4.22.6 (ncr_naval_hits); SAirHit 的
+-- tag 门两段不同 (combat qtag 无 0 门 — tid=0 读槽 0 = "---" 照发射)
+-- 故 cbt_air_hits 单列; cached_info 门亦有差 → cbt_cached。
+-- 哨兵: dword_143086B20 (air date) / qword_14333D528 (空 id 对)。
+local function cbt_fix5(a)
+  local r = GAME.layout.i64(a)
+  return r and (r / 100000) or nil
+end
+
+local function cbt_tagraw(tid)          -- §1.2 tag 串表 (combat qtag 语义:
+  if not tid then return nil end        --   无 0 门, 槽 0 = "---")
+  local tt = rp(Runtime.gs() + 0x358)
+  if not O.kptr(tt) then return nil end
+  return hoi4.read_str(tt + 32 * tid)
+end
+
+-- §4.22.4 SCombatSideData 侧数据 (combat_side_data / combat_data 双侧共用;
+-- writer 0x140CD15D0)。池以基址交段层 SL.pool_emit_gated (布局住共享件)。
+local function cbt_side_data(S)
+  if not O.kptr(S) then return nil end
+  local rec = {
+    equipment_lost = S + 24, equipment_captured = S + 344,
+    equipment_recovered = S + 408 }
+  local v = ru32(S + 8)
+  if v and v > 0 then rec.manpower_lost = v end
+  local f = cbt_fix5(S + 16)
+  if f and f > 0 then rec.manpower_lost_air_factor = f end
+  local lt, li = ru32(S + 520) or 0, ru32(S + 524) or 0
+  if lt ~= 0 or li ~= 0 then rec.leader = { type = lt, id = li } end
+  -- tags: u32 tid 数组 → 槽序 (qtag 无 0 门; 解析失败槽占号不发射)
+  local d, n = rp(S + 496), ru32(S + 508) or 0
+  if O.kptr(d) and n > 0 then
+    local tags = {}
+    for i = 0, math.min(n, 64) - 1 do
+      tags[i + 1] = cbt_tagraw(ru32(d + 4 * i))
+    end
+    rec.tags = tags
+  end
+  return rec
+end
+
+-- §4.22.4 CActivityInGroup 条目 (log.group; writer 0x140CD0980)
+local function cbt_group(ge)
+  local rec = { group_type = ru32(ge + 8) or 0, group_id = ru32(ge + 12) or 0 }
+  local d, n = rp(ge + 16), ru32(ge + 28) or 0
+  if O.kptr(d) and n > 0 then
+    rec.division_templates = {}
+    for i = 0, math.min(n, 256) - 1 do
+      rec.division_templates[#rec.division_templates + 1] = {
+        type = ru32(d + 8 * i) or 0, id = ru32(d + 8 * i + 4) or 0 }
+    end
+  end
+  d, n = rp(ge + 40), ru32(ge + 52) or 0 -- enemy_dmg 16B {对, fixed}
+  if O.kptr(d) and n > 0 then
+    rec.enemy_dmg = {}
+    for i = 0, math.min(n, 256) - 1 do
+      local e = d + 16 * i
+      rec.enemy_dmg[#rec.enemy_dmg + 1] = {
+        unit_type = ru32(e) or 0, unit_id = ru32(e + 4) or 0,
+        value = (GAME.layout.i64(e + 8) or 0) / 100000 }
+    end
+  end
+  rec.damaged_equipment = ge + 64
+  local tid = ru32(ge + 128) or 0     -- writer 0x140BA6770 门 = tid > 0
+  if tid > 0 then rec.damage_dealer = cbt_tagraw(tid) end
+  tid = ru32(ge + 132) or 0
+  if tid > 0 then rec.damage_taker = cbt_tagraw(tid) end
+  return rec
+end
+
+-- §4.22.4 NCombatLog::CStatsObserver log 对象 (内嵌@cb+464, writer 0x140CD1240)
+local function cbt_log(lb)
+  local rec = {}
+  local d, n = rp(lb + 8), ru32(lb + 20) or 0
+  if O.kptr(d) and n > 0 then
+    rec.groups = {}
+    for i = 0, math.min(n, 256) - 1 do
+      local ge = rp(d + 8 * i)
+      if O.kptr(ge) then rec.groups[#rec.groups + 1] = cbt_group(ge) end
+    end
+  end
+  rec.combat_side_data = cbt_side_data(lb + 88)
+  d, n = rp(lb + 32), ru32(lb + 44) or 0 -- leader_hours 12B 条
+  if O.kptr(d) and n > 0 then
+    rec.leader_hours = {}
+    for i = 0, math.min(n, 256) - 1 do
+      local e = d + 12 * i
+      rec.leader_hours[#rec.leader_hours + 1] = {
+        type = ru32(e) or 0, id = ru32(e + 4) or 0,
+        time = ru32(e + 8) or 0 }
+    end
+  end
+  d, n = rp(lb + 56), ru32(lb + 68) or 0 -- damage 32B 条
+  if O.kptr(d) and n > 0 then
+    rec.damages = {}
+    for i = 0, math.min(n, 256) - 1 do
+      local e = d + 32 * i
+      rec.damages[#rec.damages + 1] = {
+        from = cbt_tagraw(ru32(e + 8)),
+        receiver = cbt_tagraw(ru32(e + 12)),
+        to = cbt_tagraw(ru32(e + 16)),
+        value = (GAME.layout.i64(e + 24) or 0) / 100000 }
+    end
+  end
+  local f = cbt_fix5(lb + 80)
+  if f and f > 0 then rec.total_damage = f end
+  do                              -- modifier_hours 恒写 30 元 u32
+    local t = {}
+    for i = 0, 29 do t[#t + 1] = ru32(lb + 624 + 4 * i) or 0 end
+    rec.modifier_hours = t
+  end
+  local bits = ru8(lb + 744) or 0
+  rec.snow = (bits & 1) ~= 0
+  rec.win = (bits & 2) ~= 0
+  f = cbt_fix5(lb + 616)
+  if f and f > 0 then rec.progress = f end
+  return rec
+end
+
+-- §4.22.5 SAirHit 条目 (writer 0x1415B5760) — tag = combat qtag 语义 (无 0 门)
+local function cbt_air_hits(d, c)
+  if not O.kptr(d) or not c or c <= 0 then return nil end
+  local out = {}
+  for k = 0, math.min(c, LAYOUT.lim.PTR_SANE) - 1 do
+    local en = rp(d + 8 * k)
+    if O.kptr(en) then
+      local ev = rp(en + 8)
+      out[#out + 1] = {
+        tag = cbt_tagraw(ru32(en + 0x14)),
+        var_type = O.kptr(ev) and (ru32(ev + 8) or 0) or nil,
+        var_id = O.kptr(ev) and (ru32(ev + 12) or 0) or nil,
+        count = ru32(en + 0x10) or 0 }
+    end
+  end
+  return out
+end
+
+-- §4.22.4 CCombatant/CLandCombatant 参战方 (writer 0x1413CEED0 + 0x1412A8760)
+local function cbt_combatant(cb, dflt_date)
+  if not O.kptr(cb) then return nil end
+  local rec = { addr = cb }
+  -- id 对列表 (unit/front/reserves/retreat): 8B 指针, 对内联@elem+24;
+  -- 重复块 = 裸名重复 (multiset) 不编号
+  local function reflist(off_d, off_c, key)
+    local d, n = rp(cb + off_d), ru32(cb + off_c) or 0
+    if O.kptr(d) and n > 0 then
+      local lst = {}
+      for i = 0, math.min(n, 256) - 1 do
+        local u = rp(d + 8 * i)
+        if O.kptr(u) then
+          lst[#lst + 1] = { type = ru32(u + 24) or 0,
+            id = ru32(u + 28) or 0 }
+        end
+      end
+      rec[key] = lst
+    end
+  end
+  reflist(32, 44, "units")
+  rec.losses = cbt_fix5(cb + 184) or 0 -- 恒写 (SL.num(fix5 or 0))
+  local d, n = rp(cb + 160), ru32(cb + 172) or 0 -- size
+  if O.kptr(d) and n > 0 then
+    local t = {}
+    for i = 0, math.min(n, 512) - 1 do
+      t[#t + 1] = (GAME.layout.i64(d + 8 * i) or 0) / 100000
+    end
+    rec.size = t
+  end
+  rec.has_flanked = (ru8(cb + 219) or 0) ~= 0
+  local lh = ru32(cb + 224)
+  if lh and lh > 0 then rec.last_hit = cbt_tagraw(lh) end
+  local f = cbt_fix5(cb + 16)
+  if f and f > 0 then rec.shore_bombardment_factor = f end
+  local v = ru32(cb + 352)
+  if v and v > 0 and v < 0x80000000 then rec.air_kills = v end
+  local function posfix(off)
+    local x = cbt_fix5(cb + off)
+    return (x and x > 0) and x or nil
+  end
+  rec.air_damage_str = posfix(360)
+  rec.air_damage_org = posfix(368)
+  rec.ground_damage_str = posfix(376)
+  rec.ground_damage_org = posfix(384)
+  rec.prevented_damage_str = posfix(392)
+  rec.prevented_damage_org = posfix(400)
+  rec.anti_air_attack = posfix(344)
+  reflist(232, 244, "fronts")
+  reflist(256, 268, "reserves")
+  reflist(280, 292, "retreats")
+  d, n = rp(cb + 320), ru32(cb + 332) or 0 -- §4.22.4 CAirInLandCombat 8B 指针
+  if O.kptr(d) and n > 0 then
+    rec.air_planes = {}
+    for i = 0, math.min(n, 256) - 1 do
+      local A = rp(d + 8 * i)
+      if O.kptr(A) then
+        local h = ru32(A + 40)
+        rec.air_planes[#rec.air_planes + 1] = {
+          date_h = (h and h ~= dflt_date) and h or nil,
+          amount = ru32(A + 20) or 0,
+          wing_type = ru32(A + 8) or 0, wing_id = ru32(A + 12) or 0,
+          air_count = ru32(A + 16) or 0,
+          damage_factor = (GAME.layout.i64(A + 24) or 0) / 100000 }
+      end
+    end
+  end
+  local tac = rp(cb + 304) -- §4.22.7 CCombatTactic ref
+  if O.kptr(tac) then rec.tactic = ru32(tac + 152) or 0 end
+  d, n = rp(cb + 408), ru32(cb + 420) or 0 -- org_loss_summary
+  if O.kptr(d) and n > 0 then
+    local t = {}
+    for i = 0, math.min(n, 512) - 1 do
+      t[#t + 1] = (GAME.layout.i64(d + 8 * i) or 0) / 100000
+    end
+    rec.org_loss_summary = t
+  end
+  d, n = rp(cb + 432), ru32(cb + 444) or 0 -- str_loss_summary
+  if O.kptr(d) and n > 0 then
+    local t = {}
+    for i = 0, math.min(n, 512) - 1 do
+      t[#t + 1] = (GAME.layout.i64(d + 8 * i) or 0) / 100000
+    end
+    rec.str_loss_summary = t
+  end
+  rec.org_loss_summary_index = ru32(cb + 456) or 0
+  rec.num_org_losses = ru32(cb + 460) or 0
+  -- §4.22.4 weighted_participants RH 表 @cb+128: data@+136, 计数@+144,
+  -- 掩码 u32@+148, extra u8@+152; 桶 24B {dist@+4, tag@+8, weight@+16};
+  -- 发射序 = 桶序 (writer sub_1413E41F0 → sub_1411DCF90, 无排序)
+  do
+    local wd = rp(cb + 136)
+    local wcnt = ru32(cb + 144) or 0
+    local wmask = ru32(cb + 148) or 0
+    local wextra = ru8(cb + 152) or 0
+    if O.kptr(wd) and wcnt > 0 and wcnt < 4096 then
+      local nb = wmask + 1 + wextra
+      local wp = {}
+      for bi = 0, math.min(nb, 65536) - 1 do
+        local b = wd + 24 * bi
+        if (ru8(b + 4) or 0) ~= 0 then
+          local tgs = cbt_tagraw(ru32(b + 8) or 0)
+          if tgs then
+            wp[#wp + 1] = { tag = tgs, weight = cbt_fix5(b + 16) or 0 }
+          end
+        end
+      end
+      rec.weighted_participants = wp
+    end
+  end
+  rec.log = cbt_log(cb + 464)
+  return rec
+end
+
+-- §4.22.2 CLandBorderWarCombatant 边界战参战方扩展 (writer 0x1413F0100)
+local function cbt_bw_side(cb)
+  if not O.kptr(cb) then return nil end
+  local rec = {}
+  local tid = ru32(cb + 1216) or 0
+  rec.tag = (tid == 0) and "---" or cbt_tagraw(tid)
+  local sp = rp(cb + 1224)
+  if O.kptr(sp) then rec.state = ru32(sp + 88) or 0 end
+  local d, n = rp(cb + 1232), ru32(cb + 1244) or 0
+  if O.kptr(d) and n > 0 then
+    rec.provinces = {}
+    for i = 0, math.min(n, 64) - 1 do
+      local pe = rp(d + 8 * i)
+      if O.kptr(pe) then
+        rec.provinces[#rec.provinces + 1] = ru32(pe + 164) or 0 end
+    end
+  end
+  rec.orders_group = { type = ru32(cb + 1256) or 0,
+    id = ru32(cb + 1260) or 0 }
+  rec.max_units = ru32(cb + 1264) or 0
+  rec.modifier = (GAME.layout.i64(cb + 1272) or 0) / 100000
+  rec.dig_in_factor = (GAME.layout.i64(cb + 1376) or 0) / 100000
+  rec.terrain_factor = (GAME.layout.i64(cb + 1384) or 0) / 100000
+  local s = U.sso(cb + 1280)
+  if s and s ~= "" then rec.on_win = s end
+  s = U.sso(cb + 1312)
+  if s and s ~= "" then rec.on_lose = s end
+  s = U.sso(cb + 1344)
+  if s and s ~= "" then rec.on_cancel = s end
+  d, n = rp(cb + 1392), ru32(cb + 1404) or 0 -- removed_unit 12B 条
+  if O.kptr(d) and n > 0 then
+    rec.removed_units = {}
+    for i = 0, math.min(n, 256) - 1 do
+      local en = d + 12 * i
+      rec.removed_units[#rec.removed_units + 1] = {
+        type = ru32(en) or 0, id = ru32(en + 4) or 0,
+        hours = ru32(en + 8) or 0 }
+    end
+  end
+  return rec
+end
+
+-- §4.22.5 member.cached_info (SCachedInfo 内嵌@m+24, writer 0x141962D80)。
+-- ⚠ 门与 §4.22.6 形有差: equipment_variant/sunk_by/ship 有 size u32 前门。
+local function cbt_cached(ci, nullref)
+  local rec = {
+    sprite = U.sso(ci + 112),
+    index = ru32(ci + 12) or 0,
+    type = ru32(ci + 16) or 0,
+    tag = cbt_tagraw(ru32(ci + 8)) }
+  local f = cbt_fix5(ci + 32)
+  if f and f ~= 0 then rec.strength = f end
+  if (ru32(ci + 160) or 0) ~= 0 then
+    local s = U.sso(ci + 144)
+    if s and s ~= "" then rec.sunk_by = s end
+  end
+  rec.convoy = (ru8(ci + 41) or 0) ~= 0
+  f = cbt_fix5(ci + 24)
+  if f and f ~= 0 then rec.build_cost_ic = f end
+  if (ru32(ci + 96) or 0) ~= 0 then
+    local s = U.sso(ci + 80)
+    if s and s ~= "" then rec.equipment_variant = s end
+  end
+  local t, i = ru32(ci + 176) or 0, ru32(ci + 180) or 0
+  local lo = nullref and (nullref % 4294967296) or -1
+  local hi = nullref and math.floor(nullref / 4294967296) or -1
+  if t ~= lo or i ~= hi then
+    rec.hev_type = t
+    rec.hev_id = i
+  end
+  if (ru32(ci + 64) or 0) ~= 0 then
+    local s = U.sso(ci + 48)
+    if s and s ~= "" then rec.ship = s end
+  end
+  rec.potf = (ru8(ci + 40) or 0) ~= 0
+  t, i = ru32(ci + 184) or 0, ru32(ci + 188) or 0
+  if t ~= 0 or i ~= 0 then
+    rec.convoy_id_type = t
+    rec.convoy_id_id = i
+  end
+  local v = ru32(ci + 192) or 0xFFFFFFFF
+  if v < 0x80000000 then rec.convoy_index = v end
+  return rec
+end
+
+-- §4.22.5 CFEXMember member 条目 (writer 0x1419760B0)
+local function cbt_naval_member(m, nullref)
+  if not O.kptr(m) then return nil end
+  local rec = { unique_id = ru32(m + 288) or 0 }
+  local t, i = ru32(m + 8) or 0, ru32(m + 12) or 0
+  if t ~= 0 or i ~= 0 then rec.ship = { type = t, id = i } end
+  t, i = ru32(m + 16) or 0, ru32(m + 20) or 0
+  if t ~= 0 or i ~= 0 then rec.convoy = { type = t, id = i } end
+  rec.state = ru32(m + 224) or 0
+  rec.hours_to_arrive = ru32(m + 228) or 0
+  do                                    -- cooldown 恒写 3 元 fixed5
+    local t2 = {}
+    for q = 0, 2 do
+      t2[#t2 + 1] = (GAME.layout.i64(m + 240 + 8 * q) or 0) / 100000
+    end
+    rec.cooldown = t2
+  end
+  rec.cached_info = cbt_cached(m + 24, nullref)
+  local v = ru32(m + 292) or 0
+  if v > 0 then rec.critical_hits_received = v end
+  rec.naval_hits = ncr_naval_hits(rp(m + 384), ru32(m + 396) or 0)
+  rec.air_hits = cbt_air_hits(rp(m + 336), ru32(m + 348) or 0)
+  v = ru32(m + 296) or 0
+  if v ~= 0 then rec.evacuated = v end
+  v = ru32(m + 300) or 0xFFFFFFFF
+  if v ~= 0xFFFFFFFF then rec.hidden = v end
+  local f = cbt_fix5(m + 304)
+  if f and f ~= 0 then rec.escape_progress = f end
+  do                                    -- damage_received_by_gun_types 恒写 6 元
+    local t2 = {}
+    for q = 0, 5 do
+      t2[#t2 + 1] = (GAME.layout.i64(m + 408 + 8 * q) or 0) / 100000
+    end
+    rec.gun_type_damage = t2
+  end
+  local d, n = rp(m + 264), ru32(m + 276) or 0 -- damage_received 32B
+  if O.kptr(d) and n > 0 then
+    rec.damage_received = {}
+    for q = 0, math.min(n, 64) - 1 do
+      local e = d + 32 * q
+      rec.damage_received[#rec.damage_received + 1] = {
+        ship_type = ru32(e + 8) or 0, ship_id = ru32(e + 12) or 0,
+        tag = cbt_tagraw(ru32(e + 16)),
+        damage = cbt_fix5(e + 24) or 0 }
+    end
+  end
+  if (ru8(m + 328) or 0) ~= 0 then      -- last_target (lt=m+312)
+    rec.last_target = { convoy = (ru8(m + 320) or 0) ~= 0,
+      size = ru32(m + 324) or 0 }
+  end
+  return rec
+end
+
+-- §4.22.5 CFEXAir group air 条目 (writer 0x14197D990)
+local function cbt_naval_air(ae)
+  if not O.kptr(ae) then return nil end
+  local rec = { tag = cbt_tagraw(ru32(ae + 100)) }
+  local t, i = ru32(ae + 28) or 0, ru32(ae + 32) or 0
+  if t ~= 0 or i ~= 0 then rec.air_base = { type = t, id = i } end
+  local d, n = rp(ae + 64), ru32(ae + 76) or 0 -- air_wing 内联对
+  if O.kptr(d) and n > 0 then
+    rec.air_wings = {}
+    for q = 0, math.min(n, 256) - 1 do
+      rec.air_wings[#rec.air_wings + 1] = { type = ru32(d + 8 * q) or 0,
+        id = ru32(d + 8 * q + 4) or 0 }
+    end
+  end
+  d, n = rp(ae + 40), ru32(ae + 52) or 0 -- naval_strike 内联对
+  if O.kptr(d) and n > 0 then
+    rec.naval_strikes = {}
+    for q = 0, math.min(n, 256) - 1 do
+      rec.naval_strikes[#rec.naval_strikes + 1] = {
+        type = ru32(d + 8 * q) or 0, id = ru32(d + 8 * q + 4) or 0 }
+    end
+  end
+  n = ru32(ae + 180) or 0               -- names 32B 串数组 (空串照收)
+  d = rp(ae + 168)
+  if O.kptr(d) and n > 0 then
+    local tt2 = {}
+    for q = 0, math.min(n, 64) - 1 do
+      local nm = U.sso(d + 32 * q)
+      if nm then tt2[#tt2 + 1] = nm end
+    end
+    if #tt2 > 0 then rec.names = tt2 end
+  end
+  rec.max = ru32(ae + 88) or 0
+  rec.alive = ru32(ae + 92) or 0
+  rec.casualties = ru32(ae + 96) or 0
+  rec.last_external_wave_h = ru32(ae + 112) -- C 族 date_quoted 无滤
+  rec.external_wave_complete = ru8(ae + 128) or 0  -- 原字节 (段层 yn)
+  rec.time_duration = ru32(ae + 248) or 0
+  rec.external = ru8(ae + 129) or 0
+  rec.name = U.sso(ae + 136)
+  rec.damage_mult = cbt_fix5(ae + 192) or 0
+  rec.naval_hits = ncr_naval_hits(rp(ae + 256), ru32(ae + 268) or 0)
+  rec.air_hits = cbt_air_hits(rp(ae + 280), ru32(ae + 292) or 0)
+  local v = ru32(ae + 24) or 0xFFFFFFFF
+  if v ~= 0xFFFFFFFF then rec.carrier = v end
+  return rec
+end
+
+-- §4.22.5 CFEXGroup group 条目 (writer 0x141C58360)
+local function cbt_naval_group(g, nullref)
+  if not O.kptr(g) then return nil end
+  local rec = {}
+  local d, n = rp(g + 8), ru32(g + 20) or 0 -- member 指针数组
+  if O.kptr(d) and n > 0 then
+    rec.members = {}
+    for q = 0, math.min(n, 1024) - 1 do
+      local m = cbt_naval_member(rp(d + 8 * q), nullref)
+      if m then rec.members[#rec.members + 1] = m end
+    end
+  end
+  d, n = rp(g + 88), ru32(g + 100) or 0 -- air 指针数组
+  if O.kptr(d) and n > 0 then
+    rec.airs = {}
+    for q = 0, math.min(n, 256) - 1 do
+      local ae = cbt_naval_air(rp(d + 8 * q))
+      if ae then rec.airs[#rec.airs + 1] = ae end
+    end
+  end
+  -- opponent_group: oppg 在母 combatant group 数组 {d@+232,c@+244} 的下标
+  local oppg = rp(g + 32)
+  if O.kptr(oppg) then
+    local oc = rp(oppg + 56)
+    local od = oc and rp(oc + 232)
+    local on = oc and (ru32(oc + 244) or 0)
+    if O.kptr(od) and on and on > 0 and on < 64 then
+      for q = 0, on - 1 do
+        if rp(od + 8 * q) == oppg then
+          rec.opponent_group = q
+          break
+        end
+      end
+    end
+  end
+  rec.forces_compare = cbt_fix5(g + 48) or 0
+  rec.disengage_counter = ru32(g + 64) or 0
+  rec.chasing_counter = ru32(g + 68) or 0
+  return rec
+end
+
+-- §4.22.5 CNavalCombatant 海战参战方 (writer 0x14160FF40)
+local function cbt_naval_side(cb, nullref)
+  if not O.kptr(cb) then return nil end
+  local rec = {}
+  local d, n = rp(cb + 32), ru32(cb + 44) or 0 -- unit (裸名重复)
+  if O.kptr(d) and n > 0 then
+    rec.units = {}
+    for q = 0, math.min(n, 256) - 1 do
+      local u = rp(d + 8 * q)
+      if O.kptr(u) then
+        rec.units[#rec.units + 1] = { type = ru32(u + 24) or 0,
+          id = ru32(u + 28) or 0 }
+      end
+    end
+  end
+  d, n = rp(cb + 232), ru32(cb + 244) or 0 -- group[N]
+  if O.kptr(d) and n > 0 then
+    rec.groups = {}
+    for q = 0, math.min(n, 64) - 1 do
+      local g2 = cbt_naval_group(rp(d + 8 * q), nullref)
+      if g2 then rec.groups[#rec.groups + 1] = g2 end
+    end
+  end
+  local ll = rp(cb + 312) -- last_leader → 对@ptr+8
+  if O.kptr(ll) then
+    rec.last_leader = { type = ru32(ll + 8) or 0, id = ru32(ll + 12) or 0 }
+  end
+  rec.disengage = (ru8(cb + 320) or 0) ~= 0
+  rec.anti_air = cbt_fix5(cb + 368) or 0
+  rec.positioning = cbt_fix5(cb + 344) or 0
+  local f = cbt_fix5(cb + 352)
+  if f and f ~= 0 then rec.new_ships_positioning_penalty = f end
+  rec.total_damage_dealt = cbt_fix5(cb + 384) or 0
+  rec.total_initial_strength = cbt_fix5(cb + 376) or 0
+  rec.positioning_dominance_bonus = cbt_fix5(cb + 360) or 0
+  do                                    -- gun types 恒写 36 元 (1.19.3 +32)
+    local t2 = {}
+    for q = 0, 35 do
+      t2[#t2 + 1] = (GAME.layout.i64(cb + 392 + 8 * q) or 0) / 100000
+    end
+    rec.gun_type_damage = t2
+  end
+  -- damage_dealt_by_ship_types: 侵入链表 (头=哨兵, next@0), 键 = token
+  if (ru32(cb + 696) or 0) ~= 0 then
+    local head = rp(cb + 688)
+    local node = head and rp(head)
+    local guard = 0
+    local st = {}
+    while O.kptr(node) and node ~= head
+        and guard < LAYOUT.lim.PTR_SANE do
+      local tk = ru32(node + 16)
+      local nm = tk and (GAME.layout.token_name(tk) or tk)
+      if nm then
+        st[#st + 1] = { name = nm, value = cbt_fix5(node + 24) or 0 }
+      end
+      node = rp(node)
+      guard = guard + 1
+    end
+    rec.ship_type_damage = st
+  end
+  return rec
+end
+
+-- §4.22.5 convoy 条目 (无独立 RTTI 类; writer 0x141AD8690)
+local function cbt_convoy_entry(cv)
+  if not O.kptr(cv) then return nil end
+  local rec = { id_type = ru32(cv + 8) or 0, id_id = ru32(cv + 12) or 0 }
+  local v4 = rp(cv + 24)
+  if O.kptr(v4) then
+    rec.var_type = ru32(v4 + 8) or 0
+    rec.var_id = ru32(v4 + 12) or 0
+  end
+  rec.strength = cbt_fix5(cv + 32) or 0
+  rec.organisation = cbt_fix5(cv + 40) or 0
+  local t1, i1 = ru32(cv + 48) or 0, ru32(cv + 52) or 0
+  local t2, i2 = ru32(cv + 56) or 0, ru32(cv + 60) or 0
+  -- tag 三段链 (client 对 → obj+24 | transfer 对 → obj+88 | 兜底+64)
+  local tid
+  if t1 ~= 0 or i1 ~= 0 then
+    local o = GAME.layout.idreg_unit_resolve(t1, i1)
+    if o then tid = ru32(o + 24) end
+  end
+  if not tid then
+    if t2 ~= 0 or i2 ~= 0 then
+      local o = GAME.layout.idreg_unit_resolve(t2, i2)
+      if o then tid = ru32(o + 88) end
+    end
+  end
+  if not tid then tid = ru32(cv + 64) end
+  if tid and tid > 0 then rec.tag = cbt_tagraw(tid) end
+  if (t2 ~= 0 or i2 ~= 0)
+      and GAME.layout.idreg_unit_resolve(t2, i2) then
+    rec.transfer_navy = { type = t2, id = i2 }
+  end
+  if (t1 ~= 0 or i1 ~= 0)
+      and GAME.layout.idreg_unit_resolve(t1, i1) then
+    rec.client = { type = t1, id = i1 }
+  end
+  rec.convoy_index = ru32(cv + 68) or 0
+  return rec
+end
+
+-- 容器包装 → 参战基址 (§4.22.3 侧容器解引用; cont[0] 属映像区间判 vtable)
+local function cbt_combatant_base(c, side_off)
+  local cont = rp(c + side_off)
+  if not O.kptr(cont) then return nil end
+  local d = rp(cont)
+  local n = ru32(cont + 12)
+  if d and d >= BASE and d < BASE + 0x37EC000 then return cont end
+  if O.kptr(d) and n and n > 0 and n < 64 then
+    local el = rp(d)
+    if O.kptr(el) then return rp(el + 16) or el end
+  end
+  return cont
+end
+
+-- Runtime.combat_full -> {list, history}; kind = border/naval/land
+function Runtime.combat_full(self)
+  local g = self.gs()
+  if not g or rp(g + 0x260) ~= BASE + GAME.layout.vt.CCombatManager then
+    return nil
+  end
+  local dflt_date = ru32(BASE + 0x3086B20) -- §3.7a 门哨兵
+  local nullref = rp(BASE + 0x333D528)
+  local out = { list = {}, history = {} }
+  local cd, cn = rp(g + 0x268), ru32(g + 0x274) or 0
+  if O.kptr(cd) and cn > 0 then
+    for k = 0, math.min(cn, 4096) - 1 do
+      local e = rp(cd + 8 * k)
+      if O.kptr(e) then
+        local c = e + 16
+        local day = ru32(c + 48) or 0
+        local border = rp(e) == BASE + GAME.layout.vt.CLandBorderWarCombat
+        local naval = (not border) and day > 0x7FFFFFFF
+        local rec = { kind = border and "border" or naval and "naval" or "land",
+          id_type = ru32(c + 8) or 0, id_id = ru32(c + 12) or 0 }
+        local loc = rp(c + 40)
+        if O.kptr(loc) then rec.location = ru32(loc + 164) or 0 end
+        rec.day = day >= 0x80000000 and day - 0x100000000 or day
+        rec.duration = ru32(c + 52) or 0
+        if naval then
+          -- §4.22.5 CNavalCombat (writer 0x1415C5BC0): 参战直指
+          rec.naval = {
+            attacker = cbt_naval_side(rp(c + 24), nullref),
+            defender = cbt_naval_side(rp(c + 32), nullref) }
+          local d2, n2 = rp(c + 200), ru32(c + 212) or 0
+          if O.kptr(d2) and n2 > 0 then
+            rec.naval.clients = {}
+            for q = 0, math.min(n2, 64) - 1 do
+              rec.naval.clients[#rec.naval.clients + 1] = {
+                type = ru32(d2 + 8 * q) or 0,
+                id = ru32(d2 + 8 * q + 4) or 0 }
+            end
+          end
+          local nd, nn = rp(c + 224), ru32(c + 236) or 0
+          if O.kptr(nd) and nn > 0 then
+            rec.naval.naval_transports = {}
+            for q = 0, math.min(nn, 64) - 1 do
+              rec.naval.naval_transports[#rec.naval.naval_transports + 1] = {
+                type = ru32(nd + 8 * q) or 0,
+                id = ru32(nd + 8 * q + 4) or 0 }
+            end
+          end
+          -- convoy[N]: 门 = 自有计数>0 且 (client 或 ntt 非空)
+          local cn2 = ru32(c + 188) or 0
+          if cn2 > 0 and ((n2 or 0) > 0 or (nn or 0) > 0) then
+            local vd = rp(c + 176)
+            if O.kptr(vd) then
+              rec.naval.convoys = {}
+              for q = 0, math.min(cn2, 256) - 1 do
+                local cv = cbt_convoy_entry(rp(vd + 8 * q))
+                if cv then rec.naval.convoys[#rec.naval.convoys + 1] = cv end
+              end
+            end
+          end
+          rec.naval.unique_id = ru32(c + 248) or 0
+          rec.naval.port_strike = (ru8(c + 252) or 0) ~= 0
+          rec.naval.naval_strike = (ru8(c + 253) or 0) ~= 0
+          local sc = ru32(c + 256) or 0
+          if sc > 0 then rec.naval.sunk_convoys = sc end
+          rec.naval.hide = (ru8(c + 260) or 0) ~= 0
+          rec.naval.convoy_combat = (ru8(c + 261) or 0) ~= 0
+          rec.naval.progress = cbt_fix5(c + 264) or 0
+        else
+          local ab = cbt_combatant_base(c, 24)
+          local db = cbt_combatant_base(c, 32)
+          rec.attacker = cbt_combatant(ab, dflt_date)
+          rec.defender = cbt_combatant(db, dflt_date)
+          if border then
+            -- §4.22.2 CLandBorderWarCombat 块扩展 (writer 0x1413F0070; 恒写)
+            rec.bw_attacker = cbt_bw_side(ab)
+            rec.bw_defender = cbt_bw_side(db)
+            rec.combat_width = (GAME.layout.i64(c + 200) or 0) / 100000
+            rec.combat_state = ru32(c + 208) or 0
+            rec.minimum_duration_in_days = ru32(c + 212) or 0
+            rec.start = GAME.layout.as_i32(ru32(c + 216) or 0)
+            rec.change_state_after_war = (ru8(c + 224) or 0) == 1
+          end
+        end
+        local tobj = rp(c + 56)
+        if O.kptr(tobj) and ((ru32(tobj + 16) or 0) & 0xFF) ~= 0 then
+          local s = hoi4.read_str(tobj + 24)
+          if s and s ~= "" then rec.terrain = s end
+        end
+        out.list[#out.list + 1] = rec
+      end
+    end
+  end
+  -- §4.22.4 CCombatHistory (链表头@gs+0x288+8, 存档序 = 链表序;
+  -- guard = PTR_SANE — 旧 128 大战截尾实证)
+  local e = rp(g + 0x288 + 8)
+  local guard = 0
+  while O.kptr(e) and guard < LAYOUT.lim.PTR_SANE do
+    local rec = { location = ru32(e + 44) or 0 }
+    local s = cbt_tagraw(ru32(e + 36))
+    if s then rec.attacker = s end
+    s = cbt_tagraw(ru32(e + 40))
+    if s then rec.defender = s end
+    rec.end_h = ru32(e + 16)
+    rec.type = ru32(e + 32) or 0
+    out.history[#out.history + 1] = rec
+    e = rp(e + 56)
+    guard = guard + 1
   end
   return out
 end
