@@ -90,8 +90,8 @@ end
 -- vc(base, doff, coff) → 迭代器 (i, elem_addr 或 elem 基址)
 -- 上界保持历史值 65536 (原判据 c > 65536 拒, 即 c <= 65536 收 → max 同值)。
 function O.vec(base, doff, coff, stride, deref)
-  return LAYOUT.vec(base, { data = doff, count = coff }, stride,
-                     { deref = deref, max = LAYOUT.lim.PTR_HUGE })
+  return LAYOUT.vec(base, doff, stride,
+                     { count = coff, deref = deref, max = LAYOUT.lim.PTR_HUGE })
 end
 
 -- ============================================================
@@ -456,12 +456,219 @@ M.rp, M.ru32, M.ru8 = rp, ru32, ru8
 M.U, M.O = U, O
 M.Runtime, M.Country = Runtime, Country
 M.vt, M.const, M.lim, M.dim = LAYOUT.vt, LAYOUT.const, LAYOUT.lim, LAYOUT.dim
+M.off = LAYOUT.off
 
 -- 跨域助手: token 名
 local function tok(p) return LAYOUT.token_name(p) end
 M.tok = tok
 
--- 跨域助手: CGameDate hours -> "Y.M.D.H" (B 族, 43808760 照发; 书 §3.7b)
+-- ============================================================
+-- §3 装备市场结构读取 (唯一实现; 布局知识引 LAYOUT.off, 段层只消费)
+-- 书 §4.23.3 NInternationalMarket / CPurchaseContract / CEquipmentVariantPool
+-- ============================================================
+
+-- CEquipmentVariantPool 序列化源 (pool2) 读取 — §4.23.3
+-- P = 池基址 → { allow_zero = u8 原值, list = { {type, id, amount} } }
+-- 元素级跳过规则复刻 writer: amount(raw i64)≠0 或 allow_zero≠0 才收。
+-- opts.max   = 计数上界 (n >= max 即整体弃, 默认不设 → 无上界)
+-- opts.clamp = 循环钳位 (池1 空判族用, 与 max 的"拒绝"语义不同)
+function U.pool_read(P, opts)
+    if not O.kptr(P) then return nil end
+    opts = opts or {}
+    local o = LAYOUT.off.variant_pool
+    local az = ru8(P + o.allow_zero) or 0
+    local out = { allow_zero = az, list = {} }
+    local d, n = rp(P + o.data), ru32(P + o.count)
+    if not (O.kptr(d) and n and n > 0) then return out end
+    if opts.max and n >= opts.max then return out end
+    local cnt = n
+    if opts.clamp then cnt = math.min(cnt, opts.clamp) end
+    for i = 0, cnt - 1 do
+        local e = d + o.stride * i
+        local amt = LAYOUT.i64(e + o.amount) or 0
+        if amt ~= 0 or az ~= 0 then
+            local var = rp(e)
+            if O.kptr(var) then
+                out.list[#out.list + 1] = {
+                    type = ru32(var + 8), id = ru32(var + 12),
+                    amount = amt,
+                }
+            end
+        end
+    end
+    return out
+end
+
+-- 池"整块空判" (§4.23.3 writer 0x140FFB8F0): pool1 全零 ⇒ 空
+-- combat 族 (combat_side_data / combat_data) 用此门决定是否出整块
+function U.pool_empty(P)
+    if not O.kptr(P) then return true end
+    local o = LAYOUT.off.variant_pool
+    local n = ru32(P + o.pool1_count) or 0
+    if n <= 0 then return true end
+    local d = rp(P + o.pool1_data)
+    if not O.kptr(d) then return true end
+    for i = 0, math.min(n, LAYOUT.lim.PTR_SANE) - 1 do
+        if (rp(d + o.pool1_stride * i + o.pool1_amount) or 0) ~= 0 then
+            return false
+        end
+    end
+    return true
+end
+
+-- contract_draft.subsidies / 国级市场 subsidies 条读取 (48B, 唯一实现)
+-- §4.23.3 (writer sub_140DDD510); data/count 由调用方给 (两处容器偏移不同)
+-- → { {cic, archetype?, targets?} } (branch 0 → targets tag 串列表)
+function U.subsidy_list_read(data, count, R)
+    local out = {}
+    if not (O.kptr(data) and count and count > 0
+            and count < LAYOUT.lim.PTR_SANE) then
+        return out
+    end
+    local se = LAYOUT.off.subsidy_entry
+    local function tagq(tid)
+        if not (tid and tid > 0) then return nil end
+        local s = R and R:tag(tid) or nil
+        if not s or s == "" or s == "---" then return nil end
+        return s
+    end
+    for k = 0, count - 1 do
+        local e = data + se.stride * k
+        local rec = { cic = (LAYOUT.i64(e) or 0) / 100000 }
+        local ap = rp(e + se.archetype)
+        if O.kptr(ap) then rec.archetype = LAYOUT.token_name(ru32(ap + 8)) end
+        local br = ru8(e + se.branch) or 0
+        if br == 0 then
+            local td = rp(e + se.targets)
+            local tc = ru32(e + se.targets + 12)
+            if O.kptr(td) and tc and tc > 0 and tc < LAYOUT.lim.PTR_SANE then
+                rec.targets = {}
+                for j = 0, tc - 1 do
+                    local t = tagq(ru32(td + 4 * j))
+                    if t then rec.targets[#rec.targets + 1] = t end
+                end
+            end
+        elseif br == 1 then
+            -- trigger 脚本分支: v16 = *(e+16) (sub_14139D960
+            -- HasTriggerCondition 断言), MSVC 串 @v16+96
+            local tp = rp(e + se.targets)
+            if O.kptr(tp) then
+                local ts = U.sso(tp + 96)
+                if ts and ts ~= "" then rec.trigger = ts end
+            end
+        end
+        out[#out + 1] = rec
+    end
+    return out
+end
+
+-- contract_definition 216B 读取 — §4.23.3 (writer sub_140DF1EC0)
+-- def = def 本体起点 (合同 c+24 / requests 元素 req+24 / 动作 act+120)
+-- R = Runtime (tag_id → 三字串); 返回 nil 当 def 非指针
+-- 写序 (段层按此发射): contract_draft (seller→buyer→equipments→speed→
+-- subsidies) → price_levels → prices
+function U.contract_def_read(def, R)
+    if not O.kptr(def) then return nil end
+    local o = LAYOUT.off.contract_def
+    local function tagq(tid)
+        if not (tid and tid > 0) then return nil end
+        local s = R and R:tag(tid) or nil
+        if not s or s == "" or s == "---" then return nil end
+        return s
+    end
+    return {
+        seller     = tagq(ru32(def + o.seller)),
+        buyer      = tagq(ru32(def + o.buyer)),
+        equipments = U.pool_read(def + o.equipments,
+                                 { max = LAYOUT.lim.PTR_HUGE }),
+        speed      = ru32(def + o.speed) or 0,
+        subsidies  = U.subsidy_list_read(rp(def + o.subsidies),
+                                         ru32(def + o.subsidies + 12), R),
+        prices     = U.pool_read(def + o.prices,
+                                 { max = LAYOUT.lim.PTR_HUGE }),
+    }
+end
+
+-- CPurchaseRequest 读取 (~240B: CReferenceObject 头 + def@+24) — §4.23.3
+-- 返回 def_addr (段层发射需原址) + def (解析结果)
+function U.purchase_request_read(req, R)
+    if not O.kptr(req) then return nil end
+    local o = LAYOUT.off.purchase_request
+    local da = req + o.def
+    return {
+        addr = req, def_addr = da,
+        id_type = ru32(req + o.id_type), id_id = ru32(req + o.id_id),
+        def = U.contract_def_read(da, R),
+    }
+end
+
+-- CPurchaseContract 读取 (808B; id 对@+8/+12 + def@+24) — §4.23.3
+function U.purchase_contract_read(c, R)
+    if not O.kptr(c) then return nil end
+    local o = LAYOUT.off.purchase_request
+    local da = c + o.def
+    return {
+        addr = c, def_addr = da,
+        id_type = ru32(c + o.id_type), id_id = ru32(c + o.id_id),
+        def = U.contract_def_read(da, R),
+    }
+end
+
+-- §4.23.3 NInternationalMarket (gs+1000) 读取 — 全局装备市场
+-- → { addr, contracts = { {addr,id_type,id_id,def} },
+--      request_slots = 槽数, requests = { {index, list={req 记录}} } }
+-- requests 槽 i 归属国 i-1 (idx0 哨兵); 仅 icount≠0 槽入 requests
+function Runtime.equipment_market(self)
+    local g = self.gs()
+    if not g then return nil end
+    local mkt = rp(g + 1000)
+    if not O.kptr(mkt) then return nil end
+    local o = LAYOUT.off.market
+    local out = { addr = mkt, contracts = {}, requests = {} }
+    local cd = rp(mkt + o.contracts)
+    local cc = ru32(mkt + o.contracts + 12)
+    if O.kptr(cd) and cc and cc > 0 and cc < LAYOUT.lim.PTR_SANE then
+        for i = 0, cc - 1 do
+            local rec = U.purchase_contract_read(rp(cd + 8 * i), self)
+            if rec then out.contracts[#out.contracts + 1] = rec end
+        end
+    end
+    local rd = rp(mkt + o.requests)
+    local rc = ru32(mkt + o.requests_count)
+    if O.kptr(rd) and rc and rc > 0 and rc < LAYOUT.lim.PTR_HUGE then
+        out.request_slots = rc
+        for i = 0, rc - 1 do
+            local s = rd + o.req_slot_stride * i
+            local idata = rp(s + o.req_slot_data)
+            local icount = ru32(s + o.req_slot_count)
+            if O.kptr(idata) and icount and icount > 0
+                and icount < LAYOUT.lim.PTR_SANE then
+                local slot = { index = i, list = {} }
+                for j = 0, icount - 1 do
+                    local rec = U.purchase_request_read(
+                        rp(idata + 8 * j), self)
+                    if rec then slot.list[#slot.list + 1] = rec end
+                end
+                out.requests[#out.requests + 1] = slot
+            end
+        end
+    end
+    return out
+end
+
+-- 段层/域层消费入口 (R 自动传入; 段文件经 ctx.O 取用)
+function Runtime.pool_read(self, P, opts) return U.pool_read(P, opts) end
+function Runtime.pool_empty(self, P) return U.pool_empty(P) end
+function Runtime.contract_def_read(self, def)
+    return U.contract_def_read(def, self)
+end
+function Runtime.purchase_request_read(self, r)
+    return U.purchase_request_read(r, self)
+end
+function Runtime.purchase_contract_read(self, c)
+    return U.purchase_contract_read(c, self)
+end
+
 local function date_from_hours_raw(h) return LAYOUT.date_raw(h) end
 M.date_from_hours_raw = date_from_hours_raw
 
@@ -470,8 +677,8 @@ M.date_from_hours_raw = date_from_hours_raw
 -- 上界保持历史判据 c < 65536 (即 max = 65535; 与 O.vec 的 <= 65536 差一,
 -- 系历史写法不一致, 此处照原样钉住)。
 local function cont_elems(base, off, vtrva)
-  return LAYOUT.gather(LAYOUT.vec(base, { data = off, count = off + 12 }, 8,
-                                  { vt = vtrva, deref = true,
+  return LAYOUT.gather(LAYOUT.vec(base, off, 8,
+                                  { count = off + 12, vt = vtrva, deref = true,
                                     max = LAYOUT.lim.PTR_HUGE - 1 }))
 end
 M.cont_elems = cont_elems

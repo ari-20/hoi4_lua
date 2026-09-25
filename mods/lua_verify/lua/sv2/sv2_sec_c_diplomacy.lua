@@ -207,13 +207,14 @@ SV2.csec[#SV2.csec + 1] = { name = "country.diplomacy", emit = function(ctx)
                 end
             end
             -- §4.10.25 CRequestEquipmentPurchaseAction 载荷
-            -- (request_equipment_purchase; def 216B 内嵌 @act+120 → def 基点
-            -- base=act+96, 与合同/requests 同 writer sub_140DF1EC0;
-            -- request = CIdentifier 8B @act+336, 键 12613)
+            -- (request_equipment_purchase; def 216B 内嵌 @act+120, 与合同/
+            -- requests 同 writer sub_140DF1EC0; request = CIdentifier
+            -- @act+336, 键 12613)。载荷读取住 reader (R:contract_def_read),
+            -- 本段只发射。def 本体起点 = act + 120 → 基址 act + 96。
             if rr.tok == "request_equipment_purchase" then
                 if SL.kptr(act) and ru32(act + 8) == 13289 then
                     local DP = ab .. ".contract_definition."
-                    SL.def_emit(emit, tag, DP, act + 96, ctx.gs)
+                    SL.def_emit(ctx.O, emit, tag, DP, act + 120)
                     local rty, rid = ru32(act + 336), ru32(act + 340)
                     if (rid or 0) ~= 0 or (rty or 0) ~= 0 then
                         emit(tag, ab .. ".request", SL.idpair(rid, rty))

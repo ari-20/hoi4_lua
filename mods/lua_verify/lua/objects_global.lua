@@ -1562,33 +1562,23 @@ end
 
 -- 33.4 国际装备市场 per-country (§4.23.2; market 挂 cc+4024 双层读法,
 -- automation 三布尔/内层 stockpile 池 = 书 §4.23.2 表)
+-- stockpile 池 = U.pool_read(mk+56) (布局引 LAYOUT.off.variant_pool)。
+-- ⚠ 原实现按「kptr(var) 即收」遍历, 漏了 writer 的 amount≠0∨az 跳过规则
+-- → 与段层发射不一致; 已收敛到共享 reader (结构知识唯一实现)。
 function Country.equipment_market_country(self)
   local outer = rp(self.addr + 4024)
   if not O.kptr(outer) then return nil end
   local mk = rp(outer)
   if not O.kptr(mk) then return nil end
-  local out = {
+  return {
     addr = mk,
     auto_accept_market_access = (U.a8(outer + 96) == 1) and "yes" or "no",
     auto_send_market_access = (U.a8(outer + 97) == 1) and "yes" or "no",
     auto_accept_purchase = (U.a8(outer + 98) == 1) and "yes" or "no",
-    stockpile = {},
+    stockpile = U.pool_read(mk + 56),
+    subsidies = U.subsidy_list_read(rp(outer + 40), ru32(outer + 52),
+                                    self.R),
   }
-  local pd, pc = rp(mk + 88), ru32(mk + 100)
-  if O.kptr(pd) and pc and pc > 0 and pc < 65536 then
-    for k = 0, pc - 1 do
-      local e = pd + 16 * k
-      local var = rp(e)
-      if O.kptr(var) then
-        out.stockpile[#out.stockpile + 1] = {
-          id = ru32(var + 12) or 0,
-          type = ru32(var + 8) or 0,
-          amount = (rp(e + 8) or 0) / 100000,
-        }
-      end
-    end
-  end
-  return out
 end
 
 -- 33.5 intel_source 三挂载 (§4.11 情报源: radar cc+4416 /

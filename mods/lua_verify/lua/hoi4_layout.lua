@@ -82,6 +82,51 @@ M.off = {
         key   = 0x08,            -- MSVC std::string
         value = 0x28,            -- s64 fixed point (x1000)
     },
+    -- §4.23.3 NInternationalMarket (CPurchaseContractsContainer, gs+1000)
+    market = {
+        contracts        = 0,    -- 容器 @mkt+0 {data@0, count@12} 元素 8B 指针
+        requests         = 96,   -- 槽数组 @mkt+96 (槽 = 国数+1, idx0 哨兵)
+        requests_count   = 108,  -- @mkt+108 槽数
+        req_slot_stride  = 24,   -- 槽跨距 (内嵌 vector)
+        req_slot_data    = 0,    -- 槽内 idata (CPurchaseRequest**)
+        req_slot_count   = 12,   -- 槽内 icount (过滤器: ==0 跳过)
+    },
+    -- §4.23.3 CPurchaseRequest / 合同 id 对 (CReferenceObject 头)
+    purchase_request = {
+        id_type = 8,             -- id 对 type
+        id_id   = 12,            -- id 对 id
+        def     = 24,            -- 内嵌 contract_definition 216B 起点
+    },
+    -- §4.23.3 contract_definition (216B; def 本体相对偏移 = 合同绝对偏移 - 24)
+    contract_def = {
+        stride         = 216,
+        prices         = 0,      -- CEquipmentVariantPool (价格池)
+        seller         = 64,     -- int32 tag_id
+        buyer          = 68,     -- int32 tag_id
+        equipments     = 72,     -- CEquipmentVariantPool (请求装备池)
+        subsidy_total  = 136,    -- qword 补贴 CIC 总额 (不序列化)
+        subsidies      = 144,    -- {data@144, count@156} 48B 元向量
+        speed          = 168,    -- uint32
+        price_levels   = 176,    -- std::map 头 (中序 = 写序)
+        lazy_done      = 192,    -- u8 懒计算完成标志 (不序列化)
+        subsidy_offset = 200,    -- i64 补贴抵扣 (不序列化)
+        total_cic      = 208,    -- i64 合同总 CIC 价 (不序列化)
+    },
+    -- §4.23.3 CEquipmentVariantPool (64B; 3 处复用)
+    -- pool1 (stride 24) 不入档, 仅作"整块空判"; pool2 (stride 16) = 序列化源
+    variant_pool = {
+        pool1_data  = 8,  pool1_count = 20, pool1_stride = 24, pool1_amount = 16,
+        data        = 32, count       = 44, stride       = 16, amount       = 8,
+        allow_zero  = 56, -- u8 恒写
+    },
+    -- §4.23.3 contract_draft.subsidies 条 (48B)
+    subsidy_entry = {
+        stride    = 48,
+        cic       = 0,           -- i64 fixed×1e-5
+        archetype = 8,           -- 匿名结构* → archetype = ru32(rp(e+8)+8)
+        targets   = 16,          -- {data@16, count@28} u32 tag_id 列表
+        branch    = 40,          -- u8 分支 (0 → targets; 1 → trigger 串)
+    },
 }
 
 -- helper: chase pointers with nil-safe reads

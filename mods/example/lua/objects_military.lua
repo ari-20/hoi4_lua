@@ -99,29 +99,24 @@ local function req_date(addr)           -- 0 / 未设哨兵 0x29C3388 → nil
   if not h or h == 0 or h == 0x29C3388 then return nil end
   return U.date(h)
 end
--- produced (12204) @P: {d@P+32, c@P+44} 16B {variant 指针@+0, amount i64@+8};
--- allow_zero_entries bool@P+56 (writer 0x140FFDB00); amount≠0 或 az 才写
--- 条目; 有条目或 force 时补 produced.allow_zero_entries 键
+-- produced (12204) @P: 池 64B (§4.23.3 CEquipmentVariantPool, 序列化源 = pool2);
+-- allow_zero_entries bool@P+56 (writer 0x140FFDB00); amount≠0 或 az 才写条目;
+-- 有条目或 force 时补 produced.allow_zero_entries 键。
+-- ⚠ 池读取唯一实现 = U.pool_read (布局引 LAYOUT.off.variant_pool);
+-- 上界 64 = 历史判据 (writer 明文有界)。
 local function req_produced(P, out, pfx, force)
-  local d, c = rp(P + 32), ru32(P + 44)
-  local az = (ru8(P + 56) or 0) ~= 0
+  local pr = U.pool_read(P, { max = LAYOUT.lim.FIXED_SMALL })
   local n = 0
-  if O.kptr(d) and c and c > 0 and c < 64 then
-    for i = 0, c - 1 do
-      local e = d + 16 * i
-      local vp, amt = rp(e), rp(e + 8)
-      if O.kptr(vp) and amt and (amt ~= 0 or az) then
-        n = n + 1
-        out[#out + 1] = { pfx .. "produced.equipment." .. n .. ".id",
-            req_idpair(vp) }
-        out[#out + 1] = { pfx .. "produced.equipment." .. n .. ".amount",
-            req_fx(amt) }
-      end
-    end
+  for _, e in ipairs(pr and pr.list or {}) do
+    n = n + 1
+    out[#out + 1] = { pfx .. "produced.equipment." .. n .. ".id",
+        string.format("id=%d type=%d", e.id, e.type) }
+    out[#out + 1] = { pfx .. "produced.equipment." .. n .. ".amount",
+        req_fx(e.amount) }
   end
   if n > 0 or force then
     out[#out + 1] = { pfx .. "produced.allow_zero_entries",
-        az and "yes" or "no" }
+        (pr and pr.allow_zero or 0) ~= 0 and "yes" or "no" }
   end
 end
 -- need (12111) @N: {d@N+8, c@N+20} 16B {定义指针@+0, amount i64@+8};

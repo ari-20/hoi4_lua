@@ -25,39 +25,12 @@ SV2.gsec[#SV2.gsec + 1] = { name = "combat_data_entry", emit = function(ctx)
         local d = SL.date(h)
         return d and ('"' .. d .. '"') or nil
     end
-    -- §4.22.4 SEquipmentPool (gated 空判)
-    local function emit_pool(dim, P, pfx)
-        if not kptr(P) then return end
-        local na = ru32(P + 20) or 0
-        local empty = na <= 0
-        if not empty then
-            local da = rp(P + 8)
-            empty = true
-            if kptr(da) then
-                for i = 0, math.min(na, 4096) - 1 do
-                    if (rp(da + 24 * i + 16) or 0) ~= 0 then
-                        empty = false break
-                    end
-                end
-            end
-        end
-        if empty then return end
-        local az = ru8(P + 56) == 1
-        local d, n = rp(P + 32), ru32(P + 44) or 0
-        local seq = SL.seqc()
-        if kptr(d) and n > 0 then
-            for i = 0, math.min(n, 4096) - 1 do
-                local vp, amt = rp(d + 16 * i), i64(d + 16 * i + 8)
-                if kptr(vp) and ((amt or 0) ~= 0 or az) then
-                    local k = seq("equipment")
-                    emit(dim, pfx .. "." .. k .. ".id",
-                        SL.idpair(ru32(vp + 12), ru32(vp + 8)))
-                    emit(dim, pfx .. "." .. k .. ".amount",
-                        SL.num((amt or 0) / 100000))
-                end
-            end
-        end
-        emit(dim, pfx .. ".allow_zero_entries", SL.yn(az))
+    -- §4.22.4 SEquipmentPool (gated 空判) = SL.pool_emit_gated (共享发射件;
+    -- 布局/空判住 reader)。clamp 语义同 combat 段。
+    local POOLOPT = { clamp = GAME.layout.lim.PTR_SANE }
+    local function epool(dim, pfx, P)
+        -- ⚠ pfx 约定同 combat 段: 调用点末点不含 → 此处补
+        SL.pool_emit_gated(O, emit, dim, pfx .. ".", P, POOLOPT)
     end
     -- §4.22.4 SCombatSideData 侧数据 (writer 0x140CD15D0)
     local function emit_side(dim, S, pfx)
@@ -67,9 +40,9 @@ SV2.gsec[#SV2.gsec + 1] = { name = "combat_data_entry", emit = function(ctx)
         if r and r > 0 then
             emit(dim, pfx .. ".manpower_lost_air_factor", SL.num(r / 100000))
         end
-        emit_pool(dim, S + 24, pfx .. ".equipment_lost")
-        emit_pool(dim, S + 344, pfx .. ".equipment_captured_by_enemy")
-        emit_pool(dim, S + 408, pfx .. ".equipment_recovered")
+        epool(dim, pfx .. ".equipment_lost", S + 24)
+        epool(dim, pfx .. ".equipment_captured_by_enemy", S + 344)
+        epool(dim, pfx .. ".equipment_recovered", S + 408)
         local lt, li = ru32(S + 520) or 0, ru32(S + 524) or 0
         if lt ~= 0 or li ~= 0 then
             emit(dim, pfx .. ".leader", SL.idpair(li, lt))

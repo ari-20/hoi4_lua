@@ -43,43 +43,14 @@ SV2.gsec[#SV2.gsec + 1] = { name = "combat", emit = function(ctx)
         for i = 0, n - 1 do t[#t + 1] = tostring(ru32(d + 4 * i) or 0) end
         return table.concat(t, " ")
     end
-    -- §4.22.4 SEquipmentPool: P = 池包装基址, pfx = 叶路径前缀; gated = true 时
-    -- 整块空判 (combat_side_data/combat_data 用), false = 恒写 (combat_log
-    -- 装备子条目用)。空判 = 0x140FFB8F0 (容器A elem+16 全零)。
-    local function emit_pool(P, pfx, gated)
-        if not kptr(P) then return end
-        if gated then
-            local na = ru32(P + 20) or 0
-            local empty = na <= 0
-            if not empty then
-                local da = rp(P + 8)
-                empty = true
-                if kptr(da) then
-                    for i = 0, math.min(na, 4096) - 1 do
-                        if (rp(da + 24 * i + 16) or 0) ~= 0 then
-                            empty = false break
-                        end
-                    end
-                end
-            end
-            if empty then return end
-        end
-        local az = ru8(P + 56) == 1
-        local d, n = rp(P + 32), ru32(P + 44) or 0
-        local seq = SL.seqc()
-        if kptr(d) and n > 0 then
-            for i = 0, math.min(n, 4096) - 1 do
-                local vp, amt = rp(d + 16 * i), i64(d + 16 * i + 8)
-                if kptr(vp) and ((amt or 0) ~= 0 or az) then
-                    local k = seq("equipment")
-                    emit("combat", pfx .. "." .. k .. ".id",
-                        SL.idpair(ru32(vp + 12), ru32(vp + 8)))
-                    emit("combat", pfx .. "." .. k .. ".amount",
-                        SL.num((amt or 0) / 100000))
-                end
-            end
-        end
-        emit("combat", pfx .. ".allow_zero_entries", SL.yn(az))
+    -- §4.22.4 SEquipmentPool 池发射 = SL.pool_emit_gated (共享发射件;
+    -- 布局/空判住 reader: U.pool_read / U.pool_empty)。
+    -- ⚠ 本族 pool2 循环历史用 clamp(4096) 语义 (非"计数上界拒绝"),
+    -- 故传 {clamp = PTR_SANE}。
+    local POOLOPT = { clamp = GAME.layout.lim.PTR_SANE }
+    local function epool(pfx, P)
+        -- ⚠ pfx 约定: 本族调用点末点**不含** → 此处补 (共享件约定末点已含)
+        SL.pool_emit_gated(O, emit, "combat", pfx .. ".", P, POOLOPT)
     end
     -- §4.22.4 SCombatSideData 侧数据 (combat_side_data / combat_data
     -- 双侧共用; writer 0x140CD15D0)
@@ -90,9 +61,9 @@ SV2.gsec[#SV2.gsec + 1] = { name = "combat", emit = function(ctx)
         if f and f > 0 then
             emit("combat", pfx .. ".manpower_lost_air_factor", SL.num(f))
         end
-        emit_pool(S + 24, pfx .. ".equipment_lost", true)
-        emit_pool(S + 344, pfx .. ".equipment_captured_by_enemy", true)
-        emit_pool(S + 408, pfx .. ".equipment_recovered", true)
+        epool(pfx .. ".equipment_lost", S + 24)
+        epool(pfx .. ".equipment_captured_by_enemy", S + 344)
+        epool(pfx .. ".equipment_recovered", S + 408)
         local lt, li = ru32(S + 520) or 0, ru32(S + 524) or 0
         if lt ~= 0 or li ~= 0 then
             emit("combat", pfx .. ".leader", SL.idpair(li, lt))
@@ -127,7 +98,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "combat", emit = function(ctx)
                     SL.num(((i64(e + 8)) or 0) / 100000))
             end
         end
-        emit_pool(ge + 64, pfx .. ".damaged_equipment", true)
+        epool(pfx .. ".damaged_equipment", ge + 64)
         -- damage_dealer/damage_taker: writer 0x140BA6770 门 = tid > 0
         local tid = ru32(ge + 128) or 0
         if tid > 0 then
