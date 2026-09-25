@@ -301,6 +301,10 @@ end
 -- 19.2 和会 (§4.10.26 CPeaceConferenceManager 内嵌@gs+0x4E0=1248; 会议/元素
 -- 布局 = §4.10.27 CPeaceConference / CConferenceWinnerParticipant / loser 条目;
 -- war_score_breakdown = §4.10.5 CWarScoreBreakdown)
+-- 结构唯一实现; 段层 sv2_sec_peace_conference 只按写序发射。
+-- ⚠ map 走查 (done / captured_provinces) = LAYOUT.rb 中序 (key u32@node+28,
+--   无 value; max 钳 4096 同旧本地 walker); ⚠ time_duration 落盘值含
+--   写时墙钟重算, reader 只出 base u32@+624 + 起点 ticks i64@+616。
 function Runtime.peace_conference(self)
   local g = self.gs()
   local mgr = g and (g + 0x4E0)
@@ -318,52 +322,121 @@ function Runtime.peace_conference(self)
       local c = { addr = p,
         actor = self:tag(ru32(p + 52)),
         recipient = self:tag(ru32(p + 56)),
+        id_type = ru32(p + 8) or 0, id_id = ru32(p + 12) or 0,
         name_state_id = ru32(p + 24),
         winner_scope = ru32(p + 28), loser_scope = ru32(p + 32),
         -- 换槽定案 (writer sub_140E3DED0: 0x4B89=peace_threat@+536,
         -- 0x296B=factor@+40; 旧 reader 写反, 锚件 -1.71287/1 实证)
         peace_threat = U.fix5(p + 536), factor = U.fix5(p + 40),
-        time_duration = ru32(p + 624) }
-      c.winners = { count = ru32(p + 260) or 0, list = {} }
-      for _, e in O.vec(p, 248, 260, 8, true) do
-        local w = { addr = e, country = self:tag(ru32(e + 8)),
-          original_score = ru32(e + 72), score = ru32(e + 76),
-          ratio = U.fix5(e + 112) }
-        w.score_distribution = {}
-        -- ⚠ u32 数组须 deref (legacy L3953-3957: ru32(dd+4*k))
-        do
-          local dd2, dc2 = rp(e + 88), ru32(e + 100)
-          if O.kptr(dd2) and dc2 and dc2 > 0 and dc2 < 64 then
-            for k = 0, dc2 - 1 do
-              w.score_distribution[#w.score_distribution + 1] =
-                  ru32(dd2 + 4 * k)
-            end
+        completed = (ru8(p + 221) or 0) ~= 0,
+        -- message SSO 串@p+64 (§3.5), 门 size@p+80≠0
+        message = ((rp(p + 80) or 0) ~= 0) and U.sso(p + 64) or nil,
+        time_duration = ru32(p + 624),
+        time_duration_base = ru32(p + 624) or 0,
+        time_start_ticks = rp(p + 616) }
+      -- occupied_winners u32 idx 数组 {d@+144,c@+156}: tag 槽序稀疏表
+      -- (解析失败槽 = nil, 段层落 "?" 占位 — 编号无关, 空格连不跳位)
+      do
+        local od, on = rp(p + 144), ru32(p + 156)
+        if O.kptr(od) and on and on > 0
+            and on < LAYOUT.lim.PTR_SANE then
+          c.occupied_winners, c.occupied_winners_n = {}, on
+          for j = 0, on - 1 do
+            local cid = ru32(od + 4 * j)
+            c.occupied_winners[j + 1] =
+              (cid and cid > 0) and self:tag(cid) or nil
           end
         end
-        local bk = e + 0x88
-        if rp(bk) == BASE + GAME.layout.vt.CWarScoreBreakdown then
-          -- (inner writer sub_141166310 与 war_relation 同函数)
-          -- lend_lease_sent@+80 / received@+88 (旧 +0x48/+0x50 误);
-          -- total_score_before 不在 bk, 在壳 W+144 = e+0x110 (u32)
-          w.war_score_breakdown = {
-            equipment_damage = U.fix5(bk + 0x10),
-            province_capture = U.fix5(bk + 0x18),
-            air_damage_str = U.fix5(bk + 0x20),
-            strategic_air = U.fix5(bk + 0x28),
-            sunk_ship = U.fix5(bk + 0x30),
-            convoy_attack = U.fix5(bk + 0x38),
-            casualties = U.fix5(bk + 0x40),
-            lend_lease_sent = U.fix5(bk + 0x50),
-            lend_lease_received = U.fix5(bk + 0x58),
-            total_score_before = ru32(e + 0x110) }
+      end
+      -- civil_war_losers u32 idx 数组 {d@+192,c@+204} (同上稀疏表)
+      do
+        local cd, cn = rp(p + 192), ru32(p + 204)
+        if O.kptr(cd) and cn and cn > 0
+            and cn < LAYOUT.lim.PTR_SANE then
+          c.civil_war_losers, c.civil_war_losers_n = {}, cn
+          for j = 0, cn - 1 do
+            local cid = ru32(cd + 4 * j)
+            c.civil_war_losers[j + 1] =
+              (cid and cid > 0) and self:tag(cid) or nil
+          end
         end
-        c.winners.list[#c.winners.list + 1] = w
+      end
+      -- done (12813): map {head@+472,size@+480} key=国家idx@node+28
+      if (rp(p + 480) or 0) ~= 0 then
+        local keys = {}
+        for _, node in LAYOUT.rb(p + 472, { max = 4096 }) do
+          keys[#keys + 1] = ru32(node + 28) or 0
+        end
+        c.done_keys = keys
+      end
+      -- solo_winner (12552): ptr@+368 → tag idx@obj+8, 门 ptr≠0+idx>0
+      do
+        local sp = rp(p + 368)
+        if O.kptr(sp) then
+          local sid = ru32(sp + 8)
+          if sid and sid > 0 then c.solo_winner = self:tag(sid) end
+        end
+      end
+      c.winners = { count = ru32(p + 260) or 0, list = {} }
+      for _, e in O.vec(p, 248, 260, 8, true) do
+        if O.kptr(e) then
+          local w = { addr = e, country = self:tag(ru32(e + 8)),
+            original_score = ru32(e + 72), score = ru32(e + 76),
+            ratio = U.fix5(e + 112),
+            non_refunded_score = ru32(e + 80) or 0,
+            total_score_before = ru32(e + 0x110) or 0 }
+          w.score_distribution = {}
+          -- ⚠ u32 数组须 deref (legacy L3953-3957: ru32(dd+4*k))
+          do
+            local dd2, dc2 = rp(e + 88), ru32(e + 100)
+            if O.kptr(dd2) and dc2 and dc2 > 0 and dc2 < 64 then
+              for k = 0, dc2 - 1 do
+                w.score_distribution[#w.score_distribution + 1] =
+                    ru32(dd2 + 4 * k)
+              end
+            end
+          end
+          local bk = e + 0x88
+          if rp(bk) == BASE + GAME.layout.vt.CWarScoreBreakdown then
+            -- (inner writer sub_141166310 与 war_relation 同函数)
+            -- lend_lease_sent@+80 / received@+88 (旧 +0x48/+0x50 误);
+            -- total_score_before 不在 bk, 在壳 W+144 = e+0x110 (u32)
+            local ftag, stag = ru32(bk + 8), ru32(bk + 12)
+            w.war_score_breakdown = {
+              first = (ftag and ftag > 0) and self:tag(ftag) or nil,
+              second = (stag and stag > 0) and self:tag(stag) or nil,
+              equipment_damage = U.fix5(bk + 0x10),
+              province_capture = U.fix5(bk + 0x18),
+              air_damage_str = U.fix5(bk + 0x20),
+              strategic_air = U.fix5(bk + 0x28),
+              sunk_ship = U.fix5(bk + 0x30),
+              convoy_attack = U.fix5(bk + 0x38),
+              casualties = U.fix5(bk + 0x40),
+              lend_lease_sent = U.fix5(bk + 0x50),
+              lend_lease_received = U.fix5(bk + 0x58),
+              total_score_before = ru32(e + 0x110) }
+            -- captured_provinces: map {head@bk+96,size@bk+104} key u32
+            if (rp(bk + 104) or 0) ~= 0 then
+              local keys = {}
+              for _, node in LAYOUT.rb(bk + 96, { max = 4096 }) do
+                keys[#keys + 1] = ru32(node + 28) or 0
+              end
+              w.war_score_breakdown.captured_provinces = keys
+            end
+          end
+          c.winners.list[#c.winners.list + 1] = w
+        end
       end
       c.losers = { count = ru32(p + 284) or 0, list = {} }
       for _, e in O.vec(p, 272, 284, 8, true) do
-        c.losers.list[#c.losers.list + 1] = {
-          addr = e, country = self:tag(ru32(e + 16)),
-          screening_ic = ru32(e + 48) }
+        if O.kptr(e) then
+          local ten = ru32(e + 180)
+          c.losers.list[#c.losers.list + 1] = {
+            addr = e, country = self:tag(ru32(e + 16)),
+            screening_ic = ru32(e + 48),
+            civil_war_target = (ru8(e + 176) or 0) ~= 0,
+            civil_war_enemy = (ten and ten > 0) and self:tag(ten) or nil }
+        end
       end
       out.conferences[#out.conferences + 1] = c
     end
