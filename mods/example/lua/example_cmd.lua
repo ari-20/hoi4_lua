@@ -10,7 +10,11 @@
 local B = hoi4.base()
 local wu32, wu64 = hoi4.write_u32, hoi4.write_u64
 
--- 命令配方表 (裸 RVA; size = 外部构造分配字节数, 取书详卡实测配方)
+-- 命令配方表 (裸 RVA; size = 外部构造分配字节数 = Clone 槽 [13] malloc
+-- 立即数权威, 446 类全量提取对书 §4.33.20)。本表只留四条现役键作最小
+-- 配方; **全量 442 键由 example_cmd_r.lua 顶层并入**(字母序晚于本文件,
+-- registry 生成勿手改; research/focus 的 size 在此已按 Clone 权威修正
+-- 0x40/0x38, 旧 0x48 系笔误清偿)。
 -- research: CSetResearchCommand (§4.33.9) — 空科研槽挂科技
 --   isvalid = 界检 + sub_140ED8F00 可用性神谕; +60 XP 旗 0 = 短路放行
 -- focus: CSetNationalFocusCommand (§4.33.14) — 启动国策
@@ -21,10 +25,10 @@ local wu32, wu64 = hoi4.write_u32, hoi4.write_u64
 --   136B 薄壳, +40 内嵌 CUnitMoveAction (Execute/IsValid 桩经 cmd+40 虚表
 --   转发, 构造必填两张虚表); vec_sentinel = off_143085170 空 vector allocator
 local R = {
-    research = { size = 0x48, vft = 0x2994F40, isvalid = 0x1166BC0, exec = 0x115D2E0 },
-    focus    = { size = 0x48, vft = 0x2996458, isvalid = 0x1166830, exec = 0x115C670 },
+    research = { size = 0x40, vft = 0x2994F40, isvalid = 0x1166BC0, exec = 0x115D2E0 },
+    focus    = { size = 0x38, vft = 0x2996458, isvalid = 0x1166830, exec = 0x115C670 },
     build    = { size = 0x50, vft = 0x2994770, isvalid = 0x11616F0, exec = 0x1150FB0,
-                 ref_vft = 0x2971F30 },
+                 ref_vft = 0x2971F30, ref_off = 48 },
     move     = { size = 0x88, vft = 0x29B1BC8, isvalid = 0x1369CB0, exec = 0x13669E0,
                  action_vft = 0x29A3A38, vec_sentinel = 0x3085170 },
 }
