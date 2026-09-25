@@ -1354,6 +1354,417 @@ function Runtime.air_wings(self, idx)
   return nil
 end
 
+-- 13.6 导出全量 reader (§4.15; sv2_sec_strategic_air 只持写序/块键/格式)。
+-- ⚠ 与 §13.1-13.4 代理族语义有分歧 (name=SSO@+2440 非 cstr; base 旗@+124
+--   非 +128; 各写门在此定案) — 发射路径以本函数 + 书 §4.15 为准。
+-- ⚫ carrier_air_wing_kills 键解析 = 引擎表 call BASE+0xF8A750 (tok 位集);
+--   transferring_to = idreg_unit_resolve 后取 obj+104→+88 (§4.26.3)。
+local SA_EXEC = { [0x1]=12335, [0x2]=12224, [0x4]=11058, [0x8]=12229,
+  [0x10]=12225, [0x20]=11059, [0x40]=13123, [0x80]=11258,
+  [0x100]=12971, [0x200]=11388, [0x400]=11851, [0x800]=12218,
+  [0x1000]=11856, [0x2000]=11858, [0x4000]=12196,
+  [0x8000]=12159, [0x10000]=10088, [0x20000]=10100 }
+
+local function sa_fx(a)                 -- fixed5 @addr → 数值 (段层格式化)
+  return (GAME.layout.i64(a) or 0) / 1e5
+end
+
+local function sa_i64(a) return GAME.layout.i64(a) or 0 end
+
+local function sa_resolve_tto(t56, i60)
+  if not t56 or t56 <= 0 or t56 >= 100 then return nil end
+  local obj = GAME.layout.idreg_unit_resolve(t56, i60)
+  if not obj then return nil end
+  local o104 = rp(obj + 104)
+  if O.kptr(o104) then return ru32(o104 + 88) end
+  return nil
+end
+
+-- 16B 元内联装备池 (wing@+0x1E8 / ch 条目@+88 内嵌 — 非共享 64B
+-- CEquipmentVariantPool): {d@+0,c@+12}, 16B 元 {vp, amt i64@+8}, az 单独传
+local function sa_eq_list(d, c, az)
+  if not O.kptr(d) or not c or c <= 0 or c > 100 then return nil end
+  local out = {}
+  for i = 0, c - 1 do
+    local e = d + 16 * i
+    local vp = rp(e)
+    local amt = sa_i64(e + 8)
+    if amt ~= 0 or az ~= 0 then
+      out[#out + 1] = { type = O.kptr(vp) and (ru32(vp + 8) or 0) or nil,
+        id = O.kptr(vp) and (ru32(vp + 0xC) or 0) or nil,
+        amount = amt / 1e5 }
+    end
+  end
+  return out
+end
+
+local function sa_wing(w)
+  if not O.kptr(w) or ru32(w + 8) ~= 69 then return nil end
+  local t56, i60 = ru32(w + 56) or 0, ru32(w + 60) or 0
+  local b105 = ru8(w + 105) or 0
+  local tto, transferring = nil, false
+  if t56 ~= 0 or i60 ~= 0 then
+    tto = sa_resolve_tto(t56, i60)
+    transferring = tto ~= nil
+  end
+  local dep84, dt80 = ru32(w + 84) or 0, ru32(w + 80) or 0
+  local td = rp(w + 2576)
+  -- §4.15.5 CAirMission 内嵌@+0x80
+  local m = w + 0x80
+  local m48 = rp(m + 48)
+  local ef = ru32(m + 20) or 0
+  local exec_name
+  if ef ~= 0 and SA_EXEC[ef] then
+    exec_name = GAME.layout.token_name(SA_EXEC[ef]) or SA_EXEC[ef]
+  end
+  local epc = ru32(m + 224)
+  local agg = ru32(m + 28)
+  -- priority 串列表 ({d@m+128,c@m+140}, 元 deref, SSO@+624, 非空)
+  local prio
+  do
+    local prd, prc = rp(m + 128), ru32(m + 140)
+    if O.kptr(prd) and prc and prc > 0 and prc < LAYOUT.lim.PTR_SANE then
+      prio = {}
+      for pi = 0, prc - 1 do
+        local pp = rp(prd + 8 * pi)
+        local ps = O.kptr(pp) and U.sso(pp + 624) or nil
+        if ps and ps ~= "" then prio[#prio + 1] = ps end
+      end
+    end
+  end
+  -- other_combats (c>0 才写; 8B 元 {type@0, id@4} 内联)
+  local ocb
+  local ocn = ru32(w + 444)
+  if ocn and ocn > 0 and ocn < LAYOUT.lim.PTR_SANE then
+    local ocd = rp(w + 432)
+    if O.kptr(ocd) then
+      ocb = {}
+      for i = 0, ocn - 1 do
+        ocb[#ocb + 1] = { id = ru32(ocd + 4 + 8 * i) or 0,
+          type = ru32(ocd + 8 * i) or 0 }
+      end
+    end
+  end
+  -- 装备池 + az (az b@+0x200 单读; allow_zero 叶恒写)
+  local eq_az = ru8(w + 0x200) or 0
+  local eq = sa_eq_list(rp(w + 0x1E8), ru32(w + 0x1F4), eq_az)
+  -- carrier_air_wing_kills (tok 19901): 16B 数组 {key u64 位集, value u32};
+  -- 键经引擎表 → token, 无名 token 落数值键 (SL.tok 兜底同形)
+  local cak
+  do
+    local kcnt = ru32(w + 2548) or 0
+    local kd = rp(w + 2536)
+    if O.kptr(kd) and kcnt > 0 and kcnt <= 64 then
+      local buf = hoi4.engine_alloc(8)
+      if buf then
+        cak = {}
+        for ki = 0, kcnt - 1 do
+          local e = kd + 16 * ki
+          local key = rp(e) or 0
+          hoi4.write_u32(buf, 0)
+          hoi4.call_u64(BASE + 0xF8A750, buf, key)
+          local tk = ru32(buf) or 0
+          if tk > 0 then
+            cak[#cak + 1] = { name = GAME.layout.token_name(tk) or tk,
+              value = ru32(e + 8) or 0 }
+          end
+        end
+        hoi4.engine_free(buf)
+      end
+    end
+  end
+  local at728, ai732 = ru32(w + 728) or 0, ru32(w + 732) or 0
+  local ag48, ag52 = ru32(w + 48) or 0, ru32(w + 52) or 0
+  local rt2588, ri2592 = ru32(w + 2588) or 0, ru32(w + 2592) or 0
+  local gix = ru32(w + 2488)
+  local ttag = ru32(w + 0x9B4)
+  local rta, mta = ru32(w + 96), ru32(w + 100)
+  return {
+    addr = w,
+    id_type = ru32(w + 8) or 0, id_id = ru32(w + 0xC) or 0,
+    count = ru32(w + 108) or 0,
+    experience = sa_fx(w + 520),
+    reinforcement_setting = ru8(w + 2492) or 0,
+    timed_disabling = O.kptr(td) and
+      { remaining = ru32(td + 4) or 0, sst = (ru32(td + 8) or 0) & 0xFF }
+      or nil,
+    transfer_pair = (t56 ~= 0 or i60 ~= 0),
+    transferring = transferring, transferring_to = tto,
+    to_warehouse = b105,
+    transfer_progress = sa_fx(w + 64),
+    transfer_cancelled = ru8(w + 104) or 0,
+    deployment_pair = (b105 ~= 0 or dep84 < dt80 or transferring),
+    deployment = dep84, deployment_time = dt80,
+    manpower = ru32(w + 112) or 0,
+    mission = {
+      type = ru32(m + 16) or 0,
+      period = (function()
+        local b = ru32(m + 24) & 0xFF
+        if b >= 128 then b = b - 256 end
+        return b end)(),
+      active = ru8(m + 32) or 0,
+      executing = exec_name,
+      effectiveness = (sa_i64(m + 216) ~= 0) and sa_fx(m + 216) or nil,
+      effective_planes_count = (epc and epc ~= 0) and epc or nil,
+      effective_air_superiority = (sa_i64(m + 232) ~= 0)
+        and sa_fx(m + 232) or nil,
+      strategic_region = O.kptr(m48) and (ru32(m48 + 88) or 0) or nil,
+      region_change_penalty = sa_fx(m + 192),
+      missions_done = ru32(m + 116) or 0,
+      aggressiveness = (agg and agg ~= 0) and agg or nil,
+      priorities = prio,
+      stop_training = (ru8(m + 124) or 0) ~= 0 },
+    other_combats = ocb,
+    air_accidents = (function() local v = ru32(w + 116)
+      return (v and v > 0) and v or nil end)(),
+    ace_pair = (at728 ~= 0 or ai732 ~= 0),
+    ace_id = ai732, ace_type = at728,
+    suspended_missions = (function() local v = ru32(w + 424)
+      return (v and v ~= 0) and v or nil end)(),
+    tag = (ttag and ttag ~= 0) and Runtime:tag(ttag) or nil,
+    equipment = eq, equipment_az = eq_az,
+    name = U.sso(w + 2440),
+    priority = ru32(w + 24) or 0,
+    allow_mission_type = ru32(w + 28) or 0,
+    region_to_assign = (rta and rta ~= 0) and rta or nil,
+    mission_to_assign = (mta and mta ~= 0) and mta or nil,
+    gix_tag = (gix and gix > 0) and Runtime:tag(gix) or nil,
+    air_untrained = (ru8(w + 2568) or 0) ~= 0,
+    air_untrained_factor = sa_fx(w + 2560),
+    air_group_pair = (ag48 ~= 0 or ag52 ~= 0),
+    air_group_id = ag52, air_group_type = ag48,
+    role_icon_index = (function() local v = ru32(w + 2584)
+      return (v and v > 0) and v or nil end)(),
+    raid_pair = (rt2588 ~= 0 or ri2592 ~= 0),
+    raid_id = ri2592, raid_type = rt2588,
+    carrier_kills = cak }
+end
+
+-- §4.15.7 SAirWingCombatData 单侧条目 (152B; equipment 内嵌池@+88)
+local function sa_ch_side(e)
+  if not O.kptr(e) then return nil end
+  local az = ru8(e + 88 + 56) or 0
+  local tag80 = ru32(e + 80)
+  local function sr(doff, coff)
+    local n = ru32(e + coff)
+    if not n or n <= 0 or n >= 4096 then return nil end
+    local d = rp(e + doff)
+    if not O.kptr(d) then return nil end
+    local out = {}
+    for i = 0, n - 1 do
+      local q = d + 24 * i
+      out[#out + 1] = { type = ru32(q + 8) or 0, value = sa_fx(q + 16) }
+    end
+    return out
+  end
+  return {
+    id = ru32(e + 8) or 0,
+    equipment = sa_eq_list(rp(e + 88 + 0x20), ru32(e + 88 + 0x2C), az),
+    az = az,
+    time = ru32(e + 12) or 0,
+    mission = ru32(e + 20) or 0, count = ru32(e + 16) or 0,
+    tag = (tag80 and tag80 > 0) and Runtime:tag(tag80) or nil,
+    ground_attack = (ru8(e + 25) or 0) ~= 0,
+    receiver = sr(56, 68), sender = sr(32, 44),
+    destination = (ru8(e + 24) or 0) ~= 0 }
+end
+
+-- Runtime.strategic_air_full -> {air_theatre_index_id, air_group_index_id,
+--   bases(四阵列合并序), countries(按国条序; tag 门)}
+function Runtime.strategic_air_full(self)
+  local g = self.gs()
+  local mgr = g and rp(g + 0x690)
+  if not (mgr and O.kptr(mgr)
+      and rp(mgr) == BASE + GAME.layout.vt.CStrategicAirMgr) then
+    return nil
+  end
+  local out = { addr = mgr,
+    air_theatre_index_id = ru32(mgr + 0x18) or 0,
+    air_group_index_id = ru32(mgr + 0x28) or 0,
+    bases = {}, countries = {} }
+  -- §4.15.8 基地四阵列 (writer 0x140C57520 序: air_base/舰载/火箭/巨炮;
+  -- 1/3 阵列 vt 门, 2/4 无)
+  for _, arr in ipairs({ { 0x90, true }, { 0xD8, false },
+                         { 0xA8, true }, { 0xC0, false } }) do
+    local d, c = rp(mgr + arr[1]), ru32(mgr + arr[1] + 12)
+    if O.kptr(d) and c and c > 0 and c < LAYOUT.lim.PTR_HUGE then
+      for i = 0, c - 1 do
+        local p = rp(d + 8 * i)
+        if O.kptr(p)
+            and (not arr[2] or rp(p) == BASE + GAME.layout.vt.CAirBase) then
+          local sp = rp(p + 104)
+          local cd, cn = rp(p + 72), ru32(p + 84)
+          local cts
+          if O.kptr(cd) and cn and cn > 0 and cn < 4096 then
+            cts = {}
+            for k = 0, cn - 1 do
+              local cp = rp(cd + 8 * k)
+              if O.kptr(cp) then
+                local tid = ru32(cp + 176)
+                cts[#cts + 1] = {
+                  id_type = ru32(cp + 8) or 0, id_id = ru32(cp + 12) or 0,
+                  disrupted_supply = (sa_i64(cp + 160) > 0)
+                    and sa_fx(cp + 160) or nil,
+                  motorization = ru8(cp + 29) or 0,
+                  tag = (tid and tid ~= 0) and Runtime:tag(tid) or nil,
+                  operational_status = (sa_i64(cp + 208) ~= 100000)
+                    and sa_fx(cp + 208) or nil,
+                  capacity_penalty = (sa_i64(cp + 216) ~= 0)
+                    and sa_fx(cp + 216) or nil,
+                  fuel_consumption = (sa_i64(cp + 224) ~= 0)
+                    and sa_fx(cp + 224) or nil,
+                  received = (sa_i64(cp + 240) ~= 0)
+                    and sa_fx(cp + 240) or nil,
+                  base_fuel_consumption = (sa_i64(cp + 232) ~= 0)
+                    and sa_fx(cp + 232) or nil }
+              end
+            end
+          end
+          out.bases[#out.bases + 1] = {
+            addr = p, base_flag = ru32(p + 124) or 0,
+            id_type = ru32(p + 8) or 0, id_id = ru32(p + 12) or 0,
+            state = O.kptr(sp) and (ru32(sp + 88) or 0) or nil,
+            carrier_type = ru32(p + 96) or 0, carrier_id = ru32(p + 100) or 0,
+            capacity = ru32(p + 120) or 0,
+            has_manpower = ru8(p + 128) or 0,
+            level = ru32(p + 132) or 0,
+            allow_equipment_type = rp(p + 136) or 0,
+            countries = cts }
+        end
+      end
+    end
+  end
+  -- 国条循环 (§4.15.2)
+  local d30, n30 = rp(mgr + 0x30), ru32(mgr + 0x3C)
+  if not (O.kptr(d30) and n30 and n30 > 0
+      and n30 < LAYOUT.lim.PTR_HUGE) then
+    return out
+  end
+  for i = 0, n30 - 1 do
+    local sa = rp(d30 + 8 * i)
+    if O.kptr(sa) and rp(sa) == BASE + SA2.sa_country then
+      local tid = ru32(sa + 0x90)
+      local tag = (tid and tid ~= 0) and Runtime:tag(tid) or nil
+      if tag then
+        local rec = { addr = sa, tag = tag,
+          pools = {}, combat_history = {}, history_queues = {} }
+        -- §4.15.3 CAirWingPool
+        local pd, pn = rp(sa + 0x58), ru32(sa + 0x64)
+        if O.kptr(pd) and pn and pn > 0 and pn < 4096 then
+          for j = 0, pn - 1 do
+            local pa = rp(pd + 8 * j)
+            if O.kptr(pa) and rp(pa) == BASE + SA2.pool then
+              local pool = { addr = pa,
+                id_type = ru32(pa + 8) or 0, id_id = ru32(pa + 0xC) or 0,
+                air_base_type = ru32(pa + 0x18) or 0,
+                air_base_id = ru32(pa + 0x1C) or 0,
+                wings = {} }
+              local dp = rp(pa + 0x20)
+              if O.kptr(dp) then pool.definition_tok = ru32(dp + 8) end
+              local wd, wn = rp(pa + 0x28), ru32(pa + 0x34)
+              if O.kptr(wd) and wn and wn > 0
+                  and wn < LAYOUT.lim.PTR_SANE then
+                for k = 0, wn - 1 do
+                  local h = rp(wd + 8 * k)
+                  if O.kptr(h) then
+                    local w2 = sa_wing(h + 16)
+                    if w2 then pool.wings[#pool.wings + 1] = w2 end
+                  end
+                end
+              end
+              rec.pools[#rec.pools + 1] = pool
+            end
+          end
+        end
+        -- naval_strike_remaining {d@+248,c@+260} (c>0, <10000)
+        do
+          local nd, nn = rp(sa + 248), ru32(sa + 260)
+          if O.kptr(nd) and nn and nn > 0 and nn < 10000 then
+            local vals = {}
+            for j = 0, nn - 1 do vals[#vals + 1] = ru32(nd + 4 * j) or 0 end
+            rec.naval_strike = vals
+          end
+        end
+        -- §4.15.6 CAirRegionCombatData combat_history (索引 = 槽位 0 起;
+        -- 侧名互换: save enemy ← +32, friend ← +8)
+        do
+          local chd, chn = rp(sa + 368), ru32(sa + 380)
+          if O.kptr(chd) and chn and chn > 0 and chn < 4096 then
+            for j = 0, chn - 1 do
+              local p = rp(chd + 8 * j)
+              if O.kptr(p) and rp(p) == BASE + GAME.layout.vt.CStrategicAir_vt2 then
+                local t56 = ru32(p + 56)
+                local hk = { idx = j,
+                  tag = (t56 and t56 > 0) and Runtime:tag(t56) or nil,
+                  enemy = {}, friend = {} }
+                for _, sd in ipairs({ { "enemy", 32 }, { "friend", 8 } }) do
+                  local n = ru32(p + sd[2] + 12)
+                  if n and n > 0 and n < 4096 then
+                    local d2 = rp(p + sd[2])
+                    if O.kptr(d2) then
+                      local lst = hk[sd[1]]
+                      for k2 = 0, n - 1 do
+                        local e = sa_ch_side(d2 + 152 * k2)
+                        if e then lst[#lst + 1] = e end
+                      end
+                    end
+                  end
+                end
+                rec.combat_history[#rec.combat_history + 1] = hk
+              end
+            end
+          end
+        end
+        -- §4.3.13 CLoopHistory 队列族 (+344 history; 3 队列@+0x10/+0x18/+0x20)
+        do
+          local hd, hn = rp(sa + 344), ru32(sa + 356)
+          if O.kptr(hd) and hn and hn > 0 and hn < 4096 then
+            for j = 0, hn - 1 do
+              local he = rp(hd + 8 * j)
+              local hcols = O.kptr(he) and ru32(he + 52) or nil
+              if hcols and hcols > 0 and hcols <= 512 then
+                local hrec = { idx = j, cols = hcols, queues = {} }
+                for qi, qoff in ipairs({ 0x10, 0x18, 0x20 }) do
+                  local qc = rp(he + qoff)
+                  if O.kptr(qc) then
+                    local q = { max_elements = ru32(qc + 0x20) or 0,
+                      offset = ru32(qc + 0x24) or 0,
+                      is_full = (ru8(qc + 0x28) or 0) ~= 0 }
+                    local buf = rp(qc + 8)
+                    local rows = ru32(qc + 0x14) or 0
+                    if O.kptr(buf) and rows > 0 and rows <= 256
+                        and rows * hcols <= 65536 then
+                      local cells, any = {}, false
+                      for r = 0, rows - 1 do
+                        local h1 = rp(buf + 8 * r)
+                        local row = O.kptr(h1) and rp(h1) or nil
+                        local rv = O.kptr(row)
+                        for k2 = 0, hcols - 1 do
+                          local v = 0
+                          if rv then
+                            v = sa_i64(row + 8 * k2) / 1e5
+                          end
+                          if v ~= 0 then any = true end
+                          cells[#cells + 1] = v
+                        end
+                      end
+                      if any then q.cells = cells end
+                    end
+                    hrec.queues[qi] = q
+                  end
+                end
+                rec.history_queues[#rec.history_queues + 1] = hrec
+              end
+            end
+          end
+        end
+        out.countries[#out.countries + 1] = rec
+      end
+    end
+  end
+  return out
+end
+
 
 
 -- ============================================================
