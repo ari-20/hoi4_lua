@@ -1386,3 +1386,349 @@ function Country.theatres_full(self)
   end
   return out
 end
+
+-- ============================================================
+-- §4.3 country misc_tails 导出全量 reader (sv2_sec_c_misc_tails 消费;
+-- 各块布局/写门 = 书 §4.3.1/§4.3.8/§4.3.11/§4.3.12/§4.3.13)。
+local function mt_tagstr(tid)     -- tid>0; ""/"---" 不收 (段层原语义)
+  if not tid or tid <= 0 then return nil end
+  local s2 = Runtime:tag(tid)
+  if s2 and s2 ~= "" and s2 ~= "---" then return s2 end
+  return nil
+end
+
+local function mt_sid_list(c)     -- ptr 数组 → 州 id 列表 (state_index_map)
+  local d, n = rp(c), ru32(c + 12)
+  if not O.kptr(d) or not n or n <= 0 or n >= 4096 then return nil end
+  local m = GAME.layout.state_index_map(Runtime.gs())
+  local t = {}
+  for k = 0, n - 1 do
+    local p = rp(d + 8 * k)
+    t[#t + 1] = (p and m[p]) or 0
+  end
+  return t
+end
+
+local function mt_dynmod(cc)      -- §4.3.8 动态修正容器 cc+3712/3724
+  local vd, vc = rp(cc + 3712), ru32(cc + 3724)
+  if not O.kptr(vd) or not vc or vc <= 0 or vc >= LAYOUT.lim.PTR_SANE then
+    return nil end
+  local out = {}
+  for i = 0, vc - 1 do
+    local e = vd + 64 * i
+    local obj = rp(e + 24)
+    local nm
+    if O.kptr(obj) then           -- 裸 char 串指针 read_cstr 优先, SSO 兜底
+      local p = rp(obj + 40)
+      if O.kptr(p) then nm = hoi4.read_cstr(p) end
+      if not nm then nm = U.sso(obj + 40) end
+    end
+    if nm and nm ~= "" then
+      local r = { name = nm }
+      local st2 = ru32(e + 12)
+      if st2 and st2 > 0 and st2 < 0x80000000 then r.state = st2 end
+      local ts = ru32(e + 8)
+      if ts and ts > 0 then r.tag = mt_tagstr(ts) end
+      local vd2, vc2 = rp(e + 40), ru32(e + 52)
+      if O.kptr(vd2) and vc2 and vc2 > 0 and vc2 < LAYOUT.lim.PTR_SANE then
+        local t = {}
+        for v2 = 0, vc2 - 1 do
+          t[#t + 1] = GAME.layout.fix5(vd2 + 8 * v2) or 0 end
+        r.values = t
+      end
+      r.enabled = (ru8(e + 32) or 0) ~= 0
+      local d2 = ru32(e + 16)
+      if d2 and d2 < 0x80000000 then r.days = d2 end
+      out[#out + 1] = r
+    end
+  end
+  return out
+end
+
+local function mt_logistics(cc)   -- §4.3.13 CLoopHistory @cc+3992
+  -- human_writes 门: 仅人类控制国落盘 (AI 国整块跳过)
+  local tid = ru32(cc + 8)
+  if not tid or tid == 0 then return nil end
+  local g = Runtime.gs()
+  local mapd = rp(g + 832)
+  if not O.kptr(mapd) then return nil end
+  local idx = ru32(mapd + 4 * tid)
+  local nidx = ru32(g + 916) or 0
+  if not idx or idx >= nidx then return nil end
+  local valid, hcnt = rp(g + 880), rp(g + 904)
+  if not (O.kptr(valid) and O.kptr(hcnt)) then return nil end
+  local is_ai = (ru8(valid + idx) or 0) ~= 0 and (ru8(hcnt + idx) or 0) == 0
+  if is_ai then return nil end
+  local logi = rp(cc + 3992)
+  if not O.kptr(logi) then return nil end
+  local ld = rp(logi + 8)
+  if not O.kptr(ld) then return nil end
+  local out = {}
+  for i = 0, 18 do
+    local el = rp(ld + 8 * i)
+    -- elem+52 双重身份: 槽守卫 + 记录列数
+    local cols = O.kptr(el) and ru32(el + 52) or nil
+    if cols and cols > 0 then
+      local queues = {}
+      for qi, qoff in ipairs({ 0x10, 0x18, 0x20 }) do
+        local qc = rp(el + qoff)
+        if O.kptr(qc) then
+          local q = { max_elements = ru32(qc + 0x10) or 0,
+            offset = ru32(qc + 0x24) or 0,
+            is_full = (ru8(qc + 0x28) or 0) ~= 0 }
+          -- 行主序线性不旋转; 全零缓冲整块不写 (行对象首字段=数据指针)
+          local qd = rp(qc + 8)
+          local rows = ru32(qc + 0x14) or 0
+          if O.kptr(qd) and rows > 0 and rows <= 4096
+              and cols <= 512 and rows * cols <= 65536 then
+            local cells, any = {}, false
+            for r = 0, rows - 1 do
+              local rowobj = rp(qd + 8 * r)
+              local rowd = O.kptr(rowobj) and rp(rowobj) or nil
+              for k2 = 0, cols - 1 do
+                local v = 0
+                if rowd then v = GAME.layout.fix5(rowd + 8 * k2) or 0 end
+                if v ~= 0 then any = true end
+                cells[#cells + 1] = v
+              end
+            end
+            if any then q.cells = cells end
+          end
+          queues[qi] = q
+        end
+      end
+      out[#out + 1] = { idx = i, queues = queues }
+    end
+  end
+  return out
+end
+
+-- §4.3.11 delayed_event CEventScope 递归 (depth 8; root/from/prev ≠自指;
+-- saved_event_target 仅 from==自指层写 — pending_events 路径不同)
+local function mt_scope(sc, depth)
+  if depth > 8 or not O.kptr(sc) then return nil end
+  local rec = {}
+  local ts = mt_tagstr(ru32(sc + 8))
+  if ts then rec.country = ts end
+  local sid2 = ru32(sc + 168)
+  if sid2 and sid2 ~= 0 then rec.state = sid2 end
+  local pairspec = { { "character", 80 }, { "operation", 88 }, { "ace", 104 },
+    { "unit", 112 }, { "industrial_organisation", 120 },
+    { "purchase_contract", 128 }, { "raid_instance", 136 },
+    { "project", 144 }, { "faction", 152 } }
+  for _, ps in ipairs(pairspec) do
+    local pt2, pi2 = ru32(sc + ps[2]), ru32(sc + ps[2] + 4)
+    if (pt2 and pt2 ~= 0) or (pi2 and pi2 ~= 0) then
+      rec[ps[1]] = { type = pt2 or 0, id = pi2 or 0 }
+    end
+  end
+  local srp = rp(sc + 72)
+  if O.kptr(srp) then
+    local srv = ru32(srp + 88)
+    if srv then rec.strategic_region = srv end
+  end
+  rec.random = { ru32(sc + 16) or 0, ru32(sc + 12) or 0 } -- 写序反
+  local rt, fr, pv = rp(sc + 24), rp(sc + 32), rp(sc + 40)
+  if rt and rt ~= sc then rec.root = mt_scope(rt, depth + 1) end
+  if fr and fr ~= sc then rec.from = mt_scope(fr, depth + 1) end
+  if pv and pv ~= sc then rec.prev = mt_scope(pv, depth + 1) end
+  if fr == sc then
+    local cp2 = rp(sc + 160)
+    if O.kptr(cp2) then
+      local td, tc = rp(cp2), ru32(cp2 + 12)
+      if O.kptr(td) and tc and tc > 0 and tc < LAYOUT.lim.PTR_SANE then
+        rec.saved_event_targets = {}
+        for ti = 0, tc - 1 do
+          local te = td + 112 * ti
+          local t2 = {}
+          local st3 = ru32(te + 8)
+          if st3 and st3 ~= 0 then t2.state = st3 end
+          local ct3 = ru32(te + 12)
+          if ct3 and ct3 > 0 and ct3 < 0x80000000 then
+            t2.country = mt_tagstr(ct3) end
+          local ni3 = ru32(te + 104)
+          if ni3 then ni3 = ni3 % 65536 end
+          if ni3 and ni3 ~= 0 then t2.name = GAME.layout.set_name(ni3) end
+          local ct4, ci4 = ru32(te + 16), ru32(te + 20)
+          if ct4 and ci4 and (ct4 ~= 0 or ci4 ~= 0) then
+            t2.character = { type = ct4, id = ci4 } end
+          rec.saved_event_targets[#rec.saved_event_targets + 1] = t2
+        end
+      end
+    end
+  end
+  return rec
+end
+
+local function mt_delayed(cc)
+  local dd2, dc2 = rp(cc + 4752), ru32(cc + 4764)
+  if not O.kptr(dd2) or not dc2 or dc2 <= 0 or dc2 >= 4096 then return nil end
+  local out = {}
+  for di = 0, dc2 - 1 do
+    local e = rp(dd2 + 8 * di)
+    if O.kptr(e) then
+      local rec2 = {}
+      local ev = rp(e + 8)
+      if O.kptr(ev) then
+        local nm = U.sso(ev + 32)
+        if nm and nm ~= "" then rec2.event = nm end
+      end
+      local v = ru32(e + 196) or 0
+      rec2.hours = v % 24
+      rec2.days = math.floor(v % 720 / 24)
+      rec2.months = math.floor(v / 720)
+      rec2.scope = mt_scope(e + 16, 1)
+      rec2.originator = mt_tagstr(ru32(e + 192))
+      out[#out + 1] = rec2
+    end
+  end
+  return out
+end
+
+-- Country.misc_tails -> 单 rec (各键 = 段发射簇; 门 = writer 原门)
+function Country.misc_tails(self)
+  local cc = self.addr
+  if not cc then return nil end
+  local sent = rp(BASE + 0x333D528) or 0
+  local rec = {
+    cores = mt_sid_list(cc + 1192),
+    claims = mt_sid_list(cc + 1216),
+    dynamic_modifiers = mt_dynmod(cc),
+    logistics = mt_logistics(cc),
+  }
+  do -- reinforcement.priority (默认 1 不落盘)
+    local robj = rp(cc + 3960)
+    if O.kptr(robj) then
+      local v = ru32(robj + 8)
+      if v and v ~= 1 then rec.reinforcement_priority = v end
+    end
+  end
+  do -- volunteers_sent (8B 内联对)
+    local vd, vc = rp(cc + 784), ru32(cc + 796)
+    if O.kptr(vd) and vc and vc > 0 and vc < LAYOUT.lim.PTR_SANE then
+      rec.volunteers_sent = {}
+      for q = 0, vc - 1 do
+        rec.volunteers_sent[#rec.volunteers_sent + 1] = {
+          type = ru32(vd + 8 * q) or 0, id = ru32(vd + 8 * q + 4) or 0 }
+      end
+    end
+  end
+  do -- cached_navy_strength (块门 = 师/舰队/铁路炮任一非空)
+    local nd, nc = rp(cc + 736), ru32(cc + 748)
+    local n_army = ru32(cc + 668) or 0
+    local n_fleet = ru32(cc + 644) or 0
+    local n_rgun = ru32(cc + 692) or 0
+    if (n_army > 0 or n_fleet > 0 or n_rgun > 0)
+        and O.kptr(nd) and nc and nc > 0 and nc < LAYOUT.lim.PTR_SANE then
+      local t = {}
+      for k = 0, nc - 1 do
+        local tok, cnt = ru32(nd + 8 * k), ru32(nd + 8 * k + 4)
+        if tok and cnt and cnt ~= 0 then
+          local nm = GAME.layout.token_name(tok) or tok -- SL.tok 同形
+          if nm ~= nil and nm ~= "" then
+            t[#t + 1] = { name = nm, count = cnt } end
+        end
+      end
+      rec.cached_navy_strength = t
+    end
+  end
+  rec.delayed_events = mt_delayed(cc)
+  do -- templates_locked + reason (同字节门 u8@cc+436)
+    if (ru8(cc + 436) or 0) ~= 0 then
+      rec.templates_locked = true
+      rec.reason = U.sso(cc + 464) or ""
+    end
+  end
+  do -- pride_of_the_fleet / original_tag
+    local pt, pi = ru32(cc + 592), ru32(cc + 596)
+    if (pt and pt ~= 0) or (pi and pi ~= 0) then
+      rec.pride_of_the_fleet = { type = pt or 0, id = pi or 0 } end
+    rec.original_tag = mt_tagstr(ru32(cc + 4876))
+  end
+  do -- invasion_report
+    local idd, idc = rp(cc + 4096), ru32(cc + 4108)
+    if O.kptr(idd) and idc and idc > 0 and idc < LAYOUT.lim.PTR_SANE then
+      rec.invasion_reports = {}
+      for i = 0, idc - 1 do
+        local e = rp(idd + 8 * i)
+        if O.kptr(e) then
+          local r2 = { tag = mt_tagstr(ru32(e + 8)),
+            enemy = mt_tagstr(ru32(e + 12)) }
+          local pp = rp(e + 16)
+          if O.kptr(pp) then
+            local pv = ru32(pp + 164)
+            if pv then r2.province = pv end
+          end
+          r2.date_h = ru32(e + 40)
+          rec.invasion_reports[#rec.invasion_reports + 1] = r2
+        end
+      end
+    end
+  end
+  do -- civil_war_target
+    local cd3, cc3 = rp(cc + 4848), ru32(cc + 4860)
+    if O.kptr(cd3) and cc3 and cc3 > 0 and cc3 < LAYOUT.lim.PTR_SANE then
+      local t = {}
+      for q = 0, cc3 - 1 do
+        local s2 = mt_tagstr(ru32(cd3 + 4 * q))
+        if s2 then t[#t + 1] = s2 end
+      end
+      rec.civil_war_targets = t
+    end
+  end
+  do -- external_rules + override (28 规则; 门开才写, 值 yes/no 皆写)
+    local n = GAME.layout.dim.EXTERNAL_RULES
+    local er, ero = {}, {}
+    for i2 = 0, n - 1 do
+      if (ru8(cc + 2656 + 92 + i2) or 0) ~= 0 then
+        local nm = GAME.layout.rule_key(i2)
+        if nm and nm ~= "" then
+          er[#er + 1] = { name = tostring(nm),
+            value = (ru8(cc + 2656 + 64 + i2) or 0) ~= 0 }
+        end
+      end
+      if (rp(cc + 2656 + 136 + 32 * i2) or 0) ~= 0 then
+        local sv = U.sso(cc + 2656 + 120 + 32 * i2)
+        if sv and sv ~= "" then
+          ero[#ero + 1] = { idx = i2, value = sv } end
+      end
+    end
+    rec.external_rules = er
+    rec.external_rule_overrides = ero
+  end
+  do -- collaboration
+    local co = rp(cc + 4056)
+    if O.kptr(co) then
+      local cd, cn = rp(co + 40), ru32(co + 52)
+      if O.kptr(cd) and cn and cn > 0 and cn < 4096 then
+        local t = {}
+        for k = 0, cn - 1 do
+          local ep = rp(cd + 8 * k)
+          if O.kptr(ep) then
+            local tg = mt_tagstr(ru32(ep + 8))
+            if tg then
+              t[#t + 1] = { tag = tg, value = GAME.layout.fix5(ep + 16) }
+            end
+          end
+        end
+        rec.collaborations = t
+      end
+    end
+  end
+  do -- 散标量 (定案门)
+    local function u32_nz(off)
+      local v = ru32(cc + off)
+      if v and v ~= 0 then return v end
+      return nil
+    end
+    rec.original_research_slots = u32_nz(4324)
+    rec.major = (ru8(cc + 5210) or 0) ~= 0
+    rec.is_major = (ru8(cc + 5209) or 0) ~= 0
+    rec.is_top_ic_country = (ru8(cc + 5211) or 0) ~= 0
+    rec.landlocked_start = (ru8(cc + 5619) or 0) ~= 0
+    rec.reserved_dynamic_country = (ru8(cc + 5213) or 0) ~= 0
+    local v = GAME.layout.fix5(cc + 5632)
+    if v and v ~= 0 then rec.coastal_protection_ratio = v end
+  end
+  return rec
+end
