@@ -388,6 +388,7 @@ M.vt = {
     CNavalBase_vt2       = 0x2973260,   -- §4.16 (书 §1.3: navy_vt CStrategicNavy)
     CNavalBase_vt3       = 0x29731c0,   -- §4.16 (书 §1.3: base_vt)
     CUnitHistoryEntry    = 0x29c1818,   -- §4.18 部队 history 容器条目
+    CRailwayGun          = 0x2972228,   -- §4.18.2 cc+680/692
     -- 战略空军 (§4.15)
     CStrategicAirMgr     = 0x29588f8,   -- gs+0x690
     CStrategicAirCountry = 0x29587d8,

@@ -2200,3 +2200,158 @@ function Runtime.naval_combat_results(self)
   end
   return out
 end
+
+-- ============================================================
+-- 6.9 railway_gun (§4.18.2 CRailwayGun 挂 cc+680/692; 尾接 CUnit 公共段
+-- §4.18.5) — 结构唯一实现; 段层 sv2_sec_c_units 只按写序发射。
+-- ⚠ army id 对 = 虚函数返 *(p-16) qword {id=高32, type=低32} (0x140BE02B0);
+--   tag 上界收敛 = Runtime:tagUpperBound() (段内旧本地逻辑并入)。
+function Country.railway_guns(self)
+  local cca = self.addr
+  if not cca then return nil end
+  local rgd, rgc = rp(cca + 680), ru32(cca + 692)
+  if not O.kptr(rgd) or not rgc or rgc <= 0
+      or rgc >= LAYOUT.lim.PTR_SANE then return nil end
+  local tagub = Runtime:tagUpperBound()
+  local out = {}
+  for i = 0, rgc - 1 do
+    local o = rp(rgd + 8 * i)
+    if O.kptr(o) and rp(o) == BASE + GAME.layout.vt.CRailwayGun then
+      -- definition: scoped ptr @+312 → token u32 @p+8
+      local dpp = rp(o + 312)
+      local geq = rp(o + 912)
+      -- combat: {d@1056, c@1068} 8B 内联 idpair {type@0, id@4}
+      local combat
+      do
+        local cbt = ru32(o + 1068)
+        if cbt and cbt > 0 and cbt < LAYOUT.lim.PTR_SANE then
+          local cdd = rp(o + 1056)
+          if O.kptr(cdd) then
+            combat = {}
+            for cj = 0, cbt - 1 do
+              local ce = cdd + 8 * cj
+              combat[#combat + 1] = { type = ru32(ce) or 0,
+                id = ru32(ce + 4) or 0 }
+            end
+          end
+        end
+      end
+      -- army: ptr @+1088 → 虚函数返 *(p-16) qword
+      local army
+      do
+        local ap2 = rp(o + 1088)
+        if O.kptr(ap2) then
+          local q = rp(ap2 - 16)
+          if q and q ~= 0 then
+            army = { id = q >> 32, type = q % 2 ^ 32 } end
+        end
+      end
+      -- path / full_path: {d@512/544, c@524/556} u32 密集元
+      -- (full_path 外门 = c@556 ≠0, 双门原样)
+      local path
+      do
+        local pd2, pc2 = rp(o + 512), ru32(o + 524)
+        if O.kptr(pd2) and pc2 and pc2 > 0 and pc2 < 4096 then
+          path = {}
+          for pj = 0, pc2 - 1 do
+            path[#path + 1] = ru32(pd2 + 4 * pj) or 0 end
+        end
+      end
+      local full_path
+      if (ru32(o + 556) or 0) ~= 0 then
+        local fd2, fc2 = rp(o + 544), ru32(o + 556)
+        if O.kptr(fd2) and fc2 and fc2 > 0 and fc2 < 4096 then
+          full_path = {}
+          for pj = 0, fc2 - 1 do
+            full_path[#full_path + 1] = ru32(fd2 + 4 * pj) or 0 end
+        end
+      end
+      -- expeditionary_owner / logical_country: tid 门 >0 且 <tagub,
+      -- 串非空 (tag 串 = Runtime:tag 同源 read_str)
+      local eo, lg = ru32(o + 476), ru32(o + 480)
+      -- country_intel: {d@632, c@644} 24B 元 {u32@0, u32@8, u8@16}
+      local intel
+      do
+        local cid, cic = rp(o + 632), ru32(o + 644)
+        if O.kptr(cid) and cic and cic > 0
+            and cic < LAYOUT.lim.PTR_SANE then
+          intel = {}
+          for k = 0, cic - 1 do
+            local e = cid + 24 * k
+            intel[#intel + 1] = { ru32(e) or 0, ru32(e + 8) or 0,
+              ru8(e + 16) or 0 }
+          end
+        end
+      end
+      out[#out + 1] = {
+        addr = o,
+        definition_tok = O.kptr(dpp) and (ru32(dpp + 8) or 0) or nil,
+        eq_type = ru32(o + 824) or 0, eq_id = ru32(o + 828) or 0,
+        name_type = ru32(o + 840),
+        name_order = (function() local v = ru32(o + 960)
+          return (v and v ~= 0) and v or nil end)(),
+        name_ordered_no = (ru8(o + 1000) or 0) == 0,
+        override_gate = O.kptr(rp(o + 984)),
+        override = U.sso(o + 968),
+        osp = (ru8(o + 1001) or 0) ~= 0,
+        name_eq = O.kptr(geq)
+          and { type = ru32(geq + 8) or 0, id = ru32(geq + 12) or 0 }
+          or nil,
+        strength = (rp(o + 1008) or 0) / 100000,
+        manpower = ru32(o + 1016),
+        max_supply = (rp(o + 1024) or 0) / 100000,
+        supply_ratio = (rp(o + 1040) or 0) / 100000,
+        supply_gain = (rp(o + 1032) or 0) / 100000,
+        repair_line = ((ru32(o + 1048) or 0) ~= 0
+            or (ru32(o + 1052) or 0) ~= 0)
+          and { type = ru32(o + 1048) or 0, id = ru32(o + 1052) or 0 }
+          or nil,
+        combat = combat, army = army,
+        id_type = ru32(o + 24) or 0, id_id = ru32(o + 28) or 0,
+        name = U.sso(o + 600),
+        previous = O.kptr(rp(o + 504))
+          and (ru32(rp(o + 504) + 164) or 0) or nil,
+        experience = O.kptr(rp(o + 488))
+          and (ru32(rp(o + 488) + 164) or 0) or nil,
+        last_combat_h = (function() local v = ru32(o + 456)
+          return (v and v ~= 0) and v or nil end)(),
+        movement_progress = (function() local v = rp(o + 576)
+          return (v and v ~= 0) and v / 100000 or nil end)(),
+        move_priority_raw = ru32(o + 584),
+        path = path, full_path = full_path,
+        location = O.kptr(rp(o + 496))
+          and (ru32(rp(o + 496) + 164) or 0) or nil,
+        retreat = (ru8(o + 588) or 0) ~= 0,
+        withdraw = (ru8(o + 589) or 0) ~= 0,
+        start_h = (function() local v = ru32(o + 328)
+          if not v then return nil end
+          v = LAYOUT.as_i32(v)
+          return (v - 43800000 >= 17520) and v or nil end)(),
+        end_h = (function() local v = ru32(o + 352)
+          if not v then return nil end
+          v = LAYOUT.as_i32(v)
+          return (v - 43800000 >= 17520) and v or nil end)(),
+        is_buildable = (function() local v = ru32(o + 304)
+          return (v and v > 0) and v or nil end)(),
+        unused_token = (function() local v = ru32(o + 304)
+          return (v and v > 0) and (ru32(o + 308) or 0) or nil end)(),
+        expeditionary_owner = (eo and eo > 0 and eo < tagub)
+          and Runtime:tag(eo) or nil,
+        logical_country = (lg and lg > 0 and lg < tagub)
+          and Runtime:tag(lg) or nil,
+        alliance = (function() local v = ru32(o + 696)
+          return (v and v ~= 0) and v or nil end)(),
+        clear_queued = (function() local v = ru32(o + 700)
+          return (v and v ~= 0) and v or nil end)(),
+        exile = (ru8(o + 686) or 0) ~= 0,
+        move_capital = (ru8(o + 688) or 0) ~= 0,
+        seed = (function() local v = ru32(o + 808)
+          return (v and v ~= 0) and v or nil end)(),
+        raid = ((ru32(o + 812) or 0) ~= 0 or (ru32(o + 816) or 0) ~= 0)
+          and { type = ru32(o + 812) or 0, id = ru32(o + 816) or 0 }
+          or nil,
+        intel = intel }
+    end
+  end
+  return out
+end

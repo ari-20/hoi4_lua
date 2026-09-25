@@ -544,193 +544,115 @@ SV2.csec[#SV2.csec + 1] = { name = "country.units", emit = function(ctx)
     end
 
     -- ================= railway_gun =================
-    -- §4.18.2 CRailwayGun (挂 §4.3 cc+680/692; 布局/写门 = 书 §4.18.2;
-    -- 尾部接 CUnit 公共段)
+    -- §4.18.2 CRailwayGun — 结构唯一实现 = Country:railway_guns
+    -- (objects_military §6.9); 本段只按写序/块键/编号/格式发射。
     do
         local okc, cr = pcall(O.country, O, i)
-        local cca = okc and cr and cr.addr or nil
-        if cca then
-            local rgd, rgc = rp(cca + 680), ru32(cca + 692)
-            if kptr(rgd) and rgc and rgc > 0 and rgc < GAME.layout.lim.PTR_SANE then
-                local rgseq = SL.seqc()
-                for ri = 0, rgc - 1 do
-                    local o = rp(rgd + 8 * ri)
-                    if kptr(o) and rp(o) == BASE + 0x2972228 then
-                        local gpfx = "units." .. rgseq("railway_gun") .. "."
-                        local function G(path, val)
-                            if val ~= nil then emit(tag, gpfx .. path, val) end
-                        end
-                        -- 0x2FE3 definition: scoped ptr @raw+312 → token u32 @p+8
-                        local dp2 = rp(o + 312)
-                        if kptr(dp2) then
-                            G("definition", SL.tok(ru32(dp2 + 8) or 0)) end
-                        -- 0x2F4E equipment: B240 idpair {type@raw+824, id@raw+828}
-                        G("equipment", SL.idpair(ru32(o + 828), ru32(o + 824)))
-                        -- 0x341D railway_gun_name 内嵌对象 @raw+832
-                        -- (serialize 0x1409BCC70: type u32@obj+8=raw+840)
-                        G("railway_gun_name.type", NF(ru32(o + 840)))
-                        local gno = ru32(o + 960)       -- name_order @obj+128
-                        if gno and gno ~= 0 then
-                            G("railway_gun_name.name_order", NF(gno)) end
-                        if ru8(o + 1000) == 0 then      -- 仅假写 no (AE850(…,0))
-                            G("railway_gun_name.is_name_ordered", "no") end
-                        if kptr(rp(o + 984)) then       -- override MSVC @obj+136
-                            local ov = SL.sso(o + 968)
-                            if ov then G("railway_gun_name.override", QE(ov)) end
-                        end
-                        if ru8(o + 1001) ~= 0 then      -- 0x3936 仅 ≠0 写
-                            G("railway_gun_name.override_set_programmatically",
-                                "yes") end
-                        local geq = rp(o + 912)         -- 0x2F4E equipment
-                        if kptr(geq) then               -- B320 idpair {ty@+8,id@+12}
-                            G("railway_gun_name.equipment",
-                                SL.idpair(ru32(geq + 12), ru32(geq + 8))) end
-                        -- 0x28A6 strength / 0x283C manpower / 0x3A43 max_supply /
-                        -- 0x4CED acsr / 0x4CEC supply_gain (全无条件写;
-                        -- i64 族 = fixed5 ×1e-5, manpower u32 裸值)
-                        G("strength", NF(rp(o + 1008) / 100000))
-                        G("manpower", NF(ru32(o + 1016)))
-                        G("max_supply", NF(rp(o + 1024) / 100000))
-                        G("army_current_supply_ratio", NF(rp(o + 1040) / 100000))
-                        G("supply_gain", NF(rp(o + 1032) / 100000))
-                        -- 0x4C5C repair_line idpair {type@1048, id@1052} 双 dword 门
-                        if (ru32(o + 1048) or 0) ~= 0
-                            or (ru32(o + 1052) or 0) ~= 0 then
-                            G("repair_line", SL.idpair(ru32(o + 1052),
-                                ru32(o + 1048))) end
-                        -- 0x2916 combat: {d@1056, c@1068}; 存档形态 = 命名块
-                        -- 逐元素行内匿名 idpair { id=X type=Y } → 提取器
-                        -- 折 combat.#N (1-based 首现即编号,)
-                        local cbt = ru32(o + 1068)
-                        if cbt and cbt > 0 and cbt < GAME.layout.lim.PTR_SANE then
-                            local cdd = rp(o + 1056)
-                            if kptr(cdd) then
-                                for cj = 0, cbt - 1 do
-                                    local ce = cdd + 8 * cj
-                                    G("combat.#" .. (cj + 1),
-                                        SL.idpair(ru32(ce + 4), ru32(ce)))
-                                end
-                            end
-                        end
-                        -- 0x289D army: ptr @raw+1088 → 虚函数返 *(p-16) qword
-                        -- idpair {type 低 32, id 高 32} (0x140BE02B0)
-                        local ap2 = rp(o + 1088)
-                        if kptr(ap2) then
-                            local q = rp(ap2 - 16)
-                            if q and q ~= 0 then
-                                G("army", SL.idpair(q >> 32, q % 2 ^ 32)) end
-                        end
-                        -- ===== §4.18.5 CUnit 公共段 writer 0x140BF7010 (ser=raw+16) =====
-                        G("id", SL.idpair(ru32(o + 28), ru32(o + 24)))
-                        G("name", QE(SL.sso(o + 600)))  -- MSVC {buf@600,size@616}
-                        local pv2 = rp(o + 504)         -- 0x29A3 previous
-                        if kptr(pv2) then G("previous", NF(ru32(pv2 + 164))) end
-                        local xp2 = rp(o + 488)         -- 0x2EDA experience
-                        if kptr(xp2) then G("experience", NF(ru32(xp2 + 164))) end
-                        -- 0x2FDF last_combat_date: 门 i32@456 ≠0 (哨兵 43808760
-                        -- 也写 "1.1.1.1", 实证)
-                        local lh2 = ru32(o + 456)
-                        if lh2 and lh2 ~= 0 then
-                            G("last_combat_date", QE(lh2 == 0x29C3388
-                                and "1.1.1.1" or date_raw(lh2))) end
-                        -- 0x28A4 = 10404 movement_progress (token 勘误,
-                        -- 非 10340): i64@raw+576 ×1e-5, 门 ≠0 (writer
-                        -- 0x140BF7010 ser+560; ZOO 7.7022 实证)
-                        local mg2 = rp(o + 576)
-                        if mg2 and mg2 ~= 0 then
-                            G("movement_progress", NF(mg2 / 100000)) end
-                        local mp2 = ru32(o + 584)       -- 14268 move_priority
-                        if mp2 and mp2 ~= 1 then
-                            G("move_priority", ({ [0] = "front_order",
-                                [2] = "player_order",
-                                [3] = "ai_player_order" })[mp2] or "normal") end
-                        -- 372 path / 13868 full_path: {d@512/544, c@524/556}
-                        -- u32 密集元 → 单行 .#1 拼接 (同 division 定案)
-                        local pd2, pc2 = rp(o + 512), ru32(o + 524)
-                        if kptr(pd2) and pc2 and pc2 > 0 and pc2 < 4096 then
-                            local parts = {}
-                            for pj = 0, pc2 - 1 do
-                                parts[#parts + 1] = NF(ru32(pd2 + 4 * pj)) end
-                            G("path.#1", table.concat(parts, " ")) end
-                        if (ru32(o + 556) or 0) ~= 0 then
-                            local fd2, fc2 = rp(o + 544), ru32(o + 556)
-                            if kptr(fd2) and fc2 and fc2 > 0 and fc2 < 4096 then
-                                local parts = {}
-                                for pj = 0, fc2 - 1 do
-                                    parts[#parts + 1] = NF(ru32(fd2 + 4 * pj)) end
-                                G("full_path.#1", table.concat(parts, " ")) end
-                        end
-                        local lc2 = rp(o + 496)         -- 0x286D location
-                        if kptr(lc2) then G("location", NF(ru32(lc2 + 164))) end
-                        if (ru8(o + 588) or 0) ~= 0 then G("retreat", "yes") end
-                        if (ru8(o + 589) or 0) ~= 0 then G("withdraw", "yes") end
-                        -- 0x28E0/0x28E1 start/end_date: 门 h-43800000>=17520
-                        local sd2 = ru32(o + 328)
-                        if sd2 then sd2 = GAME.layout.as_i32(sd2) end
-                        if sd2 and sd2 - 43800000 >= 17520 then
-                            G("start_date", QE(date_raw(sd2))) end
-                        local ed2 = ru32(o + 352)
-                        if ed2 then ed2 = GAME.layout.as_i32(ed2) end
-                        if ed2 and ed2 - 43800000 >= 17520 then
-                            G("end_date", QE(date_raw(ed2))) end
-                        -- 0x2EE2/0x2EE5 is_buildable 族: 门 u32@304 >0 (双发)
-                        if (ru32(o + 304) or 0) > 0 then
-                            G("is_buildable", NF(ru32(o + 304)))
-                            G("unused_token_11941", NF(ru32(o + 308))) end
-                        local tid2 = ru32(o + 476)      -- 0x2EDD expeditionary
-                        -- tag 上界 = tag 表 count (≠ 国家数: 动态 tag 的 id
-                        -- 可 > countryCount, D05 实证), 见 objects_v2
-                        -- tagUpperBound
-                        local tagub = ru32(ctx.gs + 0x364) or 0
-                        if tagub <= 32 or tagub >= 4096 then tagub = 1024 end
-                        if tid2 and tid2 > 0 and tid2 < tagub then
-                            local tt2 = rp(ctx.gs + 0x358)
-                            local tg2 = tt2 and hoi4.read_str(tt2 + 32 * tid2)
-                            if tg2 and #tg2 > 0 then
-                                G("expeditionary_owner", QE(tg2)) end
-                        end
-                        -- 0x3410 logical_country: i32 tid @raw+480
-                        local lg2 = ru32(o + 480)
-                        if lg2 and lg2 > 0 and lg2 < tagub then
-                            local tt3 = rp(ctx.gs + 0x358)
-                            local tg3 = tt3 and hoi4.read_str(tt3 + 32 * lg2)
-                            if tg3 and #tg3 > 0 then
-                                G("logical_country", QE(tg3)) end
-                        end
-                        -- 0x36A2/0x36A3 alliance/clear_queued: u32 门≠0
-                        if (ru32(o + 696) or 0) ~= 0 then
-                            G("alliance_strength_ratio", NF(ru32(o + 696))) end
-                        if (ru32(o + 700) or 0) ~= 0 then
-                            G("clear_queued_actions", NF(ru32(o + 700))) end
-                        if (ru8(o + 686) or 0) ~= 0 then G("exile", "yes") end
-                        -- move_capital (0x2B5F=11103,
-                        -- byte@ser+672→o+688; 旧名 exile_capital 误名)
-                        if (ru8(o + 688) or 0) ~= 0 then
-                            G("move_capital", "yes") end
-                        local sd3 = ru32(o + 808)       -- 0x2997 seed
-                        if sd3 and sd3 ~= 0 then G("seed", NF(sd3)) end
-                        -- 0x4AEF raid_instance idpair {type@812, id@816}
-                        if (ru32(o + 812) or 0) ~= 0
-                            or (ru32(o + 816) or 0) ~= 0 then
-                            G("raid_instance", SL.idpair(ru32(o + 816),
-                                ru32(o + 812))) end
-                        -- commandlist/country_intel: CUnit 尾同 division
-                        -- 布局 (书 §4.18.5), 门 count>0 (rg 全 0 无残差)
-                        do
-                            local cid, cic = rp(o + 632), ru32(o + 644)
-                            if kptr(cid) and cic and cic > 0 and cic < GAME.layout.lim.PTR_SANE then
-                                local parts = {}
-                                for k2 = 0, cic - 1 do
-                                    local e = cid + 24 * k2
-                                    parts[#parts + 1] = string.format("%d %d %d",
-                                        ru32(e) or 0, ru32(e + 8) or 0,
-                                        ru8(e + 16) or 0)
-                                end
-                                G("country_intel.#1",
-                                    table.concat(parts, " "))
-                            end
-                        end
+        local okr, rgs = pcall(function()
+            return cr and cr:railway_guns() end)
+        if okr and rgs then
+            local rgseq = SL.seqc()
+            for _, rg in ipairs(rgs) do
+                local gpfx = "units." .. rgseq("railway_gun") .. "."
+                local function G(path, val)
+                    if val ~= nil then emit(tag, gpfx .. path, val) end
+                end
+                -- 0x2FE3 definition: scoped ptr → token (SL.tok 无名落数值)
+                if rg.definition_tok ~= nil then
+                    G("definition", SL.tok(rg.definition_tok)) end
+                -- 0x2F4E equipment: B240 idpair {type@+824, id@+828}
+                G("equipment", SL.idpair(rg.eq_id, rg.eq_type))
+                -- 0x341D railway_gun_name 内嵌对象 (serialize 0x1409BCC70)
+                G("railway_gun_name.type", NF(rg.name_type))
+                if rg.name_order then
+                    G("railway_gun_name.name_order", NF(rg.name_order)) end
+                if rg.name_ordered_no then
+                    G("railway_gun_name.is_name_ordered", "no") end
+                if rg.override_gate then
+                    local ov = QE(rg.override)
+                    if ov then G("railway_gun_name.override", ov) end
+                end
+                if rg.osp then
+                    G("railway_gun_name.override_set_programmatically",
+                        "yes") end
+                if rg.name_eq then
+                    G("railway_gun_name.equipment",
+                        SL.idpair(rg.name_eq.id, rg.name_eq.type)) end
+                -- 0x28A6/0x283C/0x3A43/0x4CED/0x4CEC (全无条件; fixed5/u32)
+                G("strength", NF(rg.strength))
+                G("manpower", NF(rg.manpower))
+                G("max_supply", NF(rg.max_supply))
+                G("army_current_supply_ratio", NF(rg.supply_ratio))
+                G("supply_gain", NF(rg.supply_gain))
+                -- 0x4C5C repair_line idpair 双 dword 门
+                if rg.repair_line then
+                    G("repair_line", SL.idpair(rg.repair_line.id,
+                        rg.repair_line.type)) end
+                -- 0x2916 combat: 命名块逐元素 .#N (1 起恒编号)
+                if rg.combat then
+                    for cj, ce in ipairs(rg.combat) do
+                        G("combat.#" .. cj, SL.idpair(ce.id, ce.type))
                     end
+                end
+                -- 0x289D army: qword {id=高32, type=低32}
+                if rg.army then
+                    G("army", SL.idpair(rg.army.id, rg.army.type)) end
+                -- ===== §4.18.5 CUnit 公共段 (writer 0x140BF7010) =====
+                G("id", SL.idpair(rg.id_id, rg.id_type))
+                G("name", QE(rg.name))
+                G("previous", NF(rg.previous))
+                G("experience", NF(rg.experience))
+                -- 0x2FDF: 门 ≠0 (哨兵 0x29C3388 也写 "1.1.1.1")
+                if rg.last_combat_h then
+                    G("last_combat_date", QE(rg.last_combat_h == 0x29C3388
+                        and "1.1.1.1" or SL.date_raw(rg.last_combat_h))) end
+                -- 0x28A4 movement_progress (token 勘误): i64 门 ≠0
+                if rg.movement_progress then
+                    G("movement_progress", NF(rg.movement_progress)) end
+                local mpr = rg.move_priority_raw      -- 14268, ~=1 才写
+                if mpr and mpr ~= 1 then
+                    G("move_priority", ({ [0] = "front_order",
+                        [2] = "player_order",
+                        [3] = "ai_player_order" })[mpr] or "normal") end
+                -- path/full_path 单行 .#1 拼接 (u32 密集元)
+                if rg.path and #rg.path > 0 then
+                    local parts = {}
+                    for _, pv in ipairs(rg.path) do
+                        parts[#parts + 1] = NF(pv) end
+                    G("path.#1", table.concat(parts, " ")) end
+                if rg.full_path and #rg.full_path > 0 then
+                    local parts = {}
+                    for _, pv in ipairs(rg.full_path) do
+                        parts[#parts + 1] = NF(pv) end
+                    G("full_path.#1", table.concat(parts, " ")) end
+                G("location", NF(rg.location))
+                if rg.retreat then G("retreat", "yes") end
+                if rg.withdraw then G("withdraw", "yes") end
+                -- 0x28E0/0x28E1: 门 h-43800000>=17520 (reader 已门)
+                if rg.start_h then
+                    G("start_date", QE(SL.date_raw(rg.start_h))) end
+                if rg.end_h then
+                    G("end_date", QE(SL.date_raw(rg.end_h))) end
+                -- 0x2EE2/0x2EE5 is_buildable 族: 门 u32@304 >0 (双发)
+                if rg.is_buildable then
+                    G("is_buildable", NF(rg.is_buildable))
+                    G("unused_token_11941", NF(rg.unused_token)) end
+                G("expeditionary_owner", QE(rg.expeditionary_owner))
+                G("logical_country", QE(rg.logical_country))
+                G("alliance_strength_ratio", NF(rg.alliance))
+                G("clear_queued_actions", NF(rg.clear_queued))
+                if rg.exile then G("exile", "yes") end
+                if rg.move_capital then G("move_capital", "yes") end
+                G("seed", NF(rg.seed))
+                if rg.raid then
+                    G("raid_instance", SL.idpair(rg.raid.id, rg.raid.type)) end
+                if rg.intel then
+                    local parts = {}
+                    for _, it in ipairs(rg.intel) do
+                        parts[#parts + 1] = string.format("%d %d %d",
+                            it[1], it[2], it[3])
+                    end
+                    G("country_intel.#1", table.concat(parts, " "))
                 end
             end
         end
