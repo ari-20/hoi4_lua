@@ -82,6 +82,66 @@ end
 local DivMT = {}
 local function mk_div(a) return setmetatable({ addr = a }, DivMT) end
 
+-- §4.18.1 CUnitHistoryEntry 公共记录链唯一实现 (师 army_history / 师·船
+-- unit_medals store / 船 history 同构; kptr 过滤 = 列表对齐契约)。
+-- writer 门逐项: army_names sso@+8 空不收 / target_country tag@+76 上界
+-- PTR_HUGE / medal 定义@+104 (门 ptr≠0 且 ru8(def+16)≠0, 名 sso@def+24) /
+-- multiplier i64@+312 门≠100000 (×1e-5) / orders u32@+320 门≠0 /
+-- custom_lockey MSVC@+40 门 unique(@+72)==16 / location 容器@+0x120
+-- (门 PTR_SANE = 段层实证, 旧 reader <64 系误抄防御界) / sunk 原始名串
+-- @+128/+160 (ship history 用)。
+local function uhist_recs(hd, hc)
+  local out = {}
+  if not O.kptr(hd) or not hc or hc <= 0 or hc >= LAYOUT.lim.PTR_SANE then
+    return out
+  end
+  for q = 0, hc - 1 do
+    local e = rp(hd + 8 * q)
+    if O.kptr(e) then
+      local rec = { addr = e }
+      local an = U.sso(e + 8)
+      if an and #an > 0 then rec.army_names = an end
+      local tid = ru32(e + 76)
+      if tid and tid > 0 and tid < LAYOUT.lim.PTR_HUGE then
+        rec.target_country = Runtime:tag(tid) end
+      rec.date = date_from_hours_raw(ru32(e + 88))
+      rec.unique = ru32(e + 72)
+      rec.medal_count = (ru8(e + 112) == 1) and "yes" or "no"
+      rec.inherit = (ru8(e + 113) == 1) and "yes" or "no"
+      local mdp = rp(e + 104)
+      if O.kptr(mdp) and (ru8(mdp + 16) or 0) ~= 0 then
+        local mdn = U.sso(mdp + 24)
+        if mdn and #mdn > 0 then rec.medal = mdn end
+      end
+      local mu = rp(e + 312)
+      if mu and mu ~= 100000 then rec.multiplier = mu * 1e-5 end
+      local od = ru32(e + 320)
+      if od and od ~= 0 then rec.orders = od end
+      if ru32(e + 72) == 16 then
+        local csz = ru32(e + 56)
+        if csz and csz > 0 and csz < 4096 then
+          local cbuf = (csz > 15) and rp(e + 40) or (e + 40)
+          if O.kptr(cbuf) then rec.custom_lockey = hoi4.read_cstr(cbuf) end
+        end
+      end
+      local lcd, lcc = rp(e + 0x120), ru32(e + 0x128)
+      if O.kptr(lcd) and lcc and lcc > 0 and lcc < LAYOUT.lim.PTR_SANE then
+        local locs = {}
+        for k2 = 0, lcc - 1 do
+          local lp2 = rp(lcd + 8 * k2)
+          local lid = O.kptr(lp2) and ru32(lp2 + 164) or nil
+          if lid then locs[#locs + 1] = lid end
+        end
+        rec.locations = locs
+      end
+      rec.sunk_name_raw = U.sso(e + 128)
+      rec.sunk_killer_raw = U.sso(e + 160)
+      out[#out + 1] = rec
+    end
+  end
+  return out
+end
+
 -- 6.1 requests 全族 (§4.18.3; q = *(div+1144); 布局/键序/门 = 书 §4.18.3)
 -- 记录形态对齐 legacy Objects.divisions "requests"
 local function req_fx(v)                -- 值基 ×1e-5 → "%.5f" 串
@@ -529,7 +589,8 @@ DivMT.__index = function(self, k)
     local r = { type = ru32(n + 8) }
     local no = ru32(n + 128)
     if no and no ~= 0 then r.name_order = no end
-    -- is_name_ordered (14562) 另有类切换/门控未解 (legacy) — 不导出
+    -- is_name_ordered (14562): 反值门仅假写 no (段层 writer 实证 @+168==0)
+    r.is_name_ordered_no = (ru8(n + 168) or 0) == 0
     local ov = U.sso(n + 136)
     if ov and #ov > 0 then r.override = ov end
     local pb = ru8(n + 169)
@@ -572,43 +633,60 @@ DivMT.__index = function(self, k)
     local d, cnt = rp(h0 + 40), ru32(h0 + 52)
     local lst = {}
     if O.kptr(d) and cnt and cnt > 0 and cnt < 4096 then
-      for i = 0, cnt - 1 do
-        local e = rp(d + 8 * i)
-        if O.kptr(e) then
-          local rec = {}
-          local an = U.sso(e + 8)
-          if an and #an > 0 then rec.army_names = an end
-          -- target_country: e+76 tag 经串表反查
-          local tid = ru32(e + 76)
-          if tid and tid > 0 and tid < 100000 then
-            rec.target_country = self.R:tag(tid)
+      lst = uhist_recs(d, cnt)
+    end
+    return { list = lst, count = #lst }
+  end
+  if k == "medal_store" then            -- §4.18.1 army_history.unit_medals
+    local st = rp(a + 1624)             --   (scoped ptr → CUnitMedalStore;
+    if not (st and O.kptr(st)           --   布局同 CArmyHistory 队列 + amount@+608)
+        and rp(st) == BASE + GAME.layout.vt.CUnitHistoryEntry) then
+      return nil
+    end
+    local amt = ru32(st + 608)
+    return { list = uhist_recs(rp(st + 8), ru32(st + 20)),
+      amount = (amt and amt > 0) and amt or nil }
+  end
+  if k == "commandlist_actions" then    -- §4.18.5 writer 分派 (token@p+8;
+    local out = {}                      --   13898 存档未见未实现, 原样)
+    for _, p in O.vec(a, 704, 716, 8, true) do
+      if O.kptr(p) then
+        local tk = ru32(p + 8)
+        if tk == 13896 then             -- §4.33.15 CUnitMoveAction (96B)
+          local act = { kind = 13896,
+            unit_type = ru32(p + 16) or 0, unit_id = ru32(p + 20) or 0 }
+          local d1, c1 = rp(p + 24), ru32(p + 36)
+          if O.kptr(d1) and c1 and c1 > 0 and c1 < 4096 then
+            act.provinces = {}
+            for j = 0, c1 - 1 do
+              act.provinces[#act.provinces + 1] = ru32(d1 + 4 * j) or 0 end
           end
-          -- CGameDate: hours i32 @e+88 (探针 0x39F37A2 → 1936.10.9.11)
-          rec.date = date_from_hours_raw(ru32(e + 88))
-          rec.unique = ru32(e + 72)
-          rec.medal_count = (ru8(e + 112) == 1) and "yes" or "no"
-          rec.inherit = (ru8(e + 113) == 1) and "yes" or "no"
-          local mult = rp(e + 312)
-          if mult and mult ~= 100000 then rec.multiplier = mult * 1e-5 end
-          local om = ru32(e + 320)
-          if om and om ~= 0 then rec.orders = om end
-          -- location 容器 @e+0x120 {data, c@+0x128}, 元素 8B 省指针
-          -- (省 id @ptr+164)
-          local lcd, lcc = rp(e + 0x120), ru32(e + 0x128)
-          if O.kptr(lcd) and lcc and lcc > 0 and lcc < 64 then
-            local locs = {}
-            for k2 = 0, lcc - 1 do
-              local lp2 = rp(lcd + 8 * k2)
-              local lid = O.kptr(lp2) and ru32(lp2 + 164) or nil
-              if lid then locs[#locs + 1] = lid end
-            end
-            if #locs > 0 then rec.location = table.concat(locs, " ") end
+          local d2, c2 = rp(p + 48), ru32(p + 60)
+          if O.kptr(d2) and c2 and c2 > 0 and c2 < 4096 then
+            act.path = {}
+            for j = 0, c2 - 1 do
+              act.path[#act.path + 1] = ru32(d2 + 4 * j) or 0 end
           end
-          lst[#lst + 1] = rec
+          act.clear = (ru8(p + 80) or 0) ~= 0
+          act.safe = (ru8(p + 81) or 0) ~= 0
+          act.safe_fallback = (ru8(p + 83) or 0) ~= 0
+          act.safe_end = (ru8(p + 82) or 0) ~= 0
+          act.avoid = (ru8(p + 85) or 0) ~= 0
+          act.move_priority_raw = ru32(p + 88)
+          act.sticky = (ru8(p + 92) or 0) ~= 0
+          out[#out + 1] = act
+        elseif tk == 13897 then         -- §4.33.15 CUnitNavalMoveAction (40B)
+          out[#out + 1] = { kind = 13897,
+            unit_type = ru32(p + 16) or 0, unit_id = ru32(p + 20) or 0,
+            location = ru32(p + 28), province = ru32(p + 24),
+            amphibious = (ru8(p + 32) or 0) ~= 0 }
         end
       end
     end
-    return { list = lst, count = #lst }
+    return out
+  end
+  if k == "disrupted_supply_raw" then   -- i64@+176 原值 (段层门 ~=0, ×1e-5)
+    return rp(a + 176)
   end
   if k == "requests" then return DivMT.requests(self) end
   return nil

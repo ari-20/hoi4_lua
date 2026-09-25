@@ -70,17 +70,19 @@ SV2.csec[#SV2.csec + 1] = { name = "country.units", emit = function(ctx)
                         if lid then locs[#locs + 1] = NF(lid) end
                     end
                 end
+            elseif hr.locations then      -- reader 记录链已带 (uhist_recs)
+                for _, lid in ipairs(hr.locations) do
+                    locs[#locs + 1] = NF(lid) end
             else
                 for _, lid in ipairs(words(hr.location)) do
                     locs[#locs + 1] = lid end
             end
             if #locs > 0 then
                 emit(tag, hk .. ".location.#1", table.concat(locs, " ")) end
-            if ea then                    -- 条目内联叶族:
+            if ea then                    -- 条目内联叶族 (ship 路径, 5c 迁移):
                 local mdn = medal_name_of(ea)   -- +104 medal 定义指针
                 if mdn then emit(tag, hk .. ".unit_medals", QE(mdn)) end
-                -- multiplier i64@+312 ≠100000(=1.0) 才写 (ship 侧 reader 未收,
-                -- save=0.75 实证); orders u32@+320 ≠0
+                -- multiplier i64@+312 ≠100000(=1.0) 才写; orders u32@+320 ≠0
                 local mu = rp(ea + 312)
                 if mu and mu ~= 100000 then
                     emit(tag, hk .. ".multiplier", NF(mu * 1e-5)) end
@@ -98,16 +100,19 @@ SV2.csec[#SV2.csec + 1] = { name = "country.units", emit = function(ctx)
                         end
                     end
                 end
+            else                          -- rec 兜底 (uhist_recs 全字段, 序同内联)
+                if hr.medal then
+                    emit(tag, hk .. ".unit_medals", QE(hr.medal)) end
+                if hr.multiplier then
+                    emit(tag, hk .. ".multiplier", NF(hr.multiplier)) end
+                if hr.orders then emit(tag, hk .. ".orders", NF(hr.orders)) end
+                if hr.custom_lockey then
+                    emit(tag, hk .. ".custom_lockey", QE(hr.custom_lockey)) end
             end
             v = QE(hr.date) if v then emit(tag, hk .. ".date", v) end
             if hr.unique ~= nil then emit(tag, hk .. ".unique", NF(hr.unique)) end
             if hr.medal_count then emit(tag, hk .. ".medal_count", hr.medal_count) end
             if hr.inherit then emit(tag, hk .. ".inherit", hr.inherit) end
-            if not ea then                -- 无条目地址时 rec 兜底 (值同源)
-                if hr.multiplier then
-                    emit(tag, hk .. ".multiplier", NF(hr.multiplier)) end
-                if hr.orders then emit(tag, hk .. ".orders", NF(hr.orders)) end
-            end
             local su = hr.sunk           -- §4.16.13 CSunkShipInfo 内嵌@entry+120
             if su then
                 local sp = hk .. ".sunk_ship"
@@ -214,17 +219,15 @@ SV2.csec[#SV2.csec + 1] = { name = "country.units", emit = function(ctx)
             if mpr and mpr ~= 1 then D("move_priority", dv.move_priority) end
             D("location", NF(dv.location))
             D("logical_country", QE(dv.logical_country))
-            -- §4.18.5 CUnit 公共段 country_intel (12009; 布局/写门 = 书
-            -- §4.18.5): 单行 .#1 全元素拼接 (同 tf/rg 侧形态)
+            -- §4.18.5 CUnit 公共段 country_intel (12009): 单行 .#1 全元素
+            -- 拼接 (reader dv.country_intel 平铺 3 值/元)
             do
-                local a1 = dv.addr
-                local cid, cic = a1 and rp(a1 + 632), a1 and ru32(a1 + 644)
-                if kptr(cid) and cic and cic > 0 and cic < GAME.layout.lim.PTR_SANE then
+                local ci = dv.country_intel
+                if ci and #ci >= 3 then
                     local parts = {}
-                    for k = 0, cic - 1 do
-                        local e = cid + 24 * k
+                    for k = 1, #ci, 3 do
                         parts[#parts + 1] = string.format("%d %d %d",
-                            ru32(e) or 0, ru32(e + 8) or 0, ru8(e + 16) or 0)
+                            ci[k], ci[k + 1], ci[k + 2])
                     end
                     D("country_intel.#1", table.concat(parts, " "))
                 end
@@ -260,14 +263,9 @@ SV2.csec[#SV2.csec + 1] = { name = "country.units", emit = function(ctx)
             if dn then                              -- 内嵌@a+832 (writer 0x1409BCC70)
                 D("division_name.type", NF(dn.type))
                 D("division_name.name_order", NF(dn.name_order))
-                -- is_name_ordered: 反值门仅假写 no (名持有对象 = 书
-                -- §4.18.1); reader 不导出 → 此处补读 raw @dv.addr+832
-                do
-                    local na = dv.addr and rp(dv.addr + 832)
-                    if na and kptr(na) and (ru8(na + 168) or 0) == 0 then
-                        D("division_name.is_name_ordered", "no")
-                    end
-                end
+                -- is_name_ordered: 反值门仅假写 no (reader 已带 @+168==0)
+                if dn.is_name_ordered_no then
+                    D("division_name.is_name_ordered", "no") end
                 D("division_name.override", QE(dn.override))
                 if dn.override_set_programmatically then
                     D("division_name.override_set_programmatically", "yes") end
@@ -335,91 +333,71 @@ SV2.csec[#SV2.csec + 1] = { name = "country.units", emit = function(ctx)
             end
             D("army_current_supply_ratio", NF(dv.current_supply_ratio))
             -- §4.18.5 CUnit 公共段 commandlist (布局/写门 = 书 §4.18.5;
-            -- 命令名 = token, 动作对象按 token 分派见下)
+            -- reader dv.commandlist_actions 已按 token 分派)
             do
-                local acl = dv.addr
-                local cd, cc = acl and rp(acl + 704), acl and ru32(acl + 716)
-                if cd and kptr(cd) and cc and cc > 0 and cc < GAME.layout.lim.PTR_SANE then
+                local acts = dv.commandlist_actions
+                if acts and #acts > 0 then
                     local clseq = SL.seqc()
-                    for k = 0, cc - 1 do
-                        local p = rp(cd + 8 * k)
-                        if kptr(p) then
-                            local tk = ru32(p + 8)
-                            if tk == 13896 then
-                                -- §4.33.15 CUnitMoveAction (96B, vt 0x298CB28, writer
-                                -- 0x141220FC0): unit 恒写; province/path 列表
-                                -- 单行拼接 (>0 才写); 5 bool 仅真写 yes;
-                                -- move_priority 枚举 raw@+88 ~= 1 才写
-                                local bp = clseq("commandlist.unit_move_action")
-                                    .. "."
-                                D(bp .. "unit",
-                                    SL.idpair(ru32(p + 20), ru32(p + 16)))
-                                local d1, c1 = rp(p + 24), ru32(p + 36)
-                                if kptr(d1) and c1 and c1 > 0 and c1 < 4096 then
-                                    local pp1 = {}
-                                    for j = 0, c1 - 1 do
-                                        pp1[#pp1 + 1] =
-                                            tostring(ru32(d1 + 4 * j) or 0)
-                                    end
-                                    D(bp .. "province.#1",
-                                        table.concat(pp1, " "))
-                                end
-                                local d2, c2 = rp(p + 48), ru32(p + 60)
-                                if kptr(d2) and c2 and c2 > 0 and c2 < 4096 then
-                                    local pp2 = {}
-                                    for j = 0, c2 - 1 do
-                                        pp2[#pp2 + 1] =
-                                            tostring(ru32(d2 + 4 * j) or 0)
-                                    end
-                                    D(bp .. "path.#1", table.concat(pp2, " "))
-                                end
-                                if (ru8(p + 80) or 0) ~= 0 then
-                                    D(bp .. "clear", "yes") end
-                                if (ru8(p + 81) or 0) ~= 0 then
-                                    D(bp .. "safe", "yes") end
-                                if (ru8(p + 83) or 0) ~= 0 then
-                                    D(bp .. "safe_with_nonsafe_fallback",
-                                        "yes") end
-                                if (ru8(p + 82) or 0) ~= 0 then
-                                    D(bp .. "safe_until_very_end", "yes") end
-                                if (ru8(p + 85) or 0) ~= 0 then
-                                    D(bp .. "avoid", "yes") end
-                                local mpa = ru32(p + 88)
-                                if mpa and mpa ~= 1 then
-                                    D(bp .. "move_priority",
-                                        ({ [0] = "front_order",
-                                            [2] = "player_order",
-                                            [3] = "ai_player_order" })[mpa]
-                                        or "normal")
-                                end
-                                if (ru8(p + 92) or 0) ~= 0 then
-                                    D(bp .. "sticky", "yes") end
-                            elseif tk == 13897 then
-                                -- §4.33.15 CUnitNavalMoveAction (40B, vt 0x298CBF8,
-                                -- writer 0x1412210D0): unit/location/province
-                                -- 恒写; is_amphibious_invasion 仅真写 yes
-                                local bp = clseq(
-                                    "commandlist.unit_naval_move_action") .. "."
-                                D(bp .. "unit",
-                                    SL.idpair(ru32(p + 20), ru32(p + 16)))
-                                D(bp .. "location", NF(ru32(p + 28)))
-                                D(bp .. "province", NF(ru32(p + 24)))
-                                if (ru8(p + 32) or 0) ~= 0 then
-                                    D(bp .. "is_amphibious_invasion", "yes")
-                                end
+                    for _, act in ipairs(acts) do
+                        if act.kind == 13896 then
+                            -- §4.33.15 CUnitMoveAction (96B, writer
+                            -- 0x141220FC0): unit 恒写; province/path 列表
+                            -- 单行拼接 (>0 才写); 5 bool 仅真写 yes;
+                            -- move_priority 枚举 raw ~= 1 才写
+                            local bp = clseq("commandlist.unit_move_action")
+                                .. "."
+                            D(bp .. "unit",
+                                SL.idpair(act.unit_id, act.unit_type))
+                            if act.provinces then
+                                local pp1 = {}
+                                for _, pv in ipairs(act.provinces) do
+                                    pp1[#pp1 + 1] = tostring(pv) end
+                                D(bp .. "province.#1",
+                                    table.concat(pp1, " "))
                             end
-                            -- 13898 unit_strategic_move_action: 存档未见, 未实现
+                            if act.path then
+                                local pp2 = {}
+                                for _, pv in ipairs(act.path) do
+                                    pp2[#pp2 + 1] = tostring(pv) end
+                                D(bp .. "path.#1", table.concat(pp2, " "))
+                            end
+                            if act.clear then D(bp .. "clear", "yes") end
+                            if act.safe then D(bp .. "safe", "yes") end
+                            if act.safe_fallback then
+                                D(bp .. "safe_with_nonsafe_fallback", "yes") end
+                            if act.safe_end then
+                                D(bp .. "safe_until_very_end", "yes") end
+                            if act.avoid then D(bp .. "avoid", "yes") end
+                            local mpa = act.move_priority_raw
+                            if mpa and mpa ~= 1 then
+                                D(bp .. "move_priority",
+                                    ({ [0] = "front_order",
+                                        [2] = "player_order",
+                                        [3] = "ai_player_order" })[mpa]
+                                    or "normal")
+                            end
+                            if act.sticky then D(bp .. "sticky", "yes") end
+                        elseif act.kind == 13897 then
+                            -- §4.33.15 CUnitNavalMoveAction (40B, writer
+                            -- 0x1412210D0): unit/location/province 恒写;
+                            -- is_amphibious_invasion 仅真写 yes
+                            local bp = clseq(
+                                "commandlist.unit_naval_move_action") .. "."
+                            D(bp .. "unit",
+                                SL.idpair(act.unit_id, act.unit_type))
+                            D(bp .. "location", NF(act.location))
+                            D(bp .. "province", NF(act.province))
+                            if act.amphibious then
+                                D(bp .. "is_amphibious_invasion", "yes") end
                         end
                     end
                 end
             end
             D("supply_gain", NF(dv.supply_gain))
             D("bonus", NF(dv.bonus))
-            -- disrupted_supply: i64@raw+176 ×1e-5,
-            -- 门 ≠0 (ENG div[69/127/138] raw 44260/32238/50629 精确命中)
+            -- disrupted_supply: i64@raw+176 ×1e-5, 门 ≠0 (reader 出原值)
             do
-                local a4 = dv.addr
-                local ds = a4 and rp(a4 + 176)
+                local ds = dv.disrupted_supply_raw
                 if ds and ds ~= 0 then D("disrupted_supply", NF(ds * 1e-5)) end
             end
             D("str_damage", NF(dv.str_damage))
@@ -450,71 +428,26 @@ SV2.csec[#SV2.csec + 1] = { name = "country.units", emit = function(ctx)
                 D("full_path.#1", table.concat(parts, " "))
             end
             emit_requests(dpfx, dv)
-            local ah = dv.army_history              -- §4.18.1 CArmy 内嵌@a+1592 (writer 0x14143AC00)
+            local ah = dv.army_history              -- §4.18.1 CArmy 内嵌@a+1592
             if ah and ah.list and #ah.list > 0 then
-                -- 条目地址内联重建 (容器 {d@a+1632, c@a+1644} 8B 指针元, 同
-                -- reader §6 kptr 过滤 → 与 ah.list 逐一对齐); 供 +104
-                -- unit_medals 新叶
-                local earrs
-                local a2 = dv.addr
-                if a2 then
-                    local hd, hc = rp(a2 + 1632), ru32(a2 + 1644)
-                    if kptr(hd) and hc and hc > 0 and hc < GAME.layout.lim.PTR_SANE then
-                        earrs = {}
-                        for q = 0, hc - 1 do
-                            local e = rp(hd + 8 * q)
-                            if kptr(e) then earrs[#earrs + 1] = e end
-                        end
-                    end
-                end
-                -- 师史同船史: army_names 空串照写 "" (ITA/APG 等 10 叶实证)
+                -- 师史同船史: army_names 空串照写 "" (ITA/APG 等 10 叶实证);
+                -- 记录链 reader 已带全字段 (uhist_recs), 无需条目地址
                 emit_div_history(dpfx .. "army_history.army_history.", ah,
-                    { entries = earrs, empty_fallback = true })
+                    { empty_fallback = true })
             end
-            -- §4.18.1 CArmy army_history.unit_medals: 内嵌块 (scoped ptr →
-            -- CUnitMedalStore; 布局/写门/三枚 CModifier 不落盘 = 书 §4.18.1)。
+            -- §4.18.1 army_history.unit_medals: reader dv.medal_store
+            -- (scoped ptr → CUnitMedalStore; 布局/写门/三枚 CModifier
+            -- 不落盘 = 书 §4.18.1)。
             do
-                local a2 = dv.addr
-                local st = a2 and rp(a2 + 1624)
-                if st and kptr(st) and rp(st) == BASE + GAME.layout.vt.CUnitHistoryEntry then
-                    local hd2, hc2 = rp(st + 8), ru32(st + 20)
-                    if kptr(hd2) and hc2 and hc2 > 0 and hc2 < GAME.layout.lim.PTR_SANE then
-                        local recs, earrs2 = {}, {}
-                        local tt2 = rp(ctx.gs + 0x358)  -- §1.2 tag 串表 gs+856 (tid→tag)
-                        for q = 0, hc2 - 1 do
-                            local e = rp(hd2 + 8 * q)
-                            if kptr(e) then
-                                local rec = {}
-                                local an = SL.sso(e + 8)
-                                if an and #an > 0 then rec.army_names = an end
-                                local tid2 = ru32(e + 76)
-                                if tid2 and tid2 > 0 and tid2 < GAME.layout.lim.PTR_HUGE and tt2 then
-                                    local tg2 = hoi4.read_str(tt2 + 32 * tid2)
-                                    if tg2 and #tg2 > 0 then
-                                        rec.target_country = tg2 end
-                                end
-                                rec.date = date_raw(ru32(e + 88))
-                                rec.unique = ru32(e + 72)
-                                rec.medal_count = (ru8(e + 112) == 1)
-                                    and "yes" or "no"
-                                rec.inherit = (ru8(e + 113) == 1)
-                                    and "yes" or "no"
-                                -- multiplier/orders/location/unit_medals 由
-                                -- earrs2 → emit_div_history ea 内联发
-                                recs[#recs + 1] = rec
-                                earrs2[#earrs2 + 1] = e   -- location/medal 内联
-                            end
-                        end
-                        if #recs > 0 then
-                            emit_div_history(
-                                dpfx .. "army_history.unit_medals.history.",
-                                { list = recs },
-                                { entries = earrs2, empty_fallback = true })
-                        end
+                local ms = dv.medal_store
+                if ms then
+                    if #ms.list > 0 then
+                        emit_div_history(
+                            dpfx .. "army_history.unit_medals.history.",
+                            { list = ms.list }, { empty_fallback = true })
                     end
-                    local amt = ru32(st + 608)
-                    if amt and amt > 0 then
-                        D("army_history.unit_medals.amount", NF(amt)) end
+                    if ms.amount then
+                        D("army_history.unit_medals.amount", NF(ms.amount)) end
                 end
             end
             local ri = dv.raid_instance
