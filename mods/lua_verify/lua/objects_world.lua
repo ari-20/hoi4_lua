@@ -814,6 +814,56 @@ function Runtime.state_extras(self, state_id)
                 end
               end
             end
+            -- 段层发射形 (sv2_sec_states 消费; 与 pairs/added_pairs
+            -- 预格式形并存 — 那两形 "%.5f" 不去尾零, 发射须 SL.num)
+            local obj2 = rp(e + 0x20)
+            if O.kptr(obj2) then
+              local pcnt = math.min(ru32(e + 40) or 0,
+                  ru32(e + 44) or 0, 8)
+              t.xpairs = {}
+              for q = 0, pcnt - 1 do
+                local midx = ru32(obj2 + 16 * q)
+                if not midx or midx == 0 then break end
+                local raw = LAYOUT.as_i64(rp(obj2 + 16 * q + 8) or 0)
+                local mn = GAME.layout.modifier_token(midx)
+                if mn then
+                  t.xpairs[#t.xpairs + 1] = { name = mn, value = raw / 1e5 }
+                end
+              end
+              local aarr2, acntx = rp(e + 0x38), ru32(e + 0x44) or 0
+              if O.kptr(aarr2) and acntx and acntx > 0
+                  and acntx < LAYOUT.lim.PTR_SANE then
+                t.xadded = {}
+                for aj = 0, acntx - 1 do
+                  local aobj = rp(aarr2 + 8 * aj)
+                  if O.kptr(aobj) then
+                    local a = {}
+                    local dv = ru32(aobj + 0xBC)
+                    if dv and dv ~= 1 then a.data = dv end
+                    local nm2 = U.sso(aobj + 0x58)
+                    if nm2 and nm2 ~= "" then a.name = nm2 end
+                    a.pairs = {}
+                    local pd2 = rp(aobj + 16)
+                    local pc2 = ru32(aobj + 28)
+                    if O.kptr(pd2) and pc2 and pc2 > 0
+                        and pc2 < LAYOUT.lim.PTR_SANE then
+                      for pj = 0, pc2 - 1 do
+                        local di = ru32(pd2 + 16 * pj)
+                        local raw2 = rp(pd2 + 16 * pj + 8)
+                        if di and raw2 then
+                          local mn = GAME.layout.modifier_token(di)
+                          if mn then
+                            a.pairs[#a.pairs + 1] = {
+                              name = mn, value = LAYOUT.as_i64(raw2) * 1e-5 }
+                          end
+                        end
+                      end
+                    end
+                    t.xadded[#t.xadded + 1] = a
+                  end
+                end
+              end
+            end
             atms[#atms + 1] = t
           end
         end
@@ -928,3 +978,140 @@ end
 
 
 -- ============================================================
+
+
+-- ============================================================
+-- §4.13 states 段内联簇唯一实现 (sv2_sec_states 消费; writer 门逐项 = 书)
+-- ⚠ flags 键 = SL.tok 同形 (token 失效落数值键); tags 槽序稀疏表保洞。
+function Runtime.state_fields(self, state_id)
+  local g = self.gs()
+  local sarr = g and rp(g + 0x2C8)
+  if not O.kptr(sarr) then return nil end
+  local st = rp(sarr + 8 * (state_id or 1))
+  if not O.vt(st, GAME.layout.vt.CState) then return nil end
+  local rec = {}
+  -- name (MSVC 串 @+56, size u32@+72 ≠0 才写)
+  if (ru32(st + 72) or 0) ~= 0 then
+    local snm = U.sso(st + 56)
+    if snm and snm ~= "" then rec.name = snm end
+  end
+  -- contested_owners/previous_owner: 4B tag 数组 (门 <440; 槽序保洞)
+  local function taglist(doff, coff)
+    local d, c = rp(st + doff), ru32(st + coff) or nil
+    if not O.kptr(d) or not c or c <= 0 or c >= 440 then return nil end
+    local t = {}
+    for i = 0, c - 1 do
+      local tg = self:tag(ru32(d + 4 * i) or 0)
+      if tg then t[i + 1] = tg end
+    end
+    return t, c
+  end
+  rec.contested, rec.contested_n = taglist(208, 220)
+  rec.previous, rec.previous_n = taglist(264, 276)
+  -- state modifier 块 (+1736 内嵌 CModifier, writer 0x140605B00;
+  -- base pairs 直发 + children → added_modifier [N] 第 2 起编号)
+  local function pairs_list(pd, pc)
+    if not (O.kptr(pd) and pc and pc > 0 and pc < LAYOUT.lim.PTR_SANE) then
+      return nil end
+    local t = {}
+    for qi = 0, pc - 1 do
+      local di = ru32(pd + 16 * qi)
+      if not di or di == 0 then break end
+      local raw = rp(pd + 16 * qi + 8)
+      local mn = raw and GAME.layout.modifier_token(di)
+      if mn and raw then
+        t[#t + 1] = { name = mn, value = LAYOUT.as_i64(raw) * 1e-5 }
+      end
+    end
+    return t
+  end
+  do
+    local md, mc = rp(st + 1752), ru32(st + 1764)
+    local cd, cc = rp(st + 1776), ru32(st + 1788)
+    if (mc and mc > 0) or (cc and cc > 0) then
+      local m = { base = pairs_list(md, mc), added = {} }
+      -- writer 无计数门, 防御界统一 PTR_SANE (旧 cc<16 过紧实证)
+      if O.kptr(cd) and cc and cc > 0 and cc < LAYOUT.lim.PTR_SANE then
+        for cj = 0, cc - 1 do
+          local aobj = rp(cd + 8 * cj)
+          if O.kptr(aobj) then
+            local a = {}
+            local dv = ru32(aobj + 188)
+            if dv and dv ~= 1 then a.data = dv end
+            local snm = U.sso(aobj + 88)
+            if snm and snm ~= "" then a.name = snm end
+            a.pairs = pairs_list(rp(aobj + 16), ru32(aobj + 28))
+            m.added[#m.added + 1] = a
+          end
+        end
+      end
+      rec.modifier = m
+    end
+  end
+  -- flags (fm @+0x540; 0x30 条; key ≤ lexer max; value i16 低半;
+  -- date @+0x18 绝对小时; days = 高半 &0x7FFF >0)
+  do
+    local fm = rp(st + 0x540)
+    if O.kptr(fm) then
+      local d, c = rp(fm + 8), ru32(fm + 20)
+      if O.kptr(d) and c and c > 0 and c < LAYOUT.lim.PTR_SANE then
+        local t = {}
+        local maxtok = hoi4.read_u32(hoi4.base()
+            + GAME.layout.rva.lexer_token_max) or 100000
+        for i = 0, c - 1 do
+          local e = d + 0x30 * i
+          local key = ru32(e + 8)
+          local nm = key and key <= maxtok
+              and (GAME.layout.token_name(key) or key)
+          if nm then
+            local v = ru32(e + 0x28) or 0
+            v = v & 0xFFFF
+            v = LAYOUT.as_i16(v)
+            local dh = ru32(e + 0x18)
+            local ex = (ru32(e + 0x28) >> 16) & 0x7FFF
+            t[#t + 1] = { name = nm, value = v,
+              date_h = (dh and dh > 0) and dh or nil,
+              days = (ex > 0) and ex or nil }
+          end
+        end
+        rec.flags = t
+      end
+    end
+  end
+  -- variables.random (vo @+2040: u32@+12 u32@+8)
+  do
+    local vo = rp(st + 2040)
+    if O.kptr(vo) then
+      rec.vars_random = { ru32(vo + 12) or 0, ru32(vo + 8) or 0 }
+    end
+  end
+  -- added_resistance_targets (@+0x268+600; 72B 条; 门 = 容器非空)
+  do
+    local atd = rp(st + 0x268 + 600)
+    local atc = ru32(st + 0x268 + 612) or 0
+    if O.kptr(atd) and atc > 0 and atc < LAYOUT.lim.PTR_SANE then
+      local t = {}
+      for ai = 0, atc - 1 do
+        local ae = atd + 72 * ai
+        local aid = ru32(ae + 8)
+        local act = ru32(ae + 28)
+        local aot = ru32(ae + 32)
+        local tooltip
+        if (rp(ae + 56) or 0) ~= 0 then
+          local tt2 = U.sso(ae + 40)
+          if tt2 and tt2 ~= "" then tooltip = tt2 end
+        end
+        t[#t + 1] = {
+          id = (aid and aid ~= 0) and aid or nil,
+          amount = (rp(ae + 16) or 0) / 1e5,
+          days = (function() local v = ru32(ae + 24)
+            return (v and v ~= 0xFFFFFFFF) and v or nil end)(),
+          controller = (act and act > 0) and self:tag(act) or nil,
+          occupied = (aot and aot > 0) and self:tag(aot) or nil,
+          tooltip = tooltip }
+      end
+      rec.added_rt = t
+    end
+  end
+  return rec
+end

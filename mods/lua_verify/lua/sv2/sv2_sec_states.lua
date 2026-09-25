@@ -14,6 +14,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "states", emit = function(ctx)
     local function numf(v) return SL.num(v) end
     for sid = 1, sid_max do
         local ok2, st = pcall(function() return O:state(sid) end)
+        local oks, sf = pcall(function() return O:state_fields(sid) end)
         if ok2 and st then
             local p = sid .. "."
             local function E(path, val) emit("states", p .. path, val) end
@@ -84,128 +85,56 @@ SV2.gsec[#SV2.gsec + 1] = { name = "states", emit = function(ctx)
             end
             -- flags — §4.13.3 CFlagManager (value 恒写; date = +0x18 绝对小时)
             local st_addr = st.addr
-            -- name (§4.13 CState: writer 0x140xxx L53: MSVC 串 @+56,
-            -- size u32@+72 ≠0 才写, 引号)
-            if st_addr and (ru32(st_addr + 72) or 0) ~= 0 then
-                local snm = SL.sso(st_addr + 56)
-                if snm and snm ~= "" then E("name", '"' .. snm .. '"') end
+            -- name (§4.13 CState: MSVC 串 @+56, size@+72 ≠0 才写)
+            if sf and sf.name then E("name", '"' .. sf.name .. '"') end
+            -- contested_owners/previous_owner (槽序稀疏表保洞; 门 <440)
+            if sf and sf.contested then
+                for ci = 1, sf.contested_n do
+                    local t = sf.contested[ci]
+                    if t then
+                        E("contested_owners.#" .. ci, '"' .. t .. '"') end
+                end
             end
-            -- contested_owners (§4.13 CState: writer L187-198: gate count
-            -- u32@+220 ≠0; data@+208, 4B 国 idx → 引号 tag;
-            -- 叶 contested_owners.#K)
+            if sf and sf.previous then
+                for pi = 1, sf.previous_n do
+                    local t = sf.previous[pi]
+                    if t then
+                        E("previous_owner.#" .. pi, '"' .. t .. '"') end
+                end
+            end
+            -- state modifier 块 (§4.13 +1736 内嵌 CModifier; reader
+            -- sf.modifier = base pairs + added children)
             do
-                local cod, coc = st_addr and rp(st_addr + 208),
-                    st_addr and ru32(st_addr + 220) or nil
-                if SL.kptr(cod) and coc and coc > 0 and coc < 440 then
-                    for ci = 0, coc - 1 do
-                        local t = O:tag(ru32(cod + 4 * ci) or 0)
-                        if t then
-                            E("contested_owners.#" .. (ci + 1),
-                                '"' .. t .. '"')
-                        end
+                local mo = sf and sf.modifier
+                if mo then
+                    local function emit_pairs(pre, lst)
+                        for _, pv in ipairs(lst or {}) do
+                            E(pre .. pv.name, numf(pv.value)) end
+                    end
+                    emit_pairs("modifier.", mo.base)
+                    local cseq = 0  -- 重复块第 2 起编 [N] (提取器契约)
+                    for _, a in ipairs(mo.added or {}) do
+                        cseq = cseq + 1
+                        local abase = "modifier.added_modifier"
+                            .. (cseq > 1 and ("[" .. cseq .. "]") or "")
+                            .. "."
+                        if a.data then E(abase .. "data", tostring(a.data)) end
+                        if a.name then
+                            E(abase .. "name", '"' .. a.name .. '"') end
+                        emit_pairs(abase, a.pairs)
                     end
                 end
             end
-            -- previous_owner (§4.13 CState: writer 0x1409D4040 L239-263,
-            -- gate count@+276 ≠0; {d@+264} 4B tag → 引号;
-            -- 叶 previous_owner.#K)
-            do
-                local pod, poc = st_addr and rp(st_addr + 264),
-                    st_addr and ru32(st_addr + 276) or nil
-                if SL.kptr(pod) and poc and poc > 0 and poc < 440 then
-                    for pi = 0, poc - 1 do
-                        local t = O:tag(ru32(pod + 4 * pi) or 0)
-                        if t then
-                            E("previous_owner.#" .. (pi + 1),
-                                '"' .. t .. '"')
-                        end
-                    end
+            -- flags (reader sf.flags; date = 绝对小时; days = 高半 >0)
+            for _, fg in ipairs((sf and sf.flags) or {}) do
+                E("flags." .. fg.name .. ".value", tostring(fg.value))
+                if fg.date_h then
+                    local ds = SL.date(fg.date_h)
+                    if ds then
+                        E("flags." .. fg.name .. ".date", '"' .. ds .. '"') end
                 end
-            end
-            -- state modifier 块 (§4.13 CState +1736 内嵌 CModifier, writer
-            -- 0x140605B00; base pairs 直发 + children → added_modifier)
-            do
-                local mo = st_addr
-                local function emit_pairs(pre, pd, pc)
-                    if not (SL.kptr(pd) and pc and pc > 0 and pc < GAME.layout.lim.PTR_SANE) then
-                        return 0 end
-                    local n = 0
-                    for qi = 0, pc - 1 do
-                        local di = ru32(pd + 16 * qi)
-                        if not di or di == 0 then break end
-                        local raw = SL.rp_i64(pd + 16 * qi + 8)
-                        local mn = GAME.layout.modifier_token(di)
-                        if mn and raw then
-                            local v = raw
-                            v = GAME.layout.as_i64(v)
-                            E(pre .. mn, numf(v * 1e-5))
-                            n = n + 1
-                        end
-                    end
-                    return n
-                end
-                if SL.kptr(mo) then
-                    local md = rp(mo + 1752)
-                    local mc = ru32(mo + 1764)
-                    local cd, cc = rp(mo + 1776), ru32(mo + 1788)
-                    if (mc and mc > 0) or (cc and cc > 0) then
-                        emit_pairs("modifier.", md, mc)
-                        -- writer 无计数门 (见文件头), 防御界统一 PTR_SANE
-                        -- — 旧 cc<16 防御界过紧 (children 计数可 >16)
-                        if SL.kptr(cd) and cc and cc > 0
-                            and cc < GAME.layout.lim.PTR_SANE then
-                            local cseq = 0  -- 重复块第 2 起编 [N] (提取器契约)
-                            for cj = 0, cc - 1 do
-                                local aobj = rp(cd + 8 * cj)
-                                if SL.kptr(aobj) then
-                                    cseq = cseq + 1
-                                    local abase = "modifier.added_modifier"
-                                        .. (cseq > 1
-                                            and ("[" .. cseq .. "]") or "")
-                                        .. "."
-                                    local dv = ru32(aobj + 188)
-                                    if dv and dv ~= 1 then
-                                        E(abase .. "data", tostring(dv))
-                                    end
-                                    local snm = SL.sso(aobj + 88)
-                                    if snm and snm ~= "" then
-                                        E(abase .. "name", '"' .. snm .. '"')
-                                    end
-                                    emit_pairs(abase,
-                                        rp(aobj + 16), ru32(aobj + 28))
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-            local fm = st_addr and rp(st_addr + 0x540)
-            if SL.kptr(fm) then
-                local d, c = rp(fm + 8), ru32(fm + 20)
-                if SL.kptr(d) and c and c > 0 and c < GAME.layout.lim.PTR_SANE then
-                    for i = 0, c - 1 do
-                        local e = d + 0x30 * i
-                        local key = ru32(e + 8)
-                        local nm = key and key <= (hoi4.read_u32(hoi4.base() + GAME.layout.rva.lexer_token_max) or 100000) and SL.tok(key)
-                        if nm then
-                            local v = ru32(e + 0x28) or 0
-                            v = v & 0xFFFF
-                            v = GAME.layout.as_i16(v)
-                            E("flags." .. nm .. ".value", tostring(v))
-                            local dh = ru32(e + 0x18)
-                            if dh and dh > 0 then
-                                local ds = SL.date(dh) -- 绝对小时直用
-                                if ds then E("flags." .. nm .. ".date", '"' .. ds .. '"') end
-                            end
-                            -- days = expiry i16 高半
-                            -- (与 country.flags 同族同门: >0 才写)
-                            local ex = (ru32(e + 0x28) >> 16) & 0x7FFF
-                            if ex > 0 then
-                                E("flags." .. nm .. ".days", tostring(ex))
-                            end
-                        end
-                    end
-                end
+                if fg.days then
+                    E("flags." .. fg.name .. ".days", tostring(fg.days)) end
             end
             -- 恒写三键 + 类别 + 槽 — §4.13 CState
             E("demilitarized", SL.yn(st.demilitarized))
@@ -216,11 +145,9 @@ SV2.gsec[#SV2.gsec + 1] = { name = "states", emit = function(ctx)
             end
             -- variables — §4.13.2 CVariables (random 写序反 + 字母序键)
             do
-                local vo = st_addr and rp(st_addr + 2040)
-                if SL.kptr(vo) then
+                if sf and sf.vars_random then
                     E("variables.random", string.format("%d %d",
-                        ru32(vo + 12) or 0, ru32(vo + 8) or 0))
-                end
+                        sf.vars_random[1], sf.vars_random[2])) end
                 local vlist = {}
                 for _, kv in ipairs(st.variables or {}) do
                     vlist[#vlist + 1] = kv
@@ -283,40 +210,19 @@ SV2.gsec[#SV2.gsec + 1] = { name = "states", emit = function(ctx)
                 -- 布局/条目子表/写门 = 书) — 门 = 容器非空, 与占领数值
                 -- 无关, 故本 do 块移出 has_r
                 do
-                    local ra = st.addr
-                    local atd = ra and rp(ra + 0x268 + 600)
-                    local atc = ra and ru32(ra + 0x268 + 612) or 0
-                    if SL.kptr(atd) and atc > 0 and atc < GAME.layout.lim.PTR_SANE then
-                        for ai = 0, atc - 1 do
-                            local ae = atd + 72 * ai
-                            local ap = "resistance.added_resistance_targets.#"
-                                .. (ai + 1) .. "."
-                            local aid = ru32(ae + 8)
-                            if aid and aid ~= 0 then
-                                E(ap .. "id", tostring(aid))
-                            end
-                            E(ap .. "amount", numf(rp(ae + 16) / 1e5))
-                            local ady = ru32(ae + 24)
-                            if ady and ady ~= 0xFFFFFFFF then
-                                E(ap .. "days", tostring(ady))
-                            end
-                            local act = ru32(ae + 28)
-                            if act and act > 0 then
-                                local t = O:tag(act)
-                                if t then E(ap .. "controller", '"' .. t .. '"') end
-                            end
-                            local aot = ru32(ae + 32)
-                            if aot and aot > 0 then
-                                local t = O:tag(aot)
-                                if t then E(ap .. "occupied", '"' .. t .. '"') end
-                            end
-                            if (rp(ae + 56) or 0) ~= 0 then
-                                local tt = SL.sso(ae + 40)
-                                if tt and tt ~= "" then
-                                    E(ap .. "tooltip", '"' .. tt .. '"')
-                                end
-                            end
-                        end
+                    local art = sf and sf.added_rt
+                    for ai, at in ipairs(art or {}) do
+                        local ap = "resistance.added_resistance_targets.#"
+                            .. ai .. "."
+                        if at.id then E(ap .. "id", tostring(at.id)) end
+                        E(ap .. "amount", numf(at.amount))
+                        if at.days then E(ap .. "days", tostring(at.days)) end
+                        if at.controller then
+                            E(ap .. "controller", '"' .. at.controller .. '"') end
+                        if at.occupied then
+                            E(ap .. "occupied", '"' .. at.occupied .. '"') end
+                        if at.tooltip then
+                            E(ap .. "tooltip", '"' .. at.tooltip .. '"') end
                     end
                 end
                 -- force_disable_resistance.<keytag> (§4.13.1; 元素/门/
@@ -376,73 +282,20 @@ SV2.gsec[#SV2.gsec + 1] = { name = "states", emit = function(ctx)
                 for _, at in ipairs(ex.atm or {}) do
                     local tg = at.tag and O:tag(at.tag)
                     if tg then
-                        -- 1.19.3: bare pairs 的 defs 全局已搬家
-                        -- (0x33169C0 → 0x332ED90, 共享层禁改) → 段内自
-                        -- _addr 内联重读, 读取语义与 objects_v2 同构
-                        do
-                            local e0 = at._addr
-                            local obj = e0 and rp(e0 + 0x20)
-                            if SL.kptr(obj) then
-                                local pcnt = math.min(ru32(e0 + 40) or 0,
-                                    ru32(e0 + 44) or 0, 8)
-                                for q = 0, pcnt - 1 do
-                                    local midx = ru32(obj + 16 * q)
-                                    if not midx or midx == 0 then break end
-                                    local raw = SL.rp_i64(obj + 16 * q + 8)
-                                        or 0
-                                    local mn =
-                                        GAME.layout.modifier_token(midx)
-                                    if mn then
-                                        E("active_targeted_modifier."
-                                            .. tg .. "." .. mn,
-                                            numf(raw / 1e5))
-                                    end
-                                end
-                            end
-                        end
-                        -- added_modifier: data/name/modkey 全接通 (钻研定案)
-                        -- data = u32@aobj+0xBC (≠1 才写); name = SSO@aobj+0x58
-                        -- (size>0 才写, 创建时缓存非合成); modkey 值 = added_pairs
-                        local aarr = at._addr and rp(at._addr + 0x38)
-                        local acnt = at._addr and ru32(at._addr + 0x44) or 0
-                        if SL.kptr(aarr) and acnt and acnt > 0 and acnt < GAME.layout.lim.PTR_SANE then
-                            local aseq = SL.seqc()
-                            for aj = 0, acnt - 1 do
-                                local aobj = rp(aarr + 8 * aj)
-                                if SL.kptr(aobj) then
-                                    local kp = "active_targeted_modifier." .. tg
-                                        .. "." .. aseq("added_modifier") .. "."
-                                    local dv = ru32(aobj + 0xBC)
-                                    if dv and dv ~= 1 then
-                                        E(kp .. "data", tostring(dv))
-                                    end
-                                    local nm = SL.sso(aobj + 0x58)
-                                    if nm and nm ~= "" then
-                                        E(kp .. "name", '"' .. nm .. '"')
-                                    end
-                                    -- pairs 段内内联 (CModifier 同构;
-                                    -- 布局 = §4.3.8, defs 表 = §4.26)
-                                    local pd2 = rp(aobj + 16)
-                                    local pc2 = ru32(aobj + 28)
-                                    if SL.kptr(pd2)
-                                        and pc2 and pc2 > 0 and pc2 < GAME.layout.lim.PTR_SANE then
-                                        for pj = 0, pc2 - 1 do
-                                            local di = ru32(pd2 + 16 * pj)
-                                            local raw = SL.rp_i64(
-                                                pd2 + 16 * pj + 8)
-                                            if di and raw then
-                                                -- 散写回收
-                                                local mn =
-                                                    GAME.layout.modifier_token(di)
-                                                if mn then
-                                                    E(kp .. mn,
-                                                        numf(raw * 1e-5))
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
-                            end
+                        -- bare pairs (reader at.xpairs; modifier_token 直解)
+                        for _, pv in ipairs(at.xpairs or {}) do
+                            E("active_targeted_modifier."
+                                .. tg .. "." .. pv.name, numf(pv.value)) end
+                        -- added_modifier (reader at.xadded; data/name/pairs)
+                        local aseq = SL.seqc()
+                        for _, a in ipairs(at.xadded or {}) do
+                            local kp = "active_targeted_modifier." .. tg
+                                .. "." .. aseq("added_modifier") .. "."
+                            if a.data then E(kp .. "data", tostring(a.data)) end
+                            if a.name then
+                                E(kp .. "name", '"' .. a.name .. '"') end
+                            for _, pv in ipairs(a.pairs or {}) do
+                                E(kp .. pv.name, numf(pv.value)) end
                         end
                     end
                 end
