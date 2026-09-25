@@ -47,7 +47,7 @@
 | +1104 | CPowerBalanceSystem* | 力量平衡/国家角色 | power_balance 系统 vtable 0X296FCA0, 条目 vtable 0X296FC50 | §4.3 |
 | +1105..+1191 | — | 力量平衡尾 | = i32 −1@1112 + CGameDate 存档 date@1120..1143 (头 writer 键 10314 经 a3+1136 代理) + **日期分量缓存@1144..1183** (gs hourly tick sub_1401DD370 每次填入: +1144 年 / +1148 月首累计日 / +1152 日 / +1156 年积日 / +1160 月索引) + CGameDate#2@1184..1207 = **start_date** (writer 键 10464 直名经 +1200 代理) | |
 | +1192 | hours | **start_date** (日期#2 hours) | CGameDate#2@1184..1207: vt1@1184, hours@1192, vt2@1200; writer 键 10464 直名 + token 表 1241 行 + has_start_date 注册串 ("Compare the initial start date of current game.") | 定案 |
-| +1193..+1247 | — | 日期#2 尾 | = CGameDate#2 vt2@1200 + speed u32@1212 (键 110; 探针=4) + u8@1216 + to_be_deleted {d@1224, cap@1232, c@1236, alloc@1240} (块 19332 + assert; 元素 8B 双 u32) + CPeaceConferenceManager 头@1248 | |
+| +1193..+1247 | — | 日期#2 尾 | = CGameDate#2 vt2@1200 + **小时进度累积器 f32@1208** (时间推进调度器每帧 `+= 帧耗时/(速率×加成)`, 攒满 1.0 生成 CHourlyTickCommand 后重置; 详 §4.2.2) + speed u32@1212 (键 110; 探针=4) + u8@1216 (**hourly tick 进行中标志**: tick 首置 1 尾清 0, 兼一帧至多一小时的生成门, 详 §4.2.2) + to_be_deleted {d@1224, cap@1232, c@1236, alloc@1240} (块 19332 + assert; 元素 8B 双 u32; hourly tick 尾 sub_1401D6290 清扫, §4.2.6) + CPeaceConferenceManager 头@1248 (每 hourly tick 末被驱动, §4.2.4) | |
 | +1248 | CPeaceConferenceManager (内嵌) | 和会管理器 | | §4.10.26; vt 0X2720E48 (RTTI+探针); 谍报网在国家侧 (§4.11) |
 | +1249..+1311 | — | 和会管理器体 | = {vt@1248, q@1256, q@1264, off@1272} (块 12499) + MSVC 串@1280..1311 (SSO, 探针空串; 疑会话名, 语义未决) | |
 | +1312 | u32 | playthrough 当前 id | 键 10805; 探针 121 | §4.1.2 |
@@ -158,7 +158,9 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 | +2536 | **战略空军 region→兵力树** | strategicair.cpp; pdx 容器 |
 | +2600 | CBookmark* | sub_1401DBBB0 返回全局 qword_14332F350, 创建于 CBookmarkDatabase ctor sub_14067C250 |
 | +2608 | 键 13842 = **tutorial_chapter** | 置位写 gs+2615=1 + gs+192 bit3 = tutorial 旗 |
-| pdx 空位群 已名 12 项 | +760 region→country 表 / +880 `_CountryControllersEnable` / +904 控制器计数 / +1352 fired_event_names 实例数组 / +1400 指针集 / +1472 海战主数组 / +1648 **`MP_locked_countries`** / +1752 scope→saved event target / +2240 tag 工作列表 / +2384 指针向量 / +2440 **`_CountriesForOriginalTags`** / +2464 战略空军表 | 逐个 ctor/消费者实证 |
+| +2240 域 | **tag 工作列表** {d@2240, 计数@2252} (CPdxArray<CCountryTag,unsigned>) | hourly tick 步骤 9 遍历 (查 _AllPlaythroughData@2200, §4.1.8) + DoCareerProfile 族并行容器 (§4.2.6) |
+| +2416 域 | **军队状态小时统计累计器族** (hourly) | TOTAL_IN_COMBAT_MAN_HOUR 等 14 键; CGameState::HourlyUpdate 首步累加 (§4.2.6; 类名待裁) |
+| pdx 空位群 已名 12 项 | +760 region→country 表 / +880 `_CountryControllersEnable` / +904 控制器计数 / +1352 fired_event_names 实例数组 / +1400 指针集 / +1472 海战主数组 / +1648 **`MP_locked_countries`** / +1752 scope→saved event target / +2384 指针向量 / +2440 **`_CountriesForOriginalTags`** / +2464 战略空军表 | 逐个 ctor/消费者实证 (+2240/+2416 已升独立行) |
 | gs+2352 | **负定案: gs 语境下查无此槽** — 基类 ctor 与 gs dtor 均不触及, 全部命中为同偏移异类 (旧登记疑误) | 基类 ctor + gs dtor 全扫 |
 | CPersistent+216 (= gs+216) | 未决 — 仅基类 ctor 初始化, 无消费者 | — |
 | gs+1280 串 | 未决 — CPeaceConferenceManager 内 SSO, 无写入点 | — |

@@ -155,7 +155,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +1288 | u64 | strategic_region_data **hash mask** | 定案 |
 | +1289..+1447 | — | = RH hash mask@1288 (=7) 尾 + 桶数 u32@1296 (=8) + **24B 容器×6** {data@1304/cap@1312/c@1316/alloc@1320} / {@1328/1336/1340/1344} / {@1352/1360/1364/1368} / {@1376/1384/1388/1392} / {@1400/1408/1412/1416} / {@1424/1432/1436/1440} — strategic_region_data 块区, 语义未决 | |
 | +1448 | CModifier 内嵌 192B | **country_modifiers 块** (+1448..+1639; ctor a1[181]=&CModifier::vftable, 查表 ctor sub_140555FB0@1464; 全布局见 §4.3.8 通用表) | loader case 11577; **GUI: 共享槽基数输入** (sub_1409D4980: CState+2136 + owner 国(+1448)×类别 → shared_slot_count); **生产/密码修正族查表** (cc+1464 键: mdef 0xA9-0xD6 生产族/528-529 密码族/201-203 舰载族 — 各册消费链) |
-| +1464 | 匿名结构 (16B 键值对) RH 桶数组 | country_modifiers token→i64 值查找表 (形态同 CState +1352/+1368) | daily PP / 占领修正查表 (sub_14055E360) |
+| +1464 | 匿名结构 (16B 键值对) RH 桶数组 | country_modifiers token→i64 值查找表 (形态同 CState +1352/+1368) | 修正查表总入口 (sub_14055E360); **"daily PP" 实为指挥力**: modifier id 330-333 + define BASE_COMMAND_POWER_GAIN/BASE_MAX_COMMAND_POWER → 写 cc+496 (上限扣 cc+504 分配池) |
 | +1640 | CRuleOverrides 内嵌 1016B | **第二规则覆盖对象** (+1640..+2655; 与 +2656 external_rules 同型同窗 ctor sub_140638A10, 1640+1016=2656 严丝合缝; 消费者 sub_140705AD0 全链: 清空 → 执政党 (+3984 → +208 → +24 → +96/+144 两处 sub_140638DB0) → 阵营 (dip+656 CFaction → sub_140D8A2A0) → 自治 (dip+848 → +40 → +528) → 理念表 (cc+3984+80, count@+92, 逐 `*(idea+1216)`) 四源聚合; 复位 sub_1406E2DE0 与 +2656 并列清空; **writer/loader 不序列化**) | 不序列化 (定案: **规则覆盖合成缓存** — 上述四源聚合的运行时合成版, 与 +2656 存档装载的外部规则成对非重复) |
 | +2656 | CRuleOverrides (内嵌) | external_rules 宿主: 28 规则槽 i∈[0,28), 写门 = u8@cc+2656+92+i ≠ 0 (门开才写, yes/no 皆落盘), 值 = u8@cc+2656+64+i, 键名 = token_name(u32@defs+56*i+40), defs = *(BASE+53575920); **override = 28×32B MSVC 串槽 @cc+2656+120+32k** (SSO cap=15), size u64@cc+2656+136+32k≠0 才写, 键 = 槽序号裸数字 (writer sub_14063C490 AD7A0 裸串), 值 = 裸规则名 | §4.3.8 起 |
 | +2657..+3671 | — | = external_rules CRuleOverrides 1016B 本体细分 (+2657..+2719 对象头 {串@+8 尾/容器@+40/u8@60}, **值槽 u8×28@+2720..+2747, 门槽 u8×28@+2748..+2775, override 串槽 28×32B@+2776..+3671**) | |
@@ -1366,3 +1366,19 @@ CPowerBalanceSide 的 reader = sub_140A8ED10 (vt 0x142940000 [4])。四者非同
 | +1808 | uint8 | valid | | THasNullObject mdisp 直证 |
 | +1816 | MSVC SSO 32B | id | | |
 | +1848 | u32 | id hash | | **u32 FNV-1a ci-hash**; 读取点 = 自身 reader vt[4] sub_140A8ECE0 case 11 → sub_140612C40(&v4, a2, a1+1816), hash 落 +1816+32 |
+
+#### 4.3.23 国级周期更新入口 (hourly / daily / weekly / monthly 时序钩子)
+
+时间推进链 (§4.2) 逐国调用的国级行为入口 (探针域 + country.cpp source_location 定案):
+
+| 入口 | 函数 | 调用时机 | 要点 |
+|---|---|---|---|
+| CCountry::PostHourlyUpdate | sub_140705630 | hourly 主调度六阶段之 postHourlyUpdate 串行段 (§4.2.6) | **on_daily / on_daily_<TAG> 派发点**; 判据 `(tag + gs+1128 总小时) % 24 == 0` → 每国每天恰一次, 时辰由 tag 固定 (country.cpp:4861) |
+| CCountry::DailyUpdate | sub_1406E76A0 | CGameState::DailyUpdate 全量国循环 (§4.2.7) | 探针 "country.daily"; 门 = cc+1156>0, 活跃分支 31 步 (内战目标/exile_divisions/人力·生产·资源·科研·部署/市场/政治/外交/核弹/焦点/后勤/燃料/operations/经验/志愿远征军/fleets/railway_guns/**投降流亡 sub_1406E16C0**/trade_influence/剧场/queued_events 派发); on_border_war_lost 判据 = 控制州 state+2149 活跃旗 且 进度 > define BORDER_WAR_VICTORY (派发后 sub_1409DDA30 熄火); "country.calc_modifier" (sub_1406DADE0) = 13 pass 修正重算 (§4.2.7 备注) |
+| CCountry::WeeklyUpdate | sub_140718CA0 | CGameState::WeeklyUpdate 国循环 (§4.2.8) | 周累加族: cc+5312 宣传稳定惩罚 clamp [-0.2,0] / cc+4304 stability / cc+5320..5344 四战争支持度惩罚 / cc+4312 war_support 双 clamp / WEEKLY_MANPOWER (mdef 62) + 流亡 mdef 588 / 占领日志 GARRISON_LOG_MAX_MONTHS(12) 清理; major 断言 cc+5210 一致性 (country.cpp:5793/:5810); **on_weekly / on_weekly_<TAG> 派发点** |
+| CCountry::MonthlyUpdate | sub_140703490 | CGameState::MonthlyUpdate 国循环 (§4.2.10) | 门 = owned_states(+1156)>0; 十段: dip 月更 (MONTHLY_LEASED_IC_DECAY) / **major 全量重算** (无宗主 && is_top_ic(cc+5211) && 工厂 ≥ MAJOR_MIN_FACTORIES=35 → cc+5210, 补判 0.7×top 均值) / calc_modifier pass / 州征兵 + **阵营人力上缴** (token 10476, faction+2288 记账 + mdef 648) / 改善关系 / **on_monthly / on_monthly_<TAG> 派发点** / 玩家 tag 管理器引用计数 / **季度舰队重整** (月长表直读, 1/5/9 月, sub_140218EB0) (country.cpp:5677) |
+
+> 备注: hourly 主调度并行段的排序键 = `cc+5488 (double)` 升序 (插入/并行归并两套)。
+> **cc+5488 定案 = 每国小时更新耗时 EWMA (α=0.02s)** — 纯自测量负载均衡键:
+> sub_1406FDBA0 头 stamp cc+5496 / 尾 sub_140CFEAF0 写 5488。
+> 备注: 活跃国门 = owned_states cc+1156 > 0 (hourly/daily/weekly/monthly 四级共用)。

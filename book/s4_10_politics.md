@@ -34,7 +34,7 @@
 | +272 | tag_id 向量 | **共同敌国排序集** {data@+272, cap@+280, count@+284, alloc@+288} — 与盟友共享的敌国升序 set (仅同盟国非空, 孤军国为空; 与 +296 成对: 排序/插入序) | 高置信 |
 | +296 | tag_id 向量 | **共同敌国插入序列表** {data@+296, cap@+304, count@+308, alloc@+312} — +272 的插入序版 (序与 +152 一致; ⚠ Reset2 不清此槽 — 小不对称, reader 防御) | 高置信 |
 | +320 | tag_id 向量 | **占领我方核心州的敌国 tag 缓存** {data@+320, cap@+328, count@+332, alloc@+336} (0X140D45F10 静态铁证: 逐敌国(+152) → 其 controlled_states(cc+1120) → state owner==我 且 cores(state+176) 含我 (overlord 解析) → 推入; 探针互证 ⊂ +152) | 定案 |
-| +344 | uint32 向量 | **per-敌国战争计数** {data@+344, cap@+352, count@+356, alloc@+360} — 与 +248 平行的 u32 数组 (该敌与我的共同战争数; 探针两档样本) | 定案 |
+| +344 | uint32 向量 | **per-敌国关系分类码** {data@+344, cap@+352, count@+356, alloc@+360} — 与 +248 严格平行同序的 u32 码表 (∈{1,4,5-11}: 1=基础可交互 / 4=阵营聚合 / 5=对方视我交战 / 6=对方对我造理由 / 7-8=附属链 / 9-11=taken_lead_to_wars 族); 每日外交 FirstPass (sub_140D357E0) 全量重建: 清 +248/+344 → 扫全量国 bitmap 去重后平行追加 — SecondPass 聚合共同敌国 dip+272/+296 消费 | 定案 |
 | +368 | 扁平 u32 数组 | **附属国 tag 缓存** {data@+368, cap@+376, count@+380, alloc@+384} (定案): sub_1401B1470 stride-4 线性查定形态; 四消费者定语义 — sub_140E649A0 工厂分成 / 0X140B35D80 附属+自治 tooltip / 0X1406DECD0「我是其附属」谓词 / contains 0X140D3F050「wargoal 针对附属视同针对宗主」 | writer 不序列化; GUI 见下方 GUI 消费表 |
 | +392 | tag_id | overlord tag 标量 (CAutonomyProgressView "overlord_name"/"SUBJECT_OF_NAME" 直名) | 与 war_relation 表 wr+392「second_wargoals cap」不同基, 无真冲突 |
 | +400 | tag_id 容器 | **governments_in_exile_we_host** (u32 tag idx 列表) {data@+400, cap@+408, count@+412, alloc@+416} | writer 键 0x3ABB |

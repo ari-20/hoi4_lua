@@ -12,6 +12,10 @@
 //   POST /lua          body: raw chunk or {"chunk": "..."}           (main-thread lua_exec_chunk)
 //   POST /game/pause   body: state int or {"state": n}               (main-thread, toggle semantics)
 //   GET  /events       SSE stream: session_start/session_end + heartbeat
+// Sampling profiler (thin wrappers; params as query args):
+//   POST /profile/start?ms=1&stacks=1    POST /profile/stop
+//   POST /profile/top?n=40               POST /profile/folded[?path=...]
+//   GET  /profile/status
 //
 // Switch: -http[=port] on the game command line (explicit opt-in, same
 // discipline as -ipc). Default port 17389. Loopback bind only.
@@ -33,12 +37,17 @@
 
 // ---------------------------------------------------------------- req queue
 // kinds executed on the main thread
-enum ReqKind { RK_CONSOLE = 1, RK_LUA = 2, RK_PAUSE = 3 };
+enum ReqKind {
+    RK_CONSOLE = 1, RK_LUA = 2, RK_PAUSE = 3,
+    RK_PROF_START = 4, RK_PROF_STOP = 5, RK_PROF_TOP = 6,
+    RK_PROF_FOLDED = 7, RK_PROF_STATUS = 8,
+};
 
 struct HttpReq {
     uint64_t    id = 0;
     ReqKind     kind = RK_CONSOLE;
-    std::string payload;              // cmd / chunk / state string
+    std::string payload;              // cmd / chunk / state string / folded path
+    long        a = 0, b = 0;         // profile params: ms + stacks flag, or n
     // completion
     HANDLE      done = nullptr;       // manual-reset event, signaled by main
     int         status = 0;           // executor's ok flag
@@ -123,6 +132,39 @@ static void exec_one(HttpReq *r) {
         }
         break;
     }
+    case RK_PROF_START: {
+        // sampler target = this main thread (frame-top execution guarantees it)
+        const char *err = samp_api_start((unsigned)(r->a > 0 ? r->a : 1),
+                                         (int)r->b, GetCurrentThreadId(),
+                                         out, sizeof(out));
+        r->status = err ? 0 : 1;
+        r->result = err ? err : out;
+        break;
+    }
+    case RK_PROF_STOP:
+        r->status = samp_api_stop(out, sizeof(out));
+        r->result = r->status ? out : "profile not running";
+        break;
+    case RK_PROF_TOP: {
+        // top can legitimately outgrow the shared 8 KB buffer: big cap here
+        static char big[65536];                  // exec_one is main-thread-only
+        int n = (int)(r->a > 0 ? r->a : 30);
+        r->status = samp_api_top(n, big, sizeof(big));
+        r->result = r->status ? big : "profile never started";
+        break;
+    }
+    case RK_PROF_FOLDED:
+        r->status = samp_api_folded(r->payload.empty() ? nullptr
+                                                       : r->payload.c_str(),
+                                    out, sizeof(out));
+        r->result = r->status ? out
+                              : "no stack data (start with stacks=1) or write failed";
+        break;
+    case RK_PROF_STATUS:
+        samp_api_status(out, sizeof(out));
+        r->status = 1;
+        r->result = out;
+        break;
     }
 }
 
@@ -181,7 +223,8 @@ static std::string pick_payload(const httplib::Request &req, const char *key) {
 
 static void run_main_thread_req(const httplib::Request &req,
                                 httplib::Response &res, ReqKind kind,
-                                const char *key) {
+                                const char *key, long pa = 0, long pb = 0,
+                                const char *payload_override = nullptr) {
     if (req.body.size() > HTTP_PAYLOAD_MAX) {
         res.status = 413;
         res.set_content("{\"ok\":false,\"error\":\"payload too large\"}",
@@ -191,7 +234,9 @@ static void run_main_thread_req(const httplib::Request &req,
     HttpReq *r = new HttpReq();
     r->id = ++g_reqSeq;
     r->kind = kind;
-    r->payload = pick_payload(req, key);
+    r->payload = payload_override ? payload_override : pick_payload(req, key);
+    r->a = pa;
+    r->b = pb;
     r->done = CreateEventA(nullptr, TRUE, FALSE, nullptr);
     {
         std::lock_guard<std::mutex> lk(g_qMtx);
@@ -290,6 +335,37 @@ static DWORD WINAPI http_server_thread(LPVOID arg) {
     });
     svr.Post("/game/pause", [](const httplib::Request &req, httplib::Response &res) {
         run_main_thread_req(req, res, RK_PAUSE, "state");
+    });
+
+    // ---- sampling profiler (/profile/*) — thin wrappers over the same
+    // frame-top queue; params arrive as query args, results in "result".
+    //   POST /profile/start?ms=1&stacks=1     start (ms 1..1000; stacks 0/1)
+    //   POST /profile/stop                     stop, keep data
+    //   POST /profile/top?n=40                 leaf histogram top lines
+    //   POST /profile/folded?path=...          write folded stacks file
+    //   GET  /profile/status                   counters
+    svr.Post("/profile/start", [](const httplib::Request &req, httplib::Response &res) {
+        long ms = 1, stacks = 0;
+        if (req.has_param("ms"))     ms = strtol(req.get_param_value("ms").c_str(), nullptr, 10);
+        if (req.has_param("stacks")) stacks = strtol(req.get_param_value("stacks").c_str(), nullptr, 10);
+        run_main_thread_req(req, res, RK_PROF_START, "", ms, stacks ? 1 : 0);
+    });
+    svr.Post("/profile/stop", [](const httplib::Request &req, httplib::Response &res) {
+        run_main_thread_req(req, res, RK_PROF_STOP, "");
+    });
+    svr.Post("/profile/top", [](const httplib::Request &req, httplib::Response &res) {
+        long n = 30;
+        if (req.has_param("n")) n = strtol(req.get_param_value("n").c_str(), nullptr, 10);
+        run_main_thread_req(req, res, RK_PROF_TOP, "", n);
+    });
+    svr.Post("/profile/folded", [](const httplib::Request &req, httplib::Response &res) {
+        std::string q;
+        const char *ovr = nullptr;
+        if (req.has_param("path")) { q = req.get_param_value("path"); ovr = q.c_str(); }
+        run_main_thread_req(req, res, RK_PROF_FOLDED, "path", 0, 0, ovr);
+    });
+    svr.Get("/profile/status", [](const httplib::Request &req, httplib::Response &res) {
+        run_main_thread_req(req, res, RK_PROF_STATUS, "");
     });
 
     svr.Get("/events", [](const httplib::Request &, httplib::Response &res) {

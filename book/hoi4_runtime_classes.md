@@ -872,12 +872,14 @@ writer 的实写行为选变体, 禁止按"显示值看着一样"混用** (两�
 |---|---|---|
 | 4.00 | `book/s4_00_bases.md` | 4.00 基类契约层 (接口虚表 / 槽位语义) |
 | 4.1 | `book/s4_01_CGameState.md` | 4.1 CGameState (游戏状态单例; 含会话元数据簇 top_meta — 同一对象, 合并于 §4.1.2/§4.1.6–§4.1.16) |
+| 4.2 | `book/s4_02_gametick.md` | 4.2 游戏时序 (时间推进驱动链 / 每小时 tick 调度顺序 / 日期边界与 profiler 采样) |
 | 4.3 | `book/s4_03_CCountry.md` | 4.3 CCountry (国家) |
 | 4.4 | `book/s4_04_characters.md` | 4.4 CCharacterManager / CCharacter / CUnitLeader 派生族 (角色族) |
 | 4.5 | `book/s4_05_faction.md` | 4.5 CFactionSystem (阵营) |
 | 4.6 | `book/s4_06_doctrines.md` | 4.6 NDoctrines (学说族) |
 | 4.7 | `book/s4_07_technology.md` | 4.7 CTechnologyStatus (科技) |
 | 4.8 | `book/s4_08_production.md` | 4.8 CProductionStatus (生产) |
+| 4.9 | `book/s4_09_profiling.md` | 4.9 性能分析域 (日期采样器 / zone profiler / 工具入口) |
 | 4.10 | `book/s4_10_politics.md` | 4.10 CDiplomacyStatus / CPolitics / 自治 / 投降流亡借调族 |
 | 4.11 | `book/s4_11_intelnet.md` | 4.11 情报—间谍系统 (谍报网 CCountryIntelNetwork / 特工与特务专项 COperativeLeader / 情报机构 CIntelligenceAgency / operation 块与行动令牌 / 情报账本与来源池 / 密码学; 含原 4.29) |
 | 4.12 | `book/s4_12_events.md` | 4.12 事件与决议域 (CEventOption / CDecisionStatus 与冷却 / 定时·定向决策 / 定时活动与定时条目) |
@@ -900,5 +902,5 @@ writer 的实写行为选变体, 禁止按"显示值看着一样"混用** (两�
 | 4.30 | `book/s4_30_gui_map.md` | 4.30 GUI 主视图与地图 (面板/视图本体类布局 + 视图侧映射; 地图模式与脚本化 UI 基础设施) |
 | 4.31 | `book/s4_31_gui_items.md` | 4.31 GUI 行件与条目族 (全部行件/条目/图标行类布局 + loc 映射) |
 | 4.32 | `book/s4_32_effect_triggers.md` | 4.32 脚本 effect/trigger 全量逐名定案卡 |
-| 4.33 | `book/s4_33_commands.md` | 4.33 命令子类 (具体 CCommand 派生: 载荷布局 + 行为槽 + 内层启动函数) |
+| 4.33 | `book/s4_33_commands.md` | 4.33 命令子类 (具体 CCommand 派生: 载荷布局 + 行为槽 + 内层启动函数 + 调用方通道/分布 §4.33.19) |
 | 4.34 | `book/s4_34_ai.md` | 4.34 AI 决策域 (CAICore 主干 / CCountryAI 部长分治 / tick 链 / AI 数据库族) |

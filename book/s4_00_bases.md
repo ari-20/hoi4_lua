@@ -683,3 +683,18 @@ faction color / volunteers group_color / fleet color), 锚件实测定案:
 f32 分量小数部分 >0.5 时两者必分歧, 截断 15/15 命中而舍入全错。
 注: 写门 = !readonly ⇒ 文本存档恒写。
 注: 读侧 rf32 → `math.floor(v*255)` (v≥0 时 = 截断, 与 C 双精度乘法逐位一致)。
+
+#### 4.00.11 CGameDate / CGregorianDate (日期值对象; 推进槽 + 双哨兵)
+
+CGameDate = 全引擎日期值对象 (内嵌 24B 三段形 `{vt1@+0, hours i64@+8, vt2@+16}`;
+CGameDate ⊂ CGregorianDate, dtor 将 vt 复位 CGregorianDate 基 vt)。gs 当前时刻 =
+gs+1120 (hours@1128), 载入快照 gs+152, start_date gs+1184 (§4.1.2)。
+
+| 槽 (字节偏移) | 语义 | 证据 |
+|---|---|---|
+| 虚表槽[1] (字节+8) | **Advance(n)** — 推进 n 小时; gs hourly tick 每小时以 `(gs+1120, 1)` 调用 (§4.2.4 步骤 4) | 0x1401DD370 体内虚表调用 |
+| 构造哨兵 | hours = 43808760 = "1.1.1.1" (ctor); 43817520 = "2.1.1.1" (默认构造, dword_14306EB38, 带门字段跳过); 43791240 = "-1.1.1.1" 为合法值勿滤 | §4.1.2 既有定案 |
+| 纪元换算 | 总小时 43800000 = 纪元偏移; `(hours − 43800000)/24` = 总天数 (周边界 %7 判据, §4.2.5) | hourly tick 体内算式 |
+
+注: 分量读取 (年/月/日/月索引) 走 gs+1144 日期分量缓存 (hourly tick 每小时重算,
+dword_143085210 = 闰年月首累计日表), 非逐次从 hours 解析。

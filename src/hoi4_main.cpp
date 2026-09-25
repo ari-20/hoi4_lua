@@ -477,6 +477,11 @@ static const luaL_Reg hoi4_lib[] = {
     {"define_targets", hoi4_lua_define_targets},
     {"defines_build", hoi4_lua_defines_build},
     {"defines_count", hoi4_lua_defines_count},
+    {"profile_start", hoi4_profile_start},       // sampling profiler
+    {"profile_stop", hoi4_profile_stop},
+    {"profile_top", hoi4_profile_top},
+    {"profile_folded", hoi4_profile_folded},
+    {"profile_status", hoi4_profile_status},
     {NULL, NULL},
 };
 

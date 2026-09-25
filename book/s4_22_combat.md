@@ -803,3 +803,36 @@ writer = CFG 空桩 → **不入档** (静态 reader); 源 = gfx/naval_combat_fl
 > 与 §4.22 海战 combatant +384 SNavalHit (战斗事件收发器) 同名不同域, 勿混。
 
 > **本域 GUI 类布局**: 见 4.30.18 / 4.31.37 / 4.31.49 / §4.31.23。
+
+#### 4.22.9 CCombat 行为槽 (每小时战斗步进契约; 虚表 0x1429BBC58 基 / 0x1429A83D8 陆)
+
+CCombatManager (§4.22.1 gs+608) 每小时逐战斗调虚表槽[15] = 战斗步进主入口
+(时序上下文 §4.2.13)。行为槽定案 (COL 链直读):
+
+| 槽 | 语义 | 备注 |
+|---|---|---|
+| [8] | `return 3` 常量 getter | 基类共享 |
+| [9] | **IsActive**: 双侧参战 tag/单位耗尽即结束 | CLandCombat = 基类判定+两侧容器计数 |
+| [11] | GetDuration (历史 entry 消费) | 基类 purecall, 陆/海各自覆写 |
+| [12] | **progress 读取**: Σ己侧全部师当前 org (0x1412B5360) | 经 sub_140CDF0E0 每小时整量重写 lb+616 |
+| [13] | **首小时初始化** (byte+81=1 / 清 byte+82 结束旗) | CLandCombat 先做两侧大体量初始化 sub_1412AC450 |
+| [14] | **结束标记** (byte+82=1, 通知两侧) / 领袖 XP (损失比×0.5) | 双用途: 步进域 [14]=标记, 基类槽[15] 四连内 [14]=XP |
+| [15] | **每小时战斗步进主入口** | 全链 = 战术重掷核 (12h) → 时长计数 → 参战国 tag 遍历 → 基类四连, 详 §4.2.13 |
+| [16] | 结束复核 bool(self, idx, count) | 基类 purecall |
+| [19] | **伤害执行步** (sub_1412B3300) | 目标分配 → 闪避 → STR/ORG 骰 → 穿甲偏转 → TakeDamage; 尾推 progress |
+| [22] | **修饰符全量重算** (stacking/over-width/补给/夜战/挖掩/岸轰/空优/情报/包围, 39 define) | 每小时步进第 1 步 |
+| [32] | weighted_participants (情报权重) | 步进第 4 环 |
+
+**CArmy::TakeDamage = 0x140C8F510**: 实扣 +1056 strength / +1064 organisation
+(mod 660/661/662; war support 扣减)。伤害流水: 目标分配
+(DAMAGE_SPLIT_ON_FIRST_TARGET + 「打弱」评分 = 硬攻×硬度+软攻×(1−硬度)) →
+闪避 (防御/突破值: 有防御 90% / 无 60% 命中) → STR 骰 1+rand(2) / ORG 骰
+1+rand(4) (装甲优势 2/6) → ×0.06/×0.053 × PIERCING_THRESHOLDS{1,0.75,0.5,0}。
+
+**战术重掷核 (sub_1412BBF90)**: 每 TACTIC_SWAP_FREQUENCEY(12) 小时, 双方技能
+最高领袖 skill 比较 + 侦察优方 +RECON_SKILL_IMPACT(5) 当量; 胜方加权
+(INITIATIVE_PICK_COUNTER_ADVANTAGE_FACTOR 0.35×技能差) 掷反制战术; a1+208 =
+当前战术相位; 战术六值聚合进 battle+160..+200。
+
+**组织度分工**: 战时扣减唯一入口 = TakeDamage(+1064); 恢复
+(RELIABILITY_ORG_REGAIN, sub_140C82C10) 与移动耗减在师域小时更新。
