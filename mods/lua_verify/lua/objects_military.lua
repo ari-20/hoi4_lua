@@ -89,8 +89,9 @@ local function mk_div(a) return setmetatable({ addr = a }, DivMT) end
 -- multiplier i64@+312 门≠100000 (×1e-5) / orders u32@+320 门≠0 /
 -- custom_lockey MSVC@+40 门 unique(@+72)==16 / location 容器@+0x120
 -- (门 PTR_SANE = 段层实证, 旧 reader <64 系误抄防御界) / sunk 原始名串
--- @+128/+160 (ship history 用)。
-local function uhist_recs(hd, hc)
+-- @+128/+160。with_sunk = 真 (船史) 才另建 §4.16.13 CSunkShipInfo 全记录
+-- (@+120; 师侧区域非零残差会造假叶, 故按需)。
+local function uhist_recs(hd, hc, with_sunk)
   local out = {}
   if not O.kptr(hd) or not hc or hc <= 0 or hc >= LAYOUT.lim.PTR_SANE then
     return out
@@ -136,6 +137,43 @@ local function uhist_recs(hd, hc)
       end
       rec.sunk_name_raw = U.sso(e + 128)
       rec.sunk_killer_raw = U.sso(e + 160)
+      if with_sunk then
+        -- §4.16.13 CSunkShipInfo 内嵌@+120 (船史; 块门 = 名非空或 level>0)
+        local b0 = 120
+        local su = {}
+        local nm2 = U.sso(e + b0 + 8)
+        if nm2 and #nm2 > 0 then su.name = nm2 end
+        local kn2 = U.sso(e + b0 + 40)
+        if kn2 and #kn2 > 0 then su.killer_name = kn2 end
+        local ct2 = ru32(e + b0 + 72)
+        if ct2 and ct2 > 0 then su.country = Runtime:tag(ct2) end
+        local kc2 = ru32(e + b0 + 76)
+        if kc2 and kc2 > 0 then su.killer_country = Runtime:tag(kc2) end
+        su.level = ru32(e + b0 + 120) or 0
+        local dfd = rp(e + b0 + 104)
+        if O.kptr(dfd) then
+          su.definition = LAYOUT.token_name(ru32(dfd + 8) or 0) end
+        local kdd = rp(e + b0 + 112)
+        if O.kptr(kdd) then
+          su.killer_definition = LAYOUT.token_name(ru32(kdd + 8) or 0) end
+        local lcd3 = rp(e + b0 + 144)
+        if O.kptr(lcd3) then su.location = ru32(lcd3 + 164) or 0 end
+        su.date = date_from_hours_raw(ru32(e + b0 + 88))
+        if (ru32(e + b0 + 161) & 0xFF) == 1 then su.assist = "yes" end
+        local evt, evi = ru32(e + b0 + 124), ru32(e + b0 + 128)
+        if (evt and evt ~= 0) or (evi and evi ~= 0) then
+          su.eq_variant = string.format("id=%d type=%d",
+              evi or 0, evt or 0) end
+        su.air_wing = string.format("id=%d type=%d",
+            ru32(e + b0 + 136) or 0, ru32(e + b0 + 132) or 0)
+        local btt, bti = ru32(e + b0 + 152), ru32(e + b0 + 156)
+        if (btt and btt ~= 0) or (bti and bti ~= 0) then
+          su.battle = string.format("id=%d type=%d", bti or 0, btt or 0) end
+        su.convoy = (ru32(e + b0 + 160) & 0xFF) == 1 and "yes" or "no"
+        if (su.name and #su.name > 0) or (su.level or 0) > 0 then
+          rec.sunk = su
+        end
+      end
       out[#out + 1] = rec
     end
   end
@@ -785,15 +823,33 @@ function Runtime.fleet(self, country_idx)
     local fl = rp(fd + 8 * i)
     if O.kptr(fl) then
       local frec = { _addr = fl, task_forces = {} }
-      -- name: 自研串 {ptr@+224, size@+240}, 全堆形态 (含 UTF-8 中文);
-      -- cstr 优先, MSVC/内联双兜底
-      local np = rp(fl + 224)
-      if O.kptr(np) then
-        local s = U.cstr(np)
-        if s and #s > 0 then frec.name = s end
-      end
-      if not frec.name then
-        frec.name = U.sso(fl + 224) or U.cstr(fl + 224)
+      -- name: MSVC SSO @fl+224 {buf@0, size@+16, cap@+24} (writer 形;
+      -- 旧 cstr-first 链对裸堆串误读, 已废)
+      frec.name = U.sso(fl + 224)
+      -- hours_without_patrol_missions_pairs (RH 表 @fl+40: data@+8,
+      -- mask@+20, extra@+24; 24B 桶 {dist@+4, region ptr@+8, value@+16};
+      -- 空桶 dist==0 与墓碑 0xFE 过滤; 写序 = region id 升序 — differ 实证)
+      do
+        local hd = rp(fl + 48)
+        local hmask = ru32(fl + 60) or 0
+        local hmaxp = ru8(fl + 64) or 0
+        if O.kptr(hd) and hmask > 0 and hmask < LAYOUT.lim.PTR_SANE then
+          local endp = hd + 24 * (hmask + hmaxp + 1)
+          local he, guard = hd, 0
+          local hw = {}
+          while he < endp and guard < 4096 do
+            guard = guard + 1
+            local dist = ru8(he + 4) or 0
+            if dist ~= 0 and dist ~= 0xFE then
+              local op = rp(he + 8)
+              local reg = O.kptr(op) and ru32(op + 88) or nil
+              if reg then hw[#hw + 1] = { reg, ru32(he + 16) or 0 } end
+            end
+            he = he + 24
+          end
+          table.sort(hw, function(a, b) return a[1] < b[1] end)
+          frec.patrol_pairs = hw
+        end
       end
       frec.icon = ru32(fl + 256)
       frec.fleet_type = ru32(fl + 8)
@@ -958,6 +1014,94 @@ function Runtime.fleet(self, country_idx)
             end
           end
           trec.mission = mrec
+          -- spotting 族 (§4.16.12 A6 表; writer 0x140FA9900 尾段; ms=tf+864)
+          if (ru8(ms + 104) or 0) ~= 0 then mrec.already_spotted = true end
+          local ssp = rp(ms + 120)
+          if ssp and ssp ~= 0 then mrec.spotting_speed = ssp end
+          local spr = rp(ms + 128)
+          if spr and spr ~= 0 then mrec.spotting_process = spr end
+          mrec.spot_targets = {}
+          for _, ip in ipairs({ { 136, "spotting_target" },
+              { 144, "spotting_convoy_client" },
+              { 152, "spotting_unit_transfer" },
+              { 160, "strike_force_target" } }) do
+            local t0, i0 = ru32(ms + ip[1]), ru32(ms + ip[1] + 4)
+            if (t0 and t0 ~= 0) or (i0 and i0 ~= 0) then
+              mrec.spot_targets[#mrec.spot_targets + 1] = {
+                name = ip[2], type = t0 or 0, id = i0 or 0 }
+            end
+          end
+          do                    -- mission.bombardment_region: region ptr@ms+96
+            local mbp = rp(ms + 96)
+            if O.kptr(mbp) then
+              mrec.bombardment_region = ru32(mbp + 88) or 0 end
+          end
+          -- tf 级内联簇 (§4.16.2; writer 0x140D66770 尾段)
+          do                    -- country_intel {d@+0x278, c@+0x284} 24B 元
+            local cid, cic = rp(tf + 0x278), ru32(tf + 0x284) or 0
+            if O.kptr(cid) and cic > 0 and cic < LAYOUT.lim.PTR_SANE then
+              local ci = {}
+              for k = 0, cic - 1 do
+                local e = cid + 24 * k
+                ci[#ci + 1] = ru32(e) or 0
+                ci[#ci + 1] = ru32(e + 8) or 0
+                ci[#ci + 1] = ru8(e + 16) or 0
+              end
+              trec.country_intel = ci
+            end
+          end
+          do                    -- strike_forces_on_ship {d@+1576, c@+1588}
+            local sfd, sfc = rp(tf + 1576), ru32(tf + 1588)
+            if O.kptr(sfd) and sfc and sfc > 0
+                and sfc < LAYOUT.lim.PTR_SANE then
+              trec.strike_forces = {}
+              for j = 0, sfc - 1 do
+                local e = sfd + 8 * j
+                trec.strike_forces[#trec.strike_forces + 1] = {
+                  type = ru32(e) or 0, id = ru32(e + 4) or 0 }
+              end
+            end
+          end
+          do                    -- spotters {d@+1552, c@+1564} (8B 内联 idpair)
+            local spd, spc = rp(tf + 1552), ru32(tf + 1564)
+            if O.kptr(spd) and spc and spc > 0
+                and spc < LAYOUT.lim.PTR_SANE then
+              trec.spotters = {}
+              for j = 0, spc - 1 do
+                local e = spd + 8 * j
+                trec.spotters[#trec.spotters + 1] = {
+                  type = ru32(e) or 0, id = ru32(e + 4) or 0 }
+              end
+            end
+          end
+          do                    -- enemy_mines_factor i64@+1616 门 signed>0
+            local emf = rp(tf + 1616)
+            if emf and emf > 0 then trec.enemy_mines = emf end
+          end
+          do                    -- repair_last_mission u32@+1264 门≠0
+            local rlm = ru32(tf + 1264)
+            if rlm and rlm ~= 0 then trec.repair_last_mission = rlm end
+          end
+          do                    -- path_to_parent (运行时 tf+1816/1820)
+            local nap = ru32(tf + 1816)
+            if nap and nap ~= 0 then trec.next_pp = nap end
+            local ldp = ru32(tf + 1820)
+            if ldp and ldp ~= 1 then trec.last_delay_pp = ldp end
+          end
+          do                    -- target_ship_types {d@+1856, c@+1868}
+            -- 32B SSO 元; 空/不可读槽占号不发射 (槽序稀疏表保洞)
+            local tsd, tsc = rp(tf + 1856), ru32(tf + 1868)
+            if O.kptr(tsd) and tsc and tsc > 0
+                and tsc < LAYOUT.lim.PTR_SANE then
+              local sts = {}
+              for j = 0, tsc - 1 do
+                local s = U.sso(tsd + 32 * j)
+                if s and s ~= "" then sts[j + 1] = s end
+              end
+              trec.target_ship_types = sts
+              trec.target_ship_types_n = tsc
+            end
+          end
           -- ai_taskforce_composition (§4.16.2 CTaskForceCompositionRequirements; 内嵌@tf+1328)
           -- ⚠ 拼串须 table.concat (legacy L9827) — 追加 '….. ' 形态
           -- 会在每行尾部多一个空格
@@ -1088,74 +1232,49 @@ function Runtime.fleet(self, country_idx)
               end
               local hoxp = rp(sh + 2256) or 0   -- held_officer.experience (§4.16.3)
               if hoxp > 0 then srec.officer_xp = hoxp * 1e-5 end
-              do                                -- history (§4.16.3 CShip.history; 容器@sh+2304/2316)
-                local hd, hc = rp(sh + 2304), ru32(sh + 2316)
-                if O.kptr(hd) and hc and hc > 0 and hc < 4096 then
-                  srec.history = {}
-                  for hi = 0, hc - 1 do
-                    local e = rp(hd + 8 * hi)
-                    if O.kptr(e) then
-                      local hr = {}
-                      local an = U.sso(e + 8)
-                      if an and #an > 0 then hr.army_names = an end
-                      local tid = ru32(e + 76)
-                      if tid and tid > 0 and tid < 100000 then
-                        hr.target_country = self:tag(tid)
-                      end
-                      hr.date = date_from_hours_raw(ru32(e + 88))
-                      hr.unique = ru32(e + 72)
-                      hr.medal_count = (ru32(e + 112) & 0xFF) == 1
-                          and "yes" or "no"
-                      hr.inherit = (ru32(e + 113) & 0xFF) == 1
-                          and "yes" or "no"
-                      do                        -- CSunkShipInfo (§4.16.13) 内嵌@entry+120
-                        local b0 = 120
-                        local su = {}
-                        local nm2 = U.sso(e + b0 + 8)
-                        if nm2 and #nm2 > 0 then su.name = nm2 end
-                        local kn2 = U.sso(e + b0 + 40)
-                        if kn2 and #kn2 > 0 then su.killer_name = kn2 end
-                        local ct2 = ru32(e + b0 + 72)
-                        if ct2 and ct2 > 0 then su.country = self:tag(ct2) end
-                        local kc2 = ru32(e + b0 + 76)
-                        if kc2 and kc2 > 0 then
-                          su.killer_country = self:tag(kc2) end
-                        su.level = ru32(e + b0 + 120) or 0
-                        local dfd = rp(e + b0 + 104)
-                        if O.kptr(dfd) then
-                          su.definition =
-                              LAYOUT.token_name(ru32(dfd + 8) or 0) end
-                        local kdd = rp(e + b0 + 112)
-                        if O.kptr(kdd) then
-                          su.killer_definition =
-                              LAYOUT.token_name(ru32(kdd + 8) or 0) end
-                        local lcd3 = rp(e + b0 + 144)
-                        if O.kptr(lcd3) then su.location = ru32(lcd3 + 164) or 0 end
-                        su.date = date_from_hours_raw(ru32(e + b0 + 88))
-                        if (ru32(e + b0 + 161) & 0xFF) == 1 then
-                          su.assist = "yes" end
-                        local evt, evi = ru32(e + b0 + 124), ru32(e + b0 + 128)
-                        if (evt and evt ~= 0) or (evi and evi ~= 0) then
-                          su.eq_variant = string.format("id=%d type=%d",
-                              evi or 0, evt or 0) end
-                        su.air_wing = string.format("id=%d type=%d",
-                            ru32(e + b0 + 136) or 0,
-                            ru32(e + b0 + 132) or 0)
-                        local btt, bti = ru32(e + b0 + 152),
-                            ru32(e + b0 + 156)
-                        if (btt and btt ~= 0) or (bti and bti ~= 0) then
-                          su.battle = string.format("id=%d type=%d",
-                              bti or 0, btt or 0) end
-                        su.convoy = (ru32(e + b0 + 160) & 0xFF) == 1
-                            and "yes" or "no"
-                        if (su.name and #su.name > 0)
-                            or (su.level or 0) > 0 then
-                          hr.sunk = su
+              do                    -- critical_damage {d@+2328, c@+2340} 16B 元
+                local cdd, cdc = rp(sh + 2328), ru32(sh + 2340)
+                if O.kptr(cdd) and cdc and cdc > 0
+                    and cdc < LAYOUT.lim.PTR_SANE then
+                  local ckey, cparts
+                  for cj = 0, cdc - 1 do
+                    local ce = cdd + 16 * cj
+                    local dfn = rp(ce)
+                    local q24 = dfn and O.kptr(dfn) and rp(dfn + 24)
+                    -- writer 门 = *(qword*)(def+24) 非空 (D21 实证 13/7 =
+                    -- 小整数, 非 kptr); 键 = 部件定义名串 sso@def+8
+                    if dfn and O.kptr(dfn) and q24 and q24 ~= 0 then
+                      local cnm = U.sso(dfn + 8)
+                      if cnm and cnm ~= "" then
+                        local cv = tostring(ru32(ce + 8) or 0)
+                        if not ckey then
+                          ckey = cnm
+                          cparts = { cv }     -- 首对: 键进路径, 值裸
+                        else
+                          cparts[#cparts + 1] = cnm .. "=" .. cv
                         end
                       end
-                      srec.history[#srec.history + 1] = hr
                     end
                   end
+                  if ckey then
+                    srec.critical_damage = { first = ckey, parts = cparts }
+                  end
+                end
+              end
+              do                    -- history (容器@sh+2304/2316; 记录链
+                local hd, hc = rp(sh + 2304), ru32(sh + 2316)  -- 含 sunk)
+                if O.kptr(hd) and hc and hc > 0 and hc < 4096 then
+                  srec.history = uhist_recs(hd, hc, true)
+                end
+              end
+              do                    -- unit_medals store @sh+2296 (同 CArmyHistory 形)
+                local st = rp(sh + 2296)
+                if O.kptr(st)
+                    and rp(st) == BASE + GAME.layout.vt.CUnitHistoryEntry then
+                  local amt = ru32(st + 608)
+                  srec.medal_store = {
+                    list = uhist_recs(rp(st + 8), ru32(st + 20)),
+                    amount = (amt and amt > 0) and amt or nil }
                 end
               end
               trec.ships[#trec.ships + 1] = srec
