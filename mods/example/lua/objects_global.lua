@@ -1396,12 +1396,140 @@ local function N33_ai_slot(host, i)
   return d, c
 end
 
--- 33.1 operations 顶层 priority (§4.11 CCountryOperationManager
--- @cc+5544; priority u32@ops+88 = 书)
-function Country.operations_top(self)
+-- 33.1 country.operations 全量 (§4.11.15 CCountryOperationManager
+-- @cc+5544; 结构知识唯一实现, 段层 sv2_sec_c_operations 只按写序发射)。
+-- ⚠ 原 Country.operations_top 仅 priority 一叶且全库无消费者, 已并入。
+local OPS_MISSION_TOK = { [0] = 12789, 15642, 19232, 15643, 19233, 19228,
+    19229, 19230, 19231 }   -- §4.11.15 mission 槽 token 映射 (9 项)
+function Country.operations(self)
   local ops = rp(self.addr + 5544)
   if not O.kptr(ops) then return nil end
-  return { priority = ru32(ops + 88) }
+  local out = { addr = ops, priority = ru32(ops + 88) }
+  -- finished (§4.11.15 CCountryFinishedOperations; 外 48B 桶 RH @ops+40
+  -- {data@16, mask@28, extra@32}, dist@bk+4, 名 tok@bk+8; 内 12B 桶
+  -- {dist@0, t@+4, n@+8}) → pairs 按 t 升序 = 写序
+  out.finished = {}
+  do
+    local fin = ops + 40
+    local data, mask = rp(fin + 16), ru32(fin + 28)
+    local extra = ru8(fin + 32) or 0
+    if O.kptr(data) and mask and mask > 0 and mask < LAYOUT.lim.PTR_SANE then
+      for b = 0, mask + extra do
+        local bk = data + 48 * b
+        local dist = ru8(bk + 4) or 0
+        if dist ~= 0 and dist ~= 0xFE then
+          local nm = LAYOUT.token_name(ru32(bk + 8))
+          local idata = rp(bk + 24)
+          local imask, iextra = ru32(bk + 36) or 0, ru8(bk + 40) or 0
+          if nm and O.kptr(idata) and imask > 0
+              and imask < LAYOUT.lim.PTR_SANE then
+            local prs = {}
+            for j = 0, imask + iextra do
+              local ib = idata + 12 * j
+              local d2 = ru8(ib) or 0
+              if d2 ~= 0 and d2 ~= 0xFE then
+                prs[#prs + 1] = { t = ru32(ib + 4) or 0,
+                                  n = ru32(ib + 8) or 0 }
+              end
+            end
+            table.sort(prs, function(x, y) return x.t < y.t end)
+            out.finished[#out.finished + 1] = { name = nm, pairs = prs }
+          end
+        end
+      end
+    end
+  end
+  -- running (§4.11.15/§4.11.12; 8B 指针容器 @ops+16/+28)
+  out.running = {}
+  local rd, rc = rp(ops + 16), ru32(ops + 28)
+  if O.kptr(rd) and rc and rc > 0 and rc < LAYOUT.lim.PTR_SANE then
+    for i = 0, rc - 1 do
+      local op = rp(rd + 8 * i)
+      if O.kptr(op) then
+        local def = rp(op + 72)
+        local nm = O.kptr(def) and LAYOUT.token_name(ru32(def + 8)) or nil
+        if nm then
+          local civ = rp(op + 48); civ = civ and LAYOUT.as_i64(civ) or nil
+          local tot = rp(op + 56); tot = tot and LAYOUT.as_i64(tot) or nil
+          local rec = {
+            addr = op, name = nm,
+            id_type = ru32(op + 8), id_id = ru32(op + 12),
+            date_h = ru32(op + 112), duration = ru32(op + 128),
+            civilian_factories = civ, total = tot,
+            target_tid = ru32(op + 88), prepared_h = ru32(op + 208),
+          }
+          local tp = rp(op + 96)
+          rec.target_provinces = O.kptr(tp) and ru32(tp + 164) or nil
+          -- resources (§4.11.12/§4.11.16; {d@+344, c@+356} 32B 元:
+          -- amount@0 / days@+8 / def*@+16 / flag u8@+24)
+          rec.resources = {}
+          local rsd, rsc = rp(op + 344), ru32(op + 356)
+          if O.kptr(rsd) and rsc and rsc > 0 and rsc < LAYOUT.lim.PTR_SANE then
+            for ri = 0, rsc - 1 do
+              local re = rsd + 32 * ri
+              local amt = rp(re); amt = amt and LAYOUT.as_i64(amt) or nil
+              local it = { flag = ru8(re + 24) or 0, amount = amt,
+                           days = ru32(re + 8) or 0 }
+              if it.flag == 0 then
+                local dp = rp(re + 16)
+                it.def_name = O.kptr(dp)
+                    and LAYOUT.token_name(ru32(dp + 8)) or nil
+              end
+              rec.resources[#rec.resources + 1] = it
+            end
+          end
+          -- return_on_complete ({d@+368, c@+380} 16B 元, 值@+8)
+          -- ⚠ roc_n 原样携带: 元素可读失败出 nil 洞, 段层需按原下标编号
+          rec.return_on_complete, rec.roc_n = {}, 0
+          local rod, roc = rp(op + 368), ru32(op + 380)
+          if O.kptr(rod) and roc and roc > 0 and roc < LAYOUT.lim.PTR_SANE then
+            rec.roc_n = roc
+            for oi = 0, roc - 1 do
+              local v = rp(rod + 16 * oi + 8)
+              rec.return_on_complete[oi + 1] =
+                  v and LAYOUT.as_i64(v) or nil
+            end
+          end
+          -- equipment 池 (CEquipmentVariantPool 内嵌 @op+272) = 共享 reader
+          rec.equipment = U.pool_read(op + 272,
+                                      { max = LAYOUT.lim.PTR_SANE })
+          -- operative_slots ({d@+224, c@+236} 56B 元: 对@0/+4,
+          -- resume@+8, mission 旗@+48, mission 块@+16)
+          rec.operative_slots = {}
+          local sd, sc = rp(op + 224), ru32(op + 236)
+          if O.kptr(sd) and sc and sc > 0 and sc < LAYOUT.lim.PTR_SANE then
+            for j = 0, sc - 1 do
+              local el = sd + 56 * j
+              local s2 = { op_type = ru32(el), op_id = ru32(el + 4),
+                resume = ru32(el + 8), mission_flag = ru8(el + 48) or 0 }
+              if s2.mission_flag ~= 0 then
+                local mi = el + 16
+                s2.mission_tok = OPS_MISSION_TOK[ru32(mi + 8) or -1]
+                s2.mission_target_tid = ru32(mi + 12)
+                local mst = rp(mi + 16)
+                s2.mission_state = O.kptr(mst) and ru32(mst + 88) or nil
+              end
+              rec.operative_slots[#rec.operative_slots + 1] = s2
+            end
+          end
+          -- phases ({d@+248, c@+260} 8B 指针, 名@pe+8)
+          -- ⚠ phases_n 原样携带: 名解析失败出 nil 洞, 段层门 = 任一失败整块不写
+          rec.phases, rec.phases_n = {}, 0
+          local pd, pc = rp(op + 248), ru32(op + 260)
+          if O.kptr(pd) and pc and pc > 0 and pc < LAYOUT.lim.PTR_SANE then
+            rec.phases_n = pc
+            for j = 0, pc - 1 do
+              local pe = rp(pd + 8 * j)
+              rec.phases[j + 1] = O.kptr(pe)
+                  and LAYOUT.token_name(ru32(pe + 8)) or nil
+            end
+          end
+          out.running[#out.running + 1] = rec
+        end
+      end
+    end
+  end
+  return out
 end
 
 -- 33.2 角色子块 (§4.4 CCharacter: country_leaders 容器@+152 /
@@ -2421,34 +2549,42 @@ function Country.navy(self)
   return out
 end
 
--- 33.13 ai_strategy / CStrategicAI (§4.34.5; 挂载链/策略槽区 112 槽
--- 24B/条 12B = 书 §4.3.19 与 §4.34.5; id 经 token 表反查, type = 槽号)
+-- 33.13 ai_strategy / CStrategicAI 双 112 槽数组 (§4.34.11; 挂载链
+-- cc+552 → +2800 → csa = host+2800; A ai_strategy @csa+144 / B
+-- persistent_strategy @csa+2832, 槽 24B {data@0, count@12}, 元素 12B
+-- {value i32@0, target@+4, id@+8})。
+-- ⚠ 原实现误读 host+104 槽区且无消费者 (与段层/存档实证不符), 已修正为
+-- csa 基址并重排返回形 (ai_strategy / persistent_strategy 两组)。
 function Country.ai_strategy(self)
   local p = rp(self.addr + 552)
   if not O.kptr(p) then return nil end
   local host = rp(p + 2800)
   if not O.kptr(host) then return nil end
-  local out = { host_addr = host, strategies = {}, total = 0 }
-  for i = 0, 111 do
-    local d, c = N33_ai_slot(host, i)
-    if d then
-      local list = {}
-      for j = 0, c - 1 do
-        local e = d + 12 * j
-        local v, t = ru32(e) or 0, ru32(e + 4) or 0
-        if v >= 2147483648 then v = v - 4294967296 end
-        local id = ru32(e + 8) or 0
-        local rec = { value = v, id = id,
-          id_name = LAYOUT.token_name(id) }
-        if t ~= 0 then rec.target = t end
-        list[#list + 1] = rec
+  local csa = host + 2800
+  local function slots(dbase, cbase)
+    local g = {}
+    for i = 0, 111 do
+      local d, c = rp(dbase + 24 * i), ru32(cbase + 24 * i)
+      if O.kptr(d) and c and c > 0 and c < LAYOUT.lim.PTR_SANE then
+        local list = {}
+        for j = 0, c - 1 do
+          local e = d + 12 * j
+          local v = ru32(e) or 0
+          if v >= 2147483648 then v = v - 4294967296 end
+          local rec = { value = v, id = ru32(e + 8) or 0,
+            id_name = LAYOUT.token_name(ru32(e + 8) or 0) }
+          local t = ru32(e + 4) or 0
+          if t ~= 0 then rec.target = t end
+          list[#list + 1] = rec
+        end
+        g[#g + 1] = { type = i, count = c, list = list }
       end
-      out.strategies[#out.strategies + 1] =
-        { type = i, count = c, list = list }
-      out.total = out.total + c
     end
+    return g
   end
-  return out
+  return { csa = csa,
+    ai_strategy = slots(csa + 144, csa + 156),
+    persistent_strategy = slots(csa + 2832, csa + 2844) }
 end
 
 -- 33.14 CStrategicAI 标量簇 (§4.3.19 定案表; 基址链
@@ -2477,19 +2613,18 @@ function Country.ai_state(self)
   out.seed = { ru32(csa + 5940), ru32(csa + 5936) }
   out.pp_spend_amount = { U.fix5(csa + 6104), U.fix5(csa + 6112) }
   out.pp_spend_priority = ru32(csa + 6096)
-  -- military_access: 稀疏 i32 数组 (idx = 国家)
-  out.military_access = { count = 0, nonzero = {} }
+  -- military_access: 稀疏 i32 数组 (idx = 国家; count 界检查交段层,
+  -- 段历史行为 = 界坏时整段中止)
+  out.military_access = { ptr_valid = false, count = 0, values = {} }
   local ma = rp(csa + 5808)
   if O.kptr(ma) then
     local g = self.R.gs()
     local n = (g and ru32(g + 0x31C)) or 0
+    out.military_access.ptr_valid = true
     out.military_access.count = n
     for i = 0, n - 1 do
-      local v = ru32(ma + 4 * i) or 0
-      if v ~= 0 then
-        out.military_access.nonzero[#out.military_access.nonzero + 1] =
-          { idx = i, value = v }
-      end
+      out.military_access.values[#out.military_access.values + 1] =
+        ru32(ma + 4 * i) or 0
     end
   end
   -- desire 簇 13 连 AE590 定点
@@ -2509,15 +2644,110 @@ function Country.ai_state(self)
     { 5800, "desire_unlock_air_spirit" },
   }
   for _, d in ipairs(DN) do out[d[2]] = U.fix5(csa + d[1]) end
-  -- persistent_strategy 容器 (writer 只序列化其中持久条目; 元素+0 是
-  -- 复合结构非纯 value — evidence 遗留, 按 {raw0, id@+8} 原样输出)
+  -- allowed_strategy_plans ({d@csa+5520, c@+5532} 40B MSVC SSO 串)
+  -- ⚠ 原实现把本容器误标 persistent_strategy 且按 {raw0, id@+8} 解串, 已修正
+  out.allowed_strategy_plans = {}
   local pd, pc = rp(csa + 5520), ru32(csa + 5532)
-  out.persistent_strategy = { count = pc or 0, list = {} }
-  if O.kptr(pd) and pc and pc > 0 and pc < 64 then
+  if O.kptr(pd) and pc and pc > 0 and pc < LAYOUT.lim.PTR_SANE then
     for k = 0, pc - 1 do
-      local e = pd + 40 * k
-      out.persistent_strategy.list[#out.persistent_strategy.list + 1] =
-        { raw0 = ru32(e) or 0, id = ru32(e + 8) or 0 }
+      out.allowed_strategy_plans[#out.allowed_strategy_plans + 1] =
+        U.sso(pd + 40 * k)
+    end
+  end
+  -- force_concentration_target ({d@5624, c@5636} 24B 元:
+  -- target@+8 / from@+12 / progress fix5@+16)
+  out.force_concentration_target = {}
+  local fd, fc = rp(csa + 5624), ru32(csa + 5636)
+  if O.kptr(fd) and fc and fc > 0 and fc < LAYOUT.lim.PTR_SANE then
+    for k = 0, fc - 1 do
+      local e = fd + 24 * k
+      out.force_concentration_target[#out.force_concentration_target + 1] =
+        { target = ru32(e + 8) or 0, from = ru32(e + 12) or 0,
+          progress = U.fix5(e + 16) }
+    end
+  end
+  -- expeditionary_force_data ({d@6160, c@6172} 48B 元: tag tid@+8 /
+  -- casualties@+12 / do_not_send@+16 / pull_back@+17 / date@+32)
+  out.expeditionary_force_data = {}
+  local ed, ec = rp(csa + 6160), ru32(csa + 6172)
+  if O.kptr(ed) and ec and ec > 0 and ec < LAYOUT.lim.PTR_SANE then
+    for k = 0, ec - 1 do
+      local e = ed + 48 * k
+      out.expeditionary_force_data[#out.expeditionary_force_data + 1] =
+        { tag_tid = ru32(e + 8) or 0, casualties = ru32(e + 12) or 0,
+          do_not_send = ru8(e + 16) or 0, pull_back = ru8(e + 17) or 0,
+          date_h = ru32(e + 32) }
+    end
+  end
+  -- raids ({d@5592, c@5604} 80B 元; target = SRaidTarget @+16, §4.27:
+  -- building*@+0 {template def@+0x1E0, state*@+0x1D8} / province*@+8 /
+  -- state*@+16 / leader 对@+24/+28 / leader_province*@+32; end_date@+64)
+  out.raids = {}
+  local rd, rc = rp(csa + 5592), ru32(csa + 5604)
+  if O.kptr(rd) and rc and rc > 0 and rc < LAYOUT.lim.PTR_SANE then
+    for k = 0, rc - 1 do
+      local e = rd + 80 * k
+      local rt = e + 16
+      local rec = { type_tok = ru32(e + 8) or 0, end_date_h = ru32(e + 64) }
+      local bld = rp(rt)
+      if O.kptr(bld) then
+        local tpo = rp(bld + 0x1E0)
+        rec.bld_template_tok = O.kptr(tpo) and ru32(tpo + 8) or nil
+        local sto = rp(bld + 0x1D8)
+        rec.bld_state = O.kptr(sto) and ru32(sto + 108) or nil
+      end
+      local pv = rp(rt + 8)
+      rec.province = O.kptr(pv) and ru32(pv + 164) or nil
+      local st2 = rp(rt + 16)
+      rec.state = O.kptr(st2) and ru32(st2 + 88) or nil
+      rec.leader_type, rec.leader_id = ru32(rt + 24), ru32(rt + 28)
+      local lp = rp(rt + 32)
+      rec.leader_province = O.kptr(lp) and ru32(lp + 164) or nil
+      out.raids[#out.raids + 1] = rec
+    end
+  end
+  -- failed_naval_invasions ({d@5568, c@5580} 64B 元: province*@+8 /
+  -- order_ids {d@+16, c@+28} 4B u32 / invasion_date@+48)
+  out.failed_naval_invasions = {}
+  local nd, nc = rp(csa + 5568), ru32(csa + 5580)
+  if O.kptr(nd) and nc and nc > 0 and nc < LAYOUT.lim.PTR_SANE then
+    for k = 0, nc - 1 do
+      local e = nd + 64 * k
+      local rec = {}
+      local pp = rp(e + 8)
+      rec.province = O.kptr(pp) and ru32(pp + 164) or nil
+      rec.order_ids = {}
+      local od, oc = rp(e + 16), ru32(e + 28)
+      -- ⚠ has_orders 原样携带: 段历史门 = kptr(od) 且 oc<PTR_SANE
+      -- (无 oc>0 检查, 故 oc==0 也出空 invasion_order_ids 叶)
+      if O.kptr(od) and oc and oc < LAYOUT.lim.PTR_SANE then
+        rec.has_orders = true
+        for j = 0, oc - 1 do
+          rec.order_ids[#rec.order_ids + 1] = ru32(od + 4 * j) or 0
+        end
+      end
+      rec.date_h = ru32(e + 48)
+      out.failed_naval_invasions[#out.failed_naval_invasions + 1] = rec
+    end
+  end
+  -- recently_invaded_areas ({d@5544, c@5556} 64B 元, 形态同上)
+  out.recently_invaded_areas = {}
+  local vd, vc = rp(csa + 5544), ru32(csa + 5556)
+  if O.kptr(vd) and vc and vc > 0 and vc < LAYOUT.lim.PTR_SANE then
+    for k = 0, vc - 1 do
+      local e = vd + 64 * k
+      local rec = {}
+      local pp = rp(e + 8)
+      rec.province = O.kptr(pp) and ru32(pp + 164) or nil
+      rec.order_ids = {}
+      local od, oc = rp(e + 16), ru32(e + 28)
+      if O.kptr(od) and oc and oc > 0 and oc < LAYOUT.lim.PTR_SANE then
+        for j = 0, oc - 1 do
+          rec.order_ids[#rec.order_ids + 1] = ru32(od + 4 * j) or 0
+        end
+      end
+      rec.date_h = ru32(e + 48)
+      out.recently_invaded_areas[#out.recently_invaded_areas + 1] = rec
     end
   end
   return out

@@ -1,116 +1,89 @@
 -- sv2_sec_c_ai.lua -- country.ai 节点 savefull 直出 (csec)
+-- 结构/走查唯一实现 = reader (Country:ai_strategy / Country:ai_state,
+-- objects_global §33.13/33.14); 本段只持 writer 发射规则
+-- (写序/块门/编号/值格式, 含 ai_strategy 槽 9/16/21 的 token 名放行门)。
 
 SV2.csec[#SV2.csec + 1] = { name = "country.ai", emit = function(ctx)
     local SL, emit, tag, c = SV2.lib, ctx.emit, ctx.tag, ctx.country
     if not c then return end
-    local rp, ru32 = SL.rp, SL.ru32
-    local kptr = SL.kptr
-    -- §4.3.19 CStrategicAI 标量簇: 挂载链 cc+552 → p; host = rp(p+2800);
-    -- csa = host+2800 (内嵌; 帧约定 §4.34.5)
-    -- §1.1 CGameState tag 串表 (sub_140BA5C20: rp(gs+0x358)+32*tid, 32B/项 SSO)
-    local ttab = ctx.gs and rp(ctx.gs + 0x358) or nil
-    local function tagof(tid)
-        if not (ttab and kptr(ttab) and tid and tid > 0 and tid < 4096)
-            then return nil end
-        local s = SL.sso(ttab + 32 * tid)
+    local oka, strat = pcall(function() return c:ai_strategy() end)
+    local oks, st = pcall(function() return c:ai_state() end)
+    if not oka or not oks then return end
+
+    local function tagof(tid)   -- tag_id → 三字串 (>0 才写)
+        if not (tid and tid > 0) then return nil end
+        local s = ctx.O:tag(tid)
         if s and s ~= "" then return s end
         return nil
     end
-    local p = rp(c.addr + 552)
-    if not kptr(p) then return end
-    local host = rp(p + 2800)
-    if not kptr(host) then return end
-    local csa = host + 2800
-
-    local i32 = GAME.layout.i32
-    local function fix5(a) -- i64 ×1e-5 定点 (§3.7; 100000 勿 *1e-5)
-        local v = rp(a) or 0
-        v = GAME.layout.as_i64(v)
-        return v / 100000
-    end
-
-    -- ===== §4.34.11 CStrategicAI 双 112 槽数组 (ai_strategy / persistent_strategy) =====
-    local TOK_ID = { [9] = true, [16] = true, [21] = true } -- 0x210200 bits
-    local function emit_slots(dbase, cbase, path, use_tok)
-        for i = 0, 111 do
-            local d, cnt = rp(dbase + 24 * i), ru32(cbase + 24 * i)
-            if kptr(d) and cnt and cnt > 0 and cnt < 4096 then
-                for j = 0, cnt - 1 do
-                    local e = d + 12 * j
-                    local id = ru32(e + 8) or 0
-                    local ids
-                    if use_tok and TOK_ID[i] then
-                        local nm = SL.tok(id)
-                        if type(nm) == "string" and nm:match("^[%a_][%w_]*$") then  -- 放宽收 CamelCase
-                            ids = nm
-                        else
-                            ids = tostring(id)
-                        end
+    -- ===== §4.34.11 双 112 槽数组 =====
+    -- 槽 9/16/21 (0x210200 bits) 的 id 走 token 名 (放宽收 CamelCase),
+    -- 其余槽 id 原样数字 = writer 门; value 已由 reader 转带符号
+    local TOK_SLOT = { [9] = true, [16] = true, [21] = true }
+    local function emit_group(groups, path, use_tok)
+        for _, g in ipairs(groups or {}) do
+            for _, e in ipairs(g.list) do
+                local ids
+                if use_tok and TOK_SLOT[g.type] then
+                    local nm = e.id_name
+                    if type(nm) == "string"
+                        and nm:match("^[%a_][%w_]*$") then
+                        ids = nm
                     else
-                        ids = tostring(id)
+                        ids = tostring(e.id)
                     end
-                    local line = "type=" .. i .. " id=" .. ids
-                    local t = ru32(e + 4) or 0
-                    if t ~= 0 then line = line .. " target=" .. t end
-                    line = line .. " value=" .. i32(e)
-                    emit(tag, path, line)
+                else
+                    ids = tostring(e.id)
                 end
+                local line = "type=" .. g.type .. " id=" .. ids
+                if (e.target or 0) ~= 0 then
+                    line = line .. " target=" .. e.target
+                end
+                line = line .. " value=" .. e.value
+                emit(tag, path, line)
             end
         end
     end
-    emit_slots(csa + 144, csa + 156, "ai.ai_strategy", true)   -- A: 0x3100
-    emit_slots(csa + 2832, csa + 2844, "ai.persistent_strategy", false) -- B: 0x3A32
+    emit_group(strat.ai_strategy, "ai.ai_strategy", true)          -- A: 0x3100
+    emit_group(strat.persistent_strategy, "ai.persistent_strategy", false) -- B: 0x3A32
 
-    -- ===== §4.3.19 CStrategicAI military_access (ptr 有效才写, 全零也写) =====
-    local ma = rp(csa + 5808)
-    if kptr(ma) then
-        local g = ctx.gs
-        -- 国家数运行时读 (§1.1 CGameState gs+796; 硬编码 440 在 mod 加国后即错)
-        local n = (g and ru32(g + 0x31C)) or 0
+    -- ===== §4.3.19 military_access (ptr 有效才写, 全零也写) =====
+    -- ⚠ 段历史行为: 国家数界坏时**整段中止** (后续标量全不发), 原样保留
+    local ma = st.military_access or {}
+    if ma.ptr_valid then
+        local n = ma.count or 0
         if n <= 0 or n > 65536 then return end
         local t = {}
-        for i = 0, n - 1 do
-            t[#t + 1] = tostring(ru32(ma + 4 * i) or 0)
-        end
+        for i = 1, n do t[i] = tostring(ma.values[i] or 0) end
         emit(tag, "ai.military_access.#1", table.concat(t, " "))
     end
 
     -- ===== §4.3.19 CStrategicAI 标量簇 (恒写) =====
     emit(tag, "ai.days_until_next_rebuild_access_list",
-        tostring(ru32(csa + 5700) or 0))
-    emit(tag, "ai.days_to_need_update", tostring(ru32(csa + 5696) or 0))
+        tostring(st.days_until_next_rebuild_access_list or 0))
+    emit(tag, "ai.days_to_need_update", tostring(st.days_to_need_update or 0))
     emit(tag, "ai.seed", string.format("%d %d",
-        ru32(csa + 5940) or 0, ru32(csa + 5936) or 0))
-    emit(tag, "ai.irrationality", tostring(i32(csa + 5960)))
-    emit(tag, "ai.pp_spend_priority", tostring(ru32(csa + 6096) or 0))
+        st.seed[1] or 0, st.seed[2] or 0))
+    emit(tag, "ai.irrationality", tostring(st.irrationality))
+    emit(tag, "ai.pp_spend_priority", tostring(st.pp_spend_priority or 0))
     emit(tag, "ai.pp_spend_amount.#1", string.format("%s %s",
-        SL.num(fix5(csa + 6104)), SL.num(fix5(csa + 6112))))
-    emit(tag, "ai.num_wanted_divisions", tostring(i32(csa + 6132)))
-    local DN = {
-        { 5704, "desire_unlock_land_doctrine" },
-        { 5712, "desire_unlock_naval_doctrine" },
-        { 5720, "desire_unlock_air_doctrine" },
-        { 5728, "desire_update_land_template" },
-        { 5736, "desire_upgrade_land_equipment" },
-        { 5744, "desire_upgrade_naval_equipment" },
-        { 5752, "desire_upgrade_air_equipment" },
-        { 5784, "desire_unlock_army_spirit" },
-        { 5792, "desire_unlock_navy_spirit" },
-        { 5800, "desire_unlock_air_spirit" },
-        { 5760, "reserved_xp_land_research" },
-        { 5768, "reserved_xp_naval_research" },
-        { 5776, "reserved_xp_air_research" },
-    }
-    for _, d in ipairs(DN) do
-        emit(tag, "ai." .. d[2], SL.num(fix5(csa + d[1])))
+        SL.num(st.pp_spend_amount[1]), SL.num(st.pp_spend_amount[2])))
+    emit(tag, "ai.num_wanted_divisions", tostring(st.num_wanted_divisions))
+    for _, key in ipairs{
+        "desire_unlock_land_doctrine", "desire_unlock_naval_doctrine",
+        "desire_unlock_air_doctrine", "desire_update_land_template",
+        "desire_upgrade_land_equipment", "desire_upgrade_naval_equipment",
+        "desire_upgrade_air_equipment", "desire_unlock_army_spirit",
+        "desire_unlock_navy_spirit", "desire_unlock_air_spirit",
+        "reserved_xp_land_research", "reserved_xp_naval_research",
+        "reserved_xp_air_research" } do
+        emit(tag, "ai." .. key, SL.num(st[key]))
     end
 
-    -- ===== §4.34.11 CStrategicAI allowed_strategy_plans (count>0 才写) =====
-    local pd, pc = rp(csa + 5520), ru32(csa + 5532)
-    if kptr(pd) and pc and pc > 0 and pc < GAME.layout.lim.PTR_SANE then
+    -- ===== §4.34.11 allowed_strategy_plans (count>0 且有非空串才写) =====
+    do
         local plans = {}
-        for k = 0, pc - 1 do
-            local s = SL.sso(pd + 40 * k)
+        for _, s in ipairs(st.allowed_strategy_plans or {}) do
             if s and s ~= "" then plans[#plans + 1] = s end
         end
         if #plans > 0 then
@@ -119,149 +92,95 @@ SV2.csec[#SV2.csec + 1] = { name = "country.ai", emit = function(ctx)
         end
     end
 
-    -- ===== §4.3.19 CStrategicAI force_concentration_target (容器/块键/元素字段 = 书) =====
-    local fd, fc = rp(csa + 5624), ru32(csa + 5636)
-    if kptr(fd) and fc and fc > 0 and fc < GAME.layout.lim.PTR_SANE then
-        local fseq = SL.seqc()
-        for k = 0, fc - 1 do
-            local e = fd + 24 * k
-            local fb = "ai." .. fseq("force_concentration_target") .. "."
-            emit(tag, fb .. "target", tostring(ru32(e + 8) or 0))
-            emit(tag, fb .. "from", tostring(ru32(e + 12) or 0))
-            emit(tag, fb .. "progress", SL.num(fix5(e + 16)))
+    -- ===== §4.3.19 force_concentration_target =====
+    local fseq = SL.seqc()
+    for _, e in ipairs(st.force_concentration_target or {}) do
+        local fb = "ai." .. fseq("force_concentration_target") .. "."
+        emit(tag, fb .. "target", tostring(e.target or 0))
+        emit(tag, fb .. "from", tostring(e.from or 0))
+        emit(tag, fb .. "progress", SL.num(e.progress))
+    end
+
+    -- ===== §4.3.19 expeditionary_force_data =====
+    local eseq = SL.seqc()
+    for _, e in ipairs(st.expeditionary_force_data or {}) do
+        local eb = "ai." .. eseq("expeditionary_force_data") .. "."
+        local t = tagof(e.tag_tid)
+        if t then emit(tag, eb .. "tag", '"' .. t .. '"') end
+        emit(tag, eb .. "casualties", tostring(e.casualties or 0))
+        emit(tag, eb .. "do_not_send_forces", SL.yn(e.do_not_send or 0))
+        emit(tag, eb .. "pull_forces_back", SL.yn(e.pull_back or 0))
+        if e.date_h and e.date_h ~= 43808760 then
+            local ds = SL.date(e.date_h)
+            if ds then emit(tag, eb .. "date", '"' .. ds .. '"') end
         end
     end
 
-    -- ===== §4.3.19 CStrategicAI expeditionary_force_data (容器/块键/元素字段 = 书) =====
-    do
-        local ed, ec = rp(csa + 6160), ru32(csa + 6172)
-        if kptr(ed) and ec and ec > 0 and ec < GAME.layout.lim.PTR_SANE then
-            local eseq = SL.seqc()
-            for k = 0, ec - 1 do
-                local e = ed + 48 * k
-                local eb = "ai." .. eseq("expeditionary_force_data") .. "."
-                local t = tagof(ru32(e + 8))
-                if t then emit(tag, eb .. "tag", '"' .. t .. '"') end
-                emit(tag, eb .. "casualties", tostring(ru32(e + 12) or 0))
-                emit(tag, eb .. "do_not_send_forces",
-                    SL.yn(SL.ru8(e + 16) or 0))
-                emit(tag, eb .. "pull_forces_back",
-                    SL.yn(SL.ru8(e + 17) or 0))
-                local dh = ru32(e + 32)
-                if dh and dh ~= 43808760 then
-                    local ds = SL.date(dh)
-                    if ds then
-                        emit(tag, eb .. "date", '"' .. ds .. '"') end
-                end
+    -- ===== §4.3.19 ai.raids (target 内层 SRaidTarget = §4.27) =====
+    local rseq = SL.seqc()
+    for _, e in ipairs(st.raids or {}) do
+        local rb = "ai." .. rseq("raids") .. "."
+        local tnm = GAME.layout.token_name(e.type_tok or 0)
+        if tnm and tnm ~= "" then emit(tag, rb .. "type", tnm) end
+        if e.bld_template_tok then
+            local tn2 = GAME.layout.token_name(e.bld_template_tok)
+            if tn2 and tn2 ~= "" then
+                emit(tag, rb .. "target.building.template", tn2)
             end
         end
-    end
-
-    -- ===== §4.3.19 CStrategicAI ai.raids (容器/块键/元素字段 = 书;
-    -- target 内层 SRaidTarget 布局 = §4.27) =====
-    do
-        local rd, rc = rp(csa + 5592), ru32(csa + 5604)
-        if kptr(rd) and rc and rc > 0 and rc < GAME.layout.lim.PTR_SANE then
-            local rseq = SL.seqc()
-            for k = 0, rc - 1 do
-                local e = rd + 80 * k
-                local rb = "ai." .. rseq("raids") .. "."
-                local tnm = GAME.layout.token_name(ru32(e + 8) or 0)
-                if tnm and tnm ~= "" then
-                    emit(tag, rb .. "type", tnm) end
-                local rt = e + 16
-                local bld = rp(rt)
-                if kptr(bld) then
-                    local tpo = rp(bld + 0x1E0)
-                    local tn2 = kptr(tpo) and GAME.layout.token_name(
-                        ru32(tpo + 8) or 0) or nil
-                    if tn2 and tn2 ~= "" then
-                        emit(tag, rb .. "target.building.template", tn2)
-                    end
-                    local sto = rp(bld + 0x1D8)
-                    if kptr(sto) then
-                        emit(tag, rb .. "target.building.location",
-                            tostring(ru32(sto + 108) or 0))
-                    end
-                end
-                local pv = rp(rt + 8)
-                if kptr(pv) then
-                    emit(tag, rb .. "target.province",
-                        tostring(ru32(pv + 164) or 0))
-                end
-                local st2 = rp(rt + 16)
-                if kptr(st2) then
-                    emit(tag, rb .. "target.state",
-                        tostring(ru32(st2 + 88) or 0))
-                end
-                local lty, lid = ru32(rt + 24), ru32(rt + 28)
-                if (lty or 0) ~= 0 or (lid or 0) ~= 0 then
-                    emit(tag, rb .. "target.leader", SL.idpair(lid, lty))
-                end
-                local lp = rp(rt + 32)
-                if kptr(lp) then
-                    emit(tag, rb .. "target.leader_province",
-                        tostring(ru32(lp + 164) or 0))
-                end
-                local ds = SL.date(ru32(e + 64))
-                if ds then
-                    emit(tag, rb .. "end_date", '"' .. ds .. '"') end
-            end
+        if e.bld_state then
+            emit(tag, rb .. "target.building.location",
+                tostring(e.bld_state))
         end
-    end
-
-    -- ===== §4.3.19 CStrategicAI failed_naval_invasions (容器/块键/元素字段 = 书) =====
-    do
-        local nd, nc = rp(csa + 5568), ru32(csa + 5580)
-        if kptr(nd) and nc and nc > 0 and nc < GAME.layout.lim.PTR_SANE then
-            local nseq = SL.seqc()
-            for k = 0, nc - 1 do
-                local e = nd + 64 * k
-                local nb = "ai." .. nseq("failed_naval_invasions") .. "."
-                local pp = rp(e + 8)
-                if kptr(pp) then
-                    emit(tag, nb .. "province",
-                        tostring(ru32(pp + 164) or 0))
-                end
-                local od, oc = rp(e + 16), ru32(e + 28)
-                if kptr(od) and oc and oc < GAME.layout.lim.PTR_SANE then
-                    local tl = {}
-                    for j = 0, (oc or 0) - 1 do
-                        tl[#tl + 1] = tostring(ru32(od + 4 * j) or 0)
-                    end
-                    emit(tag, nb .. "invasion_order_ids.#1",
-                        table.concat(tl, " "))
-                end
-                local ds = SL.date(ru32(e + 48))
-                if ds then
-                    emit(tag, nb .. "invasion_date", '"' .. ds .. '"') end
-            end
+        if e.province then
+            emit(tag, rb .. "target.province", tostring(e.province))
         end
+        if e.state then
+            emit(tag, rb .. "target.state", tostring(e.state))
+        end
+        if (e.leader_type or 0) ~= 0 or (e.leader_id or 0) ~= 0 then
+            emit(tag, rb .. "target.leader",
+                SL.idpair(e.leader_id, e.leader_type))
+        end
+        if e.leader_province then
+            emit(tag, rb .. "target.leader_province",
+                tostring(e.leader_province))
+        end
+        local ds = SL.date(e.end_date_h)
+        if ds then emit(tag, rb .. "end_date", '"' .. ds .. '"') end
     end
 
-    -- ===== §4.3.19 CStrategicAI recently_invaded_areas (count>0 才写; [N] 编号首现不编) =====
-    local vd, vc = rp(csa + 5544), ru32(csa + 5556)
-    if kptr(vd) and vc and vc > 0 and vc < GAME.layout.lim.PTR_SANE then
-        local seq = SL.seqc()
-        for k = 0, vc - 1 do
-            local e = vd + 64 * k
-            local blk = seq("recently_invaded_areas") -- "ai." 前缀由下行拼接
-            local pp = rp(e + 8)
-            emit(tag, "ai." .. blk .. ".province",
-                tostring(kptr(pp) and (ru32(pp + 164) or 0) or 0))
-            local od, oc = rp(e + 16), ru32(e + 28)
-            if kptr(od) and oc and oc > 0 and oc < GAME.layout.lim.PTR_SANE then
-                local tl = {}
-                for j = 0, oc - 1 do
-                    tl[#tl + 1] = tostring(ru32(od + 4 * j) or 0)
-                end
-                emit(tag, "ai." .. blk .. ".invasion_order_ids.#1",
-                    table.concat(tl, " "))
-            end
-            local ds = SL.date(ru32(e + 48))
-            if ds then
-                emit(tag, "ai." .. blk .. ".invasion_date", '"' .. ds .. '"')
-            end
+    -- ===== §4.3.19 failed_naval_invasions =====
+    local nseq = SL.seqc()
+    for _, e in ipairs(st.failed_naval_invasions or {}) do
+        local nb = "ai." .. nseq("failed_naval_invasions") .. "."
+        if e.province then
+            emit(tag, nb .. "province", tostring(e.province))
+        end
+        if e.has_orders then
+            local tl = {}
+            for j, v in ipairs(e.order_ids) do tl[j] = tostring(v) end
+            emit(tag, nb .. "invasion_order_ids.#1", table.concat(tl, " "))
+        end
+        local ds = SL.date(e.date_h)
+        if ds then emit(tag, nb .. "invasion_date", '"' .. ds .. '"') end
+    end
+
+    -- ===== §4.3.19 recently_invaded_areas (count>0 才写; [N] 首现不编) =====
+    local seq = SL.seqc()
+    for _, e in ipairs(st.recently_invaded_areas or {}) do
+        local blk = seq("recently_invaded_areas")
+        emit(tag, "ai." .. blk .. ".province",
+            tostring(e.province or 0))
+        if #e.order_ids > 0 then
+            local tl = {}
+            for j, v in ipairs(e.order_ids) do tl[j] = tostring(v) end
+            emit(tag, "ai." .. blk .. ".invasion_order_ids.#1",
+                table.concat(tl, " "))
+        end
+        local ds = SL.date(e.date_h)
+        if ds then
+            emit(tag, "ai." .. blk .. ".invasion_date", '"' .. ds .. '"')
         end
     end
 end }
