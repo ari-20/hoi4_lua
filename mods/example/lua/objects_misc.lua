@@ -29,22 +29,8 @@ local sid_map2 = SH.sid_map2
 
 -- §24 国家字段快照 / 阵营列表 / 单边关系
 -- ============================================================
--- 24.1 州指针→state_id 映射 (缓存; §1.2 gs+712 州表)
-local sid_cache2 = { map = nil }
-local function sid_map2(g)
-  if sid_cache2.map then return sid_cache2.map end
-  local stbl = g and rp(g + 0x2C8)
-  local m = {}
-  if O.kptr(stbl) then
-    for sid = 1, 4096 do
-      local p = rp(stbl + 8 * sid)
-      if not O.kptr(p) then break end
-      m[p] = sid
-    end
-  end
-  sid_cache2.map = m
-  return m
-end
+-- 24.1 州指针→state_id 映射 = SH.sid_map2 (本文件顶部已导入)。此处原有
+-- 一份逐字重复的本地定义 (含独立缓存表), 遮蔽了导入, 已删。
 
 -- 24.2 国家字段快照 (capital/cores/claims/delayed_events + 标量族)
 -- §4.3.1 CCountry 字段布局 / §4.3.11 country_fields 标量字段族

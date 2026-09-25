@@ -1,6 +1,5 @@
-// hoi4_http_server.cpp — local HTTP service (batch F)
+// hoi4_http_server.cpp — local HTTP service
 //
-// Design: research_20260911/IPC_HTTP_REDESIGN.md (2026-09-11).
 // Loopback-only HTTP/1.1 control plane for the toolchain. Execution model
 // reuses the proven IPC discipline: engine-touching work runs ONLY on the
 // main thread at frame top (http_poll_main, called from tick_dispatch_lua
@@ -28,6 +27,7 @@
 #include <vector>
 #include <mutex>
 #include <deque>
+#include <stdlib.h>       // free() for the unbounded echo paths
 #include <unordered_map>
 #include <cstdlib>
 
@@ -105,17 +105,27 @@ extern "C" void http_push_event(const char *name, const char *payload) {
 
 // ---------------------------------------------------------------- main side
 static void exec_one(HttpReq *r) {
-    char out[8192];
+    char out[8192];              // shared scratch for the profiler paths below
     out[0] = 0;
     switch (r->kind) {
-    case RK_CONSOLE:
-        r->status = console_invoke_core(r->payload.c_str(), out, sizeof(out));
-        r->result = out;
+    case RK_CONSOLE: {
+        // unbounded echo: the old fixed 8KB stack buffer cut long output
+        // (list_flags / help / any dump command) with no signal to the caller
+        size_t len = 0; int ok = 0;
+        char *s = console_invoke_alloc(r->payload.c_str(), &len, &ok);
+        r->status = ok;
+        r->result = s ? std::string(s, len) : std::string();
+        free(s);
         break;
-    case RK_LUA:
-        r->status = lua_exec_chunk(r->payload.c_str(), out, sizeof(out));
-        r->result = out;
+    }
+    case RK_LUA: {
+        size_t len = 0; int ok = 0;
+        char *s = lua_exec_chunk_alloc(r->payload.c_str(), &len, &ok);
+        r->status = ok;
+        r->result = s ? std::string(s, len) : std::string();
+        free(s);
         break;
+    }
     case RK_PAUSE: {
         // strict whole-string int parse (atoi silently maps "abc"/"" to 0)
         const char *s = r->payload.c_str();

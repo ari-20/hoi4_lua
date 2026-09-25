@@ -82,7 +82,7 @@ CArmy 0X140C90550 / CAce 0X14061BD30 均与书内定案一致。用法: 需某�
 | CUpdateable | 0x14294c198 | 6 | 125 | Update / populate 底座 |
 | CReloadDispatcher | 0x14271a630 | 4 | 330 | ret0 空实现层 |
 | **CTemplateChanger** | 0x1429E9BF8 | 6 | — | 收集可换编制目标 (非抽象: [0][1] = _purecall / [2] sub_14169D500 / [3] ret0 / [4] CFG_nop / [5] ret0) |
-| CReloadableInterface | 0x142B3F238 | 4 | 290 | OnReload 接口 |
+| CReloadableInterface | 0x142B3F238 | 4 | 290 | Reload 接口 |
 
 CTooltipHandler 虚表槽表:
 
@@ -99,25 +99,25 @@ CTooltipHandler 调用与挂接:
 | 挂接 | CGuiObject@48 子对象 vt[69] = SetTooltipHandler (存窗口 +128, 递归子窗) |
 | 读取 | vt[70] = getter (读 +80) |
 
-CUpdateable 虚表槽表 (0x14294c198, 6 槽):
+CUpdateable 虚表槽表 (0x14294c198, 6 槽; 契约定案 — standardinterface.cpp 断言串对偶佐证):
 
 | 槽 | 函数 | 语义 |
 |---|---|---|
 | [0] | — | 析构 |
-| [1] | — | **Update** (纯虚; popup 覆写带 gamestate 断言) |
-| [2] | — | **派生 populate 槽** (CArmyDivisionStatsView 族把面板填充挂此槽, 本族用法定名) |
-| [3] | — | 共享谓词 `+8 && +8==arg` |
-| [4] | — | ret0 |
-| [5] | — | guard_nop (CFG 空桩; 6 槽口径复证, slot[6] 起 = 下一虚表 COL) |
+| [1] | — | **IsValid** (基实现推进 timeout_progressbar 后 return 未超时; 派生全部 base && 条件组合; 旧记「Update 纯虚」归并) |
+| [2] | — | **Refresh** (派生 populate 用法归并入此名) |
+| [3] | — | IsFor? (推定: 共享谓词 `+8 && +8==arg` = ctor 绑定指针与入参比较, 全族零覆写) |
+| [4] | — | **Setup** (基 = ret0) |
+| [5] | — | **Teardown** (基 = guard_nop; 6 槽口径复证, slot[6] 起 = 下一虚表 COL) |
 
-CReloadDispatcher 虚表槽表 (0x14271a630, 4 槽):
+CReloadDispatcher 虚表槽表 (0x14271a630, 4 槽; 契约定案 — 控制台 `reload` 派发与枚举壳直证):
 
 | 槽 | 函数 | 语义 |
 |---|---|---|
 | [0] | — | 析构 |
-| [1] | — | ret0 |
-| [2] | — | ret0 |
-| [3] | — | 空 |
+| [1] | — | **Update** (带可选参数表的推进/处理回调, bool) |
+| [2] | — | **Reload** (无参重载/重建, bool; 控制台 `reload <name>` 派发调 vtab+16) |
+| [3] | — | **CollectReloadNames** (向引擎字符串表容器追加本对象可重载条目名) |
 
 CTemplateChanger 虚表槽表 (0x1429E9BF8, 6 槽):
 
@@ -129,17 +129,17 @@ CTemplateChanger 虚表槽表 (0x1429E9BF8, 6 槽):
 > CArmyDivisionStatsView@80 / CArmyDivisionListView@0 两视图同构覆写 (stats 主表
 > 6 槽挂 CUpdateable@64 + CTemplateChanger@80; 基族「同族不同序」实例)。
 >
-> **CArmyDivisionStatsView 五表 28 槽全定**: 主 0x1429EA2E0 (4: [0] 析构 sub_141697C40 / [1] ret0 / [2] sub_1416ADD60 OnReload / [3] CFG_nop) · @40 iface 0x1429EA308 (10) · @64 CUpdateable 0x1429EA360 (6: [0] sub_141697B08 / [1] sub_1416B88A0 / [2] sub_1416AD770 / [3] sub_1402E02D0 / [4] ret0 / [5] CFG_nop) · @80 CTemplateChanger 0x1429EA398 (6: [0] sub_141698860 / [1] sub_14169B5D0 / [2] sub_14169D450 / [3] ret0 / [4] CFG_nop / [5] ret0) · @112 CTooltipHandler 0x1429EA3D0 (2: [0] sub_1416A2270 BuildTooltip / [1] sub_141697B14)。
+> **CArmyDivisionStatsView 五表 28 槽全定**: 主 0x1429EA2E0 (4: [0] 析构 sub_141697C40 / [1] ret0 / [2] sub_1416ADD60 Reload / [3] CFG_nop) · @40 iface 0x1429EA308 (10) · @64 CUpdateable 0x1429EA360 (6: [0] sub_141697B08 / [1] sub_1416B88A0 / [2] sub_1416AD770 / [3] sub_1402E02D0 / [4] ret0 / [5] CFG_nop) · @80 CTemplateChanger 0x1429EA398 (6: [0] sub_141698860 / [1] sub_14169B5D0 / [2] sub_14169D450 / [3] ret0 / [4] CFG_nop / [5] ret0) · @112 CTooltipHandler 0x1429EA3D0 (2: [0] sub_1416A2270 BuildTooltip / [1] sub_141697B14)。
 > **CArmyDivisionListView 二表**: 主 0x1429E9F18 (6: [0] 析构 sub_141698540 / [1] sub_14169B400 / [2] sub_14169D420 / [3] ret0 / [4] CFG_nop / [5] ret0) · @32 tooltip 0x1429E9F50 (2: [0] sub_14169F350 / [1] sub_141697AF0)。
 
-CReloadableInterface 虚表槽表 (0x142B3F238, 4 功能槽):
+CReloadableInterface 虚表槽表 (0x142B3F238, 4 功能槽; 契约 = CReloadDispatcher 扇出):
 
 | 槽 | 函数 | 语义 |
 |---|---|---|
 | [0] | sub_142256130 | 析构 (sub_1422560A0 + free) |
-| [1] | — | ret0 |
-| [2] | _purecall | **OnReload** (纯虚, 重抽象 CReloadDispatcher[2]) |
-| [3] | — | CFG_nop |
+| [1] | — | **Update** (继承契约) |
+| [2] | _purecall | **Reload** (纯虚重抽象, 强制窗口实现; 旧记 Reload 归并) |
+| [3] | — | **CollectReloadNames** (基 = CFG_nop 空默认; 派生逐条 push) |
 
 > 三独立实现同构: CCountryView 0X1412375D0 / CPopUpWindow@16 0X140B7D300 /
 > CShipStatsView 0X141BED890 = 释放旧窗 → 工厂重建 → 注入 tooltip →
@@ -152,7 +152,7 @@ CInGameUpdateableInterface@48`; CCountryStateView (0x1429F82E8) / CCountryNavalR
 
 | 槽 | 函数 | 语义 |
 |---|---|---|
-| [2] | — | **OnReload 实现** (基类纯虚落点) |
+| [2] | — | **Reload 实现** (基类纯虚落点) |
 | [5] | — | **IsOpenAndVisible**: `win=+1400 → !win->vt[73] && byte165&8` |
 | [9] | State 0X14174A990 | **Refresh**: 悬停==+1416 → populate_b sub_14174ECF0; ==+1408 → populate_a sub_14174DD50 |
 | [11] | State 0X14174AA40 / Naval 0X141735770 | **SetTarget**: State +1408=a2, +1416=*(a2+192); Naval +6912=a2+200 |
@@ -221,7 +221,7 @@ CPopUpWindow 三虚表 (主 0x14294C238 14 槽 / @16 0x14294C2B0 4 槽 / @56 0x1
 |---|---|---|
 | [0] | sub_140B7B2F0 | 析构 |
 | [1] | — | ret0 |
-| [2] | 0X140B7D300 | OnReload 实现 |
+| [2] | 0X140B7D300 | Reload 实现 |
 | [3] | — | CFG_nop |
 
 > 其余槽未列 (未决)。
@@ -326,8 +326,8 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | [16] | 默认 (恒定) | 470 同 sub_1405404F0 | 无覆写 |
 | [17] | 默认 (恒定) | 470 同 sub_14053FFA0 | 无覆写 |
 | [18] | 默认 (恒定) | 470 同 sub_1405404C0 | 无覆写 |
-| [19] | **GetValidScopeMask** (执行门 sub_140540810 读本槽逐位探 ctx 各子 scope, 全不中报 "invalid effect scope" effect.cpp:685; 基默认 `return 0` = 不限; 覆写全为常数, ICF 折叠: 44 类 return 2 / 265 类 return 4) | 309 变 | sub_140120540 (基) |
-| [20] | **GetSupportedScopeMask** (每类常数位掩码 getter: 基 `return 2`; 覆写 12/16/128/1532 等, 1532 = [22] 校验位集; vtable 旁字符串 "\nSupported scopes: any/state/country" 即其文案) | 348 同 sub_140177700 | [22] 以之校验 +36 旗标 ⊆ 类支持集 |
+| [19] | **GetSupportedScopeMask** (引擎文档构建器 0x14053EE80 直证标签 "supported_scope"; 同掩码兼执行门: sub_140540810 逐位探 ctx 各子 scope, 全不中报 "invalid effect scope" effect.cpp:685; 覆写全为常数, ICF 折叠: 44 类 return 2 / 265 类 return 4) | 309 变 | sub_140120540 (基) |
+| [20] | **GetSupportedTargetMask** (文档构建器直证标签 "supported_target"; 每类常数位掩码: 基 `return 2`; 覆写 12/16/128/1532 等, 1532 = target 词汇 THIS\|ROOT\|PREV\|FROM\|OWNER\|CONTROLLER\|CAPITAL\|OCCUPIED) | 348 同 sub_140177700 | [22] 以 target 类型码映射逐位校验 (与 CTrigger[17] 同款) |
 | [21] | **IsValidScopeMask** `!a2 \|\| ![19](a1) \|\| ([19](a1)&a2)` | 470 全同 sub_14053D7F0 | 调 [19]; scope 掩码可接受性判定 |
 | [22] | **ValidateTargets** (+36 `&0x400` 门 + 逐位配对 [20] 掩码, 缺位返 0) | 470 全同 sub_14053D750 | — |
 | [23] | **ResolveReferences** (基 = guard_nop; 派生 trait/policy 族实装: 遍历名字数组按名查 gameitemdb 条目后绑定, gameitemdatabase.h:142 断言) | 396 = guard_nop | ICF |
@@ -340,7 +340,7 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | 槽 | 语义 | 覆盖 | 证据 |
 |---|---|---|---|
 | [0] | 析构 | 89 变 | — |
-| [1] | **GetKey** (建子触发器时存关键字 token 到 +32; 本槽查 lexer 返 token 文本, 未命中经 +44 懒构缓存串 +56) | 544 同 sub_14054E9E0 | 仅 CScriptedTrigger 族覆写返脚本名 |
+| [1] | **GetName** (建子触发器时存关键字 token 到 +32; 本槽查 lexer 返 token 文本, 未命中经 +44 懒构缓存串 +56; 旧记 GetKey 归并 — 与 CProfiledScopeObject/CEffect [1] 同一虚函数) | 544 同 sub_14054E9E0 | 仅 CScriptedTrigger 族覆写返脚本名 |
 | [2] | **IsAssignTrigger** (基 `return 0`; 16 覆写全为变量/数组/日志赋值型 → `return 1`) | 532 同 sub_14011D220 | 与错误串 "Non **assign** trigger is not enclosed in {}" 术语吻合 |
 | [3] | **校验作用域的 Evaluate 外壳** — 作用域合法 → 转 [22]; 非法 → 报 "Invalid Scope, supported/provided" (trigger.cpp:460) 返 0 | 545 同 sub_14054D0B0 | count_triggers 语义建立于此槽 |
 | [4] | **ParseValueKeys** (覆写主体 = 逐类值键解析: bool 族共享 0X1413A2430 / 比较族 0X1413A2540 / 名 token 族 0X14031EDE0; 原语 = sub_1424C08D0(整) / sub_1424C0A70(fixed×1e-5 内层 sub_1424C53E0) / sub_1424C0C00(bool); **基实现 = scope-target token 兜底**: switch 9 token → +36 类型码 + `event_target:` 查表, 败报 "Invalid scope target assigned" trigger.cpp:530) | 47 | 0x14054AE70 (基) |
@@ -353,8 +353,8 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | [11] | **GetTooltip** (遍历 +8 子表: 子 [21] 描述 + '\n' + 子 [3] 满足布尔交回调拼行, 递归子 [11]; 容器类 23 组覆写改头部/递归形态) | 24 | sub_14054C580 |
 | [12] | **GetTooltipText** (遍历子表调 [21]+[3], 按 Evaluate==a4 前缀本地化 TRIGGER_UNFULLFILLED_PREFIX / TRIGGER_FULLFILLED_PREFIX, 按缩进参数重复 "   ", 递归子 [12]) | 24 | sub_14054C800 |
 | [13] | **ValidateLate** (基恒真; 批量校验入口遍历触发器队列逐个调本槽, 假 → 抛 "Trigger failed to validate: " trigger.cpp:117; 52 覆写 = 引用数据库条目族: 名字串查表解析 id 后绑定) | 446 同 sub_1401807B0 | 同址三用之二; 与 [7] 分名按调用点 (解析收尾即时 vs 延迟批队列), 引擎原名未决 |
-| [14] | **GetRequiredScopeMask** (纯虚! 派生全常数体: 主流 return 4 国家域 / return 8 角色长域 / return 0 变量赋值类; 消费者 sub_14054F7E0 逐位探 ctx、[3] 错误串、[16] [18]) | 纯虚 | ICF 折叠组: 0x1402E30E0=return 4 等 |
-| [15] | GetAllowedScopeMask? (推定; 纯虚! 派生常数体 return 0/2/316/1532; 唯一消费者 [17]: ==2 直接判无效, 其余按类型码映射逐位验证) | 纯虚 | 0x140177700=return 2 组等 |
+| [14] | **GetSupportedScopeMask** (文档构建器 0x14054E320 直证标签 "supported_scope"; 纯虚! 派生全常数体: 主流 return 4 国家域 / return 8 角色长域 / return 0 变量赋值类; 消费者 sub_14054F7E0 逐位探 ctx、[3] 错误串、[16] [18]) | 纯虚 | ICF 折叠组: 0x1402E30E0=return 4 等 |
+| [15] | **GetSupportedTargetMask** (文档构建器直证标签 "supported_target"; 纯虚! 派生常数体 return 0/2/316/1532, 词汇 = target 列; 唯一消费者 [17]: ==2 直接判无效, 其余按类型码映射逐位验证; 与 CEffect[20] 同构) | 纯虚 | 0x140177700=return 2 组等 |
 | [16] | **IsScopeCompatible** `!a2 \|\| ![14]() \|\| ([14]()&a2)` (所需掩码与外部掩码有交集; 无覆写) | 546 同址 (全继承) | sub_14054CD60 |
 | [17] | **ValidateAssignedScope** (+36 &0x400 已指派门 → [15] 掩码, ==2 → false, 类型码映射逐位验证; 无覆写) | 546 同址 (全继承) | sub_14054CCD0 |
 | [18] | RegisterTrigger? (推定; 基 = guard_nop 空体; ~112 覆写按 [14] 掩码位把关键字文本注册进不同 per-scope 注册表) | 424 = guard_nop | ICF |
@@ -372,6 +372,20 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | +208 | 列表数据 | 收集结果列表 (分配器/容量 @+224, 扩容 ×1.5) | 推定 |
 | +232 | int32 | 目标截断上界 (键 `random_select_amount`; 收集骨架截断步读此值) | 推定 |
 | +240 | u8 ∨ 匿名结构 (NNB 形状) | `include_invisible` 门 (列表收集族) ∨ 内嵌 `original_tag` 表达式对象 (模板实例化差异: `*WithOriginalTag` 系, Parse 键 19098) | 推定 |
+
+**求值上下文与目标选择字** (effect/trigger 共用口径; 中间层族批量定名时横向定案):
+
+| 位置 | 语义 | 证据 |
+|---|---|---|
+| 对象+36 | 目标选择位字 (state owner/controller/occupation/固定 tag 等位选; 0x200 = 命名目标, 0x400 = 参与 assigned-scope 校验开关) | GetTargetTag/GetTargetID 槽族派发 + [17]/[22] 校验门 |
+| 对象+40 | 固定 tag token (u16, 经 map 查找) | 命名目标分支 |
+| 对象+88 | 目标 spec 优先级指针 (CCountryEffect: 非空则优先于基类透传) | CCountryEffect[25] |
+| ctx+24/32/40 | 作用域链节点 (各 scope 子对象槽) | 执行门逐位探针 |
+| ctx+80 | character scope | GetTargetCharacter 槽族 |
+| ctx+120 | MIO scope | GetTargetMio 槽族 |
+| ctx+168 | 州 id (int) | 断言 "Effect checking state controller needs a scope with state assigned." effect.cpp:703 |
+
+掩码位词汇表 (引擎自文档渲染器 sub_14053E190): state / character / combatant / MIO / raid / project / faction / any。
 
 > 载荷参数格通用形态 = **208B 步长 + 门字节** (变量族与脚本值槽系共用; 常见载荷槽位
 > 88 / 120 / 152 / 296 / 328 / 504 / 712 / 1608 / 1816 / 2024) — 推定。
@@ -641,7 +655,7 @@ CCommand 实例布局 (基类 0x28B):
 
 **CPdxPostEffectVolumeManager** (后效 def 宿主, 0x178 (376B); vt 0x1429A71B8, 多基 CPersistent + CLostDeviceInterface@+8; writer 空桩; reader 0x141288FE0; 宿主 = gamerendering.cpp 宿主对象 +184, ctor sub_1412849D0): +72..+100 f32 全局默认后效参数 / +128 哈希表 (装填因子 1.0) / **+280 矢量 = posteffect_values** (160B 元 SPostEffectValuesReader) / **+304 矢量 = posteffect_volume** (200B 元; 缺 posteffect_values_day 时报错不入) / +328 posteffect_height_volume 挂点 / +352 "posteffectvolumes" 名登记槽。元素 CPdxPostEffectVolume (0x1429A7140 抽象) / Box (0x1429A7168) / HeightVolume (0x1429A7190) 连 CPersistent 都不是 = 纯运行时几何体。**CGraphicalMap** (地图渲染根, 0x750 (1872B); vt 0x14294ACF8, 多基 + CLostDeviceInterface@+8; reader 0x140B56AE0; 宿主 = gameapplication.cpp 宿主对象 +880, ctor sub_140B4F9C0): reader 仅自有键 type(225) → new 168B 层对象入 +312 矢量 {cap@+320, count@+324, alloc@+328}; +88 = 大渲染子对象 (malloc 0x5D30)。**CTerrainGraphics** (地形图形 def; vt 0x1429C0EF0, 多基 CPersistentWithToken + THasNullObject; reader 0x14143F220): color(86)→+64 / type(225)→+88 经 TGameItemDatabase (qword_14332F0A8) 按名取图元句柄 (句柄[16]=0 时续读块) / texture(415)→+100 f32 / perm_snow(11857)→+104 u8 / spawn_city(12109)→+105 u8。
 
-**重载器族** (8B 瘦对象 CReloadDispatcher 系 = 文件变更→[2] OnReload; 注册 = sub_1422564C0(&扩展名), 文件监视器按扩展名分发): 扩展名↔类↔挂载点 = particle→CParticleReloader (0x142B3D6F8, gfx 管理器 +206256; [1] 路径谓词 0x14223C810 经纹理管理器 qword_143453090 桶遍历, [2] 0x14223C9E0 条目 +8==385 者调 sub_142297540) / mesh→CMeshReloader (+206272) / anim→**CAnimationReloader** (0x142B3D770, +206280; ⚠ 主 vt 尾部 [6..9] 带 CPersistent 槽 = Save wrapper/writer 空桩/Load wrapper/reader 0x14223B400, 指纹按 slot1 判定故 serfam 未命中) / guianim→**CGuiAnimationReloader** (0x142B3D898 主 CReloadDispatcher + 0x142B3D8C0 次 CPersistent mdisp=8, +206288 含宿主回指 +16; reader 0x14223B0D0 经 SGfxFileReader 解析 spriteTypes(53) 门定义入 3 个 RH 集, 其余块 skip; [2] 0x14223C3C0 重解析) / defines→**CDefinesReloader** (0x14271BA70, 第一宿主 +936; [2] 0x1401A4A20 → sub_14074A9E0(1) defines 全量热重载) / countrycolors→**CCountryColorsReloader** (0x14271BA98, +944; [2] 0x1401A4900 → sub_1401CCB50(gamestate) + sub_140A66D80 刷国家颜色) / assets→**CAssetsReloader** (0x142B3C3A0, 启动器对象 +784; [2] 0x14222E6A0 → sub_14222DDC0(qword_143452450, 0/1) 双遍重载)。texture→CTextureReloader (+206264) 见 §4.30.31 注。
+**重载器族** (8B 瘦对象 CReloadDispatcher 系 = 文件变更→[2] Reload; 注册 = sub_1422564C0(&扩展名), 文件监视器按扩展名分发): 扩展名↔类↔挂载点 = particle→CParticleReloader (0x142B3D6F8, gfx 管理器 +206256; [1] 路径谓词 0x14223C810 经纹理管理器 qword_143453090 桶遍历, [2] 0x14223C9E0 条目 +8==385 者调 sub_142297540) / mesh→CMeshReloader (+206272) / anim→**CAnimationReloader** (0x142B3D770, +206280; ⚠ 主 vt 尾部 [6..9] 带 CPersistent 槽 = Save wrapper/writer 空桩/Load wrapper/reader 0x14223B400, 指纹按 slot1 判定故 serfam 未命中) / guianim→**CGuiAnimationReloader** (0x142B3D898 主 CReloadDispatcher + 0x142B3D8C0 次 CPersistent mdisp=8, +206288 含宿主回指 +16; reader 0x14223B0D0 经 SGfxFileReader 解析 spriteTypes(53) 门定义入 3 个 RH 集, 其余块 skip; [2] 0x14223C3C0 重解析) / defines→**CDefinesReloader** (0x14271BA70, 第一宿主 +936; [2] 0x1401A4A20 → sub_14074A9E0(1) defines 全量热重载) / countrycolors→**CCountryColorsReloader** (0x14271BA98, +944; [2] 0x1401A4900 → sub_1401CCB50(gamestate) + sub_140A66D80 刷国家颜色) / assets→**CAssetsReloader** (0x142B3C3A0, 启动器对象 +784; [2] 0x14222E6A0 → sub_14222DDC0(qword_143452450, 0/1) 双遍重载)。texture→CTextureReloader (+206264) 见 §4.30.31 注。
 
 **字体族** (全 .gfx/.gui 解析件 writer 空桩, 不入存档): **CFont** (vt 0x142B57ED0, 基 CPersistentWithToken; reader 0x14237E6B0): name(27)→+16 / cursor_offset(659)→+48 / selection_offset(720)→+56 ← **CBitmapFont** (0x142B41888, 附 +64 CLostDeviceInterface 虚基; reader 0x14229EC60; ctor 0x1422980C0): +72 宿主回指 / +88 color / +96 border_color / +208 fontfiles 串向量 {cap@+216, count@+220, alloc@+224} / +272 textcolors 定长阵列 / +12560 icons_add_height u8 / +12564 icon_scale f32=1.0 / +12568 起 40 个 32B 图元槽; reader 键 path(372) 追加 / fontfiles(718) 重置整表载入 (两者混用告警) / color(86) / border_color(461) / textcolors(714) / icons_add_height(595) / icon_scale(604); fontName(34)/colorcodes(297)/color_override(370) = deprecated 告警跳过 ← **CGameBitmapFont** (0x1429E6BE8, sizeof 0x3640; 脚本 `bitmapfont`(295) 块经 def 工厂钩子 0x140B410E0 malloc+ctor 0x141640D30 产出, 同钩子 a3==271 分支产 0x2C0 伴随对象); **CBitmap** (0x142B49820 无基) = 底层 BMP 载入器 (+48 就绪旗, 读 14B 头), 与字体无序列化关系。
 

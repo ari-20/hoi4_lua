@@ -141,7 +141,7 @@ GUI 消费表 (CEquipmentVariant):
 | +8 | — | cap |
 | +12 | uint32 | count |
 
-**requests** (容器 @ mkt+96; count = 440 国家槽, idx0 哨兵):
+**requests** (容器 @ mkt+96; count = 440 国家槽, idx0 哨兵; 槽 i 归属国 i-1):
 
 | 偏移 (mkt) | 类型 | 内容 |
 |---|---|---|
@@ -160,6 +160,9 @@ GUI 消费表 (CEquipmentVariant):
 内表元素 = 8B 指针 → CPurchaseRequest (vt 0x142A28ED0, ctor 0X1419D6020; ~240B: CReferenceObject 头 + def@+24 216B 与合同 def 同构)。
 
 requests 存档形态 (稀疏数组 writer sub_140DF48B0): `requests={ <总槽数=440> index=<国槽 idx> data={ { contract_definition={…} id={…} } } }` (index=524 仅 icount≠0 槽; data=240; 元素 def writer = sub_140DF1EC0 与合同 def 同函数, id = B320(11, req+8))。
+
+> `index` = 槽序号 i (0 基), 非国 id; 槽 i 归属国 i-1 (idx0 哨兵无归属)。
+> 全空槽 (无任一 icount≠0) 时 writer 改发裸总数 `requests.#1`, 不出 index/data 块。
 
 **CPurchaseContract** (808B = 0x328; vt 0x14296B750; writer 0X140DF4540; ctor 0X1419D4370) — 写序 = id → contract_definition → delivery_route_handler → days → contract_delivery_state → contract_meta → variables (表行序 = 偏移升序, 写序以本句为准):
 
@@ -193,7 +196,7 @@ requests 存档形态 (稀疏数组 writer sub_140DF48B0): `requests={ <总槽�
 
 周期未竟回调 lambda_2: 国家+232 changed 信号 + 重启交付周期。取消 = 独立路径 CancelContract (sub_140DEC540) → 国家+200 cancelled 信号 + off_1430B15B8。
 
-contract_definition (def = c+24; 表行序 = 偏移升序, 括注 = 合同绝对偏移):
+contract_definition (def = c+24; 表行序 = 偏移升序, 括注 = 合同绝对偏移; 落盘写序 ≠ 行序, 见下):
 
 | def 偏移 (合同绝对) | 类型 | 名称/语义 |
 |---|---|---|
@@ -208,6 +211,8 @@ contract_definition (def = c+24; 表行序 = 偏移升序, 括注 = 合同绝对
 | +192 (+216) | u8 | 懒计算完成标志 (ctor = 0) |
 | +200 (+224) | i64×1e-5 | 补贴抵扣 = min(+136, 总价×F/(F+1e5)) (F = PURCHASE_CONTRACT_SUBSIDY_BONUS_SPEED_FACTOR; 不序列化) |
 | +208 (+232) | i64×1e-5 | 合同总 CIC 价 (Σ variant IC×价格档因子×IC_TO_CIC_FACTOR, market_core.cpp 断言锚; 不序列化) |
+
+def 落盘写序 (writer sub_140DF1EC0, 非表行序): contract_draft (seller → buyer → equipments → speed → subsidies) → price_levels → prices; 每段仅在该段有内容时出块, 空 subsidies / 空 price_levels 不出块。
 
 contract_draft.subsidies 条 (48B stride; e = 条目基):
 

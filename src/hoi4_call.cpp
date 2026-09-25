@@ -1,10 +1,10 @@
-// hoi4_call.cpp — guarded engine call primitive + write-side wrappers (batch G)
+// hoi4_call.cpp — guarded engine call primitive + write-side wrappers
 //
-// Research basis: research_20260911/GAP6_WRITE_SIDE.md §4A (threading model
-// verified: Lua callbacks always run on the main thread in contexts the
+// Threading model (live-probed): Lua callbacks always run on the main thread,
+// in contexts the engine itself mutates state — the TLS forbid gate is the
 // engine itself mutates state — the TLS forbid gate is the engine's own rule).
 //
-// Hard guards on EVERY call (§4A.4):
+// Hard guards on EVERY call:
 //   1. current thread == the Lua-callback thread holding g_luaLock
 //   2. gamestate singleton live
 //   3. engine's own forbid gate: *(u32*)(TLSSlot[TlsIndex] + 16) == 0
@@ -18,6 +18,7 @@
 // applies (GAP6 §4A.3).
 
 #include "hoi4_common.h"
+#include "hoi4_hook.h"
 #include <intrin.h>        // __readgsqword: TEB+0x58 = ThreadLocalStoragePointer
                           // (winternl.h's _TEB in SDK 10.0.26100 lacks the field)
 
@@ -189,11 +190,11 @@ int hoi4_name_to_token(lua_State *Ls) {
 // out-of-bounds write - an unguarded primitive with zero users, which is pure
 // future risk. g_engPush itself STAYS: the effect/trigger bind path in
 // hoi4_vtable.cpp (the two call sites there) depends on it, and the engine
-// pointer is still published in hoi4_hooks.cpp.
+// pointer is still published in hoi4_detour.cpp.
 
 // hoi4.load_save(name) -> bool
-// Drives the ENGINE's own load-save entry sub_140DA04F0 (t99 定案) — the same
-// function the front-end Load Game button and console savecheck use./world
+// Drives the ENGINE's own load-save entry sub_140DA04F0 — the same
+// function the front-end Load Game button and console savecheck use. World
 // rebuild completes synchronously inside the call; the session DR2 event at
 // entry raises END+START, consumed at the next frame (cleanup + script reload).
 // 主线程专用（call_guard_ok），name = 裸文件名（缺 .hoi4 自动补）。配方与
@@ -221,8 +222,17 @@ int hoi4_load_save(lua_State *Ls) {
         // mgr = app->vt[+880]() — save manager getter (no side effects).
         // Memory-derived target: same exec-domain gate as call_u64 — a forged
         // heap vtable must not steer an uninstrumented bridge call site.
+        // A hooked slot holds a hook-facility thunk; resolve it back to the
+        // ORIGINAL getter instead of running a mod hook — bridge infrastructure
+        // must not be vetoable by the mod layer (a vetoed load would abort the
+        // verification workflow). memgate_exec_ok stays strict; the resolved
+        // original is engine code and passes it unchanged. See hoi4_hook.h.
         void **appVt = *(void ***)app;
         uint64_t getter = (uint64_t)(uintptr_t)appVt[SAVE_MGR_VT_OFF / 8];
+        {
+            uint64_t orig = 0;
+            if (hook_orig_for_thunk(getter, &orig)) getter = orig;
+        }
         if (!memgate_exec_ok(getter)) {
             L("[load_save] mgr getter %llx outside engine exec sections",
               (unsigned long long)getter);

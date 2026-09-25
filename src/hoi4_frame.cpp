@@ -1,10 +1,11 @@
 #include "hoi4_common.h"
+#include "hoi4_hook.h"
 
 // -+ frame tick
 // (covers heartbeat, async and IPC dispatch)
-// Lua dispatch shared by the route-B frame hook below. Contract: any global
-// function named "on_frame(ms_now)" is called once per RENDERED FRAME while
-// IN GAME (engine main thread). Registration = define the global in Lua.
+// Lua dispatch shared by the route-B frame hook below: called once per
+// RENDERED FRAME while IN GAME, on the engine main thread, with g_luaLock
+// held. Order: session -> reload -> timers -> async -> hook-observe -> HTTP.
 //
 // Locking: same discipline as the effect-callback path — SRWLock with owner
 // tid+depth bookkeeping, TryAcquire so we never stall the frame thread; a
@@ -50,11 +51,14 @@ static void tick_dispatch_lua(unsigned long long now)
         maybe_reload_locked();
     }
     reload_execute_locked();
-    // timers are dispatched by the C core now (timer_core.inc).
+    // timers are dispatched by the C core now.
     // The temporary pure-Lua "on_frame" global contract is retired.
     timer_dispatch_locked(now);
     // deliver finished async jobs to their Lua callbacks.
     async_dispatch_locked(g_L);
+    // deliver queued vtable-hook observe events (hoi4_hook.cpp). They are
+    // enqueued from arbitrary threads and can only be handed to Lua here.
+    hook_dispatch_observe(g_L);
     // F: queued /console /lua /game/pause. Bounded per frame; leftovers
     // wait for the next one.
     http_poll_main(4);
@@ -65,8 +69,8 @@ static void tick_dispatch_lua(unsigned long long now)
 }
 
 // -+ frame heartbeat (engine vtable slot4 hook)
-// VTABLE-SLOT hook on CInGameIdler slot 4 (FUN_140DBF240, RVA 0xDBF240 —
-// M13_ROUTE_B_FINDINGS.md §1/§2). The engine calls it every frame while IN
+// VTABLE-SLOT hook on CInGameIdler slot 4 (FUN_140DBF240, RVA 0xDBF240).
+// The engine calls it every frame while IN
 // GAME, on the pinned main thread, as the PARENT of effect dispatch ->
 // structurally outside any effect callback. Main menu / loading screens
 // never reach it: the phase guard is free.
@@ -93,6 +97,11 @@ static void HK_InGameIdlerV4(void *self, uint8_t flags)
 {
     unsigned long long now = GetTickCount64();
     long f = InterlockedIncrement(&g_frames);
+    // First entry = the engine's pinned main thread. Record it once; the hook
+    // facility needs it to tell "safe to run Lua inline" from "must fail open"
+    // (a worker-thread callback cannot touch the VM). Captured here rather than
+    // in DllMain because this site is provably the main thread.
+    if (f == 1) hook_note_main_thread(GetCurrentThreadId());
     // progress lines are debug-mode-only (dll_debug_mode is a cached atomic
     // read); the install-path [frame] diagnostics below stay always-on.
     if (f == 1 && dll_debug_mode())

@@ -13,9 +13,9 @@
 // effects — the engine rebuilds the world in place and keeps shells + binds
 // alive, so routed effects keep working across them (verified: slot calls
 // continue). Per-load cleanup, if ever needed, must hook the engine's own
-// load path (OFF_LOAD_ENTRY, t99), not this slot.
+// load path (OFF_LOAD_ENTRY), not this slot.
 //
-// 2026-09-19 redesign, replacing the 150ms gs/uid polling watcher. The
+// This design replaced the 150ms gs/uid polling watcher. The
 // polling design needed G1/G2 heuristics to survive game_unique_id churn
 // during loads (regenerated several times per load, same gs pointer), which
 // cost a 60s blind window right after every session start, spurious menu
@@ -41,12 +41,13 @@
 // needed — the transition log going silent on a known switch is the tell.
 
 #include "hoi4_common.h"
+#include "hoi4_hook.h"
 #include <tlhelp32.h>
 
 static volatile LONG g_evEnd;
 static volatile LONG g_evStart;
 
-// in-game load-save entry (OFF_LOAD_ENTRY, reversed by t99): an in-game load
+// in-game load-save entry (OFF_LOAD_ENTRY): an in-game load
 // rebuilds the world WITHOUT destroying the gs (no ctor/dtor write fires) —
 // from the mod side it is still a full switch (fresh world, stale script
 // env), so its event sets END+START to run the same cleanup. RVA 0 = disabled.
@@ -189,8 +190,11 @@ void session_dispatch_locked(lua_State *Ls) {
                                              // dropping binds here killed every
                                              // routed effect on same-pointer
                                              // session switches)
+        hook_session_regen();                // same rule for vtable hooks: the
+                                             // patch is process-level, so it is
+                                             // KEPT; only bookkeeping refreshes
         force_reload_locked();               // full re-dofile = fresh script env
-        // t100 修复 A: in-place 读档（ESC 菜单读档/load_save）会清掉
+        // in-place 读档（ESC 菜单读档/load_save）会清掉
         // HasGameStarted 门 (gs+2617) 且不重跑会话启动函数 → 每日/每周/每月
         // 派发在 fire 前全部短路。此处幂等重开（对正常启动无害）。
         {

@@ -377,28 +377,10 @@ SV2.gsec[#SV2.gsec + 1] = { name = "combat", emit = function(ctx)
 
     -- ================= 海战族 =================
     -- §4.1.7 三注册表源 (sub_14221F310 三档 id 库): ty>0x1268 / >=100 / <100
-    local DB_BIG, DB_MID, DB_ARR = BASE + 0x3451DB0, BASE + 0x3451DB8,
-        BASE + 0x3451DC0
+    -- → 委派统一访问器 GAME.layout.idreg_unit_resolve (resource.lua 唯一实现;
+    --   本段原有一份逐字重复的本地副本, 已删)
     local function ref_resolve(ty, id)
-        if not (ty and id) then return nil end
-        local db
-        if ty > 0x1268 then db = rp(DB_BIG)
-        elseif ty >= 100 then db = rp(DB_MID)
-        else db = rp(DB_ARR + 8 * ty) end
-        if not kptr(db) then return nil end
-        local d, mask, maxp = rp(db + 8), ru32(db + 20), ru8(db + 24)
-        if not (kptr(d) and mask and mask > 0 and mask < 0x4000000) then
-            return nil end
-        for bi = 0, mask + (maxp or 0) do
-            local b = d + 24 * bi
-            if (ru8(b + 4) or 0) ~= 0
-                and ru32(b + 8) == ty and ru32(b + 12) == id then
-                local o = rp(b + 16)
-                if kptr(o) then return o end
-                return nil
-            end
-        end
-        return nil
+        return GAME.layout.idreg_unit_resolve(ty, id)
     end
     -- §4.22.5 SNavalHit 条目 (writer 0x1415B57D0, 全恒写)
     local function emit_naval_hit(h, pfx)

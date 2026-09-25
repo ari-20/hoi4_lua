@@ -197,12 +197,39 @@ SV2.gsec[#SV2.gsec + 1] = { name = "equipment_market", emit = function(ctx)
         end
     end
 
-    -- ===== requests (国家槽数组, 槽数 = 国数; 裸总数恒写 = requests.#1) =====
-    -- 非空槽形态 (0x20C 槽块 + 0xF0 内表, 内表元素 id 对@+8/+12 +
-    -- definition@+24 同 §4.23.3 CPurchaseContract) 参照档无实例,
-    -- 未实现 → B 候选。
-    local rc = ru32(mkt + 108)
-    if rc and rc > 0 and rc < GAME.layout.lim.PTR_HUGE then
-        emit(DIM, "requests.#1", tostring(rc))
+    -- ===== requests (国家槽数组 @mkt+96; 槽 = 国数+1, idx0 哨兵) =====
+    -- §4.23.3 requests: 元素 24B {idata@+0, icap@+8, icount@+12};
+    -- 非空槽 (icount≠0) 出匿名块 {index=<槽序号>, data={ {def, id} }}。
+    -- 槽 i ↔ 国 i-1 (idx0 哨兵), index 直写槽序号 i; 有槽块时裸总数被
+    -- 提取器吞掉 (块占 #1), 仅全空槽时才发 requests.#1 = 总数。
+    -- 内表元素 = CPurchaseRequest (~240B): id 对@+8/+12 (CReferenceObject
+    -- 头), def@+24 216B 与合同同构 (writer sub_140DF1EC0 同函数)。
+    local rqd, rqc = rp(mkt + 96), ru32(mkt + 108)
+    if SL.kptr(rqd) and rqc and rqc > 0
+        and rqc < GAME.layout.lim.PTR_HUGE then
+        local nslot = 0
+        for i = 0, rqc - 1 do
+            local e = rqd + 24 * i
+            local idata, icount = rp(e), ru32(e + 12)
+            if SL.kptr(idata) and icount and icount > 0
+                and icount < GAME.layout.lim.PTR_SANE then
+                nslot = nslot + 1
+                local BP = "requests.#" .. nslot .. "."
+                emit(DIM, BP .. "index", tostring(i))
+                for j = 0, icount - 1 do
+                    local req = rp(idata + 8 * j)
+                    if SL.kptr(req) then
+                        local EP = BP .. "data.#" .. (j + 1) .. "."
+                        SL.def_emit(emit, DIM,
+                            EP .. "contract_definition.", req, gs)
+                        emit(DIM, EP .. "id",
+                            SL.idpair(ru32(req + 12), ru32(req + 8)))
+                    end
+                end
+            end
+        end
+        if nslot == 0 then
+            emit(DIM, "requests.#1", tostring(rqc))
+        end
     end
 end }

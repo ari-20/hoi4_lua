@@ -25,4 +25,16 @@ for %%T in (test_lde test_policy) do (
   )
   del %%T.exe >nul 2>&1
 )
+rem Lua-side pure tests (no game needed; the container primitives take a
+rem synthetic memory model). Needs lua on PATH.
+where lua >nul 2>&1
+if errorlevel 1 (
+  echo TESTS SKIPPED: tests\test_cont.lua ^(no lua on PATH^)
+) else (
+  lua tests\test_cont.lua
+  if errorlevel 1 (
+    echo TESTS FAILED: test_cont.lua
+    exit /b 1
+  )
+)
 echo TESTS OK

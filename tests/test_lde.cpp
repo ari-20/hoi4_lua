@@ -2,7 +2,9 @@
 // decoder (hoi4_lde.h). A wrong length means install_abs_jmp steals
 // mid-instruction bytes and the trampoline resumes into garbage — this is
 // the cheapest place to catch that class of bug, before it reaches a live
-// game process.
+// game process. The RIP-relative flag is tested just as strictly: a missed
+// flag means the trampoline relocates an operand that only made sense at the
+// original address (hoi4_lde.h / HOOK_DESIGN.md §5.3).
 //
 // Build & run (no framework, plain asserts):
 //   cl /nologo /O2 /W4 tests\test_lde.cpp /Fe:test_lde.exe && test_lde.exe
@@ -17,20 +19,26 @@ static int g_fail = 0, g_run = 0;
 // additionally requires the relative-control-flow reject marker; wantRel==-1
 // accepts any refusal subtype (the decoder only promises *rel_cf on the
 // rel-cf path; other refusals may leave it untouched).
+//
+// wantRip is asserted on EVERY case: 0 = must not be flagged RIP-relative,
+// 1 = must be flagged. T() expects 0, TR() expects 1 — so a change that
+// starts (or stops) flagging an instruction cannot pass silently.
 static void chk(const char *name, const uint8_t *code, int n,
-                int wantLen, int wantRel) {
-    int rel = -2;
-    int got = lde_len(code, (uint32_t)n, &rel);
+                int wantLen, int wantRel, int wantRip) {
+    int rel = -2, rip = -2;
+    int got = lde_len(code, (uint32_t)n, &rel, &rip);
     g_run++;
     int ok = (got == wantLen);
     if (ok && wantLen == 0 && wantRel == 1) ok = (rel == 1);
+    if (ok) ok = (rip == wantRip);
     if (!ok) {
         g_fail++;
-        printf("FAIL %-28s got len=%d rel=%d, want len=%d rel=%d\n",
-               name, got, rel, wantLen, wantRel);
+        printf("FAIL %-34s got len=%d rel=%d rip=%d, want len=%d rel=%d rip=%d\n",
+               name, got, rel, rip, wantLen, wantRel, wantRip);
     }
 }
-#define T(name, arr, len, rel) chk(name, arr, sizeof(arr), len, rel)
+#define T(name, arr, len, rel)  chk(name, arr, sizeof(arr), len, rel, 0)
+#define TR(name, arr, len, rel) chk(name, arr, sizeof(arr), len, rel, 1)
 
 int main(void) {
     // ---- 1-byte opcodes, no ModRM ----
@@ -49,9 +57,30 @@ int main(void) {
     { uint8_t c[] = {0x89, 0x08};      T("mov [rax],ecx (mod0)", c, 2, -1); }
     { uint8_t c[] = {0x8B, 0x48, 0x10};T("mov ecx,[rax+0x10] (mod1)", c, 3, -1); }
     { uint8_t c[] = {0x8B, 0x88, 1,2,3,4}; T("mov ecx,[rax+d32] (mod2)", c, 6, -1); }
-    { uint8_t c[] = {0x8B, 0x04, 0x25, 1,2,3,4}; T("mov eax,[d32] (SIB abs)", c, 7, -1); }
-    { uint8_t c[] = {0x8B, 0x05, 1,2,3,4}; T("mov eax,RIP-rel (mod0 rm5)", c, 6, -1); }
+    // mod0 rm4 + SIB base=5 -> [disp32] ABSOLUTE, position-independent: must
+    // NOT be flagged RIP-relative (the decoder distinguishes these two).
+    { uint8_t c[] = {0x8B, 0x04, 0x25, 1,2,3,4}; T("mov eax,[d32] (SIB abs, not RIP)", c, 7, -1); }
+    { uint8_t c[] = {0x8B, 0x05, 1,2,3,4}; TR("mov eax,RIP-rel (mod0 rm5)", c, 6, -1); }
     { uint8_t c[] = {0x8B, 0x44, 0x24, 0x08}; T("mov eax,[rsp+8] (SIB mod1)", c, 4, -1); }
+
+    // ---- RIP-relative operand detection (must set rip=1; the trampoline
+    //      copies stolen bytes verbatim and cannot relocate these) ----
+    { uint8_t c[] = {0x48, 0x8B, 0x05, 1,2,3,4}; TR("mov rax,[rip+d32] (REX.W)", c, 7, -1); }
+    { uint8_t c[] = {0x48, 0x8D, 0x0D, 1,2,3,4}; TR("lea rcx,[rip+d32]", c, 7, -1); }
+    { uint8_t c[] = {0xF3, 0x0F, 0x10, 0x05, 1,2,3,4}; TR("movss xmm0,[rip+d32]", c, 8, -1); }
+    { uint8_t c[] = {0x48, 0x89, 0x05, 1,2,3,4}; TR("mov [rip+d32],rax", c, 7, -1); }
+    // over-conservative on purpose: a NOP's operand is never used, but the
+    // decoder flags by addressing form alone (documented in hoi4_lde.h)
+    { uint8_t c[] = {0x0F, 0x1F, 0x05, 1,2,3,4}; TR("nop dword [rip+d32] (flagged)", c, 7, -1); }
+    // 0F38 / 0F3A three-byte forms carry their own RIP-relative case
+    { uint8_t c[] = {0x0F, 0x38, 0x00, 0x05, 1,2,3,4}; TR("0F38 pshufb [rip+d32]", c, 8, -1); }
+    { uint8_t c[] = {0x66, 0x0F, 0x3A, 0x0C, 0x05, 1,2,3,4, 0x02}; TR("0F3A imm8 [rip+d32]", c, 10, -1); }
+    // the trampoline's own jump-back encoding is a valid RIP-relative insn:
+    //   FF 25 00 00 00 00 = jmp qword ptr [rip+0]  (register-free by design)
+    { uint8_t c[] = {0xFF, 0x25, 0,0,0,0}; TR("jmp [rip+0] (stub jump-back form)", c, 6, -1); }
+    // negatives: mod1/mod2 displacements are rsp/reg-relative, never RIP
+    { uint8_t c[] = {0x48, 0x8B, 0x45, 0x10}; T("mov rax,[rbp+0x10] (mod1, not RIP)", c, 4, -1); }
+    { uint8_t c[] = {0x48, 0x8B, 0x85, 1,2,3,4}; T("mov rax,[rbp+d32] (mod2, not RIP)", c, 7, -1); }
 
     // ---- REX ----
     { uint8_t c[] = {0x48, 0x89, 0xC1}; T("mov rcx,rax (REX.W)", c, 3, -1); }
@@ -102,6 +131,50 @@ int main(void) {
     { uint8_t c[] = {0x57};            T("pro: push rdi", c, 1, -1); }
     { uint8_t c[] = {0x48, 0x83, 0xEC, 0x20}; T("pro: sub rsp,0x20", c, 4, -1); }
     { uint8_t c[] = {0x49, 0x8B, 0xC8}; T("pro: mov rcx,r8 (arg shuffle)", c, 3, -1); }
+
+    // ---- the three live 1.19.3 detour targets, byte-exact ----
+    // Regression guard for the RIP-relative refusal: if any of these ever
+    // starts being flagged, install_abs_jmp would refuse at load time and the
+    // DLL would fail to activate. Extracted from hoi4.exe 1.19.3.0
+    // (RVAs 0x24B54C0 / 0x540EE0 / 0x550030 — see src/hoi4_offsets.h).
+    {
+        static const uint8_t findCmd[] = {
+            0x48,0x89,0x5C,0x24,0x08, 0x48,0x89,0x6C,0x24,0x10,
+            0x48,0x89,0x74,0x24,0x18, 0x48,0x89,0x7C,0x24,0x20,
+            0x41,0x54, 0x41,0x56, 0x41,0x57, 0x48,0x83,0xEC,0x20 };
+        static const uint8_t effRouter[] = {
+            0x48,0x89,0x5C,0x24,0x08, 0x44,0x89,0x4C,0x24,0x20,
+            0x55, 0x56, 0x57, 0x41,0x54, 0x41,0x55, 0x41,0x56,
+            0x41,0x57, 0x48,0x8D,0xAC,0x24,0x10,0xFD,0xFF,0xFF };
+        static const uint8_t trgRouter[] = {
+            0x48,0x89,0x5C,0x24,0x10, 0x48,0x89,0x4C,0x24,0x08,
+            0x55, 0x56, 0x57, 0x41,0x54, 0x41,0x55, 0x41,0x56,
+            0x41,0x57, 0x48,0x8D,0xAC,0x24,0x10,0xFD,0xFF,0xFF };
+
+        // per-instruction: each must decode cleanly and NOT be RIP-relative.
+        // Note 0x48 0x8D 0xAC 0x24 ... is lea rbp,[rsp+d32] — SIB form, which
+        // is the trap the decoder must not misclassify as RIP-relative.
+        const uint8_t *all[] = { findCmd, effRouter, trgRouter };
+        const int lens[] = { (int)sizeof(findCmd), (int)sizeof(effRouter), (int)sizeof(trgRouter) };
+        const char *names[] = { "FindCommandByName", "EffectRouter", "TriggerRouter" };
+        for (int t = 0; t < 3; t++) {
+            const uint8_t *code = all[t];
+            int off = 0, total = 0, bad = 0, flagged = 0;
+            while (off < lens[t]) {
+                int rel = 0, rip = 0;
+                int n = lde_len(code + off, (uint32_t)(lens[t] - off), &rel, &rip);
+                if (n <= 0) { bad = 1; break; }
+                if (rip) flagged = 1;
+                total += n; off += n;
+            }
+            g_run++;
+            if (bad || flagged || total < 12) {
+                g_fail++;
+                printf("FAIL %-34s prologue walk: bad=%d rip=%d total=%d (need >=12)\n",
+                       names[t], bad, flagged, total);
+            }
+        }
+    }
 
     // ---- truncated input: must refuse, never guess ----
     { uint8_t c[] = {0x48, 0x8B};      T("truncated modrm", c, 0, -1); }

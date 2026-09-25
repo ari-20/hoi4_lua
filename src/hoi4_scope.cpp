@@ -1,6 +1,5 @@
-// hoi4_scope.cpp — scope-context accessors (batch D1)
+// hoi4_scope.cpp — scope-context accessors
 //
-// Research basis: research_20260911/GAP4_5_CTX_SCOPE.md (2026-09-11).
 // The scope ctx pointer ALREADY reaches Lua as the 3rd arg of effect/trigger
 // callbacks (lua_call_effect/lua_call_trigger push it as lightuserdata);
 // these accessors decode it. Layout is decomp-finalized with three-way

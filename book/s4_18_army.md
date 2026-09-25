@@ -548,7 +548,12 @@ GUI 条目类:
 | +72 | CMilitaryDeploymentConveyor* | conveyors 容器数据指针 | {data, count<128} 8B 指针元; 元素布局与 GUI 消费见 §4.18.12 | §4.18.12 |
 | +73..+83 | — | = conveyors 容器 {data@72, **cap@80**, count@84, alloc@88} 内部  |  |  |
 | +84 | u32 | conveyors 容器计数 |  |  |
-| +85..+239 | — | = conveyors count@84 尾 + **alloc@88** + **运行时容器#4 {d@96, cap@104, c@108, alloc@112}** + **#5 {d@120, cap@128, c@132, alloc@136}** (**定案 = 部署中单位列表**, CCountryDeploymentView 数据链: 玩家 tag → cc+3952 本对象) + **#6 {d@144, cap@152, c@156, alloc@160}** (均未序列化, dtor 逐个清) + **+168 = hq_next_deploy_order u32** (writer 键 16910, >0 门) + **+172/+176 = default_hq_template id 对** {type@172, id@176} (qword_14333D528 初值; writer B320 键 10667) + +180 qword 0 + +188 u32 0 + +192..239 零区  |  |  |
+| +85..+191 | — | = conveyors count@84 尾 + **alloc@88** + **运行时容器#4 {d@96, cap@104, c@108, alloc@112}** + **#5 {d@120, cap@128, c@132, alloc@136}** (**定案 = 部署中单位列表**, CCountryDeploymentView 数据链: 玩家 tag → cc+3952 本对象) + **#6 {d@144, cap@152, c@156, alloc@160}** (均未序列化, dtor 逐个清) + **+168 = hq_next_deploy_order u32** (writer 键 16910, >0 门) + **+172/+176 = default_hq_template id 对** {type@172, id@176} (qword_14333D528 初值; writer B320 键 10667) + +180 qword 0 + +188 u32 0  |  |  |
+| +192..199 | — | 零区 (未序列化, 无字段) |  |  |
+| +200 | CDeploymentStatus 内嵌对象指针 | 情报估计区间源 A | 实测存**被解引用的指针** (非零区): `sub_1414318B0` 先取 dep (= *(cc+3952)) 再读本槽, 出 {min,max} 1e5 定点区间; `estimated_intel_max_armor` / `estimated_intel_max_piercing` 消费 (§4.32.2); 指向对象的类名与字段语义 **待裁** | §4.32.2 |
+| +201..207 | — | 零区 (未序列化, 无字段) |  |  |
+| +208 | CDeploymentStatus 内嵌对象指针 | 情报估计区间源 B | 实测存**被解引用的指针** (非零区): `sub_14142FD80` 体与源 A 同形, 唯读本槽 (偏移 +208); 与 +200 并列为两路情报估计 (触发器等值比较两组中点较大者); 指向对象的类名与字段语义 **待裁** | §4.32.2 |
+| +209..239 | — | 零区 (未序列化, 无字段) |  |  |
 | +240 | CEquipmentArcheTypePool* 向量 | initial_carrier_air_wing_deployment | **CEquipmentArcheTypePool 32B (ctor sub_14100C630)** {vt@240, 容器@248 {d@248, cap@256, c@260, alloc@264}} (writer 键 13691); +272 = lambda scoped ptr (8B), 消费 sub_141980140 = 同模板已排产行数 (add_limit 上限, >9 显 MORE_THAN_NINE) | |
 
 其余区域 = 未序列化运行时容器群 (上列 #2/#4/#5/#6 与 +56 map 之外无其他容器; 对拍工具链不消费)。

@@ -1,5 +1,5 @@
 // hoi4_common.h - shared declarations for all hoi4_bridge modules.
-// Split from the former single-file hoi4_reloader.cpp (2026-08-26 refactor).
+// Split from the former single-file hoi4_reloader.cpp.
 #pragma once
 #ifdef __cplusplus
 extern "C" {   // F: hoi4_http_server.cpp consumes these with C linkage
@@ -46,11 +46,13 @@ typedef enum {
     OFF_ASSERTS_BYTE,          // engine asserts-enable byte
     OFF_SESSION_CTOR_WRITE,    // gs slot = new gs  (write insn VA, session events)
     OFF_SESSION_DTOR_WRITE,    // gs slot = NULL   (write insn VA, session events)
-    OFF_LOAD_ENTRY,            // in-game load-save entry (t99 sub_140DA04F0)
-    OFF_SAVEDESC_CTOR,         // 224B saveDesc ctor (t99)
-    OFF_SAVEDESC_DTOR,         // saveDesc dtor (t99)
-    OFF_STRING_ASSIGN,         // std::string::assign(this, char*, len) (t99)
-    OFF_SET_GAME_STARTED,      // SetGameStarted(gs,1) — session 门重开 (t100 修复 A)
+    OFF_LOAD_ENTRY,            // in-game load-save entry (sub_140DA04F0)
+    OFF_SAVEDESC_CTOR,         // 224B saveDesc ctor
+    OFF_SAVEDESC_DTOR,         // saveDesc dtor
+    OFF_STRING_ASSIGN,         // std::string::assign(this, char*, len)
+    OFF_SET_GAME_STARTED,      // SetGameStarted(gs,1) — idempotent gate reopen
+    OFF_PURECALL,              // _purecall — base-class vtable filler (hook gate)
+    OFF_GUARD_NOP,             // _guard_check_icall_nop — CFG no-op stub (hook gate)
     OFF_COUNT
 } OffId;
 
@@ -90,6 +92,8 @@ const char *offsets_version(void);  // version string from the table
 #define RVA_SAVEDESC_DTOR      (g_rva[OFF_SAVEDESC_DTOR])
 #define RVA_STRING_ASSIGN      (g_rva[OFF_STRING_ASSIGN])
 #define RVA_SET_GAME_STARTED   (g_rva[OFF_SET_GAME_STARTED])
+#define RVA_PURECALL           (g_rva[OFF_PURECALL])
+#define RVA_GUARD_NOP          (g_rva[OFF_GUARD_NOP])
 
 // data-global address macros (image RVAs, same table)
 #define ENGINE_HEAP_HANDLE RVA_ENGINE_HEAP_HANDLE
@@ -161,26 +165,31 @@ extern volatile LONG g_initialized;  // set once lua_init_thread finished (P5)
 
 // console_invoke_core (hoi4_console.cpp): engine command invocation shared by
 // the Lua bridge and the IPC executor. Main thread only.
+// cap_out is a CALLER buffer limit, not a framework limit — truncation is
+// logged, never silent. Use console_invoke_alloc for the unbounded echo.
 int console_invoke_core(const char *cmd, char *out, size_t cap_out);
+char *console_invoke_alloc(const char *cmd, size_t *out_len, int *ok_out);
 
-// E (batch 2026-09-12): execute a Lua chunk in the main VM, main thread,
+// E: execute a Lua chunk in the main VM, main thread,
 // recursion-aware lock. Shared by the `lua` pseudo command and future HTTP.
+// lua_exec_chunk_alloc returns a malloc'd result (caller frees), unbounded.
 int lua_exec_chunk(const char *chunk, char *out, size_t cap_out);
+char *lua_exec_chunk_alloc(const char *chunk, size_t *out_len, int *ok_out);
 
-// D1 (batch 2026-09-12): scope-context accessors (hoi4_scope.cpp)
+// D1: scope-context accessors (hoi4_scope.cpp)
 int hoi4_scope_country(lua_State *Ls);
 int hoi4_scope_state_id(lua_State *Ls);
 int hoi4_eval_value(lua_State *Ls);
 
-// H (batch 2026-09-12): game control (hoi4_game.cpp)
+// H: game control (hoi4_game.cpp)
 int hoi4_game_speed(lua_State *Ls);
 int hoi4_game_set_speed(lua_State *Ls);
 int hoi4_game_pause(lua_State *Ls);
 
-// async_api.inc: frame-heartbeat callback dispatch (main thread, g_luaLock held)
+// async: frame-heartbeat callback dispatch (main thread, g_luaLock held)
 void async_dispatch_locked(lua_State *Ls);
 
-// ---- cross-module exports (refactor 2026-08-26) ----
+// ---- cross-module exports ----
 // paths.cpp
 int load_mod_lua_scripts(lua_State *Ls);
 int resolve_game_data_path(void);
@@ -246,6 +255,7 @@ int hoi4_async_poll(lua_State *Ls);
 int hoi4_async_status(lua_State *Ls);
 int hoi4_base(lua_State *Ls);
 int hoi4_console(lua_State *Ls);
+int hoi4_console_argv(lua_State *Ls);
 int hoi4_effect_reg(lua_State *Ls);
 int hoi4_get_effect(lua_State *Ls);
 int hoi4_get_trigger(lua_State *Ls);
@@ -309,7 +319,7 @@ void lua_unlock(void);
 int trigger_known(const char *n);
 int effect_known(const char *n);
 
-// ---- session lifecycle (hoi4_session.cpp / integrated 2026-09-12, batch B) --
+// ---- session lifecycle (hoi4_session.cpp) ----
 void session_hooks_install(void);            // lua_init_thread tail, once (DR hooks)
 void session_dispatch_locked(lua_State *Ls); // frame-top consumer; lock held
 void force_reload_locked(void);              // main.cpp: unconditioned full reload
@@ -320,7 +330,7 @@ void async_session_reset(void);              // async.cpp: orphan all in-flight 
 void session_note_frame(void);               // session.cpp: frame tick heartbeat
 int  session_in_game(void);                  // session.cpp: gs != 0 AND frame alive
 
-// G (batch 2026-09-12): guarded engine call + write wrappers (hoi4_call.cpp)
+// G: guarded engine call + write wrappers (hoi4_call.cpp)
 int hoi4_call_u64(lua_State *Ls);
 int hoi4_call_void(lua_State *Ls);
 int hoi4_engine_alloc(lua_State *Ls);
@@ -370,6 +380,10 @@ void audit_code_load(lua_State *Ls, const char *path, const char *sha256_hex);
 // deduplicated (a flood is the evidence), same as fs_deny.
 void audit_mem_deny(lua_State *Ls, const char *kind, uint64_t addr,
                     const char *why);
+// vtable-slot hook install/uninstall/refusal (hoi4_hook.cpp). Every install is
+// recorded (a redirect that happened is as interesting as one refused).
+void audit_hook(lua_State *Ls, const char *op, const char *id, uint64_t vt,
+                int slot, const char *detail);
 void audit_bump(lua_State *Ls, const char *cls);
 void audit_read_tick(lua_State *Ls);
 void audit_attribute(lua_State *Ls, char *out, size_t cap, int *line);
@@ -400,7 +414,7 @@ int  game_pause_invoke(int state);               // 1 on call, 0 on failure
 int  game_speed_read(void);                      // -1 if no gamestate
 int  game_paused_read(void);                     // CInGameIdler+MGR_PAUSE_FLAG; -1 if no manager
 
-// F (batch 2026-09-12): local HTTP service (hoi4_http_server.cpp)
+// F: local HTTP service (hoi4_http_server.cpp)
 void http_maybe_autostart(void);                 // cmdline -http[=port] scan
 int  http_poll_main(int max_requests);           // frame-top executor (lock held)
 void http_push_event(const char *name, const char *payload);  // SSE fan-out

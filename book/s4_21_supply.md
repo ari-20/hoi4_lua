@@ -79,11 +79,39 @@ ctor 0X141218AC0 + Reset 0X1412202B0。
 | +8 | 匿名结构 (元素待裁) RH 桶数组 | RH 表 #1 | 运行时 | |
 | +40 | 匿名结构 (元素待裁) RH 桶数组 | RH 表 #2 | 运行时 | |
 | +64 | 匿名结构 | 每国记录宿主子对象 | 内含每国 120B 记录数组 — entry+112 回指后经 +64 访问, 旗 u8@条+112 的 &2/&4 分支 | |
+| +232 | 哈希缓存 | 省键哈希缓存 (gs 键→条目; lam 12 供应重算前清条目) | A 包 lam 12 | |
 | +256 | 容器 24B | countries | {cap@+264, count@+268, alloc@+272} | |
+| +264 | CPdxScopedPtr\<CCountrySupplySystem\>* | 每国供应系统对象数组 (lam 4 重建 PerCountryIndex 的宿主) | A 包 lam 4 | |
 | +288 | 匿名结构 (800B)* | 每国 800B 供应记录数组基址 | entry+128 = 此数组 + 800×国idx | |
-| +352 | fixed×1e-5 | 全局供应缩放 | init 100000 | |
+| +312 | 匿名结构 (216B)* | 每省供应聚合表 = **USAggregatedProvinceSupplyData** (lam 15 聚合计算 / lam 16 逐省重算驱动) | A 包 lam 15/16 | |
+| +336 | 自旋锁 (每省) | 省级数据跨国家归并锁 (lam 10: `_InterlockedCompareExchange` + 双列表 append) | A 包 lam 10 | |
+| +352 | fixed×1e-5 | 全局供应缩放 | init 100000 (lam 2 重置回写哨兵) | |
 | +416 | — | 供应首都相关全局态 | | |
 | +424 | — | 供应首都相关全局态 | init −1 | |
 | +428 | — | 供应首都相关全局态 | | |
 
 另: +184..+776 区间为容器群 (Reset 互证形态)。
+
+#### 4.21.1a UpdateSupply 并行任务族 (tbb lambda 语义; 网络条目 232B)
+
+网络条目 (232B) 字段: +56 = `Node._TotalSupply` / +64 = `Node._RemainingSupply` (country_supply.cpp:1388 族断言串自证字段名)。
+
+| lambda | 链 | 语义 |
+|---|---|---|
+| lam 1_5 | EB9CD0→EC80C0 | 供应首都/枢纽合法性校验 (CANT_MOVE_SUPPLY_CAPITAL_NOT_CONTROLLED 门, 结果写布尔表) |
+| lam 2 | EBB3D0→1412202B0 | CSupplyCalculationData 逐项重置 (30+ 字段清零, +352=100000 哨兵) |
+| lam 3 | EBA9C0→1412212C0 | 供应消费者记录重建 (陆军/铁路炮/国家空军/空军基地; country_supply.cpp:2160-2268 断言族) |
+| lam 4 | — | PerCountryIndex 重建 (:3138) |
+| lam 7 | EBAE10→141230D40 | 供应节点七步重算 (convoys.cpp:29 + 首都控制权门 :2844) |
+| lam 10 | — | 省级数据跨国家归并 (省自旋锁 +336) |
+| lam 13 | — | hub 条目摩托化贡献累加 (supply_node_settings.h:33) |
+| lam 14 | EBD720→ED0F90→14121EA10 | 供应节点非本地链接处理 (:2919) — 采样最热体 |
+| lam 21 | EB9FB0→141225420 | 供应流量分发: 沿 From/To 节点路径扣减推送 (`_TotalSupply(+56) >= _RemainingSupply(+64)`, 防死循环 AvoidInfLoopCounter<100) |
+| lam 22 | — | 海口省 SeaProv>0 维护 + mod-24 轮转门 |
+
+⚠ ECD400 体内 15 处 start_for 的**文本线序 ≠ 执行序** (lam 9/10/12/15 走旁路启动包装/直调变体)。
+
+#### 4.21.1b DoTradeRoutesUpdate 工人链 (hourly 资源输送路线)
+
+调度 = CGameState::DoTradeRoutesUpdate (sub_1401D9890); 工人链 = 逐脏路线 lambda_2:
+F7470→B8AA0→BBB40→F8390→CBC8C0 (工作体: 端点缓存 + 路径校验 + **`(小时+tag_idx)%168` 周度错峰门** — 路线重算按国家错峰分摊, 非每小时全量; 成本阈值分流快检/重算; trade.cpp:242 簇); 路线元组收集器 AFDD0 (24B 条; MSVC tuple 内存序与声明序相反); 粒度选择器 DB390 (pdx_parallel_for.h:65, EJobType 0/1/2/3 → count/NumTaskThreads、3×、1、整段)。

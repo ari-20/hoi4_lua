@@ -75,16 +75,9 @@ local function officer_record_read(e)
     return r
 end
 
--- holder 全记录链: inline 记录 (holder+24) 先, 追加向量元素后 (writer 块序)
-local function officer_records(inline, vd, vc)
-    local out = { officer_record_read(inline) }
-    if O.kptr(vd) and vc and vc > 0 and vc <= LAYOUT.lim.PTR_SANE then
-        for i = 0, vc - 1 do
-            out[#out + 1] = officer_record_read(vd + 88 * i)
-        end
-    end
-    return out
-end
+-- holder 全记录链 (inline 记录 holder+24 先, 追加向量元素后 — writer 块序)
+-- = SH.officer_records (本文件顶部已导入)。此处原有一份逐字重复的本地
+-- 定义, 遮蔽了导入, 已删 (唯一实现住 objects_shared)。
 
 local DivMT = {}
 local function mk_div(a) return setmetatable({ addr = a }, DivMT) end
@@ -1120,17 +1113,9 @@ local function wing_of_holder2(h)      -- wing = holder + 16
   local w = h + 16
   return (ru32(w + 8) == 69) and mk_w2(w) or nil
 end
-local function cont_elems(base, off, vtrva)
-  local out = {}
-  local d, c = rp(base + off), ru32(base + off + 12)
-  if O.kptr(d) and c and c > 0 and c < 65536 then
-    for i = 0, c - 1 do
-      local e = rp(d + 8 * i)
-      if O.kptr(e) and rp(e) == BASE + vtrva then out[#out + 1] = e end
-    end
-  end
-  return out
-end
+-- (cont_elems 本地副本已删 — 与 SH.cont_elems 逐字重复且遮蔽了本文件顶部
+--  的导入; 唯一实现住 objects_shared。)
+
 
 -- 13.1 CAirWing 字段访问器 (§4.15.4)
 Wing2MT.__index = function(self, k)

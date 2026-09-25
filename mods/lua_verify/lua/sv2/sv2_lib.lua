@@ -100,3 +100,79 @@ function SL.sso(obj)
     end
     return table.concat(t)
 end
+
+-- ============================================================
+-- 共享 writer 发射件 — contract_definition 216B 本体 + CEquipmentVariantPool
+-- (§4.23.3 合同/requests 元素同构; §4.10.25 CRequestEquipmentPurchaseAction
+--  内嵌形)。base 恒取「使 base+24 = def 本体起点」的宿主基址:
+--  合同 c → base=c; requests 元素 req → base=req; 动作 → base=act+96。
+-- ============================================================
+
+-- CEquipmentVariantPool 64B 序列化 (writer slot2 0x141012DB0; 3 处复用)
+-- pfx 末点已含 (如 "...equipments."); 元素级跳过规则复刻 writer
+function SL.pool_emit(emit, DIM, pfx, base)
+    local d, n = SL.rp(base + 32), SL.ru32(base + 44)
+    local az = SL.ru8(base + 56) or 0
+    if SL.kptr(d) and n and n > 0 and n < GAME.layout.lim.PTR_HUGE then
+        local seq = SL.seqc()
+        for j = 0, n - 1 do
+            local e = d + 16 * j
+            local amt = SL.rp_i64(e + 8) or 0
+            if amt ~= 0 or az ~= 0 then
+                local var = SL.rp(e)
+                if SL.kptr(var) then
+                    local kp = pfx .. seq("equipment") .. "."
+                    emit(DIM, kp .. "id",
+                        SL.idpair(SL.ru32(var + 12), SL.ru32(var + 8)))
+                    emit(DIM, kp .. "amount", SL.num(amt / 100000))
+                end
+            end
+        end
+    end
+    emit(DIM, pfx .. "allow_zero_entries", SL.yn(az))
+end
+
+-- contract_definition 216B 本体 (writer sub_140DF1EC0)
+-- gs = CGameState (tag 串表 gs+0x358); DP 末点已含
+-- 写序 = contract_draft (seller→buyer→equipments→speed→subsidies)
+--        → price_levels (空表不发叶) → prices
+function SL.def_emit(emit, DIM, DP, base, gs)
+    local function E(p, v) if v ~= nil then emit(DIM, p, v) end end
+    local tt = gs and SL.rp(gs + 0x358) or nil
+    local function tagq(tid)
+        if not (tid and tid > 0 and SL.kptr(tt)) then return nil end
+        local s = hoi4.read_str(tt + 32 * tid)
+        if not s or s == "" or s == "---" then return nil end
+        return SL.Q(s)
+    end
+    local RP = DP .. "contract_draft."
+    E(RP .. "seller", tagq(SL.ru32(base + 88)))
+    E(RP .. "buyer", tagq(SL.ru32(base + 92)))
+    SL.pool_emit(emit, DIM, RP .. "equipments.", base + 96)
+    E(RP .. "speed", tostring(SL.ru32(base + 192) or 0))
+    -- draft.subsidies (48B 元, writer 0x140DDD510) 仅 count>0
+    local sd, sc = SL.rp(base + 168), SL.ru32(base + 180)
+    if SL.kptr(sd) and sc and sc > 0 and sc < GAME.layout.lim.PTR_SANE then
+        for k = 0, sc - 1 do
+            local e = sd + 48 * k
+            local kp = RP .. "subsidies.subsidies.#" .. (k + 1) .. "."
+            E(kp .. "cic", SL.num((SL.rp_i64(e) or 0) / 100000))
+            local ap = SL.rp(e + 8)
+            if SL.kptr(ap) then
+                local nm = SL.tok(SL.ru32(ap + 8))
+                if nm then E(kp .. "archetype", tostring(nm)) end
+            end
+            if (SL.ru8(e + 40) or 0) == 0 then
+                local td, tc = SL.rp(e + 16), SL.ru32(e + 28)
+                if SL.kptr(td) and tc and tc > 0
+                    and tc < GAME.layout.lim.PTR_SANE then
+                    for j = 0, tc - 1 do
+                        local tg = tagq(SL.ru32(td + 4 * j))
+                        if tg then E(kp .. "targets.#" .. (j + 1), tg) end
+                    end
+                end
+            end
+        end
+    end
+    SL.pool_emit(emit, DIM, DP .. "prices.", base + 24)
+end

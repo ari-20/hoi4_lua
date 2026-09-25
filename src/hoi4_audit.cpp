@@ -343,8 +343,26 @@ void audit_mem_deny(lua_State *Ls, const char *kind, uint64_t addr,
          why ? why : "", 1);
 }
 
-// Code load (dofile / loadfile). Deduplicated by content hash so a hot reload
-// loop or sv2_export's 57-file reload does not emit 57 lines per call - while a
+// vtable-slot hook install / uninstall / refusal (hoi4_hook.cpp). This is a
+// code-redirection facility, so every install is recorded — but unlike
+// mem_deny, a SUCCESSFUL install is logged too (a redirect that happened is
+// exactly as interesting as one that was refused). Deduplicated per
+// (op,id,target) so a hot reload does not spam a line per frame.
+void audit_hook(lua_State *Ls, const char *op, const char *id, uint64_t vt,
+                int slot, const char *detail) {
+    if (g_level == AUDIT_OFF) return;
+    char src[192]; int line = 0;
+    audit_attribute(Ls, src, sizeof(src), &line);
+    char key[600], target[64];
+    snprintf(key, sizeof(key), "%s|%s|%llx|%d", op, id ? id : "-",
+             (unsigned long long)vt, slot);
+    unsigned n = 0;
+    if (!distinct_first("hook", key, &n)) return;
+    snprintf(target, sizeof(target), "%llx+%d", (unsigned long long)vt, slot);
+    emit("hook", mod_of_source(src), src, line, target, detail ? detail : "", 1);
+}
+
+// Code load (dofile / loadfile). Deduplicated by content hash so a hot reload// loop or sv2_export's 57-file reload does not emit 57 lines per call - while a
 // CONTENT change always produces a new line, which incidentally gives a code
 // provenance timeline for free.
 void audit_code_load(lua_State *Ls, const char *path, const char *sha256_hex) {

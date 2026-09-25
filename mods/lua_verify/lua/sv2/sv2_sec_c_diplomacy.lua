@@ -97,7 +97,8 @@ SV2.csec[#SV2.csec + 1] = { name = "country.diplomacy", emit = function(ctx)
                 or rr.tok == "send_volunteers"
                 or rr.tok == "join_allies"
                 or rr.tok == "call_allies"
-                or rr.tok == "lend_lease" then
+                or rr.tok == "lend_lease"
+                or rr.tok == "request_equipment_purchase" then
                 local incobj2 = rp(ctx.cc + 4088)
                 if SL.kptr(incobj2) then
                     local idd2 = rp(incobj2 + 8)
@@ -203,6 +204,20 @@ SV2.csec[#SV2.csec + 1] = { name = "country.diplomacy", emit = function(ctx)
                     fpp = GAME.layout.as_i64(fpp)
                     emit(tag, ab .. ".fuel_percentage",
                         SL.num(fpp / 100000))
+                end
+            end
+            -- §4.10.25 CRequestEquipmentPurchaseAction 载荷
+            -- (request_equipment_purchase; def 216B 内嵌 @act+120 → def 基点
+            -- base=act+96, 与合同/requests 同 writer sub_140DF1EC0;
+            -- request = CIdentifier 8B @act+336, 键 12613)
+            if rr.tok == "request_equipment_purchase" then
+                if SL.kptr(act) and ru32(act + 8) == 13289 then
+                    local DP = ab .. ".contract_definition."
+                    SL.def_emit(emit, tag, DP, act + 96, ctx.gs)
+                    local rty, rid = ru32(act + 336), ru32(act + 340)
+                    if (rid or 0) ~= 0 or (rty or 0) ~= 0 then
+                        emit(tag, ab .. ".request", SL.idpair(rid, rty))
+                    end
                 end
             end
         end

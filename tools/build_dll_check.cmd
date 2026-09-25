@@ -11,13 +11,13 @@ cd /d "%~dp0.."
 
 set SRCS=src\hoi4_main.cpp ^
   src\hoi4_paths.cpp src\hoi4_bridge.cpp src\hoi4_primitives.cpp src\hoi4_registry.cpp ^
-  src\hoi4_vtable.cpp src\hoi4_console.cpp src\hoi4_hooks.cpp ^
+  src\hoi4_vtable.cpp src\hoi4_console.cpp src\hoi4_detour.cpp ^
   src\hoi4_timer.cpp src\hoi4_async.cpp src\hoi4_frame.cpp ^
   src\hoi4_session.cpp src\hoi4_scope.cpp src\hoi4_game.cpp src\hoi4_call.cpp ^
   src\hoi4_offsets.cpp src\hoi4_http_client.cpp src\hoi4_http_server.cpp ^
   src\hoi4_harden.cpp src\hoi4_lua_policy.cpp src\hoi4_audit.cpp ^
   src\hoi4_memgate.cpp ^
-  src\hoi4_defines.cpp src\hoi4_defines_lua.cpp
+  src\hoi4_defines.cpp src\hoi4_defines_lua.cpp src\hoi4_hook.cpp
 
 cl /nologo /LD /O2 /W3 /EHsc /MT /D_CRT_SECURE_NO_WARNINGS %SRCS% /Fe:hoi4_bridge_check.dll /I. /Isrc /I third-party\mbedtls\include /DCPPHTTPLIB_MBEDTLS_SUPPORT /link /DLL third-party\lua54\lua54_static.lib user32.lib ws2_32.lib winhttp.lib advapi32.lib bcrypt.lib third-party\mbedtls\build\library\Release\mbedtls.lib third-party\mbedtls\build\library\Release\mbedx509.lib third-party\mbedtls\build\library\Release\mbedcrypto.lib
 if errorlevel 1 (

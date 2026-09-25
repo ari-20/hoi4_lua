@@ -80,6 +80,7 @@ zone 条目布局 (56 字节/条, 无独立 RTTI 类（负定案）; 数组元�
 | scripted_gui.window / scripted_gui_ai | 脚本 GUI |
 | gui_click | 界面点击 |
 | hourly_parallel | hourly 并行段 |
+| preHourlyUpdate / HourlyCountryComponentUpdate / hourlyUpdateUnits / postHourlyUpdate | hourly 五分段 (gamestate.hourly 子段; 采样实测: preHourlyUpdate 内含 DoTradeRoutesUpdate 资源输送路线重算与 CSupplySystem::UpdateSupply 供应节点并算两大头, hourlyUpdateUnits = 每国单位聚合, postHourlyUpdate 段尾) |
 
 #### 4.9.4 工具入口与产物
 

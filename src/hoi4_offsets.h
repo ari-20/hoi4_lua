@@ -4,7 +4,7 @@
 // file + rebuild; the PE signature check refuses activation on any other
 // build, so a stale table fails closed instead of patching wrong addresses.
 // Values: hoi4.exe 1.19.3.0 rev c01a3d50 (base 0x140000000).
-// Relocation evidence (t93, 2026-09-17): fdiff v4 byte-hash map, string
+// Relocation evidence: fdiff v4 byte-hash map, string
 // anchors, vtable RTTI, router call-chain intersection, CRT heap/tls xrefs —
 // per-key notes below. ENGINE_NEW: never called anywhere in src (dead
 // machinery, kept for the enum order); 1.19.2 value already pointed mid-
@@ -45,10 +45,18 @@ static const uint64_t kOffValues[OFF_COUNT] = {
     /* ASSERTS_BYTE      */ 0x35E1B52,  // token-align 119 votes + adjacency
     /* SESSION_CTOR_WRITE*/ 0x1D2D03,   // gs slot write insn (scan: tools/scan_gs_writers_1193.py)
     /* SESSION_DTOR_WRITE*/ 0x1D60AA,   // gs slot null-write insn (same scan)
-    /* LOAD_ENTRY        */ 0xDA04F0,   // load-save entry sub_140DA04F0 (t99 定案;
+    /* LOAD_ENTRY        */ 0xDA04F0,   // load-save entry sub_140DA04F0;
                                        //   DR2 事件 + hoi4.load_save 驱动目标)
-    /* SAVEDESC_CTOR     */ 0xBC0880,   // 224B saveDesc ctor (t99)
-    /* SAVEDESC_DTOR     */ 0xBC0960,   // saveDesc dtor (t99)
-    /* STRING_ASSIGN     */ 0x129CA0,   // std::string::assign(this, char*, len) (t99)
-    /* SET_GAME_STARTED  */ 0x1EDFF0,   // SetGameStarted(gs,1) — t100 修复 A（幂等）
+    /* SAVEDESC_CTOR     */ 0xBC0880,   // 224B saveDesc ctor
+    /* SAVEDESC_DTOR     */ 0xBC0960,   // saveDesc dtor
+    /* STRING_ASSIGN     */ 0x129CA0,   // std::string::assign(this, char*, len)
+    /* SET_GAME_STARTED  */ 0x1EDFF0,   // SetGameStarted(gs,1) — idempotent gate reopen
+    /* PURECALL          */ 0x253C3B8,  // _purecall: base-class vtable filler.
+                                       //   hook gate: a slot holding this is a
+                                       //   BASE-class slot — hooking it would
+                                       //   intercept nothing (see hoi4_hook.h)
+    /* GUARD_NOP         */ 0x12A2C0,   // _guard_check_icall_nop: CFG no-op stub
+                                       //   (1.19.3; old 0x140129DB0 = 1.19.2)
+                                       //   hook gate: same "not a real impl"
+                                       //   class of filler as _purecall
 };

@@ -56,7 +56,7 @@ sub_140BB52F0 同国谓词的关系语义 — 见 §4.30.21。
 **入口链**: 目标 = **「编辑会话」对象 ES** (0x908,
 divisiontemplatemanager.cpp 断言实名), 存 **View+11096** — 非 CCountry/CArmy/模板本体。
 SetTarget 无虚槽 (三通道: sub_14168D4C0 编辑现有 / sub_141762BC0 新建 / sub_14168B520
-mode=0); Refresh = @40[9] Repopulate 0X141768250; OnReload = @0[2] 0X141763770。
+mode=0); Refresh = @40[9] Repopulate 0X141768250; Reload = @0[2] 0X141763770。
 ⚠ **基链与 CCountryView 同族不同序** (`CReloadableInterface@0` + iface@40 +
 tooltip@64 + **CModelListItemParent@72**; 主虚表仅 6 槽) —— §4.00.2 的 17 槽大表
 **不可跨类硬套**, 各 View 逐类解基链。
@@ -103,7 +103,7 @@ ctor sub_1414991A0 三链定案, 见 §4.30.5); 用法语义 = 选中师铺格 d
 **未决**: CDivisionTemplateData+488 (16B getter/setter 对); CCountry+3952 (D+180 16B 条
 可用性校验表); 预览统计对象类身份 (0x678B, 与 CArmy+312 同类); 陆军经验显示的源偏移。
 
-**窗壳（重锚后零漂移，1.19.3 全址已重定）**：主 vt **0x1429FAA00** + @40 0x1429FAA38 + @64 0x1429FAA90 + **@72 CModelListItemParent 表（1 槽）0x1429FAAA8**；视图规模 0x5CC0=23744B；注册宿主 = 装配器 0x140B614C0（注册槽 +592）；ctor **0x1417591C0**；槽：@40[7] Update = 0x141762360 / @40[8] IsOpenAndVisible = 0x141761AB0 / [9] Repopulate 0x141768250 / OnReload 0x141763770 / 名字提交 0x141763F10 / tooltip 0x14175F4F0 / 新建 ES 0x141762BC0；**两控制器 +17720/+17728**（激活 0x141DD0190/0x141DD2A90，门 0x141DD01B0/0x141DD2AC0，喂食 0x141DD0320，崩溃于 @0[5]，创建于 @0[4]）；+17776/+23640 两 CEmptyEntryListBase 模板实例（ctor vtable 直证）；Conveyor 壳：ctor 0x141D83A10 / Setup 0x141D890C0（18 窗名，vt 索引 136/104/120）/ 创建宿主 0x14172C530（sizeof 0x1AB0=6832 再证）；scoped_ref 两 helper 0x141D82170/0x141D823C0（模式号 20/21 直读）。ES 表补三行：**+2272 = 多态新建源（ctor 0x140B95230）** / **+2296 = 立即执行旗（Accept 核 0x14168D4E0 消费）** / **+2304 = ctor a3 u8**；命令 ctor 1.19.3：CSetConveyorNameCommand 0x141BA18C0 / CSetConveyorSeriesCommand 0x141BA1A90（+胶水 cb 0x141D88290/0x141D887C0）。
+**窗壳（重锚后零漂移，1.19.3 全址已重定）**：主 vt **0x1429FAA00** + @40 0x1429FAA38 + @64 0x1429FAA90 + **@72 CModelListItemParent 表（1 槽）0x1429FAAA8**；视图规模 0x5CC0=23744B；注册宿主 = 装配器 0x140B614C0（注册槽 +592）；ctor **0x1417591C0**；槽：@40[7] Update = 0x141762360 / @40[8] IsOpenAndVisible = 0x141761AB0 / [9] Repopulate 0x141768250 / Reload 0x141763770 / 名字提交 0x141763F10 / tooltip 0x14175F4F0 / 新建 ES 0x141762BC0；**两控制器 +17720/+17728**（激活 0x141DD0190/0x141DD2A90，门 0x141DD01B0/0x141DD2AC0，喂食 0x141DD0320，崩溃于 @0[5]，创建于 @0[4]）；+17776/+23640 两 CEmptyEntryListBase 模板实例（ctor vtable 直证）；Conveyor 壳：ctor 0x141D83A10 / Setup 0x141D890C0（18 窗名，vt 索引 136/104/120）/ 创建宿主 0x14172C530（sizeof 0x1AB0=6832 再证）；scoped_ref 两 helper 0x141D82170/0x141D823C0（模式号 20/21 直读）。ES 表补三行：**+2272 = 多态新建源（ctor 0x140B95230）** / **+2296 = 立即执行旗（Accept 核 0x14168D4E0 消费）** / **+2304 = ctor a3 u8**；命令 ctor 1.19.3：CSetConveyorNameCommand 0x141BA18C0 / CSetConveyorSeriesCommand 0x141BA1A90（+胶水 cb 0x141D88290/0x141D887C0）。
 
 #### 4.30.3 生产面板 (CCountryProductionLineView)
 
@@ -146,7 +146,7 @@ TD 0x143287B48；主 vt 0x1429F7430 / @40 0x1429F74C0 / @48 0x1429F74D8 / @1408 
 | facet / 槽 | 语义 | 函数 | 备注 |
 |---|---|---|---|
 | 主 [0] | dtor | 0x141739B00 | — |
-| 主 [2] | OnReload | 0x141740600 | 清串经 sub_1412374F0(view) → vt+96 (基类 reload 共享形) |
+| 主 [2] | Reload | 0x141740600 | 清串经 sub_1412374F0(view) → vt+96 (基类 reload 共享形) |
 | 主 [7] | 关窗/收起 | 0x14173DEF0 | 五窗口群 +9504 逐一 hide；尾调 **sub_141C3C390(view+9544)** |
 | 主 [9] | Refresh thunk | 0x14173EC50 | jmp rel32 → 0x14173EC60 (体) |
 | 主 [10] | 日期门 Refresh | 0x14173EBE0 | 置脏旗 view+9536 |
@@ -175,7 +175,7 @@ TD 0x143287B48；主 vt 0x1429F7430 / @40 0x1429F74C0 / @48 0x1429F74D8 / @1408 
 
 | 柄群 | 偏移 | 语义 | 置信 |
 |---|---|---|---|
-| 五窗口手柄群 | **+9264 / +9272 / +9280 / +9288 / +9296**（+9288 = CProductionNavalDeploymentWindow；+9504 尾件） | OnReload / [7] / Repopulate 三处同集复位 | 定案 |
+| 五窗口手柄群 | **+9264 / +9272 / +9280 / +9288 / +9296**（+9288 = CProductionNavalDeploymentWindow；+9504 尾件） | Reload / [7] / Repopulate 三处同集复位 | 定案 |
 | 五类别按钮 | **+9304 / +9312 / +9320 / +9328 / +9336** | tank / infantry / aircraft / naval / naval_repair_button | 定案 |
 | 四按钮 glow | **+9352 / +9360 / +9368 / +9376** | tank / infantry / aircraft / naval_button_glow | 定案 |
 | close_button | **+9344** | populate 装配 (.rdata 串直读) | 定案 |
@@ -307,7 +307,7 @@ getter (raw+472/2456/128/744/2500/2600) 对书表 +456/+2440/+112/+728/+2484/+25
 | Reorg 行人力合计 | sub_140C4CBC0 | 行+32 {16B variant\*,amount} × sub_140BDA170 × define 18 | Σ = 人力需求 (SERVICE_MANPOWER) | SERVICE_MANPOWER_HEADER | 定案 (链) |
 | Reorg 增援偏好下拉 | OnOpen glue (lambda RTTI 实名 W4EAirReinforcem…) | win+4212 双 byte / "reinforcement_preferences_position" | 增援偏好 UI | reinforcement_preferences | 高置信 (形态) |
 | Reorg Update 激活门 | @64…[1] 0X14202ED10 | win+4112/+4120 idpair + +4024 池 + +4100 行数; dword_14338CF68 | 有目标/池/行任一即活 | — | 定案 (机制) |
-| Reorg 关闭 | [8] 0X14202D690 / OnClose [12] / OnReload @16[2] | win+4224/+4232/+4240 | 基 Close+控制器收尾; OnReload=重建+关窗 | — | 定案 |
+| Reorg 关闭 | [8] 0X14202D690 / OnClose [12] / Reload @16[2] | win+4224/+4232/+4240 | 基 Close+控制器收尾; Reload=重建+关窗 | — | 定案 |
 | Stats 弹窗目标 (联队) | 工厂 sub_141FD2240 (无虚 SetTarget) | **CAirWing+8 idpair (raw+24) → win+5472 快照** | 联队析构安全; 行控制器 +9744 进 | — | 定案 |
 | 联队名 (含改名) | SetupDerived / sub_140F60A70 | **CAirWing+2440 name** | "air_wing_name" 文本源; 变更 → CSetAirWingNameCommand (14312) | air_wing_name | 定案 |
 | 联队人力 | sub_140F622A0 | **CAirWing+112 manpower** | 数字窗 | current_manpower / MANPOWER_AIRWING | 定案 |
@@ -341,7 +341,7 @@ getter (raw+472/2456/128/744/2500/2600) 对书表 +456/+2440/+112/+728/+2484/+25
 **入口链**: ShipStatsView target = **CShip** (idpair
 @view+6632, ctor 快照); CompactShipListView target = **CTaskForce 数组** (RTTI 实名 filler
 `UpdateCompactShipList(CShipCategorizer const&, CTaskForce const* const(&)[N], filler)`);
-NavalCombatView target = **CNavalCombat** (idpair@view+64, OnReload 经 res−16+24 归一化)。
+NavalCombatView target = **CNavalCombat** (idpair@view+64, Reload 经 res−16+24 归一化)。
 **坐标校准定案**: §4.22.5a 海战书表 = res 坐标, 无 ±16 (sub_1413E2B80 双谓词
 铁证); **−16 胶水规律定案**: `*(X−16+24) = *(X+8) = X 的 refid` (CTaskForce writer 基互证)。
 命令族: **CDeleteShipCommand{+40 舰, +48 特混舰队}** / **CDisengageFromNavalCombatCommand
@@ -361,7 +361,7 @@ NavalCombatView target = **CNavalCombat** (idpair@view+64, OnReload 经 res−16
 | CompactList 条目灌入 | UpdateCompactShipList (RTTI 实名) | **CTaskForce 数组** → view+56 数组 | 特混舰队编成紧凑列表 | entry | 定案 (形态) |
 | CompactList 条目 tooltip | 0X141E11E40 | **entry+1336 DB 索引; +1340 需求数** | 舰型名 + 需求舰数 | COMPACT_SHIP_VIEW_DESC_REQ / TYPE | 定案 |
 | CompactList 条目图标 | entry 窗 | entry+8/+16 idpair; "pride"/"required_ships_count" 窗 | pride 图标 + 需求计数 | pride / required_ships_count | 定案 (窗名) |
-| NavalCombat 目标 (海战) | OnReload 0X1417EA930 再归一化 | **CNavalCombat+8 refid → view+64** | 外部 idpair 规范为海战自身 refid | navalcombatview | 定案 |
+| NavalCombat 目标 (海战) | Reload 0X1417EA930 再归一化 | **CNavalCombat+8 refid → view+64** | 外部 idpair 规范为海战自身 refid | navalcombatview | 定案 |
 | NavalCombat 双侧网格 | sub_1417ED140 | **cb+232/{+244} group 容器** → CCombatBoxGrids+24 8 槽 + CFEXShipIcon | 攻/守组×舰图标网格 | CCombatBoxGrids | 定案 |
 | NavalCombat 将领面板 | sub_1417F0320 | **cb+304 current_leader** (无将 → GFX_leader_unknown) | 名/头像/技能(fixed5)/等级 | UNIT_LEADER_NO_LEADER | 定案 |
 | NavalCombat 参战国旗 | sub_1417EDD40 | **cb+56 参战 tag 链A** → view+2656/+2664 | 两侧参战国 | — | 定案 |
@@ -479,14 +479,14 @@ cached_sum); dip+56/+80 瞬时暂存定案 = 外交 UI 不消费 (§4.10)。
 **入口链**: target = **CPeaceConference idpair
 (type@win+20744, id@+20748)** (gs+1248 管理器 active_peace 元素; 每轮 sub_14221F310 解引 + conf+8
 refid 回写自愈); 第 8 骨架 CReloadableInterface@0 + CTooltipHandler@40, true entry =
-[2] OnReload 0X141862010 (断言 _Conference.IsValid)。**writer 0X140E527D0 全解码 → §4.23
+[2] Reload 0X141862010 (断言 _Conference.IsValid)。**writer 0X140E527D0 全解码 → §4.23
 匿名区一次命名** (详见 §4.10.26 注); liberated(+296)/subject(+320) 页签出叶
 (定案), history(+504) 无, redistributions/score_from_countries 不在 writer。校准: 本族零漂移。
 
 | 面板元素/行为 | 取值函数 | 对象+偏移 | 语义+出处 | loc key / 元素 | 置信 |
 |---|---|---|---|---|---|
-| 和会主窗 target (idpair type) | OnReload [2] 0X141862010 (无 SetTarget 虚槽) | **win+20744** ← gs+1248 管理器 active_peace 元素 (§4.10.26 ✓) | idpair 存储变奏 (§4.30.9 tag 存储同族); 联合门: 与 +20748 成对读写, sub_14221F310 解引 | peaceconference_full_window | 定案 |
-| 和会主窗 target (idpair id) | 同上 (OnReload [2] 0X141862010) | **win+20748**; conf+8 = 自身 refid 回写自愈 | 同上 | peaceconference_full_window | 定案 |
+| 和会主窗 target (idpair type) | Reload [2] 0X141862010 (无 SetTarget 虚槽) | **win+20744** ← gs+1248 管理器 active_peace 元素 (§4.10.26 ✓) | idpair 存储变奏 (§4.30.9 tag 存储同族); 联合门: 与 +20748 成对读写, sub_14221F310 解引 | peaceconference_full_window | 定案 |
+| 和会主窗 target (idpair id) | 同上 (Reload [2] 0X141862010) | **win+20748**; conf+8 = 自身 refid 回写自愈 | 同上 | peaceconference_full_window | 定案 |
 | 输赢顶图 | w4 0X141867F10 | **win+20752** ← sub_14185DE40(conf+96/+120 map 查玩家) | 1=输 → GFX_top_art_losing_conference | peace_conference_top_art | 定案 |
 | 阶段条 | w3 0X141866C60 | **conf+216** (+1 显示) | 当前竞标阶段 (§4.23 +216) | PEACE_BID_PHASE (bidphase_panel/bidphase_text) | 定案 |
 | 需求状态行 | w3 | **conf+220 making_demands** 门; sub_140E47EB0 国 | 提需求中/等待 | PEACE_CURRENTLY_MAKING_DEMANDS / PEACE_WAITING_PLAYERS_MAKE_DEMANDS | 定案 |
@@ -527,26 +527,26 @@ refid 回写自愈); 第 8 骨架 CReloadableInterface@0 + CTooltipHandler@40, t
 | 池 1 元素删除 | sub_14185F080 内 | **sub_141E4D510** | 销元素后再调行对象 vt[25] (+200) 关窗 | — | 定案 |
 | 池 2 元素删除 | 同上 | **sub_141E4D4E0** | 同机制 | — | 定案 |
 | 池 3 元素删除 | 同上 | **sub_141E479B0** | 同机制 | — | 定案 |
-| +20728 owner/界面处理器 | ctor sub_14185AE60 存 a2；OnReload 网络侧 | **+20728** | `*(a2+1272)` = 窗工厂 → `sub_14225C5A0(工厂, "peaceconference_full_window", 0)` 查根窗（vt[12] (+96) 内部形态未逐行）；OnReload 网络通知链 = vt+136 → server+88 → `_RTDynamicCast(CNetworkServer/CProxyServer)` + server+84 门 → 通知全局 qword_14338A140（+80/+88 各 vt+96） | peaceconference_full_window | 定案 |
+| +20728 owner/界面处理器 | ctor sub_14185AE60 存 a2；Reload 网络侧 | **+20728** | `*(a2+1272)` = 窗工厂 → `sub_14225C5A0(工厂, "peaceconference_full_window", 0)` 查根窗（vt[12] (+96) 内部形态未逐行）；Reload 网络通知链 = vt+136 → server+88 → `_RTDynamicCast(CNetworkServer/CProxyServer)` + server+84 门 → 通知全局 qword_14338A140（+80/+88 各 vt+96） | peaceconference_full_window | 定案 |
 | +20736 completed 窗柄 | 主填充 sub_1418646F0 首分支（conf+221 门）→ **sub_140B653D0** | **+20736**；ctor a3 存入 | 体内 +576 子窗经 sub_14185F080 复位 / +1018 清 0；对象类名未名（CGuiObject 谱系） | — | 定案（机制） |
 | idpair 哨兵 | ctor 尾块初值 | **+20744 / +20748** = qword_14333D528 | 1.19.3 通用 idpair 哨兵，全镜像复用 | — | 定案 |
 | 双 popup 更新门 | w7 sub_1418660E0 / w8 sub_141867D00 | **+20756** 与 **+20757**（置位为 1） | 假分支 → 各自 popup vt[6] (+48) 调用 | — | 定案 |
-| +20764 暂停暂存 | OnReload → sub_1401FA5E0() +594 取旧置 → 存本槽置 1 | **+20764** | 全局对象身份未名（同形态沿用） | — | 高置信（语义） |
+| +20764 暂停暂存 | Reload → sub_1401FA5E0() +594 取旧置 → 存本槽置 1 | **+20764** | 全局对象身份未名（同形态沿用） | — | 高置信（语义） |
 | +20768 根窗槽 | 可见性谓词 vt+584 / byte165 bit3；清除 = **sub_141862670**（vt[2] 逐子 + vt[25] (+200) 后置 0）；w6 经 `sub_1422BC600(+20768, "reopen_ingame_lobby_label")` 查子窗 | **+20768** | ctor 只把窗名交基 ctor sub_142255FA0，槽实写点在 reload/rebuild 链（合并块未逐行） | reopen_ingame_lobby | 定案（清除点） |
-| 双竞标弹窗指针 | OnReload（conf idpair 装载段） | **+20776** 与 **+20784** = CPeaceBiddingsPopUpWindow\* ×2 | **sub_141E584E0**(popup, conf) 装 conf idpair → popup+5248（popup vt 0x142A848A0） | — | 定案 |
-| 清窗/复位函数 | dtor 首调 + OnReload 双调 | **sub_14185F080** | 清九图标柄 +20880..+20976 + 三池销元素 + 清 +20800/+20808/+20816 | — | 定案（新锚） |
-| OnReload 变体 | **sub_141864560** | 无可见门 / 无 popup 装载，直接 输赢 → 主填充 → +20764 → +20768 → 地图模式 22 | 触发路径未追（推定 = 结束态/非可见路径） | — | 推定 |
+| 双竞标弹窗指针 | Reload（conf idpair 装载段） | **+20776** 与 **+20784** = CPeaceBiddingsPopUpWindow\* ×2 | **sub_141E584E0**(popup, conf) 装 conf idpair → popup+5248（popup vt 0x142A848A0） | — | 定案 |
+| 清窗/复位函数 | dtor 首调 + Reload 双调 | **sub_14185F080** | 清九图标柄 +20880..+20976 + 三池销元素 + 清 +20800/+20808/+20816 | — | 定案（新锚） |
+| Reload 变体 | **sub_141864560** | 无可见门 / 无 popup 装载，直接 输赢 → 主填充 → +20764 → +20768 → 地图模式 22 | 触发路径未追（推定 = 结束态/非可见路径） | — | 推定 |
 | 主填充分派 | **sub_1418646F0** | completed → sub_140B653D0；否则九连 w4/w2/w3/w5/w6/w7/w8/w9 + 地图模式 22 | 九 worker 地址见上行各行 | — | 定案 |
 | 输赢计算 | **sub_14185DE40** | conf+96/+120 map 查玩家 | 漂移 0x134E0 | — | 定案 |
 | SetBiddingsIn\* lambda vt | — | **0x142A0E748**（winner）/ **0x142A0E780**（beneficiary） | mangled 签名零漂移（七参全同）；Winner 宿主 sub_141868380（thunk sub_1418687F0）/ Beneficiary 宿主 sub_141865250（thunk sub_1418687E0） | — | 定案 |
 
 > 主 vt **0x142A0DB20** 四槽：[0] 0x14185CD80（→ 实 dtor 0x14185C670）/ [1] 0x14011D220
-> const-false / [2] OnReload 0x141862010 / [3] 0x14012A2C0 guard_nop；主 vt [-1] COL =
+> const-false / [2] Reload 0x141862010 / [3] 0x14012A2C0 guard_nop；主 vt [-1] COL =
 > 0x142D45EA0，表止位 = @40 COL 0x142D45F30。@40 子表（CTooltipHandler）**0x142A0DB48**：
 > [0] BuildTooltip 0x141860410（体未逐行）/ [1] dtor 变体 0x14185CD68（thunk `sub_14185CD80(a1-40)`）。
 > 基链 = CReloadableInterface@0 + CTooltipHandler@40（双 COL 证实）。ctor **sub_14185AE60**
 > 尾段初值块：+20728=a2 / +20736=a3 / +20744=qword_14333D528 / +20758=1，尾至 +21000 全 0；
-> 16× CButtonEventDispatcher stride 1288 @+48..+19368（vt 基）。OnReload 0x141862010 流程：
+> 16× CButtonEventDispatcher stride 1288 @+48..+19368（vt 基）。Reload 0x141862010 流程：
 > +20768 vt+584(73) 可见性 → idpair 自愈（conf+8 回写；peaceconferencewindow.cpp:539 =
 > 0x21B 断言）→ 双 popup 装载 → +20752 输赢 → 主填充 → +20764 暂停暂存 → 网络通知 → 尾。
 
@@ -634,7 +634,7 @@ def 侧新锚: +368 类别 / +376·+396 可用门 / +1600·+1620 成本。
 | binder→命令映射 | CSelectDecisionCommand 14345 / CIgnoreDecisionCommand 14768 / CSelectTargetedDecisionCommand 14383 / CIgnoreTargetedDecisionCommand 14769; TimedItem 复用 14345; CategoryItem cb = 折叠切换非命令 | RTTI |
 | 窗名 | TimedItem = `timed_decision_item`; EventItem = `event_item` | ctor 常量 |
 
-**定案 6 项**: cat+496 = **decisions 容器** {data@496, cap@504, count@508, alloc@512} (写点 sub_140725F50 逐类别 push; 消费 sub_140734EC0 可用决议遍历) / cat+336 = **`visible_when_empty` u8** (键 15243; ReadKey sub_1407332B0) / cat+1008 = **power-balance 类别值 i32** (默认 −1; 类别名副本 = +976 串, **size@+992 / cap@+1000**) / SOnMapLocator = **CDecisionCategory::SOnMapLocator** (vftable 0x1427EB2E8, ctor sub_140724070; 304B 元素: +8 内嵌 CScriptTargets / +264 zoom 键 11793 / +272 loc 名 键 27 默认 ON_MAP_DECISION_NAME_DEFAULT / +288 size / +296 cap) / GUImgr+1536 = **CInGameIdler 全局待显事件表** {data@1536, cap@1544, count@1548, alloc@1552, 游标@1560}, 元素 = **CEvent\*** (id u32@0) / amount_to_take 宿主 = **CTopBar+39144** (窗 `decisionview_amount_to_take_items`, +39152 配 `_bg`; 装于 [2] OnReload sub_14189ECF0 体内的 sub_14189EF20)。
+**定案 6 项**: cat+496 = **decisions 容器** {data@496, cap@504, count@508, alloc@512} (写点 sub_140725F50 逐类别 push; 消费 sub_140734EC0 可用决议遍历) / cat+336 = **`visible_when_empty` u8** (键 15243; ReadKey sub_1407332B0) / cat+1008 = **power-balance 类别值 i32** (默认 −1; 类别名副本 = +976 串, **size@+992 / cap@+1000**) / SOnMapLocator = **CDecisionCategory::SOnMapLocator** (vftable 0x1427EB2E8, ctor sub_140724070; 304B 元素: +8 内嵌 CScriptTargets / +264 zoom 键 11793 / +272 loc 名 键 27 默认 ON_MAP_DECISION_NAME_DEFAULT / +288 size / +296 cap) / GUImgr+1536 = **CInGameIdler 全局待显事件表** {data@1536, cap@1544, count@1548, alloc@1552, 游标@1560}, 元素 = **CEvent\*** (id u32@0) / amount_to_take 宿主 = **CTopBar+39144** (窗 `decisionview_amount_to_take_items`, +39152 配 `_bg`; 装于 [2] Reload sub_14189ECF0 体内的 sub_14189EF20)。
 **前提证伪 2 项**: 「pass D 排序键」不成立 — sub_141727810 是**地图/隐藏决议收集 pass** (门 sub_1417312F0 + sub_140736AE0(cat+336) + sub_140736910(cat+248/268)), 全 pass 后**无 sort 调用** (worker sub_1417297C0 尾段仅释放临时容器 + grid 刷新), 行序 = 各 pass 调用序 (A 普通 → B 定向 → C 计时 → D 地图 → E 类别 → F); 「def+272 写点」**不存在** (全 dump 0 写点, 疑偏移笔误 — decision def 串区在 +288)。
 
 #### 4.30.13 情报视图簇 (AgencyView / IntelLedgerView / CryptologyEntry)
@@ -814,19 +814,19 @@ CSunkShipInfo** (is_sunk 门 @entry+114)。
 
 | 类 | vtable (1.19.3) | 主 vt | ctor | 备注 |
 |---|---|---|---|---|
-| CNaviesView | 0x142A06850 + @40 0x142A06878 | [2] OnReload 0x141816D20 / tt [0] BuildTooltip 0x141809190 | **0x1418029A0** | 17 胶水块 @+304..+20912 步距 1288B 全清；+120 CCompactShipListView / +22200 detailed_fleet_list / +22216 CTaskForceCompositionEditor / +22240 CNavyLeaderWindow / +22248 CMoveShipsWindow / +22256 舰船视图厂 / +224 哨兵；胶水块 ctor 0x141801810 |
-| CFleetsBottomBar | 0x142A001A0 + @40 0x142A001C8 | [2] OnReload 0x1417A68F0 | 0x1417A4F10 | tt [0] = const-false 0x14011D220；Setup 0x1417A6930 / populate 0x1417A5300 / OnReload 前段 0x1417A5B10；窗柄 +2800/+2808；占位工厂 0x141DE5F60 (malloc 0x548) |
+| CNaviesView | 0x142A06850 + @40 0x142A06878 | [2] Reload 0x141816D20 / tt [0] BuildTooltip 0x141809190 | **0x1418029A0** | 17 胶水块 @+304..+20912 步距 1288B 全清；+120 CCompactShipListView / +22200 detailed_fleet_list / +22216 CTaskForceCompositionEditor / +22240 CNavyLeaderWindow / +22248 CMoveShipsWindow / +22256 舰船视图厂 / +224 哨兵；胶水块 ctor 0x141801810 |
+| CFleetsBottomBar | 0x142A001A0 + @40 0x142A001C8 | [2] Reload 0x1417A68F0 | 0x1417A4F10 | tt [0] = const-false 0x14011D220；Setup 0x1417A6930 / populate 0x1417A5300 / Reload 前段 0x1417A5B10；窗柄 +2800/+2808；占位工厂 0x141DE5F60 (malloc 0x548) |
 | CFleetsBottomBarItem | 0x142A7A0F8 + tt 0x142A7A198 | [0] dtor 0x141DE6140 / tt [0] BuildTooltip 0x141DE6440 | 0x141DE59E0 | SetTarget 0x141DE6F60（项+32 CFleet idpair 快照）；提示注册器 0x140B77E10 (@+2704/+4072) |
 | CSunkShipEntry | 0x142A054B0 + tt 0x142A05550 | [0] dtor 0x1417F4210 / tt [0] BuildTooltip 0x1417F6840 | 0x1417F5C50 | populate 0x1417FD790 |
 | CSunkShipIcon | tt@0 0x142A046F0 / 主@8 0x142A04708 | tt [0] BuildTooltip 0x1417EA710 / 主 [0] dtor 0x1417E3200 | 0x1417E2460 | populate 0x1417EFDB0（a3 = is_sunk）；网格填充宿主 0x1417ED140 族；池工厂 0x1417F5C50 同族 |
 | CNaviesViewSunkShipItem | 0x142A4F008 + @56 0x142A4F078 + @72 0x142A4F140 | @72 [0] BuildTooltip 0x141BEB240（拷 this+8 串 → item+80） | 0x141BF0140 | 三 facet 类 |
-| CShipStatsView | 0x142A4F278 + @40 0x142A4F2A0 + @48 0x142A4F2B8 + @64 0x142A4F2F0 | [2] OnReload 0x141BED890 / tt [0] BuildTooltip 0x141BEB270 / @48 [1] Update 0x141BEFB60 / @48 [2] populate 0x141BED870 / @64 [7] 逐帧 0x141BED5F0 | **0x141BE8C90** (dtor 体 0x141BE99D0) | 七胶水块 @+88..+7928；+6632 目标 idpair / +9216+9224 军官柄 / +9232 CButtonWrapper / +9248 CButtonObserverGlue / +10552 缓存；sizeof 0x29D0 |
+| CShipStatsView | 0x142A4F278 + @40 0x142A4F2A0 + @48 0x142A4F2B8 + @64 0x142A4F2F0 | [2] Reload 0x141BED890 / tt [0] BuildTooltip 0x141BEB270 / @48 [1] Update 0x141BEFB60 / @48 [2] populate 0x141BED870 / @64 [7] 逐帧 0x141BED5F0 | **0x141BE8C90** (dtor 体 0x141BE99D0) | 七胶水块 @+88..+7928；+6632 目标 idpair / +9216+9224 军官柄 / +9232 CButtonWrapper / +9248 CButtonObserverGlue / +10552 缓存；sizeof 0x29D0 |
 | CCompactShipListView | 0x142A7EA90 | [0] const-false 0x14011D220 / [1] dtor 0x141E11AA0 | 0x141E11730 | +48 CSimpleEmptyEntryList\<CCompactShipEntry\>；sizeof 0x58 |
 | CCompactShipEntry | 0x142A7E8A0 | [0] BuildTooltip 0x141E11E40 / [1] dtor 0x141E11960 | 0x141E10F30 | — |
-| CNavalCombatView | 0x142A04868 + tt 0x142A04890 | [2] OnReload 0x1417EA930 / tt [0] BuildTooltip 0x1417E88A0 | 0x1417E1FD0 | +2784 side=1 / +3272 side=0 (CCombatBoxGrids 嵌套 ctor 0x1417E1510)；sizeof 0xF30 |
-| CNavalLossesOverview | 主 0x142A05AF0 + tt 0x142A05B18 | [0] dtor 0x1417F40B0 / [2] OnReload 0x1417F7210 | — | Setup/填格 0x1417F98B0 (另 0x1417FA310)；释放 0x1417F4EE0 |
-| CNavyLeaderWindow | 0x142A38158 (另 0x142A381C8 / 0x142A381E0) | [2] OnReload 0x141ACD050 | 0x141ABD920 (malloc 0x1B98) | §4.31.2 簇 |
-| CMoveShipsWindow | 0x142A4B338 (另 0x142A4B360) | [2] OnReload 0x141BBC770 | 0x141BBAEE0 (malloc 0x5D8) | — |
+| CNavalCombatView | 0x142A04868 + tt 0x142A04890 | [2] Reload 0x1417EA930 / tt [0] BuildTooltip 0x1417E88A0 | 0x1417E1FD0 | +2784 side=1 / +3272 side=0 (CCombatBoxGrids 嵌套 ctor 0x1417E1510)；sizeof 0xF30 |
+| CNavalLossesOverview | 主 0x142A05AF0 + tt 0x142A05B18 | [0] dtor 0x1417F40B0 / [2] Reload 0x1417F7210 | — | Setup/填格 0x1417F98B0 (另 0x1417FA310)；释放 0x1417F4EE0 |
+| CNavyLeaderWindow | 0x142A38158 (另 0x142A381C8 / 0x142A381E0) | [2] Reload 0x141ACD050 | 0x141ABD920 (malloc 0x1B98) | §4.31.2 簇 |
+| CMoveShipsWindow | 0x142A4B338 (另 0x142A4B360) | [2] Reload 0x141BBC770 | 0x141BBAEE0 (malloc 0x5D8) | — |
 | CTaskForceCompositionEditor | 0x142A800D0 (另 0x142A800E8) | — | 0x141E1FA10 (malloc 0x20B0) | 宿主 CNaviesView+22216 |
 | CConfirmDisbandFleet | 0x142A9EF08 (另 0x142A9EFA0) | — | 未复核 | vt 已锚 |
 | CChangeNavyLeaderDialog | 0x142A8ED50 (次 0x142A8EDE8) | — | 未移植 | 基 CDefaultConfirmationPopUpWindow; 海军将领更换确认弹窗 |
@@ -858,11 +858,11 @@ CSunkShipInfo** (is_sunk 门 @entry+114)。
 | +6640 | 0x14012A2C0 | 占位（guard_check_icall_nop） |
 | +7928 | 0x141BECA70 | 删除确认链（0x1078 弹窗 + CDeleteShipCommand） |
 
-> **刷新/内部链（1.19.3）**: CNaviesView Setup 0x141819200 / OnReload 前段释放 0x141806650 /
-> OnReload 辅助 0x14181BB10 / UpdateButtons 0x14181D070（lambda vt 0x142A07E88/EC0/EF8）/
+> **刷新/内部链（1.19.3）**: CNaviesView Setup 0x141819200 / Reload 前段释放 0x141806650 /
+> Reload 辅助 0x14181BB10 / UpdateButtons 0x14181D070（lambda vt 0x142A07E88/EC0/EF8）/
 > ConditionallyShowManufacturerList 0x141806E40（lambda vt 0x142A07F30）；CShipStatsView
-> OnReload 释放旧窗 0x141BEA0D0 / 全量重建 0x141BEE020 / 观察列表重注册 0x141BEF3A0 / 军官钮刷新
-> 0x141BEFF40（+10552 缓存 + ship+24 vt[1]→+32）。海战视图: OnReload 重建 0x1417E4030 /
+> Reload 释放旧窗 0x141BEA0D0 / 全量重建 0x141BEE020 / 观察列表重注册 0x141BEF3A0 / 军官钮刷新
+> 0x141BEFF40（+10552 缓存 + ship+24 vt[1]→+32）。海战视图: Reload 重建 0x1417E4030 /
 > 0x1417EB690 / 刷新主链 0x1417ED7D0 / 侧选取 0x1417E7B30 / 「两侧无玩家」门 0x1413E2B80（读 cb+218）/
 > 将领面板 0x1417F0320 / 组×舰网格 0x1417ED140 (另 0x1417ECC10/0x1417EC9F0) / 两侧国 flag 面板
 > 0x1417EDD40 / 侧统计窗 0x14161E9A0 / 脱离 cb 0x1417E4330 / 宿主回指访问器 0x14161A9D0。
@@ -1383,9 +1383,9 @@ custom 旗 +68 走 scripted 激活 sub_140A66DE0)。
 
 本节 = 三张 View 本体的布局与 glue 全表; 行件侧 (CDivisionsSummaryItemView 等行/条目级) 见 §4.31.53。
 
-**CPowerBalanceView (1632B 新锚, "powerbalanceview")**：主 vt 0x142A58F70（4 槽）+ @40 tooltip（[0] BuildTooltip 0x141C5D950）；ctor 0x141C5CC00；创建点 sub_14157C600；[2] OnReload 0x141C5E940 → sub_141C5E950(this, *(this+64))。布局：+56 ctx / +64 会话对象 / +72 主窗 / +80 decision_container / +88 decision_grid / +1384..+1424 六件（power_balance_name/active_range_name/power_balance_value/position_marker/left_power_icon/right_power_icon）/ +1432 当前 CPowerBalance\*（Update 写 FindBalance 结果）/ +1440 range 缓存；**尾部扩展新锚：+1480/+1512/+1544/+1576 四组容器 + +1608/+1620/+1624 行池区 + +1628 f32=0.5f**；Update 真入口 = sub_141C5F5D0（非虚；sub_140E56DF0(gs+1104, gs+1312/1316) FindBalance，变化/强制 → sub_141C60810 populate）；+48 value → 百分比 = 50×(v+100000)/100000（populate 内逐字同）；侧名 = CPowerBalance+24 left / +32 right → +16 名串（sub_140E57080）；平衡名 = template+16（sub_140A8D870）。
+**CPowerBalanceView (1632B 新锚, "powerbalanceview")**：主 vt 0x142A58F70（4 槽）+ @40 tooltip（[0] BuildTooltip 0x141C5D950）；ctor 0x141C5CC00；创建点 sub_14157C600；[2] Reload 0x141C5E940 → sub_141C5E950(this, *(this+64))。布局：+56 ctx / +64 会话对象 / +72 主窗 / +80 decision_container / +88 decision_grid / +1384..+1424 六件（power_balance_name/active_range_name/power_balance_value/position_marker/left_power_icon/right_power_icon）/ +1432 当前 CPowerBalance\*（Update 写 FindBalance 结果）/ +1440 range 缓存；**尾部扩展新锚：+1480/+1512/+1544/+1576 四组容器 + +1608/+1620/+1624 行池区 + +1628 f32=0.5f**；Update 真入口 = sub_141C5F5D0（非虚；sub_140E56DF0(gs+1104, gs+1312/1316) FindBalance，变化/强制 → sub_141C60810 populate）；+48 value → 百分比 = 50×(v+100000)/100000（populate 内逐字同）；侧名 = CPowerBalance+24 left / +32 right → +16 名串（sub_140E57080）；平衡名 = template+16（sub_140A8D870）。
 
-**CTopBar (39328B, "topbar")**：主 vt 0x142A11290（4 槽）+ @40 tooltip 0x142A112B8 + @48 update 0x142A112D0（10 槽）；ctor 0x14188FDC0；[2] OnReload 0x14189ECF0；@48[6] 全刷 0x14189D4E0（→sub_1418A1EE0 日期）/[7] 逐帧 0x14189D510/[9] Repopulate 0x1418A2170（+39008 tag 缓存比对 gs+1312/1316）；glue 注册器 = 每 glue 仅绑 1 handler（sub_14188F7A0；+9280/+26056 两位特化）。
+**CTopBar (39328B, "topbar")**：主 vt 0x142A11290（4 槽）+ @40 tooltip 0x142A112B8 + @48 update 0x142A112D0（10 槽）；ctor 0x14188FDC0；[2] Reload 0x14189ECF0；@48[6] 全刷 0x14189D4E0（→sub_1418A1EE0 日期）/[7] 逐帧 0x14189D510/[9] Repopulate 0x1418A2170（+39008 tag 缓存比对 gs+1312/1316）；glue 注册器 = 每 glue 仅绑 1 handler（sub_14188F7A0；+9280/+26056 两位特化）。
 
 glue 网格 = **26 槽位 +264..+32496 步距 1288**（+23448 新对象插入后后续槽各 +32，原位存在）；逐钮表（绑定函数 sub_14189EF20；widget 名实证）：
 
@@ -1450,7 +1450,7 @@ glue 网格 = **26 槽位 +264..+32496 步距 1288**（+23448 新对象插入后
 > ⚠ 「CTopBar 全部无 CCommand 出口」对调速两钮不成立：MP 分支构造速度命令投递命令队列（单机路径直接调速，1.19.2 同构高置信——其 handler 无 dump 可复核，标推定）。
 > 数据源锚（view+39008 tag 缓存，逐帧 sub_140BB48F0 取 cc）：DateText = gs+1120（setter sub_1418A1EE0）；pol_power = CPolitics+224；industrial_capacity = sub_140E693C0(cc+3944)（公式 (ps+792+888+696)/1e5 − 六项占用，与 1.19.2 逐字节同式）；industrial_ratio_bar = ps+936 ×100；三军经验 = cc+5512 +16(陆,view+168)/+64(空,view+160)/+40(海,view+176)；command_power = cc+496；fuel = cc+5504（文本 sub_1410F6390 / 比值 sub_1410F3570 ×100）；nukes = sub_141097B50(cc)>0；stability/war_support = sub_1406F8750/sub_1406F9E70(cc)；player_flag = sub_140B44AC0(ctx+1272, flag 件, view+39008, 0,1,0)；achievements 使能 = sub_14061E2D0(sub_14061CD20(), gs, 0)≤1；**supply/convoys 源 = sub_1418A1CC0（cc+4608 系统根 → 枚举）**；**threat_value = define 表达式 TOB_BAR_THREAT 求值 sub_1402E31F0（替代手写聚合器——机制变了）**；BuildTooltip = 0x141897AB0（97 loc 键与 1.19.2 全表一致）。
 
-**CArmiesView (1640B, "armies_view")**：主 vt 0x1429E9C98（4 槽）+ @40 tooltip；ctor 0x141692440；[2] OnReload 0x1416AD9A0。布局：+1336 ctx / +1344/+1352/+1360 主窗子窗 / +1368 CArmyLeaderWindow\* / +1376/+1388 子窗指针数组（+1392 sentinel）/ +1400/+1408 CArmyDivisionListView ×2 / +1416/+1424 CRailwayGunListView ×2 / +1432 徽标 int（推定）/ +1440 选中槽 = −1 / +1444 u8 = 1 / +1448..+1544 容器四组（sentinel ×2 = qword_14333D528）/ +1488 选中师 refid（count +1500，选择同步 sub_1416C2E10 内 type==0 → vt[7] 推入）/ +1512 数组（count +1524）/ +1544 选中铁路炮 refid（count +1556，type==13 → vt[11]）/ +1592 脏旗（glue 回调 sub_1416AC7E0 置 1）/ +1600..+1632 远征窗等。glue @+48 ctor = sub_141690BC0（同构注册器）；建窗 sub_1416AE5D0 / 选择集 helper sub_140BC3180（判空）/ sub_140BC30C0（链表化）；主 populate = sub_1416BC7E0。
+**CArmiesView (1640B, "armies_view")**：主 vt 0x1429E9C98（4 槽）+ @40 tooltip；ctor 0x141692440；[2] Reload 0x1416AD9A0。布局：+1336 ctx / +1344/+1352/+1360 主窗子窗 / +1368 CArmyLeaderWindow\* / +1376/+1388 子窗指针数组（+1392 sentinel）/ +1400/+1408 CArmyDivisionListView ×2 / +1416/+1424 CRailwayGunListView ×2 / +1432 徽标 int（推定）/ +1440 选中槽 = −1 / +1444 u8 = 1 / +1448..+1544 容器四组（sentinel ×2 = qword_14333D528）/ +1488 选中师 refid（count +1500，选择同步 sub_1416C2E10 内 type==0 → vt[7] 推入）/ +1512 数组（count +1524）/ +1544 选中铁路炮 refid（count +1556，type==13 → vt[11]）/ +1592 脏旗（glue 回调 sub_1416AC7E0 置 1）/ +1600..+1632 远征窗等。glue @+48 ctor = sub_141690BC0（同构注册器）；建窗 sub_1416AE5D0 / 选择集 helper sub_140BC3180（判空）/ sub_140BC30C0（链表化）；主 populate = sub_1416BC7E0。
 
 #### 4.30.30 国别域六视图本体 (CCountryConstructionsView / CCountryDiplomacyView / CCountryIntelligenceAgencyView / CCountryLogisticsView / CCountryOccupationView / CCountryTechnologyView)
 

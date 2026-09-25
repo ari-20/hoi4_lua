@@ -1,7 +1,6 @@
-// hoi4_game.cpp — game control APIs (batch H)
+// hoi4_game.cpp — game control APIs
 //
-// Research basis: research_20260911/GAP_PAUSE_SPEED.md (2026-09-11) +
-// live probe 2026-09-12:
+// Field layout and pause semantics (live-probed):
 //   gs+0x4BC = speed index (0..4, UI shows index+1); clamp in engine setter
 //   sub_1401EDAD0(gs, n). PAUSED is a SEPARATE flag — probe: game loaded
 //   paused read speed=4, hour frozen; writing the field
@@ -12,6 +11,7 @@
 //   vtable slot read at runtime — no class-name need.
 
 #include "hoi4_common.h"
+#include "hoi4_hook.h"
 
 // hoi4.game_speed() -> speed index 0..4 (nil if no gamestate)
 int hoi4_game_speed(lua_State *Ls) {
@@ -70,6 +70,17 @@ int game_pause_invoke_raw(int state) {
     }
     uint64_t vt = h4_rd64(mgr, 0);
     MgrPause_t fn = vt ? (MgrPause_t)h4_rd64(vt + 656, 0) : NULL;
+    // A hooked slot holds a hook-facility thunk instead of engine code. Resolve
+    // it back to the ORIGINAL implementation rather than running the mod's hook:
+    // framework infrastructure must not be vetoable by the mod layer it hosts
+    // (a vetoed pause here would let the export workflow run unpaused and break
+    // its same-instant anchor — see hoi4_hook.h).
+    // memgate_exec_ok below then sees engine code, exactly as before any hook.
+    if (fn) {
+        uint64_t orig = 0;
+        if (hook_orig_for_thunk((uint64_t)(uintptr_t)fn, &orig))
+            fn = (MgrPause_t)(uintptr_t)orig;
+    }
     // memory-derived target: exec-domain gate (memgate). On refuse the
     // direct flag write below takes over — same documented semantics.
     if (fn && !memgate_exec_ok((uint64_t)(uintptr_t)fn)) {

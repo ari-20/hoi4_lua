@@ -2,7 +2,7 @@
 #include "third-party/lua54/lua-5.4.7/src/lua.hpp"
 
 // -+ ASYNC interface (v2)
-// Lua-task model (design approved by user 2026-08-26):
+// Lua-task model:
 //   an async task IS Lua code, running in a SEPARATE lua_State on a worker
 //   thread. Data crosses states ONLY as serialized Lua literals (C-side
 //   serializer here; functions travel via lua_dump bytecode embedded as a
@@ -96,7 +96,7 @@ static void async_lock_init_once(void)
     InitOnceExecuteOnce(&g_alockOnce, async_once_init, NULL, NULL);
 }
 
-// async_ser.inc - serializer between the main and worker Lua states.
+// -+ async serializer (main <-> worker Lua states)
 // Values cross as Lua source literals; functions cross as bytecode wrapped
 // in load(): load("\27<escaped bytes>") (binary chunk, string-escaped).
 // Unsupported types (userdata/thread/lightuserdata) abort with 0.
@@ -310,7 +310,7 @@ static int ser_value(lua_State *Ls, int idx, char *out, size_t cap,
     }
 }
 
-// async_core.inc - worker pool + task execution (v2, approved design).
+// -+ async worker pool + task execution (v2)
 // One FIFO pick per wake; ASYNC_WORKERS threads; each task runs in its
 // own lua_State with full standard libs. RUNNING tasks are never aborted
 // (v1 scope decision): timeout_ms is accepted and ignored, cancel applies
@@ -468,7 +468,7 @@ static void async_ensure_workers(void)
     }
 }
 
-// async_api.inc - Lua-facing API + frame-heartbeat callback dispatch.
+// -+ async Lua API + frame-heartbeat callback dispatch
 // hoi4.async_exec(chunk, args, opts) / async_cancel(id)
 // hoi4.async_poll(id) -> status,value | nil   (take)
 // hoi4.async_status(id) -> status,value       (peek)

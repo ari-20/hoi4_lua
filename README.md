@@ -175,6 +175,12 @@ HOI4 安装，在游戏代码运行前把 `hoi4_bridge.dll` 注入游戏进程�
 | `POST /console` | 执行控制台命令 |
 | `POST /game/pause` | 幂等暂停设值（非 toggle） |
 | `GET /events` | SSE 事件流（会话开始/结束） |
+| `POST /profile/start` | 启动采样（`?ms=` 时长、`stacks=1` 栈回溯、`scope=all` 全线程） |
+| `POST /profile/stop` | 停止采样 |
+| `GET /profile/top` | 热点排行（`?n=` 条数） |
+| `POST /profile/folded` | 导出 folded 聚合栈（`?path=` 自定路径；配 sampler_annotate.py 出火焰图） |
+| `GET /profile/status` | 采样状态 |
+| `GET /profile/threads` | 线程清单 |
 
 ### 环境变量
 
@@ -403,6 +409,12 @@ audit log goes to `<Documents>\...\logs\audit\hoi4_audit.log`.
 | `POST /console` | execute a console command |
 | `POST /game/pause` | idempotent pause set-state (not a toggle) |
 | `GET /events` | SSE stream (session start/end) |
+| `POST /profile/start` | start sampling (`?ms=` duration, `stacks=1` stack unwinding, `scope=all` all threads) |
+| `POST /profile/stop` | stop sampling |
+| `GET /profile/top` | hot functions (`?n=` entries) |
+| `POST /profile/folded` | dump folded aggregate stacks (`?path=` overrides target; feed to sampler_annotate.py for flame graphs) |
+| `GET /profile/status` | sampler status |
+| `GET /profile/threads` | thread list |
 
 ### Environment variables
 

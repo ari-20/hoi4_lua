@@ -392,7 +392,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
-| +8 | uint32 | holder id 对.type (B400 内联; 非槽头 e+8/+12 — 那是包装 type=3) — **GUI: NavalCombatView target** (refid → view+64; OnReload 0X1417EA930 再归一化) | 恒写 |
+| +8 | uint32 | holder id 对.type (B400 内联; 非槽头 e+8/+12 — 那是包装 type=3) — **GUI: NavalCombatView target** (refid → view+64; Reload 0X1417EA930 再归一化) | 恒写 |
 | +12 | uint32 | holder id 对.id | 恒写 |
 | +13..+23 | — | = **vt2 持久化 vtable 槽 (obj+16)** — 陆 0x1429a84b8 / 海 0X1429DBF90; obj 包装布局: obj+0 vt1 / obj+8 refid / obj+24 holder 对 |  |
 | +24 | 匿名结构 (NNB 形状)* | attacker 参战方 (直指, 无陆战容器包装) | |

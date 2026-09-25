@@ -48,6 +48,7 @@
 // are registered by the loader itself, see hoi4_paths.cpp).
 // ============================================================
 #include "hoi4_common.h"
+#include "hoi4_hook.h"
 
 // ---- shared global definitions (declared in hoi4_common.h) ----
 HANDLE g_log = INVALID_HANDLE_VALUE;
@@ -271,6 +272,11 @@ void snapshot_names_locked(void) {
 void registry_clear(lua_State *Ls) {
     lua_pushnil(Ls);
     lua_setfield(Ls, LUA_REGISTRYINDEX, "m4_registry");
+    // Hook callbacks are resolved BY ID from their own table on every call
+    // (exactly like the bind table), so clearing it here means a reloaded
+    // script's NEW closure is what the still-patched slot reaches. The patch
+    // itself is untouched: hooks are process-level and survive a reload.
+    hooks_registry_clear(Ls);
 }
 
 // runtime-registered watch list. Scripts call hoi4.watch(path) at load
@@ -361,10 +367,9 @@ static int get_file_mtime(const char *path, FILETIME *ft) {
 // only run the cheap mtime check and set the pending flag. The heavy work
 // (registry clear + full re-dofile, ~all of load_mod_lua_scripts) runs in
 // frame_dispatch at the TOP of the frame, on a shallow stack — this
-// removes the last big stack consumer from nested callback paths (see the
-// FAST_FAIL forensics note in A1_GAMESTATE_PROXY_PLAN.md).
+// removes the last big stack consumer from nested callback paths.
 static volatile LONG g_reloadPending;
-// A5/F4: set for the duration of reload execution so load-time script code
+// Set for the duration of reload execution so load-time script code
 // that touches watched files (or fires effects) cannot queue a second
 // immediate reload of the generation currently being built.
 static volatile LONG g_reloading;
@@ -393,8 +398,10 @@ void force_reload_locked(void) {
 // show these numbers well below the caps, and a march toward a cap is the
 // early signal of a leak (dead binds / stale watches) before it bites.
 void capacity_log_locked(void) {
-    L("[capacity] names fx=%d/512 tr=%d/512 watch=%d/256 binds=%d/512",
-      (int)g_fxCount, (int)g_trCount, g_watchCount, bind_count());
+    L("[capacity] names fx=%d/512 tr=%d/512 watch=%d/256 binds=%d/512 "
+      "hooks=%d/64 hslots=%d/32",
+      (int)g_fxCount, (int)g_trCount, g_watchCount, bind_count(),
+      hook_count(), hook_slot_count());
 }
 
 void reload_execute_locked(void) {
@@ -449,6 +456,7 @@ static const luaL_Reg hoi4_lib[] = {
     {"read_mod_descriptor", hoi4_read_mod_descriptor},
     {"watch", hoi4_watch},
     {"console", hoi4_console},
+    {"console_argv", hoi4_console_argv},
     {"effect", hoi4_effect_reg},
     {"trigger", hoi4_trigger_reg},
     {"get_effect", hoi4_get_effect},
@@ -483,6 +491,13 @@ static const luaL_Reg hoi4_lib[] = {
     {"profile_folded", hoi4_profile_folded},
     {"profile_threads", hoi4_profile_threads},
     {"profile_status", hoi4_profile_status},
+    // vtable-slot hook facility (hoi4_hook.cpp / hoi4_hook.h): intercept an
+    // existing engine virtual method by replacing ONE data qword (vt[slot]).
+    // Replaces/wraps/observes; never patches code bytes.
+    {"hook_vt", hoi4_hook_vt},
+    {"unhook_vt", hoi4_unhook_vt},
+    {"hook_list", hoi4_hook_list},
+    {"hook_status", hoi4_hook_status},
     {NULL, NULL},
 };
 

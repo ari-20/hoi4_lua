@@ -129,28 +129,17 @@ SV2.gsec[#SV2.gsec + 1] = { name = "strategic_air", emit = function(ctx)
         B("allow_equipment_type", tostring(rp(ba + 136) or 0))
     end
 
-    -- §4.15.4 CAirWing transferring_to id 对解析 (§4.1.7 三注册表源
-    -- RH 槽表 base+0x3451DC0, 24B 桶;
-    -- 1.19.3 定案: 旧 0x3438E60 整组 +0x18F60, 旧址现落字符串区,
-    -- rp 读到垃圾 → resolve 恒 nil → transfer/deployment 五叶全 MISS)
+    -- §4.15.4 CAirWing transferring_to id 对解析 → 委派统一访问器
+    -- GAME.layout.idreg_unit_resolve (resource.lua 唯一实现; 本段原有逐字重复的
+    -- 本地副本, 已删), 再提取 CAirWing 专属字段 (+104 → +88)。
+    -- (1.19.3 定案: 旧 0x3438E60 整组 +0x18F60, 旧址现落字符串区,
+    --  rp 读到垃圾 → resolve 恒 nil → transfer/deployment 五叶全 MISS)
     local function resolve_tto(t56, i60)
         if not t56 or t56 <= 0 or t56 >= 100 then return nil end
-        local tb = rp(BASE + 0x3451DC0 + 8 * t56)
-        if not SL.kptr(tb) then return nil end
-        local dd, mm = rp(tb + 8), ru32(tb + 20)
-        if not (SL.kptr(dd) and mm) then return nil end
-        for bi = 0, mm + 2 do
-            local e = dd + 24 * bi
-            if (ru8(e + 4) or 0) ~= 0 and ru32(e + 8) == t56
-                    and ru32(e + 12) == i60 then
-                local obj = rp(e + 16)
-                if SL.kptr(obj) then
-                    local o104 = rp(obj + 104)
-                    if SL.kptr(o104) then return ru32(o104 + 88) end
-                end
-                return nil
-            end
-        end
+        local obj = GAME.layout.idreg_unit_resolve(t56, i60)
+        if not obj then return nil end
+        local o104 = rp(obj + 104)
+        if SL.kptr(o104) then return ru32(o104 + 88) end
         return nil
     end
 

@@ -295,6 +295,10 @@ M.lim = {
     PTR_HUGE = 65536,  -- 大型数组 (RH 扫描/装备池)
     FIXED_SMALL = 64,  -- 仅 writer 明文有界或固定槽容器 (slots/rules/队列)
     STR_READ_MAX = 131072,  -- 串读取上界, 与 DLL 侧 STR_READ_MAX 同值 (须同步改)
+    -- 容器元素指针上界。⚠ 比 M.const.PTR_HI 紧一个量级边界 (0x7FF vs 0x7FFF):
+    -- 本值 = 旧 objects_shared O.kptr 判据, 容器元素校验一律用它 (收窄上界 =
+    -- 更早剔除垃圾), 通用指针判定才用 M.const.PTR_HI。两者并存是历史遗留。
+    PTR_ELEM = 0x7FF000000000,
 }
 -- 固定槽/明文有界结构维度 (本质也是 magic num — 具名化;
 -- 每项注明证据与出处类别, 段侧一律引用此处, 禁止散写字面量。
@@ -400,6 +404,46 @@ M.vt = {
     CScriptedGuiData     = 0x29848d8,   -- §4.30 CScriptedGuiData
 }
 
+-- ---------------------------------------------------------------- 虚表槽契约
+-- 各族虚方法槽号 (书 §4.00.1 序列化槽 / §4.00.3 行为槽)。用法: 取某类 vtable
+-- 后按槽号读/钩该虚方法 —— 配合 hoi4.hook_vt(vt, M.vtslot.CEffect.execute, fn)。
+--
+-- ⚠ 两套编号体系, 勿混 (书 §4.00.1 与 §4.00.3 是分族的, 不是冲突):
+--   · CPersistent 族 (CCountry/CState/CProvince/CCharacter/CPoliticalStatus/
+--     CCountryPlayerSettings/CCommand): [1]Save [2]writer [3]Load [4]reader。
+--   · CEffect / CTrigger **不是** CPersistent 族 (基链含 CProfiledScopeObject/
+--     CPdxArray), 各有独立槽表, 故上面 1-4 编号对其不适用。
+--   · CCommand 两者兼具: 1-4 槽承 CPersistent, 另有自己的行为槽。
+M.vtslot = {
+    -- 书 §4.00.1 (七类同构; [1]/[3]/[5] 全类同址不覆写, [2]/[4] 纯虚逐类变)
+    CPersistent = { save = 1, writer = 2, load = 3, reader = 4, const_false = 5 },
+
+    -- 书 §4.00.3 CCommand (基表 0x1427214C8; 1-4 承 CPersistent)
+    -- ⚠ [2]/[4] 全家族共享不覆写 —— 读载荷勿按基类槽取, 用 [22]/[23]
+    CCommand = {
+        save = 1, writer = 2, load = 3, reader = 4,
+        isvalid = 9, execute = 10, gettypeid = 11, clone = 13,
+        payload_writer = 22, payload_reader = 23,
+    },
+
+    -- 书 §4.00.3 CEffect (25 槽 0..24; 基链非 CPersistent)
+    -- 拦截执行 → execute (13); [12] 是作用域校验外壳 (先校验再转 [13])
+    CEffect = {
+        getname = 1, parse_block = 3, parse_keys = 4, parse_target_token = 6,
+        getdesc = 7, execute_checked = 12, execute = 13,
+        scope_mask = 19, target_mask = 20, is_valid_scope = 21,
+        validate_targets = 22, resolve_refs = 23,
+    },
+
+    -- 书 §4.00.3 CTrigger (23 槽 0..22; 另有可选 [23] 仅 241/546 虚表含)
+    -- 拦截求值 → evaluate (22); [3] 是作用域校验外壳 (合法才转 [22])
+    CTrigger = {
+        getname = 1, is_assign = 2, evaluate_checked = 3, parse_value_keys = 4,
+        parse_block = 5, parse_token = 6, validate = 7,
+        scope_mask = 14, target_mask = 15, getdesc = 21, evaluate = 22,
+    },
+}
+
 -- ---------------------------------------------------------------- 全局哨兵/纪元常量
 -- 数值哨兵与历法纪元 (书 §3.7 哨兵全表 + §4.1.1)。散写数字一律改引此处。
 M.const = {
@@ -446,46 +490,275 @@ function M.province_array()
     return g and rp(g + 0x2B0) or nil              -- §1.2 CGameState +688 省指针数组
 end
 
--- ---------------------------------------------------------------- robin_hood 迭代器
--- PDX 引擎的 robin_hood 哈希表 (第三方库, 非 STL; §3.2)
--- 通用变量表 (§4.13.2 CVariables): 头 {data@+8, count@+0x10, mask@+0x14}, 桶 stride 0x30
--- {hash u32@+0, dist u8@+4, key std::string@+8, value s64@+0x28}
--- occupation/collaboration: 头 {data, cap, count} 偏移各异, 桶 24B
--- {dist u8@+4, key u32@+8, value* 指针@+0x10}
--- 共同语义: 稀疏桶, dist 低字节非零 = 占用 (0 = 空槽跳过)。
--- M.rh_iter: 通用遍历 — 返回占位桶地址列表 (调用方按自己知道的桶布局解字段)
--- 参数: ht_addr = 哈希表头地址; opts = {data=数据指针偏移(默认8),
--- mask=mask偏移(默认0x14), stride=桶大小, maxn=安全上限}
--- 若 mask 读取失败则退化为按 count 扫 (mask 缺失的表头用 count+stride 估)
-function M.rh_iter(ht_addr, opts)
-    if not ht_addr or ht_addr == 0 then return nil end
+-- ================================================================ 通用容器枚举 (唯一实现)
+-- 全库容器遍历的唯一实现。族: vector / robin-hood / 红黑树(std::map) / 侵入式链表。
+-- 设计纪律:
+--   ① 容器偏移一律引 M.cont (禁散写), 与 M.dim / M.lim / M.vt 同惯例;
+--   ② 每族返回同形 (迭代器, 计数), 迭代器 yield (序号, 元素地址);
+--   ③ 容器不可用时返回**空迭代器而非 nil** —— `for ... in` 直接消费不抛错;
+--   ④ 容器布局属 structure knowledge, 故住 Lua 层 (DLL 侧只提供裸读原语,
+--      游戏更新容器布局变动只改本文件, 不进 C)。
+M.cont = {
+    -- std::vector 族 (§3.1): **delta = count 相对 data 偏移的位移**
+    -- (⚠ 不是绝对偏移: data 占 8 字节, 绝对 +8/+12 会重叠)
+    -- delta-12 为主流 (452 处), delta-8 为少数真实变体 (13 处), 不可合并。
+    vec     = { delta = 12 },
+    vec_alt = { delta = 8  },
+    -- robin-hood 哈希表 (§3.2; 第三方库非 STL): 以下均为**结构内绝对偏移**
+    -- 数据指针 / mask(=桶数-1) / 尾部 extra 溢出桶字节 / count / 桶内 dist
+    rh      = { data = 8, mask = 20, extra = 24, count = 16, dist = 4 },
+    -- std::map 红黑树 (§3.3): 节点内绝对偏移; 中序 = 存档序
+    rb      = { root = 0, left = 0, right = 16, parent = 8, isnil = 25 },
+    -- 侵入式单链表: next 指针
+    list    = { next = 0 },
+}
+
+local BASE = hoi4.base()
+
+-- 空迭代器: 容器不可用时的统一返回 (for-in 可直接消费, 不抛错)
+local function noop_iter() return nil end
+
+-- 容器元素指针有效性 (用 M.lim.PTR_ELEM, 比通用 kptr 上界紧)
+local function elem_ptr(v)
+    return v ~= nil and v >= 0x10000 and v < M.lim.PTR_ELEM
+end
+M.elem_ptr = elem_ptr
+
+-- ---- vector ----
+-- base = 容器基址; doff = 元素数组指针偏移 (必填); stride = 元素跨距
+-- opts = { count  = 计数偏移**绝对值** (省略则按 shape 的 delta 推: doff+delta)
+--          shape  = "vec"(delta 12, 默认) / "vec_alt"(delta 8)
+--          deref  = true 元素为指针数组则解引用 (默认 false, yield 元素地址)
+--          vt     = vtable RVA, 仅收首 qword == BASE+RVA 的元素
+--          max    = 计数上界 (默认 M.lim.PTR_HUGE) }
+-- 返回 (迭代器, 计数); 迭代器 yield (i, 元素地址 或 解引用值)
+function M.vec(base, doff, stride, opts)
     opts = opts or {}
-    local doff = opts.data or 8
-    local moff = opts.mask or 0x14
-    local stride = opts.stride or 0x30
-    local maxn = opts.maxn or 1000000
-    local data = rp(ht_addr + doff)
-    if not data or data < 0x10000 then return nil end
-    -- 桶数 = mask+1 (extra u8 尾部, writer 循环上界 = count+1+extra,
-    -- 尾部条目在 mask 之外的槽 — state/country variables 实证丢尾) 或 count 兜底
+    if not base or base == 0 or not doff or not stride or stride <= 0 then
+        return noop_iter, 0
+    end
+    local maxn = opts.max or M.lim.PTR_HUGE
+    local coff = opts.count
+    if not coff then
+        local sh = M.cont[opts.shape or "vec"] or M.cont.vec
+        coff = doff + (sh.delta or 12)
+    end
+    local d = rp(base + doff)
+    local c = hoi4.read_u32(base + coff)
+    if not elem_ptr(d) or not c or c <= 0 or c > maxn then
+        return noop_iter, 0
+    end
+    local vt = opts.vt and (BASE + opts.vt) or nil
+    local deref = opts.deref
+    local i = -1
+    local function iter()
+        while true do
+            i = i + 1
+            if i >= c then return nil end
+            local a = d + stride * i
+            if not vt or rp(a) == vt then
+                return i, deref and rp(a) or a
+            end
+        end
+    end
+    return iter, c
+end
+
+-- ---- robin-hood ----
+-- 桶数推导 (唯一实现): mask+1+extra 优先 (writer 循环上界含尾部溢出桶,
+-- state/country variables 实证丢尾), mask 缺失时退化为 count 兜底。
+local function rh_layout(ht, sh, maxn)
+    if not ht or ht == 0 then return nil end
+    local data = rp(ht + sh.data)
+    if not elem_ptr(data) then return nil end
     local nbuckets
-    local mask = hoi4.read_u32(ht_addr + moff)
+    local mask = hoi4.read_u32(ht + sh.mask)
     if mask and mask > 0 and mask <= maxn then
-        local extra = hoi4.read_u8(ht_addr + moff + 4) or 0
+        local extra = hoi4.read_u8(ht + sh.extra) or 0
         nbuckets = mask + 1 + extra
     else
-        local cnt = hoi4.read_u32(ht_addr + (opts.count or 0x10))
+        local cnt = hoi4.read_u32(ht + sh.count)
         if not cnt or cnt <= 0 or cnt > maxn then return nil end
-        nbuckets = cnt   -- count 兜底: 至少能扫到前 count 个 (占位桶密度高时够用)
+        nbuckets = cnt
     end
     if nbuckets > maxn then return nil end
-    local out = {}
-    for i = 0, nbuckets - 1 do
-        local e = data + i * stride
-        local dist = hoi4.read_u32(e + 4)   -- dist 字节在所有已知布局中都是 +4
-        if dist and (dist & 0xFF) ~= 0 then
-            out[#out + 1] = e
+    return data, nbuckets
+end
+
+-- ht = 哈希表头地址; stride = 桶跨距
+-- opts = { shape = M.cont 名或显式表 (默认 "rh"); max = 安全上限 (默认 1000000) }
+-- 返回 (迭代器, 桶数); 迭代器 yield (i, 占位桶地址) —— 调用方按自己的桶布局解字段
+function M.rh(ht, stride, opts)
+    opts = opts or {}
+    local sh = M.cont[opts.shape or "rh"] or M.cont.rh
+    local maxn = opts.max or 1000000
+    if not stride or stride <= 0 then return noop_iter, 0 end
+    local data, nb = rh_layout(ht, sh, maxn)
+    if not data then return noop_iter, 0 end
+    local dist_off = sh.dist or 4
+    local i = -1
+    local function iter()
+        while true do
+            i = i + 1
+            if i >= nb then return nil end
+            local e = data + stride * i
+            local dv = hoi4.read_u32(e + dist_off)
+            if dv and (dv & 0xFF) ~= 0 then return i, e end
         end
+    end
+    return iter, nb
+end
+
+-- ---- 红黑树 (std::map) ----
+-- head = 树对象地址 (根指针在 head + shape.root); 中序遍历 (== 存档序)
+-- opts = { shape = M.cont 名或显式表 (默认 "rb"); max = 节点数上界 }
+-- 返回 (迭代器, nil); 迭代器 yield (序号, 节点地址)
+function M.rb(head, opts)
+    opts = opts or {}
+    local sh = M.cont[opts.shape or "rb"] or M.cont.rb
+    local maxn = opts.max or M.lim.PTR_HUGE
+    if not elem_ptr(head) then return noop_iter, 0 end
+    local function isnil(p)
+        return not p or ((hoi4.read_u32(p + sh.isnil) or 0) & 0xFF) ~= 0
+    end
+    local node = rp(head + sh.root)
+    if isnil(node) then return noop_iter, 0 end
+    -- 中序起点 = 最左节点
+    while true do
+        local l = rp(node + sh.left)
+        if isnil(l) then break end
+        node = l
+    end
+    local n = 0
+    local function iter()
+        if not node or n >= maxn then return nil end
+        local cur = node
+        -- 中序后继: 有右子树则钻其最左; 否则沿父链上溯直到"从左侧上来"
+        local r = rp(cur + sh.right)
+        if not isnil(r) then
+            node = r
+            while true do
+                local l = rp(node + sh.left)
+                if isnil(l) then break end
+                node = l
+            end
+        else
+            local up = cur
+            local p = rp(up + sh.parent)
+            while not isnil(p) and rp(p + sh.right) == up do
+                up = p
+                p = rp(p + sh.parent)
+            end
+            -- ⚠ 不可写 `isnil(p) and nil or p`: p 恒为真值时该习语返回 p 而非
+            -- nil (Lua and/or 陷阱), 会把哨兵当节点继续走。
+            if isnil(p) then node = nil else node = p end
+        end
+        n = n + 1
+        return n, cur
+    end
+    return iter, nil
+end
+
+-- ---- 侵入式单链表 ----
+-- head = 首节点地址 (非头对象)
+-- opts = { shape = M.cont 名或显式表 (默认 "list"); max = 节点数上界 }
+-- 返回 (迭代器, nil); 迭代器 yield (序号, 节点地址)
+function M.list(head, opts)
+    opts = opts or {}
+    local sh = M.cont[opts.shape or "list"] or M.cont.list
+    local maxn = opts.max or M.lim.PTR_HUGE
+    if not elem_ptr(head) then return noop_iter, 0 end
+    local node = head
+    local n = 0
+    local function iter()
+        if not elem_ptr(node) or n >= maxn then return nil end
+        local cur = node
+        n = n + 1
+        node = rp(cur + sh.next)
+        return n, cur
+    end
+    return iter, nil
+end
+
+-- 收集式消费糖: 把迭代器全部元素收成数组 (空迭代器 -> 空表)
+function M.gather(iter)
+    local out = {}
+    if not iter then return out end
+    for _, e in iter do out[#out + 1] = e end
+    return out
+end
+
+-- 指针 → 索引/任意键 反查索引 (唯一实现; 强制代际戳)。
+-- 返回一个访问器闭包: 调用即得 map, 仅在代际戳变化时重建。
+-- ⚠ gen_fn 必须同时含容器 **data 指针与计数** —— 只盯计数上界会在
+-- "容器搬家但计数未变" 时留悬垂 (token 表实测过一次真实搬家: 旧缓冲已释放)。
+-- 用法:
+--   local sid_of = M.rev_index(
+--       function() local st = rp(g+0x2C8); return tostring(st)..":"..tostring(ru32(g+0x2D4)) end,
+--       function() ...建表... return m end)
+--   local m = sid_of()
+function M.rev_index(gen_fn, build_fn)
+    local stamp, map
+    return function()
+        local g = gen_fn()
+        if map == nil or stamp ~= g then
+            map = build_fn()
+            stamp = g
+        end
+        return map
+    end
+end
+
+-- ---------------------------------------------------------------- 州表指针 → state_id 反查 (唯一实现)
+-- §1.2 CGameState +712 (0x2C8) 州表; 哨兵终止: 首遇非指针即止。
+-- 消费者: objects_shared.sid_map2 (读层) / sv2 段 sid_map (导出层) —— 均委派到此。
+-- ⚠ 代际戳含**州表数据指针 + 计数**两者: 只盯计数会在"表搬家但计数未变"时
+-- 留下悬垂旧指针的错映射 (token 表实测过一次真实搬家, 旧缓冲已释放)。
+-- 实例住文件级 (放函数内 = 每次调用重建闭包 = 缓存永不命中)。
+local sid_g
+local sid_rev = M.rev_index(
+    function()
+        local g = sid_g
+        return tostring(g and rp(g + 0x2C8) or 0) .. ":"
+            .. tostring(g and hoi4.read_u32(g + 0x2D4) or 0)
+    end,
+    function()
+        local m = {}
+        local stbl = sid_g and rp(sid_g + 0x2C8)
+        if stbl and stbl >= 0x10000 and stbl < M.lim.PTR_ELEM then
+            for sid = 1, 4096 do
+                local p = rp(stbl + 8 * sid)
+                if not (p and p >= 0x10000 and p < M.lim.PTR_ELEM) then break end
+                m[p] = sid
+            end
+        end
+        return m
+    end)
+-- g = gamestate 地址; 返回 { [州指针] = state_id }
+function M.state_index_map(g)
+    sid_g = g
+    return sid_rev()
+end
+
+-- ---------------------------------------------------------------- robin_hood 旧接口
+-- PDX 引擎的 robin_hood 哈希表 (§3.2)。M.rh_iter 为**兼容保留**的收集式接口
+-- (返回占位桶地址列表); 新代码请直接用 M.rh (同形迭代器) 或 M.gather(M.rh(...))。
+-- 参数: ht_addr = 哈希表头地址; opts = {data=数据指针偏移(默认8),
+-- mask=mask偏移(默认0x14), stride=桶大小, maxn=安全上限}
+-- 结构不可用时返回 nil (与 M.rh 返回空迭代器的差异为兼容旧调用点)。
+function M.rh_iter(ht_addr, opts)
+    opts = opts or {}
+    local moff = opts.mask or 0x14
+    local sh = { data = opts.data or 8, mask = moff, extra = moff + 4,
+                 count = opts.count or 0x10, dist = 4 }
+    local data, nb = rh_layout(ht_addr, sh, opts.maxn or 1000000)
+    if not data then return nil end
+    local stride = opts.stride or 0x30
+    local out = {}
+    for i = 0, nb - 1 do
+        local e = data + i * stride
+        local dv = hoi4.read_u32(e + 4)
+        if dv and (dv & 0xFF) ~= 0 then out[#out + 1] = e end
     end
     return out
 end

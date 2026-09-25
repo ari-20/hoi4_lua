@@ -18,22 +18,10 @@
 -- division/ship/railway_gun_names_tracker = names_trackers 段 (本段仅
 -- operative_codenames mode 3)。
 
--- 州指针→state_id 映射 (objects_v2 §24.1 sid_map2 同构, 文件级缓存)
-local sid_cache = { map = nil }
+-- 州指针→state_id 映射 → 委派 GAME.layout.state_index_map (唯一实现, 含代际戳)。
+-- 原有本地副本 (独立缓存表, 永不失效) 与 objects_v2 §24.1 同构重复, 已删。
 local function sid_map(gs)
-    if sid_cache.map then return sid_cache.map end
-    local rp, kptr = SV2.lib.rp, SV2.lib.kptr
-    local stbl = gs and rp(gs + 0x2C8)
-    local m = {}
-    if kptr(stbl) then
-        for sid = 1, 4096 do
-            local p = rp(stbl + 8 * sid)
-            if not kptr(p) then break end
-            m[p] = sid
-        end
-    end
-    sid_cache.map = m
-    return m
+    return GAME.layout.state_index_map(gs)
 end
 
 SV2.csec[#SV2.csec + 1] = { name = "country.misc_tails", emit = function(ctx)

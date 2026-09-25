@@ -53,7 +53,7 @@ ctor = `sub_141BBE880(this, &window_name)`; 三具体类均先调本 ctor 再写
 |---|---|---|
 | [0] | 0x141BBED30 | 完整 dtor (拆 glue → CGregorianDate → 串 → CButtonEventDispatcher → CTooltipHandler → 基) |
 | [1] | 0x14011D220 | ret 0 |
-| [2] | 0x141BBF140 | OnReload (CReloadableInterface 面覆写; 重建 tooltip 面 + 自调 vt[5]) |
+| [2] | 0x141BBF140 | Reload (CReloadableInterface 面覆写; 重建 tooltip 面 + 自调 vt[5]) |
 | [3] | 0x14012A2C0 | CFG 空桩 |
 | [4] | 0x14012A2C0 | CFG 空桩 |
 | [5] | 0x14012A2C0 | CFG 空桩 (派生覆写 = Populate) |
@@ -92,19 +92,19 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 
 **主虚表 6 槽 (0x1429B59A8)**: [0] 0x141391390 dtor (回写 CUpdateable vftable; 调
 `*(Block[8] vt+664)` 释窗; sub_1422560A0(Block+2)) / [1] 0x141391B30 **Update** (CUpdateable[1] 覆写) /
-[2] 0x1413916B0 **OnReload** (重建 notification_center/notification_list + 重挂既有条目) /
+[2] 0x1413916B0 **Reload** (重建 notification_center/notification_list + 重挂既有条目) /
 [3] 0x14012A2C0 CFG / [4] 0x14011D220 ret 0 / [5] 0x14012A2C0 CFG。
 
 **次虚表 5 槽 (0x1429B59E0)**: [0] 0x1413912E8 (thunk → 0x141391390, this−16) / [1] ret0 /
-[2] 0x1413916B0 OnReload / [3] CFG / [4] 0x14011D220。
+[2] 0x1413916B0 Reload / [3] CFG / [4] 0x14011D220。
 
 > ⚠ 本类为 **CUpdateable + CReloadableInterface 多继承宿主**: CUpdateable 的 [2] 位被
-> CReloadableInterface 的 OnReload 占据 (MI 重排), 与单继承宿主的槽序不同 — 读槽须按 MI 处理。
+> CReloadableInterface 的 Reload 占据 (MI 重排), 与单继承宿主的槽序不同 — 读槽须按 MI 处理。
 
 **帧驱动链**: `CInGameInterfaceHandler` 每帧更新 sub_140B67570 →
 `(*(*(iface+1240)+8))(iface+1240)` = handler vt[1] Update → 紧接 `sub_141391660(iface+1240)`
 对 notification_center 与 notification_list 各调 vt+128 并置 +165 / +117 的 0x10 位
-(与 container dtor / OnReload 同款形态, 语义待裁)。
+(与 container dtor / Reload 同款形态, 语义待裁)。
 
 #### 4.17.4 三具体通知类字段表
 

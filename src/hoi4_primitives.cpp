@@ -193,13 +193,30 @@ static int wr_denied(lua_State *Ls, const char *api, uint64_t a) {
     return 1;
 }
 
+// Read-back verification tail. A store that silently does NOT stick was the
+// invisible failure mode: every hoi4.write_* caller ignores the return value,
+// and the success path used to report true unconditionally. Callers re-read the
+// same width and compare RAW BYTES (bit patterns), so NaN/denormal round-trips
+// verify correctly where float == would not. `false` is already on the stack.
+static int wr_no_stick(lua_State *Ls, const char *api, uint64_t a) {
+    audit_mem_deny(Ls, "write_verify", a, "read-back mismatch");
+    return 1;
+}
+
 int hoi4_write_u8(lua_State *Ls) {
     uint64_t a = check_addr(Ls, 1);
     uint8_t v = (uint8_t)luaL_checkinteger(Ls, 2);
     lua_pushboolean(Ls, 0);
     if (!memgate_write_ok(a, 1)) return wr_denied(Ls, "write_u8", a);
-    __try { *(volatile uint8_t *)a = v; }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
+    __try {
+        *(volatile uint8_t *)a = v;
+        uint8_t got = *(volatile uint8_t *)a;
+        if (got != v) {
+            L("[mem] write_u8 read-back mismatch @%llx (want %02x got %02x)",
+              (unsigned long long)a, (unsigned)v, (unsigned)got);
+            return wr_no_stick(Ls, "write_u8", a);
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
@@ -209,8 +226,15 @@ int hoi4_write_u16(lua_State *Ls) {
     uint16_t v = (uint16_t)luaL_checkinteger(Ls, 2);
     lua_pushboolean(Ls, 0);
     if (!memgate_write_ok(a, 2)) return wr_denied(Ls, "write_u16", a);
-    __try { *(volatile uint16_t *)a = v; }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
+    __try {
+        *(volatile uint16_t *)a = v;
+        uint16_t got = *(volatile uint16_t *)a;
+        if (got != v) {
+            L("[mem] write_u16 read-back mismatch @%llx (want %04x got %04x)",
+              (unsigned long long)a, (unsigned)v, (unsigned)got);
+            return wr_no_stick(Ls, "write_u16", a);
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
@@ -220,8 +244,15 @@ int hoi4_write_u32(lua_State *Ls) {
     uint32_t v = (uint32_t)luaL_checkinteger(Ls, 2);
     lua_pushboolean(Ls, 0);
     if (!memgate_write_ok(a, 4)) return wr_denied(Ls, "write_u32", a);
-    __try { *(volatile uint32_t *)a = v; }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
+    __try {
+        *(volatile uint32_t *)a = v;
+        uint32_t got = *(volatile uint32_t *)a;
+        if (got != v) {
+            L("[mem] write_u32 read-back mismatch @%llx (want %08x got %08x)",
+              (unsigned long long)a, v, got);
+            return wr_no_stick(Ls, "write_u32", a);
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
@@ -231,19 +262,39 @@ int hoi4_write_u64(lua_State *Ls) {
     uint64_t v = (uint64_t)luaL_checkinteger(Ls, 2);
     lua_pushboolean(Ls, 0);
     if (!memgate_write_ok(a, 8)) return wr_denied(Ls, "write_u64", a);
-    __try { *(volatile uint64_t *)a = v; }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
+    __try {
+        *(volatile uint64_t *)a = v;
+        uint64_t got = *(volatile uint64_t *)a;
+        if (got != v) {
+            L("[mem] write_u64 read-back mismatch @%llx (want %016llx got %016llx)",
+              (unsigned long long)a, (unsigned long long)v,
+              (unsigned long long)got);
+            return wr_no_stick(Ls, "write_u64", a);
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
 
+// f32/f64 store the exact IEEE bit pattern and verify the same way. Comparing
+// floats with == would fail to verify NaN (NaN != NaN) and could mask a
+// signaling-bit rewrite, so the integer view is used on both sides.
 int hoi4_write_f32(lua_State *Ls) {
     uint64_t a = check_addr(Ls, 1);
     float v = (float)luaL_checknumber(Ls, 2);
+    uint32_t bits;
+    memcpy(&bits, &v, sizeof(bits));
     lua_pushboolean(Ls, 0);
     if (!memgate_write_ok(a, 4)) return wr_denied(Ls, "write_f32", a);
-    __try { *(volatile float *)a = v; }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
+    __try {
+        *(volatile uint32_t *)a = bits;
+        uint32_t got = *(volatile uint32_t *)a;
+        if (got != bits) {
+            L("[mem] write_f32 read-back mismatch @%llx (want %08x got %08x)",
+              (unsigned long long)a, bits, got);
+            return wr_no_stick(Ls, "write_f32", a);
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
@@ -251,10 +302,20 @@ int hoi4_write_f32(lua_State *Ls) {
 int hoi4_write_f64(lua_State *Ls) {
     uint64_t a = check_addr(Ls, 1);
     double v = luaL_checknumber(Ls, 2);
+    uint64_t bits;
+    memcpy(&bits, &v, sizeof(bits));
     lua_pushboolean(Ls, 0);
     if (!memgate_write_ok(a, 8)) return wr_denied(Ls, "write_f64", a);
-    __try { *(volatile double *)a = v; }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
+    __try {
+        *(volatile uint64_t *)a = bits;
+        uint64_t got = *(volatile uint64_t *)a;
+        if (got != bits) {
+            L("[mem] write_f64 read-back mismatch @%llx (want %016llx got %016llx)",
+              (unsigned long long)a, (unsigned long long)bits,
+              (unsigned long long)got);
+            return wr_no_stick(Ls, "write_f64", a);
+        }
+    } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);
     return 1;
 }
@@ -286,6 +347,14 @@ int hoi4_write_str(lua_State *Ls) {
             memcpy((void *)s, text, tlen);
             *(volatile uint64_t *)(s + 0x10) = tlen;
             *(volatile uint64_t *)(s + 0x18) = 15;
+            // read-back: the inline bytes, the length AND the capacity field
+            if (*(volatile uint64_t *)(s + 0x10) != tlen ||
+                *(volatile uint64_t *)(s + 0x18) != 15 ||
+                memcmp((const void *)s, text, tlen) != 0) {
+                L("[mem] write_str read-back mismatch @%llx (SSO, len=%zu)",
+                  (unsigned long long)s, tlen);
+                return wr_no_stick(Ls, "write_str", s);
+            }
         } else {
             // heap path: keep the existing allocation if it fits
             if (cap < tlen || len <= 15) return 1;   // would need (re)alloc — refuse
@@ -295,6 +364,14 @@ int hoi4_write_str(lua_State *Ls) {
             memcpy(p, text, tlen);
             p[tlen] = 0;
             *(volatile uint64_t *)(s + 0x10) = tlen;
+            // read-back: the heap bytes, the NUL terminator AND the length
+            if (*(volatile uint64_t *)(s + 0x10) != tlen ||
+                memcmp((const void *)p, text, tlen) != 0 ||
+                *(volatile char *)(p + tlen) != 0) {
+                L("[mem] write_str read-back mismatch @%llx (heap, len=%zu)",
+                  (unsigned long long)s, tlen);
+                return wr_no_stick(Ls, "write_str", s);
+            }
         }
     } __except (EXCEPTION_EXECUTE_HANDLER) { return 1; }
     lua_pop(Ls, 1); lua_pushboolean(Ls, 1);

@@ -1,6 +1,6 @@
 // hoi4_lde.h — minimal x86-64 instruction length decoder (hook boundary safety)
 //
-// Pure functions, extracted from hoi4_hooks.cpp so they are unit-testable
+// Pure functions, extracted from hoi4_detour.cpp so they are unit-testable
 // (tests/test_lde.cpp): install_abs_jmp used to steal a FIXED 15 bytes; if
 // that count landed in the middle of an instruction the trampoline resumed
 // garbage. This decoder steals exactly N WHOLE instructions (N >= the
@@ -10,6 +10,19 @@
 // ModRM, 0F two-byte opcodes, imm8/16/32/64, disp8/32, and relative
 // control-flow (which is REJECTED — relocated rel targets would point into
 // nowhere).
+//
+// Two independent rejection signals, both fail-closed:
+//   *rel_cf  = 1 -> relative control flow (call/jmp/jcc rel) — its target
+//                    cannot be relocated, so stealing it is always wrong.
+//   *rip_rel = 1 -> the instruction carries a RIP-relative memory operand
+//                    ([rip+disp32]). The length is decoded correctly, but
+//                    the operand only means anything at its ORIGINAL address;
+//                    install_abs_jmp copies stolen bytes verbatim into a stub
+//                    elsewhere, so such an instruction must be refused.
+//                    Deliberately over-conservative: multi-byte NOPs with a
+//                    RIP-relative operand are flagged too even though their
+//                    operand is never used (MSVC emits [rax+0]/SIB forms for
+//                    alignment padding, so this costs nothing in practice).
 #pragma once
 #include <stdint.h>
 
@@ -46,12 +59,15 @@ static int lde_has_modrm(uint8_t op, int is0f) {
     return 0;
 }
 
-// returns instruction length in [1..15], 0 = unrecognized/unsafe (*rel_cf=1
-// marks the relative-control-flow rejection subtype)
-static int lde_len(const uint8_t *p, uint32_t avail, int *rel_cf) {
+// returns instruction length in [1..15], 0 = unrecognized/unsafe.
+// (*rel_cf = 1 marks the relative-control-flow rejection subtype; *rip_rel = 1
+// marks a RIP-relative memory operand — see the header note. Both outputs are
+// written on every path, so callers may read them without pre-clearing.)
+static int lde_len(const uint8_t *p, uint32_t avail, int *rel_cf, int *rip_rel) {
     uint32_t i = 0;
     int rexW = 0, is0f = 0, f3 = 0, os16 = 0;
     *rel_cf = 0;
+    *rip_rel = 0;
     // legacy prefixes (repeatable)
     for (;;) {
         if (i >= avail) return 0;
@@ -84,7 +100,8 @@ static int lde_len(const uint8_t *p, uint32_t avail, int *rel_cf) {
             if (i >= avail) return 0;
             uint8_t modrm = p[i++];
             uint8_t mod = modrm >> 6, rm = modrm & 7;
-            if (mod == 0 && rm == 5) i += 4;
+            // mod=0 rm=5 here is RIP-relative (no SIB in the 0F38/0F3A form)
+            if (mod == 0 && rm == 5) { i += 4; *rip_rel = 1; }
             else if (mod == 1) i += 1;
             else if (mod == 2) i += 4;
             if (mod != 3 && rm == 4) { // SIB
@@ -153,7 +170,9 @@ static int lde_len(const uint8_t *p, uint32_t avail, int *rel_cf) {
         uint8_t sib = p[i++];
         if (mod == 0 && (sib & 7) == 5) i += 4;                  // disp32 via SIB
     }
-    if (mod == 0 && rm == 5 && !sib_present) i += 4;             // RIP-relative
+    // RIP-relative: mod=0 rm=5 WITHOUT SIB (with SIB it is [disp32] absolute,
+    // which is position-independent and needs no flag)
+    if (mod == 0 && rm == 5 && !sib_present) { i += 4; *rip_rel = 1; }
     else if (mod == 1) i += 1;
     else if (mod == 2) i += 4;
     // immediate by opcode group

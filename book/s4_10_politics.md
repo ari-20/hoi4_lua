@@ -749,6 +749,8 @@ CDiplomaticAction 派生 (§4.10.13 基类 120B 全量复用, 自身零新字段
 | +328 | +208 | i64 (fixed×1e-5) | 合同总 CIC 价 |
 | +336 | — | CIdentifier 8B | **本类独有**: request 变体引用 (键 12613; writer 门 = 两 u32 任一非 0 且 sub_14221F310 可解析) |
 
+> 载荷落盘序 = def 写序 (§4.23.3: contract_draft → price_levels → prices) → request; 内嵌 def 与合同/requests 元素共用 writer sub_140DF1EC0。
+
 **关系对象族补 2 类** (CRelation 派生, 主虚表 23 槽):
 
 | 类 | vt | token | sizeof | 工厂分支 | rs 活动槽 | 槽差异 (相对 CRelation) |
@@ -903,7 +905,7 @@ conf+216..520 区字段巡礼:
 
 | 偏移 | 类型 | writer token | 存档键 | UI 消费 (函数) | 语义 | 置信 |
 |---|---|---|---|---|---|---|
-| +8 | qword idpair | — (CReferenceObject 胶水) | — | sub_141E584E0 直读 → popup+5248; OnReload 回写 win+20744 | conf 自身 refid | 定案 |
+| +8 | qword idpair | — (CReferenceObject 胶水) | — | sub_141E584E0 直读 → popup+5248; Reload 回写 win+20744 | conf 自身 refid | 定案 |
 | +24 | u32 | 0x32DB (13019) | peace_conference_name_state_id | — | 会议目标州 id | 定案 |
 | +28 | u32 | 0x2EFD (12029) | winner_scope | — | 获胜方 scope | 定案 |
 | +32 | u32 | 0x2EFE (12030) | loser_scope | — | 战败方 scope | 定案 |

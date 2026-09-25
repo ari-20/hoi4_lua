@@ -86,21 +86,12 @@ function O.vt(addr, rva)
   return O.kptr(addr) and rp(addr) == (BASE + rva)
 end
 
--- 容器遍历: 三种 count 位置统一入口
+-- 容器遍历: 统一入口 → 委派 LAYOUT.vec (唯一实现)
 -- vc(base, doff, coff) → 迭代器 (i, elem_addr 或 elem 基址)
+-- 上界保持历史值 65536 (原判据 c > 65536 拒, 即 c <= 65536 收 → max 同值)。
 function O.vec(base, doff, coff, stride, deref)
-  local d = rp(base + doff)
-  local c = ru32(base + coff)
-  if not O.kptr(d) or not c or c <= 0 or c > 65536 then
-    return function() return nil end, 0
-  end
-  local i = -1
-  return function()
-    i = i + 1
-    if i >= c then return nil end
-    local a = d + stride * i
-    return i, deref and rp(a) or a
-  end, c
+  return LAYOUT.vec(base, doff, stride,
+                     { count = coff, deref = deref, max = LAYOUT.lim.PTR_HUGE })
 end
 
 -- ============================================================
@@ -475,36 +466,20 @@ local function date_from_hours_raw(h) return LAYOUT.date_raw(h) end
 M.date_from_hours_raw = date_from_hours_raw
 
 -- 跨域助手: 容器元素收集 (§3.1 vector, count@+0xC; 校验元素虚表;
--- 空军族 §13 / 战略空军深层 §31)
+-- 空军族 §13 / 战略空军深层 §31) → 委派 LAYOUT (唯一实现)
+-- 上界保持历史判据 c < 65536 (即 max = 65535; 与 O.vec 的 <= 65536 差一,
+-- 系历史写法不一致, 此处照原样钉住)。
 local function cont_elems(base, off, vtrva)
-  local out = {}
-  local d, c = rp(base + off), ru32(base + off + 12)
-  if O.kptr(d) and c and c > 0 and c < 65536 then
-    for i = 0, c - 1 do
-      local e = rp(d + 8 * i)
-      if O.kptr(e) and rp(e) == BASE + vtrva then out[#out + 1] = e end
-    end
-  end
-  return out
+  return LAYOUT.gather(LAYOUT.vec(base, off, 8,
+                                  { count = off + 12, vt = vtrva, deref = true,
+                                    max = LAYOUT.lim.PTR_HUGE - 1 }))
 end
 M.cont_elems = cont_elems
 
--- 跨域助手: 州指针 -> state_id 映射 (§1.1 CGameState +712 州表; 缓存;
--- 哨兵终止: 首遇非指针即止)
-local sid_cache2 = { map = nil }
+-- 跨域助手: 州指针 -> state_id 映射 → 委派 LAYOUT.state_index_map (唯一实现,
+-- 含强制代际戳; 原本地实现**永不失效**, 换档后州表搬家即得悬垂错映射)。
 local function sid_map2(g)
-  if sid_cache2.map then return sid_cache2.map end
-  local stbl = g and rp(g + 0x2C8)
-  local m = {}
-  if O.kptr(stbl) then
-    for sid = 1, 4096 do
-      local p = rp(stbl + 8 * sid)
-      if not O.kptr(p) then break end
-      m[p] = sid
-    end
-  end
-  sid_cache2.map = m
-  return m
+  return LAYOUT.state_index_map(g)
 end
 M.sid_map2 = sid_map2
 
