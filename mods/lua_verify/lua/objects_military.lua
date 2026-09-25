@@ -1615,3 +1615,177 @@ function Runtime.combat_log_managers(self)
   end
   return out
 end
+
+-- ============================================================
+-- 14.6 naval_combat_result (§4.22.6 CNavalCombatResults;
+-- gs+1472 {d}, count@gs+1484; 侧对象 112B 内嵌 @e+24/@e+136)
+-- 结构唯一实现; 段层 sv2_sec_naval_combat_result 只按写序发射。
+-- ⚠ shown_to_countries 编号 = 原始槽序 (tag 解析失败的槽占号不发射, 有洞;
+--   reader 以 shown_to_n + 稀疏表保序); countries 则过滤后重编号。
+-- ⚫ 空 id 对哨兵 qword_14333D528 (highest_eq_variant 门; 读值非读址)
+local NCR_NULLREF = BASE + 0x333D528
+
+-- SNavalHit (六字段全恒写; name/damage/strength 读写失败 = 段层 E 跳 nil)
+local function ncr_naval_hits(d, c)
+  if not O.kptr(d) or not c or c <= 0 then return nil end
+  local out = {}
+  for k = 0, math.min(c, LAYOUT.lim.PTR_SANE) - 1 do
+    local en = rp(d + 8 * k)
+    if O.kptr(en) then
+      out[#out + 1] = {
+        target = ru32(en + 8) or 0,
+        name = U.sso(en + 16),
+        convoy = (ru8(en + 48) or 0) ~= 0,
+        damage = U.fix5(en + 56),
+        strength = U.fix5(en + 64),
+        last_hit = (ru8(en + 72) or 0) ~= 0 }
+    end
+  end
+  return out
+end
+
+-- SAirHit (tag 门 >0 且可解析; 装备变体门 = 指针有效)
+local function ncr_air_hits(d, c)
+  if not O.kptr(d) or not c or c <= 0 then return nil end
+  local out = {}
+  for k = 0, math.min(c, LAYOUT.lim.PTR_SANE) - 1 do
+    local en = rp(d + 8 * k)
+    if O.kptr(en) then
+      local tg, ev = ru32(en + 0x14), rp(en + 8)
+      out[#out + 1] = {
+        tag = (tg and tg > 0) and Runtime:tag(tg) or nil,
+        var_type = O.kptr(ev) and (ru32(ev + 8) or 0) or nil,
+        var_id = O.kptr(ev) and (ru32(ev + 12) or 0) or nil,
+        count = ru32(en + 0x10) or 0 }
+    end
+  end
+  return out
+end
+
+-- CNavalCombatAirEntry (killed/tag 门 >0; 双 hits 容器门 count>0)
+local function ncr_air_wings(d, c)
+  if not O.kptr(d) or not c or c <= 0 then return nil end
+  local out = {}
+  for k = 0, math.min(c, LAYOUT.lim.PTR_SANE) - 1 do
+    local aw = rp(d + 8 * k)
+    if O.kptr(aw) then
+      local ev, kl, tg = rp(aw + 8), ru32(aw + 24), ru32(aw + 28)
+      out[#out + 1] = {
+        var_type = O.kptr(ev) and (ru32(ev + 8) or 0) or nil,
+        var_id = O.kptr(ev) and (ru32(ev + 12) or 0) or nil,
+        max = ru32(aw + 16) or 0,
+        alive = ru32(aw + 20) or 0,
+        killed = (kl and kl > 0) and kl or nil,
+        tag = (tg and tg > 0) and Runtime:tag(tg) or nil,
+        air_base = U.sso(aw + 32),
+        naval_hits = ncr_naval_hits(rp(aw + 64), ru32(aw + 76) or 0),
+        air_hits = ncr_air_hits(rp(aw + 88), ru32(aw + 100) or 0) }
+    end
+  end
+  return out
+end
+
+-- SCachedInfo (结构同 §4.22.5 member.cached_info; 门 = 书逐项; 发射序 = 段层)
+local function ncr_cached(ci, nullref)
+  local sb, shn = U.sso(ci + 0x90), U.sso(ci + 0x30)
+  local hev = rp(ci + 0xB0)
+  local cvt, cvi = ru32(ci + 0xB8), ru32(ci + 0xBC)
+  local stv, bci = U.fix5(ci + 0x20), U.fix5(ci + 0x18)
+  local cidx, tg = ru32(ci + 0xC0) or 0, ru32(ci + 8)
+  return {
+    sprite = U.sso(ci + 0x70),
+    index = ru32(ci + 0x0C) or 0,
+    type = ru32(ci + 0x10) or 0,
+    tag = (tg and tg > 0) and Runtime:tag(tg) or nil,
+    strength = (stv and stv ~= 0) and stv or nil,
+    sunk_by = (sb and sb ~= "") and sb or nil,
+    convoy = (ru8(ci + 0x29) or 0) ~= 0,
+    build_cost_ic = (bci and bci ~= 0) and bci or nil,
+    equipment_variant = U.sso(ci + 0x50),
+    hev_type = (hev and hev ~= nullref) and (ru32(ci + 0xB0) or 0) or nil,
+    hev_id = (hev and hev ~= nullref) and (ru32(ci + 0xB4) or 0) or nil,
+    ship = (shn and shn ~= "") and shn or nil,
+    potf = (ru8(ci + 0x28) or 0) ~= 0,
+    convoy_id_type = ((cvt and cvt ~= 0) or (cvi and cvi ~= 0))
+      and (cvt or 0) or nil,
+    convoy_id_id = ((cvt and cvt ~= 0) or (cvi and cvi ~= 0))
+      and (cvi or 0) or nil,
+    convoy_index = (cidx < 0x80000000) and cidx or nil }
+end
+
+-- CNavalCombatShipEntry (unique_id 恒写)
+local function ncr_ships(d, c, nullref)
+  if not O.kptr(d) or not c or c <= 0 then return nil end
+  local out = {}
+  for k = 0, math.min(c, LAYOUT.lim.PTR_SANE) - 1 do
+    local sh = rp(d + 8 * k)
+    if O.kptr(sh) then
+      out[#out + 1] = {
+        id_type = ru32(sh + 8) or 0, id_id = ru32(sh + 12) or 0,
+        cached = ncr_cached(sh + 16, nullref),
+        naval_hits = ncr_naval_hits(rp(sh + 0xD8), ru32(sh + 0xE4) or 0),
+        air_hits = ncr_air_hits(rp(sh + 0xF0), ru32(sh + 0xFC) or 0) }
+    end
+  end
+  return out
+end
+
+-- CNavalCombatResultSide (countries 过滤重编号; last_leader 门 = §4.1.7
+-- 三注册表解析成功)
+local function ncr_side(s, nullref)
+  if not O.kptr(s) then return nil end
+  local cd2, cc2 = rp(s + 56), ru32(s + 68)
+  local countries
+  if O.kptr(cd2) and cc2 and cc2 ~= 0 then
+    countries = {}
+    for k = 0, math.min(cc2, LAYOUT.lim.PTR_SANE) - 1 do
+      local cid = ru32(cd2 + 4 * k)
+      local t = (cid and cid > 0) and Runtime:tag(cid) or nil
+      if t then countries[#countries + 1] = t end
+    end
+  end
+  local lty, lid = ru32(s + 80), ru32(s + 84)
+  return {
+    air_wings = ncr_air_wings(rp(s + 8), ru32(s + 20) or 0),
+    ships = ncr_ships(rp(s + 32), ru32(s + 44) or 0, nullref),
+    countries = countries,
+    last_leader = (lty == 4713 and lid ~= 0
+      and GAME.layout.idreg_unit_resolve(lty, lid))
+      and { id = lid, type = lty } or nil }
+end
+
+-- Runtime.naval_combat_results -> 有序 list (writer break 语义 = 首无效截断)
+function Runtime.naval_combat_results(self)
+  local g = self.gs()
+  if not g then return nil end
+  local d, c = rp(g + 0x5C0), ru32(g + 0x5CC)
+  if not (d and c and c > 0 and c < LAYOUT.lim.PTR_SANE) then return nil end
+  local nullref = rp(NCR_NULLREF)
+  local out = {}
+  for i = 0, c - 1 do
+    local e = rp(d + 8 * i)
+    if not O.kptr(e) then break end
+    local scd, scc = rp(e + 0x150), ru32(e + 0x15C)
+    local shown, shown_n
+    if O.kptr(scd) and scc and scc > 0 and scc < LAYOUT.lim.PTR_SANE then
+      shown, shown_n = {}, scc
+      for j = 0, scc - 1 do
+        local cid = ru32(scd + 4 * j)
+        shown[j + 1] = (cid and cid > 0) and Runtime:tag(cid) or nil
+      end
+    end
+    out[#out + 1] = {
+      addr = e,
+      id_type = ru32(e + 8) or 0, id_id = ru32(e + 12) or 0,
+      location = ru32(e + 0x108) or 0,
+      date_h = ru32(e + 0x118),
+      attacker = ncr_side(e + 0x18, nullref),
+      defender = ncr_side(e + 0x88, nullref),
+      port_strike = (ru8(e + 0x128) or 0) ~= 0,
+      naval_strike = (ru8(e + 0x129) or 0) ~= 0,
+      importance = ru32(e + 0x148) or 0,
+      to_discard_h = ru32(e + 0x138),
+      shown_to = shown, shown_to_n = shown_n }
+  end
+  return out
+end
