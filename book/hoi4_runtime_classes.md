@@ -1009,6 +1009,7 @@ writer 的实写行为选变体, 禁止按"显示值看着一样"混用** (两�
 | 4.26 | `book/s4_26_staticres.md` | 4.26 静态资源访问层 (idb 库规格 / 访问器 API / 防御界 / 离线资产 / 验证体系) |
 | 4.27 | `book/s4_27_raid.md` | 4.27 突袭族 (CRaidSystem / CCountryRaidStatus / CRaidInstance / 突袭 def 侧库与成功率族) |
 | 4.28 | `book/s4_28_session.md` | 4.28 会话与身份注册块 (saved_event_target / player / mods / id 注册 / 生涯档案 / CRandom 随机流) |
+| 4.29 | `book/s4_29_modload.md` | 4.29 mod 装载与虚拟文件系统 (descriptor 解析 / 启用清单 / PHYSFS 挂载 / replace_path 语义) |
 | 4.30 | `book/s4_30_gui_map.md` | 4.30 GUI 主视图与地图 (面板/视图本体类布局 + 视图侧映射; 地图模式与脚本化 UI 基础设施) |
 | 4.31 | `book/s4_31_gui_items.md` | 4.31 GUI 行件与条目族 (全部行件/条目/图标行类布局 + loc 映射) |
 | 4.32 | `book/s4_32_effect_triggers.md` | 4.32 脚本 effect/trigger 全量逐名定案卡 |

@@ -67,7 +67,7 @@ writer 绑定总表:
 | +48 | 匿名结构 (元素待裁) 向量 | area 读侧加载容器 — reader case 11157 直入, 与 +24 发射容器分离 | 不序列化 |
 | +72 | — | owner country tag (ctor 第二参; CArmyGroup ctor 以 (theatre+72, theatre) 构造互证) | 不序列化 |
 | +144 | 侵入式链表 | {对象@节点+0, next@节点+16}; 元素虚槽[1] → dword 指针 (推定 = 邻国 tag) | 不序列化; 推定 |
-| +176 | 匿名结构 (元素待裁) 向量 | 双挂镜像容器 — reader 12462/14337 双 push, 纯运行时索引 | 不序列化 |
+| +176 | COrdersGroup\* 向量 (多态含 CArmyGroup\*) | 双挂镜像容器 — reader 12462/14337 双 push, 纯运行时索引; 消费 863B0 按 og+152/164 契约读 | 不序列化 |
 | +240..+271 | 内嵌 CColor | 默认白 | 不序列化 |
 | +280..+407 | 匿名结构 (128B 形状) | **互斥量保护的待处理条目队列** (ctor sub_140EEA130 / dtor sub_140E9E3D0: +16/+40 = 静态空分配器哨兵; +24 容器 {d@24, cap@32, c@36, alloc@40} 元素 stride 40; +48 = std::mutex (dtor 经 sub_14251DC00 加锁, 尾 Mtx_unlock(+48)); +120 = −1 哨兵; +124 = mutex 递归计数 (== 0x7FFFFFFF → _Throw_Cpp_error(6)); 条目 40B: +16 = 裸指针数组 d, +28 = count, 数组元素逐个 j_free) | 不序列化; 载荷类型待裁 |
 | +408 | 匿名结构 (192B 元素) 向量 | **192B 元素数组** {d@408, c@416, cap@420, alloc@424} (dtor sub_140F00370 逐 192B 元素释放; 元素内嵌 pdx 容器 {d@+24, c@+32, alloc@+40}); writer 0x140F025C0 零触 = 不序列化; 业务语义待裁 (writer/reader 双向零触, 访问者未定位) | 不序列化 |
@@ -264,7 +264,7 @@ reader 0X140EFCF10; front 块全字段落盘。
 | +89..+99 | — | = section 容器 data 尾 + cap@+96  |  |
 | +100 | u32 | section 容器计数 | c>0 |
 | +101..+111 | — | = count 尾 + alloc@+104 (哨兵) + 垫  |  |
-| +112 | uint32 | area 标量 = ru32(rp(rp(fr+112)+40)+164) | 恒写 |
+| +112 | CFrontSection\* | 区对象指针 (AI 口袋追击 sub_14108C290 经 vt[1] 取控制方 tag; §4.24.7 布局吻合); area 标量 = ru32(rp(rp(fr+112)+40)+164) | 恒写 |
 | +113..+124 | — | = area 指针尾 (+113..+119) + u32@120 置零 (语义未决) + u8@124=0 | case 10720 word 写 0x0100 高半=1 |
 | +125 | uint8 | dirty — ctor 初值 = 1 (新建 front 默认脏; reader 13444 skip) | 恒写 → yes/no |
 

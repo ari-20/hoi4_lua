@@ -79,7 +79,7 @@ loader-only legacy 键 (writer 不发射):
 | +544 | uint32 | full_path 数据指针 | writer tokens 372/13868 | |
 | +545..+575 | — | = full_path 容器 {d@544, cap@552, c@556, alloc@560} 内部 (545..567) + u32=0@568 + pad + movement_progress@576 前 | | |
 | +576 | fixed×1e-5 | movement_progress | token 0x28A4 = 10404; 门 = *(a+560) ≠ 0 才写 (实测样本 7.7022) | |
-| +577..+685 | — | = movement_progress 尾 (577..583) + qword=1@584 + qword=0@592 + MSVC 串 name {buf@600, size@616, cap@624=15} + 容器 {d@632, cap@640, c@644, alloc@648} + 对象指针@656 (=sub_140A3C0A0) / @664 + qword 零 @672/+680 + exile@686 前 pad (ctor 直读) | | |
+| +577..+685 | — | = movement_progress 尾 (577..583) + qword=1@584 + **生效移动令旗 u8@590** (ctor 0; 写者 = CUnitMoveAction::Execute sub_141234E30 / 下令入口 sub_1414D0F10) + **移动令目的省 qword@592** (ctor 0, 运行时写) + MSVC 串 name {buf@600, size@616, cap@624=15} + 容器 {d@632, cap@640, c@644, alloc@648} + 对象指针@656 (=sub_140A3C0A0) / @664 + **CTheatre\* @672** (ctor 零, 运行时写; getter sub_140BF9660 = GetTheatre, railway_gun.cpp:676 断言直证) + qword 零 @680 + exile@686 前 pad (ctor 直读) | | |
 | +686 | uint8 | exile | 均 ≠0 写 yes; 0x2D0D(11533 exile)@ser+670 | |
 | +687 | uint8 | strategic_redeployment (11995) | ≠0 写; loader 解析即弃 | |
 | +688 | uint8 | move_capital | 0x2B5F(11103 move_capital)@ser+672 (o = ser+16); GRE/USA/ENG 4 师 move_capital=yes 实证 | |
@@ -680,6 +680,8 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
 
 | 槽 | 语义 | 证据 |
 |---|---|---|
+| CUnit [7]..[12] | return 0 桩 (多基转换族, 非陆军实体无自转换) | exe 直读 0x140120540 桩 ×6 |
+| CArmy [7]/[8] | AsArmy = return this (0x1401F8A60; 陆军实体自识别) | exe 直读; AI 分兵缓存归类/AIFC 评分 vt[8] 读点 |
 | CUnit [13] | GetName (返 +600 名称串首址; CArmy 覆写转向 *(+832)+96) | writer token 27 写该串 |
 | CUnit [21] | IsValid (基 `return 1`; CArmy 覆写 = 战力/组织判定 NO_STRENGTH/NO_ORG) | 覆写错误键直证 |
 | CUnit [24] | TakeDamage (基 = stub; CArmy 覆写 = 伤害按 defines 660-662 修正后累加损失 +1088/+1096/+1104) | 断言 "TakeDamage is not implemented for this unit type" unit.h:182 |
@@ -697,7 +699,11 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
 > 待裁项暂不定名: CUnit [5] 可见性判定、[18] 复合状态刷新; 移动族 [14]-[17]/[20]
 > (ExecuteMove/MoveTo/TryMove/CanMoveTo/CanEnterProvince, 错误键 NO_ACCESS_TO_TARGET 等
 > 已锚 unit.cpp 但函数名系行为推定); CArmy [31]-[39] 资源对称族 (A=+1056/+33=国家+648 上限,
-> B=+1064/+38=国家+640 上限, 100000 定点) 游戏语义 (org/str/人力) 未裁。
+> B=+1064/+38=国家+640 上限, 100000 定点) 游戏语义 (org/str/人力) 未裁, **[39] 定案 =
+> 组织度比例** (AI 微操弱军段 sub_141088F40 读点)。
+
+- CArmy+760 = **战略海运载体指针** (strategicnavy.cpp sub_140EAA5C0 唯一写点直证;
+  非零 = 海军转移中; [19] 消耗门与 [43] HasLowSupply 读此判空)。定案。
 > CUnit [7]-[12] 六槽同址 `return 0` 且三派生各覆 2 槽 return this (CArmy 7/8、
 > CTaskForce 9/10、CRailwayGun 11/12) = 按单位类型的转换函数族, 无逐槽直接证据, 整族不命名。
 

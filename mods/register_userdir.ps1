@@ -10,6 +10,14 @@
 # This script (re)generates the registered copies from the committed
 # descriptors. Re-run it after cloning this repo on a new machine, or after
 # moving the repo. Safe to re-run (idempotent overwrite).
+#
+# Filename prefix: registered copies are written as zzz_<name>.mod. The
+# registry id (the .mod filename) decides search-path priority among
+# equal-weight mods: lexicographically LAST mounts last and wins the search
+# path (book §4.29.4). zzz_ sorts after every workshop ugc_* name, so the
+# framework mods outrank big mods' replace_path exclusivity. A stale
+# no-prefix copy of the same mod is removed on sight (two same-name
+# registrations would race the launcher's name-based save sync).
 $ErrorActionPreference = 'Stop'
 
 # mods/ = the directory containing this script
@@ -33,10 +41,17 @@ Get-ChildItem $modsRoot -Directory | ForEach-Object {
     $abs = ($_.FullName -replace '\\', '/')
     $content += "path=`"$abs`"`r`n"
 
-    $out = Join-Path $target ($_.Name + '.mod')
+    $out = Join-Path $target ('zzz_' + $_.Name + '.mod')
     [IO.File]::WriteAllText($out, $content, $utf8NoBom)
     Write-Host ("registered: {0}" -f $out)
     Write-Host ("    path=    {0}" -f $abs)
+
+    # remove a stale pre-prefix registration of the same mod, if any
+    $stale = Join-Path $target ($_.Name + '.mod')
+    if (Test-Path $stale) {
+        Remove-Item $stale
+        Write-Host ("removed stale: {0}" -f $stale)
+    }
     $count++
 }
 if ($count -eq 0) { Write-Warning 'no mod directories found under mods/' }
