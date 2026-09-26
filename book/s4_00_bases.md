@@ -10,7 +10,6 @@
 > **解虚表通道**: RTTI COL 解虚表 (扫 .rdata 取
 > `{sig=1, td_rva, self_rva}` 的 COL → 反查指向它的指针 → vtable = ptr+8) +
 > 跨类槽位对照 + dump 直读 ctor 装表点。
-> 版本 hoi4 1.19.2.0 rev a729d47b。
 >
 > ⚠ **虚表读法前置**: `_purecall` (0X14253C3B8) = 纯虚/未实现槽;
 > `_guard_check_icall_nop` (0X14012A2C0) = CFG 空桩 (含 ICF 折叠的等价空函数,

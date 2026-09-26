@@ -245,7 +245,7 @@ profiler 域 **"gamestate.weekly"**。极简版 daily:
 > 不在 daily 函数体内。开局初始化序列 (行 7065010 区段) 依次跑
 > HourlyUpdate → WeeklyUpdate → DailyUpdate → MonthlyUpdate 各一遍。
 
-#### 4.2.9 on_actions 派发机制 (on_daily / on_weekly / on_monthly)
+#### 4.2.9 on_actions 派发机制 (on_daily / on_weekly / on_monthly / on_war 等状态型)
 
 数据层 (定案): COnActionDataBase — `on_daily_<TAG>`/`on_weekly_<TAG>`/`on_monthly_<TAG>`
 按国家 tag 存 +312 三列派发表 (24B/tag); PostLoad (sub_140A774B0) 另缓存通用
@@ -261,8 +261,13 @@ profiler 域 **"gamestate.weekly"**。极简版 daily:
 | on_daily / on_daily_<TAG> | sub_140705630 = CCountry::PostHourlyUpdate (country.cpp:4861) | **hourly 主调度六阶段之 postHourlyUpdate 串行段**; 判据 `(tag + gs+1128 总小时) % 24 == 0` → 每国每天恰一次, 时辰由 tag 固定 (引擎把每日负载摊到 24 个 tick 的削峰设计); **与 CGameState::DailyUpdate 无关** |
 | on_weekly / on_weekly_<TAG> | sub_140718CA0 = CCountry::WeeklyUpdate (country.cpp:5793) | CGameState::WeeklyUpdate 国循环内 (与引擎 weekly 同帧同刻) |
 | on_monthly / on_monthly_<TAG> | sub_140703490 = CCountry::MonthlyUpdate (country.cpp:5677) | CGameState::MonthlyUpdate 国循环内 |
+| on_war / on_uncapitulation 等状态型 | sub_140D46650（diplomacy.cpp; 高置信） | 非周期脉冲 — 国级按位更新派发器 sub_1406FF1F0 **bit7** (§4.3.23) 在状态变更后逐次评估; 事件选项执行 CSelectEventOptionCommand::Execute 亦经此位 (§4.33.18) |
 
 > 备注: **无 on_hourly on_action** — on_action 最细粒度 = on_daily。
+> 状态型内层链 sub_140D46650 → sub_140D357E0 → sub_14066B0D0 / sub_1407386A0
+> (后两者含 CEventScope 断言 "( pScope == this \|\| pScope->_pFrom != this )")
+> → 0x53 族 scope/上下文对象构造 (ctor sub_14053BD00: 取 id + 容器槽置哨兵),
+> 至事件队列的完整路径**待裁**。
 > "decision.hourly" (§4.2.6 阶段 3) 是决策评估, 非 on_action;
 > ABILITY_ON_HOURLY/ABILITY_ON_DAILY token 属单位能力冷却域 (非 on_actions 体系, 不在本册范围)。
 > CCountry::DailyUpdate 内另有命名 on_action "on_border_war_lost" 触发点。
@@ -381,8 +386,9 @@ CLandCombat 0x1429A83D8 / CNavalCombat 0x1429DDB08 / CLandBorderWarCombat 0x1429
 区域状态机核心 (sub_140F11820): 历史轮转 (+264/+272/+320 存上轮) → 特殊区域名单比对 → 类别修正表 → **确定性哈希噪声** h(seed+776, pass, region_id) `%100000-50000` 随机游走推进平滑值 (+352) → 强度计 (+64) 按周期条目增益/衰减并钳位。
 **翻面判定 sub_140F22420**: 平滑值 ≤ 下阈值 (+480) → 关; 否则概率 = 时长比 × 全局库系数 × 周期修正 × **滞回** (开→×+640 更易续开, 关→×+648) × 类别修正, 再按 (种子, 遍数, region_id) 确定性哈希 `%100000` 掷骰置 +304 active 位 — **同种子同局面可复现 (无墙钟随机)**。
 
-> 备注: 384B 区域条目全字段表 (SWeatherPerProvince: +44 类别 / +64 强度计 / +304
-> active 位 / +352 平滑值 / +368 噪声值等) 与 352B 区域周期条目见 findings 同名册。
+> 备注: 384B 区域条目 (SWeatherPerProvince) 已定锚字段: +44 类别 / +64 强度计 /
+> +304 active 位 / +352 平滑值 / +368 噪声值; 其余字段未入册 (未决)。
+> 352B 区域周期条目布局未入册 (未决)。
 
 #### 4.2.16 战略海军小时更新 (CStrategicNavyManager, sub_140EA79F0, gs+1688)
 

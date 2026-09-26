@@ -977,7 +977,7 @@ completed 双形态:
 
 | 形态 | 判别 | 读法 |
 |---|---|---|
-| 联合国策 | 元 vt+112 (slot14) ≠ BASE+**0x11D220** (万能 return-0 stub = sub_14011D220, dump 定案 `return 0`; 旧记 0x11CD10 系 1.19.2; CNationalFocus 基类 vt = BASE+41040872, 派生联合国策覆写返 1) | 写 `completed={ <TAG> <name> }` (originator tid 经 sub_1402D1930 三链查询) |
+| 联合国策 | 元 vt+112 (slot14) ≠ BASE+**0x11D220** (万能 return-0 stub = sub_14011D220, dump 定案 `return 0`; CNationalFocus 基类 vt = BASE+41040872, 派生联合国策覆写返 1) | 写 `completed={ <TAG> <name> }` (originator tid 经 sub_1402D1930 三链查询) |
 | 普通国策 | 上判不成立 | 写 `completed="name"` (引号, 名 SSO@e+24) |
 
 RH 哈希 (fp+88 / fp+152 表通用):
@@ -1010,7 +1010,7 @@ CNationalFocus def (size 0x620, ctor 0X1402CB440):
 
 旗簇 ctor 默认值 (def+1464..+1473): {0,1,0,0, 0,1,0,0, 1,0}。
 
-⚠ 死门机制 (机器码级定案): dynamic / historical / available_if_capitulated / continue_if_invalid / internal 五 token 被解析器 9 处尾跳 `jmp sub_1424C0C00` 空吞, 无写回 — def+1464 historical 徽标门 / def+1468 available_if_capitulated / def+1470 dynamic 重算名旗 / def+1471 (推定 dynamic/shared 实例旗) / CFocusInlayWindow def+208 internal 均死。⚠ 行为性结论: mods 依赖 historical= / available_if_capitulated= / dynamic= 的 UI 效果在 1.19.2 解析层不生效。
+⚠ 死门机制 (机器码级定案): dynamic / historical / available_if_capitulated / continue_if_invalid / internal 五 token 被解析器 9 处尾跳 `jmp sub_1424C0C00` 空吞, 无写回 — def+1464 historical 徽标门 / def+1468 available_if_capitulated / def+1470 dynamic 重算名旗 / def+1471 (推定 dynamic/shared 实例旗) / CFocusInlayWindow def+208 internal 均死。⚠ 行为性结论: mods 依赖 historical= / available_if_capitulated= / dynamic= 的 UI 效果在解析层不生效。
 
 CNationalFocus def vt (15 槽全图, 已点名槽):
 
@@ -1377,6 +1377,7 @@ CPowerBalanceSide 的 reader = sub_140A8ED10 (vt 0x142940000 [4])。四者非同
 | CCountry::DailyUpdate | sub_1406E76A0 | CGameState::DailyUpdate 全量国循环 (§4.2.7) | 探针 "country.daily"; 门 = cc+1156>0, 活跃分支 31 步 (内战目标/exile_divisions/人力·生产·资源·科研·部署/市场/政治/外交/核弹/焦点/后勤/燃料/operations/经验/志愿远征军/fleets/railway_guns/**投降流亡 sub_1406E16C0**/trade_influence/剧场/queued_events 派发); on_border_war_lost 判据 = 控制州 state+2149 活跃旗 且 进度 > define BORDER_WAR_VICTORY (派发后 sub_1409DDA30 熄火); "country.calc_modifier" (sub_1406DADE0) = 13 pass 修正重算 (§4.2.7 备注) |
 | CCountry::WeeklyUpdate | sub_140718CA0 | CGameState::WeeklyUpdate 国循环 (§4.2.8) | 周累加族: cc+5312 宣传稳定惩罚 clamp [-0.2,0] / cc+4304 stability / cc+5320..5344 四战争支持度惩罚 / cc+4312 war_support 双 clamp / WEEKLY_MANPOWER (mdef 62) + 流亡 mdef 588 / 占领日志 GARRISON_LOG_MAX_MONTHS(12) 清理; major 断言 cc+5210 一致性 (country.cpp:5793/:5810); **on_weekly / on_weekly_<TAG> 派发点** |
 | CCountry::MonthlyUpdate | sub_140703490 | CGameState::MonthlyUpdate 国循环 (§4.2.10) | 门 = owned_states(+1156)>0; 十段: dip 月更 (MONTHLY_LEASED_IC_DECAY) / **major 全量重算** (无宗主 && is_top_ic(cc+5211) && 工厂 ≥ MAJOR_MIN_FACTORIES=35 → cc+5210, 补判 0.7×top 均值) / calc_modifier pass / 州征兵 + **阵营人力上缴** (token 10476, faction+2288 记账 + mdef 648) / 改善关系 / **on_monthly / on_monthly_<TAG> 派发点** / 玩家 tag 管理器引用计数 / **季度舰队重整** (月长表直读, 1/5/9 月, sub_140218EB0) (country.cpp:5677) |
+| sub_1406FF1F0（国级按位更新派发器） | sub_1406FF1F0 | 双入口: ① postHourlyUpdate 阶段① 带本小时累积修改位, 算毕 cc+4320 清零 (§4.2.6); ② CSelectEventOptionCommand::Execute 尾部带掩码 0x0FFFFFEF (§4.33.18) | 二参 = 位掩码, 按位派发 (country.cpp:8857): bit0 sub_140716580 (无参) / **bit1 = CalcMod 修正重算 sub_1406DADE0** ("CalcMod for <tag>" + supply_factor 误用警告 :8863, cc+1464 容器 find token 566) + sub_140E70C80(\*(cc+3944)) / bit2 sub_1406DD0C0 / bit3 sub_140CFE770(cc+808) / bit4+5 同现门 sub_14070C890 / **bit7 sub_140D46650 = 外交状态 on_action 评估** (diplomacy.cpp, on_war / on_uncapitulation 串; §4.2.9) / bit8 sub_14070BDB0 / bit9 sub_140E6C810(\*(cc+3944)) |
 
 > 备注: hourly 主调度并行段的排序键 = `cc+5488 (double)` 升序 (插入/并行归并两套)。
 > **cc+5488 定案 = 每国小时更新耗时 EWMA (α=0.02s)** — 纯自测量负载均衡键:

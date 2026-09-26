@@ -598,7 +598,7 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 
 > 机动/订单域补充：新 helper sub_1424C0900/C3020（文本标量通道）、u32 数组三件套、find-instance 两株；运行时全局 qword_14333D528 = 当前前线 idpair（三证）；订单实例 +48 类型枚举（1/3/4）、+184 源省、CUnit+704 动作队列。**死命令壳 2（14901/14857, 清偿定案无生效路由）、空操作 1（14987）**。
 
-> **清偿定案（编成/机动域）**: ① XP 刻度不对称 = 引擎原生不一致（内存两命令同 1e-5 XP; 盘上 create cost=原值 i64 通道、update cost=整 XP /100000+u32 通道——重放后 Update 扣减缩水 1e5 倍）; ② 13753 +48 = 动作类型 id 13898; ③ DLC 门 sub_1401AEB50(57) = **Thunder at Our Gates**（dlc052）; ④ 补给 wrapper = **CCountrySupplySystem**（sub_1406CF380 = per-country getter, +16=priority 与 §4.21 同槽）; ⑤ CUnit 虚槽 +424 = SetStrategicRedeploying(bool)→写 +687, +56/+64 = 军官载体 getter; ⑥ CUnit 1.19.3 主虚表 = **0x1429530D8**（0x14293CA88 系 1.19.2 旧址, 勘误）。
+> **清偿定案（编成/机动域）**: ① XP 刻度不对称 = 引擎原生不一致（内存两命令同 1e-5 XP; 盘上 create cost=原值 i64 通道、update cost=整 XP /100000+u32 通道——重放后 Update 扣减缩水 1e5 倍）; ② 13753 +48 = 动作类型 id 13898; ③ DLC 门 sub_1401AEB50(57) = **Thunder at Our Gates**（dlc052）; ④ 补给 wrapper = **CCountrySupplySystem**（sub_1406CF380 = per-country getter, +16=priority 与 §4.21 同槽）; ⑤ CUnit 虚槽 +424 = SetStrategicRedeploying(bool)→写 +687, +56/+64 = 军官载体 getter; ⑥ CUnit 1.19.3 主虚表 = **0x1429530D8**。
 
 > 待裁三项：① Update(12198) 载荷经验 writer 除 100000 而 Create(12197) 原值直写，Execute 两侧均按 1e-5 口径——落盘刻度不对称；② DeployAirWing(13091) +128 写侧解引用取 id / 读侧 id 落 +164 且 +128 保持空；③ CAssignArmyToArmyGroupFront(14901) 空桩 Execute 的实际生效路由。
 
@@ -1178,7 +1178,10 @@ CSelectEventOptionCommand (10645) 载荷 (sizeof 240):
 
 > Execute (0x14153A110): event id 解析 (sub_14221F310) → 门 = 事件 def+884
 > 选项数 >0 且 actor>0 → sub_141180110(事件, scope+56) 按选项落子 → "EVENT"
-> 日志节点 (0x58B) 链入事件历史链表。事件 def+884 = 选项数 (静态锚, CEvent
+> 日志节点 (0x58B) 链入事件历史链表。**尾部 = actor tag (+52) 经 sub_140BB4390
+> 解析国家对象 → sub_1406FF1F0(国家, 0x0FFFFFEF) 全位国级更新派发** (§4.3.23:
+> bit1 修正重算 + bit7 外交 on_action → 事件 scope 链 §4.2.9) — 事件选项执行的
+> 成本主链。事件 def+884 = 选项数 (静态锚, CEvent
 > 布局未入册)。IsValid (0x14153AFB0): id 非零且解析非空 + actor>0 + 选项数
 > 非零 + 全局实例门 (gameitemdatabase "_pInstance")。
 

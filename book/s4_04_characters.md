@@ -22,7 +22,7 @@ RTTI 定案。
 | CNavyLeader | 上行 + CCustomizableBuildingListener@3928 |
 | COperativeLeader | 上行 + CSelectable@3928 + COperativeLeaderBase@3944 |
 
-CCommander 负定案: 1.19.2 RTTI 全谱无此类; char+168 leader 指向对象 = CArmyLeader/CNavyLeader/COperativeLeader 三选一, 由 leader_type u32@+3708 判别 (character.cpp writer switch):
+char+168 leader 指向对象 = CArmyLeader/CNavyLeader/COperativeLeader 三选一, 由 leader_type u32@+3708 判别 (character.cpp writer switch):
 
 | 形态 | 判别 (leader_type u32@+3708) | writer 行为 |
 |---|---|---|

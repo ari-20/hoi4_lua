@@ -42,7 +42,7 @@ CCountryOfficerCorpView **+8592** 名册态)。
 | 特质树下级技能 | [8] 四技能刷新 | **技能 def DB = qword_14332F0D0 (等级+1, leader_type); def+444 = 下级 XP 阈值** | §4.4 新锚 | SKILL_NAVY_LEADER_LEVEL_* | 定案 |
 | 将领窗指派/名册 | SetTarget sub_1416D06C0 | **CFleet idpair @win+7048; fl+176 = leader idpair 新消费点**; cc+4080+136 海军表 / cc+496 command_power / fl+224 name; **+7056 / +7024 池 / +3160 / +4448 / +5736** | §4.16/§4.3 命中; 命令族 CSetFleetLeaderCommand (ctor sub_14183BD10) {+40/+48} / CCreateUnitLeaderCommand (ctor sub_141144080) {+44=2 navy} / CChangeNavyLeaderDialog (ctor sub_141ED8F40/91A0, 窗名与 0x1020 未变, 布局 +4096..+4120) | navyleaderwindow | 定案 |
 | 将领窗三按钮 | 绑定 sub_141ACE6C0 | **no_leader_button (cb sub_141ACAB40) / new_leader_button (cb sub_141ACAA10, feature 门 sub_1401AEB50(58) 隐藏) / show_ship_captains_button (cb sub_141ACC330)**; [10] 指派 sub_141ACA7F0 | — | — | 定案 |
-| divisions_count 源 | 四读取函数 | **dword_1433364B8 = NDefines `ADMIRAL_TASKFORCE_CAP`** (1.19.3 唯一全局; 0x14331D7FC 系 1.19.2 旧址零引用); 舰队/将领 UI「现数/上限 + FLEET_OVERCAPACITY_DESCRIPTION 超编」计算 | sub_140C18780 = `return dword_1433364B8` 纯 getter; defines 注册 sub_142070630 字面绑定同址 — 注册与 GUI 同源, 无副本 | FLEET_OVERCAPACITY_DESCRIPTION | 定案 |
+| divisions_count 源 | 四读取函数 | **dword_1433364B8 = NDefines `ADMIRAL_TASKFORCE_CAP`** (1.19.3 唯一全局); 舰队/将领 UI「现数/上限 + FLEET_OVERCAPACITY_DESCRIPTION 超编」计算 | sub_140C18780 = `return dword_1433364B8` 纯 getter; defines 注册 sub_142070630 字面绑定同址 — 注册与 GUI 同源, 无副本 | FLEET_OVERCAPACITY_DESCRIPTION | 定案 |
 
 #### 4.31.3 散簇·战争总览 (CWarOverView / WarButton / CWarAllyItem / CWarFactionItem / CWarRelationStripView)
 
@@ -283,7 +283,7 @@ CCountry\*** (CFocusStatus 新首字段, §4.3.12)。
 | CNationalFocusLinkItem | 0x1429B4EB0 | sub_14137F020（+32 方向码 / +36 u8 样式 / +24 link 子窗） | 连线段构建 sub_141382790（GFX_focus_link%s%s%s%s） |
 | CNationalFocusShortcutItem | 0x1429B48A0（@24 0x1429B4940） | — | — |
 
-**loc 键组（1.19.3 全部存活，消费窗与 1.19.2 同族）**：
+**loc 键组**：
 
 | 键 | 主引用函数 | 消费窗 |
 |---|---|---|
@@ -1744,7 +1744,7 @@ CArmiesView 本体 (1640B) 全布局 + CDivisionsSummaryItemView 行件 (1432B; 
 | 战略目标行 | 点击翻牌 | **wing+128 priority 容器新锚**; def+740 帧聚合 | **CToggleBombingPriorityCommand {+40/+48}** writer 键双证 | bombing_priority_item / bombing_priorities_grid | 定案 |
 | 理念行/窗 | FillPickableIdeologies | +1448 CIdeology\*; 窗+80..+96 任务四参/+248 选中 | **CSetOperativeMissionCommand 三键 writer 证** | assign_operative_boost_ideology | 定案 |
 
-**定案 2 项**: 件型全局串解码 = CBoostIdeologyMissionWindow **`boost_party_popularity_mission_window`** (off_1430B3D88 → 0x1429F0698) / 行件 **`diplomacy_party_entry`** (off_1430B3D90 → 0x1429F06C0) / 巨窗宿主 = **CInGameInterfaceHandler** (1248B = 0x4E0 GUI 聚合根; 1.19.3 ctor = sub_140B614C0 = 1.19.2 sub_140B52390 同形; 挂载 CInGameIdler+1720)。负定案: lambda Do_call ICF 折叠 (与 `_LocaleUpdate::GetLocaleT` 同址, PE 不可分离) 等 5 项。
+**定案 2 项**: 件型全局串解码 = CBoostIdeologyMissionWindow **`boost_party_popularity_mission_window`** (off_1430B3D88 → 0x1429F0698) / 行件 **`diplomacy_party_entry`** (off_1430B3D90 → 0x1429F06C0) / 巨窗宿主 = **CInGameInterfaceHandler** (1248B = 0x4E0 GUI 聚合根; 1.19.3 ctor = sub_140B614C0; 挂载 CInGameIdler+1720)。负定案: lambda Do_call ICF 折叠 (与 `_LocaleUpdate::GetLocaleT` 同址, PE 不可分离) 等 5 项。
 
 #### 4.31.62 单位/部署杂项 (CUnitCounterItem / CUnitTemplateItem / CTinyUnitCounter / CReserveBottomBarItem / CWingQuickDeployWidget / CSelectedAirGroupView / CSendUnitsGroupItem / CMoveShipItem)
 
@@ -2339,7 +2339,7 @@ CArmiesView 本体 (1640B) 全布局 + CDivisionsSummaryItemView 行件 (1432B; 
 
 | 类 | 布局 |
 |---|---|
-| CCountryOccupationView (11976B) | 8 glue 块 stride 1288 @+1416..+10432；+1408 a3；**选择持有点 +11720/+11728（Policy/Garrison）与各 {vt, cur+8, ctx+16}**；+11736 格/+11744 列表；**+11752 = 184B 弹窗管理器 sub_141C363D0**；行池 {data@+11768, cap@+11776, count@+11780, glue@+11784, 可见@+11792}（⚠ 旧原稿 cap/count 互换误记，1.19.2+1.19.3 双版本扩容代码同形证 cap@11776/count@11780）；+11800/+11812 钉选数组；+11824 garrison_template_icon（默认法旗标）；+11832/+11888/+11896 按钮；**5 页签元素 +11840..+11872（id 0..4 存元素+8）+ 激活索引 +11880**；+11904 checkbox/+11912 标签/+11920 空态/+11928 select_law_icon/+11936 钮/+11944 文本/+11952 头计数（foreign_support_amount）；**+11960 = Σ行+48 / +11968 = 均行+56** |
+| CCountryOccupationView (11976B) | 8 glue 块 stride 1288 @+1416..+10432；+1408 a3；**选择持有点 +11720/+11728（Policy/Garrison）与各 {vt, cur+8, ctx+16}**；+11736 格/+11744 列表；**+11752 = 184B 弹窗管理器 sub_141C363D0**；行池 {data@+11768, cap@+11776, count@+11780, glue@+11784, 可见@+11792}（⚠ 旧原稿 cap/count 互换误记，1.19.3 扩容代码同形证 cap@11776/count@11780）；+11800/+11812 钉选数组；+11824 garrison_template_icon（默认法旗标）；+11832/+11888/+11896 按钮；**5 页签元素 +11840..+11872（id 0..4 存元素+8）+ 激活索引 +11880**；+11904 checkbox/+11912 标签/+11920 空态/+11928 select_law_icon/+11936 钮/+11944 文本/+11952 头计数（foreign_support_amount）；**+11960 = Σ行+48 / +11968 = 均行+56** |
 | COccupiedTerritoryCountryEntry (8072B) | +32 view / +40 工厂；6 glue @+72..+6512（+6512 = top_bg 粘地图定位钮）；**+7800 tag**；+7808/+7816 双 StatusView；+7824 州行格 {data@+7920, cap@+7928, count@+7932, glue@+7936, used@+7944}；+7840 旗/+7848 名/+7856..+7880 文本列/+7888 强度文本/+7896 expand；+7952 无抵抗行池 {data@+7960, cap@+7968, count@+7972, used@+7984}；+7992..+8096 元素列（法帧+8016/条+8040/法图标+8048/法名+8056/驻军钮+8064/争议双钮+8088/+8096）；+48=occdata+72 / +56=occdata+80 / +64 bool；目标加载 = occupier cc+4048 occmgr+96 向量按 dip tag 搜 +48 |
 | COccupiedTerritoryStateEntry (4000B) | 3 glue @+40/+1328/+2616；**+3904 state**；+3912/+3920 StatusView；+3928 名/+3936 数值/+3944 法图标/**+3952 驻军模板旗标**/+3960 进度条/+3984 表2记录+248/+3992 进度（1e5） |
 | COccupiedTerritoryStateEntryWithoutResistance (1344B) | glue @+32；**+1320 state / +1328 state_name / +1336 state_info** |
@@ -2350,7 +2350,7 @@ CArmiesView 本体 (1640B) 全布局 + CDivisionsSummaryItemView 行件 (1432B; 
 
 **结构级变化两则（引擎层，非仅址移）**：① **占领法 DB 全局 qword_143316BC8 在 1.19.3 消失 → getter sub_14039E040**（双证：Policy refresh 直调该企业函数取 +72 默认法）；② 建筑 DB qword_143316A58 → **qword_14332EE28 + sub_140683700 组合**。
 
-**SetTarget 尾链第二帧（草稿漏记，双版本同构）**：0x14156B3E0（1.19.2 sub_1415590D0 ↔ 1.19.3）。
+**SetTarget 尾链第二帧（草稿漏记）**：0x14156B3E0。
 
 **勘误**（双版本证据）：populate [14] 注记修正 = close_button→+1416 / garrison_log_open→+2704 / equipment_open→+3992（旧原稿记 // 书 §4.30.14 [11]=0x141566650 与 Setup=0x14156A6F0 双体复核一致）；**§4.30.30 占领视图 @48 槽号**：0x141566AF0 驻 @48[7]（占领刷新），[9] = 0x14156F5A0（Repopulate）——§4.30.30 行已修；occdata 法 id 槽位 = **+160**（静态双直读: Policy refresh 0x14156D6B0 分支 `tag≠0 → occdata+160 法 id` + 窗体刷新 0x14156FE90；+168 无静态支持 — 定案）；`sub_1406F2F20` = `occupied_country_tag` 取址器（函数体 `return cr+80`），非取法 id。
 

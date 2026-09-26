@@ -10,12 +10,6 @@
   定义表 0x3169C0 掉位事故 (少一个 3)。
 - **库家族规模**: TGameItemDatabase 模板实例 103 个 → **81 key 入规格表**
   (§4.26.4) + 22 形态外 (布局已定案, 需专写 reader, §4.26.4)。
-- **旧静态槽位表 (legacy STATIC) 已删**: 曾有两代实现并存 —— 对象层的
-  `Runtime.definitions` 读一份 legacy `STATIC` 表 (1.19.2 六库/扩展库地址),
-  本节 idb 族 (`resource.lua`) 是 1.19.3 后继。旧者既无调用方 (实测
-  `sv2_export` 全路径 0 次触达), 地址又已失效 (活体返回垃圾计数), 故
-  `STATIC` 表 + `definitions` 一并移除。**静态资源访问唯一入口 = 本节
-  idb 族**; 需旧六库枚举者用 `M.idb_count/M.idb_token` 按 §4.26.4 规格重写。
 
 #### 4.26.1 replace_path 与 mod 加载语义
 
@@ -312,12 +306,10 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 |---|---|---|
 | `ref/token_table_1193.txt` | 静态 token 全表 10,765 条 (id 11..19998) | 现役 (离线, exe 提取) |
 | `ref/token_map_1193.txt` | 10,765 条, 提取注册函数 sub_1400831C0 (含 entry/idglob/caller 溯源列) | session_meta 数据源 |
-| defines 旧版映射 (1.19.2 期, 已废) | CDefines 3,592 唯一名 = 2,236 定点×1e5 + 1,356 裸 i32, **双 loader** sub_142072500/B690, 20 重名=双命名空间 | 历史版 |
 | `ref/defines_map_1193.txt` | **4,424 名 / 4,452 目** / 25 多义名（全 loader 族扫描; 形态含 `(float *)&`/`(bool *)&` cast 与无 `&` 全局; 护栏 = 调用点后 1.5KB 内有 `Error reading "NAME"` 诊断串） | **冻结基线**（1.19.3 离线快照, 无再生配方; 运行时数据源已改为镜像扫描, 见 §4.26.5a） |
 | `ref/serfam_1193.txt` | 1,153 行 CPersistent 族指纹表 (slot1=Save wrapper 判定; 盲区见 §4.00.1/方法论) | 现役 (可序列化性速查) |
 | `ref/boot_registry.tsv` | 320 槽 boot 注册表 (槽位/ctor 签名/库分级; §4.26.8 数据源) | 现役 |
 | `ref/vt_rtti.json` | 9,254 vtable→RTTI 类名 | 版本变更需重扫 |
-| `ref/rtti_hierarchy.json` | 8,755 类继承谱系 (**仅 mdisp/基链可用**) | ⚠ **该文件的 vt 地址字段 = 1.19.2 旧值, 禁作地址用** — 取 vtable 一律 `vt_rtti.json` 或 exe 直读 (旧值与 1.19.3 实测址处为 RTTI 数据, 非代码槽) |
 | `ref/hoi4_runtime_classes_map.json` | 8,755 类 → 运行时信息合并视图 (实 vftable 地址 + COL 层 vt/mdisp + CPersistent 族 writer/reader/slots); 8,634 类有 vftable, 1,148 类带 writer/reader | 合并产物 (派生自上述三表; 版本变更需重生成) |
 | `ref/hoi4_runtime_vt2class.json` | 9,259 条 vftable 地址 → 类名 (按地址排序) | 探针逆向替换表 (读对象首 qword 直查类名) |
 

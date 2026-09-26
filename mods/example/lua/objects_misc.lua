@@ -860,8 +860,6 @@ end
 -- §30 部署/定义/顶元族 (legacy deployment_conveyors / deployment_hq /
 -- definitions / top_meta / deployment_unit_modifiers 正式迁移)
 -- ============================================================
--- 30.1 (legacy STATIC 静态槽位表已删): 原表持 1.19.2 六库/扩展库地址,
--- 仅 Runtime.definitions 消费; 二者一并移除 (见 30.4 注)。
 
 -- §4.18 CDeploymentStatus / §4.18.12 CMilitaryDeploymentConveyor 命令族
 -- 30.2 deployment_conveyors: 存档 deployment.military_deployment_
@@ -1033,11 +1031,6 @@ function Country.deployment_hq(self)
   end
   return out
 end
-
--- 30.4 definitions: 已移除 (旧址失效 + 无调用方)
--- 原实现读 legacy STATIC 表 (1.19.2 地址): 实测 sv2_export 路径 0 次
--- 调用, 且旧址失效返回垃圾计数。权威静态资源访问 = resource.lua 的
--- idb 族 (书 §4.26); 布局知识留档于 git 历史。
 
 -- 30.5 top_meta: 存档头部顶格叶 (§4.1.2 区界表 + §4.1.6–§4.1.16; 布局与写门 = 书):
 -- 全局计数 rva 直读; gs 内存叶 gmem 偏移; id_counter 表@gs+0x7A8

@@ -7,9 +7,7 @@
 // Relocation evidence: fdiff v4 byte-hash map, string
 // anchors, vtable RTTI, router call-chain intersection, CRT heap/tls xrefs —
 // per-key notes below. ENGINE_NEW: never called anywhere in src (dead
-// machinery, kept for the enum order); 1.19.2 value already pointed mid-
-// function, so it is now pinned to the malloc thunk as a safe placeholder.
-#pragma once
+// machinery, kept for the enum order); 
 
 #define OFF_VERSION    "1.19.3.0-c01a3d50"
 #define OFF_TIMESTAMP  0x6AA123BBu

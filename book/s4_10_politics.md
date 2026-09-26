@@ -319,7 +319,7 @@ CCurrentAutonomyStatus (dip+848; writer 0X14067AA30)。
 | +112 | 匿名结构 (64B) | effects 容器数据指针 — {d@+112, cap@+120, c@+124, alloc@+128}; 元素: value i64@+0 (raw 读法 = lo+hi×2^32 符号化, 勿转浮点 — Lua 5.4 `format("%d")` 崩), desc SSO@+8, hash u32@+40, hours@+56; cap/alloc 新增 |
 | +124 | u32 | effects 容器计数 |
 
-CAutonomousState def 侧补行 (def 库 = **0x332EE18** (qword_14332EE18, §4.26 autonomous_state key; 旧引 qword_14332EE18 在 1.19.3 无命中 = 1.19.2 残影已删); 形态 {data@+48, count@+60}; 条目 +40 hash / 名串 @+8..+24):
+CAutonomousState def 侧补行 (def 库 = **0x332EE18** (qword_14332EE18, §4.26 autonomous_state key; 旧引 qword_14332EE18 在 1.19.3 无命中); 形态 {data@+48, count@+60}; 条目 +40 hash / 名串 @+8..+24):
 
 | 偏移 (def) | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|

@@ -561,7 +561,7 @@ InlayWindowView = **无 RTTI 无虚表** (104B 非多态行视图, 池 win+1448)
 infoCtrl+5304 → 视图#13 SetTarget (§4.30.9 目标 tag); @48 子表 this=win+48 坐标规则第 4/5 例。
 新锚: 科技 template+984 年份/+992 基础成本/+1034 旗 / 解锁元+1000; cc+5620 树版本 / tree+152
 inlay 表 / def+1416·+1470 (**见 §4.3.13**: def+1416=mutually_exclusive 定案 /
-def+1470=dynamic name 旗 1.19.2 死门 / tree+152=CFocusInlayWindowInstance 56B 内联)。
+def+1470=dynamic name 旗 / tree+152=CFocusInlayWindowInstance 56B 内联)。
 
 | 面板元素/行为 | 取值函数 | 对象+偏移 | 语义+出处 | loc key / 元素 | 置信 |
 |---|---|---|---|---|---|
@@ -1146,7 +1146,7 @@ prov+200 天气 id 见 §4.14; m_OriginalTag/gs+832 恒等表/每州资源因子
 | 163/164 键 | sub_1409D4980 共享槽公式 | **modifier 索引非 lexer**: 161/162=global_building_slots(_factor) / 163/164=local_… | 注册连号+持有者对型双推; CState+2256 每国州级 modifier 哈希 (208B 桶) | — | 高置信 |
 | 同原初国谓词 | sub_140BB52F0/140BA6240 | **gs+832 = original-tag 恒等表**; **cc+4876 = m_OriginalTag** | 三证定案; 3146 处调用 | — | 定案 |
 
-**定案 4 项**: +1776 阈值两说**非矛盾** — `<50` 那一路 = **自定义建筑图标隐藏门** (sub_141746E50 内 `state_name` 窗分支, 门 byte_14332EC69 && a1[172] → sub_1409D8C10), `<150` 那一路 = **战争迷雾总开关门** (byte_14332F63A) / 铁路 +104 = **`cooldown` u32 单标量 (tok 14622)** — **无位段** (writer sub_140E95DD0 直证); 阻断语义由 **+80 块 `rail_way_construction` 非空** 表达 (施工中 = 阻断) / modifier 161-164/547 **1.19.3 离线直证**: 161 = MODIFIER_GLOBAL_BUILDING_SLOTS / 162 = …_FACTOR / 163 = MODIFIER_LOCAL_BUILDING_SLOTS / 164 = …_FACTOR / 547 = MODIFIER_STATE_RESOURCES_FACTOR (注册连号 + 各 4 处 rel32 引用点, 与 1.19.2 **完全一致, 索引未漂移**) / `sub_141746E50(view,out,flag)` = **共享槽计数 tooltip 组装器** (窗名 `shared_slot_count`; UNLOCKED_SLOTS + 全局兜底 dword_143334520) ; `sub_1409D8C10(state,out)` = **每国州级 modifier 明细串组装器** (state+1368 主值 + 遍历 state+2256 每国 modifier RH 表 (208B 元, +8 tag, +32 CModifier) 逐条追加)。
+**定案 4 项**: +1776 阈值两说**非矛盾** — `<50` 那一路 = **自定义建筑图标隐藏门** (sub_141746E50 内 `state_name` 窗分支, 门 byte_14332EC69 && a1[172] → sub_1409D8C10), `<150` 那一路 = **战争迷雾总开关门** (byte_14332F63A) / 铁路 +104 = **`cooldown` u32 单标量 (tok 14622)** — **无位段** (writer sub_140E95DD0 直证); 阻断语义由 **+80 块 `rail_way_construction` 非空** 表达 (施工中 = 阻断) / modifier 161-164/547 **1.19.3 离线直证**: 161 = MODIFIER_GLOBAL_BUILDING_SLOTS / 162 = …_FACTOR / 163 = MODIFIER_LOCAL_BUILDING_SLOTS / 164 = …_FACTOR / 547 = MODIFIER_STATE_RESOURCES_FACTOR / `sub_141746E50(view,out,flag)` = **共享槽计数 tooltip 组装器** (窗名 `shared_slot_count`; UNLOCKED_SLOTS + 全局兜底 dword_143334520) ; `sub_1409D8C10(state,out)` = **每国州级 modifier 明细串组装器** (state+1368 主值 + 遍历 state+2256 每国 modifier RH 表 (208B 元, +8 tag, +32 CModifier) 逐条追加)。
 
 #### 4.30.22 和会竞标 (SetBiddingsIn 链 / 三行池身份 / country 行 +1336/+1340 / conf 四容器改判 / actor=MainLoser / +520 竞标方 tag)
 
@@ -1416,7 +1416,7 @@ glue 网格 = **26 槽位 +264..+32496 步距 1288**（+23448 新对象插入后
 > 尾块 +33784 = sub_141DF7730（ctor）；music_pause_button / music_next_button 绑 sub_141DF8BE0 / sub_141DF8880。
 > +39176 = 96B 对象（绑定函数尾 malloc；6 字段 + 2 隐藏链表；@48[3]/[5] 门判定 = view+39176 非空，转发 sub_141E750B0/sub_141E74C00，语义未展开）。
 
-**glue handler 全表**（1.19.3；1.19.2 handler 全部同语义同族）：
+**glue handler 全表**：
 
 | glue@ | handler | 语义 |
 |---|---|---|
@@ -1447,8 +1447,8 @@ glue 网格 = **26 槽位 +264..+32496 步距 1288**（+23448 新对象插入后
 | +31208 | sub_14189E9D0 | playlist_button：FindWindow "toggle_music_commands_win" 显隐 toggle（推定） |
 | +32496 | sub_14189EAF0 | musicplayer → sub_140B6DBD0(*(a1+112)) |
 
-> ⚠ 「CTopBar 全部无 CCommand 出口」对调速两钮不成立：MP 分支构造速度命令投递命令队列（单机路径直接调速，1.19.2 同构高置信——其 handler 无 dump 可复核，标推定）。
-> 数据源锚（view+39008 tag 缓存，逐帧 sub_140BB48F0 取 cc）：DateText = gs+1120（setter sub_1418A1EE0）；pol_power = CPolitics+224；industrial_capacity = sub_140E693C0(cc+3944)（公式 (ps+792+888+696)/1e5 − 六项占用，与 1.19.2 逐字节同式）；industrial_ratio_bar = ps+936 ×100；三军经验 = cc+5512 +16(陆,view+168)/+64(空,view+160)/+40(海,view+176)；command_power = cc+496；fuel = cc+5504（文本 sub_1410F6390 / 比值 sub_1410F3570 ×100）；nukes = sub_141097B50(cc)>0；stability/war_support = sub_1406F8750/sub_1406F9E70(cc)；player_flag = sub_140B44AC0(ctx+1272, flag 件, view+39008, 0,1,0)；achievements 使能 = sub_14061E2D0(sub_14061CD20(), gs, 0)≤1；**supply/convoys 源 = sub_1418A1CC0（cc+4608 系统根 → 枚举）**；**threat_value = define 表达式 TOB_BAR_THREAT 求值 sub_1402E31F0（替代手写聚合器——机制变了）**；BuildTooltip = 0x141897AB0（97 loc 键与 1.19.2 全表一致）。
+> ⚠ 「CTopBar 全部无 CCommand 出口」对调速两钮不成立：MP 分支构造速度命令投递命令队列（单机路径直接调速，——其 handler 无 dump 可复核，标推定）。
+> 数据源锚（view+39008 tag 缓存，逐帧 sub_140BB48F0 取 cc）：DateText = gs+1120（setter sub_1418A1EE0）；pol_power = CPolitics+224；industrial_capacity = sub_140E693C0(cc+3944)（公式 (ps+792+888+696)/1e5 − 六项占用）；industrial_ratio_bar = ps+936 ×100；三军经验 = cc+5512 +16(陆,view+168)/+64(空,view+160)/+40(海,view+176)；command_power = cc+496；fuel = cc+5504（文本 sub_1410F6390 / 比值 sub_1410F3570 ×100）；nukes = sub_141097B50(cc)>0；stability/war_support = sub_1406F8750/sub_1406F9E70(cc)；player_flag = sub_140B44AC0(ctx+1272, flag 件, view+39008, 0,1,0)；achievements 使能 = sub_14061E2D0(sub_14061CD20(), gs, 0)≤1；**supply/convoys 源 = sub_1418A1CC0（cc+4608 系统根 → 枚举）**；**threat_value = define 表达式 TOB_BAR_THREAT 求值 sub_1402E31F0（替代手写聚合器——机制变了）**；BuildTooltip = 0x141897AB0。
 
 **CArmiesView (1640B, "armies_view")**：主 vt 0x1429E9C98（4 槽）+ @40 tooltip；ctor 0x141692440；[2] Reload 0x1416AD9A0。布局：+1336 ctx / +1344/+1352/+1360 主窗子窗 / +1368 CArmyLeaderWindow\* / +1376/+1388 子窗指针数组（+1392 sentinel）/ +1400/+1408 CArmyDivisionListView ×2 / +1416/+1424 CRailwayGunListView ×2 / +1432 徽标 int（推定）/ +1440 选中槽 = −1 / +1444 u8 = 1 / +1448..+1544 容器四组（sentinel ×2 = qword_14333D528）/ +1488 选中师 refid（count +1500，选择同步 sub_1416C2E10 内 type==0 → vt[7] 推入）/ +1512 数组（count +1524）/ +1544 选中铁路炮 refid（count +1556，type==13 → vt[11]）/ +1592 脏旗（glue 回调 sub_1416AC7E0 置 1）/ +1600..+1632 远征窗等。glue @+48 ctor = sub_141690BC0（同构注册器）；建窗 sub_1416AE5D0 / 选择集 helper sub_140BC3180（判空）/ sub_140BC30C0（链表化）；主 populate = sub_1416BC7E0。
 

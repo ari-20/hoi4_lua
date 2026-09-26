@@ -129,15 +129,15 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10) 布局补行 (高置信, 
 | +56 | 侵入链表 | **参战 tag 链表 A = 参战单位 logical_country (unit+480) 集** — 32B 节点 {tag u32@0, prev@8, next@16, u8@24}; {head@56, tail@64, count@72} (消费点见下表) | 不序列化 |
 | +80 | 侵入链表 | **参战 tag 链表 B = 与 logical 不同的 owner (unit+472) 集** (远征军原属主参战认定) {head@80, tail@88, count@96} | 不序列化 |
 | +104 | 容器 24B | **参战 tag 平铺数组** {data@104, cap@112, count@116, alloc@120} — u32 tag (与链 A 同键 = logical_country 集, dedup sub_1401B0250) | 不序列化 |
-| +128 | 匿名结构 (32B 形状) 向量 | **weighted_participants 容器本体 (32B)** — tok 10755 块 (1.19.2 该 token 尚为 erwan_reserved 未用; 元素按国家); RH 表: 空哨兵/数据@+136, 计数@+144 = 块门, 掩码 u32@+148, extra u8@+152 (桶数 = 掩码+1+extra); 桶 24B {hash u32@+0, 距离 byte@+4 (≠0 占用), tag id u32@+8, weight **i64 fixed×1e-5**@+16}; writer 0X1413E41F0 尾段 → sub_1411DCF90 (按 tag 升序发 `"TAG" 值`); loader case 10755 → 对象基 +128 | 计数≠0 写块 |
+| +128 | 匿名结构 (32B 形状) 向量 | **weighted_participants 容器本体 (32B)** — tok 10755 块; RH 表: 空哨兵/数据@+136, 计数@+144 = 块门, 掩码 u32@+148, extra u8@+152 (桶数 = 掩码+1+extra); 桶 24B {hash u32@+0, 距离 byte@+4 (≠0 占用), tag id u32@+8, weight **i64 fixed×1e-5**@+16}; writer 0X1413E41F0 尾段 → sub_1411DCF90 (按 tag 升序发 `"TAG" 值`); loader case 10755 → 对象基 +128 | 计数≠0 写块 |
 | +152 | u8 | 运行时旗 (ctor 0; 未名) | 不序列化 |
 | +156 | f32 | 标量 (ctor 1063675494 = 0.9; 未名) | 不序列化 |
-| +160 | fixed×1e-5 | size 容器数据指针 — fixed 数组 (1.19.2 @+128) | c>0 |
+| +160 | fixed×1e-5 | size 容器数据指针 — fixed 数组 | c>0 |
 | +161..+171 | — | = size 容器尾 {cap@+168} (ctor 按国家数扩容) |  |
 | +172 | u32 | size 容器计数 | c>0 |
 | +173..+183 | — | = size 容器尾 {alloc@+176}  |  |
 | +184 | fixed×1e-5 | losses | 恒写 |
-| +192 | 容器 24B | **第二 per-country fixed 数组 = size 孪生** {data@192, cap@200, count@204, alloc@208} (1.19.2 @+160) — ctor sub_1413E05F0 与 +160 连调 sub_140611B00 按国家数扩容, 但全 dump 无读方 → 无消费者无 writer, 恒零沿袭 | 不序列化 |
+| +192 | 容器 24B | **第二 per-country fixed 数组 = size 孪生** {data@192, cap@200, count@204, alloc@208} — ctor sub_1413E05F0 与 +160 连调 sub_140611B00 按国家数扩容, 但全 dump 无读方 → 无消费者无 writer, 恒零沿袭 | 不序列化 |
 | +216 | u8 | **is_attacker 旗** (ctor a3; RemoveUnit 以它选侧); **+218 = player_participates** | 不序列化 |
 | +219 | uint8 | has_flanked_opponent | ≠0 写 yes |
 | +224 | tag_id | last_hit → 引号串 | tid>0 |
@@ -174,8 +174,6 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10) 布局补行 (高置信, 
 | +456 | uint32 | org_loss_summary_index | 恒写 |
 | +460 | uint32 | num_org_losses | 恒写 |
 | +464 | NCombatLog::CStatsObserver 内嵌 | log (lb = cb+464; CStatsObserver 身份合一 — dtor 调 observer dtor sub_140CD8930@+464, 其 vt 0X295D748 slot2 恰 = 0X140CE0990) | 恒写块, 下表 |
-
-> **实名与 1.19.3 漂移**: 自 +232 起的陆域段属 **CLandCombatant** (vt 0x1429A82C0, writer 0x1412BD820 = 基座 writer 0x1413E41F0 后缀自有段, 与 §4.22.2 边界战族 writer 追加同源); 1.19.3 相对 1.19.2 于基座 **+128 处插入 32B 新域 = weighted_participants 容器 (tok 10755, 定案)**, 自旧 +128 起布局**整段 +32 平移** (size 128→160 / losses 152→184 / 孪生 160→192 / is_attacker 184→216 / player_participates 186→218 / has_flanked 187→219 / last_hit 192→224 / front 200→232 … log 432→464, 全段 writer/loader/ctor 一致), 基座头 ≤+127 未动; 基座 200B → **232B** 定案 (last_hit 尾 +228 对齐; CLandCombatant 与 CNavalCombatant 自有段首字段均 @+232 互证)。
 
 参战 tag 链表 A 消费点:
 
