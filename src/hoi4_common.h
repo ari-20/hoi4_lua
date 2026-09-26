@@ -34,6 +34,8 @@ typedef enum {
     OFF_GFT_VTABLE,
     OFF_INGAME_IDLER_V4,
     OFF_INGAME_IDLER_VTBL_SLOT4,
+    OFF_FRONTEND_IDLER_V4,     // CFrontEndIdler vt slot4 (menu/loading frame)
+    OFF_FRONTEND_IDLER_VTBL_SLOT4,
     OFF_ENGINE_ALLOC,          // engine allocator wrapper (alloc+retry)
     OFF_MGR_CTOR,              // console manager lazy ctor
     OFF_SET_SPEED,             // game speed setter (clamps 0..4)
@@ -75,6 +77,8 @@ const char *offsets_version(void);  // version string from the table
 #define RVA_GFT_VTABLE         (g_rva[OFF_GFT_VTABLE])
 #define RVA_INGAME_IDLER_V4          (g_rva[OFF_INGAME_IDLER_V4])
 #define RVA_INGAME_IDLER_VTBL_SLOT4  (g_rva[OFF_INGAME_IDLER_VTBL_SLOT4])
+#define RVA_FRONTEND_IDLER_V4        (g_rva[OFF_FRONTEND_IDLER_V4])
+#define RVA_FRONTEND_IDLER_VTBL_SLOT4 (g_rva[OFF_FRONTEND_IDLER_VTBL_SLOT4])
 #define RVA_ENGINE_ALLOC       (g_rva[OFF_ENGINE_ALLOC])
 #define RVA_MGR_CTOR           (g_rva[OFF_MGR_CTOR])
 #define RVA_SET_SPEED          (g_rva[OFF_SET_SPEED])
@@ -258,6 +262,7 @@ int hoi4_async_exec(lua_State *Ls);
 int hoi4_async_poll(lua_State *Ls);
 int hoi4_async_status(lua_State *Ls);
 int hoi4_base(lua_State *Ls);
+int hoi4_session_pending(lua_State *Ls);   // primitives.cpp (reads session.cpp flag)
 int hoi4_console(lua_State *Ls);
 int hoi4_console_argv(lua_State *Ls);
 int hoi4_effect_reg(lua_State *Ls);
@@ -325,7 +330,7 @@ int effect_known(const char *n);
 
 // ---- session lifecycle (hoi4_session.cpp) ----
 void session_hooks_install(void);            // lua_init_thread tail, once (DR hooks)
-void session_dispatch_locked(lua_State *Ls); // frame-top consumer; lock held
+void session_dispatch_locked(lua_State *Ls, int in_game_frame); // frame-top consumer; lock held
 void force_reload_locked(void);              // main.cpp: unconditioned full reload
 int  bind_count(void);                    // vtable.cpp: occupancy for the capacity log
 void bind_table_regen(void);                // vtable.cpp: keep + re-stamp binds (2026-09-19 fix)
@@ -333,6 +338,10 @@ void bind_note_session_end(void);            // vtable.cpp: bump bind generation
 void async_session_reset(void);              // async.cpp: orphan all in-flight work
 void session_note_frame(void);               // session.cpp: frame tick heartbeat
 int  session_in_game(void);                  // session.cpp: gs != 0 AND frame alive
+int  session_pending(void);                  // session.cpp: switch event raised, not yet dispatched
+void session_note_idler_ingame(void);        // session.cpp: idler-edge (FE -> game)
+void session_note_idler_frontend(void);      // session.cpp: idler-edge (game -> FE)
+void install_fe_v4_vtable_hook(void);        // frame.cpp: CFrontEndIdler vt slot4
 
 // G: guarded engine call + write wrappers (hoi4_call.cpp)
 int hoi4_call_u64(lua_State *Ls);

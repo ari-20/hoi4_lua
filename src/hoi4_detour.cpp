@@ -313,6 +313,11 @@ static int install_hooks(void) {
     // was dump-proven fatal - the abs-jmp trampoline clobbers rax which the
     // stolen prologue feeds into rbp/movaps later in FUN_140DBF240).
     install_v4_vtable_hook();
+    // front-end twin (menu/loading frames): session edge detection + the
+    // only dispatch consumer that exists outside the in-game idler —
+    // quit-to-menu round trips used to raise no event at all (2026-09-26
+    // crash class, see hoi4_session.cpp idler-edge note).
+    install_fe_v4_vtable_hook();
     return 1;
 }
 

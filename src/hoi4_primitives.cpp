@@ -48,6 +48,14 @@ int hoi4_base(lua_State *Ls) {
     return 1;
 }
 
+// session-switch event raised but not yet dispatched by the frame-top
+// consumer — a world rebuild runs inside that window (see hoi4_session.cpp).
+// Mod detour callbacks use this to let build-time engine calls through.
+int hoi4_session_pending(lua_State *Ls) {
+    lua_pushboolean(Ls, session_pending());
+    return 1;
+}
+
 // lightuserdata -> integer (Lua cannot do arithmetic on userdata)
 int hoi4_to_number(lua_State *Ls) {
     void *p = lua_touserdata(Ls, 1);

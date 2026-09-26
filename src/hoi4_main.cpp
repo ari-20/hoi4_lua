@@ -497,6 +497,7 @@ static const luaL_Reg hoi4_lib[] = {
     {"game_speed", hoi4_game_speed},             // H: game control
     {"game_set_speed", hoi4_game_set_speed},
     {"game_pause", hoi4_game_pause},
+    {"session_pending", hoi4_session_pending},   // switch event raised, dispatch pending
     {"call_u64", hoi4_call_u64},                 // G: guarded engine call
     {"call_void", hoi4_call_void},
     {"engine_alloc", hoi4_engine_alloc},

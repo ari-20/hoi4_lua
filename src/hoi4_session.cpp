@@ -138,6 +138,58 @@ void session_hooks_install(void) {
       n, (unsigned long long)ctorA, (unsigned long long)dtorA, loadA ? "armed" : "off");
 }
 
+// -+ idler-edge session events (menu round-trip coverage, 2026-09-26)
+// The DR breakpoints above only fire on the process's FIRST session
+// creation: "quit to menu -> new game / load save" rebuilds the world IN
+// PLACE without rewriting the gs slot (coverage note above), so mod Lua
+// state survived across worlds with no event — the disable_supply knife
+// swallowed the new world's build-time UpdateSupply and the engine read a
+// never-built supply table (crash 2026-09-26 x6, archive/t93_crash/).
+//
+// The engine DOES switch idlers for that transition: CInGameIdler <->
+// CFrontEndIdler via SetIdler sub_14222EA60 (writes graphics+112, then the
+// main loop calls the new idler's vtable slot4 every frame — f05/f09
+// findings). Both idlers' slot4 are now hooked (hoi4_frame.cpp) and each
+// hook records here which idler is alive:
+//   edge front-end -> in-game  = entering the game  -> START flag
+//   edge in-game -> front-end  = quit to menu       -> END+START flags
+// The merged END+START dispatch (cleanup + script reload + session
+// callbacks) then runs on the FIRST MENU FRAME — BEFORE the next world is
+// built, so mod state resets in time for the build calls to pass through.
+static volatile LONG g_idlerState;      // 0=boot, 1=in-game, 2=front-end
+void session_note_idler_ingame(void) {
+    LONG st = g_idlerState;
+    if (st == 2) {
+        InterlockedExchange(&g_evStart, 1);
+        L("[session] idler edge: front-end -> in-game (entering game)");
+    }
+    g_idlerState = 1;
+}
+void session_note_idler_frontend(void) {
+    LONG st = g_idlerState;
+    if (st == 1) {
+        InterlockedExchange(&g_evEnd, 1);
+        InterlockedExchange(&g_evStart, 1);
+        L("[session] idler edge: in-game -> front-end (quit to menu)");
+    }
+    g_idlerState = 2;
+}
+
+// -+ session-switch PENDING flag (Lua-facing)
+// True from the moment a session-switch event is raised (gs slot write /
+// load entry / idler edge) until the frame-top dispatch consumes it. A
+// world rebuild runs INSIDE that window (the in-place load rebuilds
+// synchronously within sub_140DA04F0; a menu round trip rebuilds on
+// front-end frames before the next entry). Mod detour callbacks that
+// swallow engine functions must let the call through while this is true —
+// the build-time invocations are the ones that construct the runtime
+// tables (crash 2026-09-26: swallowed UpdateSupply -> null supply table).
+// This is event semantics (the DR breakpoints already proved the entry),
+// NOT a heuristic fingerprint.
+int session_pending(void) {
+    return (g_evEnd || g_evStart) ? 1 : 0;
+}
+
 // -+ "in game NOW" signal (HTTP /health session_active)
 // gs != 0 alone is NOT enough: the MAIN MENU keeps a frontend gamestate
 // (hour frozen, valid uid — observed 2026-09-12), so gs != 0 alone is true in
@@ -171,7 +223,13 @@ static void session_call_lua(lua_State *Ls, const char *fn) {
 
 // frame-top consumer (g_luaLock held, main thread, shallow stack). Events
 // raised during a load coalesce here into ONE end+start dispatch.
-void session_dispatch_locked(lua_State *Ls) {
+// in_game_frame: which idler is dispatching — the FE twin hook (menu /
+// loading frames) passes 0, the in-game tick passes 1. The HasGameStarted
+// re-arm below must NOT run on menu frames: a quit-to-menu round trip
+// dispatches here BEFORE the next world is built, and the gate re-arms
+// only after the world exists (first IN-GAME frame, same timing as the
+// load_save in-place path).
+void session_dispatch_locked(lua_State *Ls, int in_game_frame) {
     if (!g_evEnd && !g_evStart) return;      // fast path: one relaxed read each
     int end = InterlockedExchange(&g_evEnd, 0);
     int start = InterlockedExchange(&g_evStart, 0);
@@ -197,7 +255,7 @@ void session_dispatch_locked(lua_State *Ls) {
         // in-place 读档（ESC 菜单读档/load_save）会清掉
         // HasGameStarted 门 (gs+2617) 且不重跑会话启动函数 → 每日/每周/每月
         // 派发在 fire 前全部短路。此处幂等重开（对正常启动无害）。
-        {
+        if (in_game_frame) {
             uint64_t gs = *(volatile uint64_t *)((uint8_t *)g_base + RVA_GAMESTATE_PTR);
             if (gs) {
                 ((void(__fastcall *)(void *, int))(

@@ -31,6 +31,9 @@ static const uint64_t kOffValues[OFF_COUNT] = {
     /* GFT_VTABLE        */ 0x278A670,  // RTTI CGlobalFlagTrigger
     /* INGAME_IDLER_V4   */ 0xDD3A50,   // CInGameIdler vt slot4 read
     /* INGAME_IDLER_VTBL_SLOT4 */ 0x2969010, // CInGameIdler vt + 0x20
+    /* FRONTEND_IDLER_V4 */ 0xB3CA20,   // CFrontEndIdler vt slot4 (f05: Idle
+                                       //   body = frontend.cpp:177 frame loop)
+    /* FRONTEND_IDLER_VTBL_SLOT4 */ 0x2949D70, // CFrontEndIdler vt(0x2949D50) + 0x20
     /* ENGINE_ALLOC      */ 0x21C9AF0,  // j_j__malloc_base (thunk chain traced)
     /* MGR_CTOR          */ 0x24B4C40,  // fdiff
     /* SET_SPEED         */ 0x1EDE50,   // fdiff

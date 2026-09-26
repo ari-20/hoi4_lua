@@ -1,91 +1,76 @@
 ds_decisions = {
 
-	# ---- 三刀开关: 双状态决议对, 按旗切换可见 (决议栏一眼读态);
-	# complete_effect 置/清 UI 旗 + 调 Lua 注册同名效果立即生效 ----
+	# ---- 三对双状态开关: visible 一律走 Lua trigger 读 mod STATE 真值
+	# (register 于 lua/disable_supply.lua)。不用 global flag —— 旗随存档、
+	# STATE 每会话复位，且控制台/Lua 直开时旗不同步，会出现"显示与实际相反"
+	# 的漂移态。trigger 与 STATE 同源，永不漂移。
+	# complete_effect 只调同名 Lua effect 改 STATE，不置旗 ----
 	ds_supply_on = {
 		icon = generic_operation
-		visible = { is_ai = no NOT = { has_global_flag = DS_SUPPLY_ON } }
+		visible = { is_ai = no NOT = { ds_supply_active = yes } }
 		available = { always = yes }
 		days_re_enable = 0
 		is_good = no
 		fire_only_once = no
 		desc = DsSupplyDesc
-		complete_effect = {
-			set_global_flag = DS_SUPPLY_ON
-			ds_supply_on = yes
-		}
+		complete_effect = { ds_supply_on = yes }
 		ai_will_do = { factor = 0 }
 	}
 	ds_supply_off = {
 		icon = generic_operation
-		visible = { is_ai = no has_global_flag = DS_SUPPLY_ON }
+		visible = { is_ai = no ds_supply_active = yes }
 		available = { always = yes }
 		days_re_enable = 0
 		is_good = no
 		fire_only_once = no
 		desc = DsSupplyDesc
-		complete_effect = {
-			clr_global_flag = DS_SUPPLY_ON
-			ds_supply_off = yes
-		}
+		complete_effect = { ds_supply_off = yes }
 		ai_will_do = { factor = 0 }
 	}
 
 	ds_trade_on = {
 		icon = generic_operation
-		visible = { is_ai = no NOT = { has_global_flag = DS_TRADE_ON } }
+		visible = { is_ai = no NOT = { ds_trade_active = yes } }
 		available = { always = yes }
 		days_re_enable = 0
 		is_good = no
 		fire_only_once = no
 		desc = DsTradeDesc
-		complete_effect = {
-			set_global_flag = DS_TRADE_ON
-			ds_trade_on = yes
-		}
+		complete_effect = { ds_trade_on = yes }
 		ai_will_do = { factor = 0 }
 	}
 	ds_trade_off = {
 		icon = generic_operation
-		visible = { is_ai = no has_global_flag = DS_TRADE_ON }
+		visible = { is_ai = no ds_trade_active = yes }
 		available = { always = yes }
 		days_re_enable = 0
 		is_good = no
 		fire_only_once = no
 		desc = DsTradeDesc
-		complete_effect = {
-			clr_global_flag = DS_TRADE_ON
-			ds_trade_off = yes
-		}
+		complete_effect = { ds_trade_off = yes }
 		ai_will_do = { factor = 0 }
 	}
 
 	ds_pin_on = {
 		icon = generic_operation
-		visible = { is_ai = no NOT = { has_global_flag = DS_PIN_ON } }
+		visible = { is_ai = no NOT = { ds_pin_active = yes } }
 		available = { always = yes }
 		days_re_enable = 0
 		is_good = no
 		fire_only_once = no
 		desc = DsPinDesc
-		complete_effect = {
-			set_global_flag = DS_PIN_ON
-			ds_pin_on = yes
-		}
+		complete_effect = { ds_pin_on = yes }
 		ai_will_do = { factor = 0 }
 	}
 	ds_pin_off = {
 		icon = generic_operation
-		visible = { is_ai = no has_global_flag = DS_PIN_ON }
+		visible = { is_ai = no ds_pin_active = yes }
 		available = { always = yes }
 		days_re_enable = 0
 		is_good = no
 		fire_only_once = no
 		desc = DsPinDesc
-		complete_effect = {
-			clr_global_flag = DS_PIN_ON
-			ds_pin_off = yes
-		}
+		complete_effect = { ds_pin_off = yes }
 		ai_will_do = { factor = 0 }
 	}
 }

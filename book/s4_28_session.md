@@ -342,6 +342,37 @@ qword_14332F698 = qword_14332F6A0 = this)** — 前端 CFrontEndIdler::OnEnter
 构造 = malloc 0xB30 (游戏开局 sub_140B3E9A0 尾) / 前端 = malloc 0x640
 (InitGame sub_1401835A0); 前端 ctor sub_140B3B290。
 
+**CFrontEndIdler 帧侧契约** (主表 0x142949D50; 菜单/载入屏帧循环):
+Idle = 槽[4] **sub_140B3CA20** (frontend.cpp:177 帧循环; 内嵌右键菜单路径与
+事件泵)。**StartNewGame = sub_140B3E9A0** (帧尾状态机拍, 首行门
+`u8(this+1591)` 启动请求): 日志 "[[ Launching SINGLEPLAYER-game ]]" /
+MULTIPLAYER; 构造 CInGameIdler (malloc 0xB30 → ctor sub_140DC1B30) 后调
+SetIdler 切入游戏。回主菜单对称路径 = Idle (0x140DD3A50) 内嵌序列 (调用点
+RVA 0xDD6668, 日志串 "EXITING_TO_FRONTEND"): SetGameStarted
+(qword_14332F260, 0) → 构造 CFrontEndIdler (malloc 0x640 → ctor
+sub_140B3B290) → SetIdler。读档/新局世界构建在 FE 帧上推进 (装载器
+sub_141DEA910 与 CGameSetup 状态机 sub_140DA3F20), 完成后才切 InGameIdler —
+**世界构建期引擎仍跑在 FE 帧循环内** (崩溃定案, 见 archive/t93_crash/)。
+退出点火器 = **sub_14027E060** (读全局 F6A0 当前 idler → 置 idler+1913=1,
+Idle 退出序列的唯一放行门; UI 确认按钮与程序化退出同用此点火, 实测置位
+2 秒内完成 FE 构造 + SetIdler)。
+
+FE 旗族与载入回调槽 (实例布局增量):
+
+| 槽/偏移 | 值/类型 | 语义 | 备注 |
+|---|---|---|---|
+| 槽[4] (+32) | 0xB3CA20 | Idle 帧循环 | 前端态唯一帧驱动拍 |
+| 槽[14] (+112) | 0xB3D400 | IsLoadingComplete | `return u8(this+1590)` |
+| 槽[55] (+440) | 0xB3D410 | RequestStart | 置 u8(this+1591)=1 + "start_game_02" 音效 |
+| 槽[80] (+640) | 0xB3D750 | SetLoadingComplete | 置 u8(this+1590)=1; CStartGameCommand::Execute (sub_14163DA10) 尾部落此 |
+| 槽[84] (+672) | 0xB3BE00 | QuitToDesktop 序列 | 置 u8(this+1593)=1 |
+| 槽[111] (+888) | 0xB3D4B0 | **OnSaveGameLoadBegin** | 读档开始回调; 派发点 = sub_140DA04F0 (vt[+888]) |
+| 槽[112] (+896) | 0xB3D6C0 | **OnSaveGameLoaded** | 读档完成回调; 派发点 = sub_140DA04F0 (vt[+896]); 后接槽[58] 相机定位 |
+| +1568 | CGameSetup* | 读档/新局状态机宿主 | ctor sub_140D975E0, owner 反指 +1168; 模式 state@+1204 |
+| +1590 | u8 | 载入完成旗 | 槽[80] 置 / 槽[14] 读 |
+| +1591 | u8 | 启动请求旗 | 槽[55] 置 / StartNewGame 消费 (消费时清 0 再置回 1) |
+| +1593 | u8 | 退出中旗 | 槽[84] 置 / Idle 尾部事件泵门 |
+
 **六节拍槽 64-69** (主表 0x142968FF0; GUI 侧脉冲, 详行为注记 §4.2.4 步骤 15):
 
 | 槽 | 字节偏移 | 函数 | 语义 |

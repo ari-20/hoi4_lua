@@ -121,9 +121,9 @@ loader-only legacy 键 (writer 不发射):
 | +1424 | vector 24B | 位置跟随子对象指针数组 | {data@1424, count@1436, alloc@1440} (SetLocation 遍历对每元素 sub_1414D0F10 广播) | 不序列化; 形态定案/语义推定 |
 | +1448 | u64 ×3 | 0-init 三元组 | +1448/+1456/+1464; 容器形态推定, dtor 不杀 = POD 元 | 不序列化 (推定) |
 | +1472 | CEquipmentVariantPool 内嵌 64B | force_equipment_variants 块 | +840 同型; vec1 {data@1480, cap@1488, count@1492, alloc@1496}, vec2 {data@1504, cap@1512, count@1516, alloc@1520}, u8@1528 | loader-only legacy 键 13787, writer 不发射 |
-| +1536 | fixed×1e-5 | max_supply (tok 14915) 随身储备上限 (满值 = SUPPLY_GRACE(72)×100000) | init = 100000×dword_143331604 (NMilitary.SUPPLY_GRACE); **每小时** sub_140C8FB20 重算 (MODIFIER_NO_SUPPLY_GRACE 266 族, 降幅钳 dword_1433316B0 = SUPPLY_GRACE_MAX_REDUCE_PER_HOUR); loader 弃读 | 消费链 §4.18.14 |
-| +1544 | fixed×1e-5 | supply_gain (tok 19692) 本小时增量 | **每小时** sub_1414E4780 写; loader 弃读 | 消费链 §4.18.14 |
-| +1552 | fixed×1e-5 | army_current_supply_ratio (tok 19693) 当前储备量 | init 同 +1536; **每小时** sub_1414E4780 增/衰减 (增益 = STARTING_GAIN + max(+1544, SPEED_GAIN_PER_HOUR) 钳 MAX_GAIN, 上钳 +1536; 衰减 = STORED_SUPPLY_CONSUMPTION_RATE_FACTOR×(100000−CUnit+64)/100000, 门 = +760/retreat/withdraw); 读侧 sub_140C87EC0; loader 弃读 | 消费链 §4.18.14 |
+| +1536 | fixed×1e-5 | max_supply (tok 14915) 随身储备上限 (满值 = SUPPLY_GRACE(72)×100000) | init = 100000×dword_143331604 (NMilitary.SUPPLY_GRACE); **每小时** sub_140C8FB20 重算 (MODIFIER_NO_SUPPLY_GRACE 266 族, 降幅钳 dword_1433316B0 = SUPPLY_GRACE_MAX_REDUCE_PER_HOUR); loader 落字段 (writer 0x140C90550 ↔ loader 0x140C8C7E0) | 消费链 §4.18.14 |
+| +1544 | fixed×1e-5 | supply_gain (tok 19692) 本小时增量 | **每小时** sub_1414E4780 写 (随小时正反馈爬升 0.01→0.15/h); loader 落字段 (同上述 writer/loader) | 消费链 §4.18.14 |
+| +1552 | fixed×1e-5 | army_current_supply_ratio (tok 19693) 当前储备量 | init 同 +1536; **每小时** sub_1414E4780 更新, 分支门 = vt[48] 储备比 < CUnit+64 或 CUnit+64 ≥ 100000 → 增益 = min(SPEED_GAIN_PER_HOUR + max(prev(+1544), STARTING_GAIN), MAX_GAIN_PER_HOUR) 上钳 +1536, 否则衰减 = STORED_SUPPLY_CONSUMPTION_RATE_FACTOR×(100000−CUnit+64)/100000; 消耗门 = +760/retreat(+588)/withdraw(+589); 读侧 sub_140C87EC0; loader 落字段 | 消费链 §4.18.14 |
 | +1560 | u8 | fuel 加载置位旗 | loader case 12003 解析值即弃 + 置 1; ctor=0 | 不序列化; 行为定案/语义推定 |
 | +1568 | fixed×1e-5 | fuel (tok 12003) | loader 值不落字段 | ≠0 才写 |
 | +1576 | fixed×1e-5 | fuel_requested (tok 15298) | loader 值不落字段 | ≠0 才写 |
@@ -711,13 +711,27 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
 
 **总模型 = 随身储备**: +1536 上限 / +1552 储备 / +1544 增量 / +1176 缺补天数 /
 CUnit+64 (= CSupplyConsumer+48, 基对象 CUnit+16; ctor sub_140BF8700 写 100000,
-supply_consumer.h:72 断言) = 所在地可获补给比 — 每小时写者未决 (语料无写点;
-5 读者反推语义)。全部消费点只读同一个**有效补给比**:
+supply_consumer.h:72 断言; 不序列化 — consumer 侧只发 19698/19943) = 所在地可获
+补给比。写者收口 (高置信): 写点集合均落 CSupplySystem::UpdateSupply 调用树
+(每游戏小时一次) —— 消费者重建清零 (流亡 sub_1412212C0 /
+复位 sub_141230CA0, 唯一调用点 sub_14121B650)、比值重算 sub_141A0AFB0 /
+sub_141A0ACF0 (+48 = 100000×_ReceivedSupply/_AskedSupply, asked=0 → 100000;
+supply_consumer.cpp:167/181 断言); ctor 常量 100000 (空容器/项目族 ctor
+sub_140C482A0 同)。消费者宿主矩阵:
+CArmy/CTaskForce/CRailwayGun = 宿主+16 内嵌基 (补给比落宿主+64);
+CCountryAirContainer/项目消费者 = 宿主+0 (落宿主+48)。序列化链坐标系 (定案):
+CArmy writer 0x140C90550 / loader 0x140C8C7E0 跑在 mdisp=16 子对象 (0x14295a490)
+上, writer/loader 体内偏移 = 本节偏移 −16 (12 组 token 互证)。全部消费点只读
+同一个**有效补给比**:
 
 ```
 sub_140C87EC0(u)  = clamp( max( *(u+64), 100000×+1552/(100000×SUPPLY_GRACE) ), 0, 100000 )
 sub_140C77680(u, out, norm)  惩罚比 = (OOS天数/30) × (1−有效比) × (1+mod94/383 out_of_supply_factor);
                              +760 非零 → 0; norm=1 时按 SUPPLY_THRESHOLD_FOR_ARMY_ATTRITION 归一
+日 tick [19] sub_140C78B00 与 sub_140C77680 均 inline 复算上述有效比 (不调 sub_140C87EC0)
+vt 实现面 (vtable 全扫): [48] 储备比 getter 全 exe 仅 2 实现 (CArmy sub_140C87E10 /
+CRailwayGun 0x140E8B130); [43] HasLowSupply 2 (sub_140C88120 / 0x140E8B710);
+[19] 日 tick 2 (sub_140C78B00 / 0x140E89480); sub_1414E4780 不写 +64 (只写 +1552/+1544)
 ```
 
 | 消费点 | 函数 | 补给项 |
@@ -758,5 +772,6 @@ AI 面同读 140C87EC0 (front eval 141064840 / 训练门 141A55110 / AIFC refres
 PARATROOPER/MARINE_EXTRA_SUPPLY_GRACE (140C8FB20), 595 SUPPLY_PENALTY_ON_CORE +
 603/604 LOCAL_(NON_CORE_)SUPPLY_IMPACT (1412AF7C0)。
 CRailwayGun 镜像: max_supply +1024 / supply_gain +1032 / ratio +1040; 小时链
-140E8B8E0, 日 tick 140E8B130, HasLowSupply 140E8B710, 移速 140E8AE40。
+140E8B8E0, 日 tick 140E89480 (vt[19]), 储备比 getter 0x140E8B130 (vt[48]),
+HasLowSupply 140E8B710, 移速 140E8AE40 (仅认镜像储备比, 不读 CUnit+64)。
 脚本供给 = supply_units effect (sub_140C79080: +1552 += 值, 封顶 +1536)。

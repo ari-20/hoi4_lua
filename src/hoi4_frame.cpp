@@ -45,7 +45,7 @@ static void tick_dispatch_lua(unsigned long long now)
     static unsigned long long s_lastReloadCheck;
     // B: session events are consumed first — a session switch forces a full
     // reload itself (session_dispatch_locked), so ordering matters.
-    session_dispatch_locked(g_L);
+    session_dispatch_locked(g_L, 1);   // in-game frame (gate re-arm allowed)
     if (now - s_lastReloadCheck >= 1000) {
         s_lastReloadCheck = now;
         maybe_reload_locked();
@@ -95,6 +95,7 @@ static InGameIdlerV4_t g_origIdlerV4;
 
 static void HK_InGameIdlerV4(void *self, uint8_t flags)
 {
+    session_note_idler_ingame();          // idler edge: FE -> game => START
     unsigned long long now = GetTickCount64();
     long f = InterlockedIncrement(&g_frames);
     // First entry = the engine's pinned main thread. Record it once; the hook
@@ -137,6 +138,68 @@ void install_v4_vtable_hook(void)
           (void *)slot, cur, (void *)&HK_InGameIdlerV4);
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         L("[frame] vtable hook install faulted");
+    }
+}
+
+// -+ front-end frame hook (main menu / loading screens)
+// Same vtable-slot4 shape as the in-game hook above, on CFrontEndIdler
+// (vt 0x2949D50, slot4 = sub_140B3CA20 Idle = frontend.cpp:177 frame loop;
+// f05 findings). Purpose: give the session machinery a frame-top consumer
+// while the engine idles on the FRONT END — previously dispatch only
+// existed on the in-game idler, so quit-to-menu round trips raised no event
+// and mod Lua state survived into the next world (crash 2026-09-26; see
+// the idler-edge note in hoi4_session.cpp).
+// Scope is deliberately MINIMAL: idler-edge detection + session_dispatch
+// ONLY. No session_note_frame (session_active/health must stay in-game
+// only), no timers / async / observe / HTTP dispatch (the front-end
+// gamestate is not a live game world — mod callbacks reading game memory
+// there would fault), no mtime reload watch.
+typedef void (*FeIdlerV4_t)(void *self, uint8_t flags);
+static FeIdlerV4_t g_origFeIdlerV4;
+
+static void HK_FrontEndIdlerV4(void *self, uint8_t flags)
+{
+    session_note_idler_frontend();        // idler edge: game -> FE => END+START
+    if (g_L && g_initialized) {
+        // same lock discipline as tick_dispatch_lua (TryAcquire: a lost
+        // frame is harmless — the flags stay raised for the next one)
+        DWORD tid = GetCurrentThreadId();
+        if (g_tickOwnerTid != tid && (!g_luaOwner || g_luaOwner == tid)) {
+            if (TryAcquireSRWLockExclusive(&g_luaLock)) {
+                g_luaOwner = tid; g_luaDepth = 1;
+                g_tickOwnerTid = tid;
+                session_dispatch_locked(g_L, 0);  // menu frame: NO gate re-arm
+                g_tickOwnerTid = 0;
+                g_luaOwner = 0; g_luaDepth = 0;
+                ReleaseSRWLockExclusive(&g_luaLock);
+            }
+        }
+    }
+    g_origFeIdlerV4(self, flags);
+}
+
+void install_fe_v4_vtable_hook(void)
+{
+    void **slot = (void **)(g_base + RVA_FRONTEND_IDLER_VTBL_SLOT4);
+    __try {
+        void *cur = *slot;
+        if (cur != (void *)(g_base + RVA_FRONTEND_IDLER_V4)) {
+            L("[frame] FE slot4 mismatch: got %p expect %p - NOT hooking",
+              cur, (void *)(g_base + RVA_FRONTEND_IDLER_V4));
+            return;
+        }
+        DWORD op;
+        if (!VirtualProtect(slot, sizeof(void *), PAGE_READWRITE, &op)) {
+            L("[frame] FE VirtualProtect failed %lu", GetLastError());
+            return;
+        }
+        g_origFeIdlerV4 = (FeIdlerV4_t)cur;
+        *slot = (void *)HK_FrontEndIdlerV4;
+        VirtualProtect(slot, sizeof(void *), op, &op);
+        L("[frame] FE vtable slot4 hooked @ %p (%p -> %p)",
+          (void *)slot, cur, (void *)&HK_FrontEndIdlerV4);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        L("[frame] FE vtable hook install faulted");
     }
 }
 

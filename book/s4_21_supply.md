@@ -29,7 +29,7 @@ vtable 0X29A2B08, 逐国 scoped-ptr, 扩容 140ECAF00); tag 反查: `*(el+120)`
 | +104 | u8 | 旗 (多个小 accessor 读; 名未决) | | 存在定案 |
 | +112 | CSupplySystem* | **系统回指** (ctor 参 a2) | | 不序列化 |
 | +120 | CCountry* | 属主国家 (ctor 参 a3 = `*(gs+784)[i]` 国家数组元素) | | |
-| +128 | 匿名结构 (800B)* | **系统侧每国 800B 记录指针** (ctor 参 a4 = `*(sys+288) + 800*国idx`; 消费 +384 计数/+360 数组随机选) | | 不序列化 |
+| +128 | 匿名结构 (800B)* | **系统侧每国 800B 记录指针** (ctor 参 a4 = `*(sys+288) + 800*国idx`; 消费 +384 计数/+360 数组随机选; **记录内部 +208 表槽** = 消费者 `cmp byte [idx + *(rec+208)]` 逐省查 byte 表, 基址由 UpdateSupply 世界构建调用建立 — 构建期被跳过则基址 null, 崩溃反证) | | 不序列化; +208 槽推定 |
 | +136 | 匿名结构 (NNB 形状) RH 桶数组 | **disrupted_supply 表头** {tab@+144=空桶 &unk_143086320, count@+152, mask@+156, maxdist u8@+160, load_factor f32 0.9@+164} | ⚠ army_manpower_need (amn) 不在此 — amn +136 属 state_garrison_data (writer 0X141000700 键 14076, SGD+136 u32); loader case 19698 插入本表 | |
 | +168 | 匿名结构 (元素待裁) RH 桶数组 | **运行时供应节点状态表** {tab@+176=空桶 &unk_1430B2C10, count@+184, mask@+188, maxdist@+192, lf 0.9@+196} — **104B 桶** {…, +36 dword, +60 dword, 内层 32B 容器@+80/+88} | 重建 0X14122BD90 (按系统侧 120B 国别记录旗 &2/&4 分支遍历清桶) | 不序列化; 形态定案/语义推定 |
 | +200 | u32 | wanted_supply_trucks | writer sub_1424C2F40 (u32 写器) 读 `*(DWORD*)(v3+200)`; lua reader 亦作 ru32; loader 弃读 | |
@@ -138,7 +138,10 @@ CBC8C0 阈值分流 (定案): `v35 = BASE_LAND_TRADE_RANGE² × ln(两国持有�
 
 | 域级消费函数 | 语义 | 证据 |
 |---|---|---|
-| sub_140C00590(unit, prov, threshold)→bool | 移动域供应阈值判定 (unit.cpp:3150; 唯一调用者 1414D9280 unitcontroller 移动校验); 读 +312 行 +48 列表 (16B/项={节点idx,国idx,权重}) 与网络条目 +56/+64 现算 | 断言+调用簇 定案 |
+| sub_140C00590(unit, prov, threshold)→bool | 移动域供应阈值判定 (unit.cpp:3150; 唯一调用者 1414D9280 unitcontroller 移动校验); 读 +312 行 +48 列表 (16B/项={节点idx,国idx,权重}) 与网络条目 +56/+64 现算, 另裸读 unit+64 作阈值比较; 拒动落 unit+590=1 / unit+680=3 | 断言+调用簇 定案 |
+| sub_140F392D0 | 供应地图模式上色 (直读发布器): 逐省取省 +272 陆军单位数组 (+284 计数, 元素为指针, 取单位 +64) 均值 (100000 满值, 空数组视满分); 均值 ≥ SUPPLY_STATUS_DISPLAY_THRESHOLD (全局 float dword_143334128) → reach 档 = clamp(发布器逐省值 ÷ BEST_FLOW_DISPLAY (全局 float dword_143333FD8) × 28, 0..28), 否则 status 档 29..31; 整段被发布器 +68 (dword_1430B3C54) 就绪门门控 | 直读 高置信 |
+| sub_14121F1D0 | 顶栏 supply_value/supply_ratio_bar 元件值 = calc 记录 (css+128)+312 × 火车比 (css+272 ÷ calc+320, calc 值 ≤ MIN_TRAIN_REQUIREMENT 时自动满分) × 流量比 (css+208 数组元素 +32 子对象 +40/+44); 全 1e5 整数运算, 满比时输出即 calc+312 (逐国探针对拍); 面值 = round(输出/1000) 百分数 (刷新 sub_1418A33A0, 满值特判 token 87) | 直读+探针 定案 |
+| sub_141633810 | 顶栏后勤 tooltip (LOGISTICS_CAPACITY[_DETAILED_DESC] 键): 火车/卡车/运输船行 = 持久通道比值 (css+272/calc+320 等); ⚠ 与面值分属两套来源 — css+208 流量累积为每次重算清空的临时量, 供给系统冻结时面值塌 0 而本 tooltip 行仍满 | 直读 定案 |
 | sub_141635650 / sub_141636C20 / sub_14162FB40 | 供应地图 tooltip 族 (SUPPLY_CAP_AVAILABLE / SUPPLYMODE_TOOLTIP_ENEMY_DISRUPTION / CONSUMER_SUPPLY_TOOLTIP; 直读 +312 216B 行与 232B 条目) | 本地化键 定案 |
 | sub_14167CBD0 (+ 入口 14167C560) | 逐省供应状态数组构建 → UI 侧缓存 {data@a1+56, cap@+64, count@+68} | 定案 |
 | sub_1402B95E0(gs, json) | "province_supplies" JSON 导出: 每省 = clamp(100×max(流值),0,100) | 定案 |
@@ -151,9 +154,45 @@ CBC8C0 阈值分流 (定案): `v35 = BASE_LAND_TRADE_RANGE² × ln(两国持有�
 CCountrySupplySystem+168 节点流缓存 (写者 = lam 7/lam 8); css+208 供应流数组无
 独立外部读者 (写侧内部消费); css+136 disrupted_supply 独立查询函数未定位,
 读取推定内联于 141636C20 — 待裁。
-UI 渲染链: UpdateSupply 尾调 14167C560 → 全局发布器 unk_1430B3C10
-{data@+56, cap@+64, count@+68=就绪门} → map mode 上色 140F392D0 (读发布器副本,
-不直读 +312)。单位侧有效补给比收口 = sub_140C87EC0 (见 §4.18)。
+UI 渲染链: UpdateSupply 尾调 14167C560 (唯一调用点) → 全局发布器 unk_1430B3C10
+{data@+56 = 槽 qword_1430B3C48, cap@+64, count@+68 = 槽 dword_1430B3C54 = 就绪门}
+(唯一写者 = UpdateSupply) → map mode 上色 140F392D0 (直读 +56 槽逐省数组,
+不直读 +312)。发布器重建带状态门 (全局 qword_14333CFB8 对象首 dword == 5 或
+app 管理器 vt[23] 链谓词, 实测静置态双闭 — 非每拍必跑)。单位侧有效补给比收口
+= sub_140C87EC0 (见 §4.18)。
+
+#### 4.21.1d 调用面与消费者补给比写侧
+
+**入口面** (全 .text E8/E9 扫描, 无函数指针表间接引用):
+
+| 入口 | a2 | 形态 | 上游 |
+|---|---|---|---|
+| sub_140EC8DB0 | 1 | 包装体强制 a2=1 后尾跳进入本体 | sub_1401DF400 / sub_141B6E9D0 |
+| sub_140ECA270 | 0 | 直调 2 次 (读档重建) | sub_1401DA490 / sub_140DD6A30 |
+| sub_140DD9B20 | 0 | 直调 (载入完成) | sub_140DDC350 |
+| sub_140ED02C0 | 0 | 虚调门条件包装后尾跳进入本体 | 命令/UI 链 8 处 |
+
+a2 语义 (本体以 `v423 = a2` 捕获): 1 = 每小时增量档, 更新面受
+`!v423 || 节点 id%24 == 槽` 门控 (id%24 子集更新); 0 = 全量档。
+尾跳与直调落点同为函数首字节。
+
+读档链: sub_1401C8A60 → sub_1401EA1B0 → sub_1401D0E30 → sub_1401EC950
+(malloc 392B + ctor sub_140EC0610, 结果写 gs+984 (`a1[123]`) 整体替换 sys)
+→ sub_140ECAF00 (按国家数分配并清零 calc+288 / 216B 行+312 / 锁+336)。
+
+**消费者补给比写侧** (CSupplyConsumer+48 = 宿主 +64 或 +48): lam 3 消费者重建
+逐消费者清零 (流亡 sub_1412212C0) → lam 7 节点重算链 sub_141230D40 →
+sub_14121EF20 → sub_1412229D0 → sub_14121A790 / sub_141215BC0 → 尾段
+sub_140EB5210 / sub_14122AA00 / sub_141224480 回填 received/asked → 比值落点
+sub_141A0AFB0 / sub_141A0ACF0 (+48 = 100000×_ReceivedSupply/_AskedSupply,
+asked=0 → 100000); 复位写点 sub_141230CA0 (写 0, 唯一调用点 sub_14121B650)。
+
+| 宿主 | 消费者基对象 | 补给比落点 |
+|---|---|---|
+| CArmy / CTaskForce / CRailwayGun | 宿主+16 内嵌 | 宿主+64 |
+| CCountryAirContainer / 项目消费者 | 宿主+0 | 宿主+48 |
+
+> ⚠ 读档时 sys 对象整体替换 (旧对象弃用), 外部缓存的 css 指针须重取。
 
 #### 4.21.2 CSupplyCalculationData (每国 800B 供应计算记录, 纯结构无虚表)
 
