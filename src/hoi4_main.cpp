@@ -549,7 +549,7 @@ void lua_init_thread(void *unused) {
     lua_policy_install(g_L);
     audit_init_config();
     audit_open(logs_dir_utf8());
-    audit_session_start(offsets_version(), "0.1.0");
+    audit_session_start(offsets_version(), "0.3");
     // register the hoi4 bridge BEFORE any script so load-time code can
     // call hoi4.log(...) etc.
     lua_newtable(g_L);
