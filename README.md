@@ -83,7 +83,7 @@ tools\build_dll.cmd        # hoi4_bridge.dll + hoi4_launcher.exe
 mods\register_userdir.cmd    （或 powershell -File mods\register_userdir.ps1）
 ```
 
-### 两个 mod 的作用
+### mod 一览
 
 - **example**：功能样板 mod，演示桥接能力。游戏内决议开关每日
   tick：自动存档额外保留（`autosave_<时间戳>.hoi4`，滚动保留 12 份）、
@@ -96,6 +96,8 @@ mods\register_userdir.cmd    （或 powershell -File mods\register_userdir.ps1�
 - **lua_verify**：内存 ↔ 存档数据一致性验证（导出内存世界态并与存档
   文件对拍）。**对普通用户无用**。使用它需要在游戏设置中关闭二进制
   存档（settings.txt：`save_as_binary=no`），否则存档侧无法解析。
+- **disable_supply**：实验 mod——禁用补给系统（跳过每小时重算）、贸易
+  路线每小时降为每日、单位永不缺补给。
 
 ### lua_verify 使用流程
 
@@ -165,6 +167,7 @@ HOI4 安装，在游戏代码运行前把 `hoi4_bridge.dll` 注入游戏进程�
 |---|---|
 | `--exe=<路径>` | 覆盖 hoi4.exe 位置 |
 | `--probe` | 解析全部路径并打印，不启动游戏 |
+| `--no-mod-sync` | 跳过 `-start_save` 的存档头 mod 清单回写，dlc_load.json 保持原样 |
 
 ### 控制面（需 `-http`）
 
@@ -303,7 +306,7 @@ the game is running and the real DLL is locked.
 mods\register_userdir.cmd    (or: powershell -File mods\register_userdir.ps1)
 ```
 
-### The two mods
+### The mods
 
 - **example** — functional sample mod showing bridge capabilities.
   In-game decisions toggle daily ticks: autosave extra retention
@@ -322,6 +325,9 @@ mods\register_userdir.cmd    (or: powershell -File mods\register_userdir.ps1)
   in-memory world state and diffs it against the save file. **Useless for
   normal players.** Requires text saves (settings.txt:
   `save_as_binary=no`), or the save side cannot be parsed.
+- **disable_supply** — experimental mod: disables the supply system
+  (skips the hourly recalculation), downgrades trade routes from hourly
+  to daily, and units never run out of supply.
 
 ### Using lua_verify
 
@@ -399,6 +405,7 @@ audit log goes to `<Documents>\...\logs\audit\hoi4_audit.log`.
 |---|---|
 | `--exe=<path>` | override the hoi4.exe location |
 | `--probe` | resolve every path, print it, exit without launching |
+| `--no-mod-sync` | skip the `-start_save` save-header mod-list rewrite, leaving dlc_load.json untouched |
 
 ### Control plane (needs `-http`)
 

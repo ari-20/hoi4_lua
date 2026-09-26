@@ -117,3 +117,15 @@ DISABLE_SUPPLY = {
     end,
     probe = function(addr) return hoi4.detour_probe(addr) end,
 }
+
+-- ---------------------------------------------------------------- 决议开关
+-- common/decisions/ds_toggles.txt 的双状态决议对置/清全局旗 (DS_*_ON, 仅 UI
+-- 态) 并调用这里注册的同名效果立即生效。STATE 不落盘——读档后回到默认全
+-- 关，决议栏旗若残留 ON，点一次 off 再 on 对齐即可（实验 mod 不做持久化）。
+hoi4.effect("ds_supply_on",  function() STATE.supply = true  return "supply=on"  end)
+hoi4.effect("ds_supply_off", function() STATE.supply = false return "supply=off" end)
+hoi4.effect("ds_trade_on",   function() STATE.trade  = true  return "trade=on"  end)
+hoi4.effect("ds_trade_off",  function() STATE.trade  = false return "trade=off" end)
+hoi4.effect("ds_pin_on",     function() STATE.pin    = true  return "pin=on"    end)
+hoi4.effect("ds_pin_off",    function() STATE.pin    = false return "pin=off"   end)
+hoi4.log("disable_supply: 6 decision effects registered")

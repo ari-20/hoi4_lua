@@ -1,0 +1,91 @@
+ds_decisions = {
+
+	# ---- 三刀开关: 双状态决议对, 按旗切换可见 (决议栏一眼读态);
+	# complete_effect 置/清 UI 旗 + 调 Lua 注册同名效果立即生效 ----
+	ds_supply_on = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = DS_SUPPLY_ON } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = DsSupplyDesc
+		complete_effect = {
+			set_global_flag = DS_SUPPLY_ON
+			ds_supply_on = yes
+		}
+		ai_will_do = { factor = 0 }
+	}
+	ds_supply_off = {
+		icon = generic_operation
+		visible = { is_ai = no has_global_flag = DS_SUPPLY_ON }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = DsSupplyDesc
+		complete_effect = {
+			clr_global_flag = DS_SUPPLY_ON
+			ds_supply_off = yes
+		}
+		ai_will_do = { factor = 0 }
+	}
+
+	ds_trade_on = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = DS_TRADE_ON } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = DsTradeDesc
+		complete_effect = {
+			set_global_flag = DS_TRADE_ON
+			ds_trade_on = yes
+		}
+		ai_will_do = { factor = 0 }
+	}
+	ds_trade_off = {
+		icon = generic_operation
+		visible = { is_ai = no has_global_flag = DS_TRADE_ON }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = DsTradeDesc
+		complete_effect = {
+			clr_global_flag = DS_TRADE_ON
+			ds_trade_off = yes
+		}
+		ai_will_do = { factor = 0 }
+	}
+
+	ds_pin_on = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = DS_PIN_ON } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = DsPinDesc
+		complete_effect = {
+			set_global_flag = DS_PIN_ON
+			ds_pin_on = yes
+		}
+		ai_will_do = { factor = 0 }
+	}
+	ds_pin_off = {
+		icon = generic_operation
+		visible = { is_ai = no has_global_flag = DS_PIN_ON }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = DsPinDesc
+		complete_effect = {
+			clr_global_flag = DS_PIN_ON
+			ds_pin_off = yes
+		}
+		ai_will_do = { factor = 0 }
+	}
+}

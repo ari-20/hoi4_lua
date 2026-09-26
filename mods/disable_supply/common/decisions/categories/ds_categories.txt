@@ -1,0 +1,4 @@
+ds_decisions = {
+	icon = generic_operation
+	picture = generic_operation
+}
