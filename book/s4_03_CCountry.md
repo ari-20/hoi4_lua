@@ -148,7 +148,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +1217..+1227 | — | = claims {data@1216, cap@1224, count@1228, alloc@1232} 的 data 尾 + cap@1224..1227 | |
 | +1228 | u32 | claims 容器计数 | §4.3.8 起 |
 | +1229..+1247 | — | = claims count@1228 尾 + **alloc@1232..1239** + strategic_region_data 块头 **{max_load f32@1240=1.0, pad@1244}** | |
-| +1248 | 内嵌 | **strategic_region_data 链式迭代表头** (侵入式链表; ctor 全布局: {f32 max_load@1240=1.0, 侵入链头节点@1248 (malloc 0x20 自链), ?@1256, 桶@1264, ?@1272, ?@1280, mask@1288=7, 桶数@1296=8}; +1304/+1352/+1376/+1400/+1424 = 24B 容器×5 未决, ctor 哨兵; **+1328 = wargoal 容器** {data@1328, cap@1336, count@1340, alloc@1344} — 元+60 目标 tag / 元+64 类型, 类型 def+816 = annex 旗 (推定); **与 dip+104 available_wargoals 非同一容器** (全量 451 国计数分布: 同值 4 / 仅本侧非空 14 / 仅 dip+104 非空 1)) | writer 块键 0x39C2; 节点键 = CStrategicRegion*, 写 id@region+96; 值对象 {command_power i64@+16, more_ground_crews_enabled u8@+56, modifier 块@+64} |
+| +1248 | 内嵌 | **strategic_region_data 链式迭代表头** (侵入式链表; ctor 全布局: {f32 max_load@1240=1.0, 侵入链头节点@1248 (malloc 0x20 自链), 未决@1256, 桶@1264, 未决@1272, 未决@1280, mask@1288=7, 桶数@1296=8}; +1304/+1352/+1376/+1400/+1424 = 24B 容器×5 未决, ctor 哨兵; **+1328 = wargoal 容器** {data@1328, cap@1336, count@1340, alloc@1344} — 元+60 目标 tag / 元+64 类型, 类型 def+816 = annex 旗 (推定); **与 dip+104 available_wargoals 非同一容器** (全量 451 国计数分布: 同值 4 / 仅本侧非空 14 / 仅 dip+104 非空 1)) | writer 块键 0x39C2; 节点键 = CStrategicRegion*, 写 id@region+96; 值对象 {command_power i64@+16, more_ground_crews_enabled u8@+56, modifier 块@+64} |
 | +1249..+1263 | — | = **侵入链头指针@1248** (malloc 0x20 自链节点) 尾 + qword@1256 (ctor 零) | |
 | +1264 | 匿名结构 (NNB 形状)* | strategic_region_data **RH 桶数组** (16B 桶) | FNV(region)&mask 取桶 |
 | +1265..+1287 | — | = RH 桶数组@1264 尾 + qword@1272 + qword@1280 (桶指针+桶哨兵+计数/容量对, ctor 全零; sub_1401F4FF0(a1+158,0x10,节点)) | |
@@ -212,9 +212,9 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4168 | uint32 | **graphical_culture_2d token** | loader case 13951 |
 | +4176 | MSVC 串 | graphical_culture_2d 原文串 | 同上 |
 | +4177..+4207 | — | = 串尾 + neighbors 前置 | |
-| +4208 | uint8* | **neighbors 位图#1** {data@4208, ?@4216, n@4220} — 字节/国 (探针 GER n=333=tag 槽数); 重算 = sub_14070AF30 遍历 **controlled_provinces(+1064)** → 省静态描述符(+184) 邻接表(+112, 48B 元, id@+8) → 邻省 **controller(+392)** ≠ 己者去重入位图1/列表1; 控区变更后刷新 (0X1406EAB50/0X1406FF1F0/0X140E801A0) | 不序列化 (高置信) |
+| +4208 | uint8* | **neighbors 位图#1** {data@4208, 未决@4216, n@4220} — 字节/国 (探针 GER n=333=tag 槽数); 重算 = sub_14070AF30 遍历 **controlled_provinces(+1064)** → 省静态描述符(+184) 邻接表(+112, 48B 元, id@+8) → 邻省 **controller(+392)** ≠ 己者去重入位图1/列表1; 控区变更后刷新 (0X1406EAB50/0X1406FF1F0/0X140E801A0) | 不序列化 (高置信) |
 | +4232 | 容器 24B | **neighbors 列表#1** {data@4232, cap@4240, count@4244, alloc@4248} — u32 tag (断言 "Asking if X is a neighbor of Y…" country.h; **探针 GER count=11** = 德 1939 邻国信度锁死) | 不序列化 |
-| +4256 | uint8* | **neighbors 位图#2** {data@4256, ?@4264, n@4268} (探针 333; 语义 = 拥有口径); 重算 = sub_14070AF30 遍历 **+1040 (owned)** → 邻省 **owner(+192→+200)** ≠ 己者入位图2/列表2 | 不序列化 |
+| +4256 | uint8* | **neighbors 位图#2** {data@4256, 未决@4264, n@4268} (探针 333; 语义 = 拥有口径); 重算 = sub_14070AF30 遍历 **+1040 (owned)** → 邻省 **owner(+192→+200)** ≠ 己者入位图2/列表2 | 不序列化 |
 | +4280 | 容器 24B | **neighbors 列表#2** {data@4280, cap@4288, count@4292, alloc@4296} (探针 GER=11) | 不序列化 |
 | +4304 | fixed×1e-5 | stability | §4.3.8 起 |
 | +4312 | fixed×1e-5 | war_support | §4.3.8 起 |
@@ -266,7 +266,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4984 | 匿名结构 (NNB 形状)* | **continuous_focus_palette** (loader case 14045: 数据库解析 sub_1406C22A0, fallback sub_1402D2580; 存后 focus_status 刷新) | §4.3.8 起 (定案) |
 | +4992 | CFocusStatus* | focus 对象 (CFocusStatus 宿主, §4.3.12) | §4.3.8 起 |
 | +4993..+4999 | — | = focus_status@4992 指针尾 7B | |
-| +5000 | 内嵌块 | **focus_cost_reduction = CReducedFocusCost** (vt 名直读 @5000; {vt@5000, ?@5008, RH 桶哨兵@5016=&unk_143086920, count@5024, u8@5032, **f32@5036=0.9** = RH 表 load_factor — 复位函数写 0x3F666666; 与 fp+88/fp+152 表族同排布; 高置信; 探针 GER=0.900}) | writer 键 0x27F1; **条目值 i32 有符号** (负减免 −5 ↔ raw 0xFFFFFFFB) |
+| +5000 | 内嵌块 | **focus_cost_reduction = CReducedFocusCost** (vt 名直读 @5000; {vt@5000, 未决@5008, RH 桶哨兵@5016=&unk_143086920, count@5024, u8@5032, **f32@5036=0.9** = RH 表 load_factor — 复位函数写 0x3F666666; 与 fp+88/fp+152 表族同排布; 高置信; 探针 GER=0.900}) | writer 键 0x27F1; **条目值 i32 有符号** (负减免 −5 ↔ raw 0xFFFFFFFB) |
 | +5024 | u32 | focus_cost_reduction 块计数 (写门) | 定案 |
 | +5025..+5039 | — | = CReducedFocusCost 本体尾 {u8@5032, f32@5036=0.9} | |
 | +5040 | 匿名结构 (元素待裁) 向量 | **volunteers_transfer 指针数组数据** {cap@+5048, alloc@+5056} (8B 元); writer 循环 ADEC0 0x346B | §4.10.19 |
@@ -526,7 +526,7 @@ CModifierEntry target = {item+32 = CModifier\* (= cc+1448 country_modifiers), it
 | +184 | u32 | **pair 接纳类别掩码** (sub_140557940 首行 `(mdef+100 flags & mod+184) != 0` 才合并该 pair; 国家聚合用 0xFFFFFF=24 类位) | 不序列化 |
 
 > ⚠ **+184 双读待裁**: 本节取自 pair 合并门 (读点 sub_140557940); 另有 ctor 侧读数记为 **i32 = −1 哨兵**。
-> 二者或为「同槽不同内嵌点初值差异」或「其一误读」, 未定 — 按内嵌点复核后归一。
+> 二者或为「同槽不同内嵌点初值差异」或「其一误读」, 待裁 — 按内嵌点复核后归一。
 | +188 | u32 | **data = 子级展开深度** (writer 键 240=data, ≠1 才写; merge 时 dst.data>0 → 每来源生一个命名 child (data=dst−1); 存档形态 `added_modifier.data=0` 吻合; ⚠ parser 对 data 读值即弃 — 加载后由宿主 recalc 重建) | ≠1 才写 |
 
 修饰定义表寻址 (BASE 相对; 供 +16 pair 的 def_idx → def 解引用):
@@ -739,7 +739,7 @@ CEventScope 递归布局 (sc = 作用域首址):
 | +5064 | CExileDivisionsTransfer* | exile_divisions_transfer 容器数据指针 — {d, c} 8B 指针元 → CExileDivisionsTransfer (0x38, ctor 0X1415117A0); 块 writer sub_141513970 | c>0; 同段 mode="exile" |
 | +5076 | u32 | exile_divisions_transfer 容器计数 |  |
 | +5077..+5123 | — | = exile 容器 {d@5064, cap@5072, c@5076, alloc@5080} 内部 + **civil_war 动态 tag 注入表 {d@5088, cap@5096, c@5100, alloc@5104}** (运行时-only) |  |
-| +5112 | 匿名结构 (16B) | dynamic_revolution_tag 容器数据指针 — (0x3569? 推定): 16B 元 {子对象 ptr@+0, tag_id u32@+8} → 引号 tag; ideology = 裸 token u32@(elem+0)+20 (ADCE0 11838) |  |
+| +5112 | 匿名结构 (16B) | dynamic_revolution_tag 容器数据指针 — (0x3569 推定): 16B 元 {子对象 ptr@+0, tag_id u32@+8} → 引号 tag; ideology = 裸 token u32@(elem+0)+20 (ADCE0 11838) |  |
 | +5124 | u32 | dynamic_revolution_tag 容器计数 |  |
 | +5125..+5147 | — | = dyn_rev 容器 {d@5112, cap@5120, c@5124, alloc@5128} + given_air 容器 {d@5136, cap@5144} 内部 |  |
 | +5136 | tag_id | given_air_volunteer_permission 容器数据指针 | tag 数组 |

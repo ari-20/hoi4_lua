@@ -1326,460 +1326,461 @@ ctor 三变体自身，全部外部引用 = 工厂注册槽写入；本地零业
 | 19586 / 19624 | CGenerateAdvisor / CRetireCharacter | 顾问生成/退役推定引擎事件侧经联机通道 |
 | 13728 | CSetPinnedStrategicRegionCommand | 绝对值通道零投递；玩家操作走 13725 toggle 型 |
 
-#### 4.33.20 槽位·sizeof·配方速查总表（机器提取; 落盘序 = id 升序）
+#### 4.33.20 槽位·sizeof·配方速查总表（机器提取 + 语义定名; 落盘序 = id 升序）
 
-> 提取链 = 离线 RTTI vtable 槽直读 + Clone 槽 [13] malloc 立即数 +
-> writer[22] token→偏移三元组（cmd_extract 工具；机器可读版 =
-> `ref/cmd_registry_1193.json`）。地址列 = VA hex；sizeof 对书全部显式值
-> 105/106 吻合（唯一修正 CRemovePlayerCommand 80→96）；Execute/IsValid
-> 空桩 = CFG 桩。载荷摘要列取 writer 侧（写入侧直读优先），键 = token id，
-> 门 = if 守卫；转发内嵌动作与动态 token 类的逐字段卡见 §4.33.18。
+> 提取链 = RTTI vtable 槽直读 + Clone 槽 [13] malloc 立即数 + writer[22]
+> token→偏移 + token_map 命名（cmd_extract 工具）+ **逐字段业务义定名**
+> （B 批判读 446 类, 格式定案见 §4.33.21）。机器可读版 =
+> `ref/cmd_registry_1193.json`（schema v3: sem_biz/type_biz/gate_sem/
+> exec_sem/conf）。地址列 = VA hex; sizeof 对书显式值 359/359 吻合;
+> 空桩 = CFG 桩。载荷摘要列: 偏移 类型(token) 门 业务名（B 批定名前向）;
+> 嵌套[类名] = ctor vtable RTTI 反查; 转发桩与动态 token 类见 §4.33.18。
 
 | id | 类 | vtable | sizeof | Execute | IsValid | 载荷 writer 摘要（+40 起） |
 |---:|---|---|---:|---|---|---|
-| 290 | CChatBuffer::CWriteToChatBuffer | 0x142B49C00 | 112 | 0x1422E8450 | 0x141165920 | +40 id对 / +48 str(215) / +80 str(226) |
-| 292 | CChatBuffer::CSendChatMessage | 0x142B49B38 | 56 | 0x1422E8360 | 0x141162CE0 | +40 id对 |
-| 305 | CStartFileTransfer | 0x142B48AB0 | 96 | 0x1422E1000 | 0x1422E1350 | +40 u32(47) / +44 id对 / +52 u32(107) / +56 u32(240) / +64 str(27) |
-| 306 | CSendChunk | 0x142B48B78 | 80 | 0x1422E0E90 | 0x1422E1280 | +40 id对(240) / +64 u32(11) / +68 id对 |
-| 307 | CChunkReceived | 0x142B48C40 | 64 | 0x1422E0D00 | 0x1422E1260 | +40 u32(11) / +44 u32(226) / +48 i64(108) / +56 u8(213) |
-| 388 | CChatCommand | 0x1429AD250 | 128 | 0x141337140 | 0x1401807B0 | +72 u32(226) / +76 u32(214) / +76 u8(217) / +80 u32(86) / +80 u8(217) / +84 u32(198) / +96 str(576) |
-| 389 | CChatUserJoinedCommand | 0x1429AD318 | 128 | 0x141337610 | 0x141338570 | +40 str(27) / +72 u32(11) |
-| 390 | CChatUserLeftCommand | 0x1429AD3E0 | 48 | 0x1413376C0 | 0x141338690 | +40 u32(11) |
-| 391 | CChatUserJoinedChannelCommand | 0x1429AD4A8 | 48 | 0x141337510 | 0x1401807B0 | +40 u32(11) / +44 u32(214) |
-| 392 | CChatUserLeftChannelCommand | 0x1429AD570 | 48 | 0x141337690 | 0x141338620 | +40 u32(11) / +44 u32(214) |
-| 393 | CChatNewChannelCommand | 0x1429AD638 | 96 | 0x1413371C0 | 0x1401807B0 | +40 str(27) / +72 u32数组(228) |
-| 395 | CChatSyncAllCommand | 0x1429AD750 | 144 | 0x1413372A0 | 0x1401807B0 | +88 u32数组(228) |
+| 290 | CChatBuffer::CWriteToChatBuffer | 0x142B49C00 | 112 | 0x1422E8450 | 0x141165920 | +40 id对 目标聊天缓冲引用 / +48 str(215) 聊天正文文本 / +80 str(226) 发送者用户名 |
+| 292 | CChatBuffer::CSendChatMessage | 0x142B49B38 | 56 | 0x1422E8360 | 0x141162CE0 | +40 id对 目标聊天缓冲引用 |
+| 305 | CStartFileTransfer | 0x142B48AB0 | 96 | 0x1422E1000 | 0x1422E1350 | +40 u32(47) 传输总字节数 size / +44 id对 传输句柄引用 / +52 u32(107) 目标接收端 id / +56 u32(240) 文件校验和 checksum / +64 str(27) 传输文件名 |
+| 306 | CSendChunk | 0x142B48B78 | 80 | 0x1422E0E90 | 0x1422E1280 | +40 id对(240) 数据块负载(变体标量) / +64 u32(11) 块索引 / +68 id对 传输句柄引用 |
+| 307 | CChunkReceived | 0x142B48C40 | 64 | 0x1422E0D00 | 0x1422E1260 | +40 u32(11) 块索引 / +44 u32(226) 传输通道 id(接收端 id) / +48 i64(108) 已接收字节进度 up / +56 u8(213) 全部块收齐完成旗 announcedone |
+| 388 | CChatCommand | 0x1429AD250 | 128 | 0x141337140 | 0x1401807B0 | +72 u32(226) 消息发送者用户 id / +76 u32(214) 频道 id / +80 u32(86) 消息颜色 / +84 u32(198) 接收者 id(定向消息) / +88 u8(217) 带时间戳旗 datetime / +96 str(576) 发送者名字串 |
+| 389 | CChatUserJoinedCommand | 0x1429AD318 | 128 | 0x141337610 | 0x141338570 | +40 str(27) 加入者用户名 / +72 u32(11) 加入者用户 id |
+| 390 | CChatUserLeftCommand | 0x1429AD3E0 | 48 | 0x1413376C0 | 0x141338690 | +40 u32(11) 离开者用户 id |
+| 391 | CChatUserJoinedChannelCommand | 0x1429AD4A8 | 48 | 0x141337510 | 0x1401807B0 | +40 u32(11) 加入者用户 id / +44 u32(214) 频道 id |
+| 392 | CChatUserLeftChannelCommand | 0x1429AD570 | 48 | 0x141337690 | 0x141338620 | +40 u32(11) 离开者用户 id / +44 u32(214) 频道 id |
+| 393 | CChatNewChannelCommand | 0x1429AD638 | 96 | 0x1413371C0 | 0x1401807B0 | +40 str(27) 新频道名 / +72 u32数组(228) 初始成员 id 数组 |
+| 395 | CChatSyncAllCommand | 0x1429AD750 | 144 | 0x1413372A0 | 0x1401807B0 | +88 u32数组(228) 用户 id 列表 |
 | 396 | CChatRequestSyncCommand | 0x1429AD818 | 40 | 0x141337240 | 0x1401807B0 | 无载荷（空桩） |
-| 10047 | COnRulingPartyChangeActionCommand | 0x14272DEA8 | 48 | 0x141157AA0 | 0x140CAA8B0 | +40 tag写门(10754) / +44 u32(19015) |
-| 10050 | CPrototypeRewardOptionCommand | 0x142A90730 | 56 | 0x141EF3D60 | 0x141EF4290 | +40 id对 / +48 u32(10034) / +52 u32(10598) |
-| 10080 | CDismantleFacilityCommand | 0x142A907F8 | 48 | 0x141EF3D00 | 0x141162CE0 | +40 id对 |
-| 10085 | CAbortDismantleFacilityCommand | 0x142A908C0 | 48 | 0x141EF3C30 | 0x141162CE0 | +40 id对 |
-| 10104 | CSetMaxAllowedRepairFactoriesCommand | 0x1429B0240 | 48 | 0x141355F40 | 0x141359260 | +40 str(10394) / +40 tag / +44 u32(12) |
+| 10047 | COnRulingPartyChangeActionCommand | 0x14272DEA8 | 48 | 0x141157AA0 | 0x140CAA8B0 | +40 tag(10754) 目标国家 / +44 u32(19015) 新执政党 token |
+| 10050 | CPrototypeRewardOptionCommand | 0x142A90730 | 56 | 0x141EF3D60 | 0x141EF4290 | +40 id对 目标特殊项目 / +48 u32(10034) 奖励组 id / +52 u32(10598) 组内选项 id |
+| 10080 | CDismantleFacilityCommand | 0x142A907F8 | 48 | 0x141EF3D00 | 0x141162CE0 | +40 id对 待拆除的研究设施/项目 |
+| 10085 | CAbortDismantleFacilityCommand | 0x142A908C0 | 48 | 0x141EF3C30 | 0x141162CE0 | +40 id对 待中止拆除的研究设施/项目(允许空 = 中止当前目标) |
+| 10104 | CSetMaxAllowedRepairFactoriesCommand | 0x1429B0240 | 48 | 0x141355F40 | 0x141359260 | +40 str(10394) 目标国 / +44 u32(12) 允许的最大维修工厂数 |
 | 10105 | NInternationalMarket::CSetMarketRequestAutomationOptionsCommand | 0x142A3F8F0 | 48 | 0x141B1BB50 | 0x140CAA8B0 | — |
-| 10144 | CResetUnreadPrototypeRewardsCounterCommand | 0x142A90988 | 48 | 0x141EF3F20 | 0x141162CE0 | +40 id对 |
-| 10191 | NInternationalMarket::CMarketStockpileClearCommand | 0x142AB6D08 | 48 | 0x14205C330 | 0x140CAA8B0 | +40 tag写门(10754) |
-| 10227 | CSetCarrierDefensiveStance | 0x1429B0C68 | 56 | 0x141355010 | 0x141358CE0 | +40 id对 / +48 u32(12970) |
-| 10228 | CExecuteButtonCommand | 0x142A4BF10 | 56 | 0x141BBFCD0 | 0x141BBFE60 | +44 u32(135) / +48 u32(11827) |
-| 10248 | NFactions::CRemoveFactionProgramCommand | 0x142A49FD0 | 48 | 0x141BA9930 | 0x141BAC330 | +40 id对 |
-| 10250 | CSelectBookmarkCommand | 0x1429E6198 | 48 | 0x14163D250 | 0x14163DDA0 | +40 u32(10249) |
-| 10258 | CSetDifficulty | 0x1429E6260 | 48 | 0x14163D520 | 0x1401807B0 | +40 u32(10655) |
+| 10144 | CResetUnreadPrototypeRewardsCounterCommand | 0x142A90988 | 48 | 0x141EF3F20 | 0x141162CE0 | +40 id对 目标特殊项目 |
+| 10191 | NInternationalMarket::CMarketStockpileClearCommand | 0x142AB6D08 | 48 | 0x14205C330 | 0x140CAA8B0 | +40 tag(10754) 待清空库存所属国 tag |
+| 10227 | CSetCarrierDefensiveStance | 0x1429B0C68 | 56 | 0x141355010 | 0x141358CE0 | +40 id对 目标特遣舰队 / +48 u32(12970) 出击效率(航母防守姿态档) |
+| 10228 | CExecuteButtonCommand | 0x142A4BF10 | 56 | 0x141BBFCD0 | 0x141BBFE60 | +44 u32(135) 父窗口 widget id / +48 u32(11827) 按钮 widget id |
+| 10248 | NFactions::CRemoveFactionProgramCommand | 0x142A49FD0 | 48 | 0x141BA9930 | 0x141BAC330 | +40 id对 待移除的阵营项目 |
+| 10250 | CSelectBookmarkCommand | 0x1429E6198 | 48 | 0x14163D250 | 0x14163DDA0 | +40 u32(10249) 开局剧本书签对象 |
+| 10258 | CSetDifficulty | 0x1429E6260 | 48 | 0x14163D520 | 0x1401807B0 | +40 u32(10655) 全球难度等级值 |
 | 10261 | CNavalMissionSetTargetCommand | 0x1429B0EC0 | 88 | 0x141351BE0 | 0x141358AC0 | — |
-| 10283 | CDeployArmyHqCommand | 0x1429B2398 | 56 | 0x1413661E0 | 0x141368EE0 | +40 id对(12462) / +48 id对(19482) |
-| 10285 | CSelectionGroupCommand | 0x142996F98 | 80 | 0x14115B660 | 0x141166560 | +40 tag / +72 u32(524) |
-| 10291 | CWithdrawArmyHqCommand | 0x1429B2460 | 48 | 0x141368310 | 0x14136BEF0 | +40 id对(12462) |
-| 10297 | CAddTaskCapacityCommand | 0x142967B48 | 56 | 0x14199C7E0 | 0x14199D290 | +40 u32(417) / +44 id对 |
-| 10307 | CSetPendingReassignTargetCommand | 0x1429B2528 | 64 | 0x141367C00 | 0x14136B460 | +40 id对(12354) / +48 id对(12462) / +48 u8(10283) / +56 u8(10283) |
+| 10283 | CDeployArmyHqCommand | 0x1429B2398 | 56 | 0x1413661E0 | 0x141368EE0 | +40 id对(12462) 目标军群 / +48 id对(19482) 编制模板 |
+| 10285 | CSelectionGroupCommand | 0x142996F98 | 80 | 0x14115B660 | 0x141166560 | +40 tag 目标国家 / +72 u32(524) 当前选择组下标 |
+| 10291 | CWithdrawArmyHqCommand | 0x1429B2460 | 48 | 0x141368310 | 0x14136BEF0 | +40 id对(12462) 待撤回 HQ 的军群 |
+| 10297 | CAddTaskCapacityCommand | 0x142967B48 | 56 | 0x14199C7E0 | 0x14199D290 | +40 u32(417) 任务容量增量 amount / +44 id对 容量所属组织对象 |
+| 10307 | CSetPendingReassignTargetCommand | 0x1429B2528 | 64 | 0x141367C00 | 0x14136B460 | +40 id对(12354) 新指派将领 / +48 id对(12462) 目标命令组/集团军 / +56 u8(10283) 部署陆军 HQ 旗 |
 | 10402 | CMoveCommand | 0x1429B1BC8 | 136 | 0x1413669E0 | 0x141369CB0 | 转发内嵌动作（+40; 动作族见 4.33.18） |
 | 10415 | CCancelMovementCommand | 0x1429B1E20 | 72 | 0x141365C20 | 0x141368790 | — |
-| 10417 | CAutomateHomebaseForFleetCommand | 0x1429B0DF8 | 48 | 0x1413508D0 | 0x1413581A0 | +40 id对 |
-| 10438 | CAddSizeCommand | 0x142967C10 | 56 | 0x14199C7A0 | 0x14199D290 | +40 u32(417) / +44 id对 |
-| 10446 | NFactions::CSetFactionUpgradeCommand | 0x142A49A58 | 56 | 0x141BA9ED0 | 0x141BACA10 | +40 u32(15356) / +48 tag写门(10302) |
-| 10449 | NFactions::CUseFactionMemberManpower | 0x1429AC938 | 48 | 0x141BAA460 | 0x141BAD520 | +40 u32(776) / +44 tag写门(10302) |
+| 10417 | CAutomateHomebaseForFleetCommand | 0x1429B0DF8 | 48 | 0x1413508D0 | 0x1413581A0 | +40 id对 目标舰队引用 |
+| 10438 | CAddSizeCommand | 0x142967C10 | 56 | 0x14199C7A0 | 0x14199D290 | +40 u32(417) 尺寸增量 amount / +44 id对 尺寸所属对象 |
+| 10446 | NFactions::CSetFactionUpgradeCommand | 0x142A49A58 | 56 | 0x141BA9ED0 | 0x141BACA10 | +40 u32(15356) 升级 def / +48 tag(10302) 升级发起成员国 |
+| 10449 | NFactions::CUseFactionMemberManpower | 0x1429AC938 | 48 | 0x141BAA460 | 0x141BAD520 | +40 u32(776) 请求人力量 / +44 tag(10302) 请求国 |
 | 10455 | CIncreaseGameSpeedCommand | 0x142977040 | 40 | 0x140F06EF0 | 0x1401807B0 | 无载荷（空桩） |
-| 10456 | CDecreaseGameSpeedCommand | 0x142977108 | 72 | 0x140F069B0 | 0x1401807B0 | +40 str(27) |
-| 10494 | NFactions::CEraseFactionRuleCommand | 0x142A49990 | 48 | 0x141BA94C0 | 0x141BAB470 | +40 tag写门(10302) / +40 u32(10876) |
-| 10500 | NFactions::CUpdateIntelligenceAdvisorSlotCommand | 0x142A4A480 | 64 | 0x141BAA210 | 0x141BAD160 | +56 u32(13378) |
-| 10509 | NFactions::CFactionSetCommanderCommand | 0x142A4A228 | 56 | 0x141BA96C0 | 0x141BABA90 | +40 u32(524) / +44 id对 / +52 tag写门(10302) |
-| 10513 | NFactions::CFactionAttachScientistCommand | 0x142A4A098 | 64 | 0x141BA95A0 | 0x141BAB760 | +40 id对 / +48 i64(10323) / +56 id对 |
-| 10514 | NFactions::CFactionUnattachScientistCommand | 0x142A4A160 | 56 | 0x141BA9700 | 0x141BABD00 | +40 id对 / +48 id对 |
+| 10456 | CDecreaseGameSpeedCommand | 0x142977108 | 72 | 0x140F069B0 | 0x1401807B0 | +40 str(27) 命令来源名(UI 按钮/回调标识串) |
+| 10494 | NFactions::CEraseFactionRuleCommand | 0x142A49990 | 48 | 0x141BA94C0 | 0x141BAB470 | +40 tag(10302) 规则 id / +40 u32(10876) 规则 id |
+| 10500 | NFactions::CUpdateIntelligenceAdvisorSlotCommand | 0x142A4A480 | 64 | 0x141BAA210 | 0x141BAD160 | +56 u32(13378) 顾问槽序号 |
+| 10509 | NFactions::CFactionSetCommanderCommand | 0x142A4A228 | 56 | 0x141BA96C0 | 0x141BABA90 | +40 u32(524) 战区序号 / +44 id对 新指挥官 / +52 tag(10302) 发起成员国 |
+| 10513 | NFactions::CFactionAttachScientistCommand | 0x142A4A098 | 64 | 0x141BA95A0 | 0x141BAB760 | +40 id对 目标特殊项目 / +48 i64(10323) 政治力代价 / +56 id对 科学家 |
+| 10514 | NFactions::CFactionUnattachScientistCommand | 0x142A4A160 | 56 | 0x141BA9700 | 0x141BABD00 | +40 id对 科学家 / +48 id对 目标特殊项目 |
 | 10545 | CDiplomaticActionCommand | 0x14298B708 | 48 | 0x141104D80 | 0x141138E10 | 动态 token（多态动作对象; 见 4.33.18） |
-| 10563 | NFactions::CRemoveIntelligenceAdvisorFromSlotCommand | 0x142A4A548 | 48 | 0x141BA99C0 | 0x141BAC4D0 | +40 tag写门(10302) / +44 u32(13378) |
-| 10625 | CSetAutoUpdateDesignsForIndustrialOrgCommand | 0x142968188 | 56 | 0x14199CA50 | 0x1401807B0 | +40 id对 / +48 u8(13846) |
-| 10645 | CSelectEventOptionCommand | 0x142938E60 | 240 | 0x14153A110 | 0x14153AFB0 | +40 u32(11) / +44 id对 / +52 tag写门(10542) / +56 嵌套(10646) / +232 u32(10598) |
-| 10707 | CSetCountryControllerCommand | 0x14295E368 | 48 | 0x140CECE50 | 0x140CEE530 | +40 str(10394) / +40 tag / +44 str(10394) / +44 u32(22) |
+| 10563 | NFactions::CRemoveIntelligenceAdvisorFromSlotCommand | 0x142A4A548 | 48 | 0x141BA99C0 | 0x141BAC4D0 | +40 tag(10302) 阵营发起国 / +44 u32(13378) 顾问槽序号 |
+| 10625 | CSetAutoUpdateDesignsForIndustrialOrgCommand | 0x142968188 | 56 | 0x14199CA50 | 0x1401807B0 | +40 id对 目标 MIO(工业制造商) / +48 u8(13846) 自动更新设计开关(该 MIO 装备变体是否随特性解锁自动重设计) |
+| 10645 | CSelectEventOptionCommand | 0x142938E60 | 240 | 0x14153A110 | 0x14153AFB0 | +40 u32(11) 事件实例 id / +44 id对 事件对象引用 / +52 tag(10542) 触发方 actor tag / +56 嵌套[CEventScope](10646) 事件作用域(内嵌 176B scope 块) / +232 u32(10598) 被选选项序号 |
+| 10707 | CSetCountryControllerCommand | 0x14295E368 | 48 | 0x140CECE50 | 0x140CEE530 | +40 str(10394) 待指派国家 tag(字符串形态落盘) / +44 u32(22) 玩家 machine id(人类槽 id) |
 | 10708 | CClearAllControllersCommand | 0x14295E5C0 | 40 | 0x140CEC980 | 0x1401807B0 | 无载荷（空桩） |
 | 10714 | CQuit | 0x1429E60D0 | 40 | 空桩 | 0x1401807B0 | 无载荷（空桩） |
-| 10723 | CAddPlayerCommand | 0x142A22D40 | 176 | 0x141997C00 | 0x141999000 | +40 str(226) / +72 str(27) / +104 u8(11466) / +104 嵌套(16004) / +120 u32(22) / +120 u8(11466) / +128 嵌套(389) |
-| 10731 | CSetRandomSeed | 0x14296A240 | 48 | 0x140DE9D30 | 0x1401807B0 | +40 u32(10647) / +44 u32(10730) |
-| 10732 | CPauseGame | 0x14296A560 | 80 | 0x140DE8360 | 0x1401807B0 | +40 str(27) / +72 u8(776) / +73 u8(10598) |
+| 10723 | CAddPlayerCommand | 0x142A22D40 | 176 | 0x141997C00 | 0x141999000 | +40 str(226) 玩家账号名(user，A 层标签「user」指本字段的**串长度 32B 槽**，非独立字段) / +72 str(27) 玩家显示名 / +104 u8(11466) 玩家徽章 / +104 嵌套[SProfileBadge](16004) 玩家徽章 / +120 u32(22) 机器 id / +128 嵌套(389) 聊天「玩家已加入」消息 |
+| 10731 | CSetRandomSeed | 0x14296A240 | 48 | 0x140DE9D30 | 0x1401807B0 | +40 u32(10647) 随机种子值 / +44 u32(10730) 随机序列计数/序号 |
+| 10732 | CPauseGame | 0x14296A560 | 80 | 0x140DE8360 | 0x1401807B0 | +40 str(27) 暂停/运行命令的来源名(发起者标识串) / +72 u8(776) 目标暂停状态(1=暂停 / 0=运行) / +73 u8(10598) 「保持当前态」选项旗 |
 | 10808 | CAutosave | 0x14296A880 | 48 | 0x140DE7C40 | 0x1401807B0 | — |
 | 10890 | CSetAchievementsOK | 0x1429E64B8 | 48 | 空桩 | 0x1401807B0 | — |
-| 11061 | CUpgradeDivisionOfficerCommand | 0x1429979C0 | 56 | 0x14115FA10 | 0x1411681B0 | +40 id对 / +48 u32(225) |
-| 11100 | CSetGamePlayOptions | 0x1429E6710 | 64 | 0x14163D640 | 0x1401807B0 | +40 嵌套(11100) |
-| 11169 | CAiStoreForceConcentrationTargetCommand | 0x142A31D80 | 64 | 0x141A74550 | 0x141A747B0 | +40 str(10394) / +40 tag / +44 u32(107) / +48 u32(10639) / +56 i64(11013) |
-| 11170 | CAiDiscardForceConcentrationTargetCommand | 0x142A31E48 | 56 | 0x141A74100 | 0x141A747B0 | +40 str(10394) / +40 tag / +44 u32(107) / +48 u32(10639) |
-| 11376 | CClientPingCommand | 0x1427217E0 | 72 | 0x140F05D80 | 0x1401807B0 | +56 嵌套(10314) / +64 u32(22) / +68 u32(789) |
-| 11438 | CRequestGameStateSynchCommand | 0x14296A178 | 64 | 0x140DE9360 | 0x1401807B0 | +40 u32数组(377) |
+| 11061 | CUpgradeDivisionOfficerCommand | 0x1429979C0 | 56 | 0x14115FA10 | 0x1411681B0 | +40 id对 待晋升军官的师 / +48 u32(225) 军官类型 |
+| 11100 | CSetGamePlayOptions | 0x1429E6710 | 64 | 0x14163D640 | 0x1401807B0 | +40 嵌套[CGamePlaySettings](11100) 玩法设置对象 |
+| 11169 | CAiStoreForceConcentrationTargetCommand | 0x142A31D80 | 64 | 0x141A74550 | 0x141A747B0 | +40 str(10394) 目标国 tag(聚焦意图归属国) / +44 u32(107) 目标省 id(被聚焦的敌方目标省) / +48 u32(10639) 出发省 id(集结源省) / +56 i64(11013) 聚焦进度比例 |
+| 11170 | CAiDiscardForceConcentrationTargetCommand | 0x142A31E48 | 56 | 0x141A74100 | 0x141A747B0 | +40 str(10394) 目标国 tag(放弃聚焦意图的归属国) / +44 u32(107) 目标省 id / +48 u32(10639) 出发省 id |
+| 11376 | CClientPingCommand | 0x1427217E0 | 72 | 0x140F05D80 | 0x1401807B0 | +56 嵌套(10314) 回环日期对象 / +64 u32(22) 机器 id(目标玩家标识) / +68 u32(789) 延迟毫秒(RTT) |
+| 11438 | CRequestGameStateSynchCommand | 0x14296A178 | 64 | 0x140DE9360 | 0x1401807B0 | +40 u32数组(377) 本地状态校验和向量 |
 | 11467 | CReopenLobbyCommand | 0x14296A7B8 | 40 | 0x140DE8A30 | 0x1401807B0 | 无载荷（空桩） |
-| 11469 | CReadyAfterHotJoinCommand | 0x14296A6F0 | 80 | 0x140DE8A00 | 0x140DE9E40 | +40 str(27) / +72 u32(22) |
-| 11504 | CPostHotJoinCommand | 0x14296A628 | 88 | 0x140DE83B0 | 0x1401807B0 | +40 tag数组(16537) / +64 tag数组(13274) |
-| 11517 | CSetReadyStatus | 0x1429E6580 | 48 | 0x14163D8B0 | 0x14163E110 | +40 u32(22) / +40 u8(776) |
-| 11529 | CCheckSyncResponseCommand | 0x14296AA10 | 80 | 0x140DE8080 | 0x1401807B0 | +40 str(27) / +72 u32(22) / +72 u8(10347) / +76 u8(10347) |
-| 11530 | CCheckSyncCommand | 0x14296A948 | 64 | 0x140DE7C60 | 0x1401807B0 | +40 u32数组(13670) |
-| 11545 | CSetDLCsCommand | 0x142A22F98 | 48 | 0x141998D60 | 0x1401807B0 | +40 u32(11546) |
-| 11579 | CSetPlayerAiPrefsCommand | 0x142993640 | 64 | 0x14115CA30 | 0x140CAA8B0 | +40 str(10394) / +40 tag / +48 嵌套(11101) |
-| 11801 | CSetUseDynamicVersionPositioningVariantCommand | 0x142A24958 | 56 | 0x1419A4CA0 | 0x141162CE0 | +40 id对 / +48 u8(398) |
-| 11983 | COrderGroupCommand | 0x142A0AAF8 | 96 | 0x141846510 | 0x14184DD60 | +40 u8(13730) / +48 id对(10403) / +72 id对 / +80 id对 / +88 id对 |
-| 12045 | CSetTheatreCommand | 0x1429B2078 | 56 | 0x141367CC0 | 0x14136B6F0 | +40 id对 / +48 id对(11) |
-| 12057 | CSetOrderGroupOrdersInstanceNamesCommand | 0x142A0A648 | 80 | 0x14184BA10 | 0x141162CE0 | +40 id对 / +48 str(27) |
+| 11469 | CReadyAfterHotJoinCommand | 0x14296A6F0 | 80 | 0x140DE8A00 | 0x140DE9E40 | +40 str(27) 玩家名 / +72 u32(22) 机器 id |
+| 11504 | CPostHotJoinCommand | 0x14296A628 | 88 | 0x140DE83B0 | 0x1401807B0 | +40 tag数组(16537) 人类控制国家 tag 列表 / +64 tag数组(13274) 被禁用国家 tag 列表 |
+| 11517 | CSetReadyStatus | 0x1429E6580 | 48 | 0x14163D8B0 | 0x14163E110 | +40 u32(22) 目标国家(tag→国家 id) / +44 u8(776) 就绪状态(1=就绪 / 0=取消) |
+| 11529 | CCheckSyncResponseCommand | 0x14296AA10 | 80 | 0x140DE8080 | 0x1401807B0 | +40 str(27) 玩家名(诊断日志用) / +72 u32(22) 机器 id(被检查玩家) / +76 u8(10347) 同步结果(1=同步 / 0=不同步) |
+| 11530 | CCheckSyncCommand | 0x14296A948 | 64 | 0x140DE7C60 | 0x1401807B0 | +40 u32数组(13670) 人类玩家校验和向量 |
+| 11545 | CSetDLCsCommand | 0x142A22F98 | 48 | 0x141998D60 | 0x1401807B0 | +40 u32(11546) 启用 DLC 位掩码 |
+| 11579 | CSetPlayerAiPrefsCommand | 0x142993640 | 64 | 0x14115CA30 | 0x140CAA8B0 | +40 str(10394) 目标国 tag(AI 偏好施加对象) / +48 嵌套(11101) AI 偏好设置块(开键 token 11101) |
+| 11801 | CSetUseDynamicVersionPositioningVariantCommand | 0x142A24958 | 56 | 0x1419A4CA0 | 0x141162CE0 | +40 id对 装备原型标识(idpair：类型半部+id 半部) / +48 u8(398) 显示动态版本定位模型旗 |
+| 11983 | COrderGroupCommand | 0x142A0AAF8 | 96 | 0x141846510 | 0x14184DD60 | +40 u8(13730) 远征军旗(组内单位为远征部队) / +48 id对(10403) 成员单位 idpair 数组 / +72 id对 目标战区 idpair / +80 id对 可选战区组 idpair / +88 id对 可选陆军集团 idpair |
+| 12045 | CSetTheatreCommand | 0x1429B2078 | 56 | 0x141367CC0 | 0x14136B6F0 | +40 id对 单位/编队标识(idpair) / +48 id对(11) 战区 id 对(type+id) |
+| 12057 | CSetOrderGroupOrdersInstanceNamesCommand | 0x142A0A648 | 80 | 0x14184BA10 | 0x141162CE0 | +40 id对 目标订单组 idpair / +48 str(27) 新实例名 |
 | 12092 | CHourlyTickCommand | 0x142976F78 | 64 | 0x140F06BF0 | 0x1401807B0 | — |
-| 12098 | CSetGameSpeedCommand | 0x1429771D0 | 48 | 0x140F07110 | 0x140F07270 | +40 u32(110) |
-| 12118 | CCreateOperationCommand | 0x142978310 | 88 | 0x141A27660 | 0x141A29390 | +40 u8(19422) / +41 u8(419) / +44 u32(11) / +72 str(10754) / +72 tag / +76 str(107) / +76 tag / +80 u32(10304) |
-| 12142 | CSetProductionLineCommand | 0x142993AF0 | 56 | 0x14115CE70 | 0x141166B10 | +40 id对 / +48 id对 |
-| 12144 | CSetResearchCommand | 0x142994F40 | 64 | 0x14115D2E0 | 0x141166BC0 | +40 str(10394) / +40 tag / +48 str(10335) / +56 u32(12145) / +60 u8(15370) |
-| 12147 | CChangeProductionLinePriorityCommand | 0x142994C20 | 56 | 0x141155930 | 0x141162CB0 | +40 id对 / +48 u32(12146) |
-| 12149 | CAddProductionLineFactoriesCommand | 0x142994DB0 | 56 | 0x1411524C0 | 0x141162420 | +40 id对 / +48 u32(12150) |
-| 12151 | CAddConstructionCommand | 0x142994770 | 80 | 0x141150FB0 | 0x1411616F0 | +40 str(10394) / +40 tag / +48 嵌套(10319) / +72 u32(12152) / +76 u32(141) |
-| 12189 | CSetOrderGroupCohesionTypeCommand | 0x142A0A968 | 56 | 0x14184B660 | 0x141162CE0 | +40 id对 / +48 u32(225) |
-| 12197 | CCreateDivisionTemplateCommand | 0x1429ABD00 | 648 | 0x141B9EAE0 | 0x141BA0290 | +40 嵌套(12112) / +624 str(10394) / +624 tag / +632 i64(10323) / +640 id对(12462) |
-| 12198 | CUpdateDivisionTemplateCommand | 0x1429ABC38 | 648 | 0x141B9FAE0 | 0x141BA03F0 | +40 str(10394) / +40 嵌套(12112) / +624 id对 / +632 str(10394) / +632 tag / +640 u32(10323) |
-| 12221 | CStratAirSetMissionCommand | 0x142A1D638 | 72 | 0x141946B40 | 0x141948B30 | +64 u32(225) / +64 u8(10376) / +64 u8(10737) / +70 u8(19076) |
-| 12222 | CStratAirEnableMissionCommand | 0x142A1D570 | 96 | 0x141946880 | 0x1419488C0 | +40 id对数组(12213) / +64 id对数组(11450) / +64 u8(13179) / +76 u8(13179) / +88 u32(12014) |
-| 12230 | CStratAirTransferCommand | 0x142A1D700 | 72 | 0x141946C40 | 0x141948C10 | +40 id对 / +48 id对 / +56 u8(13206) / +57 u8(13179) / +60 u32(12014) / +64 u32(11450) |
-| 12231 | CStratAirSplitCommand | 0x142A1D890 | 56 | 0x141946BD0 | 0x141948BC0 | +40 id对 / +48 u32(12174) |
-| 12234 | CStratAirConsolidateCommand | 0x142A1D958 | 64 | 0x1419465A0 | 0x141948850 | +40 id对数组(12213) |
-| 12235 | CStratAirCancelTransferCommand | 0x142A1D7C8 | 56 | 0x141946500 | 0x1419487E0 | +40 id对 / +40 u8(13179) |
-| 12242 | CCreateFactionCommand | 0x142995260 | 208 | 0x141155F90 | 0x141162F10 | +40 str(10394) / +40 tag / +48 str(27) / +80 str(181) / +128 嵌套(86) / +176 u32(19482) |
-| 12246 | CStratAirDayNightCommand | 0x142A1DBB0 | 56 | 0x141946830 | 0x141948820 | +40 id对 / +48 u32(124) |
-| 12257 | CSetProductionLineAmountToProduceCommand | 0x142994E78 | 56 | 0x14115CDA0 | 0x141166AE0 | +40 id对 / +48 u32(417) |
-| 12272 | CNavalMissionSetTypeCommand | 0x1429AF430 | 72 | 0x141351C50 | 0x141358B30 | +64 u32(11450) / +64 u8(10469) / +68 u8(19076) |
-| 12273 | CNavalMissionSetRegionsCommand | 0x1429AF4F8 | 72 | 0x1413517C0 | 0x141358A70 | +40 id对 / +48 u32数组(12065) |
-| 12274 | CNavalMissionAddRegionCommand | 0x1429AF5C0 | 56 | 0x141350FE0 | 0x1413584D0 | +40 id对 / +48 u32(10827) |
-| 12275 | CNavalMissionRemoveRegionCommand | 0x1429AF688 | 72 | 0x141351580 | 0x141358890 | +40 id对 / +48 u32数组(12065) |
-| 12284 | CNavalMissionMoveCommand | 0x1429AF750 | 72 | 0x141351260 | 0x141358730 | +68 u32(10304) / +68 u8(11396) |
-| 12303 | CAddIdeaCommand | 0x142995328 | 64 | 0x141151720 | 0x141161AC0 | +40 str(10394) / +40 tag / +48 u32(10491) / +48 u8(10323) |
-| 12304 | CRemoveIdeaCommand | 0x142995648 | 64 | 0x141159340 | 0x141165950 | +40 str(10394) / +40 tag / +48 u32(10491) / +48 u8(10323) |
-| 12345 | COrderSetPathCommand | 0x142A0B520 | 88 | 0x14184AF10 | 0x14184EBA0 | +40 id对 / +48 u32(12342) / +56 u32数组(372) / +80 u8(11126) |
-| 12350 | COrderAssignCommand | 0x142A0B200 | 80 | 0x141844530 | 0x14184D810 | +64 id对 / +72 u32(12342) / +76 u8(15603) |
-| 12351 | COrderDeleteCommand | 0x142A0B138 | 56 | 0x141846000 | 0x14184DC90 | +40 id对 / +48 u32(12342) |
-| 12352 | COrderExecuteCommand | 0x142A0C330 | 56 | 0x141846450 | 0x14184DCE0 | +40 id对 / +40 u8(12353) / +48 u32(12342) / +48 u8(11159) / +48 u8(12353) |
-| 12365 | COrderUnassignCommand | 0x142A0B2C8 | 80 | 0x14184B070 | 0x14184EE20 | +40 id对(10403) / +64 id对 / +72 u8(13955) / +73 u8(15774) |
-| 12366 | CDeleteOrderGroupCommand | 0x142A0ABC0 | 48 | 0x141843650 | 0x14184D230 | +40 id对 |
-| 12369 | CSetArmyLeaderCommand | 0x142A0C3F8 | 64 | 0x14184B2E0 | 0x14184EFB0 | +40 id对 / +48 id对 / +48 u8(10283) / +56 u8(10283) |
-| 12370 | CSetFleetLeaderCommand | 0x142A0C4C0 | 56 | 0x14184B550 | 0x14184F0D0 | +40 id对 / +48 id对 |
-| 12387 | CCreateTradeCommand | 0x142A49150 | 64 | 0x141BA54B0 | 0x141BA56D0 | +40 str(12390) / +40 tag / +44 str(12389) / +44 tag / +48 u32(12388) / +56 u32(417) |
-| 12395 | CCreateEquipmentVariantCommand | 0x142A240C0 | 400 | 0x1419A30E0 | 0x1419A5AF0 | +40 str(12110) / +48 tag写门(12397) / +64 str(27) / +96 嵌套(12393) / +176 obj数组 / +200 u32(15526) / +208 名单块(15494) / +336 i64(10323) / +344 u8(14039) / +345 u8(11175) / +346 u8(13889) / +348 id对 / +3… |
-| 12398 | CRenameEquipmentVariantCommand | 0x142A24570 | 80 | 0x1419A41F0 | 0x1419A5CA0 | +40 id对 / +48 str(27) |
-| 12448 | CDeleteUnitCommand | 0x1429B2140 | 56 | 0x141365FF0 | 0x141368CC0 | +40 id对 / +48 str(10394) / +48 u8(10698) / +52 str(10394) / +52 tag |
-| 12521 | CEndTurnPeaceConferenceCommand | 0x142A845D0 | 56 | 0x141E53B90 | 0x141E53E00 | +40 str(12518) / +40 tag / +48 嵌套(12494) |
-| 12566 | CPassPeaceConferenceCommand | 0x142A84440 | 48 | 0x141E53BC0 | 0x141E54130 | +40 str(12518) / +40 tag |
-| 12568 | CSetOccupationPolicyCommand | 0x142995AF8 | 80 | 0x14115C7C0 | 0x1411669B0 | +40 str(10302) / +40 tag / +44 str(10303) / +44 tag / +48 str(10492) |
-| 12612 | CSetCountryReinforcementPriorityCommand | 0x14272DAC0 | 48 | 0x14115C1C0 | 0x141166710 | +40 str(10394) / +40 tag / +44 u32(141) |
-| 12615 | CSetWingReinforcementPriorityCommand | 0x142A1DED0 | 56 | 0x1419464B0 | 0x141948790 | +40 id对 / +48 u32(141) |
-| 12620 | CSupportAttackCommand | 0x1429B1FB0 | 56 | 0x141367D70 | 0x14136BA70 | +40 id对 / +48 u32(10349) |
-| 12643 | COrderSetInvasionSourceCommand | 0x142A0C588 | 96 | 0x14184A920 | 0x14184E450 | +40 id对 / +48 u32(12342) / +52 u32(13117) / +56 u32(10304) / +64 id对(10403) / +88 u8(19713) |
-| 12660 | CRemoveNavalInvasionTargetCommand | 0x142A0C650 | 56 | 0x14184B250 | 0x14184EF30 | +40 id对 / +48 u32(12342) / +52 u32(10304) |
-| 12661 | CAddNavalInvasionTargetCommand | 0x142A0C718 | 56 | 0x141842910 | 0x14184CF70 | +40 id对 / +48 u32(12342) / +52 u32(10304) |
-| 12664 | CNavalMoveCommand | 0x1429AF8E0 | 72 | 0x141351FA0 | 0x141358BB0 | +69 u32(10284) / +69 u8(10737) |
-| 12679 | CConvertFactoryCommand | 0x142994B58 | 56 | 0x141155C00 | 0x141162D10 | +40 u32(10639) / +44 u32(10640) / +48 u32(439) / +52 u32(141) |
-| 12711 | NFactions::CAddFactionProgramCommand | 0x142A49F08 | 56 | 0x141BA90E0 | 0x141BAAC90 | +40 id对 / +48 tag写门(10302) |
-| 12729 | COrderSetParadropSourceCommand | 0x142A0CA38 | 80 | 0x14184ABD0 | 0x14184E6A0 | +40 id对 / +48 u32(12342) / +52 u32(10304) / +56 id对(10403) |
-| 12730 | COrderSetParadropTargetCommand | 0x142A0CB00 | 56 | 0x14184AEB0 | 0x14184E920 | +40 id对 / +48 u32(12342) / +52 u32(10304) |
-| 12732 | NFactions::CSetFactionIconAndColor | 0x142A4A2F0 | 112 | 0x141BA9A50 | 0x141BAC6E0 | +40 tag写门(10302) / +48 str(181) / +80 嵌套(86) |
-| 12778 | CAssignAceCommand | 0x142996138 | 56 | 0x141152A80 | 0x1411629D0 | +40 id对 / +48 id对 |
-| 13017 | CReplaceIdeaCommand | 0x1429958A0 | 72 | 0x141159B70 | 0x141165BF0 | +40 str(10394) / +40 tag / +48 u32(13102) / +56 u32(13082) / +64 u8(10323) |
-| 13028 | CSetXORResearchCommand | 0x1429950D0 | 72 | 0x14115E670 | 0x141167620 | +40 str(10394) / +40 tag / +48 str(13259) / +56 str(13260) / +64 u32(12145) / +68 u8(15370) |
-| 13088 | CRemoveConstructionCommand | 0x142994838 | 56 | 0x1411591C0 | 0x141165920 | +40 id对 / +48 u32(417) |
+| 12098 | CSetGameSpeedCommand | 0x1429771D0 | 48 | 0x140F07110 | 0x140F07270 | +40 u32(110) 目标游戏速度等级(0..4) |
+| 12118 | CCreateOperationCommand | 0x142978310 | 88 | 0x141A27660 | 0x141A29390 | +40 u8(19422) 建立后是否自动开始(auto_commence 初值) / +41 u8(419) 行动完成后是否自动重复 / +44 u32(11) 行动实例 id(自定义 id 号，玩家/脚本命名) / +72 str(10754) 命令国 tag(行动归属/发起国；兼作行动实例查询的国侧键) / +76 str(107) 目标 tag(行动目标国) / +80 u32(10304) 目标省(行动发生地；reader 由省 id 反查省指针) |
+| 12142 | CSetProductionLineCommand | 0x142993AF0 | 56 | 0x14115CE70 | 0x141166B10 | +40 id对 目标生产线 / +48 id对 新装备(待绑定的装备原型) |
+| 12144 | CSetResearchCommand | 0x142994F40 | 64 | 0x14115D2E0 | 0x141166BC0 | +40 str(10394) 命令国 tag / +48 str(10335) 目标科技(脚本模板 CTechnology*；空 = 摘除当前研究项) / +56 u32(12145) 科研槽下标 / +60 u8(15370) 是否以经验加速启动 |
+| 12147 | CChangeProductionLinePriorityCommand | 0x142994C20 | 56 | 0x141155930 | 0x141162CB0 | +40 id对 目标生产线 / +48 u32(12146) 目标位次(绝对序位，0=排到最顶) |
+| 12149 | CAddProductionLineFactoriesCommand | 0x142994DB0 | 56 | 0x1411524C0 | 0x141162420 | +40 id对 目标生产线 / +48 u32(12150) 工厂增量(可负) |
+| 12151 | CAddConstructionCommand | 0x142994770 | 80 | 0x141150FB0 | 0x1411616F0 | +40 str(10394) 命令国 tag(建造国) / +48 嵌套[CBuildingReference](10319) 建筑引用(州/建筑/省复合引用) / +72 u32(12152) 数量(入队个数) / +76 u32(141) 插入枚举(队列插入位置/优先级) |
+| 12189 | CSetOrderGroupCohesionTypeCommand | 0x142A0A968 | 56 | 0x14184B660 | 0x141162CE0 | +40 id对 目标订单组 idpair / +48 u32(225) 凝聚力类型枚举值 |
+| 12197 | CCreateDivisionTemplateCommand | 0x1429ABD00 | 648 | 0x141B9EAE0 | 0x141BA0290 | +40 嵌套[CDivisionTemplateData](12112) 新编制模板定义块 / +624 str(10394) 归属国家 / +632 i64(10323) 模板经验成本 / +640 id对(12462) 可选军群 |
+| 12198 | CUpdateDivisionTemplateCommand | 0x1429ABC38 | 648 | 0x141B9FAE0 | 0x141BA03F0 | +40 嵌套[CDivisionTemplateData](12112) 新编制模板定义块 / +624 id对 待更新模板 / +632 str(10394) 模板归属国家 / +640 u32(10323) 模板经验成本 |
+| 12221 | CStratAirSetMissionCommand | 0x142A1D638 | 72 | 0x141946B40 | 0x141948B30 | +64 u32(225) 任务类型位掩码 / +68 u8(10376) 使能旗 / +69 u8(10737) 清除旗 / +70 u8(19076) 训练满经验停训旗 |
+| 12222 | CStratAirEnableMissionCommand | 0x142A1D570 | 96 | 0x141946880 | 0x1419488C0 | +40 idpair数组(12213) 目标联队 id 数组数据指针 / +64 idpair数组(11450) 任务定义件 id 数组数据指针 / +88 u32(12014) 战略区域 id / +92 u8(13179) is_ai 旗 |
+| 12230 | CStratAirTransferCommand | 0x142A1D700 | 72 | 0x141946C40 | 0x141948C10 | +40 id对 待转场联队 id / +48 id对 目标空军基地 id / +56 u8(13206) 转存仓库旗 / +57 u8(13179) is_ai 旗 / +60 u32(12014) 目标战略区域 id / +64 u32(11450) 目标任务类型 |
+| 12231 | CStratAirSplitCommand | 0x142A1D890 | 56 | 0x141946BD0 | 0x141948BC0 | +40 id对 待拆分联队 id / +48 u32(12174) 拆分份数 |
+| 12234 | CStratAirConsolidateCommand | 0x142A1D958 | 64 | 0x1419465A0 | 0x141948850 | +40 idpair数组(12213) 待合并联队 id 数组数据指针(同基地同型组) |
+| 12235 | CStratAirCancelTransferCommand | 0x142A1D7C8 | 56 | 0x141946500 | 0x1419487E0 | +40 id对 待取消转场的联队 id / +48 u8(13179) is_ai 旗 |
+| 12242 | CCreateFactionCommand | 0x142995260 | 208 | 0x141155F90 | 0x141162F10 | +40 str(10394) 发起国 / +48 str(27) 阵营名 / +80 str(181) 阵营图标 / +128 嵌套[CColor](86) 阵营颜色 / +176 u32(19482) 阵营模板 def |
+| 12246 | CStratAirDayNightCommand | 0x142A1DBB0 | 56 | 0x141946830 | 0x141948820 | +40 id对 目标联队 id / +48 u32(124) 昼夜档 |
+| 12257 | CSetProductionLineAmountToProduceCommand | 0x142994E78 | 56 | 0x14115CDA0 | 0x141166AE0 | +40 id对 目标生产线 / +48 u32(417) 限量生产目标数量(-1=默认无限，0=停止产出) |
+| 12272 | CNavalMissionSetTypeCommand | 0x1429AF430 | 72 | 0x141351C50 | 0x141358B30 | +64 u32(11450) 目标海军任务类型 / +68 u8(19076) 达上限经验自动停训 / +69 u8(10469) 取消当前活动 |
+| 12273 | CNavalMissionSetRegionsCommand | 0x1429AF4F8 | 72 | 0x1413517C0 | 0x141358A70 | +40 id对 目标海军 / +48 u32数组(12065) 目标海域数组数据(region id 列表) |
+| 12274 | CNavalMissionAddRegionCommand | 0x1429AF5C0 | 56 | 0x141350FE0 | 0x1413584D0 | +40 id对 目标海军 / +48 u32(10827) 待追加海域(region id) |
+| 12275 | CNavalMissionRemoveRegionCommand | 0x1429AF688 | 72 | 0x141351580 | 0x141358890 | +40 id对 目标海军 / +48 u32数组(12065) 待摘除海域数组(region id 列表) |
+| 12284 | CNavalMissionMoveCommand | 0x1429AF750 | 72 | 0x141351260 | 0x141358730 | +64 u8(11396) safe(安全航线) / +68 u32(10304) 目标省 |
+| 12303 | CAddIdeaCommand | 0x142995328 | 64 | 0x141151720 | 0x141161AC0 | +40 str(10394) 目标国家 / +48 u32(10491) 国家理念定义 / +56 u8(10323) 是否免费(不扣政治点) |
+| 12304 | CRemoveIdeaCommand | 0x142995648 | 64 | 0x141159340 | 0x141165950 | +40 str(10394) 目标国家 / +48 u32(10491) 待移除的国家理念定义 / +56 u8(10323) 是否退款(返还政治点) |
+| 12345 | COrderSetPathCommand | 0x142A0B520 | 88 | 0x14184AF10 | 0x14184EBA0 | +40 id对 目标订单组 idpair / +48 u32(12342) 前线实例序号(order_index) / +56 u32数组(372) 路径省 id 数组 / +80 u8(11126) 人控/人绘旗 |
+| 12350 | COrderAssignCommand | 0x142A0B200 | 80 | 0x141844530 | 0x14184D810 | +64 id对 目标订单组 idpair / +72 u32(12342) 前线实例序号(order_index) / +76 u8(15603) 分配至最小订单旗 |
+| 12351 | COrderDeleteCommand | 0x142A0B138 | 56 | 0x141846000 | 0x14184DC90 | +40 id对 目标订单组 idpair / +48 u32(12342) 前线实例序号(order_index) |
+| 12352 | COrderExecuteCommand | 0x142A0C330 | 56 | 0x141846450 | 0x14184DCE0 | +40 id对 目标订单组 idpair / +48 u32(12342) 前线实例序号(order_index；**0=全组**) / +52 u8(12353) 执行/中止切换旗(execute_order) / +53 u8(11159) 含子组全执行旗(all) |
+| 12365 | COrderUnassignCommand | 0x142A0B2C8 | 80 | 0x14184B070 | 0x14184EE20 | +40 id对(10403) 待摘出单位 idpair 数组 / +64 id对 目标订单组 idpair(**唯一「组在高偏移」倒置布局**) / +72 u8(13955) 连群摘出旗(unassign_group) / +73 u8(15774) 集团军级连带摘出旗(unassign_army_group_instances) |
+| 12366 | CDeleteOrderGroupCommand | 0x142A0ABC0 | 48 | 0x141843650 | 0x14184D230 | +40 id对 目标订单组 idpair(单字段) |
+| 12369 | CSetArmyLeaderCommand | 0x142A0C3F8 | 64 | 0x14184B2E0 | 0x14184EFB0 | +40 id对 新指挥官 / +48 id对 目标军群 / +48 u8(10283) 目标军群 / +56 u8(10283) 部署 HQ 旗 |
+| 12370 | CSetFleetLeaderCommand | 0x142A0C4C0 | 56 | 0x14184B550 | 0x14184F0D0 | +40 id对 舰队 id / +48 id对 新舰队将领 id |
+| 12387 | CCreateTradeCommand | 0x142A49150 | 64 | 0x141BA54B0 | 0x141BA56D0 | +40 str(12390) 进口国(tag→国家 id) / +44 str(12389) 出口国(tag→国家 id) / +48 u32(12388) 交易资源(资源对象指针) / +56 u32(417) 交易数量 |
+| 12395 | CCreateEquipmentVariantCommand | 0x142A240C0 | 400 | 0x1419A30E0 | 0x1419A5AF0 | +40 str(12110) 装备架构(新建变体所属 CEquipmentType，串→对象，reader 走 `sub_1409F8700` 架构库查找) / +48 tag(12397) 创建国 tag / +64 str(27) 新变体名称串(32B MSVC 串) / +96 嵌套(12393) 升级组件列表(upgrades 嵌套对象) / +176 对象数组 模块数组数据指针(元素 = 模块 idpair 16B) / +200 u32(15526) 角色图… |
+| 12398 | CRenameEquipmentVariantCommand | 0x142A24570 | 80 | 0x1419A41F0 | 0x1419A5CA0 | +40 id对 待改名变体 / +48 str(27) 新名称串(32B MSVC 串) |
+| 12448 | CDeleteUnitCommand | 0x1429B2140 | 56 | 0x141365FF0 | 0x141368CC0 | +40 id对 待解散单位 idpair / +48 u8(10698) 解散旗(disband_unit) / +52 str(10394) 触发国 tag(串→哈希株，用于错误串与权限门) |
+| 12521 | CEndTurnPeaceConferenceCommand | 0x142A845D0 | 56 | 0x141E53B90 | 0x141E53E00 | +40 str(12518) 谈判国 / +48 嵌套(12494) 竞标快照 |
+| 12566 | CPassPeaceConferenceCommand | 0x142A84440 | 48 | 0x141E53BC0 | 0x141E54130 | +40 str(12518) 谈判国 |
+| 12568 | CSetOccupationPolicyCommand | 0x142995AF8 | 80 | 0x14115C7C0 | 0x1411669B0 | +40 str(10302) 占领方国 tag(owner 侧) / +44 str(10303) 被占领方国 tag(controller 侧) / +48 str(10492) 占领政策名 |
+| 12612 | CSetCountryReinforcementPriorityCommand | 0x14272DAC0 | 48 | 0x14115C1C0 | 0x141166710 | +40 str(10394) 目标国家 / +44 u32(141) 增援优先级 |
+| 12615 | CSetWingReinforcementPriorityCommand | 0x142A1DED0 | 56 | 0x1419464B0 | 0x141948790 | +40 id对 目标航空联队 / +48 u32(141) 增援优先级 |
+| 12620 | CSupportAttackCommand | 0x1429B1FB0 | 56 | 0x141367D70 | 0x14136BA70 | +40 id对 支援单位 idpair(须为师) / +48 u32(10349) 目标省 id(location) |
+| 12643 | COrderSetInvasionSourceCommand | 0x142A0C588 | 96 | 0x14184A920 | 0x14184E450 | +40 id对 目标订单组 idpair / +48 u32(12342) 前线实例序号(order_index) / +52 u32(13117) 连接目标订单号(order_to_connect) / +56 u32(10304) 登陆源省 id(province) / +64 id对(10403) 登陆部队 idpair 数组 / +88 u8(19713) 浮动港口旗(floating_harbor) |
+| 12660 | CRemoveNavalInvasionTargetCommand | 0x142A0C650 | 56 | 0x14184B250 | 0x14184EF30 | +40 id对 目标海军战区(作战群) / +48 u32(12342) 作战命令索引 / +52 u32(10304) 目标省份 id |
+| 12661 | CAddNavalInvasionTargetCommand | 0x142A0C718 | 56 | 0x141842910 | 0x14184CF70 | +40 id对 / +48 u32(12342) order_index / +52 u32(10304) province |
+| 12664 | CNavalMoveCommand | 0x1429AF8E0 | 72 | 0x141351FA0 | 0x141358BB0 | +68 u32(10284) access(access 权限值) / +69 u8(10737) clear(先清空既有命令) |
+| 12679 | CConvertFactoryCommand | 0x142994B58 | 56 | 0x141155C00 | 0x141162D10 | +40 u32(10639) 源建筑/建筑槽 id(转换方向 from) / +44 u32(10640) 目标建筑/建筑槽 id(转换方向 to) / +48 u32(439) 州 id(state) / +52 u32(141) 优先旗(转换队列入列优先级) |
+| 12711 | NFactions::CAddFactionProgramCommand | 0x142A49F08 | 56 | 0x141BA90E0 | 0x141BAAC90 | +40 id对 待添加的阵营项目 / +48 tag(10302) 发起成员国 |
+| 12729 | COrderSetParadropSourceCommand | 0x142A0CA38 | 80 | 0x14184ABD0 | 0x14184E6A0 | +40 id对 命令组 id(部队单位归属组) / +48 u32(12342) 订单序号 / +52 u32(10304) 空投源省 id / +56 id对(10403) 划入单位 id 数组数据指针 |
+| 12730 | COrderSetParadropTargetCommand | 0x142A0CB00 | 56 | 0x14184AEB0 | 0x14184E920 | +40 id对 命令组 id / +48 u32(12342) 订单序号 / +52 u32(10304) 空投目标省 id |
+| 12732 | NFactions::CSetFactionIconAndColor | 0x142A4A2F0 | 112 | 0x141BA9A50 | 0x141BAC6E0 | +40 tag(10302) 阵营发起国 / +48 str(181) 阵营图标 / +80 嵌套[CColor](86) 阵营颜色 |
+| 12778 | CAssignAceCommand | 0x142996138 | 56 | 0x141152A80 | 0x1411629D0 | +40 id对 王牌飞行员 id(可缺省) / +48 id对 目标联队 id |
+| 13017 | CReplaceIdeaCommand | 0x1429958A0 | 72 | 0x141159B70 | 0x141165BF0 | +40 str(10394) 国家 tag / +48 u32(13102) 旧理念对象指针 / +56 u32(13082) 新理念对象指针 / +64 u8(10323) 计费旗 |
+| 13028 | CSetXORResearchCommand | 0x1429950D0 | 72 | 0x14115E670 | 0x141167620 | +40 str(10394) 命令国 tag / +48 str(13259) 新科技(替换入槽；指针无效 = 摘除槽) / +56 str(13260) 旧科技(被替换出槽者；参与进度折算) / +64 u32(12145) 科研槽下标 / +68 u8(15370) 是否以经验加速启动 |
+| 13088 | CRemoveConstructionCommand | 0x142994838 | 56 | 0x1411591C0 | 0x141165920 | +40 id对 目标生产线(建筑线/军线通吃) / +48 u32(417) 撤销量(线排队量的减量) |
 | 13089 | CRemoveAllConstructionCommand | 0x142994900 | 64 | 0x141158AF0 | 0x1411656E0 | — |
 | 13090 | CRequestReadyStatus | 0x1429E6648 | 40 | 0x14163CE70 | 0x1401807B0 | 无载荷（空桩） |
-| 13091 | CDeployAirWingCommand | 0x142995198 | 168 | 0x1411565E0 | 0x141162FB0 | +40 str(10394) / +40 tag / +44 str(15034) / +44 tag / +48 id对 / +56 嵌套(12110) / +128 u32(10706) / +136 id对 / +144 id对 / +152 id对 / +160 u32(19415) |
-| 13092 | CMoveShipsCommand | 0x1429B2780 | 88 | 0x1413669F0 | 0x141369CC0 | +64 id对 / +72 id对 / +80 u32(12790) / +84 u8(10402) / +85 u8(13175) |
-| 13095 | COrderNewFrontCommand | 0x142A0B908 | 112 | 0x141848FE0 | 0x14184E1F0 | +40 id对 / +48 id对 / +56 id对(10403) / +80 u32数组(372) / +104 u32(338) / +108 u8(13156) / +109 u8(14028) / +110 u8(14572) |
-| 13096 | COrderNewRootCommand | 0x142A0BC28 | 112 | 0x1418499A0 | 0x14184E280 | +40 id对 / +48 id对(10403) / +72 id对(10720) / +80 u32(13093) / +88 i64(10639) / +88 u8(15783) / +96 i64(10640) / +96 u8(15783) / +104 u32(19474) |
-| 13097 | COrderEditRootCommand | 0x142A0BF48 | 80 | 0x141846360 | 0x14184DC90 | +40 id对 / +48 u32(12342) / +56 i64(10639) / +56 u8(13846) / +64 i64(10640) / +64 u8(13846) / +73 u8(14833) |
-| 13098 | COrderMergeRootsCommand | 0x142A0C1A0 | 64 | 0x141848B20 | 0x14184E070 | +40 id对(13113) / +48 id对(13114) / +56 u32(13115) / +60 u32(13116) |
-| 13099 | COrderMembersFairSplitCommand | 0x142A0C268 | 64 | 0x1418468A0 | 0x14184DFA0 | +40 id对(13113) / +48 id对(13114) / +56 u32(13115) / +60 u32(13116) |
-| 13100 | CClientOutOfSyncCommand | 0x14296A3D0 | 104 | 0x140DE8340 | 0x140DE9E20 | +40 tag写门(10754) / +48 str(27) |
-| 13101 | CAddProductionLineCommand | 0x142993708 | 64 | 0x141152210 | 0x1411622F0 | +40 str(107) / +40 tag / +44 id对 / +52 id对 / +60 u8(602) |
-| 13103 | CReleaseCountryCommand | 0x142996200 | 56 | 0x141158370 | 0x1411655B0 | +40 str(10302) / +40 tag / +44 str(13024) / +44 tag / +44 u8(12497) / +52 u32(22) / +52 u8(10960) |
-| 13104 | CPromoteToCountryLeaderCommand | 0x14295E4F8 | 48 | 0x140CECBC0 | 0x140CEE410 | +40 u32(22) |
-| 13105 | CRemoveShipRefitProductionLineCommand | 0x142993C80 | 48 | 0x141159750 | 0x141162CE0 | +40 id对 |
-| 13106 | CSetNavalDeploymentTargetCommand | 0x1429941F8 | 72 | 0x14115C6A0 | 0x1411668C0 | +40 id对 / +48 id对 / +56 id对 / +64 u32(11398) |
-| 13107 | CCreateUnitLeaderCommand | 0x1429962C8 | 48 | 0x1411562D0 | 0x141162F60 | +40 str(10394) / +40 tag / +44 u32(225) |
-| 13150 | CDeleteShipCommand | 0x1429B2910 | 56 | 0x141365D60 | 0x141368AA0 | +40 id对 / +48 id对 |
-| 13174 | CChangeCountryControllerCommand | 0x142996390 | 56 | 0x141153210 | 0x141162B60 | +40 str(10394) / +40 tag / +44 str(10724) / +44 tag / +48 str(10394) / +48 u32(22) |
-| 13176 | CMergeNaviesCommand | 0x1429B2B68 | 72 | 0x1413666A0 | 0x1413699E0 | +64 u8(15475) |
-| 13208 | COrderInsertFrontCommand | 0x142A0B840 | 152 | 0x141846610 | 0x14184DF50 | +40 id对 / +48 id对(10403) / +72 u32数组(372) / +96 u32数组(13094) / +120 u32(338) / +128 u32(13209) |
-| 13214 | COrderReshapeCommand | 0x142A0B5E8 | 80 | 0x14184A7F0 | 0x14184E3C0 | +40 id对 / +48 u32(12463) / +56 u32数组(13222) |
-| 13215 | COrderSetTrainingCommand | 0x142A0CBC8 | 56 | 0x14184AF70 | 0x14184EC00 | +40 id对 / +40 u8(12218) / +48 u8(12218) / +49 u8(19076) |
-| 13225 | CSetObsoleteEquipmentVariantCommand | 0x142A24700 | 56 | 0x1419A4BF0 | 0x141165920 | +40 id对 / +40 u8(12396) |
-| 13226 | CSetCountryUpgradePriorityCommand | 0x14272DDE0 | 48 | 0x14115C260 | 0x141166710 | +40 str(10394) / +40 tag / +44 u32(141) |
-| 13232 | COrderReconnectCommand | 0x142A0B6B0 | 64 | 0x141849E20 | 0x14184E2D0 | +40 id对 / +48 u32(12463) / +52 u32(13228) / +56 u32(13229) |
-| 13233 | COrderConnectCommand | 0x142A0B778 | 64 | 0x141845820 | 0x14184DB70 | +40 id对 / +48 u32(13229) / +52 u32(13228) / +56 u32(13236) / +60 u32(13237) |
-| 13235 | CSetUnitNameCommand | 0x1429B2208 | 80 | 0x140E8F1A0 | 0x14136B810 | +40 id对 / +48 str(27) |
-| 13245 | CSetNationalFocusCommand | 0x142996458 | 56 | 0x14115C670 | 0x141166830 | +40 str(10394) / +40 tag / +48 str(13239) |
-| 13268 | CSetShipNameCommand | 0x1429B2848 | 80 | 0x141367C80 | 0x141162CE0 | +40 id对 / +48 str(27) |
-| 13270 | CSetArmyTemplateCommand | 0x1429B25F0 | 72 | 0x1413675A0 | 0x14136A8B0 | +64 id对 |
-| 13271 | COrderNewFallbackCommand | 0x142A0BA98 | 96 | 0x141848FA0 | 0x14184E1B0 | +40 id对 / +48 id对(10403) / +72 u32数组(372) |
-| 13297 | COrderDeleteAllCommand | 0x142A0B070 | 48 | 0x141845920 | 0x141162CE0 | +40 id对 |
-| 13306 | CPromoteUnitLeaderCommand | 0x1429B2C30 | 48 | 0x1413670D0 | 0x14136A5B0 | +40 id对 |
+| 13091 | CDeployAirWingCommand | 0x142995198 | 168 | 0x1411565E0 | 0x141162FB0 | +40 str(10394) 归属国家 / +44 str(15034) 流亡政府 tag / +48 id对 联队转场目标 / +56 嵌套(12110) 联队定义块 / +136 id对 目标联队组 / +144 id对 部署目标 / +152 id对 王牌飞行员 / +160 u32(19415) 补充设置 / +164 u32(10706) 子单位名表 id |
+| 13092 | CMoveShipsCommand | 0x1429B2780 | 88 | 0x1413669F0 | 0x141369CC0 | +64 id对 目标海军 / +72 id对 目标舰队 / +80 u32(12790) 目标海军基地 / +84 u8(10402) move_order(下达移动命令) / +85 u8(13175) new_navy(无目标海军时新建) |
+| 13095 | COrderNewFrontCommand | 0x142A0B908 | 112 | 0x141848FE0 | 0x14184E1F0 | +40 id对 目标订单组 idpair / +48 id对 可选子组 idpair(sub_group) / +56 id对(10403) 单位 idpair 数组 / +80 u32数组(372) 路径容器(省数组数据+计数宿主) / +104 u32(338) attach 父线订单号(父前线实例) / +108 u8(13156) split_from 拆出旗 / +109 u8(14028) blitz 闪电战旗 / +110 u8(14572) withdr… |
+| 13096 | COrderNewRootCommand | 0x142A0BC28 | 112 | 0x1418499A0 | 0x14184E280 | +40 id对 目标订单组 idpair / +48 id对(10403) 单位 idpair 数组 / +72 id对(10720) 新前线 idpair(客户端预分配 front 引用) / +80 u32(13093) 分节号(section) / +88 i64(10639) 兵力比例下界(from) / +96 i64(10640) 兵力比例上界(to) / +104 u32(19474) 原根订单号(original_order) |
+| 13097 | COrderEditRootCommand | 0x142A0BF48 | 80 | 0x141846360 | 0x14184DC90 | +40 id对 目标订单组 idpair / +48 u32(12342) 前线实例序号(order_index) / +56 i64(10639) 兵力比例下界(from) / +64 i64(10640) 兵力比例上界(to) / +73 u8(14833) 手工编辑旗(edited_manually) |
+| 13098 | COrderMergeRootsCommand | 0x142A0C1A0 | 64 | 0x141848B20 | 0x14184E070 | +40 id对(13113) 组 a(保留方)idpair / +48 id对(13114) 组 b(被并方)idpair / +56 u32(13115) a 侧实例序号(id_a) / +60 u32(13116) b 侧实例序号(id_b) |
+| 13099 | COrderMembersFairSplitCommand | 0x142A0C268 | 64 | 0x1418468A0 | 0x14184DFA0 | +40 id对(13113) 源订单组 id / +48 id对(13114) 目标订单组 id / +56 u32(13115) 源组订单序号 / +60 u32(13116) 目标组订单序号 |
+| 13100 | CClientOutOfSyncCommand | 0x14296A3D0 | 104 | 0x140DE8340 | 0x140DE9E20 | +40 tag(10754) 报告方玩家国 tag / +48 str(27) 报告方玩家名 |
+| 13101 | CAddProductionLineCommand | 0x142993708 | 64 | 0x141152210 | 0x1411622F0 | +40 str(107) 所属国家 tag / +44 id对 待建线装备原型 / +52 id对 可选厂商(MIO 工业制造商) / +60 u8(602) 置顶旗(建线后是否排到列表最顶) |
+| 13103 | CReleaseCountryCommand | 0x142996200 | 56 | 0x141158370 | 0x1411655B0 | +40 str(10302) 释放方国家(宗主/owner，tag→国家 id) / +44 str(13024) 被释放国家(subject，tag→国家 id) / +49 u8(12497) 傀儡释放分支旗 / +50 u8(10960) 核心创建旗(1=同时造核心) / +52 u32(22) 机器 id |
+| 13104 | CPromoteToCountryLeaderCommand | 0x14295E4F8 | 48 | 0x140CECBC0 | 0x140CEE410 | +40 u32(22) 待晋升政治家的 machine id |
+| 13105 | CRemoveShipRefitProductionLineCommand | 0x142993C80 | 48 | 0x141159750 | 0x141162CE0 | +40 id对 待摘除的舰船改装线 |
+| 13106 | CSetNavalDeploymentTargetCommand | 0x1429941F8 | 72 | 0x14115C6A0 | 0x1411668C0 | +40 id对 海军线 / +48 id对 特混舰队 / +56 id对 目标战区 / +64 u32(11398) 基地省份 |
+| 13107 | CCreateUnitLeaderCommand | 0x1429962C8 | 48 | 0x1411562D0 | 0x141162F60 | +40 str(10394) 归属国家 / +44 u32(225) 兵种(将领类型) |
+| 13150 | CDeleteShipCommand | 0x1429B2910 | 56 | 0x141365D60 | 0x141368AA0 | +40 id对 待删除舰船 / +48 id对 目标海军/特遣队 |
+| 13174 | CChangeCountryControllerCommand | 0x142996390 | 56 | 0x141153210 | 0x141162B60 | +40 str(10394) 被移交国家(tag→国家 id) / +44 str(10724) 接收方(tag→国家 id) / +48 u32(22) 接收方玩家机器 id |
+| 13176 | CMergeNaviesCommand | 0x1429B2B68 | 72 | 0x1413666A0 | 0x1413699E0 | +64 u8(15475) 合并目标=首个舰队 |
+| 13208 | COrderInsertFrontCommand | 0x142A0B840 | 152 | 0x141846610 | 0x14184DF50 | +40 id对 目标订单组 idpair / +48 id对(10403) 单位 idpair 数组 / +72 u32数组(372) 主线路径省 id 数组 / +96 u32数组(13094) attach 支路径省 id 数组 / +120 u32(338) attach 父线订单号 / +128 u32(13209) 相交订单号数组 |
+| 13214 | COrderReshapeCommand | 0x142A0B5E8 | 80 | 0x14184A7F0 | 0x14184E3C0 | +40 id对 目标订单组 idpair / +48 u32(12463) 前线实例序号(instance_id) / +56 u32数组(13222) 中途点省 id 数组(midpoints) |
+| 13215 | COrderSetTrainingCommand | 0x142A0CBC8 | 56 | 0x14184AF70 | 0x14184EC00 | +40 id对 目标订单组 idpair / +48 u8(12218) 训练开/停旗(training) / +49 u8(19076) 经验满自动停训旗(stop_training_at_max_xp) |
+| 13225 | CSetObsoleteEquipmentVariantCommand | 0x142A24700 | 56 | 0x1419A4BF0 | 0x141165920 | +40 id对 目标变体 / +48 u8(12396) 停用旗(obsolete，过时变体不再进入生产/部署选择) |
+| 13226 | CSetCountryUpgradePriorityCommand | 0x14272DDE0 | 48 | 0x14115C260 | 0x141166710 | +40 str(10394) 目标国家 / +44 u32(141) 装备升级优先级 |
+| 13232 | COrderReconnectCommand | 0x142A0B6B0 | 64 | 0x141849E20 | 0x14184E2D0 | +40 id对 目标订单组 idpair / +48 u32(12463) 前线实例序号(instance_id) / +52 u32(13228) 重连目标(reconnect_to，0=不用) / +56 u32(13229) 重连来源(reconnect_from，0=不用) |
+| 13233 | COrderConnectCommand | 0x142A0B778 | 64 | 0x141845820 | 0x14184DB70 | +40 id对 目标订单组 idpair / +48 u32(13229) 连接来源订单号(reconnect_from) / +52 u32(13228) 连接目标订单号(reconnect_to) / +56 u32(13236) 来源侧中途点(midpoint_from) / +60 u32(13237) 目标侧中途点(midpoint_to) |
+| 13235 | CSetUnitNameCommand | 0x1429B2208 | 80 | 0x140E8F1A0 | 0x14136B810 | +40 id对 目标单位 idpair / +48 str(27) 新单位名 |
+| 13245 | CSetNationalFocusCommand | 0x142996458 | 56 | 0x14115C670 | 0x141166830 | +40 str(10394) 目标国家 / +48 str(13239) 拟设定的国策定义 |
+| 13268 | CSetShipNameCommand | 0x1429B2848 | 80 | 0x141367C80 | 0x141162CE0 | +40 id对 目标舰船 / +48 str(27) 新舰名 |
+| 13270 | CSetArmyTemplateCommand | 0x1429B25F0 | 72 | 0x1413675A0 | 0x14136A8B0 | +64 id对 目标编制模板 |
+| 13271 | COrderNewFallbackCommand | 0x142A0BA98 | 96 | 0x141848FA0 | 0x14184E1B0 | +40 id对 目标订单组 idpair / +48 id对(10403) 参与单位 idpair 数组 / +72 u32数组(372) 备降线省 id 数组 |
+| 13297 | COrderDeleteAllCommand | 0x142A0B070 | 48 | 0x141845920 | 0x141162CE0 | +40 id对 目标订单组 idpair |
+| 13306 | CPromoteUnitLeaderCommand | 0x1429B2C30 | 48 | 0x1413670D0 | 0x14136A5B0 | +40 id对 待晋升将领 id |
 | 13343 | CMassMoveCommand | 0x1429B1C90 | 96 | 0x141366360 | 0x141369610 | — |
-| 13352 | CAddMassProductionsLineCommand | 0x1429937D0 | 96 | 0x141152000 | 0x141162260 | +40 str(107) / +40 tag / +72 u32数组(10730) |
-| 13353 | CNavalMissionMassMoveCommand | 0x1429AF818 | 88 | 0x1413511A0 | 0x141358510 | +64 u32(10349) |
-| 13357 | CSetNavyEngagementCommand | 0x1429B29D8 | 72 | 0x141367B40 | 0x141164440 | +64 u32(13358) |
-| 13465 | CSetCoopHotJoinOptions | 0x1429E67D8 | 48 | 0x14163D3A0 | 0x1401807B0 | +40 u32(13466) / +44 u32(13467) |
+| 13352 | CAddMassProductionsLineCommand | 0x1429937D0 | 96 | 0x141152000 | 0x141162260 | +40 str(107) 所属国家 tag / +72 u32数组(10730) 数量数组数据指针(与装备数组按位对齐) |
+| 13353 | CNavalMissionMassMoveCommand | 0x1429AF818 | 88 | 0x1413511A0 | 0x141358510 | +64 u32(10349) 与 +40 逐元素对齐的目标省数组 |
+| 13357 | CSetNavyEngagementCommand | 0x1429B29D8 | 72 | 0x141367B40 | 0x141164440 | +64 u32(13358) 交战规则档(海军) |
+| 13465 | CSetCoopHotJoinOptions | 0x1429E67D8 | 48 | 0x14163D3A0 | 0x1401807B0 | +40 u32(13466) 合作(COOP)模式开关 / +44 u32(13467) 中途加入(hotjoin)开关 |
 | 13470 | CSetMPDebugSettings | 0x1429E68A0 | 48 | 0x14163D8A0 | 0x1401807B0 | — |
-| 13479 | CCreateConveyorCommand | 0x142A483C0 | 56 | 0x141BA3060 | 0x141162CE0 | +40 id对 / +48 u32(14279) |
-| 13480 | CSetConveyorNameCommand | 0x142A48550 | 80 | 0x141BA3580 | 0x141A7FE30 | +40 id对 / +48 str(27) |
-| 13481 | CSetConveyorLocationCommand | 0x142A48618 | 56 | 0x141BA3510 | 0x141BA3C10 | +40 id对 / +48 u32(10349) |
-| 13482 | CSetConveyorPriorityCommand | 0x142A48870 | 56 | 0x141BA35F0 | 0x141BA4580 | +40 id对 / +48 u32(141) |
-| 13483 | CSetConveyorSeriesCommand | 0x142A48938 | 56 | 0x141BA3660 | 0x141BA03B0 | +40 id对 / +48 u32(417) |
-| 13484 | CAddConveyorLineCommand | 0x142A48A00 | 56 | 0x141BA2D20 | 0x141BA38C0 | +40 id对 / +48 u32(417) |
-| 13485 | CDeployConveyorLineCommand | 0x142A48DE8 | 48 | 0x141BA3270 | 0x141162CE0 | +40 id对 |
-| 13487 | CRemoveConveyorLineCommand | 0x142A48F78 | 48 | 0x141BA33A0 | 0x141162CE0 | +40 id对 |
-| 13493 | CCreateConveyorExtendedCommand | 0x142A48488 | 64 | 0x141BA3100 | 0x141BA39F0 | +40 id对 / +48 u32(417) / +52 u32(361) / +56 u32(10349) / +60 u32(14279) |
-| 13498 | CSetConveyorGroupCommand | 0x142A486E0 | 64 | 0x141BA3450 | 0x141162CE0 | +40 id对 / +48 id对(63) / +56 u32(12342) |
+| 13479 | CCreateConveyorCommand | 0x142A483C0 | 56 | 0x141BA3060 | 0x141162CE0 | +40 id对 编制模板(新建带的模板) / +48 u32(14279) 角色枚举 |
+| 13480 | CSetConveyorNameCommand | 0x142A48550 | 80 | 0x141BA3580 | 0x141A7FE30 | +40 id对 目标输送带 / +48 str(27) 新名字串 |
+| 13481 | CSetConveyorLocationCommand | 0x142A48618 | 56 | 0x141BA3510 | 0x141BA3C10 | +40 id对 目标输送带 / +48 u32(10349) 部署省 id |
+| 13482 | CSetConveyorPriorityCommand | 0x142A48870 | 56 | 0x141BA35F0 | 0x141BA4580 | +40 id对 目标输送带 / +48 u32(141) 优先级档(0/1/2 低中高) |
+| 13483 | CSetConveyorSeriesCommand | 0x142A48938 | 56 | 0x141BA3660 | 0x141BA03B0 | +40 id对 目标输送带 / +48 u32(417) 带内(训练)线数量(绝对值) |
+| 13484 | CAddConveyorLineCommand | 0x142A48A00 | 56 | 0x141BA2D20 | 0x141BA38C0 | +40 id对 目标输送带 / +48 u32(417) 插入线数(增量) |
+| 13485 | CDeployConveyorLineCommand | 0x142A48DE8 | 48 | 0x141BA3270 | 0x141162CE0 | +40 id对 待部署的军用部署线 |
+| 13487 | CRemoveConveyorLineCommand | 0x142A48F78 | 48 | 0x141BA33A0 | 0x141162CE0 | +40 id对 待删带内线 |
+| 13493 | CCreateConveyorExtendedCommand | 0x142A48488 | 64 | 0x141BA3100 | 0x141BA39F0 | +40 id对 编制模板 / +48 u32(417) 末线数量(新建最后一/首条带的线数量) / +52 u32(361) 初始线数(要建的带条数) / +56 u32(10349) 部署省 id / +60 u32(14279) 角色枚举 |
+| 13498 | CSetConveyorGroupCommand | 0x142A486E0 | 64 | 0x141BA3450 | 0x141162CE0 | +40 id对 目标输送带 / +48 id对(63) 目标命令组(COrdersGroup 引用；空 = 摘离) / +56 u32(12342) orders 实例号(组内实例下标) |
 | 13533 | CTransportUnitCommand | 0x1429B2CF8 | 88 | 0x1413682C0 | 0x14136BA60 | 转发内嵌动作（+40; 动作族见 4.33.18） |
-| 13550 | CSetDivisionTemplateSymbolCommand | 0x1429ABB70 | 56 | 0x141B9F780 | 0x141162CE0 | +40 id对 / +48 u32(13549) |
-| 13563 | CSetOrderGroupNameCommand | 0x142A0A580 | 80 | 0x14184B9A0 | 0x141162CE0 | +40 id对 / +48 str(27) |
-| 13565 | CDispatchNavalCombatResultsCommand | 0x142993578 | 72 | 0x141156890 | 0x141164440 | +64 tag写门(10754) |
-| 13571 | CSetOrderGroupMotorizationCommand | 0x142A0A710 | 56 | 0x14184B7F0 | 0x141162CE0 | +40 id对 / +48 u32(19943) |
-| 13574 | CRemoveDivisionTemplateCommand | 0x1429ABDC8 | 48 | 0x141B9F370 | 0x141BA0350 | +40 id对 |
-| 13578 | COrderReplaceRootCommands | 0x142A0BDB8 | 112 | 0x14184A470 | 0x14184E280 | +40 id对 / +48 id对(10403) / +72 id对(10720) / +80 u32(13093) / +88 i64(10639) / +96 i64(10640) / +104 u8(15783) |
-| 13579 | COrderRemoveRootCommands | 0x142A0BE80 | 48 | 0x14184A210 | 0x141162CE0 | +40 id对 |
-| 13580 | COrderReplaceFallbackCommands | 0x142A0BB60 | 96 | 0x14184A3C0 | 0x14184E1B0 | +40 id对 / +48 id对(10403) / +72 u32数组(372) |
-| 13581 | CNavyRepairModeCommand | 0x1429AEF80 | 80 | 0x1413535E0 | 0x141358CB0 | +64 u32(12504) / +73 u8(10911) / +74 u8(15512) |
-| 13583 | CNavyRepairNowCommand | 0x1429AEEB8 | 56 | 0x1413536B0 | 0x141358CE0 | +40 id对 / +48 u32(10304) |
-| 13590 | CNavyCancelRepairCommand | 0x1429AEDF0 | 72 | 0x141352D90 | 0x141164440 | +64 u8(13176) |
-| 13599 | CNavyDetachShipsAndRepairCommand | 0x1429AED28 | 72 | 0x141353450 | 0x141358C10 | +64 id对 |
-| 13600 | CDeployConveyorCommand | 0x142A48AC8 | 48 | 0x141BA3200 | 0x141162CE0 | +40 id对 |
-| 13601 | CRemoveConveyorCommand | 0x142A48D20 | 48 | 0x141BA3320 | 0x141162CE0 | +40 id对 |
-| 13604 | CRemoveBuildingLevelCommand | 0x1429949C8 | 56 | 0x141158E40 | 0x141165750 | +40 u32(10319) / +40 u8(13608) / +44 u32(439) / +44 u8(13608) / +44 u8(13609) |
-| 13614 | CSetTimedActivityDistributionPriorityCommand | 0x142996840 | 56 | 0x14115E550 | 0x141167600 | +40 str(10394) / +40 tag / +44 str(107) / +44 tag / +48 u32(10546) / +52 u32(141) |
-| 13636 | CAddMassFactoryAssignmentCommand | 0x142993A28 | 88 | 0x141151D00 | 0x141161BE0 | +64 u32(12150) |
-| 13637 | CStratAirChangeAggressivnessCommand | 0x142A1DC78 | 56 | 0x141946550 | 0x141948820 | +40 id对 / +48 u32(11922) |
+| 13550 | CSetDivisionTemplateSymbolCommand | 0x1429ABB70 | 56 | 0x141B9F780 | 0x141162CE0 | +40 id对 目标编制模板 / +48 u32(13549) 部队符号计数 |
+| 13563 | CSetOrderGroupNameCommand | 0x142A0A580 | 80 | 0x14184B9A0 | 0x141162CE0 | +40 id对 目标订单组 idpair / +48 str(27) 订单组新名 |
+| 13565 | CDispatchNavalCombatResultsCommand | 0x142993578 | 72 | 0x141156890 | 0x141164440 | +64 tag(10754) 归属国家 |
+| 13571 | CSetOrderGroupMotorizationCommand | 0x142A0A710 | 56 | 0x14184B7F0 | 0x141162CE0 | +40 id对 目标订单组 idpair / +48 u32(19943) 摩托化等级(0..2 三态档) |
+| 13574 | CRemoveDivisionTemplateCommand | 0x1429ABDC8 | 48 | 0x141B9F370 | 0x141BA0350 | +40 id对 待删除模板 |
+| 13578 | COrderReplaceRootCommands | 0x142A0BDB8 | 112 | 0x14184A470 | 0x14184E280 | +40 id对 命令组 id / +48 id对(10403) 单位 id 数组数据指针 / +72 id对(10720) 前线 id / +80 u32(13093) 分节号 / +88 i64(10639) 比例下限 / +96 i64(10640) 比例上限 / +104 u8(15783) 子分节管理旗 |
+| 13579 | COrderRemoveRootCommands | 0x142A0BE80 | 48 | 0x14184A210 | 0x141162CE0 | +40 id对 目标订单组 idpair |
+| 13580 | COrderReplaceFallbackCommands | 0x142A0BB60 | 96 | 0x14184A3C0 | 0x14184E1B0 | +40 id对 命令组 id / +48 id对(10403) 单位 id 数组数据指针 / +72 u32数组(372) 路径省 id 数组数据指针 |
+| 13581 | CNavyRepairModeCommand | 0x1429AEF80 | 80 | 0x1413535E0 | 0x141358CB0 | +64 u32(12504) 维修模式是否下发 / +73 u8(10911) 拆分单位旗 / +74 u8(15512) 是否取消当前维修 |
+| 13583 | CNavyRepairNowCommand | 0x1429AEEB8 | 56 | 0x1413536B0 | 0x141358CE0 | +40 id对 目标舰队 / +48 u32(10304) 目标海军基地省份 id |
+| 13590 | CNavyCancelRepairCommand | 0x1429AEDF0 | 72 | 0x141352D90 | 0x141164440 | +64 u8(13176) merge_navies(取消后合并舰队) |
+| 13599 | CNavyDetachShipsAndRepairCommand | 0x1429AED28 | 72 | 0x141353450 | 0x141358C10 | +64 id对 目标接收舰队 |
+| 13600 | CDeployConveyorCommand | 0x142A48AC8 | 48 | 0x141BA3200 | 0x141162CE0 | +40 id对 待部署传送带 |
+| 13601 | CRemoveConveyorCommand | 0x142A48D20 | 48 | 0x141BA3320 | 0x141162CE0 | +40 id对 待删整条输送带 |
+| 13604 | CRemoveBuildingLevelCommand | 0x1429949C8 | 56 | 0x141158E40 | 0x141165750 | +40 u32(10319) 州内建筑 id / +44 u32(439) 州 id / +48 u8(13608) 拆在建旗(拆在建中等级) / +49 u8(13609) 拆转换旗(拆转换中等级) |
+| 13614 | CSetTimedActivityDistributionPriorityCommand | 0x142996840 | 56 | 0x14115E550 | 0x141167600 | +40 str(10394) 目标国家 / +44 str(107) 目标(受方/活动目标)国家 / +48 u32(10546) 定时活动种类 / +52 u32(141) 分配优先级 |
+| 13636 | CAddMassFactoryAssignmentCommand | 0x142993A28 | 88 | 0x141151D00 | 0x141161BE0 | +64 u32(12150) 工厂增量数组数据指针(与 +40 按位对齐) |
+| 13637 | CStratAirChangeAggressivnessCommand | 0x142A1DC78 | 56 | 0x141946550 | 0x141948820 | +40 id对 目标联队 id / +48 u32(11922) 激进度档 |
 | 13638 | CMassRemoveProductionsLineCommand | 0x142993898 | 64 | 0x1411578A0 | 0x141164DD0 | — |
-| 13642 | CStratAirMoveEquipmentCommand | 0x142A1DA20 | 128 | 0x141946950 | 0x141948980 | +40 str(10394) / +40 tag / +44 id对 / +52 id对 / +64 嵌套(12110) |
-| 13646 | CStratAirMoveEquipmentToReservesCommand | 0x142A1DAE8 | 120 | 0x141946A80 | 0x141948AA0 | +40 str(10394) / +40 tag / +44 id对 / +56 嵌套(12110) |
-| 13650 | CAutoMergeOrdersCommand | 0x142A0B9D0 | 56 | 0x141843540 | 0x14184D200 | +40 id对(10720) / +48 u32(13093) |
-| 13651 | CDeleteAirWingCommand | 0x142A1DF98 | 72 | 0x141944DC0 | 0x1419480D0 | +64 str(10394) |
-| 13682 | CAskToCoopWithCountryCommand | 0x14295E430 | 48 | 0x140CEC380 | 0x140CEE2C0 | +40 str(10394) / +40 tag / +44 str(10394) / +44 u32(22) |
-| 13694 | CSetNavalProductionLineAirWingCompositionCommand | 0x142994130 | 80 | 0x14115C750 | 0x141166910 | +40 id对 / +48 嵌套(13691) |
-| 13713 | CSetCarrierStickyMissionAreaCommand | 0x142A1E060 | 56 | 0x141946340 | 0x141165920 | +40 id对 / +40 u8(13714) |
-| 13725 | CTogglePinnedStrategicRegionCommand | 0x142A87BA0 | 48 | 0x141E74600 | 0x141E74890 | +40 u32(12014) / +44 u32(10805) |
+| 13642 | CStratAirMoveEquipmentCommand | 0x142A1DA20 | 128 | 0x141946950 | 0x141948980 | +40 str(10394) 操作国 tag(reader 按串查 tag id 表，仅 reader 消费 / writer 由 +40 串反查) / +44 id对 出发地(战略空运起点，idpair 解出对象后 **-16 校正** 得战略空军容器指针) / +52 id对 目的地(战略空运终点，同 -16 校正) / +64 嵌套[CEquipmentVariantPool](12110) 空运装备池(本批空运的变体清单) |
+| 13646 | CStratAirMoveEquipmentToReservesCommand | 0x142A1DAE8 | 120 | 0x141946A80 | 0x141948AA0 | +40 str(10394) 操作国 tag(调拨目的国，Execute 用 `sub_140BB4390(+40)` 取国) / +44 id对 来源机队(航空联队，idpair 解引用后 -16 校正) / +56 嵌套[CEquipmentVariantPool](12110) 退回储备的装备池 |
+| 13650 | CAutoMergeOrdersCommand | 0x142A0B9D0 | 56 | 0x141843540 | 0x14184D200 | +40 id对(10720) 目标前线引用 / +48 u32(13093) 前线内 order section 序号 |
+| 13651 | CDeleteAirWingCommand | 0x142A1DF98 | 72 | 0x141944DC0 | 0x1419480D0 | +64 str(10394) 属主国 tag |
+| 13682 | CAskToCoopWithCountryCommand | 0x14295E430 | 48 | 0x140CEC380 | 0x140CEE2C0 | +40 str(10394) 目标国家 / +44 u32(22) 目标机(客户端)id |
+| 13694 | CSetNavalProductionLineAirWingCompositionCommand | 0x142994130 | 80 | 0x14115C750 | 0x141166910 | +40 id对 目标海军生产线 / +48 嵌套[CEquipmentArcheTypePool](13691) 舰载机初编成池(航空联队编成) |
+| 13713 | CSetCarrierStickyMissionAreaCommand | 0x142A1E060 | 56 | 0x141946340 | 0x141165920 | +40 id对 目标空军基地 / +48 u8(13714) 黏性任务区域旗 |
+| 13725 | CTogglePinnedStrategicRegionCommand | 0x142A87BA0 | 48 | 0x141E74600 | 0x141E74890 | +40 u32(12014) 战略区域 id / +44 u32(10805) 玩家(机)id |
 | 13726 | CStartGameCommand | 0x1429E6008 | 40 | 0x14163DA10 | 0x1401807B0 | 无载荷（空桩） |
-| 13728 | CSetPinnedStrategicRegionCommand | 0x142A87D30 | 72 | 0x141E744A0 | 0x1401807B0 | +64 u32(10805) |
+| 13728 | CSetPinnedStrategicRegionCommand | 0x142A87D30 | 72 | 0x141E744A0 | 0x1401807B0 | +64 u32(10805) 玩家(机)id |
 | 13753 | CStrategicRedeploymentCommand | 0x1429B2DC0 | 80 | 0x1413669E0 | 0x14136BA60 | 转发内嵌动作（+40; 动作族见 4.33.18） |
-| 13789 | CAssignToTheaterGroupCommand | 0x142A326D0 | 104 | 0x141A7E8C0 | 0x141A7FB40 | +40 id对 / +72 str(27) |
-| 13790 | CDisbandTheaterGroupCommand | 0x142A32860 | 48 | 0x141A7EA50 | 0x141162CE0 | +40 id对 |
-| 13791 | CSetTheaterGroupNameCommand | 0x142A32928 | 80 | 0x141A7F5C0 | 0x141A7FE30 | +40 id对 / +48 str(27) |
-| 13792 | CSetTheaterGroupPriorityCommand | 0x142A329F0 | 56 | 0x141A7F600 | 0x141A7FE70 | +40 id对 / +48 u32(141) |
-| 13830 | CDonePeaceConferenceCommand | 0x142A84508 | 48 | 0x141E53B70 | 0x141E53C10 | +40 str(12518) / +40 tag |
-| 13859 | NInternationalMarket::CMarketStockpileEquipmentTransferCommand | 0x142A3F9C0 | 176 | 0x141B1BF30 | 0x141B1C0C0 | +40 嵌套(19776) / +104 嵌套(19775) / +168 tag写门(10754) |
+| 13789 | CAssignToTheaterGroupCommand | 0x142A326D0 | 104 | 0x141A7E8C0 | 0x141A7FB40 | +40 id对 目标战区集团 / +72 str(27) 战区集团改名(空则不改名) |
+| 13790 | CDisbandTheaterGroupCommand | 0x142A32860 | 48 | 0x141A7EA50 | 0x141162CE0 | +40 id对 待解散战区集团 |
+| 13791 | CSetTheaterGroupNameCommand | 0x142A32928 | 80 | 0x141A7F5C0 | 0x141A7FE30 | +40 id对 目标战区集团 / +48 str(27) 新名称 |
+| 13792 | CSetTheaterGroupPriorityCommand | 0x142A329F0 | 56 | 0x141A7F600 | 0x141A7FE70 | +40 id对 目标战区集团 / +48 u32(141) 战区集团优先级 |
+| 13830 | CDonePeaceConferenceCommand | 0x142A84508 | 48 | 0x141E53B70 | 0x141E53C10 | +40 str(12518) 谈判国 |
+| 13859 | NInternationalMarket::CMarketStockpileEquipmentTransferCommand | 0x142A3F9C0 | 176 | 0x141B1BF30 | 0x141B1C0C0 | +40 嵌套[CEquipmentVariantPool](19776) 转入储备池的装备规格包(64B，市场记账池名 "reserve") / +104 嵌套[CEquipmentVariantPool](19775) 放出解禁池的装备规格包(64B，市场记账池名 "release") / +168 tag(10754) 操作国 tag(市场库存归属国) |
 | 13872 | CMassCancelMovementCommand | 0x142993960 | 64 | 0x141157820 | 0x141164DC0 | — |
-| 13873 | CEditAreaDefenseStateCommand | 0x142A0C7E0 | 88 | 0x1418436E0 | 0x14184D2B0 | +48 u32(12342) / +80 u8(10737) / +81 u32(11101) |
+| 13873 | CEditAreaDefenseStateCommand | 0x142A0C7E0 | 88 | 0x1418436E0 | 0x14184D2B0 | +48 u32(12342) 订单(order)索引 / +80 u8(10737) 清空标志 / +81 u32(11101) 是否显式给出设置标志(内部) |
 | 13894 | CQueueUnitActionCommand | 0x1429B2E88 | 56 | 0x1413672E0 | 0x14136A6B0 | 动态 token（多态动作对象; 见 4.33.18） |
-| 13901 | CRemovePlayerCommand | 0x142A22ED0 | 96 | 0x1419981F0 | 0x141999900 | +40 u32(13902) / +44 u32(22) / +48 嵌套(390) |
-| 13908 | CSetCountryControllerTypeCommand | 0x14295E688 | 48 | 0x140CEDD10 | 0x140CAA8B0 | +40 str(10394) / +40 tag / +44 u32(225) |
-| 13918 | COrderAddNewCompletePlanCommand | 0x142A0BCF0 | 128 | 0x1418442B0 | 0x14184D7C0 | +40 id对 / +48 id对(10403) / +72 u32数组(372) / +96 u8(13156) / +100 id对(10720) / +108 u32(13093) / +112 i64(10639) / +120 i64(10640) |
-| 13924 | CSetOrderGroupIconAndColorCommand | 0x142A0A7D8 | 96 | 0x14184B740 | 0x141162CE0 | +40 id对 / +48 嵌套(86) / +80 u32(181) |
-| 13979 | CRemoveAllProductionLineCommand | 0x142993D48 | 48 | 0x141158CB0 | 0x140CAA8B0 | +40 str(10754) / +40 tag |
-| 13992 | CSetOrderGroupExecutionTypeCommand | 0x142A0A8A0 | 56 | 0x14184B6D0 | 0x141162CE0 | +40 id对 / +48 u32(225) |
-| 13995 | CAddHumanCommand | 0x142A22E08 | 248 | 0x1419977E0 | 0x141998FF0 | +40 嵌套(11126) / +104 str(27) / +136 嵌套(16004) / +152 str(10394) / +152 tag / +192 str(10394) / +192 u32(22) / +200 嵌套(226) |
-| 13997 | CRequestGameStateTransferCommand | 0x14296A0B0 | 80 | 0x140DE98C0 | 0x1401807B0 | +40 str(27) / +72 u32(22) |
-| 14003 | CCollapseConveyorCommand | 0x142A48B90 | 48 | 0x141BA3010 | 0x141162CE0 | +40 id对 |
-| 14004 | CChangeConveyorPositionCommand | 0x142A48C58 | 56 | 0x141BA2DE0 | 0x141162CE0 | +40 id对 / +48 u32(76) |
-| 14005 | CReplaceBuildingCommand | 0x142994A90 | 176 | 0x141159B20 | 0x141165BE0 | +40 嵌套(13604) / +96 嵌套(12151) |
-| 14008 | CSetCustomDifficultyMultiplier | 0x1429E6328 | 80 | 0x14163D3F0 | 0x14163DDB0 | +40 str(220) / +72 i64(776) |
-| 14010 | NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand | 0x142A3F820 | 64 | 0x141B1B930 | 0x140CAA8B0 | +48 tag写门(10754) |
-| 14022 | CChangeConveyorTemplateCommand | 0x142A487A8 | 56 | 0x141BA2F00 | 0x141BA3990 | +40 id对 / +48 id对 |
-| 14038 | CSetEquipmentVariantHighlightCommand | 0x142A24638 | 56 | 0x1419A44D0 | 0x141162CE0 | +40 id对 / +48 u8(14039) |
-| 14048 | CSetContinuousFocusCommand | 0x1429966B0 | 56 | 0x14115BC50 | 0x1411666E0 | +40 str(10394) / +40 tag / +48 str(13239) |
-| 14050 | CDropContinuousFocusCommand | 0x142996778 | 48 | 0x141156900 | 0x141164450 | +40 str(10394) / +40 tag |
-| 14061 | CPromoteAutonomyCommand | 0x1429AB3F8 | 48 | 0x141B8E4A0 | 0x141B8E670 | +40 str(10754) / +40 tag |
-| 14062 | CRemoveAutonomyCommand | 0x1429AB4C0 | 48 | 0x141B8E580 | 0x141B8E6B0 | +40 str(10754) / +40 tag |
-| 14063 | CSetAreaDefenseSettingCommand | 0x142A0C970 | 56 | 0x14184B290 | 0x14184DC90 | +40 id对 / +48 u32(12342) / +52 u32(14072) / +52 u8(776) / +54 u8(776) |
+| 13901 | CRemovePlayerCommand | 0x142A22ED0 | 96 | 0x1419981F0 | 0x141999900 | +40 u32(13902) 移除玩家原因码(0=自退 / 2 / 3 等) / +44 u32(22) 目标机器 id(大厅玩家槽标识，−1 = 无效) / +48 嵌套(390) 用户描述嵌套对象 |
+| 13908 | CSetCountryControllerTypeCommand | 0x14295E688 | 48 | 0x140CEDD10 | 0x140CAA8B0 | +40 str(10394) 目标国家 / +44 u32(225) 控制者类型(0=释放为独立国/1=某类移交/2=另一类移交) |
+| 13918 | COrderAddNewCompletePlanCommand | 0x142A0BCF0 | 128 | 0x1418442B0 | 0x14184D7C0 | +40 id对 目标订单组 idpair / +48 id对(10403) 计划成员单位 idpair 数组 / +72 u32数组(372) 计划路径省 id 数组 / +96 u8(13156) split_from(从既有计划拆分而出) / +100 id对(10720) 新计划根实例引用(`sub_141839D30` 的根参数) / +108 u32(13093) 目标 section 序号 / +112 i64(10639) 时间区间起点 / +120 i6… |
+| 13924 | CSetOrderGroupIconAndColorCommand | 0x142A0A7D8 | 96 | 0x14184B740 | 0x141162CE0 | +40 id对 目标订单组 idpair / +48 嵌套[CColor](86) 图标/染色颜色值 / +80 u32(181) 图标 id |
+| 13979 | CRemoveAllProductionLineCommand | 0x142993D48 | 48 | 0x141158CB0 | 0x140CAA8B0 | +40 str(10754) 目标国家 tag |
+| 13992 | CSetOrderGroupExecutionTypeCommand | 0x142A0A8A0 | 56 | 0x14184B6D0 | 0x141162CE0 | +40 id对 目标订单组 idpair / +48 u32(225) 订单组执行模式(谨慎/均衡/激进 三档枚举) |
+| 13995 | CAddHumanCommand | 0x142A22E08 | 248 | 0x1419977E0 | 0x141998FF0 | +40 嵌套[CHuman](11126) 人类玩家对象 / +104 str(27) 玩家名称(存档用) / +144 嵌套(16004) 玩家档案徽章 / +152 str(10394) 加入国家 / +192 u32(22) 玩家机(客户端)id / +200 嵌套(226) 用户(账号)对象 |
+| 13997 | CRequestGameStateTransferCommand | 0x14296A0B0 | 80 | 0x140DE98C0 | 0x1401807B0 | +40 str(27) 会话/房间名 / +72 u32(22) 目标机(客户端)id |
+| 14003 | CCollapseConveyorCommand | 0x142A48B90 | 48 | 0x141BA3010 | 0x141162CE0 | +40 id对 目标输送带 |
+| 14004 | CChangeConveyorPositionCommand | 0x142A48C58 | 56 | 0x141BA2DE0 | 0x141162CE0 | +40 id对 目标输送带 / +48 u32(76) 位置动作枚举(0=移至末尾 / 1=下移 / 2=上移 / 3=移至顶部 / 4=shift 跳变) |
+| 14005 | CReplaceBuildingCommand | 0x142994A90 | 176 | 0x141159B20 | 0x141165BE0 | +40 嵌套[CRemoveBuildingLevelCommand](13604) 内嵌「拆建筑级」命令 / +96 嵌套[CAddConstructionCommand](12151) 内嵌「加建造项」命令 |
+| 14008 | CSetCustomDifficultyMultiplier | 0x1429E6328 | 80 | 0x14163D3F0 | 0x14163DDB0 | +40 str(220) 难度项键名 / +72 i64(776) 难度倍率值(定点) |
+| 14010 | NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand | 0x142A3F820 | 64 | 0x141B1B930 | 0x140CAA8B0 | +40 tag(10754) 操作国 tag(价级覆盖表归属国) |
+| 14022 | CChangeConveyorTemplateCommand | 0x142A487A8 | 56 | 0x141BA2F00 | 0x141BA3990 | +40 id对 目标传送带 / +48 id对 换绑目标模板 |
+| 14038 | CSetEquipmentVariantHighlightCommand | 0x142A24638 | 56 | 0x1419A44D0 | 0x141162CE0 | +40 id对 目标变体(键用专有 token 13891，非通用 12110) / +48 u8(14039) 高亮旗(变体在列表/地图是否高亮) |
+| 14048 | CSetContinuousFocusCommand | 0x1429966B0 | 56 | 0x14115BC50 | 0x1411666E0 | +40 str(10394) 目标国家 / +48 str(13239) 拟设为连续国策的国策定义 |
+| 14050 | CDropContinuousFocusCommand | 0x142996778 | 48 | 0x141156900 | 0x141164450 | +40 str(10394) 目标国家 |
+| 14061 | CPromoteAutonomyCommand | 0x1429AB3F8 | 48 | 0x141B8E4A0 | 0x141B8E670 | +40 str(10754) 目标附庸国 |
+| 14062 | CRemoveAutonomyCommand | 0x1429AB4C0 | 48 | 0x141B8E580 | 0x141B8E6B0 | +40 str(10754) 目标附庸国 |
+| 14063 | CSetAreaDefenseSettingCommand | 0x142A0C970 | 56 | 0x14184B290 | 0x14184DC90 | +40 id对 区域防御对象组(player order group) / +48 u32(12342) 订单(order)索引 / +52 u32(14072) 区域防御设置种类 id / +54 u8(776) 设置开关值 |
 | 14069 | COrderBlockSectionsCommand | 0x142A0B458 | 88 | 0x141845720 | 0x141165920 | — |
-| 14250 | CBypassNationalFocusCommand | 0x1429965E8 | 56 | 0x1411531E0 | 0x141162A80 | +40 str(10394) / +40 tag / +48 str(13239) |
-| 14257 | CDropCurrentNationalFocusCommand | 0x142996520 | 48 | 0x141156920 | 0x141164490 | +40 str(10394) / +40 tag |
-| 14301 | CSetProductionLineConvertCommand | 0x142993E10 | 56 | 0x14115CFE0 | 0x141166B90 | +40 id对 / +48 u8(10376) |
-| 14312 | CSetAirWingNameCommand | 0x142A1E128 | 80 | 0x1419462E0 | 0x140E8F550 | +40 id对 / +48 str(27) |
-| 14344 | CMergeArmiesCommand | 0x1429B2F50 | 72 | 0x141366400 | 0x141369630 | +40 id对 |
-| 14345 | CSelectDecisionCommand | 0x142996908 | 56 | 0x14115ADE0 | 0x141165F10 | +40 str(10394) / +40 tag / +48 u32(11142) |
-| 14350 | CSendPingCommand | 0x14296A498 | 120 | 0x140DE9A20 | 0x140DE9E70 | +40 obj24(14351) / +64 str(10394) / +64 tag / +72 i64(10925) / +80 u8(14352) / +88 str(27) |
+| 14250 | CBypassNationalFocusCommand | 0x1429965E8 | 56 | 0x1411531E0 | 0x141162A80 | +40 str(10394) 目标国家 / +48 str(13239) 待跳过的国策定义 |
+| 14257 | CDropCurrentNationalFocusCommand | 0x142996520 | 48 | 0x141156920 | 0x141164490 | +40 str(10394) 目标国家 |
+| 14301 | CSetProductionLineConvertCommand | 0x142993E10 | 56 | 0x14115CFE0 | 0x141166B90 | +40 id对 目标生产线 / +48 u8(10376) 转换开关(线是否参与军转民/民转军转换) |
+| 14312 | CSetAirWingNameCommand | 0x142A1E128 | 80 | 0x1419462E0 | 0x140E8F550 | +40 id对 待改名联队 id / +48 str(27) 新联队名 |
+| 14344 | CMergeArmiesCommand | 0x1429B2F50 | 72 | 0x141366400 | 0x141369630 | +40 id对 保留(合并目标)集团军 |
+| 14345 | CSelectDecisionCommand | 0x142996908 | 56 | 0x14115ADE0 | 0x141165F10 | +40 str(10394) 执行国 / +48 u32(11142) 决议定义 |
+| 14350 | CSendPingCommand | 0x14296A498 | 120 | 0x140DE9A20 | 0x140DE9E70 | +40 obj24(14351) ping 位置 X(定点) / +64 str(10394) 发起国家 / +72 i64(10925) ping 持续时间 / +80 u8(14352) 是否进攻性 ping / +88 str(27) 附带文本/名称 |
 | 14372 | CSetProductionLinePriorityCommand | 0x142994CE8 | 64 | 0x14115D190 | 0x141164440 | — |
-| 14383 | CSelectTargetedDecisionCommand | 0x1429969D0 | 64 | 0x14115B0E0 | 0x141166030 | +40 str(10394) / +40 tag / +44 str(107) / +44 tag / +48 u32(14965) / +56 u32(11142) |
-| 14424 | CStockpiledEquipmentDeleteCommand | 0x142A247C8 | 56 | 0x1419A4DE0 | 0x1419A5DD0 | +40 str(10754) / +40 tag / +44 id对 / +44 str(10754) |
-| 14433 | CArmyGroupCommand | 0x142A0AC88 | 128 | 0x141842970 | 0x14184CFC0 | +40 id对 / +96 i64(10639) / +96 id对 / +104 i64(10639) / +104 i64(10640) / +104 u32(13093) |
-| 14463 | CSetArmyToConsolidateForUnit | 0x1429B1D58 | 56 | 0x141367A40 | 0x141358CE0 | +40 id对 / +48 id对 |
-| 14470 | CAssignToArmyGroupCommand | 0x142A0AD50 | 80 | 0x1418431A0 | 0x14184D170 | +64 id对 / +72 u32(76) |
+| 14383 | CSelectTargetedDecisionCommand | 0x1429969D0 | 64 | 0x14115B0E0 | 0x141166030 | +40 str(10394) 执行国 / +44 str(107) 目标国 / +48 u32(14965) 目标州 id / +56 u32(11142) 定向决议定义 |
+| 14424 | CStockpiledEquipmentDeleteCommand | 0x142A247C8 | 56 | 0x1419A4DE0 | 0x1419A5DD0 | +40 str(10754) 目标国 tag(库存归属国) / +44 id对 待删除存量的变体 / +44 str(10754) 待删除存量的变体 |
+| 14433 | CArmyGroupCommand | 0x142A0AC88 | 128 | 0x141842970 | 0x14184CFC0 | +40 id对 目标战区 / +96 i64(10639) 可选前线 / +96 id对 可选前线 / +104 i64(10639) 前线区段 / +104 i64(10640) 前线区段 / +104 u32(13093) 前线区段 |
+| 14463 | CSetArmyToConsolidateForUnit | 0x1429B1D58 | 56 | 0x141367A40 | 0x141358CE0 | +40 id对 待整编单位 / +48 id对 并入目标军 |
+| 14470 | CAssignToArmyGroupCommand | 0x142A0AD50 | 80 | 0x1418431A0 | 0x14184D170 | +64 id对 目标军群 / +72 u32(76) 插入位次 |
 | 14471 | CRemoveFromArmyGroupCommand | 0x142A0AE18 | 64 | 0x14184B1E0 | 0x141164DD0 | — |
-| 14495 | CUnlockIndustrialOrganisationTrait | 0x142967CD8 | 72 | 0x14199CF00 | 0x14199D910 | +40 tag写门(10394) / +48 嵌套(11918) / +64 id对 |
-| 14496 | CSetIndustrialManufacturerCommand | 0x142A23280 | 64 | 0x14199CC70 | 0x14199D780 | +40 tag写门(10394) / +44 id对 / +52 id对 |
-| 14513 | CTriggerAbilityCommand | 0x142996B60 | 120 | 0x14115E8C0 | 0x1411676F0 | +40 str(10394) / +40 tag / +48 str(14475) / +104 u32(12014) / +112 u8(10469) |
-| 14525 | CLearnTraitCommand | 0x142A0CD58 | 56 | 0x1418439B0 | 0x14184D300 | +40 id对(10423) / +48 u32(11918) |
-| 14601 | CSetDivisionNameCommand | 0x1429B22D0 | 88 | 0x141367AB0 | 0x14136B320 | +40 id对 / +40 u8(14561) / +48 str(27) / +80 u32(14563) / +84 u8(14561) / +85 u8(14562) |
-| 14612 | CSetDeploymentLineNameCommand | 0x142A48EB0 | 88 | 0x141BA36D0 | 0x141162CE0 | +40 id对 / +48 str(27) / +80 u32(14563) / +84 u8(14562) / +85 u8(14561) |
-| 14636 | CAttachAirWingToArmyCommand | 0x142A1E1F0 | 72 | 0x141944CD0 | 0x141947FF0 | +64 id对 |
+| 14495 | CUnlockIndustrialOrganisationTrait | 0x142967CD8 | 72 | 0x14199CF00 | 0x14199D910 | +40 tag(10394) 属国 tag(MIO 归属国) / +48 嵌套(11918) 待解锁特性(STraitId 16B，id 在 +56) / +64 id对 目标 MIO(工业制造商) |
+| 14496 | CSetIndustrialManufacturerCommand | 0x142A23280 | 64 | 0x14199CC70 | 0x14199D780 | +40 tag(10394) 目标国家(tag 写门) / +44 id对 生产线(production line) / +52 id对 军事工业组织(organisation) |
+| 14513 | CTriggerAbilityCommand | 0x142996B60 | 120 | 0x14115E8C0 | 0x1411676F0 | +40 str(10394) 施放国 / +48 str(14475) 能力名 / +104 u32(12014) 战略区域(对象指针) / +112 u8(10469) 取消标志 |
+| 14525 | CLearnTraitCommand | 0x142A0CD58 | 56 | 0x1418439B0 | 0x14184D300 | +40 id对(10423) 目标单位指挥官 idpair / +48 u32(11918) 授予的特性定义指针 |
+| 14601 | CSetDivisionNameCommand | 0x1429B22D0 | 88 | 0x141367AB0 | 0x14136B320 | +40 id对 目标师 / +48 str(27) 显式师名 / +80 u32(14563) 命名表序号 / +84 u8(14561) 显式名覆盖旗 / +85 u8(14562) 名表有序旗 |
+| 14612 | CSetDeploymentLineNameCommand | 0x142A48EB0 | 88 | 0x141BA36D0 | 0x141162CE0 | +40 id对 目标部署线 / +48 str(27) 自定名串 / +80 u32(14563) 自动编号目标序号 / +84 u8(14562) 是否按名排序(择路旗) / +85 u8(14561) 覆盖替换旗(择路旗) |
+| 14636 | CAttachAirWingToArmyCommand | 0x142A1E1F0 | 72 | 0x141944CD0 | 0x141947FF0 | +64 id对 归属陆军 |
 | 14637 | CDetachAirWingFromArmyCommand | 0x142A1E2B8 | 64 | 0x141945130 | 0x141948190 | — |
-| 14678 | CProductionLineInterfaceToggleExpandCommand | 0x142993FA0 | 72 | 0x141158100 | 0x141164EC0 | +64 u8(14608) |
-| 14699 | CProductionLineInterfaceToggleExpandAllCommand | 0x142994068 | 48 | 0x141157F50 | 0x140CAA8B0 | +40 str(10394) / +40 tag / +44 u8(14608) |
-| 14706 | CToggleBombingPriorityCommand | 0x142A1E380 | 56 | 0x141946E60 | 0x141948CC0 | +40 id对 / +48 u32(10319) |
-| 14730 | CProductionLineInterfaceFactoriesScaleCommand | 0x142993ED8 | 72 | 0x141157D50 | 0x141164E40 | +64 u32(93) |
-| 14768 | CIgnoreDecisionCommand | 0x142996C28 | 80 | 0x141157240 | 0x141164A20 | +40 str(10394) / +40 tag |
-| 14769 | CIgnoreTargetedDecisionCommand | 0x142996D40 | 80 | 0x141157540 | 0x141164B10 | +40 str(10394) / +72 u8(11736) |
-| 14785 | CMoreGroundCrewsCommand | 0x142A1E448 | 56 | 0x141945190 | 0x141948200 | +40 str(10394) / +40 tag / +44 u32(10827) / +48 u8(705) |
-| 14857 | CSetOrdersLinkCommand | 0x142A0CFB0 | 104 | 空桩 | 0x14184F100 | +40 id对 / +48 嵌套(14642) / +72 嵌套(14643) / +96 u8(14790) |
-| 14858 | CSetNavalRegionAccessCommand | 0x1429AFA70 | 80 | 0x1413560B0 | 0x141359400 | +40 str(10394) / +40 tag / +48 u32数组(12065) / +72 u32(10284) / +73 u8(10737) |
-| 14859 | CSetCountryOperationsPriorityCommand | 0x14272DC50 | 48 | 0x14115BF30 | 0x141166710 | +40 str(10394) / +40 tag / +44 u32(141) |
-| 14860 | CSetOperationTargetCommand | 0x1429786F8 | 56 | 0x141A284D0 | 0x141A2B890 | +40 str(10754) / +40 tag / +44 id对(11) / +52 str(10754) / +52 u32(107) |
-| 14861 | CReserveOperativeForOperationCommand | 0x142978248 | 80 | 0x141A27F70 | 0x141A2AE10 | +56 u32(11879) / +60 id对(12059) |
-| 14862 | CDeleteOperationCommand | 0x1429783D8 | 56 | 0x141A276B0 | 0x141A296A0 | +40 id对(11) / +48 str(10754) / +48 tag / +52 str(10754) / +52 u8(12110) |
-| 14863 | CMoveAirWingAndAirGroupToAirTheatreCommand | 0x142A1E510 | 104 | 0x141945610 | 0x1419484B0 | +40 str(10394) / +40 tag / +48 id对数组(13161) / +72 id对数组(12227) / +96 id对 |
-| 14864 | CMoveAirGroupAndAirTheatreToFreeCommand | 0x142A1E5D8 | 104 | 0x1419452E0 | 0x1419483A0 | +40 str(10394) / +40 tag / +48 id对数组(13161) / +72 id对数组(12227) / +96 id对 |
-| 14865 | CMoveAirWingToAirGroupCommand | 0x142A1E6A0 | 80 | 0x141945DE0 | 0x1419485A0 | +40 str(10394) / +40 tag / +48 id对数组(13161) / +72 id对 |
-| 14866 | CRenameAirTheatreCommand | 0x142A1E830 | 80 | 0x141946170 | 0x141948650 | +40 id对 / +48 str(27) |
-| 14867 | CRenameAirGroupCommand | 0x142A1E8F8 | 80 | 0x141946120 | 0x141948650 | +40 id对 / +48 str(27) |
-| 14868 | CChangeAirGroupInsigniaCommand | 0x142A1E9C0 | 96 | 0x141944D80 | 0x141948090 | +40 id对 / +48 嵌套(86) / +80 u32(181) |
-| 14869 | CReorderAirTheatersCommand | 0x142A1E768 | 56 | 0x1419461C0 | 0x141162CE0 | +40 id对 / +48 u32(76) |
-| 14876 | CSetQuickDeployPreferenceCommand | 0x142A1EA88 | 72 | 0x141946380 | 0x141948690 | +64 str(10394) / +64 tag |
-| 14895 | COrderSetCollapseCommand | 0x142A0CC90 | 56 | 0x14184A8E0 | 0x14184E410 | +40 id对 / +48 u8(14894) |
-| 14901 | CAssignArmyToArmyGroupFront | 0x142A0D078 | 80 | 空桩 | 0x14184D110 | +40 id对 / +48 嵌套(13815) / +72 i64(694) |
-| 14918 | CUpdateLeaderSeenTraitsCountCommand | 0x142A0CE20 | 56 | 0x14184BBA0 | 0x141165920 | +40 id对 / +48 u32(10730) |
-| 14954 | CCreateAreaDefenseCommand | 0x142A0C8A8 | 80 | 0x1418435A0 | 0x141165920 | +40 id对 / +48 u32数组(11835) / +72 u32(11101) |
-| 14966 | CExecuteScriptedWindowEffect | 0x142996ED0 | 152 | 0x141156950 | 0x1411644D0 | +88 str(89) / +120 str(27) |
-| 14987 | CSetSelectedArmyGroupFallback | 0x142A0D140 | 56 | 0x14184BB00 | 0x14184F150 | +40 id对 / +48 u32(13815) |
-| 14990 | CMoveArmiesInTheaterCommand | 0x142A0AEE0 | 72 | 0x141843A40 | 0x14184D700 | +64 u32(524) |
-| 14991 | CMoveArmyGroupInTheaterCommand | 0x142A0AFA8 | 56 | 0x141843F10 | 0x141359530 | +40 id对 / +48 u32(524) |
-| 14993 | CReorderTheatersCommand | 0x142A32798 | 56 | 0x141A7ECC0 | 0x141162CE0 | +40 id对 / +48 u32(76) |
-| 14994 | CReorderPinnedStrategicRegionCommand | 0x142A87C68 | 56 | 0x141E74370 | 0x141E74890 | +40 u32(12014) / +44 u32(10805) / +48 u32(76) |
-| 15001 | CSetPrideOfTheFleetCommand | 0x1429AF9A8 | 56 | 0x141356850 | 0x141359420 | +40 id对 / +48 str(10394) / +48 tag |
-| 15158 | CCreateFleetCommand | 0x1429AFB38 | 144 | 0x141350A90 | 0x141358300 | +40 str(10394) / +40 tag / +44 id对 / +104 u32(11087) / +108 u32(12119) / +124 u32(10827) / +136 u32(11450) / +140 u32(10241) |
-| 15160 | CReorderNavyTheaterGroupCommand | 0x142A32AB8 | 56 | 0x141A7EAA0 | 0x141A7FDD0 | +40 id对 / +48 u32(13778) |
-| 15161 | CSetNavyTheaterGroupForCommand | 0x142A32B80 | 104 | 0x141A7EEA0 | 0x141A7FE10 | +40 str(10394) / +40 tag / +44 u8(15162) / +48 id对 |
-| 15163 | CSetFleetNameCommand | 0x1429AFC00 | 80 | 0x141355ED0 | 0x1413591E0 | +40 id对 / +48 str(27) |
-| 15164 | CSetNavyTheaterGroupNameCommand | 0x142A32C48 | 80 | 0x141A7F580 | 0x1413591E0 | +40 id对 / +48 str(27) |
-| 15165 | CSetFleetCommand | 0x1429AFCC8 | 72 | 0x141355060 | 0x141359180 | +40 id对 |
-| 15170 | CSetTaskForceAutoReinforcementCommand | 0x1429AFE58 | 72 | 0x1413568E0 | 0x141164440 | +64 u8(15169) |
-| 15171 | CSetTaskForceCompositionRequirementsCommand | 0x1429AFF20 | 152 | 0x1413569C0 | 0x141359530 | +40 id对 / +48 嵌套(15166) |
-| 15172 | CSetAsReserveFleetCommand | 0x1429B00B0 | 112 | 0x141354E20 | 0x141359160 | +40 id对 / +96 id对 / +104 u8(15528) |
-| 15174 | CReorganizeShipsCommand | 0x1429B06F0 | 88 | 0x141353AE0 | 0x141358FB0 | +40 str(10394) / +40 tag / +48 嵌套(15157) / +60 嵌套(15157) / +72 id对 / +80 u8(15633) |
-| 15177 | CSetTaskForceIconAndColorCommand | 0x1429B0948 | 96 | 0x141356A00 | 0x1413591C0 | +40 id对 / +40 u8(15195) / +48 嵌套(86) / +80 u32(181) / +84 u8(15195) |
-| 15178 | CSetFleetIconAndColorCommand | 0x1429B0880 | 96 | 0x141355E80 | 0x1413591C0 | +40 id对 / +48 嵌套(86) / +80 u32(181) |
-| 15179 | CNavyDetachShipsAndMergeCommand | 0x1429AF110 | 72 | 0x141352E90 | 0x141358C10 | +64 id对 |
+| 14678 | CProductionLineInterfaceToggleExpandCommand | 0x142993FA0 | 72 | 0x141158100 | 0x141164EC0 | +64 u8(14608) 折叠旗(界面折叠态) |
+| 14699 | CProductionLineInterfaceToggleExpandAllCommand | 0x142994068 | 48 | 0x141157F50 | 0x140CAA8B0 | +40 str(10394) 目标国家 tag / +44 u8(14608) 折叠旗(全军产线折叠态) |
+| 14706 | CToggleBombingPriorityCommand | 0x142A1E380 | 56 | 0x141946E60 | 0x141948CC0 | +40 id对 目标空军联队 / +48 u32(10319) 目标建筑(轰炸优先级目标建筑类型) |
+| 14730 | CProductionLineInterfaceFactoriesScaleCommand | 0x142993ED8 | 72 | 0x141157D50 | 0x141164E40 | +64 u32(93) 工厂图标显示密度档位(1/2/3；1=默认不写) |
+| 14768 | CIgnoreDecisionCommand | 0x142996C28 | 80 | 0x141157240 | 0x141164A20 | +40 str(10394) 目标国家 |
+| 14769 | CIgnoreTargetedDecisionCommand | 0x142996D40 | 80 | 0x141157540 | 0x141164B10 | +40 str(10394) 目标国家 / +72 u8(11736) 忽略开关 |
+| 14785 | CMoreGroundCrewsCommand | 0x142A1E448 | 56 | 0x141945190 | 0x141948200 | +40 str(10394) 目标国家(机场/空军所属国) / +44 u32(10827) 战略区域 id / +48 u8(705) 增派地面机组开关 |
+| 14857 | CSetOrdersLinkCommand | 0x142A0CFB0 | 104 | 空桩 | 0x14184F100 | +40 id对 集团军 idpair / +48 嵌套(14642) 订单实例引用 A / +72 嵌套[COrderInstance::SOrderInstanceRef](14643) 订单实例引用 B / +96 u8(14790) link(链接方向旗) |
+| 14858 | CSetNavalRegionAccessCommand | 0x1429AFA70 | 80 | 0x1413560B0 | 0x141359400 | +40 str(10394) 目标国(舰队属国) / +48 u32数组(12065) 目标海区 id 数组 / +72 u32(10284) 准入权限档 / +73 u8(10737) 清空(重置全部海区准入) |
+| 14859 | CSetCountryOperationsPriorityCommand | 0x14272DC50 | 48 | 0x14115BF30 | 0x141166710 | +40 str(10394) 命令国 tag / +44 u32(141) 国行动优先级档(0..2) |
+| 14860 | CSetOperationTargetCommand | 0x1429786F8 | 56 | 0x141A284D0 | 0x141A2B890 | +40 str(10754) 命令国 tag(行动实例归属国) / +44 id对(11) 行动实例 idpair / +52 str(10754) 行动目标省(省 id；置 0 = 清空目标) / +52 u32(107) 行动目标省(省 id；置 0 = 清空目标) |
+| 14861 | CReserveOperativeForOperationCommand | 0x142978248 | 80 | 0x141A27F70 | 0x141A2AE10 | +56 u32(11879) 目标特工槽位下标 / +60 id对(12059) 行动实例 idpair |
+| 14862 | CDeleteOperationCommand | 0x1429783D8 | 56 | 0x141A276B0 | 0x141A296A0 | +40 id对(11) 待删除行动实例 idpair / +48 str(10754) 命令国 tag(行动实例归属国) / +52 u8(12110) 删除时是否退还已投入装备/资金 |
+| 14863 | CMoveAirWingAndAirGroupToAirTheatreCommand | 0x142A1E510 | 104 | 0x141945610 | 0x1419484B0 | +40 str(10394) 属主国 tag / +48 idpair数组(13161) 迁入联队 id 数组数据指针 / +72 idpair数组(12227) 迁入集团 id 数组数据指针 / +96 id对 目标空军剧场 id |
+| 14864 | CMoveAirGroupAndAirTheatreToFreeCommand | 0x142A1E5D8 | 104 | 0x1419452E0 | 0x1419483A0 | +40 str(10394) 属主国 tag / +48 idpair数组(13161) 归 free 联队 id 数组数据指针 / +72 idpair数组(12227) 归 free 集团 id 数组数据指针 / +96 id对 剧场 id(连带退回者) |
+| 14865 | CMoveAirWingToAirGroupCommand | 0x142A1E6A0 | 80 | 0x141945DE0 | 0x1419485A0 | +40 str(10394) 属主国 tag / +48 idpair数组(13161) 划入联队 id 数组数据指针 / +72 id对 目标空军集团 id |
+| 14866 | CRenameAirTheatreCommand | 0x142A1E830 | 80 | 0x141946170 | 0x141948650 | +40 id对 待改名空军剧场 id / +48 str(27) 新剧场名 |
+| 14867 | CRenameAirGroupCommand | 0x142A1E8F8 | 80 | 0x141946120 | 0x141948650 | +40 id对 待改名空军集团 id / +48 str(27) 新集团名 |
+| 14868 | CChangeAirGroupInsigniaCommand | 0x142A1E9C0 | 96 | 0x141944D80 | 0x141948090 | +40 id对 空军集团 id / +48 嵌套[CColor](86) 徽章颜色对象(完整 CColor 32B：vt@+48 / 垫@+56 / rgba f32×4@+64..+80) / +80 u32(181) 徽章图标索引 |
+| 14869 | CReorderAirTheatersCommand | 0x142A1E768 | 56 | 0x1419461C0 | 0x141162CE0 | +40 id对 待重排空军剧场 id / +48 u32(76) 新位次 |
+| 14876 | CSetQuickDeployPreferenceCommand | 0x142A1EA88 | 72 | 0x141946380 | 0x141948690 | +64 str(10394) 目标国家 |
+| 14895 | COrderSetCollapseCommand | 0x142A0CC90 | 56 | 0x14184A8E0 | 0x14184E410 | +40 id对 目标订单组 idpair / +48 u8(14894) 折叠态(真=折叠) |
+| 14901 | CAssignArmyToArmyGroupFront | 0x142A0D078 | 80 | 空桩 | 0x14184D110 | +40 id对 部队(需编入军群前线的陆军) / +48 嵌套[COrderInstance::SOrderInstanceRef](13815) 命令实例引用(SOrderInstanceRef) / +72 i64(694) 编制比例 |
+| 14918 | CUpdateLeaderSeenTraitsCountCommand | 0x142A0CE20 | 56 | 0x14184BBA0 | 0x141165920 | +40 id对 将领 id / +48 u32(10730) 已见特质数 |
+| 14954 | CCreateAreaDefenseCommand | 0x142A0C8A8 | 80 | 0x1418435A0 | 0x141165920 | +40 id对 区域防御对象组(player order group) / +48 u32数组(11835) 纳入防御的州 id 数组(数据指针) / +72 u32(11101) 区域防御设置值 |
+| 14966 | CExecuteScriptedWindowEffect | 0x142996ED0 | 152 | 0x141156950 | 0x1411644D0 | +88 str(89) 脚本窗口效果(effect)名 / +120 str(27) 名称/键 |
+| 14987 | CSetSelectedArmyGroupFallback | 0x142A0D140 | 56 | 0x14184BB00 | 0x14184F150 | +40 id对 目标军群 / +48 u32(13815) 命令实例(备用指令实例 id) |
+| 14990 | CMoveArmiesInTheaterCommand | 0x142A0AEE0 | 72 | 0x141843A40 | 0x14184D700 | +64 u32(524) 目标位次 |
+| 14991 | CMoveArmyGroupInTheaterCommand | 0x142A0AFA8 | 56 | 0x141843F10 | 0x141359530 | +40 id对 待移动军群 / +48 u32(524) 目标位次(新列表序号) |
+| 14993 | CReorderTheatersCommand | 0x142A32798 | 56 | 0x141A7ECC0 | 0x141162CE0 | +40 id对 战区群 idpair / +48 u32(76) 目标位次 |
+| 14994 | CReorderPinnedStrategicRegionCommand | 0x142A87C68 | 56 | 0x141E74370 | 0x141E74890 | +40 u32(12014) 战略区域 id / +44 u32(10805) 玩家(国 tag，钉选归属玩家) / +48 u32(76) 目标位次 |
+| 15001 | CSetPrideOfTheFleetCommand | 0x1429AF9A8 | 56 | 0x141356850 | 0x141359420 | +40 id对 功勋舰引用(舰队荣耀对象) / +48 str(10394) 目标国 tag id |
+| 15158 | CCreateFleetCommand | 0x1429AFB38 | 144 | 0x141350A90 | 0x141358300 | +40 str(10394) 所属国 / +44 id对 目标海军战区(可选归属) / +104 u32(11087) 目标省份 id / +108 u32(12119) 命令旗位组 / +124 u32(10827) 区域数量 / +136 u32(11450) 初始任务档 / +140 u32(10241) 初始母港 |
+| 15160 | CReorderNavyTheaterGroupCommand | 0x142A32AB8 | 56 | 0x141A7EAA0 | 0x141A7FDD0 | +40 id对 海军战区(theater group) / +48 u32(13778) 战区排序位移量(带符号) |
+| 15161 | CSetNavyTheaterGroupForCommand | 0x142A32B80 | 104 | 0x141A7EEA0 | 0x141A7FE10 | +40 str(10394) 目标国 / +44 u8(15162) 同时创建(allow create) / +48 id对 目标海军战区(theater group) |
+| 15163 | CSetFleetNameCommand | 0x1429AFC00 | 80 | 0x141355ED0 | 0x1413591E0 | +40 id对 舰队引用 / +48 str(27) 新舰队名 |
+| 15164 | CSetNavyTheaterGroupNameCommand | 0x142A32C48 | 80 | 0x141A7F580 | 0x1413591E0 | +40 id对 目标海军战区 / +48 str(27) 新战区名 |
+| 15165 | CSetFleetCommand | 0x1429AFCC8 | 72 | 0x141355060 | 0x141359180 | +40 id对 目标舰队 |
+| 15170 | CSetTaskForceAutoReinforcementCommand | 0x1429AFE58 | 72 | 0x1413568E0 | 0x141164440 | +64 u8(15169) 自动补员开关 |
+| 15171 | CSetTaskForceCompositionRequirementsCommand | 0x1429AFF20 | 152 | 0x1413569C0 | 0x141359530 | +40 id对 目标任务部队 idpair / +48 嵌套(15166) 构成编成要求块(开键 token 15166) |
+| 15172 | CSetAsReserveFleetCommand | 0x1429B00B0 | 112 | 0x141354E20 | 0x141359160 | +40 id对 目标舰队(转预备役) / +96 id对 目标接收战区(theater group) / +104 u8(15528) 保留补员需求 |
+| 15174 | CReorganizeShipsCommand | 0x1429B06F0 | 88 | 0x141353AE0 | 0x141358FB0 | +40 str(10394) 目标国 / +48 嵌套(15157) 待创建特遣舰队描述数组 / +60 嵌套(15157) 待创建特遣舰队数 / +72 id对 合并目标特遣舰队 / +80 u8(15633) 清空选择 |
+| 15177 | CSetTaskForceIconAndColorCommand | 0x1429B0948 | 96 | 0x141356A00 | 0x1413591C0 | +40 id对 特混舰队引用 / +48 嵌套[CColor](86) 舰队颜色 / +80 u32(181) 舰队图标 id / +84 u8(15195) 沿用所属舰队色旗 |
+| 15178 | CSetFleetIconAndColorCommand | 0x1429B0880 | 96 | 0x141355E80 | 0x1413591C0 | +40 id对 舰队引用 / +48 嵌套[CColor](86) 舰队颜色 / +80 u32(181) 舰队图标 id |
+| 15179 | CNavyDetachShipsAndMergeCommand | 0x1429AF110 | 72 | 0x141352E90 | 0x141358C10 | +64 id对 目标任务舰队 |
 | 15181 | CNavyCancelActivityCommand | 0x1429AF368 | 64 | 0x1413526D0 | 0x141164440 | — |
-| 15203 | CSetGameRuleOption | 0x1429E63F0 | 48 | 0x14163D770 | 0x14163E050 | +40 str(10876) / +44 str(10598) |
+| 15203 | CSetGameRuleOption | 0x1429E63F0 | 48 | 0x14163D770 | 0x14163E050 | +40 str(10876) 游戏规则名 id / +44 str(10598) 规则选项名 id |
 | 15205 | CResetGameRules | 0x142A99B60 | 40 | 0x14163D130 | 0x1401807B0 | 无载荷（空桩） |
 | 15206 | CResetCustomDifficultyMultipliers | 0x142A99A98 | 40 | 0x14163D020 | 0x1401807B0 | 无载荷（空桩） |
-| 15229 | CNavyCancelRefitCommand | 0x1429AF2A0 | 96 | 0x1413527B0 | 0x141164440 | +88 u8(13176) |
-| 15230 | CNavyDetachShipsAndRefitCommand | 0x1429AF1D8 | 88 | 0x141353280 | 0x141358C50 | +64 id对 / +72 id对 / +80 id对 |
-| 15233 | CSetShipRefitDeploymentTargetCommand | 0x1429942C0 | 72 | 0x14115D9D0 | 0x1411668C0 | +40 id对 / +64 u32(11398) |
-| 15235 | CRemoveProductionLineCommand | 0x142993BB8 | 48 | 0x141159500 | 0x141165920 | +40 id对 |
-| 15237 | CSetGameUniqueId | 0x14296A308 | 72 | 0x140DE9C10 | 0x140DE9E80 | +40 str(11) |
-| 15284 | CCancelRunningAwayCommand | 0x1429B2AA0 | 48 | 0x141365CF0 | 0x141358CE0 | +40 id对 |
-| 15301 | CNavyClearAccidentReportsCommand | 0x1429AFFE8 | 48 | 0x141352E60 | 0x141358BF0 | +40 str(10394) / +40 tag / +44 u32(10827) |
-| 15317 | CReinstateExileCommand | 0x142997060 | 48 | 0x141158310 | 0x141164F30 | +40 tag |
-| 15318 | CChangeProductionLineNamePriorityCommand | 0x142994388 | 56 | 0x1411558F0 | 0x141162C80 | +40 id对(12211) / +48 u32(524) / +52 u32(12146) |
-| 15319 | CRemoveProductionLineName | 0x1429946A8 | 56 | 0x1411596B0 | 0x141165A20 | +40 id对(12211) / +48 u32(524) |
-| 15320 | CAddProductionLineName | 0x142994450 | 80 | 0x1411525A0 | 0x141162480 | +40 id对(12211) / +48 str(27) |
-| 15324 | CSetStateOverrideOccupationPolicyCommand | 0x142995BC0 | 80 | 0x14115DDD0 | 0x1411673B0 | +40 str(10303) / +40 tag / +44 str(10303) / +44 u32(439) / +48 str(10492) |
-| 15337 | CSetMaxAllowedRepairDockyards | 0x1429B0178 | 48 | 0x141355F10 | 0x141359200 | +40 str(10394) / +40 tag / +44 u32(12) |
-| 15339 | CReorderNavalRepairQueue | 0x1429B0308 | 64 | 0x141353990 | 0x141358DE0 | +40 u32(12790) / +44 id对 / +52 u32(12146) / +52 u8(15343) / +56 u8(15343) |
-| 15340 | CSwitchNavalRepairDockyard | 0x1429B0498 | 64 | 0x141356A80 | 0x141359550 | +40 u32(12790) / +44 id对 / +52 u32(12146) / +52 u8(15343) / +56 u8(15343) |
-| 15341 | CRequestExpeditionariesCommand | 0x142996A98 | 80 | 0x141159F90 | 0x141165D30 | +40 str(10394) / +40 tag / +72 id对(12462) |
-| 15342 | CAddToOrRemoveShipFromNavalRepairQueue | 0x1429B03D0 | 64 | 0x1413505B0 | 0x141357FE0 | +40 str(10754) / +40 tag / +44 u32(12790) / +48 id对 / +48 str(10754) / +56 u8(13802) |
-| 15344 | CChangeNavalBaseRepairPriorityCommand | 0x1429B0560 | 48 | 0x141350960 | 0x1413581C0 | +40 u32(12790) / +44 u32(141) |
-| 15345 | CDisengageFromNavalCombatCommand | 0x1429B07B8 | 56 | 0x141350F40 | 0x141358350 | +40 id对 / +40 u8(10485) |
-| 15435 | CSetNavalBaseDisabledForRepairsStateCommand | 0x1429B0628 | 56 | 0x141355F70 | 0x1413592C0 | +40 str(10754) / +40 u32(12790) / +44 str(10754) / +44 tag / +48 u8(15434) |
-| 15473 | ShowScriptedDiplomaticActionSendPopupCommand | 0x142997128 | 56 | 0x14115FEB0 | 0x141168350 | +40 str(10542) / +40 u32(10546) / +44 str(10542) / +44 tag / +48 str(107) / +48 tag |
-| 15496 | CSetEquipmentVariantOverrideModelCommand | 0x142A24250 | 80 | 0x1419A4930 | 0x141165920 | +40 id对 / +48 str(15089) |
-| 15497 | CSetEquipmentVariantNameListCommand | 0x142A244A8 | 80 | 0x1419A4580 | 0x1419A5CE0 | +40 id对 / +48 str(15495) |
-| 15498 | CAddProductionLineOrderedName | 0x142994518 | 56 | 0x1411526C0 | 0x1411624E0 | +40 id对(12211) / +48 u32(524) |
-| 15499 | CAddProductionLineUnorderedName | 0x1429945E0 | 56 | 0x1411527E0 | 0x1411624E0 | +40 id对(12211) / +48 u32(524) |
-| 15505 | CSetEquipmentVariantOverrideSpriteCommand | 0x142A24318 | 96 | 0x1419A4A80 | 0x141165920 | +40 id对 |
-| 15524 | CUpdateEquipmentVariantCommand | 0x142A24188 | 384 | 0x1419A4F60 | 0x1419A5E20 | +40 id对 / +48 str(12110) / +56 str(27) / +88 嵌套(12393) / +168 obj数组 / +192 名单块(15494) / +320 i64(10323) / +328 u8(14039) / +332 id对 / +344 u32(16386) / +344 嵌套(19165) / +376 u32(16386) |
-| 15525 | CSetEquipmentVariantNicheIconCommand | 0x142A243E0 | 56 | 0x1419A46F0 | 0x141165920 | +40 id对 / +48 u32(15526) |
-| 15537 | CSetIntelligenceAgencyRandomHistoricalNameCommand | 0x142A2E818 | 48 | 0x141A28320 | 0x141A2B090 | +40 tag写门(10394) |
-| 15573 | CSetFuelPriorityCommand | 0x142996070 | 56 | 0x14115C4C0 | 0x140CAA8B0 | +40 str(10394) / +40 tag / +44 u32(225) / +48 u32(141) |
-| 15576 | CSetNavyTheaterGroupImportantCommand | 0x142A32D10 | 56 | 0x141A7F550 | 0x141359530 | +40 id对 / +48 u8(15575) |
-| 15584 | CToggleStrategicDeploymentCommand | 0x1429B1EE8 | 64 | 0x141367F00 | 0x14136BD80 | +40 id对数组(12202) |
-| 15625 | CMarkSunkShipInfoAsReadCommand | 0x1429B0A10 | 56 | 0x141350FA0 | 0x1413583B0 | +40 id对 / +48 u32(15624) |
-| 15628 | CIncomingDiplomaticActionActingCommand | 0x1429971F0 | 64 | 0x1411577E0 | 0x141164C10 | +40 str(10394) / +40 tag / +44 id对 / +52 u32(11142) / +56 u8(15626) |
-| 15629 | CAmendIncomingLendLeaseActionCommand | 0x1429972B8 | 64 | 0x141152950 | 0x141162820 | +40 str(10394) / +40 tag / +44 id对 / +56 嵌套(14027) |
-| 15637 | CDismissOperativeCommand | 0x142A2E2A0 | 56 | 0x141A277D0 | 0x141A296C0 | +40 id对 / +48 tag写门(10302) |
-| 15640 | CSetOperativeCodenameCommand | 0x142A2E368 | 88 | 0x141A28800 | 0x141A2B8A0 | +40 id对 / +40 tag写门(10302) / +48 str(15639) / +48 tag写门(10302) |
-| 15657 | CSetOperativeMissionCommand | 0x142A2EA70 | 104 | 0x141A28870 | 0x141A2B8F0 | +40 tag写门(10394) / +72 嵌套(11450) |
-| 15670 | CIntelligenceAgencyCreationCommand | 0x142A2E430 | 48 | 0x141A27C00 | 0x141A298E0 | +40 tag写门(10394) |
-| 15671 | CSetIntelligenceAgencyLogoCommand | 0x142A2E8E0 | 80 | 0x141A281C0 | 0x141358DC0 | +40 tag写门(10394) / +48 str(181) |
-| 15672 | CSetIntelligenceAgencyNameCommand | 0x142A2E750 | 80 | 0x141A28270 | 0x141A2AF00 | +40 tag写门(10394) / +48 str(27) |
-| 15679 | CIntelligenceAgencyUpgradeCommand | 0x142A2E5C0 | 56 | 0x141A27CF0 | 0x141A29950 | +48 u32(15356) |
-| 15758 | COrderChildFrontRatioCommand | 0x142A0C010 | 72 | 0x141845770 | 0x14184DB00 | +40 id对 / +48 id对 / +56 u32(12342) / +64 i64(694) |
-| 15782 | COrderDeleteChildFront | 0x142A0B390 | 64 | 0x141845F90 | 0x14184DC00 | +40 id对 / +48 u32(13815) / +52 id对 |
-| 15785 | COrderReorderChildFrontCommand | 0x142A0C0D8 | 64 | 0x14184A340 | 0x14184E330 | +40 id对 / +48 id对 / +56 u32(12342) / +60 u32(524) |
-| 15871 | CGiveMedalCommand | 0x142997B50 | 72 | 0x141156BD0 | 0x141164870 | +40 id对 / +48 id对 / +56 str(10394) / +56 str(15870) / +64 str(10394) / +64 tag / +68 u32(10293) |
-| 16118 | CUpdateProfileBadgeCommand | 0x142A22C48 | 56 | 0x141996AA0 | 0x141996C10 | +40 嵌套(16004) |
-| 16260 | CAttachPolicyToIndustrialOrgCommand | 0x142967DA0 | 56 | 0x14199C820 | 0x14199D2C0 | +40 tag写门(10394) / +44 u32(10492) / +48 id对 |
-| 16390 | CMoveIndustrialOrgTraitInQueueCommand | 0x142967FF8 | 80 | 0x14199C9D0 | 0x14199D2F0 | +40 tag写门(10394) / +48 嵌套(11918) / +64 id对 / +72 u32(524) |
-| 16398 | CAttachScientistCommand | 0x142A90410 | 64 | 0x141EF3C80 | 0x141EF4110 | +40 id对 / +48 u8(10489) / +52 id对 |
-| 16399 | CUnattachScientistCommand | 0x142A904D8 | 56 | 0x141EF4010 | 0x141EF4730 | +40 id对 / +48 id对 |
-| 16402 | CStartProjectCommand | 0x142A905A0 | 56 | 0x141EF3F60 | 0x141EF4530 | +40 id对 / +48 id对 |
-| 16403 | CStopProjectCommand | 0x142A90668 | 48 | 0x141EF3FD0 | 0x141EF4680 | +40 id对 |
-| 16412 | CAddIndustrialOrgTraitToQueueCommand | 0x142967E68 | 72 | 0x14199C760 | 0x14199D220 | +40 tag写门(10394) / +48 嵌套(11918) / +64 id对 |
-| 16413 | CRemoveIndustrialOrgTraitFromQueueCommand | 0x142967F30 | 72 | 0x14199CA10 | 0x14199D3A0 | +40 tag写门(10394) / +48 嵌套(11918) / +64 id对 |
+| 15229 | CNavyCancelRefitCommand | 0x1429AF2A0 | 96 | 0x1413527B0 | 0x141164440 | +88 u8(13176) merge_navies(取消改装后合并舰队) |
+| 15230 | CNavyDetachShipsAndRefitCommand | 0x1429AF1D8 | 88 | 0x141353280 | 0x141358C50 | +64 id对 目标任务舰队 / +72 id对 改装装备变体 / +80 id对 工业制造商(MIO) |
+| 15233 | CSetShipRefitDeploymentTargetCommand | 0x1429942C0 | 72 | 0x14115D9D0 | 0x1411668C0 | +40 id对 目标部署线 / +64 u32(11398) 目标基地省 |
+| 15235 | CRemoveProductionLineCommand | 0x142993BB8 | 48 | 0x141159500 | 0x141165920 | +40 id对 待删除的生产线 |
+| 15237 | CSetGameUniqueId | 0x14296A308 | 72 | 0x140DE9C10 | 0x140DE9E80 | +40 str(11) 游戏唯一 id 串(联机会话标识) |
+| 15284 | CCancelRunningAwayCommand | 0x1429B2AA0 | 48 | 0x141365CF0 | 0x141358CE0 | +40 id对 目标海军/舰队引用 |
+| 15301 | CNavyClearAccidentReportsCommand | 0x1429AFFE8 | 48 | 0x141352E60 | 0x141358BF0 | +40 str(10394) 目标国家 tag(以字符串落盘) / +44 u32(10827) 目标海域 |
+| 15317 | CReinstateExileCommand | 0x142997060 | 48 | 0x141158310 | 0x141164F30 | +40 tag 待复位的流亡国 tag |
+| 15318 | CChangeProductionLineNamePriorityCommand | 0x142994388 | 56 | 0x1411558F0 | 0x141162C80 | +40 id对(12211) 目标海军生产线 / +48 u32(524) 现位次(名表条目当前下标) / +52 u32(12146) 目标位次(移动后下标) |
+| 15319 | CRemoveProductionLineName | 0x1429946A8 | 56 | 0x1411596B0 | 0x141165A20 | +40 id对(12211) 目标海军生产线(线 type ∈ {57,75}) / +48 u32(524) 待删除的名表条目位次 |
+| 15320 | CAddProductionLineName | 0x142994450 | 80 | 0x1411525A0 | 0x141162480 | +40 id对(12211) 目标海军生产线(线 type ∈ {57,75}) / +48 str(27) 自定义名称串(32B MSVC 串布局) |
+| 15324 | CSetStateOverrideOccupationPolicyCommand | 0x142995BC0 | 80 | 0x14115DDD0 | 0x1411673B0 | +40 str(10303) 占领方国 tag(controller 侧) / +44 u32(439) 目标州 id / +48 str(10492) 占领政策名 |
+| 15337 | CSetMaxAllowedRepairDockyards | 0x1429B0178 | 48 | 0x141355F10 | 0x141359200 | +40 str(10394) 目标国 / +44 u32(12) 允许的最大维修船坞数 |
+| 15339 | CReorderNavalRepairQueue | 0x1429B0308 | 64 | 0x141353990 | 0x141358DE0 | +40 u32(12790) 海军基地 id / +44 id对 目标舰船 / +52 u32(12146) 新优先级(队列位) / +56 u8(15343) 插到己方舰船之间(move in between own ships) |
+| 15340 | CSwitchNavalRepairDockyard | 0x1429B0498 | 64 | 0x141356A80 | 0x141359550 | +40 u32(12790) 目标海军基地 id / +44 id对 目标舰船 / +52 u32(12146) 新优先级(队列位) / +56 u8(15343) 插到己方舰船之间 |
+| 15341 | CRequestExpeditionariesCommand | 0x142996A98 | 80 | 0x141159F90 | 0x141165D30 | +40 str(10394) 宗主国(请求方) / +72 id对(12462) 目标订单组 id |
+| 15342 | CAddToOrRemoveShipFromNavalRepairQueue | 0x1429B03D0 | 64 | 0x1413505B0 | 0x141357FE0 | +40 str(10754) 校验用国家 tag(以字符串落盘) / +44 u32(12790) 目标海军基地 / +48 id对 目标舰船 / +56 u8(13802) add(入队 / 出队模式) |
+| 15344 | CChangeNavalBaseRepairPriorityCommand | 0x1429B0560 | 48 | 0x141350960 | 0x1413581C0 | +40 u32(12790) 目标海军基地 / +44 u32(141) 维修优先级 |
+| 15345 | CDisengageFromNavalCombatCommand | 0x1429B07B8 | 56 | 0x141350F40 | 0x141358350 | +40 id对 目标海战 / +40 u8(10485) 目标海战 |
+| 15435 | CSetNavalBaseDisabledForRepairsStateCommand | 0x1429B0628 | 56 | 0x141355F70 | 0x1413592C0 | +40 u32(12790) 海军基地 id / +44 str(10754) 基地省份所属国 / +48 u8(15434) 禁止维修(disabled for repairs) |
+| 15473 | ShowScriptedDiplomaticActionSendPopupCommand | 0x142997128 | 56 | 0x14115FEB0 | 0x141168350 | +40 str(10542) 外交动作 id(scripted action) / +40 u32(10546) 外交动作 id(scripted action) / +44 str(10542) 发起国 tag id(actor) / +48 str(107) 目标国 tag id(target) |
+| 15496 | CSetEquipmentVariantOverrideModelCommand | 0x142A24250 | 80 | 0x1419A4930 | 0x141165920 | +40 id对 目标变体 / +48 str(15089) 模型覆盖名(3D 模型替换串，32B MSVC 串，token 15089) |
+| 15497 | CSetEquipmentVariantNameListCommand | 0x142A244A8 | 80 | 0x1419A4580 | 0x1419A5CE0 | +40 id对 目标变体 / +48 str(15495) 名字组名(师名池名串，32B MSVC 串，token 15495 name_group) |
+| 15498 | CAddProductionLineOrderedName | 0x142994518 | 56 | 0x1411526C0 | 0x1411624E0 | +40 id对(12211) 目标海军生产线(线 type ∈ {57,75}) / +48 u32(524) 指定位次(有序插入位置) |
+| 15499 | CAddProductionLineUnorderedName | 0x1429945E0 | 56 | 0x1411527E0 | 0x1411624E0 | +40 id对(12211) 目标海军生产线(线 type ∈ {57,75}) / +48 u32(524) 指定位次(无序登记：取空位/填充槽) |
+| 15505 | CSetEquipmentVariantOverrideSpriteCommand | 0x142A24318 | 96 | 0x1419A4A80 | 0x141165920 | +40 id对 目标变体 |
+| 15524 | CUpdateEquipmentVariantCommand | 0x142A24188 | 384 | 0x1419A4F60 | 0x1419A5E20 | +40 id对 待改变的既有变体(挂 parent 键 135 下，非 equipment 键) / +48 str(12110) 新装备架构(换架构，串→CEquipmentType) / +56 str(27) 新名称串(32B MSVC 串) / +88 嵌套(12393) 新升级组件列表 / +168 对象数组 新模块数组数据指针(元素 = 模块 idpair 16B) / +192 名单块(15494) 无模块数据名单块 / +320 i64(10323) 设… |
+| 15525 | CSetEquipmentVariantNicheIconCommand | 0x142A243E0 | 56 | 0x1419A46F0 | 0x141165920 | +40 id对 目标变体 / +48 u32(15526) 角色图标枚举(niche icon index) |
+| 15537 | CSetIntelligenceAgencyRandomHistoricalNameCommand | 0x142A2E818 | 48 | 0x141A28320 | 0x141A2B090 | +40 tag(10394) 命令国 tag |
+| 15573 | CSetFuelPriorityCommand | 0x142996070 | 56 | 0x14115C4C0 | 0x140CAA8B0 | +40 str(10394) 目标国 tag id / +44 u32(225) 燃油分支 type(0/1/2 三档) / +48 u32(141) 该分支优先级值 |
+| 15576 | CSetNavyTheaterGroupImportantCommand | 0x142A32D10 | 56 | 0x141A7F550 | 0x141359530 | +40 id对 目标海军战区 / +48 u8(15575) 标记为重要战区 |
+| 15584 | CToggleStrategicDeploymentCommand | 0x1429B1EE8 | 64 | 0x141367F00 | 0x14136BD80 | +40 idpair数组(12202) 选中单位 id 数组 |
+| 15625 | CMarkSunkShipInfoAsReadCommand | 0x1429B0A10 | 56 | 0x141350FA0 | 0x1413583B0 | +40 id对 目标舰船 / +48 u32(15624) 已读到的沉船信息序号 |
+| 15628 | CIncomingDiplomaticActionActingCommand | 0x1429971F0 | 64 | 0x1411577E0 | 0x141164C10 | +40 str(10394) 目标国 tag id / +44 id对 来向外交动作引用 / +52 u32(11142) AI 决策结果 / +56 u8(15626) 是否走 AI 响应处理链旗 |
+| 15629 | CAmendIncomingLendLeaseActionCommand | 0x1429972B8 | 64 | 0x141152950 | 0x141162820 | +40 str(10394) 接收国 / +44 id对 外交行动引用 / +56 嵌套(14027) 新租借条款值对象 |
+| 15637 | CDismissOperativeCommand | 0x142A2E2A0 | 56 | 0x141A277D0 | 0x141A296C0 | +40 id对 待解雇特工 idpair(行动特工引用) / +48 tag(10302) 命令国 tag |
+| 15640 | CSetOperativeCodenameCommand | 0x142A2E368 | 88 | 0x141A28800 | 0x141A2B8A0 | +40 id对 待改名特工 idpair / +48 str(15639) 新代号(SSO 串) / +80 tag(10302) 特工归属国 tag(改名授权校验) |
+| 15657 | CSetOperativeMissionCommand | 0x142A2EA70 | 104 | 0x141A28870 | 0x141A2B8F0 | +40 tag(10394) 命令国 tag(目标行动实例归属国) / +72 嵌套[COperativeMissionData](11450) 行动任务数据(任务类型/目标等完整载荷) |
+| 15670 | CIntelligenceAgencyCreationCommand | 0x142A2E430 | 48 | 0x141A27C00 | 0x141A298E0 | +40 tag(10394) 命令国 tag(建机构国) |
+| 15671 | CSetIntelligenceAgencyLogoCommand | 0x142A2E8E0 | 80 | 0x141A281C0 | 0x141358DC0 | +40 tag(10394) 命令国 tag / +48 str(181) 机构图标 gfx 名(SSO 串) |
+| 15672 | CSetIntelligenceAgencyNameCommand | 0x142A2E750 | 80 | 0x141A28270 | 0x141A2AF00 | +40 tag(10394) 命令国 tag / +48 str(27) 机构名(SSO 串) |
+| 15679 | CIntelligenceAgencyUpgradeCommand | 0x142A2E5C0 | 56 | 0x141A27CF0 | 0x141A29950 | +48 u32(15356) 待升级的机构升级项(脚本模板指针，reader 由升级 id 查表回填) |
+| 15758 | COrderChildFrontRatioCommand | 0x142A0C010 | 72 | 0x141845770 | 0x14184DB00 | +40 id对 父订单组 idpair / +48 id对 子组 idpair(前线子组) / +56 u32(12342) order_index(父 og 内实例下标) / +64 i64(694) 子组兵力比例 |
+| 15782 | COrderDeleteChildFront | 0x142A0B390 | 64 | 0x141845F90 | 0x14184DC00 | +40 id对 父命令组(COrdersGroup 引用) / +48 u32(13815) orders 实例号(父组实例下标) / +52 id对 子命令组(COrdersGroup 引用，待删子前线) |
+| 15785 | COrderReorderChildFrontCommand | 0x142A0C0D8 | 64 | 0x14184A340 | 0x14184E330 | +40 id对 父订单组 idpair / +48 id对 子组 idpair(待重排前线子组) / +56 u32(12342) order_index(父 og 内实例下标) / +60 u32(524) 目标位次 |
+| 15871 | CGiveMedalCommand | 0x142997B50 | 72 | 0x141156BD0 | 0x141164870 | +40 id对 受勋陆军单位 id / +48 id对 受勋舰船 id / +56 str(15870) 勋章记录定义 / +64 str(10394) 受勋国 / +68 u32(10293) 勋章历史序号 |
+| 16118 | CUpdateProfileBadgeCommand | 0x142A22C48 | 56 | 0x141996AA0 | 0x141996C10 | +40 嵌套(16004) 资料徽章(SProfileBadge 嵌套) |
+| 16260 | CAttachPolicyToIndustrialOrgCommand | 0x142967DA0 | 56 | 0x14199C820 | 0x14199D2C0 | +40 tag(10394) 属国 tag(MIO 归属国) / +44 u32(10492) 政策枚举(MIO 政策组 id；reader `*(u32*)(a2+192)` = token 直接值读取) / +48 id对 目标 MIO |
+| 16390 | CMoveIndustrialOrgTraitInQueueCommand | 0x142967FF8 | 80 | 0x14199C9D0 | 0x14199D2F0 | +40 tag(10394) 属国 tag / +48 嵌套(11918) 待挪位特性(STraitId 16B) / +64 id对 目标 MIO / +72 u32(524) 目标位次(队列内移动后下标) |
+| 16398 | CAttachScientistCommand | 0x142A90410 | 64 | 0x141EF3C80 | 0x141EF4110 | +40 id对 目标研究设施/项目 / +48 u8(10489) 首席科学家旗 / +52 id对 待挂科学家 |
+| 16399 | CUnattachScientistCommand | 0x142A904D8 | 56 | 0x141EF4010 | 0x141EF4730 | +40 id对 待摘科学家 / +48 id对 目标研究设施/项目 |
+| 16402 | CStartProjectCommand | 0x142A905A0 | 56 | 0x141EF3F60 | 0x141EF4530 | +40 id对 特殊项目 program 引用 / +48 id对 特殊项目 project 引用 |
+| 16403 | CStopProjectCommand | 0x142A90668 | 48 | 0x141EF3FD0 | 0x141EF4680 | +40 id对 待停止的特殊项目引用 |
+| 16412 | CAddIndustrialOrgTraitToQueueCommand | 0x142967E68 | 72 | 0x14199C760 | 0x14199D220 | +40 tag(10394) 属国 tag / +48 嵌套(11918) 待入队特性(STraitId 16B) / +64 id对 目标 MIO |
+| 16413 | CRemoveIndustrialOrgTraitFromQueueCommand | 0x142967F30 | 72 | 0x14199CA10 | 0x14199D3A0 | +40 tag(10394) 属国 tag / +48 嵌套(11918) 待出队特性(STraitId 16B) / +64 id对 目标 MIO |
 | 16467 | CNavySetUnderwayReplenishmentCommand | 0x1429AF048 | 72 | 0x141353700 | 0x141358D20 | — |
-| 16602 | NRaids::NNet::CSetRaidRiskLevelCommand | 0x142A41650 | 56 | 0x141B33560 | 0x141B34200 | +40 id对 / +48 u32(19196) |
-| 16737 | CSetCountryRaidsPriorityCommand | 0x14272DD18 | 48 | 0x14115C030 | 0x141166710 | +40 str(10394) / +40 tag / +44 u32(141) |
-| 16738 | CSetFleetHomeBaseCommand | 0x1429AFD90 | 56 | 0x1413559E0 | 0x1413591A0 | +40 id对 / +48 u32(12790) / +52 u8(333) |
-| 16755 | NFactions::CUnlockFolderDoctrineSharingCommand | 0x142A49D78 | 56 | 0x141BA9F50 | 0x141BACDA0 | +40 tag写门(10754) / +48 u32(11873) |
-| 16777 | NDoctrines::CUnlockGrandDoctrineCommand | 0x142A32320 | 56 | 0x141A7BC10 | 0x141A7BF90 | +40 str(16775) |
-| 16779 | NDoctrines::CUnlockSubDoctrineCommand | 0x142A323E8 | 64 | 0x141A7BDD0 | 0x141A7C1B0 | +40 str(11873) / +48 str(16778) / +56 str(16778) / +56 u32(139) / +60 tag写门(10394) |
-| 16842 | CSetOrderGroupLeaderProximityCommand | 0x142A0AA30 | 56 | 0x14184B780 | 0x141162CE0 | +40 id对 / +48 u32(225) |
-| 17327 | CRecruitScientistCommand | 0x142A90348 | 56 | 0x141EF3E10 | 0x141EF4380 | +40 id对 / +48 tag写门(10394) |
+| 16602 | NRaids::NNet::CSetRaidRiskLevelCommand | 0x142A41650 | 56 | 0x141B33560 | 0x141B34200 | +40 id对 目标突袭实例 idpair / +48 u32(19196) 风险等级 |
+| 16737 | CSetCountryRaidsPriorityCommand | 0x14272DD18 | 48 | 0x14115C030 | 0x141166710 | +40 str(10394) 目标国 tag / +44 u32(141) 突袭优先级档位 |
+| 16738 | CSetFleetHomeBaseCommand | 0x1429AFD90 | 56 | 0x1413559E0 | 0x1413591A0 | +40 id对 目标舰队 / +48 u32(12790) 新母港(海军基地 id) / +52 u8(333) 移动(move) |
+| 16755 | NFactions::CUnlockFolderDoctrineSharingCommand | 0x142A49D78 | 56 | 0x141BA9F50 | 0x141BACDA0 | +40 tag(10754) 发起国 / +48 u32(11873) 科技文件夹 def |
+| 16777 | NDoctrines::CUnlockGrandDoctrineCommand | 0x142A32320 | 56 | 0x141A7BC10 | 0x141A7BF90 | +40 str(16775) 大主义(grand doctrine)对象指针 |
+| 16779 | NDoctrines::CUnlockSubDoctrineCommand | 0x142A323E8 | 64 | 0x141A7BDD0 | 0x141A7C1B0 | +40 str(11873) 大主义 folder(grand doctrine 容器)指针 / +48 str(16778) 子主义(sub doctrine)对象指针 / +56 str(16778) 轨道索引(track index) / +56 u32(139) 轨道索引(track index) / +60 tag(10394) 该国 tag id |
+| 16842 | CSetOrderGroupLeaderProximityCommand | 0x142A0AA30 | 56 | 0x14184B780 | 0x141162CE0 | +40 id对 目标订单组 id / +48 u32(225) 将领接近度设置值 |
+| 17327 | CRecruitScientistCommand | 0x142A90348 | 56 | 0x141EF3E10 | 0x141EF4380 | +40 id对 待招募科学家(def 引用，入池身) / +48 tag(10394) 招募国 tag |
 | 17596 | CRestructureShipsToTaskforceCompositions | 0x1429B0D30 | 72 | 0x141354720 | 0x141359140 | — |
-| 17685 | CUpgradeShipCaptainCommand | 0x142997A88 | 48 | 0x14115FBD0 | 0x1411682A0 | +40 id对 |
-| 18740 | CSetIndustrialOrgTraitsInQueueCommand | 0x1429680C0 | 80 | 0x14199CE40 | 0x14199D820 | +72 id对 |
-| 18856 | CRemoveAdmiralFromNavyHeadquarter | 0x142A0D2D0 | 48 | 0x14184B110 | 0x14184EE60 | +40 id对 |
-| 18857 | CAssignAdmiralToNavyHeadquarter | 0x142A0D208 | 56 | 0x1418430A0 | 0x14184D0A0 | +40 id对 / +48 id对 |
-| 19010 | CLaunchOperationCommand | 0x1429784A0 | 56 | 0x141A27DC0 | 0x141A2A660 | +40 id对(11) / +40 str(10754) / +48 str(10754) / +48 tag |
-| 19020 | CSetOperationAutoCommenceCommand | 0x142978568 | 56 | 0x141A28450 | 0x141A2B310 | +40 id对(11) / +40 u8(19422) / +52 str(10754) / +52 tag |
-| 19064 | CStartStopDecryptionCommand | 0x142A2EB38 | 56 | 0x141A28BE0 | 0x141A2BF30 | +40 tag写门(10394) / +40 u8(105) / +44 tag写门(107) / +44 u8(105) |
-| 19072 | CActivateActiveDecryptionBonuses | 0x142A2EC00 | 48 | 0x141A27290 | 0x141A28F10 | +40 tag写门(10394) / +44 tag写门(107) |
-| 19078 | CHideDecryptionCommand | 0x142A2ECC8 | 48 | 0x141A278D0 | 0x141A29700 | +40 tag写门(10394) / +44 tag写门(107) |
-| 19119 | CBecomeSpyMasterCommand | 0x142A2E9A8 | 48 | 0x141A27370 | 0x141A29100 | +40 tag写门(10394) |
-| 19120 | CSetMainGarrisonTemplateCommand | 0x142995C88 | 56 | 0x14115C560 | 0x141166800 | +40 str(10394) / +40 tag / +44 id对 |
-| 19121 | CSetCountryGarrisonTemplateCommand | 0x142995D50 | 56 | 0x14115BD20 | 0x141166730 | +40 str(10394) / +40 tag / +44 str(15793) / +44 tag / +48 id对 |
-| 19123 | CSetStateGarrisonTemplateCommand | 0x142995E18 | 56 | 0x14115DA90 | 0x141167240 | +40 str(10394) / +40 tag / +44 u32(439) / +48 id对 |
-| 19124 | CSetCountryGarrisonPriorityCommand | 0x14272DB88 | 48 | 0x14115BC80 | 0x141166710 | +40 str(10394) / +40 tag / +44 u32(141) |
-| 19128 | CIntelligenceAgencyCancelCreationCommand | 0x142A2E4F8 | 48 | 0x141A279F0 | 0x141A29830 | +40 tag写门(10394) |
-| 19129 | CIntelligenceAgencyCancelUpgradeCommand | 0x142A2E688 | 56 | 0x141A27AA0 | 0x141A29890 | +48 u32(15356) |
-| 19138 | CAmendForeignManpowerActionCommand | 0x142997380 | 56 | 0x141152900 | 0x141162550 | +40 str(10394) / +40 tag / +44 id对 / +52 u32(10300) |
-| 19163 | CSetDesignTeamCommand | 0x142967A80 | 64 | 0x14199CA90 | 0x14199D3F0 | +40 tag写门(10394) / +56 id对 |
+| 17685 | CUpgradeShipCaptainCommand | 0x142997A88 | 48 | 0x14115FBD0 | 0x1411682A0 | +40 id对 目标舰船 |
+| 18740 | CSetIndustrialOrgTraitsInQueueCommand | 0x1429680C0 | 80 | 0x14199CE40 | 0x14199D820 | +72 id对 目标 MIO |
+| 18856 | CRemoveAdmiralFromNavyHeadquarter | 0x142A0D2D0 | 48 | 0x14184B110 | 0x14184EE60 | +40 id对 目标海军将领(unit leader) |
+| 18857 | CAssignAdmiralToNavyHeadquarter | 0x142A0D208 | 56 | 0x1418430A0 | 0x14184D0A0 | +40 id对 海军总部建筑 / +48 id对 待任命海军上将(陆军/海军将领对象) |
+| 19010 | CLaunchOperationCommand | 0x1429784A0 | 56 | 0x141A27DC0 | 0x141A2A660 | +40 id对(11) 待启动行动实例 idpair / +48 str(10754) 命令国 tag(行动实例归属国) |
+| 19020 | CSetOperationAutoCommenceCommand | 0x142978568 | 56 | 0x141A28450 | 0x141A2B310 | +40 id对(11) 目标行动实例 idpair / +48 u8(19422) 自动开始开关(新值) / +52 str(10754) 命令国 tag(行动实例归属国) |
+| 19064 | CStartStopDecryptionCommand | 0x142A2EB38 | 56 | 0x141A28BE0 | 0x141A2BF30 | +40 tag(10394) 发起方国 tag id / +44 tag(107) 解密目标国 tag id / +48 u8(105) 启动/停止旗 |
+| 19072 | CActivateActiveDecryptionBonuses | 0x142A2EC00 | 48 | 0x141A27290 | 0x141A28F10 | +40 tag(10394) 发起方国 tag id / +44 tag(107) 加成目标国 tag id |
+| 19078 | CHideDecryptionCommand | 0x142A2ECC8 | 48 | 0x141A278D0 | 0x141A29700 | +40 tag(10394) 发起方国 tag id / +44 tag(107) 被隐藏解密情报的目标国 tag id |
+| 19119 | CBecomeSpyMasterCommand | 0x142A2E9A8 | 48 | 0x141A27370 | 0x141A29100 | +40 tag(10394) 命令国 tag(成为间谍大师的国) |
+| 19120 | CSetMainGarrisonTemplateCommand | 0x142995C88 | 56 | 0x14115C560 | 0x141166800 | +40 str(10394) 目标国家 / +44 id对 主驻军模板 |
+| 19121 | CSetCountryGarrisonTemplateCommand | 0x142995D50 | 56 | 0x14115BD20 | 0x141166730 | +40 str(10394) 占领国 / +44 str(15793) 被占领国 / +48 id对 驻军模板 |
+| 19123 | CSetStateGarrisonTemplateCommand | 0x142995E18 | 56 | 0x14115DA90 | 0x141167240 | +40 str(10394) 占领国 / +44 u32(439) 目标州 / +48 id对 驻军模板 |
+| 19124 | CSetCountryGarrisonPriorityCommand | 0x14272DB88 | 48 | 0x14115BC80 | 0x141166710 | +40 str(10394) 目标国 tag id / +44 u32(141) 驻军优先级档(0/1/2) |
+| 19128 | CIntelligenceAgencyCancelCreationCommand | 0x142A2E4F8 | 48 | 0x141A279F0 | 0x141A29830 | +40 tag(10394) 命令国 tag |
+| 19129 | CIntelligenceAgencyCancelUpgradeCommand | 0x142A2E688 | 56 | 0x141A27AA0 | 0x141A29890 | +48 u32(15356) 待取消的机构升级项(指针；与机构+208 正升级项同一对象) |
+| 19138 | CAmendForeignManpowerActionCommand | 0x142997380 | 56 | 0x141152900 | 0x141162550 | +40 str(10394) 目标国 tag(A 层标 country) / +44 id对 受影响外交行动 idpair / +52 u32(10300) 增补人力数量 |
+| 19163 | CSetDesignTeamCommand | 0x142967A80 | 64 | 0x14199CA90 | 0x14199D3F0 | +40 tag(10394) 属国 tag(科技归属国) / +56 id对 设计团 MIO(可缺省：**空 = 摘除该科技的设计团**，`sub_141A00F80(节点, 0)`) |
 | 19173 | CSetIndustrialOrganisationTaskCommand | 0x142A23348 | 72 | 0x14199CE80 | 0x14199D8B0 | — |
-| 19192 | NRaids::NNet::CCreateRaidCommand | 0x142A41010 | 176 | 0x141B32920 | 0x141B33920 | +40 tag写门(10394) / +168 u32(19196) / +168 u8(10155) / +172 u8(10155) |
+| 19192 | NRaids::NNet::CCreateRaidCommand | 0x142A41010 | 176 | 0x141B32920 | 0x141B33920 | +40 tag(10394) 发起突袭国 tag(突袭行动方) / +168 u32(19196) 风险等级 / +172 u8(10155) 自动发射旗 |
 | 19194 | NRaids::NNet::CExecuteRaidCommand | 0x142A411A0 | 48 | 0x141B32E70 | 0x141B33E70 | — |
-| 19195 | NRaids::NNet::CSetRaidAutoComplete | 0x142A41330 | 56 | 0x141B331F0 | 0x141B33780 | +40 id对 / +40 u8(10376) |
+| 19195 | NRaids::NNet::CSetRaidAutoComplete | 0x142A41330 | 56 | 0x141B331F0 | 0x141B33780 | +40 id对 目标突袭实例 idpair / +40 u8(10376) 目标突袭实例 idpair |
 | 19209 | NRaids::NNet::CCancelRaidCommand | 0x142A417E0 | 48 | 0x141B32770 | 0x141B33830 | — |
-| 19266 | CRecruitOperativeCommand | 0x142A2ED90 | 56 | 0x141A27E70 | 0x141A2A7F0 | +40 tag写门(10394) / +44 id对 |
-| 19334 | CSetArmyFakeTemplateCommand | 0x1429B26B8 | 72 | 0x141367340 | 0x14136A700 | +40 id对数组(12202) / +64 id对 |
-| 19370 | CSetDefaultCountryOccupationPolicyCommand | 0x142995A30 | 80 | 0x14115C300 | 0x141166750 | +40 str(10754) / +40 tag / +48 str(10492) |
-| 19412 | CIgnoreAllAvailableDecisionCommand | 0x142996E08 | 48 | 0x141156FD0 | 0x140CAA8B0 | +40 str(10394) / +40 tag |
-| 19416 | CSetWingReinforcementPreferenceCommand | 0x142A1DE08 | 72 | 0x141946430 | 0x141948750 | +40 id对数组(12213) / +64 u32(19415) |
-| 19425 | CSetOperationAutoRepeatCommand | 0x142978630 | 56 | 0x141A28490 | 0x141A2B480 | +40 id对(11) / +48 str(10754) / +48 u8(419) / +52 str(10754) / +52 tag |
-| 19438 | NRaids::NNet::CRemoveRaidCommand | 0x142A41970 | 56 | 0x141B331B0 | 0x141B33F60 | +40 id对 / +40 tag写门(19361) |
-| 19526 | NRaids::NNet::CSetRaidAutoLaunchOption | 0x142A414C0 | 56 | 0x141B333B0 | 0x141B340C0 | +40 id对 / +48 u32(10348) |
-| 19563 | CReplaceAdvisorCommand | 0x142995968 | 96 | 0x141159910 | 0x141165A90 | +40 id对 / +48 id对 / +56 u8(10323) / +64 str(13378) |
-| 19564 | CAddAdvisorCommand | 0x142995580 | 88 | 0x1411508A0 | 0x141161560 | +40 id对 / +48 u8(10323) / +56 str(13378) |
-| 19567 | CRemoveAdvisorCommand | 0x142995710 | 80 | 0x141158A10 | 0x141165630 | +40 id对 / +48 str(13378) |
-| 19568 | CUnlockResearchCommand | 0x142995008 | 64 | 0x14115EC70 | 0x141167FD0 | +40 str(10394) / +40 tag / +48 str(13259) / +56 str(13260) |
-| 19586 | CGenerateAdvisorCommand | 0x1429954B8 | 152 | 0x141156B10 | 0x141164850 | +40 tag写门(10754) / +48 str(19588) / +80 嵌套(240) |
-| 19603 | CAddAdvisorRoleToCharacterCommand | 0x1429953F0 | 152 | 0x141150C70 | 0x141161610 | +40 id对 / +48 tag写门(10754) / +56 嵌套(240) |
-| 19604 | NFactions::CAddFactionGoalCommand | 0x142A4A3B8 | 72 | 0x141BA8FD0 | 0x141BAA5F0 | +40 tag写门(10302) / +48 u32(19592) / +56 u32(10515) / +64 i64(10323) |
-| 19610 | NFactions::CSetFactionRuleCommand | 0x142A498C8 | 48 | 0x141BA9BD0 | 0x141BAB470 | +40 tag写门(10302) / +40 u32(10876) |
-| 19624 | CRetireCharacterCommand | 0x1429957D8 | 48 | 0x14115AC90 | 0x141165EA0 | +40 id对 |
-| 19641 | NFactions::CCreateFactionTheater | 0x142A49B20 | 184 | 0x141BA9430 | 0x141BAB0E0 | +48 str(27) / +80 u32(13994) / +84 id对 / +120 u32数组(12065) / +144 u32数组(12799) / +168 u32(19482) / +176 u32(524) |
-| 19689 | CSetSupplyTruckBufferRatioCommand | 0x142995FA8 | 56 | 0x14115E3A0 | 0x1401807B0 | +40 tag写门(10754) / +48 i64(694) |
-| 19690 | CSetSupplyReinforcementPriorityCommand | 0x142995EE0 | 48 | 0x14115E1F0 | 0x1401807B0 | +44 tag写门(10754) / +44 u32(141) |
-| 19691 | CChangeRailwayConstructionLeveLCommand | 0x1429975D8 | 56 | 0x141155A40 | 0x141162CE0 | +40 id对 / +48 u32(13802) |
-| 19701 | CUpdateSupplyNodeCountrySettingsCommand | 0x1429976A0 | 56 | 0x14115F340 | 0x141168080 | +40 str(10754) / +40 tag / +44 u8(14065) / +46 str(10754) / +46 u32(19943) |
-| 19705 | CBuildRailwayCommand | 0x142997510 | 80 | 0x141152AF0 | 0x141162A60 | +40 str(10394) / +40 tag / +48 u32数组(10304) / +72 u32(107) / +76 u32(141) |
-| 19723 | CSetSupplyCapitalNodeCommand | 0x142997448 | 48 | 0x14115E1C0 | 0x141167590 | +40 str(10394) / +40 tag / +44 u32(10304) |
-| 19730 | CSetObsoleteDivisionTemplateCommand | 0x142A48118 | 56 | 0x141B9F9F0 | 0x141162CE0 | +40 id对 / +48 u8(12396) |
-| 19731 | CReorderTemplateListCommand | 0x142A481E0 | 56 | 0x141B9F5F0 | 0x141BA03B0 | +40 id对 / +48 u32(524) |
-| 19743 | CSetAutoUpgradedEquipmentVariantCommand | 0x142A24890 | 56 | 0x1419A4380 | 0x141162CE0 | +40 id对 / +48 u8(19744) |
-| 19754 | NFactions::CSetFactionPingExecutionType | 0x1429AC870 | 56 | 0x141BA9B30 | 0x141BAC710 | +40 u32(524) / +44 tag写门(10754) / +48 u32(13994) |
-| 19760 | NFactions::CClearFactionTheater | 0x142A49BE8 | 56 | 0x141BA93A0 | 0x141BAAEB0 | +40 tag写门(10754) / +40 u8(10737) / +44 u32(524) / +44 u8(10737) |
-| 19761 | NFactions::CModifyFactionTheater | 0x142A49E40 | 176 | 0x141BA97D0 | 0x141BABF70 | +44 u32(524) / +48 str(27) / +80 tag数组(11593) / +104 tag数组(19762) / +128 u32数组(19759) / +152 u32数组(19763) |
-| 19765 | NFactions::CSetFactionTheaterPinVisibility | 0x142A49CB0 | 56 | 0x141BA9E90 | 0x141BAC850 | +44 u32(524) / +48 u8(11562) |
-| 19837 | CAiOnFailedInvasionCommand | 0x142A31BF0 | 48 | 0x141A74210 | 0x141A74940 | +40 str(10394) / +40 tag / +44 u32(10304) |
-| 19847 | CAiStoreTotalWantedNrDivisionsCommand | 0x142A31CB8 | 56 | 0x141A74660 | 0x141A74B70 | +40 str(10394) / +40 tag / +44 u32(19846) / +48 u32(15585) / +52 u32(15586) |
-| 19870 | CAssignRailwayGunToOrdersGroup | 0x142972960 | 72 | 0x140E8EE90 | 0x140E8F340 | +40 ref(19732) |
-| 19871 | CUnassignRailwayGunFromOrdersGroup | 0x142972A28 | 72 | 0x140E8F1F0 | 0x140E8F590 | +40 ref(19732) |
-| 19872 | CRailwayGunManualOrderCommand | 0x142972AF0 | 72 | 0x140E8EF60 | 0x140E8F3E0 | +40 ref(19732) / +64 u32(10304) |
-| 19873 | CRailwayGunSetNameCommand | 0x142972BB8 | 80 | 0x140E8F1A0 | 0x140E8F550 | +40 id对 / +48 str(27) |
-| 19882 | CSetWingEquipmentNicheCommand | 0x142A1DD40 | 72 | 0x1419463C0 | 0x141948710 | +40 id对数组(12213) / +64 u32(19904) |
-| 19911 | CSetPreferredTacticCommand | 0x142997768 | 56 | 0x14115CA80 | 0x141166A30 | +40 tag写门(10754) / +40 u32(19912) / +48 u32(19912) |
-| 19918 | CSetScorchedStateCommand | 0x1429978F8 | 64 | 0x14115D520 | 0x141166C90 | +40 tag写门(10394) / +48 u32(439) / +48 u8(11231) |
-| 19926 | CUpdateLeaderSeenAdvisorRolesCountCommand | 0x142A0CEE8 | 56 | 0x14184BB60 | 0x141165920 | +40 id对 / +48 u32(10730) |
-| 19927 | CSetArmyLeaderPreferredTacticCommand | 0x142997830 | 56 | 0x14115B940 | 0x141166680 | +40 id对 / +40 u32(19912) / +48 u32(19912) |
-| 19941 | CAddTaskForceTemplateCommand | 0x1429B0AD8 | 184 | 0x141350450 | 0x141357FB0 | +40 str(10394) / +40 tag / +48 str(27) / +80 嵌套(15157) |
-| 19942 | CRemoveTaskForceTemplateCommand | 0x1429B0BA0 | 80 | 0x141353770 | 0x141358DC0 | +40 str(10394) / +40 tag / +48 str(27) |
+| 19266 | CRecruitOperativeCommand | 0x142A2ED90 | 56 | 0x141A27E70 | 0x141A2A7F0 | +40 tag(10394) 命令国 tag(招募国) / +44 id对 待招募特工 idpair(行动特工引用；空 = 招募新特工) |
+| 19334 | CSetArmyFakeTemplateCommand | 0x1429B26B8 | 72 | 0x141367340 | 0x14136A700 | +40 idpair数组(12202) 目标部队 id 数组 / +64 id对 假(对外伪装)模板 |
+| 19370 | CSetDefaultCountryOccupationPolicyCommand | 0x142995A30 | 80 | 0x14115C300 | 0x141166750 | +40 str(10754) 目标国 tag(设默认占领政策的国家) / +48 str(10492) 默认占领政策名 |
+| 19412 | CIgnoreAllAvailableDecisionCommand | 0x142996E08 | 48 | 0x141156FD0 | 0x140CAA8B0 | +40 str(10394) 目标国家 |
+| 19416 | CSetWingReinforcementPreferenceCommand | 0x142A1DE08 | 72 | 0x141946430 | 0x141948750 | +40 idpair数组(12213) 空军联队 id 数组 / +64 u32(19415) 增援偏好档位 |
+| 19425 | CSetOperationAutoRepeatCommand | 0x142978630 | 56 | 0x141A28490 | 0x141A2B480 | +40 id对(11) 目标行动实例 idpair / +48 u8(419) 自动重复开关(新值) / +52 str(10754) 命令国 tag(行动实例归属国) |
+| 19438 | NRaids::NNet::CRemoveRaidCommand | 0x142A41970 | 56 | 0x141B331B0 | 0x141B33F60 | +40 id对 待移除的袭击实例 idpair / +40 tag(19361) 待移除的袭击实例 idpair |
+| 19526 | NRaids::NNet::CSetRaidAutoLaunchOption | 0x142A414C0 | 56 | 0x141B333B0 | 0x141B340C0 | +40 id对 目标突袭实例 idpair / +48 u32(10348) 自动发射选项档位 |
+| 19563 | CReplaceAdvisorCommand | 0x142995968 | 96 | 0x141159910 | 0x141165A90 | +40 id对 旧顾问 id / +48 id对 新顾问 id / +56 u8(10323) 计费旗 / +64 str(13378) 目标槽名 |
+| 19564 | CAddAdvisorCommand | 0x142995580 | 88 | 0x1411508A0 | 0x141161560 | +40 id对 目标角色(顾问人选) / +48 u8(10323) 是否免费(不扣政治点/指挥点) / +56 str(13378) 顾问槽位名 |
+| 19567 | CRemoveAdvisorCommand | 0x142995710 | 80 | 0x141158A10 | 0x141165630 | +40 id对 待卸任角色 / +48 str(13378) 被清空的顾问槽位名 |
+| 19568 | CUnlockResearchCommand | 0x142995008 | 64 | 0x14115EC70 | 0x141167FD0 | +40 str(10394) 命令国 tag / +48 str(13259) 新科技(待解锁/切 focus 目标) / +56 str(13260) 原 focus tech(被替换者) |
+| 19586 | CGenerateAdvisorCommand | 0x1429954B8 | 152 | 0x141156B10 | 0x141164850 | +40 tag(10754) 目标国家 / +48 str(19588) 待生成的顾问槽类型名 / +80 嵌套(240) 顾问生成参数块 |
+| 19603 | CAddAdvisorRoleToCharacterCommand | 0x1429953F0 | 152 | 0x141150C70 | 0x141161610 | +40 id对 目标角色 / +48 tag(10754) 归属国家 / +56 嵌套(240) 角色定义参数块 |
+| 19604 | NFactions::CAddFactionGoalCommand | 0x142A4A3B8 | 72 | 0x141BA8FD0 | 0x141BAA5F0 | +40 tag(10302) 发起成员国 / +48 u32(19592) 目标 def / +56 u32(10515) 被替换目标 def / +64 i64(10323) initiative 代价 |
+| 19610 | NFactions::CSetFactionRuleCommand | 0x142A498C8 | 48 | 0x141BA9BD0 | 0x141BAB470 | +40 tag(10302) 规则 id / +40 u32(10876) 规则 id |
+| 19624 | CRetireCharacterCommand | 0x1429957D8 | 48 | 0x14115AC90 | 0x141165EA0 | +40 id对 待退役角色 |
+| 19641 | NFactions::CCreateFactionTheater | 0x142A49B20 | 184 | 0x141BA9430 | 0x141BAB0E0 | +48 str(27) 战区名 / +80 u32(13994) 战区执行类型 / +84 id对 战区指挥官 / +120 u32数组(12065) 指定地区数组 / +144 u32数组(12799) 地区选择序数组 / +168 u32(19482) 战区模板 def / +176 u32(524) 插入序 |
+| 19689 | CSetSupplyTruckBufferRatioCommand | 0x142995FA8 | 56 | 0x14115E3A0 | 0x1401807B0 | +40 tag(10754) 命令国 tag / +48 i64(694) 卡车缓冲量目标(补给卡车缓冲比，u64 定点) |
+| 19690 | CSetSupplyReinforcementPriorityCommand | 0x142995EE0 | 48 | 0x14115E1F0 | 0x1401807B0 | +40 tag(10754) 目标国家 / +44 u32(141) 补给增援优先级档位 |
+| 19691 | CChangeRailwayConstructionLeveLCommand | 0x1429975D8 | 56 | 0x141155A40 | 0x141162CE0 | +40 id对 目标铁路营建线 / +48 u32(13802) 新等级值(绝对目标等级) |
+| 19701 | CUpdateSupplyNodeCountrySettingsCommand | 0x1429976A0 | 56 | 0x14115F340 | 0x141168080 | +40 str(10754) 目标国 tag / +44 u8(14065) 禁用旗(对该国禁用补给节点) / +46 u32(19943) 摩托化等级 |
+| 19705 | CBuildRailwayCommand | 0x142997510 | 80 | 0x141152AF0 | 0x141162A60 | +40 str(10394) 建造国 tag / +48 u32数组(10304) 铁路路径省 id 数组(≥2 省) / +72 u32(107) 目标铁路等级 / +76 u32(141) 优先枚举 |
+| 19723 | CSetSupplyCapitalNodeCommand | 0x142997448 | 48 | 0x14115E1C0 | 0x141167590 | +40 str(10394) 命令国 tag / +44 u32(10304) 新首都补给节点省 id |
+| 19730 | CSetObsoleteDivisionTemplateCommand | 0x142A48118 | 56 | 0x141B9F9F0 | 0x141162CE0 | +40 id对 目标师模板 / +48 u8(12396) 过时(废弃)旗 |
+| 19731 | CReorderTemplateListCommand | 0x142A481E0 | 56 | 0x141B9F5F0 | 0x141BA03B0 | +40 id对 被拖拽师模板 / +48 u32(524) 目标位次(新序号) |
+| 19743 | CSetAutoUpgradedEquipmentVariantCommand | 0x142A24890 | 56 | 0x1419A4380 | 0x141162CE0 | +40 id对 目标变体 / +48 u8(19744) 自动升级旗(母本升级时该变体是否自动跟随) |
+| 19754 | NFactions::CSetFactionPingExecutionType | 0x1429AC870 | 56 | 0x141BA9B30 | 0x141BAC710 | +40 u32(524) 战区序号 / +44 tag(10754) 发起国 / +48 u32(13994) 执行类型 |
+| 19760 | NFactions::CClearFactionTheater | 0x142A49BE8 | 56 | 0x141BA93A0 | 0x141BAAEB0 | +40 tag(10754) 发起国 / +40 u8(10737) 发起国 / +44 u32(524) 战区序号 / +44 u8(10737) 战区序号 |
+| 19761 | NFactions::CModifyFactionTheater | 0x142A49E40 | 176 | 0x141BA97D0 | 0x141BABF70 | +44 u32(524) 战区序号 / +48 str(27) 战区新名 / +80 tag数组(11593) 增成员国 tag 数组 / +104 tag数组(19762) 删成员国 tag 数组 / +128 u32数组(19759) 增地区 id 数组 / +152 u32数组(19763) 删地区 id 数组 |
+| 19765 | NFactions::CSetFactionTheaterPinVisibility | 0x142A49CB0 | 56 | 0x141BA9E90 | 0x141BAC850 | +44 u32(524) 战区序号 / +48 u8(11562) pin 显隐旗 |
+| 19837 | CAiOnFailedInvasionCommand | 0x142A31BF0 | 48 | 0x141A74210 | 0x141A74940 | +40 str(10394) 命令发起国(国 tag；writer 经国名→tag 映射发射，reader 经同映射回写) / +44 u32(10304) 登陆失败所在省 id |
+| 19847 | CAiStoreTotalWantedNrDivisionsCommand | 0x142A31CB8 | 56 | 0x141A74660 | 0x141A74B70 | +40 str(10394) 目标国家 / +44 u32(19846) 最少师数目标 / +48 u32(15585) 期望师数目标 / +52 u32(15586) 最多师数目标 |
+| 19870 | CAssignRailwayGunToOrdersGroup | 0x142972960 | 72 | 0x140E8EE90 | 0x140E8F340 | +40 ref 8B(19732) 待挂接铁路炮 idpair 数组 |
+| 19871 | CUnassignRailwayGunFromOrdersGroup | 0x142972A28 | 72 | 0x140E8F1F0 | 0x140E8F590 | +40 ref 8B(19732) 待摘铁路炮 idpair 数组 |
+| 19872 | CRailwayGunManualOrderCommand | 0x142972AF0 | 72 | 0x140E8EF60 | 0x140E8F3E0 | +40 ref 8B(19732) 待改靶铁路炮 idpair 数组 / +64 u32(10304) 目标省 id(手动轰击目标) |
+| 19873 | CRailwayGunSetNameCommand | 0x142972BB8 | 80 | 0x140E8F1A0 | 0x140E8F550 | +40 id对 待改名铁路炮 / +48 str(27) 新名字串 |
+| 19882 | CSetWingEquipmentNicheCommand | 0x142A1DD40 | 72 | 0x1419463C0 | 0x141948710 | +40 idpair数组(12213) 待设置的机队 idpair 数组数据指针(元素 8B) / +64 u32(19904) 装备生态位枚举(equipment niche，影响补充时优先装备类型) |
+| 19911 | CSetPreferredTacticCommand | 0x142997768 | 56 | 0x14115CA80 | 0x141166A30 | +40 tag(10754) 目标国 tag id / +40 u32(19912) 目标国 tag id / +48 u32(19912) 偏好战术对象指针 |
+| 19918 | CSetScorchedStateCommand | 0x1429978F8 | 64 | 0x14115D520 | 0x141166C90 | +40 tag(10394) 目标国 tag id / +48 u32(439) 州对象指针 / +56 u8(11231) 焦土开关旗 |
+| 19926 | CUpdateLeaderSeenAdvisorRolesCountCommand | 0x142A0CEE8 | 56 | 0x14184BB60 | 0x141165920 | +40 id对 将领 id / +48 u32(10730) 已见顾问角色数 |
+| 19927 | CSetArmyLeaderPreferredTacticCommand | 0x142997830 | 56 | 0x14115B940 | 0x141166680 | +40 id对 目标指挥官 / +48 u32(19912) 偏好战术 |
+| 19941 | CAddTaskForceTemplateCommand | 0x1429B0AD8 | 184 | 0x141350450 | 0x141357FB0 | +40 str(10394) 目标国家 / +48 str(27) 新模板名 / +80 嵌套(15157) 特混舰队模板对象 |
+| 19942 | CRemoveTaskForceTemplateCommand | 0x1429B0BA0 | 80 | 0x141353770 | 0x141358DC0 | +40 str(10394) 目标国家 / +48 str(27) 待删模板名 |

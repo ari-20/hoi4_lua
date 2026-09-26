@@ -22,7 +22,7 @@
 | +20 | uint32 | active_relations 容器计数 | |
 | +24 | 匿名结构 (NNB 形状) | active_relations 容器 allocator | 高置信 |
 | +32 | CRelation 向量 | **全关系对象缓存** {data@+32, cap@+40, count@+44, alloc@+48} — 8B 元 = CRelation* (含全部 18 型; setter clone 族三件套维护: _Relations(rs+208) + dip+32 + _OwnedRelation(rs+232) 摘旧挂新; 0X140D3C3E0 以 token@+8==14346 滤 war; 探针: 交战国 count>100) | 定案 |
-| +56 | POD 数组 | 瞬时暂存列表 {data@+56, cap@+64, count@+68, alloc@+72} (扁平 POD 数组 — 增长码无 vtable 装配, teardown 走 pdx 24B 通用释放 sub_14011EBD0 而非逐元 dtor; 全档 333 国运行时全空 — 疑战争结算/和会期工作缓冲; 无 `*(…+3976)+56` 消费形态, 外交 UI 不消费) | 定案 |
+| +56 | POD 数组 | 瞬时暂存列表 {data@+56, cap@+64, count@+68, alloc@+72} (扁平 POD 数组 — 增长码无 vtable 装配, teardown 走 pdx 24B 通用释放 sub_14011EBD0 而非逐元 dtor; 全档 333 国运行时全空 — 推定战争结算/和会期工作缓冲; 无 `*(…+3976)+56` 消费形态, 外交 UI 不消费) | 定案 |
 | +80 | POD 数组 | 瞬时暂存列表 {data@+80, cap@+88, count@+92, alloc@+96} (同 +56, 全档全空; 外交 UI 不消费) | 定案 |
 | +104 | CWargoal** | **available_wargoals 容器数据** {data@+104, cap@+112, count@+116, alloc@+120} — 8B 指针元 → wargoal 对象 (元+60=目标国 idx); **与 cc+1328 非同一容器** (全量计数分布: 同值 4 / 仅本侧 1 / 仅 cc+1328 侧 14) | writer 键 0x337C; GUI 见下方 GUI 消费表 |
 | +128 | CWargoal** | **wargoals 容器数据** {data@+128, cap@+136, count@+140, alloc@+144} — 完整 CWargoal 对象 (vt 0x1429E0058; 动态 token@元+64 = type 定义指针→*(def+8)) | writer 键 0x331D ↔ 存档 `wargoals={...}` (定案) |
@@ -453,7 +453,7 @@ fac 侧落点 (fac+96/+1120/+1152/+1344) 见 §4.5.7。
 | +113 | u8 | value 通用布尔 (键 0x308) | 定案 |
 | +114 | u8 | 尾旗 (未序列化) | 定案 |
 
-writer 落盘序: human? → type → actor → original_actor → recipient → original_recipient → date → value=yes → last_command_date → envoy → initiator_matters=yes → on_action?; reader 按 token 分发回各槽。
+writer 落盘序: human(未决) → type → actor → original_actor → recipient → original_recipient → date → value=yes → last_command_date → envoy → initiator_matters=yes → on_action(未决); reader 按 token 分发回各槽。
 
 CScriptedDiplomaticAction (sizeof 0x80, def@+120) 为首族; CNavalBlockadeAction 见 §4.31.39。
 
@@ -940,7 +940,7 @@ conf+216..520 区字段巡礼:
 | +536 | qword | 0x4B89 (19337) | peace_threat | CPeaceSummaryPopUpWindow 负消费 | 和会威胁值 | 定案 |
 | +544 | qword 标量累加器 | — (ctor 清零, writer/reader 不碰) | — | 写点未找到; 前批「缴获装备值 GUI 消费」未能复现 (混淆源: 空军窗口 +312 对象+544 读 BM_ENEMY_AIR_SUPERIORITY_COUNTER / 战报 EQUIPMENT_CAPTURED_* 独立条目特性) | 语义推定, 待复验 | 推定 |
 | +552 | RB-tree | — | — | 读法 sub_140E47D70 / 内战残余转让 0x140E48DF0 / pc_does_state_stack_demilitarized / _dismantled 二审 | **map<u32 州 id → CStatePeaceAction\* 数组>** (key = 州 id@节点+32; value count@节点+88, 元素@节点+96; 按州竞标叠层, 值按回合分层); **写方三组**: 载入重建 虚槽[8]→0x140E4C490 / EndTurn·终局前置 0x140E4D220 / GUI 0x141E571B0·0x141E48CF0→0x140E3B6B0, 插入原语 sub_140E2E9D0 | 定案 |
-| +568 | RB-tree | — | — | 0x140E46DA0 消费 | qword 键 (取自对象 +8, 疑动作 refid 对 — 推定); accessor 与 +552 同族 (sub_140E2E650/2EED0/31B00/30F50) | 键推定 / 值未决 |
+| +568 | RB-tree | — | — | 0x140E46DA0 消费 | qword 键 (取自对象 +8, 动作 refid 对 — 推定); accessor 与 +552 同族 (sub_140E2E650/2EED0/31B00/30F50) | 键推定 / 值未决 |
 | +584 | RB-tree | — | — | sub_140E524B0 以动作/条目 +52 查 | u32 giver tag 键 (推定); accessor 同族 (sub_140E2EC10/2E280/31A20/30930) | 键推定 / 值未决 |
 | +616 | i64 | — | — | — | 和会开始墙钟 FILETIME ticks (Xtime_get_ticks; 100ns, 1601 纪元) | 定案 |
 | +624 | u32 | 0x2AAD (10925) | time_duration | — | time_duration 累计秒 = 写时墙钟叶 (EXEMPT, 见 §4.10.26) | 定案 |
@@ -986,8 +986,8 @@ CPeaceAction (当前竞标表元素; CStatePeaceAction 派生):
 | liberated (12581) | 出叶 | w2 计数门 (sub_1418657D0 L301) |
 | subject (13024) | 出叶 | 同上计数门 |
 | history (10293) | 未出叶 | 树本体无 UI 读; UI `current_and_history_actions` 窗走运行时 +416 列表 (语义旁证) |
-| redistributions (14497) | 不随本块出叶 (推定) | token 不在 conference writer; 疑在州转移侧 |
-| score_from_countries (13833) | 不随本块出叶 (推定) | token 不在 conference writer; 疑对应 winners 条目 +64 值槽 |
+| redistributions (14497) | 不随本块出叶 (推定) | token 不在 conference writer; 推定在州转移侧 |
+| score_from_countries (13833) | 不随本块出叶 (推定) | token 不在 conference writer; 推定对应 winners 条目 +64 值槽 |
 
 #### 4.10.29 active_peace.time_duration (墙钟豁免叶)
 
@@ -1033,8 +1033,8 @@ CPeaceAction (当前竞标表元素; CStatePeaceAction 派生):
 | CConferenceWinnerParticipant | b+24 | CState** 数组 {cap@+32, count@+36} | 受让州指针数组 (0x140E38A70 推入; RebuildOutcomes 清零) |
 | CConferenceWinnerParticipant | b+48 | 树 {size@+56} | **_TakenShips** (map\<loser_tag, {夺船清单 vector, _RatioScreening ≤1_fixed}\>; take_navy 聚合写, 不落盘运行时重建) |
 | CConferenceWinnerParticipant | b+328 | u32 向量 {cap@+336, count@+340} | 内战败方残余受让州 id (= writer 键 taken_states_civil_war 12135 ✓; CivilWarRemainderTransfer 写) |
-| CConferenceLoserParticipant | b+192? | qword | 份额 (fixed×1e-5; 组总=0 时 0xFFFFFFFF) — ⚠ 坐标基待裁 (与 screening_ic writer 视 +192 同位, 分组写点 0x140E3DF10 的基址未复核) |
-| CConferenceLoserParticipant | b+200? | u8 | 胜支旗 (SplitData 分组定胜负 0x140E3DF10 写) — 同上坐标待裁 |
+| CConferenceLoserParticipant | b+192 | qword | 份额 (fixed×1e-5; 组总=0 时 0xFFFFFFFF) — ⚠ 坐标基待裁 (与 screening_ic writer 视 +192 同位, 分组写点 0x140E3DF10 的基址未复核) |
+| CConferenceLoserParticipant | b+200 | u8 | 胜支旗 (SplitData 分组定胜负 0x140E3DF10 写) — 同上坐标待裁 |
 | CConferenceLiberatedParticipant | b+72 | u32 向量 | winner tag 数组 (= writer 键 liberators 12579 ✓) |
 | CConferenceLiberatedParticipant | b+96 | u32 | 未名 (ctor 清零) |
 | CConferenceLiberatedParticipant | b+104 | qword | 份额 |

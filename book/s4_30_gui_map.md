@@ -265,7 +265,7 @@ target = view+272 {count@+284} 师 idpair 数组 + +260 部署军团。**CTempla
 | template_change_icon | @64[2] 0X1416AD770 | CArmy+960 old_template ≠0 → 显 | 改编待生效指示 | — | 定案 |
 | 撤编按钮文案/门 | sub_1416BE4F0 | CArmy+476 expeditionary_owner (回退 +472 owner); +1584 leader | 远征师换远征按钮组+旗签; HQ 师加撤编注记 | DISBAND_ALL_UNIT / DISBAND_BUTTON_HQ_WITHDRAW_NOTE / SPECIAL_UNIT_CANNOT_BE_DISBANDED | 定案 |
 | 硬度 stat 行 (tooltip) | BuildTooltip 0X1416A2270 | **CArmy+312 统计对象+184 (statId 3)**, fixed5 | 装甲度; SOFT_ATTACK_TAKEN = 1e5−值 (0x678B 统计对象族) | STAT_VALUE / SOFT_ATTACK_TAKEN / HARD_ATTACK_TAKEN | 高置信 |
-| combat width | CArmy vt0[46] 0X140C7D9B0 (双出参) | CArmy 虚槽 (无存储偏移) | 战斗宽度 (现值+上限?); 书 vt 表新行 | COMBAT_WIDTH_DESC / DESIGNER_COMBATWIDTH_TOOLTIP | 定案 (读法) |
+| combat width | CArmy vt0[46] 0X140C7D9B0 (双出参) | CArmy 虚槽 (无存储偏移) | 战斗宽度 (现值+上限 推定); 书 vt 表新行 | COMBAT_WIDTH_DESC / DESIGNER_COMBATWIDTH_TOOLTIP | 定案 (读法) |
 | 装备构成 8 类 | BuildTooltip → sub_140B9D860 | **CArmy+904 vector** ⊕ 模板 data+168 容器 | 师×模板类别合并计数 (cavalry/armor/rocket/artillery/motorized/mechanized/infantry/special_forces) | EQUIPMENT_ARMOR 等 7 + cavalry | 定案 (读法) / +904 书中未名 |
 | 损耗 tooltip | sub_140C75500 | CArmy (方法内) | attrition 计算 | ATTRITION_DESC | 定案 (单链) |
 | 师名/等级/经验 tooltip | sub_140C86CC0 / sub_140C7E930 | CArmy (方法内) | 师名; unit_level·experience 两窗共用 | LEVEL_NAME / VISUAL_LEVEL | 定案 (单链) |
@@ -635,7 +635,7 @@ def 侧新锚: +368 类别 / +376·+396 可用门 / +1600·+1620 成本。
 | 窗名 | TimedItem = `timed_decision_item`; EventItem = `event_item` | ctor 常量 |
 
 **定案 6 项**: cat+496 = **decisions 容器** {data@496, cap@504, count@508, alloc@512} (写点 sub_140725F50 逐类别 push; 消费 sub_140734EC0 可用决议遍历) / cat+336 = **`visible_when_empty` u8** (键 15243; ReadKey sub_1407332B0) / cat+1008 = **power-balance 类别值 i32** (默认 −1; 类别名副本 = +976 串, **size@+992 / cap@+1000**) / SOnMapLocator = **CDecisionCategory::SOnMapLocator** (vftable 0x1427EB2E8, ctor sub_140724070; 304B 元素: +8 内嵌 CScriptTargets / +264 zoom 键 11793 / +272 loc 名 键 27 默认 ON_MAP_DECISION_NAME_DEFAULT / +288 size / +296 cap) / GUImgr+1536 = **CInGameIdler 全局待显事件表** {data@1536, cap@1544, count@1548, alloc@1552, 游标@1560}, 元素 = **CEvent\*** (id u32@0) / amount_to_take 宿主 = **CTopBar+39144** (窗 `decisionview_amount_to_take_items`, +39152 配 `_bg`; 装于 [2] Reload sub_14189ECF0 体内的 sub_14189EF20)。
-**前提证伪 2 项**: 「pass D 排序键」不成立 — sub_141727810 是**地图/隐藏决议收集 pass** (门 sub_1417312F0 + sub_140736AE0(cat+336) + sub_140736910(cat+248/268)), 全 pass 后**无 sort 调用** (worker sub_1417297C0 尾段仅释放临时容器 + grid 刷新), 行序 = 各 pass 调用序 (A 普通 → B 定向 → C 计时 → D 地图 → E 类别 → F); 「def+272 写点」**不存在** (全 dump 0 写点, 疑偏移笔误 — decision def 串区在 +288)。
+**前提证伪 2 项**: 「pass D 排序键」不成立 — sub_141727810 是**地图/隐藏决议收集 pass** (门 sub_1417312F0 + sub_140736AE0(cat+336) + sub_140736910(cat+248/268)), 全 pass 后**无 sort 调用** (worker sub_1417297C0 尾段仅释放临时容器 + grid 刷新), 行序 = 各 pass 调用序 (A 普通 → B 定向 → C 计时 → D 地图 → E 类别 → F); 「def+272 写点」**不存在** (全 dump 0 写点, 推定偏移笔误 — decision def 串区在 +288)。
 
 #### 4.30.13 情报视图簇 (AgencyView / IntelLedgerView / CryptologyEntry)
 
@@ -1552,7 +1552,7 @@ glue 网格 = **26 槽位 +264..+32496 步距 1288**（+23448 新对象插入后
 
 > **CTextureReloader** (vt 0x142B3D720 4 槽, 基 CReloadDispatcher) = 排除: 文件变更→纹理刷新钩子 ([1] 路径谓词 0x14223CAA0 / [2][3] 经 qword_143453090 桶槽迭代), 纯图形基础设施。
 > 读侧 helper 分类 (后续 GUI Type 批可复用): 0x1424C0C00 = bool u8 / 0x1424C0AB0 = SSO 串 / 0x1424C08D0 = i32 / 0x1424C0930 = f32 / 0x1424C0900 = i32 对 / 0x1424C0AA0 = 复合块 (CColor 16B/动画元素) / 0x140A4C640 = u32 对 (size/borderSize) / 0x140ADDCA0 = 枚举串映射 (anchor/dx_offset); 写侧 0x1424C37B0 = u8 / 0x1424C2F40 = u32。
-> idb 评估: 8 个 SpriteType 属「GUI 模板库」形态 (spriteTypes 块由各自 reader 解析注册, 键串簇 0x2ae5550..0x2aea130); §4.26.4 idb 规格表无一 GUI 键 — 若做 GFX 名→纹理映射, 本节 reader↔偏移表即规格表底稿。**GFX/内容库名注册表 qword_143339CB8 值类 = `CGraphicalCultureType*`** (定案; 消费者 sub_140712200/sub_140712260 把查得指针写入 CCountry+4168/+4128 = graphical_culture / graphical_culture_2d 解析结果槽 §4.3; 加载器 sub_140181110 解析 `common/graphicalculturetype.txt` 注册; 空值 CNullGraphicalCultureType 0x14293C058; 表 40B {mask u32@+4 默认 511, buckets@+8, count@+16, ?@+24, alloc@+32}, 惰性建 sub_140A3BF90 once 守卫 dword_14332ECF0; `_gfx` 后缀回退 = sub_140ADF1F0)。
+> idb 评估: 8 个 SpriteType 属「GUI 模板库」形态 (spriteTypes 块由各自 reader 解析注册, 键串簇 0x2ae5550..0x2aea130); §4.26.4 idb 规格表无一 GUI 键 — 若做 GFX 名→纹理映射, 本节 reader↔偏移表即规格表底稿。**GFX/内容库名注册表 qword_143339CB8 值类 = `CGraphicalCultureType*`** (定案; 消费者 sub_140712200/sub_140712260 把查得指针写入 CCountry+4168/+4128 = graphical_culture / graphical_culture_2d 解析结果槽 §4.3; 加载器 sub_140181110 解析 `common/graphicalculturetype.txt` 注册; 空值 CNullGraphicalCultureType 0x14293C058; 表 40B {mask u32@+4 默认 511, buckets@+8, count@+16, 未决@+24, alloc@+32}, 惰性建 sub_140A3BF90 once 守卫 dword_14332ECF0; `_gfx` 后缀回退 = sub_140ADF1F0)。
 
 **注册库三库分流 (定案)**: ① spriteTypes 族 → 纹理管理器单例 qword_143453090 的 **+256 哈希表** (表头 {+4 nbuckets 默认 511, +8 buckets}; get-or-create sub_142237660); ② .gui 控件模板 (CGuiType 群) → **CGui/CGameGui 对象 +192 CTernary\<CGuiType\*\>** {容器@+200, count@+212}, 工厂 = CGui vt[29] CreateTemplate 0x14225ABB0 (token 尺寸与本节键表互证), 实例挂应用对象 +872; ③ GFX/内容库名注册表 = **qword_143339CB8** 懒建单例 (40B, once 守卫 dword_14332ECF0, 哈希形态同①; "_gfx" 后缀解析与纹理按名取件走此表) — **负定案**: 该表 = 40B 匿名哈希容器 (builder sub_140A3BF90 malloc 0x28 → {+0 dword 0 / +4 mask 511 / +8 buckets(0xFFF8) / +16 count / +24 alloc / +32 alloc(off_143085170)}), **无独立 RTTI 类**; 值类 = `CGraphicalCultureType*`。
 

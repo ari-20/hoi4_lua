@@ -47,7 +47,7 @@ loader 0X140EE16F0):
 | +48 | 匿名结构 (32B 形状)* | 次级通知列表头 (懒分配; 32B 条 {u32=1, ptr=tech+16, u8, u8}) | 推定 |
 | +56 | vector\<16B {def*, u32}\> 24B | **本科技授予的建筑 max_level 加成表** (源自模板+584 48B 条) {cap@64, count@68, alloc@72} | CompleteResearch 将其 max 累积进 ts+88 |
 | +80 | vector\<指针\> 24B | **本科技解锁的战斗战术** (源自模板+608 40B 条, 按名查全局表; fallback "nullCombatTactic") {cap@88, count@92, alloc@96} | CompleteResearch 推入 ts+112 |
-| +104 | vector\<指针\> 24B | 完成时注入 CProductionStatus 的解锁列表 A (源自模板+632, 库 qword_14332EEC0 解析; 携 design_team) {cap@112, count@116, alloc@120} | 高置信 (疑 equipment variant 族); **GUI: 科技图标回退源** (*(tech+104) 首元 +1000 旗 → 首解锁装备图; 模板图为先) |
+| +104 | vector\<指针\> 24B | 完成时注入 CProductionStatus 的解锁列表 A (源自模板+632, 库 qword_14332EEC0 解析; 携 design_team) {cap@112, count@116, alloc@120} | 高置信 (equipment variant 族); **GUI: 科技图标回退源** (*(tech+104) 首元 +1000 旗 → 首解锁装备图; 模板图为先) |
 | +128 | vector\<指针\> 24B | 完成时注入生产的解锁列表 B (源自模板+656) {cap@136, count@140, alloc@144} | 高置信 |
 | +152 | vector\<CSubUnitDefinition*\> 24B | 完成时注入 cc+3952 管理器的解锁列表 (sub_140D0E200(cc+3952, elem, 1)) {cap@160, count@164, alloc@168} | 定案 : 元素 = **CSubUnitDefinition\*** (科技解锁的子单位定义, 非 equipment variant); cc+3952 管理器 = {+32 副本数组 (1656B 克隆, clone ctor 0X1403C77D0, 按 elem+1420 回溯 DB 母本), +56 token RH 去重}, 克隆体 +1471 = 解锁旗 OR 累积; CCountry writer 键 12181 "deployment" 整对象落盘 |
 | +176 | vector\<CTechnology*\> 24B | **被本科技门控的后继科技表** (源自模板+860; 同时把本科技注册进对方听众列表, 并写对方 +360=本科技) {cap@184, count@188, alloc@192} | 状态变化逐个 sub_140ED6B50 通知 |

@@ -172,7 +172,7 @@ ctor sub_1413F9DF0 / writer 0X1413FC350 / loader 0X1413FB750。
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
 | +0 | vt | CFactionUpgradeStatus | |
-| +16 | 匿名结构 (24B 形状) RH 桶数组 | **member_upgrades** {buckets@16, count?@24, mask@28, extra u8@32, lf@36=0.9} — 24B 桶 {dist+1@4, key token@8, value def 指针@16}; 键 10473 排序发射; loader case 10473→sub_1413F9490 | |
+| +16 | 匿名结构 (24B 形状) RH 桶数组 | **member_upgrades** {buckets@16, count 未决@24, mask@28, extra u8@32, lf@36=0.9} — 24B 桶 {dist+1@4, key token@8, value def 指针@16}; 键 10473 排序发射; loader case 10473→sub_1413F9490 | |
 | +40 | CTechnologySharing 内嵌 80B | tech_sharing_group (键 14100) | |
 | +120 | CDoctrineSharingStatus 内嵌 32B | doctrine (键 13817) | |
 | +152 | 容器 24B | **slots 向量** {data@152, cap@160, count@164, alloc@168} — **424B 条目** (键 11879; loader case→sub_1413F98A0; 条目类名未决, 字段表见下) | |

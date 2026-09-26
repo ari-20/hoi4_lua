@@ -80,7 +80,7 @@ zone 条目布局 (56 字节/条, 无独立 RTTI 类（负定案）; 数组元�
 | scripted_gui.window / scripted_gui_ai | 脚本 GUI |
 | gui_click | 界面点击 |
 | hourly_parallel | hourly 并行段 |
-| preHourlyUpdate / HourlyCountryComponentUpdate / hourlyUpdateUnits / postHourlyUpdate | hourly 五分段 (gamestate.hourly 子段; 采样实测: preHourlyUpdate 内含 DoTradeRoutesUpdate 资源输送路线重算与 CSupplySystem::UpdateSupply 供应节点并算两大头, hourlyUpdateUnits = 每国单位聚合, postHourlyUpdate 段尾) |
+| preHourlyUpdate / hourly_parallel / HourlyCountryComponentUpdate / hourlyUpdateUnits / postHourlyUpdate | hourly 五分段 (gamestate.hourly 子段)。preHourlyUpdate 内含 DoTradeRoutesUpdate 资源输送路线重算与 CSupplySystem::UpdateSupply 供应节点并算两大头; HourlyCountryComponentUpdate 六棒 = 战区清理→war_relation 表失效→战区管理器国家级刷新→生产线维护→首都失效检查/迁都→国家杂项簇 (delayed_events/calc_modifier/decision.hourly + 错峰海岸防护), 棒间插 observer 槽刷新; hourlyUpdateUnits = 占领统计 bundle ++→逐国单位聚合→bundle --→tbb 部队并行→串行逐 army 错峰重建; postHourly = CalcMod 批量重算 + 错峰 on_action 派发 + 72B 桶到期 + 缓存重算 |
 
 #### 4.9.4 工具入口与产物
 

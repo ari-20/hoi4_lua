@@ -15,14 +15,27 @@
 // itself, which is what makes "wrap and modify the result" possible.
 #include "hoi4_common.h"
 #include "hoi4_hook.h"
+#include "hoi4_detour.h"
+#include "hoi4_pdata.h"
 
 // ---------------------------------------------------------------- state
 
+// What an entry redirects. Both kinds share the chain engine, the Lua bridge,
+// the audit trail and the id registry; they differ only in HOW the entry is
+// taken over and WHAT the "original" is.
+#define HK_KIND_VT  0   // vt[slot] data swap; original = the engine function
+#define HK_KIND_FN  1   // function-body detour; original = the RX trampoline
+
 typedef struct {
-    void    *slotAddr;          // &vt[slot]  (the qword we patched)
-    void    *origFn;            // pristine original target
-    uint64_t vt;                // resolved absolute vtable address
-    int      slot;
+    int      kind;              // HK_KIND_*
+    void    *slotAddr;          // VT: &vt[slot]     FN: the patched target
+    void    *origFn;            // VT: engine fn     FN: trampoline (stolen + jump back)
+    uint64_t vt;                // resolved absolute vtable address (VT only)
+    int      slot;              // VT only; -1 for FN
+    // ---- FN only ----
+    uint32_t rva;               // target RVA (logs, audit, overlap checks)
+    int      stolenLen;         // bytes lifted into the trampoline
+    uint8_t  stolen[24];        // the original bytes (crash forensics; see §7)
     int      active;
     long     gen;
     int      inUse;             // 0 = entry available for reuse
@@ -60,12 +73,19 @@ typedef struct {
     long     gen;
     volatile long calls, luaCalls, forwarded, swallowed, errors;
     volatile long droppedOffThread;
+    volatile long depthCapped;  // Tier 2 re-entry ceiling hit (see HK_MAX_DEPTH)
 } HkEntry;
 
 static HkSlot  g_slots[HK_MAX_SLOTS];
 static HkEntry g_hooks[HK_MAX_HOOKS];
 static volatile long g_hookCount;
 static volatile long g_hookGen;
+static volatile long g_detourCount;      // HK_KIND_FN entries (capacity log)
+
+// Per-thread re-entry depth, one counter per slot. Tier 2 only: a detour
+// target can recurse (or be re-entered through call_orig), and the thunk must
+// not run Lua forever. Past HK_MAX_DEPTH the thunk forwards without Lua.
+static __declspec(thread) unsigned char t_slotDepth[HK_MAX_SLOTS];
 
 static DWORD g_mainTid;                  // engine main thread (see hook_note_main_thread)
 static volatile LONG g_mainTidSet;
@@ -156,8 +176,14 @@ static HkEntry *hk_find(const char *id) {
 // ---------------------------------------------------------------- registry
 // Hook callbacks live in their own registry table so a reload that clears the
 // effect/trigger tables cannot leave a stale closure reachable here (and vice
-// versa). Resolution is BY ID on every call, exactly like the bind table, so a
-// surviving hook always reaches the CURRENT session's closure.
+// versa). For TIER 1 the resolution is by id on every call, exactly like the
+// bind table, so a reloaded script's new closure is what the still-patched slot
+// reaches.
+//
+// This applies to BOTH tiers, including a Tier 2 detour: its callback is bound
+// by id too, so a reloaded script's new closure is what the still-patched
+// function body reaches. Verified live by tagging each load and watching the
+// tag advance across reloads.
 static void hk_reg_table(lua_State *Ls) {
     lua_getfield(Ls, LUA_REGISTRYINDEX, "m4_hooks");
     if (!lua_istable(Ls, -1)) {
@@ -212,6 +238,8 @@ typedef struct {
 
 static uint64_t hk_chain_run(int slotIdx, int idx, void *self,
                              uint64_t a1, uint64_t a2, uint64_t a3);
+static uint64_t hk_chain_run_inner(int slotIdx, int idx, void *self,
+                                   uint64_t a1, uint64_t a2, uint64_t a3);
 
 // h.call_orig([a1[, a2[, a3]]]) — runs the REST of the chain (later hooks +
 // the real original) synchronously and returns its result to Lua. Optional
@@ -314,8 +342,8 @@ static int hk_run_one(lua_State *Ls, HkEntry *e, HkCtx *ctx, uint64_t *outRet) {
     return HK_ACT_REPLACE;          // no call_orig -> pure replacement
 }
 
-static uint64_t hk_chain_run(int slotIdx, int idx, void *self,
-                             uint64_t a1, uint64_t a2, uint64_t a3) {
+static uint64_t hk_chain_run_inner(int slotIdx, int idx, void *self,
+                                   uint64_t a1, uint64_t a2, uint64_t a3) {
     HkSlot *s = &g_slots[slotIdx];
     // Fail SAFE, not open. A thunk can be reached while its slot is FREE (a
     // call in flight across an unhook, or a forged vtable aimed at one of our
@@ -390,6 +418,29 @@ static uint64_t hk_chain_run(int slotIdx, int idx, void *self,
 
     hk_lua_leave();
     return ret;
+}
+
+// Chain entry point. Tier 2 needs one thing the inner walker cannot do on its
+// own: bound its own re-entry. A detour target can recurse (a tree walk, or the
+// mod driving the original through call_orig and the original calling itself),
+// and every level re-enters the thunk. Past HK_MAX_DEPTH we stop running Lua
+// and just forward, so a runaway chain degrades to the original's behaviour
+// instead of exhausting the stack. VT slots are exempt: recursion through a
+// vtable is the engine's own business and carries no equivalent semantics.
+static uint64_t hk_chain_run(int slotIdx, int idx, void *self,
+                             uint64_t a1, uint64_t a2, uint64_t a3) {
+    HkSlot *s = &g_slots[slotIdx];
+    if (s->kind != HK_KIND_FN || idx != 0)
+        return hk_chain_run_inner(slotIdx, idx, self, a1, a2, a3);
+    if (t_slotDepth[slotIdx] >= HK_MAX_DEPTH) {
+        HkEntry *e = &g_hooks[s->chain[idx]];
+        InterlockedIncrement(&e->depthCapped);
+        return hk_chain_run_inner(slotIdx, idx + 1, self, a1, a2, a3);
+    }
+    t_slotDepth[slotIdx]++;
+    uint64_t r = hk_chain_run_inner(slotIdx, idx, self, a1, a2, a3);
+    t_slotDepth[slotIdx]--;
+    return r;
 }
 
 // ---------------------------------------------------------------- thunks
@@ -548,10 +599,13 @@ static int hk_install(lua_State *Ls, uint64_t vt, int slot, const char *id,
         // baked into the installed thunk, see HkSlot).
         si = hk_slot_alloc();
         if (si < 0) HK_REFUSE("slot table full (too many distinct hooked slots)");
+        g_slots[si].kind = HK_KIND_VT;
         g_slots[si].slotAddr = slotAddr;
         g_slots[si].origFn = cur;
         g_slots[si].vt = vta;
         g_slots[si].slot = slot;
+        g_slots[si].rva = 0;
+        g_slots[si].stolenLen = 0;
         g_slots[si].active = 0;
         g_slots[si].gen = g_hookGen;
         g_slots[si].calls = 0;
@@ -606,6 +660,17 @@ static int hk_uninstall(lua_State *Ls, const char *id, const char **outErr) {
     if (!e) {
         *outErr = "unknown hook id";
         audit_hook(Ls, "deny", id, 0, 0, "unhook: unknown id");
+        return 0;
+    }
+    // Tier 2 has no uninstall, and the reason is structural rather than a
+    // missing feature: writing the original bytes back races every other
+    // thread exactly like installing does (a thread parked mid-patch would
+    // resume into the middle of an instruction). See DETOUR_DESIGN.md §3.3.
+    if (g_slots[e->slotIdx].kind == HK_KIND_FN) {
+        *outErr = "detour targets cannot be unhooked — the entry patch is "
+                  "permanent by design; re-register the same id to change the "
+                  "callback, or restart the game to change the target";
+        audit_hook(Ls, "deny", id, 0, -1, "unhook refused: Tier 2 is permanent");
         return 0;
     }
     int si = e->slotIdx;
@@ -668,6 +733,250 @@ static int hk_uninstall(lua_State *Ls, const char *id, const char **outErr) {
     }
     *outErr = NULL;
     return 1;
+}
+
+// ---------------------------------------------------------------- Tier 2 (detour)
+
+// Everything the probe reports, and everything the install gates decide on.
+typedef struct {
+    int         ok;              // installable (G1..G4 and no window overlap)
+    uint32_t    rva;
+    uint32_t    funcStart, funcEnd;
+    int         isFuncStart;
+    int         inWindow;        // overlaps an existing patch window (G5/G6)
+    int         stolenLen;       // 0 = not stealable
+    uint8_t     stolen[24];
+    const char *reason;          // first failing gate, or NULL when ok
+} HkProbe;
+
+// Gates G1, G2, G4, G3 and the window-overlap check, in that order.
+// READ-ONLY: not one byte is written, which is why hoi4.detour_probe is
+// allowed at any time while hoi4.detour is restricted to the first load.
+static void hk_probe_fill(uint64_t target, HkProbe *p) {
+    memset(p, 0, sizeof(*p));
+    if (!g_base) { p->reason = "no game base (offsets not loaded)"; return; }
+    uint64_t lo = pdata_img_lo(), hi = pdata_img_hi();
+    if (!target || target < lo || target >= hi) {
+        p->reason = "address is outside the hoi4.exe image";
+        return;
+    }
+    p->rva = (uint32_t)(target - lo);
+    if (!memgate_exec_ok(target)) {
+        p->reason = "address is not in an executable section of hoi4.exe";
+        return;
+    }
+    if (!pdata_build() || pdata_count() == 0) {
+        p->reason = ".pdata unavailable — function boundaries cannot be verified";
+        return;
+    }
+    p->funcStart = pdata_func(p->rva);
+    p->funcEnd   = pdata_end(p->rva);
+    p->isFuncStart = (p->funcStart == p->rva);
+    if (!p->isFuncStart) {
+        p->reason = "not a function start (.pdata) — a detour must patch the "
+                    "function entry, never the middle of an instruction stream";
+        return;
+    }
+    {
+        const char *why = NULL;
+        int n = detour_steal_len((const uint8_t *)(uintptr_t)target,
+                                 DT_ENTRY_PATCH_BYTES, 24, &why);
+        if (!n) { p->reason = why ? why : "prologue not cleanly stealable"; return; }
+        // A 12-byte steal from a short function would eat the NEXT function's
+        // first bytes — the trampoline would then replay another function's
+        // prologue.
+        if (p->funcEnd && p->rva + (uint32_t)n > p->funcEnd) {
+            p->reason = "the stolen prologue would run past the end of this "
+                        "function into the next one";
+            return;
+        }
+        __try { memcpy(p->stolen, (const void *)(uintptr_t)target, (size_t)n); }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            p->reason = "target memory unreadable";
+            return;
+        }
+        p->stolenLen = n;
+    }
+    {
+        uint64_t wl[DT_MAX_WINDOWS_REPORT], wh[DT_MAX_WINDOWS_REPORT];
+        int n = detour_windows(wl, wh, DT_MAX_WINDOWS_REPORT);
+        for (int i = 0; i < n && i < DT_MAX_WINDOWS_REPORT; i++)
+            if (target < wh[i] && target + (uint64_t)p->stolenLen > wl[i]) {
+                p->inWindow = 1;
+                p->reason = "overlaps a byte window this process has already "
+                            "patched (a framework detour, or another detour)";
+                return;
+            }
+    }
+    p->ok = 1;
+}
+
+// An existing Tier 2 slot that already patches this target. A second detour on
+// the same target must APPEND to that slot's chain rather than patch again:
+// the second patch would steal our own entry patch (`48 B8 .. FF E0`) and
+// build a trampoline that jumps into nonsense.
+static int hk_fn_slot_for(uint64_t target) {
+    for (int i = 0; i < HK_MAX_SLOTS; i++)
+        if (g_slots[i].inUse && g_slots[i].kind == HK_KIND_FN &&
+            (uint64_t)(uintptr_t)g_slots[i].slotAddr == target)
+            return i;
+    return -1;
+}
+
+static void hk_hex(const uint8_t *b, int n, char *out, size_t cap) {
+    size_t k = 0;
+    for (int i = 0; i < n && k + 3 < cap; i++)
+        k += (size_t)snprintf(out + k, cap - k, "%02X", b[i]);
+    out[k < cap ? k : cap - 1] = 0;
+}
+
+static int hk_install_fn(lua_State *Ls, uint64_t target, const char *id,
+                         int args, int ret, int mode, const char **outErr) {
+#define HK_FN_REFUSE(msg) do { *outErr = (msg); \
+        audit_hook(Ls, "deny", id, target, -1, (msg)); return -1; } while (0)
+    if (args < 0 || args > 3)
+        HK_FN_REFUSE("args must be 0..3 — a uniform C thunk cannot forward a "
+                     "5th integer argument (it lives on the stack)");
+    if (ret != HK_RET_U64 && ret != HK_RET_VOID && ret != HK_RET_BOOL)
+        HK_FN_REFUSE("ret must be u64/void/bool (a float return lives in xmm0 "
+                     "and a by-value struct return uses a hidden sret pointer — "
+                     "neither survives this thunk shape)");
+    if (mode != HK_MODE_SYNC && mode != HK_MODE_OBSERVE)
+        HK_FN_REFUSE("mode must be sync/observe");
+
+    // ---- re-register on the same target: idempotent ----
+    // The patch stays exactly as it is (re-patching would open a pointless
+    // window of "callback missing"); only the declared shape is refreshed. The
+    // callback itself is resolved by id on every call, so a reloaded script's
+    // NEW closure is what the still-patched entry reaches — verified live by
+    // tagging each load and watching the tag advance across reloads.
+    {
+        HkEntry *ex = hk_find(id);
+        if (ex) {
+            HkSlot *es = &g_slots[ex->slotIdx];
+            if (es->kind != HK_KIND_FN ||
+                (uint64_t)(uintptr_t)es->slotAddr != target)
+                HK_FN_REFUSE("id already registered on a DIFFERENT target "
+                             "(detour targets are permanent — pick a new id, or "
+                             "restart the game)");
+            ex->args = args; ex->ret = ret; ex->mode = mode; ex->gen = g_hookGen;
+            L("[detour] id='%s' re-registered (idempotent, patch untouched)", id);
+            audit_hook(Ls, "reinstall", id, target, -1, "idempotent re-register");
+            *outErr = NULL;
+            return ex->slotIdx;
+        }
+    }
+
+    // ---- G0: only during the process's FIRST script load ----
+    // Later loads (frame-top hot reload, session switch) run with the game
+    // live: AI ticking, workers busy. That is not a window to rewrite code.
+    if (!in_first_script_load())
+        HK_FN_REFUSE("hoi4.detour only works during the game's first script "
+                     "load — a NEW detour target needs a game restart (you can "
+                     "still re-register the same id to change the callback)");
+
+    // ---- G1..G6: eligibility (read-only) ----
+    HkProbe pr;
+    hk_probe_fill(target, &pr);
+    if (!pr.ok) HK_FN_REFUSE(pr.reason ? pr.reason : "target not eligible");
+
+    int si = hk_fn_slot_for(target);
+    int fresh = (si < 0);
+    if (fresh) {
+        if ((int)g_detourCount >= HK_MAX_DETOURS)
+            HK_FN_REFUSE("detour table full (HK_MAX_DETOURS)");
+        si = hk_slot_alloc();
+        if (si < 0) HK_FN_REFUSE("slot table full (too many distinct targets)");
+    } else if (g_slots[si].active >= HK_MAX_CHAIN) {
+        HK_FN_REFUSE("chain full (max 4 hooks on this target)");
+    }
+    if ((int)g_hookCount >= HK_MAX_HOOKS) HK_FN_REFUSE("hook table full");
+
+    // ---- reserve the chain entry BEFORE patching, so a thunk that goes live
+    // can never observe a chain that lacks its own entry ----
+    long hi = InterlockedIncrement(&g_hookCount) - 1;
+    if (hi >= HK_MAX_HOOKS) {
+        InterlockedDecrement(&g_hookCount);
+        HK_FN_REFUSE("hook table full");
+    }
+
+    void *tramp = NULL;
+    if (fresh) {
+        tramp = detour_make_trampoline((uint8_t *)(uintptr_t)target,
+                                       pr.stolenLen);
+        if (!tramp) {
+            InterlockedDecrement(&g_hookCount);
+            HK_FN_REFUSE("trampoline allocation failed");
+        }
+        // Publish the descriptor BEFORE the patch. A thunk that becomes
+        // reachable the instant the entry is rewritten must already find a
+        // valid origFn (the trampoline) — with active==0 it simply forwards to
+        // the original, which is exactly the pre-hook behaviour.
+        g_slots[si].kind = HK_KIND_FN;
+        g_slots[si].slotAddr = (void *)(uintptr_t)target;
+        g_slots[si].origFn = tramp;
+        g_slots[si].vt = 0;
+        g_slots[si].slot = -1;
+        g_slots[si].rva = pr.rva;
+        g_slots[si].stolenLen = pr.stolenLen;
+        memcpy(g_slots[si].stolen, pr.stolen, (size_t)pr.stolenLen);
+        g_slots[si].active = 0;
+        g_slots[si].gen = g_hookGen;
+        g_slots[si].calls = 0;
+        g_slots[si].inUse = 1;
+
+        // ---- G10: the suspend-and-verify commit ----
+        int nthreads = 0;
+        unsigned long hit = 0;
+        if (!detour_patch_entry((uint8_t *)(uintptr_t)target, pr.stolenLen,
+                                g_thunks[si], &nthreads, &hit)) {
+            g_slots[si].inUse = 0;
+            g_slots[si].origFn = NULL;
+            g_slots[si].slotAddr = NULL;
+            VirtualFree(tramp, 0, MEM_RELEASE);
+            InterlockedDecrement(&g_hookCount);
+            if (hit)
+                HK_FN_REFUSE("a thread is executing inside the target right now "
+                             "— refused, nothing written (restart the game and "
+                             "retry)");
+            HK_FN_REFUSE("could not suspend and verify every thread — refused, "
+                         "nothing written");
+        }
+        InterlockedIncrement(&g_detourCount);
+        {
+            char hex[3 * 24 + 1];
+            hk_hex(pr.stolen, pr.stolenLen, hex, sizeof(hex));
+            // The stolen bytes are logged because a bad detour surfaces as a
+            // wild jump whose only evidence is the crash RIP. Target address
+            // plus these bytes let a dump be traced back to THIS install — and
+            // unlike Tier 1 there is no uninstall to undo it.
+            L("[detour] PATCHED rva=%X -> thunk_%d stolen=%d [%s] trampoline=%p "
+              "threads_verified=%d", pr.rva, si, pr.stolenLen, hex, tramp,
+              nthreads);
+        }
+    }
+
+    HkEntry *e = &g_hooks[hi];
+    memset(e, 0, sizeof(*e));
+    e->slotIdx = si;
+    strncpy(e->id, id, HK_ID_LEN - 1);
+    e->args = args; e->ret = ret; e->mode = mode; e->gen = g_hookGen;
+    g_slots[si].chain[g_slots[si].active] = (int)hi;
+    g_slots[si].active++;
+
+    L("[detour] installed id='%s' mode=%s args=%d ret=%d rva=%X (chain depth %d)",
+      id, mode == HK_MODE_OBSERVE ? "observe" : "sync", args, ret, pr.rva,
+      g_slots[si].active);
+    {
+        char d[128];
+        snprintf(d, sizeof(d), "mode=%s args=%d ret=%d depth=%d rva=%X stolen=%d",
+                 mode == HK_MODE_OBSERVE ? "observe" : "sync", args, ret,
+                 g_slots[si].active, pr.rva, fresh ? pr.stolenLen : 0);
+        audit_hook(Ls, "detour_install", id, target, -1, d);
+    }
+    *outErr = NULL;
+    return si;
+#undef HK_FN_REFUSE
 }
 
 // ---------------------------------------------------------------- Lua API
@@ -779,9 +1088,19 @@ static void hk_push_status(lua_State *Ls, HkEntry *e) {
     lua_pushinteger(Ls, (lua_Integer)e->forwarded);        lua_setfield(Ls, -2, "forwarded");
     lua_pushinteger(Ls, (lua_Integer)e->errors);           lua_setfield(Ls, -2, "errors");
     lua_pushinteger(Ls, (lua_Integer)e->droppedOffThread); lua_setfield(Ls, -2, "dropped_off_thread");
+    lua_pushinteger(Ls, (lua_Integer)e->depthCapped);      lua_setfield(Ls, -2, "depth_capped");
     lua_pushinteger(Ls, s->active);            lua_setfield(Ls, -2, "chain_depth");
+    lua_pushstring(Ls, s->kind == HK_KIND_FN ? "detour" : "vt");
+    lua_setfield(Ls, -2, "kind");
     lua_pushinteger(Ls, (lua_Integer)(uintptr_t)s->origFn);
     lua_setfield(Ls, -2, "orig");
+    if (s->kind == HK_KIND_FN) {
+        lua_pushinteger(Ls, (lua_Integer)s->rva);   lua_setfield(Ls, -2, "rva");
+        lua_pushinteger(Ls, s->stolenLen);          lua_setfield(Ls, -2, "stolen_len");
+    } else {
+        lua_pushinteger(Ls, (lua_Integer)s->slot);  lua_setfield(Ls, -2, "slot");
+        lua_pushinteger(Ls, (lua_Integer)s->vt);    lua_setfield(Ls, -2, "vt");
+    }
 }
 
 // hoi4.hook_list() -> array of status tables
@@ -802,6 +1121,120 @@ int hoi4_hook_status(lua_State *Ls) {
     HkEntry *e = hk_find(id);
     if (!e) { lua_pushnil(Ls); return 1; }
     hk_push_status(Ls, e);
+    return 1;
+}
+
+// hoi4.detour(addr, fn, opts) -> handle | nil, err
+// Tier 2. Same callback contract as hoi4.hook_vt, but the target is a FUNCTION
+// ADDRESS rather than a vtable slot, and the install is permanent. See the
+// header of hk_install_fn for the gate order.
+int hoi4_detour(lua_State *Ls) {
+    uint64_t addr = (uint64_t)luaL_checkinteger(Ls, 1);
+    luaL_checktype(Ls, 2, LUA_TFUNCTION);
+
+    // Accept both absolute addresses and BASE-relative RVAs, the way every
+    // other address-taking API in this framework does (hk_resolve).
+    uint64_t target = hk_resolve(addr);
+
+    const char *id = hk_opt_str(Ls, 3, "id");
+    char idbuf[HK_ID_LEN];
+    if (!id || !*id) {
+        snprintf(idbuf, sizeof(idbuf), "detour_%llx", (unsigned long long)addr);
+        id = idbuf;
+    }
+    int mode = HK_MODE_SYNC;
+    const char *ms = hk_opt_str(Ls, 3, "mode");
+    if (ms && strcmp(ms, "observe") == 0) mode = HK_MODE_OBSERVE;
+    else if (ms && strcmp(ms, "sync") != 0)
+        { lua_pushnil(Ls); lua_pushstring(Ls, "mode must be 'sync' or 'observe'"); return 2; }
+
+    int ret = HK_RET_U64;
+    const char *rs = hk_opt_str(Ls, 3, "ret");
+    if (rs) {
+        if (strcmp(rs, "void") == 0) ret = HK_RET_VOID;
+        else if (strcmp(rs, "bool") == 0) ret = HK_RET_BOOL;
+        else if (strcmp(rs, "u64") != 0)
+            { lua_pushnil(Ls); lua_pushstring(Ls, "ret must be 'u64', 'void' or 'bool'"); return 2; }
+    }
+    // `this` defaults to false: a non-virtual function is the common case for
+    // a detour, and guessing "member function" would hand Lua a bogus self.
+    int isThis = 0;
+    {
+        int t = lua_gettop(Ls);
+        if (t >= 3 && lua_istable(Ls, 3)) {
+            lua_getfield(Ls, 3, "this");
+            isThis = lua_toboolean(Ls, -1) ? 1 : 0;
+            lua_pop(Ls, 1);
+        }
+    }
+    // args = integer parameters. With this=true the first register slot is the
+    // object, so the Lua-visible a1..a3 still cap at 3 either way.
+    int args = hk_opt_int(Ls, 3, "args", isThis ? 0 : 1);
+    if (args < 0 || args > 3)
+        { lua_pushnil(Ls); lua_pushstring(Ls, "args must be 0..3"); return 2; }
+
+    hk_reg_table(Ls);
+    lua_pushvalue(Ls, 2);
+    lua_setfield(Ls, -2, id);
+    lua_pop(Ls, 1);
+
+    const char *err = NULL;
+    int si = hk_install_fn(Ls, target, id, args, ret, mode, &err);
+    if (si < 0) {
+        lua_pushnil(Ls);
+        lua_pushstring(Ls, err ? err : "detour refused");
+        return 2;
+    }
+    lua_pushstring(Ls, id);
+    return 1;
+}
+
+// hoi4.detour_list() -> array of status tables (Tier 2 entries only)
+int hoi4_detour_list(lua_State *Ls) {
+    lua_newtable(Ls);
+    int n = 0;
+    for (int i = 0; i < (int)g_hookCount; i++) {
+        if (g_hooks[i].slotIdx < 0) continue;
+        if (g_slots[g_hooks[i].slotIdx].kind != HK_KIND_FN) continue;
+        hk_push_status(Ls, &g_hooks[i]);
+        lua_rawseti(Ls, -2, ++n);
+    }
+    return 1;
+}
+
+// hoi4.detour_status(id) -> table | nil
+int hoi4_detour_status(lua_State *Ls) {
+    const char *id = luaL_checkstring(Ls, 1);
+    HkEntry *e = hk_find(id);
+    if (!e || g_slots[e->slotIdx].kind != HK_KIND_FN) { lua_pushnil(Ls); return 1; }
+    hk_push_status(Ls, e);
+    return 1;
+}
+
+// hoi4.detour_probe(addr) -> report table
+// Read-only and always available (no first-load restriction): it is the way to
+// find out whether a target CAN be detoured without touching anything.
+int hoi4_detour_probe(lua_State *Ls) {
+    uint64_t addr = (uint64_t)luaL_checkinteger(Ls, 1);
+    uint64_t target = hk_resolve(addr);
+    HkProbe p;
+    hk_probe_fill(target, &p);
+
+    lua_newtable(Ls);
+    lua_pushboolean(Ls, p.ok);            lua_setfield(Ls, -2, "ok");
+    lua_pushinteger(Ls, (lua_Integer)target); lua_setfield(Ls, -2, "target");
+    lua_pushinteger(Ls, (lua_Integer)p.rva);        lua_setfield(Ls, -2, "rva");
+    lua_pushinteger(Ls, (lua_Integer)p.funcStart);  lua_setfield(Ls, -2, "func_start");
+    lua_pushinteger(Ls, (lua_Integer)p.funcEnd);    lua_setfield(Ls, -2, "func_end");
+    lua_pushboolean(Ls, p.isFuncStart);   lua_setfield(Ls, -2, "is_func_start");
+    lua_pushboolean(Ls, p.stolenLen > 0); lua_setfield(Ls, -2, "stealable");
+    lua_pushinteger(Ls, p.stolenLen);     lua_setfield(Ls, -2, "stolen_len");
+    if (p.stolenLen > 0) {
+        char hex[3 * 24 + 1];
+        hk_hex(p.stolen, p.stolenLen, hex, sizeof(hex));
+        lua_pushstring(Ls, hex);          lua_setfield(Ls, -2, "stolen_hex");
+    }
+    if (p.reason) { lua_pushstring(Ls, p.reason); lua_setfield(Ls, -2, "reason"); }
     return 1;
 }
 
@@ -869,6 +1302,7 @@ void hook_dispatch_observe(lua_State *Ls) {
 }
 
 int hook_count(void)      { return (int)g_hookCount; }
+int hook_detour_count(void) { return (int)g_detourCount; }
 int hook_slot_count(void) {
     int n = 0;
     for (int i = 0; i < HK_MAX_SLOTS; i++) if (g_slots[i].inUse) n++;
@@ -885,5 +1319,31 @@ int hook_orig_for_thunk(uint64_t addr, uint64_t *out_orig) {
         if (out_orig) *out_orig = (uint64_t)(uintptr_t)g_slots[i].origFn;
         return 1;
     }
+    // Tier 2: a detour leaves the vtable slot alone and patches the FUNCTION
+    // BODY, so a bridge call site reading mgr->vt[+656] still gets the engine
+    // address — and the call then lands in our thunk. Resolve that case too,
+    // or a mod detour would be able to veto the bridge's own pause/load (the
+    // exact thing the Tier 1 ruling forbids; see hoi4_hook.h).
+    for (int i = 0; i < HK_MAX_SLOTS; i++) {
+        if (!g_slots[i].inUse || g_slots[i].kind != HK_KIND_FN) continue;
+        if ((uint64_t)(uintptr_t)g_slots[i].slotAddr != addr) continue;
+        if (!g_slots[i].origFn) return 0;
+        if (out_orig) *out_orig = (uint64_t)(uintptr_t)g_slots[i].origFn;
+        return 1;
+    }
+    return 0;
+}
+
+// Is [addr] a trampoline this facility allocated? A trampoline is NOT engine
+// code (it lives in a VirtualAlloc block), so memgate_exec_ok rejects it — by
+// design. The bridge's own call sites accept it as a second, narrower case:
+// they are calling infrastructure they allocated themselves, not a target a
+// Lua caller nominated. memgate itself is untouched.
+int hook_is_our_trampoline(uint64_t addr) {
+    if (!addr) return 0;
+    for (int i = 0; i < HK_MAX_SLOTS; i++)
+        if (g_slots[i].kind == HK_KIND_FN && g_slots[i].origFn &&
+            (uint64_t)(uintptr_t)g_slots[i].origFn == addr)
+            return 1;
     return 0;
 }

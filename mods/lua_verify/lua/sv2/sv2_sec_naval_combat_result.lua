@@ -19,10 +19,10 @@ SV2.gsec[#SV2.gsec + 1] = { name = "naval_combat_result", emit = function(ctx)
             local nb = prefix .. seq("naval_hit") .. "."
             E(nb .. "target", tostring(nh.target))
             if nh.name then E(nb .. "name", '"' .. nh.name .. '"') end
-            E(nb .. "convoy", nh.convoy and "yes" or "no")
+            E(nb .. "convoy", (nh.convoy or 0) ~= 0 and "yes" or "no")
             E(nb .. "damage", SL.num(nh.damage))
             E(nb .. "strength", SL.num(nh.strength))
-            E(nb .. "last_hit", nh.last_hit and "yes" or "no")
+            E(nb .. "last_hit", (nh.last_hit or 0) ~= 0 and "yes" or "no")
         end
     end
 

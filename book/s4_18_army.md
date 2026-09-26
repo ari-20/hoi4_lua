@@ -96,7 +96,7 @@ loader-only legacy 键 (writer 不发射):
 | +1056 | fixed×1e-5 | strength | tok 10406; init = 10000000 (1e7); TakeDamage 0X140C8F510 递减; loader 解析即弃 | |
 | +1064 | fixed×1e-5 | organisation | tok 11979; init = 1e7 同 strength | |
 | +1072 | fixed×1e-5 | experience | tok 11930; loader 解析即弃 | |
-| +1080 | fixed | 0-init 标量, 未名 | str_damage_from_air 前一槽 | 不序列化 |
+| +1080 | fixed | **本小时 attrition 值缓存** | 每小时 sub_140C88A70: gs+2617 门开 → = sub_140C75500(attrition breakdown), 否则 0 | 不序列化 |
 | +1088 | fixed×1e-5 | str_damage_from_air (tok 14156) | >0 才写; TakeDamage `+=` | |
 | +1096 | fixed×1e-5 | str_damage (tok 14157) | >0 才写 | |
 | +1104 | fixed×1e-5 | org_damage (tok 14158) | >0 才写 | |
@@ -105,7 +105,7 @@ loader-only legacy 键 (writer 不发射):
 | +1128 | fixed×1e-5 | _vAverageEquipmentStatus 平均装备状态 | init 100000 — 断言串实名 (CalculateActiveUnitStats 0X140C8D600 写 +1128 + 断言 `_vAverageEquipmentStatus = `) | 不序列化 |
 | +1136 | fixed×1e-5 | bonus (tok 10931) | >0 才写 | |
 | +1144 | CArmyRequests* | requests q | 块门 = q+68 \|\| q+172 \|\| q+196 (= 门函数 sub_14150D490); owner 变更先删旧; 族详见 §4.18.3 | |
-| +1152 | 内嵌 CGameDate 16B 形 | date#1 | {vt@1152, hours@1160}, init = 43791240 ("−1.1.1.1" 合法日期, dword_143086B20); 0X140C89F10 `*(a1+1160)=*(gs+1128)` (疑战斗/到达事件时间戳) | 不序列化; ⚠ 24B vt1 位与 +1144 冲突 — 未决 |
+| +1152 | 内嵌 CGameDate 16B 形 | date#1 | {vt@1152, hours@1160}, init = 43791240 ("−1.1.1.1" 合法日期, dword_143086B20); 0X140C89F10 `*(a1+1160)=*(gs+1128)` (推定战斗/到达事件时间戳) | 不序列化; ⚠ 24B vt1 位与 +1144 冲突 — 未决 |
 | +1168..+1183 | — | **out_of_supply_days 计数器区** | 定案: writer 键 13151 ← raw+1176; 日 tick sub_140C78B00 重置/自增直证; 旧「date#2 真日期」行删 (无日期消费) | writer 按 +1176 u32 天数发 |
 | +1176 | uint32 | out_of_supply_days (tok 13151) | 同上; loader 解析即弃 | >0 才写 |
 | +1180 | u32 | execute_order (tok 12353) | >0 写; loader 解析即弃 | |
@@ -121,9 +121,9 @@ loader-only legacy 键 (writer 不发射):
 | +1424 | vector 24B | 位置跟随子对象指针数组 | {data@1424, count@1436, alloc@1440} (SetLocation 遍历对每元素 sub_1414D0F10 广播) | 不序列化; 形态定案/语义推定 |
 | +1448 | u64 ×3 | 0-init 三元组 | +1448/+1456/+1464; 容器形态推定, dtor 不杀 = POD 元 | 不序列化 (推定) |
 | +1472 | CEquipmentVariantPool 内嵌 64B | force_equipment_variants 块 | +840 同型; vec1 {data@1480, cap@1488, count@1492, alloc@1496}, vec2 {data@1504, cap@1512, count@1516, alloc@1520}, u8@1528 | loader-only legacy 键 13787, writer 不发射 |
-| +1536 | fixed×1e-5 | max_supply (tok 14915) | init = 100000×dword_143331604; loader 解析即弃 | |
-| +1544 | fixed×1e-5 | supply_gain (tok 19692) | init 0; loader 解析即弃 | |
-| +1552 | fixed×1e-5 | army_current_supply_ratio (tok 19693) | init = 100000×dword_143331604; loader 解析即弃 | |
+| +1536 | fixed×1e-5 | max_supply (tok 14915) 随身储备上限 (满值 = SUPPLY_GRACE(72)×100000) | init = 100000×dword_143331604 (NMilitary.SUPPLY_GRACE); **每小时** sub_140C8FB20 重算 (MODIFIER_NO_SUPPLY_GRACE 266 族, 降幅钳 dword_1433316B0 = SUPPLY_GRACE_MAX_REDUCE_PER_HOUR); loader 弃读 | 消费链 §4.18.14 |
+| +1544 | fixed×1e-5 | supply_gain (tok 19692) 本小时增量 | **每小时** sub_1414E4780 写; loader 弃读 | 消费链 §4.18.14 |
+| +1552 | fixed×1e-5 | army_current_supply_ratio (tok 19693) 当前储备量 | init 同 +1536; **每小时** sub_1414E4780 增/衰减 (增益 = STARTING_GAIN + max(+1544, SPEED_GAIN_PER_HOUR) 钳 MAX_GAIN, 上钳 +1536; 衰减 = STORED_SUPPLY_CONSUMPTION_RATE_FACTOR×(100000−CUnit+64)/100000, 门 = +760/retreat/withdraw); 读侧 sub_140C87EC0; loader 弃读 | 消费链 §4.18.14 |
 | +1560 | u8 | fuel 加载置位旗 | loader case 12003 解析值即弃 + 置 1; ctor=0 | 不序列化; 行为定案/语义推定 |
 | +1568 | fixed×1e-5 | fuel (tok 12003) | loader 值不落字段 | ≠0 才写 |
 | +1576 | fixed×1e-5 | fuel_requested (tok 15298) | loader 值不落字段 | ≠0 才写 |
@@ -688,7 +688,10 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
 | CUnit [43] | HasLowSupply (基 = stub) | 断言 "Unit type has not implemented HasLowSupply" unit.h |
 | CUnit [50] | Exile (基 = stub) | 断言 "Can only exile armies and railway guns!" unit.cpp |
 | CUnit [51] | ReturnFromExile (基 = stub) | 断言 unit.cpp:1956 |
-| CArmy [19] | GetTheatre | 断言 "GetTheatre()" army.cpp |
+| CArmy [19] | 日 tick ("GetTheatre()" 断言串 army.cpp:3384 在体内, 非槽语义) | dig_in 增长 (钳 +1120 cap) → out_of_supply_days 判定: +760 空 且 有效比 < SUPPLY_THRESHOLD_FOR_ARMY_ATTRITION(qword_1433322C0) → ++ 钳 MAX_OUT_OF_SUPPLY_DAYS(30), 否则清 0; 每日由 CCountry::DailyUpdate sub_1406E76A0 (profiler "country.daily") 经 cc+656/cc+680 数组调 |
+| CArmy [43] | HasLowSupply 覆写 (sub_140C88120) | 有效比 (sub_140C87EC0) < LOW_SUPPLY(qword_143331E58=0.99) → true; +760 非零 → false |
+| CArmy [48] | 储备比 getter (sub_140C87E10) | 100000×+1552/(100000×GRACE), 不含 CUnit+64 下限; 1414E4780 经 vt+384 调 |
+| CArmy [54] | 补给消耗 getter (sub_140C87E90) | max(MIN_SUPPLY_CONSUMPTION(qword_143331C98), 师统计(+312)+248); 供应系统消费者登记 (lam 3) 按此计消耗 |
 | CArmy [22] | RefreshAbilities | 断言 "Refreshing abilities from non-serialcontext, OOS may occur!" army.cpp:1743 |
 
 > 待裁项暂不定名: CUnit [5] 可见性判定、[18] 复合状态刷新; 移动族 [14]-[17]/[20]
@@ -697,3 +700,57 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
 > B=+1064/+38=国家+640 上限, 100000 定点) 游戏语义 (org/str/人力) 未裁。
 > CUnit [7]-[12] 六槽同址 `return 0` 且三派生各覆 2 槽 return this (CArmy 7/8、
 > CTaskForce 9/10、CRailwayGun 11/12) = 按单位类型的转换函数族, 无逐槽直接证据, 整族不命名。
+
+#### 4.18.14 单位补给状态与消费链 (全部惩罚消费点收口)
+
+**总模型 = 随身储备**: +1536 上限 / +1552 储备 / +1544 增量 / +1176 缺补天数 /
+CUnit+64 (= CSupplyConsumer+48, 基对象 CUnit+16; ctor sub_140BF8700 写 100000,
+supply_consumer.h:72 断言) = 所在地可获补给比 — 每小时写者未决 (语料无写点;
+5 读者反推语义)。全部消费点只读同一个**有效补给比**:
+
+```
+sub_140C87EC0(u)  = clamp( max( *(u+64), 100000×+1552/(100000×SUPPLY_GRACE) ), 0, 100000 )
+sub_140C77680(u, out, norm)  惩罚比 = (OOS天数/30) × (1−有效比) × (1+mod94/383 out_of_supply_factor);
+                             +760 非零 → 0; norm=1 时按 SUPPLY_THRESHOLD_FOR_ARMY_ATTRITION 归一
+```
+
+| 消费点 | 函数 | 补给项 |
+|---|---|---|
+| 损耗 attrition | sub_140C75500 (每小时落 +1080) | OUT_OF_SUPPLY_ATTRITION(qword_1433318B8=0.20) × 惩罚比, breakdown "ATTRITION_SUPPLY" |
+| 组织度恢复 | sub_140C6F3B0→140C82C10→140C6F960 | OUT_OF_SUPPLY_MORALE(qword_143331B78=−0.2) × 惩罚比, breakdown "out_of_supply_factor_tt" |
+| 移动速度 | sub_140C7FDB0 (vt[28]) | OUT_OF_SUPPLY_SPEED(qword_143331968=−0.8) × 惩罚比, breakdown "SUPPLY_SPEED_MODIFIER"; ⚠ NON_CORE_SUPPLY_SPEED(qword_143331A10) 项为常量, 与补给比无关 |
+| 战斗修正 | sub_1412AF7C0 | lack = 100000−有效比, × COMBAT_SUPPLY_LACK_{ATTACKER,DEFENDER}_{ATTACK,DEFEND}(qword_1433353B0/448/4E0/578, 唯一读者) × 州 mod603/604 + 国家 mod595 入修正栈 17 |
+
+刷新时机: **每小时** 调度层 Mem_fn 并行逐师 sub_140C88A70 (140C8FB20 重算 +1536 →
+1414E4780 增/衰减 +1552/+1544 → +1192 paradrop−− → +1080 attrition → acclimatization
+→ org 落地); **每日** country.daily (sub_1406E76A0) 调 [19] 日 tick; 错峰日检
+lambda_5 (串行叶 1401BACB0, (army_id+1)%24) → 140C8D600 CalculateActiveUnitStats。
+AI 面同读 140C87EC0 (front eval 141064840 / 训练门 141A55110 / AIFC refresh
+141A3E070), 见 §4.34。
+
+补给相关 define → 全局 (装载器直证, NMilitary 表除非注明):
+
+| define | 全局 | 消费 |
+|---|---|---|
+| SUPPLY_GRACE (72) | dword_143331604 | ctor 初值; 全部归一化分母 |
+| SUPPLY_GRACE_MAX_REDUCE_PER_HOUR (2) | dword_1433316B0 | 140C8FB20/140E8B8E0 降幅钳 |
+| LOW_SUPPLY (0.99) | qword_143331E58 | [43] HasLowSupply |
+| MAX_OUT_OF_SUPPLY_DAYS (30) | dword_143331818 | [19] 天数钳; 140C77680 |
+| OUT_OF_SUPPLY_ATTRITION (0.20) | qword_1433318B8 | 140C75500 |
+| OUT_OF_SUPPLY_MORALE (−0.2) | qword_143331B78 | 140C6F960 |
+| OUT_OF_SUPPLY_SPEED (−0.8) | qword_143331968 | 140C7FDB0 |
+| NRailwayGun.OUT_OF_SUPPLY_SPEED | qword_143331528 | 140E8AE40 |
+| NON_CORE_SUPPLY_SPEED / NSupply.NON_CORE_SUPPLY_AIR_SPEED | qword_143331A10 / 143331AC8 | 140C7FDB0 常量项 |
+| SUPPLY_THRESHOLD_FOR_ARMY_ATTRITION (0.35, NSupply) | qword_1433322C0 | [19] 阈; 140C77680 归一 |
+| MIN_SUPPLY_CONSUMPTION | qword_143331C98 | [54] 140C87E90 |
+| COMBAT_SUPPLY_LACK_ATTACKER_ATTACK / _ATTACKER_DEFEND / _DEFENDER_ATTACK / _DEFENDER_DEFEND | qword_1433353B0 / 143335448 / 1433354E0 / 143335578 | 1412AF7C0 (唯一读者) |
+| ARMY_SUPPLY_RATIO_STARTING_GAIN / SPEED_GAIN_PER_HOUR / MAX_GAIN_PER_HOUR (NSupply) | qword_1433378F8 / 1433377F0 / 1433376F0 | 1414E4780 |
+| STORED_SUPPLY_CONSUMPTION_RATE_FACTOR (NSupply, 0.75) | qword_1433327C8 | 1414E4780 衰减 |
+
+相关修饰符 (idmap 直证): 94 OUT_OF_SUPPLY_FACTOR / 383 SPECIAL_FORCES 版
+(140C77680/140C8FB20), 266 NO_SUPPLY_GRACE + 382 SPECIAL_FORCES 版 + 354/355
+PARATROOPER/MARINE_EXTRA_SUPPLY_GRACE (140C8FB20), 595 SUPPLY_PENALTY_ON_CORE +
+603/604 LOCAL_(NON_CORE_)SUPPLY_IMPACT (1412AF7C0)。
+CRailwayGun 镜像: max_supply +1024 / supply_gain +1032 / ratio +1040; 小时链
+140E8B8E0, 日 tick 140E8B130, HasLowSupply 140E8B710, 移速 140E8AE40。
+脚本供给 = supply_units effect (sub_140C79080: +1552 += 值, 封顶 +1536)。

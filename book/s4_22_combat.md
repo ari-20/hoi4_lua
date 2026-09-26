@@ -747,7 +747,7 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 | 项 | 辨析 |
 |---|---|
 | CDispatchNavalCombatResultsCommand (vt 0x142993578; 命令 writer slot22 0X14116F7B0, tok 0x34FD) | 运行时清除命令, 非存档结构 |
-| sub_140CE6D20 (vptr 0x14295DE20; 写 region 0x2A4B / is_sunk 0x3945 / equipment 0x2F4E / ship 0x28A0 / country 0x289A ×2 / to_discard_date 0x3C96) | RTTI 扫描未名, 疑海战事故报告姊妹类 |
+| sub_140CE6D20 (vptr 0x14295DE20; 写 region 0x2A4B / is_sunk 0x3945 / equipment 0x2F4E / ship 0x28A0 / country 0x289A ×2 / to_discard_date 0x3C96) | RTTI 扫描未名, 推定海战事故报告姊妹类 |
 | UI 族六件: CNavalCombatResultsWindow / CNavalCombatResultsMapIcon / Lost·Survivor GridBoxItem | 纯 UI |
 | sunk_convoys_history {d@gs+1448, c@gs+1460} | 相邻容器 (元素 writer 0X140EB39E0, tok 0x3821/0x3822) |
 

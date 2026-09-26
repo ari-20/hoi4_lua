@@ -7,6 +7,10 @@
 //   Game args are passed through to hoi4.exe verbatim (single-dash style):
 //     hoi4_launcher.exe -start_save=test1 -http=17389
 //     hoi4_launcher.exe -debug -http=17389              (debug console)
+//     hoi4_launcher.exe --no-mod-sync -start_save=test1 -http=17389
+//                                                   (keep dlc_load.json —
+//                                                    skip the save-header
+//                                                    mod-list rewrite)
 //   Launcher flags are double-dash, consumed here, never reach the game:
 //     --exe=<path>   override the hoi4.exe location (else Steam auto-detect)
 //     --probe        resolve + print all paths, exit without launching
@@ -504,6 +508,7 @@ int wmain(int argc, wchar_t **argv) {
     // passed to the game verbatim (the game itself only uses single-dash).
     const wchar_t *cliExe = NULL;
     int probe = 0;
+    int noModSync = 0;
     const wchar_t *saveName = NULL;
     wchar_t extra[2048] = L"";
     for (int i = 1; i < argc; i++) {
@@ -512,6 +517,7 @@ int wmain(int argc, wchar_t **argv) {
             continue;
         }
         if (wcscmp(argv[i], L"--probe") == 0) { probe = 1; continue; }
+        if (wcscmp(argv[i], L"--no-mod-sync") == 0) { noModSync = 1; continue; }
         if (wcsncmp(argv[i], L"-start_save=", 12) == 0)
             saveName = argv[i] + 12;
         if (wcslen(extra) + wcslen(argv[i]) + 2 >=
@@ -555,7 +561,9 @@ int wmain(int argc, wchar_t **argv) {
 
     wchar_t userDir[PATH_BUF];
     const wchar_t *udSrc = L"?";
-    if (resolve_userdir(userDir, PATH_BUF, gameDir, &udSrc))
+    if (noModSync)
+        printf("[mods] --no-mod-sync given, dlc_load untouched\n");
+    else if (resolve_userdir(userDir, PATH_BUF, gameDir, &udSrc))
         sync_dlc_load(userDir, saveName);
     else
         printf("[mods] user dir unresolved, dlc_load untouched\n");

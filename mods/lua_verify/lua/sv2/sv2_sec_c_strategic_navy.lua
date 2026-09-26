@@ -175,7 +175,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.strategic_navy",
         end
         -- §4.16.7 CNavalUnitTransfer naval_transport (块 token 0x330A 定案;
         -- 0x3371 旧记作废): 写门/序全段层 (writer 0x140E14640 系)
-        local tt = rp(gs + 0x358) -- §1.2 gs+856 tag 串表
+        -- (tag 串表读上提 reader Country.navy country 字段)
         local seqt = SL.seqc()
         for _, T in ipairs(nv.naval_transports or {}) do
             local b = "strategic_navy." .. seqt("naval_transport")
@@ -184,10 +184,9 @@ SV2.csec[#SV2.csec + 1] = { name = "country.strategic_navy",
             end
             emit(tag, b .. ".target_provinces", SL.num(T.target_provinces))
             emit(tag, b .. ".province", SL.num(T.province))
-            if T.country_tid ~= 0 and SL.kptr(tt) then
-                local q = SL.Q(hoi4.read_str(tt + 32 * T.country_tid))
-                if q then emit(tag, b .. ".country", q) end
-            end
+            -- country tag 串 (reader 已解 gs+0x358 串表)
+            if T.country and T.country ~= "" then
+                emit(tag, b .. ".country", SL.Q(T.country)) end
             if T.path then
                 local pp = {}
                 for _, pv in ipairs(T.path) do

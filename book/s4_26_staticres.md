@@ -132,7 +132,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | scripted_diplomatic_action | 0x332f048 | +40 | +52 | "none" | 否 | 定案: nm = MSVC 串@def+16 (探针: 2 条) |
 | scripted_map_mode | 0x332f040 | +40 | +52 | "none" | 否 | **def 名串在 +232** (MSVC 32B: 缓冲@+232 / size@+248 / cap@+256) — 探针按 sso 族偏移取不到故误判无串; def 类 = `CScriptedMapMode` (vt 0x142942720), 库 = `CScriptedMapModeDatabase` (vt 0x1429427A0) ← TGameItemDatabase 模板, 单例 qword_14332F040; 匹配直证 = boot 加载器 sub_140AAF740 按 `def+232` 串 memcmp; def 其余键: 602 top→+8 / 603 bottom→+120 / 19186 failure→+264 / 19187 limited_success→+268 / 19188 critical_success→+272 |
 | equipment_group | 0x3330480 | +96 | +108 | tok8 | 是 | A 族变体 GetByToken vec@96/tok8@+8 |
-| character_advisor_generation | 0x332ee50 | +40 | +52 | "none" | 否 | 同族推测 |
+| character_advisor_generation | 0x332ee50 | +40 | +52 | "none" | 否 | 同族推定 |
 | ideology | 0x332f528 | +96 | +108 | tok8 | 否 | miss 回退 +120 默认槽 (TNullObject<CIdeology>@0x3339d00) |
 | country_tag_alias | 0x332ee78 | +96 | +108 | "tok264" | 否 | ⚠ token 在元素+264 非 +8 (防呆) |
 | mtth | 0x332ef58 | +96 | +108 | tok8 | 否 | tok8; byte@128 = 内容解析开关 (1=只登名/0=全解析; 条目布局 §4.26.11) |
@@ -191,7 +191,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | pdx RH 表头 (32B 内联) | {**+0 桶数组指针 (ctor 置 `.data` 静态空缓冲**, 非 0 亦非 NULL: sub_1411F1AE0 置 `&unk_1430B2A10/2A40/2A90` 族; 收缩路径 sub_1411F7F30 count 归零时 free 后回退 `&unk_1430B2A40`), +8 桶指针 (空态 = .data 静态缓冲), +16 count u32, +20 mask u32, +24 extra u8, +28 满载 f32 0.9}; **nbuckets = mask+1+extra**; 桶 {+0 hash u32, +4 探测步数 u8 (1-based, 起始槽 = 1), +8 键/值} |
 | 键哈希两族 | **cs/ci-FNV-1a32** (seed 0x811C9DC5, 素数 0x01000193; ci 版折 A-Z, 配 stricmp) 与 **wang 混洗** (0x45D9F3B 双乘, 特形类用); 键名与存值哈希可不同层 (db10 存名哈希) |
 | MSVC unordered_map | 哨兵节点@head, +8 size, +16/+24 桶对; 节点 = {链@0/+8, 键串@16, 值@48} |
-| std::map | 头@40 {_Left@8? 按 _Myhead 形}; 节点 {键串@32, 值@node_val} |
+| std::map | 头@40 {_Left@8 推定 (按 _Myhead 形)}; 节点 {键串@32, 值@node_val} |
 | token 键库 | 键 = u32 lexer token 而非名哈希 → `idb_find` 走有界线性扫 (keytok) |
 | **空槽判据 (活体定案)** | **hash 槽 == 0**。桶 +4 的探测步数在**已填充槽上也可为 0** (equipment_graphic 起始槽即 0), 0xFF 本族未用 —— 早期按"步数==0 即空"读, 致探测链越过链中途填充槽即断 |
 | **探测回绕模数 (活体定案)** | **nb = mask+1+extra**, 非 mask+1。表增长后尾部槽 (idx ≥ mask+1) 仍持条目 (power_balance nb=22/mask=15: 槽16-21 有键), 用 `& mask` 回绕永不可达 → 位移键全灭 |

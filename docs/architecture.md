@@ -7,9 +7,7 @@ DLL 自身的架构说明：各模块怎么拼在一起、为什么是这个形�
 | 内容 | 去哪看 |
 |---|---|
 | 构建、mod 注册、启动参数、控制面用法、环境变量 | `README.md` |
-| 工作区约定、验证 SOP、对拍工具链、排雷速记 | `../AGENTS.md` |
 | 引擎类布局 / 偏移 / 槽契约 / writer 语义 | `book/hoi4_runtime_classes.md` |
-| vtable 槽钩子的设计理由与用法细节 | `src/hoi4_hook.h` |
 
 本文对 DLL 内部机制的陈述以源码为准；清单章节（§7）是从注册表与路由表**生成**的，源码改了清单就该跟着改。
 
@@ -122,7 +120,7 @@ effect/trigger 回调在引擎线程内、帧内、持锁状态下被调起，�
 | 内存读 | `hoi4_primitives.cpp` | 无（只读） | 一切取数 |
 | 内存写 | `hoi4_primitives.cpp` | 写域门 + 写后回读校验 | 改状态、改载荷 |
 | 虚表槽钩子 | `hoi4_hook.cpp` | 安装门（6 条，§3.3） | 拦/改/替换虚方法 |
-| 函数体重定向 | `hoi4_detour.cpp` + `hoi4_lde.h` | LDE 全指令窃取 + 拒绝相对流 | 拦非虚函数（路由器等） |
+| 函数体重定向 | `hoi4_detour.cpp` + `hoi4_lde.h` + `hoi4_pdata.h` | LDE 全指令窃取 + 拒绝相对流 + `.pdata` 函数起点门 + 悬停验证 | 拦非虚函数（路由器、mod 指定目标） |
 | effect/trigger 路由 | `hoi4_vtable.cpp` | 名快照 + 工厂实例 | mod 自定义 effect/trigger |
 | 控制台桥 | `hoi4_console.cpp` | 名查找 → 表项现读 | 调原生命令、注册伪命令 |
 | 会话检测 | `hoi4_session.cpp` | DR 硬件执行断点 | 会话生命周期事件 |
@@ -176,13 +174,67 @@ vt[slot] (引擎 .rdata qword) -> hk_thunk_N -> hk_dispatch(N, ...)
 
 ### 3.4 函数体重定向（Tier 2）
 
-`hoi4_detour.cpp` 是 Tier 2 引擎，用于**非虚**目标。当前三个目标：`FindCommandByName`、`EffectRouter`、`TriggerRouter`。
+`hoi4_detour.cpp` 是 Tier 2 引擎，用于**非虚**目标。两处使用者：
+
+- **框架自身 3 个目标**（DllMain 期安装，永不卸载）：`FindCommandByName`、`EffectRouter`、`TriggerRouter`；
+- **mod 侧 `hoi4.detour`**（仅进程首次脚本加载期可安装）。
 
 流程：
 
 1. **窃取**：用 LDE（`hoi4_lde.h`，纯解码器，可单测）从目标开头窃取**整条指令**直到 ≥12 字节。遇到不认识的 opcode、**相对控制流**、或 **RIP 相对操作数**一律**硬拒绝**——窃来的字节要逐字节拷到别处的 stub，RIP 相对操作数会改按 stub 地址解析，而本设施不实现重定位。
-2. **stub**：`VirtualAlloc` 一段 RWX，拷入被窃字节，尾部接跳回。
+2. **stub**：`VirtualAlloc` 一段空间，拷入被窃字节，尾部接跳回，写完翻 **RX**（W^X，因为 detour 无卸载、蹦床永不修改）。
 3. **出站补丁**：目标处写 `movabs rax; jmp rax`（12 字节），余下补 NOP 到指令边界。
+
+#### 3.4.1 mod 侧目标资格门（`hoi4.detour`）
+
+安装前逐条校验，任一不过即拒绝，**未产生任何字节改动**：
+
+| 门 | 判据 |
+|---|---|
+| 首载期 | 仅在进程首次脚本加载期（`in_first_script_load`）。热重载与会话切换也会重跑脚本，但那时游戏满载多线程，不是改代码字节的窗口 |
+| 镜像内 | 目标落在 hoi4.exe 的可执行节（`memgate_exec_ok`） |
+| 函数起点 | `.pdata` RUN 表二分查得 `begin == rva`——改指令流中段是灾难 |
+| 窗口在函数内 | `rva + N <= EndAddress`，否则吃进下一个函数的序言 |
+| 序言可窃 | LDE 全指令窃取成功，无相对控制流、无 RIP 相对操作数 |
+| 不在已补丁窗口 | 与框架自身 3 个目标及既有 Tier 2 目标的字节窗口不相交 |
+
+`.pdata` 表（138286 项函数边界）由 `hoi4_pdata.cpp` 提供，采样器与 detour 门共用。
+
+**为什么第 6 道门不能省**：框架自己的补丁字节 `48 B8 <imm64> FF E0` 是**可被 LDE 解码的**（`movabs` + `jmp rax`，既非相对控制流也无 RIP 相对），所以第 5 道门拦不住它，只能靠窗口重叠检查显式拒绝。
+
+#### 3.4.2 安装期并发：悬停-验证-提交
+
+改写 12 字节**不可能原子**（这是与 Tier 1 的本质差别：Tier 1 写的是一个对齐 qword，x64 上原子）。因此 `detour_patch_entry` 采用：
+
+```
+枚举本进程线程（Toolhelp32）
+  → 逐线程 OpenThread（全部分配在悬停之前完成）
+  → SuspendThread 全部（自己除外）
+  → 逐线程 GetThreadContext，检查 RIP ∉ [target, target+N)
+      命中 → 恢复全部线程并拒绝
+  → VirtualProtect → memcpy 补丁 → 还原保护 → FlushInstructionCache
+  → ResumeThread 全部
+```
+
+**悬停窗口内零分配、零用户态锁**（只调 `SuspendThread`/`GetThreadContext`/`VirtualProtect`/`memcpy`/`ResumeThread`，全是内核路径或纯内存写）——这正是把分配前移的原因，否则会与持有进程堆锁的线程互锁。实测 `threads_verified` 为 4（首载期）到 36（运行期）。
+
+**无重试**：首载期本就没有高频调用，命中即拒绝并提示重启。
+
+#### 3.4.3 没有卸载（设计取舍）
+
+Tier 1 卸载 = 写回一个 qword，原子安全。Tier 2 卸载 = 回写 N 字节，**与安装同一个并发问题**；更糟的是若有线程停在补丁中段，回写后它会从指令中部继续解释原指令流。因此**不提供 `undetour`**：
+
+| 项 | 决定 |
+|---|---|
+| `hoi4.undetour` | 不提供（`nil`） |
+| 代码补丁生命周期 | 进程级，永不回写 |
+| 代价 | 每次调用多一跳 + 重放被窃序言（纳秒级）；新增目标需重启 |
+
+**热重载不受影响**：回调按 id 每次调用现解析，所以改回调体 → mtime → 重载 → 重绑 → 立即生效。只有**换目标**才需要重启。
+
+#### 3.4.4 递归与重入
+
+detour 拦的是**地址**，所以目标自递归（或经 `call_orig` 再入）会再次进 thunk。每线程 per-slot 深度计数上限 `HK_MAX_DEPTH`(8)，超限 **fail-open**（转发蹦床、不跑 Lua）并计数 `depth_capped`。
 
 **跳回的编码选择**（这里翻过案）：
 
@@ -236,7 +288,7 @@ effect/trigger 的路由是 DLL 的核心 mod 能力：mod 文本里写 `m4_debu
 
 `call_u64` / `call_void`：0~4 参，带 SEH 守卫，目标过调用域门。每个调用前还有前置检查：当前线程 == 持 `g_luaLock` 的 Lua 回调线程、gamestate 单例存活、引擎自己的 forbid 门 `*(u32*)(TLSSlot[TlsIndex]+16) == 0` 放行。
 
-注意引擎的 `args` 容器是自定义布局（**计数在 +0xC 不在 +8**，也不是 `std::vector`），别按 `std::vector` 布局伪造参数容器——会被读成 begin 指针高位当计数，走数千条垃圾串。
+注意引擎的 `args` 容器是自定义布局（**计数在 第 12 字节处 不在 第 8 字节**，也不是 `std::vector`），别按 `std::vector` 布局伪造参数容器——会被读成 begin 指针高位当计数，走数千条垃圾串。
 
 ### 3.9 采样器
 
@@ -348,7 +400,14 @@ Tier 1 选目标：
 5. **触发式验证**：装上 observe 后主动触发一次该行为再看命中（零风险）。不要用「干等一段时间零命中」去否定虚表调用——低频路径在窗口内本来就不触发。
 6. `hoi4.unhook_vt(id)` 卸除。
 
-Tier 2 选目标：先反汇编看开头十几字节能否被 LDE 干净窃取（无相对流、无 RIP 相对操作数）。
+Tier 2 选目标：
+
+1. 游戏内 `hoi4.detour_probe(addr)` 勘察（**只读，随时可用**，不受首载门限制）——它一次报全 G1~G6 的结论、`.pdata` 函数边界、需窃字节数与十六进制。
+2. `ok=true` 才写进 mod 的 `.lua`：`hoi4.detour(addr, fn, {id=..., args=..., this=..., mode=...})`。
+3. **重启游戏**（首载期安装）。
+4. 之后**只改回调体** → 热重载立即生效，无需再重启。换目标才需重启。
+
+⚠ 目标必须是**函数起点**且序言无相对跳转 / 无 RIP 相对操作数；`jmp real_fn` 转发桩会被拒（提示改钩目的地）。
 
 ### 5.5 mod 侧读写层
 
@@ -428,7 +487,9 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 
 **采样分析**：`profile_start` `profile_stop` `profile_top` `profile_folded` `profile_threads` `profile_status`
 
-**钩子**：`hook_vt` `unhook_vt` `hook_list` `hook_status`
+**钩子（Tier 1，虚表槽）**：`hook_vt` `unhook_vt` `hook_list` `hook_status`
+
+**重定向（Tier 2，函数体；无 unhook）**：`detour` `detour_list` `detour_status` `detour_probe`
 
 **其他**：`log` `debug` `watch`
 
@@ -453,7 +514,7 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 | 文件 | 行数 | 职责 |
 |---|---|---|
 | `hoi4_async.cpp` | 891 | 异步任务池 + 跨状态序列化 |
-| `hoi4_hook.cpp` | 889 | 虚表槽钩子设施（Tier 1） |
+| `hoi4_hook.cpp` | 1109 | 钩子设施（Tier 1 虚表槽 + Tier 2 门/安装） |
 | `hoi4_sampler.cpp` | 767 | 采样式性能分析器 |
 | `hoi4_console.cpp` | 708 | 控制台桥 + 崩溃取证 |
 | `hoi4_launcher.cpp` | 636 | launcher（独立 exe） |
@@ -470,7 +531,8 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 | `hoi4_call.cpp` | 265 | 受门控引擎调用 + 写侧包装 |
 | `hoi4_lde.h` | 215 | 指令长度解码器（纯，可单测） |
 | `hoi4_session.cpp` | 212 | 会话生命周期（DR 断点） |
-| `hoi4_detour.cpp` | 170 | Tier 2 函数体重定向 + DLL 入口（`DllMain`） |
+| `hoi4_detour.cpp` | 344 | Tier 2 函数体重定向引擎 + DLL 入口（`DllMain`） |
+| `hoi4_pdata.cpp` | 89 | `.pdata` 函数边界表（采样器 + detour 门共用） |
 | `hoi4_memgate.cpp` | 168 | 内存域两道门 |
 | `hoi4_timer.cpp` | 159 | 定时器 |
 | `hoi4_harden.cpp` | 145 | stdlib 面削减 |

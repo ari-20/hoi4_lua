@@ -1357,7 +1357,7 @@ CShipArchetypeItem ctor sub_1417F2740; CShipArchetypeHeaderItem ctor sub_141D42A
 
 #### 4.31.45 地图图标散件 A (CCapitalMapIcon / CVictoryPointMapIcon / CRadarMapIcon / CResourceMapIcon / CResourceMapIconItem / CStrategicLocationMapIcon / CSupplyNodeMapIcon / CResistanceComplianceMapIcon)
 
-业务侧全收 §4.30.27 (**基类 +112 = 层可见性缓存新锚** / 工厂 case↔类映射补齐 7 项 / CTooltipHandler 副虚表 = 2 槽 / 州·省地图对象位置与可见字段 — 均无 RTTI 名); 创建/target 写入点未定位 (疑在管理器 Update ICF 内联, 未决首项)。
+业务侧全收 §4.30.27 (**基类 +112 = 层可见性缓存新锚** / 工厂 case↔类映射补齐 7 项 / CTooltipHandler 副虚表 = 2 槽 / 州·省地图对象位置与可见字段 — 均无 RTTI 名); 创建/target 写入点未定位 (推定在管理器 Update ICF 内联, 未决首项)。
 
 | 面板元素/行为 | 取值函数 | 对象+偏移 | 语义+出处 | loc key / 元素 | 置信 |
 |---|---|---|---|---|---|
@@ -1369,7 +1369,7 @@ CShipArchetypeItem ctor sub_1417F2740; CShipArchetypeHeaderItem ctor sub_141D42A
 | 补给节点图标 (26) | 五回调束 ×1288B | +6576 CProvince\*; +6584 变体旗 | 五按钮五键全定名; 点击走控制器非裸 CCommand | SUPPLY_NODE_* ×5 | 定案 |
 | 抵抗顺从图标 (20) | populate (map mode 6/7) | +136 CState\*; st+616 ✓ cr+528/+552 ✓ | 内嵌 ModifierEntry 列表逐修正建行 | resistancemapicons.cpp 实名 | 定案 |
 
-未决: 八类创建/target 写入点 (CCapitalMapIcon / CVictoryPointMapIcon / CRadarMapIcon / CResourceMapIcon / CResourceMapIconItem / CStrategicLocationMapIcon / CSupplyNodeMapIcon / CResistanceComplianceMapIcon; 疑在管理器 Update 内联 ICF) — 余项计数已销 (本表 8 行全部定案)。
+未决: 八类创建/target 写入点 (CCapitalMapIcon / CVictoryPointMapIcon / CRadarMapIcon / CResourceMapIcon / CResourceMapIconItem / CStrategicLocationMapIcon / CSupplyNodeMapIcon / CResistanceComplianceMapIcon; 推定在管理器 Update 内联 ICF) — 余项计数已销 (本表 8 行全部定案)。
 
 #### 4.31.46 设计师子项 (CDesignerAdjusterItem / CDesignerDivisionItem / CDesignerDivisionSlotItem / CDesignerNewTemplateItem / CDesignerStatItem / CDesignerSubUnitItem / CDesignerSubUnitTypeItem)
 
@@ -2668,7 +2668,7 @@ CArmiesView 本体 (1640B) 全布局 + CDivisionsSummaryItemView 行件 (1432B; 
 | 槽 | CContainerWindow | CNullContainerWindow | 语义 |
 |---|---|---|---|
 | [0] | 0x1422B6DC0 | 0x142379660 | 删除序 dtor（写 +5944 TNullGuiObjectTrait vt → 基 teardown 0x1422B6390） |
-| [7] | 0x1422C1B60 | 0x142379160 | = 调整器 this−48 → 0x142379660；与姊妹类同槽（位置类方法）语义冲突，疑 ICF 折叠，待裁 |
+| [7] | 0x1422C1B60 | 0x142379160 | = 调整器 this−48 → 0x142379660；与姊妹类同槽（位置类方法）语义冲突，推定 ICF 折叠，待裁 |
 | [13] | 0x1422B9960 | 0x142379CE0 | null 版 = 转发 *(this+152) 的 +424 getter（定案） |
 | [15] | 0x1422BC460 | 0x142379D50 | null 语义覆盖（未逐槽定） |
 | [16] | 0x1422BABA0 | 0x142379D20 | 同上 |

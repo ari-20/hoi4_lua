@@ -192,6 +192,10 @@ void async_dispatch_locked(lua_State *Ls);
 // ---- cross-module exports ----
 // paths.cpp
 int load_mod_lua_scripts(lua_State *Ls);
+// main.cpp: 1 only during the PROCESS'S FIRST script load (lua_init_thread).
+// That is the sole window in which a Tier 2 detour may rewrite engine code
+// bytes — later loads run with the game live. See DETOUR_DESIGN.md §4.1.
+int in_first_script_load(void);
 int resolve_game_data_path(void);
 int get_game_dir(void);
 // registry (hoi4_main.cpp keeps the snapshot; clear lives here)

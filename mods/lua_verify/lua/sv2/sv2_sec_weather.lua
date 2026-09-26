@@ -1,9 +1,9 @@
 -- sv2_sec_weather.lua -- weather 节点 savefull 直出
+-- (发射规则段; 布局/走查/写门唯一实现 = Runtime.weather 代理
+--  objects_global §32.1: 省天气 §4.20.2 / 区天气 §4.20.3)
 
 SV2.gsec[#SV2.gsec + 1] = { name = "weather", emit = function(ctx)
     local SL, emit, O = SV2.lib, ctx.emit, ctx.O
-    local rp, ru32, ru8, ru16 =
-        hoi4.read_u64, hoi4.read_u32, hoi4.read_u8, hoi4.read_u16
     -- §4.20.1 CWeatherManager (gs+1672)
     local r2 = O:weather()
     if not r2 then return end
@@ -35,7 +35,7 @@ SV2.gsec[#SV2.gsec + 1] = { name = "weather", emit = function(ctx)
         if v and v ~= 0 then E(base .. ".snow", SL.num(v)) end
         v = wp.mud -- 仅非零 yes
         if v and v ~= 0 then E(base .. ".mud", "yes") end
-        local cm = wp.custom_modifiers -- 块仅 cnt>0; 16B {名*, param u32@+8}
+        local cm = wp.custom_modifiers -- 块仅 cnt>0
         if cm then
             local seq = SL.seqc()
             for _, m in ipairs(cm) do
@@ -53,42 +53,31 @@ SV2.gsec[#SV2.gsec + 1] = { name = "weather", emit = function(ctx)
     local rids = {}
     for rid in pairs(r2.regions or {}) do rids[#rids + 1] = rid end
     table.sort(rids)
-    -- 仅非零写 yes 的 u8 旗标 (off, save键) — 与 writer 0x140F0DDC0 逐支对齐
-    local RFLAG = {
-        { 0x108, "rain_light" }, { 0x110, "rain_heavy" }, { 0x118, "snow" },
-        { 0x120, "blizzard" }, { 0x128, "sandstorm" }, { 0x130, "arctic_water" },
-    }
+    -- 仅非零写 yes 的旗标 (键序 = writer 0x140F0DDC0 逐支序)
+    local RFLAG = { "rain_light", "rain_heavy", "snow",
+        "blizzard", "sandstorm", "arctic_water" }
     for _, rid in ipairs(rids) do
         local wr = r2.regions[rid]
         local base = "regions." .. rid
         E(base .. ".region", tostring(wr.region_id or rid))
         local t = wr.temperature -- 恒写 (含 0)
         if t then E(base .. ".temperature", SL.num(t)) end
-        local e = wr._addr
-        if e and SL.kptr(e) then
-            -- next_weather_change 恒写: CGameDate@+0x158, hours = ru32@+0x150
-            local dh = ru32(e + 0x150)
-            local ds = dh and SL.date(dh)
-            if ds then
-                E(base .. ".next_weather_change", '"' .. ds .. '"')
-            end
-            for _, f in ipairs(RFLAG) do
-                local b = ru8(e + f[1])
-                if b and b ~= 0 then E(base .. "." .. f[2], "yes") end
-            end
-            -- active_modifiers: u16 数组 {d@+0x30, cnt@+0x3C} — writer
-            -- 0x140F0DDC0 尾段: AEF00 开单匿名元在循环外, 循环内 ADAB0
-            -- 逐值写 + 分隔补写 → 存档形态 = 单行 "v1 v2 ..."
-            -- (非演化族, 旧逐值 #N 行为对 cnt=1 巧合对齐)
-            local nact = ru32(e + 0x3C)
-            local ap = rp(e + 0x30)
-            if nact and nact > 0 and nact < GAME.layout.lim.PTR_SANE and SL.kptr(ap) then
-                local parts = {}
-                for ai = 0, nact - 1 do
-                    parts[#parts + 1] = tostring(ru16(ap + 2 * ai) or 0)
-                end
-                E(base .. ".active_modifiers.#1", table.concat(parts, " "))
-            end
+        -- next_weather_change 恒写 (hours → 日期换算)
+        local dh = wr.next_weather_change
+        local ds = dh and SL.date(dh)
+        if ds then
+            E(base .. ".next_weather_change", '"' .. ds .. '"')
+        end
+        for _, f in ipairs(RFLAG) do
+            local b = wr[f]
+            if b and b ~= 0 then E(base .. "." .. f, "yes") end
+        end
+        -- active_modifiers 单行 "v1 v2 ..." (writer 尾段单匿名元)
+        local act = wr.active_modifiers
+        if act and #act > 0 then
+            local parts = {}
+            for ai = 1, #act do parts[#parts + 1] = tostring(act[ai]) end
+            E(base .. ".active_modifiers.#1", table.concat(parts, " "))
         end
     end
 end }

@@ -49,7 +49,7 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +40 | CAirBase* | 平行基地列表 B 数据 | 同上 |
 | +64 | CAirBase* | 平行基地列表 C 数据 | 同上 |
 | +88 | CAirWingPool* 容器 24B | air_wing_pool {data@88, cap@96, count@100, alloc@104} | 元素 = CAirWingPool* (vtable 0X297AE38); [N] = 池序 |
-| +112 | 容器 24B | 未名向量 E | 形态定案/语义未决 — 全 dump 无业务读写, 疑遗留 |
+| +112 | 容器 24B | 未名向量 E | 形态定案/语义未决 — 全 dump 无业务读写, 推定遗留 |
 | +136 | CStrategicAirManager* | manager 回指 | ctor 实参 a3 |
 | +144 | uint32 | country_num_id | 国家 id |
 | +152 | 容器 24B | _ActiveMissions {data@152, cap@160, count@164} — 按 region id 索引稀疏数组, 24B 条 = 内嵌任务指针向量 {data@0, count@+12} | 断言 `_ActiveMissions[RegionID].Contains(pMission)` |

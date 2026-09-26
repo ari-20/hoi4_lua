@@ -70,62 +70,35 @@ SV2.gsec[#SV2.gsec + 1] = { name = "doctrine", emit = function(ctx)
                 if cr.folder then E(cb .. "folder", '"' .. tostring(cr.folder) .. '"') end
                 E(cb .. "cost_factor", SL.num(cr.cost_factor or 0))
             end
-            -- equipment_bonus (§4.6 CCountryDoctrineStatus; writer 0x1413CF470 块尾段; 容器
-            -- @rd+112 {count@124}, 24B 条 {id token@+8, index@+12,
-            -- equipment_bonus@+16}; 块门 count≠0, 条目恒写含 0 值;
-            -- id = 装备原型名 lexer token, token 串发射不带引号)
-            local ebd = rd.addr and rp(rd.addr + 112)
-            local ebc = rd.addr and ru32(rd.addr + 124) or 0
-            if ebd and kptr(ebd) and ebc > 0 and ebc < 4096 then
+            -- equipment_bonus (§4.6; reader rd.equipment_bonus.list;
+            -- id = 装备原型名 lexer token, 门 lexmax, 串发射不带引号)
+            do
                 local lexmax = hoi4.read_u32(
                     hoi4.base() + GAME.layout.rva.lexer_token_max) or 100000
-                for ei = 0, ebc - 1 do
-                    local ee = ebd + 24 * ei
-                    if kptr(rp(ee)) then
-                        local mb = "equipment_bonus.#" .. (ei + 1) .. "."
-                        local idt = ru32(ee + 8) or 0
-                        local idn = idt > 0 and idt <= lexmax
-                            and SL.tok(idt) or nil
-                        if idn then
-                            E(mb .. "id", tostring(idn))
-                        end
-                        E(mb .. "index", tostring(ru32(ee + 12) or 0))
-                        E(mb .. "equipment_bonus",
-                            tostring(ru32(ee + 16) or 0))
-                    end
-                end
-            end
+                for ei, ee in ipairs((rd.equipment_bonus or {}).list or {}) do
+                    local mb = "equipment_bonus.#" .. ei .. "."
+                    local idt = ee.id_tok
+                    local idn = idt > 0 and idt <= lexmax
+                        and SL.tok(idt) or nil
+                    if idn then E(mb .. "id", tostring(idn)) end
+                    E(mb .. "index", tostring(ee.index))
+                    E(mb .. "equipment_bonus", tostring(ee.bonus)) end end
             for dk, dm in ipairs(rd.daily_mastery or {}) do
                 local db = "daily_mastery.#" .. dk .. "."
                 if dm.name then E(db .. "name", '"' .. tostring(dm.name) .. '"') end
-                -- relevant_tracks (§4.6 NDoctrines::STrackFilter; dm+40 内嵌
-                -- 48B 非容器/叶序/门 = 书) — 元素基址 = rp(rd.addr+88)
-                -- +112*(dk-1) (reader O.vec 无过滤, 索引对齐)
-                local dmd = rd.addr and rp(rd.addr + 88)
-                local dmc = rd.addr and ru32(rd.addr + 100) or 0
-                if dmd and kptr(dmd) and dk <= dmc then
-                    local dm0 = dmd + 112 * (dk - 1)
-                    -- 1.19.3 : STrackFilter vt 0x27BAC60 → 0x27D1130
-                    -- (+0x166D0; 旧门恒假致 relevant_tracks 全灭)
-                    if not BASE or rp(dm0 + 40) == BASE + 0x27D1130 then
-                        for _, lf in ipairs({
-                            { 48, "track" }, { 56, "folder" },
-                            { 64, "grand_doctrine" }, { 72, "sub_doctrine" } }) do
-                            local dp = rp(dm0 + lf[1])      -- 写门: 指针≠0
-                            if kptr(dp) then
-                                local nm = SL.tok(ru32(dp + 8))
-                                if nm then
-                                    E(db .. "relevant_tracks." .. lf[2],
-                                        '"' .. tostring(nm) .. '"')
-                                end
-                            end
-                        end
-                        local tidx = ru32(dm0 + 80)         -- i32, 默认 -1
-                        if tidx and tidx ~= 0xFFFFFFFF then
-                            E(db .. "relevant_tracks.track_index", tostring(tidx))
-                        end
-                    end
+                -- relevant_tracks (§4.6 STrackFilter; reader rt 表带
+                -- vt 门解析 + track_index; 槽位 = dk 对齐)
+                local rtf = (dm.relevant_tracks or {})[dk] or {}
+                for _, lf in ipairs({ "track", "folder",
+                    "grand_doctrine", "sub_doctrine" }) do
+                    local nm = rtf[lf]
+                    if nm then
+                        E(db .. "relevant_tracks." .. lf,
+                            '"' .. tostring(nm) .. '"') end
                 end
+                if rtf.track_index then
+                    E(db .. "relevant_tracks.track_index",
+                        tostring(rtf.track_index)) end
                 E(db .. "daily_mastery", SL.num(dm.daily_mastery or 0))
                 E(db .. "bonus", SL.num(dm.bonus or 0))
                 E(db .. "days", tostring(dm.days or 0))

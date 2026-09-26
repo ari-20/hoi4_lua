@@ -28,52 +28,26 @@ SV2.csec[#SV2.csec + 1] = { name = "country.occupation_status", emit = function(
     local dl = SL.Q(occ.default_law)
     if dl then emit(tag, P .. "default_law", dl) end
 
-    -- ===== §4.3.6 state_compliance_cache (块门/RH 布局 = 书) =====
-    -- 偏移基 w = rp(cc+4048) + 24 (§4.3.6; writer 基差 +24);
-    -- 错用 rp(cc+4048) 或其裸区 = 全表 MISS
-    do
-        local w = occ.addr + 24
-        local ccnt = ru32(w + 216) or 0
-        local cd = rp(w + 208)
-        if ccnt > 0 and ccnt < 4096 and SL.kptr(cd) then
-            local nb = (ru32(w + 220) or 0) + 1 + (ru8(w + 224) or 0)
-            if nb > 0 and nb < 8192 then
-                for k = 0, nb - 1 do
-                    local b2 = cd + 24 * k
-                    local dist, sid = ru8(b2 + 4), ru32(b2 + 8)
-                    -- writer 原样: 仅 dist==0 跳过 (墓碑也照写, 对拍最稳;
-                    -- 值 AE9A0 无零门)
-                    if dist and dist ~= 0 then
-                        local raw = SL.rp_i64(b2 + 16)
-                        if raw then
-                            emit(tag, P .. "state_compliance_cache." .. sid,
-                                SL.num(raw * 1e-5))
-                        end
-                    end
-                end
-            end
-        end
+    -- ===== §4.3.6 state_compliance_cache (reader 已解, 值 raw i64
+    -- 段侧 ×1e-5 渲染 — 值 AE9A0 无零门) =====
+    for _, scc in ipairs(occ.state_compliance_cache or {}) do
+        emit(tag, P .. "state_compliance_cache." .. scc.sid,
+            SL.num(scc.raw * 1e-5))
     end
 
     -- ===== §4.3.2 占领记录 dp / §4.3.6 写门族: occupation.<R> 每被占国 =====
     for _, od in ipairs(occ.occupied or {}) do
         local B = P .. "occupation." .. tostring(od.tag) .. "."
-        -- §4.3.6 states.#1: 内联重读保写序 (reader cd.states 已 sort, 弃用);
-        -- 同时建 states 集 = SGD 写门 (头注定案)
-        local dp = od.addr
+        -- §4.3.6 states.#1 (reader states_raw = 向量原序 — writer 原序
+        -- 直写, sort 版弃用); 同时建 states 集 = SGD 写门 (头注定案)
         local stset = {}
-        if dp then
-            local sd, sn = rp(dp + 0x20), ru32(dp + 0x2C)
-            if SL.kptr(sd) and sn and sn > 0 and sn < 4096 then
-                local ids = {}
-                for k = 0, sn - 1 do
-                    local sp = rp(sd + 8 * k)
-                    local sidv = SL.kptr(sp) and (ru32(sp + 88) or 0) or 0
-                    ids[#ids + 1] = tostring(sidv)
-                    stset[sidv] = true
-                end
-                emit(tag, B .. "states.#1", table.concat(ids, " "))
+        if od.states_raw then
+            local ids = {}
+            for _, sidv in ipairs(od.states_raw) do
+                ids[#ids + 1] = tostring(sidv)
+                stset[sidv] = true
             end
+            emit(tag, B .. "states.#1", table.concat(ids, " "))
         end
         local stgate = next(stset) ~= nil
         -- resistance_modifiers.#N (dp+88/100, 向量序, 引号)
@@ -100,36 +74,10 @@ SV2.csec[#SV2.csec + 1] = { name = "country.occupation_status", emit = function(
         -- occupation_law 条件写
         local ol = SL.Q(od.occupation_law)
         if ol then emit(tag, B .. "occupation_law", ol) end
-        -- §4.3.2 occupation_law_list (dp+176 RH, §4.3.6 写门族同源):
-        -- 段内内联 (reader 头偏移错位, 头注);
-        -- writer 0x140FEA660: 门 = count@dp+0xB8≠0, 桶 data@dp+0xB0,
-        -- 上界 mask@dp+0xBC+1+extra@dp+0xC0, 值名 = C 串内联 val+0x10
-        if dp then
-            local lcnt = ru32(dp + 0xB8) or 0
-            local ld = rp(dp + 0xB0)
-            if lcnt > 0 and lcnt < 4096 and SL.kptr(ld) then
-                local lm = ru32(dp + 0xBC) or 0
-                local nb = lm + 1 + (ru8(dp + 0xC0) or 0)
-                if lm > 0 and nb < 8192 then
-                    for k = 0, nb - 1 do
-                        local b2 = ld + 24 * k
-                        local dist2, sid2, vp =
-                            ru8(b2 + 4), ru32(b2 + 8), rp(b2 + 16)
-                        -- 镜像 writer: 写一切 dist≠0 桶 (不滤 0xFE 墓碑 —
-                        -- writer 不滤; 0xFF = 迭代哨兵断言位, 跳过)
-                        if dist2 and dist2 > 0 and dist2 ~= 0xFF
-                            and sid2 and sid2 > 0
-                            and SL.kptr(vp) then
-                            local nm2 = hoi4.read_str(vp + 0x10)
-                            if nm2 and nm2 ~= "" then
-                                emit(tag,
-                                    B .. "occupation_law_list." .. sid2,
-                                    nm2)
-                            end
-                        end
-                    end
-                end
-            end
+        -- §4.3.2 occupation_law_list (dp+0xB0 RH; reader law_list_map
+        -- 已按 writer 门解出 — 镜像写一切 dist≠0 桶)
+        for sid2, nm2 in pairs(od.law_list_map or {}) do
+            emit(tag, B .. "occupation_law_list." .. sid2, nm2)
         end
         -- §4.3.6 state_garrison_data: garrison_data "sid|sr|gr|amn,..." 主键序 +
         -- garrison_x "sid;az;amn;eq;en;grr;mpv ! 分隔" 按 sid 配对

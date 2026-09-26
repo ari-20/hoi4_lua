@@ -2,10 +2,8 @@
 
 SV2.gsec[#SV2.gsec + 1] = { name = "provinces", emit = function(ctx)
     local SL, emit, O = SV2.lib, ctx.emit, ctx.O
-    local rp, ru32 = SL.rp, SL.ru32
-    local gs = ctx.gs
-    -- §4.14 CProvince — 省表 = *(gs+0x2B0), 省数 = u32@gs+0x2BC
-    local parr, pcnt = rp(gs + 0x2B0), ru32(gs + 0x2BC)
+    -- 省界 = Runtime:provinces (objects_shared §1.2; 唯一实现)
+    local parr, pcnt = O:provinces()
     if not (SL.kptr(parr) and pcnt and pcnt > 0 and pcnt < GAME.layout.lim.PTR_HUGE) then
         return
     end

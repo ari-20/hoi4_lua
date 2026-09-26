@@ -74,16 +74,18 @@ int game_pause_invoke_raw(int state) {
     // it back to the ORIGINAL implementation rather than running the mod's hook:
     // framework infrastructure must not be vetoable by the mod layer it hosts
     // (a vetoed pause here would let the export workflow run unpaused and break
-    // its same-instant anchor — see hoi4_hook.h).
-    // memgate_exec_ok below then sees engine code, exactly as before any hook.
+    // its same-instant anchor — see hoi4_hook.h). A Tier 2 detour resolves to
+    // its trampoline instead, which is why the gate below also accepts that.
     if (fn) {
         uint64_t orig = 0;
         if (hook_orig_for_thunk((uint64_t)(uintptr_t)fn, &orig))
             fn = (MgrPause_t)(uintptr_t)orig;
     }
-    // memory-derived target: exec-domain gate (memgate). On refuse the
-    // direct flag write below takes over — same documented semantics.
-    if (fn && !memgate_exec_ok((uint64_t)(uintptr_t)fn)) {
+    // memory-derived target: exec-domain gate (memgate), plus the bridge's own
+    // trampolines (not engine code by construction). On refuse the direct flag
+    // write below takes over — same documented semantics.
+    if (fn && !memgate_exec_ok((uint64_t)(uintptr_t)fn) &&
+        !hook_is_our_trampoline((uint64_t)(uintptr_t)fn)) {
         L("[pause] mgr->vt[+656] target outside engine exec sections — "
           "falling back to direct flag write");
         fn = NULL;

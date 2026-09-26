@@ -161,16 +161,36 @@ local function operative_leader(e, R)
     nat[#nat + 1] = (ntid and ntid > 0 and R:tag(ntid))
         or tostring(ntid or 0)
   end
-  local prog = {}
+  local prog, prog_pairs = {}, {}
   for _, pe in O.vec(e, 3576, 3588, 16, false) do
     local tobj = rp(pe)
     local vq = rp(pe + 8)
     if O.kptr(tobj) then
-      prog[#prog + 1] = string.format("%s=%.5f",
-          tok(ru32(tobj + 8) or 0) or "?", (vq or 0) / 100000)
+      local tn = tok(ru32(tobj + 8) or 0)
+      local val = GAME.layout.as_i64(vq or 0) / 100000
+      -- 串版 (旧口径 "?" 兜底) 与结构化对版分离:
+      -- 发射段 writer 门 = token 名非 nil 才发 → prog_pairs 只收有效名
+      prog[#prog + 1] = string.format("%s=%.5f", tn or "?", val)
+      if tn then
+        prog_pairs[#prog_pairs + 1] = { tok = tn, val = val }
+      end
     end
   end
   local skillp = rp(e + 3680)
+  -- §4.11.11 mission {mdata*@+4248, type u32@+4256}: target tid =
+  -- ru32(mdata+16), state = ru32(rp(mdata+24)+88) (通用口径, 无型别
+  -- 白名单 — 白名单门 = 发射规则留段侧)
+  local mtype = ru32(e + 4256) or 0
+  local m_target_tid, m_state = 0, 0
+  if mtype ~= 0 then
+    local mdata = rp(e + 4248)
+    if O.kptr(mdata) then
+      local mtid = ru32(mdata + 16) or 0
+      if mtid > 0 then m_target_tid = mtid end
+      local ms2 = rp(mdata + 24)
+      if O.kptr(ms2) then m_state = ru32(ms2 + 88) or 0 end
+    end
+  end
   return {
     type = ru32(e + 8) or 0, id = ru32(e + 12) or 0,
     -- legacy 同型: read_msvc_str size=0 → nil → 导出端 "gfx" 行不发 /
@@ -186,12 +206,40 @@ local function operative_leader(e, R)
     -- 本行在 to_i32 定义之前, 故内联 (文件级 local 先宣后用)
     legacy_id = ((ru32(e + 3800) or 0) % 0x100000000 + 0x80000000)
         % 0x100000000 - 0x80000000,
+    legacy_u32 = ru32(e + 3800) or 0xFFFFFFFF,
     state = ru32(e + 4224) or 0,
     nationalities = table.concat(nat, " "),
     codename_type = ru32(e + 4056) or 0,
     in_progress = table.concat(prog, ";"),
+    in_progress_pairs = prog_pairs,
+    -- ===== 扩展字段 (§4.11.11 writer 0x140C18FF0/0x140C1CE70 全门收编;
+    -- 现役/退役/招募三消费者共用, 发射键集差异留段侧) =====
+    desc = LAYOUT.read_msvc_str(e + 128),
+    custom_cost_text = LAYOUT.read_msvc_str(e + 160),
+    picture = LAYOUT.read_msvc_str(e + 224),
+    portrait_path = LAYOUT.read_msvc_str(e + 192),
+    -- female 门 = 字段@+3713 ≠0 才写 (ru8)
+    female_gate = (ru8(e + 3713) or 0) ~= 0,
+    experience = GAME.layout.as_i64(rp(e + 3688) or 0) / 100000,
+    captured_tag = ru32(e + 4016) or 0,
+    capture_date_hours = ru32(e + 4032) or 0,
+    operation_type = ru32(e + 3968) or 0,
+    operation_id = ru32(e + 3972) or 0,
+    -- cooldown 三件套 (§4.4.2 基类同构): 总门 reason 码 ≠0;
+    -- 枚举反表/日期串在段侧 (0=no_cooldown 族)
+    cooldown_reason_code = ru32(e + 3716) or 0,
+    cooldown_enable_hours = ru32(e + 3752) or 0,
+    cooldown_start_hours = ru32(e + 3728) or 0,
+    codename_name_order = ru32(e + 4176) or 0,
+    codename_is_name_ordered_zero = (ru8(e + 4216) or 0) == 0,
+    mission_type_code = mtype,
+    mission_target_tid = m_target_tid,
+    mission_state_raw = m_state,
   }
 end
+-- 公开 (objects_global Country.country_characters 的 retired_operatives
+-- 池跨域复用同一转换; 发射键集差异留段侧)
+Runtime.op_leader = operative_leader
 
 function Country.intelligence_agency(self)
   local ag = rp(self.addr + 4032)
@@ -206,16 +254,53 @@ function Country.intelligence_agency(self)
     elapsed_days_for_next_slot = ru32(ag + 248),
     building = ru32(ag + 256),
     defense = U.fix5(ag + 296) }        -- writer 0x140FCA0F0 (0x2A54)
-  -- §4.11.14 recruitment 三容器之一: recruitable {d@48, c@60}
-  out.recruitable = { count = ru32(ag + 60) or 0, list = {} }
-  for _, e in O.vec(ag, 48, 60, 8, true) do
-    if O.kptr(e) then
-      local r = operative_leader(e, self.R)
-      out.recruitable.list[#out.recruitable.list + 1] = r
+  -- §4.11.14 recruitment 三容器: generated {d@24,c@36} / recruitable
+  -- {d@48,c@60} / recruitable_not_to_spy_master {d@72,c@84} (8B 指针元,
+  -- 容器序 = writer 序; n 编号仅计有效元素)
+  local function rec_pool(doff, coff)
+    local pool = { count = ru32(ag + coff) or 0, list = {} }
+    for _, e in O.vec(ag, doff, coff, 8, true) do
+      if O.kptr(e) then
+        pool.list[#pool.list + 1] = operative_leader(e, self.R)
+      end
     end
+    return pool
   end
+  out.generated_operatives = rec_pool(24, 36)
+  out.recruitable = rec_pool(48, 60)
+  out.recruitable_not_to_spy_master = rec_pool(72, 84)
   local lv = rp(ag + 200)
   out.upgrade_progress = lv and lv / 100000 or nil
+  -- §4.11.14 upgrades {d@96, c@108} 16B {def*, level u32@+8};
+  -- def* 有效且 token 名非空才收 (writer 门)
+  out.upgrades = { count = ru32(ag + 108) or 0, list = {} }
+  do
+    local ud, uc = rp(ag + 96), ru32(ag + 108) or 0
+    if O.kptr(ud) and uc > 0 and uc < LAYOUT.lim.PTR_SANE then
+      for q4 = 0, uc - 1 do
+        local e2 = ud + 16 * q4
+        local p2 = rp(e2)
+        if O.kptr(p2) then
+          local un = tok(ru32(p2 + 8) or 0)
+          if un then
+            out.upgrades.list[#out.upgrades.list + 1] =
+                { name = tostring(un), level = ru32(e2 + 8) or 0 }
+          end
+        end
+      end
+    end
+  end
+  -- upgrade 裸键 (writer 0x140FCA0F0 L69: def*@ag+208 指针门,
+  -- token@def+8 裸名)
+  do
+    local udef = rp(ag + 208)
+    if O.kptr(udef) then
+      local un = LAYOUT.token_name(ru32(udef + 8) or 0)
+      if un and un ~= "" then out.upgrade = un end
+    end
+  end
+  -- own_operative_death (writer L45: u32@ag+252 ≠0 才写, 段门)
+  out.own_operative_death = ru32(ag + 252) or 0
   -- §4.11.14 operative 池 {d@216, c@228} + §4.11.11 尾段字段
   out.training_operatives = { count = ru32(ag + 228) or 0, list = {} }
   for _, e in O.vec(ag, 216, 228, 8, true) do
@@ -244,12 +329,49 @@ function Country.intelligence_agency(self)
       out.training_operatives.list[#out.training_operatives.list + 1] = r
     end
   end
-  -- §4.11.14 captured {d@264, c@276} stride 56
+  -- §4.11.14 captured {d@264, c@276} stride 56: 元 = CCapturedOperativeReference
+  -- {country idx u32@+8, op type@+12, op id@+16, intel 四象限 i64×1e-5
+  --  @+24/+32/+40/+48}; 门 = count<PTR_SANE (旧 64 上限会被大 mod 击穿)
   out.captured = { count = ru32(ag + 276) or 0, list = {} }
-  local od, oc = rp(ag + 264), ru32(ag + 276)
-  if O.kptr(od) and oc and oc < 64 then
-    for j = 0, oc - 1 do
-      out.captured.list[#out.captured.list + 1] = { addr = od + 56 * j }
+  do
+    local cd, cc2 = rp(ag + 264), ru32(ag + 276) or 0
+    if O.kptr(cd) and cc2 > 0 and cc2 < LAYOUT.lim.PTR_SANE then
+      for q2 = 0, cc2 - 1 do
+        local e3 = cd + 56 * q2
+        out.captured.list[#out.captured.list + 1] = {
+          addr = e3,
+          country_idx = ru32(e3 + 8) or 0,
+          op_type = ru32(e3 + 12) or 0,
+          op_id = ru32(e3 + 16) or 0,
+          intel_civilian = U.fix5(e3 + 24),
+          intel_army = U.fix5(e3 + 32),
+          intel_navy = U.fix5(e3 + 40),
+          intel_airforce = U.fix5(e3 + 48) }
+      end
+    end
+  end
+  -- §4.11.9 cryptology (crypto = *(ag+288)): targets {d@+40, c@+52}
+  -- 56B 元 {tag tid u32@+8, days u32@+12 (门 ≠-1), active/hide/decryption
+  -- b@+16/+17/+18, amount ×1e-5@+24 (门 ≠0), date u32@+40 (门 ≠43808760
+  -- ctor 哨兵)}
+  do
+    local crypto = rp(ag + 288)
+    out.cryptology = { targets = {} }
+    if O.kptr(crypto) then
+      local td2, tc2 = rp(crypto + 40), ru32(crypto + 52) or 0
+      if O.kptr(td2) and tc2 > 0 and tc2 < LAYOUT.lim.PTR_SANE then
+        for q6 = 0, tc2 - 1 do
+          local e4 = td2 + 56 * q6
+          out.cryptology.targets[#out.cryptology.targets + 1] = {
+            tag_tid = ru32(e4 + 8) or 0,
+            days_raw = ru32(e4 + 12) or 0xFFFFFFFF,
+            active = (ru8(e4 + 16) or 0) ~= 0,
+            hide = (ru8(e4 + 17) or 0) ~= 0,
+            decryption = (ru8(e4 + 18) or 0) ~= 0,
+            amount = GAME.layout.as_i64(rp(e4 + 24) or 0) / 100000,
+            date_hours = ru32(e4 + 40) or 0 }
+        end
+      end
     end
   end
   return out
@@ -546,15 +668,19 @@ function Runtime.operatives(self, country_idx)
             total_coverable = { core_states = ru32(s + 0x68),
               controlled_states = ru32(s + 0x6C),
               owned_worth = ru32(s + 0x70) },
-            states = {} }
+            states = {}, states_precise = {} }
           -- §4.11.4 states {d@s+144, c@s+156} 16B {州指针, strength ×1e-5};
-          -- 州 id = uint32@州对象+88 (无过滤全量写)
+          -- 州 id = uint32@州对象+88 (无过滤全量写); states_precise =
+          -- 结构化 {sid, str} 精确值 (writer 按 sid 升序排序 — 排序 =
+          -- 发射规则留段侧; 旧 states "id|%.2f" 串保留兼容)
           for _, se in O.vec(s, 144, 156, 16, false) do
             local sp2 = rp(se)
             local sid2 = O.kptr(sp2) and ru32(sp2 + 88) or nil
             if sid2 then
               sub.states[#sub.states + 1] =
                   string.format("%d|%.2f", sid2, U.fix5(se + 8) or 0)
+              sub.states_precise[#sub.states_precise + 1] =
+                  { sid = sid2, str = U.fix5(se + 8) or 0 }
             end
           end
           -- §4.11.4 core_states = 独立容器 {d@s+168, c@s+180} (writer
@@ -565,6 +691,35 @@ function Runtime.operatives(self, country_idx)
             local sid2 = O.kptr(sp2) and ru32(sp2 + 88) or nil
             if sid2 then
               sub.core_states[#sub.core_states + 1] = sid2
+            end
+          end
+          -- §4.11.4 coverage_per_occupied {d@s+120, c@s+132} 12B 元
+          -- {tag tid u32@0, owned_worth u32@+4, states u32@+8}
+          -- (收全部元素 — tid 门与首条 .#1 发射伪影 = 段侧规则)
+          sub.coverage_per_occupied = {}
+          do
+            local cvd, cvc = rp(s + 120), ru32(s + 132)
+            if O.kptr(cvd) and cvc and cvc > 0 and cvc < 4096 then
+              for j = 0, cvc - 1 do
+                local el = cvd + 12 * j
+                sub.coverage_per_occupied[#sub.coverage_per_occupied + 1] = {
+                  tid = ru32(el) or 0,
+                  owned_worth = ru32(el + 4) or 0,
+                  states = ru32(el + 8) or 0 }
+              end
+            end
+          end
+          -- §4.11.4 operatives 打包 id 对 {d@s+192, c@s+204} 8B 元
+          -- {type u32@0, id u32@+4}
+          sub.op_pairs = {}
+          do
+            local od2, oc2 = rp(s + 192), ru32(s + 204)
+            if O.kptr(od2) and oc2 and oc2 > 0 and oc2 < 4096 then
+              for j = 0, oc2 - 1 do
+                local e = od2 + 8 * j
+                sub.op_pairs[#sub.op_pairs + 1] = {
+                  type = ru32(e), id = ru32(e + 4) }
+              end
             end
           end
           n.sub_intel_networks.list[#n.sub_intel_networks.list + 1] = sub
@@ -652,6 +807,31 @@ function Runtime.operatives(self, country_idx)
         n.coverage = { core_states = ru32(net + 192),
           controlled_states = ru32(net + 196),
           owned_worth = ru32(net + 200) }
+        -- §4.11 max_coverage_by_occupied_tag {d@net+144, c@net+156} 40B 元
+        -- {tag tid u32@0, owned_worth u32@+8, states u32@+12,
+        --  gain_factor ×1e-5@+16, det_factor ×1e-5@+24, det ×1e-5@+32}
+        -- (收全部元素 — tid 门与首条 .#1 发射伪影 = 段侧规则)
+        n.max_coverage_by_occupied_tag = {}
+        do
+          local md, mc = rp(net + 144), ru32(net + 156)
+          if O.kptr(md) and mc and mc > 0 and mc < 4096 then
+            for j = 0, mc - 1 do
+              local el = md + 40 * j
+              n.max_coverage_by_occupied_tag[#n.max_coverage_by_occupied_tag + 1] = {
+                tid = ru32(el) or 0,
+                owned_worth = ru32(el + 8) or 0,
+                states = ru32(el + 12) or 0,
+                gain_factor = GAME.layout.as_i64(rp(el + 16) or 0) / 100000,
+                detection_chance_factor =
+                  GAME.layout.as_i64(rp(el + 24) or 0) / 100000,
+                detection_chance =
+                  GAME.layout.as_i64(rp(el + 32) or 0) / 100000 }
+            end
+          end
+        end
+        -- §4.11 +224 恒写 (writer 0x1411C1BE0 尾: sub_1424AE590(0x4C6A,
+        -- *(a1+224)) — i64 ×1e-5)
+        n.state_strength_max = U.fix5(net + 224)
         out.intel_networks[#out.intel_networks + 1] = n
         if ni == 0 then out.intel_network = n end   -- 兼容旧引用
       end
@@ -679,8 +859,110 @@ function Country.focus(self)
   local curc = rp(fp + 0x18)
   if O.kptr(curc) then out.current_continuous = U.cstr(curc + 24) end
   out.paused = (U.a8(fp + 0xB0) or 0) == 1
+  out.paused_raw = U.a8(fp + 0xB0)   -- 原 byte (发射门 ==0 → "no")
   out.completed = {}
   out.completed_count = ru32(fp + 0x4C) or 0
+  -- §4.3.14 shine 列表 (fp+32 {d,c@+44}; 名 C 串@+24 非空才收)
+  out.shine = {}
+  do
+    local sd, sc = rp(fp + 32), ru32(fp + 44) or 0
+    if O.kptr(sd) and sc > 0 and sc < LAYOUT.lim.PTR_SANE then
+      for k = 0, sc - 1 do
+        local e = rp(sd + 8 * k)
+        if O.kptr(e) then
+          local nm = U.cstr(e + 24)
+          if nm and nm ~= "" then
+            out.shine[#out.shine + 1] = nm end
+        end
+      end
+    end
+  end
+  -- §4.3.14 completed 双形态记录 (联合判定 + originator RH + 失效图;
+  -- 渲染规则: joint → "TAG 名" (tid 0 渲 "---"), plain → '"名"')。
+  -- 基桩 vt 判定 1.19.3 = BASE+0x11D220 (rp(vt+112) 相等 = plain)。
+  out.completed_records = {}
+  do
+    local R = self.R
+    local cd, cc2 = rp(fp + 0x40), ru32(fp + 0x4C) or 0
+    if O.kptr(cd) and cc2 > 0 and cc2 <= 1024 then
+      -- originator 表 (fp+152 RH, 24B 桶 {hash@0, dist@+4, key@+8, tid@+16})
+      local ob, omask = rp(fp + 152), ru32(fp + 164)
+      local oextra = ru8(fp + 168) or 0
+      local ovalid = O.kptr(ob) and omask and omask < 0x10000
+      -- fp+88 失效图 (16B 桶 {hash@0, dist@+4, key@+8}; 值 vp+4==0xFF
+      -- = 失效 → tid 0)
+      local ib, imask = rp(fp + 96), ru32(fp + 108)
+      local iextra = ru8(fp + 112) or 0
+      local ivalid = O.kptr(ib) and imask and imask < 0x10000
+      -- FNV-1a 32bit over 8 ptr bytes (键散布)
+      local function fnv1a_ptr(p)
+        local h = 0x811C9DC5
+        for i = 0, 7 do
+          local b = (p >> (8 * i)) & 0xFF
+          h = ((h ~ b) * 16777619) & 0xFFFFFFFF
+        end
+        return h
+      end
+      local function originator(e)
+        if ivalid then
+          local h = fnv1a_ptr(e)
+          local bk = ib + 16 * (h & imask)
+          local n = 1
+          while true do
+            local dist = ru8(bk + 4)
+            if not dist or dist == 0 or n > dist then break end
+            if rp(bk + 8) == e then
+              local vp = rp(bk)
+              if O.kptr(vp) and ru8(vp + 4) == 0xFF then
+                return 0          -- 失效 → tid 0
+              end
+              break
+            end
+            bk = bk + 16
+            n = n + 1
+            if n > imask + iextra + 2 then break end
+          end
+        end
+        if ovalid then
+          local h = fnv1a_ptr(e)
+          local bk = ob + 24 * (h & omask)
+          local n = 1
+          while true do
+            local dist = ru8(bk + 4)
+            if not dist or dist == 0 or n > dist then break end
+            if rp(bk + 8) == e then
+              return ru32(bk + 16) or 0
+            end
+            bk = bk + 24
+            n = n + 1
+            if n > omask + oextra + 2 then break end
+          end
+        end
+        return 0
+      end
+      for k = 0, cc2 - 1 do
+        local e = rp(cd + 8 * k)
+        if O.kptr(e) then
+          local nm = U.cstr(e + 24)
+          if nm and nm ~= "" then
+            local vt = rp(e)
+            -- ⚠ vt 判定勿用 O.kptr: 其上界 0x7FF000000000 切在
+            -- 本机映像基址 (0x7FF7_9x…) 之下, 虚表指针恒 false →
+            -- 全体误判 plain; 这里只需要下界哨兵
+            local joint = vt and vt >= 0x10000
+                and rp(vt + 112) ~= BASE + 0x11D220
+            local rec = { name = nm, joint = joint and true or false }
+            if rec.joint then
+              local tid = originator(e)
+              rec.originator_tid = tid
+              rec.originator = (tid > 0 and R) and R:tag(tid) or nil
+            end
+            out.completed_records[#out.completed_records + 1] = rec
+          end
+        end
+      end
+    end
+  end
   local cd = rp(fp + 0x40)
   if O.kptr(cd) and out.completed_count > 0 and out.completed_count <= 128 then
     for i = 0, out.completed_count - 1 do
@@ -894,3 +1176,437 @@ function Runtime.navy_leader_extras(self, char_id)
 end
 
 -- ============================================================
+
+-- ============================================================
+-- §4.4.9 character_manager 导出全量 reader (sv2_sec_character_manager 消费;
+-- writer 忠实; 存档 character[N] 写序 = 池内 id 升序 = reader 排序契约)。
+-- ⚠ leader fix5 = ×1e-5 (本域实证); sso/tokenname 缺表拒收 "=" 占位。
+local CM_VT_CHAR = GAME.layout.vt.CCharacter
+
+local function cm_sso(obj)
+  if not obj or obj < 0x10000 then return nil end
+  local size = ru32(obj + 0x10)
+  if not size or size > 4096 then return nil end
+  if size == 0 then return "" end
+  local cap = ru32(obj + 0x18)
+  local buf = (cap and cap > 15) and rp(obj) or obj
+  if not buf or buf < 0x10000 then return nil end
+  local chars = {}
+  for i = 0, size - 1 do
+    local c = ru32(buf + i)
+    if not c then return nil end
+    chars[#chars + 1] = string.char(c & 0xFF)
+  end
+  return table.concat(chars)
+end
+local function cm_tokname(t)
+  if not t or t == 0 then return nil end
+  local n = GAME.layout.token_name(t)
+  if type(n) == "string" and n ~= "" and n ~= "=" then return n end
+  return nil
+end
+local function cm_tagstr(tid)
+  local g = Runtime.gs()
+  local ttab = g and rp(g + 0x358)
+  if not tid or tid <= 0 or tid >= 100000 or not ttab then return nil end
+  return hoi4.read_str(ttab + 32 * tid)
+end
+local function cm_fix5(a) return (rp(a) or 0) * 1e-5 end
+
+-- §4.3.8 CModifier 本体 (name/data/pairs 三分; added_modifier 数组B 0 叶)
+local function cm_modifier(mod)
+  local rec = {}
+  if not O.kptr(mod) then return rec end
+  local dv = ru32(mod + 188)
+  if dv and dv ~= 1 then rec.data = dv end
+  local nm = cm_sso(mod + 88)
+  if nm and nm ~= "" then rec.name = nm end
+  local mnd = GAME.layout.modifier_count() or 0
+  if mnd > 0 then
+    local d, c = rp(mod + 16), ru32(mod + 28)
+    if O.kptr(d) and c and c > 0 and c <= LAYOUT.lim.PTR_SANE then
+      rec.pairs = {}
+      for j = 0, c - 1 do
+        local e = d + 16 * j
+        local mn = GAME.layout.modifier_token(ru32(e))
+        if mn then
+          rec.pairs[#rec.pairs + 1] = { name = mn, value = cm_fix5(e + 8) }
+        end
+      end
+    end
+  end
+  return rec
+end
+
+-- §4.4.2 CUnitLeader 16B {trait_ptr@0, val@+8} 对列表
+local function cm_pair_list(l, doff, coff, is_int)
+  local d, c = rp(l + doff), ru32(l + coff)
+  local out = {}
+  if O.kptr(d) and c and c > 0 and c <= 128 then
+    for i = 0, c - 1 do
+      local e = d + 16 * i
+      local tp = rp(e)
+      local nm = O.kptr(tp) and cm_tokname(ru32(tp + 8)) or nil
+      if nm then
+        if is_int then
+          out[#out + 1] = { name = nm, value = LAYOUT.as_i32(ru32(e + 8)) or 0 }
+        else
+          out[#out + 1] = { name = nm, value = cm_fix5(e + 8) }
+        end
+      end
+    end
+  end
+  return out
+end
+
+local CM_REASON = { [1] = "reassigned", [2] = "harmed",
+  [3] = "forced_into_hiding", [4] = "deployed", [5] = "withdrawing" }
+local CM_LEDGER = { [4] = "army", [8] = "navy", [16] = "air",
+  [28] = "military", [0xFFFFFFFF] = "invalid", [1] = "hidden",
+  [30] = "all", [2] = "civilian" }
+local CM_KIND = { [0] = "field_marshal", [1] = "corps_commander",
+  [2] = "navy_leader" }
+
+-- 将领块 (§4.4.2 CUnitLeader / §4.4.5 CArmyLeader / §4.4.6 CNavyLeader)
+local function cm_leader(p)
+  local l = rp(p + 0xA8)
+  if not O.kptr(l) then return nil end
+  local lt = ru32(l + 0xE7C)
+  local kind = CM_KIND[lt]
+  if not kind then return nil end
+  local rec = { kind = kind }
+  rec.id_type = ru32(l + 8) or 0
+  rec.id_id = ru32(l + 12) or 0
+  rec.name = cm_sso(l + 32)
+  rec.desc = cm_sso(l + 128)
+  rec.custom_cost_text = cm_sso(l + 160)
+  rec.portrait_path = cm_sso(l + 192)
+  rec.picture = cm_sso(l + 224)
+  rec.gfx = cm_sso(l + 256)
+  if (ru8(l + 3713) or 0) ~= 0 then
+    rec.female = (ru8(l + 3712) or 0) ~= 0 end
+  local sko = rp(l + 3680)
+  if O.kptr(sko) then
+    local sk = ru32(sko + 440)
+    if sk then rec.skill = sk end end
+  if (rp(l + 3688) or 0) ~= 0 then rec.experience = cm_fix5(l + 3688) end
+  local sid = ru32(l + 3924)
+  if sid and sid ~= 0 then rec.script_id = sid end
+  rec.link = cm_sso(l + 3648)
+  if (rp(l + 3776) or 0) ~= 0 then rec.max_traits = cm_fix5(l + 3776) end
+  -- 四技能 (≠0 才写): army 3928.. / navy 3944..; temp_deficit 有符号
+  local SK = { "attack_skill", "defense_skill" }
+  if lt == 2 then
+    SK[3], SK[4] = "maneuvering_skill", "coordination_skill"
+  else
+    SK[3], SK[4] = "planning_skill", "logistics_skill"
+  end
+  local soff = lt == 2 and { 3944, 3960, 3976, 3992 }
+    or { 3928, 3944, 3960, 3976 }
+  for i = 1, 4 do
+    local v = ru32(l + soff[i])
+    if v and v ~= 0 then rec[SK[i]] = v end
+  end
+  local toff = lt == 2 and { 4016, 4020, 4024, 4028 }
+    or { 3992, 3996, 4000, 4004 }
+  for i = 1, 4 do
+    local v = LAYOUT.as_i32(ru32(l + toff[i]))
+    if v and v ~= 0 then
+      rec[SK[i]:gsub("_skill$", "_skill_temp_deficit")] = v end
+  end
+  if lt ~= 2 then
+    local tp = rp(l + 4272)
+    if O.kptr(tp) then rec.preferred_tactic = ru32(tp + 152) or 0 end
+    local pt0, pt1 = ru32(l + 4176), ru32(l + 4180)
+    if (pt0 and pt0 ~= 0) or (pt1 and pt1 ~= 0) then
+      -- writer 尾段有 idreg 注册表校验 (sub_14220A3D0): 悬垂引用不写
+      if GAME.layout.idreg_unit_resolve(pt0, pt1) then
+        rec.pending_reassign = { type = pt0 or 0, id = pt1 or 0 } end
+    end
+  end
+  if lt == 2 then
+    local hqid = ru32(l + 4012)
+    if hqid and hqid ~= 0 then
+      rec.naval_headquarter = { type = ru32(l + 4008) or 0, id = hqid } end
+    rec.penalty = cm_fix5(l + 4032)
+  end
+  do -- traits (空不写)
+    local d, c = rp(l + 3528), ru32(l + 3540)
+    if O.kptr(d) and c and c > 0 and c <= 128 then
+      local ts = {}
+      for i = 0, c - 1 do
+        local tp = rp(d + 8 * i)
+        local nm = O.kptr(tp) and cm_tokname(ru32(tp + 8))
+        if nm then ts[#ts + 1] = nm end
+      end
+      if #ts > 0 then rec.traits = ts end
+    end
+  end
+  rec.in_progress = cm_pair_list(l, 3576, 3588, false)
+  rec.traits_to_remove = cm_pair_list(l, 3552, 3564, true)
+  rec.trait_xp_factor = cm_pair_list(l, 3600, 3612, false)
+  local cd = ru32(l + 3716)
+  if cd and cd ~= 0 then
+    rec.cooldown_reason = CM_REASON[cd]
+    rec.enable_h = ru32(l + 3752)
+    rec.cooldown_start_h = ru32(l + 3728)
+  end
+  local gx = ru32(l + 3796)
+  if gx and gx > 0 then rec.government_in_exile_tag = cm_tagstr(gx) end
+  local leg = ru32(l + 3800)
+  if leg and leg ~= 0xFFFFFFFF then
+    rec.legacy_id = LAYOUT.as_i32(leg) end
+  rec.promoted_from_unit = (ru8(l + 3804) or 0) ~= 0
+  if lt ~= 2 and (ru8(l + 4185) or 0) ~= 0 then
+    rec.captured = true
+    local cb = LAYOUT.as_i32(ru32(l + 4188)) or 0
+    if cb > 0 then rec.captured_by = cm_tagstr(cb) end
+    local lp = rp(l + 4192)
+    if O.kptr(lp) then rec.captured_location = ru32(lp + 164) or 0 end
+  end
+  if lt ~= 2 and (ru8(l + 4200) or 0) ~= 0 then
+    rec.deployed = true
+    rec.deployment_cost = cm_fix5(l + 4208) end
+  do -- sub_unit_modifiers (A/B key 升序归并; units 叶未解仅出修正)
+    local dA, dB = rp(l + 304), rp(l + 328)
+    local cA = (O.kptr(dA) and ru32(l + 316)) or 0
+    local cB = (O.kptr(dB) and ru32(l + 340)) or 0
+    if cA > LAYOUT.lim.PTR_SANE then cA = 0 end
+    if cB > LAYOUT.lim.PTR_SANE then cB = 0 end
+    if cA + cB > 0 then
+      rec.sub_unit_modifiers = {}
+      local function shipname(idx)
+        if not idx then return nil end
+        if idx == 0 then return "null" end
+        return LAYOUT.idb_token("sub_unit", idx)
+      end
+      local function emit_B(j)
+        local e = dB + 208 * j
+        local nm = shipname(ru32(e + 8))
+        local mod = e + 16
+        if nm and rp(mod) == BASE + 0x27185F0 then
+          rec.sub_unit_modifiers[#rec.sub_unit_modifiers + 1] =
+            { ship = nm, mod = cm_modifier(mod) }
+        end
+      end
+      local i, j = 0, 0
+      while i < cA or j < cB do
+        local kA = (i < cA and ru32(dA + 56 * i + 8)) or 0xFFFFFFFF
+        local kB = (j < cB and ru32(dB + 208 * j + 8)) or 0xFFFFFFFF
+        if kA <= kB then
+          if kA == kB and j < cB then emit_B(j); j = j + 1 end
+          i = i + 1
+        else
+          emit_B(j); j = j + 1
+        end
+      end
+    end
+  end
+  return rec
+end
+
+-- 顾问块 (§4.4.11 map 中序; §4.4.15 CAdvisor)
+local function cm_isnil(n)
+  return not O.kptr(n) or (ru8(n + 25) or 1) ~= 0
+end
+local function cm_advisors(p)
+  local head = rp(p + 0xB0)
+  if not O.kptr(head) then return nil end
+  local out = {}
+  local nodes = GAME.layout.rb_inorder(head)
+  local guard = 0
+  for _, node in ipairs(nodes or {}) do
+    guard = guard + 1
+    if guard > 64 then break end
+    local adv = rp(node + 72)
+    if O.kptr(adv) then
+      local a = { slot = cm_sso(adv + 0x80) }
+      -- template ref@+0x18 → get=*(ref+0x10); 兜底 dynamic_template@+0x20
+      local ref = rp(adv + 0x18)
+      local tname
+      if O.kptr(ref) then
+        local obj = rp(ref + 0x10)
+        if O.kptr(obj) then
+          tname = cm_tokname(ru32(obj + 8))
+          if not tname then
+            local s2 = cm_sso(obj + 0x18)
+            if s2 and s2 ~= "" then tname = s2 end
+          end
+        end
+      end
+      if tname then
+        a.template = tname
+      else
+        local dtp = rp(adv + 0x20)
+        if O.kptr(dtp)
+            and rp(dtp) == BASE + GAME.layout.vt.CAdvisorTemplate then
+          local dt = {}
+          local lv = ru32(dtp + 0x18) or 0
+          if lv == 0xFFFF then lv = 0xFFFFFFFF end
+          dt.ledger = CM_LEDGER[lv]
+          dt.slot = cm_sso(dtp + 0x70)
+          dt.idea_token = cm_sso(dtp + 0x20)
+          dt.cost = cm_fix5(dtp + 0xB8)
+          dt.removal_cost = cm_fix5(dtp + 0xC8)
+          dt.can_be_fired = (ru8(dtp + 0xD0)) ~= 0
+          dt.command_power = cm_fix5(dtp + 0xD8)
+          do
+            local d, c = rp(dtp + 0xE0), ru32(dtp + 0xEC)
+            if O.kptr(d) and c and c > 0
+                and c < LAYOUT.lim.PTR_SANE then
+              dt.traits = {}
+              for j = 0, c - 1 do
+                local tnm = cm_sso(d + 40 * j)
+                if tnm and tnm ~= "" then
+                  dt.traits[#dt.traits + 1] = tnm end
+              end
+            end
+          end
+          dt.desc = cm_sso(dtp + 0x418)
+          a.dynamic_template = dt
+        end
+      end
+      do
+        local lv = ru32(adv + 0x28) or 0
+        if lv == 0xFFFF then lv = 0xFFFFFFFF end
+        a.ledger = CM_LEDGER[lv]
+      end
+      a.idea_token = cm_sso(adv + 0x30)
+      if (rp(adv + 0xA8) or 0) ~= 0 then
+        a.political_power = cm_fix5(adv + 0xA8) end
+      if (rp(adv + 0xC0) or 0) ~= 0 then
+        a.command_power = cm_fix5(adv + 0xC0) end
+      do
+        local d, c = rp(adv + 0xC8), ru32(adv + 0xD4)
+        if O.kptr(d) and c and c > 0 and c < LAYOUT.lim.PTR_SANE then
+          a.traits = {}
+          for j = 0, c - 1 do
+            local tr = rp(d + 8 * j)
+            if O.kptr(tr) then
+              local nm = cm_sso(tr + 0x18)
+              if nm and nm ~= "" then
+                a.traits[#a.traits + 1] = nm end end
+          end
+        end
+      end
+      a.portrait = cm_sso(adv + 0x280)
+      if (rp(adv + 0xB0) or 0) ~= 0 then
+        a.removal_cost = cm_fix5(adv + 0xB0) end
+      a.can_be_fired_no = (ru8(adv + 0xB8) or 1) == 0
+      a.desc = cm_sso(adv + 0x2D8)
+      do -- modifier 内嵌@+0xE0 (块门三选一 = 书)
+        local mod = adv + 0xE0
+        local gate = (LAYOUT.as_i32(ru32(mod + 136)) or 0) > 0
+            or (ru32(mod + 52) or 0) ~= 0
+        if not gate then
+          local mnd = GAME.layout.modifier_count() or 0
+          if mnd > 0 then
+            local d, c = rp(mod + 16), ru32(mod + 28)
+            if O.kptr(d) and c and c > 0 and c <= LAYOUT.lim.PTR_SANE then
+              local cmask = GAME.layout.modifier_category_mask() or 0
+              for j = 0, c - 1 do
+                local cat = GAME.layout.modifier_category(
+                    ru32(d + 16 * j))
+                if cat and (cat == 0 or (cmask & cat) ~= 0) then
+                  gate = true
+                  break
+                end
+              end
+            end
+          end
+        end
+        if gate then a.modifier = cm_modifier(mod) end
+      end
+      out[#out + 1] = a
+    end
+  end
+  return out
+end
+
+-- Runtime.character_manager_full -> {next_character_id, historical, dynamic}
+function Runtime.character_manager_full(self)
+  local g = self.gs()
+  local mgr = g and rp(g + 0x6A8)
+  if not O.kptr(mgr) then return nil end
+  local out = {}
+  local ncid = ru32(mgr + 8)
+  if ncid then out.next_character_id = ncid end
+  local function pool(doff, coff)
+    local data, n = rp(mgr + doff), ru32(mgr + coff)
+    local t = {}
+    if O.kptr(data) and n and n > 0 and n < 200000 then
+      for i = 0, n - 1 do
+        local p = rp(data + 8 * i)
+        if p and rp(p) == BASE + CM_VT_CHAR then
+          t[#t + 1] = { addr = p, id = ru32(p + 0xC) or 0 }
+        end
+      end
+    end
+    table.sort(t, function(a, b) return a.id < b.id end)
+    return t
+  end
+  local function char_rec(ch)
+    local p = ch.addr
+    local rec = { id = ch.id, addr = p,
+      id_type = ru32(p + 8) or 0, id_id = ru32(p + 0xC) or 0 }
+    rec.token = cm_tokname(ru32(p + 0x18))
+    local tp = rp(p + 0x20)
+    if O.kptr(tp) then rec.template = cm_tokname(ru32(tp + 8)) end
+    rec.name = cm_sso(p + 0x48)
+    local tid = ru32(p + 0x68)
+    if tid and tid > 0 then rec.country = cm_tagstr(tid) end
+    local nid = ru32(p + 0x6C)
+    if nid and nid > 0 then rec.nationality = cm_tagstr(nid) end
+    rec.gender = ru32(p + 0x70) or 0
+    rec.leader = cm_leader(p)
+    local ot, oi = ru32(p + 0xC8) or 0, ru32(p + 0xCC) or 0
+    if ot ~= 0 or oi ~= 0 then
+      rec.operative = { type = ot, id = oi } end
+    rec.advisors = cm_advisors(p)
+    do -- variables CVariables 内嵌 @p+216 (BB9830 判空门 = count@+32)
+      local vo = p + 216
+      local vcnt = ru32(vo + 32) or 0
+      if vcnt > 0 and vcnt < LAYOUT.lim.PTR_HUGE then
+        local buckets = GAME.layout.rh_iter(vo, { data = 0x18,
+          mask = 0x24, count = 0x20, stride = 0x30,
+          maxn = LAYOUT.lim.PTR_HUGE })
+        local vlist = {}
+        for _, b in ipairs(buckets or {}) do
+          local dist = ru32(b + 4)
+          if dist and (dist & 0xFF) ~= 0 and (dist & 0xFF) ~= 0xFE
+              and (dist & 0xFF) ~= 0xFF then
+            local nm = cm_sso(b + 8)
+            local v = rp(b + 0x28)
+            if v then v = LAYOUT.as_i64(v) end
+            if nm and v then
+              vlist[#vlist + 1] = { name = nm, value = v / 100000 } end
+          end
+        end
+        rec.variables = vlist   -- 排序/^N 判定 = 段层 (拼串排 + %.5f)
+      end
+    end
+    return rec
+  end
+  out.historical = {}
+  for _, ch in ipairs(pool(0x10, 0x1C)) do
+    out.historical[#out.historical + 1] = char_rec(ch) end
+  out.dynamic = {}
+  for _, ch in ipairs(pool(0x28, 0x34)) do
+    out.dynamic[#out.dynamic + 1] = char_rec(ch) end
+  return out
+end
+
+
+-- §1.2 unit-leader CID 注册表导出 reader (gs+1040, count@+1052; idx0 哨兵)
+function Runtime.unit_leader_registry(self)
+  local g = self.gs()
+  local d, cnt = rp(g + 0x410), ru32(g + 0x41C)
+  if not (O.kptr(d) and cnt and cnt > 1 and cnt < 100000) then return nil end
+  local out = {}
+  for i = 1, cnt - 1 do
+    local ty = ru32(d + 8 * i)
+    local id = ru32(d + 8 * i + 4)
+    if ty and ty ~= 0 then out[#out + 1] = { type = ty, id = id } end
+  end
+  return out
+end

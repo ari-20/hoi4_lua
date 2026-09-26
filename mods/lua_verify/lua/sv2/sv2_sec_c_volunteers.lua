@@ -22,6 +22,7 @@ local function mk_h(ctx)
     local SL, emit, tag, O, i = SV2.lib, ctx.emit, ctx.tag, ctx.O, ctx.i
     local rp, ru32, ru8, kptr = SL.rp, SL.ru32, SL.ru8, SL.kptr
     local cc, gs, BASE = ctx.cc, ctx.gs, ctx.BASE
+    local c = ctx.country
     local H = { SL = SL, emit = emit, tag = tag, O = O, i = i,
         rp = rp, ru32 = ru32, ru8 = ru8, kptr = kptr,
         cc = cc, gs = gs, BASE = BASE }
@@ -417,68 +418,47 @@ local function mk_h(ctx)
     -- mode = "volunteers" (容器 5040/5052 + group 子块 + force)
     -- | "exile" (容器 5064/5076 + is_to_host)
     function H.emit_transfers(mode)
-        local doff, coff = 5040, 5052
-        if mode == "exile" then doff, coff = 5064, 5076 end
-        local vdata, vcnt = rp(cc + doff), ru32(cc + coff)
-        if not (kptr(vdata) and vcnt and vcnt > 0 and vcnt < GAME.layout.lim.PTR_SANE) then return end
+        -- 容器走查/T 元素字段/门 = Country.volunteers_transfers (§4.10.19)
+        local okv, tl = pcall(function() return c:volunteers_transfers(mode) end)
+        tl = okv and tl or {}
         local key = (mode == "exile") and "exile_divisions_transfer"
             or "volunteers_transfer"
         local tseq = SL.seqc()
-        for ti = 0, vcnt - 1 do
-            local T = rp(vdata + 8 * ti)
-            if kptr(T) then
-                local tpfx = tseq(key) .. "."
-                local function TR(path, val)
-                    if val ~= nil then emit(tag, tpfx .. path, val) end
-                end
-                TR("to", H.QE(H.tagstr(ru32(T + 8))))   -- 恒写 (0x2990)
-                TR("from", H.QE(H.tagstr(ru32(T + 12)))) -- 恒写 (0x298F)
-                TR("days", H.NF(ru32(T + 40) or 0))    -- 恒写 (0x296D)
-                if mode == "exile" then
-                    TR("is_to_host", SL.yn(ru8(T + 44) or 0)) -- 恒写 (0x3AC2)
-                else
-                    TR("sender", SL.yn(ru8(T + 44) or 0)) -- 恒写 yes/no (0x240)
-                end
-                TR("target_provinces", H.NF(ru32(T + 48) or 0)) -- 恒写 (0x2D15)
-                if mode == "volunteers" and (ru8(T + 52) or 0) ~= 0 then
-                    TR("group", "yes")                 -- group 门 (u8@T+52)
-                    local lty, lid = ru32(T + 56), ru32(T + 60)
-                    if ((lty or 0) ~= 0 or (lid or 0) ~= 0)
-                        and H.unit_resolve(lty, lid) then
-                        TR("leader", SL.idpair(lid, lty)) end
-                    local uty, uid = ru32(T + 64), ru32(T + 68)
-                    if ((uty or 0) ~= 0 or (uid or 0) ~= 0)
-                        and H.unit_resolve(uty, uid) then
-                        TR("leader_unit", SL.idpair(uid, uty)) end
-                    -- group_color: CColor 内嵌@T+80 (f32 ×255 取整), 门内恒写
-                    TR("group_color", string.format("%d %d %d",
-                        H.fcol(ru32(T + 96)), H.fcol(ru32(T + 100)),
-                        H.fcol(ru32(T + 104))))
-                    local gnsz = ru32(T + 128)         -- group_name size 门
-                    if gnsz and gnsz > 0 then
-                        TR("group_name", H.QE(SL.sso(T + 112))) end
-                end
-                -- division 容器 {count i32@T+28, data@T+16}, 8B 内联对 {ty,id}
-                local dcnt, ddata = ru32(T + 28), rp(T + 16)
-                if kptr(ddata) and dcnt and dcnt > 0
-                    and dcnt < GAME.layout.lim.PTR_SANE then
-                    local dseq = SL.seqc()
-                    for di = 0, dcnt - 1 do
-                        local dty = ru32(ddata + 8 * di)
-                        local did = ru32(ddata + 8 * di + 4)
-                        if ((dty or 0) ~= 0 or (did or 0) ~= 0) then
-                            -- reader 直解: idreg + res-16 + vt 双校验 + mk_div
-                            local dv = O.unit_division(O, dty, did)
-                            if dv then
-                                H.emit_division(
-                                    tpfx .. dseq("division") .. ".", dv)
-                            end
-                        end
-                    end
-                end
-                if mode == "volunteers" and (ru8(T + 144) or 0) ~= 0 then
-                    TR("force", "yes") end
+        for _, T in ipairs(tl) do
+            local tpfx = tseq(key) .. "."
+            local function TR(path, val)
+                if val ~= nil then emit(tag, tpfx .. path, val) end
             end
+            TR("to", H.QE(H.tagstr(T.to_tid)))       -- 恒写 (0x2990)
+            TR("from", H.QE(H.tagstr(T.from_tid)))   -- 恒写 (0x298F)
+            TR("days", H.NF(T.days))                 -- 恒写 (0x296D)
+            if mode == "exile" then
+                TR("is_to_host", SL.yn(T.is_to_host))     -- 恒写 (0x3AC2)
+            else
+                TR("sender", SL.yn(T.sender))             -- 恒写 yes/no (0x240)
+            end
+            TR("target_provinces", H.NF(T.target_provinces)) -- 恒写 (0x2D15)
+            if T.group_flag then
+                TR("group", "yes")
+                if T.leader then
+                    TR("leader", SL.idpair(T.leader.id, T.leader.type)) end
+                if T.leader_unit then
+                    TR("leader_unit",
+                        SL.idpair(T.leader_unit.id, T.leader_unit.type)) end
+                TR("group_color", string.format("%d %d %d",
+                    T.group_color[1], T.group_color[2], T.group_color[3]))
+                if T.group_name then
+                    TR("group_name", H.QE(T.group_name)) end
+            end
+            local dseq = SL.seqc()
+            for _, dd in ipairs(T.divisions or {}) do
+                -- reader 直解: idreg + res-16 + vt 双校验 + mk_div
+                local dv = O.unit_division(O, dd.type, dd.id)
+                if dv then
+                    H.emit_division(tpfx .. dseq("division") .. ".", dv)
+                end
+            end
+            if T.force then TR("force", "yes") end
         end
     end
 
@@ -506,11 +486,10 @@ SV2.csec[#SV2.csec + 1] = { name = "country.expeditionaries_sent",
         -- §4.3.1 expeditionaries_sent {data@cc+760, count u32@cc+772}
         -- 8B 内联对 {type@+0, id@+4},
         -- #N 1 基恒编号 (writer sub_1406BBE20)
-        local vd, vc = rp(ctx.cc + 760), ru32(ctx.cc + 772)
-        if kptr(vd) and vc and vc > 0 and vc < 4096 then
-            for q = 0, vc - 1 do
-                emit(tag, "expeditionaries_sent.#" .. (q + 1),
-                    SL.idpair(ru32(vd + 8 * q + 4), ru32(vd + 8 * q)))
-            end
+        local oke, el = pcall(function() return ctx.country:expeditionaries() end)
+        el = oke and el or {}
+        for q, dd in ipairs(el) do
+            emit(tag, "expeditionaries_sent.#" .. q,
+                SL.idpair(dd.id, dd.type))
         end
     end }

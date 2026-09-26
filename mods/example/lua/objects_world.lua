@@ -1115,3 +1115,166 @@ function Runtime.state_fields(self, state_id)
   end
   return rec
 end
+
+-- ============================================================
+-- §4.25 全局世界族导出全量 reader (sv2_sec_global_tails region/threat/
+-- game_rules/entity/variables 块消费; 布局/写门 = 书 §4.25.1-5)
+local function gw_fix5(a)
+  local v = a and rp(a) or nil
+  return v and (v * 1e-5) or nil
+end
+
+-- §4.25.2 region 制海族 (§1.2 +736 数组, id 1..count-1)
+function Runtime.global_regions(self)
+  local g = self.gs()
+  local rarr, rcnt = rp(g + 736), ru32(g + 748)
+  if not (O.kptr(rarr) and rcnt and rcnt > 1 and rcnt < 4096) then
+    return nil end
+  local out = {}
+  for id = 1, rcnt - 1 do
+    local robj = rp(rarr + 8 * id)
+    if O.kptr(robj) then
+      local rec = { id = id }
+      if (ru32(robj + 72) or 0) ~= 0 then
+        local nm = U.sso(robj + 56)
+        if nm and nm ~= "" then rec.name = nm end
+      end
+      local dom = rp(robj + 232)
+      if O.kptr(dom) then
+        local dd = {}
+        local tags = {}
+        for _, node in ipairs(GAME.layout.rb_inorder(rp(dom + 16))) do
+          local t = Runtime:tag(ru32(node + 28) or 0)
+          if t then tags[#tags + 1] = t end
+        end
+        dd.countries = tags
+        if (ru32(dom + 48) or 0) > 0 then
+          local bd = rp(dom + 40)
+          local cap = (ru32(dom + 52) or 0) + 1 + (ru8(dom + 56) or 0)
+          local ents = {}
+          if O.kptr(bd) and cap > 0 and cap < 4096 then
+            for b = 0, cap - 1 do
+              local bk = bd + 88 * b
+              local dist = ru8(bk + 4) or 0
+              if dist ~= 0 and dist ~= 0xFE and dist ~= 0xFF then
+                ents[#ents + 1] = { key = ru32(bk + 8) or 0, b = bk }
+              end
+            end
+          end
+          table.sort(ents, function(x, y) return x.key < y.key end)
+          dd.values = {}
+          for _, en in ipairs(ents) do
+            local bk = en.b + 16
+            dd.values[#dd.values + 1] = {
+              tag = Runtime:tag(en.key),
+              current = gw_fix5(bk + 24), target = gw_fix5(bk + 40),
+              base_target = gw_fix5(bk + 32), previous = gw_fix5(bk + 56),
+              decline_from = gw_fix5(bk + 64),
+              individual_ratio = gw_fix5(bk + 48) }
+          end
+        end
+        rec.dominance = dd
+      end
+      out[#out + 1] = rec
+    end
+  end
+  return out
+end
+
+-- §4.25.3 threat (挂 §1.2 +1712)
+function Runtime.global_threats(self)
+  local g = self.gs()
+  local holder = rp(g + 1712)
+  if not O.kptr(holder) then return nil end
+  local d, c = rp(holder + 16), ru32(holder + 28)
+  if not (O.kptr(d) and c and c > 0 and c < 4096) then return nil end
+  local out = {}
+  for i = 0, c - 1 do
+    local el = rp(d + 8 * i)
+    if O.kptr(el) then
+      local rec = { threat = gw_fix5(el + 16) or 0,
+        final_threat = gw_fix5(el + 24) or 0,
+        daily = gw_fix5(el + 32) or 0 }
+      local ti = ru32(el + 8)
+      if ti and ti > 0 then rec.tag = Runtime:tag(ti) end
+      local tg = ru32(el + 12)
+      if tg and tg > 0 then rec.target = Runtime:tag(tg) end
+      rec.date_h = ru32(el + 48)   -- date3 无门
+      rec.label = U.sso(el + 64)   -- 恒写 (空串也写)
+      out[#out + 1] = rec
+    end
+  end
+  return out
+end
+
+-- §4.25.4 game_rules (挂 §1.2 +1088; 垃圾槽靠 token_name 上界过滤)
+function Runtime.global_game_rules(self)
+  local g = self.gs()
+  local gr = rp(g + 1088)
+  if not O.kptr(gr) then return nil end
+  local vd, vc = rp(gr + 8), ru32(gr + 16)
+  if not (O.kptr(vd) and vc and vc > 0 and vc < LAYOUT.lim.PTR_SANE) then
+    return nil end
+  local out = {}
+  for p = 0, 2 * vc - 1 do
+    local k = ru32(vd + 8 * p) or 0
+    local v = ru32(vd + 8 * p + 4) or 0
+    local kn = k > 0 and GAME.layout.token_name(k) or nil
+    local vn = v > 0 and GAME.layout.token_name(v) or nil
+    if kn and vn then out[#out + 1] = { k = kn, v = vn } end
+  end
+  return out
+end
+
+-- §4.28.6 entity + §4.25.5 子表 (挂 §1.2 +1096)
+function Runtime.global_entity(self)
+  local g = self.gs()
+  local obj = rp(g + 1096)
+  if not O.kptr(obj) then return nil end
+  local rec = { id = ru32(obj + 8) or 0, subs = {} }
+  local d, n = rp(obj + 16), ru32(obj + 28) or 0
+  if not O.kptr(d) or n <= 0 or n > LAYOUT.lim.PTR_SANE then
+    return rec end
+  for i = 0, n - 1 do
+    local key = ru32(d + 16 * i) or 0
+    local ep = rp(d + 16 * i + 8)
+    if O.kptr(ep) then
+      local s2 = { key = key, name = U.sso(ep + 16) }
+      for _, fv in ipairs({ { 48, "x" }, { 56, "y" }, { 64, "z" },
+          { 88, "scale" }, { 96, "rotation" }, { 72, "min_zoom" } }) do
+        s2[fv[2]] = (rp(ep + fv[1]) or 0) * 1e-5
+      end
+      local ani = U.sso(ep + 104)
+      if ani and ani ~= "" then s2.animation = ani end
+      local trg = rp(ep + 136)
+      if O.kptr(trg) then s2.visible = U.sso(trg + 96) end
+      rec.subs[#rec.subs + 1] = s2
+    end
+  end
+  return rec
+end
+
+-- §4.25.1 全局 CVariables *(gs+2432) (rh_iter 大档位 262144 实证)
+function Runtime.global_variables(self)
+  local g = self.gs()
+  local vo = rp(g + 2432)
+  if not O.kptr(vo) then return nil end
+  local rec = {}
+  local r8 = ru32(vo + 8)
+  if r8 and r8 ~= 1 then
+    rec.random = { ru32(vo + 12) or 0, r8 } end
+  local buckets = GAME.layout.rh_iter(vo, { data = 0x18, mask = 0x24,
+    stride = 0x30, maxn = 262144 })
+  local list = {}
+  for _, b in ipairs(buckets or {}) do
+    local dist = ru32(b + 4)
+    if dist and (dist & 0xFF) ~= 0 and (dist & 0xFF) ~= 0xFE
+        and (dist & 0xFF) ~= 0xFF then
+      local nm = U.sso(b + 8)
+      local val = gw_fix5(b + 0x28)
+      if nm and val then list[#list + 1] = { name = nm, value = val } end
+    end
+  end
+  rec.entries = list   -- 排序 = 段层 (键字节序拼串排)
+  return rec
+end

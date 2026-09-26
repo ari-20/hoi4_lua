@@ -42,9 +42,10 @@ SV2.gsec[#SV2.gsec + 1] = { name = "states", emit = function(ctx)
             if st.controller and st.controller ~= "" and st.controller ~= st.owner then
                 E("controller", '"' .. st.controller .. '"')
             end
-            -- 全零池引擎整块不写, 三叶恒全 — §4.13 CState (CStateManpower)
-            if (st.manpower_available or 0) ~= 0 or (st.manpower_locked or 0) ~= 0
-                or (st.manpower_total or 0) ~= 0 then
+            -- 写门 = manpower_total ≠0 (writer 0x1409D4040 活体实证:
+            -- 3103.11 运行后 76 州 avail/locked 非零而 total=0 整块不写
+            -- — 旧"三值任一非零"经验门被证伪); 三叶恒全
+            if (st.manpower_total or 0) ~= 0 then
                 E("manpower_pool.available", tostring(st.manpower_available or 0))
                 E("manpower_pool.locked", tostring(st.manpower_locked or 0))
                 E("manpower_pool.total", tostring(st.manpower_total or 0))

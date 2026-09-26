@@ -70,19 +70,10 @@ SV2.csec[#SV2.csec + 1] = { name = "country.production", emit = function(ctx)
         emit(tag, b .. ".id", SL.num(nb.id or 0))
     end
 
-    -- ===== available_equipments (id 对行, 多重集) =====
-    -- §4.8 CProductionStatus
-    do
-        local aed, aec = rp(ps + 160), ru32(ps + 172)
-        if kptr(aed) and aec and aec > 0 and aec < GAME.layout.lim.PTR_HUGE then
-            for k = 0, aec - 1 do
-                local v = rp(aed + 8 * k)
-                if kptr(v) then
-                    emit(tag, "production.available_equipments.equipment",
-                        SL.idpair(ru32(v + 12), ru32(v + 8)))
-                end
-            end
-        end
+    -- ===== available_equipments (id 对行, 多重集; reader avail_equips) =====
+    for _, av in ipairs(psr and psr.avail_equips or {}) do
+        emit(tag, "production.available_equipments.equipment",
+            SL.idpair(av.id, av.type))
     end
 
     -- ===== 顶层标量 =====
@@ -136,10 +127,10 @@ SV2.csec[#SV2.csec + 1] = { name = "country.production", emit = function(ctx)
         if fam and e then
             local p = "production." .. lseq(fam)
             emit(tag, p .. ".id", SL.idpair(lr.line_id, lr.line_type))
-            if (rp(e + 56) or 0) ~= 0 then
+            if lr.produced_gate then
                 emit(tag, p .. ".produced", SL.num(lr.produced))
             end
-            if (ru32(e + 24) or 0) ~= 0 then
+            if lr.active_gate then
                 emit(tag, p .. ".active_factories",
                     SL.num(lr.active_factories))
             end
@@ -149,7 +140,7 @@ SV2.csec[#SV2.csec + 1] = { name = "country.production", emit = function(ctx)
             end
             emit(tag, p .. ".priority", SL.num(lr.priority))
             emit(tag, p .. ".amount", SL.num(lr.amount))
-            if (rp(e + 48) or 0) ~= 0 then
+            if lr.speed_gate then
                 emit(tag, p .. ".speed", SL.num(lr.speed))
             end
             emit(tag, p .. ".cost", SL.num(lr.cost))
@@ -179,15 +170,15 @@ SV2.csec[#SV2.csec + 1] = { name = "country.production", emit = function(ctx)
                 emit(tag, rb .. ".need", SL.num(rv.need))
             end
             -- 转换/界面族 (writer 0x1419260B0 尾; 本存档零行)
-            if (ru8(e + 236) or 0) ~= 0 then
+            if (lr.converting_flag or 0) ~= 0 then
                 emit(tag, p .. ".is_converting", "yes")
                 emit(tag, p .. ".non_conversion_speed",
                     SL.num(fix5(e + 224)))
             end
-            if (ru8(e + 237) or 0) ~= 0 then
+            if (lr.collapsed_flag or 0) ~= 0 then
                 emit(tag, p .. ".collapsed_interface", "yes")
             end
-            local ifs = ru32(e + 240) or 1
+            local ifs = lr.interface_scale or 1
             if ifs ~= 1 then
                 emit(tag, p .. ".interface_factory_scale", SL.num(ifs))
             end
@@ -355,131 +346,13 @@ SV2.csec[#SV2.csec + 1] = { name = "country.production", emit = function(ctx)
         blkcnt[k] = n
         return n == 1 and name or (name .. "[" .. n .. "]")
     end
-    -- ⚠ 迁移临时内联 (objects_v2 修 CC_VT2 后可回收此块换回 c:mio):
-    -- 1.19.3 国家 vt 搬家致共享层 c:mio 恒 nil → 全部国家
-    -- industrial_organisations 整树 MISS, 此处绕开国家 vt 门直走 pm
-    -- 容器, 字段解析 = MIOrgMT 同构 (offsets/门逐项照抄)。
-    -- §4.8.12 NIndustrialOrganisation::COrganisation
-    local miovt = ctx.BASE + GAME.layout.vt.COrganisation
-    local tnm = GAME.layout and GAME.layout.token_name
-    local function mfix5(p) local q = rp(p); return q and q * 1e-5 or nil end
-    local function mio_list(cc)
-        if not cc then return nil end
-        local pmc = rp(cc + 0xF68)
-        if not kptr(pmc) then return nil end
-        local d, n = rp(pmc + 0x130), ru32(pmc + 0x13C)
-        if not kptr(d) or not n or n <= 0 or n >= 65536 then return nil end
-        local out = {}
-        for i = 0, n - 1 do
-            local a = rp(d + 8 * i)
-            if kptr(a) and rp(a) == miovt then
-                local rec = { addr = a,
-                    org_type = ru32(a + 0x08), org_id = ru32(a + 0x0C),
-                    name = sso(a + 0x60), icon = sso(a + 0x80),
-                    research_bonus = mfix5(a + 0xA0),
-                    task_capacity = ru32(a + 0xA8),
-                    funds = mfix5(a + 0x128),
-                    size = ru32(a + 0x130), points = ru32(a + 0x134),
-                    upgrades = (ru8(a + 0x138) or 0) == 1 and 1 or 0,
-                    research_assign_cost = mfix5(a + 176),
-                    production_assign_cost = mfix5(a + 184),
-                    design_team_change_cost = ru32(a + 192),
-                    add_mio_funds_gain_factor = mfix5(a + 200) }
-                -- allowed_policies {d@+368, c@+380} u32 token (c<=256 门)
-                do
-                    local ap = {}
-                    local apd, apc = rp(a + 368), ru32(a + 380)
-                    if kptr(apd) and apc and apc > 0 and apc <= 256 then
-                        for k = 0, apc - 1 do
-                            local tk = ru32(apd + 4 * k)
-                            ap[#ap + 1] = (tk and tnm and tnm(tk))
-                                or (tk and "?" .. tostring(tk)) or nil
-                        end
-                    end
-                    rec.allowed_policies = ap
-                end
-                -- unlocked traits (RB 中序 @+320, trait token@node+40)
-                do
-                    local ut = {}
-                    local head = rp(a + 320)
-                    local node = head and rp(head)
-                    local guard = 0
-                    while node and (ru8(node + 25) or 0) == 0
-                        and guard < 512 do
-                        guard = guard + 1
-                        local tk = ru32(node + 40)
-                        ut[#ut + 1] = tk and tnm and tnm(tk) or nil
-                        local r = rp(node + 16)
-                        if r and (ru8(r + 25) or 0) == 0 then
-                            node = r
-                            while node do
-                                local l = rp(node)
-                                if l and (ru8(l + 25) or 0) == 0 then
-                                    node = l
-                                else
-                                    break
-                                end
-                            end
-                        else
-                            while true do
-                                local p = rp(node + 8)
-                                if not p or (ru8(p + 25) or 0) ~= 0 then
-                                    node = nil
-                                    break
-                                end
-                                -- ⚠ 先比较旧 node (来自左子才继续上溯),
-                                -- 再上移 (MIOrgMT 原语义)
-                                local pr = rp(p + 16)
-                                local from_left = (pr == node)
-                                node = p
-                                if not from_left then break end
-                            end
-                        end
-                    end
-                    rec.unlocked_traits = ut
-                end
-                -- history (RH 表 @+248 桶 64B; date 门 flag b@+0x30 +
-                -- 43800000..300000000 纪元窗)
-                do
-                    local his = {}
-                    local hbase = a + 248
-                    local ent = rp(hbase)
-                    local mask = ru32(hbase + 12) or 0
-                    local extra = ru8(hbase + 16) or 0
-                    if kptr(ent) then
-                        local nb = mask + 1 + extra
-                        if nb > 1024 then nb = 1024 end
-                        for idx2 = 0, nb - 1 do
-                            local b = ent + 64 * idx2
-                            local d4 = ru8(b + 4) or 0
-                            if d4 ~= 0 and d4 ~= 0xFE then
-                                local dflag = ru8(b + 0x30) or 0
-                                local dh = 0
-                                if dflag ~= 0 then
-                                    dh = ru32(b + 0x20) or 0
-                                    if dh < 43800000 or dh > 300000000 then
-                                        dh = 0
-                                    end
-                                end
-                                his[#his + 1] = {
-                                    eq_type = ru32(b + 8) or 0,
-                                    eq_id = ru32(b + 12) or 0,
-                                    date_h = dh,
-                                    units = ru32(b + 0x38) or 0 }
-                            end
-                        end
-                    end
-                    rec.history = his
-                end
-                out[#out + 1] = rec
-            end
-        end
-        return out
-    end
-    for _, mo in ipairs(mio_list(ctx.cc) or {}) do
-        local a = mo.addr
-        if a then
-            local key0 = ekey(tok(ru32(a + 56)))
+    -- MIO 池走查 = Country.production_mio (§4.8.12; 迁移临时内联
+    -- 已回收, 原 "国家 vt 搼家致 c:mio 恒 nil" 绕开方案废除)
+    local mio_ok, mio = pcall(function() return c:production_mio() end)
+    mio = mio_ok and mio or nil
+    for _, mo in ipairs(mio or {}) do
+        do
+            local key0 = ekey(tok(mo.key_token))
             local b = "production.industrial_organisations."
                 .. (key0 == "@" and "@" or mseq(key0))
             emit(tag, b .. ".id", SL.idpair(mo.org_id, mo.org_type))
@@ -504,22 +377,16 @@ SV2.csec[#SV2.csec + 1] = { name = "country.production", emit = function(ctx)
             emit(tag, b .. ".add_mio_funds_gain_factor",
                 SL.num(mo.add_mio_funds_gain_factor))
             -- policy (u32@+392 ≠ 19479 undefined 才写, 裸 token)
-            local pol2 = ru32(a + 392)
-            if pol2 and pol2 ~= 19479 then
-                local pnm = tok(pol2)
-                if pnm then emit(tag, b .. ".policy", pnm) end
+            if mo.policy then
+                emit(tag, b .. ".policy", mo.policy)
             end
             -- §4.8.11 COrganisation 附属块 (cooldown/history/variables/flags;
             -- 门/偏移 = 书) — 提取器对 cooldown={ "date" } 行内块收裸叶,
             -- 值含引号
-            do
-                local cb = a and ru8(a + 424) or 0
-                if cb and cb ~= 0 then
-                    local ch = ru32(a + 408)
-                    local cds = ch and SL.date(ch)
-                    if cds then
-                        emit(tag, b .. ".cooldown", '"' .. cds .. '"') end
-                end
+            if mo.cooldown_hours then
+                local cds = SL.date(mo.cooldown_hours)
+                if cds then
+                    emit(tag, b .. ".cooldown", '"' .. cds .. '"') end
             end
             -- unlocked traits (RB 中序 = 写序; 引号)
             for _, tn in ipairs(mo.unlocked_traits or {}) do
@@ -544,36 +411,16 @@ SV2.csec[#SV2.csec + 1] = { name = "country.production", emit = function(ctx)
                 end
             end
             -- variables@org+448 / flags@org+504 — §4.25.1 CVariables /
-            -- §4.8.11 CFlagStore (附属块; 布局/门 = 书)
+            -- §4.8.11 CFlagStore (走查全在 reader production_mio)
             do
-                local vo = a + 448
-                local vr8 = ru32(vo + 8)
-                if vr8 and vr8 ~= 1 then
+                if mo.var_random then
                     emit(tag, b .. ".variables.random", string.format(
-                        "%d %d", ru32(vo + 12) or 0, vr8))
+                        "%d %d", mo.var_random[1], mo.var_random[2]))
                 end
                 local vlist = {}
-                -- ⚠ mask=0 (空表) 必须跳桶走查: rh_iter 的 count 兜底分支会
-                -- 误读 +0x10 → 扫静态哨兵桶出垃圾名
-                local vmask = ru32(vo + 0x24)
-                local vb = nil
-                if vmask and vmask > 0 and vmask <= GAME.layout.lim.PTR_HUGE then
-                    vb = GAME.layout.rh_iter(vo, { data = 0x18,
-                        mask = 0x24, stride = 0x30,
-                        maxn = GAME.layout.lim.PTR_HUGE })
-                end
-                for _, bk in ipairs(vb or {}) do
-                    local vdist = ru32(bk + 4)
-                    if vdist and (vdist & 0xFF) ~= 0
-                        and (vdist & 0xFF) ~= 0xFE
-                        and (vdist & 0xFF) ~= 0xFF then
-                        local vnm = sso(bk + 8)
-                        local vraw = SL.rp_i64(bk + 0x28)
-                        if vnm and vraw then
-                            vlist[#vlist + 1] = vnm .. "|"
-                                .. SL.num(vraw * 1e-5)
-                        end
-                    end
+                for _, vr in ipairs(mo.variables or {}) do
+                    vlist[#vlist + 1] = vr.name .. "|"
+                        .. SL.num(vr.raw * 1e-5)
                 end
                 table.sort(vlist) -- 键字节序 (writer 先收集排序)
                 local vseq = 0
@@ -589,32 +436,19 @@ SV2.csec[#SV2.csec + 1] = { name = "country.production", emit = function(ctx)
                         end
                     end
                 end
-                local fd, fc = rp(a + 504 + 8), ru32(a + 504 + 0x14)
-                if kptr(fd) and fc and fc > 0 and fc < GAME.layout.lim.PTR_HUGE then
-                    for fi = 0, fc - 1 do
-                        local fe = fd + 0x30 * fi
-                        local fk = ru32(fe + 8)
-                        local fnm = fk and fk <= (hoi4.read_u32(hoi4.base() + GAME.layout.rva.lexer_token_max) or 100000) and tok(fk)
-                        if fnm and fnm ~= "" then
-                            local fkp = b .. ".flags."
-                                .. tostring(fnm) .. "."
-                            local fpack = ru32(fe + 0x28) or 0
-                            local fv = fpack & 0xFFFF
-                            fv = GAME.layout.as_i16(fv)
-                            emit(tag, fkp .. "value", tostring(fv))
-                            local fdh = ru32(fe + 0x18)
-                            if fdh and fdh > 0 then
-                                local fds = SL.date(fdh)
-                                if fds then
-                                    emit(tag, fkp .. "date",
-                                        '"' .. fds .. '"')
-                                end
-                            end
-                            local fex = (fpack >> 16) & 0x7FFF
-                            if fex > 0 then
-                                emit(tag, fkp .. "days", tostring(fex))
-                            end
+                for _, fl in ipairs(mo.flags or {}) do
+                    local fkp = b .. ".flags."
+                        .. tostring(fl.name) .. "."
+                    emit(tag, fkp .. "value", tostring(fl.value))
+                    if (fl.date_h or 0) > 0 then
+                        local fds = SL.date(fl.date_h)
+                        if fds then
+                            emit(tag, fkp .. "date",
+                                '"' .. fds .. '"')
                         end
+                    end
+                    if fl.days > 0 then
+                        emit(tag, fkp .. "days", tostring(fl.days))
                     end
                 end
             end

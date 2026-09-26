@@ -8,7 +8,7 @@ sarr[1125]=CState/[1126]=null 探针互证)。gs+700 = 省表界 (省数, 与 CM
 省表 null 终止三读互证) — 勿与州计数混用。
 vtable RVA 0X2936CC0 (槽[2] = writer); CState writer 0X1409E0E90;
 方法群 0XUNRESOLVED-0X1409E2E50 (assert 串 source/geography/state.cpp)。
-CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 dump 无 `*(gs+260)` 读写、gs 尾 ctor sub_1401D0E30 亦无该槽初始化 → 非 CGameState 字段 (疑 ctor 前 allocator 头/pad); 附注 sub_140BC0880 = gs+16 子对象 ctor, 非 gs ctor。
+CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 dump 无 `*(gs+260)` 读写、gs 尾 ctor sub_1401D0E30 亦无该槽初始化 → 非 CGameState 字段 (推定 ctor 前 allocator 头/pad); 附注 sub_140BC0880 = gs+16 子对象 ctor, 非 gs ctor。
 
 | 偏移 | 类型 | 名称 | 语义 | 备注 |
 |---|---|---|---|---|
@@ -21,7 +21,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +80 | u32 | name cap | SSO 内部 (writer 不触) | |
 | +81..+87 | — | = name 串 cap 的高 4B (cap 实为 8B size_t; 串 {buf@56, size@72, cap@80}) | | |
 | +88 | uint32 | state id | 断言 "Strategic location already exist in state: %d" (sub_1409D18B0); CVariables 以 +88 重注册; SetOwner 通知构造 | |
-| +89..+107 | — | = state id@88 尾垫 (+92..+95) + 监听对象数组 {data@96, cap@104, count@108, alloc@112} 头 (owner/controller 变更通知: SetOwner 逐元 vt[+24](elem, st, &tag); 元素类名定案 = **CProductionStatus** (vt RVA 0x2970788 — 活体元素首 qword 直证); 归属未决 — 非任何 cc+3944, +656 反指=0; 消费全定案 (SetOwner sub_1409DE560 逐元 vt[+24](elem, st, &tag) / SetController sub_1409DDA40 整段复制 / Reset 清 count); 注册点未定位 (0x1409D 段内 `sub_1401205A0(...+96)` 0 命中, 疑内联在 province 侧 CProductionStatus 创建路径); **活体分布 = 599/1082 州 count>0**) | | |
+| +89..+107 | — | = state id@88 尾垫 (+92..+95) + 监听对象数组 {data@96, cap@104, count@108, alloc@112} 头 (owner/controller 变更通知: SetOwner 逐元 vt[+24](elem, st, &tag); 元素类名定案 = **CProductionStatus** (vt RVA 0x2970788 — 活体元素首 qword 直证); 归属未决 — 非任何 cc+3944, +656 反指=0; 消费全定案 (SetOwner sub_1409DE560 逐元 vt[+24](elem, st, &tag) / SetController sub_1409DDA40 整段复制 / Reset 清 count); 注册点未定位 (0x1409D 段内 `sub_1401205A0(...+96)` 0 命中, 推定内联在 province 侧 CProductionStatus 创建路径); **活体分布 = 599/1082 州 count>0**) | | |
 | +108 | uint32 | 监听数组计数 | +120 空时 Reset 置 0 (sub_1409D6BF0; 高置信) | |
 | +109..+119 | — | = 监听数组 {count@108, alloc@112} + CStateHistory* 外置指针@120 头 (非内嵌; 外置对象 {head, cap, count, alloc}, 条目 32B 见下子表) | | |
 | +120 | 内嵌容器 | 州历史条目向量 (CStateHistory 族, 业务名推定) | 32B 条 (见下子表), 独立 allocator; Reset 扩容插入 {2,0,1,0} 迁移 (容器形态定案) — 非「动态修正容器」(旧同名异偏移系误名) | |
@@ -78,9 +78,9 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +2065..+2103 | — | = VP hybrid (CPdxHybridInlineBufferAllocator<pair<token,int>,2>): allocptr@2064→&+2072, 头 vt@2072, 内联 buf 2×8B {token, value}@2080..2095, fallback@2096..2103 | | |
 | +2104 | — | manpower 基准锚 | SetOwner/SetController 后 sub_1413EB4D0(st+2104) 重算; Reset sub_1413EAE90 | GUI: 人力文本 (total@+2128 经 sub_14072DEA0 → STATE_POPULATION_VALUE; 占领侧 Σ sub_1413EB130) |
 | +2105..+2119 | — | = CStateManpower (32B) {vt@2104, CState* 回指@2112, available@2120, locked@2124} — manpower_pool (13877) 本体; total 初值 = *(gs+340) | | |
-| +2120 | uint32 | manpower available | 人力三元组 | |
+| +2120 | uint32 | manpower available | 人力三元组 (写门 = **total ≠0** 整块判定; 三叶恒全 — ⚠ 旧"三值任一非零"经验门被活体证伪: 3103.11 档 76 州 available/locked 非零而 total=0 整块不写) | |
 | +2124 | uint32 | locked | 人力三元组 | |
-| +2128 | uint32 | total | 人力三元组 | |
+| +2128 | uint32 | total | 人力三元组 (**整块写门字段**) | |
 | +2136 | uint32 | extra_shared_slots | >0 才写 (13613); loc UNLOCKED_SLOTS_STATE_EXTRA "Additional Slots in this State" (loc 锚定; resistance 数值在 +616 内嵌块, 非 +2136) | GUI: 共享槽 NUM/MAX (sub_1409D4980 → shared_slot_count + UNLOCKED_SLOTS; category=="wasteland" → 基数归零, +2200 名 SSO 实证) |
 | +2140 | int32 | best VP province index | -2=未算 / -1=无 / ≥0=+24 数组下标; 断言 "_BestVPIndex != -2" (sub_1409D8A80, state.cpp) | |
 | +2141..+2147 | — | = manpower 区尾 + extra_shared_slots@2136 / bestVP / u32@2144 (**写侧定案 = 州内各省地形修正旗字节 (省 desc+168→+140) 的按位或累积**: sub_1409DF710 先清 0 后逐省 `|=`; sub_1409DED70 同式。**读侧在 1.19.3 全 dump 不存在** (0 读点) → 只写累积位掩码) / demil@2148 区 | | |
@@ -172,7 +172,7 @@ lf@2308; B@2312 → data@2320 / mask@2328 / count@2332 / extra@2336 / lf@2340;
 | +520 | uint8 | operational_status | 仅真值写 | GUI: StatusView Update 显示门 |
 | +528 | 8B 指针 向量 | resistance_modifiers 名单 (15743) {data, count@+12} | | 元 8B 指针→名 SSO@+16 (writer 0X140F90BF0); GUI: occupation_modifier_entry 修正行 |
 | +552 | 8B 指针 向量 | compliance_modifiers 名单 (15747) | | UI 直消费: Update 修正行源 (定案) |
-| +576 | CPersistent* 向量 | active_actions {d@576, cap@592, c@588, alloc@600?} — 块键 **15762**, 元素 **40B 多态 CPersistent 后代** (sub_1424C24F0 = 元素自身 vt[1] 自序列化, 尾原子 16; 类名待裁) | reader case 15762 → sub_140F904E0; 失效清理 sub_140F9AD20 (`*(elem+8)==0` → sub_140F9C760 swap-remove); dtor sub_140F91330 | 基线档恒空 (count==0 时 writer 跳过), 故存档中不出叶 |
+| +576 | CPersistent* 向量 | active_actions {d@576, cap@592, c@588, alloc@600 推定} — 块键 **15762**, 元素 **40B 多态 CPersistent 后代** (sub_1424C24F0 = 元素自身 vt[1] 自序列化, 尾原子 16; 类名待裁) | reader case 15762 → sub_140F904E0; 失效清理 sub_140F9AD20 (`*(elem+8)==0` → sub_140F9C760 swap-remove); dtor sub_140F91330 | 基线档恒空 (count==0 时 writer 跳过), 故存档中不出叶 |
 | +600 | 匿名结构 | added_resistance_targets 容器数据指针 {data@+600, cap@+616, count@+612, alloc@+620} (dtor sub_140F91330 四件套互证) | 容器非空 (count>0), 与占领数值无关 | ⚠ 勿嵌 has_r 数值门 (曾致缺 25 州×4 叶); writer 0X140F9CCF0 块键 19093; 元素 72B (0X140F9D2B0) 见下条目子表 |
 | +601..+611 | — | = added_resistance_targets {c@612} 头 + force_enable {d@624} 前 pad | | |
 | +612 | u32 | added_resistance_targets 容器计数 | | |

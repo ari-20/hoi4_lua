@@ -374,6 +374,28 @@ static volatile LONG g_reloadPending;
 // immediate reload of the generation currently being built.
 static volatile LONG g_reloading;
 
+// ---- script-load phase flags (Tier 2 detour install window) ----
+// load_mod_lua_scripts runs in TWO situations: the process's first load
+// (lua_init_thread, before the engine's render loop exists) and every later
+// reload (frame-top hot reload, and session switches). Only the FIRST one is
+// quiet enough to rewrite engine code bytes safely — the others run with the
+// game live, AI ticking and workers busy. hoi4.detour therefore accepts a
+// target only while in_first_script_load() is true; see DETOUR_DESIGN.md §4.1.
+static volatile LONG g_scriptLoadDepth;   // >0 while a load is executing
+static volatile LONG g_scriptLoadDone;    // completed load rounds
+
+int in_first_script_load(void) {
+    return g_scriptLoadDepth > 0 && g_scriptLoadDone == 0;
+}
+
+static int run_script_load(lua_State *Ls) {
+    InterlockedIncrement(&g_scriptLoadDepth);
+    int n = load_mod_lua_scripts(Ls);
+    InterlockedDecrement(&g_scriptLoadDepth);
+    InterlockedIncrement(&g_scriptLoadDone);
+    return n;
+}
+
 void maybe_reload_locked(void) {
     // detection only — called from deep callback stacks
     if (g_reloading) return;             // A5: reload already in progress
@@ -399,9 +421,9 @@ void force_reload_locked(void) {
 // early signal of a leak (dead binds / stale watches) before it bites.
 void capacity_log_locked(void) {
     L("[capacity] names fx=%d/512 tr=%d/512 watch=%d/256 binds=%d/512 "
-      "hooks=%d/64 hslots=%d/32",
+      "hooks=%d/64 hslots=%d/32 detours=%d/16",
       (int)g_fxCount, (int)g_trCount, g_watchCount, bind_count(),
-      hook_count(), hook_slot_count());
+      hook_count(), hook_slot_count(), hook_detour_count());
 }
 
 void reload_execute_locked(void) {
@@ -413,7 +435,7 @@ void reload_execute_locked(void) {
     registry_clear(g_L);                // stale registrations die here
     timers_clear_locked();          // timers follow the same reset semantics
     {
-        int n = load_mod_lua_scripts(g_L);
+        int n = run_script_load(g_L);
         L("[lua] mod lua scripts reloaded: %d", n);
     }
     snapshot_names_locked();
@@ -498,6 +520,15 @@ static const luaL_Reg hoi4_lib[] = {
     {"unhook_vt", hoi4_unhook_vt},
     {"hook_list", hoi4_hook_list},
     {"hook_status", hoi4_hook_status},
+    // Tier 2 function-body detour (hoi4_hook.cpp / hoi4_detour.cpp). Permanent
+    // by design: there is deliberately no unhook — writing engine code bytes
+    // back races every other thread exactly like installing does. Install is
+    // restricted to the process's FIRST script load; re-registering the same id
+    // (to change the callback) works at any time with no restart.
+    {"detour", hoi4_detour},
+    {"detour_list", hoi4_detour_list},
+    {"detour_status", hoi4_detour_status},
+    {"detour_probe", hoi4_detour_probe},
     {NULL, NULL},
 };
 
@@ -528,7 +559,7 @@ void lua_init_thread(void *unused) {
     // enabled mod's lua/*.lua  The loader also watch-registers each
     // file it dofiles, so hot reload needs no separate main-script mtime.
     {
-        int n = load_mod_lua_scripts(g_L);
+        int n = run_script_load(g_L);
         L("[lua] mod lua scripts loaded: %d", n);
     }
     snapshot_names_locked();

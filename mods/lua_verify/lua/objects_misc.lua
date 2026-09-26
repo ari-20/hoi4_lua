@@ -180,6 +180,53 @@ end
 -- ============================================================
 -- §4.3.20 CCountryReportsManager (crm @cc+4064, vt 0x1429D10A8)
 -- ============================================================
+-- 27.0 country 顶层散标量族 (§4.3.11/§4.3.12; 全恒写, SSO/指针追逐/
+-- dynamic_revolution_tag 容器走查上提; 发射键序 = 段侧)
+function Country.scalars(self)
+  local cc = self.addr
+  local out = {}
+  out.capital = ru32(cc + 4120) or 0
+  out.original_capital = ru32(cc + 4124) or 0
+  out.stability = U.fix5(cc + 4304)
+  out.war_support = U.fix5(cc + 4312)
+  out.refresh = ru32(cc + 4320) or 0
+  out.command_power = U.fix5(cc + 496)
+  out.scripted_gui_random = GAME.layout.as_i32(ru32(cc + 544) or 0)
+  out.research_slot = ru32(cc + 4936) or 0
+  out.accidents_score = U.fix5(cc + 5352)
+  out.cosmetic_tag = U.sso(cc + 5256)          -- 空串照写 ""
+  local p = rp(cc + 4976)
+  out.focus_tree = O.kptr(p) and U.sso(p + 8) or nil
+  p = rp(cc + 4984)
+  out.continuous_focus_palette = O.kptr(p) and U.sso(p + 8) or nil
+  out.pride_of_the_fleet_date_lost = ru32(cc + 608) or 0
+  out.use_legacy_ai_pp_spend = ((ru32(cc + 5214) or 0) & 0xFF) == 1
+  out.instances_counter = ru32(cc + 432) or 0
+  p = rp(cc + 5584)
+  out.preferred_tactic = O.kptr(p) and ru32(p + 152) or nil
+  -- dynamic_revolution_tag (§4.3.12 表 +5112 行; writer ccountry
+  -- L812-828): 容器 {d@cc+5112, c@cc+5124} 16B 元 {子对象 ptr@+0,
+  -- tag_id u32@+8}; ideology = 裸 token u32@*(elem)+20 (>0 门)
+  out.dynamic_revolution_tag = {}
+  do
+    local drd, drc = rp(cc + 5112), ru32(cc + 5124) or 0
+    if O.kptr(drd) and drc > 0 and drc < LAYOUT.lim.PTR_SANE then
+      for i = 0, drc - 1 do
+        local tid = ru32(drd + 16 * i + 8) or 0
+        local ideology = nil
+        local op = rp(drd + 16 * i)
+        if O.kptr(op) then
+          local it = ru32(op + 20) or 0
+          if it > 0 then ideology = tok(it) end
+        end
+        out.dynamic_revolution_tag[#out.dynamic_revolution_tag + 1] =
+            { tag_tid = tid, ideology = ideology }
+      end
+    end
+  end
+  return out
+end
+
 -- 27.1 country_reports (§4.3.20; index/days/log 存档编码/construction
 -- 19 键/equipment_production 38 键 stride16 mask u64 = 书)
 function Country.country_reports(self)
@@ -187,6 +234,34 @@ function Country.country_reports(self)
   if not O.kptr(crm) then return nil end
   local out = { addr = crm, index = ru32(crm + 44) or 0,
     days = ru32(crm + 40) or 0 }
+  -- date: hours u32@crm+0x38 恒写 (哨兵 43808760 照发 "1.1.1.1",
+  -- C 族 = 无哨兵剔除 + 引号输出 → SL.date_quoted 在段侧)
+  out.date_hours = ru32(crm + 0x38) or 0
+  -- log 记录流 (§4.3.20 log 向量 {d@+16, cap@+24, c@+28}; 条目 32B =
+  -- 8×u32, 编码 = 有效尾非零计数 k + 前 k 个值, 全零 = 单 "0")
+  out.log = {}
+  do
+    local ld, lcap, lc = rp(crm + 0x10), ru32(crm + 0x18), ru32(crm + 0x1C)
+    if O.kptr(ld) and lc and lc > 0 and lc < 4096
+        and lcap and lcap >= lc then
+      for i = 0, lc - 1 do
+        local b = ld + 32 * i
+        local k, vv = 0, { 0, 0, 0, 0, 0, 0, 0, 0 }
+        for j = 0, 7 do
+          local x = ru32(b + 4 * j) or 0
+          vv[j + 1] = x
+          if x ~= 0 then k = j + 1 end
+        end
+        if k == 0 then
+          out.log[#out.log + 1] = { 0 }
+        else
+          local rec = { k }
+          for j = 1, k do rec[j + 1] = vv[j] end
+          out.log[#out.log + 1] = rec
+        end
+      end
+    end
+  end
   local ctr = rp(crm + 72)
   if O.kptr(ctr) then
     local arr, cnt = rp(ctr + 8), ru32(ctr + 20)
@@ -288,6 +363,32 @@ function Country.occupation(self)
   end
   local dtp = rp(occ + 0x60)
   if O.kptr(dtp) then o.occupied_countries_ptr = dtp end
+  -- §4.3.6 state_compliance_cache (RH 基差 +24: w = occ+24; data@w+208,
+  -- count@w+216, mask@w+220, extra u8@w+224; 桶 24B {dist@+4, sid@+8,
+  -- 值 i64 定点@+16}; writer 原样: 仅 dist==0 跳过, 墓碑照写;
+  -- 错用 occ 裸区 = 全表 MISS)
+  o.state_compliance_cache = {}
+  do
+    local w = occ + 24
+    local ccnt = ru32(w + 216) or 0
+    local cc_d = rp(w + 208)
+    if ccnt > 0 and ccnt < 4096 and O.kptr(cc_d) then
+      local nb = (ru32(w + 220) or 0) + 1 + (U.a8(w + 224) or 0)
+      if nb > 0 and nb < 8192 then
+        for k = 0, nb - 1 do
+          local b2 = cc_d + 24 * k
+          local dist, sid = U.a8(b2 + 4), ru32(b2 + 8)
+          if dist and dist ~= 0 then
+            local raw = rp(b2 + 16)
+            if raw then
+              o.state_compliance_cache[#o.state_compliance_cache + 1] =
+                { sid = sid, raw = LAYOUT.as_i64(raw) }
+            end
+          end
+        end
+      end
+    end
+  end
   local lp = rp(occ + 0x118)
   if O.kptr(lp) then o.default_law = U.cstr(lp + 0x10) end
   local data_ptr, mask = rp(occ + 0x48), ru32(occ + 0x54)
@@ -314,8 +415,12 @@ function Country.occupation(self)
             local sp = rp(sd + 8 * k)
             sts[#sts + 1] = O.kptr(sp) and (ru32(sp + 88) or 0) or 0
           end
-          table.sort(sts)
-          cd.states = table.concat(sts, " ")
+          -- states_raw = 向量原序 (writer 原序直写 — sort 版仅旧兼容)
+          cd.states_raw = sts
+          local sts_sorted = {}
+          for _, v in ipairs(sts) do sts_sorted[#sts_sorted + 1] = v end
+          table.sort(sts_sorted)
+          cd.states = table.concat(sts_sorted, " ")
         end
         local olp = rp(dp + 0xA0)
         if O.kptr(olp) then cd.occupation_law = U.cstr(olp + 0x10) end
@@ -341,18 +446,34 @@ function Country.occupation(self)
           end
           cd.compliance_modifiers = table.concat(cms, ",")
         end
-        local ll_d = rp(dp + 0xB0 + 8)
-        local ll_mask = ru32(dp + 0xB0 + 0x10)
-        if O.kptr(ll_d) and ll_mask and ll_mask > 0 and ll_mask < 0x1000 then
-          local lls = {}
-          for k = 0, ll_mask do
-            local b2 = ll_d + 24 * k
-            local sid2, lp2 = ru32(b2 + 8), rp(b2 + 16)
-            if sid2 and sid2 > 0 and O.kptr(lp2) then
-              lls[#lls + 1] = sid2 .. "=" .. (U.cstr(lp2 + 0x10) or "?")
+        -- §4.3.2 occupation_law_list (dp+0xB0 RH; writer 0x140FEA660:
+        -- 门 = count@dp+0xB8≠0, data@dp+0xB0, 上界 mask@dp+0xBC+1+
+        -- extra u8@dp+0xC0; 桶 24B {dist@+4, sid@+8, val ptr@+16};
+        -- 镜像 writer: 写一切 dist≠0 桶 (不滤 0xFE — writer 不滤;
+        -- 0xFF = 迭代哨兵位, 跳过); 值名 = C 串内联 val+0x10。
+        -- 旧读法 (+8/+0x10 头偏移) 错位已修)
+        cd.law_list_map = {}
+        do
+          local lcnt = ru32(dp + 0xB8) or 0
+          local ld = rp(dp + 0xB0)
+          if lcnt > 0 and lcnt < 4096 and O.kptr(ld) then
+            local lm = ru32(dp + 0xBC) or 0
+            local nb = lm + 1 + (U.a8(dp + 0xC0) or 0)
+            if lm > 0 and nb < 8192 then
+              for k = 0, nb - 1 do
+                local b2 = ld + 24 * k
+                local dist2, sid2, vp =
+                    U.a8(b2 + 4), ru32(b2 + 8), rp(b2 + 16)
+                if dist2 and dist2 > 0 and dist2 ~= 0xFF
+                    and sid2 and sid2 > 0 and O.kptr(vp) then
+                  local nm2 = U.cstr(vp + 0x10)
+                  if nm2 and nm2 ~= "" then
+                    cd.law_list_map[sid2] = nm2
+                  end
+                end
+              end
             end
           end
-          cd.law_list = table.concat(lls, ",")
         end
         -- §4.3.6 state_garrison_data 写门族 (SGD = CScriptedGuiData;
         -- 桶数组直挂 dp+0xD8, 写门 = sid ∈ states 列表)
@@ -768,6 +889,16 @@ function Country.deployment_conveyors(self)
           giex_tid = ru32(e + 152) or 0,  -- government_in_exile_tag
           lines = {},
         }
+        -- government_in_exile_tag tid@e+152 >0 才写 (ENG cv[0]
+        -- tid=5=FRA 实证); 名 = gs+0x358 串表 SSO
+        if rec.giex_tid and rec.giex_tid > 0 and rec.giex_tid < 4096 then
+          local g2 = Runtime.gs()
+          local ttab = g2 and rp(g2 + 0x358)
+          if ttab and O.kptr(ttab) then
+            local gt = U.sso(ttab + 32 * rec.giex_tid)
+            if gt and gt ~= "" then rec.giex_tag = gt end
+          end
+        end
         -- division_template_id: 指针@e+32 → id 对@+8
         local tp = rp(e + 32)
         if O.kptr(tp) then
@@ -792,6 +923,15 @@ function Country.deployment_conveyors(self)
               if O.kptr(dn) then
                 lrec.dn_type = ru32(dn + 8) or 0
                 lrec.dn_order = ru32(dn + 128) or 0
+                -- R: is_name_ordered (writer 0x1409BCC70): b@dn+168 ==0
+                -- 才写, 值恒 0 → "no" (≠0 不写)
+                lrec.dn_is_name_ordered_zero = (ru8(dn + 168) or 0) == 0
+                -- override: 门 rp(dn+152)≠0, 值 SSO@dn+136 非空
+                if (rp(dn + 152) or 0) ~= 0 then
+                  local ov = U.sso(dn + 136)
+                  if ov and ov ~= "" then lrec.dn_override = ov end
+                end
+                lrec.dn_override_set = (ru8(dn + 169) or 0) ~= 0
               end
               -- md = *(L+48)+24
               local mp = rp(L + 48)
@@ -987,6 +1127,365 @@ function Runtime.top_meta(self)
   return out
 end
 
+-- 30.5b session_meta 簇 (§4.1.6-§4.1.16 会话元数据 + §4.1.8
+-- all_playthrough_data 宿主 gs+2200/2208/2216 + §4.28.8 mod_achievement
+-- 单例 BASE+0x3330460; 结构知识唯一实现, 段层 sv2_sec_session_meta 只发射)
+-- BLOB 164 键表 (§4.1.12 SCareerProfileCountryData; writer
+-- sub_14069C280 硬编码序, 逐位对拍定案) {名, 偏移, 类型}
+local SM_BLOB = {
+	{ "playthroughs", 8, "u32" },
+	{ "most_factories_built", 12, "u32" },
+	{ "successful_coups", 16, "u32" },
+	{ "liberated_nations", 20, "u32" },
+	{ "sunk_pride_of_the_fleet", 24, "u32" },
+	{ "shot_aces", 28, "u32" },
+	{ "successful_operations", 32, "u32" },
+	{ "recruited_operatives", 36, "u32" },
+	{ "captured_operatives", 40, "u32" },
+	{ "designed_ships", 44, "u32" },
+	{ "sunk_convoys", 48, "u32" },
+	{ "hosted_governments", 52, "u32" },
+	{ "admiral_traits_unlocked", 56, "u32" },
+	{ "puppeted_countries", 60, "u32" },
+	{ "licensed_foreign_military_tech", 64, "u32" },
+	{ "fought_civil_wars", 68, "u32" },
+	{ "general_traits_unlocked", 72, "u32" },
+	{ "designed_tanks", 76, "u32" },
+	{ "battles_against_encircled", 80, "u32" },
+	{ "battles_with_air_support", 84, "u32" },
+	{ "provinces_gained", 88, "u32" },
+	{ "provinces_lost", 92, "u32" },
+	{ "defensive_victories", 96, "u32" },
+	{ "forts_with_max_defense_defeated", 100, "u32" },
+	{ "destroyed_encircled_divisions", 104, "u32" },
+	{ "designed_planes", 108, "u32" },
+	{ "mussolini_missions", 112, "u32" },
+	{ "field_officers_promoted", 116, "u32" },
+	{ "ships_sunk_by_maritime", 120, "u32" },
+	{ "decrypted_ciphers", 124, "u32" },
+	{ "civilian_factories_built_1936", 128, "u32" },
+	{ "civilian_factories_built_1940", 132, "u32" },
+	{ "civilian_factories_built_1945", 136, "u32" },
+	{ "military_factories_built_1936", 140, "u32" },
+	{ "military_factories_built_1940", 144, "u32" },
+	{ "military_factories_built_1945", 148, "u32" },
+	{ "dockyards_built_1936", 152, "u32" },
+	{ "dockyards_built_1940", 156, "u32" },
+	{ "dockyards_built_1945", 160, "u32" },
+	{ "rocket_sites_built_1936", 164, "u32" },
+	{ "rocket_sites_built_1940", 168, "u32" },
+	{ "rocket_sites_built_1945", 172, "u32" },
+	{ "embargoed_countries", 176, "u32" },
+	{ "special_force_doctrines", 180, "u32" },
+	{ "sp_finished_before_1946", 184, "u32" },
+	{ "sp_completed", 188, "u32" },
+	{ "nuclear_raid_before_1944", 192, "u32" },
+	{ "nuclear_raid_before_1945", 196, "u32" },
+	{ "nuclear_raid_before_1946", 200, "u32" },
+	{ "launched_raids", 204, "u32" },
+	{ "sp_techs_finished", 208, "u32" },
+	{ "plan_landlocked_naval_projects_finished", 212, "u32" },
+	{ "scientist_level_ups", 216, "u32" },
+	{ "faction_goals_completed", 220, "u32" },
+	{ "naval_headquarters_built", 224, "u32" },
+	{ "subdoctrines_mastered", 228, "u32" },
+	{ "faction_long_term_goals_completed", 232, "u32" },
+	{ "controlled_strategic_locations", 236, "u32" },
+	{ "special_forces_subdoctrines_mastered", 240, "u32" },
+	{ "captured_commanders", 244, "u32" },
+	{ "rescued_commanders", 248, "u32" },
+	{ "ship_captains_promoted", 252, "u32" },
+	{ "built_tanks", 256, "u32" },
+	{ "built_ships", 260, "u32" },
+	{ "vehicles_received_by_lease", 264, "u32" },
+	{ "vehicles_sent_by_lease", 268, "u32" },
+	{ "planes_sent_as_volunteer_force", 272, "u32" },
+	{ "built_railway_guns", 276, "u32" },
+	{ "converted_vehicles", 280, "u32" },
+	{ "captured_equipment", 284, "u32" },
+	{ "deployed_cavalry_battalions", 288, "u32" },
+	{ "mio_size_ups", 292, "u32" },
+	{ "special_forces_deployed", 296, "u32" },
+	{ "equipment_sold", 300, "u32" },
+	{ "economic_capacity_exchanged", 304, "u32" },
+	{ "mobile_warfare_xp", 308, "u32" },
+	{ "superior_firepower_xp", 312, "u32" },
+	{ "grand_battleplan_xp", 316, "u32" },
+	{ "mass_assault_xp", 320, "u32" },
+	{ "fleet_in_being_xp", 324, "u32" },
+	{ "trade_interdiction_xp", 328, "u32" },
+	{ "base_strike_xp", 332, "u32" },
+	{ "strategic_destruction_xp", 336, "u32" },
+	{ "battlefield_support_xp", 340, "u32" },
+	{ "operational_integrity_xp", 344, "u32" },
+	{ "mastery_gained", 348, "u32" },
+	{ "captured_generals_levels_counter", 352, "u32" },
+	{ "longest_battle_duration", 356, "u32" },
+	{ "largest_manpower_battle", 360, "u32" },
+	{ "largest_tanks_battle", 364, "u32" },
+	{ "largest_army", 368, "u32" },
+	{ "largest_navy", 372, "u32" },
+	{ "largest_airforce", 376, "u32" },
+	{ "highest_casualty_war", 380, "u32" },
+	{ "highest_enemy_casualty_war", 384, "u32" },
+	{ "paratrooper_divisions", 388, "u32" },
+	{ "naval_invasions", 392, "u32" },
+	{ "aircrafts_in_region", 396, "u32" },
+	{ "aces_in_airbase", 400, "u32" },
+	{ "defensive_bonus_achieved", 404, "u32" },
+	{ "planning_bonus_achieved", 408, "u32" },
+	{ "encircled_divisions", 412, "u32" },
+	{ "battle_affecting_modifiers", 416, "u32" },
+	{ "totally_controlled_naval_regions", 420, "u32" },
+	{ "veteran_units", 424, "u32" },
+	{ "max_air_supply_to_region", 428, "u32" },
+	{ "railway_gun_supported_combats", 432, "u32" },
+	{ "level_up_skills", 436, "u32" },
+	{ "mined_sea_regions", 440, "u32" },
+	{ "province_gaining_weeks", 444, "u32" },
+	{ "decrypting_days_saved", 448, "u32" },
+	{ "deployed_airplanes_with_air_defense_bronze", 452, "u32" },
+	{ "deployed_airplanes_with_air_defense_silver", 456, "u32" },
+	{ "deployed_airplanes_with_air_defense_gold", 460, "u32" },
+	{ "deployed_high_speed_tanks", 464, "u32" },
+	{ "deployed_tanks_with_armor_rating_bronze", 468, "u32" },
+	{ "deployed_tanks_with_armor_rating_silver", 472, "u32" },
+	{ "deployed_tanks_with_armor_rating_gold", 476, "u32" },
+	{ "sp_scientist_level_3", 480, "u32" },
+	{ "sp_scientist_level_4", 484, "u32" },
+	{ "sp_scientist_level_5", 488, "u32" },
+	{ "plan_landlocked_light_hulls", 492, "u32" },
+	{ "plan_landlocked_cruiser", 496, "u32" },
+	{ "plan_landlocked_battleship", 500, "u32" },
+	{ "plan_landlocked_carrier", 504, "u32" },
+	{ "your_officers_leading_faction_theaters", 508, "u32" },
+	{ "faction_manifesto_fulfillment", 512, "u32" },
+	{ "ship_captain_skill_level", 516, "u32" },
+	{ "deployed_division_hq_ic_cost", 520, "u32" },
+	{ "game_months", 524, "u32" },
+	{ "seconds_played", 528, "u32" },
+	{ "offensive_battles", 532, "u32" },
+	{ "defensive_battles", 536, "u32" },
+	{ "total_battles", 540, "u32" },
+	{ "hours_at_war", 544, "u32" },
+	{ "highest_casualty_civil_war", 548, "u32" },
+	{ "highest_enemy_casualty_civil_war", 552, "u32" },
+	{ "own_unknown_casualties", 556, "u32" },
+	{ "total_own_casualties", 568, "i64" },
+	{ "own_casualties", 576, "i64" },
+	{ "enemy_casualties", 584, "i64" },
+	{ "military_production_equipment", 592, "i64" },
+	{ "military_production_vehicles", 600, "i64" },
+	{ "military_production_air", 608, "i64" },
+	{ "air_production_fighter", 616, "i64" },
+	{ "air_production_interceptor", 624, "i64" },
+	{ "air_production_tactical_bomber", 632, "i64" },
+	{ "air_production_strategic_bomber", 640, "i64" },
+	{ "air_production_cas", 648, "i64" },
+	{ "air_production_naval_bomber", 656, "i64" },
+	{ "air_production_suicide", 664, "i64" },
+	{ "air_production_scout_plane", 672, "i64" },
+	{ "air_production_maritime_patrol_plane", 680, "i64" },
+	{ "tank_production_light", 688, "i64" },
+	{ "tank_production_medium", 696, "i64" },
+	{ "tank_production_heavy", 704, "i64" },
+	{ "tank_production_super_heavy", 712, "i64" },
+	{ "tank_production_modern", 720, "i64" },
+	{ "naval_production_submarine", 728, "i64" },
+	{ "naval_production_screen", 736, "i64" },
+	{ "naval_production_capital_ship", 744, "i64" },
+	{ "naval_production_carrier", 752, "i64" },
+	{ "bombed_trains", 560, "u32" },
+	{ "conquered_percentage", 564, "u32" },
+}
+-- §4.1.10 CTimeSeries recent 九族 {save 键, interm 偏移}
+local SM_RECENTS = {
+	{ "recent_offensive_battles", 8 },
+	{ "recent_defensive_battles", 48 },
+	{ "recent_spawned_divisions", 88 },
+	{ "recent_dropped_nukes", 128 },
+	{ "recent_provinces_gained", 168 },
+	{ "recent_provinces_lost", 208 },
+	{ "recent_shot_down_airplanes", 248 },
+	{ "recent_naval_invasion_divisions_transferred", 288 },
+	{ "last_month_convoys_sunk", 328 },
+}
+
+function Runtime.session_meta(self)
+  local g = self.gs()
+  if not g then return nil end
+  local out = {}
+  -- Part1 计数器覆写 (top_meta 可能落后于 1.19.3 .data 位移 —
+  -- 权威 rva.counters 重读; random_* i32 语义负值合法)
+  out.counters = {}
+  do
+    local B = BASE
+    local RC = LAYOUT.rva.counters
+    for nm, rva in pairs(RC) do
+      local v = ru32(B + rva) or 0
+      if nm == "multiplayer_random_seed"
+          or nm == "multiplayer_random_count" then
+        v = LAYOUT.as_i32(v)
+      end
+      out.counters[nm] = v
+    end
+    out.save_version = ru32(B + LAYOUT.rva.save_version) or 0
+    out.minor_save_version = ru32(B + LAYOUT.rva.minor_save_version) or 0
+  end
+  -- Part2 all_playthrough_data (writer gate = RH map 计数门@宿主+16)
+  out.apd_enabled = (ru32(g + 2216) or 0) ~= 0
+  out.entries = {}
+  do
+    local buckets = rp(g + 2208)
+    local mask = ru32(g + 2220) or 0
+    local distmax = ru8(g + 2224) or 0
+    local entries = {}
+    if O.kptr(buckets) and mask > 0 and mask < 0x100000 then
+      local nb = mask + distmax + 1
+      for i = 0, nb - 1 do
+        local b = buckets + 24 * i
+        local dist = ru8(b + 4) or 0
+        -- dist=0xFE 墓碑槽也跳 (USA 残留桶误收 → mem 多发 #2)
+        if dist ~= 0 and dist ~= 0xFE then
+          local key = ru32(b + 8) or 0
+          local val = rp(b + 16)
+          -- writer: key>0 才写 (sub_140BA6730); value 需有效
+          if key > 0 and O.kptr(val) then
+            entries[#entries + 1] = { key = key, val = val }
+          end
+        end
+      end
+    end
+    -- 写序 = key 升序 (sub_1401B6480)
+    table.sort(entries, function(a, b) return a.key < b.key end)
+    for _, e in ipairs(entries) do
+      local w = e.val
+      local rec = { key = e.key, tag = self:tag(e.key) or tostring(e.key) }
+      local function profile(S)
+        local fields = {}
+        for _, f in ipairs(SM_BLOB) do
+          local v
+          if f[3] == "i64" then
+            v = LAYOUT.as_i64(rp(S + f[2]) or 0)
+          else
+            v = ru32(S + f[2]) or 0
+          end
+          fields[#fields + 1] = { name = f[1], v = v, t = f[3] }
+        end
+        local widths = {}
+        for a = S + 776, S + 980, 4 do
+          widths[#widths + 1] = ru32(a) or 0
+        end
+        return { fields = fields, widths = widths,
+          air_a = LAYOUT.as_i64(rp(S + 760) or 0),
+          air_b = LAYOUT.as_i64(rp(S + 768) or 0),
+          bests = { LAYOUT.as_i64(rp(S + 984) or 0),
+            LAYOUT.as_i64(rp(S + 992) or 0),
+            LAYOUT.as_i64(rp(S + 1000) or 0) } }
+      end
+      rec.first = profile(w + 16)
+      rec.second = profile(w + 1024)
+      -- data.tag (§3.5 MSVC SSO @w+2032; writer 空串也写 → 恒引号)
+      rec.data_tag = U.sso(w + 2032) or ""
+      -- intermediate_statistics (§4.1.10; interm = w+2064)
+      rec.recents = {}
+      local interm = w + 2064
+      for _, r in ipairs(SM_RECENTS) do
+        local base = interm + r[2]
+        local cnt = ru32(base + 28) or 0
+        local data = rp(base + 16)
+        local vals = nil
+        if cnt > 0 and cnt <= 4096 and O.kptr(data) then
+          vals = {}
+          for k = 0, cnt - 1 do
+            local p = rp(data + 8 * k)
+            vals[#vals + 1] = O.kptr(p) and (ru32(p) or 0) or 0
+          end
+        end
+        rec.recents[#rec.recents + 1] = { name = r[1], vals = vals }
+      end
+      rec.controlled = O.kptr(rp(interm + 368))
+          and (ru32(rp(interm + 368)) or 0) or 0
+      rec.pgw = O.kptr(rp(interm + 376))
+          and (ru32(rp(interm + 376)) or 0) or 0
+      -- flags : wrapper 内嵌 CFlagManager @w+2448 (条目 = §4.13.3) —
+      -- 行序 = 插入序, 逐条 value→date→days(days 门 >0)
+      rec.flags = {}
+      do
+        local fm = w + 2448
+        local frows = rp(fm + 8)
+        local fcnt = ru32(fm + 20) or 0
+        if O.kptr(frows) and fcnt > 0 and fcnt < LAYOUT.lim.PTR_SANE then
+          for fi = 0, fcnt - 1 do
+            local row = frows + 48 * fi
+            local ftn = LAYOUT.token_name(ru32(row + 8) or 0)
+            if ftn and ftn ~= "" and not tostring(ftn):match("^%d") then
+              local fr = { name = ftn,
+                value = LAYOUT.as_i16(hoi4.read_u16(row + 40) or 0),
+                date_h = ru32(row + 24) or 0 }
+              local d16 = LAYOUT.as_i16(hoi4.read_u16(row + 42) or 0)
+              fr.days = d16 > 0 and d16 or nil
+              rec.flags[#rec.flags + 1] = fr
+            end
+          end
+        end
+      end
+      rec.first_tag = ru8(w + 2480)
+      out.entries[#out.entries + 1] = rec
+    end
+  end
+  -- Part3 mod_achievement (§4.28.8 单例 BASE+0x3330460, 门 rp(sing+8)≠0;
+  -- RB 中序后继 §3.3; 条目 vb@node+64, vc@+76, 有效位 u8@e+33, 名 SSO@+40)
+  out.achievements = {}
+  do
+    local sing = rp(BASE + 0x3330460)
+    if O.kptr(sing) and (rp(sing + 8) or 0) ~= 0 then
+      local head = rp(sing)
+      if O.kptr(head) then
+        local function succ(n)
+          local r = rp(n + 16)
+          if O.kptr(r) and ru8(r + 25) == 0 then
+            local j = rp(r)
+            while O.kptr(j) and ru8(j + 25) == 0 do
+              r = j
+              j = rp(j)
+            end
+            return r
+          end
+          local p = rp(n + 8)
+          while O.kptr(p) and ru8(p + 25) == 0
+                and n == rp(p + 16) do
+            n = p
+            p = rp(p + 8)
+          end
+          return p
+        end
+        local names = {}
+        local node = rp(head)
+        local guard = 0
+        while O.kptr(node) and ru8(node + 25) == 0
+              and guard < 4096 do
+          guard = guard + 1
+          local vb = rp(node + 64)
+          local vc = ru32(node + 76) or 0
+          if O.kptr(vb) and vc > 0 and vc < LAYOUT.lim.PTR_HUGE then
+            for i = 0, vc - 1 do
+              local e = rp(vb + 8 * i)
+              if O.kptr(e) and (ru8(e + 33) or 0) ~= 0 then
+                local nm = U.sso(e + 40)
+                if nm then names[#names + 1] = nm end
+              end
+            end
+          end
+          node = succ(node)
+        end
+        out.achievements = names
+      end
+    end
+  end
+  return out
+end
+
 -- 30.6 deployment_unit_modifiers (DUM 修饰值族; §4.18.11
 -- CSubunitBonusPersistent: dep = rp(cc+3952) 容器 {d@+8, c@+20}
 -- 112B 元素, 两层列表 + stats 对象 obj+64 — 布局/写门 = 书 §4.18.11)
@@ -1080,8 +1579,17 @@ function Country.deployment_unit_modifiers(self)
   if not O.kptr(dep) then return nil end
   local d, c = rp(dep + 8), ru32(dep + 20)
   local out = { list = {} }
-  if not (O.kptr(d) and c and c > 0 and c < 4096) then return out end
+  -- ⚠ 容器空 ≠ 提前 return — ICAW (@dep+240) 独立于容器数据,
+  -- 空容器国仍可能有 ICAW (对拍 1274 MISS 定位)
+  if O.kptr(d) and c and c > 0 and c < 4096 then
   local rec_mods
+  -- 有符号 i64 → /100000 (sfx; 嵌套 stats 值域 — 与 mods *1e-5 量纲
+  -- 分开, 各自保 writer 换算)
+  local function sfx(a)
+    local v = LAYOUT.as_i64(rp(a) or 0)
+    return v / 100000
+  end
+  -- 平铺 stats (类别对象 obj+64 起: combat_width@+24 / 78 槽 stats@+96)
   local function scan_stats(base, cat)
     local cw = rp(base + 24) or 0
     if cw ~= 0 then
@@ -1102,10 +1610,96 @@ function Country.deployment_unit_modifiers(self)
       end
     end
   end
+  -- 嵌套块 (§4.18.11 USSubUnitStats @类别对象+64; battalion_mult/
+  -- 地形块/动态地形/need_equipment 池 = 书 §4.18.11 表)
+  local function scan_nested(cobj, cat, nout)
+    if not (O.kptr(cobj) and cat) then return end
+    local sb = cobj + 64
+    local n = { cat = cat, battalion_mult = {}, terrains = {},
+      need_equipment = {} }
+    local bmd, bmc = rp(sb + 72), ru32(sb + 84)
+    if O.kptr(bmd) and bmc and bmc > 0 and bmc < LAYOUT.lim.PTR_SANE then
+      for j = 0, bmc - 1 do
+        local el = bmd + 48 * j
+        local bm = { stats = {} }
+        local cdef = rp(el + 8)
+        bm.category = O.kptr(cdef)
+            and LAYOUT.token_name(ru32(cdef + 84) or 0) or nil
+        bm.add = (ru8(el + 40) or 0)
+        bm.display_as_percentage = (ru8(el + 41) or 0)
+        local sd2, sc2 = rp(el + 16), ru32(el + 28)
+        if O.kptr(sd2) and sc2 and sc2 > 0 and sc2 < 96 then
+          for m = 0, sc2 - 1 do
+            local raw = sfx(sd2 + 16 * m + 8)
+            if raw ~= 0 then
+              local stok = STAT2TOK[ru32(sd2 + 16 * m) or -1]
+              local snm = stok and LAYOUT.token_name(stok)
+              if snm and snm ~= "" then
+                bm.stats[#bm.stats + 1] = { name = snm, value = raw }
+              end
+            end
+          end
+        end
+        n.battalion_mult[#n.battalion_mult + 1] = bm
+      end
+    end
+    -- 地形五固定块 {off, name} + 三值 ≠0 门 (块内任一非零才发)
+    local function terrain(addr, tnm)
+      local av, dv, mv2 = sfx(addr + 16), sfx(addr + 24), sfx(addr + 32)
+      if av ~= 0 or dv ~= 0 or mv2 ~= 0 then
+        n.terrains[#n.terrains + 1] = { name = tnm, attack = av,
+          defence = dv, movement = mv2 }
+      end
+    end
+    for _, tb in ipairs({ { 752, "night" }, { 792, "fort" },
+        { 832, "river" }, { 872, "amphibious" }, { 912, "snow" } }) do
+      terrain(sb + tb[1], tb[2])
+    end
+    -- 动态地形 {d@sb+952, c@sb+964} 40B 元 (名 token@el+8)
+    local td, tc = rp(sb + 952), ru32(sb + 964)
+    if O.kptr(td) and tc and tc > 0 and tc < LAYOUT.lim.PTR_SANE then
+      for j = 0, tc - 1 do
+        local el = td + 40 * j
+        local tnm = LAYOUT.token_name(ru32(el + 8) or 0)
+        if tnm and tnm ~= "" then terrain(el, tnm) end
+      end
+    end
+    -- need_equipment (§4.18.11; 池/元素/键名/写门/+720 陷阱 = 书)
+    local ned, nec = rp(sb + 728), ru32(sb + 740)
+    if O.kptr(ned) and nec and nec > 0 and nec < LAYOUT.lim.PTR_SANE then
+      for j = 0, nec - 1 do
+        local el = ned + 16 * j
+        local amt = sfx(el + 8)
+        if amt ~= 0 then
+          local ar = rp(el)
+          if O.kptr(ar) then
+            local enm = LAYOUT.token_name(ru32(ar + 8) or 0)
+            if enm and enm ~= "" then
+              n.need_equipment[#n.need_equipment + 1] =
+                  { name = enm, value = amt }
+            end
+          end
+        end
+      end
+    end
+    nout[#nout + 1] = n
+  end
   for k = 0, c - 1 do
     local e = d + 112 * k
-    local rec = { mods = {} }
+    local rec = { mods = {}, nested = {} }
     rec_mods = rec.mods
+    -- 头三叶 (§4.18.11): type u32@E+64 经 TYPE_TOK 映射 (writer
+    -- switch 6 类, 357 = 哨兵), id tok@E+68 (357 门), number u32@E+72
+    local TYPE_TOK = { [1] = 10022, [2] = 89, [3] = 16775,
+      [4] = 16778, [5] = 16770, [6] = 16771 }
+    local tv = ru32(e + 64) or 0
+    local ttok = TYPE_TOK[tv] or 357
+    rec.type_name = LAYOUT.token_name(ttok) or tostring(ttok)
+    rec.number = ru32(e + 72) or 0
+    local idt = ru32(e + 68) or 357
+    if idt ~= 357 then
+      rec.id_name = LAYOUT.token_name(idt) or tostring(idt)
+    end
     local p1d, p1c = rp(e + 16), ru32(e + 28)
     if O.kptr(p1d) and p1c and p1c > 0 and p1c < 64 then
       for i = 0, p1c - 1 do
@@ -1113,6 +1707,7 @@ function Country.deployment_unit_modifiers(self)
         if O.kptr(p) then
           local cat = LAYOUT.token_name(ru32(p + 8) or 0)
           scan_stats(p + 64, cat)
+          scan_nested(p, cat, rec.nested)
         end
       end
     end
@@ -1124,6 +1719,7 @@ function Country.deployment_unit_modifiers(self)
         if O.kptr(db) and O.kptr(obj) then
           local cat = LAYOUT.token_name(ru32(db + 84) or 0)
           scan_stats(obj + 64, cat)
+          scan_nested(obj, cat, rec.nested)
         end
       end
     end
@@ -1134,6 +1730,29 @@ function Country.deployment_unit_modifiers(self)
       if lk and #lk > 0 then rec.localization_key = lk end
     end
     out.list[#out.list + 1] = rec
+  end
+  -- §4.18 CDeployment initial_carrier_air_wing_deployment (ICAW)
+  -- 内嵌 @dep+240 {d@+8, c@+20}, 16B 条 {名对象 ptr, i64×1e-5};
+  -- 空壳门 = ru32(o+0)==0 且 ru32(o+8)==0 (legacy 原样)
+  end
+  out.icaw = {}
+  do
+    local o = dep + 240
+    if not (ru32(o) == 0 and ru32(o + 8) == 0) then
+      local dI, cI = rp(o + 8), ru32(o + 20) or 0
+      if O.kptr(dI) and cI > 0 and cI < 4096 then
+        for k = 0, cI - 1 do
+          local ent = dI + 16 * k
+          local def = rp(ent)
+          if O.kptr(def) then
+            local tid2 = ru32(def + 8) or 0
+            out.icaw[#out.icaw + 1] = {
+              name = LAYOUT.token_name(tid2) or tostring(tid2),
+              value = (rp(ent + 8) or 0) / 100000 }
+          end
+        end
+      end
+    end
   end
   return out
 end

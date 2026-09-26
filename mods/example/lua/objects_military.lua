@@ -3260,3 +3260,78 @@ function Runtime.combat_full(self)
   end
   return out
 end
+
+-- ============================================================
+-- §4.16.13/§4.16.14 全局沉船历史族导出全量 reader
+-- (sv2_sec_global_tails history/sunk_convoys_history 块消费)
+local function gh_date3(h)
+  if h == 43808760 then return "1.1.1.1" end
+  return GAME.layout.date(h)
+end
+local function gh_idpair_at(el, off)  -- {type@off, id@off+4}; 双零不写
+  local ty, id = ru32(el + off), ru32(el + off + 4)
+  if (ty and ty ~= 0) or (id and id ~= 0) then
+    return { type = ty or 0, id = id or 0 }
+  end
+  return nil
+end
+
+-- §4.16.13 CSunkShipInfo (挂 §1.2 +1424, count@+1436)
+function Runtime.global_sunk_ships(self)
+  local g = self.gs()
+  local c = ru32(g + 1436)
+  if not (c and c > 0 and c < LAYOUT.lim.PTR_HUGE) then return nil end
+  local d = rp(g + 1424)
+  if not O.kptr(d) then return nil end
+  local out = {}
+  for i = 0, c - 1 do
+    local el = rp(d + 8 * i)
+    if O.kptr(el) then
+      local rec = { name = U.sso(el + 8), killer_name = U.sso(el + 40) }
+      rec.country = Runtime:tag(ru32(el + 72) or 0)
+      -- killer_country: tag 查表失败 → writer 字面量 "---" 恒写
+      rec.killer_country = Runtime:tag(ru32(el + 76) or 0) or "---"
+      rec.level = ru32(el + 120) or 0
+      local def = rp(el + 104)
+      if O.kptr(def) then
+        rec.definition = GAME.layout.token_name(ru32(def + 8) or 0)
+          or (ru32(def + 8) or 0)
+      end
+      def = rp(el + 112)
+      if O.kptr(def) then
+        rec.killer_definition = GAME.layout.token_name(ru32(def + 8) or 0)
+          or (ru32(def + 8) or 0)
+      end
+      local loc = rp(el + 144)
+      if O.kptr(loc) then rec.location = ru32(loc + 164) or 0 end
+      rec.date_h = ru32(el + 88)   -- date3 无门
+      rec.equipment_variant = gh_idpair_at(el, 124)
+      rec.air_wing = gh_idpair_at(el, 132)
+      rec.battle = { type = ru32(el + 152) or 0, id = ru32(el + 156) or 0 }
+      rec.convoy = ru8(el + 160) or 0   -- 原字节 (段层 yn)
+      out[#out + 1] = rec
+    end
+  end
+  return out
+end
+
+-- §4.16.14 sunk_convoys_history (挂 §1.2 +1448, count@+1460)
+function Runtime.global_sunk_convoys(self)
+  local g = self.gs()
+  local c = ru32(g + 1460)
+  if not (c and c > 0 and c < 4096) then return nil end
+  local d = rp(g + 1448)
+  if not O.kptr(d) then return nil end
+  local out = {}
+  for i = 0, c - 1 do
+    local el = rp(d + 8 * i)
+    if O.kptr(el) then
+      local t = Runtime:tag(ru32(el + 16) or 0)
+      out[#out + 1] = { month = ru32(el + 8) or 0,
+        convoys = ru32(el + 12) or 0,
+        killer_country = t or "---",    -- 查表失败 = "---" 恒写
+        owner = Runtime:tag(ru32(el + 20) or 0) }
+    end
+  end
+  return out
+end

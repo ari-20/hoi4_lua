@@ -104,7 +104,7 @@ army/navy/operative 三派生共用; 偏移 = leader 绝对字节; 引擎落盘�
 | +3788 | qword | 隐藏遗留字段 (ctor 零, clone 拷 u32, 全 dump 无读者; 形态定案, 遗留推定) |  |
 | +3789..+3795 | 匿名结构 (7B 形状) | = +3788 遗留 qword 尾 (+3789..+3795) + pad |  |
 | +3796 | tag_id (i32) | government_in_exile_tag | 门 >0 引号 tag; tok 15034 |
-| +3800 | int32 | legacy_id | 门 ≠-1 (0xFFFFFFFF); tok 19498; **有符号域** — 存档实证负值 -2/-3412 (PB:LOM), 读取须 i32 还原 (同 CCountryLeader+328 id 族); mem 恒 0 (reader 疑似不回填 — 存档值仅存档侧可见) |
+| +3800 | int32 | legacy_id | 门 ≠-1 (0xFFFFFFFF); tok 19498; **有符号域** — 存档实证负值 -2/-3412 (PB:LOM), 读取须 i32 还原 (同 CCountryLeader+328 id 族); mem 恒 0 (reader 推定不回填 — 存档值仅存档侧可见) |
 | +3804 | uint8 | promoted_from_unit | 门 ≠0 → yes/no; tok 17869 |
 | +3805..+3839 | 匿名结构 (35B 形状) | = pad (+3805..+3807) + **CUnitLeader::TNamespacedTrait 本体 = 32B std::string (SSO) 死成员** (+3808..+3839; buf@3808 / size@3824 / cap@3832=15; ctor 建空串 + dtor 完整 SSO 析构闭环, **全 dump 零赋值点 → 负定案**; RTTI 谱系列基类@3808 见 §4.4.1) |  |
 | +3840 | CDynamicModifierContainer 内嵌 (72B) | dynamic_modifier | 门 u32@+3892≠0 (sub_14060D020); tok 15361; 块体展开见下方子表 |

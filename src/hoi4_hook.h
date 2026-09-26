@@ -6,17 +6,23 @@
 // (vt[slot]) redirects every indirect call to that method — no code bytes are
 // touched.
 //
-// WHY NOT function-body patching (Tier 2/3): the framework already paid for
-// that lesson. hoi4_frame.cpp records it: the first idler hook patched the
-// function body inline and crashed on the FIRST FRAME, dump-proven cause being
-// that the stolen prologue contained `mov rax,rsp` while the body later
-// re-derived rbp from rax — the trampoline's jump-back clobbered rax. The
-// vtable-slot form has no such failure mode at all: the body stays
-// byte-identical, the ABI is the compiler's problem (our thunk is an ordinary
-// C function declared to match), and `origFn` is a CLEAN pointer that needs no
-// trampoline. Uninstall is just writing the original qword back.
-// Tier 2 (function-body detour) additionally needs an LDE that refuses
-// RIP-relative operands and relative control flow — see hoi4_lde.h.
+// WHY TIER 1 IS PREFERRED: the framework already paid for this lesson.
+// hoi4_frame.cpp records it: the first idler hook patched the function body
+// inline and crashed on the FIRST FRAME, dump-proven cause being that the
+// stolen prologue contained `mov rax,rsp` while the body later re-derived rbp
+// from rax — the trampoline's jump-back clobbered rax. The vtable-slot form has
+// no such failure mode at all: the body stays byte-identical, the ABI is the
+// compiler's problem (our thunk is an ordinary C function declared to match),
+// and `origFn` is a CLEAN pointer that needs no trampoline. Uninstall is just
+// writing the original qword back.
+//
+// TIER 2 (hoi4.detour) exists for targets a vtable swap cannot reach: non-
+// virtual functions, statics and anything called by direct `call rel32`. It
+// rewrites the function's first bytes, so it needs an LDE that refuses
+// RIP-relative operands and relative control flow (hoi4_lde.h), a function-
+// start gate (.pdata, hoi4_pdata.h), a suspend-and-verify install window, and
+// it has NO uninstall. Reach for it only when Tier 1 provably cannot work —
+// DETOUR_DESIGN.md states the full contract and the cost.
 //
 // GRANULARITY (the trap this design exists to make visible): a vtable slot hook
 // is PER-CLASS. CEffect has 604 derived classes, each overriding [13] in its
@@ -50,6 +56,16 @@ extern "C" {
 #define HK_OBSERVE_QUEUE  64   // deferred observe events per frame
 #define HK_ID_LEN         64
 
+// Tier 2 (function-body detour) targets. Each one costs a PERMANENT code scar
+// plus an RX trampoline, so this is deliberately much smaller than the vtable
+// slot budget. See DETOUR_DESIGN.md.
+#define HK_MAX_DETOURS    16
+
+// per-thread re-entry ceiling for one detour slot. A target that recurses (or
+// is re-entered through call_orig) must not spin forever: past this depth the
+// thunk forwards to the trampoline WITHOUT running Lua, and counts it.
+#define HK_MAX_DEPTH       8
+
 // Highest vtable slot index that may be hooked. This is NOT HK_MAX_SLOTS:
 // engine vtables are large (CInGameIdler reaches slot[95], and slot numbers
 // are just byte offsets /8), while the number of CHAINS we track is small.
@@ -80,6 +96,20 @@ int hoi4_unhook_vt(lua_State *Ls);     // hoi4.unhook_vt(id) -> true|nil,err
 int hoi4_hook_list(lua_State *Ls);     // hoi4.hook_list() -> array of status tables
 int hoi4_hook_status(lua_State *Ls);   // hoi4.hook_status(id) -> table|nil
 
+// Tier 2 (hoi4_detour.cpp install primitives). ONE deliberate restriction:
+// there is NO unhook. Writing the original bytes back races every other thread
+// exactly like installing does, so the operation simply does not exist
+// (DETOUR_DESIGN.md §3.3). Everything else matches Tier 1: the callback is
+// resolved by id on every call, so a hot reload rebinds it (verified live by
+// tagging each load inside the closure and watching the tag advance), and a
+// re-register under the same id is accepted at any time — it rebinds Lua and
+// never touches bytes. Only a NEW TARGET needs a restart, because that is the
+// one thing that must rewrite code.
+int hoi4_detour(lua_State *Ls);        // hoi4.detour(addr, fn, opts) -> handle|nil,err
+int hoi4_detour_list(lua_State *Ls);   // hoi4.detour_list() -> array of status tables
+int hoi4_detour_status(lua_State *Ls); // hoi4.detour_status(id) -> table|nil
+int hoi4_detour_probe(lua_State *Ls);  // hoi4.detour_probe(addr) -> report table
+
 // Drop the callback registry. Called from registry_clear on hot reload so a
 // reloaded script's NEW closures are picked up (hooks themselves stay patched;
 // resolution is by id on every call, exactly like the bind table).
@@ -103,6 +133,7 @@ void hook_dispatch_observe(lua_State *Ls);
 // diagnostics for the capacity log
 int hook_count(void);
 int hook_slot_count(void);
+int hook_detour_count(void);   // Tier 2 targets (HK_KIND_FN slots)
 
 // Resolve a HOOK-FACILITY thunk back to the engine function it replaced.
 //
@@ -120,10 +151,21 @@ int hook_slot_count(void);
 // implementation, exactly as they would have before the hook existed.
 //
 // Returns 1 and writes the original target to *out_orig when [addr] is one of
-// our thunks; returns 0 (leaving *out_orig untouched) otherwise. memgate_exec_ok
-// is deliberately NOT relaxed: the resolved original is engine code and passes
-// it unchanged.
+// our thunks (Tier 1) or a function this facility has detoured (Tier 2, where
+// the original is the RX trampoline); returns 0 (leaving *out_orig untouched)
+// otherwise. memgate_exec_ok is deliberately NOT relaxed — see
+// hook_is_our_trampoline for the second, narrower case a bridge call site
+// needs, since a trampoline is by construction not engine code.
 int hook_orig_for_thunk(uint64_t addr, uint64_t *out_orig);
+
+// Is [addr] a trampoline this facility allocated (i.e. the original of a Tier 2
+// detour)? A trampoline lives in a VirtualAlloc block, so memgate_exec_ok
+// rejects it — correctly, because that gate exists to stop Lua from steering a
+// call at memory it chose. The bridge's own two memory-derived call sites
+// (game_pause mgr->vt[+656], load_save app->vt[+880]) accept it as an
+// ADDITIONAL case: those are calling infrastructure the bridge itself
+// allocated. memgate's own logic is unchanged.
+int hook_is_our_trampoline(uint64_t addr);
 
 #ifdef __cplusplus
 }

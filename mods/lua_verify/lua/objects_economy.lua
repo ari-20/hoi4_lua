@@ -29,12 +29,18 @@ local to_i32, to_i16 = LAYOUT.as_i32, LAYOUT.as_i16
 -- §4.3.3 CCountryResources 资源路由 (delivery cc+4600 vtable 0x295c320 / 0x295c4b0)
 -- ============================================================
 -- §4.3.16 fuel 燃料 (writer 定案偏移; Q15 与 fixed×1e-5 混合量纲)
+-- Q15 = i64 有符号 /32768 (负值域必须过 as_i64, 同 §3.7); history 环形
+-- = 哨兵 (fs+0x60, index=-1) 先写 + 后 24 槽 (rp(fs+0xB0), stride 80)
 function Country.fuel(self)
   local fs = rp(self.addr + 5504)
   if not O.kptr(fs) or rp(fs) ~= BASE + GAME.layout.vt.CFuelStatus then return nil end
+  local q15 = function(a)               -- 带符号 Q15 → 浮点 (读失败回 0)
+    local v = LAYOUT.i64(a)
+    return v and v / 32768 or 0
+  end
   local out = { addr = fs }
-  out.fuel = (rp(fs + 8) or 0) / 32768
-  out.max_fuel = (rp(fs + 0x10) or 0) / 32768
+  out.fuel = q15(fs + 8)
+  out.max_fuel = q15(fs + 0x10)
   out.fuel_gain = U.fix5(fs + 0x18)
   -- writer+探针定案 (旧偏移标注互有错位)
   out.fuel_gain_per_oil = U.fix5(fs + 0x40)
@@ -43,13 +49,33 @@ function Country.fuel(self)
   out.remaining_hours = ru32(fs + 0xCC)
   -- +0x28/+0x30 系 Q15 (非 fix5) — writer ADDD0/%.5f,
   -- parser sub_1424B0350 v×32768+0.5
-  out.fuel_gain_from_lend_lease = (rp(fs + 0x28) or 0) / 32768
-  out.fuel_consumption_from_lend_lease = (rp(fs + 0x30) or 0) / 32768
+  out.fuel_gain_from_lend_lease = q15(fs + 0x28)
+  out.fuel_consumption_from_lend_lease = q15(fs + 0x30)
+  out.history_index = ru32(fs + 0xC8) or 0
   out.consumers = { count = ru32(fs + 0x54) or 0, list = {} }
   for _, u in O.vec(fs, 0x48, 0x54, 24, false) do
     out.consumers.list[#out.consumers.list + 1] = {
       priority = ru32(u), requested = U.fix5(u + 8),
       received = U.fix5(u + 16) }
+  end
+  -- history 条目 80B: fuel@0 / gain@8 / consumed@0x10 / requested 3×fix5
+  -- @0x18,0x20,0x28 / other@0x30 / received 3×fix5 @0x38,0x40,0x48
+  local function hist_entry(addr, idx)
+    return { index = idx,
+      fuel = q15(addr), fuel_gain = U.fix5(addr + 8) or 0,
+      consumed = q15(addr + 0x10),
+      requested = { U.fix5(addr + 0x18) or 0, U.fix5(addr + 0x20) or 0,
+        U.fix5(addr + 0x28) or 0 },
+      other = q15(addr + 0x30),
+      received = { U.fix5(addr + 0x38) or 0, U.fix5(addr + 0x40) or 0,
+        U.fix5(addr + 0x48) or 0 } }
+  end
+  out.history = { hist_entry(fs + 0x60, -1) }
+  local hbase = rp(fs + 0xB0)
+  if O.kptr(hbase) then
+    for j = 0, 23 do
+      out.history[#out.history + 1] = hist_entry(hbase + 80 * j, j)
+    end
   end
   return out
 end
@@ -165,10 +191,12 @@ function Country.decisions(self)
   return out
 end
 
--- §4.3.17 experience 经验 (cc+5512; Q15 量纲)
+-- §4.3.17 experience 经验 (cc+5512, vt 0x29A80C0; Q15 量纲; 全部带符号
+-- i64 /32768; num_armies_for_training = u32@+80 / 32768 恒写)
 function Country.experience(self)
   local es = rp(self.addr + 5512)
-  if not O.kptr(es) then return nil end
+  if not O.kptr(es)
+      or rp(es) ~= BASE + GAME.layout.vt.CExperienceStatus then return nil end
   local q15 = function(a)               -- Q15: raw / 32768
     local v = LAYOUT.i64(a)
     if not v then return nil end
@@ -178,15 +206,23 @@ function Country.experience(self)
     army = q15(es + 16), army_daily = q15(es + 24),
     army_daily_training = q15(es + 32),
     navy = q15(es + 40), navy_daily = q15(es + 48),
-    air = q15(es + 64), air_daily = q15(es + 72) }
+    air = q15(es + 64), air_daily = q15(es + 72),
+    num_armies_for_training = (ru32(es + 80) or 0) / 32768 }
 end
 
 -- §4.3.17 activity_data 活动数据 (xp_by_template {88,100} 24B / taskforce {112,124} 40B /
 -- airwing {136,148} 24B; naval 特有 mission@+0x18 (门 b@+0x1C≠0) /
--- on_mission@+0x20 (>0))
+-- on_mission@+0x20 (i32 >0))。ref 门 = writer sub_141961BB0 族: 原始任一≠0
+-- **且** 引擎解析 sub_14221F310(e+0x10) ≠ 0 (返 0 = 目标已不存在 → 不写),
+-- 解析门在 reader 侧作 ref_ok (call_u64 与 objects_military 同先例)。
 function Country.activity_data(self)
   local es = rp(self.addr + 5512)
   if not O.kptr(es) or rp(es) ~= BASE + GAME.layout.vt.CExperienceStatus then return nil end
+  local ref_ok = function(e)            -- id 对解析成功门 (writer 定案)
+    local rt, ri = ru32(e + 0x10) or 0, ru32(e + 0x14) or 0
+    if rt == 0 and ri == 0 then return false end
+    return (hoi4.call_u64(BASE + 0x221F310, e + 0x10) or 0) ~= 0
+  end
   local function act_elems(ptr_off, cnt_off, stride, vt)
     local out = {}
     local d, n = rp(es + ptr_off), ru32(es + cnt_off)
@@ -196,7 +232,8 @@ function Country.activity_data(self)
         if rp(e) == vt then
           out[#out + 1] = { addr = e, combat = ru32(e + 8),
             training = ru32(e + 12),
-            ref_type = ru32(e + 0x10), ref_id = ru32(e + 0x14) }
+            ref_type = ru32(e + 0x10), ref_id = ru32(e + 0x14),
+            ref_ok = ref_ok(e) }
         end
       end
     end
@@ -209,10 +246,13 @@ function Country.activity_data(self)
       for i = 0, n - 1 do
         local e = d + 40 * i
         if rp(e) == BASE + GAME.layout.vt.CExperienceElem then
-          naval_out[#naval_out + 1] = { combat = ru32(e + 8),
+          local om = to_i32(ru32(e + 0x20) or 0)
+          naval_out[#naval_out + 1] = { addr = e, combat = ru32(e + 8),
             training = ru32(e + 12), ref_type = ru32(e + 0x10),
-            ref_id = ru32(e + 0x14), mission = ru32(e + 0x18),
-            on_mission = ru32(e + 0x20) }
+            ref_id = ru32(e + 0x14), ref_ok = ref_ok(e),
+            mission = (ru8(e + 0x1C) or 0) ~= 0
+              and ru32(e + 0x18) or nil,
+            on_mission = om > 0 and om or nil }
         end
       end
     end
@@ -674,6 +714,45 @@ function Country.program_status(self)
       bt_walk(rp(hdr + 8), 0)
     end
     out.breakthrough = { count = cnt, list = vals }
+  end
+  -- program 回填对 (段 sv2_sec_c_program_status 内联回收): 池元素
+  -- @E+96/+100 id 对 ({type@+96, id@+100}, idpair 反序); ⚠ 按**容器
+  -- 下标**索引 (非 name_token): 同名 project 可重复
+  -- (sp_naval_ice_carrier 每国两条), 按名索引会互相覆盖; 段遍历序
+  -- 与本池序一致 (均 d+448*k), 下标对齐
+  out.extra_by_index = {}
+  do
+    local P2 = rp(S + 24)
+    if O.kptr(P2) and rp(P2) == BASE + PROG2.pool_vt then
+      local d, n = rp(P2 + 16), ru32(P2 + 28)
+      if O.kptr(d) and n and n > 0 and n < LAYOUT.lim.PTR_HUGE then
+        for k = 0, n - 1 do
+          local E = d + 448 * k
+          local pa, pb = ru32(E + 96) or 0, ru32(E + 100) or 0
+          out.extra_by_index[k] = {
+            idtype = ru32(E + 8) or 86,
+            prog = (pa ~= 0 or pb ~= 0) and { id = pb, type = pa } or nil }
+        end
+      end
+      -- resources (池内嵌 CStrategicResourcePool @P+72 — 访问链 =
+      -- 书 §4.3 cc+4008 行; 元素/门 = §4.13.6; tok 名有效才收)
+      out.resources = {}
+      local rd, rn = rp(P2 + 80), ru32(P2 + 92)
+      if O.kptr(rd) and rn and rn > 0 and rn < LAYOUT.lim.PTR_SANE then
+        for k = 0, rn - 1 do
+          local re = rd + 16 * k
+          local rv = rp(re)
+          if rv and rv ~= 0 then
+            local rnm = LAYOUT.token_name(ru32(re + 8))
+            if rnm and rnm ~= "" then
+              out.resources[#out.resources + 1] = {
+                name = tostring(rnm),
+                value = LAYOUT.as_i64(rv) / 100000 }
+            end
+          end
+        end
+      end
+    end
   end
   return out
 end
@@ -1731,4 +1810,262 @@ function Country.misc_tails(self)
     if v and v ~= 0 then rec.coastal_protection_ratio = v end
   end
   return rec
+end
+
+-- ============================================================
+-- §4.3.3 CCountryResources 导出全量补充 reader (sv2_sec_c_resources 消费;
+-- 与 resources_origin/extra_origins/vecs 并存; 布局/写门 = 书 §4.3.3/
+-- §4.23.3; fuel_daily 族 = f64, fuel_percentage = fixed5)
+local function re_s64(v)
+  if v then v = GAME.layout.as_i64(v) end
+  return v
+end
+
+-- delivery_routes (rs+1928/1940; writer 跳 idx0 哨兵; 块名 = receiver tag)
+local function re_routes(rs)
+  local rd, rc = rp(rs + 1928), ru32(rs + 1940) or 0
+  if not O.kptr(rd) or rc <= 1 or rc >= 100000 then return nil end
+  local out = {}
+  for i = 1, rc - 1 do
+    local r = rp(rd + 8 * i)
+    if O.kptr(r) and rp(r) == BASE + GAME.layout.vt.CResourceDelivery then
+      local rtag = Runtime:tag(ru32(r + 52) or 0)
+      if rtag then
+        local snd, cwn = ru32(r + 48), ru32(r + 56)
+        local t = { receiver_tag = rtag,
+          type = (ru32(r + 8) or 0) % 256,
+          sender = (snd and snd > 0) and Runtime:tag(snd) or nil,
+          receiver_tid = ru32(r + 52),
+          convoys_owner = (cwn and cwn > 0) and Runtime:tag(cwn) or nil }
+        local bt = ru32(r + 60)
+        if bt and bt > 0 then t.blocker_tag = Runtime:tag(bt) end
+        local bp = rp(r + 64)
+        if O.kptr(bp) then t.blocked_region = ru32(bp + 96) end
+        t.dirty = ((ru32(r + 120) or 0) % 256) ~= 0
+        local fp = rp(r + 16)
+        if O.kptr(fp) then t.from_state = ru32(fp + 88) end
+        local tp = rp(r + 24)
+        if O.kptr(tp) then t.to_state = ru32(tp + 88) end
+        local fpp = rp(r + 32)
+        if O.kptr(fpp) then t.from_port = ru32(fpp + 164) end
+        local tpp = rp(r + 40)
+        if O.kptr(tpp) then t.to_port = ru32(tpp + 164) end
+        local ld, lc = rp(r + 72), ru32(r + 84) or 0
+        if O.kptr(ld) and lc > 0 and lc < LAYOUT.lim.PTR_SANE then
+          t.land_path = {}
+          for k = 0, lc - 1 do
+            local sp = rp(ld + 8 * k)
+            t.land_path[#t.land_path + 1] = O.kptr(sp) and ru32(sp + 88)
+          end
+        end
+        local nd, nc = rp(r + 96), ru32(r + 108) or 0
+        if O.kptr(nd) and nc > 0 and nc < LAYOUT.lim.PTR_SANE then
+          t.naval_path = {}
+          for k = 0, nc - 1 do
+            local sp = rp(nd + 8 * k)
+            t.naval_path[#t.naval_path + 1] = O.kptr(sp) and ru32(sp + 88)
+          end
+        end
+        out[#out + 1] = t
+      end
+    end
+  end
+  return out
+end
+
+-- export 槽阵列 (rs+1832/1844; writer 槽 0 起)
+local function re_exports(rs)
+  local d = rp(rs + 1832)
+  local nslot = ru32(rs + 1844) or 0
+  if not O.kptr(d) or nslot <= 0 or nslot >= LAYOUT.lim.PTR_SANE then
+    return nil end
+  local out = {}
+  for slot = 0, nslot - 1 do
+    local arr = rp(d + 24 * slot)
+    local cn = ru32(d + 24 * slot + 12) or 0
+    if O.kptr(arr) and cn > 0 and cn < 4096 then
+      for j = 0, cn - 1 do
+        local el = rp(arr + 8 * j)
+        if O.kptr(el) then
+          local e = {}
+          if (ru8(el + 16) or 0) ~= 0 then
+            e.id_type = ru32(el + 8) or 0
+            e.id_id = ru32(el + 12) or 0 end
+          local cst = ru32(el + 44) or 0
+          if cst ~= 0 then
+            e.convoys = ru32(el + 40) or 0
+            e.convoys_total = cst end
+          local spt, spi = ru32(el + 112) or 0, ru32(el + 116) or 0
+          if spt ~= 0 or spi ~= 0 then
+            e.spotter = { type = spt, id = spi } end
+          e.country = Runtime:tag(ru32(el + 24))
+          local eff = rp(el + 72)
+          if eff then e.efficiency = LAYOUT.as_i64(eff) / 100000 end
+          local due = rp(el + 80)
+          if due then e.efficiency_due = LAYOUT.as_i64(due) / 100000 end
+          e.request = ru32(el + 120) or 0
+          local ebd, ebc = rp(el + 88), ru32(el + 100) or 0
+          if O.kptr(ebd) and ebc > 0
+              and ebc <= LAYOUT.lim.FIXED_SMALL then
+            e.combat = {}
+            for q5 = 0, ebc - 1 do
+              e.combat[#e.combat + 1] = { type = ru32(ebd + 8 * q5) or 0,
+                id = ru32(ebd + 8 * q5 + 4) or 0 }
+            end
+          end
+          e.receiver = Runtime:tag(ru32(el + 136))
+          local rp144 = rp(el + 144)
+          if O.kptr(rp144) then
+            local nm = GAME.layout.token_name(ru32(rp144 + 8))
+            if nm then e.resource = nm end end
+          local dv = rp(el + 152)
+          if dv then e.delivered = LAYOUT.as_i64(dv) / 100000 end
+          local dp = rp(el + 160)
+          if O.kptr(dp) then e.destination = ru32(dp + 88) or 0 end
+          local op = rp(el + 168)
+          if O.kptr(op) then e.origin = ru32(op + 88) or 0 end
+          e.start_h = ru32(el + 184)
+          e.last_recalc_h = ru32(el + 208)
+          e.required_cic = ru32(el + 224) or 0
+          e.lended_cic = ru32(el + 228) or 0
+          out[#out + 1] = e
+        end
+      end
+    end
+  end
+  return out
+end
+
+-- lend_lease (rs+1880/1892; §4.23.3; 七 MAP 槽 + fuel 五字段)
+local function re_lendlease(rs)
+  local ld, lc = rp(rs + 1880), ru32(rs + 1892) or 0
+  if not O.kptr(ld) or lc <= 0 or lc >= LAYOUT.lim.PTR_SANE then
+    return nil end
+  local MAPS = { { 216, "equipment_need" }, { 280, "percentage_need" },
+    { 344, "once_need" }, { 472, "equipment_collected" },
+    { 600, "equipment_prepared" }, { 664, "equipment_sunk" },
+    { 728, "total_delivered" } }
+  local out = {}
+  for j = 0, lc - 1 do
+    local ll = rp(ld + 8 * j)
+    if O.kptr(ll) then
+      local e = { receiver = Runtime:tag(ru32(ll + 184)) }
+      local dp = rp(ll + 200)
+      if O.kptr(dp) then e.destination = ru32(dp + 88) or 0 end
+      local op = rp(ll + 208)
+      if O.kptr(op) then e.origin = ru32(op + 88) or 0 end
+      e.sender_convoys = ru32(ll + 144) or 0
+      e.sender_total = ru32(ll + 148) or 0
+      e.maps = {}
+      for _, mi in ipairs(MAPS) do
+        local slot, mname = mi[1], mi[2]
+        local allow = ru8(ll + slot + 56) or 0
+        local md = rp(ll + slot + 32)
+        local mc = ru32(ll + slot + 44) or 0
+        local m2 = { az = allow, list = {} }
+        if O.kptr(md) and mc > 0 and mc < 4096 then
+          for k = 0, mc - 1 do
+            local amt = GAME.layout.as_i64(rp(md + 16 * k + 8))
+            if (amt and amt ~= 0) or allow ~= 0 then
+              local vp = rp(md + 16 * k)
+              if O.kptr(vp) then
+                m2.list[#m2.list + 1] = { type = ru32(vp + 8) or 0,
+                  id = ru32(vp + 12) or 0,
+                  amount = (amt or 0) / 100000 }
+              end
+            end
+          end
+        end
+        e.maps[mname] = m2
+      end
+      e.last_delivery_h = ru32(ll + 800)
+      e.active_h = ru32(ll + 824)
+      e.fuel_daily = hoi4.read_f64 and hoi4.read_f64(ll + 848) or nil
+      local fpct = rp(ll + 856)
+      if fpct then e.fuel_pct = LAYOUT.as_i64(fpct) / 100000 end
+      e.fuel_sent = hoi4.read_f64 and hoi4.read_f64(ll + 864) or nil
+      e.fuel_sunk = hoi4.read_f64 and hoi4.read_f64(ll + 872) or nil
+      e.last_fuel_delivered =
+        hoi4.read_f64 and hoi4.read_f64(ll + 880) or nil
+      if (ru8(ll + 16) or 0) ~= 0 then
+        e.id_type = ru32(ll + 8) or 0
+        e.id_id = ru32(ll + 12) or 0 end
+      local cst = ru32(ll + 44) or 0
+      if cst ~= 0 then
+        e.convoys = ru32(ll + 40) or 0
+        e.convoys_total = cst end
+      e.country = Runtime:tag(ru32(ll + 24))
+      local eff = rp(ll + 72)
+      if eff then e.efficiency = LAYOUT.as_i64(eff) / 100000 end
+      local due = rp(ll + 80)
+      if due then e.efficiency_due = LAYOUT.as_i64(due) / 100000 end
+      e.request = ru32(ll + 120) or 0
+      out[#out + 1] = e
+    end
+  end
+  return out
+end
+
+-- modify_building_resources (rs+1952/1964; 折叠契约 "lvl=amt }" 段层)
+local function re_modify_building(rs)
+  local mdd, mdc = rp(rs + 1952), ru32(rs + 1964) or 0
+  if not O.kptr(mdd) or mdc <= 0 or mdc > LAYOUT.lim.PTR_SANE then
+    return nil end
+  local out = {}
+  for k = 0, mdc - 1 do
+    local e = mdd + 32 * k
+    local bname = GAME.layout.token_name(ru32(e) or 0)
+    local idn = rp(e + 8)
+    local icn = ru32(e + 20) or 0
+    if bname and O.kptr(idn) and icn > 0
+        and icn <= LAYOUT.lim.FIXED_SMALL then
+      for q6 = 0, icn - 1 do
+        out[#out + 1] = { building = bname,
+          level = ru32(idn + 16 * q6) or 0,
+          amount = (GAME.layout.as_i64(rp(idn + 16 * q6 + 8)) or 0)
+            / 100000 }
+      end
+    end
+  end
+  return out
+end
+
+-- Country.resources_tails -> 杂项四簇 (dirty 由段层直读 proxy 外单字节,
+-- 亦在此收口: rs+2000)
+function Country.resources_tails(self)
+  local rs = rp(self.addr + 4600)
+  if not (O.kptr(rs)
+      and rp(rs) == BASE + GAME.layout.vt.CCountryResources) then
+    return nil
+  end
+  return {
+    delivery_routes = re_routes(rs),
+    dirty = ((ru32(rs + 2000) or 0) % 256) ~= 0,
+    exports = re_exports(rs),
+    lend_leases = re_lendlease(rs),
+    modify_building = re_modify_building(rs),
+  }
+end
+
+
+-- §4.3.18 CConvoys equipment 池导出 reader (cc+4624 = 4608+16;
+-- 条目门 = amount≠0∨az 且 variant 非空)
+function Country.convoys_equipment(self)
+  local cc = self.addr
+  if not cc then return nil end
+  local cvp = cc + 4624
+  local az = ru8(cvp + 56) or 0
+  local d, cnt = rp(cvp + 32), ru32(cvp + 44)
+  local out = { az = az, list = {} }
+  if O.kptr(d) and cnt and cnt > 0 and cnt < 4096 then
+    for k = 0, cnt - 1 do
+      local ev = rp(d + 16 * k)
+      local amt = rp(d + 16 * k + 8) or 0
+      if O.kptr(ev) and (amt ~= 0 or az ~= 0) then
+        out.list[#out.list + 1] = { type = ru32(ev + 8) or 0,
+          id = ru32(ev + 12) or 0, amount = amt / 100000 }
+      end
+    end
+  end
+  return out
 end

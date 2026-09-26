@@ -1,5 +1,6 @@
 -- sv2_sec_c_characters.lua -- country.characters 节点 savefull 直出
--- (csec; §4.3 CCountryCharacters cc+4080)
+-- (发射规则段; 布局/走查/写门唯一实现 = Country.country_characters
+--  objects_global §33 + Runtime.op_leader 元素转换 (§4.11.11))
 
 SV2.csec[#SV2.csec + 1] = { name = "country.characters", emit = function(ctx)
     local SL, emit, tag, c = SV2.lib, ctx.emit, ctx.tag, ctx.country
@@ -24,32 +25,11 @@ SV2.csec[#SV2.csec + 1] = { name = "country.characters", emit = function(ctx)
         emit_status("characters." .. seq("character_status"), st)
     end
 
-    -- retired_character_status : writer 原序直写 {d@ch+40,
-    -- c@ch+52} — 段内重走原始向量, 不消费 objects_v2 的 id 升序 sort
-    -- 副本 (仅族非空)
-    do
-        local rp, ru32 = hoi4.read_u64, hoi4.read_u32
-        local rseq = SL.seqc()
-        local ch = r.addr
-        local rd, rc = rp(ch + 40), ru32(ch + 52) or 0
-        if SL.kptr(rd) and rc > 0 and rc < GAME.layout.lim.PTR_SANE then
-            for j = 0, rc - 1 do
-                local e = rd + 16 * j
-                local st = rp(e)
-                if SL.kptr(st) then
-                    local fl = ru32(e + 8) or 0
-                    emit_status("characters."
-                        .. rseq("retired_character_status"), {
-                        id = ru32(st + 0xC),
-                        type = ru32(st + 8),
-                        country_leader = (fl % 256) == 1,
-                        advisor = (math.floor(fl / 256) % 256) == 1,
-                        unit_leader = (math.floor(fl / 65536) % 256) == 1,
-                        scientist = (math.floor(fl / 16777216) % 256) == 1,
-                    })
-                end
-            end
-        end
+    -- retired_character_status : writer 原序直写 (reader retired 已原序)
+    local rseq = SL.seqc()
+    for _, st in ipairs(r.retired or {}) do
+        emit_status("characters."
+            .. rseq("retired_character_status"), st)
     end
 
     -- appointed_advisors 匿名块 #N (1 起 = 容器序; 块内 slot 先 character 后)
@@ -69,13 +49,14 @@ SV2.csec[#SV2.csec + 1] = { name = "country.characters", emit = function(ctx)
              SL.idpair(sc.id, sc.type))
     end
 
-    -- retired_operative_leader: 池 {d@ch+200, c@ch+212} 8B 指针 →
-    -- §4.11.11 COperativeLeader (§4.3 chars+200 行); 叶规则 =
+    -- retired_operative_leader: 池 {d@ch+200, c@ch+212} → reader
+    -- retired_operatives (Runtime.op_leader 转换); 叶规则 =
     -- sv2_sec_c_intelligence_agency op_emit 同型 (writer 链相同),
-    -- 重复块键 [N] 编号
+    -- 重复块键 [N] 编号。⚠ 本族发射键集 = agency 版子集 (无 desc/
+    -- custom_cost_text/picture/portrait_path/cooldown) 且 mission
+    -- state 无型别白名单 (通用口径)
     do
-        local rp, ru32, ru8 = hoi4.read_u64, hoi4.read_u32, hoi4.read_u8
-        local LAY, R = GAME.layout, c.R
+        local R = c.R
         local OP_STATE = { [0] = "on_capture", [1] = "on_cooldown",
             [2] = "on_disband", [3] = "on_mission", [4] = "on_operation",
             [5] = "killed" }
@@ -88,140 +69,78 @@ SV2.csec[#SV2.csec + 1] = { name = "country.characters", emit = function(ctx)
             if tid and tid > 0 and R then return R:tag(tid) end
             return nil
         end
-        local function fix5(a)   -- i64 ×1e-5 定点 (§3.7; /100000 勿 *1e-5)
-            local v = rp(a)
-            if not v then return 0 end
-            v = GAME.layout.as_i64(v)
-            return v / 100000
-        end
-        local ch = r.addr
-        local dd, dc = rp(ch + 200), ru32(ch + 212) or 0
-        if SL.kptr(dd) and dc > 0 and dc < GAME.layout.lim.PTR_SANE then
-            local oseq = SL.seqc()
-            for q = 0, dc - 1 do
-                local e = rp(dd + 8 * q)
-                if SL.kptr(e) then
-                    local base = "characters."
-                        .. oseq("retired_operative_leader")
-                    emit(tag, base .. ".id",
-                        SL.idpair(ru32(e + 12), ru32(e + 8)))
-                    local qn = SL.Q(LAY.read_msvc_str(e + 32))
-                    if qn then emit(tag, base .. ".name", qn) end
-                    -- gfx: COperativeLeader MSVC@e+256 (非空才写) — 与
-                    -- intelligence_agency.op_emit 同源同址; 本处曾漏发
-                    -- (退役干员有 gfx 而候选池无 → 单侧 MISS)
-                    local qg = SL.Q(LAY.read_msvc_str(e + 256))
-                    if qg then emit(tag, base .. ".gfx", qg) end
-                    if (ru8(e + 3713) or 0) ~= 0 then
-                        emit(tag, base .. ".female",
-                            SL.yn(ru8(e + 3712) or 0)) end
-                    local sk = rp(e + 3680)
-                    emit(tag, base .. ".skill",
-                        SL.num(SL.kptr(sk) and ru32(sk + 440) or 0))
-                    local xp = rp(e + 3688) or 0
-                    xp = GAME.layout.as_i64(xp)
-                    if xp ~= 0 then
-                        emit(tag, base .. ".experience",
-                            SL.num(xp / 100000)) end
-                    local sid = ru32(e + 3924) or 0
-                    if sid ~= 0 then
-                        emit(tag, base .. ".script_id", SL.num(sid)) end
-                    local td, tc = rp(e + 3528), ru32(e + 3540) or 0
-                    if SL.kptr(td) and tc > 0 and tc < GAME.layout.lim.PTR_SANE then
-                        local t = {}
-                        for k = 0, tc - 1 do
-                            local te = rp(td + 8 * k)
-                            if SL.kptr(te) then
-                                t[#t + 1] = tostring(
-                                    SL.tok(ru32(te + 8)) or "?")
-                            end
-                        end
-                        if #t > 0 then
-                            emit(tag, base .. ".traits",
-                                table.concat(t, " ")) end
-                    end
-                    -- in_progress 16B {tok*, i64×1e-5} 全条目含 0
-                    local pd, pc = rp(e + 3576), ru32(e + 3588) or 0
-                    if SL.kptr(pd) and pc > 0 and pc < GAME.layout.lim.PTR_SANE then
-                        for k = 0, pc - 1 do
-                            local pe = pd + 16 * k
-                            local tobj = rp(pe)
-                            if SL.kptr(tobj) then
-                                local tn = SL.tok(ru32(tobj + 8))
-                                if tn then
-                                    emit(tag, base .. ".in_progress."
-                                        .. tostring(tn),
-                                        SL.num(fix5(pe + 8)))
-                                end
-                            end
-                        end
-                    end
-                    local lid = ru32(e + 3800) or 0xFFFFFFFF
-                    if lid ~= 0xFFFFFFFF then
-                        emit(tag, base .. ".legacy_id", SL.num(lid)) end
-                    -- nationalities u32 tid 数组 → 单行 #1 空格 joined 裸 tag
-                    local nd, nc = rp(e + 3944), ru32(e + 3956) or 0
-                    if SL.kptr(nd) and nc > 0 and nc < GAME.layout.lim.PTR_SANE then
-                        local t = {}
-                        for k = 0, nc - 1 do
-                            local ntid = ru32(nd + 4 * k) or 0
-                            t[#t + 1] = tagof(ntid) or tostring(ntid)
-                        end
-                        if #t > 0 then
-                            emit(tag, base .. ".nationalities.#1",
-                                table.concat(t, " ")) end
-                    end
-                    local capt = ru32(e + 4016) or 0
-                    if capt > 0 then
-                        local ct = tagof(capt)
-                        if ct then
-                            emit(tag, base .. ".captured", SL.Q(ct))
-                            local cd = SL.date(ru32(e + 4032))
-                            if cd then
-                                emit(tag, base .. ".capture_date",
-                                    SL.Q(cd)) end
-                        end
-                    end
-                    emit(tag, base .. ".codename.type",
-                        SL.num(ru32(e + 4056) or 0))
-                    local cno = ru32(e + 4176) or 0
-                    if cno ~= 0 then
-                        emit(tag, base .. ".codename.name_order",
-                            SL.num(cno)) end
-                    if (ru8(e + 4216) or 0) == 0 then
-                        emit(tag, base .. ".codename.is_name_ordered",
-                            "no") end
-                    local mtype = ru32(e + 4256) or 0
-                    if mtype ~= 0 then
-                        local mn = MISSION_NAMES[mtype] or tostring(mtype)
-                        local mb = base .. ".mission." .. mn
-                        local mdata = rp(e + 4248)
-                        if SL.kptr(mdata) then
-                            local mt = tagof(ru32(mdata + 16) or 0)
-                            if mt then
-                                emit(tag, mb .. ".target", SL.Q(mt)) end
-                            local ms2 = rp(mdata + 24)
-                            if SL.kptr(ms2) then
-                                local msv = ru32(ms2 + 88) or 0
-                                if msv ~= 0 then
-                                    emit(tag, mb .. ".state", SL.num(msv))
-                                end
-                            end
-                        end
-                    end
-                    -- operation (0x2F1B): idpair 门 type@e+3968≠0
-                    -- or id@e+3972≠0, 叶序在 codename 后 state 前 (retired
-                    -- 与现役同一 writer 0x140C18FF0, 镜像 op_emit)
-                    local opty, opid = ru32(e + 3968) or 0, ru32(e + 3972) or 0
-                    if opty ~= 0 or opid ~= 0 then
-                        emit(tag, base .. ".operation",
-                            SL.idpair(opid, opty)) end
-                    local stn = OP_STATE[ru32(e + 4224) or 0]
-                    if stn then
-                        emit(tag, base .. ".state",
-                            "state=" .. stn .. " }") end
+        local oseq = SL.seqc()
+        for _, o in ipairs(r.retired_operatives or {}) do
+            local base = "characters."
+                .. oseq("retired_operative_leader")
+            emit(tag, base .. ".id", SL.idpair(o.id, o.type))
+            local qn = SL.Q(o.name)
+            if qn then emit(tag, base .. ".name", qn) end
+            -- gfx: COperativeLeader MSVC@+256 (非空才写) — 本处曾漏发
+            -- (退役干员有 gfx 而候选池无 → 单侧 MISS)
+            local qg = SL.Q(o.gfx)
+            if qg then emit(tag, base .. ".gfx", qg) end
+            if o.female_gate then
+                emit(tag, base .. ".female", SL.yn(o.female or 0)) end
+            emit(tag, base .. ".skill", SL.num(o.skill or 0))
+            local xp = o.experience
+            if xp and xp ~= 0 then
+                emit(tag, base .. ".experience", SL.num(xp)) end
+            local sid = o.script_id or 0
+            if sid ~= 0 then
+                emit(tag, base .. ".script_id", SL.num(sid)) end
+            if o.traits and o.traits ~= "" then
+                emit(tag, base .. ".traits", o.traits) end
+            -- in_progress 16B {tok*, i64×1e-5} 全条目含 0
+            for _, pp in ipairs(o.in_progress_pairs or {}) do
+                emit(tag, base .. ".in_progress." .. tostring(pp.tok),
+                    SL.num(pp.val))
+            end
+            local lid = o.legacy_u32 or 0xFFFFFFFF
+            if lid ~= 0xFFFFFFFF then
+                emit(tag, base .. ".legacy_id", SL.num(lid)) end
+            -- nationalities u32 tid 数组 → 单行 #1 空格 joined 裸 tag
+            if o.nationalities and o.nationalities ~= "" then
+                emit(tag, base .. ".nationalities.#1", o.nationalities) end
+            local capt = o.captured_tag or 0
+            if capt > 0 then
+                local ct = tagof(capt)
+                if ct then
+                    emit(tag, base .. ".captured", SL.Q(ct))
+                    local cd = SL.date(o.capture_date_hours or 0)
+                    if cd then
+                        emit(tag, base .. ".capture_date", SL.Q(cd)) end
                 end
             end
+            emit(tag, base .. ".codename.type",
+                SL.num(o.codename_type or 0))
+            local cno = o.codename_name_order or 0
+            if cno ~= 0 then
+                emit(tag, base .. ".codename.name_order", SL.num(cno)) end
+            if o.codename_is_name_ordered_zero then
+                emit(tag, base .. ".codename.is_name_ordered", "no") end
+            local mtype = o.mission_type_code or 0
+            if mtype ~= 0 then
+                local mn = MISSION_NAMES[mtype] or tostring(mtype)
+                local mb = base .. ".mission." .. mn
+                local mt = tagof(o.mission_target_tid or 0)
+                if mt then emit(tag, mb .. ".target", SL.Q(mt)) end
+                -- ⚠ 退役族通用口径: 不带 build_intel_network(1)/
+                -- root_out_resistance(4) 白名单 (agency 版有)
+                local msv = o.mission_state_raw or 0
+                if msv ~= 0 then
+                    emit(tag, mb .. ".state", SL.num(msv)) end
+            end
+            -- operation (0x2F1B): id 对门 type/id 任一≠0, 叶序在
+            -- codename 后 state 前 (retired 与现役同一 writer
+            -- 0x140C18FF0, 镜像 op_emit)
+            local opty, opid = o.operation_type or 0, o.operation_id or 0
+            if opty ~= 0 or opid ~= 0 then
+                emit(tag, base .. ".operation", SL.idpair(opid, opty)) end
+            local stn = OP_STATE[o.state or 0]
+            if stn then
+                emit(tag, base .. ".state",
+                    "state=" .. stn .. " }") end
         end
     end
 end }

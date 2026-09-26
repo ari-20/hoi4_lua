@@ -746,4 +746,35 @@ M.OFFICER_PORTRAIT_SIZE = OFFICER_PORTRAIT_SIZE
 -- 自注册 (域文件与入口按 GAME.objects_shared 取用; 世代守卫见文件头注)
 GAME.objects_shared = M
 
+-- §4.13.3 country flags 导出全量 reader (cc+0x230 CFlagStore; 48B 条;
+-- 与 global flags 同构; 键 = SL.tok 同形 token 失效落数值)
+function Country.flags_list(self)
+  local cc = self.addr
+  if not cc then return nil end
+  local store = rp(cc + 0x230)
+  if not O.kptr(store) then return nil end
+  local d, cnt = rp(store + 8), ru32(store + 0x14)
+  if not O.kptr(d) or not cnt or cnt <= 0 or cnt > 100000 then return nil end
+  local maxtok = hoi4.read_u32(hoi4.base()
+      + GAME.layout.rva.lexer_token_max) or 100000
+  local out = {}
+  for i = 0, cnt - 1 do
+    local e = d + 0x30 * i
+    local key = ru32(e + 8)
+    local nm = key and key <= maxtok
+        and (GAME.layout.token_name(key) or key)
+    if nm and nm ~= "" then
+      local pack = ru32(e + 0x28) or 0
+      local v = pack & 0xFFFF
+      v = LAYOUT.as_i16(v)
+      local dh = ru32(e + 0x18)
+      local ex = (pack >> 16) & 0x7FFF
+      out[#out + 1] = { name = tostring(nm), value = v,
+        date_h = (dh and dh > 0) and dh or nil,
+        days = (ex > 0) and ex or nil }
+    end
+  end
+  return out
+end
+
 return M

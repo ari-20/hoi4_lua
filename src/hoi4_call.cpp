@@ -225,15 +225,15 @@ int hoi4_load_save(lua_State *Ls) {
         // A hooked slot holds a hook-facility thunk; resolve it back to the
         // ORIGINAL getter instead of running a mod hook — bridge infrastructure
         // must not be vetoable by the mod layer (a vetoed load would abort the
-        // verification workflow). memgate_exec_ok stays strict; the resolved
-        // original is engine code and passes it unchanged. See hoi4_hook.h.
+        // verification workflow). A Tier 2 detour resolves to its trampoline,
+        // which is why the gate below also accepts the bridge's own trampolines.
         void **appVt = *(void ***)app;
         uint64_t getter = (uint64_t)(uintptr_t)appVt[SAVE_MGR_VT_OFF / 8];
         {
             uint64_t orig = 0;
             if (hook_orig_for_thunk(getter, &orig)) getter = orig;
         }
-        if (!memgate_exec_ok(getter)) {
+        if (!memgate_exec_ok(getter) && !hook_is_our_trampoline(getter)) {
             L("[load_save] mgr getter %llx outside engine exec sections",
               (unsigned long long)getter);
             audit_mem_deny(Ls, "call", getter, "outside engine exec sections");

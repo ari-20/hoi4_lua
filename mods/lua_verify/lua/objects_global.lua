@@ -1,6 +1,6 @@
--- objects_global.lua -- 杂项族 / 全局代理工厂 / 国家级杂项族 (对象层域文件)
+-- objects_global.lua -- 杂项族 / 国家级杂项族 / 全局元数据族 (对象层域文件)
 -- 结构语义详见书: §4.5 阵营 CFactionSystem / §4.27 突袭 CRaidSystem /
--- §4.20 天气 CWeatherManager / §4.21 补给 CSupplySystem / §4.34 AI CStrategicAI。
+-- §4.34 AI CStrategicAI。 (全局代理工厂族 §32 已拆至 objects_manager.lua)
 -- 共享层惰性获取 (DLL 字母序下 objects_shared 晚于本文件加载)。
 -- 世代判据 (§0.2 对象层文件布局) = GAME.layout 表身份: hoi4_layout 每代
 -- 重建该表, 故 SH.LAYOUT == GAME.layout ⟺ 本代层已建 → 直接复用;
@@ -114,6 +114,13 @@ function Runtime.raid_targets(self)
           dynamic = U.a8(t + 48) or 0,
           valid = U.a8(t + 49) or 0,
         }
+        -- leader / leader_province (SRaidTarget: id 对 {type@t+32,
+        -- id@t+36}, 省指针@t+40 → id@+164; 非零才写 = 段侧门)
+        local lty, lid = ru32(t + 32), ru32(t + 36)
+        if (lty and lty ~= 0) or (lid and lid ~= 0) then
+          rec.leader = { type = lty, id = lid } end
+        local lp2 = rp(t + 40)
+        rec.leader_province = O.kptr(lp2) and (ru32(lp2 + 164) or 0) or nil
         local bld = rp(inner)
         local prov = rp(inner + 8)
         local st = rp(inner + 16)
@@ -179,6 +186,38 @@ function Runtime.raid_country_entries(self)
       rec.dummy_id = ru32(dummy + 12) or 0
       rec.dummy_type = ru32(dummy + 8) or 0
     end
+    -- target_cooldowns (§4.27.1 CCountryRaidStatus +72; 64B 元:
+    -- def ptr@+8 (类型名 token@def+8), building ptr@+16 (template =
+    -- tok@*(bld+0x1E0)+8, location = 省 id@*(bld+0x1D8)+108),
+    -- province ptr@+24 → +164, state ptr@+32 → +88, cooldown u32@+56)
+    rec.target_cooldowns = {}
+    do
+      local td2, tc2 = rp(e + 72), ru32(e + 84)
+      if O.kptr(td2) and tc2 and tc2 > 0 and tc2 < 4096 then
+        for k = 0, tc2 - 1 do
+          local el = td2 + 64 * k
+          local item = { cooldown = ru32(el + 56) or 0 }
+          local bld = rp(el + 16)
+          if O.kptr(bld) then
+            local tpo = rp(bld + 0x1E0)
+            local tt = O.kptr(tpo) and ru32(tpo + 8) or nil
+            item.bld_template = tt and (LAYOUT.token_name(tt)
+                or ("tok" .. tostring(tt))) or nil
+            local sto = rp(bld + 0x1D8)
+            item.bld_location = O.kptr(sto)
+                and (ru32(sto + 108) or 0) or nil
+          end
+          local pv = rp(el + 24)
+          item.province = O.kptr(pv) and (ru32(pv + 164) or 0) or nil
+          local st = rp(el + 32)
+          item.state = O.kptr(st) and (ru32(st + 88) or 0) or nil
+          local def = rp(el + 8)
+          item.type_name = O.kptr(def)
+              and LAYOUT.token_name(ru32(def + 8)) or nil
+          rec.target_cooldowns[#rec.target_cooldowns + 1] = item
+        end
+      end
+    end
     local id2, ic2 = rp(e + 24), ru32(e + 36)
     if O.kptr(id2) and ic2 and ic2 > 0 and ic2 < 256 then
       for k = 0, ic2 - 1 do
@@ -198,6 +237,37 @@ function Runtime.raid_country_entries(self)
             end_gate = ru8(inst + 432) or 0,
             end_hours = ru32(inst + 416),
           }
+          -- unit.air_wing (CRaidInstance +200 族: {type@+208, id@+212}
+          -- 非零才写; writer 0x141454E80 系)
+          local awt, awi = ru32(inst + 208), ru32(inst + 212)
+          if (awt and awt ~= 0) or (awi and awi ~= 0) then
+            ir.air_wing = { type = awt, id = awi } end
+          -- target.leader (SRaidTarget 同构: {type@+184, id@+188},
+          -- 省 ptr@+192 → id@+164)
+          local lty, lid = ru32(inst + 184), ru32(inst + 188)
+          if (lty and lty ~= 0) or (lid and lid ~= 0) then
+            ir.leader = { type = lty, id = lid } end
+          local lp = rp(inst + 192)
+          ir.leader_province = O.kptr(lp) and (ru32(lp + 164) or 0) or nil
+          -- raid_source.province (raid_source 块 @inst+216, 省 ptr@
+          -- rs+8 → id@+164; writer 0x141581E30)
+          local rsp = rp(inst + 224)
+          ir.src_province = O.kptr(rsp) and (ru32(rsp + 164) or 0) or nil
+          -- show_for (§4.27.1 CRaidInstance +440 {d, c@+452}; 任一
+          -- tag 解析失败 = 整块不发 — 提取器半匿名续行怪癖 = 段侧形态)
+          do
+            local sfc = ru32(inst + 452)
+            local sfd = rp(inst + 440)
+            if sfc and sfc > 0 and sfc < 440 and O.kptr(sfd) then
+              local parts, ok3 = {}, true
+              for j2 = 0, sfc - 1 do
+                local tg = self:tag(ru32(sfd + 4 * j2) or 0)
+                if not tg then ok3 = false break end
+                parts[#parts + 1] = tg
+              end
+              if ok3 then ir.show_for = parts end
+            end
+          end
           -- type 名 = token_name(u32@*(inst+152)+8)
           local tobj = rp(inst + 152)
           if O.kptr(tobj) then
@@ -264,6 +334,13 @@ function Runtime.raid_country_entries(self)
                 location = ru32(src + 40) or 0,
                 template = LAYOUT.token_name(ru32(src + 44) or 0),
               }
+              -- 有效性门 (template token ≠19479 哨兵 且 (location
+              -- ≠-1 或 i32@+48 > 0))
+              local btok = ru32(src + 44) or 19479
+              local bloc = ru32(src + 40) or 0xFFFFFFFF
+              local b3 = GAME.layout.as_i32(ru32(src + 48) or 0)
+              ir.src_building_valid = btok ~= 19479
+                  and (bloc ~= 0xFFFFFFFF or b3 > 0)
             end
           end
           rec.instances[#rec.instances + 1] = ir
@@ -305,7 +382,9 @@ function Country.country_characters(self)
       }
     end
   end
-  -- retired_character_status {d@+40, c@+52} (元素 16B 同 status)
+  -- retired_character_status {d@+40, c@+52} (元素 16B 同 status)。
+  -- ⚠ 1.19.3 writer 原序直写向量 — 不排序 (旧"id 升序 sort"系误判,
+  -- 段层对拍实证原序为真)
   do
     local rd, rc = rp(ch + 40), ru32(ch + 52)
     local rs = {}
@@ -323,10 +402,25 @@ function Country.country_characters(self)
           }
         end
       end
-      -- writer RB 树去重后按序写 (实测 id 升序)
-      table.sort(rs, function(a, b) return (a.id or 0) < (b.id or 0) end)
     end
     out.retired = rs
+  end
+  -- retired_operative_leader 池 {d@+200, c@+212} 8B COperativeLeader*
+  -- (§4.11.11; 元素转换 = Runtime.op_leader (objects_characters 公开),
+  -- 运行期可用; 未挂载兜底 = 原始地址数组)
+  do
+    local dd, dc = rp(ch + 200), ru32(ch + 212) or 0
+    local dop = {}
+    if O.kptr(dd) and dc > 0 and dc < 100000 then
+      for q = 0, dc - 1 do
+        local e = rp(dd + 8 * q)
+        if O.kptr(e) then
+          dop[#dop + 1] = Runtime.op_leader
+              and Runtime.op_leader(e, self.R) or e
+        end
+      end
+    end
+    out.retired_operatives = dop
   end
   -- appointed_advisors 条目 (d@+88 指针数组, 元素→advisor 对象)
   do
@@ -717,642 +811,6 @@ function Runtime.strategic_air_deep(self)
     end
   end
   return { bases = bases, navies = navies, histories = histories }
-end
-
--- ============================================================
--- §32 全局代理工厂族 (legacy Objects.weather / supply2 / equipments /
--- division_templates / rail_way / faction_pool 正式迁移)
--- 模式: gs 单例指针槽定位全局管理器 → 指针数组/内联数组扫描 →
--- setmetatable 代理表惰性字段访问 (每次访问重校验 vtable, 悬垂防护)
--- ============================================================
-
--- ------------------------------------------------------------
--- 32.1 weather: CWeatherManager @gs+0x688 (§4.20.1; 省天气 §4.20.2
--- SWeatherPerProvince / 区天气 §4.20.3 SWeatherPerRegion;
--- 容器/内联元素/定点 = 书)
--- ------------------------------------------------------------
-local G32_WX = { mgr = BASE + GAME.layout.vt.CWeatherManager,
-  prov = BASE + GAME.layout.vt.CWeatherProvince }
-
-local G32_WxProvMT, G32_WxRegionMT
-local function G32_mk_wx_prov(a) return setmetatable({ _addr = a }, G32_WxProvMT) end
-local function G32_mk_wx_reg(a) return setmetatable({ _addr = a }, G32_WxRegionMT) end
-
-G32_WxProvMT = {
-  __index = function(self, k)
-    local a = self._addr
-    if not O.kptr(a) or rp(a) ~= G32_WX.prov then return nil end
-    if k == "province_id" then return ru32(a + 8) end
-    if k == "temperature" then return U.fix5(a + 0x118) end
-    if k == "temperature_offset" then return U.fix5(a + 0x128) end
-    if k == "water" then return U.fix5(a + 0x38) end
-    if k == "snow" then return U.fix5(a + 0x40) end
-    if k == "mud" then return U.a8(a + 0x130) end
-    if k == "custom_modifiers" then
-      local d, n = rp(a + 0x148), ru32(a + 0x154)
-      if not O.kptr(d) or not n or n > 16 then return nil end
-      local t = {}
-      for i = 0, n - 1 do
-        local name_ptr = rp(d + 16 * i)
-        t[#t + 1] = { name = O.kptr(name_ptr) and U.sso(name_ptr + 424) or nil,
-          param = ru32(d + 16 * i + 8) }
-      end
-      return t
-    end
-    return nil
-  end,
-}
-
-G32_WxRegionMT = {
-  __index = function(self, k)
-    local a = self._addr
-    if not O.kptr(a) then return nil end
-    if k == "region_id" then return ru32(a + 8) end
-    if k == "temperature" then return U.fix5(a + 0x138) end
-    if k == "rain_light" then return U.a8(a + 0x108) end
-    if k == "rain_heavy" then return U.a8(a + 0x110) end
-    if k == "snow" then return U.a8(a + 0x118) end
-    if k == "blizzard" then return U.a8(a + 0x120) end
-    if k == "sandstorm" then return U.a8(a + 0x128) end
-    if k == "arctic_water" then return U.a8(a + 0x130) end
-    if k == "next_weather_change_addr" then return rp(a + 0x158) end
-    return nil
-  end,
-}
-
--- Runtime.weather -> {addr, provinces={[省id]=proxy}, regions={[区带id]=proxy},
--- current_province, current_region, seed}
-function Runtime.weather(self)
-  local g = self.gs()
-  local mgr = g and rp(g + 0x688)
-  if not O.kptr(mgr) or rp(mgr) ~= G32_WX.mgr then return nil end
-  local pd, pc = rp(mgr + 0x10), ru32(mgr + 0x1C)
-  local rd, rc = rp(mgr + 0x40), ru32(mgr + 0x4C)
-  local provs, regs = {}, {}
-  if O.kptr(pd) and pc and pc > 0 and pc < 40000 then
-    for i = 0, pc - 1 do
-      local e = pd + 0x180 * i
-      if rp(e) == G32_WX.prov then
-        local pid = ru32(e + 8)
-        if pid then provs[pid] = G32_mk_wx_prov(e) end
-      end
-    end
-  end
-  if O.kptr(rd) and rc and rc > 0 and rc < 65536 then
-    for i = 0, rc - 1 do
-      local e = rd + 0x160 * i
-      local rid = ru32(e + 8)
-      if rid then regs[rid] = G32_mk_wx_reg(e) end
-    end
-  end
-  return { addr = mgr, provinces = provs, regions = regs,
-    current_province = ru32(mgr + 0x58), current_region = ru32(mgr + 0x5C),
-    seed = ru32(mgr + 0x308) }
-end
-
--- ------------------------------------------------------------
--- 32.2 supply2: CSupplySystem @ (gs+0x3D8)+8 (§4.21.1 /
--- CCountrySupplySystem; 字段/lost 环/settings/foreign_homebase_nodes/
--- disrupted_supply 布局与写门 = 书 §4.21)
--- ------------------------------------------------------------
-local G32_SUP2 = { sys = BASE + GAME.layout.vt.CSupplySystem,
-  ccs = BASE + GAME.layout.vt.CCountrySupplySystem }
-
-local G32_Sup2MT
-local function G32_mk_sup2(a) return setmetatable({ _addr = a }, G32_Sup2MT) end
-
-G32_Sup2MT = {
-  __index = function(self, k)
-    local a = self._addr
-    if not O.kptr(a) or rp(a) ~= G32_SUP2.ccs then return nil end
-    if k == "tag" then
-      -- CCountry+8 = u32 tag_id; 串表基址 = rp(gs+0x358) (§1.2 tag 串表),
-      -- 条目 32B std::string
-      local cc = rp(a + 120)
-      if not O.kptr(cc) then return nil end
-      local tid = ru32(cc + 8)
-      if not tid or tid == 0 then return nil end
-      local g = Runtime.gs()
-      local tbl = g and rp(g + 0x358)
-      return (tbl and O.kptr(tbl)) and U.sso(tbl + 32 * tid) or nil
-    end
-    if k == "priority" then return ru32(a + 0x10) end
-    if k == "buffer" then return U.fix5(a + 0x180) end
-    if k == "wanted_supply_trucks" then return ru32(a + 0xC8) end
-    if k == "last_supply_capital_move" then return ru32(a + 0x17C) end
-    if k == "daily_losses_index" then return ru32(a + 0x28C) end
-    if k == "last_lost_train_province" then return ru32(a + 0x288) end
-    if k == "trucks" then
-      local d, n = rp(a + 0x148), ru32(a + 0x154)
-      if not O.kptr(d) or not n or n > 512 then return nil end
-      local t = {}
-      for i = 0, n - 1 do
-        local e = d + 24 * i
-        t[#t + 1] = { type = ru32(e), id = ru32(e + 4), count = ru32(e + 8),
-          damage = U.fix5(e + 16) }
-      end
-      return t
-    end
-    if k == "lost_railways" or k == "lost_trains"
-        or k == "lost_trucks_attrition" or k == "lost_trucks_killed" then
-      local off = ({ lost_railways = 0x228, lost_trains = 0x240,
-        lost_trucks_attrition = 0x258, lost_trucks_killed = 0x270 })[k]
-      local d, n = rp(a + off), ru32(a + off + 0xC)
-      if not O.kptr(d) or not n or n > 64 then return nil end
-      local t = {}
-      for i = 0, n - 1 do t[#t + 1] = rp(d + 8 * i) end
-      return t
-    end
-    if k == "settings" then
-      -- 条目数组 → 存档 settings.node[N].{id, data.disabled,
-      -- data.motorization_level.<TAG>}
-      local d, n = rp(a + 392), ru32(a + 404)
-      if not O.kptr(d) or not n or n > 4096 then return nil end
-      local g = Runtime.gs()
-      local tbl = g and rp(g + 0x358)
-      local t = {}
-      for i = 0, n - 1 do
-        local e = d + 40 * i
-        local rec = {
-          id = (ru32(e) or 0) .. " " .. (ru32(e + 4) or 0),
-          disabled = ((U.a8(e + 8) or 0) ~= 0) and "yes" or "no",
-          moto = {},
-        }
-        local md, mc = rp(e + 16), ru32(e + 28)
-        if O.kptr(md) and mc and mc > 0 and mc < 64 then
-          for j = 0, mc - 1 do
-            local me = md + 8 * j
-            local tg = ru32(me) or 0
-            local lv = ru32(me + 4) or 0
-            if tg > 0 and tbl and O.kptr(tbl) then
-              local tn = U.sso(tbl + 32 * tg)
-              if tn then rec.moto[tn] = lv % 256 end
-            end
-          end
-        end
-        t[#t + 1] = rec
-      end
-      return t
-    end
-    -- 上提 (段 sv2_sec_supply_system_2 内联回收; 布局/写门 = 书 §4.21)
-    if k == "foreign_homebase_nodes" then
-      local d, n = rp(a + 480), ru32(a + 492)
-      if not O.kptr(d) or not n or n == 0 or n > LAYOUT.lim.PTR_SANE then
-        return nil end
-      local t = {}
-      for i = 0, n - 1 do
-        local nd = d + 112 * i + 8
-        t[#t + 1] = {
-          supply = U.fix5(nd), start = U.fix5(nd + 8),
-          penalty = U.fix5(nd + 16), add_penalty = U.fix5(nd + 24), add = U.sso(nd + 32),
-          duration = U.fix5(nd + 64), province = ru32(nd + 72),
-          hours = U.fix5(nd + 80), decay = U.fix5(nd + 88),
-          base = (U.a8(nd + 96) or 0) ~= 0 }
-      end
-      return t
-    end
-    -- disrupted_supply RH {tab@+144, cnt@+152, mask@+156, tail u8@+160},
-    -- 桶 24B {dist u8@+4, key 对 u32×2@+8, value i64 fx@+16};
-    -- 写序 (node id@+8 升序, 勘误定案) = 段层职责
-    if k == "disrupted_supply" then
-      local cnt = ru32(a + 152)
-      if not cnt or cnt == 0 or cnt > LAYOUT.lim.PTR_SANE then return nil end
-      local dt = rp(a + 144)
-      if not O.kptr(dt) then return nil end
-      local mask, tail = ru32(a + 156) or 0, U.a8(a + 160) or 0
-      local t = {}
-      for bi = 0, mask + tail do
-        local bk = dt + 24 * bi
-        local dist = U.a8(bk + 4) or 0
-        if dist ~= 0 and dist ~= 0xFE then
-          t[#t + 1] = { id_lo = ru32(bk + 12), id_hi = ru32(bk + 8),
-            value = U.fix5(bk + 16) }
-        end
-      end
-      return t
-    end
-    return nil
-  end,
-}
-
--- Runtime.supply2 -> {addr, by_tag={[TAG]=proxy}, list=[proxy...]}
-function Runtime.supply2(self)
-  local g = self.gs()
-  local P = g and rp(g + 0x3D8)
-  local sys = P and (P + 8) or nil
-  if not O.kptr(sys) or rp(sys) ~= G32_SUP2.sys then return nil end
-  local d, n = rp(sys + 0x100), ru32(sys + 0x10C)
-  local list, by_tag = {}, {}
-  -- 738 国 mod > 旧 600 门 → 放宽 100000
-  if O.kptr(d) and n and n > 0 and n < 100000 then
-    for i = 0, n - 1 do
-      local e = rp(d + 8 * i)
-      if O.kptr(e) and rp(e) == G32_SUP2.ccs then
-        local proxy = G32_mk_sup2(e)
-        list[#list + 1] = proxy
-        local tg = proxy.tag
-        if tg then by_tag[tg] = proxy end
-      end
-    end
-  end
-  return { addr = sys, by_tag = by_tag, list = list }
-end
-
--- ------------------------------------------------------------
--- 32.3 equipments: CEquipmentVariant (§4.23.1; 容器 gs+0x708
--- vector<ptr>; 布局/写门 = 书 §4.23)
--- ------------------------------------------------------------
-local G32_EQ = { vt = BASE + GAME.layout.vt.CEquipmentVariant }
-
-local G32_EqMT
-local function G32_mk_eq(a) return setmetatable({ _addr = a }, G32_EqMT) end
-
-G32_EqMT = {
-  __index = function(self, k)
-    local a = self._addr
-    if not O.kptr(a) then return nil end
-    if k == "type" then return ru32(a + 0x8) end
-    if k == "id" then return ru32(a + 0xC) end
-    if k == "key_token" then return ru32(a + 0x18) end
-    if k == "creator" or k == "origin" then
-      local g = Runtime.gs()
-      local tbl = g and rp(g + 0x358)
-      if not O.kptr(tbl) then return nil end
-      local tid = ru32(a + (k == "creator" and 0x1C or 0x20))
-      if not tid then return nil end
-      return U.sso(tbl + 32 * tid)
-    end
-    if k == "archetype" then
-      local kt = ru32(a + 0x18)
-      return LAYOUT.token_name(kt) or kt
-    end
-    if k == "show_position" then return U.a8(a + 0x24) end  -- (writer ==0 才写 no)
-    if k == "name" then return U.sso(a + 0x28) end
-    if k == "position" then return U.sso(a + 0x48) end
-    if k == "version" then return U.a8(a + 0x41C) end
-    if k == "max_version" then return U.a8(a + 0x41D) end
-    if k == "is_frame" then return U.a8(a + 0x41E) end
-    if k == "manpower" then return ru32(a + 0x420) end
-    if k == "obsolete" then return U.a8(a + 0x424) end
-    if k == "auto_upgraded" then return U.a8(a + 0x425) end
-    if k == "highlight" then return U.a8(a + 0x426) end
-    if k == "can_upgrade_type" then return U.a8(a + 0x427) end
-    if k == "can_upgrade_variant" then return U.a8(a + 0x428) end
-    if k == "can_upgrade_modules" then return U.a8(a + 0x429) end
-    if k == "role_icon_index" then return ru32(a + 0x42C) end
-    if k == "parent_id" then
-      local p = rp(a + 0x3F8)
-      if not O.kptr(p) then return nil end
-      return { id = ru32(p + 0xC), type = ru32(p + 0x8) }
-    end
-    if k == "parent" then
-      local p = rp(a + 0x3F8)
-      return O.kptr(p) and G32_mk_eq(p) or nil
-    end
-    if k == "division_names_group" then
-      local p = rp(a + 0x480)
-      return O.kptr(p) and U.sso(p + 8) or nil
-    end
-    if k == "override_sprite" then return U.sso(a + 0x458) end
-    if k == "override_model" then return U.sso(a + 0x430) end
-    if k == "design_team" then
-      local t = ru32(a + 0x488)
-      if not t or t == 0 then return nil end
-      return { type = t, id = ru32(a + 0x48C) }
-    end
-    if k == "design_team_bonus" then
-      -- count@+0x4A4 (writer 0x140BD4770 尾门; 旧 +0x4A0=cap
-      -- 误读, cap>count 时越界读网格对象产垃圾叶, 段内纠偏回收)
-      local arr, n = rp(a + 0x498), ru32(a + 0x4A4)
-      if not O.kptr(arr) or not n or n == 0 or n > LAYOUT.lim.PTR_SANE then return nil end
-      local t = {}
-      for i = 0, n - 1 do
-        local e = arr + 16 * i
-        local tok = ru32(e)
-        t[#t + 1] = {
-          name = tok and (LAYOUT.token_name(tok) or tostring(tok)) or "?",
-          value = U.fix5(e + 8),
-        }
-      end
-      return t
-    end
-    if k == "number_of_design_team_traits" then
-      local v = ru32(a + 0x4B0)
-      return (v and v > 0) and v or nil
-    end
-    if k == "named_equipment_bonuses" then
-      local d, n = rp(a + 0xE8), ru32(a + 0xF4)
-      if not O.kptr(d) or not n or n == 0 or n > LAYOUT.lim.PTR_SANE then return nil end
-      local t = {}
-      for i = 0, n - 1 do t[#t + 1] = ru32(d + 4 * i) or 0 end
-      return t
-    end
-    if k == "upgrade_list" then
-      -- (writer 0x140F7A6F0 定案): upgrades 实例内嵌@+0x68,
-      -- 容器 {d@+0x70, c@+0x7C}, 条目 stride16
-      -- {upgrade_def ptr@+0 (名 token = *(def+8)), level u8@+8}
-      -- 存档形态 "upgrades={ upgrades={ tank_nsb_engine_upgrade 0 ... } }"
-      local d, n = rp(a + 0x70), ru32(a + 0x7C)
-      if not O.kptr(d) or not n or n > 128 then return {} end
-      local t = {}
-      for i = 0, n - 1 do
-        local e = d + 16 * i
-        local def = rp(e)
-        -- def+8 是名 token (u32 直存, writer 1424A7300(*(def+8)))
-        local tok = O.kptr(def) and ru32(def + 8) or nil
-        t[#t + 1] = {
-          name = tok and (LAYOUT.token_name(tok) or ("tok" .. tostring(tok))) or "?",
-          level = U.a8(e + 8) or 0,
-        }
-      end
-      return t
-    end
-    if k == "modules" then
-      local d, n = rp(a + 0xB8), ru32(a + 0xC4)
-      if not O.kptr(d) or not n or n > 64 then return nil end
-      local t = {}
-      for i = 0, n - 1 do
-        local e = d + 16 * i
-        local mo = rp(e + 8)
-        local mtok = (O.kptr(mo) and U.a8(mo + 16) ~= 0) and ru32(mo + 8) or nil
-        t[#t + 1] = {
-          slot = LAYOUT.token_name(ru32(e)) or ru32(e),
-          token = mtok,
-          module = mtok and LAYOUT.token_name(mtok) or nil,
-        }
-      end
-      return t
-    end
-    if k == "ideas" then
-      local d, n = rp(a + 0xD0), ru32(a + 0xDC)
-      if not O.kptr(d) then return nil end
-      if not n or n > 64 then return nil end
-      -- 键门 (writer 0x140BD4770 尾): count@+0xDC != 0 才写键。count==0
-      -- → 存档无 ideas= 键 (返回 nil, 非 {}); count!=0 但名全解析空
-      -- → 合法空块 "ideas={ }" (t 为空表, 调用方发 "{}")
-      if n == 0 then return nil end
-      local t = {}
-      for i = 0, n - 1 do
-        local e = rp(d + 8 * i)
-        local io = e and O.kptr(e) and rp(e + 120)
-        if io and O.kptr(io) then t[#t + 1] = ru32(io + 8) end
-      end
-      return t
-    end
-    return nil
-  end,
-}
-
--- Runtime.equipments -> {addr, count, list=[代理], by_id={[id]=代理},
--- by_token={[key_token]={代理,...}}}
-function Runtime.equipments(self)
-  local g = self.gs()
-  if not g then return nil end
-  local data, cnt = rp(g + 0x708), ru32(g + 0x714)
-  local list, by_id, by_token = {}, {}, {}
-  if O.kptr(data) and cnt and cnt > 0 and cnt < 100000 then
-    for i = 0, cnt - 1 do
-      local v = rp(data + 8 * i)
-      if v and v >= 0x10000 and rp(v) == G32_EQ.vt then
-        local px = G32_mk_eq(v)
-        list[#list + 1] = px
-        local id = ru32(v + 0xC)
-        if id then by_id[id] = px end
-        local kt = ru32(v + 0x18)
-        if kt then
-          by_token[kt] = by_token[kt] or {}
-          table.insert(by_token[kt], px)
-        end
-      end
-    end
-  end
-  return { addr = g + 0x708, count = cnt, list = list, by_id = by_id,
-    by_token = by_token }
-end
-
--- ------------------------------------------------------------
--- 32.4 division_templates: CReferencedDivisionTemplate (§4.18.6;
--- 内嵌 CDivisionTemplateData §4.18.7; 容器 gs+0x6F0 vector<ptr>,
--- 布局 = 书)
--- ------------------------------------------------------------
-local G32_DTP = { vt = BASE + GAME.layout.vt.CDeployment }
-
-local G32_DtplMT
-local function G32_mk_dtpl(a) return setmetatable({ _addr = a }, G32_DtplMT) end
-
-G32_DtplMT = {
-  __index = function(self, k)
-    local a = self._addr
-    if not O.kptr(a) then return nil end
-    local d = a + 24
-    if k == "type" then return ru32(a + 8) end
-    if k == "id" then return ru32(a + 12) end
-    if k == "name" then return U.sso(d + 8) end
-    if k == "localization_key" then return U.sso(d + 40) end
-    if k == "country" or k == "original_tag" or k == "foreign_template_tag" then
-      local g = Runtime.gs()
-      local tbl = g and rp(g + 0x358)
-      if not O.kptr(tbl) then return nil end
-      local off = (k == "country" and 468) or (k == "original_tag" and 472) or 476
-      local tid = ru32(d + off)
-      if not tid then return nil end
-      return U.sso(tbl + 32 * tid)
-    end
-    if k == "priority" then return ru32(d + 396) end
-    if k == "template_counter" then
-      local v = ru32(d + 424)
-      if v then v = LAYOUT.as_i32(v) end
-      return v
-    end
-    if k == "ingame_set_template_counter" then return U.a8(d + 428) end
-    if k == "allow_new_equipment" then return U.a8(d + 429) end
-    if k == "allow_foreign_equipment" then return U.a8(d + 430) end
-    if k == "is_army_hq" then return U.a8(d + 436) end
-    if k == "is_fake_intel_division" then return U.a8(d + 540) end
-    if k == "is_locked" then return U.a8(d + 541) end
-    if k == "obsolete" then return U.a8(d + 542) end
-    if k == "obsolete_change_date" then
-      -- (0x2BA0): 条件 obsolete b@542 且 hours u32@552 ≠ 哨兵
-      -- 0x29C77F8 (本字段默认值); 日期算法同共享 date 族
-      if (U.a8(d + 542) or 0) == 0 then return nil end
-      -- 唯一实现 = hoi4_layout.date_opt (门 = 仅滤哨兵 0x29C77F8;
-      -- 0 与 0x29C3388 在本字段**不滤** — 与 U.date 语义不同)
-      return LAYOUT.date_opt(ru32(d + 552), { drop = { 0x29C77F8 } })
-    end
-    if k == "override_model" then
-      -- (0x3AF1): MSVC std::string @data+504 (size@+520 ≠0 才写)
-      -- ⚠ U.sso 对 size==0 返 ""(真值) → 发射端 tostring 出空串;
-      -- legacy read_msvc_str 返 nil → 必须归一
-      local m = U.sso(d + 504)
-      if m and #m > 0 then return m end
-      return nil
-    end
-    if k == "force_allow_recruiting" then return U.a8(d + 568) end
-    if k == "division_cap" then
-      if U.a8(d + 576) == 0 then return nil end
-      return ru32(d + 572)
-    end
-    if k == "origin_type" then
-      return ({ "master_host", "subject", "exile" })[ru32(d + 480) + 1]
-    end
-    if k == "division_names_group" then
-      local p = rp(d + 440)
-      return O.kptr(p) and U.sso(p + 8) or nil
-    end
-    if k == "role_token" then
-      if U.a8(d + 452) == 0 then return nil end
-      return ru32(d + 448)
-    end
-    if k == "regiments" or k == "supports" or k == "regimental_supports" then
-      local base = (k == "regiments" and 72) or (k == "supports" and 104) or 136
-      local width = (ru32(d + base) >> 16) & 0xFFFF -- 列高=hi u16 (x=slot//hi, y=slot%hi; lo=列数)
-      local cd, cn = rp(d + base + 8), ru32(d + base + 20)
-      local t = {}
-      if O.kptr(cd) and cn and cn > 0 and cn < 5000 and width > 0 then
-        for v5 = 0, cn - 1 do
-          local e = rp(cd + 8 * v5)
-          if O.kptr(e) and U.a8(e + 16) ~= 0 then
-            t[#t + 1] = {
-              unit_token = ru32(e + 8),
-              unit = LAYOUT.token_name(ru32(e + 8)) or ru32(e + 8),
-              x = math.floor(v5 / width),
-              y = v5 % width,
-            }
-          end
-        end
-      end
-      return t
-    end
-    return nil
-  end,
-}
-
--- Runtime.division_templates -> {addr, count, list=[代理], by_id={[id]=代理}}
-function Runtime.division_templates(self)
-  local g = self.gs()
-  if not g then return nil end
-  local data, cnt = rp(g + 0x6F0), ru32(g + 0x6FC)
-  local list, by_id = {}, {}
-  if O.kptr(data) and cnt and cnt > 0 and cnt < 100000 then
-    for i = 0, cnt - 1 do
-      local w = rp(data + 8 * i)
-      if w and w >= 0x10000 and rp(w) == G32_DTP.vt then
-        local px = G32_mk_dtpl(w)
-        list[#list + 1] = px
-        local id = ru32(w + 12)
-        if id then by_id[id] = px end
-      end
-    end
-  end
-  return { addr = g + 0x6F0, count = cnt, list = list, by_id = by_id }
-end
-
--- ------------------------------------------------------------
--- 32.5 rail_way: CRailwayManager @gs+0x3E0 (§4.14.7; 元素
--- §4.14.6 CProvinceRailwayInfo; 容器/levels 邻接表序 = 书)
--- ------------------------------------------------------------
-local G32_RW = { mgr = BASE + GAME.layout.vt.CRailwayManager, info = BASE + GAME.layout.vt.CProvinceRailwayInfo }
-
-local G32_RWInfoMT
-local function G32_mk_rw_info(a) return setmetatable({ _addr = a }, G32_RWInfoMT) end
-
-G32_RWInfoMT = {
-  __index = function(self, k)
-    local a = self._addr
-    if not O.kptr(a) or rp(a) ~= G32_RW.info then return nil end
-    if k == "province_id" then
-      local prov = rp(a + 0x08)
-      return O.kptr(prov) and ru32(prov + 0xC4) or nil
-    end
-    if k == "levels" then
-      -- 铁轨等级数组, 按邻接表顺序 (1起始, levels[i]=第i个邻省), count==邻省数
-      local d, n = rp(a + 0x20), ru32(a + 0x2C)
-      if not O.kptr(d) or not n or n > 64 then return nil end
-      local t = {}
-      for i = 0, n - 1 do t[i + 1] = ru32(d + 4 * i) end
-      return t
-    end
-    if k == "neighbors" then
-      -- 排序 {邻省id, level} (仅 level>0 的边)
-      local d, n = rp(a + 0x38), ru32(a + 0x44)
-      if not O.kptr(d) or not n or n > 64 then return nil end
-      local t = {}
-      for i = 0, n - 1 do
-        t[#t + 1] = { id = ru32(d + 8 * i), level = ru32(d + 8 * i + 4) }
-      end
-      return t
-    end
-    if k == "construction" then
-      -- 建造中边: {邻省id, 进度定点} 16B pair (n=0 返回空表)
-      -- ⚠ progress = i64 fixed×1e-5 (原实现误用 ru32 读低半, 已修)
-      local d, n = rp(a + 0x50), ru32(a + 0x5C)
-      if not n or n > 256 then return nil end
-      local t = {}
-      if O.kptr(d) then
-        for i = 0, n - 1 do
-          local p = rp(d + 16 * i + 8)
-          t[#t + 1] = { id = ru32(d + 16 * i),
-            progress = p and LAYOUT.as_i64(p) or nil }
-        end
-      end
-      return t
-    end
-    if k == "cooldown" then return ru32(a + 0x68) end
-    return nil
-  end,
-}
-
--- Runtime.rail_way -> {addr, slots, list=[代理...], by_province={[省id]=代理},
---                      top_cooldown = {d@mgr+32, c@mgr+44} u32 列表}
-function Runtime.rail_way(self)
-  local g = self.gs()
-  local mgr = g and rp(g + 0x3E0)
-  if not O.kptr(mgr) or rp(mgr) ~= G32_RW.mgr then return nil end
-  local data, slots = rp(mgr + 0x08), ru32(mgr + 0x14)
-  local list, by_id = {}, {}
-  if O.kptr(data) and slots and slots > 0 and slots < 100000 then
-    for i = 0, slots - 1 do
-      local p = rp(data + 8 * i)
-      if p and p >= 0x10000 and rp(p) == G32_RW.info then
-        local proxy = G32_mk_rw_info(p)
-        list[#list + 1] = proxy
-        local pid = proxy.province_id
-        if pid then by_id[pid] = proxy end
-      end
-    end
-  end
-  -- 顶格 cooldown 列表 (§4.14.7; c>0 才写, 段层钳 4096)
-  local top_cooldown = {}
-  local tcd, tcn = rp(mgr + 32), ru32(mgr + 44)
-  if O.kptr(tcd) and tcn and tcn > 0 then
-    for i = 0, math.min(tcn, LAYOUT.lim.PTR_SANE) - 1 do
-      top_cooldown[#top_cooldown + 1] = ru32(tcd + 4 * i) or 0
-    end
-  end
-  return { addr = mgr, slots = slots, list = list, by_province = by_id,
-           top_cooldown = top_cooldown }
-end
-
--- ------------------------------------------------------------
--- 32.6 faction_pool: CFactionSystem @gs+0x3F8 (§4.5; members/
--- extracted 池 = 书)
--- ------------------------------------------------------------
--- Runtime.faction_pool -> {data, count, entries={value, name_id}}
-function Runtime.faction_pool(self)
-  local g = self.gs()
-  local fac = g and rp(g + 0x3F8)
-  if not O.kptr(fac) then return nil end
-  local data = rp(fac + 0x40)
-  local cnt = ru32(fac + 0x48)
-  if not O.kptr(data) or not cnt or cnt > 64 then return nil end
-  local entries = {}
-  for i = 0, cnt - 1 do
-    entries[#entries + 1] = {
-      value = rp(data + i * 0x10),
-      name_id = ru32(data + i * 0x10 + 0x8),
-    }
-  end
-  return { data = data, count = cnt, entries = entries }
 end
 
 -- ============================================================
@@ -1788,22 +1246,69 @@ function Country.intel_sources(self)
   return out
 end
 
+-- 33.5b operation_assets (§4.11.17 CCountryOperationTokenManager cc+5552;
+-- RH 表 = data@+48, mask u32@+60, extra u8@+64, 桶 40B {hash@0,
+-- dist u8@+4, tag id u32@+8, 名单 {d@+16, c@+28}})。键 = tag 串表
+-- (gs+0x358) SSO 名; 值 = token id 名单, writer 门 = **全部** id 经
+-- lexer 解析成功 (任一失败整桶不写); 字典序排序/空格连在段侧。
+function Country.operation_assets(self)
+  local obj = rp(self.addr + 5552)
+  if not O.kptr(obj) then return { assets = {} } end
+  local g = Runtime.gs()
+  local ttab = g and rp(g + 0x358) or nil
+  local assets = {}
+  local d = O.kptr(ttab) and rp(obj + 48) or nil
+  local mask = O.kptr(obj) and ru32(obj + 60) or 0
+  local extra = O.kptr(obj) and (ru8(obj + 64) or 0) or 0
+  if O.kptr(d) and mask > 0 and mask < 4096 then
+    for b = 0, mask + extra do
+      local bk = d + 40 * b
+      local dist = ru8(bk + 4) or 0
+      if dist ~= 0 and dist ~= 0xFE then
+        local tid = ru32(bk + 8)
+        local ld, lc = rp(bk + 16), ru32(bk + 28)
+        if tid and tid > 0 and tid < 4096 and O.kptr(ld) and lc
+            and lc > 0 and lc < LAYOUT.lim.PTR_SANE then
+          local tname = U.sso(ttab + 32 * tid)
+          if tname and tname ~= "" then
+            local names, ok = {}, true
+            for j = 0, lc - 1 do
+              local nm = LAYOUT.token_name(ru32(ld + 4 * j) or 0)
+              if not nm or nm == "" then ok = false break end
+              names[#names + 1] = nm
+            end
+            if ok then assets[#assets + 1] = { tag = tname, names = names } end
+          end
+        end
+      end
+    end
+  end
+  return { addr = obj, assets = assets }
+end
+
 -- 33.6 国家 variables (§4.13.2 CVariables; cc+536; 布局/桶/值 ×1e-5 = 书)
--- rh_iter 参数 = 相对 vowner 基 (旧 ht=vowner+0x10 基准曾混绝对/相对)
+-- rh_iter 参数 = 相对 vowner 基 (旧 ht=vowner+0x10 基准曾混绝对/相对)。
+-- maxn=262144: 议会机制 mod 实测 ~3.1 万变量 → 桶数到 131072 档;
+-- PTR_SANE(4096)/PTR_HUGE(65536) 均不足 → rh_iter 返 nil = 整表蒸发。
+-- 值 = i64 有符号 /100000 定点 (桶 @+0x28)。
 function Country.country_variables(self)
   local vowner = rp(self.addr + 536)
   if not O.kptr(vowner) then return nil end
+  local out = { addr = vowner,
+    random = { ru32(vowner + 12) or 0, ru32(vowner + 8) or 0 },
+    vars = {} }
   local buckets = LAYOUT.rh_iter(vowner, { data = 0x18, mask = 0x24,
-    stride = 0x30, maxn = LAYOUT.lim.PTR_HUGE })  -- 上界 PTR_HUGE: 大档桶数可数千, 勿用小字面量 (§4.13.2)
-  local out = {}
+    count = 0x20, stride = 0x30, maxn = 262144 })
   for _, b in ipairs(buckets or {}) do
     local dist = ru32(b + 4)
     if dist and (dist & 0xFF) ~= 0 and (dist & 0xFF) ~= 0xFE
         and (dist & 0xFF) ~= 0xFF then
       local nm = U.sso(b + 8)
-      local val = U.fix5(b + 0x28)
+      local v = rp(b + 0x28)
+      if v then v = LAYOUT.as_i64(v) end
+      local val = v and v / 100000 or nil
       if nm and val then
-        out[#out + 1] = nm .. "|" .. string.format("%.5f", val)
+        out.vars[#out.vars + 1] = { name = nm, value = val }
       end
     end
   end
@@ -2568,6 +2073,15 @@ function Country.navy(self)
               cooldown = ru32(T + 96) or 0,
               convoys = ru32(T + 144) or 0,
               convoys_total = ru32(T + 148) or 0 }
+            -- country tag 串 (gs+0x358 串表 32B/项; tid≠0 才解,
+            -- 段侧免带 gs 串表直读)
+            if rec.country_tid ~= 0 then
+              local g = Runtime.gs()
+              local tbl = g and rp(g + 0x358)
+              if tbl and O.kptr(tbl) then
+                rec.country = U.sso(tbl + 32 * rec.country_tid)
+              end
+            end
             local pd2, pc2 = rp(T + 104), ru32(T + 116) or 0
             if O.kptr(pd2) and pc2 > 0 and pc2 < LAYOUT.lim.PTR_SANE then
               local pp = {}
@@ -3116,3 +2630,303 @@ GAME.state_category_name_8b = function(self)
   return table.concat(chars)
 end
 
+
+-- ============================================================
+-- §4.1/§4.12/§4.28 全局元数据族导出全量 reader
+-- (sv2_sec_global_tails flags/saved_event_target/ships_built/
+-- player_countries/gameplaysettings/indexes/fired_event_names/
+-- pending_events/difficulty_settings/to_be_deleted 块消费)
+local function gm_date3(h)
+  if h == 43808760 then return "1.1.1.1" end
+  return GAME.layout.date(h)
+end
+local function gm_idpair_at(el, off)
+  local ty, id = ru32(el + off), ru32(el + off + 4)
+  if (ty and ty ~= 0) or (id and id ~= 0) then
+    return { type = ty or 0, id = id or 0 }
+  end
+  return nil
+end
+local function gm_ev_name(np)   -- key 名串/token 双形态
+  if not O.kptr(np) then return nil end
+  local sz = rp(np + 48)
+  if sz and sz ~= 0 then
+    if sz <= 4096 then return U.sso(np + 32) end
+    if O.kptr(sz) then return hoi4.read_cstr(sz) end
+  end
+  return (function()
+    local t = ru32(np + 12) or 0
+    return t and (GAME.layout.token_name(t) or t) or nil
+  end)()
+end
+
+-- §4.1.5 global flags (*(gs+600) CFlagStore; 与 country.flags 同构)
+function Runtime.global_flags(self)
+  local g = self.gs()
+  local store = rp(g + 600)
+  if not O.kptr(store) then return nil end
+  local d, cnt = rp(store + 8), ru32(store + 0x14)
+  if not (O.kptr(d) and cnt and cnt > 0
+      and cnt < LAYOUT.lim.PTR_HUGE) then return nil end
+  local maxtok = hoi4.read_u32(hoi4.base()
+      + GAME.layout.rva.lexer_token_max) or 100000
+  local out = {}
+  for i = 0, cnt - 1 do
+    local e = d + 0x30 * i
+    local key = ru32(e + 8)
+    local nm = key and key <= maxtok
+        and (GAME.layout.token_name(key) or key)
+    if nm and nm ~= "" then
+      local pack = ru32(e + 0x28) or 0
+      local v = pack & 0xFFFF
+      v = LAYOUT.as_i16(v)
+      local dh = ru32(e + 0x18)
+      local ex = (pack >> 16) & 0x7FFF
+      out[#out + 1] = { name = nm, value = v,
+        date_h = (dh and dh > 0) and dh or nil,
+        days = (ex > 0) and ex or nil }
+    end
+  end
+  return out
+end
+
+-- §4.12.6 saved_event_target (挂 §1.2 +1728, count@+1740; 112B 条)
+function Runtime.global_saved_event_targets(self)
+  local g = self.gs()
+  local c = ru32(g + 1740)
+  if not (c and c > 0 and c < 4096) then return nil end
+  local d = rp(g + 1728)
+  if not O.kptr(d) then return nil end
+  local out = {}
+  for i = 0, c - 1 do
+    local el = d + 112 * i
+    local rec = {}
+    local sv = ru32(el + 8)
+    if sv and sv ~= 0 then rec.state = sv end
+    local ci = ru32(el + 12)
+    if ci and ci > 0 then rec.country = Runtime:tag(ci) end
+    rec.character = gm_idpair_at(el, 16)
+    local sro = rp(el + 32)
+    if O.kptr(sro) then rec.strategic_region = ru32(sro + 88) or 0 end
+    rec.ace = gm_idpair_at(el, 48)
+    rec.operation = gm_idpair_at(el, 24)
+    rec.unit = gm_idpair_at(el, 56)
+    rec.industrial_organisation = gm_idpair_at(el, 64)
+    rec.purchase_contract = gm_idpair_at(el, 72)
+    rec.raid_instance = gm_idpair_at(el, 80)
+    rec.project = gm_idpair_at(el, 88)
+    rec.faction = gm_idpair_at(el, 96)
+    -- name: u16 索引@+104 → set_name (§4.26.3 SET 名串表)
+    local nidx = hoi4.read_u16(el + 104) or 0
+    if nidx ~= 0 then rec.name = GAME.layout.set_name(nidx) end
+    out[#out + 1] = rec
+  end
+  return out
+end
+
+-- §4.1.16 ships_built (挂 §1.2 +2520 std::map; 0 值也写)
+function Runtime.global_ships_built(self)
+  local g = self.gs()
+  if (rp(g + 2528) or 0) == 0 then return nil end
+  local head = rp(g + 2520)
+  local out = {}
+  for _, node in ipairs(GAME.layout.rb_inorder(head)) do
+    local t = ru32(node + 28) or 0
+    local nm = t and (GAME.layout.token_name(t) or t)
+    if nm then
+      out[#out + 1] = { name = nm, count = ru32(node + 32) or 0 } end
+  end
+  return out
+end
+
+-- §4.28.1 player_countries (挂 §1.2 +168; 根级 cosmetic_tag 同源 cc+5256)
+function Runtime.global_player_countries(self)
+  local g = self.gs()
+  local d, c = rp(g + 168), ru32(g + 180)
+  if not (O.kptr(d) and c and c > 0 and c < LAYOUT.lim.PTR_SANE) then
+    return nil end
+  local carr2 = rp(g + 0x310)
+  local out = {}
+  for i = 0, c - 1 do
+    local el = d + 160 * i
+    local t = Runtime:tag(ru32(el + 112) or 0)
+    if t then
+      local rec = { tag = t }
+      local cc2 = carr2 and rp(carr2 + 8 * (ru32(el + 112) or -1))
+      local cos = cc2 and U.sso(cc2 + 5256) or nil
+      if cos and cos ~= "" then rec.cosmetic_tag = cos end
+      rec.user = U.sso(el + 32)
+      rec.country_leader = (ru8(el + 148) or 0) & 1
+      local id = ru32(el + 152)
+      if id and id ~= 0xFFFFFFFF then rec.id = id end
+      out[#out + 1] = rec
+    end
+  end
+  return out
+end
+
+-- §4.28.2 gameplaysettings (挂 §1.2 +1576)
+function Runtime.global_gameplaysettings(self)
+  local g = self.gs()
+  local DIFF = { [0] = "very_easy", "easy", "normal", "hard", "very_hard" }
+  local dv = ru32(g + 1584) or 2
+  return { difficulty = DIFF[dv] or ("diff_" .. dv),
+    ironman = ru32(g + 1588) or 0, historical = ru32(g + 1592) or 0 }
+end
+
+-- §4.28.4 索引计数器 (5 槽)
+function Runtime.global_indexes(self)
+  local g = self.gs()
+  local T = {
+    { 1872, "railway_gun_index" }, { 1888, "industry_organisation_index" },
+    { 1904, "special_project_index" }, { 1920, "program" },
+    { 1936, "program_supply_consumer" } }
+  local out = {}
+  for _, e in ipairs(T) do
+    out[#out + 1] = { name = e[2], id = ru32(g + e[1] + 8) or 0 }
+  end
+  return out
+end
+
+-- §4.12.7 fired_event_names (挂 §1.2 +1340; 名串/token 双形态)
+function Runtime.global_fired_event_names(self)
+  local g = self.gs()
+  local nb = ru32(g + 1340)
+  local buckets = rp(g + 1344)
+  if not (nb and nb > 0 and nb < 1048576 and O.kptr(buckets)) then
+    return nil end
+  local parts = {}
+  for b = 0, nb - 1 do
+    local node = rp(buckets + 8 * b)
+    local guard = 0
+    while O.kptr(node) and guard < 100000 do
+      guard = guard + 1
+      local key = rp(node)
+      if O.kptr(key) then
+        local nm
+        local sz = rp(key + 48)
+        if sz and sz ~= 0 then
+          if sz <= 4096 then nm = U.sso(key + 32)
+          elseif O.kptr(sz) then nm = hoi4.read_cstr(sz) end
+        end
+        if not nm then
+          local t = ru32(key + 12) or 0
+          nm = t and (GAME.layout.token_name(t) or t) or nil
+        end
+        if nm then parts[#parts + 1] = tostring(nm) end
+      end
+      node = rp(node + 8)
+    end
+  end
+  return (#parts > 0) and parts or nil
+end
+
+-- §4.1.5 difficulty_settings (挂 §1.2 +1064; difficulty 重复编号 [2]..)
+function Runtime.global_difficulty_settings(self)
+  local g = self.gs()
+  local dd, dc = rp(g + 1064), ru32(g + 1076)
+  if not (O.kptr(dd) and dc and dc > 0
+      and dc < LAYOUT.lim.PTR_SANE) then return nil end
+  local out = {}
+  for i = 0, dc - 1 do
+    local e = rp(dd + 8 * i)
+    if O.kptr(e) then
+      local mul = rp(e + 208)
+      if mul and mul > 0 then
+        local rec = { multiplier = mul * 1e-5 }
+        local def = rp(e + 8)
+        local nm = O.kptr(def) and U.sso(def + 56)
+        if nm then rec.name = nm end
+        out[#out + 1] = rec
+      end
+    end
+  end
+  return out
+end
+
+-- §4.1.5 to_be_deleted (挂 §1.2 +1224)
+function Runtime.global_to_be_deleted(self)
+  local g = self.gs()
+  local dd, dc = rp(g + 1224), ru32(g + 1236)
+  if not (O.kptr(dd) and dc and dc > 0
+      and dc < LAYOUT.lim.PTR_SANE) then return nil end
+  local out = {}
+  for i = 0, dc - 1 do
+    local p = dd + 8 * i
+    out[#out + 1] = { id = ru32(p + 4) or 0, type = ru32(p) or 0 }
+  end
+  return out
+end
+
+-- §4.1.1 pending_events (vec {gs+1376, gs+1388} 56B 内联; scope 树每层
+-- 都写 saved_event_target — 与 delayed_event 路径不同; 嵌套树 = reader)
+local function gm_scope(sc, depth)
+  if not O.kptr(sc) or depth > 8 then return nil end
+  local rec = {}
+  local tid = ru32(sc + 8)
+  if tid and tid > 0 then rec.country = Runtime:tag(tid) end
+  local stv = ru32(sc + 168)
+  if stv and stv ~= 0 then rec.state = stv end
+  local IDP = { { 80, "character" }, { 104, "ace" }, { 88, "operation" },
+    { 112, "unit" }, { 120, "industrial_organisation" },
+    { 128, "purchase_contract" }, { 136, "raid_instance" },
+    { 144, "project" }, { 152, "faction" } }
+  for _, iv in ipairs(IDP) do
+    rec[iv[2]] = gm_idpair_at(sc, iv[1])
+  end
+  local sr = rp(sc + 72)
+  if O.kptr(sr) then rec.strategic_region = ru32(sr + 88) or 0 end
+  rec.random = { ru32(sc + 16) or 0, ru32(sc + 12) or 0 }
+  -- saved_event_target: 每层 scope 都写 (pending_events .from.from 六叶实证)
+  do
+    local cp = rp(sc + 160)
+    if O.kptr(cp) then
+      local td, tc = rp(cp), ru32(cp + 12)
+      if O.kptr(td) and tc and tc > 0 and tc < LAYOUT.lim.PTR_SANE then
+        rec.saved_event_targets = {}
+        for ti = 0, tc - 1 do
+          local te = td + 112 * ti
+          local t2 = {}
+          local st = ru32(te + 8)
+          if st and st ~= 0 then t2.state = st end
+          local ct = ru32(te + 12)
+          if ct and ct > 0 and ct < 0x80000000 then
+            t2.country = Runtime:tag(ct) end
+          t2.character = gm_idpair_at(te, 16)
+          local ni = ru32(te + 104)
+          if ni then ni = ni % 65536 end
+          if ni and ni ~= 0 then t2.name = GAME.layout.set_name(ni) end
+          rec.saved_event_targets[#rec.saved_event_targets + 1] = t2
+        end
+      end
+    end
+  end
+  if depth < 8 then
+    local REC = { { 24, "root" }, { 32, "from" }, { 40, "prev" } }
+    for _, rv in ipairs(REC) do
+      local nx = rp(sc + rv[1])
+      if nx and nx ~= sc then
+        rec[rv[2]] = gm_scope(nx, depth + 1)
+      end
+    end
+  end
+  return rec
+end
+
+-- §4.1.1 pending_events 列表
+function Runtime.global_pending_events(self)
+  local g = self.gs()
+  local pd, pc = rp(g + 1376), ru32(g + 1388)
+  if not (O.kptr(pd) and pc and pc > 0
+      and pc < LAYOUT.lim.PTR_SANE) then return nil end
+  local out = {}
+  for i = 0, pc - 1 do
+    local e = pd + 56 * i
+    local rec = { id = gm_ev_name(rp(e + 8)),
+      scope = gm_scope(rp(e + 16), 0),
+      timeout_h = ru32(e + 40),        -- date3 无门
+      pending_id = ru32(e) or 0 }
+    out[#out + 1] = rec
+  end
+  return out
+end

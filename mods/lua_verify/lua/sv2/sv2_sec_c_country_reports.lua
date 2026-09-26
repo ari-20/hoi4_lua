@@ -1,25 +1,21 @@
 -- sv2_sec_c_country_reports.lua -- country.country_reports 节点 savefull 直出
+-- (发射规则段; 布局/走查/写门唯一实现 = Country.country_reports
+--  objects_misc §27.1 §4.3.20 CCountryReportsManager cc+4064)
 
 SV2.csec[#SV2.csec + 1] = { name = "country.country_reports", emit = function(ctx)
     local SL, emit, tag, c = SV2.lib, ctx.emit, ctx.tag, ctx.country
     if not c then return end
-    local rp, ru32 = SL.rp, SL.ru32
 
-    local r = c:country_reports()   -- objects_v2 §27.1
+    local r = c:country_reports()   -- objects_misc §27.1
     if not r then return end        -- crm 指针无效: 整国缺 (不应发生)
-    -- §4.3.20 CCountryReportsManager (crm = rp(cc+4064), vt 0x1429D10A8)
-    local crm = r.addr
 
     -- index / days: 恒写整数
     emit(tag, "country_reports.index", string.format("%d", r.index or 0))
     emit(tag, "country_reports.days", string.format("%d", r.days or 0))
 
-    -- date: hours u32@crm+0x38, 恒写引号形; 哨兵 43808760 照发 "1.1.1.1"
+    -- date: 恒写引号形; 哨兵 43808760 照发 "1.1.1.1"
     -- (C 族 = 无哨兵剔除 + 引号输出)
-    local dh = ru32(crm + 0x38)
-    if dh then
-        emit(tag, "country_reports.date", SL.date_quoted(dh))
-    end
+    emit(tag, "country_reports.date", SL.date_quoted(r.date_hours or 0))
 
     -- construction: 19 键恒写 (writer 0x141C1DFE0 无条件循环; 文档序 =
     -- CR_CONSTR; 缺数据默认 0 = writer 查不到时的行为)
@@ -34,9 +30,8 @@ SV2.csec[#SV2.csec + 1] = { name = "country.country_reports", emit = function(ct
             string.format("%d", (cons and cons[i]) or 0))
     end
 
-    -- equipment_production: 38 键恒写, 存档文档序; mask u64 → 键名
-    -- (writer 0x141C1F500 (mask,token) 对序 + token 表定案;
-    -- 已标定 23 位全部吻合)
+    -- equipment_production: 38 键恒写, 存档文档序 = writer (mask,token)
+    -- 对序 (writer 0x141C1F500; 已标定 23 位全部吻合)
     local CR_EQ = {
         { "convoy", 0x1 }, { "train", 0x80000000 },
         { "floating_harbor", 0x200 }, { "railway_gun", 0x80000 },
@@ -67,28 +62,11 @@ SV2.csec[#SV2.csec + 1] = { name = "country.country_reports", emit = function(ct
             SL.num(vals[kv[2]] or 0))
     end
 
-    -- log.#1: 记录流 (§4.3.20 log 向量 {d@+16, c@+28}; 内联读;
-    -- 布局/编码 §1 + objects_v2 §28.3 同款)
-    local ld, lcap, lc = rp(crm + 0x10), ru32(crm + 0x18), ru32(crm + 0x1C)
-    if SL.kptr(ld) and lc and lc > 0 and lc < 4096
-        and lcap and lcap >= lc then
+    -- log.#1: 记录流 (reader 已解出 8×u32 编码记录)
+    if r.log and #r.log > 0 then
         local t = {}
-        for i = 0, lc - 1 do
-            local b = ld + 32 * i
-            local k, vv = 0, { 0, 0, 0, 0, 0, 0, 0, 0 }
-            for j = 0, 7 do
-                local x = ru32(b + 4 * j) or 0
-                vv[j + 1] = x
-                if x ~= 0 then k = j + 1 end
-            end
-            if k == 0 then
-                t[#t + 1] = "0"
-            else
-                t[#t + 1] = tostring(k)
-                for j = 1, k do
-                    t[#t + 1] = tostring(vv[j])
-                end
-            end
+        for _, rec in ipairs(r.log) do
+            for _, x in ipairs(rec) do t[#t + 1] = tostring(x) end
         end
         emit(tag, "country_reports.log.#1", table.concat(t, " "))
     end

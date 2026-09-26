@@ -30,8 +30,9 @@
 //     Firefox/Chrome in-process profilers.
 //   - RIP -> function attribution needs no symbol files: hoi4.exe's own
 //     exception directory (.pdata RUN table) is a sorted list of function
-//     starts; parsed once, binary-searched per sample. Offline annotation
-//     (rva -> sub_NAME) happens in the Python tool against the corpus.
+//     boundaries; parsed once (hoi4_pdata.cpp, shared with the detour install
+//     gate), binary-searched per sample. Offline annotation (rva -> sub_NAME)
+//     happens in the Python tool against the corpus.
 //   - Commit window (target resumed): histogram/folded inserts under smp.cs.
 //     Readers take the same CS; they only ever wait on a RUNNING main thread.
 //   - Target thread = whoever called profile_start. /lua and console `lua`
@@ -48,6 +49,7 @@
 //   hoi4.profile_threads()                              -> per-tid hits/cpu table
 //   hoi4.profile_status()                               -> counters string
 #include "hoi4_common.h"
+#include "hoi4_pdata.h"
 #include <tlhelp32.h>
 #include <string>
 #include <vector>
@@ -114,11 +116,6 @@ static struct {
 static std::unordered_map<std::string, uint64_t> g_folded;
 static unsigned long long g_foldedTotal;
 
-// ---- .pdata function table (parsed once, main thread, on first start) ----
-static uint32_t *g_pdata;        // sorted function-start RVAs
-static int       g_pdataN;
-static uint64_t  g_imgLo, g_imgHi;
-
 // ---- ntdll unwind exports (resolved lazily; no import-lib change) ----
 typedef struct _SampRunFn { DWORD BeginAddress, EndAddress, UnwindData; } SampRunFn;
 typedef SampRunFn *(__stdcall *RtlLookupFunctionEntry_t)(DWORD64, PDWORD64, PVOID);
@@ -136,49 +133,6 @@ static void sampler_resolve_unwind(void)
         (RtlLookupFunctionEntry_t)GetProcAddress(nt, "RtlLookupFunctionEntry");
     pRtlVirtualUnwind =
         (RtlVirtualUnwind_t)GetProcAddress(nt, "RtlVirtualUnwind");
-}
-
-static int pdata_build(void)
-{
-    if (g_pdata) return 1;
-    if (!g_base) return 0;
-    sampler_resolve_unwind();
-    uint8_t *b = (uint8_t *)g_base;
-    __try {
-        if (*(uint16_t *)b != 0x5A4D) return 0;
-        uint32_t eLfanew = *(uint32_t *)(b + 0x3C);
-        PIMAGE_NT_HEADERS nt = (PIMAGE_NT_HEADERS)(b + eLfanew);
-        if (nt->Signature != IMAGE_NT_SIGNATURE) return 0;
-        g_imgLo = (uint64_t)(uintptr_t)b;
-        g_imgHi = g_imgLo + nt->OptionalHeader.SizeOfImage;
-        const IMAGE_DATA_DIRECTORY *dd =
-            nt->OptionalHeader.DataDirectory + IMAGE_DIRECTORY_ENTRY_EXCEPTION;
-        int n = (int)(dd->Size / sizeof(IMAGE_RUNTIME_FUNCTION_ENTRY));
-        if (n <= 0 || dd->VirtualAddress == 0) return 0;
-        uint32_t *arr = (uint32_t *)malloc((size_t)n * 4);
-        if (!arr) return 0;
-        const uint8_t *p = b + dd->VirtualAddress;
-        for (int i = 0; i < n; i++)
-            arr[i] = *(const uint32_t *)(p + (size_t)i * 12);   // BeginAddress
-        g_pdata = arr;
-        g_pdataN = n;
-        L("[sampler] .pdata: %d function starts, image %llx..%llx",
-          n, (unsigned long long)g_imgLo, (unsigned long long)g_imgHi);
-        return 1;
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER) { return 0; }
-}
-
-// greatest function start <= rva; 0 when rva precedes the first function
-static uint32_t pdata_func(uint32_t rva)
-{
-    int lo = 0, hi = g_pdataN - 1, ans = -1;
-    while (lo <= hi) {
-        int mid = (lo + hi) >> 1;
-        if (g_pdata[mid] <= rva) { ans = mid; lo = mid + 1; }
-        else hi = mid - 1;
-    }
-    return ans >= 0 ? g_pdata[ans] : 0;
 }
 
 // ---- scope "all" thread table ----
@@ -354,8 +308,8 @@ static int samp_walk_stack(PCONTEXT ctx, uint64_t *out, int maxf)
 static void samp_add_locked(uint64_t rip)
 {
     uint64_t key = 0;
-    if (rip >= g_imgLo && rip < g_imgHi) {
-        uint32_t fr = pdata_func((uint32_t)(rip - g_imgLo));
+    if (rip >= pdata_img_lo() && rip < pdata_img_hi()) {
+        uint32_t fr = pdata_func((uint32_t)(rip - pdata_img_lo()));
         if (fr) key = fr;                    // func-start RVA (16-aligned, bit0 clear)
     }
     if (!key) { key = rip | 1; g_smp.ext++; }
@@ -500,6 +454,7 @@ const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
         interval_ms = SAMP_ALL_MIN_MS;         // sweeping ~90 threads per tick is not free
     if (interval_ms < SAMP_INTERVAL_MIN_MS || interval_ms > SAMP_INTERVAL_MAX_MS)
         return "interval_ms out of range (1..1000)";
+    sampler_resolve_unwind();          // stack mode needs the ntdll exports
     if (!pdata_build()) { InterlockedExchange(&g_smp.running, 0);
                           return "pdata parse failed"; }
     if (stacks && (!pRtlLookupFunctionEntry || !pRtlVirtualUnwind)) {
@@ -554,9 +509,10 @@ const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
     }
     _snprintf_s(out, cap, _TRUNCATE, "ok tid=%lu interval_ms=%lu stacks=%d all=%d pdata=%d",
                 (unsigned long)target_tid, (unsigned long)interval_ms,
-                stacks, all, g_pdataN);
+                stacks, all, pdata_count());
     L("[sampler] start tid=%lu interval=%lums stacks=%d all=%d pdata=%d",
-      (unsigned long)target_tid, (unsigned long)interval_ms, stacks, all, g_pdataN);
+      (unsigned long)target_tid, (unsigned long)interval_ms, stacks, all,
+      pdata_count());
     return nullptr;
 }
 
@@ -641,7 +597,7 @@ int samp_api_folded(const char *argPath, char *out, size_t cap)
         return 0;
     fprintf(f, "# samples=%llu stacks=%llu stacks_unique=%llu base=%llx\n",
             total, stacks, (unsigned long long)rows.size(),
-            (unsigned long long)g_imgLo);
+            (unsigned long long)pdata_img_lo());
     for (const auto &r : rows)
         fprintf(f, "%s %llu\n", r.first.c_str(), (unsigned long long)r.second);
     fclose(f);

@@ -106,7 +106,7 @@ CUpdateable 虚表槽表 (0x14294c198, 6 槽; 契约定案 — standardinterface
 | [0] | — | 析构 |
 | [1] | — | **IsValid** (基实现推进 timeout_progressbar 后 return 未超时; 派生全部 base && 条件组合; 旧记「Update 纯虚」归并) |
 | [2] | — | **Refresh** (派生 populate 用法归并入此名) |
-| [3] | — | IsFor? (推定: 共享谓词 `+8 && +8==arg` = ctor 绑定指针与入参比较, 全族零覆写) |
+| [3] | — | IsFor (推定: 共享谓词 `+8 && +8==arg` = ctor 绑定指针与入参比较, 全族零覆写) |
 | [4] | — | **Setup** (基 = ret0) |
 | [5] | — | **Teardown** (基 = guard_nop; 6 槽口径复证, slot[6] 起 = 下一虚表 COL) |
 
@@ -348,8 +348,8 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | [6] | ★ **ParseToken** — 逐 token 分派 (值类 token → 消费为本触发器参数落 [4]; 触发器关键字 → 建子触发器工厂 "Unknown trigger-type" + 校验子 scope "Invalid scope type for trigger" trigger.cpp:686 + 挂 +8 子表 + 调子 [5]; if/else_if/else 配栈 = CIfTrigger 在此槽的覆写; 数组/变量族 108 组覆写解析各自值形态) | 93 | sub_140550030 (同 CEffect[4] 形态) |
 | [7] | **Validate** (基恒真; [5] 块解析收尾调用, 假 → parser 报错 trigger.cpp:563; 6 覆写 = 集合/网络/学说族查配置缺失) | 542 同 sub_1401807B0 | 同址三用之一 (与 [13] 基/赋值族 [2] 覆写共享 `mov al,1;ret`) |
 | [8] | **GetScopeTargetID** (按 +36 类型码从 ctx 各字段取 scope 实体, 返实体 +8 缓存 id) | 546 同址 (全继承) | sub_14054EB40 |
-| [9] | GetScopeTargetUID? (推定; 同分派, 直读实体 +168 = 权威 id 源) | 546 同址 (全继承) | sub_14054F360 |
-| [10] | GetScopeTargetObject? (推定; 同分派, 句柄解引用返对象指针; 0x200 位走 event_target 查表) | 546 同址 (全继承) | sub_14054F1B0 |
+| [9] | GetScopeTargetUID (推定; 同分派, 直读实体 +168 = 权威 id 源) | 546 同址 (全继承) | sub_14054F360 |
+| [10] | GetScopeTargetObject (推定; 同分派, 句柄解引用返对象指针; 0x200 位走 event_target 查表) | 546 同址 (全继承) | sub_14054F1B0 |
 | [11] | **GetTooltip** (遍历 +8 子表: 子 [21] 描述 + '\n' + 子 [3] 满足布尔交回调拼行, 递归子 [11]; 容器类 23 组覆写改头部/递归形态) | 24 | sub_14054C580 |
 | [12] | **GetTooltipText** (遍历子表调 [21]+[3], 按 Evaluate==a4 前缀本地化 TRIGGER_UNFULLFILLED_PREFIX / TRIGGER_FULLFILLED_PREFIX, 按缩进参数重复 "   ", 递归子 [12]) | 24 | sub_14054C800 |
 | [13] | **ValidateLate** (基恒真; 批量校验入口遍历触发器队列逐个调本槽, 假 → 抛 "Trigger failed to validate: " trigger.cpp:117; 52 覆写 = 引用数据库条目族: 名字串查表解析 id 后绑定) | 446 同 sub_1401807B0 | 同址三用之二; 与 [7] 分名按调用点 (解析收尾即时 vs 延迟批队列), 引擎原名未决 |
@@ -357,9 +357,9 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | [15] | **GetSupportedTargetMask** (文档构建器直证标签 "supported_target"; 纯虚! 派生常数体 return 0/2/316/1532, 词汇 = target 列; 唯一消费者 [17]: ==2 直接判无效, 其余按类型码映射逐位验证; 与 CEffect[20] 同构) | 纯虚 | 0x140177700=return 2 组等 |
 | [16] | **IsScopeCompatible** `!a2 \|\| ![14]() \|\| ([14]()&a2)` (所需掩码与外部掩码有交集; 无覆写) | 546 同址 (全继承) | sub_14054CD60 |
 | [17] | **ValidateAssignedScope** (+36 &0x400 已指派门 → [15] 掩码, ==2 → false, 类型码映射逐位验证; 无覆写) | 546 同址 (全继承) | sub_14054CCD0 |
-| [18] | RegisterTrigger? (推定; 基 = guard_nop 空体; ~112 覆写按 [14] 掩码位把关键字文本注册进不同 per-scope 注册表) | 424 = guard_nop | ICF |
-| [19] | Traverse? (推定; 取 ctx+56 访问器造遍历状态, 递归子 [19] 短路 bool; 无覆写) | 546 同 sub_14054ACB0 | — |
-| [20] | Traverse2? (推定; 同 [19] 形态递归子 [20], 尾多访问器状态清理; 仅 CScriptedTrigger 覆写; 与 [19] 分工待裁) | 545 同 sub_14054AD90 | — |
+| [18] | RegisterTrigger (推定; 基 = guard_nop 空体; ~112 覆写按 [14] 掩码位把关键字文本注册进不同 per-scope 注册表) | 424 = guard_nop | ICF |
+| [19] | Traverse (推定; 取 ctx+56 访问器造遍历状态, 递归子 [19] 短路 bool; 无覆写) | 546 同 sub_14054ACB0 | — |
+| [20] | Traverse2 (推定; 同 [19] 形态递归子 [20], 尾多访问器状态清理; 仅 CScriptedTrigger 覆写; 与 [19] 分工待裁) | 545 同 sub_14054AD90 | — |
 | **[21]** | ★ **GetDesc** (返回 CString 描述) | **427** | CAlwaysTrigger sub_1403F2080 ("TRIGGER_ALWAYS_TRUE/FALSE") / CIsDebugTrigger 0X14041E0C0 / CIsGeneralCapturedTrigger sub_1402F9080 (皆 `__m128i*` 输出缓冲组装串) |
 | **[22]** | ★ **Evaluate** (返回 bool) | **402** | CIsDebugTrigger `return byte_14332EC69 == *(a1+88)` / CAlwaysTrigger `return *(u8*)(a1+88)` / CIsGeneralCapturedTrigger sub_1402F8C90 全 bool 返回 |
 | [23] | 逐类扩展槽 (基类 23 函数槽 0..22 之外) | 167 变 | 仅 241/546 实测虚表含此槽 |
@@ -712,3 +712,53 @@ gs+1120 (hours@1128), 载入快照 gs+152, start_date gs+1184 (§4.1.2)。
 
 注: 分量读取 (年/月/日/月索引) 走 gs+1144 日期分量缓存 (hourly tick 每小时重算,
 dword_143085210 = 闰年月首累计日表), 非逐次从 hours 解析。
+
+#### 4.00.12 拦截层 (框架对引擎函数的两种改写形态)
+
+桥 DLL 对引擎的介入只有两种形态, 二者的**分界是「改数据还是改代码」**, 决定了各自的
+能力边界与可逆性。选择拦截手段时先查本表: 虚方法一律走 A, 只有非虚目标才用 B。
+
+| 形态 | 改写对象 | 可拦目标 | 覆盖范围 | 可逆 |
+|---|---|---|---|---|
+| **A 虚表槽交换** | `vt[slot]` 单个数据 qword | 经该槽调用的虚方法 | 只覆盖走该槽的调用方 | 可逆 (写回原 qword, 原子) |
+| **B 函数体重定向** | 函数前 N 字节 (N ≥ 12, 整指令边界) | 任意有 `.pdata` 边界的函数 | 覆盖全部调用方 (直接 + 间接) | **不可逆** (无卸载) |
+
+**A 的粒度陷阱**: 槽钩子是**逐类**的。基类虚表那些槽为 `_purecall`, 钩基表一个都拦不到
+且不报错。要拦全族须钩**共享分派器** (effect/trigger 路由器即此类), 不要逐个钩派生类虚表。
+
+**B 的四道前置条件** (缺一即拒, 全部 fail-closed):
+
+| # | 条件 | 判据 |
+|---|---|---|
+| 1 | 目标是函数**起点** | `.pdata` RUN 表 (138286 项, `BeginAddress` 升序) 二分查得 `begin == rva` |
+| 2 | 窃取窗口**不越出函数末尾** | `rva + N <= EndAddress`, 否则会吃进下一个函数的序言 |
+| 3 | 序言可窃 | 逐条整指令解码 (LDE), 拒绝**相对控制流**与 **RIP 相对操作数** (后者需重定位, 未实现) |
+| 4 | 目标**不在本进程已补丁窗口内** | 框架自身 3 个目标 (见下) 与既有 B 类目标都登记窗口 |
+
+⚠ 条件 3 **拦不住**框架自己的补丁字节 (`48 B8 <imm64> FF E0` 是可解码的 `movabs`+`jmp rax`),
+故条件 4 必须独立存在, 不能省。
+
+**B 的蹦床跳回编码**: `FF 25 00 00 00 00` + 8 字节绝对地址 (无寄存器、无 ±2GB 范围限制)。
+禁用 `movabs rax,imm64; jmp rax` —— 被窃指令已执行, 其寄存器输出在恢复点是活的, 踩 rax
+即 `CInGameIdler` slot4 (0xDD3A50) 那次首帧崩溃的根因 (序言 `mov rax,rsp` → 函数体
+`lea rbp,[rax-68h]` + movaps)。禁用 `E9 rel32` —— 蹦床是 `VirtualAlloc` 出的, 可能距映像
+远超 ±2GB, 位移会静默截断。
+
+**B 的安装期并发**: 改写 12 字节**不可能原子** (区别于 A 的对齐 qword 写)。安装须
+「悬停全部线程 → 逐线程验证 RIP 不在 `[target, target+N)` → 提交 → 恢复」; 悬停窗口内
+零分配零用户锁 (全部分配与 `OpenThread` 前移), 否则与持堆锁/loader lock 的线程互锁。
+
+**B 的装载窗口**: 仅在**进程首次脚本加载期**允许安装 (此时引擎尚未进入渲染循环)。
+热重载与会话切换也会重跑脚本, 但那时游戏满载多线程, 不是改代码字节的窗口。
+
+**B 的回调生命周期**: 目标、回调、mode 在首载期绑定后**冻结**, 热重载不重绑 (重绑实测
+不生效, 会留下「脚本以为新代码在跑、实际跑旧闭包」的静默错值)。
+
+**框架自身已占用的补丁窗口** (B 类, 永久):
+
+| 目标 | RVA | 用途 |
+|---|---|---|
+| `FindCommandByName` | 0x24B54C0 | 控制台命令名查找 (伪命令 `lua` 注入点) |
+| `EffectRouter` | 0x540EE0 | effect 名 → 工厂实例派发 |
+| `TriggerRouter` | 0x550030 | trigger 名 → 工厂实例派发 |
+| `CInGameIdler` vt slot4 | 0xDD3A50 (槽在 vt+32) | 帧心跳 (A 类: 槽交换, 非补丁) |
