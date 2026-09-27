@@ -156,10 +156,11 @@ HOI4 安装，在游戏代码运行前把 `hoi4_bridge.dll` 注入游戏进程�
 | （无） | 正常启动——直接双击 exe 等价 |
 | `-start_save=<档名>` | 启动时读档；并按存档头的 mod 块回写启用 mod 清单 |
 | `-start_tag=<TAG>` | 以指定国家 TAG 开新局 |
-| `-debug` | 开启游戏调试控制台 |
+| `-debug` | 开启游戏调试控制台（DLL 侧同时放开 debug 级桥日志） |
+| `-verbose` | **DLL新增功能**，放开 verbose 级桥日志（每次重绘类轨迹，如 trigger 求值——比 `-debug` 更严的门） |
 | `-human_ai` | 让游戏 AI 托管玩家国（测试用） |
 | `-http[=<端口>]` | **DLL新增功能**，开启环回控制面（默认 17389） |
-| `-audit=<级别>` | **DLL新增功能**，审计日志级别（off/normal/verbose，默认 normal） |
+| `-audit=<级别>` | **DLL新增功能**，审计日志级别（off/normal/verbose，默认 normal；管的是审计台账，与桥日志的 `-verbose` 无关） |
 
 ### launcher 参数（双横线——launcher 消费，不传给游戏）
 
@@ -194,7 +195,9 @@ HOI4 安装，在游戏代码运行前把 `hoi4_bridge.dll` 注入游戏进程�
 | `HOI4_EXE` | `scan_gs_writers.py` | hoi4.exe 路径覆盖 |
 | `HOI4_USERDIR` | L2 工具、`session_regression.py` | userdir 覆盖 |
 | `HOI4_WORKSHOP` | `random_start_tag.py` | workshop 内容目录覆盖 |
-| `HOI4_DLL_DEBUG=1` | DLL | 详细桥接日志 |
+| `HOI4_DLL_DEBUG=1` | DLL | debug 级桥接日志（effect 槽轨迹；同 `-debug`） |
+| `HOI4_DLL_VERBOSE=1` | DLL | verbose 级桥接日志（每次重绘类轨迹，如 trigger 求值；同 `-verbose`） |
+| `HOI4_LOG_FLUSH_MS=<毫秒>` | DLL | 桥日志落盘间隔（默认 `2000`；`0` = 逐行 write+flush，崩溃取证用） |
 | `HOI4_AUDIT` | DLL | 审计日志级别（off/normal/verbose） |
 | `MOD_LUA_DIR` | `wait_export.py`、Lua 侧 | mods lua 目录覆盖 |
 
@@ -394,10 +397,11 @@ audit log goes to `<Documents>\...\logs\audit\hoi4_audit.log`.
 | *(none)* | normal start — double-clicking the exe is equivalent |
 | `-start_save=<name>` | load this save at startup; also re-syncs the enabled-mod list from the save's mod block |
 | `-start_tag=<TAG>` | start a new game as country TAG |
-| `-debug` | enable the game's debug console |
+| `-debug` | enable the game's debug console (also opens the DLL's debug-level bridge logs) |
+| `-verbose` | **DLL feature**: open verbose-level bridge logs (per-repaint traces such as trigger evaluation — a stricter gate than `-debug`) |
 | `-human_ai` | let the game AI play the player country (testing) |
 | `-http[=<port>]` | **DLL feature**: enable the loopback control plane (default 17389) |
-| `-audit=<level>` | **DLL feature**: audit log level (off/normal/verbose, default normal) |
+| `-audit=<level>` | **DLL feature**: audit log level (off/normal/verbose, default normal; governs the audit ledger, unrelated to the bridge log's `-verbose`) |
 
 ### Launcher flags (double dash — consumed by the launcher, not the game)
 
@@ -432,7 +436,9 @@ audit log goes to `<Documents>\...\logs\audit\hoi4_audit.log`.
 | `HOI4_EXE` | `scan_gs_writers.py` | hoi4.exe path override |
 | `HOI4_USERDIR` | L2 tools, `session_regression.py` | userdir override |
 | `HOI4_WORKSHOP` | `random_start_tag.py` | workshop content dir override |
-| `HOI4_DLL_DEBUG=1` | the DLL | verbose bridge logging |
+| `HOI4_DLL_DEBUG=1` | the DLL | debug-level bridge logging (effect slot traces; same as `-debug`) |
+| `HOI4_DLL_VERBOSE=1` | the DLL | verbose-level bridge logging (per-repaint traces, e.g. trigger eval; same as `-verbose`) |
+| `HOI4_LOG_FLUSH_MS=<ms>` | the DLL | bridge log flush interval (default `2000`; `0` = write+flush every line, for crash forensics) |
 | `HOI4_AUDIT` | the DLL | audit log level (off/normal/verbose) |
 | `MOD_LUA_DIR` | `wait_export.py`, Lua side | mods lua dir override |
 

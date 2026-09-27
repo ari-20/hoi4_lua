@@ -28,6 +28,7 @@
 #include <objbase.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
 
@@ -128,7 +129,103 @@ static BOOL CALLBACK log_buf_lock_init(PINIT_ONCE io, PVOID arg, PVOID *ctx) {
     return TRUE;
 }
 
-void L(const char *fmt, ...) {
+// ---------------------------------------------------------------- log policy
+// Line shape: [MM-DD HH:MM:SS.mmm] [src.cpp:LINE] message — same month/day +
+// source-location shape as the audit log (2026-09-27: one format across both
+// files, year omitted). L(...) is a macro over L_at(__FILE__, __LINE__, ...)
+// so every line carries its emitting C location.
+//
+// Flush policy: the old shape wrote AND FlushFileBuffers'd every single line;
+// a trigger-eval log storm measured 49% of main-thread samples inside that
+// ntdll path (2026-09-27 profile). Lines now append to a buffer that is
+// drained when full and flushed on an interval: g_logFlushMs — default 2000,
+// 0 = write + flush per line (the old behavior, for crash forensics).
+// Override at startup with env HOI4_LOG_FLUSH_MS, at runtime with
+// hoi4.log_flush(ms). In interval mode a hard kill loses at most one interval.
+static char g_logBuf[8192];
+static size_t g_logBufLen;
+static ULONGLONG g_logLastFlushMs;
+static volatile LONG g_logFlushMs = -1;   // -1 unresolved, else 0..60000 ms
+
+static void log_drain_locked(void) {
+    if (g_logBufLen) {
+        DWORD w;
+        WriteFile(g_log, g_logBuf, (DWORD)g_logBufLen, &w, NULL);
+        g_logBufLen = 0;
+    }
+}
+
+static void log_flush_locked(void) {
+    if (g_log == INVALID_HANDLE_VALUE) return;
+    log_drain_locked();
+    FlushFileBuffers(g_log);
+    g_logLastFlushMs = GetTickCount64();
+}
+
+static int log_flush_ms(void) {
+    LONG v = g_logFlushMs;
+    if (v >= 0) return (int)v;
+    LONG nv = 2000;
+    char e[16];
+    DWORD n = GetEnvironmentVariableA("HOI4_LOG_FLUSH_MS", e, sizeof(e));
+    if (n > 0 && n < sizeof(e)) {
+        long ms = strtol(e, NULL, 10);
+        if (ms < 0) ms = 0;
+        if (ms > 60000) ms = 60000;
+        nv = (LONG)ms;
+    }
+    InterlockedCompareExchange(&g_logFlushMs, nv, -1);
+    return (int)g_logFlushMs;
+}
+
+// teardown flush (DllMain DLL_PROCESS_DETACH): interval mode can hold up to
+// one interval worth of lines in the buffer.
+void log_flush_now(void) {
+    InitOnceExecuteOnce(&g_logBufOnce, log_buf_lock_init, NULL, NULL);
+    EnterCriticalSection(&g_logBufLock);
+    log_flush_locked();
+    LeaveCriticalSection(&g_logBufLock);
+}
+
+// Non-blocking twin for the loader-lock / process-exit path: a thread that
+// died holding the log lock must not hang teardown, so a busy lock means
+// "skip" (the buffer is lost, the process was killed mid-write anyway).
+int log_flush_try(void) {
+    InitOnceExecuteOnce(&g_logBufOnce, log_buf_lock_init, NULL, NULL);
+    if (!TryEnterCriticalSection(&g_logBufLock)) return 0;
+    log_flush_locked();
+    LeaveCriticalSection(&g_logBufLock);
+    return 1;
+}
+
+// Frame-boundary tick: interval mode flushes from the frame hooks (in-game and
+// front-end idlers) because L() can only check the clock when a line arrives —
+// without this, a quiet tail could sit in the buffer indefinitely instead of
+// the promised <=1 interval (found live 2026-09-27: a denial burst's line was
+// still buffered seconds later).
+void log_flush_tick(void) {
+    if (!g_logBufLen) return;                  // unlocked peek: nothing buffered
+    int ms = log_flush_ms();
+    if (ms <= 0) return;
+    if (GetTickCount64() - g_logLastFlushMs < (ULONGLONG)ms) return;
+    log_flush_now();
+}
+
+// hoi4.log_flush([ms]) -> current interval ms; 0 = write + flush every line.
+// Setting also drains immediately so a crash right after loses nothing.
+int hoi4_log_flush(lua_State *Ls) {
+    if (lua_gettop(Ls) >= 1) {
+        lua_Integer ms = luaL_checkinteger(Ls, 1);
+        if (ms < 0) ms = 0;
+        if (ms > 60000) ms = 60000;
+        InterlockedExchange(&g_logFlushMs, (LONG)ms);
+        log_flush_now();
+    }
+    lua_pushinteger(Ls, log_flush_ms());
+    return 1;
+}
+
+void L_at(const char *file, int line, const char *fmt, ...) {
     // STACK-SAFETY (2026-08-27 fastfail forensics): this function can run at
     // the bottom of a deep recursion (IPC frame -> console -> event -> effect
     // -> Lua -> effect depth 2 -> L) where the 1KB stack Buffer + CRT frames
@@ -138,9 +235,17 @@ void L(const char *fmt, ...) {
     static char buf[1024];
     InitOnceExecuteOnce(&g_logBufOnce, log_buf_lock_init, NULL, NULL);
     EnterCriticalSection(&g_logBufLock);
+    const char *base = file ? file : "?";
+    if (file) {
+        const char *s1 = strrchr(file, '\\');
+        const char *s2 = strrchr(file, '/');
+        const char *s = (s1 > s2) ? s1 : s2;      // NULL-safe: both NULL -> NULL
+        if (s) base = s + 1;
+    }
     SYSTEMTIME st; GetLocalTime(&st);
-    int pre = snprintf(buf, sizeof(buf)-1, "[%02d:%02d:%02d.%03d] ",
-                       st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+    int pre = snprintf(buf, sizeof(buf)-1, "[%02d-%02d %02d:%02d:%02d.%03d] [%s:%d] ",
+                       st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
+                       st.wMilliseconds, base, line);
     if (pre < 0) pre = 0;
     if (pre > (int)sizeof(buf) - 2) pre = (int)sizeof(buf) - 2;
     va_list ap; va_start(ap, fmt);
@@ -155,62 +260,152 @@ void L(const char *fmt, ...) {
             log_ring_push(buf, pre + (int)len);
         } else {
             buf[pre + len] = '\n';
-            DWORD w; WriteFile(g_log, buf, (DWORD)(pre + len + 1), &w, NULL);
-            FlushFileBuffers(g_log);
+            size_t total = (size_t)pre + len + 1;
+            int ms = log_flush_ms();
+            if (ms == 0) {
+                DWORD w;
+                WriteFile(g_log, buf, (DWORD)total, &w, NULL);
+                FlushFileBuffers(g_log);
+                g_logLastFlushMs = GetTickCount64();
+            } else {
+                if (total > sizeof(g_logBuf) - g_logBufLen) log_drain_locked();
+                memcpy(g_logBuf + g_logBufLen, buf, total);
+                g_logBufLen += total;
+                if (GetTickCount64() - g_logLastFlushMs >= (ULONGLONG)ms)
+                    log_flush_locked();
+            }
         }
     }
     LeaveCriticalSection(&g_logBufLock);
 }
 
-// ---------------------------------------------------------------- debug mode
-// Verbose per-call logs (the [effect] slotN on bound trace burst sums to
-// hundreds of lines per day on tooltip-heavy effects) are diagnostic-only;
-// they fire on every desc/validity repaint, not just on real executions.
-// Gate them behind an explicit debug opt-in so the steady-state log only
-// carries executions and lifecycle events.
-//
-// Enable via either channel:
-//   - host command line token `-debug` (launcher passthrough hits hoi4.exe)
-//   - env HOI4_DLL_DEBUG=1 (process env, inherited from launcher)
-// Resolved once and cached; a running session keeps the flag it started with.
-static volatile LONG g_debugMode = -1;   // -1 unresolved, 0 off, 1 on
+// ---------------------------------------------------------------- log throttle
+// log_throttle(key, interval_ms, *suppressed): 1 = emit now, 0 = suppress.
+// Gate denials can fire at frame rate when a script targets a refused address
+// (2026-09-27: 159k log lines + 225k audit rows from one bad out-param write);
+// the audit keeps the full record, the text log keeps a rate-limited trace.
+// `key` is a stable pointer (call-site string literal); slots never recycle.
+#define LOG_THROTTLE_SLOTS 24
+static struct {
+    const void *key;
+    ULONGLONG last;
+    unsigned long suppressed;
+} g_thr[LOG_THROTTLE_SLOTS];
+static int g_thrCount;
+static CRITICAL_SECTION g_thrLock;
+static INIT_ONCE g_thrOnce = INIT_ONCE_STATIC_INIT;
+static BOOL CALLBACK log_thr_lock_init(PINIT_ONCE io, PVOID arg, PVOID *ctx) {
+    (void)io; (void)arg; (void)ctx;
+    InitializeCriticalSection(&g_thrLock);
+    return TRUE;
+}
 
-static int cmdline_has_debug_flag(void) {
+int log_throttle(const void *key, unsigned interval_ms, unsigned long *suppressed) {
+    if (suppressed) *suppressed = 0;
+    InitOnceExecuteOnce(&g_thrOnce, log_thr_lock_init, NULL, NULL);
+    EnterCriticalSection(&g_thrLock);
+    ULONGLONG now = GetTickCount64();
+    int slot = -1;
+    for (int i = 0; i < g_thrCount; i++) {
+        if (g_thr[i].key == key) { slot = i; break; }
+    }
+    if (slot < 0 && g_thrCount < LOG_THROTTLE_SLOTS) {
+        slot = g_thrCount++;
+        g_thr[slot].key = key;
+        g_thr[slot].last = 0;
+        g_thr[slot].suppressed = 0;
+    }
+    int emit = 1;
+    if (slot >= 0) {
+        if (g_thr[slot].last && now - g_thr[slot].last < interval_ms) {
+            g_thr[slot].suppressed++;
+            emit = 0;
+        } else {
+            if (suppressed) *suppressed = g_thr[slot].suppressed;
+            g_thr[slot].suppressed = 0;
+            g_thr[slot].last = now;
+        }
+    }
+    LeaveCriticalSection(&g_thrLock);
+    return emit;
+}
+
+// ---------------------------------------------------------------- log gates
+// Two opt-in gates, each resolved once on first query and then cached; a
+// running session keeps the flags it started with.
+//
+//   debug   (-debug token / HOI4_DLL_DEBUG=1): per-call vtable traces
+//           ([effect] slotN on bound — they fire on every desc/validity
+//           repaint, not just real executions: hundreds of lines per day on
+//           tooltip-heavy effects).
+//   verbose (-verbose token / HOI4_DLL_VERBOSE=1): the per-repaint traces that
+//           fire far past debug rates — [trigger] eval runs at frame rate
+//           (measured 209-310 lines/s, 241k lines in one 2026-09-27 session).
+//           Strictly separate: -debug alone does NOT enable these.
+//
+// cmdline token channels: the launcher passes single-dash args through to
+// hoi4.exe; env channels are inherited from the launcher.
+static volatile LONG g_debugMode = -1;   // -1 unresolved, 0 off, 1 on
+static volatile LONG g_verboseMode = -1;
+
+// case-insensitive `-<tok>` / `/<tok>` scan: left edge = string start or
+// blank, right edge = end / blank / '=' (so -debug_xyz does not match).
+static int cmdline_has_token(const wchar_t *tok) {
     const wchar_t *c = GetCommandLineW();
     if (!c) return 0;
+    size_t tl = wcslen(tok);
     for (const wchar_t *p = c; *p; p++) {
         if (*p != L'-' && *p != L'/') continue;
         if (p != c && p[-1] != L' ' && p[-1] != L'\t') continue;  // need left edge
-        const wchar_t *q = p + 1;
-        if ((q[0]|32)!='d'||(q[1]|32)!='e'||(q[2]|32)!='b'||(q[3]|32)!='u'||(q[4]|32)!='g')
-            continue;
-        wchar_t nx = q[5];
+        size_t i = 0;
+        for (; i < tl; i++) {
+            wchar_t a = p[1 + i], b = tok[i];
+            if (a >= L'A' && a <= L'Z') a = (wchar_t)(a + 32);
+            if (b >= L'A' && b <= L'Z') b = (wchar_t)(b + 32);
+            if (a != b) break;
+        }
+        if (i != tl) continue;
+        wchar_t nx = p[1 + tl];
         if (nx == 0 || nx == L' ' || nx == L'\t' || nx == L'=') return 1;
     }
     return 0;
 }
 
-static int env_debug_enabled(void) {
+static int env_flag_enabled(const char *name) {
     char v[8];
-    DWORD n = GetEnvironmentVariableA("HOI4_DLL_DEBUG", v, sizeof(v));
+    DWORD n = GetEnvironmentVariableA(name, v, sizeof(v));
     return n > 0 && (v[0] == '1' || v[0] == 'y' || v[0] == 'Y');
 }
 
 int dll_debug_mode(void) {
     LONG v = g_debugMode;
     if (v >= 0) return (int)v;
-    LONG nv = (cmdline_has_debug_flag() || env_debug_enabled()) ? 1 : 0;
+    LONG nv = (cmdline_has_token(L"debug") || env_flag_enabled("HOI4_DLL_DEBUG")) ? 1 : 0;
     InterlockedCompareExchange(&g_debugMode, nv, -1);
     v = g_debugMode;
     if (v == 1) L("[init] debug mode on: verbose effect/vtable logs enabled");
     return (int)v;
 }
 
-// hoi4.debug() -> bool: is the DLL running in debug mode? Same sources as
-// dll_debug_mode (-debug host cmdline token / env HOI4_DLL_DEBUG=1). Lives
-// under the hoi4 table, so it coexists with Lua's global `debug` library.
+int dll_verbose_mode(void) {
+    LONG v = g_verboseMode;
+    if (v >= 0) return (int)v;
+    LONG nv = (cmdline_has_token(L"verbose") || env_flag_enabled("HOI4_DLL_VERBOSE")) ? 1 : 0;
+    InterlockedCompareExchange(&g_verboseMode, nv, -1);
+    v = g_verboseMode;
+    if (v == 1) L("[init] verbose mode on: per-repaint traces (trigger eval) enabled");
+    return (int)v;
+}
+
+// hoi4.debug() / hoi4.verbose() -> bool. Both live under the hoi4 table, so
+// they coexist with Lua's global `debug` library.
 int hoi4_debug(lua_State *Ls) {
     lua_pushboolean(Ls, dll_debug_mode());
+    return 1;
+}
+
+int hoi4_verbose(lua_State *Ls) {
+    lua_pushboolean(Ls, dll_verbose_mode());
     return 1;
 }
 
@@ -450,6 +645,8 @@ void reload_execute_locked(void) {
 static const luaL_Reg hoi4_lib[] = {
     {"log", hoi4_log},
     {"debug", hoi4_debug},
+    {"verbose", hoi4_verbose},
+    {"log_flush", hoi4_log_flush},
     {"base", hoi4_base},
     {"to_number", hoi4_to_number},
     {"read_u64", hoi4_read_u64},
@@ -508,6 +705,13 @@ static const luaL_Reg hoi4_lib[] = {
     {"define_targets", hoi4_lua_define_targets},
     {"defines_build", hoi4_lua_defines_build},
     {"defines_count", hoi4_lua_defines_count},
+    {"dr_watch", hoi4_dr_watch},                 // DR0 write watch (in-process)
+    {"dr_off", hoi4_dr_off},                     // disarm DR watch
+    {"dr_hits", hoi4_dr_hits},                   // collected hit ring
+    {"dr_gwatch", hoi4_dr_gwatch},               // guard-page watch
+    {"dr_goff", hoi4_dr_goff},                   // guard disarm
+    {"dr_ghits", hoi4_dr_ghits},                 // guard hit aggregation
+    {"dr_ring_addr", hoi4_dr_ring_addr},         // ring base for external polling
     {"profile_start", hoi4_profile_start},       // sampling profiler
     {"profile_stop", hoi4_profile_stop},
     {"profile_top", hoi4_profile_top},

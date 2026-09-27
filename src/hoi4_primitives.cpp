@@ -194,9 +194,23 @@ int hoi4_read_bytes(lua_State *Ls) {
 // dangling pointers elsewhere.
 
 // Denial tail: false is already on the stack; log + audit, keep the shape of
-// "refused, never crashed".
+// "refused, never crashed". The text line is rate-limited per API (a buggy
+// script can hit a refused address at frame rate — 2026-09-27: 159k lines
+// from one bad out-param write) and carries the Lua origin; the audit keeps
+// every hit.
 static int wr_denied(lua_State *Ls, const char *api, uint64_t a) {
-    L("[mem] %s denied @%llx (write domain)", api, (unsigned long long)a);
+    unsigned long sup = 0;
+    if (log_throttle(api, 1000, &sup)) {
+        char src[160]; int line = 0;
+        audit_attribute(Ls, src, sizeof(src), &line);
+        char who[224];
+        if (src[0]) snprintf(who, sizeof(who), " lua=%s:%d", src, line);
+        else who[0] = 0;
+        if (sup) L("[mem] %s denied @%llx (write domain)%s (+%lu suppressed)",
+                   api, (unsigned long long)a, who, sup);
+        else     L("[mem] %s denied @%llx (write domain)%s", api,
+                   (unsigned long long)a, who);
+    }
     audit_mem_deny(Ls, "write", a, "write-domain gate");
     return 1;
 }

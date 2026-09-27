@@ -59,8 +59,8 @@
 | +856 | 匿名结构 (12B 形状) 向量 | **taken_lead_to_wars** {data@+856, cap@+864, count@+868, alloc@+872} — 12B 条 {tag u32, reason u32, days u32} | writer 键 0x4B9A + SLeadsToWarReader (定案; rs 侧无对应行) |
 | +880 | uint32 | cached_allies_and_gurantees 容器数据 {data@+880, cap@+888, count@+892, alloc@+896} (存档原拼写 "gurantees") | writer 键 0x4B97; u32 idx 数组 → tag 名 |
 | +904 | CMilitaryAccess* 向量 | **_MilitaryAccesses** {data@+904, cap@+912, count@+916, alloc@+920} (CMilitaryAccess::Add + COfferMilitaryAccess::Add 共容器, offer 共存; find-or-push "Contains == false" 断言 diplomacy.cpp:0x31C); **元素 vt RVA 0x2960408 = CMilitaryAccessRelation** (活体直证) | assert `_MilitaryAccesses.IsEmpty` (0X140D3A1B0:379) |
-| +928 | CDockingRights* 向量 | **_NavalAccesses** {data@+928, cap@+936, count@+940, alloc@+944} = docking_rights(+offer) 缓存 (CDockingRights::Add + COfferDockingRights::Add; first 侧) | 定案 |
-| +952 | CDockingRights* 向量 | **_OfferNavalAccesses** {data@+952, cap@+960, count@+964, alloc@+968} = offer_docking_rights 侧 (CDockingRights::Add second 侧; 方向分工未证 — 待裁, 需活体读 offer_docking_rights 落侧) | 定案 |
+| +928 | CDockingRights* 向量 | **_NavalAccesses** {data@+928, cap@+936, count@+940, alloc@+944} = docking_rights(+offer) 缓存 (CDockingRights::Add + COfferDockingRights::Add; first 侧); 元素 = CDockingRightsRelation (token 15098@+8) — **方向定案 (活体): 本国授予对方** (元素 tag 对 {授予方@+16, 接收方@+20}, 本国在前; +24 起两 CGregorianDate, 次日期常为 1.1.1.1 哨兵) | 定案 |
+| +952 | CDockingRights* 向量 | **_OfferNavalAccesses** {data@+952, cap@+960, count@+964, alloc@+968} = offer_docking_rights 侧 (CDockingRights::Add second 侧); **方向定案 (活体): 本国收到的 offer** — 元素 tag 对 {授予方@+16, 接收方@+20} 对方在前, 与授予方 +928 逐条镜像闭环 (GER 授 15 国 ↔ SPR 收 GER/ITA/ROM/JAP/SIA/INS/D04 七方) | 定案 |
 | +976 | CAirBaseAccess* 向量 | **air_base_access(+offer) 缓存** {data@+976, cap@+984, count@+988, alloc@+992} (CAirBaseAccess::Add + COfferAirBaseAccess::Add); **元素 vt RVA 0x2A217F8 = COfferAirBaseAccessRelation** (活体直证: 本档唯一非空条目即 offer 侧) | 定案 |
 | +1000 | 指针容器 | **captured (被俘将领缓存)** {data@+1000, cap@+1008, count@+1012, alloc@+1016} — 8B 指针元 | writer 键 0x3D14 ↔ `captured={`; "captured generals cache" 串 (定案; rs 侧无对应行) |
 
@@ -92,7 +92,6 @@ rs = dip+8 active_relations 容器元素, sizeof 0x9C0。
 | +208 | CRelation* 向量 | **_Relations** (非属主侧关系) {data@+208, cap@+216, count@+220, alloc@+224}; assert `_Relations.IsEmpty` (teardown 0X140D1E470) |
 | +232 | token 向量 | **_OwnedRelation** (= 书内 "relations") {data@+232, cap@+240, count@+244, alloc@+248}; assert `_OwnedRelation.IsEmpty`; writer 逐元动态 token@元+8 |
 | +256 | CTimedOpinionModifier* 向量 | opinions {data@+256, cap@+264, count@+268, alloc@+272} — **指针元 8B → CTimedOpinionModifier 本体 64B** {过期 hours@+24, modifier def@+40, 旗@+57} (容器为指针数组, 0X140D2A150 逐元解引用刷新); AddOpinionModifier 0X140D19390; parse 10913 — 定案 (1.19.3 锚: writer 0x140A82C60 / reader 0x140A824E0; +48 value i64 / +56 decay 旗 / +57 do_not_expire 旗) |
-| +280 | 匿名结构 (元素) 向量 | modifiers {data@+280, cap@+288, count@+292, alloc@+296}; AddRelationModifier 0X140D19590; writer 10597 写元+424 名 |
 | +320 | 匿名结构 (16B 形状) 向量 | **生效修正值块** {data@+320, count@+332} 16B 条; AddRelationModifier 添加 (sub_140557840); teardown 遍历 |
 | +496 | CDiplomacyStatus* | **属主 dip 回指**; *(*(rs+496)+648)+8 = 属主国 |
 | +568 | llth 块基 | llth 块基 {+576, +584, +592, +600} 四 fixed×1e-5 (⚠ 块基 = +568, +576 为首个分量); writer 键 12950: 四分任非零才写 |
@@ -248,6 +247,14 @@ war_score 子对象 (实名 **CWarScoreBreakdown**, vt 0x142960128; writer 0x141
 | +88 | fixed×1e-5 | lend_lease_received | 同上 |
 | +96 | std::map 头 | captured_provinces std::map 头 (节点 key u32@+28, **值不写 (set 语义)**; 中序 = 升序 = 存档序) | |
 | +104 | u64 | captured_provinces std::map size | size≠0 |
+| +120..+131 | — | 壳侧向量 {data@壳+120, count@壳+132} (壳 = winner 元素e, 即 e+248{d}/e+260{c}) 的**转发槽** — 本内层对象不带该向量 | |
+| +144 | uint32 | 壳字段 total_score_before (= e+272), 不在内层 vt 门内, 写者与 total_score_before 同函数 | 恒写 |
+
+**redistributions** (壳层向量, 非本对象内层): 形 = 壳 e+248{d}/e+260{c}, 16B 元
+{reason u32@+0, points **i32**@+4} (points 可负, 活体实测 {3,3}/{3,-1}); writer
+`sub_1419848B0` (tok 14497 门 count≠0; 匿名块 #1.. 恒编号, 块内 reason/points 两叶);
+与 total_score_before (tok 14498) 同函数相邻发射 — 「玩家在战争中把战争分数重新分配给
+盟友」的记录。〈定案: 活体合成+存档对拍双证〉
 
 视角归一:
 
@@ -282,6 +289,7 @@ writer sub_140D2DE20, 专有叶先于基类。
 | +81 | u8 | 自治关系旗 B (ctor 默认 1; 与 +80 同元 0x0101 — 推定) | |
 | +88 | CAutonomousState* | autonomy_state → MSVC 串@obj+8 引号 | ptr≠NULL; def 对象 (名 MSVC@obj+8) |
 | +96 | fixed×1e-5 | value | **raw≠0 才写** |
+依赖描述符 (关系条目 +648 指向; 定案): {+8 token 12497 "puppet", +16 宗主 tag, +20 附属 tag}; 判定 sub_140D25830 (条目 +648 描述符与 +80 比对, loc 因子 DR_THEM_PUPPET, 45 调用者全 GetAiAcceptanceFactors)。
 
 #### 4.10.8 proposed 外交行动条目
 
@@ -363,7 +371,7 @@ CAutonomousState def 侧补行 (def 库 = **0x332EE18** (qword_14332EE18, §4.26
 | +236 | uint8 | elections_allowed | |
 | +237 | u8 | **parties 脏旗** (AddParty 尾置 1) | 高置信 |
 | +240 | 匿名结构 (16B map/set) | 未名 16B map/set (dtor `sub_140150FB0(Block+30)` 树析构; politics.cpp 内无使用者, writer/parse 均不触) | 形态定案/语义待裁 |
-| +256 | boost::shared_ptr | **PP 变动通知器** (AddPoliticalPower/SetPoliticalPower 尾调 sub_14032F840; 形态定案/语义推定) | ⚠ MIO 实例挂在 CPolitics 下经本槽 (cc+3984→+256 listenable 枚举源; COrganisationListWindow 命中); 与 PP 通知器双说并存 — 或即同一 listenable 机制的两种消费 (未证 — 未决) |
+| +256 | boost::shared_ptr | **PP 变动通知器** (AddPoliticalPower/SetPoliticalPower 尾调 sub_14032F840); **定案 = boost.signals2 信号槽** — 活体 439/440 国非零: {目标@+256, sp_counted_impl_p 控制块@+264 {vt, 强/弱计数@+8, 目标@+16 同 +256}}, 控制块 vt RVA 0x271F648, RTTI = `sp_counted_impl_p<signal_impl<void(), optional_last_value<void>>>` (目标本体无 vtable); ⚠ MIO 实例挂在 CPolitics 下经本槽 (cc+3984→+256 listenable 枚举源; COrganisationListWindow 命中); 与 PP 通知器双说并存 — 或即同一 listenable 机制的两种消费 (未证 — 未决) | 信号槽形态定案/业务语义未决 |
 | +920 | 指针容器 24B | 未名对象指针容器 {data@+920, cap@+928, count@+932, alloc@+936} — 8B 堆对象指针元; 全量国家 440/451 非空 (单国 5..831 条) | 语义待裁 |
 | +944 | 指针容器 24B | 未名对象指针容器 {data@+944, cap@+952, count@+956, alloc@+960} — 8B 堆对象指针元; 单国量级 5..15 条 | 语义待裁 |
 | +3672 | 动态修正管理器* | 动态修正管理器挂载; 条目 64B 与 SDynamicModifierEntry (§4.13.4) 同构 | 推定 |
@@ -898,6 +906,7 @@ conf+216..520 区字段巡礼:
 | +496 | — | = +488 树的 size 字段 | 定案 |
 | +504 | 树 | 与 488 配对的回合态树（414E0 查询） | 高置信 |
 | +520 | u32 | 40C80 清理步清零计数 | 高置信 |
+> 参与者单位: 五个 scoped 数组单位 24B 头 {alloc_vt@0, data@8, cap@16, count@20} 连排 (ctor 0x140BBDB70 五连头直证); 其中 losers 单位 data@+280 / liberated 单位 data@+304 — 单位 cap 同名异位于头内 +16 (高置信); 活体: losers 单位 count 恒 1 = 单一主败方条目, liberated 单位头活读 0x7FF6 前缀值 = 静态 allocator 描述符 off_143085170 (实际数据落点 +288/+312 推定)。
 
 #### 4.10.27 CPeaceConference (active_peace 元素)
 
@@ -918,7 +927,7 @@ conf+216..520 区字段巡礼:
 | +96 | 容器 24B {d@96, c@+108} | — (不序列化) | — | sub_1401B0250 线性 contains | = OutWinners u32 tag 数组 (sub_140E40640 断言实名) | 定案 |
 | +120 | 容器 24B | — | — | sub_1401B0250 线性 contains | = OutLosers u32 tag 数组 (同上断言实名) | 定案 |
 | +144 | {d@144, c@+156} u32 表 | 0x3AF6 (15094) | occupied_winners | — | 占领获胜方 tag 表 | 定案 |
-| +168 | 容器 24B {data@168, cap@176, count@180} | — (writer/reader 双向不碰) | — | 唯一读者 FinalizeAnnounce 0x140E42B50 二分成员查 (按国 idx 序) | 有序 tag 表 — 纯运行时空表兜底 (ctor 空表, 填充点未找到; 若恒空则清零条件由前三项决定) | 待裁 |
+| +168 | 容器 24B {data@168, cap@176, count@180} | — (writer/reader 双向不碰) | — | 唯一读者 FinalizeAnnounce 0x140E42B50 二分成员查 (按国 idx 序) | 有序 tag 表 — **纯运行时空表兜底定案** (ctor 空表; 活体 3 场和会全生命周期 count 恒 0, 唯一读者 FinalizeAnnounce 二分未命中即走清零条件分支) | 定案 |
 | +192 | {d@192, c@+204} | 0x2F66 (12134) | civil_war_losers | — | map: tag → 串 | 定案 |
 | +216 | u32 | — | — | w3: `*(conf+216)` → +1 显示 | 当前竞标阶段 (0-based) | 定案 |
 | +220 | u8 | — | — | w3/w9 文案门 | 正在提出需求旗 (PEACE_CURRENTLY_MAKING_DEMANDS / PEACE_WAITING_…) | 定案 |
@@ -931,7 +940,7 @@ conf+216..520 区字段巡礼:
 | +368 | scoped_ptr<匿名结构 (NNB 形状)> | 0x3108 (12552) | solo_winner | sub_140E3F7D0 门 (非零 → 分差=0) | 单一获胜方 {tag@+8} | 定案 |
 | +416 | {d@416, c@+428} 表 | — | — | w2 显隐门; sub_140E400F0 逐元 +64 分值 | = CPdxArray<scoped<CPeaceAction>> 当前竞标表 (dynamic_cast 直证; CPeaceAction 布局见下表) | 定案 |
 | +440 | RB-tree | — | — | sub_140E400F0 树游 (+25 色标) | = map<CPeaceAction*, scoped<CPeaceAction>> 竞价覆盖表 (节点+32 键 / +40 值; 总分调 Σ(新+64−旧+64); 键类型高置信, 余定案) | 定案 |
-| +472 | RB-tree (门 +480) | 0x320D (12941) | minor_flavor | 未消费 (负) | map: 节点+28 tag → 18 | 定案 |
+| +472 | RB-tree (门 +480) | 0x320D | minor_flavor | 未消费 (负) | map: 节点+28 tag → 18; **落盘键勘误 = 12813 `done`** (0x320D 直读, 旧 12941/minor_flavor 系换算错位) | 定案 |
 | +504 | RB-tree (门 +512) | 0x2835 (10293) | history | 未直接消费 (负; UI 走运行时列表 + `current_and_history_actions` 窗) | map: 节点+32 tag → {节点+40{+52} bidding (12850) 引用表} | 定案 |
 | +520 | u32 | — | — | w5: 输光 && `conf+520 <= 0` 分支 | = 当前竞标方 tag (GetCurrentNegotiator sub_140E47890 + 行头点击 sub_141E50A00 写证) | 定案 |
 | +524 | u32 | — | — | sub_140E4F220 写 (变化检测) | UI 选中/过滤国 tag | 定案 |

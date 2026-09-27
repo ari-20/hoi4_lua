@@ -107,7 +107,7 @@ idpair** (item+32, populate sub_141E6F9A0 逐次 resolve)。
 
 #### 4.31.5 散簇·海军剧场/军事总览 (CNavyTheaterGroupItem(Base) / CNavyTheaterFleetItem / CNavyTheaterFleetRowItem / CNavyMilitaryOverviewItem)
 
-**入口链**: GroupItem target = **CNavyTheaterGroup +72 idpair** (SetTarget
+**入口链**: GroupItem target(item+72) = **grp+8 refid** (SetTarget
 sub_141E73010 直拷, 0xB70); FleetItem target = **CFleet +1584 idpair**; FleetRowItem
 target = **CFleet +2696 idpair** (+2704 内嵌 FleetItem); MilitaryOverviewItem
 target = **CTaskForce raw+40 idpair** (sub_1402A6F30=*(tf+24) 灌入, −16 胶水双互证)。
@@ -928,7 +928,7 @@ CShipArchetypeItem ctor sub_1417F2740; CShipArchetypeHeaderItem ctor sub_141D42A
 |---|---|---|---|---|---|
 | 工厂格图标 | sub_141D68F10 状态机 | +1352 下标/+1328+1332 状态 (线+24/+28/+64 三段 ✓)/+1360=线+240 ✓ | 左键 → CAddProductionLineFactoriesCommand (目标=(下标+1)×每格数−线+232 ✓) | PRODUCTION_FACTORY_ASSIGN_DESC / _DOCKYARD_ | 定案 |
 | 母港行 | sub_141DB3940 | CStrategicNavy (gamestate+1688)+24 容器; 条目+16 州/+24 等级 | 右键缩放地图 sub_141DB2E10 | PRODUCTION_NAVAL_DEPLOYMENT_STATE_NAME / PRODUCTION_DEPLOY_TO_BASE | 定案 |
-| 剧场行 | sub_141DB2BA0 | CNavyTheater (country+352)+0 容器 | 按视图+1408/+1416 选中线发命令 | PRODUCTION_DEPLOY_TO_RESERVE_FLEET_THEATER | 定案 |
+| 剧场行 | sub_141DB2BA0 | CNavyTheater (country+352)+16 容器 | 按视图+1408/+1416 选中线发命令 | PRODUCTION_DEPLOY_TO_RESERVE_FLEET_THEATER | 定案 |
 | 特混行 | 左键设目标/右键选中 | country+632 CTaskForce**; item+1360=tf+24 id 对 | +1368 内嵌 CNavyTheaterTaskForceItem 徽章 (§4.24 复用) | PRODUCTION_DEPLOY_TO_FLEET | 定案 |
 | 命令出口 | RTTI 实名 | CSetNavalDeploymentTargetCommand (+40 线/+56 target) / CSetShipRefitDeploymentTargetCommand (+40/+48/+56) | 与 §4.30.3 vt[11] 地图点省通道同字段互证 | countrycommands.cpp L1500 断言 | 定案 |
 
@@ -1332,7 +1332,7 @@ CShipArchetypeItem ctor sub_1417F2740; CShipArchetypeHeaderItem ctor sub_141D42A
 | CNavalBaseSelectionItem (零覆写 Item 族) | **CNavalBase\* @item+1440**; 宿主 = CHomeBaseSelectionWindow | def+885/+886 旗分控 "naval_headquarter_icon"/"naval_supply_icon" (帧 def+740); 命令 = **CSetFleetHomeBaseCommand {+40 舰队 CRef / +48 省 id / +52=1}** |
 | CNavalLicenseEntry | **零覆写类** (主/副 vt 与 CLicenseProductionEntry 逐槽全同含 dtor) | 与 §4.22.6 CLandLicenseEntry 同族对照成立; 唯一区别 = 窗口名 "request_license_naval_entry" |
 | CNavalMissionExtensionEntry (主 vt 零覆写, 副 vt tooltip 独覆写) | **mission+8 = CTaskForce\*** (数据源 = S+104 per-region 桶 ✓, 见 §4.16.5 行注) | mission+20 = 任务类型 u32; pride 判定 = ship+1832 == tf 回指 |
-| CNavalMissionUnitItem ("unit_counter_navy") | **item+48 = 单位 CRef 数组** | 海军单位堆叠计数器; NNavyMapIconUtils 三 sorter/grouper RTTI 实名; 被 CNavalBaseMapIcon box_ship 修理船条等三处共用; tooltip = NAVAL_SPOTTING_* 五键 + SHIP_ENGAGEMENT_* 键群 |
+| CNavalMissionUnitItem ("unit_counter_navy") | **item+48 = 单位 CRef 数组** | 海军单位堆叠计数器; NNavyMapIconUtils 三 sorter/grouper RTTI 实名; 被 CNavalBaseMapIcon box_ship 修理船条等三处共用; tooltip = NAVAL_SPOTTING_* 五键 + SHIP_ENGAGEMENT_* 键群; +2768/+2776 = "spotting_bar_fg"/"spotting_bar_bg" GUI 子元素指针 (ctor sub_14198CE60 尾调 sub_1419913F0 绑定, 定案) |
 | CNavalRepairWindow (0xB78, CTooltipHandler + CReorderObserver 虚基) | 队列 = CStrategicNavy+24 bases → **CNavalBase+40/+52 ships_in_repair ✓** (见 §4.16.8 行注; 非 §4.8 refit 生产线) | 行类 CNavalRepairQueueNavalBaseEntry (行+3904 = nb) / CNavalRepairQueueShipEntry (行+48 = 船 idpair); **命令出口六枚全 RTTI 实名 + 载荷定案**: CSetMaxAllowedRepairDockyards / CChangeNavalBaseRepairPriorityCommand / CSetNavalBaseDisabledForRepairsStateCommand / CReorderNavalRepairQueue / CSwitchNavalRepairDockyard / CAddToOrRemoveShipFromNavalRepairQueue |
 
 **CAccidentItem (海难事故聚合行, GUI)**: "accident_equipment_archetype_entry" (0x560B) = 海难窗事故页逐 archetype 聚合行; setter sub_1417F8460 消费 **56B 聚合元** (源 = CNavalAccidentReport 聚合; **report+32 = is_sunk ✓**); 行件 = 图标/名/双计数四件; 宿主窗实名未决。

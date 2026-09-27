@@ -403,7 +403,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | +40 | string | 注册键名 | FNV-1 输入 |
 | +72 | string | 显示名 | |
 | +104 | string | 描述串 | 推定 |
-| +136 | int | **注册期类别 id** (ctor 形参直落, 非运行期计算; 样例恒 1 = 该类唯一注册值) | 高置信 |
+| +136 | int | **注册期类别 id** (ctor 形参直落, 非运行期计算; **全库 113 构造站点枚举 = 双值 {0,1}**: 0 = 44 站渲染/音频调试桶, 1 = 69 站玩法调试 + pe_ 编辑器桶, 语义推定; 4 typed ctor Bool/Float/Int 第 5 参 + Alias 第 3 参) | 定案 (取值) / 推定 (语义) |
 | +144 | CClass* | **SetValue 读写目标 = 引擎变量指针** | |
 
 typed 派生 (布局同基类, 只覆写三值槽):
@@ -503,9 +503,9 @@ idb 四库 + building 库的元素 def 布局 (全部 vt[2]=空桩 = 只读 def 
 | +887 | u8 | (10352 键, 原版表无 — 推定 DLC/新键) | |
 | +888 | u8 | affects_energy (16533) | |
 | +892 | u32 | detecting_intel_type (19532) | |
-| +976 | 匿名结构 (元素待裁) 向量 | state_damage_modifier (10031) 族之一 (province_damage_modifiers 10029→+976 静态修正表) | "Could not find static modifier" 直证 |
-| +1000 | 匿名结构 (元素待裁) 向量 | state_damage_modifier (10031) | |
-| +1048 | 匿名结构 (元素待裁) 向量 | modules (15211) | |
+| +976 | 匿名结构 (元素待裁) 向量 | state_damage_modifier (10031) 族之一 (province_damage_modifiers 10029→+976 静态修正表); 活体: 仅 dam/dam_mountain/cataract_dam_mountain 三 def 各 1 条, 元素 = 三者**共享**的带 vtable 对象 (vt RVA 0x2608640 未录 RTTI, +8 = u32 165) | "Could not find static modifier" 直证 |
+| +1000 | 匿名结构 (元素待裁) 向量 | state_damage_modifier (10031); 活体: 仅 canal_kiel/canal_panama 各 1 条, 元素 = **32B MSVC 串** ("kiel_canal_damage…" / "panama_canal_d…") | |
+| +1048 | 匿名结构 (元素待裁) 向量 | modules (15211); 活体: 仅 naval_headquarters 1 条, 元素 = 16B 全零 | |
 | +1088 | 内嵌 CConstructionSpeedFactor | construction_speed_factor (16385) | ≥108B: +8 factor(10603) / +16 trigger(10595) 子对象 / +36 trigger 存在旗 (mandatory); vt 0x1429CB628 |
 | +1204 | u8 | hide_if_missing_tech (17942) | |
 | +1208 | CModifier | dlc_allowed (17943) | CModifier 族名单 |

@@ -95,6 +95,18 @@ SV2.gsec[#SV2.gsec + 1] = { name = "peace_conference", emit = function(ctx)
                 -- ⚠ 不在内层 vt 门内 — 与 writer 直出同形)
                 E(wb .. ".war_score_breakdown.total_score_before",
                     tostring(w.total_score_before or 0))
+                -- redistributions (14497): 壳向量 16B 元 {reason, points},
+                -- 匿名块 #1.. 恒编号 (writer sub_1419848B0 门 count≠0)
+                local reds = w.war_score_breakdown
+                    and w.war_score_breakdown.redistributions
+                if reds then
+                    for k, r in ipairs(reds) do
+                        E(wb .. ".war_score_breakdown.redistributions.#" .. k
+                            .. ".reason", tostring(r.reason or 0))
+                        E(wb .. ".war_score_breakdown.redistributions.#" .. k
+                            .. ".points", tostring(r.points or 0))
+                    end
+                end
                 -- non_refunded_score u32@e+80 (b+16) 恒写
                 WE("non_refunded_score", tostring(w.non_refunded_score or 0))
             end

@@ -44,6 +44,17 @@ gs+1864 = **region 数组计数** (BHU 3,789), 非省数 (定案)。
 | +392 | tag_id | controller | 控制国, 写门 (writer 0x140E81390) = `*(p+392) > 0 && tid != dctl && (!tid \|\| !dctl \|\| !同国(tid,dctl))`; dctl = rp(p+192) 有则 +200 否则 sub_140BB3E00 默认槽, 同国 = sub_140BB52F0 → **gs+832**(=qword 索引 104) 映射表 [tid]==[dctl] (tag 别名对, KR 傀儡 D04 两槽实证); 0x283F; loader case 10303 → **SetController sub_140E801A0** 对接 country 族 Add/RemoveControlledProvince; 两效果类 Execute 直调 | **GUI: 省名占领着色/+TAG 后缀** (sub_14174C8E0 → STATE_PROVINCE_NAME_OCCUPIED_COLOR/STATE_PROVINCE_PLUS_TAG) **+ 外交/密码 SetTarget 转发键** (DiplomacyView[11] / AgencyView[11] / OccupationView[11] 同链) |
 | +400 | CBuildingStatus 内嵌 112B | buildings (+400..+511, 见 4.14.1) | vtable 0X2999050; dtor sub_141171C10(a1+400) | **GUI: 省建筑行** (可见性门 def+8==19649 rail_way / +802 / +824 / +883·+885 DLC; sub_14174DD50 → province_building_entries) |
 
+> SetController (sub_140801A0 级联 — 定案链, province.cpp:394 "Call NotifyControllerChanged"):
+> 门 = `*(prov+392) == 新tag` → 近空转; a4=0 轻路径仅对旧/新两国置 `cc+4320 |= 0x40` 脏位;
+> a4≠0 重路径 (进省登记热路径实测走此支) 全级联: 旧国 controlled_provinces 摘除 / 新国加入 →
+> 受影响国集 (州+112 表 48B/条构建, 旧+新+相关 tag 去重) 逐国 sub_14070AF30 → 省+24 监听派发 →
+> 五处虚槽广播 → **区域连通维护 sub_140CF6FA0** (areas.cpp:909/967 Join/AddProvince) **→ 标脏
+> sub_140CF7AC0 → 脏集同步冲刷 sub_140CF81C0** (脏国 <4 串行 / ≥4 起 tbb 并行 sub_140CEFEC0,
+> functor = CInitEnemiesAreaThreaded: 每国敌区派生缓存 失效 sub_140CF36A0 - 重建
+> sub_140CF6140/sub_140CF4580 - 回注册 sub_140CF6D70) → 战区/前线通知 sub_14132C0F0 →
+> 驻军档位 / 命中该省的行军师处置 / 占领 bundle 包夹 (sub_140EED690/sub_140EF2F30) →
+> a3 门州级刷新 sub_1409DFC20 → a4 门州+184 国表逐国前线刷新 sub_140E7FCA0。
+
 #### 4.14.1 CBuildingStatus (内嵌 112B, prov+400 相对)
 
 | 偏移 | 类型 | 名称/语义 | 备注 |

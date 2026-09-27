@@ -100,7 +100,7 @@ vtable; P+272/276/296/300 = 738 = 国家数; P+352/P+424 无哨兵。
 |---|---|---|
 | lam 1_5 | EB9CD0→EC80C0 | 供应首都/枢纽合法性校验 (CANT_MOVE_SUPPLY_CAPITAL_NOT_CONTROLLED 门, 结果写布尔表) |
 | lam 2 | EBB3D0→1412202B0 | CSupplyCalculationData 逐项重置 (30+ 字段清零, +352=100000 哨兵) |
-| lam 3 | EBA9C0→1412212C0 | 供应消费者记录重建 (陆军/铁路炮/国家空军/空军基地; country_supply.cpp:2160-2268 断言族) |
+| lam 3 | EBA9C0→1412212C0 | 供应消费者记录重建, 注册序 = 逐军(army+16) → 逐舰队逐 TF(**tf+16**, country_supply.cpp:2179) → 铁路炮(gun+16, :2189) → 国家空军容器(容器+0, :2225/:2234) → cc+4008 项目消费者(元素+200); :2268 断言属共享注册函数 sub_14121B650 (先 sub_141230CA0 复位, sys+432 += asked, 插 sys+440 数组 + sys+64 键表); **CNavalBase 无 CSupplyConsumer (负定案)** — 基地是节点非消费者; 消费者类别字节 = ctor 0X140C482A0 a2 (2=空军基地容器 / 4=项目消费者) |
 | lam 4 | — | PerCountryIndex 重建 (:3138) |
 | lam 7 | EBAE10→141230D40 | 供应节点七步重算 (convoys.cpp:29 + 首都控制权门 :2844) |
 | lam 10 | — | 省级数据跨国家归并 (省自旋锁 +336) |
@@ -122,6 +122,8 @@ CBC8C0 阈值分流 (定案): `v35 = BASE_LAND_TRADE_RANGE² × ln(两国持有�
 
 运行语义 (defines 收口): 重算预算 = `NGame.TRADE_ROUTE_RECALCULATE_FREQUENCY_DAYS` (vanilla 45, 0=不周期重算; 每日预算 = max(1, 有效路线数/45)), 轮转游标 = gs+2496 `next_trade_route_update_country_idx` (模 gs+796 国家数置脏), 有效路线计数 = gs+2492 `cached_active_trade_route_count` (token 10102), gs+2488 = 每小时元组收集数 (纯运行时)。护航危险评分 = CStrategicNavy 逐战略海区 0-4 级加权归一 (权重 = defines `NNavy.NAVAL_CONVOY_DANGER_RATIOS` vanilla 0.10/0.10/0.10/0.15/0.15, ×1e5 装载; 孪生件 EB06F0 = 水雷危险版)。
 
+贸易管理器刷新域 (定案): 容器 = +1832/+1844 贸易数组、+1856/+1868 交换条目、+1880/+1892 过期表、+2000 脏字节; 巡检 sub_140CBBCD0 (失效即终止 + TRADES_MODIFIED 广播) + 重评 sub_140CBA010 + 全国家刷新 sub_140CBA910 (三者宿主 = F07470 资源并行 harness, 全名 ApplyFunctionToCountryResources<...CCountryResources>); 最大可出口量 sub_140CAD5A0 (a1 = CCountryResources@cc+4600; 四理由 TRADE_MAX_EXPORT_DETAILS_*); 路线继续有效性谓词 sub_140D1C700 (+760/+76/+77 旗全零 + +744 对象存活 + 双 tag 在册; 两窗采样最热点 103 样本)。
+
 #### 4.21.1c 读侧与消费面 (UpdateSupply 之外的全部读者)
 
 **无单一 (国家,省)→补给量 总门查询**; 读侧 = 解析原语 → 每国 CSupplyCalculationData
@@ -140,7 +142,10 @@ CBC8C0 阈值分流 (定案): `v35 = BASE_LAND_TRADE_RANGE² × ln(两国持有�
 |---|---|---|
 | sub_140C00590(unit, prov, threshold)→bool | 移动域供应阈值判定 (unit.cpp:3150; 唯一调用者 1414D9280 unitcontroller 移动校验); 读 +312 行 +48 列表 (16B/项={节点idx,国idx,权重}) 与网络条目 +56/+64 现算, 另裸读 unit+64 作阈值比较; 拒动落 unit+590=1 / unit+680=3 | 断言+调用簇 定案 |
 | sub_140F392D0 | 供应地图模式上色 (直读发布器): 逐省取省 +272 陆军单位数组 (+284 计数, 元素为指针, 取单位 +64) 均值 (100000 满值, 空数组视满分); 均值 ≥ SUPPLY_STATUS_DISPLAY_THRESHOLD (全局 float dword_143334128) → reach 档 = clamp(发布器逐省值 ÷ BEST_FLOW_DISPLAY (全局 float dword_143333FD8) × 28, 0..28), 否则 status 档 29..31; 整段被发布器 +68 (dword_1430B3C54) 就绪门门控 | 直读 高置信 |
-| sub_14121F1D0 | 顶栏 supply_value/supply_ratio_bar 元件值 = calc 记录 (css+128)+312 × 火车比 (css+272 ÷ calc+320, calc 值 ≤ MIN_TRAIN_REQUIREMENT 时自动满分) × 流量比 (css+208 数组元素 +32 子对象 +40/+44); 全 1e5 整数运算, 满比时输出即 calc+312 (逐国探针对拍); 面值 = round(输出/1000) 百分数 (刷新 sub_1418A33A0, 满值特判 token 87) | 直读+探针 定案 |
+| sub_14121F1D0 | 后勤满足度计算, 全 1e5 整数 int64: t = calc+320 (1e5×t ≤ qword_143331FA0 = MIN_TRAIN_REQUIREMENT → t=0), 火车比 = t==0 ? 100000 : clamp(1e10×css+272 ÷ (1e5×t)); 流量比 = css+208 计数==0 或 Σ+44==0 ? 100000 : 1e5×Σ+40÷Σ+44 (+32 子对象); **输出 = calc+312 × 火车比 × 流量比 ÷ 1e10, 经出参 \*a2 传递 (rax 只回传指针)**; 满比时输出即 calc+312 (逐国探针对拍); 零数据语义 = 两比自动满分不折减 → 供给冻结态面值唯一缺口 = calc+312 停 0 (§4.21.2 +312 行)；⚠ 面值填充**不可**走 detour 写 \*a2 — 出参是调用方栈上 BYREF 缓冲, 桥写域门拒写当前线程栈, 该写必然失败 (实测每次调用一条拒绝: 桥日志 15.9 万行 + 审计 22.6 万条, 而面值不变) → 唯一可行通道 = 钉 calc+312 (calc+312 = 1e5 时逐国输出即 1e5, 实机对拍) | 直读+探针 定案 |
+| sub_1418A33A0 | **顶栏面值唯一写者** (唯一调用点 = CTopBar @48[7] sub_14189D510 逐帧 tick, 全量重算): 玩家 tag = BB48F0(gs + (gs+1312>0 ? 1312 : 1316), 观察模式走 1316) → css 1406EE6E0 → v23 = sub_14121F1D0 **出参** (唯一来源); 色 = v23==100000 ? 'W' : 'R'; 数字+% = sub_14226E4D0 字面装配 (控制字节 0x11 = §, 数值经寄存器进格式化器 — 反编译器丢参, 与稳定度块同型佐证) → SetText(*(a1+232) supply_value); 比例条 = round(v23/1000) 经 CIcon vt[+752]/[+152] 写 *(a1+240) supply_ratio_bar; topbar.gui 该件 = 静态占位 "999d" 无 loc 绑定, Repopulate/Reload 均不写 +232/+240 → 无第二写者。⚠ 旧「强制 v23=100000 面板不变」实测矛盾裁定 = 强制的是 rax 返回值而值经 \*a2 出参传递 (契约错位, 高置信) — 非「另有写入者」 | 直读+唯一调用点 定案 |
+| sub_1414323B0 | **情报账页模糊区间** (非面值管线 — 全语料 E8 仅 2 调用者, 均为情报账页: sub_141EBB920 填 INTEL_LEDGER_SUPPLY_TOOLTIP $RANGE$ = "X - Y"/无情报 "NO_INTEL", sub_141EC19D0 账页行族刷新 → SetText +1476..+1508; 均不触顶栏): v23 = sub_14121F1D0 → sub_14142EB50 = countryintelhelper.cpp 模糊化区间估计器 (输出 (min,max) 两百分数 <<15 定点; 幅度随情报进度衰减至 0, 噪声 = 按 (id, 年偏移, 值, 游戏态种子) 确定性双路哈希; 常数实参 1692 = 噪声哈希种子, 函数内不查任何表); v15 = 观察方对目标国民用情报等级 ÷ NIntel.INTEL_COUNTRY_LEVEL_MAXIMUMS[0] (数据数组 = qword_1433390B8, 4×qword, 断言 countryintel.cpp:302, 缺项填 100000); FoW 总旗 byte_14332F63A 关 → 全部精确; define 定名 (注册调用直证): qword_1433315B0 = NIntel.CIVILIAN_SUPPLY_RANGE_INTEL_MIN (vanilla 0.1, 低于显 ??) / qword_143331668 = NIntel.CIVILIAN_SUPPLY_RANGE_INTEL_MAX (0.5, 不低于显精确值) / qword_143331708 = NIntel.CIVILIAN_SUPPLY_INTEL_RANGE_AT_LOWEST_INTEL (0.5, 最低情报扰动幅度) | 直读 定案 |
+| 顶栏视图 | 类 = **CTopBar** (RTTI); 虚表 0x142a11290/b8/d0; vt[15] = sub_14189D510 (调 sub_1418A33A0 刷新 supply 元件); 元件: +232 = supply_value (CInstantTextBox), +240 = supply_ratio_bar (CIcon), +39088 = logistics_button | RTTI+实机扫描 定案 |
 | sub_141633810 | 顶栏后勤 tooltip (LOGISTICS_CAPACITY[_DETAILED_DESC] 键): 火车/卡车/运输船行 = 持久通道比值 (css+272/calc+320 等); ⚠ 与面值分属两套来源 — css+208 流量累积为每次重算清空的临时量, 供给系统冻结时面值塌 0 而本 tooltip 行仍满 | 直读 定案 |
 | sub_141635650 / sub_141636C20 / sub_14162FB40 | 供应地图 tooltip 族 (SUPPLY_CAP_AVAILABLE / SUPPLYMODE_TOOLTIP_ENEMY_DISRUPTION / CONSUMER_SUPPLY_TOOLTIP; 直读 +312 216B 行与 232B 条目) | 本地化键 定案 |
 | sub_14167CBD0 (+ 入口 14167C560) | 逐省供应状态数组构建 → UI 侧缓存 {data@a1+56, cap@+64, count@+68} | 定案 |
@@ -214,7 +219,8 @@ ctor 141218AC0 (首写 +8, 无 vtable store) / 每轮重置 1412202B0 (lam 2) /
 | +272 | hybrid 容器 | 计算暂存 | 推定 |
 | +280 | 容器 | 跨国非本地链接源 (EA10 读他国记录此表的 16B 条目) | 推定 |
 | +304 | fixed×1e-5 | truck 侧运输记录值 (get_supply_vehicles_temp: 1e5×ceil_fixed) | 定案 |
-| +320 | u32 | train 侧运输记录值 (仅 100000×值 > qword_143331FA0 = **NSupply.MIN_TRAIN_REQUIREMENT** 才写) | 定案 (define 定名闭环) |
+| +312 | u32 | **顶栏后勤面值唯一基数** (sub_14121F1D0 输出 = 本值 × 火车比 × 流量比 ÷ 1e10, 出参传递); 写者全在 UpdateSupply 调用树内 → 供给冻结/重算被吞态停 ctor/重置值 0 = 面值 0% 唯一缺口 (火车比/流量比零数据 = 自动满分不折减); +312 起 216B 行读档分配清零 140ECAF00 | 唯一写者链+探针 定案 |
+| +320 | u32 | train 侧运输记录值 (仅 100000×值 > qword_143331FA0 = **NSupply.MIN_TRAIN_REQUIREMENT** 才写; 冻结态 0 → 火车比自动满分; 若写非零而 css+272 = 0 → 火车比塌 0 反压面值) | 定案 (define 定名闭环) |
 | +352 | fixed×1e-5 | 效率/比例因子 (构造=重置=100000) | 值定案/语义推定 |
 | +424 | i32 | 来源/属主 tag 哨兵 (构造=重置=−1; EA10 以 ≠−1 为处理门) | 哨兵定案/语义推定 |
 | +428 | u32 | 供应节点计数 (141220690 ++; 触发器 num_of_supply_nodes 读) | 定案 |

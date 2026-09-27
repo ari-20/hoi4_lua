@@ -37,6 +37,7 @@ static void tick_dispatch_lua(unsigned long long now)
     g_luaOwner = tid; g_luaDepth = 1;
     g_tickOwnerTid = tid;
     session_note_frame();                  // "in game now" heartbeat (health)
+    log_flush_tick();                      // interval log flush (buffered lines)
 
     // Hot reload executes HERE (top of frame, shallow stack). A1/F9: mtime
     // DETECTION is throttled to 1 Hz (was: every frame + every effect/trigger
@@ -160,6 +161,7 @@ static FeIdlerV4_t g_origFeIdlerV4;
 static void HK_FrontEndIdlerV4(void *self, uint8_t flags)
 {
     session_note_idler_frontend();        // idler edge: game -> FE => END+START
+    log_flush_tick();                     // interval log flush (menu side too)
     if (g_L && g_initialized) {
         // same lock discipline as tick_dispatch_lua (TryAcquire: a lost
         // frame is harmless — the flags stay raised for the next one)

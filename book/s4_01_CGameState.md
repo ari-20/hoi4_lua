@@ -4,15 +4,15 @@
 
 **获取**: `gs = *(BASE + 0X332F260)` (单例指针, 无 vtable 校验必要)。派生类 CCurrentGameState 见 §4.1.3。
 
-#### 4.1.1 管理器字段 (+152..+2232; gs+0..+239 = CPersistent 基类, ctor sub_140BC0880, 详 §4.1.2)
+#### 4.1.1 管理器字段 (+152..+2232; gs+0..+15 = vt1 (CPersistent@0 主虚表) + vt2@8 (CProvinceProvider 查询接口), +16..+239 = 存档头元数据对象 224B (ctor sub_140BC0880, 详 §4.1.2)
 
 | 偏移 | 类型 | 名称 | 语义 | 参见 |
 |---|---|---|---|---|
 | +152 | hours | 日期#0 **载入快照** | CGameDate 尾 {hours@152, vt2@160}; CPersistent 基类成员。**只有读档路径写, 之后不随时钟推进** (新建局停在 ctor 哨兵 43808760; 当前日期在 +1128) | §4.1.2 |
 | +168 | 容器 24B | player_countries | {d@168, cap@176, c@180, alloc@184}; 元素 160B, tag@元素+112 | writer 头块 13671 |
-| +192 | — | 位域旗 | bit0 = checksum 门 / bit3 = tutorial; 前有垫 | §4.1.2 |
+| +192 | — | 位域旗 (u32) | bit0 = ironman/成就门 (存档名比对, 非 checksum) / bit1 = 多人局 / bit2 = cooperative_game / bit3 = tutorial | §4.1.2 |
 | +200 | 匿名结构 (NNB 形状)* | null-object 句柄 | | |
-| +216 | 容器 24B | **启用 mod 名列表** (MSVC 串 32B/元; {d@216, cap@224, c@228, alloc@232}; 元素 cap>15 走堆, 否则内联) | 序 = mod 加载序 |  |
+| +216 | 容器 24B | **启用 mod 名列表** (MSVC 串 32B/元; {d@216, cap@224, c@228, alloc@232}; scanner 键 14185 载入, op= 拷贝; 元素 cap>15 走堆) | 序 = mod 加载序 |  |
 | +240 | — | 标志 | | |
 | +248 | 匿名结构 (NNB 形状)* | scoped | | |
 | +272 | CHuman (内嵌 160B) | 人类玩家槽 | 共用布局: 名串@+32 / 二名串@+64 / badge@+96 / country-link id@+112 (sub_1401DA7C0 "country link index") / CGameDate@+120 / 枚举@+148 / 入参@+152 | |
@@ -94,8 +94,8 @@
 | 偏移 | 类型 | 名称 | 语义 | 备注 |
 |---|---|---|---|---|
 | +152 | — | = 顶格 # 元数据叶区界 + 日期#0 载入快照 | checksum/version/dlcs/save_version 等元数据叶 (键表 §4.1.6); 本偏移本身 = CGameDate hours (逐字段 §4.1.1) | 元数据叶不做值级对拍 (用户裁定) |
-| +153..+191 | — | = **CPersistent 基类子对象中段** (ctor sub_140BC0880): 日期#0 {hours@152, vt2@160} 尾 + **player_countries {d@168, cap@176, c@180, alloc@184}** (块 13671, 元素 160B) — 该区即 CPersistent 基类成员中段 |  | |
-| +192 | — | = 位域旗 | bit0 = checksum 门 / bit3 = tutorial (逐字段 §4.1.1) |  |
+| +153..+191 | — | = 元数据对象中段: 日期#0 24B {vt1@144, hours@152, vt2@160} 尾 + **player_countries {d@168, cap@176, c@180, alloc@184}** (块 13671, 元素 160B) |  | |
+| +192 | — | = 位域旗 (u32) | bit0 = ironman/成就门 / bit1 = 多人 / bit2 = coop / bit3 = tutorial (逐字段 §4.1.1) |  |
 | +193..+467 | — | = CPersistent 尾段 {位域@192 (bit0=checksum 门 / bit3=tutorial), null-object 句柄@200, 容器B@216, 标志@240, scoped@248} + **CHuman@272 (160B)** + **CDedicatedServer@432 (156B, 名串 "Dedicated server")** |  | |
 | +468 | — | = CDedicatedServer 名串 (gs+464, "Dedicated server") 堆指针的高 dword (随 ASLR 变); 存档真值 multiplayer_random_count 来自静态 dword_143452520 (键 11459) |  | |
 | +469..+1191 | — | = CDedicatedServer 尾 + pad → gs+600; gs+600..+1191 中段全数定案见 §4.1.1 (CFlagManager@600 / CCombatManager@608..683 / 省州区国四数组 / tag 表 / 按国家数组 / RH map@952 / 第 7 管理器@1032 / u32 对列表@1040 / difficulty_setting@1064 / game_rules@1088 / entity@1096 / power_balance@1104 / date@1120 / CGameDate#2@1184)  |  | |
@@ -164,7 +164,7 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 | gs+2352 | **负定案: gs 语境下查无此槽** — 基类 ctor 与 gs dtor 均不触及, 全部命中为同偏移异类 (旧登记误) | 基类 ctor + gs dtor 全扫 |
 | CPersistent+216 (= gs+216) | 未决 — 仅基类 ctor 初始化, 无消费者 | — |
 | gs+1280 串 | 未决 — CPeaceConferenceManager 内 SSO, 无写入点 | — |
-| CPersistent 串1 (+16) / version 串 (+96) | 未决 — 无消费者与写入点 | — |
+| 串1 (+16) / "version" 串 (+96) | 串1 = 存档路径串 (sub_140BC07B0 ← 路径 join, 文件名组装消费); "version" 串实为 cosmetic_tag (scanner 键 14127) | 定案 |
 
 #### 4.1.5 全局顶层块补录 (sv2_sec_global_tails 审计)
 

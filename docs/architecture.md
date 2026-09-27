@@ -119,6 +119,7 @@ effect/trigger 回调在引擎线程内、帧内、持锁状态下被调起，�
 |---|---|---|---|
 | 内存读 | `hoi4_primitives.cpp` | 无（只读） | 一切取数 |
 | 内存写 | `hoi4_primitives.cpp` | 写域门 + 写后回读校验 | 改状态、改载荷 |
+| 写点捕获 | `hoi4_dr.cpp` | DR0 硬件写断点 / PAGE_GUARD 守卫页 | 反查「谁写了这个字段」 |
 | 虚表槽钩子 | `hoi4_hook.cpp` | 安装门（6 条，§3.3） | 拦/改/替换虚方法 |
 | 函数体重定向 | `hoi4_detour.cpp` + `hoi4_lde.h` + `hoi4_pdata.h` | LDE 全指令窃取 + 拒绝相对流 + `.pdata` 函数起点门 + 悬停验证 | 拦非虚函数（路由器、mod 指定目标） |
 | effect/trigger 路由 | `hoi4_vtable.cpp` | 名快照 + 工厂实例 | mod 自定义 effect/trigger |
@@ -299,7 +300,36 @@ effect/trigger 的路由是 DLL 的核心 mod 能力：mod 文本里写 `m4_debu
 - leaf 直方图经 `profile_top(n)` 直读；栈模式 `profile_folded()` 落 `<userdir>/profile_folded.txt`（folded 格式，文件头带 `# samples= base=`）。
 - 离线标注与火焰图见 `mods/lua_verify/tools/sampler_annotate.py`。
 
-### 3.10 出站网络
+### 3.10 写点捕获（DR / 守卫页）
+
+`hoi4_dr.cpp`：静态穷举后仍拿不到「谁写了这个地址」时的就地捕获器（写者藏在
+qword 索引形态 `a1[N]`、表驱动绑定或并行 lambda 内时 grep 不到）。
+
+**DR0 硬件写断点**（推荐）：`dr_watch(addr)` 枚举全部线程 Suspend→`SetThreadContext`
+（`Dr0=addr`，`Dr7` 置 RW=01 写 + LEN=11 四字节）→Resume；VEH 捕
+`STATUS_SINGLE_STEP`，比对 `ContextRecord->Rip` 归属后记 `(RVA, 调用链)` 入无锁环，
+`dr_hits()` 取。零代码修补 → 无 stolen bytes / 寄存器破坏风险。
+
+- **调用线程不能 `SetThreadContext` 自己**——该函数经 helper 线程装载。
+- 一次可装 4 个（Dr0–Dr3）；新线程不带 DR 是已知限制。
+- `dr_ring_addr()` 返环基址，供外部 `ReadProcessMemory` 轮询。
+
+**守卫页**：`dr_gwatch(addr)` = `VirtualProtect(page, PAGE_READWRITE|PAGE_GUARD)`
++ VEH 捕 `STATUS_GUARD_PAGE_VIOLATION`，按地址过滤聚合，`dr_ghits()` 取、`dr_goff()` 撤。
+三个必踩坑（都会致死）：
+
+1. 被观测页基址必须在 `VirtualProtect` **之前**赋值，否则首个违规不识别；
+2. **非本页的 guard 违规也要重新武装**——返回 `CONTINUE_SEARCH` 而不重挂 =
+   未处理守卫异常 = 进程死；
+3. 必须 **TF 舞步**（撤守卫 → 置 `EFlags TF` → 单步 → 重武装 → 清 TF），
+   否则同一指令无限重触发。
+
+**场景边界**：低频页（每小时写点、事件驱动字段）两条路线都可用；**每帧访问的
+热 GUI 元件页不要用守卫页**——异常风暴会把进程打死（多次实例取证），改用 DR
+指令断点或回到静态穷举。外部调试器路线（`DebugActiveProcess`）也不可行：游戏
+看门狗检查调试端口本身，会自灭。
+
+### 3.11 出站网络
 
 `hoi4_http_client.cpp`：出站 HTTP(S) 走 **cpp-httplib + mbedTLS**（与入站 server 同栈）。
 
@@ -309,7 +339,7 @@ effect/trigger 的路由是 DLL 的核心 mod 能力：mod 文本里写 `m4_debu
 - 代理**发现**用 OS 自身配置源（`WinHttpGetIEProxyConfigForCurrentUser` + WPAD，自查注册表 `ProxyEnable`——IE API 会泄漏已停用的残留 `ProxyServer`），但不用 WinHTTP 传输。
 - 地址族：DNS 名先探针（v4 优先、每址 1.2s、总 2.5s），`set_hostname_addr_map` 钉 IP 而 SNI/证书仍对真域名；探针失败无害地落回直连。
 
-### 3.11 静态资源与 defines
+### 3.12 静态资源与 defines
 
 DLL 侧只提供扫描原语：`define_lookup` / `define_targets` / `defines_build` / `defines_count`。**静态资源知识本身住在 Lua 层**（`mods/*/lua/resource.lua`），因为那是布局知识而非机制。
 
@@ -461,7 +491,7 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 
 > 清单从源码生成，改注册表/路由表后应同步本节。
 
-### 7.1 `hoi4.*` API（69）
+### 7.1 `hoi4.*` API（83）
 
 **内存读**：`base` `to_number` `read_u64` `read_u32` `read_u16` `read_u8` `read_f32` `read_f64` `read_cstr` `read_str` `read_bytes`
 
@@ -481,7 +511,9 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 
 **游戏控制**：`game_speed` `game_set_speed` `game_pause`
 
-**引擎调用原语**：`call_u64` `call_void` `engine_alloc` `engine_free` `name_to_token` `load_save`
+**引擎调用原语**：`call_u64` `call_void` `engine_alloc` `engine_free` `name_to_token` `load_save` `session_pending`
+
+**写点捕获**：`dr_watch` `dr_off` `dr_hits` `dr_gwatch` `dr_goff` `dr_ghits` `dr_ring_addr`
 
 **defines**：`define_lookup` `define_targets` `defines_build` `defines_count`
 
@@ -491,7 +523,7 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 
 **重定向（Tier 2，函数体；无 unhook）**：`detour` `detour_list` `detour_status` `detour_probe`
 
-**其他**：`log` `debug` `watch`
+**其他**：`log` `debug` `verbose` `log_flush` `watch`
 
 ### 7.2 HTTP 端点（11）
 
@@ -513,36 +545,39 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 
 | 文件 | 行数 | 职责 |
 |---|---|---|
+| `hoi4_hook.cpp` | 1349 | 钩子设施（Tier 1 虚表槽 + Tier 2 门/安装） |
 | `hoi4_async.cpp` | 891 | 异步任务池 + 跨状态序列化 |
-| `hoi4_hook.cpp` | 1109 | 钩子设施（Tier 1 虚表槽 + Tier 2 门/安装） |
-| `hoi4_sampler.cpp` | 767 | 采样式性能分析器 |
+| `hoi4_main.cpp` | 857 | DLL 入口、Lua 引导、`hoi4_lib[]` 注册表 |
+| `hoi4_sampler.cpp` | 723 | 采样式性能分析器 |
 | `hoi4_console.cpp` | 708 | 控制台桥 + 崩溃取证 |
-| `hoi4_launcher.cpp` | 636 | launcher（独立 exe） |
-| `hoi4_main.cpp` | 621 | DLL 入口、Lua 引导、`hoi4_lib[]` 注册表 |
+| `hoi4_launcher.cc` | 644 | launcher（独立 exe；`.cc` 故不入 DLL 的 `src\*.cpp` 通配） |
 | `hoi4_paths.cpp` | 599 | 路径解析三级回退 |
 | `hoi4_audit.cpp` | 533 | 审计通道 |
 | `hoi4_http_server.cpp` | 485 | 入站 HTTP 控制面 |
+| `hoi4_common.h` | 464 | 共享声明 + `OFF_*` 枚举 |
 | `hoi4_http_client.cpp` | 455 | 出站 HTTP(S) |
-| `hoi4_common.h` | 424 | 共享声明 + `OFF_*` 枚举 |
-| `hoi4_vtable.cpp` | 408 | effect/trigger 路由与 vtable 构造 |
+| `hoi4_vtable.cpp` | 415 | effect/trigger 路由与 vtable 构造 |
+| `hoi4_primitives.cpp` | 407 | 内存读写原语 |
 | `hoi4_lua_policy.cpp` | 391 | Lua 文件访问白名单 |
-| `hoi4_primitives.cpp` | 385 | 内存读写原语 |
 | `hoi4_defines.cpp` | 382 | defines 扫描 |
-| `hoi4_call.cpp` | 265 | 受门控引擎调用 + 写侧包装 |
+| `hoi4_dr.cpp` | 367 | 写点捕获（DR0 硬件写断点 + 守卫页 VEH） |
+| `hoi4_detour.cpp` | 356 | Tier 2 函数体重定向引擎 + DLL 入口（`DllMain`） |
+| `hoi4_session.cpp` | 294 | 会话生命周期（DR 断点） |
+| `hoi4_call.cpp` | 275 | 受门控引擎调用 + 写侧包装 |
 | `hoi4_lde.h` | 215 | 指令长度解码器（纯，可单测） |
-| `hoi4_session.cpp` | 212 | 会话生命周期（DR 断点） |
-| `hoi4_detour.cpp` | 344 | Tier 2 函数体重定向引擎 + DLL 入口（`DllMain`） |
-| `hoi4_pdata.cpp` | 89 | `.pdata` 函数边界表（采样器 + detour 门共用） |
+| `hoi4_frame.cpp` | 207 | 帧顶派发 + 帧钩子 |
+| `hoi4_hook.h` | 172 | 钩子契约与设计理由 |
 | `hoi4_memgate.cpp` | 168 | 内存域两道门 |
 | `hoi4_timer.cpp` | 159 | 定时器 |
 | `hoi4_harden.cpp` | 145 | stdlib 面削减 |
-| `hoi4_frame.cpp` | 142 | 帧顶派发 + 帧钩子 |
-| `hoi4_game.cpp` | 133 | 游戏控制（速度/暂停） |
-| `hoi4_hook.h` | 130 | 钩子契约与设计理由 |
+| `hoi4_game.cpp` | 135 | 游戏控制（速度/暂停） |
 | `hoi4_pol.h` | 110 | 策略层接口 |
 | `hoi4_defines_lua.cpp` | 98 | defines 的 Lua 绑定 |
+| `hoi4_pdata.cpp` | 89 | `.pdata` 函数边界表（采样器 + detour 门共用） |
 | `hoi4_registry.cpp` | 74 | effect/trigger registry |
 | `hoi4_scope.cpp` | 70 | scope 上下文访问器 |
-| `hoi4_offsets.h` | 62 | 地址值表 + 证据注 |
+| `hoi4_detour.h` | 64 | Tier 2 重定向契约 |
+| `hoi4_offsets.h` | 63 | 地址值表 + 证据注 |
+| `hoi4_pdata.h` | 46 | `.pdata` 接口 |
 | `hoi4_offsets.cpp` | 41 | 值表发布 + 签名校验 |
 | `hoi4_bridge.cpp` | 35 | 桥杂项 |

@@ -24,32 +24,34 @@
 
 ⚠ vt1 槽函数 this = ser = raw+16 (vt0/普通方法 this = raw, 混用即错 16B)。
 
-loader 解析即弃键 (writer 发射 / loader 解析即弃 — 运行时重算, 不落字段):
+loader 键位落点表 (派生 loader 0X140C8C7E0 逐键经 sub_1424C0A70/C00 **直写字段 — 全部落字段**; ser 落点坐标 = raw+16; 载入后运行时每小时重算照常覆盖):
 
-| 键 | token |
-|---|---|
-| strength | 10406 |
-| experience | 11930 |
-| organisation | 11979 |
-| dig_in | 11991 |
-| strategic_redeployment | 11995 |
-| fuel (值) | 12003 |
-| str_damage_from_air | 14156 |
-| str_damage | 14157 |
-| org_damage | 14158 |
-| dig_in_cap | 13562 |
-| max_supply | 14915 |
-| fuel_requested | 15298 |
-| supply_gain | 19692 |
-| army_current_supply_ratio | 19693 |
-| out_of_supply_days | 13151 |
-| killed | 13164 |
-| killer_definition | 13556 |
-| leader | 10423 |
-| bonus | 10931 |
-| script_id | 19349 |
-| execute_order | 12353 |
-| unit_controller_pause | 13754 |
+| 键 | token | ser 落点 | raw 字段 |
+|---|---|---|---|
+| strategic_redeployment | 11995 | +671 (u8) | +687 |
+| bonus | 10931 | +1120 | +1136 |
+| strength | 10406 | +1040 | +1056 |
+| organisation | 11979 | +1048 | +1064 |
+| experience | 11930 | +1056 | +1072 |
+| str_damage_from_air | 14156 | +1072 | +1088 |
+| str_damage | 14157 | +1080 | +1096 |
+| org_damage | 14158 | +1088 | +1104 |
+| dig_in | 11991 | +1096 | +1112 |
+| dig_in_cap | 13562 | +1104 | +1120 |
+| execute_order | 12353 | +1164 | +1180 |
+| out_of_supply_days | 13151 | +1160 | +1176 |
+| unit_controller_pause | 13754 | +1180 | +1196 |
+| leader | 10423 | +1568 (u8) | +1584 |
+| killed | 13164 | +1640 | +1656 |
+| killer_definition | 13556 | +1644 (u8) | +1660 |
+| max_supply | 14915 | +1520 | +1536 |
+| supply_gain | 19692 | +1528 | +1544 |
+| army_current_supply_ratio | 19693 | +1536 | +1552 |
+| fuel (值) | 12003 | +1552 (**并置旗 ser+1544 = raw+1560 = 1**) | +1568 |
+| fuel_requested | 15298 | +1560 | +1576 |
+| script_id | 19349 | +1648 | +1664 |
+| equipment 块 | 12110 | +824 (对象解析 sub_1424C0AA0) | +840 |
+| requests 块 | 13230 | +1128 (对象解析; owner 变更守卫 = ser+456/ser+460 比对, 变则先毁旧 q + sub_140C8F3F0 重建) | +1144 |
 
 loader-only legacy 键 (writer 不发射):
 
@@ -81,7 +83,7 @@ loader-only legacy 键 (writer 不发射):
 | +576 | fixed×1e-5 | movement_progress | token 0x28A4 = 10404; 门 = *(a+560) ≠ 0 才写 (实测样本 7.7022) | |
 | +577..+685 | — | = movement_progress 尾 (577..583) + qword=1@584 + **生效移动令旗 u8@590** (ctor 0; 写者 = CUnitMoveAction::Execute sub_141234E30 / 下令入口 sub_1414D0F10) + **移动令目的省 qword@592** (ctor 0, 运行时写) + MSVC 串 name {buf@600, size@616, cap@624=15} + 容器 {d@632, cap@640, c@644, alloc@648} + 对象指针@656 (=sub_140A3C0A0) / @664 + **CTheatre\* @672** (ctor 零, 运行时写; getter sub_140BF9660 = GetTheatre, railway_gun.cpp:676 断言直证) + qword 零 @680 + exile@686 前 pad (ctor 直读) | | |
 | +686 | uint8 | exile | 均 ≠0 写 yes; 0x2D0D(11533 exile)@ser+670 | |
-| +687 | uint8 | strategic_redeployment (11995) | ≠0 写; loader 解析即弃 | |
+| +687 | uint8 | strategic_redeployment (11995) | ≠0 写 | |
 | +688 | uint8 | move_capital | 0x2B5F(11103 move_capital)@ser+672 (o = ser+16); GRE/USA/ENG 4 师 move_capital=yes 实证 | |
 | +824 | 内嵌多态成员 | vt@+824 的 16B 槽成员 | CHeldOfficer+8 回指它 (ctor `*(a1+1280)=a1+824`) | 不序列化; **语义定名 = 师版 CHeldOfficer 内联** (CDivisionCommanderWindow 枚举链: cc+656 师容器 → 本字段, 与 CShip+2120 舰版同构 — §4.31.44 舰长数据源同族); GUI: 任职军官经验 getter (成员→vt[1]→对象+136; HISTORY_EXPERIENCE_COUNT_TEXT / ARMY_FIELD_OFFICER_EXPERIENCE_GAIN_TOOLTIP, +32 = Update 变更侦测) |
 | +832 | CDivisionNameHolder 族* | 师名持有对象 | malloc 0xB0 ctor sub_1409BFEC0; 键 name(0x1B)/division_name(0x3904) 共同目标; 国家唯一性注册 "The division name is occupied"; SetFakeIntelTemplate 经 sub_1409C8A90 注册 | ADEC0 委托 |
@@ -93,9 +95,9 @@ loader-only legacy 键 (writer 不发射):
 | +968 | CDivisionTemplate* | fake_intel_division_template_id (19404) | 断言 `_pFakeIntelDivTemplate` 实名 (0X140C8E010 读写 +968) | writer/loader/断言三通道 |
 | +976 | 内嵌块基 = **CArmyManpower** (vt 0x14295A130, sizeof 80) | army_manpower 块 | 键 manpower (10300) = 填充此容器, 清后按 owner tag 重填; value 容器@+984 (army_manpower_value, token 14075), need 容器@+1016 (army_manpower_need, token 14076); 容器 = CArmyManpowerValues 内嵌 {data@+8, count@+20} 8B 条 {tag_id u32@0, value uint32@4}; ctor sub_140C67BD0(a1+976, a1) | ADEC0(0x36FA); value>0 才写 |
 | +992 | vector ×2 | manpower 块内嵌 vector 对 | {data, count@+12, alloc@16} (+992/+1024) | 不序列化; 形态高置信 |
-| +1056 | fixed×1e-5 | strength | tok 10406; init = 10000000 (1e7); TakeDamage 0X140C8F510 递减; loader 解析即弃 | |
+| +1056 | fixed×1e-5 | strength | tok 10406; init = 10000000 (1e7); TakeDamage 0X140C8F510 递减 | |
 | +1064 | fixed×1e-5 | organisation | tok 11979; init = 1e7 同 strength | |
-| +1072 | fixed×1e-5 | experience | tok 11930; loader 解析即弃 | |
+| +1072 | fixed×1e-5 | experience | tok 11930 | |
 | +1080 | fixed | **本小时 attrition 值缓存** | 每小时 sub_140C88A70: gs+2617 门开 → = sub_140C75500(attrition breakdown), 否则 0 | 不序列化 |
 | +1088 | fixed×1e-5 | str_damage_from_air (tok 14156) | >0 才写; TakeDamage `+=` | |
 | +1096 | fixed×1e-5 | str_damage (tok 14157) | >0 才写 | |
@@ -107,8 +109,8 @@ loader-only legacy 键 (writer 不发射):
 | +1144 | CArmyRequests* | requests q | 块门 = q+68 \|\| q+172 \|\| q+196 (= 门函数 sub_14150D490); owner 变更先删旧; 族详见 §4.18.3 | |
 | +1152 | 内嵌 CGameDate 16B 形 | date#1 | {vt@1152, hours@1160}, init = 43791240 ("−1.1.1.1" 合法日期, dword_143086B20); 0X140C89F10 `*(a1+1160)=*(gs+1128)` (推定战斗/到达事件时间戳) | 不序列化; ⚠ 24B vt1 位与 +1144 冲突 — 未决 |
 | +1168..+1183 | — | **out_of_supply_days 计数器区** | 定案: writer 键 13151 ← raw+1176; 日 tick sub_140C78B00 重置/自增直证; 旧「date#2 真日期」行删 (无日期消费) | writer 按 +1176 u32 天数发 |
-| +1176 | uint32 | out_of_supply_days (tok 13151) | 同上; loader 解析即弃 | >0 才写 |
-| +1180 | u32 | execute_order (tok 12353) | >0 写; loader 解析即弃 | |
+| +1176 | uint32 | out_of_supply_days (tok 13151) | 同上 | >0 才写 |
+| +1180 | u32 | execute_order (tok 12353) | >0 写 | |
 | +1184 | u64 | 0-init 未名 | | 不序列化 |
 | +1192 | u32 | was_paradropped (tok 12008) | 值 = 全局计数 dword_143335314 快照 | >0 写 |
 | +1196 | u32 | unit_controller_pause (tok 13754) | vt0[18] 0X140C881D0 消费 | ≠0 写 |
@@ -124,14 +126,14 @@ loader-only legacy 键 (writer 不发射):
 | +1536 | fixed×1e-5 | max_supply (tok 14915) 随身储备上限 (满值 = SUPPLY_GRACE(72)×100000) | init = 100000×dword_143331604 (NMilitary.SUPPLY_GRACE); **每小时** sub_140C8FB20 重算 (MODIFIER_NO_SUPPLY_GRACE 266 族, 降幅钳 dword_1433316B0 = SUPPLY_GRACE_MAX_REDUCE_PER_HOUR); loader 落字段 (writer 0x140C90550 ↔ loader 0x140C8C7E0) | 消费链 §4.18.14 |
 | +1544 | fixed×1e-5 | supply_gain (tok 19692) 本小时增量 | **每小时** sub_1414E4780 写 (随小时正反馈爬升 0.01→0.15/h); loader 落字段 (同上述 writer/loader) | 消费链 §4.18.14 |
 | +1552 | fixed×1e-5 | army_current_supply_ratio (tok 19693) 当前储备量 | init 同 +1536; **每小时** sub_1414E4780 更新, 分支门 = vt[48] 储备比 < CUnit+64 或 CUnit+64 ≥ 100000 → 增益 = min(SPEED_GAIN_PER_HOUR + max(prev(+1544), STARTING_GAIN), MAX_GAIN_PER_HOUR) 上钳 +1536, 否则衰减 = STORED_SUPPLY_CONSUMPTION_RATE_FACTOR×(100000−CUnit+64)/100000; 消耗门 = +760/retreat(+588)/withdraw(+589); 读侧 sub_140C87EC0; loader 落字段 | 消费链 §4.18.14 |
-| +1560 | u8 | fuel 加载置位旗 | loader case 12003 解析值即弃 + 置 1; ctor=0 | 不序列化; 行为定案/语义推定 |
-| +1568 | fixed×1e-5 | fuel (tok 12003) | loader 值不落字段 | ≠0 才写 |
-| +1576 | fixed×1e-5 | fuel_requested (tok 15298) | loader 值不落字段 | ≠0 才写 |
-| +1584 | uint8 | leader (有/无; tok 10423) | loader 解析即弃 | ≠0 才写; GUI: HQ 师判据 (TemplateChanger[2] 模板集按 leader==is_army_hq 匹配; 撤编 HQ 注记 + Badge 将领技能显示门) |
+| +1560 | u8 | fuel 已初始化旗 | ctor 0; loader case 12003 在场置 1; 惰性门 sub_140C88D30 — 未置则回填满油 (= stats+288 max_fuel); 存档 fuel=0 (≠0 门省略) ⇒ 旗不置 ⇒ 载入后回满 | 不序列化; 定案 |
+| +1568 | fixed×1e-5 | fuel (tok 12003) | **loader 落字段** (ser+1552); 每小时消耗扣减 sub_140C78990 + 优先级分配回填 sub_1410F2E70 (+1568 += grant); max_fuel = 模板+288 (sub_140C7F070) | ≠0 才写 |
+| +1576 | fixed×1e-5 | fuel_requested (tok 15298) | **loader 落字段** (ser+1560); 每小时 sub_140C78990 写 (ARMY_*_FUEL_MULT 状态公式) | ≠0 才写 |
+| +1584 | uint8 | leader (有/无; tok 10423) | | ≠0 才写; GUI: HQ 师判据 (TemplateChanger[2] 模板集按 leader==is_army_hq 匹配; 撤编 HQ 注记 + Badge 将领技能显示门) |
 | +1592 | 内嵌块基 | army_history 块 | ctor sub_141445E90, CUnitMedalStore 族 0x14143xxxx 邻址互证; 布局见下方 army_history 子表 | 写门 = u32@+1644 ≠ 0; GUI: 历史页行重建 (sub_1416BEE50: +1592 块补行 0x5B0 条 + +1624 CUnitMedalStore 按键@+1064 分组 0x50 行) |
 | +1656 | u32 | killed (tok 13164) | >0 才写且**连带写 killer_definition** | GUI: HISTORY_KILL_COUNT_TEXT (sub_1416BEE50) |
 | +1660 | u8 | killer_definition (tok 13556) | 随 killed 门 | |
-| +1664 | int32 | script_id (tok 19349) | init −1; 带符号; loader 解析即弃 | |
+| +1664 | int32 | script_id (tok 19349) | init −1; 带符号 | |
 
 officer 子块布局 (raw; wrapper = **CHeldOfficer** 内嵌 @+1272, 主虚表 0x142957ED8;
   save wrapper 槽[1] sub_1413EACF0: 块序 = 内嵌 officer 记录先 → 追加向量逐元素
@@ -332,7 +334,7 @@ upgrades 容器 (U = q+136):
 
 #### 4.18.5 CUnit 公共段 (writer 0X140C06540 / loader 0X140C02AE0, ser = raw+16)
 
-全部师/铁路炮/舰队单位共用; writer 25 键 + loader 逐键互证; ctor/dtor 补 runtime-only 区。10 键「writer 发射 / loader 解析即弃」运行时重算族见 §4.18.1 弃键表。
+全部师/铁路炮/舰队单位共用; writer 25 键 + loader 逐键互证; ctor/dtor 补 runtime-only 区。标量键 loader 落点全表见 §4.18.1 loader 键位落点表 (全部落字段)。
 
 | 偏移 (raw) | token | 字段 | 写门/备注 |
 |---|---|---|---|
@@ -694,16 +696,28 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
 | CArmy [43] | HasLowSupply 覆写 (sub_140C88120) | 有效比 (sub_140C87EC0) < LOW_SUPPLY(qword_143331E58=0.99) → true; +760 非零 → false |
 | CArmy [48] | 储备比 getter (sub_140C87E10) | 100000×+1552/(100000×GRACE), 不含 CUnit+64 下限; 1414E4780 经 vt+384 调 |
 | CArmy [54] | 补给消耗 getter (sub_140C87E90) | max(MIN_SUPPLY_CONSUMPTION(qword_143331C98), 师统计(+312)+248); 供应系统消费者登记 (lam 3) 按此计消耗 |
-| CArmy [22] | RefreshAbilities | 断言 "Refreshing abilities from non-serialcontext, OOS may occur!" army.cpp:1743 |
+| CArmy [22] | **RefreshAbilities = sub_140C8D450** (定案) | 体首 sub_140C8D600 全量统计重算 (CalculateActiveUnitStats, §4.18.3 78-statId 聚合) + leader 旗 → 国+136 指挥链聚合重建 C20F70; 触发 = 14150E460 requests 交付/请求变更 (每小时, §4.2.6 相位 11) — 战时换装高频即采样 5.9% 热点; 断言 "Refreshing abilities from non-serialcontext, OOS may occur!" army.cpp:1743 |
+| CArmy [35] | 有效兵力 getter = sub_140C7EFF0 (定案) | `+1128 × vt[34](a1) / 100000` 钳 [0,100000]; C881D0 经 vt+280 虚调取值 vs 阈值 qword_143332988 (唯一热点入径) |
+| CUnit [18] / CArmy [18] | **每小时更新 tick** (定案): 基类 impl sub_140BFF830 (unit.cpp:679) — country_intel 容器 (+632 数据/+644 计数, 24B 元) 每小时按 define 双档累加、过阈清零降级 (级 0 摘除) / 目的地异国单位遭遇 → 成员逐个虚槽 +144 接战 / 命令队列 (+704/+716) 空闲态清理 / 第二定时数组 (+776/+788, 24B 元 u8@+16) 递减到期摘除 (语义待裁); **CArmy 覆写 sub_140C881D0** = 每师每小时总入口 (army.cpp:3066 "_Strength: %lli"): 取消移动 sub_140BFB4A0 (unit.cpp:2344 "Cancel movement"; 清命令/离运输船/摘 theatre 与路径省登记, 按控制权落位 +496; **非解散**) / 战斗·撤退推进 (sub_140C04BE0 = 清 +588 撤退+目的地, sub_140C04D90 = 清 +589 脱离) / 补给比读取 (sub_140C87EC0) / 有效兵力 vt[35] < 阈值 qword_143332988 → sub_1401D7460 延迟删除登记 / 流亡·归国编排 sub_140C050E0 (许可翻转 Exile vt[50]; 日相位选点 ReturnFromExile vt[51]) / 移动经验+租借分成 sub_140C8C0E0 / ApplyAttrition sub_140C6F5C0 (army.cpp:2874; +1080 → 扣 +1064 人力 + +872 装备) / theatre 摘挂 sub_140C8E3B0 / 同州情报标记遍历 sub_140DF75B0 (写他军 +632) / 卡死落点决策 sub_140DF7A40 (战略转移 sub_140EA9720 or 删除登记) / 两处直调 sub_140BB9220 进省登记+夺省 (尾调 SetController sub_140E801A0, 仅控制权真实翻转才入级联, §4.14) / 内联日更块 = **CArmyRequests (+1144)**: 141510110 到期重建 + 14150E460 每小时推进 (门 id%24, §4.2.6 相位 11)。三型小时链共用基类 (CArmy 0x140C881D0 / CTaskForce 0x140D705F0 / CRailwayGun 0x140E8B8E0 各 ×1 调 BFF830) | func_names rtti CArmy::[18] army.cpp:3066 / CUnit::[18] unit.cpp:679 + 语料直读 |
 
-> 待裁项暂不定名: CUnit [5] 可见性判定、[18] 复合状态刷新; 移动族 [14]-[17]/[20]
+> 待裁项暂不定名: CUnit [5] 可见性判定; 移动族 [14]-[17]/[20]
 > (ExecuteMove/MoveTo/TryMove/CanMoveTo/CanEnterProvince, 错误键 NO_ACCESS_TO_TARGET 等
 > 已锚 unit.cpp 但函数名系行为推定); CArmy [31]-[39] 资源对称族 (A=+1056/+33=国家+648 上限,
-> B=+1064/+38=国家+640 上限, 100000 定点) 游戏语义 (org/str/人力) 未裁, **[39] 定案 =
+> B=+1064/+38=国家+640 上限, 100000 定点) 游戏语义 (org/str/人力) 未裁, **[35] 定案 =
+> 有效兵力** (sub_140C7EFF0, +1128×vt[34]/100000)、**[39] 定案 =
 > 组织度比例** (AI 微操弱军段 sub_141088F40 读点)。
 
 - CArmy+760 = **战略海运载体指针** (strategicnavy.cpp sub_140EAA5C0 唯一写点直证;
   非零 = 海军转移中; [19] 消耗门与 [43] HasLowSupply 读此判空)。定案。
+- sub_140BFD700 = **unit.cpp 海域加权选址** ("IsNavy()" / "pProvince->GetTemplate().IsSea()"
+  断言串直证; caller 0xBBA690 夺省链; 采样帧 +BFD763 归此)。定案。
+- sub_140C97430 = **指挥链权限位谓词** (定案): +1240 上级链遍历 + +1344/+1352 旗,
+  掩码 0x1F0037FC00; 75 调用者。
+- sub_141547440 = **邻接规则主评估核** (adjacencyrule.cpp, 定案): 海峡/运河 (苏伊士/
+  巴拿马/直布罗陀等) 通行判定; 四位掩码 = 陆军/海军/潜艇/贸易可通行 (&1/&2/&4/&8);
+  规则对象 +248/+336/+424 = 敌/友/中立三触发器组, +108 = adjacency_check 调试旗,
+  a4 = REASON 输出; 海军寻路 (D65D60/D67AA0) + trade 车队 (CAA1B0) + adjacency.tick
+  (CB47B0) 组合调用, 每次判定全量跑触发器组 (两窗 71 样本热点)。
 > CUnit [7]-[12] 六槽同址 `return 0` 且三派生各覆 2 槽 return this (CArmy 7/8、
 > CTaskForce 9/10、CRailwayGun 11/12) = 按单位类型的转换函数族, 无逐槽直接证据, 整族不命名。
 
@@ -775,3 +789,15 @@ CRailwayGun 镜像: max_supply +1024 / supply_gain +1032 / ratio +1040; 小时�
 140E8B8E0, 日 tick 140E89480 (vt[19]), 储备比 getter 0x140E8B130 (vt[48]),
 HasLowSupply 140E8B710, 移速 140E8AE40 (仅认镜像储备比, 不读 CUnit+64)。
 脚本供给 = supply_units effect (sub_140C79080: +1552 += 值, 封顶 +1536)。
+**燃料惩罚链 (CUnit+1568 消费面收口)**: 比值 getter `sub_140C7F0A0` = clamp(100000×fuel(+1568) / (FUEL_PENALTY_START_RATIO(0.25) × 模板 maxfuel(*(u+312)+288)), 0, 100000) — fuel ≥ 25% 满 → 比 1.0; 分母裸 getter sub_140C7F070 = 模板+288 原值 (UI 徽标); 消耗写者 sub_140C78990 / 分配回填 sub_1410F2E70 见 §4.3.16 域表。全部消费点 (穷举 6 + inline 1):
+
+| 消费点 | 函数 | 公式与零态 (fuel=0) |
+|---|---|---|
+| 移动速度 | sub_140C7F140 (stat getter; 调用者 140C82620/140C875B0) | mult = 0.4 + 0.6×比; breakdown "LACK_OF_FUEL"; 零态 ×0.4 无硬停 |
+| 装备 stats (战斗面真身) | sub_140B9AD70 第 10 参 | 需燃料装备 (eqdef+808>0) stats × (0.1+0.9×比), 非燃料装备不受影响; 入口两路 = 错峰日检 sub_140C8D600 + 部署/换装 sub_140C86CC0 (inline 复算同比) |
+| 训练 XP | sub_140C751B0 | mult = 0+1×比; 零态 XP=0 (完全停) |
+| 消耗请求收缩 | sub_140C73560 | 消耗 ×= min(比,1.0) — 低燃料时抽油按比例收缩 (结算输入侧) |
+| 战斗 tooltip / icon | sub_1415D5FA0 / sub_1415DCB60 | 比 <100000 → LACK_OF_FUEL_DESC / icon 16 |
+| 地图徽标三档 | sub_1416B89C0 | 裸比 (不带 START_RATIO): ≥0.99 → 1 档, ≥0.25 → 2 档, 否则 3 档 |
+| 组织度恢复 | — | **负定案**: OUT_OF_FUEL 族无 morale 键, org 恢复核 sub_140C6F960 不读燃料比, 警报条目无 org 项 (三证) |
+

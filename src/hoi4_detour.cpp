@@ -345,5 +345,12 @@ BOOL APIENTRY DllMain(HMODULE hMod, DWORD reason, LPVOID reserved) {
         // pinned main thread, in-game only. The old WM_TIMER worker was
         // removed with the route-B redesign.
     }
+    if (reason == DLL_PROCESS_DETACH) {
+        // Interval log-flush mode can hold up to one interval of lines in the
+        // buffer; push them out on teardown. Non-blocking on purpose: this
+        // runs under the loader lock (and possibly at process exit), so a log
+        // lock held by a dying thread must not hang exit.
+        log_flush_try();
+    }
     return TRUE;
 }

@@ -400,7 +400,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +52 | uint32 | duration (基座共有) | 恒写 |
 | +56 | 匿名结构 (NNB 形状)* | terrain 串对象 (门 byte@串对象+16, 串@串对象+24) | |
 | +64 | u8 ×3 | 运行时旗 (+64/+65/+66; ctor 0, writer 不发) — 本表全书统一 res (类布局) 坐标 (attacker@+24 等多函数三向互证) | 不序列化 |
-| +72 | 56B | 运行时区 (+72..+127 = obj+88..+143): **定案 = 4×16B 内联槽 {ptr, fixed}** (活跃陆战槽内容 = {type 70 idb 条目 (装备族), fixed 1.0/2-3/144-204/1.0}; 三级 ctor 与 writer/loader 均不触及 → runtime-only, 槽内 fixed 语义未决) | 不序列化 |
+| +72 | 64B | 运行时区 (+72..+135 = obj+88..+151): **定案 = 4×16B 内联槽 {fixed@+0, CEquipmentVariant*@+8}** (活体: 前 3 槽 fixed=0 + 各持一条 CEquipmentVariant* — vt RVA 0x2951608, +8 = token 70, 实例跨战斗共享 = def 侧; 尾槽 fixed=100.0 (fixed×1e-5) + 空指针, 尾槽指针位与 +128 行同位; 三级 ctor 与 writer/loader 均不触及 → runtime-only; fixed 业务语义未决) | 不序列化 |
 | +128 | 匿名结构 (NNB 形状)* | 运行时指针 (ctor 0; 未名) | 不序列化 |
 | +136 | CNavalCombatant* | **attacker 镜像指针** (第二份; pair-init sub_1415C28F0 同写) | 不序列化; 定案: 生命期所有权副本 — dtor sub_1415C43E0 经镜像释放两参战方  |
 | +144 | CNavalCombatant* | **defender 镜像指针** (第二份) | 同上  |
@@ -653,7 +653,7 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 | +9..+19 | — | = air_wing 容器 {d@8, **cap@16**, c@20, alloc@24} 的 data 尾 + cap@16 (pdx 24B) |  |
 | +20 | int32 | air_wing 计数 | |
 | +21..+31 | — | = air_wing count@20 尾 + **alloc@24**  |  |
-| +32 | CNavalCombatShipEntry* 向量 | ship 数组数据 — 8B 指针元素 → CNavalCombatShipEntry; [N] 同上 | 门 计数@+44>0; tok 0x28A0 ship |
+| +32 | CNavalCombatShipEntry* 向量 | **归属勘误: 本行 (writer 键 10400 ship) 实产于战果侧 CNavalCombatResultSide (ship 数组 +32/+44, air +8/+20; writer sub_140CE6760), 活体 CNavalCombat 本体 +32/+44 = 打包 id 句柄非容器**; 活体真链 = +152/+160 两侧 force 容器 → force+232{d}/+244{c} 任务分舰队 → tf+8{d}/+20{c} 真实 CShip\* (元素虚表槽 [1][3][5] 与 CShip 基表全同、[0][2][4] 派生覆写, 活体直证) (air 在 tf+88/+100 与 +136/+148) | 门 计数@+44>0; tok 0x28A0 ship |
 | +33..+43 | — | = ship 容器 {d@32, **cap@40**, c@44, alloc@48} 的 data 尾 + cap@40  |  |
 | +44 | int32 | ship 计数 | |
 | +45..+55 | — | = ship count@44 尾 + **alloc@48**  |  |
@@ -706,7 +706,7 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 | +16 | uint32 | count | 恒写; tok 0x29EA count |
 | +20 | tag_id (i32) | tag (国家 id, BA5C20 串化) | 恒写 — **发射序首字段**, 先于 equipment_variant_index; tok 0x2A02 tag |
 
-**CNavalCombatAirEntry** (条目; vt 0X14295C440; writer 0X140CE6630; ctor 0X140CE1450; sizeof ≈0x80 — ctor 三容器尾推, 分配点未找)。原生发射序 = max → alive → killed → tag → equipment_variant_index → air_base → naval_hit×N → air_hit×N; 段 evi 前置与原生序不同 — 叶键互异, 多重集无序配对无害 (20 档实证)。全字段表:
+**CNavalCombatAirEntry** (条目; vt 0X14295C440; writer 0X140CE6630; ctor 0X140CE1450; sizeof 0x88 = 136, 分配点 sub_140CE21B0 malloc 直证)。原生发射序 = max → alive → killed → tag → equipment_variant_index → air_base → naval_hit×N → air_hit×N; 段 evi 前置与原生序不同 — 叶键互异, 多重集无序配对无害 (20 档实证)。全字段表:
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|

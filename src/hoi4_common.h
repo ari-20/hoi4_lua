@@ -143,14 +143,30 @@ static __forceinline uint8_t h4_rd8(uint64_t a, uint8_t dflt) {
 
 // ---- logging (defined in hoi4_main.cpp) ----
 extern HANDLE g_log;
-void L(const char *fmt, ...);
+// Line shape: [MM-DD HH:MM:SS.mmm] [src.cpp:LINE] message — the macro stamps
+// the emitting C location (same month/day + source shape as the audit log).
+// Buffered: drained when full, FlushFileBuffers on an interval
+// (hoi4.log_flush(ms), 0 = write+flush per line; env HOI4_LOG_FLUSH_MS).
+void L_at(const char *file, int line, const char *fmt, ...);
+#define L(...) L_at(__FILE__, __LINE__, __VA_ARGS__)
+void log_flush_now(void);               // teardown flush (DllMain detach)
+int  log_flush_try(void);               // non-blocking twin (loader-lock safe)
+void log_flush_tick(void);              // frame-boundary interval flush
+int hoi4_log_flush(lua_State *Ls);      // hoi4.log_flush([ms]) -> current ms
+// Rate-limited text log for gate denials: 1 = emit now (*suppressed = lines
+// dropped since the last emit), 0 = suppress; the audit keeps the full record.
+int log_throttle(const void *key, unsigned interval_ms, unsigned long *suppressed);
 
-// Verbose per-call logs (effect vtable slot traces) gate, defined in
-// hoi4_main.cpp. 1 = print, 0 = suppress. Resolved lazily on first query from
-// the host command line (`-debug`) or env HOI4_DLL_DEBUG=1, then cached.
+// Log gates (defined in hoi4_main.cpp). 1 = print, 0 = suppress; resolved
+// lazily on first query from the host command line (`-debug` / `-verbose`) or
+// env HOI4_DLL_DEBUG=1 / HOI4_DLL_VERBOSE=1, then cached.
+//   debug   — per-call vtable traces ([effect] slotN on bound)
+//   verbose — per-repaint traces ([trigger] eval: frame-rate, very high volume)
 int dll_debug_mode(void);
-// hoi4.debug() -> bool (defined in hoi4_main.cpp next to dll_debug_mode)
+int dll_verbose_mode(void);
+// hoi4.debug() / hoi4.verbose() -> bool (defined in hoi4_main.cpp)
 int hoi4_debug(lua_State *Ls);
+int hoi4_verbose(lua_State *Ls);
 
 // game directory as UTF-8 (defined in hoi4_paths.cpp; "" before path resolution)
 const char *game_dir_utf8(void);
@@ -230,6 +246,17 @@ int hoi4_profile_top(lua_State *Ls);
 int hoi4_profile_folded(lua_State *Ls);
 int hoi4_profile_threads(lua_State *Ls);
 int hoi4_profile_status(lua_State *Ls);
+// hardware debug-register watch (hoi4_dr.cpp): in-process DR0 write watch.
+// No debug port (the game's watchdog self-exits on one); a first-chance VEH
+// catches the single-step, logs RIP+stack, and continues. dr_watch takes the
+// WATCH RVA (relative to image base), NOT an absolute address.
+int hoi4_dr_watch(lua_State *Ls);
+int hoi4_dr_off(lua_State *Ls);
+int hoi4_dr_hits(lua_State *Ls);
+int hoi4_dr_gwatch(lua_State *Ls);
+int hoi4_dr_goff(lua_State *Ls);
+int hoi4_dr_ghits(lua_State *Ls);
+int hoi4_dr_ring_addr(lua_State *Ls);
 // plain-C cores behind the Lua wrappers — the HTTP /profile/* endpoints call
 // these from the frame-top queue (main thread), same as /lua.
 const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,

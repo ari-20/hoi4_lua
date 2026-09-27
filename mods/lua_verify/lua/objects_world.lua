@@ -424,6 +424,24 @@ function Runtime.peace_conference(self)
               w.war_score_breakdown.captured_provinces = keys
             end
           end
+          -- redistributions: 壳向量 {data@W+120=e+248, count@W+132=e+260},
+          -- 16B 元 {reason u32@+0, points i32@+4} (writer sub_1419848B0:
+          -- tok 14497 门 count≠0; 与 total_score_before 同壳层级, 不在 bk vt 门内)
+          local rdc = ru32(e + 260) or 0
+          if rdc > 0 and rdc < 4096 then
+            local rdd = rp(e + 248)
+            if rdd then
+              local reds = {}
+              for k = 0, rdc - 1 do
+                local pt = ru32(rdd + 16 * k + 4)
+                reds[#reds + 1] = {
+                  reason = ru32(rdd + 16 * k),
+                  points = (pt >= 0x80000000) and (pt - 4294967296) or pt }
+              end
+              w.war_score_breakdown = w.war_score_breakdown or {}
+              w.war_score_breakdown.redistributions = reds
+            end
+          end
           c.winners.list[#c.winners.list + 1] = w
         end
       end

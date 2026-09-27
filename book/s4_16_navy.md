@@ -28,7 +28,7 @@ cc+680, 紧挨师列表 cc+656)。
 | +49..+59 | — | = RH 表尾 {mask@+52, extra@+56}  |  |
 | +60 | float (uint32 位型) | tuning_factor — **定名: = RH max_load_factor = 0.9** (0x3F666666 位型, 与主文件 §3.2 RH 通用尾同构) | IEEE754 位型读 |
 
-#### 4.16.2 CTaskForce (writer 0X140D7AFA0)
+#### 4.16.2 CTaskForce (writer 0X140D7AFA0 / loader 0X140D75470)
 
 writer 0X140D7AFA0 的 a1 = **元素+16 视角**; 运行时偏移 = writer 偏移 + 16
 (tf = ser + 16)。⚠ 直接按 writer 偏移读运行时内存会错位读进垃圾。
@@ -71,15 +71,15 @@ CUnit::Serialize 0X140C06540; 运行时偏移 tf = writer+16; **行序 = writer
 | industrial_manufacturer (19160) | tf+1244 | 行内 idpair — id | 任一≠0 且有效 | |
 | merge_with_after_repair (14665) | tf+1248 | 行内 idpair — type | 任一≠0 | |
 | merge_with_after_repair (14665) | tf+1252 | 行内 idpair — id | 任一≠0 | |
-| sortie_efficiency (12970) | tf+1260 | u32 | 恒写 | |
+| sortie_efficiency (12970) | tf+1260 | u32 | 恒写 | **载机姿态索引** (非燃料): 出击比 = CARRIER_OFFENSIVE_STANCE_SORTIE_RATIO 数组按本值查表 |
 | repair_last_mission (13598) | tf+1264 | u32 | ≠0 | |
 | hours_waited_for_repairs (15504) | tf+1256 | u32 | ≠0 | |
 | repair_split (13596) | tf+1268 | u8 | ≠0 | |
 | merge_split (13996) | tf+1269 | u8 | ≠0 | |
 | is_sea_locked (13998) | tf+1270 | u8 | ≠0 | |
 | auto_reinforcement (15169) | tf+1271 | u8 | ≠0 | |
-| fuel (12003) | tf+1272 | i64 fixed5 | ≠0 | |
-| requested (15132) | tf+1280 | i64 fixed5 | ≠0 | |
+| fuel (12003) | tf+1272 | i64 fixed5 | ≠0 | **本小时实收** (per-hour scratch): 每小时 tick sub_140D68B90 先清 0, 再由优先级分发 sub_140D64740 (tf+1272 += grant) 灌入; 载入值存活至首整点即被覆盖; loader ser+1256 **落字段** |
+| requested (15132) | tf+1280 | i64 fixed5 | ≠0 | 每小时 sub_140C35280 重算: MISSION_COST×(FUEL_COST_MULT×Σ舰用量缓存/1e5)/1e5 (分派表见下); 上游钳制 = tf+64 补给比 × MAX_FUEL_FLOW_MULT (无补给 ⇒ 少要燃料); 读取器 sub_140D6EAC0; loader ser+1264 **落字段** |
 | icon (181) | tf+1288 | u32 | 恒写 | |
 | use_fleet_color (15195) | tf+1292 | u8 | 恒写 | |
 | color (86) | tf+1296 | 对象 (CColor 族) | !use_fleet_color | |
@@ -96,6 +96,39 @@ CUnit::Serialize 0X140C06540; 运行时偏移 tf = writer+16; **行序 = writer
 | **naval_headquarter (10193)** | tf+1844 | naval_headquarter 容器计数 | c>0 | |
 | target_ship_types (10256) | tf+1856 | 32B MSVC 串 — 容器数据 | c>0 | |
 | target_ship_types (10256) | tf+1868 | target_ship_types 容器计数 | c>0 | |
+
+CTaskForce 运行时字段 (不序列化; 燃料结算链定案):
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +312 | CSubUnitDefinition* | 合成统计对象 (0x678B; ctor 0x141018D00); **+712 = statId 69 STAT_COMMON_FUEL_CONSUMPTION = Σ舰每小时燃料用量缓存**; vt[57] (0x140BFBFB0) 读取; 聚合核 sub_140B9AD70 (与师统计同框架, 入口 sub_140C86CC0 传 tf+840 ships 容器) |
+| +512 | u32 数组 | 移动路径省份 {data@+512, count@+524}; +524 > 0 = 在航未达 (HOLD/reserve 在航成本门) |
+| +933 | u8 | stop_training_at_max_xp (见 mission 补录表) |
+
+**燃料结算链 (每游戏小时)**: 调度 = DoCountryHourlyUpdates 阶段 4 → sub_1407164E0 → sub_1410F71B0 (fs) 内舰队→TF tick sub_140D68B90: tf+1280 = sub_140C35280 (公式与任务态成本分派表如下), tf+1272 清 0; 三优先级分发后 sub_140D64740 补入。燃料比 getter sub_140D6C6F0 = clamp(100000×tf+1272/tf+1280, 0, 100000), requested≤0 → 100000 (载入零态 ⇒ 满比, 任务不挂起)。
+
+| 任务态 | 条件 | define (vanilla) |
+|---|---|---|
+| 战斗 | tf+436 ≠ 0 | IN_COMBAT_FUEL_COST (2.0) |
+| 在港 (当前省 is_land) | desc+210 bit0 | ON_BASE_FUEL_COST (0.0); strike 任务在港 = STRIKE_FORCE_ON_BASE_FUEL_COST_FACTOR (0.25) |
+| 任务态 | 任务 ∉ {0 HOLD, 8 reserve} 或 tf+524 ≤ 0 | MISSION_FUEL_COSTS[type] (0.0/1.0×6/0.6 TRAINING/…; 训练且 tf+933 时 0.15/0.6 经验加权混合) |
+| HOLD/reserve 在航 | 任务 ∈ {0,8} 且 tf+524 > 0 | HOLD_MISSION_MOVEMENT_COST (1.0) |
+
+requested 公式 = MISSION_COST × (FUEL_COST_MULT(0.10) × Σ舰用量缓存/1e5)/1e5; 上游钳制 = tf+64 补给比 × MAX_FUEL_FLOW_MULT(2.0)。
+
+**低燃料行为**: 比值 ratio = tf+1272/tf+1280; 无任务中止/强制回港 — sub_140D705F0 移动更新全函数无燃料门:
+
+| 面 | 函数 | 公式 |
+|---|---|---|
+| 任务侦查/效能 | sub_140FAEB20 | strength ×= ratio (线性无下限; 空军侧的 0.25 效率下限海军不用) |
+| 训练 XP | sub_140FB97C0 | XP ×= ratio; 逐舰 strength < TRAINING_MIN_STRENGTH 无 XP |
+| 舰速统计 | sub_140C3A740 / TF 级 sub_140C37CD0 | (1 + OUT_OF_FUEL_SPEED_FACTOR(−0.75)×(1−ratio)), 下限 10% |
+| 射程统计 | sub_140C3A610 | 同式 OUT_OF_FUEL_RANGE_FACTOR (0 = 默认无惩罚) |
+| 攻击/雷击 | sub_140C34A50 | stat≠4: + OUT_OF_FUEL_{ATTACK(−0.5),TORPEDO(−0.8)}_FACTOR×(1−ratio); stat==3 雷击项 |
+| AI 节约模式 | sub_1406690D0 | 三 define 门 (比 ≤ FUEL_RATIO_TO_EXIST_FUEL_SAVING_MODE 等); 状态存 a1+8928; 和平期预算帽 sub_141A69920 |
+
+is_sea_locked (tf+1270) 与燃料**无关联**: 唯一写点 = sub_140D705F0 海锁恢复块 `tf+1270 = (tf+524 ≤ 0)`, 纯海路可达性; auto_reinforcement (tf+1271) 同无燃料联动。
+detached_activity 状态设置器 = sub_140D731A0 (taskforce.cpp:6079 断言): 联写 tf+1208/1216/1224/1240; 迁移写点 = 1 repairing sub_140DA0E40 (入基地修理队列) / 2 moving_to_refit sub_140D72F10 / 3 refitting sub_140D78F10 (分裂) + sub_140D705F0 在港完成块 (上改装线 sub_140C3D720, repair_parent 有效则 sub_140D76B00 合并) / 4 reinforcing sub_140FB6C70 / 0 完结多处。**状态迁移无燃料门** (唯一交集 = 修理/改装期在港自然落 ON_BASE_FUEL_COST 0.0)。
 
 **CTaskForceComposition** (RTTI 实名; vt 0x142973300; sizeof 104B; CPersistent 族; writer 0x14198B970 / reader 0x14198B630; ctor 0x14198A7A0):
 
@@ -125,6 +158,7 @@ mission 块 (units; 存档块名, 非 RTTI 类名) 补录:
 | 键 (token) | 偏移 | 类型 | 写门 | writer |
 |---|---|---|---|---|
 | already_spotted (0x3BB3) | ms+104 (tf+968) | u8 | ≠0 写 yes | 0X140FBEA80 |
+| stop_training_at_max_xp (19076) | ms+105 (tf+933) | u8 | ≠0 写 | sub_140FB9B30; 仅 type==7 TRAINING 时 sub_140FBA460 从命令载荷写; 作用 = 训练任务燃料成本混合门 (0.15/0.6 经验加权) |
 
 #### 4.16.3 CShip (writer 0X140C3E6C0)
 
@@ -162,6 +196,8 @@ CShip 键表 (writer 0X140C3E6C0 直证清单; **行序 = writer 发射序落盘
 | raid_instance (19183) | +2352 | 行内 idpair — type | 任一≠0 | |
 | raid_instance (19183) | +2356 | 行内 idpair — id | 任一≠0 | |
 
+CShip 运行时燃料行: **+840 = i64 fix5 每小时燃料用量** (不序列化; getter sub_140C36F60; 谓词 sub_140C3AF90 < SHIP_FUEL_EFFICIENCY_WARNING_THRESHOLD → TASK_FORCE_HAS_FUEL_INEFFICIENT_SHIP_FOR_MISSION tooltip); 与 +856 构成 {标量, CModifier 树@+16} 修改值对 (舰统计重算 sub_140C21570 聚合, 基值 = 舰体/装备定义); 逐舰 UI 现算 sub_140C39BF0 = 用量×(1+MODIFIER_NAVY_FUEL_CONSUMPTION_FACTOR id413)×FUEL_COST_MULT×MISSION_COST (TF 级 sub_140C35280 不带该修正项, 走 statId 69 缓存)。
+
 CShip/CTaskForce GUI 消费表:
 
 | 字段 | 消费点 | 用途 |
@@ -182,7 +218,7 @@ CShip/CTaskForce GUI 消费表:
 | vtable RVA | — |
 | writer | 0x140D5EBC0 |
 | loader | — |
-| 挂载点 | cc+360 容器 (fleet) |
+| 挂载点 | cc+632 舰队容器 {d@cc+632, c@cc+644} (units 块 12202 内 tok 15156; cc+360 = theatres/CTheatre 专用, 勿混) |
 
 | 键 (token) | fl 偏移 | 类型/语义 |
 |---|---|---|
@@ -207,7 +243,7 @@ CFleet/舰队视图 GUI 消费表:
 | tf ship 容器 (tf+840/+852) / repair_parent (tf+1200/+1204) / target_ship_types (tf+1856/+1868) / refid | CNaviesView (17×1288B 胶水块; 内嵌 CNavyLeaderWindow / CMoveShipsWindow / CTaskForceCompositionEditor / CCompactShipListView 四子件) | 选择集驱动视图 |
 | tf+884 | CNaviesView 组行 | 任务类型枚举 (定案: ==8 = reserve, 与组行 reserve 判定同源) |
 | tf+832 | MilitaryOverviewItem | leader 指针 |
-| tf+496 | MilitaryOverviewItem | 当前 region 指针 |
+| tf+496 | MilitaryOverviewItem | 当前省份 CProvince* (prov+200 → 战略区; prov+184 → 静态描述符, desc+210 bit0 = is_land 在港判定) |
 | tf+436 | MilitaryOverviewItem | 战斗中谓词 |
 | tf+472 | MilitaryOverviewItem | owner |
 | CFleet+1584 idpair | CNavyTheaterFleetItem target | 剧场视图舰队项 |
@@ -223,7 +259,7 @@ CFleet/舰队视图 GUI 消费表:
 13107 / CSetFleetCommand 15165); 确认弹窗 CChangeNavyLeaderDialog /
 CConfirmDisbandFleet = GUI 类, 见 §4.31.57。
 
-舰队块 (cc+360 容器, 0x9C0 结构, tf→ship 两级): taskforce 顶层 id 对;
+舰队块 (cc+632 容器, 0x9C0 结构, tf→ship 两级): taskforce 顶层 id 对;
 ship officer {seed@sh+2120+32, male 位, name; officer[2+] = 追加军官向量
 {d@sh+2232, count@+2244} 88B/元, 详见 §4.18 officer 行}; ship_name override
 串; refit_line 字段级定案见 §4.8 (生产线元素表: refit 变体 / names 容器 /

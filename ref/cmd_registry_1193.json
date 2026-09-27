@@ -2037,7 +2037,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -2047,7 +2047,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国 → 该国维修厂池（国+3944）设上限"
+     "exec_sem": "`sub_140BB4390(+40)` 取国 → 该国维修厂池（国+3944）设上限",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12,
@@ -4949,7 +4950,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -4959,13 +4960,14 @@
      "type_biz": "tag_id（串解析）",
      "gate_sem": ">0（IsValid `*(int*)(+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4E70(+40)` 串→国名 id 后与 `+44` 的 human id 配对"
+     "exec_sem": "`sub_140BB4E70(+40)` 串→国名 id 后与 `+44` 的 human id 配对",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -4975,7 +4977,8 @@
      "type_biz": "tag_id（串解析）",
      "gate_sem": ">0（IsValid `*(int*)(+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4E70(+40)` 串→国名 id 后与 `+44` 的 human id 配对"
+     "exec_sem": "`sub_140BB4E70(+40)` 串→国名 id 后与 `+44` 的 human id 配对",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     }
    ],
    "reader": [
@@ -5829,7 +5832,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -5839,7 +5842,8 @@
      "type_biz": "tag_id",
      "gate_sem": "IsValid 要求 >0（`a1[10]<=0` → `#~ invalid country tag`）",
      "conf": "定案",
-     "exec_sem": "`sub_140CF0E0(sub_140BB48F0(+40))` 取该国 AI 控制器"
+     "exec_sem": "`sub_140CF0E0(sub_140BB48F0(+40))` 取该国 AI 控制器",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 107,
@@ -5979,7 +5983,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -5989,7 +5993,8 @@
      "type_biz": "tag_id",
      "gate_sem": "IsValid 要求 >0",
      "conf": "定案",
-     "exec_sem": "`sub_140CCF0E0(sub_140BB48F0(+40))` 取该国 AI 控制器"
+     "exec_sem": "`sub_140CCF0E0(sub_140BB48F0(+40))` 取该国 AI 控制器",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 107,
@@ -6849,7 +6854,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -6859,7 +6864,8 @@
      "type_biz": "tag_id",
      "gate_sem": "IsValid 要求 >0",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国家对象，向其 +4336 起写五偏好"
+     "exec_sem": "`sub_140BB4390(+40)` 取国家对象，向其 +4336 起写五偏好",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 11101,
@@ -7965,7 +7971,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -7975,7 +7981,8 @@
      "type_biz": "tag_id",
      "gate_sem": "`> 0` 门（IsValid `*(int*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国对象 → `sub_1406CFCB0` 取国科研视图 v3，供后续写点"
+     "exec_sem": "`sub_140BB4390(+40)` 取国对象 → `sub_1406CFCB0` 取国科研视图 v3，供后续写点",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10335,
@@ -8328,7 +8335,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -8338,7 +8345,8 @@
      "type_biz": "tag_id",
      "gate_sem": "`> 0` 门（IsValid `*(int*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国 v5，其 +3944 = 该国营建队列"
+     "exec_sem": "`sub_140BB4390(+40)` 取国 v5，其 +3944 = 该国营建队列",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12152,
@@ -8581,7 +8589,7 @@
      "token": 10394,
      "name": "country",
      "offset": 624,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -8591,7 +8599,8 @@
      "type_biz": "tag (10394 country)",
      "gate_sem": ">0 门（IsValid `*(int*)624 > 0`；reader 经 tag 名表解析）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390` 取国家对象 → 经验池（国 +5512 / 子对象 +8528）落账"
+     "exec_sem": "`sub_140BB4390` 取国家对象 → 经验池（国 +5512 / 子对象 +8528）落账",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12112,
@@ -8726,7 +8735,7 @@
      "token": 10394,
      "name": "country",
      "offset": 632,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -8736,13 +8745,14 @@
      "type_biz": "tag (10394 country)",
      "gate_sem": ">0 门（`sub_140BB4AA0` 取国家）",
      "conf": "定案",
-     "exec_sem": "取国家对象 → 经验池落账，并作模板集定位键"
+     "exec_sem": "取国家对象 → 经验池落账，并作模板集定位键",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10394,
      "name": "country",
      "offset": 632,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -8752,7 +8762,8 @@
      "type_biz": "tag (10394 country)",
      "gate_sem": ">0 门（`sub_140BB4AA0` 取国家）",
      "conf": "定案",
-     "exec_sem": "取国家对象 → 经验池落账，并作模板集定位键"
+     "exec_sem": "取国家对象 → 经验池落账，并作模板集定位键",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10323,
@@ -9742,7 +9753,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -9752,7 +9763,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_14118BA30(国, 0, 1)` 先离旧阵，再交给 `sub_140D91E00` 建阵"
+     "exec_sem": "`sub_14118BA30(国, 0, 1)` 先离旧阵，再交给 `sub_140D91E00` 建阵",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 27,
@@ -10806,7 +10818,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -10816,7 +10828,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid 首门）+ 与国家对象门链",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)` 取国家对象 → `sub_140BA7370(对象, idea, -1)` 授予该国家理念"
+     "exec_sem": "`sub_140BB4390(国)` 取国家对象 → `sub_140BA7370(对象, idea, -1)` 授予该国家理念",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10491,
@@ -10927,7 +10940,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -10937,7 +10950,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid 首门）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)` → `sub_140BAE490(对象, idea)` 移除该国家理念"
+     "exec_sem": "`sub_140BB4390(国)` → `sub_140BAE490(对象, idea)` 移除该国家理念",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10491,
@@ -13005,7 +13019,7 @@
      "token": 10394,
      "name": "country",
      "offset": 52,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -13015,13 +13029,14 @@
      "type_biz": "tag_id(token 10394=country)",
      "gate_sem": "恒写（`sub_1424C2EA0` 写串）",
      "conf": "定案",
-     "exec_sem": "IsValid 用其生成 `#~ unit cannot be disbanded by <tag>`"
+     "exec_sem": "IsValid 用其生成 `#~ unit cannot be disbanded by <tag>`",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10394,
      "name": "country",
      "offset": 52,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -13031,7 +13046,8 @@
      "type_biz": "tag_id(token 10394=country)",
      "gate_sem": "恒写（`sub_1424C2EA0` 写串）",
      "conf": "定案",
-     "exec_sem": "IsValid 用其生成 `#~ unit cannot be disbanded by <tag>`"
+     "exec_sem": "IsValid 用其生成 `#~ unit cannot be disbanded by <tag>`",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     }
    ],
    "reader": [
@@ -13388,7 +13404,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -13398,7 +13414,8 @@
      "type_biz": "tag (10394 country)",
      "gate_sem": ">0 门（IsValid `*(int*)40 > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390` 取国家对象 → `sub_1406CF8B0(国)+8`（国 +3960 子对象 +8）写入优先级"
+     "exec_sem": "`sub_140BB4390` 取国家对象 → `sub_1406CF8B0(国)+8`（国 +3960 子对象 +8）写入优先级",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 141,
@@ -15035,7 +15052,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -15045,7 +15062,8 @@
      "type_biz": "tag_id",
      "gate_sem": "**>0**（IsValid 首行 `if(*(int*)(a1+40) <= 0) return 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(a1+40)` 解析国 → 取 `CPolitics`，换装主写点"
+     "exec_sem": "`sub_140BB4390(a1+40)` 解析国 → 取 `CPolitics`，换装主写点",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13102,
@@ -15185,7 +15203,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -15195,7 +15213,8 @@
      "type_biz": "tag_id",
      "gate_sem": "`> 0` 门（IsValid `*(int*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国，`sub_1406CFCB0` 取科研视图 v4"
+     "exec_sem": "`sub_140BB4390(+40)` 取国，`sub_1406CFCB0` 取科研视图 v4",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13259,
@@ -15557,7 +15576,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -15567,7 +15586,8 @@
      "type_biz": "tag (10394 country)",
      "gate_sem": "非空/合法 tag（`sub_140BB4390` 取国）",
      "conf": "定案",
-     "exec_sem": "取国家对象 → 其 +3944 空军册为入册基址"
+     "exec_sem": "取国家对象 → 其 +3944 空军册为入册基址",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12249,
@@ -18046,7 +18066,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -18056,7 +18076,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)` 取国家对象，作为新建将领/提督的挂载国"
+     "exec_sem": "`sub_140BB4390(国)` 取国家对象，作为新建将领/提督的挂载国",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 225,
@@ -18269,7 +18290,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -18279,13 +18300,14 @@
      "type_biz": "u32(tag)",
      "gate_sem": "无",
      "conf": "定案",
-     "exec_sem": "Execute 不直接读（经 `sub_1401C9CD0(gs, a1[12])` 取对象后按对象流转）"
+     "exec_sem": "Execute 不直接读（经 `sub_1401C9CD0(gs, a1[12])` 取对象后按对象流转）",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -18295,7 +18317,8 @@
      "type_biz": "u32(tag)",
      "gate_sem": "无",
      "conf": "定案",
-     "exec_sem": "Execute 不直接读（经 `sub_1401C9CD0(gs, a1[12])` 取对象后按对象流转）"
+     "exec_sem": "Execute 不直接读（经 `sub_1401C9CD0(gs, a1[12])` 取对象后按对象流转）",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10724,
@@ -19100,7 +19123,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -19110,7 +19133,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "按 tag 取国家对象后写其装备升级优先级字段"
+     "exec_sem": "按 tag 取国家对象后写其装备升级优先级字段",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 141,
@@ -19646,7 +19670,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -19656,7 +19680,8 @@
      "type_biz": "tag_id",
      "gate_sem": "隐含 >0（解引用后才用）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)` 取国家对象"
+     "exec_sem": "`sub_140BB4390(国)` 取国家对象",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13239,
@@ -23783,7 +23808,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -23793,7 +23818,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `a1[10] > 0`）",
      "conf": "定案",
-     "exec_sem": "按 tag 取国家对象"
+     "exec_sem": "按 tag 取国家对象",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 107,
@@ -24192,7 +24218,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -24202,7 +24228,8 @@
      "type_biz": "tag_id（10394 country）",
      "gate_sem": "无独立值门；IsValid 以 `a1[10]`（= +40）与源/目标国比对（`sub_140F5AAD0` 取国 tag 后 `sub_140BB52F0` 同源校验）",
      "conf": "定案",
-     "exec_sem": "用于源/目标国一致性校验，不作写点"
+     "exec_sem": "用于源/目标国一致性校验，不作写点",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10639,
@@ -24366,7 +24393,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -24376,7 +24403,8 @@
      "type_biz": "tag_id（10394 country）",
      "gate_sem": "无独立值门；IsValid 以 `a1+40` 与机队所属国比对（`sub_140F5AAD0` + `sub_140BB52F0`）",
      "conf": "定案",
-     "exec_sem": "取国 → 国+3944 产线/装备管理器，调 `sub_140E60E50` 接收退回储备"
+     "exec_sem": "取国 → 国+3944 产线/装备管理器，调 `sub_140E60E50` 接收退回储备",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12213,
@@ -24612,7 +24640,7 @@
      "token": 10394,
      "name": "country",
      "offset": 64,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -24622,7 +24650,8 @@
      "type_biz": "tag_id",
      "gate_sem": "**>0**（IsValid 首行 `if(*(int*)(a1+64) <= 0) return 0`）",
      "conf": "定案",
-     "exec_sem": "解析 `sub_140BB4390(a1+64)` 得国对象 → 取 `cc+3944`（装备池）；IsValid 末条比对翼属主国 tag 是否同国/同盟"
+     "exec_sem": "解析 `sub_140BB4390(a1+64)` 得国对象 → 取 `cc+3944`（装备池）；IsValid 末条比对翼属主国 tag 是否同国/同盟",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     }
    ],
    "reader": [
@@ -24705,7 +24734,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -24715,13 +24744,14 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "用于确定发起方（须为本地玩家国）"
+     "exec_sem": "用于确定发起方（须为本地玩家国）",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -24731,7 +24761,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "用于确定发起方（须为本地玩家国）"
+     "exec_sem": "用于确定发起方（须为本地玩家国）",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     }
    ],
    "reader": [
@@ -26241,7 +26272,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -26251,7 +26282,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_1401DA110(gs, a1+40, a3)` 按控制者类型改国家归属"
+     "exec_sem": "`sub_1401DA110(gs, a1+40, a3)` 按控制者类型改国家归属",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 225,
@@ -26992,7 +27024,7 @@
      "token": 10394,
      "name": "country",
      "offset": 152,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -27002,13 +27034,14 @@
      "type_biz": "tag_id",
      "gate_sem": "无（Execute 直用）",
      "conf": "定案",
-     "exec_sem": "`sub_1401DA110(gs, a1+152, 1)`，再 `sub_1401CACF0(gs, a1+152)` 绑定"
+     "exec_sem": "`sub_1401DA110(gs, a1+152, 1)`，再 `sub_1401CACF0(gs, a1+152)` 绑定",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10394,
      "name": "country",
      "offset": 152,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -27018,7 +27051,8 @@
      "type_biz": "tag_id",
      "gate_sem": "无（Execute 直用）",
      "conf": "定案",
-     "exec_sem": "`sub_1401DA110(gs, a1+152, 1)`，再 `sub_1401CACF0(gs, a1+152)` 绑定"
+     "exec_sem": "`sub_1401DA110(gs, a1+152, 1)`，再 `sub_1401CACF0(gs, a1+152)` 绑定",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 226,
@@ -27919,7 +27953,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -27929,7 +27963,8 @@
      "type_biz": "tag_id",
      "gate_sem": "隐含 >0",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)` 取国家对象"
+     "exec_sem": "`sub_140BB4390(国)` 取国家对象",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13239,
@@ -28011,7 +28046,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -28021,7 +28056,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid）+ 国 `sub_1406CF4C0(国)+24` 非空（存在已设的连续国策）",
      "conf": "定案",
-     "exec_sem": "`sub_140711430(国家对象, 0)` 把连续国策清成 null"
+     "exec_sem": "`sub_140711430(国家对象, 0)` 把连续国策清成 null",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     }
    ],
    "reader": [
@@ -28475,7 +28511,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -28485,7 +28521,8 @@
      "type_biz": "tag_id",
      "gate_sem": "隐含 >0",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)` 取国家对象"
+     "exec_sem": "`sub_140BB4390(国)` 取国家对象",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13239,
@@ -28567,7 +28604,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -28577,7 +28614,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid）+ `sub_1406CF4C0(国)+16` 非空且其 `+1469` 非 0（国度当前国策可放弃）",
      "conf": "定案",
-     "exec_sem": "`sub_1402CEBB0(国策进度对象, 1)` 丢弃当前国策并退进度"
+     "exec_sem": "`sub_1402CEBB0(国策进度对象, 1)` 丢弃当前国策并退进度",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     }
    ],
    "reader": [
@@ -28946,7 +28984,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -28956,7 +28994,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid 首门）+ 玩家国比对（仅决定是否刷新 UI 槽 3）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390`/`sub_140BB48F0` 取国与国对象，驱动决议管理器"
+     "exec_sem": "`sub_140BB4390`/`sub_140BB48F0` 取国与国对象，驱动决议管理器",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 11142,
@@ -29038,7 +29077,7 @@
      "token": 10394,
      "name": "country",
      "offset": 64,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -29048,7 +29087,8 @@
      "type_biz": "tag_id",
      "gate_sem": "`>0`（IsValid `*(int*)(a1+64) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB48F0(a1+64)` 取国对象（地图坐标空间）"
+     "exec_sem": "`sub_140BB48F0(a1+64)` 取国对象（地图坐标空间）",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 14351,
@@ -29238,7 +29278,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -29248,7 +29288,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid 错误串 `#~ invalid tag`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390`/`sub_140BB48F0` 取国与国对象"
+     "exec_sem": "`sub_140BB4390`/`sub_140BB48F0` 取国与国对象",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 107,
@@ -30306,7 +30347,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -30316,7 +30357,8 @@
      "type_biz": "tag_id",
      "gate_sem": "无（Execute 直取 `sub_140BB48F0(a1+40)`）",
      "conf": "定案",
-     "exec_sem": "作事件作用域的国家上下文"
+     "exec_sem": "作事件作用域的国家上下文",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 14475,
@@ -31256,7 +31298,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -31266,7 +31308,8 @@
      "type_biz": "tag_id（10394，\"country\"）",
      "gate_sem": "`> 0` 门（IsValid `*(_DWORD*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(tag)` 取国 → 国管理器 +88 容器（ps+88，**仅军产线容器**）逐条写 `*(u8*)(线+237) = 折叠旗`"
+     "exec_sem": "`sub_140BB4390(tag)` 取国 → 国管理器 +88 容器（ps+88，**仅军产线容器**）逐条写 `*(u8*)(线+237) = 折叠旗`",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 14608,
@@ -31290,13 +31333,14 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "sem": "读串",
      "sem_biz": "目标国家 tag",
      "type_biz": "tag_id（10394，\"country\"）",
      "gate_sem": "`> 0` 门（IsValid `*(_DWORD*)(a1+40) > 0`）",
-     "conf": "定案"
+     "conf": "定案",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 14608,
@@ -31557,7 +31601,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -31567,7 +31611,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid 首门）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)+5360` = 国家决议忽略集（书 §4.33：40B 键 FNV 小写），逐条 `sub_1414E7090`/`sub_1414E7520` 插入或删除"
+     "exec_sem": "`sub_140BB4390(国)+5360` = 国家决议忽略集（书 §4.33：40B 键 FNV 小写），逐条 `sub_1414E7090`/`sub_1414E7520` 插入或删除",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 11142,
@@ -31676,7 +31721,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -31686,7 +31731,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid 隐式，取国后逐条比对）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390` 取国 → `sub_1406CF4D0(国)` 取决议管理器"
+     "exec_sem": "`sub_140BB4390` 取国 → `sub_1406CF4D0(国)` 取决议管理器",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 11736,
@@ -31826,7 +31872,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -31836,7 +31882,8 @@
      "type_biz": "tag_id",
      "gate_sem": "须能取国：`sub_140BB48F0(a1+40) + 1156 > 0`（IsValid 首判，即该国有空军基数）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(a1+40)` 取国对象"
+     "exec_sem": "`sub_140BB4390(a1+40)` 取国对象",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10827,
@@ -32107,7 +32154,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -32117,7 +32164,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(+40) <= 0` → 0）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取战略海军对象"
+     "exec_sem": "`sub_140BB4390(+40)` 取战略海军对象",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12065,
@@ -32215,7 +32263,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -32225,7 +32273,8 @@
      "type_biz": "tag_id",
      "gate_sem": "IsValid `*(int*)(a1+40) > 0`",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国，写 `国+5544 → +88 = 优先级` 并视情况 `sub_140224C30(视图, 14)` 刷新"
+     "exec_sem": "`sub_140BB4390(+40)` 取国，写 `国+5544 → +88 = 优先级` 并视情况 `sub_140224C30(视图, 14)` 刷新",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 141,
@@ -32732,7 +32781,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -32742,7 +32791,8 @@
      "type_biz": "tag_id",
      "gate_sem": "无门（照写；IsValid 门 `sub_140BB48F0(a1+40)+1156 > 0`）",
      "conf": "定案",
-     "exec_sem": "解析国对象后取 `+384` 剧场指针表，剧场内摘挂重挂"
+     "exec_sem": "解析国对象后取 `+384` 剧场指针表，剧场内摘挂重挂",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13161,
@@ -32906,7 +32956,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -32916,7 +32966,8 @@
      "type_biz": "tag_id",
      "gate_sem": "无门（照写）；IsValid 门 `sub_140BB48F0(a1+40)+1156 > 0`",
      "conf": "定案",
-     "exec_sem": "解析国对象后 `sub_1406E8E40(cc, &集团表)` 退回 free 池"
+     "exec_sem": "解析国对象后 `sub_1406E8E40(cc, &集团表)` 退回 free 池",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13161,
@@ -33081,7 +33132,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -33091,7 +33142,8 @@
      "type_biz": "tag_id",
      "gate_sem": "无门（照写）；IsValid 门 `sub_140BB48F0(a1+40)+1156 > 0`",
      "conf": "定案",
-     "exec_sem": "解析国对象；`sub_1414EBC30(集团, a1+48)` 把翼数组划入集团"
+     "exec_sem": "解析国对象；`sub_1414EBC30(集团, a1+48)` 把翼数组划入集团",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13161,
@@ -33676,7 +33728,7 @@
      "token": 10394,
      "name": "country",
      "offset": 64,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -33686,7 +33738,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0 门（IsValid：`*(int*)v2 > 0` 且 sub_1406F9600 国家对象存在）",
      "conf": "定案",
-     "exec_sem": "经 sub_140BB4390→sub_1406CF8C0→sub_140C4B030 解出该国空军管理器 v5，作整表替换目标"
+     "exec_sem": "经 sub_140BB4390→sub_1406CF8C0→sub_140C4B030 解出该国空军管理器 v5，作整表替换目标",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 702,
@@ -35025,7 +35078,7 @@
      "token": 10394,
      "name": "country",
      "offset": 48,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -35035,7 +35088,8 @@
      "type_biz": "u32（token 10394 country 解析落点）",
      "gate_sem": "无条件写",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(a1+12)` 取国并扣 `100000×dflag` 陆军经验（荣誉舰费用）"
+     "exec_sem": "`sub_140BB4390(a1+12)` 取国并扣 `100000×dflag` 陆军经验（荣誉舰费用）",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10400,
@@ -35129,7 +35183,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -35139,7 +35193,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(+40) <= 0` → 0）",
      "conf": "定案",
-     "exec_sem": "`sub_140D545A0(+40)` 取国，作为全部新编舰队的归属池"
+     "exec_sem": "`sub_140D545A0(+40)` 取国，作为全部新编舰队的归属池",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13777,
@@ -35538,7 +35593,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -35548,7 +35603,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（Execute `if (*(int*)(+40) > 0)`；IsValid `a1[10] <= 0` → 0）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国，作为舰队重编目标"
+     "exec_sem": "`sub_140BB4390(+40)` 取国，作为舰队重编目标",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 15162,
@@ -36587,7 +36643,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -36597,7 +36653,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（Execute `sub_140BB48F0(+40)` 用于国别可重组校验）",
      "conf": "定案",
-     "exec_sem": "取国，供 `sub_1406FFDB0` 判可重组 + 定位国海军"
+     "exec_sem": "取国，供 `sub_1406FFDB0` 判可重组 + 定位国海军",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 15157,
@@ -38145,7 +38202,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -38155,7 +38212,8 @@
      "type_biz": "tag_id",
      "gate_sem": "IsValid = `>0`；writer 经 `sub_140BB4E70` 取值发射（`=0` 落空串）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(a1+40)` → `sub_1406CFA20` 取国家对象 → `sub_140EA2430(国家, +44)` 清事故报告"
+     "exec_sem": "`sub_140BB4390(a1+40)` → `sub_1406CFA20` 取国家对象 → `sub_140EA2430(国家, +44)` 清事故报告",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10827,
@@ -38754,7 +38812,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -38764,7 +38822,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` → `sub_1406CFA20` 取战略海军对象，设船坞上限"
+     "exec_sem": "`sub_140BB4390(+40)` → `sub_1406CFA20` 取战略海军对象，设船坞上限",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12,
@@ -39202,7 +39261,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -39212,7 +39271,8 @@
      "type_biz": "tag_id",
      "gate_sem": "IsValid：`>0` 且经国+3976 → +656 → `**(_QWORD**)(v6+88)+8` 的国 id 必须等于本 tag（即被请求方的宗主必须是本国）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)`，与 gs+1312/1316 玩家 tag 比对后逐目标国派发"
+     "exec_sem": "`sub_140BB4390(国)`，与 gs+1312/1316 玩家 tag 比对后逐目标国派发",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12462,
@@ -41066,7 +41126,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -41076,7 +41136,8 @@
      "type_biz": "u32（token 10394 country 名→id 解析落点）",
      "gate_sem": "IsValid 门 `*(int*)(a1+40) > 0`",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(a1+40)` 取国 → 写其 +5504 燃油对象的 `(type, priority)`"
+     "exec_sem": "`sub_140BB4390(a1+40)` 取国 → 写其 +5504 燃油对象的 `(type, priority)`",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 225,
@@ -41427,7 +41488,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -41437,7 +41498,8 @@
      "type_biz": "u32（token 10394 country 名→id 解析落点）",
      "gate_sem": "IsValid 门 `a1[10] > 0`（即 +40>0）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国 → `sub_1406CF750` 取其外交对象"
+     "exec_sem": "`sub_140BB4390(+40)` 取国 → `sub_1406CF750` 取其外交对象",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10472,
@@ -41539,7 +41601,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -41549,7 +41611,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0（IsValid `*(int*)(+40) <= 0` 报 `#~ invalid tag`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB48F0(+40)`→`sub_1406F1270` 取 incoming 行动清单线性定位"
+     "exec_sem": "`sub_140BB48F0(+40)`→`sub_1406F1270` 取 incoming 行动清单线性定位",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10472,
@@ -42918,7 +42981,7 @@
      "token": 10394,
      "name": "country",
      "offset": 64,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -42928,13 +42991,14 @@
      "type_biz": "tag_id",
      "gate_sem": "与玩家国比对（`gs+328`），相等才走国通知 `sub_14020ED90`/`sub_14020EA50`",
      "conf": "定案",
-     "exec_sem": "只有当 +64 是玩家国时走向该国播放通知"
+     "exec_sem": "只有当 +64 是玩家国时走向该国播放通知",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10394,
      "name": "country",
      "offset": 64,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -42944,7 +43008,8 @@
      "type_biz": "tag_id",
      "gate_sem": "与玩家国比对（`gs+328`），相等才走国通知 `sub_14020ED90`/`sub_14020EA50`",
      "conf": "定案",
-     "exec_sem": "只有当 +64 是玩家国时走向该国播放通知"
+     "exec_sem": "只有当 +64 是玩家国时走向该国播放通知",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     }
    ],
    "reader": [
@@ -44262,7 +44327,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -44272,7 +44337,8 @@
      "type_biz": "tag_id",
      "gate_sem": "IsValid 要求 >0",
      "conf": "定案",
-     "exec_sem": "`*(gs+1008 → +96) = priority`；若 +40 是玩家国则 `sub_140224C30(..., 14)` 通知 UI"
+     "exec_sem": "`*(gs+1008 → +96) = priority`；若 +40 是玩家国则 `sub_140224C30(..., 14)` 通知 UI",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 141,
@@ -46156,7 +46222,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -46166,7 +46232,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0 门（IsValid：`*(int *)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "经 sub_140BB4390→sub_1406CF810 解出国家对象 v6"
+     "exec_sem": "经 sub_140BB4390→sub_1406CF810 解出国家对象 v6",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 12610,
@@ -46260,7 +46327,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -46270,7 +46337,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0 门（IsValid：`*(int *)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "经 sub_140BB4390→sub_1406CF810 解出国家 v5，作 OccupationData 查键的属主"
+     "exec_sem": "经 sub_140BB4390→sub_1406CF810 解出国家 v5，作 OccupationData 查键的属主",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 15793,
@@ -46356,7 +46424,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -46366,7 +46434,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0 门（IsValid：`*(int *)(a1+40) <= 0` 直接拒；Execute 首参门 vt[+72]）",
      "conf": "定案",
-     "exec_sem": "经 sub_140BB4390→sub_1406CF810 解出国家 v9，作 OccupationData 查键属主"
+     "exec_sem": "经 sub_140BB4390→sub_1406CF810 解出国家 v9，作 OccupationData 查键属主",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 439,
@@ -46452,7 +46521,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -46462,7 +46531,8 @@
      "type_biz": "u32（token 10394 country 解析落点）",
      "gate_sem": "IsValid 门 `*(int*)(a1+40) > 0`",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(a1+40)` 取国 → 写其驻军优先级对象 +8"
+     "exec_sem": "`sub_140BB4390(a1+40)` 取国 → 写其驻军优先级对象 +8",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 141,
@@ -46695,7 +46765,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -46705,7 +46775,8 @@
      "type_biz": "tag_id",
      "gate_sem": "writer **无条件写** `sub_1424C2EA0(a2, 0x289A=10394, sub_140BB4E70(+40))`；Execute **不读**",
      "conf": "待裁",
-     "exec_sem": "无"
+     "exec_sem": "无",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10472,
@@ -47770,7 +47841,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -47780,7 +47851,8 @@
      "type_biz": "tag_id",
      "gate_sem": "`*(int*)>0`（IsValid 唯一门，与 10047 共用同一函数 0x140CAA8B0）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(国)+5360` 忽略集批量插入两个来源：决议管理器全部可激活决议（`sub_140731840` 过滤）+ `sub_14072A080` 返回的定向决策表（逐条置 `+44 = 1`），最后 `sub_1418A2020` 刷新 UI"
+     "exec_sem": "`sub_140BB4390(国)+5360` 忽略集批量插入两个来源：决议管理器全部可激活决议（`sub_140731840` 过滤）+ `sub_14072A080` 返回的定向决策表（逐条置 `+44 = 1`），最后 `sub_1418A2020` 刷新 UI",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     }
    ],
    "reader": [
@@ -48686,7 +48758,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -48696,7 +48768,8 @@
      "type_biz": "tag_id",
      "gate_sem": "`> 0` 门（IsValid `*(int*)(a1+40) <= 0 → return 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国，`sub_1406CFCB0` 取科研视图"
+     "exec_sem": "`sub_140BB4390(+40)` 取国，`sub_1406CFCB0` 取科研视图",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 13259,
@@ -50122,7 +50195,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -50132,7 +50205,8 @@
      "type_biz": "tag_id",
      "gate_sem": "`> 0` 门（IsValid `*(int*)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国 v27 → +3944 = 该国营建队列，供 `sub_140E60B10` 排营建"
+     "exec_sem": "`sub_140BB4390(+40)` 取国 v27 → +3944 = 该国营建队列，供 `sub_140E60B10` 排营建",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10304,
@@ -50230,7 +50304,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -50240,7 +50314,8 @@
      "type_biz": "tag_id",
      "gate_sem": "`> 0` 门（IsValid `*v4 <= 0 → return 0`）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB4390(+40)` 取国 → `sub_1406CF380` 取补给管理器 v3"
+     "exec_sem": "`sub_140BB4390(+40)` 取国 → `sub_1406CF380` 取补给管理器 v3",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10304,
@@ -51204,7 +51279,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -51214,7 +51289,8 @@
      "type_biz": "tag_id(token 10394=country)",
      "gate_sem": "IsValid `*(int*)(+40) <= 0` 即报 `\"#~ invalid country tag\"` 返 0（正数门）",
      "conf": "定案",
-     "exec_sem": "`sub_140BB48F0(+40)` 取国 → `sub_1406CF0E0` 取该国 AI"
+     "exec_sem": "`sub_140BB48F0(+40)` 取国 → `sub_1406CF0E0` 取该国 AI",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 10304,
@@ -51271,7 +51347,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -51281,7 +51357,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0 门（IsValid：`a1[10] <= 0` → \"#~ invalid country tag\"）",
      "conf": "定案",
-     "exec_sem": "经 sub_140BB48F0→sub_1406CF0E0 解出国家 AI v2，再 sub_1402A8350 取战略 AI"
+     "exec_sem": "经 sub_140BB48F0→sub_1406CF0E0 解出国家 AI v2，再 sub_1402A8350 取战略 AI",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 19846,
@@ -52268,7 +52345,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -52278,7 +52355,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0 门（IsValid：`*(int *)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "经 sub_140BB5490(+40) 得国槽下标 v6，校验 gs+1688 国槽管理器条目后执行"
+     "exec_sem": "经 sub_140BB5490(+40) 得国槽下标 v6，校验 gs+1688 国槽管理器条目后执行",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 27,
@@ -52389,7 +52467,7 @@
      "token": 10394,
      "name": "country",
      "offset": 40,
-     "type": "str 32B",
+     "type": "u32 tag",
      "cls": null,
      "count": null,
      "sem": "写串",
@@ -52399,7 +52477,8 @@
      "type_biz": "tag_id",
      "gate_sem": ">0 门（IsValid：`*(int *)(a1+40) > 0`）",
      "conf": "定案",
-     "exec_sem": "经 sub_140BB5490(a1+5) 得国槽下标 v7，校验 gs+1688 国槽管理器"
+     "exec_sem": "经 sub_140BB5490(a1+5) 得国槽下标 v7，校验 gs+1688 国槽管理器",
+     "note": "活体修正: sub_140BB4E70 写 tag 表串指针, 载荷本形 = u32 tag id (2026-09-27 活体抽查)"
     },
     {
      "token": 27,

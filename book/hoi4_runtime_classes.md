@@ -288,10 +288,19 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
+| +36 | f32 (推定) | 帧时长 EMA (槽[29] 帧尾更新) | §4.28.14 帧渲染槽对 |
+| +64 | f32 (推定) | 本帧耗时 (sub_1401F7F80 掐表) | 同上 |
+| +1264 | 指针 | 渲染管理器 (槽[28]/[29] 渲染链消费) | 同上 |
+| +1457 | uint8 | 遮罩/输入联动边沿缓存 | 同上 |
 | +1680 | uint8 | 子对象 A 旗 (写者 = 槽 [91] 体首行) | **非暂停旗**; 与 +1681 成对 |
-| +1681 | uint8 | 子对象 A 伴随位 (仅 `state==0` 时清) | 同上 |
+| +1681 | uint8 | 子对象 A 伴随位 (仅 `state==0` 时清) | 同上; 兼 **AUTOSAVING 横幅门** (槽[29] 段 8) |
+| +1713 | uint8 | 框选态 (槽[29] 段 4 门) | 同上 |
 | +1729 | uint8 | **暂停旗** (1=暂停/小时冻结, 0=走表) | 权威判据; 直写即时生效 |
 | +1731 | uint8 | 连按 pending 伴随位 | 读档后可被引擎置位 → 暂停设值短路; 清 0 解除 |
+| +1764 | uint32 (推定) | 框选点 1 | 槽[29] 段 4 |
+| +1768 | uint32 (推定) | 框选点 2 | 同上 |
+| +2073 | uint8 | 截图完成一次性旗 (横幅后帧尾清) | dword_14333CF70 保显倒计数 |
+| +2080 | uint8 | 存图完成一次性旗 (同上) | dword_14333CF74 保显倒计数 |
 
 | 槽 (vt 偏移) | 函数 | 字段与语义 | 引擎调用链 |
 |---|---|---|---|
@@ -310,10 +319,12 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 
 | gs 偏移 | 管理器 | 对应 API |
 |---|---|---|
-| +16 | 匿名结构 (NNB 形状) | top_meta 各行在其内部 |
-| +48 | ironman 比对串 + 旗 (loader 11539: 读串比对, 不符则 +192 清 bit0) | top_meta |
-| +152 | **CGameDate#0 载入快照** (hours@+152, vt2@+160; CPersistent 基类成员) | top_meta ⚠ 非当前日期, 见下注 |
-| +192 | uint8 (bit0 = **ironman 旗**; §4.1.1 位域旗行) | top_meta |
+| +0 | vt1 (CGameState 主虚表 = CPersistent@0 序列化槽: [2] writer sub_1401F29A0 / [4] loader sub_1401E59D0) | — |
+| +8 | vt2 (CProvinceProvider@8 省查询接口子虚表, RTTI 定名) | — |
+| +16 | 存档头元数据对象 (NNB, 224B; ctor sub_140BC0880/07B0; 布局详 §4.1.4a) | top_meta 各行在其内部 |
+| +48 | ironman 存档名 (MSVC 串 {buf@48, size@64, cap@72}; = 存档头键 ironman 值 + 文件名基名; loader 比对不符 → +192 清 bit0) | top_meta |
+| +144 | **CGameDate#0 载入快照** 24B {vt1@144, hours@152, vt2@160} (= gs+16 元数据对象成员; CGameDate = CGregorianDate@0+CDate@8+CPersistent@16, vt2 = 序列化基; 仅读档路径写 hours) | top_meta ⚠ 非当前日期, 见下注 |
+| +192 | uint32 位域 (bit0 = **ironman/成就门** (名比对, 非 checksum); bit1 = 多人局; bit2 = cooperative_game; bit3 = tutorial; 清位者另含控制台 "ironman off" sub_140248770 与无 playstream 时 sub_14163DA10) | top_meta |
 | +240 | uint8 (ctor 置 1 旗; 未名) | top_meta |
 | +248 | 未名 (ctor 零) | top_meta |
 | +256 | 未名 (ctor 零) | top_meta |

@@ -77,8 +77,18 @@ static uint64_t ca_addr(lua_State *Ls, int n) {
 // bridge-internal addresses are unreachable from Lua. All in-corpus callers
 // use BASE+<RVA> engine addresses, which pass unchanged.
 static int call_domain_refused(lua_State *Ls, const char *api, uint64_t addr) {
-    L("[call] %s refused: %llx outside engine exec sections", api,
-      (unsigned long long)addr);
+    unsigned long sup = 0;
+    if (log_throttle(api, 1000, &sup)) {
+        char src[160]; int line = 0;
+        audit_attribute(Ls, src, sizeof(src), &line);
+        char who[224];
+        if (src[0]) snprintf(who, sizeof(who), " lua=%s:%d", src, line);
+        else who[0] = 0;
+        if (sup) L("[call] %s refused: %llx outside engine exec sections%s (+%lu suppressed)",
+                   api, (unsigned long long)addr, who, sup);
+        else     L("[call] %s refused: %llx outside engine exec sections%s",
+                   api, (unsigned long long)addr, who);
+    }
     audit_mem_deny(Ls, "call", addr, "outside engine exec sections");
     return 0;
 }

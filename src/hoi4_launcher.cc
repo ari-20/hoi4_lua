@@ -1,4 +1,4 @@
-// hoi4_launcher.cpp — deterministic early injection:
+// hoi4_launcher.cc — deterministic early injection:
 // CreateProcess(CREATE_SUSPENDED) -> QueueUserAPC(LoadLibraryW) -> ResumeThread.
 // The DLL is loaded and hooks installed BEFORE any game/mod file parsing runs,
 // independent of machine speed. This replaces the timing-based 8s sleep hack.
@@ -471,7 +471,7 @@ static void sync_dlc_load(const wchar_t *userDir, const wchar_t *saveName) {
                                           count ? ",\n" : "", p8);
                 count++;
             } else {
-                wprintf(L"[mods] save mod not matched: %.*s\n",
+                wprintf(L"[mods] save mod not matched: %.*hs\n",
                         (int)k, nameA);
             }
             listed++;

@@ -174,20 +174,31 @@ CCountryView 成员锚:
 | Naval +6840 | Naval 专用锚 | — |
 | Naval +6912 | Naval 专用锚 | [11] SetTarget 写 a2+200 |
 
-CInGameUpdateableInterface (0x142A41C20, 10 槽) 虚表槽表:
+CInGameUpdateableInterface (0x142A41C20, 10 槽) 虚表槽表 (基类桩 + **派发侧语义**, 定案):
 
-| 槽 | 函数 | 语义 |
+| 槽 | 基类 | 派发侧语义 (sub_140B68600 "interface.tick" 逐层无门直调) |
 |---|---|---|
 | [0] | — | 析构 |
-| [1] | — | 断言桩 "Override this function before using!" (updateableinterface.cpp L37-67) |
-| [2] | — | 断言桩 (同 [1]) |
-| [3] | — | 断言桩 (同 [1]) |
-| [4] | — | 断言桩 (同 [1]) |
-| [5] | — | 断言桩 (同 [1]) |
-| [6] | — | 断言桩 (同 [1]; 视图覆写 = 全量刷新) |
-| [7] | — | 断言桩 (同 [1]; 视图覆写 = 逐帧 Update) |
-| [8] | 0X141237590 (共享) | IsOpenAndVisible 转发 (调主 vt[5]) |
-| [9] | — | **Repopulate** (纯虚) |
+| [1] | 断言桩 "Override this function before using!" (updateableinterface.cpp L37-67) | **年** 动作 (无门) |
+| [2] | 断言桩 (同 [1]) | **5 月** 动作 (无门) |
+| [3] | 断言桩 (同 [1]) | **月** 动作 |
+| [4] | 断言桩 (同 [1]) | **周** 动作 |
+| [5] | 断言桩 (同 [1]) | **日** 动作 |
+| [6] | 断言桩 (同 [1]; 视图覆写 = 全量刷新) | **时** 动作 (经 vt[8] 门) |
+| [7] | 断言桩 (同 [1]; 视图覆写 = 逐帧 Update) | **每帧** 动作 (bit0 层, 无门) |
+| [8] | 0X141237590 (共享) | IsOpenAndVisible 转发 (调主 vt[5]); 兼**时层派发门** |
+| [9] | — | **Repopulate** (纯虚) = 脏重建 (脏标在 iface+20) |
+
+> **interface.tick 中央派发** (定案): sub_140B68600 (体首 profiler 字面量 "interface.tick") —
+> mgr (= idler+1720 大视图对象) 七层注册列表 (begin@+144/+120/+96/+72/+48/+24/+0,
+> 条目 = 8B 裸接口子对象指针) 按 iface+16 七位层掩码逐层遍历, 逐项 `entry->vt[槽](entry)`
+> 无门直调; 另 mgr+200 = 23 固定槽视图数组 (换国 vt[6] / 帧尾脏标 vt[9])。
+> 遍历函数由 CInGameIdler::Idle (0x140DD3A50) **直调** (xref 唯一) — 与渲染链
+> (DDDDF0 → 223D2C0, §4.28.14) 并列, 不经渲染路径。
+> 注册/退订三件: sub_1412362A0 (win+48, mgr, 层掩码) / sub_141236820 (按 7 位掩码逐层
+> push_back, bit0 带去重) / sub_141236330 (镜像退订); CTopBar ctor 0x14188FDC0 以
+> 掩码 0x17 (每帧+时+日+月) 注册。⚠ win+23448 = CTopBar 本地子 widget 启停表
+> (旗字节 + vector, 消费 sub_14189EEB0 逐 widget +228 bit7 广播), **非**中央注册表。
 
 > 视图 @48 子对象只覆写 [6] (全量刷新) / [7] (逐帧 Update) / [9]。
 
@@ -434,6 +445,23 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 
 - 附注: 事件 scope 对象另有 id 对容器 {data@+8, count@+20} (子效果解引用; §4.12.6 CSavedEventTarget 112B 元)。
 - 附注: scope 侧位场 =+36 u32 作用域键位图 (this/root/prev/from/owner/controller/occupied/capital/random/0x400 已处理 + event_target tag u16@+40) — 与 §4.00.3 [6] Parse 行一致。
+- 附注 (定案, 函数族): 本表对象 = **CEventScope** (CCountry +16 内嵌 176B 件同体, vt 见主 md 类树);
+  函数族全在 0x53 区 — **拷贝构造 sub_140534F00** (置 vftable+默认值后经 sub_140535FD0 拷全部
+  载荷并克隆 +160 块) / **默认根构造 sub_140535110** (root/from/prev = 自指根哨兵) /
+  **析构 sub_140535820** (+48/+56/+64 三引用计数对象虚调释放 + 销毁 +160 块) /
+  **SetCountry sub_14053A610** (写 +8; clear=1 先 sub_140BD00 全清) / **SetState sub_14053B5F0**
+  (写 +168) / **Clear sub_14053BD00** (+8=none tag、+72..+168 清哨兵, 保 root/from/prev 与 +160 块) /
+  writer 0X14053BDA0 (§4.3.23 同锚)。sub_140535815 **非函数** = `add rsp,20h; pop rbx; ret`
+  共享 epilogue (MSVC 单列 .pdata), 火焰热度实归 sub_1405357E8 (+160 saved_event_target 块 finalize)。
+- 附注 (高置信, 运行时形态): +48/+56/+64 = 引用计数对象槽 (书原"未名 runtime-only"定性收窄);
+  +80..+155 运行时形态 = 引用指针**或**哨兵 qword_14333D528 (= 0x02DF8CA0_0005EA66) —
+  writer 侧 id 对为派生形态; +96 combatant 槽 ctor 清 0 与"永不持久化"断言互证;
+  +160 = 0x30B 堆节点双容器 (112B 元素 ×2)。
+- 附注 (定案, 链路): 事件选项执行 (§4.33.18) 本体零族内调用 — 内嵌 scope 块只作指针传入;
+  scope 的构造/填充/析构全发生在派发侧 (双国版 sub_14066B0D0 / 国家+州描述符版
+  sub_1407386A0, eventscope.h:193 无限 FROM 环断言); 入队后消费路径未决。
+  另 sub_140BB3E00 与 sub_140BB3E72 = gamestate.h:1126 国家索引规范化的**代码克隆对**
+  (同断言/同 guard/四条独立证据), 火焰热度为同一逻辑函数机械分摊。
 
 #### 4.00.5 基类普查与工具法
 

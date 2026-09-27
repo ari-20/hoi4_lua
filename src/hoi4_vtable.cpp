@@ -230,10 +230,17 @@ static uint64_t __fastcall TEval(void *self, void *ctx, void *r8, void *r9) {
     const char *fn = bind_lookup(self);
     if (fn) {
         int b = lua_call_trigger(fn, self, (uint64_t)(uintptr_t)ctx);
-        L("[trigger] TRIGGER '%s' eval -> %d", fn, b);
+        // Per-repaint trace: the GUI re-evaluates decision visibility every
+        // frame, so this fires at 200-300 lines/s. Gated behind the stricter
+        // verbose opt-in (-verbose / HOI4_DLL_VERBOSE=1), NOT plain -debug.
+        if (dll_verbose_mode()) L("[trigger] TRIGGER '%s' eval -> %d", fn, b);
         return (uint64_t)(unsigned char)b;
     }
-    L("[trigger] EVAL bind miss — returning false (conservative)");
+    unsigned long sup = 0;
+    if (log_throttle(&TEval, 1000, &sup)) {
+        if (sup) L("[trigger] EVAL bind miss (+%lu suppressed) — returning false", sup);
+        else     L("[trigger] EVAL bind miss — returning false (conservative)");
+    }
     return 0;
 }
 

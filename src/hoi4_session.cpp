@@ -221,6 +221,23 @@ static void session_call_lua(lua_State *Ls, const char *fn) {
     }
 }
 
+// Same, with one boolean argument: fn(in_game). Scripts written against the
+// 0-arg contract simply ignore it (Lua drops extra call args).
+static void session_call_lua_bool(lua_State *Ls, const char *fn, int b) {
+    if (!Ls) return;
+    lua_getglobal(Ls, fn);
+    if (lua_isfunction(Ls, -1)) {
+        lua_pushboolean(Ls, b);
+        if (lua_pcall(Ls, 1, 0, 0) != LUA_OK) {
+            L("[session] %s error: %s", fn,
+              lua_tostring(Ls, -1) ? lua_tostring(Ls, -1) : "?");
+            lua_pop(Ls, 1);
+        }
+    } else {
+        lua_pop(Ls, 1);
+    }
+}
+
 // frame-top consumer (g_luaLock held, main thread, shallow stack). Events
 // raised during a load coalesce here into ONE end+start dispatch.
 // in_game_frame: which idler is dispatching — the FE twin hook (menu /
@@ -265,6 +282,13 @@ void session_dispatch_locked(lua_State *Ls, int in_game_frame) {
         }
         L("[session] dispatch on_session_start");
         http_push_event("session_start", NULL);
-        session_call_lua(Ls, "__hoi4_on_session_start");
+        // Hook contract: __hoi4_on_session_start(in_game) — in_game=1 for the
+        // in-game-frame dispatch (world exists: load finished / new game built),
+        // 0 for the menu-frame twin (world not built yet or already gone).
+        // Restoring persisted knobs from global flags must happen ONLY on
+        // in_game=1: a new world's build calls into the supply system, and
+        // swallowing those calls before the runtime tables exist crashes
+        // (2026-09-26 t93 crash, archive/t93_crash/).
+        session_call_lua_bool(Ls, "__hoi4_on_session_start", in_game_frame);
     }
 }
