@@ -451,7 +451,8 @@ CLandCombat 0x1429A83D8 / CNavalCombat 0x1429DDB08 / CLandBorderWarCombat 0x1429
 
 | 步 | 内容 |
 |---|---|
-| 1 | 并行逐 SA → 逐池 → 逐翼: 任务指派/换任务 (sub_140F68040) + **CAirWing::HourlyUpdate (sub_140F62750, airwing.cpp:1596)** |
+| 1 | 并行逐 SA → 逐池 → 逐翼: 任务指派/换任务 (sub_140F68040) + **CAirWing::HourlyUpdate (sub_140F62750, airwing.cpp:1596)** 十段: 任务 roll (lambda_1 sub_140C49E80: roll sub_140F7A420/7ACC0/796E0, SetMission/不可达清 0) → 0x400 无效任务取消 → 机数缓存重算 → 目标省表填充 (sub_141012F80, AA+航程过滤) → 空投三步 → 部署计时 → 转移推进 sub_140F64B70 → 待除名翼推入 sa+112 → 训练/经验 → combat 统计 |
+| 2 | **HourlyUpdateThreadedInternal (sub_140C58660)**: 5 段内部 parallel_for over CAirUpdateCache — 确定性空战/效能解决核心 (cc+1464 修正查表 + 区域战斗数据; lambda_1..4 = sub_140C49E80/sub_140C67840/sub_140C4A2F0/sub_140C4A6F0 + sub_140C4AA70) |
 | 2 | **HourlyUpdateThreadedInternal (sub_140C58660)**: 5 段内部 parallel_for over CAirUpdateCache — 确定性空战/效能解决核心 (cc+1464 修正查表 + 区域战斗数据); 并行 lambda 簇 10 函数 (sub_140C443C0/C44980/C44DD0/C450B0/C45AC0/C466D0/C46EA0/C47420/C476B0/C44C60/C44F40, 体嵌符号串直证; lambda_1 tbb 分裂体 = sub_140C46030); 缓存形态 = 160B 网格行距 + byte+154 布尔格 + a1+320 分布表 24B 行距 |
 | 3-4 | gs+2536 region→兵力树前置; 逐 SA 待查翼列表 = **每小时翼解散清扫** (无机无人 → 装备退还 cc+3944 生产库存 + ace 回收; 空池删除) |
 | 5 | per-state/region 数据并行重建 |

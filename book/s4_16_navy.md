@@ -56,8 +56,8 @@ CUnit::Serialize 0X140C06540; 运行时偏移 tf = writer+16; **行序 = writer
 | ship (10400) | tf+852 | ship 容器计数 | c>0 | |
 | mission (11450) | tf+864 | 代理对象 | 恒写 | |
 | repair_mode (13593) | tf+1124 | u32 | 恒写 | |
-| underway_replenishment (16427) | tf+1128 | u8 | 恒写 | |
-| convoys (12386) | tf+1136 | 对象 | underway_replenishment≠0 | |
+| underway_replenishment (16427) | tf+1128 | u8 | 恒写  开关 setter (tf 基): 关 → 退订 sub_141022A70(tf+1136); 开 → Init(tf+1136, country, 128, UNDERWAY_REPLENISHMENT_PRIORITY); 小时维持 sub_140D69090: tf+1128 ∧ ¬sub_1406DFDA0(country+1731 旗) → 自动关; 需求 = ceil(24×IN_COMBAT_FUEL_COST(2.0)×(FUEL_COST_MULT×tf 小时燃料消耗/1e5)/1e5×UNDERWAY_REPLENISHMENT_CONVOY_COST_PER_FUEL(0.28)×(1+modifier(637))) — 按日燃料消耗折算; **收益仅射程** (sub_140D66F90: 射程比 × (0.4×(1+modifier(636)))), 不补燃料/组织度||
+| convoys (12386) | tf+1136 | CConvoySubscriber 内嵌 | underway_replenishment≠0 | |
 | — (15171 = set_task_force_composition_requirements 命令名, 非存档键) | tf+1336 | **CTaskForceComposition 内嵌 104B** (RTTI 实名; vt 0x142973300; 布局见后表) | 非独立键 — 由 tf+1328 对象 writer 0x14198C060 经子键 15166 requirements 发出 | 定案 |
 | repair_child (13594) | tf+1176 | 8B 行内 idpair 数组 — 容器数据 | c 循环 | |
 | repair_child (13594) | tf+1188 | repair_child 容器计数 | c 循环 | |
@@ -128,7 +128,7 @@ requested 公式 = MISSION_COST × (FUEL_COST_MULT(0.10) × Σ舰用量缓存/1e
 | AI 节约模式 | sub_1406690D0 | 三 define 门 (比 ≤ FUEL_RATIO_TO_EXIST_FUEL_SAVING_MODE 等); 状态存 a1+8928; 和平期预算帽 sub_141A69920 |
 
 is_sea_locked (tf+1270) 与燃料**无关联**: 唯一写点 = sub_140D705F0 海锁恢复块 `tf+1270 = (tf+524 ≤ 0)`, 纯海路可达性; auto_reinforcement (tf+1271) 同无燃料联动。
-detached_activity 状态设置器 = sub_140D731A0 (taskforce.cpp:6079 断言): 联写 tf+1208/1216/1224/1240; 迁移写点 = 1 repairing sub_140DA0E40 (入基地修理队列) / 2 moving_to_refit sub_140D72F10 / 3 refitting sub_140D78F10 (分裂) + sub_140D705F0 在港完成块 (上改装线 sub_140C3D720, repair_parent 有效则 sub_140D76B00 合并) / 4 reinforcing sub_140FB6C70 / 0 完结多处。**状态迁移无燃料门** (唯一交集 = 修理/改装期在港自然落 ON_BASE_FUEL_COST 0.0)。
+detached_activity 状态设置器 = sub_140D731A0 (taskforce.cpp:6079 断言): 联写 tf+1208/1216/1224/1240; 迁移写点 = 1 repairing = 分舰链 sub_140D72580(activity=1) (调用者 sub_140D77FF0 沉船总入口/sub_140D77900; sub_140DA0E40 属铁路炮域非 TF, 勘误) / 2 moving_to_refit sub_140D72F10 / 3 refitting sub_140D78F10 (分裂) + sub_140D705F0 在港完成块 (上改装线 sub_140C3D720, repair_parent 有效则 sub_140D76B00 合并) / 4 reinforcing sub_140FB6C70 / 0 完结多处。**状态迁移无燃料门** (唯一交集 = 修理/改装期在港自然落 ON_BASE_FUEL_COST 0.0)。
 
 **CTaskForceComposition** (RTTI 实名; vt 0x142973300; sizeof 104B; CPersistent 族; writer 0x14198B970 / reader 0x14198B630; ctor 0x14198A7A0):
 
@@ -182,7 +182,7 @@ CShip 键表 (writer 0X140C3E6C0 直证清单; **行序 = writer 发射序落盘
 | equipment (12110) | +64 | 代理 (idpair 族) | 恒写 | **GUI: ShipStats 装备定义行** (+64 池 → 池+1008 def 可见门; sub_141BEF820) |
 | strength (10406) | +1784 | i64 fixed5 | 恒写 | |
 | organisation (11979) | +1792 | i64 fixed5 | 恒写 | |
-| experience (11930) | +1800 | i64 fixed5 | ≠0 | |
+| experience (11930) | +1800 | i64 fixed5 | ≠0 | 本级进度 (sub_140C31840 得经验, 钳 ≤ +1808 下级所需); +2048 = 经验脏旗  |
 | refit_production_line (15234) | +1848 | 行内 idpair — type | 任一≠0 且有效 | |
 | refit_production_line (15234) | +1852 | 行内 idpair — id | 任一≠0 且有效 | |
 | government_in_exile_tag (15034) | +2052 | tag (BA5C20→串) | >0 | **GUI: 流亡/可见谓词** (+1576 旗 + +64 池旗 + define 15 门; sub_140C33A50) |
@@ -232,7 +232,7 @@ CShip/CTaskForce GUI 消费表:
 | bombardment_region | +144/+156 | map 容器 {d@+144, count@+156}, 16B 元 {region ptr@+0 → id@ptr+88, val u32@+8}; 门 count≠0; 写序 = 容器序 (非 id 升序); 提取器: 首对 region 进键名, 余对 " k=v" 拼进值 |
 | hours_without_patrol_missions_pairs | +48 | RH 表 (24B 桶 {dist u8@+4, region ptr@+8 → id@+88, hours u32@+16}, mask u32@+12, maxp u8@+16); 多 region 折单行 — 首对 region 进键名, 后续 " region=hours" 追加进值 (逐 region 多行 = 假 MISS) |
 
-候选新偏移 fl+24/+44/+56/+196 (未决)。
+fl+24 = 类型标签 (11 基类 vt, CFleet ctor sub_140D503D0 定案) / fl+44 = 容器 cap / fl+56 = RH count / fl+196 = TF 计数 — 候选偏移全部定案。
 
 CFleet/舰队视图 GUI 消费表:
 
@@ -316,7 +316,7 @@ general 线特化)。
 | +328 | 容器 24B | **task_force_templates** {d@328, cap@336, c@340, alloc@344} — **136B 内联元** {name MSVC 串@+0 (token 27), composition_requirements 多态对象@+32 (token 15168)} | 块 token 15175 task_force_template | loader: name 空或 composition 无效不入容器 |
 | +340 | u32 | task_force_templates **容器计数** | | |
 | +341..+351 | — | = templates 容器尾 {alloc@+344}  |  |  |
-| +352 | RH 结构基 | convoy_escort_presence_history RH **结构基 @+352** (loader 插入点 = a1+344 ser; struct+0 8B 未名, data@+360=struct+8, mask@struct+20=+372, extra@struct+24=+376; 条目 40B 见 §4.16.11) |  |  |
+| +352 | RH 结构基 | convoy_escort_presence_history RH **结构基 @+352** (loader 插入点 = a1+344 ser; struct+0 = 四面无读者死槽 (负定案), data@+360=struct+8, mask@struct+20=+372, extra@struct+24=+376; 条目 40B 见 §4.16.11) |  |  |
 | +361..+371 | — | = RH 结构体内  |  |  |
 | +372 | u32 | convoy_escort_presence_history RH mask | | |
 | +376 | u8 | convoy_escort_presence_history RH extra | | |
@@ -412,6 +412,22 @@ modify_building_resources 内层元 (16B):
 
 resources 叶名 `<building>.<level>`。
 
+#### 4.16.7b CConvoySubscriber 与运输船管理器 (country+4608)
+
+**CConvoySubscriber** (40B, vt 0x14295c0f0) 内嵌三处: css+232 / tf+1136 / CNavalUnitTransfer+136; 另有轻客户端 (CEquipmentConvoyClient 族) 内嵌 +8/+32/+136 小宿主。
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +8 | u32 | allocated (已分得运输船数) |
+| +12 | u32 | requested (申请数; RequestConvoys sub_141022950 写) |
+| +16 | u32 | 静态标签 (Init 第 3 参: 2/4/32/128; 分配面不读) |
+| +24 | CCountry* | 订阅宿主国 |
+| +32 | 桶指针 | 所属优先级桶 (订阅时回填) |
+
+订阅链: Init sub_141021F90 (convoys.cpp:29 断言; 旧国非空先退订, requested/allocated **保值重订阅**) → 订阅 sub_1410207D0 (按**优先级键**二分定位/建桶, 桶 40B {键, Σallocated, Σrequested, 订阅者数组, cap, count, allocator} 按键升序插入, 订阅者尾插 1.5× 扩容, 三面聚合同步); 退订 sub_1410227F0 (聚合反减; 桶仅剩 1 人整桶释放, 否则桶内 swap-remove; sub+8/+12 清零; 尾调 sub_1410215C0 全量再平衡)。优先级键 = define 值: NAVAL_INVASION/NAVAL_TRANSFER(1) / SUPPLY(2) / RESOURCE_LENDLEASE(3) / RESOURCE_EXPORT(4) / RESOURCE_ORIGIN(5) / RESOURCE_PURCHASE(6) / UNDERWAY_REPLENISHMENT(7) — **值大 = 优先级低** (桶升序, 缺口回剥从数组尾开始)。分配 = RequestConvoys 即时分派, 缺口时从最低优先级桶整段剥除后顺位重填; **沉船反应** = sub_1410225E0 扣池后按阈值触发同一回剥 (convoys.cpp:437/612/53 断言族)。
+
+管理器 (country+4608): {+16 池对容器头 {data@+48, cap@+56, count@+60, alloc@+64} 16B 元 {CResource*, amount i64 fixed5}, +80 桶指针数组 data / +92 count, +104 Σrequested, +108 Σallocated, +112 运输船变体资源缓存 (sub_141021920, 从 country+3944 资源数组取首个 flag&1 项), +120 池缓存有效旗, +128 池缓存 fixed5}。池读 = sub_14100DCB0 (Σ flag(resource+1032)&1 的 amount); 可用 = sub_1402BC910 (池/1e5); 空闲 = sub_1402BC8A0 (池/1e5 − Σallocated); 指定优先级以下已占 = sub_141021C20。css 日重建 = sub_141230D40; 贸易路线申请点 = lambda_2 sub_141225420。
+
 #### 4.16.8 CNavalBase
 
 CNavalBase (vtable 0X29731C0):
@@ -430,6 +446,8 @@ CNavalBase (vtable 0X29731C0):
 | +64 | string | **disabled_for_repairs 串列表** 容器数据 (token 0x3C4A = 15434, writer 直证); count@+76 |
 | +65..+75 | — | = disabled_for_repairs 容器尾  |
 | +76 | u32 | disabled_for_repairs 串列表容器计数 (⚠ CNavalBase+392 = owner tag u32, 与 CStrategicNavy+392 容器跨类同偏移并存, 勿混) |
+修理链: 入队 sub_140EAB160 (本国优先 + repair_mode 降序) + 插入位规则 sub_140EA4EE0; 队列小时处理 sub_140EA1280 + 交战门 sub_140EA10E0; 速率 = sub_140D655B0 (NAVALBASE_REPAIR_MULT × modifier 475 × 基地系数, **补给门**用 calc+184 _RemainingSupply)。
+
 
 #### 4.16.9 CNavalAccidentReport (72B)
 
@@ -478,6 +496,9 @@ cc → 水雷管理器 → 元 {+176/+188} → 子 {+184} → 表 {data@+112, co
 | +16 | 环形缓冲 | value 内嵌 {buf@+16, capacity@+24, head@+28, tail@+32} | 元素 uint32 (0/1); 落盘 = head..tail 环形展开 (count = tail<head ? capacity+tail−head : tail−head; 满载 capacity−1; ⚠ 线性读法读出槽外垃圾) |
 
 #### 4.16.12 NNavalMission::EMissionType 枚举与 AI 侧任务写点 (A6 锚)
+
+**任务调度与状态机** (定案): 调度 = master update 阶段 9 → sub_140EA79F0 平铺 gs 侧 S+272 任务 parallel_for (mem_fn = sub_140FBE250 域量重算) + TF 侧 sub_140D705F0 → sub_140D7A460 战备门 → 状态机 sub_140FBCB90 (navalmission.cpp:1323/1437/1452/5043); 10 类分派 = 巡逻接敌清目标 / strike 战备门+移动接敌 / 布雷速度与上限公式 / reserve 自动恢复 / invasion 支援区域追踪; 24h 日 tick = 侦查积累 + SNavalUnitActivityData 统计。mission 对象新增字段 (详 findings): +24/+32/+48/+52/+60/+64/+68/+96/+108/+112/+168/+200/+212/+232/+240 区 — 侦查/接敌/目标域运行时态。
+
 
 枚举表 (名→id 映射表 sub_140660F20 定案):
 

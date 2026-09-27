@@ -32,7 +32,7 @@ gs+1864 = **region 数组计数** (BHU 3,789), 非省数 (定案)。
 | +184 | 省静态描述符* | 静态描述符桥 | → CMap+616 省静态描述符 (见 4.14.3) | |
 | +192 | CState* | **_pState 州回指** (断言原文 `_pState`; writer 以 *(X+200) 作 tag 比较 (CState+200=owner) + CState::SetOwner 链 + GetName 州名回退 + StateView SetTarget +1416 直存此值 + Refresh 比对链 *(prov+192) 解引用, 多源互证) | 默认控制者 = 其 +200 owner | |
 | +200 | CStrategicRegion* | **无州省名源对象 = 战略区指针** (GetName: 无州且 +200≠0 → 其内嵌串, 为空 → "PROV<id>"); **其 +88/+96 双存区数字 id** (探针全 276 区逐一对值恒相同; writer 写 +96, 消费端 +88/+96 双读皆通; 旧「当前天气 id」误 — 天气链实为 **区 id → gs+1672 天气管理器查键**) | 探针 vt 0X296D558 直证; GUI: 天气修正 tooltip | |
-| +208 | 匿名结构* | theatre 隶属查询键 (值即 country+360 theatres 各 theatre+24 数组元素; sub_140E7D690 比对找回所属 theatre; theatre 对象 +60 = 排序键 int, is_in_home_area 按 +60 最大选首都 theatre — 推定) | | 不序列化 (高置信/推定) |
+| +208 | 匿名结构* | **面/战区节点** (面级寻路 A* sub_140CF3B20 消费, +40 = 面首省; 兼 theatre 隶属查询键: 值即 country+360 theatres 各 theatre+24 数组元素; sub_140E7D690 比对找回所属 theatre; theatre 对象 +60 = 排序键 int, is_in_home_area 按 +60 最大选首都 theatre — 推定) | | 不序列化 (高置信/推定) |
 | +216 | COwnerArea* | owner area 回指 (supply 系统; setter sub_140E810E0, 写入对象带 `&COwnerArea::vftable` RTTI 直读) | | 不序列化 |
 | +224 | 容器 24B | **在场单位本体数组** {data@+224, cap@+232, count@+236, alloc@+240} — 8B 元全类型 (AddUnit sub_140E79B10 首支恒插; combatmanager 遍历建战斗) | | 不序列化 |
 | +248 | 容器 24B | type==1 (海军) 单位子对象数组 {data@+248, cap@+256, count@+260, alloc@+264} (陆省无港断言 "Trying to move navy to land province with no port!") | | 不序列化 |
@@ -115,7 +115,7 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +20 | u8 | 脏/待重建旗 (CProvince vt 槽[12] sub_140E7EE30 置 1) | 高置信 |
-| +112 | 匿名结构 (48B 形状) 向量 | **邻接表** {data@+112, count@+124} — 48B 条, 邻省 id u32@条+8 (断言 "…over 256 neighbors", 界 255; 湖泊自动控制者 sub_140E7FCA0 遍历) | 定案 |
+| +112 | 匿名结构 (48B 形状) 向量 | **邻接表** {data@+112, count@+124} — 48B 条, 邻省 id u32@条+8 (断言 "…over 256 neighbors", 界 255; 湖泊自动控制者 sub_140E7FCA0 遍历; 省级寻路 A* sub_140E2BDF0 消费; 海峡封锁判定 sub_140E2B7D0) | 定案 |
 | +152 | 匿名结构* | **必需规则对象** (≠0 → GUI province_required_rule 图标显示; 消费 sub_14174C500) | 高置信 |
 | +168 | 匿名结构* | **地形 def 指针** (名 SSO@def+24; 两处独立读法拼 terrain_picture/取 TYPE) | 定案 (消费形态) / 推定 (正名) |
 | +196 | u32 | 省 id (prov+164 = *(desc+196) 互证) | |

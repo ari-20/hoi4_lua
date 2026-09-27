@@ -204,7 +204,7 @@ vt 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏�
 | +268 | uint32 | area_defense_state_assignment 容器计数 | |
 | +280 | uint8 | blitz — 真时附加 blitz_provinces (下方 +800) | 门 u8 真 → AE850; tok 14028/0x36CC |
 | +281 | uint8 | withdraw — 真时附加 withdraw_lines (下方 +856) | 门 u8 真; tok 14572/0x38EC |
-| +282 | uint8 | route_is_ok — 每 update 由 sub_141036640 计算 (type3→sub_141037DE0 / type4→sub_141038200 / 其他恒 1; 断言 "Updated == false" orderinstance.cpp:3270) | 真才写; tok 14647 |
+| +282 | uint8 | route_is_ok — 每 update 由 sub_141036640 计算: type3 海军入侵 sub_141037DE0 (错误键 NO_UNITS_ASSIGNED_TO_ORDER / NAVAL_INVASION_NOT_REACHED_START → 通用 sub_14103CA80) / **type4 = 空降** sub_141038200 (战略区兼空域 prov+200 航线 sub_141024800 + 逐成员制空比 ≥ NAir.PARADROP_AIR_SUPERIORITY_RATIO, 消费面 AIR_INVASION_PLAN_CAP_REACHED) / 其他恒 1; 断言 "Updated == false" orderinstance.cpp:3270 | 真才写; tok 14647 |
 | +288 | SSO 串 | operation {buf@+288, size 区@+304} (锚 "o_fall_rot") | 门 qword@+304≠0 (**无 readonly 门**); tok 12059/0x2F1B |
 | +320 | SSO 串 | first | 门 qword@+336≠0; tok 10462/0x28DE |
 | +352 | SSO 串 | second | 门 qword@+368≠0; tok 10463/0x28DF |

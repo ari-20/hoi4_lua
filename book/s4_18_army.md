@@ -81,7 +81,7 @@ loader-only legacy 键 (writer 不发射):
 | +544 | uint32 | full_path 数据指针 | writer tokens 372/13868 | |
 | +545..+575 | — | = full_path 容器 {d@544, cap@552, c@556, alloc@560} 内部 (545..567) + u32=0@568 + pad + movement_progress@576 前 | | |
 | +576 | fixed×1e-5 | movement_progress | token 0x28A4 = 10404; 门 = *(a+560) ≠ 0 才写 (实测样本 7.7022) | |
-| +577..+685 | — | = movement_progress 尾 (577..583) + qword=1@584 + **生效移动令旗 u8@590** (ctor 0; 写者 = CUnitMoveAction::Execute sub_141234E30 / 下令入口 sub_1414D0F10) + **移动令目的省 qword@592** (ctor 0, 运行时写) + MSVC 串 name {buf@600, size@616, cap@624=15} + 容器 {d@632, cap@640, c@644, alloc@648} + 对象指针@656 (=sub_140A3C0A0) / @664 + **CTheatre\* @672** (ctor 零, 运行时写; getter sub_140BF9660 = GetTheatre, railway_gun.cpp:676 断言直证) + qword 零 @680 + exile@686 前 pad (ctor 直读) | | |
+| +577..+685 | — | = movement_progress 尾 (577..583) + qword=1@584 + **生效移动令旗 u8@590** (ctor 0; 写者 = CUnitMoveAction::Execute sub_141234E30 / 下令入口 sub_1414D0F10 / AI unitcontroller 拒动协议置 1) + **拒动原因枚举 u8@680** {0=清, 1=下令非法军通, 2=CC540 败, 3=补给门, 5=寻路/海运败, 6=无落点, 7=兵力不足} (ctor 0; AI 侧写, GUI 箭头/tooltip + AI 升级 sub_14107A600 读) + **移动令目的省 qword@592** (ctor 0; 拒动协议 = 清 −1 / 拒时目标省 id) + MSVC 串 name {buf@600, size@616, cap@624=15} + 容器 {d@632, cap@640, c@644, alloc@648} + 对象指针@656 (=sub_140A3C0A0) / @664 + **CTheatre\* @672** (ctor 零, 运行时写; getter sub_140BF9660 = GetTheatre, railway_gun.cpp:676 断言直证) + qword 零 @680 + exile@686 前 pad (ctor 直读) | | |
 | +686 | uint8 | exile | 均 ≠0 写 yes; 0x2D0D(11533 exile)@ser+670 | |
 | +687 | uint8 | strategic_redeployment (11995) | ≠0 写 | |
 | +688 | uint8 | move_capital | 0x2B5F(11103 move_capital)@ser+672 (o = ser+16); GRE/USA/ENG 4 师 move_capital=yes 实证 | |
@@ -379,7 +379,7 @@ upgrades 容器 (U = q+136):
 | +584 | 14268 | move_priority 枚举 {0=front_order, 2=player_order, 3=ai_player_order, 余 normal} | ≠1 (ctor 置 1); loader legacy override_move → 映射 0/1 |
 | +588 | — | retreat (u8) | ≠0 写 yes; **loader 解析即弃** |
 | +589 | — | withdraw (u8) | ≠0 写 yes; loader 解析即弃 |
-| +592 | qword | 零星标量 (ctor 置 0) | 定案 (ctor 置 0) |
+| +592 | qword | 拒动时目标省 id (dword; 拒动协议: AI unitcontroller 落 −1=清/省 id=拒) | 定案 (ctor 置 0) |
 | +600 | — | name (MSVC {buf@600, size@616}) | size≠0 且 !sub_1424BFF30; 虚函数 SetName (raw vt+320) |
 | +616 | u32 | name size | SSO 内部 |
 | +624 | u32 | name cap | SSO 内部 |
@@ -391,11 +391,11 @@ upgrades 容器 (U = q+136):
 | +685 | uint8 | **管理器注册旗** (置位且 qword_14333D3E0 非空时 dtor 反注册并清零) | 形态+机制定案/管理器身份未名 |
 | +686 | — | exile (u8) | ≠0 写 yes; **loader 解析即弃** |
 | +688 | 0x2B5F | move_capital (u8; 旧名 exile_capital 误名, 存档无此键) | ≠0 写 yes; loader 解析即弃 |
-| +696 | 0x36A2 | **transfer_offset_1** (u32) | ≠0 (writer 键 0x36A2=13986); **loader 解析即弃** |
-| +700 | 0x36A3 | **transfer_offset_2** (u32) | ≠0 (writer 键 0x36A3=13987); loader 解析即弃 |
+| +696 | 0x36A2 | **重试冷却倒计时** (AI unitcontroller; transfer_offset_1 为存档快照键) | ≠0 (writer 键 0x36A2=13986); **loader 解析即弃** |
+| +700 | 0x36A3 | **重试退避步长** (3 起步 ×2 封顶 24; 失败时写 +696 = 本值) | ≠0 (writer 键 0x36A3=13987); loader 解析即弃 |
 | +704 | 203 | commandlist 容器数据 {cap@712, alloc@720} — 多态命令对象指针数组; 逐元动态键 = token u32@(elem+8) + AD590 多态序列化 | count≠0; 工厂 sub_141234C70(键 token) 创建 |
 | +728 | qword | 零星标量 (ctor 置 0) | 定案 (ctor 置 0) |
-| +736 | 内嵌 32B 结构 | {容器@736 + qword 标量@760} 未名 | 定案 |
+| +736 | 内嵌 32B 结构 | 补位航点容器 {data@736, count@748} — 元素 32B {省 id@+12} (AI 补位点; unitcontroller 目的地判定尾扫首个 +12 非零) + qword@760 = 战略海运载体 ([14] 海省门联动) | 定案 |
 | +768 | 内嵌结构 | 容器 {d@776, cap@784, c@788, alloc@792} @+8 起, 未名 | 定案 |
 | +800 | 匿名结构 (NNB 形状) | **raid 族运行时对象** (dtor sub_140F66990 反注册; 断言门) | 高置信 |
 | +808 | 0x2997 | seed (u32) | ≠0; **loader 解析即弃** |
@@ -700,9 +700,13 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
 | CArmy [35] | 有效兵力 getter = sub_140C7EFF0 (定案) | `+1128 × vt[34](a1) / 100000` 钳 [0,100000]; C881D0 经 vt+280 虚调取值 vs 阈值 qword_143332988 (唯一热点入径) |
 | CUnit [18] / CArmy [18] | **每小时更新 tick** (定案): 基类 impl sub_140BFF830 (unit.cpp:679) — country_intel 容器 (+632 数据/+644 计数, 24B 元) 每小时按 define 双档累加、过阈清零降级 (级 0 摘除) / 目的地异国单位遭遇 → 成员逐个虚槽 +144 接战 / 命令队列 (+704/+716) 空闲态清理 / 第二定时数组 (+776/+788, 24B 元 u8@+16) 递减到期摘除 (语义待裁); **CArmy 覆写 sub_140C881D0** = 每师每小时总入口 (army.cpp:3066 "_Strength: %lli"): 取消移动 sub_140BFB4A0 (unit.cpp:2344 "Cancel movement"; 清命令/离运输船/摘 theatre 与路径省登记, 按控制权落位 +496; **非解散**) / 战斗·撤退推进 (sub_140C04BE0 = 清 +588 撤退+目的地, sub_140C04D90 = 清 +589 脱离) / 补给比读取 (sub_140C87EC0) / 有效兵力 vt[35] < 阈值 qword_143332988 → sub_1401D7460 延迟删除登记 / 流亡·归国编排 sub_140C050E0 (许可翻转 Exile vt[50]; 日相位选点 ReturnFromExile vt[51]) / 移动经验+租借分成 sub_140C8C0E0 / ApplyAttrition sub_140C6F5C0 (army.cpp:2874; +1080 → 扣 +1064 人力 + +872 装备) / theatre 摘挂 sub_140C8E3B0 / 同州情报标记遍历 sub_140DF75B0 (写他军 +632) / 卡死落点决策 sub_140DF7A40 (战略转移 sub_140EA9720 or 删除登记) / 两处直调 sub_140BB9220 进省登记+夺省 (尾调 SetController sub_140E801A0, 仅控制权真实翻转才入级联, §4.14) / 内联日更块 = **CArmyRequests (+1144)**: 141510110 到期重建 + 14150E460 每小时推进 (门 id%24, §4.2.6 相位 11)。三型小时链共用基类 (CArmy 0x140C881D0 / CTaskForce 0x140D705F0 / CRailwayGun 0x140E8B8E0 各 ×1 调 BFF830) | func_names rtti CArmy::[18] army.cpp:3066 / CUnit::[18] unit.cpp:679 + 语料直读 |
 
-> 待裁项暂不定名: CUnit [5] 可见性判定; 移动族 [14]-[17]/[20]
-> (ExecuteMove/MoveTo/TryMove/CanMoveTo/CanEnterProvince, 错误键 NO_ACCESS_TO_TARGET 等
-> 已锚 unit.cpp 但函数名系行为推定); CArmy [31]-[39] 资源对称族 (A=+1056/+33=国家+648 上限,
+| CUnit [14] | **省准入校验** (CanEnterProvince/HasAccess; 基 = _purecall) | CArmy 0x140C881C0→sub_140DF72C0 (海省门 unit+760/属主/流亡/军通/边境战树扫描, 面相等直过, 终判军通 sub_1406FD540); CTaskForce 0x140D70550→sub_140D702D0 (断言 "pTarget should never be null"); CRailwayGun 同 CArmy | exe 直读三派生 |
+| CUnit [15] | **移动校验短式** (unit, prov, flag, errSink) | 基 0x140BFB220 = 纯转发 vt[16](unit, prov, prov, …); CArmy 0x140C78280 = 基础 + 陆/海细化 (两栖判定 sub_14140A390); CTaskForce 0x140D674C0; CRailwayGun 0x140E89410 (禁海) | exe 直读 |
+| CUnit [16] | **移动校验核** 5 参 (unit, from, to, flag, path) — 错误键报告 | **三派生共享** 0x140BFA300: NO_ACCESS_TO_TARGET (先 [14] dry-run) → NO_RETREAT_ALLOWED (+436 战斗中 ∧ 无军通 ∧ ¬[20]) → NO_ADVANCE_IN_COMBAT (+524 路径非空 ∧ 战斗, 门 sub_140C00520/sub_140BF9F90); CRailwayGun 专版 0x140E88D90 (NO_RAILWAY_ACCESS_* 三键) | exe 直读 + 错误键簇 |
+| CUnit [17] | **八参 dry-run IsValid** (CMoveCommand::IsValid 消费, §4.33 tok 10402 互证) | 基 0x140BFA100 (+588 retreat 非强制 → NO_MOVE_RETREAT); CArmy 0x140C77E80 = CMilAccessAreaCostCallback + 军通面寻路 sub_140DF7030 (失败且 a5 → sub_140BFF170 海运兜底); CTaskForce 0x140D67480→sub_140D6C800; CRailwayGun 0x140E88C30 (TRANSPORT_ACTIVE_CANT_MOVE) | exe 直读 |
+| CUnit [20] | **战斗/海况豁免的省可入校验** ([16] 撤退豁免通道) | 军共享 0x140C001B0 (海省判定 + 军通门 + vt[37]<100000 拒 + 战斗强度扫描 prov+224 ≤0 可入); CTaskForce 0x140D73C60 (= [14] 带 flag); CRailwayGun 0x140E8BEC0 | exe 直读 |
+
+> 待裁项暂不定名: CUnit [5] 可见性判定 (移动族 [14]-[17]/[20] 已定名见上表); CArmy [31]-[39] 资源对称族 (A=+1056/+33=国家+648 上限,
 > B=+1064/+38=国家+640 上限, 100000 定点) 游戏语义 (org/str/人力) 未裁, **[35] 定案 =
 > 有效兵力** (sub_140C7EFF0, +1128×vt[34]/100000)、**[39] 定案 =
 > 组织度比例** (AI 微操弱军段 sub_141088F40 读点)。
