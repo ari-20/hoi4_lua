@@ -50,13 +50,13 @@
 | +1193..+1247 | — | 日期#2 尾 | = CGameDate#2 vt2@1200 + **小时进度累积器 f32@1208** (时间推进调度器每帧 `+= 帧耗时/(速率×加成)`, 攒满 1.0 生成 CHourlyTickCommand 后重置; 详 §4.2.2) + speed u32@1212 (键 110; 探针=4) + u8@1216 (**hourly tick 进行中标志**: tick 首置 1 尾清 0, 兼一帧至多一小时的生成门, 详 §4.2.2) + to_be_deleted {d@1224, cap@1232, c@1236, alloc@1240} (块 19332 + assert; 元素 8B 双 u32; hourly tick 尾 sub_1401D6290 清扫, §4.2.6) + CPeaceConferenceManager 头@1248 (每 hourly tick 末被驱动, §4.2.4) | |
 | +1248 | CPeaceConferenceManager (内嵌) | 和会管理器 | | §4.10.26; vt 0X2720E48 (RTTI+探针); 谍报网在国家侧 (§4.11) |
 | +1249..+1311 | — | 和会管理器体 | = {vt@1248, q@1256, q@1264, off@1272} (块 12499) + MSVC 串@1280..1311 (SSO, 探针空串; 推定会话名, 语义未决) | |
-| +1312 | u32 | playthrough 当前 id | 键 10805; 探针 121 | §4.1.2 |
-| +1316 | u32 | playthrough 备用 id | | |
-| +1320 | u32 | playthrough tag | 键 13913; 探针 9 | §4.1.2 |
+| +1312 | u32 | **玩家国 id** (int>0 = 动态国 id, 否则 4 字符 tag 在 +1316) — 键 10805 = token "player" (旧标 "playthrough id" 系误读); 运行时十余处按玩家 tag 消费 (通知门∧!human_ai / AI 玩家国策略解析 / 焦点历史只写该国 / Focus.AutoComplete ×10) | 探针 121 | §4.1.2; §4.3.15a |
+| +1316 | u32 | 玩家国 tag 半 (4 字符; +1312 ≤0 时有效) | | |
+| +1320 | u32 | **tension_scaling_base_country** (键 13913 = token 同名; 紧张度缩放基国) | 探针 9 | §4.1.2 |
 | +1328 | 指针 (对象 +132 u8 门 / +352 子对象) | 运行时对象指针; 不序列化 (writer/loader 均不触; 消费形态 sub_14222BDC0(*(gs+1328)) 三证) | | |
 | +1336 | — | fired_event_names 桶头 | {u32@1336, 桶数@1340=511, 桶 ptr@1344=malloc(0xFF8)} | |
 | +1352 | token 对 向量 | **fired_events** (loader case 11003; 8B 元素, push 原语 sub_1401CBF60 1.5× 增长, 容器 {data@1352, cap@1360, count@1364, alloc@1368}) | | |
-| +1376 | 匿名结构 (112B 形状) 向量 | pending_events | {d@1376, c@1388}; 元素 56B, 四子键 10993/11/10646/11585; 元素 scope 链 @e+16 逐层递归 (root@sc+24/from@+32/prev@+40, 自指即停), **每层**发 saved_event_target (块 0x33A1, 门 *(sc+160)≠0, 112B 元素 {state@+8/country tid@+12/character idpair@+16/name u16@+104}) | 块 13801 |
+| +1376 | 匿名结构 (56B 形状) 向量 | pending_events | {d@1376, c@1388}; 元素 56B, 四子键 10993/11/10646/11585; 元素 scope 链 @e+16 逐层递归 (root@sc+24/from@+32/prev@+40, 自指即停), **每层**发 saved_event_target (块 0x33A1, 门 *(sc+160)≠0, 112B 元素 {state@+8/country tid@+12/character idpair@+16/name u16@+104}) | 块 13793 (13801 = show_major, 勿混) |
 | +1400 | — | runtime-only 残渣 (无消费者、无 loader/writer — 负定案) | | |
 | +1424 | 匿名结构 (0xA8 形状) 向量 | sunk_ship | {d@1424, c@1436} | |
 | +1448 | 匿名结构 (24B 形状) 向量 | sunk_convoys | {d@1448, c@1460}; 元素 0x18 | |
@@ -101,9 +101,9 @@
 | +469..+1191 | — | = CDedicatedServer 尾 + pad → gs+600; gs+600..+1191 中段全数定案见 §4.1.1 (CFlagManager@600 / CCombatManager@608..683 / 省州区国四数组 / tag 表 / 按国家数组 / RH map@952 / 第 7 管理器@1032 / u32 对列表@1040 / difficulty_setting@1064 / game_rules@1088 / entity@1096 / power_balance@1104 / date@1120 / CGameDate#2@1184)  |  | |
 | +1192 | — | 玩家相关 | | |
 | +1193..+1311 | — | = speed@1212 (键 110) + to_be_deleted@1224 (块 19332) + CPeaceConferenceManager@1248 (块 12499) + 串@1280 (探针空, 语义未名)  |  | |
-| +1312 | — | playthrough 统计 字段 1 | ||
-| +1320 | — | playthrough 统计 字段 2 | ||
-| +1321..+1583 | — | = playthrough 三元组@1312/1316/1320 (键 10805/13913; 探针 121/0/9) + fired_event_names 桶头@1336..1351 (桶数@1340=511, ptr@1344=malloc(0xFF8)) + pdx@1352 + pending_events@1376 (块 13801, 元素 56B) + pdx@1400 + sunk_ship@1424 + sunk_convoys@1448 + 指针数组@1472 (键 13564, = **海战结果主数组**) + **A@1496 = CNavalCombatResults\* 按区域 id 索引 RH 表** (72B; 键 = results+264)  |  | |
+| +1312 | — | 玩家国 id (键 10805 "player", 详 §1.2 表行) | ||
+| +1320 | — | tension_scaling_base_country (键 13913) | ||
+| +1321..+1583 | — | = 玩家国 id@1312/1316 + tension_scaling_base_country@1320 (探针 121/0/9) + fired_event_names 桶头@1336..1351 (桶数@1340=511, ptr@1344=malloc(0xFF8)) + pdx@1352 + pending_events@1376 (块 13801, 元素 56B) + pdx@1400 + sunk_ship@1424 + sunk_convoys@1448 + 指针数组@1472 (键 13564, = **海战结果主数组**) + **A@1496 = CNavalCombatResults\* 按区域 id 索引 RH 表** (72B; 键 = results+264)  |  | |
 | +1584 | — | 会话计数 字段 1 | ||
 | +1585..+1831 | — | = 难度枚举@1584 (键 10655; 探针=2; ⚠ 勿与 gs+1064 difficulty_settings 块 13999 混同) + gameplaysettings@1576 + CArmy* 数组@1600 (探针 37 项) + selection-groups 容器@1624 (每国 240B 组集, 块 10286) + pdx@1648 (空) + CWorldThreat@1712 (键 11261) + saved_event_target@1728 (元素 112B) + pdx@1752 + division_templates@1776 + equipment@1800 + game_unique_seed@1824  |  | |
 | +1832 | — | 会话计数 字段 2 | ||

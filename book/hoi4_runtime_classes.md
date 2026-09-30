@@ -180,9 +180,9 @@
    收编史后缀。
 3. 同文件内同类小节命名风格统一（类名+尺寸/writer 信息格式一致）。
 
-#### 0.4.2 表格体系（六表分类法）
+#### 0.4.2 表格体系（七表分类法）
 
-写一条信息先判定属于哪一类，进对应的表；六类之外的信息才允许散文。
+写一条信息先判定属于哪一类，进对应的表；七类之外的信息才允许散文。
 
 | 表 | schema | 出现条件 |
 |---|---|---|
@@ -192,13 +192,20 @@
 | 元素子表 | 元素+N \| 类型 \| 名称 \| 备注 | 容器元素 >2 字段；挂主表容器行之后 |
 | 枚举/映射表 | 值 \| 名称 \| 语义 | 字段取值为枚举或 token 映射 |
 | GUI 消费表 | 字段 \| 消费点 \| 用途 | 消费点 ≥3 才立表；1–2 个写入主表备注格 |
+| 流程步骤表 | 步 \| 函数 \| 语义/条件 \| 置信 | 执行链/调度链逐步展开。步列按链形态命名（步/入口/相位/层/阶段等）；单步条件并入语义列；纯顺序无分支的短链不立表（散文② 即可） |
 
 散文仅限三种：① 判别分支（两形态写一行备注；≥3 形态用
-形态|判别|读法 表）；② 流程/顺序（一行箭头链或编号短句；逐步带条件
-分支的升级为步骤表）；③ ⚠ 陷阱（一行一事，不写历史）。
+形态|判别|读法 表）；② 流程/顺序（一行箭头链或编号短句；带条件分支
+的升级为流程步骤表）；③ ⚠ 陷阱（一行一事，不写历史）。
 
 容器尾 cap/alloc 同构信息不逐行占主表：由 §3.1 通则承载，主表只留
 data/count 实字段行，特例才单独成行。
+
+**流程内容归置**：全局时间调度骨架（驱动链 / 相位表 / hourly·daily·
+weekly·monthly·yearly 主循环与跨域时序）= §4.2；域内业务执行链 = 域
+分册。§4.2 对已由域分册承接的链只留挂点行（函数 + 触发时机 + §x.x
+交叉引用），不重复链体；两头全写的链按此收口（先例：补给 §4.21.1a /
+战斗 §4.22.9a / 突袭 §4.27.3）。
 
 #### 0.4.3 表格机械纪律
 
@@ -245,7 +252,10 @@ data/count 实字段行，特例才单独成行。
 1. 外部 findings/段头注收编进书时：hex 偏移→十进制、refid 对拆行、
    升序重排，写门/证据信息不失真；收编即按 0.4.1–0.4.4 整形（批次名/
    日期/文件路径剥离，散文转表）；存疑转录标「待裁」。
-2. 交付前 `python tools/md_table_check.py` 必须报 0 问题；改完 grep 复查
+2. **布局事实不滞留流程节**：流程调查中新定案的布局事实（偏移 /
+   容器头 / 桶与条目布局）一律落对应类布局表（主表 / 元素子表），流程
+   节只留 §x.x 交叉引用 — 布局行只活在流程步骤表格/散文里 = 收编未完成。
+3. 交付前 `python tools/md_table_check.py` 必须报 0 问题；改完 grep 复查
    `\.md` / `全字段表见` / `+0x` / `~~` / 批次名残留。
 
 ## 0.A 复原流程 (给实现者)
@@ -285,35 +295,75 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 #### 1.1b.1 CInGameIdler 暂停/存档旗位与槽位
 
 **对象与字段**: 全局槽 `BASE+0x332F698` 持 **CInGameIdler** 指针 (vt RVA 0x2968FF0); 暂停状态**不落盘** (运行时 UI 状态)。
+主虚表实际槽范围 0..118 (119 槽), 其后接三个兄弟子表 (COL offset 8/1512/1520) — CInGameIdler 四基多重继承; 槽值三类桩先滤: `_guard_check_icall_nop` ×20 / `return 0` 桩 ×4 / CRT 桩 ×1。
+读档恢复暂停 = sub_140DD9B20 (按 dword_14332EC58 跨档记忆; 读档前 pause(1) 的引擎实现)。
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +36 | f32 (推定) | 帧时长 EMA (槽[29] 帧尾更新) | §4.28.14 帧渲染槽对 |
-| +64 | f32 (推定) | 本帧耗时 (sub_1401F7F80 掐表) | 同上 |
+| +36 | f32 | 帧时长 EMA (槽[29] 帧尾 `36 = 36×0.95 + Δ×0.05`) | §4.28.14 帧渲染槽对 |
+| +64 | u64 | 本帧耗时 (sub_1401F7F80 掐表; 原 f32 推定修正) | 同上 |
 | +1264 | 指针 | 渲染管理器 (槽[28]/[29] 渲染链消费) | 同上 |
 | +1457 | uint8 | 遮罩/输入联动边沿缓存 | 同上 |
-| +1680 | uint8 | 子对象 A 旗 (写者 = 槽 [91] 体首行) | **非暂停旗**; 与 +1681 成对 |
-| +1681 | uint8 | 子对象 A 伴随位 (仅 `state==0` 时清) | 同上; 兼 **AUTOSAVING 横幅门** (槽[29] 段 8) |
-| +1713 | uint8 | 框选态 (槽[29] 段 4 门) | 同上 |
+| +1458 | uint8 | **GUI 更新脏标记** (槽[12] 写 1; "_Idler.CanUpdateGui()" 断言语境; ⚠ 与 interface handler 子对象 +1458 非同字段) | 槽[68]/[69] 清 |
+| +1608 | int | 模态计数 (槽[73]/[74] 增减; 槽[82] 以 ≤0 作放行门) | |
+| +1680 | uint8 | **自动存档请求旗** (三源置位: CAutosave 命令槽[91] / 日历边界 sub_140DE2C10 (autosave 间隔枚举 dword_143085008 分派) / +2216 倒计数归零槽[64]) | **非暂停旗** |
+| +1681 | uint8 | **AUTOSAVING 横幅位** (请求处理后 sub_140DCE470 置 1, 存档完成 word 清零对收; 槽[91] `!a2 → 清 0`) | |
+| +1713 | uint8 | 框选态 (槽[29] 段 4 门; 读者 5 处) | 同上 |
+| +1720 | CInGameInterfaceHandler* | 界面处理器 (槽[23] getter; "ingameinterfacehandler.cpp" 断言定名) | |
+| +1728 | uint8 | **toggle 进行标记** (槽[94] 置 1 / 槽[82] 清 0, 一次性「刚切过」) | 非 pending |
 | +1729 | uint8 | **暂停旗** (1=暂停/小时冻结, 0=走表) | 权威判据; 直写即时生效 |
-| +1731 | uint8 | 连按 pending 伴随位 | 读档后可被引擎置位 → 暂停设值短路; 清 0 解除 |
-| +1764 | uint32 (推定) | 框选点 1 | 槽[29] 段 4 |
-| +1768 | uint32 (推定) | 框选点 2 | 同上 |
-| +2073 | uint8 | 截图完成一次性旗 (横幅后帧尾清) | dword_14333CF70 保显倒计数 |
-| +2080 | uint8 | 存图完成一次性旗 (同上) | dword_14333CF74 保显倒计数 |
+| +1730 | uint8 | **暂停锁定位** (槽[71] `1730=(a2==1)`; 锁定后普通 toggle 被门挡; sub_1406DD0C0 检测下降沿) | |
+| +1731 | uint8 | 连按 pending 伴随位 (槽[82] pending 分支双置/双清 / 槽[106] 置 1; getter sub_1406DFDA0) | 读档后可被引擎置位 → 暂停设值短路 |
+| +1732 | uint8 | **脚本/事件强制暂停镜像** (槽[4] 从 gs world 链同步; 以 `!1729 && !1732` 作自动推进门) | |
+| +1733 | uint8 | gamestate 复位完成旗 (槽[104] 写 / 槽[81] 读; "Gamestate successfully resetted") | |
+| +1764 | uint32 | 框选点 1 | 槽[29] 段 4 |
+| +1768 | uint32 | 框选点 2 | 同上 |
+| +1984 | SSO 串 | 暂停原因串·未暂停侧 (本次原因) | |
+| +2016 | SSO 串 | 暂停原因串·已暂停侧 (最新原因) | |
+| +2048 | double | 暂停时刻 wallclock | |
+| +2056 | int | 原因防抖窗 (ctor 30) | |
+| +2063 | uint8 | 暂停原因记录禁用旗 (槽[82] 记录门) | |
+| +2073 | uint8 | 截图完成一次性旗 (写者 sub_140DD2540; 横幅后帧尾清) | dword_14333CF70 保显倒计数 |
+| +2080 | uint8 | 存图完成一次性旗 (写者 sub_140DD2AB0; 同上) | dword_14333CF74 保显倒计数 |
+| +2216 | int | **自动存档倒计数** (>0 递减槽[64] / ==0 触发 1680 / <0 禁用 sub_140DE2C00; 载入/退出分支清 0) | ⚠ 与 gs+2216 (all_playthrough_data 宿主) 撞车 |
+| +2396 | uint32 | 联机重试计数 (槽[95] a1[599] 递增, >12 发网清零) | |
 
 | 槽 (vt 偏移) | 函数 | 字段与语义 | 引擎调用链 |
 |---|---|---|---|
-| 主 vt 0x142968FF0 slot[82] | 0x140DDAD30 | **暂停设值 (仅 `=0` 分支写 1729)**: 主体是暂停**判据读** (分支 "Game paused by <reason>" 记录暂停原因串, 栈 SSO); 体内 "Game paused by <reason>" 分支以 +1729 为谓词; **活体第四证**: DLL /game/pause (set-state, body=1/0) 切换后 +1729=1 ∧ /health paused:true / =0 ∧ hour 继续, 全程 +1680/+1681 恒 0 | **CPauseGame::Execute** (vt 0x14296A560 slot[10] = 0x140DE8360) → `idler->vt[656](state, reason)` |
-| 主 vt slot[91] | 0x140DC6530 | **自动存档旗设值**: `*(a1+1680)=a2; if(!a2) *(a1+1681)=0;` (三行体) | **CAutosave::Execute** (vt 0x14296A880 slot[10] = 0x140DE7C40) → `idler->vt[728](*(cmd+40))` (cmd+40 = 键 105 start) |
-| 主 vt slot[94] | 0x140DE1F80 | **暂停 toggle 入口**: 体首段 `v5 = *(a1+1729)==0; sub_140202ED0(engine, v5, a2); *(a1+1728)=1;` — 取反后经引擎暂停接口落值 (联机路径另有 CServer/CProxyServer 分支) | — |
+| 主 vt 0x142968FF0 slot[7] (+56) | 0x140DDE8A0 | GFX/设备恢复流程 ("Start RestoreDeviceObjects"): 完成处 ×2 `1729=1` 强制暂停 | 设备丢失/重载链 |
+| slot[64] (+512) | 0x140DDA020 | 自动存档倒计数推进 (每帧 sub_1401DD370 调; +2216 归零 → 1680=1) | 帧推进 |
+| slot[71] (+568) | 0x140DE1BF0 | **锁定式暂停 toggle**: 门 `!1730 ∥ !1729 ∥ a2`; 翻 1729 且 `1730=(a2==1)` | 事件弹窗暂停 sub_1401CF000 / pause_in_hours 控制台 sub_14026F410 / AI 快照 sub_1414D40E0 |
+| slot[78] (+624) | 0x140DE0710 | **强制暂停 + 冻结 GUI** (经 +1720 handler 置 +1108; 单机 `1729=1` 单置) | 模态操作 |
+| slot[82] (+656) | 0x140DDAD30 | **带原因串的暂停设值**: 清 1728; 记录原因串 (a2≠0 走 pending 双置/双清 1729+1731; a2=0 走防抖/同因判定后**翻转 1729**, 翻 0 发 "Game unpaused.") | **CPauseGame::Execute** (vt 0x14296A560 slot[10] = 0x140DE8360; cmd+72 state / cmd+40 原因串 / cmd+73 非 0 先过 vt+744 短路) |
+| slot[91] (+728) | 0x140DC6530 | **自动存档旗设值**: `*(a1+1680)=a2; if(!a2) *(a1+1681)=0;` | **CAutosave::Execute** (0x140DE7C40) → `idler->vt[728](*(cmd+40))` |
+| slot[93] (+744) | 0x140DD85C0 | **暂停读 getter** (`return 1729`, 纯读) | 引擎统一入口 sub_140202ED0 (读 vt+744 + gs+1212 速度 → sub_140202690 时钟控制 — 速度与暂停在此汇合) |
+| slot[94] (+752) | 0x140DE1F80 | **暂停 toggle 入口 (UI 键路径)**: 先 sub_140202ED0 引擎落值 + `1728=1`; 单机 `1729 = !1729`; 联机改发命令 | UI 键 / DLL 桥 |
+| slot[95] (+760) | 0x140DC91E0 | **联机卡顿重试计数器** (非暂停族) | sub_140F06BF0 (联机 date 滞后路径) |
+| slot[106] (+848) | 0x140DD2A70 | **按原因强制暂停**: a2∈{9,10,13} → `1729=1; 1731=1` + 构造暂停提示界面 | |
 
-> ⚠ 三槽极易互串: slot[82]/vt+656 = 暂停设值 (1729/1731, 仅 `=0` 分支); slot[91]/vt+728 = 自动存档 (1680/1681); slot[94]/vt+752 = 暂停 toggle。
-> 写 +1729 的同族槽: [82] / [93] 0x140DD85C0 / [94] / [95] 0x140DC91E0; 另有 0x140DDE8A0 / 0x140DE0710 / 0x140DD2A70 等 `=1` 单置点。
+> 写 +1729 全部写点 = **7 函数 12 处** (槽[94] 翻转 / 槽[7] ×2 =1 / 槽[78] =1 / 槽[82] pending 双置双清+防抖翻转 / 槽[106] =1+1731 / sub_140DD9B20 读档恢复 / 槽[71] 锁定翻转); +1728 = toggle 一次性标记 (槽[94] 置 / 槽[82] 清); +1730 = 锁定位 (仅槽[71]); +1731 = pending (槽[82]/[106])。
 > 实测暂停/恢复时 +1729 与引擎暂停态严格同步、+1680 恒 0, 与上表一致。
 - 主菜单**存在前端 gs** (hour 冻结、uid 合法) — gs≠0 ≠ 在游戏中;
   "在游戏中"判据 = 帧心跳活性 (CInGameIdler slot4 仅游戏内跑),
   3s 无心跳即 session 关闭 (DLL session 活性判据, 函数名 = 桥侧 CInGameIdler slot4 消费点)。
+
+#### 1.1b.2 massconquer 帧测试器 (sub_140DE1040)
+
+控制台命令 `massconquer`（别名 `massc`，"Mass conquer tool"；官方文档标 "Not available in release build" 与语料存在性矛盾 — 是否在现役命令表注册待运行时验证）的每帧执行体 = PDX 自用占领/剧场压测器。命令处理器 sub_14028F8B0：置启用旗 byte_14333CF38=1、批次 dword_14333CF3C=1、tag 向量 {qword_14333CF48 data / dword_14333CF50 cap / dword_14333CF54 count；**[0] = 征服国, [1..] = 受害国**}（少于 2 tag 报错）。
+
+挂点 = CInGameIdler::Idle（vt 槽[4]）**帧顶**（帧掐表后第一条件块），唯一门 = Idle a2；权威暂停位 +1729/+1732 的检查在同函数后段（仅门调度器）→ massconquer 调用点不受暂停位门控；a2 上游语义（游戏内帧 vs 未暂停帧）待裁。
+
+| 阶段 | 动作 |
+|---|---|
+| 0 | 门 = 启用旗 ∧ tag 数 > 1；入口解除 RNG 禁区旗 byte_143452528（random.cpp:181/187 "Calling random inside forbidden area" OOS 断言门；getter sub_142234100 / setter sub_1422345B0；出口恢复），抽取锚 = (ingameidler.cpp, 1711) 确定性 RNG |
+| 1 | 受控省池 = Σ 受害国 cc+1064 controlled_provinces（取用 thunk sub_1406ECFE0；逐省经 gs+8 次虚表槽[1] 按省 id 取 CProvince* — 槽名待裁）；池空 → 日志 "No provinces to conquer. Testing is over."（ingameidler.cpp:1696）停转 |
+| 2 | **第①轮 征服**：有放回随机抽 N 省（N = dword_14333CF3C）→ 占领 bundle 开窗（sub_140EED690）→ 逐省 SetController = tag[0]（sub_140E801A0，第 3 实参恒 1 语义待裁）→ 收口（sub_140EF2F30）→ 剧场重校验 sub_140EEC180（置重校验模式旗 byte_14333D2B0 后重跑剧场更新族，差异旗 byte_14333D2B1 任一置位 = 不一致）→ 失败 → 日志 "Conquer happened as <tag0 名>" + 列省（ingameidler.cpp:1740）+ 停转，**征服保持不归还**（留场复现） |
+| 3 | **第②轮 归还**：同二轮，SetController = 省默认控制国（dctl 读取器 sub_140E796B0：rp(prov+192) 有则 *(dctl+200) 否则 sub_140BB3E00 默认槽）→ 重校验 → 失败 → 日志 "Giving back..."（:1778）+ 停转 |
+| 4 | 成功 → 批次 N = (N+1) mod 2×池大小（0→1）爬坡循环 |
+
+接缝定案：**第四路征服（调试工具直接征服）** — 无战争/条约上下文，只走控制权（SetController）从不触所有权（SetOwner），帧级驱动；不属 §4.3.6 占领日更六阶段、§4.10.32 投降/吞并、§4.10.26-31 和会任何一路，与既有链仅在级联下游共享占领 bundle 聚合与 occ/dp 写门族（本函数不产生新写门形态）。负结论：函数体无任何游戏对象偏移直写、无 gs+1128 日期读、无序列化调用 — massconquer 启用会话中对拍必炸（每帧控制权翻转；默认 BSS 零关闭，不执行命令即无影响）。
+
+> 待裁：gs+1312（Idle 顶部 >0 → 写 CSession+1941）；CInGameIdler vt 槽[110]（返回值传入本函数但被忽略）；sub_140EEC180 是否另有生产调用点；失败日志省列表条目形态（省名 vs 省 id）。
 
 ### 1.2 gs 偏移 → 管理器总表 (全部为指针, 解引用后见各节)
 
@@ -321,14 +371,14 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 |---|---|---|
 | +0 | vt1 (CGameState 主虚表 = CPersistent@0 序列化槽: [2] writer sub_1401F29A0 / [4] loader sub_1401E59D0) | — |
 | +8 | vt2 (CProvinceProvider@8 省查询接口子虚表, RTTI 定名) | — |
-| +16 | 存档头元数据对象 (NNB, 224B; ctor sub_140BC0880/07B0; 布局详 §4.1.4a) | top_meta 各行在其内部 |
+| +16 | 存档头元数据对象 (NNB, 224B; ctor sub_140BC0880/07B0; 布局详 §4.1.2) | top_meta 各行在其内部 |
 | +48 | ironman 存档名 (MSVC 串 {buf@48, size@64, cap@72}; = 存档头键 ironman 值 + 文件名基名; loader 比对不符 → +192 清 bit0) | top_meta |
 | +144 | **CGameDate#0 载入快照** 24B {vt1@144, hours@152, vt2@160} (= gs+16 元数据对象成员; CGameDate = CGregorianDate@0+CDate@8+CPersistent@16, vt2 = 序列化基; 仅读档路径写 hours) | top_meta ⚠ 非当前日期, 见下注 |
 | +192 | uint32 位域 (bit0 = **ironman/成就门** (名比对, 非 checksum); bit1 = 多人局; bit2 = cooperative_game; bit3 = tutorial; 清位者另含控制台 "ironman off" sub_140248770 与无 playstream 时 sub_14163DA10) | top_meta |
-| +240 | uint8 (ctor 置 1 旗; 未名) | top_meta |
-| +248 | 未名 (ctor 零) | top_meta |
-| +256 | 未名 (ctor 零) | top_meta |
-| +272 | 匿名结构 (NNB 形状) | — |
+| +240 | uint8 (ctor 置 1 旗; 运行期旗, 不序列化, 无读者 — 负定案非存档数据) | top_meta |
+| +248..+271 | **联机同步校验对象** (24B; CCheckSyncCommand 载荷源 — sub_140DA3F20 定时构造, ctor sub_140DE5D10 读 +248+12 dword 计数) | top_meta |
+| +256 | 同上对象成员 (+248 对象 +8) | top_meta |
+| +272 | 同上对象尾成员 (+248 对象 +24 起) | — |
 | +384 | bitfield (bit3 = tutorial 旗, loader 13842) | — |
 | +432 | 匿名结构 (NNB 形状) | — |
 | +468 | 会话/顶部元数据 (TOPC) | top_meta |
@@ -469,8 +519,10 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +2536 | 容器 (未名) | — |
 | +2544 | 容器 (未名) | — |
 | +2576 | 32B 元素数组 | **边界高亮自定义色表** (count@+2588 = defines BORDER_COLOR_CUSTOM_HIGHLIGHTS/4; gamestate.cpp:781 警言铁证) (border_color) |
-| +2600 | 匿名结构 (NNB 形状) | — |
+| +2600 | 指针 | **当前书签对象** (新局 sub_1401A5630 写所选书签; 读档 sub_1401E2AC0 重置默认书签 — Null-Object getter sub_1401DBBB0; 全量重建门 = 与目标书签指针不等, sub_14067EEE0 → sub_1401A5630, §4.28.18) |
 | +2608 | u32 | **tutorial 章节 id** (loader case 13842, 另置 gs+384 bit3 与 u8@+2615=1) (tutorial) |
+| +2612 | uint8 | **HasGameStarted** (getter sub_1401E2930; 世界构建 sub_1401E2AC0 开头置 1) |
+| +2613 | uint8 | **世界构建进行中门** (sub_1401E2AC0 开头置 1 / 尾清 0; 多系统读者以 `!+2613` 作跳过门, §4.28.18) |
 | +2615 | uint8 | tutorial 旗 A (同上) (tutorial) |
 | +2616 | uint8 | tutorial 旗 B (同上) (tutorial) |
 
@@ -983,6 +1035,88 @@ writer 的实写行为选变体, 禁止按"显示值看着一样"混用** (两�
 > 容器元素指针上界用 `M.lim.PTR_ELEM` (比通用 `M.const.PTR_HI` 紧一个量级),
 > 更早剔除垃圾指针。
 
+### 3.11 线程与并发模型
+
+> 引擎并发总模型 = **主线程独占全部 gameplay 数据 + 双自建任务池承接发后不管作业 +
+> tbb 算法层做阻塞 join 相位 + 零共享读锁**。线程纪律的显式载体 = debug 断言族
+> (ThreadIsMainThread / _ThreadForbidCount / gs 访问计数 / CRandom 禁区), release 版全部
+> 剔除 (纯纪律)。tick 相位与并行波的分布见 §4.2; 采样器线程表见 §4.9。
+
+#### 3.11.1 线程清单
+
+| 线程 | 数量 | 入口/创建 | 职责 |
+|---|---|---|---|
+| 主线程 | 1 | WinMain_0 (0x1425896A0) → main (0x140126E50) → CApplication::Run (0x14222E7E0, **SetThreadAffinityMask 钉单核**) → 帧顶 sub_14222EEB0 | 消息泵 (SDL_PumpEvents 每帧)/帧循环/idler/命令泵/tick 调度/渲染发起/暂停位判定 |
+| PDX 池 worker (Short Task) | CPU数−1 | ctor sub_1424D4F40 (std::thread) → 循环 sub_1424D5490; 池对象 0x1435E3CD0 系 | 帧内短作业、AI 策略波、session 保活杂活 (发后不管) |
+| PDX 池 worker (Long Task) | CPU数−1 | 同上; 池对象 0x1435E3DA0 系 | 异步文件 IO (sub_142266590 作业)、应用级长作业 |
+| 音频线程 | 1 | std::thread @0x1423BA280 → 体 0x1423B9EC0 | 混音循环 (SRW mgr+2384, SDL_Delay 10ms 步进) |
+| SDL 子系统线程 | 5 类 | SDLTimer 0x1421093C0 / SDL_joystick 0x14212D690 / HIDAPI Rumble 0x142163FD0 / SDLAudioP·C (1/设备) / SDLXInputDev haptic (1/设备) | SDL 内部 |
+| tbb worker | 未决 | **生成点静态不可达** (CreateThread/_beginthreadex/rml 符号全量反查零命中) | tbb parallel_for/invoke 执行者 (运行期存在 = 采样器实证) |
+| PHYSFS cdrom 探测 | 0–1 | 0x1425143C0 懒建 | 一次性 |
+
+> 引擎自身零直调 CreateThread —— 生成通道穷举尽 = CRT std::thread 启动桩
+> sub_142507E90 (唯一 beginthreadex 调用) × 2 处 (双池 + 音频) + SDL spawn 助手 7 调用点
+> + PHYSFS 懒建 1; Windows 线程池/fiber/NtCreateThread 全零命中。
+
+#### 3.11.2 双并行体系
+
+| 维度 | tbb 算法层 | PDX 任务池 |
+|---|---|---|
+| 承载 | parallel_for / parallel_invoke / parallel algorithms (oneAPI DPL 后端) | 自建 std::thread worker × 2 池 |
+| 派发点 | 全语料 380 个派发函数 (全量计数) | Short 提交口 0x1424D4E90 / 0x1424D4DD0; Long 0x1424D4D10 |
+| 粒度控制 | EJobType 0→N 块 / 1→3N / 2→1 / 3→串行 (sub_1401DB390) | 任务对象 +8 引沉计数 / +88 状态 (1=running, 2=done) / +96 CV |
+| join 语义 | 主线程阻塞等齐, **主线程亲自执行分到的份额** (spawn_root_and_wait) | 发后不管 (fire-and-forget) |
+| 线程数来源 | 未决 (worker 生成点静态不可达) | dword_1435E3D98 = CPU数−1 (pdx_task.cpp:397 断言 NumTaskThreads > 0) |
+| 典型用户 | hourly/daily/supply/天气等相位波 (§4.2); 存读档双轨 (§3.11.4) | AI 策略波 (hourly 相位 14)、Idle 短作业、异步 IO (Long) |
+
+> **边界裁定**: 带 join 的数据并行 (整段等齐) 走 tbb; 发后不管的作业走 PDX 池。
+> 两体系无静态互通证据 (tbb 不感知池线程; 池线程是否入 arena 未决, `/profile/threads`
+> 抓相位 tid 分布可裁)。worker 主循环 = AcquireSRWLockExclusive(池+0) → 取任务 →
+> 执行 → 状态置位 → CV 唤醒; 队列空则 CV 等待至停止旗。池创建 = sub_1424D53C0
+> (main 内, 断言 `"NumTaskThreads > 0"`)。
+
+#### 3.11.3 同步原语与 gs 保护
+
+| 判据 | 定案 |
+|---|---|
+| 锁形态 | SRW 独占 88 处 / **共享读锁 0 处** (并发读从不加锁 = 结构事实); CS 主体属 CRT; 内核等待体 0 |
+| 引擎侧锁 | 池锁 (每池一把 SRW, 极短临界区) / 音频设备表锁 (mgr+2384) / 地图缓冲层重算 (0x141599270) 等零星 |
+| gs 保护 = 非锁 | debug 断言三件: ① gs 访问计数 dword_14332F268 (`Count <= 2` 夹持, gamestate.h:1140/1146); ② **_ThreadForbidCount** (thread_local, TLS+16; 访问器断言 `== 0`, 串 "Current thread is forbidden to access gamestate", 全语料 12699 处; **写者未决**); ③ CRandom 禁区 (串 "Calling random inside forbidden area! … OUT OF SYNC!") |
+| 并行写隔离 | tbb 相位写「计算缓冲」(supply calcdata / EWMA 块等, §4.2 各相位已载), 安全前提 = 相位间 join + 相位内分区不交叠; MapReduce 走 SLockFreeReducer |
+| 主线程断言 | 帧顶 sub_14222EEB0 `ThreadIsMainThread()` (random.h:74) |
+
+#### 3.11.4 相位 × 执行线程总表 (稳态)
+
+| 粒度 | 内容 | 执行线程 | 并行机制 |
+|---|---|---|---|
+| 每帧 | 消息泵/idler/命令泵/资产泵/渲染槽 [28]/[29]/GUI | 主线程独占 | 无 |
+| 每帧 | Idle 内短作业供给 (0x140B58470 链 → Short 提交口) | Short 池 | 池任务 (主线程不等) |
+| hourly 13 相位 | §4.2 相位 0–12: 串行相位主线程; join A–F 阻塞波 | 主线程 + tbb worker | tbb parallel_for |
+| hourly 相位 4 | DoTradeRoutesUpdate | 同上 | tbb (PdxParallelCombine) |
+| hourly 相位 14 | ai_update 收集的 AI 策略波 | **Short 池** | 池任务 |
+| hourly 尾 | supply UpdateSupply 15 相位 (§4.2.6) | 主线程 + tbb worker | tbb |
+| daily | 州并行/国家 daily/post_daily (每国 SRW 锁)/学说/空军/海军 (§4.2) | 主线程 + tbb worker | tbb |
+| 存/读档 | **parallel_invoke: CSessionUpdateThreaded ∥ CGameStateSave/LoadThreaded** (读 0x1401E2AC0 / 存 0x1401ECC50) | 主线程 + tbb worker | tbb, 2 子任务 |
+| 异步 IO | 文件加载作业 (任务名 "Long Task" + 文件名串) | Long 池 | 池任务 |
+| 音频混合 | 设备表遍历+混音 | 音频线程 | 自有 SRW + 10ms 步进 |
+
+> 存读档双轨 = **会话保活 (网络/命令泵) 与 savegame 主体并行** —— 「战役内读档不回
+> 主菜单」的引擎侧承载 (§4.28 会话机制)。加载旗: 读档前置 `_InterlockedExchange`
+> 置 dword_14332F284 = 0。线程集合两态不变, 差异只在 tbb 相位种类。
+
+#### 3.11.5 外部读内存安全窗判据
+
+| 窗口 | 安全性 | 依据 |
+|---|---|---|
+| 暂停态, 读 gs 主体 | 基本安全 (例外见下行) | 暂停 = 不生成 CHourlyTickCommand (§4.2.1); tbb 相位不启动; 帧循环只跑 GUI/渲染/命令泵 |
+| 暂停态, 每帧仍被写的地址 | **一律不安全** | ① idler 自身域 (帧 EMA/倒计数/框选态); ② GUI·地图每帧缓存 (暂停态 RH 表仍 rehash 迁移, 州→index 反查表实证); ③ 音频管理器域 (10ms 步进); ④ 池/任务对象内部 (worker 仍弹任务); ⑤ SDL 线程域 |
+| 暂停态, tbb 相位计算缓冲 | 暂停态安全; 运行态不可靠 | 只有相位在跑才写; 脏旗/缓存重建可被帧内 GUI 触发 |
+| 运行态, 读 gs 主体 | **不安全** | hourly 并行波 + supply 15 相位 + daily 并行族随时在写; 无读锁 → 撕裂无防护 |
+| 任何态, 读池 worker 持有的任务对象 | 不安全 | 引用计数 + 状态位双写 |
+
+> **一句话判据**: 外部读安全 = 暂停 + 目标地址不在每帧写者清单 (idler/GUI/音频/池/SDL
+> 域) + 不在 tbb 计算缓冲期。运行态与并行相位内的写无任何锁保护。
+
 ## 4. 类参考条目
 
 > **§4 类参考条目已拆分至 `book/` 子目录**:
@@ -1008,7 +1142,7 @@ writer 的实写行为选变体, 禁止按"显示值看着一样"混用** (两�
 | 4.14 | `book/s4_14_CProvince.md` | 4.14 CProvince (省) |
 | 4.15 | `book/s4_15_air.md` | 4.15 战略空军族 (CStrategicAirManager → CStrategicAir → CAirWingPool → CAirWing) |
 | 4.16 | `book/s4_16_navy.md` | 4.16 海军族 (CStrategicNavyManager → CStrategicNavy → 基地/特混舰队/舰船 + 战史与战果记录) |
-| 4.17 | `book/s4_17_notification.md` | 4.17 通知系统族 (NNotification 六类 / handler 单例 / 派发三层 / 通用消息泵; 容器行件 CNotificationContainer 布局归 §4.31.92) |
+| 4.17 | `book/s4_17_notification.md` | 4.17 通知与警报系统族 (NNotification 六类 / handler 单例 / 派发三层 / 通用消息泵; **CAlertManager 警报系统 §4.17.7**; 容器行件 CNotificationContainer 布局归 §4.31.92) |
 | 4.18 | `book/s4_18_army.md` | 4.18 陆军师族 (CArmy / CDivisionTemplate / requests / 部署 CDeployment 与 conveyor 三层; 含原 4.9) |
 | 4.19 | `book/s4_19_loc_expr.md` | 4.19 本地化绑定/表达式系统族 (CContextLocalizationText `[...]` 求值 / bindable loc / CExpression / 脚本常量与命名集合) |
 | 4.20 | `book/s4_20_weather.md` | 4.20 天气族 (CWeatherManager → 省天气 / 区域天气) |

@@ -402,7 +402,7 @@ SetIdler 切入游戏。回主菜单对称路径 = Idle (0x140DD3A50) 内嵌序�
 RVA 0xDD6668, 日志串 "EXITING_TO_FRONTEND"): SetGameStarted
 (qword_14332F260, 0) → 构造 CFrontEndIdler (malloc 0x640 → ctor
 sub_140B3B290) → SetIdler。读档/新局世界构建在 FE 帧上推进 (装载器
-sub_141DEA910 与 CGameSetup 状态机 sub_140DA3F20), 完成后才切 InGameIdler —
+sub_141DEA910 与 CGameLobby 状态机 sub_140DA3F20), 完成后才切 InGameIdler —
 **世界构建期引擎仍跑在 FE 帧循环内** (崩溃定案, 见 archive/t93_crash/)。
 退出点火器 = **sub_14027E060** (读全局 F6A0 当前 idler → 置 idler+1913=1,
 Idle 退出序列的唯一放行门; UI 确认按钮与程序化退出同用此点火, 实测置位
@@ -419,7 +419,7 @@ FE 旗族与载入回调槽 (实例布局增量):
 | 槽[84] (+672) | 0xB3BE00 | QuitToDesktop 序列 | 置 u8(this+1593)=1 |
 | 槽[111] (+888) | 0xB3D4B0 | **OnSaveGameLoadBegin** | 读档开始回调; 派发点 = sub_140DA04F0 (vt[+888]) |
 | 槽[112] (+896) | 0xB3D6C0 | **OnSaveGameLoaded** | 读档完成回调; 派发点 = sub_140DA04F0 (vt[+896]); 后接槽[58] 相机定位 |
-| +1568 | CGameSetup* | 读档/新局状态机宿主 | ctor sub_140D975E0, owner 反指 +1168; 模式 state@+1204 |
+| +1568 | CGameLobby* | 读档/新局大厅宿主 | ctor sub_140D975E0 (三 vtable 实名, 双基同表), owner 反指 +1168; 模式 state@+1204; Update = sub_140DA3F20; 全布局与开局链见 §4.28.18 |
 | +1590 | u8 | 载入完成旗 | 槽[80] 置 / 槽[14] 读 |
 | +1591 | u8 | 启动请求旗 | 槽[55] 置 / StartNewGame 消费 (消费时清 0 再置回 1) |
 | +1593 | u8 | 退出中旗 | 槽[84] 置 / Idle 尾部事件泵门 |
@@ -476,7 +476,7 @@ FE 旗族与载入回调槽 (实例布局增量):
 
 **CTriggeredText** (条件触发文本, 128B; vt 0x142999B98; writer=CFG 不入档; reader 0x141180E60): +8 文本键 (143 text / 220 key) / +40 CAndTrigger 内嵌 88B (10595)。
 
-#### 4.28.11 CSession (clausewitz 会话对象; 时序通道与状态机)
+#### 4.28.16 CSession (clausewitz 会话对象; 时序通道与状态机)
 
 CSession = clausewitzlib session.cpp 会话对象 (单机实例 = CDummyServer 挂 CServer
 基 0x142B52AC8, 派生 0x142B52C28; 联机 CNetworkServer 0x142B53020 / CProxyServer
@@ -510,3 +510,296 @@ CSession = clausewitzlib session.cpp 会话对象 (单机实例 = CDummyServer �
 > 备注: 13 = HOTJOIN_WAITING_FOR_SAVE — CHourlyTickCommand::Execute 的 `≠13` 门 =
 > 「热加入等待存档的客户端不推进时间」; 单机热加入 toggle (sub_1418AD500) 在
 > 12↔13 间翻转。单机正常态 = 4 (CONNECTED)。
+
+#### 4.28.17 读档装载链与 PostLoad 次序
+
+**核心结论 (定案)**: 不存在「载入完成后集中批量调用 PostLoad」的全局排序 pass。
+PostLoad = CPersistent 主虚表槽 [8] (§4.00.1), 由共享 Load wrapper sub_1424BE690
+在**每个对象自己的块读完时**立即调用 — 全局次序 = 存档文档深度优先序
+(先子后父、同层按落盘键序)。跨对象修复分三波收尾: ① 根块尾
+CGameState::PostLoad; ② 驱动尾 humans 同步; ③ 装载 lambda 第 9 步读后全局重挂波。
+
+主链步骤表:
+
+| 步 | 函数 (VA) | 语义 | 置信 |
+|---|---|---|---|
+| 1 | sub_141DEA910 | FE 帧装载器 (读档屏推进, 5 步进度) | 定案 |
+| 2 | sub_140DA04F0 | 读档分派壳: idler vt+888 OnSaveGameLoadBegin → 取 session → 按存档头选驱动 → 成功后 idler vt+896 OnSaveGameLoaded → MP lobby humans 就绪循环 | 定案 |
+| 3 | sub_140D9FF80 | 文本档驱动 (save-info+680==0 分支): 头读取 sub_140D9BEA0 → 流构造 sub_1422CD430 → gs+16 元数据写 sub_1401C4B00 → 主装载 sub_1401E2AC0 → humans 修补 sub_1401EE700 → 校验和 sub_1424EE1E0(0xFFFFFFFF) | 定案 |
+| 3' | sub_140D9F9C0 | 二进制档驱动 (save-info+680≠0 分支): 流构造走 sub_1424DF2C0/sub_142231850, 校验和经流 vt+136; 其余同构 (gamelobby.cpp:2367) | 定案 |
+| 4 | sub_1401E2AC0 | CCurrentGameState::Load: 日志 "CCurrentGameState::Load_START" (gamestate.cpp:1611) → gs+2613 (构建期门) 置 1 → gs+2612 (HasGameStarted) 置 1 → dword_14332F284 = 0 → gs+2600 = 默认书签 sub_1401DBBB0() → tbb parallel_invoke { CSessionUpdateThreaded, CGameStateLoadThreaded } → "Load_END" (gamestate.cpp:1640, 尾清 gs+2613) | 定案 |
+| 5 | sub_1401C8A60 | CGameStateLoadThreaded lambda 体 (根装载编排器, 十步进度 62/N/10, gamestate.cpp:1587): ① appmgr vt+200 → sub_140F41B30(x,1) ② sub_1401EA1B0(gs) 世界重置/预清场 (自带 13 步进度: 州重建/settings 载入等) ③ sub_1401E13E0(gs,1) 重建 gs+1680 容器 (264B 对象 sub_140C48180) ④ sub_140A3CF40/sub_140A3D210 ⑤ sub_140CF31E0/sub_140CF33A0/sub_140CF2E40(1) ⑥ [appmgr vt+720 && humans>0] sub_1401EE7F0(gs,humans) ⑦ sub_1406212F0(rng,stream) 读档随机流播种 ⑧ sub_142232930(stream,gs,回调 sub_1401F1430) 根读入 ⑨ sub_1401DA490(gs) 读后全局重挂波 ⑩ dword_14332F284=1 (装载完成事件旗) | 定案 |
+| 6 | sub_142232930 | 读引擎: 流 vt+80 复位 → magic/codec 判定 (0x6E6962="bin" 二进制等三形态) → 构造 parser (栈 336B) → sub_1424C0AA0(parser, gs) | 定案 |
+| 7 | sub_1424C0AA0 | `return obj->vt[3](obj, parser)` — 根对象与一切嵌套对象进共享 wrapper 的统一入口 thunk | 定案 |
+| 8 | sub_1424BE690 | 共享 CPersistent Load wrapper (PostLoad 唯一派发点; 调用序见 §4.00.1) | 定案 |
+| 9 | sub_1401E0520 | CGameState::PostLoad (根块尾触发, gamestate.cpp:4352): ① 遍历 gs+784 国家数组 (count gs+796): sub_1406FE1C0(cc) = sub_140FFE6D0(cc+4048 占领状态, 1) ② 遍历 gs+1800 装备变体数组 (count gs+1812): sub_140BE2450(variant) (MIO trait bonus 重建, 尾挂 NIndustrialOrganisation::CTraitBonus) | 定案 |
+| 10 | sub_1401EE700 | 驱动尾: gs+248 humans 数组 (160B 元素) 与 gs+16 元数据对象的同步修补 | 定案 |
+| 11 | sub_1401DA490 | 读后全局重挂波 (lambda 步 9): 逐国 sub_140BB5490(cc+4876) / 逐 gs+1776 表 sub_140BA49D0(+24) / gs+1704 → sub_1406B96A0 / 逐国 sub_140704D20+sub_1406EAB50 / gs+1688 → sub_140EAB300+sub_140EA3C20 / gs+984 → sub_140ECA270 / gs+1000 → sub_1401C67B0 / gs+1008 → sub_140E85FA0 / sub_140ED5A20 (逐国经 sub_140BB4390+sub_1406CFCB0) / sub_140E139B0+sub_140F3AC50 / 尾 sub_140F218A0(gs+1672) | 定案 |
+| 12 | idler vt+896 | OnSaveGameLoaded 派发 (CFrontEndIdler 槽[112]=0xB3D6C0), 后接槽[58] 相机定位 | 定案 |
+| 13 | sub_1401F0FD0 / sub_1401F0E10 | humans "selected" 玩家选择回填 (gamestate.cpp:7258/7288 "Human '%s' has selected %s") | 定案 |
+| 14 | 装载器尾 | 校验和对比 + sub_1401DB330(gs)=gs+1832 getter → 三条命令发送 (sub_140DE6160/sub_140DE61B0/sub_14163C190) + sub_1417B32C0 + sub_140B6CCD0 (GUI 终步) | 高置信 |
+
+字段与判别位:
+
+| 偏移 | 类型 | 语义 | 置信 |
+|---|---|---|---|
+| gs+2612 | u8 | **HasGameStarted** (getter sub_1401E2930; sub_1401E2AC0 开头置 1) | 定案 |
+| gs+2613 | u8 | **世界构建进行中门** (sub_1401E2AC0 开头置 1 / 尾清 0; 多系统读者以 `!+2613` 作跳过门) | 定案 |
+| (全局) dword_14332F284 | u32 | 装载互斥旗 (0=构建运行中 / 1=完成·空闲; sub_1401E2AC0 头置 0, sub_1401C8A60 尾与存档路径尾置 1) | 定案 |
+| 存档 save-info+680 | u8 | 文本/二进制档判别位 (≠0 → 二进制驱动) | 定案 |
+| CGameLobby+1200 | u32 | 校验和存槽 | 定案 |
+| CGameLobby+1204 | u32 | 模式状态机 (0=大厅/新局待启, 1=MP gamesetup 文件传输, 2=重开中; §4.28.18) | 定案 |
+
+静态资源 DB 族 (TGameItemDatabase 模板族) 对照 — 与存档读档**无关**:
+
+| 项 | 值 | 语义 | 置信 |
+|---|---|---|---|
+| DB 族 PostLoad 槽 | 基类主虚表槽 [2] (+16) | 全部内容文件读完后连调 vt[2]/vt[3]/vt[4]; COnActionDataBase [2]=sub_140A774B0 (缓存通用 on_daily/on_weekly/on_monthly 于 +144/+152/+160) / [1]=sub_140A75FE0 (clear) / [3][4]=CFG | 定案 |
+| 驱动器 | sub_1401A0000 | LoadFiles (gameitemdatabase.h:281-331): 枚举目录 → 逐目录 sub_140A79930 → 逐文件 parser → 尾 vt[2]+vt[3]+vt[4] 三连虚调 | 定案 |
+| 触发时机 | boot (InitGame sub_1401835A0) + 文件 watcher 热重载 | gameapplication.cpp:1597 日志串定位 | 定案 |
+| 事件域双通道 | CEventManager 非 CPersistent (无槽[8]) | boot 载入 (sub_140A0C190 并行, a4=0) 事件直接 append 进消费数组 mgr+0(国)/mgr+24(州); watcher 重载 (a4=1) 走 +160 桶 + mgr+48 staging — 无集中归并点 (sub_140A0E770) | 定案 |
+| CEvent 逐事件 | sub_140A0E770 LABEL_85 | 每事件经 `ev->vt[3](ev, parser)` 同一共享 wrapper 读入, CEvent 自身槽[8] 逐事件触发 | 定案 |
+
+> per-class PostLoad 实装类全表 (178 类: 类/主虚表/槽[8] VA/预载钩/后验钩)
+> = `ref/postload_classes_1193.txt`; 代表性语义样例: CState 0x1409DADD0
+> (州→省链重建 + ledger 默认补) / CProvince 0x140E7E190 (ledger 默认补) /
+> CCharacter 0x140FA43C0 (随机流恢复 + 显示名重建 + 单位/角色重挂) /
+> CAirWing 0x140F62BC0 (随机流恢复 + 翼名惰性初始化 + ace 补链, 缺 ace 报
+> "Airwing %s has Ace that does not exist.") / CAce 0x14061AD90 (CRandom 流恢复)。
+
+#### 4.28.18 新局生成链 (CGameLobby / 两路世界构建 / HistoryDatabase / 就绪旗)
+
+> 本节收口「开局生成全链」: 入口三通道 → 命令级联 → 世界构建两路分流 → 实体批产
+> → 首帧可玩。宿主 = idler+1568 **CGameLobby** (ctor sub_140D975E0 依次装
+> CSessionInfoObserver::vftable (+0) / CLargefileHandlerInterface::vftable (+8) 后
+> 统一覆写为 CGameLobby::vftable — 双基同表; 源域 gamelobby.cpp)。读档装载链
+> 细节见 §4.28.17; 存读档双轨并行见 §3.11.4。
+
+**CGameLobby 字段表** (增量; FE 侧宿主行见 §4.28.14):
+
+| 偏移 | 类型 | 语义 | 置信 |
+|---|---|---|---|
+| +88 | 串向量 data | 热加入待加入玩家名单 {data@+88, count@+100} | 高置信 |
+| +100 | u32 | 名单计数 | 高置信 |
+| +168 | SSO 串 | 存档名槽 A (sub_140D9D4F0 构造) | 高置信 |
+| +200 | SSO 串 | 存档名槽 B (sub_140D9BEA0 拼接目标) | 高置信 |
+| +1152 | qword | 重开/转移请求 (非零 → 交棒: sub_140D99A90 自退 + sub_140D9F630 置 +1204=2 + 转 sub_140DA3A40) | 定案 |
+| +1160 | f64 | 上次 checksync 墙钟 (10s 节流) | 定案 |
+| +1176 | CSession* | 会话 (+84 门与 §4.28.16 互证) | 高置信 |
+| +1184 | 指针 | 墙钟 getter (sub_14224DBD0 实参) | 高置信 |
+| +1192 | 指针 | 服务器/大厅句柄对象 (vt+96 可派发谓词 / +112 人类列表 / +120 通知; 身份推定) | 推定 |
+| +1200 | u32 | 存档/传输句柄 (sub_1424EE1E0 等写入) | 高置信 |
+| +1204 | u32 | **模式状态机: 0=大厅/新局待启, 1=MP gamesetup 文件传输, 2=重开中** (写者全量 = sub_141CE2090=0 / sub_141CE1D10=0 / sub_140D9F630=2 / sub_140DA3A40 读+转移; 常量写点穷举无 3..N) | 定案 |
+| +1212 | u8 | 文件传输开始旗 | 定案 |
+| +1213 | u8 | 文件传输完成旗 (gamelobby.cpp:653 日志配对) | 定案 |
+| +1214 | u8 | 传输+复位完成旗 | 定案 |
+| +1217 | u8 | 读档局旗 (置位走 ironman 元数据恢复 sub_140DA2E80 / sub_140DA25E0) | 高置信 |
+| +1218 | u8 | 离开旗 | 定案 |
+
+> **Update 裁定**: sub_140DA3F20 (FE Idle sub_140B3CA20 每帧调) 是 **MP gamesetup
+> 状态机** (checksync 10s 节流 → CCheckSyncCommand / 文件传输完成 → 命令派发循环 +
+> 按 nNumOfHotjoins 分派 CPostHotJoin 或 CSetGameUniqueId + 主机读档序列 / 热加入
+> 扫描), **不含**新局/读档世界构建分流 — 单机新局路径它近空转 (+1204 停 0)。
+> **唯一分流点 = sub_140DA04F0** (FE vt[111] OnSaveGameLoadBegin → 88B 会话描述符
+> v24 拷贝 sub_1402DDD00, tag@+88 分流旗@+85 → **v24[85]≠0 读档 sub_140D9FF80 /
+> ==0 新局 sub_140D9F9C0** → vt[112] OnSaveGameLoaded 仅成功路径发射)。
+
+**入口三通道与命令级联** (汇合点 = sub_141CD7100):
+
+| 通道 | 链 |
+|---|---|
+| UI 新局 | setup Play (vt+440 → FE+1591=1) → sub_141CE2090 应用设置级联 (CSelectBookmarkCommand 首发 + CSetDifficulty + CSetCountryController + CSetGameUniqueId + CSetRandomSeed + 设置串持久化) |
+| -start_tag | argv "start_tag=" → qword_143085070 (串对象对 xmmword_143085080; **串非空即 auto-start 旗**; 串空且 scenario_test 强制 "GER") → FE 菜单 sub_141CE5080 程序化点 Play → setup 选国 sub_141F49750 (tag→国 sub_14071BC80, qword_143330D98) → setup 帧循环 sub_141CD8CD0 auto → sub_141CD7100 |
+| -start_save | argv → qword_143085090 (串对象对 xmmword_1430850A0) → sub_141CE5080 → sub_141CE2730 可续局检查 → sub_140DA3A40 + sub_140DA04F0 (读档分支) |
+
+开始执行器 = **sub_141CD7100**: 玩家 tag 兜底 (gs+1316≤0 → 从国家/人类槽挑) →
+**lobby+1204==0 (新局条件)** → sub_141CD9D80 命令级联 (可选 SetSeed →
+CSetGameUniqueId (id = gs 侧 sub_1401DB330 生成) → CSetRandomSeed
+(dword_143452524/520) → CSetGamePlayOptions (gs+1576 整块) → CStartGameCommand) —
+全 session_post; UI 通道与 -start_tag 通道**汇合于此** (UI 的书签切换同样走
+CSelectBookmarkCommand; -start_tag 路径书签保持默认, 世界已由 FE OnEnter 按当前
+书签建好)。
+
+**新局世界构建步序** (sub_1401A5630 "Resetting game", **主线程同步** — 命令 Execute /
+FE OnEnter 时各可跑一次; zone 计时 sub_14222E270; 全序定案):
+
+| 步 | 内容 | 证据 |
+|---|---|---|
+| 49.1 | 日志 "Resetting game" | gameapplication.cpp |
+| 49.2 | gs 重建 = sub_1401EA1B0 (ctor sub_1401D0E30 清全部容器/管理器 + 默认初始化链: game_rules / 省 VP / 市场 / 突袭 / 阵营 / 学说 / 海军 / 角色 mgr ctor / 难度条目 sub_1401E0EE0) | "Resetting gamestate. Total time:" |
+| — | HistoryDatabase 销毁 (惰性单例 qword_143339CC0) | sub_140A3CF40 + sub_140A3D210 (49.3) |
+| 49.4 | 重置 ID 分配器 sub_140175130; **角色批产 sub_1406B97D0 (gs+1704)** — 重置 ID 后、历史应用前 | "Reseting IDs. Time:" |
+| — | start_date 落位: gs+1192 = 书签+376; SetCurrentDate (纪元 dword_143089AD8) | — |
+| — | HistoryDatabase 装载 sub_140A3D640(histdb, 1) → **两段日期区间应用** sub_140A3D2A0 (第一段纪元→界; SetCurrentDate(start_date) 后第二段→start_date); 条目执行 = CHistoryEntry 族 vt[17] (§4.13.7: COwnerChange → SetOwner/SetController / CSetStateBuildings / CSetStateVictoryPoints / CHistoryAddEffectState → effect 重放) | history.cpp:165 |
+| — | gs+2600 = 所选书签; 渐变边界生成 (sub_1406D9040 逐国 + sub_140B70B30); 49.5 sub_1401E2230 (语义未决); 49.6 情报知识刷新; 49.7 CGraphicalMap ResetGame (sub_140B58360); 49.8 stateDef 侧收尾 sub_140A64600 | — |
+
+书签应用包装 = sub_14067EEE0 (门 `gs+2600 != 目标书签` 才重建); FE OnEnter 进前端
+时对当前书签先建一次 = **主菜单存在完整 gs 的根因** (§1.1b 互证)。
+CStartGameCommand::Execute = sub_14163DA10: 玩家 tag 兜底 + lobby+148 bit2 +
+FE 槽[80] SetLoadingComplete (FE+1590=1); 副产 sub_140DE2C00: gs+2216 = −1
+(禁首轮自动存档)。两路汇合后 = FE 帧 StartNewGame sub_140B3E9A0 (门 FE+1591) →
+构造 CInGameIdler (ctor sub_140DC1B30 内 **sub_140DD6A30 开局补算** =
+Hourly+Daily+Weekly+Monthly 各一遍, 门 HasGameStarted) → SetIdler → 首帧。
+
+**history/ 装载两层次** (boot 静态 DB 与新局 HistoryDatabase):
+
+| 层次 | 时机 | 内容 |
+|---|---|---|
+| boot 静态 DB | 主菜单前 (gameapplication sub_14018BB20) | stateDef "history/states" (sub_140A64AA0, 断言 "DB already loaded when loading"); tag 表 → CCountry 批建 sub_14071C5C0 (ctor sub_1406C9CC0); history/countries 逐国装载 sub_140A3DC80; history/units/<TAG>.txt OOB sub_140702F80 (先国家重置 sub_1406E8ED0) |
+| 新局 HistoryDatabase | sub_1401A5630 内 (上表) | 装载 + 两段日期区间应用; **读档局只销毁不应用** (zone 62.3; 历史已物化进存档) |
+
+> mod 覆盖: 两层装载枚举全经 PHYSFS VFS (§4.29.1), replace_path 目录级独占
+> (§4.29.5) 在**枚举层**生效; 被独占时静默缺文件, 链上无额外告警点 (§4.29.7)。
+
+**实体批产表** (生成者 × 时机):
+
+| 实体 | 生成者 | 时机 |
+|---|---|---|
+| CCountry 本体 | boot tag 表装载 sub_14071C5C0 → ctor sub_1406C9CC0 | 进程启动 (先于任何会话) |
+| 国家数组 gs+784 槽位 | gs ctor 逐国复位 (自 idx 1 起) | 每会话 ctor |
+| 州归属/建筑/胜利点 | 历史条目 vt[17] (§4.13.7) | 两段日期区间应用 |
+| 角色 (领导人/顾问/将领) | 批产 sub_1406B97D0 (来源 = common/characters 模板 DB, boot 期已载) | 重置 ID 后、历史应用前 |
+| 单位 (师/翼/舰) | OOB history/units/<TAG>.txt (sub_140702F80) + CHistoryAddEffectState effect 重放 (重放全集未决) | HistoryDatabase 应用期 |
+| 派生数据 (补给/组织/AI 初始态) | **开局补算** sub_140DD6A30 | StartNewGame 构造 idler 时 (首帧前) |
+
+**初灌 vs 读档 loader 分工** (两路共用 gs ctor + 默认初始化 sub_1401EA1B0, 此后
+一路独占填充):
+
+| gs 项 | 新局 | 读档 |
+|---|---|---|
+| 州/省骨架 | ctor 分配 + 历史条目填 owner/building/VP | ctor 分配 + loader case 填全量 |
+| 国家属性 (颜色等) | boot 模板解析值留存 (**模板字面量**) | loader 逐字段回读 (存档文本整数往返) |
+| 角色 RH 反查表 #1/#3 | 仅新局批产填充 | 恒空 (§4.4.9) |
+| gs+152 CGameDate#0 | **零写点** (ctor 哨兵 43808760 恒留) | loader 落 hours |
+| gs+2600 | 写所选书签指针 | 重置默认书签 (sub_1401DBBB0) |
+| id 计数器族 (gs+1872..1952 等) | ctor 零态 (个别历史 effect 抬升) | loader case 回读 |
+
+> **颜色 f32 分歧根因** (新建档 = 模板字面量 / 读档 = k/255 往返): 两路写源不同 —
+> 新局颜色自 boot 期 common/ 模板解析直存 (不经归一化); 读档经 writer 文本输出
+> `(int)(v*255)` 截断 → loader 按整数还原 k/255。分歧是**写源拓扑**, 无公共归一化
+> 步骤 (§4.24.10 CColor 截断定案闭合); gs+152 新局零写点 = 结构性必然。
+
+**就绪旗族** (世界构建期到首帧可玩):
+
+| 标志 | 语义 |
+|---|---|
+| gs+2613 | 世界构建进行中门 (sub_1401E2AC0 开头置 1 / 结尾清 0; 多系统读者以 `!+2613` 跳过) |
+| gs+2612 | HasGameStarted (getter sub_1401E2930; sub_1401E2AC0 开头置 1) |
+| dword_14332F284 | 装载互斥旗 (0 = 构建运行中, 1 = 完成/空闲) |
+| FE+1590 / FE+1591 | SetLoadingComplete / RequestStart (§4.28.14 槽表) |
+| 首帧可玩 | CInGameIdler ctor 开局补算 (sub_140DD6A30) + SetIdler 后首个 InGame Idle 帧 |
+
+> 桥时序相容: `session_start` 事件触发于 gs ctor 写点 (构建早期, gs+2613=1);
+> `in_game=true` = 首个游戏内帧, 严格晚于 sub_1401E2AC0 收尾与 InGameIdler 切换 —
+> 「持久化状态恢复只许在 in_game=true 做」与引擎时序严格相容; 构建期窗口内的早期
+> 读数会撞零态。
+>
+> 待裁: 单机新局是否经新局分支 sub_140D9F9C0 (写模式开档 + 空档解析, 世界保持
+> 书签版) 未定 — 无 xref 的 GUI 回调 sub_141F46870 携带描述符直调 sub_140DA04F0;
+> 探针 = 观察新局启动是否产生新 .hoi4 文件 + logs 顺序。
+
+#### 4.28.19 新开局世界构建链 (进程骨架与历史装配细节)
+
+> 与 §4.28.18 分工: 该节 = 命令级联/两路分流/实体批产总览; 本节 = 层 0 进程
+> 骨架 + Resetting game 八步内部 + 历史 Change 工厂与两段快进细节。
+
+**核心结论 (定案)**: 新开局的世界构建在书签选择时同步完成, 不在点 Play
+之后 — 玩家选书签 (或启动流程/MP 大厅) → CSelectBookmarkCommand
+(ctor sub_14163BF60 → sub_142250B00 入队) → **Execute sub_14163D250** →
+书签应用器 **sub_14067EEE0** (门 = force ∨ gs+2600 ≠ 书签) → **sub_1401A5630
+"Resetting game" 八步世界重建** + 书签 effect (书签+264 vt+96) + gs 日期 =
+书签+376。点 Play 只剩 **StartNewGame sub_140B3E9A0** (frontend.cpp:672/682):
+玩家 tag/human 绑定 session (sub_1401F01B0) → malloc 0xB30 + CInGameIdler ctor
+sub_140DC1B30 → SetIdler — **体内零世界构建**。
+
+**新局/读档分叉位 = CBookmark+8** (真/空书签旗): 真书签 ctor 置 1 → 历史
+装载+执行全链; TNullObject 空书签置 0 → 只存 gs+2600 由 §4.28.17 读档链覆盖。
+CSelectBookmarkCommand::IsValid sub_14163DDA0 同判此位。
+
+Resetting game (sub_1401A5630, gameapplication.cpp:2968) 八步: ① gs+2617=0;
+② FE 场景清理; ③ **sub_1401EA1B0 世界重置 (13 步: 难度/天气/game_rules/派系/
+补给/突袭/战略空海军管理器族 — 与读档链 §4.28.17 步骤 5-② 共享)**; ④
+Destroying HistoryDatabase (sub_140A3CF40 单例获取 qword_143339CC0 48B →
+sub_140A3D210; 与读档链同对); ⑤ Reseting IDs + 政治系统复位; ⑥ **`if
+(书签+8)` 新局分支** (下段; 读档态 else 只存 gs+2600); ⑦ **sub_1401E2230
+CGameState::Reset (掩码 0xFFFFFFF)** 逐国全子系统复位; ⑧ CGraphicalMap
+ResetGame + 图形地图收尾。
+
+R6 新局分支 — 历史装配与执行: **CHistoryDatabase::Load sub_140A3D640**
+(history.cpp:279): 逐国 malloc 0x48 + CCountryHistory ctor sub_14153FB90
+(+64 = 国 tag) → VFS 枚举 history/countries/*.txt → tbb 并行装配
+(sub_140A3C760); 缺历史文件告警 "<TAG> - is missing a history file."。
+**CCountryHistory::Load sub_141540190** (dated 块 reader): `1936.1.1 = {…}`
+→ CCountryHistoryEntry → **Change 工厂 sub_1415403C0** ("Unknown History
+Command ==>'…' for Country" countryhistory.cpp:171): 八专键 = capital
+(10315→CCountryCapitalChange) / decision (11142) / oob (12137→COOBChange,
+载荷 +72 串) / set_convoys (12384) / add_nuclear_bombs (12677) /
+revolutionary_tag (13312) / starting_truck_buffer (19699) /
+starting_train_buffer — **其余一切键编译成 CHistoryAddEffectCountry**
+(336B: +72 CScriptEffect + +160 CExecutionContext scope=本国)。
+**ExecuteHistory sub_140A3D2A0** (history.cpp:165 "Executing History from
+<D1> to <D2>"): 州史链 (statedef+208) / 国史链 (ch+32) / general 链三循环,
+区间 (from,to] 命中 → `(entry) vt+136` 槽 17 执行; **两段调用** =
+① (负无穷哨兵 43791240 "-1.1.1", 默认 43817520] 执行全部初始态 ② (默认,
+书签日期] **快进重放** (1939 书签 = 从 1936 重放)。OOB: `oob = <名>` 键 →
+COOBChange::Execute sub_14035AF40 → **sub_140702F80 拼 "history/units/<名>.txt"
+建军** (重建模式先清旧军)。
+
+进程启动骨架 (一次): **InitGame sub_1401835A0** → LoadDatabases
+sub_14018BB20 (进度 37/x/102; 含州 DB 三源装载 sub_140A64AA0 =
+common/state_category + history/states + map/) → **InitGameState
+sub_1401E0610** (gamestate.cpp:917): 战略区域数组 gs+736 (malloc 0x148/元,
+断言 "Strategic regions already assigned." :2946) + 州骨架 gs+712 (malloc
+0x928/元, 断言 "States already assigned." :2568) + **国家数组 gs+784 =
+CCountryDataBase::ReadCountryFiles sub_14071C5C0** (countrydatabase.cpp:148/
+155/197: malloc 0x1610 → CCountry ctor sub_1406C9CC0 (idx 0 哨兵 + 逐国) +
+tag↔idx 映射 + **逐国读 common/country_history/<tag>.txt** (cc+5212=1 →
+槽[3] Load wrapper) + 尾逐国槽[8] PostLoad)。
+
+完成钩子 (定案): 新开局无 OnSaveGameLoaded 对应物 — 完成通知 =
+StartNewGame → **CInGameIdler ctor 尾部 sub_140DD6A30 开局初始链**
+(Hourly+Daily+Weekly+Monthly 各一遍, §4.28.14) + OnEnter 激活时间调度器;
+命令侧终点 = CStartGameCommand::Execute sub_14163DA10 → FE 槽[80]
+SetLoadingComplete。
+
+#### 4.28.20 存档写出编排链 (§4.28.17 读档链的姊妹链)
+
+主链与读档链逐级镜像 (定案):
+
+| 步 | 函数 (VA) | 语义 | 置信 |
+|---|---|---|---|
+| T1 | sub_1402806A0 / sub_140280230 | UI 存档确认 (CConfirmSaveGame 系) / 控制台 `savegame` 命令 Execute (无参默认 "Test_01.hoi4"; **sv2_export 重存即此通道**) → 漏斗 | 定案 (T1' 高置信) |
+| T2 | sub_140DA3530(lobby, meta, a3) | **保存分派壳** (读档分派壳 sub_140DA04F0 镜像): !meta+85 ∨ a3==1 → sub_140DA25E0 (新档写出); else → sub_140DA2E80 (续档重写) | 定案 |
+| T3 | sub_140DA25E0 (gamelobby.cpp:2400/2416) | **新档写出器**: 文件名构造 sub_140D9BEA0 (与读链步 3 同函数) → 拼 **"_temp" 后缀** → 开流 sub_1424DF2C0 → sub_1401ECC50 → 关流 → exists→delete 旧 → **rename `_temp`→名 (sub_1424E14B0, virtualfilesystem_physfs.cpp:778)** = 原子落盘 | 定案 |
+| T3' | sub_140DA2E80 | **续档同名重写器** (meta+85=续局旗): 同名截断重写 (流 sub_1422CD210), 无 _temp 中转 — 铁人档被持续覆写的根因 | 定案 |
+| T4 | **sub_1401ECC50** | **CCurrentGameState::Save** (Load sub_1401E2AC0 镜像): ① [idler+1508 门] 逐国 pre-save 钩 sub_140713040+sub_140713090 (areas.cpp:437 战略区域表排序 "Sorting list %i.") ② dword_14332F284=0 (互斥旗) ③ tbb parallel_invoke { CSessionUpdateThreaded, **CGameStateSaveThreaded** } 同步阻塞 | 定案 |
+| T6 | **sub_1401C8C70** (gamestate.cpp:1498) | **保存 lambda**: ① 取校验盐 sub_14061CD20 → sub_14061FBF0 ② humans 写前同步 (gs+248 数组 × 160B 循环, 读链步 10 镜像) ③ **sub_142232D10(stream, gs, 盐, 盐长)** ④ 刷浏览器条目 sub_1422330F0 (title=玩家名+ctime) ⑤ 异常 → "Failed to load save file " + 互斥旗=1; 尾旗=1 | 定案 |
+| T7 | **sub_142232D10** (savegamehelper.cpp:348/363/386) | **保存引擎** (读引擎 sub_142232930 镜像): ① 写 "HOI4" (boot 全局 qword_1430BDE30) ② 三字节魔法: binary → "bin" / 否则 "txt" (binary 分支多写 token 16) ③ **sub_1424C4880 = 根保存** (thunk: 流+8=−1 → gs->vt[1]) ④ token 377 空值 + token 1 **校验和占位** ⑤ **sub_142231AF0 计 MD5** ⑥ **sub_1424C44F0 回填** ⑦ flush | 定案 |
+| T9 | **sub_1401F29A0** (gs vt1 槽[2] CGameState writer) | 根块落盘序: **sub_140BC2710 (gs+16 元数据 writer: player/ideology/date/difficulty/version/tutorial/player_countries/save_version/minor_save_version/dlcs/mods) → sub_1401F27F0 (随机域 + session) → 全 gs 管理器键序**; gs+2216≠0 才写 token 16067 (all_playthrough_data 门) | 定案 |
+
+读/存对称对照: 分派壳/驱动/gs 入口/tbb 并臂/引擎/根 thunk/wrapper **全镜像**;
+**不对称点 = 保存无尾波** (读侧 PostLoad 三波 + 重挂波, 保存只读现态 +
+pre-save 排序钩) (定案)。Save wrapper sub_1424BEC50 = 块开 sub_1424C4410 →
+槽[2] writer → 块闭 sub_1424C3A20 — **写侧无 PreSave/PostSave 对称钩**
+(钩族全是读侧专用, 定案)。
+
+autosave 调度与轮换 (定案):
+
+| 步 | 函数 | 语义 |
+|---|---|---|
+| A1 置位源 | CAutosave::Execute 0x140DE7C40 → 槽[728] / +2216 倒计数 / 日历边界 (**日节拍 sub_140DD9740 + 月节拍 sub_140DDA1B0 调用**) | §1.1b.1 在册 + 本轮补两调用者 |
+| A2 分派器 | **sub_140DCE470** (Idle 每帧) | 两相位 (+1680 请求 → +1681 横幅 "AUTOSAVING" → 清双旗) → 三路: gs+192 bit0 铁人 → **sub_140DD07B0** (周期 +2216=168h = 7 游戏日) / 云 (设置+589) → **sub_140DCE810** / 否则本地 **sub_140DD0980** (ingameidler.cpp:4436; 编号候选名逐个 exists→delete 轮换 + 读现有 autosave 头灌 meta sub_140D9AA30); 随后 idler+1700 队列非空且非铁人 → **sub_140DD1320 日期序列** |
+| A6 日期序列 | sub_140DD1320 | idler+1688 24B CGameDate 队列 (计数 +1700) 对照 gs+1128, 到期 → 存 **"autosave_date_<游戏日期>"** — 实测 "autosave_<ts>.hoi4" 消失/改名 = **编号轮换删旧 + 日期序列另立名 + 云路三机制合流**, 非 rename 单点 (定案) |
+
+#checksum / #version / #dlcs / #session 生成点 (EXEMPT 四项闭环, 定案):
+
+| 叶 | 生成式 |
+|---|---|
+| **checksum** (token 377 占位) | **MD5(文件字节 + 盐)** 32 hex 小写 (sub_142231AF0: init/update(盐)/update(全文)/finalize); 盐 = **"I_am_such_a_cheater"** 19 字节常量, 成就/铁人条件 (+163 ∨ +161∧+162∧旗) → 云对象 8 字节盐 (sub_14061FBF0); 两阶段写入 (占位长度恒定故可回填 sub_1424C44F0); 读侧比对 sub_142231720 (在读链随机流播种同站) |
+| **version** (238) | 写盘时现取 app 版本串 (sub_1424D86B0(*(idler+1328)+352)) |
+| save_version / minor | 宏常量 SAVE_VERSION=33 / MINOR (dword_143335FEC / dword_143336080) |
+| **dlcs** (11546) | boot 位掩码全局 dword_14332F248 写盘时读现值 |
+| **session** (13954) | **time(nullptr) − Time2 (会话起点) + qword_14332F428 基数** = 墙钟秒 (sub_140202190) |
+
+二进制/文本分叉 (写入侧, 定案): 文件头 "HOI4" + "txt"/"bin"; OOS 转储
+(a3=1) 或 byte_143452529/2B 强制二进制, 否则 CSettings+599 文本选项决定。

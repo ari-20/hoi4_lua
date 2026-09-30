@@ -92,4 +92,33 @@ ds_decisions = {
 		}
 		ai_will_do = { factor = 0 }
 	}
+
+	ds_access_on = {
+		icon = generic_operation
+		visible = { is_ai = no NOT = { has_global_flag = DS_ACCESS_ON } }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = DsAccessDesc
+		complete_effect = {
+			set_global_flag = DS_ACCESS_ON
+			ds_access_on = yes
+		}
+		ai_will_do = { factor = 0 }
+	}
+	ds_access_off = {
+		icon = generic_operation
+		visible = { is_ai = no has_global_flag = DS_ACCESS_ON }
+		available = { always = yes }
+		days_re_enable = 0
+		is_good = no
+		fire_only_once = no
+		desc = DsAccessDesc
+		complete_effect = {
+			clr_global_flag = DS_ACCESS_ON
+			ds_access_off = yes
+		}
+		ai_will_do = { factor = 0 }
+	}
 }

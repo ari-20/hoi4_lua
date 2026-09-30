@@ -76,35 +76,55 @@ dip 字段 GUI 消费 (消费点 ≥3 者立表):
 
 #### 4.10.2 CRelationStatus (rs)
 
-rs = dip+8 active_relations 容器元素, sizeof 0x9C0。
+rs = dip+8 active_relations 容器元素, sizeof 2496 (0x9C0); vt 0x142960B10;
+writer = vt[2] 0x140D2DB40 / reader = vt[4] 0x140D2B300 (serfam:624);
+ctor 0x140D17B30 / dtor 0x140D181F0 / Reset(teardown) 0x140D1E470 /
+每日重算 Recalculate 0x140D1FDC0 (dip daily sub_140D3C000 逐 rs 调用) /
+cached_sum 重算 0x140D2D8D0。
 
 关系对象落入点 = `sub_140D20230(rel)`: 取 `dip = *(cc+3976)` → `dip+8 表[对方国 idx]` → 在**对方 dip 的 +208 容器** (count@+220) 查重, 命中即报 "Initializing Duplicate Relationship: %s between %s and %s" (relation.cpp:200); 未命中走 vt[21] (0xD8) 插入。关系类由 token 工厂 `sub_140D1EE80(token)` 分派构造 (CPersistentReloadableGameItemDatabase 族)。
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +8 | CTimedOpinionModifier* 向量 | **CTimedOpinionModifier\* 内联 2 向量** {data@+8, cap@+16, count@+20, alloc@+24} (ctor 装 CPdxHybridInlineBufferAllocator\<CTimedOpinionModifier*,2\> vtable; 元素 8B; 形态定案 = 内联 2 元素混合缓冲指针向量; 语义 (附属/临时意见暂存) 保留 — 无 writer/parse 触及, 插入点未定位) |
+| +8 | CTimedOpinionModifier* 向量 | **CTimedOpinionModifier\* 内联 2 向量** {data@+8, cap@+16, count@+20, alloc@+24}; **插入点定案 = Recalculate (0x140D1FDC0) 把 +256 中「未锁过期 ∧ 已过期」∨「值折算为 0」的失效 opinion 指针推入本表** (过期判据 `!*(e+57) && gs+2256 ≥ *(e+24)`; 零值 `sub_140A81F40(e)==0`) — 失效 opinion 回收暂存队列; 队列消费者 (逐元析构+从+256 摘除) 未定位 (推定) |
+| +24 | allocptr | 属 +8 向量头 (指向 +32 分配器本体), 非独立字段 (定案) |
+| +32 | 分配器本体 32B | CPdxHybridInlineBufferAllocator 本体 {vt@32, 内联缓冲 2×8B @40..55, 共享空缓冲 off_143085170@56} (定案) |
+| +64 | i64 fixed | **实力比** = 1e10 × v35 ÷ (1e5×v34), 钳 [0, 1e8] ({v35,v34} = sub_1406F3160(属主国, 对方idx) 双出参); Recalculate 每日重写 (公式定案) |
+| +72 | u8 旗 | 修饰块重算差异旗 (sub_140559750(现块) != sub_140559750(全量重建块); 重建器 sub_140D1AE20 栈上建 192B 新 CModifier 比对) (高置信) |
+| +73 | u8 旗 | attache 旗 = (rs+520 槽关系对象) ? 其 vt[9] : 0 (定案) |
+| +74 | u8 旗 | 交战旗 = *(rs+744) ∧ 非隐藏 ∧ is-at-war 谓词 sub_140D3F440 (定案) |
 | +80 | uint32 | **对方国 idx**; AddOpinionModifier 0X140D19390 / 事件 scope 构造 |
-| +88 | CGregorianDate 24B | **last_send_diplomat** {vt@+88, hours@+96, greg vt@+104}; writer 键 10568 门 hours≠哨兵 (定案; available_wargoals 真身 = dip+104) |
+| +88 | CGregorianDate 24B | **last_send_diplomat** {vt@+88, hours@+96, greg vt@+104}; writer 键 10568 门 hours≠哨兵 (定案; available_wargoals 真身 = dip+104); reader 另收 10567 `last_war` = legacy 键 (format==3 整键跳过) |
 | +112 | CGregorianDate 24B | **trade** {vt@+112, hours@+120, greg vt@+128}; writer 键 10350 ↔ `trade="1940.4.1.15"` (定案; wargoals 真身 = dip+128) |
 | +136 | CGregorianDate 24B | **trade_equipment** {vt@+136, hours@+144, greg vt@+152}; writer 键 11180 |
-| +160 | CGregorianDate 24B | **truce_until** {vt@+160, hours@+168, greg vt@+176}; writer 键 13835 |
+| +160 | CGregorianDate 24B | **truce_until** {vt@+160, hours@+168, greg vt@+176}; writer 键 13835; **truce 型 (13911) 唯一落点** (truce 无对象子类, 见节尾负结论) |
 | +184 | CGregorianDate 24B | **kicked** {vt@+184, hours@+192, greg vt@+200}; writer 键 14445 |
-| +208 | CRelation* 向量 | **_Relations** (非属主侧关系) {data@+208, cap@+216, count@+220, alloc@+224}; assert `_Relations.IsEmpty` (teardown 0X140D1E470) |
-| +232 | token 向量 | **_OwnedRelation** (= 书内 "relations") {data@+232, cap@+240, count@+244, alloc@+248}; assert `_OwnedRelation.IsEmpty`; writer 逐元动态 token@元+8 |
-| +256 | CTimedOpinionModifier* 向量 | opinions {data@+256, cap@+264, count@+268, alloc@+272} — **指针元 8B → CTimedOpinionModifier 本体 64B** {过期 hours@+24, modifier def@+40, 旗@+57} (容器为指针数组, 0X140D2A150 逐元解引用刷新); AddOpinionModifier 0X140D19390; parse 10913 — 定案 (1.19.3 锚: writer 0x140A82C60 / reader 0x140A824E0; +48 value i64 / +56 decay 旗 / +57 do_not_expire 旗) |
-| +320 | 匿名结构 (16B 形状) 向量 | **生效修正值块** {data@+320, count@+332} 16B 条; AddRelationModifier 添加 (sub_140557840); teardown 遍历 |
+| +208 | CRelation* 向量 | **_Relations** (非属主侧关系) {data@+208, cap@+216, count@+220, alloc@+224}; teardown 先过 war 滤 (a2/a3 门 + token 14346 + 州 scope 双查 sub_140700600/450) 再 vt[22] Remove / sub_140D1CC40 End |
+| +232 | CRelation* 向量 | **_OwnedRelation** (= 书内 "relations") {data@+232, cap@+240, count@+244, alloc@+248}; writer 逐元按**动态 token@元+8** 发射; reader default → 工厂 sub_140D1EE80 → vt[3] Parse → relation.cpp:3221 "RelationToSelf==false" 断言 → sub_140D20230 插入 |
+| +256 | CTimedOpinionModifier* 向量 | opinions {data@+256, cap@+264, count@+268, alloc@+272} — **指针元 8B → 本体 64B** {**def token u32@+8 (reader 查重键)**, 过期 hours@+24, modifier def@+40, value i64@+48, decay 旗@+56, do_not_expire 旗@+57}; parse 10913: malloc 0x40 → ctor sub_140A80670 → **按 def id 查重合并** (命中 sub_140A827D0(old, 新值) 后弃新) 否则尾插 (1.19.3 锚: writer 0x140A82C60 / reader 0x140A824E0) |
+| +280 | 指针向量 24B | **键 10597 `modifier` 按名静态修正条目指针表** {d@280, cap@288, count@292, alloc@296} (元素 +424 = 名串 SSO); writer 逐元发射名串, reader 按名查单例库 qword_143330098 后尾插 (书此前无此行) |
+| +304 | CModifier 头 16B | 修饰块上下文头 {vt@304, token u32@312 = 357 `none` 默认}; 其 +16 即 +320 vecA / +28 即 +332 |
+| +320 | 匿名结构 (16B 形状) 向量 | **生效修正值表 vecA** {data@+320, cap@+328, count@+332} 16B 条 = {def_idx u32@0, pad@4, value i64@8} **按 def_idx 有序** (二分插入/同 def 累加); def 全局库 = qword_14332ED90 (120B/条); AddRelationModifier sub_140557840; teardown 遍历 sub_14055F700 (定案) |
+| +344 | 向量 24B | **活动修饰实例指针表 vecB** {d@344, cap@352, **count@356**, alloc@360} — 元 = 192B CModifier 完整实例 {头 16B + 嵌套 176B 块}; Add 路径 sub_14060C920 产实例 (可从 vecC 自由表取) 后尾插 (定案) |
+| +368 | 向量 24B | **192B 实例回收自由表 vecC** {d@368, cap@376, count@380, alloc@384} (清理时 vecB 指针整体并入 sub_140185E10) (定案) |
+| +392 | std::string 32B | 修饰块名串 {buf@392, size@408, cap@416=15} (定案) |
+| +432 | 哈希表 | **池1 = 开放寻址哈希表** {桶指针@432 (初始共享空桶 &unk_143086E30), **元素计数@440**, u8@448, 负载因子 f32@452 = 0.85}; 元 40B = {key u32@0, 占用旗@4, 24B 值@8} (定案) |
+| +464 | 哈希表 | **池2 = 第二哈希表** {桶指针@464 (&unk_143086E80), 计数@472, u8@480, lf f32@484 = 0.85}; 元 8B = {占用旗, key u32}; 键哈希 = 73244475 乘加异或折叠 (定案) |
+| +488 | i32 | = −1 (ctor/Reset; 克隆时从源块 +168 复制); 语义未决 |
+| +492 | i32 | = 1; **实例克隆使能 index** (sub_140557840 以 v12−1 为序号调 sub_14060C920 产实例, 0 = 禁; 克隆时由源索引覆写) |
 | +496 | CDiplomacyStatus* | **属主 dip 回指**; *(*(rs+496)+648)+8 = 属主国 |
-| +568 | llth 块基 | llth 块基 {+576, +584, +592, +600} 四 fixed×1e-5 (⚠ 块基 = +568, +576 为首个分量); writer 键 12950: 四分任非零才写 |
+| +568 | SLendLeaseHistory 40B | **SLendLeaseHistory 对象** {vt@568, 4×fixed @576/584/592/600} (原「llth 块基」正名); writer 键 12950: 四分任非零才写 (sub_1424ED3F0 取值); reader 12950 → vt[3] 直写; teardown 重建本地同名对象后清 576..600 四 qword (vt 不动) |
 | +720 | u32 | faction_join |
-| +744 | 指针槽 | **_pWarRelation**; assert `_pWarRelation == nullptr`; GUI: CWarRelationStripView target 链终点 (+56 本国 tag → dip+8 active_relations[对方idx] → 本槽; 条目 +40 = token 10637 "war" / +44 = 侧模式 1=initiator/2=receiver, relationstripview.cpp 铁证; 宿于 CDiplomacyView 双实例) |
-| +768 | int32 | cached_sum; writer 键 11598; 重算 0X140D2D8D0 — opinion 唯一 UI 出口 = sub_1406F4490 (dip+8 active_relations → rs+768), 外交国列表行 opinion 全走此函数 |
-| +776 | fixed×1e-5 | border_friction; writer 键 11286 ↔ `border_friction_claim=` |
-| +784 | u8 旗 | **「与对方共同参战」旗** (has_war_together_with 判据) — 读点 = sub_140D256B0 `*(u8*)(a1+784)`, 由 CHasWarTogetherTrigger (vt 0x14278E4C0) 槽[22] Evaluate sub_1403D9B20 调用; 置位点 = setter sub_140D2CFD0 ← sub_140D46650 (rs 全量重建, 先全量清 0 再对满足条件的对方国置 1); teardown sub_141B60F80 清 0。**被门控者** = llth 四累加器 sub_140D2A0A0(+584) / sub_140D2A0C0(+576) / sub_140D2A0E0(+600) / sub_140D2A100(+592), 四者体首行均 `if (*(BYTE*)(a1+784))` ⇒ +784 是 llth 累计的前置使能, **非 llth 旗本身**; llth 块本体 = rs+568 起 32B (writer sub_140D2DB40 发 token 12950); **活体分布: 全量 135000 rs 条目中仅 20 条置位** |
-| +792 | CAIAttitude* | attitude (名 SSO@+16); writer 键 11737 ↔ `attitude="attitude_hostile"` |
-| +800 | uint8 | attitude 锁定旗 A; "Locked attitude for %s" 0X140D19E10 |
-| +801 | uint8 | attitude 锁定旗 B; 同上 |
-| +804 | fixed5 数组 | recently_leased_ic; writer 键 13887 |
-| +808 | rule_overrides 块基 | **rule_overrides 块基** (flags 28 槽 @+816 步进 4 / desc 28×32B @+928 / vec 28×24B @+1824 的块基); writer 键 10146 (门 = flag 数 + vec 计数和 >0); Reset 逐个析构 |
+| +744 | 指针槽 | **_pWarRelation**; assert `_pWarRelation == nullptr`; GUI: CWarRelationStripView target 链终点 (+56 本国 tag → dip+8 active_relations[对方idx] → 本槽; 条目 +40 = token 10637 "war" / +44 = 侧模式, relationstripview.cpp 铁证; 宿于 CDiplomacyView 双实例) |
+| +768 | int32 | cached_sum; writer 键 11598 (非零才写); 重算 0X140D2D8D0 = sub_1406F44D0(属主国, 对方idx) 钳 [dword_143331754, dword_14333169C] — opinion 唯一 UI 出口 = sub_1406F4490 |
+| +776 | fixed×1e-5 | border_friction; writer 键 11286 (非零才写, f64 通道 sub_1424C34F0) ↔ `border_friction_claim=` |
+| +784 | u8 旗 | **「与对方共同参战」旗** (has_war_together_with 判据) — 读点 = sub_140D256B0, 由 CHasWarTogetherTrigger 槽[22] 调用; 置位点 = setter sub_140D2CFD0 ← sub_140D46650 (rs 全量重建); **被门控者** = llth 四累加器 (体首行 `if (*(BYTE*)(a1+784))` ⇒ 前置使能非旗本身); **活体分布: 全量 135000 rs 条目中仅 20 条置位** |
+| +786 | u8 | 析构护栏旗 (dtor 置 1 → 调 Reset(0,0) → 清 0, 抑制 Reset 副作用路径; ctor 置 0) |
+| +792 | CAIAttitude* | attitude (名 SSO@+16); writer 键 11737 ↔ `attitude="attitude_hostile"`; ctor/Reset = 态库 sub_1401615B0()+88 默认条目; reader 按名 sub_140636220 查库 |
+| +800 | uint8 | attitude 锁定旗 A (ctor/Reset 清 0); "Locked attitude for %s" 0X140D19E10 |
+| +801 | uint8 | attitude 锁定旗 B (默认 **1**) |
+| +804 | u32 | **recently_leased_ic = 每日递减计数器** (daily sub_140D2A150 对 dword_1433374D0 递减, 负则钳 0; 原「fixed5 数组」翻案); 键 13887 (writer >0 才写, reader 单 int 装载) |
+| +808 | rule_overrides 块基 | **rule_overrides 块基** (flags 28 槽 @+816 步进 4 / desc 28×32B @+928 / vec 28×24B @+1824 的块基); writer 键 10146 (**门 = Σ28 旗 + Σ28 vec 计数 > 0**, writer 双循环现算); ctor sub_140D17E50; teardown = 新 CRuleOverrides 整体赋值 sub_140D18B70 |
 | +816..+924 | u8 [28] | rule_overrides 槽 k flag (槽 k = 816 + 4k, k∈[0,27]) |
 | +928..+1792 | 串 [28] | rule_overrides 槽 k desc 串 (槽 k = 928 + 32k, 每串 32B) |
 | +1824..+2472 | 容器 [28] | rule_overrides 槽 k vec 容器 (槽 k = 1824 + 24k, 每槽 24B); 键 token@rules_base+56k+40, rules_base = `*(BASE+53575920)` |
@@ -131,7 +151,9 @@ per-relation-type 活动关系缓存槽分配 (+504..+760, 8B 步进 ~32 槽; �
 | +744 | war_relation (14346) | 主表 +744 行 = _pWarRelation 槽 |
 | +752..+767 | embargo (12916) | 方向定名 (高置信): 752 = is_embargoing 半 (施行 embargo 侧) / 760 = is_embargoed_by 半 (被 embargo 侧), 触发器名锚定 |
 
-teardown 实清 23 槽; 不清 +624/+632/+640/+688/+696 五槽 (引擎特例/遗漏, reader 防御)。槽族写入门 = `*(rs+440)<=0 && !*(rs+356)` (两计数未名)。
+teardown 实清 **27 槽** (26 qword 清单 + 744 单独; 槽区 33 qword 中不清 6: +568 为 vt 头只清数据 + 624/632/640/688/696 — 引擎特例/遗漏, reader 防御)。槽族写入门 = `*(rs+440)<=0 && !*(rs+356)`: **+356 = vecB 活动修饰实例数 / +440 = 池1 哈希表元素数 (两计数定案)**; 两计数皆零才直落全清, 否则清修饰块并**将 rs 自 dip+56/对方 dip+80 两缓存摘除** (sub_1401B33B0 双侧 — dip+56/+80 实为「修饰活动关系」的 rs 指针缓存, 原推定"瞬时暂存列表"按此增注)。
+
+**24 型↔槽位缺口闭合 (负结论)**: 原「关系注册表」实为外交面板 relation strip view 注册表 (sub_1415EAE80, 112B/条, token@+40/side@+44, 56 条 24 token) 非"工厂注册"。truce (13911) **无对象槽** (数据 = rs+160 truce_until); timed_wargoal (13319) / timed_stage_coup (13424) / demilitarized_zone (12531) / war_reparation (12532) **不占 rs 槽** — 对象形态 = CBaseTimedActivity 族 (工厂 sub_140AD7DD0; 存 **ps+8 指针向量, writer 键 13320**); resource_rights (12533) 无工厂分支 (timedactivity.cpp:250 断言) 载入即跳过。**§4.10.2 槽分配表无需加行**; CTimedWargoalActivity 构造反向双登记 dip+200/224 (升定案)。
 
 #### 4.10.3 关系对象基类 (rel) 与落盘规则
 
@@ -180,11 +202,14 @@ teardown 实清 23 槽; 不清 +624/+632/+640/+688/+696 五槽 (引擎特例/遗
 **槽[10] 覆写分布 (定案)**: CRelation[10] = purecall (0x14253C3B8); 覆写为 ret1 (0x1401807B0) 的共 **3 类** —
 CNonAggressionPactRelation / CMarketAccessRightsRelation / CWarRelation; 其余全族覆写为 ret0 (0x14011D220)。
 
-同族顺带: CLendLeaseRelation (12618, 80B) / CSubjectRelation (12497, §4.10.7) / CWarRelation (14346, §4.10.4)。
+同族顺带: CLendLeaseRelation (12618, 80B, vt 0x142960948, **零扩展定案**) / CSubjectRelation (12497, §4.10.7) / CWarRelation (14346, §4.10.4)。
 
 #### 4.10.4 war 关系对象 (wr)
 
 war 关系对象 (运行时 token@+8==14346 "war_relation"; writer sub_140D2DE80 先调基类); 基址 wr。
+**CWarRelation vt 0x142960288 / sizeof 464B** (工厂 malloc 直证); 无独立「CWar」聚合类 — 战争 = 挂 rs+744 的双边对模型, 多国战争 = 多条 CWarRelation; UI「一场战争」= dip+792 聚合视图。
+**宣战链**: CDeclareWarAction::Apply sub_141105A00 → 参战方构建 sub_141102580 (沿宗主链上溯) → rs+744 已有且 +73 未置则复用; 创建核心 sub_140D34EC0 (diplomacy.cpp:3390 同阵营战争断言) → rs vt[21] AddRelation (工厂 14346) → **SetInstigator sub_140D2D000 (写 wr+344/+352) / SetDefender sub_140D2CEB0 (写 wr+344/+348)** (relation.cpp:824/848) → 双侧 dip 缓存重建 sub_140D46650。
+**终结三路径**: 和会 EndWarsTerminate 0x140E41F70 / 白和平 = CWhitePeaceEffect::Execute sub_140368F10 (scope(2,2) factor 0 立即结算和会 sub_140BBEAD0) / 吞并 = CAnnexCountryEffect::Execute sub_14034D880 → CCountry::Annex sub_1406D3F00 → 逐敌 sub_140D1CC40。**sub_140D1CC40 = CWarRelation::End** (双侧 rs 各调 sub_140D1C9F0 → wr vt[22] Remove 自摘); sub_140D1C9F0 = rs 侧终战清理: flag=1 → **rs+168 truce_until.hours = 当前日期 + dword_143331800 停战时长 define**; 通知属主; rs+552/rs+560 租借槽族逐个 Remove (**战争结束解除租借**)。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
@@ -337,11 +362,12 @@ CAutonomousState def 侧补行 (def 库 = **0x332EE18** (qword_14332EE18, §4.26
 
 | 项 | 值 |
 |---|---|
-| 挂载点 | `*(cc+3984)` (ps) |
+| 挂载点 | `*(cc+3984)` (ps; 外层键 12282 `politics`) |
 | RTTI 名 | CPoliticalStatus (§3.9) |
 | vtable RVA | 0X294FDA8 |
-| writer | — |
-| loader | — |
+| sizeof | 0x110 = 272B (ctor 0x140BA6EF0) |
+| writer | 0x140BB0520 (vt[2]) |
+| loader | 0x140BAD850 (vt[4]) |
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
@@ -360,33 +386,28 @@ CAutonomousState def 侧补行 (def 库 = **0x332EE18** (qword_14332EE18, §4.26
 | +145..+151 | — | = per-ideology-group 容器 {d@128, cap@136, c@140, alloc@144} 的 count 尾 (141..143) + **alloc@144** | |
 | +152 | CGregorianDate 24B | **last_election** {vt@+152, hours@+160, greg vt@+168} (writer 键 0x2BDD; 定案 — 书内 i32@+160 互证) | |
 | +169..+175 | — | = last_election CGameDate {vt@152, hours@160, greg vt@168} 的 **vt2@168 尾字节** | |
-| +176 | CGregorianDate 24B | **next_election** {vt@+176, hours@+184, greg vt@+192} (SetPolitics 推进; 高置信) | **GUI: 选举行** (门 = ps+236 elections_allowed && ps+232 election_frequency>0 → `elections` 显隐 + 日期; POLITICS_NEXT_ELECTION / POLITICS_NOELECTIONS) |
+| +176 | CGregorianDate 24B | **next_election** {vt@+176, hours@+184, greg vt@+192} (推进 = politics.daily 内联: elections_allowed ∧ now ≥ next → on_new_term_election → last=now, next += frequency 月; writer 不写) | **GUI: 选举行** (门 = ps+236 elections_allowed && ps+232 election_frequency>0 → `elections` 显隐 + 日期; POLITICS_NEXT_ELECTION / POLITICS_NOELECTIONS) |
 | +193..+199 | — | = next_election CGameDate {vt@176, hours@184, greg vt@192} 的 **vt2@192 尾字节** | |
 | +200 | CCountry* | **属主国回指** (AddPoliticalPower 打印国名, politics.cpp:1623) | |
 | +201..+207 | — | = **属主国回指 CCountry\*@+200** 尾 7B (ctor `*(+200)=a2`) | |
 | +208 | CPoliticalParty* | ruling_party 指针 (定案) | **GUI: 执政党块** (sub_1415F5960: sub_1411A3300 → leader 名 sub_140FCB280 / 像 sub_140B47270 → leader_name / leader_portrait; 无 → GFX_leader_unknown) |
-| +209..+223 | — | = ruling_party 指针@+208 尾 7B (209..215) + qword@216 (ctor 置 0, 语义未名) | |
+| +209..+223 | — | = ruling_party 指针@+208 尾 7B (209..215) + qword@216 (**死字段负定案**: ctor/Reset 清 0, 全语料零业务读写) | |
 | +224 | fixed×1e-5 | political_power | |
-| +232 | uint32 | election_frequency | |
-| +236 | uint8 | elections_allowed | |
-| +237 | u8 | **parties 脏旗** (AddParty 尾置 1) | 高置信 |
-| +240 | 匿名结构 (16B map/set) | 未名 16B map/set (dtor `sub_140150FB0(Block+30)` 树析构; politics.cpp 内无使用者, writer/parse 均不触) | 形态定案/语义待裁 |
-| +256 | boost::shared_ptr | **PP 变动通知器** (AddPoliticalPower/SetPoliticalPower 尾调 sub_14032F840); **定案 = boost.signals2 信号槽** — 活体 439/440 国非零: {目标@+256, sp_counted_impl_p 控制块@+264 {vt, 强/弱计数@+8, 目标@+16 同 +256}}, 控制块 vt RVA 0x271F648, RTTI = `sp_counted_impl_p<signal_impl<void(), optional_last_value<void>>>` (目标本体无 vtable); ⚠ MIO 实例挂在 CPolitics 下经本槽 (cc+3984→+256 listenable 枚举源; COrganisationListWindow 命中); 与 PP 通知器双说并存 — 或即同一 listenable 机制的两种消费 (未证 — 未决) | 信号槽形态定案/业务语义未决 |
-| +920 | 指针容器 24B | 未名对象指针容器 {data@+920, cap@+928, count@+932, alloc@+936} — 8B 堆对象指针元; 全量国家 440/451 非空 (单国 5..831 条) | 语义待裁 |
-| +944 | 指针容器 24B | 未名对象指针容器 {data@+944, cap@+952, count@+956, alloc@+960} — 8B 堆对象指针元; 单国量级 5..15 条 | 语义待裁 |
-| +3672 | 动态修正管理器* | 动态修正管理器挂载; 条目 64B 与 SDynamicModifierEntry (§4.13.4) 同构 | 推定 |
+| +232 | uint32 | election_frequency (ctor/Reset 默认 48 月; 键 12281) | |
+| +236 | uint8 | elections_allowed (ctor 默认 1; 键 12299 yes/no) | |
+| +237 | u8 | **parties 构建完成旗** (0 时国初始化先 Reset 再重建; AddParty 构建完置 1, Reset 清 0) | 定案 |
+| +240 | 匿名结构 (16B) | **boost::signals2::signal<void()> 外壳头** (dtor sub_140150FB0 = signals2 析构, 含 signal_base vftable 与 shared_ptr 控制块释放; ctor +240 = &off_142718900 空哨兵) | 定案 |
+| +256 | boost::shared_ptr | **同一 signal 的 shared_ptr\<signal_impl\>** (+256 px/+264 pn; 控制块 vt RVA 0x271F648, RTTI `sp_counted_impl_p<signal_impl<void(), optional_last_value<void>>>`); 业务语义 = **PP 变动通知** (发射点 = AddPoliticalPower ×2 / SetPoliticalPower 尾 sub_14032F840); MIO listenable 说系误记 — COrganisationListWindow 信号签名 void(COrganisationListWindow const&) 且宿主在 cc+3944 MIO 管理器域 | 定案 |
 | — | ⚠ | **dip = `*(cc+3976)` / ps = `*(cc+3984)` 相邻 8B 两对象, 勿混** — 二者各持同名族容器且偏移仅差 8 (如双方各有 docking-rights 四元组), 取错基址会读到另一对象的容器 | 陷阱 |
 
+> writer 落盘序 (9 键): parties 12280 (count>0) / ideas 12271 (count>0, 元内副键 18 slot 名族) / timed_idea 13420 (count>0) / timed_activities 13320 (count>0) / ruling_party 12296 (ptr≠0) / last_election 11229 (恒写) / election_frequency 12281 (恒写) / elections_allowed 12299 (恒写) / political_power 12318 (恒写)。reader 另有 12569 occupation_policy 显式跳块分支 (旧档兼容不装载); ruling_party 按 ideology token 在已建党列表查, 查不到报 "Unable to find ruling party"。行为链: 每日 PP 增益 sub_140BA9420 = (BASE qword_1433333D0 + mod37)×(mod39+100000)/100000 + timed activities 贡献; 选举周期 daily 内联推进; 政变 SetRulingParty sub_140BAD750 60/40 算法 (新执政党 6e6, 余党均分 4e6/(N−1)) + 执政党变更通知 sub_140BAD510 (阵营领袖时同步阵营意识形态); popularity 每日重归一 sub_140BA8FC0 (断言 Σ=1e7, politics.cpp:1697)。
 > **理念过期通知接缝**: `politics.daily` 的 `sub_140BA8300` (断言串 `politics.cpp` + `"politics.daily"`) 在理念过期时
 > `malloc(0x5A8)` + ctor `sub_14192F2E0` 建 `NNotification::CIdeaExpiredNotification` 并经
 > `sub_141391400(iface+1240, obj)` 入队 (详见 §4.17.4); 同段紧邻 `*(v54+1204)` = 接口处理器 +1192 历史容器 count
 > (216B 记录, tag=12)。
 
-CIdea (理念 def; 库 = CIdeaDatabase qword_14332EF30) 布局补行:
-
-| 偏移 (def) | 类型 | 名称/语义 | 置信 |
-|---|---|---|---|
-| +2816 | token 容器数据 | 特质 token 表; 计数 @+2828 (has_idea_with_trait / remove_ideas_with_trait 消费) | 推定 |
+CIdea (理念 def; 库 = CIdeaDatabase qword_14332EF30) 完整布局定案见 §4.10.12a
+(traits 元素 = CTrait\* 对象指针, 定案见 §4.10.12a; +2816 计数在 +2828)。
 
 #### 4.10.11 CPoliticalParty (party 条目)
 
@@ -420,7 +441,7 @@ CIdea (理念 def; 库 = CIdeaDatabase qword_14332EF30) 布局补行:
 | +48 | i32 | id (−1) |
 | +64 | CModifier 192B | modifier (定案: +64..+255) |
 | +256 | CColor | color (16B 内嵌投影, 见 §4.00.10) |
-| +288 | — | = sub_141191580 |
+| +288 | CIdeologyGroup* | **所属意识形态组指针** (start_civil_war 组 B 解析直证: *(ideology+288)) |
 
 **CIdeologyGroup** (组对象; party+24 所指, 每党一独立组时各自成组; vt 0X14293B020,
 ctor sub_141190D90; 库 = CIdeologyGroupDatabase qword_143330DB8)。下表偏移相对**组对象自身**;
@@ -437,6 +458,60 @@ fac 侧落点 (fac+96/+1120/+1152/+1344) 见 §4.5.7。
 | +1589 | u8 | 执政党组旗 (compare_ideology_with_faction 短路返 1; 名未名, 推定) |
 
 两索引 = GetPopularityTooltip 的取值来源 (def 名 = 游戏内 `GAME.layout.modifier_token(idx)` 反查 + KR loc); drift 分档缩放见 §4.10.15。
+
+#### 4.10.12a CIdea (理念 def; ideas 存档元素)
+
+3344B (0xD10); 主 vt 0x1429815E0 (槽[2] writer = CFG 空桩 → **不序列化**; 槽[4]
+reader 0x140FD4C70; 槽[3] Load wrapper 0x140732610); ctor 0x140FCCEA0; 带键名工厂
+sub_140FCD0E0 (+24/+64/+96/+8/+3289/+192/+656 全在此派生); dtor sub_140FCD7E0;
++16 副基第二虚表 (2 槽, 基类名未定)。存档: politics 块 ideas (键 12271) =
+**纯名表** (writer sub_140BB0520 逐理念名后跟 BFF20(流,18,…) 系空写哨兵 —
+sub_1424BFBB0 对 token 16/17/18 直返不写; 原「元内副键 18 slot 名族」系此误读)。
+
+| 偏移 | 类型 | 名称/语义 | 键/备注 | 置信 |
+|---|---|---|---|---|
+| +8 | uint32 | 名 token (基 ctor 置 357=none 哨兵; 工厂 = 键名 name→token 直写) | — | 定案 |
+| +16 | vt | 副基第二虚表 (形状 {vt, 键串@+24}) | 基类名未定 | 高置信 |
+| +24 | MSVC SSO 32B | 数据库键串 (ctor 填 "null"; 工厂 = 键名拷贝) | — | 定案 |
+| +56 | uint8 | 可用/有效旗 (ctor 1; 加挂/换装/存档读回/GUI 费用链消费门) | — | 定案 |
+| +64 | MSVC SSO 32B | 名串 (DB 键名; 过期通知/GUI/错误串消费) | — | 定案 |
+| +96 | uint32 | DB 条目 id (ctor −1; 工厂 = 条目+32) | 语义推定 = 库内序号 | 定案 |
+| +104 | CStaticModifier 544B | 内嵌静态修正 #1 (opinion/trade effect 系读 +112/+121) | 无 reader 键入口, 填充点未决 | 定案 |
+| +648 | CStaticModifier 544B | **`modifier` 块实体** (+656 = 修正 id = 名 token; +664 base pairs); 经 "MODIFIER_POLITICS_PREFIX"+名 键注册进国家修正聚合 (sub_140BB0030) | 10597 | 定案 |
+| +1192 | 引擎向量 24B | targeted_modifier 条目 (元素 CStaticModifier* 8B) | 14623 | 定案 |
+| +1216 | CRuleOverrides 1016B | rule 覆盖块 (与 CCountry+1640/+2656 同款 ctor; 1216+1016 = 2232 严丝合缝) | 10876 | 定案 |
+| +2232 | CAndTrigger 88B | available | 12264 | 定案 |
+| +2320 | CAndTrigger 88B | allowed | 12263 | 定案 |
+| +2408 | CAndTrigger 88B | allowed_civil_war | 13948 | 定案 |
+| +2496 | CAndTrigger 88B | visible | 11562 | 定案 |
+| +2584 | CAndTrigger 88B | allowed_to_remove | 13393 | 定案 |
+| +2672 | 引擎向量 24B | research_bonus (元素 CIdeaResearchBonus* 72B, owner 落元+64) | 12641 | 定案 |
+| +2696 | 引擎向量 24B | equipment_bonus (元素 CTraitEquipmentBonus* 160B, owner 落元+120) | 12647 | 定案 |
+| +2720 | CIdeaGroupType* | 所属组 (ctor = null-object 单例 sub_140A42A70, 装载后指真组; 组+92 槽序 / +96 CIdeaCategory* / +104 cost_factor) | — | 定案 |
+| +2728 | fixed×1e-5 | cost (实付 = cost × (100000+组/门类 cost_factor)/100000, sub_140FCF650) | 10323 | 定案 |
+| +2736 | fixed×1e-5 | removal_cost (换装退费/费用链读旧 idea) | 12269 | 定案 |
+| +2744 | uint32 | (ctor 0; 全语料零读写 — 疑废弃) | — | 未决 |
+| +2748 | int32 | (ctor −1; 同上零读写) | — | 未决 |
+| +2752 | uint32 | level (ctor −1; 费用链按新旧 level 插值累加中间级 removal_cost) | 10348 | 定案 |
+| +2760 | CMeanTimeToHappen 56B | ai_will_do (+24 = 100000 基权重) | 10819 | 定案 |
+| +2816 | 引擎向量 24B | traits 产物 = **CTrait\* 数组** (元素 = trait 库 qword_14332EE68 条目指针, token 在元+8; 原「特质 token 表」翻案) | 12278 → +2840 暂存 → DB finalize 转换灌入 | 定案 |
+| +2840 | 引擎向量 24B | traits 装载期暂存 (32B 串; 转换后清空, 不持久) | 12278 | 定案 |
+| +2864 | uint8 | default | 11405 | 定案 |
+| +2872 | CEffect 88B | on_add | 12356 | 定案 |
+| +2960 | CEffect 88B | on_remove | 14710 | 定案 |
+| +3048 | CAndTrigger 88B | do_effect (添加时求值) | 13321 | 定案 |
+| +3136 | MSVC SSO 32B | picture | 464 | 定案 |
+| +3168 | MSVC SSO 32B | 脚本 `name` 串 (显示名优先源, 非空则盖过 +64; 与 +64 两套并存) | 27 | 定案 |
+| +3200 | CAndTrigger 88B | cancel | 10469 | 定案 |
+| +3288 | uint8 | cancel_if_invalid (ctor 1) | 13669 | 定案 |
+| +3289 | uint8 | 键名含 `[` 旗 (变体理念标记; 工厂直写) | — | 定案 |
+| +3332 | uint32 | ledger 位掩码 (回退链 idea→组+112→门类+132) | — | 高置信 |
+| +3336 | uint8 | is_good | — | 定案 |
+
+> 费用链: 实付 = cost(+2728) × (1+组+104/门类+128 cost_factor) (sub_140FCF650)
+> + 旧 idea removal_cost(+2736) + 新旧 level(+2752) 之间各级 removal_cost 累加
+> (sub_140BA92B0)。理念修正注册键 = "MODIFIER_POLITICS_PREFIX"+显示名 (+192
+> 工厂双写点; 消费者 sub_140BB0030)。
 
 #### 4.10.13 CDiplomaticAction 基类布局 (sizeof 120)
 
@@ -615,25 +690,27 @@ exile 族同构 (to/from/days/target_provinces 全同), 仅无 sender/group/lead
 
 #### 4.10.20 CCivilWarSetup (内战装配对象; vtable `&CCivilWarSetup::vftable'`)
 
-ctor sub_1410DCD10 / 执行 sub_1410DDFE0 (1600+ 行, 执行体未展开)。由 start_civil_war 卡构建 (§4.32)。
+ctor sub_1410DCD10 / 执行 sub_1410DDFE0。三构造点: start_civil_war 无参包装 sub_140242B20 (组 A = 执政党组, 组 B = *(ideology def+288), ratio = {50000,100000,100000,100000}) / start_civil_war 效果本体 sub_140365800 (effectimplementation.cpp:7742; +976 army_size 卡值 → mode=4; +1184 门 → 遍历 cc+1144/+1156 controlled_states 逐州收集) / 政变 timed activity (timedactivity.cpp:831; 规模 = 组人气占比 × 稳定度因子, 钳 ≤1e5; 指定州且 controller==目标 → mode=4 + army_size=*(state+88); 稳定度消费走 cc getter sub_1406F8750 非 ps)。
+执行体两侧关系: 前置失败 loc DIPLOMACY_CIVIL_WAR_FAILED / _ALREADY_AT_WAR_FAILED / _INSTANT_FAILED + "not enough dynamic tags" (civilwar.cpp:679); 叛乱党无则断言 "No party of revolting ideology, what to do?"; **war goal 装配 sub_140D3B700 建 civil_war 型 wargoal → 推入国 +1328 容器** (civilwar.cpp:913) → CDeclareWarAction 宣战 (sub_1410F9A70, 失败报 "Attempted to spawn invalid civil war: %s vs %s" :926); 新国侧 SetRulingParty + 新党 popularity = qword_143333BC0。
 
 | 偏移 | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|
-| +8 | u32 | target 国 id | 推定 |
-| +16 | CIdeologyGroup* | 意识形态组 A | 推定 |
-| +24 | CIdeologyGroup* | 意识形态组 B | 推定 |
-| +32 | u16 | 样式字 (ctor = 0x0101) | 推定 |
-| +34 | u8 | 样式字节 (ctor = 1) | 推定 |
-| +40 | fixed×1e-5 | ratio #1 (钳 [0, 100000] 脚本值) | 推定 |
-| +48 | fixed×1e-5 | ratio #2 | 推定 |
-| +56 | fixed×1e-5 | ratio #3 | 推定 |
-| +64 | fixed×1e-5 | ratio #4 | 推定 |
-| +72 | int32 | mode (4 = army size / 3 = 谓词收集 states) | 推定 |
-| +80 | MSVC 串 | states 串 | 推定 |
-| +104 | int32 | army_size (mode=4 时载入) | 推定 |
-| +112 | 匿名结构 (元素待裁) 向量 | 角色 id 数组 (三源汇入) | 推定 |
-| +120 | 匿名结构 (元素待裁) 向量 | 角色 id 数组 尾/第二槽 | 推定 |
-| +128 | — | 尾槽 (ctor 布局, 语义未名) | 推定 |
+| +8 | u32 | target 国 tag id (三调用点均传 &tag) | 定案 |
+| +16 | CIdeologyGroup* | 组 A = 原执政意识形态组 (*(party+24)) | 定案 |
+| +24 | CIdeologyGroup* | 组 B = 叛乱意识形态组 (效果参数组或 *(ideology+288)) | 定案 |
+| +32 | u16 | 257 (0x0101) 双布尔位对 | 形态定案/位语义未名 |
+| +34 | u8 | 1 | 同上 |
+| +40 | fixed×1e-5 | ratio #1 = 叛乱方份额 (默认 50%; 未设者执行体回退 +40) | 定案 |
+| +48 | fixed×1e-5 | ratio #2 (=100000) | 定案 |
+| +56 | fixed×1e-5 | ratio #3 (=100000) | 定案 |
+| +64 | fixed×1e-5 | ratio #4 (=100000) | 定案 |
+| +72 | int32 | mode: 0 默认 / 4 = army size / 3 = 谓词收集 states | 0/4 定案 / 3 维持 |
+| +76 | tag_id | **civil_war_initiator tag** (执行体拷新国+4872, 落盘键 token 14338; timedactivity 政变构造点写入) | 定案 |
+| +80 | u32 pdx 向量 | **州 id 向量** {data@+80, cap@+88, size@+92, allocdesc@+96} (非 MSVC 串 — 旧标翻案; 串形态写入 +80 必致 dtor 释放垃圾必崩, 反证定案); 唯一填充点 = start_civil_war 效果本体 sub_140365800 内三处 sub_1401E1640(setup+80, …) (谓词收集/裸表直填/裸表过滤三路, 均置 mode=3); 消费 = 执行体 sub_1410DDFE0 在 mode∈{2,3,5} 分支经 sub_1410DD5D0 把元素按州 id 解析成 CState* 列表、逐州 sub_1409D43A0 军事权重求和 ×3 得叛军规模 | 定案 |
+| +104 | int32 | army_size (mode=4 载入) | 定案 |
+| +112 | 向量 | 角色/条目数组 (效果侧 u32 数组汇入; 12B 步进消费形态) | 形态定案/元素未名 |
+| +120 | 向量 | 第二数组 (同上族) | 形态定案/元素未名 |
+| +128 | allocator 槽 | &off_143085170 pdx 通用 allocator 描述符 (容器族尾槽) | 定案 |
 
 #### 4.10.21 CNavalBlockadeAction (海上封锁动作, vt 0x142A36AF0)
 
@@ -701,7 +778,7 @@ CDiplomaticAction 派生 (§4.10.13 基类 120B 全量复用, 自身零新字段
 
 #### 4.10.24 AI 态度族 (CAIAttitude 基 + 8 变体)
 
-对象 48B (工厂 sub_140636FB0 逐例 malloc 0x30); 变体间**零字段差异**, 差异只在行为槽。+8 u32 态度 id / +16 std::string 32B 内部名串 ("attitude_<名>"; rs+792 写名串经此复原指针, 键 11737)。全族 18 槽主虚表: [1]/[3] CPersistent wrapper / [2] = CFG 空桩 (对象自身零写出) / [4] 基共享 reader / **[9] = 候选门** (rs 重算 sub_140D19E10 遍历 `(vt+72)(att)` 为真才评分) / [10..16] 布尔谓词语义待裁 / **[17] = 态度评分函数** (签 `(this, out*, tag_dip*, scope*)`, 逐变体数百行大函数)。
+对象 48B (工厂 sub_140636FB0 逐例 malloc 0x30); 变体间**零字段差异**, 差异只在行为槽。+8 u32 态度 id / +16 std::string 32B 内部名串 ("attitude_<名>"; rs+792 写名串经此复原指针, 键 11737)。全族 18 槽主虚表: [1]/[3] CPersistent wrapper / [2] = CFG 空桩 (对象自身零写出) / [4] 基共享 reader / **[9] = 可选用门** (非 null 恒真; rs 重算 sub_140D19E10 遍历 `(vt+72)(att)` 为真才评分) / [10..16] 七谓词 **定案** (WantsAntagonize/WantsWeaken/WantsAlly/WantsBefriend/WantsProtect/WantsIgnore/IsThreatened; 方法名表 0x1427E0868..08D0 直证, 全表 §4.10.35) / **[17] = 态度评分函数** (签 `(this, out*, tag_dip*, scope*)`, 逐变体数百行大函数)。
 
 | 类 | vt | id | slot9..16 矩阵 (ret1/ret0) | slot[17] 评分 |
 |---|---|---|---|---|
@@ -956,6 +1033,8 @@ conf+216..520 区字段巡礼:
 
 +552/+568/+584 三棵 RB-tree 均由 Start (0X140E4F240) 清空。
 
+**Start 参与国枚举链**: +616 = Xtime_get_ticks() → **sub_140E40640 参与国枚举器** — 先 sub_140D38F40 从 dip 侧收双侧 → sub_140E387C0 交叉剔除 → winner_scope(+28)/loser_scope(+32) 三档展开: 1 = 相关国过滤 sub_140E332B0 (本体/同阵营/主从链) / 2 = 阵营聚合 sub_140E33060 (成员入列 + 阵营领袖 faction+88 members[0] 锚定) / 3 = 本体+附属 sub_140E4F1C0 (主战国 + dip+368 附属数组全加); conf+24 = 败方首都州 (sub_1406F6DD0); 白和平 scope(2,2) = 阵营全员自动终战互证。**winners 条目+88 = ScoreDistributionForWinner** = u32 逐回合计划进账向量 {data@+88, cap@+96, count@+100, alloc@+104} (sub_1414579E0, conferenceparticipants.cpp:425 "ScoreLeftToReceive >= 0"; 回合分 = clamp(权重×回合数×qword_143337058×魔数除 FractionsPerTurn) 钳 ≤ 剩余额度)。**war_score 上浮 Add API 族** (ws 字段 ← combat 侧调用者): equipment_damage +16 ← sub_141179790/650/AC0; province_capture +24 ← sub_1411799C0; air_damage_str +32 ← sub_1411795A0; strategic_air +40 ← sub_1411794F0/A90 (统一入口 sub_140D25FA0 对 wr+112/wr+224 双侧各调一次); sunk_ship +48 ← sub_141179BE0 (0x141975480 战斗结算 / 0x140C3C060 naval); convoy_attack +56 ← sub_141179B90 (0x141975480)。
+
 **和会终结算链** (三入口同链: 交互终局 sub_140E45FB0→0x140E41BB0 / Start 即时结算分支 0x140E4F240 / 载入后重建 = 虚槽 [8] 0x140E49760 只跑第一环): ① **RebuildOutcomes 0x140E38ED0** (清空重建 +296/+320/+344 结果条目 + winner 净化 + 由 +504 history 聚合 SplitData 分组定胜负写四方份额/胜支旗; status∈{3,4} 的行动不参与结算); ② **EndWarsTerminate 0x140E41F70** (流亡托管清退 + 胜×败双边停战, 写点全在国/外交侧); ③ 三结果数组虚槽 [0] 逐元素销毁; ④ **CivilWarRemainderTransfer 0x140E48DF0** (内战败方未叠层残余州转让内战胜方 winner 条目+328); ⑤ **FinalizeAnnounce 0x140E42B50** (双边占领/驻军省 controller 回退 + liberated 首都兜底 + 和约名/PEACE_TREATY_THREAT 事件); ⑥ 交接 0x140B66080。回合推进链 (0x140E50BB0) 内联复用 ①; **GetTurnScoreShare 0x140E3F6B0** 只读 winner+88 份额数组喂 initiative 累计 (+76), 与终局链正交。
 
 ⚠ 竞标分值 = CPeaceAction+64 (sub_140E400F0 所加为竞标对象), 非 winners 条目内偏移。
@@ -1078,3 +1157,160 @@ CPeaceAction (当前竞标表元素; CStatePeaceAction 派生):
 > conf+416 竞标表元素 = CPdxArray<scoped<CPeaceAction>> (dynamic_cast 直证同族); pc_is_state_claimed_and_taken_by 触发器读 action+8==12495/+48 ✓; 派生槽 [8+] 每类真覆写 (执行/检验行为, 未逐读)。
 
 > **本域 GUI 类布局**: 见 4.30.44 / 4.31.39 / 4.31.55。
+
+#### 4.10.32 投降/吞并/流亡全链
+
+投降全链 = 以 CCountry 为主体、CDiplomacyStatus (dip) 为状态载体的日更驱动链
+(sub_1406E16C0, country.cpp:5248-5433, §4.2.7 序13 在册):
+
+| 步 | 函数 | 语义 | 置信 |
+|---|---|---|---|
+| 门 1/2 | cc+5208 ∧ sub_140BBED40 | 和会挂起旗 (=0 才进; 置 1 = sub_140E49810 / 清 0 = sub_140E45730 peaceconference.cpp:726) ∧ 活跃和会存在 (mgr+20 ≠0 跳过) | 定案 |
+| 进度计算 | **sub_1406DA100** | 进度 = 100000×占领比/surrender_limit: cc+1076=0 (无受控省; cc+1076 = cc+1064 controlled_provinces 向量计数 — 取用 thunk sub_1406ECFE0 直证, 原「本土 VP 点基数」说废) → 直接 100000; base = BASE_SURRENDER_LIMIT (qword_143333CD0) + 修正 146 MODIFIER_SURRENDER_LIMIT; 上限 = min(100000−修正 148 MAX_SURRENDER_LIMIT_OFFSET, MIN_SURRENDER_LIMIT); 有 recipient (cc+12) → base −= SURRENDER_LIMIT_REDUCTION_PER_COLLABORATION × 合作占领度; 无核心 → × SURRENDER_LIMIT_MULT_FOR_COUNTRIES_WITH_NO_CORES; +修正 147 FORCED 后双钳; 占领比 = 100000−100000×(cc+4924/4920)/(cc+4932/4928) | 定案 |
+| 进度满门 | BASE_SURRENDER_LEVEL qword_1433314A8 | ≥ 100000 ∨ owned_states≤0 ∨ dword_14332F650 强制投降旗命中 → 执行体 | 定案 |
+| CanSurrender | **sub_1406D7B20** | ① 无 owned_states → 1; ② 宗主不可降; ③ 同阵营 major 与 recipient 有活战争且进度未满 → "CAN_SURRENDER_FACTION_MEMBERS" 0; ④ 傀儡 → 递归宗主; ⑤ 开战天数 = (gs+1128 − wr+32)/24 ≥ DAYS_OF_WAR_BEFORE_SURRENDER → 1 否则 "CANNOT_SURRENDER_NOT_ENOUGH_DAYS" 0 | 定案 |
+| 执行体 | sub_1406E16C0 内 | ① **on_capitulation_immediate**; ② 附属 autonomy 扰动; ③ 本土移交编排 sub_1406DFF00 (锚 = cc+4124 州 ∨ 首都州; 两 COwnerArea 累计 VP × TENSION_CAPITULATE 入紧张度); ④ **逐省逐州移交 sub_1406E0420** (占领 bundle 窗口: 省在场单位 — 本国陆单位入删除列表 / 敌方控制省否决; 省 SetController sub_140E801A0 (recipient/维持) / 州 owner==本国 → **SetController sub_1409DDA40(州, recipient)** 否则还给他国 owner; 尾 sub_1409DFC20 再判定); ⑤ 紧张度 = 州 VP × (cores 含 recipient → TENSION_ANNEX_CORE / claims 含 → _CLAIM / 否则 _NO_CLAIM) × wargoal 比例; ⑥ **CGameState::DeleteUnit sub_1401D6690** 删境内单位; ⑦ 部署清理 sub_140D12EC0; ⑧ 无立足点 → PP 清零随机分发; ⑨ 落章 dip+736=1 / dip+752=gs+1128; ⑩ **on_capitulation**; ⑪ 开除阵营 sub_140D8D370 (leader → sub_140D89220 选新领袖 → SetLeader); ⑫ 受降国核心州布抵抗 sub_140711100; ⑬ 无流亡 → **sub_141515620 终结全部战争关系**; ⑭ 舰队处置分支 (有立足点保留 / 否则停产+燃料清+舰队 sub_141022530; 领袖移交∨host>0 → 流亡海军移交 sub_141020680) | 定案 |
+| 和会创建 | 尾段 LABEL_243 | 参与者计算 sub_140E4DD80 (发 on_before_peace_conference_start) → **CreatePeaceConference sub_140BBEAD0** (malloc 632 + ctor sub_140E366D0; 与白和平同入口) → Start sub_140E4F240 (conf+52/56 MainLoser/Winner ✓ §4.10.27; 参与国枚举 + 全自动 AI 局立即 EndWarsTerminate = §4.10.4 路径①) → **sub_140E49810: conf+96 winners (c@+108) 与 conf+120 losers (c@+132) 逐 tag 置 *(国+5208)=1** = 和会门反向闭合 | 定案 |
+
+流亡政府建立 (定案): 入口 **sub_1406D5FA0 BecomeExileOnCapitulation**
+(country.cpp:14947 断言; 门 = 曾是领袖 ∧ faction 存活 ∧ sub_140D8A4D0) →
+**SetHost sub_140D34DC0** (dip+424 权威写者: 旧 host 摘除 → `*(dip+424) =
+host tid` → host 侧 dip+400 数组 push 本国 tag → sub_14118BA30 入 host 阵营
+→ legitimacy (dip+432) = clamp(≤GIE_MAX_LEGITIMACY, 基 = GIE_CAPITULATE_
+MAX_STOCKPILE_TRANSFER × sub_140D3D630/1e5)) → 装备/生产转移 host
+(sub_140713DD0) → 流亡师转移建立 (CExileDivisionsTransfer, §4.10.19) →
+收留者逐个转新 host (**on_host_changed_from_capitulation**) → 玩家国弹窗
+BECAME_EXILE。
+
+吞并链 (annex_country, 定案): **CAnnexCountryEffect::Execute sub_14034D880**
+→ **CCountry::Annex sub_1406D3F00** (1436 行主干): 通知 → 突袭清理 → 生产
+清理 → 舰队转移 sub_141022AB0 → **装备转移 sub_14100CCE0 ×2** (现役 ×
+ANNEX_FIELD_EQUIPMENT_RATIO / 库存 × ANNEX_STOCKPILES_RATIO) → 阵营成员分摊
+→ 军队处理 → **占领 bundle 内逐州 SetOwner sub_1409DE560 (所有权!) + 逐省
+SetController** → 终战 (sub_140D1E470 ×2 → **sub_140D1CC40 CWarRelation::End**
++ dip+792 重置) → dip 缓存重建 sub_140D46650 → **sub_141515B00 撤销全部
+市场合同** → 五连清理 → 布抵抗 → **sub_1406FF1F0(双方, 0xFFFFFFF) 全位
+修正重算**。⚠ 投降只走**控制权**转移 (SetController), 吞并走**所有权**
+(SetOwner) — 两链共用原语但语义不同。
+
+新字段: cc+12 = SurrenderRecipient tag 缓存 / cc+1076 = cc+1064 controlled_provinces 向量计数 (原「本土 VP 点基数」说废) /
+cc+4920/4924/4932 = 占领点计数族 (与 +4928 配对) / cc+5209 = 阵营领袖资格旗
+(推定); dip+152 = 战争参与方敌方 tag 数组 (count@+164) / dip+392 = 宗主 tag /
+dip+648 = 本国 CCountry 回指 / dip+656 = CFaction*; CFaction+1480 =
+member_rules 条目数组 (count@+1492, sub_140D8A4D0 leader/特权判定);
+CWarRelation+32 = 战争开始时刻 (开战天数计算); CPeaceConference+96/+120 =
+winners/losers 原 tag 数组 (定案)。§4.3.1 cc+5208 行写者补齐 (置 1 =
+sub_140E49810 / 清 0 = sub_140E45730) 升定案。
+
+#### 4.10.33 自治度日增减执行链
+
+挂点 = CCountry::DailyUpdate 外交步 → **CDiplomacy::DailyUpdate sub_140D3B920**
+(zone "diplomacy.daily") 段④ `dip+848 非空 → sub_140675C00` (定案)。全链
+DLC 门 sub_1401AEB50(5) (TfV 自治域)。
+
+**CCurrentAutonomyStatus::DailyUpdate sub_140675C00 四类日增益** (全经
+**AddAutonomyScore sub_1406745B0**: effects 条目 value+=增量 / progress(+8)+=
+增量 / 钳位 [下界基(+56)−margin, 上界基(+72)+margin], margin =
+AUTONOMOUS_SPILLOVER×AUTONOMOUS_TOTAL_SCORE = 125 分) (定案):
+
+| 类型 | 来源 | 公式 |
+|---|---|---|
+| 0 | 宗主国 modifier 键 289 subjects_autonomy_gain | ≠0 → 记账 |
+| 1 | 本国键 286 autonomy_gain × (键 287 global_factor + 1) | ≠0 → 记账 |
+| 2 | 向宗主出口资源 (CCountryResources+1832 容器 Σ) | (键 278 + RESOURCE_SENT_AUTONOMY_DAILY_BASE + FACTOR×Σ) × (键 279+1) × (键 287+1) |
+| 8 | 活跃武官 (rs+528 我→宗主 −0.05 / rs+520 宗主→我 +0.05) | ≠0 → 记账 |
+
+**不自动换档 (定案)**: progress 顶到钳位带即停; 升/降档 = 显式命令 —
+CPromoteAutonomyCommand sub_14067A3F0 (PP 代价 = next.def+1560, 缺省
+AUTONOMY_LEVEL_CHANGE_PP_FREE=300) / CRemoveAutonomyCommand sub_1406783A0
+(代价 = prev.def+1560 × (键 645 附件成本因子+1)) → 均调 **sub_1406798F0
+换档执行**: effects 整账清空 → current(+40)=新档 → 按 rdata 0x27E3A98 九类
+启用掩码预建 0 值账目行 (类型 2,3,5,6,7,8) → 全量修正重算 → 刷名缓存;
+**last_change(+96 CGameDate hours) = gs+1128** (sanctuary 30 天冷静期起点)。
+
+每日换档判定 sub_1406797A0 (日计算器尾调): ① path 容器重建 sub_1406746E0
+(遍历 CAutonomousState 库 qword_14332EE18; 候选门 = current.def+312
+allowed_levels_filter 名单 ∧ def+48 allowed 触发器 (subject,overlord) scope
+求值); ② current 仍在 path → sub_140679660 只重算 prev/next/边界基 (下界基 =
+TOTAL_SCORE×current.def+1544 min_freedom_level / 上界基 = next 同式, 无 next
+= 满值 5000); current 被 path 筛出 (定义变更) → 按 progress 重定位到最后一个
+合法档 → 换档。**def+1544 = min_freedom_level (定名, 旧「rank 权重」推定废)**。
+
+生命周期: ctor sub_140673ED0 (136B; +80 = 属主国回指 **CCountry\* 定名**;
++96 哨兵) / 设档定位 sub_1406799C0 (progress = 下界+比例×带宽) / 关系生效
+重建 sub_140D3B0F0 (rel+88 档位 ← set_autonomy effect 闭环) / 附属缺档补建
+sub_140D3C240 (初始档 = 库序第一个 def+45 default 且 allowed, 挂 gs 级国家
+初始化 pass sub_1401DA490) / PostLoad sub_1406780F0 (vt[8]; !current 兜底
++ 恒重算边界) / **reader sub_1406791C0 (vt[4], 书缺补)** (键 11013 progress /
+89 effects / 372 path / 472 next / 14059 current / 14060 prev / 17181
+last_change; "Wrong autonous state name: %s!!!" autonomousstate.cpp:438) /
+writer sub_14067AA30 (hash u32@条目+40 不落盘)。def 新字段: +45 default 旗 /
++48 allowed 触发器 / +312 filter 名单 / +1544 min_freedom_level / +1560 升降档
+PP 代价 (定案)。
+
+#### 4.10.34 流亡 legitimacy 链与 diplomacy.daily 全函数
+
+**CDiplomacyStatus::DailyUpdate sub_140D3B920** ("diplomacy.daily",
+diplomacy.cpp:2297) 六段 (定案): ① **wargoal 过期**: 倒序扫 dip+104
+available_wargoals, wg 日期 ≥ 43817520 哨兵 ∧ < gs+1128 → 三处摘除
+(dip+104/dip+128/对方 cc+1328) + fire **on_wargoal_expire**; ② rs 日更 ×2
+(sub_140D2AF60: 关系对象虚槽[14] 日 tick = improve_relation 推进 /
+sub_140D251B0: rs+776 border_friction ← rs+64 + rs+256 opinions 到期衰减
+(do_not_expire@+57 旗)); ③ war relation 提案 (rs+744 非空 ∧ !hidden →
+sub_140D1FD50 = CWarRelation::[12]); ④ 自治 daily (§4.10.33); ⑤ 流亡块
+(下); ⑥ 脏关系缓存消费 (下)。
+
+流亡块 (dip+424 host>0 门, 定案): a) **dip+640 = 完全解放旗** (未投降
+dip+736 ∧ 投降进度 sub_1406DA100 ==0 — **勘误: 非旧标「流亡活动旗」**;
+define 注释 "fully liberated...reinstated when it reaches 0" 直证); b)
+`dip+432 = clamp(0, GIE_MAX_LEGITIMACY=100, +日变)` — **日变公式
+sub_140D36850** = (修正 431 LEGITIMACY_DAILY + [完全解放?
+GIE_LIBERATED_NATION_DAILY_LEGITIMACY_CHANGE(−1.5):0] + Σ他国关系修正 432)
+× (1e5+修正 506 LEGITIMACY_FACTOR+Σ关系 506)/1e5 (tooltip 键
+GIE_LEGITIMACY_DAILY_TOTAL 直证); c) 完全解放 ∧ legitimacy ≤0 →
+**ReturnFromExile sub_140D43B50** (diplomacy.cpp:3743): 清 legitimacy/造将
+计数 → host 摘牌 → 流亡军归还 → dip+424=0 → fire
+**on_exile_government_reinstated**; d) host 工厂捐赠 sub_140D429A0 (按
+legitimacy/GIE_MAX 占比向 dip+464 修正值块写修正 292/293/294
+INDUSTRIAL/MILITARY_FACTORY/DOCKYARD_DONATIONS); e) **造将**: dip+440 <
+count ∧ legitimacy ≥ GIE_EXILE_ARMY_LEADER_LEGITIMACY_LEVELS {30,60,90}
+[dip+440] → sub_1406E6420 造将 (写 **leader+3796 government_in_exile_tag**
+= §4.4 键 15034 运行期写者闭环; 置信级 trait 掷骰), ++dip+440; f) dip+320
+占领核心州敌国缓存重建 sub_140D45F10。
+
+脏关系缓存 (dip+816, 升定案): 三消费点同构 (daily force=0 / sub_140D409D0
+修正变化 force=1 / sub_140D3A110 hourly-AI 经 **sub_140D428E0
+MarkAllAttitudesDirty** 全量标脏后冲刷); 重建器 sub_140D45AE0 判据 = 对方
+激活 ∧ (当前态度失效 ∨ rs+801 脏 ∨ force∧分数<1.0); 消费 = sub_140D19E10
+UpdateAttitude (当前态度 **1.5× 粘滞择优**)。**rs+801 勘误 = attitude 脏旗**
+(置 1 = MarkAllAttitudesDirty / 清 0 = UpdateAttitude 尾; 非旧标「锁定旗 B」)。
+
+#### 4.10.35 外交 AI 态度变体谓词 [10..16] 定案
+
+七槽全部定名 (三重证据: .rdata 槽序方法名表 0x1427E0868..08D0 / 国家游戏
+变量注册链 "ai_attitude_wants_*"/"is_threatened" 静态名串逐槽绑定 /
+dynamic_variables 文档):
+
+| 槽 (+80 起) | 谓词 | 语义 |
+|---|---|---|
+| [10] (+80) | WantsAntagonize | 想对抗 |
+| [11] (+88) | WantsWeaken | 想削弱 |
+| [12] (+96) | WantsAlly | 想结盟 |
+| [13] (+104) | WantsBefriend | 想交好 |
+| [14] (+112) | WantsProtect | 想保护 |
+| [15] (+120) | WantsIgnore | 想忽视 |
+| [16] (+128) | IsThreatened | 受威胁 |
+
+七槽实现只是共享常量桩 (0x1401807B0 = `return 1` / 0x14011D220 =
+`return 0`), 变体差异纯在槽矩阵 — 语义自洽: Hostile/Outraged =
+antagonize+weaken (Outraged 加 threat) / Friendly/Allied = ally+befriend
+(Protective 加 protect) / Threatened = weaken+ally+befriend+threat / Neutral
+唯 ignore。**槽 [9] = 可选用门** (非 null 恒真): 消费者 sub_140D45AE0/
+sub_140D409D0 用它收集「态度不达标」(门假/锁定/评分<100000) 关系到 gs+816
+再逐个喂 sub_140D19E10 重算 (态度生命周期闭环, §4.10.34)。CNullAIAttitude
+id=0 定案 (ctor sub_14002F9F0, 名 "noattitude", 单例 qword_1433304A8, 不入
+DB 数组)。ai_attitude_*_weight 权重变量: 名运行期拼接 "ai_"+名+"_weight",
+通用 eval 0x1414F6B80 直调各态度 [17] 评分。⚠ §4.34.10 旗矩阵 COutragedAttitude
+行 [10][11][12] 有误, 实测 = **[10][11][16]** (§4.10.24 矩阵本身正确)。
+ai_attitudes.txt 头注释的 annex/coalition/vassalize/warn 四旗在 1.19.3 无
+虚槽无消费者 (历史词表, 负定案)。

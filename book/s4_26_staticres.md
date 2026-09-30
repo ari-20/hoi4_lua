@@ -310,8 +310,17 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | `ref/serfam_1193.txt` | 1,153 行 CPersistent 族指纹表 (slot1=Save wrapper 判定; 盲区见 §4.00.1/方法论) | 现役 (可序列化性速查) |
 | `ref/boot_registry.tsv` | 320 槽 boot 注册表 (槽位/ctor 签名/库分级; §4.26.8 数据源) | 现役 |
 | `ref/vt_rtti.json` | 9,254 vtable→RTTI 类名 | 版本变更需重扫 |
+| `ref/postload_classes_1193.txt` | CPersistent 家族主虚表槽[8] PostLoad 实装类全表 178 条 (类/主虚表 RVA/PostLoad VA/预载钩/后验钩; 槽契约见 §4.00.1, 装载次序见 §4.28.17) | 现役 |
 | `ref/hoi4_runtime_classes_map.json` | 8,755 类 → 运行时信息合并视图 (实 vftable 地址 + COL 层 vt/mdisp + CPersistent 族 writer/reader/slots); 8,634 类有 vftable, 1,148 类带 writer/reader | 合并产物 (派生自上述三表; 版本变更需重生成) |
-| `ref/hoi4_runtime_vt2class.json` | 9,259 条 vftable 地址 → 类名 (按地址排序) | 探针逆向替换表 (读对象首 qword 直查类名) |
+| `ref/hoi4_runtime_vt2class.json` | 9,259 条 vtable 地址 → 类名 (按地址排序) | 探针逆向替换表 (读对象首 qword 直查类名) |
+
+TGameItemDatabase 模板族 boot 收尾契约 (定案): 驱动器 **sub_1401A0000** LoadFiles
+(gameitemdatabase.h:281-331) 枚举目录 → 逐目录 sub_140A79930 → 逐文件 parser →
+尾部对库连调 **vt[2] (PostLoad) + vt[3] + vt[4]** 三槽 — 触发时机 = boot
+(InitGame sub_1401835A0) 与文件 watcher 热重载, 与存档读档无关 (存档侧
+PostLoad 走 CPersistent 槽[8], §4.28.17)。COnActionDataBase 实测 [2]=sub_140A774B0
+(缓存通用 on_daily/on_weekly/on_monthly 于 +144/+152/+160) / [1]=sub_140A75FE0 (clear)
+/ [3][4]=CFG 桩。
 
 #### 4.26.8 普查登记补遗 (未入 idb 规格表的注册表)
 
@@ -456,7 +465,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vt[2]=空桩 = 只读 def 
 | +560 | MSVC 串 | — | 大写 loc |
 | +592 | 匿名结构 (NNB 形状) | missing_tech_loc (18024) | 块 |
 | +664 | 匿名结构 (NNB 形状) | specialization (10012) | 块 |
-| +688 | 匿名结构 (NNB 形状) | level_cap (10768) | 块; 块内 +700 = 省限 |
+| +688 | SLevelMax 内嵌 (嵌套类 vt 0x1427E41C0) | level_cap (10768) 块全表: +696 state_max (10769) / +700 province_max (10771) / **+704 shares_slots (13602)** / +708 group_by (13022, 默认 357) / +712 exclusive_with (10120) 容器 {data@+712, count@+724, alloc@+728}; reader = 减法链派发 sub_1414BC5A0 (token 字面量检索对本族失效, 须 vt[4] 直取) | 共享槽建筑行池排除门 = SetupDerived sub_14174AF00 读 +704 |
 | +740 | i64 | icon_frame (12120) | |
 | +744 | i64 | base_cost (12094) | |
 | +748 | i64 | base_cost_conversion (13606) | |

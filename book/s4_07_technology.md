@@ -21,7 +21,7 @@ writer 0X140EE5430。
 | +304 | CCountry* | 回指 (ctor 参数 a2) | +312=`*(a2+8)` 即国 tag 初值 |
 | +312 | u32 | override_icons_tag | loader case 17939 互证; 定案: writer sub_140BB59C0 = 通用 tag 发射器, **tag>0 门** (零叶不发射, 发射为引号国家串) |
 | +316 | u32 | next_bonus_id (ctor/Reset 置 1; 取后自增) | loader case 13286 → sub_1424C08D0(a2, a1+316) 实写 (§4.7.6 dest 透传) |
-| +320 | u32 | land doctrine 相关缓存 (注册 doctrine tech 时 `*(ts+320)=sub_140ED79C0(ts,tech)`) | 推定 |
+| +320 | u32 | **land doctrine 等级缓存** (doctrine tech 注册 sub_140ED6CD0 写 = sub_140ED79C0 计算值; land_doctrine_level 触发器读) | 定案 |
 | +328 | vector\<CTechnology*\> 定容 4 | **四军种 doctrine 当前 tech 指针槽: [0]=land / [1]=naval / [2]=air / [3]=special_forces** {cap@336, count@340, alloc@344} | ctor 定容 4; 0X140ED6CD0 按模板 folder 名 memcmp "land/naval/air/special_forces_doctrine_folder" 写入 |
 
 **过滤门 (导出 technologies 时)** — writer 0X140EE5430 四条件或 (定案; bonus 是
@@ -52,8 +52,8 @@ loader 0X140EE16F0):
 | +152 | vector\<CSubUnitDefinition*\> 24B | 完成时注入 cc+3952 管理器的解锁列表 (sub_140D0E200(cc+3952, elem, 1)) {cap@160, count@164, alloc@168} | 定案 : 元素 = **CSubUnitDefinition\*** (科技解锁的子单位定义, 非 equipment variant); cc+3952 管理器 = {+32 副本数组 (1656B 克隆, clone ctor 0X1403C77D0, 按 elem+1420 回溯 DB 母本), +56 token RH 去重}, 克隆体 +1471 = 解锁旗 OR 累积; CCountry writer 键 12181 "deployment" 整对象落盘 |
 | +176 | vector\<CTechnology*\> 24B | **被本科技门控的后继科技表** (源自模板+860; 同时把本科技注册进对方听众列表, 并写对方 +360=本科技) {cap@184, count@188, alloc@192} | 状态变化逐个 sub_140ED6B50 通知 |
 | +200 | vector\<CTechnology*\> 24B | **前置/关联科技表** (源自模板+776; GetTechState 读其 +368 参与本科技状态计算) {cap@208, count@212, alloc@216} | 高置信 |
-| +224 | vector 24B | 源自模板+824 列表 (40B 条) 的关联科技 {cap@232, count@236, alloc@240} | 推定 (path/XOR 族) |
-| +248 | vector 24B | 源自模板+800 列表的关联科技 (含听众互注册) {cap@256, count@260, alloc@264} | 推定 (path/XOR 族) |
+| +224 | vector 24B | **互斥科技 (mutually_exclusive) 表** (源自模板+824; CompleteResearch sub_140EE1270 互斥门: 任一 +368==4 已研究 → 断言拒绝) {cap@232, count@236, alloc@240} | 定案 |
+| +248 | vector 24B | **path 族引用** (研究路径树, 源自模板+800; 含听众互注册) {cap@256, count@260, alloc@264} | 定案 |
 | +272 | vector\<指针\> 24B | **_EquipmentBonuses (per-tech)** {cap@280, count@284, alloc@288} | assert 内层循环址互证 |
 | +296 | vector\<40B 条 {def@0, name 串@+8}\> 24B | **_AdvisorBonuses (per-tech)** {cap@304, count@308, alloc@312} | assert 40B 步进名串比较互证 |
 | +320 | vector 24B | **特殊项目 (program) 引用表** {data@320, cap@328, count@332, alloc@336} — 元素 u32 = `cc+4008 program_status` 表的键 (program id); 唯一消费点 = 研究成本计算 0X140ED6E30 (`sub_140E76C20(*(*(ts+304)+4008), &v74, tech+320)` 逐 id 查表求和, 并以 loc `BASIC_RESEARCH_TECHNOLOGY_BONUS` / `AMOUNT` 展示) | 定案 (ctor 空 / writer 不发射) |
@@ -87,7 +87,7 @@ loader 0X140EE16F0):
 | +24 | CTechnology* | 在研 tech | **GUI: 行标题/空槽支路** (tech+8 名 → title 窗; slot+24==0 → UNUSED_SLOT + GFX_research_line_bg + empty_research_slot_glow; 0X141BE4BF0) |
 | +32 | fixed×1e-5 | research — **存档键 points** (键 12766; 定名) | **GUI: 进度条分子回退** (tech+408 缺时取本值; research_progressbar) |
 | +40 | fixed×1e-5 | progress — **存档键 used_saved_points** (键 13499; 定名) | |
-| +48 | u64 | 未知 (ctor/loader 均置 0, writer 不写) | 存在定案 / 语义未决 |
+| +48 | u64 | **死字段 (负定案)**: 全语料无运行时写者 (ctor/loader 置 0, SetTechnology/daily 链均不触) | 保留槽 |
 | +56 | fixed×1e-5 | points_factor | ≠100000 才写 (键 13956) |
 | +64 | u32 | **槽位序号** (ctor 第三参 = ts+172 当前槽数; SyncSlotsToCount 以之定位) | 定案 |
 
@@ -105,7 +105,7 @@ loader 0X140EE16F0):
 | +80 | vector\<类别 def*\> 24B | **category 适用列表** (writer 写类别对象+44 id) {cap@88, count@92, alloc@96} | 键 702 |
 | +104 | fixed×1e-5 | ahead_reduction (键 13284) | |
 | +112 | fixed×1e-5 | bonus (键 10931) | |
-| +120 | u32 | 尾部字段 (ctor 置 0; writer 不写) | 存在定案 / 语义未决 |
+| +120 | u32 | **死字段 (负定案)**: 无写者 (ctor 置 0; id 分配器只写 +48; uses 消耗链不触) | 保留槽 |
 
 #### 4.7.4 CLimitedUseTechCostReduction (1803B)
 
@@ -177,12 +177,13 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 | +392 | — | 完成 modifier | |
 | +584 | 48B 条列表 | 建筑 max_level 加成列表 | tech+56 源 |
 | +608 | 40B 条列表 | 战术列表 (计数@+620) | tech+80 源 |
-| +632 | 匿名结构 (元素待裁) 向量 | 生产解锁列表 A (计数@+644) | tech+104 源 |
-| +656 | 匿名结构 (元素待裁) 向量 | 生产解锁列表 B (计数@+668) | tech+128 源 |
+| +632 | CEquipmentArchetype* 向量 | 生产解锁列表 A — **装备原型指针** (元素 +1365 = 已解锁旗门) (计数@+644) | tech+104 源 |
+| +656 | 装备原型/变体指针向量 | 生产解锁列表 B (prod 双表 sub_140E5E220 注册) (计数@+668) | tech+128 源 |
 | +776 | 匿名结构 (元素待裁) 向量 | 前置列表 (计数@+788) | tech+200 源 |
-| +800 | 匿名结构 (元素待裁) 向量 | 关联科技列表 | 含听众互注册; tech+248 源 |
-| +824 | 40B 条列表 | 关联科技列表 | tech+224 源 |
+| +800 | 引用向量 | **path 族引用** (研究路径树) | 含听众互注册; tech+248 源 |
+| +824 | 引用列表 | **互斥科技 (mutually_exclusive) 引用** | tech+224 源 |
 | +860 | 匿名结构 (元素待裁) 向量 | 被门控后继列表 | tech+176 源 |
+| +872 | u32 数组 | **特殊项目 id 表** {data@+872, count@+884} — AddResearchPoints sub_140ED5690 notify 时逐 id 调 sub_140E75C40 推进 cc+4008 program_status | 定案 |
 | +984 | u32 | 科技可用年 | >0 门 (year 窗直证) |
 | +988 | u32 | max_level | |
 | +992 | — | 基础成本 | 进度条分母: ×qword_143332BA0/1e5 ∨ 空槽 qword_143332A38 |
@@ -377,3 +378,59 @@ CPersistent 基子对象 (vptr 落点) = **template+32**。
 > vt 0x142940798, COL 0x142CC3988, 基 CPersistentWithToken ← CPersistent, ctor 0x140A932C0。
 
 > **本域 GUI 类布局**: 见 4.30.23 / 4.31.21 / 4.31.35。
+
+研究点结算链 (定案): CCountry::DailyUpdate → sub_140ED9D00 "tech.daily" 逐研究槽 (ts+160 容器 count@172): ① 槽日结算 sub_140ED9B70 — 空槽攒分 `slot+32 = min(slot+32 + 100000, qword_143332A38)` (+1.0/日, 顶 = 空槽成本 define); 有 tech 走 folder 有效门 + 有限用途加成过期清理 (folder+120 计数 vs dword_143333168 窗口, tech+464 uses 数组紧凑化); ② 完成门 = 成本 (BASE_TECH_COST × 模板+992 / 1e5) ≤ tech+408 → sub_140EE1270 CompleteResearch (互斥门 tech+224; SetLevel → 聚合 sub_140EE3E70 五路: tech+104 装备原型解锁 sub_140E5E490 / tech+128 装备 B sub_140E5E220 / tech+152 子单位 sub_140D0E200(cc+3952) / tech+56 建筑 max_level 缓存 ts+88 / tech+80 战术 ts+112 + 完成效果块 + doctrine tech 注册 sub_140ED6CD0 四 folder 名比对 land/naval/air/special_forces → ts+320 等级缓存 / ts+328 槽); ③ slot 日推进 sub_140EE3680 — 日产点 sub_140ED69A0 (聚合速度 sub_140ED6E30 含 tech+320 特殊项目表求和 + ahead 罚 sub_140ACDB60 读 tech+448) → 本日投入 = min(100000×剩余/日产, slot+32) → sub_140ED5690 AddResearchPoints (tech+408 += 点数; 模板+872 特殊项目推进)。
+
+#### 4.7.9a 特殊项目状态机迁移与推进链
+
+**tag 语义定案 (旧判读废)**: SM+16 三值 — **1 = PROTOTYPE 活动态 / 0 = Simple 态
+/ −1 = 惰性哨兵**; reader case 0 显式写 tag=1 (旧「current_state=0=无状态」
+判读错误)。**slot 0 进入点三处**: SM ctor 0x141A35060 尾 (每个 CProject 生而
+PROTOTYPE) / 读档 case 0 / **Restart sub_141A37C50** (任意态 → PROTOTYPE 并清
+SM+432 stopping 进度; 由 complete_effect 对已完成项目重开时调用)。
+
+**迁移图定案 (旧「单向链 0→1→2→3」推定废)**: 实际是**枢纽图** — PROTOTYPE 可直达
+RESEARCH_COMPLETED / STOPPING / STOPPED 三态; STOPPING→STOPPED 是唯一必经中间
+步; RESEARCH_COMPLETED→PROTOTYPE (restart) 回边存在; RESEARCH_COMPLETED 是
+停止类迁移唯一禁区 (守卫 `tag==0 && current==+232` 时 no-op)。迁移函数
+(SM 自由函数非虚槽): **Complete = sub_141A35940 / BeginStopping =
+sub_141A37C70 / Stop = sub_141A372F0 (a2 衰减旗 → SM+160 按 qword_143332E18
+比例衰减) / Restart = sub_141A37C50**; 谓词: IsResearchCompleted sub_141A37260
+/ IsStopping sub_141A372C0 / IsStopped sub_141A37290 (tag==1 即 IsPrototype)。
+读档 sub_141A37880: state>3 断言 "bad state for project state machine"
+(project_state.cpp:629)。
+
+**SM 挂载定案**: CProjectStateMachine = **CProject+40 的 616B 堆对象** (非内联;
+CProject = 448B, ctor sub_140FE0070 malloc 0x268; 池内联数组步长 448)。
+
+推进链 (定案): CCountry::DailyUpdate 在 queued_events 段前依次 — ①
+sub_140E785D0 (CProgramStatus 日更: 设施日更 sub_141443DD0 / S+56 待删队列
+清算 / 数活跃科学家 / S+104 逐 token 基础研究入账 sub_140E75C40
+(dword_1433335B8×n) / scientist+308 倒计时); ② **sub_141482020 CProjectPool
+日更** (资源重聚 sub_1414830F0 → 逐项目 **sub_140FE2A80**: 门 = 设施 CRef
+已设 ∧ 未完成; 设施引用失效/无科学家/停态 → sub_141A37390 推进; 推进后完成
+→ sub_140FE3F00 结算 (+445 只结算一次门 / RNG 种子 project.cpp:416 / 迭代奖励
+sub_140FE0D20 / SProjectHistory 88B 追加 / 事件 "special_project_researched");
+**设施健康且态=PROTOTYPE → BeginStopping** (设施未派科学家则项目转入停止)。
+日推进 sub_141A37390: STOPPING +100000/日; 其余态增量 = 设施/科学家速度
+sub_141BE7200; **sp_fast (byte_14332F681, 控制台 `sp_fast` sub_1411AA750)** 时
+直接迁移 / **sp_instant (byte_14332F680, 控制台 `sp_instant` sub_1411AB1E0)**
+日跳即完成 (控制台命令表实名直证; 同族 = `sp_available` / `sp_research_all` /
+`sp_unlock_all` / `sp_breakthrough`)。
+
+**原型态推进 sub_141A37490 (定案)**: 相位满 (phase_progress ≥ 100000×相位长)
+→ **iterations(+140)++** → 从 [_ComplexityMin(+128), _ComplexityMax(+132))
+掷随机复杂度 → project_progress(+136) += v9 钳 [0,100]; <100: 经 +144/+200
+回调发迭代奖励事件; ≥100: 经 +64 回调发项目完成; 完成后遍历 CProgram+176
+支援科学家容器对各国同 token 项目 sub_140FE0A30 加进度。+128/+132 由模板经
+sub_141A37C20 初始化 (template+48/+52; 断言 "_ComplexityMax != 0 && \"Complexity
+in Project is 0\"" project_state.cpp:240)。
+
+**研究点银行定案**: S+80 = CBreakthroughProgress (24B 无 vtable), 其 +8 =
+std::map 头 → **S+88 map<u32,u32> 是其成员** (键 = 专精 id, 值 = 点数;
+入账 sub_140E75C40); 来源 = AddResearchPoints notify (科技+872 表) / 基础研究
+/ 阵营支援科学家 sub_140E77EB0 / effect。effect 族: complete_project Execute
+= sub_140493810 (未完成强制完成 / 已完成换设施 restart) / add_project_progress
+= sub_140493270 → sub_140FE0A30 / add_breakthrough_progress = sub_140493160。
+池重建 sub_141483450 → sub_141481780 (模板+1112 visible 求值; 新建 gs+1904 id
+发生器, 通知 type 86)。

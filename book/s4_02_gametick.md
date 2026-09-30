@@ -7,6 +7,8 @@
 > 字段布局归各本体分册 (CGameState 字段归 §4.1, CSession 归 §4.28,
 > CCommand 派生族归 §4.33); 本册记**顺序与触发契约**。
 > 时间推进在引擎内是「命令」: 与玩家指令同一命令管线, 联机同构。
+> 各相位的**执行线程归属与并行机制总纲** (tbb 算法层/双任务池/安全窗判据)
+> 见 §3.11; 本册相位表不再逐行重复线程注。
 
 #### 4.2.1 驱动链总览
 
@@ -37,7 +39,7 @@ sub_1401E4320** → sub_142252D00 (命令泵) 派发 → 锁--。采样骨架帧
 
 | 段 | 函数/对象 | 语义 | 证据 |
 |---|---|---|---|
-| Idle 本体 | CInGameIdler::Idle (0x140DD3A50, 基类 CGameIdler 虚表槽[4] 覆写) | 游戏主循环体; CFrontEndIdler 覆写同槽 = 菜单场景 | 虚表 0x142968FF0 槽[4] 直读 |
+| Idle 本体 | CInGameIdler::Idle (0x140DD3A50, 基类 CGameIdler 虚表槽[4] 覆写) | 游戏主循环体; CFrontEndIdler 覆写同槽 = 菜单场景; 帧顶 a2 块含 massconquer 帧测试器调用 (§1.1b.2); 暂停门分支内含警报管理器每帧更新 (idler+1944, §4.17.7) | 虚表 0x142968FF0 槽[4] 直读 |
 | 暂停门 | `帧耗时 && !this+1729 && !this+1732` | 权威暂停位不通过则不调调度器 (时间冻结) | this = CInGameIdler 实例; 1729 = §4.1.2 已载暂停位 |
 | 调度器 | sub_1401F0590(gs, dt) | 小时进度累积 + 到点生成 CHourlyTickCommand; **门 qword_14332F6A0 非空** (OnEnter setterB 写; 菜单态为 0 → 空操) | 本体反编译 |
 | 入队 | sub_142250B00(session, cmd, flag) | 命令发送 (session.cpp:374): 盖 tick 号 cmd+22 = min(session+128, 0x7FFF) → server 虚表槽[5] (字节+40) 入队 (server.cpp:319) | 单机 server = CDummyServer (0x142B52C28) |
@@ -103,7 +105,7 @@ Execute 步骤 (定案):
 > —— `≠13` 门 = 「热加入等待存档的客户端不推进时间」, **不是暂停检查**
 > (暂停门在 §4.2.2 生成侧)。
 
-> CSession 状态枚举全表 (19 值, session.cpp:269 SetState switch, 定案) = **§4.28.11** (CSession 布局所有权册)。
+> CSession 状态枚举全表 (19 值, session.cpp:269 SetState switch, 定案) = **§4.28.16** (CSession 布局所有权册)。
 
 #### 4.2.4 gs hourly tick 顺序骨架 (sub_1401DD370)
 
@@ -173,16 +175,16 @@ profiler 域 **"gamestate.hourly"**; gamestate.cpp:5918-5920 断言窗口 (定�
 |---|---|---|---|
 | 1 | 军队状态小时统计 | +2416 | **CUnitMetricsCollector** (unitmetricscollector.cpp 定名): 收集开了 +413 IsCollectingMetrics 旗的作战计划编组, 14 键按小时窗口累计, 写 logs/metrics/*.log — **纯遥测, 默认关闭, 不进游戏逻辑**; 四件 = sub_140F08C50/F09DE0/F0A580/F0ED00 (AVG_DEFENDER_ENTRENCHMENT_WHILE_ATTACKING / TOTAL_IN_COMBAT_MAN_HOUR 等键直证) |
 | 2 | 三数组预收集 | +2464 族 | 全体国家数组 (门 = 有资州或收容流亡政府) → DoCountryHourlyUpdates / AI 策略数组 (就绪检查+预热) → ai_update / 国家下标数组 (gs+2464) → 战略空军 |
-| 3 | 补给 (计时域 4) | +984 | **CSupplySystem::UpdateSupply(bool)** 12 阶段 (§4.2.12) |
-| 4 | **装备市场小时处理 (计时域 11)** | +1000 | sub_1401C67B0 → 市场解引用 + 小时处理 (§4.23.3 族) — hourly 粒度市场行 (daily 序 16 为日粒度交付/到期) |
-| 5 | 突袭 (计时域 12) | +1008 | sub_1401C6A30 → **sub_140E86100 相位机推进** (gs+1008 + 域 12 直证) + 情报阈值预警 (§4.2.14) |
+| 3 | 补给 (计时域 4) | +984 | **CSupplySystem::UpdateSupply(bool)** 12 阶段 (§4.21.1a) |
+| 4 | **装备市场小时槽 (计时域 11)** | +1000 | sub_1401C67B0 → thunk 市场解引用断言, **返回值弃置 = 空转** (定案, §4.23.3a) — 全局市场唯一周期处理在 daily 序 16 |
+| 5 | 突袭 (计时域 12) | +1008 | sub_1401C6A30 → **sub_140E86100 相位机推进** (gs+1008 + 域 12 直证) + 情报阈值预警 (§4.27.3) |
 | 6 | 天气 (计时域 7) | +1672 | 昼夜并行 + 区域状态机 + 确定性翻面 (§4.2.15); 断言 "_pWeatherManager" 直证 |
 | 7 | 战略空军 (计时域 8) | +1680 | **CStrategicAirManager::HourlyUpdate** 12 步 (§4.2.17); 断言 "_pStrategicAirManager" 直证 |
 | 8 | 战略海军 (计时域 9) | +1688 | 串行维护遍 + 并行重算遍, 国序 %24 错峰 (§4.2.16); 断言 "_pStrategicNavyManager" 直证 |
-| 9 | 谍报/特工 | +1696 | sub_140EB3050 ⚠待裁 (姊妹址 sub_140EB2EC0 同区, 探针定夺): 有特工时逐元素七连推进 (sub_1412002E0/17C0/1B60/0DF0/14C0/1FF0/23C0, NOperativeMissions 任务族) + 尾置单例 +82 脏旗 (**勿再引"空更新"旧说**) |
+| 9 | 谍报/特工 | +1696 | **sub_140EB2EC0 (定案)**: 逐 8B CStrategicOperative* 调 sub_1411FAE40 (门 so+8 属主 tag>0) 七连推进 — sub_1412002E0 网数组重建+全网增益重算 (每网 sub_1411D63A0, §4.11.18) / sub_1412017C0 propaganda EWMA (so+304/+312 drift) / sub_141201B60 control_trade 表 / sub_141200DF0 diplomatic_pressure 双表 / sub_1412014C0 subversive+danger 双 PID / sub_141201FF0 UpdateIntelNetworkStateModifiers / sub_1412023C0 州 modifier 应用; 尾置 CMapModeManager(+48 子对象)+82 intel 地图模式脏旗 (姊妹 sub_140EB3050 = 纯 assert 循环, 非业务) |
 | 10 | playthrough 监听查询 / autoexit 检查 | | "g_ExitOnTriggerText was invalid" |
 | 11 | **DoCountryHourlyUpdates** (sub_1401D85A0) | | 13 相位串行×并行交替, 见下表 (gamestate.cpp:5216/5259); 出口前双键排序先行一轮 (sub_1401B6AD0 归并 → sub_1401B6720 插入) |
-| 12 | 战斗 (计时域 6) | +608 | CCombatManager 每小时推进 (§4.2.13) |
+| 12 | 战斗 (计时域 6) | +608 | CCombatManager 每小时推进 (§4.22.9a) |
 | 13 | 阵营 | +1016 | **CFactionSystem::HourlyUpdate** (§4.2.18) — 位于战斗后、ai_update 前 (函数体顺序直读) |
 | 14 | **ai_update** (sub_1401D7E40) | | 门 = idler vt+880 网络判别 + session+84; 收集的 CAICountry 策略数组以作业 "Short Task" 并行发射 |
 | 15 | DoCareerProfileHourlyUpdate | | sub_1401F1190 (身份未决, 推定包装) → sub_1401B1C40(gs+2240) 逐 tag 生涯统计 |
@@ -209,9 +211,9 @@ sub_1401F7380/sub_1401B8650/sub_1401BB280 各占 ~3%):
 | 7 | 军队收集: 逐国收集 CArmy* 进本地数组 → tbb parallel_for (start_for 符号 = PdxParallelForContainer(CPdxArray\<CArmy\*\>); memfn = **sub_140C88A70 CArmy::HourlyUpdate**: gs+2617 门 → sub_1414E4780、+1192 倒数、**army+1080 attrition 缓存重算** (§4.18.14)、+976 求和 ×100000 写 +1208) | **tbb join C** (阻塞) |
 | 8 | 海军可达性: gs+1032 管理器 (scoped_ptr, "_pPtr" 断言) 调用方临时置 +32=1 → sub_140E255E0 (→ sub_140E24860 PdxParallelForContainer 派发, EJobType=1; 串行叶 sub_1419EE650, §4.21) → 复位 +32=0 | **tbb join D** (阻塞) |
 | 9 | CTaskForce 波次 #2: 重收集 → sub_1401B1AF0 并行 (memfn = **sub_140D71760 CTaskForce::HourlyUpdate** 高置信: idpair 解析 → 海军区域查询写 tf+1616 → 逐舰船 +840 数组三连 sub_140C32E10/C32C90/C3E4A0) | **tbb join E** (阻塞) |
-| 10 | hourlyUpdateUnits: 占领 bundle 包夹 (sub_140EED690 ++ / sub_140EF2F30 −−, 计数归零 → profiler "theatremanager.endbundle" 复位 g_OccupationBundleConquer/Relation, theatre.cpp:5572) 内逐活跃国 sub_140717BC0 (纯统计上报: army+840 装备占用求和条件日志, 调试门 byte_143452529, §4.21 定案) + sub_1407164E0 (**CCountryFuelStatus 燃料小时结算** cc+5504, §4.3.16) | 串行 (bundle 窗口) |
+| 10 | hourlyUpdateUnits: 占领 bundle 包夹 (sub_140EED690 ++ / sub_140EF2F30 −−, 计数归零 → profiler "theatremanager.endbundle" 复位 g_OccupationBundleConquer/Relation, theatre.cpp:5572) 内逐活跃国 sub_140717BC0 = **全单位 vt[18] 小时 tick 串行驱动** (旧"纯统计上报"说翻案): ① cc+656 师容器逐师调 **vt[18]** (144 槽 = CArmy::[18] 0x140C881D0 每师每小时总入口, §4.18) + sub_140C00000 战中场次计数 → cc+4904; ② cc+632 舰队容器快照拷贝逐元调 sub_140D577F0 (语义未决); ③ cc+680 铁路炮容器逐元调 vt[18] (CRailwayGun::[18] 0x140E8B8E0); 调试门 byte_143452529 仅包军队数/装备占用 before/after 条件日志 (country.cpp:13281/13314), vt[18] 循环无条件执行; 主线程采样占比 ~8-11% = hourly 调度内最重单件; 兄弟调用 sub_1407164E0 (**CCountryFuelStatus 燃料小时结算** cc+5504, §4.3.16) | 串行 (bundle 窗口) |
 | 11 | 错峰日步 (**两套, 定案**): 同一相位源 `hour = (gs+1128 − 43800000) % 24` 分两腿 — ① tbb parallel_for (lambda_5) 每师门 `hour%24 == 师 id%24` (**无 +1**) → C881D0 内联日更块 = **CArmyRequests (+1144)**: 141510110 到期判断 (到期 14150F740 重建请求 + 经验按 +976 need/value 折减) + 14150E460 每小时无条件推进 (reinforcement/upgrades delivery → 140C78E90 装备入 +840 池 → 触发 vt[22] RefreshAbilities); ② 串行尾遍门 `((army+28 师 id)+1) % 24 == hour` (**有 +1**) → **sub_140C89090 指挥链聚合重建** (army+1584 leader 旗门; 清 8 统计容器 +1816/+2008/+2200/+2392/+2968/+3160/+2584/+2776, 从 +3528 数组四组重灌, 虚槽 [28]/[30]; 聚合对象类身份未决) — 相位差 +1 使指挥链与 requests 重建错日撞车, 各每师每天恰一次 | **tbb join F** (阻塞) |
-| 12 | postHourlyUpdate (sub_140705630): ① sub_1406FF1F0 批量重算本小时累积修改器后 **cc+4320 清零** (§4.3.23); ② `(tag_idx + gs 小时) % 24 == 0` 错峰每日脉冲 → 确定性 random_int (random.cpp:258) → 构造 CEventScope → on_action ×2 (§4.2.9) — **on_daily 派发**; ③ cc+4880 72B/项桶数组 (计数 +4892) 逐桶到期处理 (24B 条 {+16 tag, +20 到期小时}; 桶身份未决); ④ cc+4744 convoys 派生值缓存重算 | 串行 |
+| 12 | postHourlyUpdate (sub_140705630): ① sub_1406FF1F0 批量重算本小时累积修改器后 **cc+4320 清零** (§4.3.23); ② `(tag_idx + gs 小时) % 24 == 0` 错峰每日脉冲 → 确定性 random_int (random.cpp:258) → 构造 CEventScope → on_action ×2 (§4.2.9) — **on_daily 派发**; ③ cc+4880 72B/项桶数组 (计数 +4892) 逐桶到期处理 — **桶 = 核弹在途打击 CNuclearStrike** (24B 条 {+8=13718, +16 省 id, +20 飞行小时}; 相位 0 sub_14109A520 推进 / 本相位 sub_141098460 到期结算 sub_1410986E0 + 压缩删除, §4.3.10a); ④ cc+4744 convoys 派生值缓存重算 | 串行 |
 
 > 备注: tbb 机制件 (join B 三件套, start_for 实例): 入口 sub_1401F7380 (execute 槽[1],
 > 78B) → sub_1401B8650 (分裂派生) → sub_1401BB280 (等待/偷取 + 串行收尾逐国调
@@ -252,25 +254,32 @@ profiler 域 **"gamestate.daily"**; gamestate.cpp:6227/6310 source_location。
 | 7 | 占领 | "daily.occupation_update": 串行逐**占领者**国 → CCountryOccupationStatus (cc+4048) 六阶段: 选驻军模板 / 占领法重验换法 (countryoccupationstatus.cpp:561) / 抵抗州↔记录对账 / **逐控制州合规/抵抗推进** (res+64 += res+72, res+16 += res+24, ×1e-5 顶 10000000) / 记录明细 / 失效清理 |
 | 8 | 州合规修复 | sub_1409D73E0: CResistance 变化刷地图 → **省控制权漂移修复** (州 owner≠省 controller 且非战争豁免 → 归还; 无主州 → SetOwner=控制者, state.cpp:2295) → **不可通行州 (湖) 邻居推举控制器** (state.cpp:2108/2110/2205) → 空军基地随控制权换主 (state.cpp:1763 "air base without access") |
 | 9 | 研究共享 | "tech_share.daily", **CTechnologySharingGroup** (vt 0x142721740) 虚表槽[9]: **只做成员资格巡检** (组触发器 +152 求值不满足 → 研究侧摘链 + 槽[11]踢除); 加成传播不在 daily |
-| 10 | 国家 daily 并行 | "country.daily_parallel" (gamestate.cpp:6310) 活跃国 + 全量国成员函数 sub_1406E8C70 |
+| 10 | 国家 daily 并行 | "country.daily_parallel" (gamestate.cpp:6310) 活跃国 + 全量国成员函数 sub_1406E8C70; 其内调 **sub_1406E8210 = 事件检查波** (逐国相位门 cc+4750 == gs+1156 年积日 % EVENT_PROCESS_OFFSET(20) 才跑 CEventManager::AddEventsToFire, 掷中候选入 cc+4776; 州侧同构 sub_1409D7760 相位 st+2032, §4.12.8) |
 | 11 | 外交两 pass | FirstPass (sub_140D357E0): 重建每国 dip+248 敌国集 + **dip+344 分类码** (§4.10 已改) + 阵营敌意聚合; SecondPass: 聚合派系成员/宗主-附属链 → **dip+272/+296 共同敌国**; 两遍原因 = pass2 消费 pass1 产物 (并行一致性: 先各写自己再互读新账) |
 | 12 | 学说 daily +1024 | **NDoctrines::CDoctrineSystem::DailyUpdate** (tbb 符号直证): 对 CPdxArray<CCountryDoctrineStatus> 两遍并行 (mastery 日结算 + 求值/终结) |
-| 13 | **CCountry::DailyUpdate** (sub_1406E76A0) | 门 = cc+1156>0; 活跃分支 31 步: 内战目标清理 → exile_divisions_transfer 到期 → 人力/生产/资源/科研/部署 → 市场 → 旗/政治/外交/核弹/焦点/后勤/燃料/operations/经验 → **on_border_war_lost** (门 = 控制州 state+2149 活跃旗 且 进度 > define BORDER_WAR_VICTORY, 派发后 sub_1409DDA30 熄火) → army.daily (虚表槽[19] 字节+152) → 志愿/远征军所有权重整 → fleets.daily (快照迭代) → railway_guns.daily → **logistics.daily** (sub_1401371390 计时作用域) → **投降/流亡日更 sub_1406E16C0** ("Attempting to surrender to nulltag" / FACTION_LEADER_CAPITULATED / BECAME_EXILE) → trade_influence.daily → 志愿军清扫 → 剧场 → incoming 外交+角色+特殊项目 → **queued_events 延迟事件派发后清表** → 修正重算门; 非活跃分支仅军队维护+投降判定; 每 5 国插帧保活重入 |
+| 13 | **CCountry::DailyUpdate** (sub_1406E76A0) | 门 = cc+1156>0; 活跃分支 31 步: 内战目标清理 → exile_divisions_transfer 到期 → 人力/生产/资源/科研/部署 → 市场 → 旗/政治/外交/核弹/焦点/后勤/燃料/operations/经验 → **on_border_war_lost** (门 = 控制州 state+2149 活跃旗 且 进度 > define BORDER_WAR_VICTORY, 派发后 sub_1409DDA30 熄火) → army.daily (虚表槽[19] 字节+152) → 志愿/远征军所有权重整 → fleets.daily (快照迭代) → railway_guns.daily → **logistics.daily** (sub_141371390 计时作用域) → **投降/流亡日更 sub_1406E16C0** ("Attempting to surrender to nulltag" / FACTION_LEADER_CAPITULATED / BECAME_EXILE) → trade_influence.daily → 志愿军清扫 → 剧场 → incoming 外交+角色+特殊项目 → **queued_events 延迟事件派发后清表** (串行段 "country.queued_events": 逐条再复核 trigger → sub_140A0F4F0 → sub_140A0F6F0 真发射, §4.12.8) → 修正重算门; 串行段第 4 步生产 = **sub_140E670A0 "production.daily_serial"** (§4.8.13; 在 sub_140CABB30 "resources.daily" 前); 焦点 = **sub_1402D0260(fp) "nationalfocus.daily"** (§4.3.15a; politics cc+3976 后、logistics cc+3992 前); 非活跃分支仅军队维护+投降判定; 每 5 国插帧保活重入 |
 | 14 | post_daily 并行 | CCountryPostDailyUpdateThreaded (RTTI 定名, 活跃国, 每国 SRW 锁): **AI 战略日更 + logistics.postdailythreaded + CLoopHistory 国史** — 三件并行安全活挪出串行段 |
 | 15 | 生产快照 + AI 国家战略 | sub_1406E8C70 (全量国 tbb 并行) = **CProductionStatus 容器 F(+1208)→B(+208) 快照发布 memcpy** (B = AI 生产挑选, 轻量 AI 喂数, 与序 13 重头 31 步分工); AI 国家战略: 串行 sub_14066A580 = **CStrategy 5-9 天随机间隔重算**; 并行 sub_14066A050 = 每日全量 Update (ai_strategy.cpp:476 + 112 槽冲账表 + 战争领袖变更检测); 门 = AI 启用旗 (ai+96) + 激活旗 (+99) — **非决议/焦点** |
-| 16 | 阵营二次 +1016 / 市场 +1000 / 突袭 +1008 / 天气 +1672 | 阵营第二次 = 内务五步 (目标/升级/项目日更 + **UpdatePower 族成员矩阵重算** + 成员贡献分摊; 第一次序 19 只更 faction+2552 CFactionTheaterManager); 装备市场 = **购买合同交付推进** (成交即付/分期) + 到期结算 (define PURCHASE_CONTRACT_DELIVERY_TOTAL_DAYS), 非价格清算; 突袭 daily = 目标冷却 (target_cooldowns +56) 递减到期清除; 天气 daily = 省份自定义天气修正按天到期摘除 (模拟演化在 hourly) |
+| 16 | 阵营二次 +1016 / 市场 +1000 / 突袭 +1008 / 天气 +1672 | 阵营 daily 双入口 (实际顺序 = theater 版 sub_140D935A0 → sub_140D8D850 (仅 DLC50 门 + fac+2552 CFactionTheaterManager) 在**前**; 五步内务 sub_140D93560 → **sub_140D8D490** 在后 = ①goal 进度 (CProgress 求值 → CProgressStatus 双半缩放) ②升级 = 共享巡检 ③项目贡献 ④**CFaction::UpdateInfluence** 矩阵 ⑤**PassiveInitiativeGeneration** initiative 分摊, 详 §4.5.9); 装备市场 = **sub_140DEC850 合同快照遍历 → 逐合同 sub_1419D49C0** (cli 护运 Update + days++ + 到期结算 + 周期重启 + 延期架 flush, 全链 §4.23.3a); 突袭 daily = 目标冷却 (target_cooldowns +56) 递减到期清除; 天气 daily = 省份自定义天气修正按天到期摘除 (模拟演化在 hourly) |
 | 17 | profiler 锁刷写 | idler+2576 成员, AcquireSRWLockExclusive(+2584) 下刷写 |
 | 18 | 旗/事件/渲染/紧张度/兵棋 | sub_140CBFA90 = **flag_manager.daily** (profiler 直证): 定时旗 u16 天数倒数到期摘除; sub_1401F0AF0 = **pending_events (gs+1376) 过期清除** (gamestate.cpp:4548, 只清除不派发); sub_140F2D910 = 玩家国 operations 结构快照 diff (变则 ++全局版本号驱动 GUI 重建; 四件 = sub_140F28190/F28290/F28450/F28610, 静态槽 unk_14333D4xx diff 写/判定); sub_140EF2F30 = **占领 bundle 收口** (与 sub_140EED690 配对 — 中段整个跑在 bundle 窗口内); sub_140DF8520 = 地图季节调色板按日期插值 (纯渲染, Tree_season.bmp); sub_140F05110 = **CWorldThreat 世界紧张度按日期进度向目标漂移** + 死条目清扫 |
-| 19 | career profile | HasGameStarted (gs+2617) 门 → sub_1401D8400 |
+| 19 | career profile | HasGameStarted (gs+2617) 门 → sub_1401D8400; ⚠ **序内更早的 sub_1401F1190 = gs major top-K IC 重算** (hourly 无条件, ai_update 后; 产物 gs+2168 top-IC 均值 / gs+1320 紧张度基准国 / cc+5211 top-IC 旗; 0.7×均值补判 = monthly 无阵营国晋升通道消费), 非 career profile (翻案) |
 
 > 备注: daily/hourly 各表中的 sub_1401C6930/6AB0/6BB0/6C30/6CB0/6D30/6DB0 等
 > 取用器全是 `pdx::scoped_ptr` 惰性解引用 thunk (pdx_scopedptr.h:124 "_pPtr"),
 > 业务语义在解引用后的真函数 — 读表时按"取用器+真函数"两层理解。
-> 备注: **"country.calc_modifier" (sub_1406DADE0) = 13 pass 修正重算**: 静态修正名
-> 缓存表 (40+ 项) / stability·war_support 按偏离 DEFAULT_* 插值 / attache_sent
-> (token 14553) / lacking_consumer_goods / pride_of_the_fleet 族 / **难度五档
-> diff_{very_easy,easy,normal,hard,very_hard}_{ai,player}** (gs+1584 难度 +
-> IsAI); 重算门 = POTF 沉没惩罚到期 + 动态修正容器 dirty 路径。
+> 备注: **"country.calc_modifier" (sub_1406DADE0) = 13 pass 修正重算** (顺序定案; 首尾
+> 以 mdef 104 旧/新值探 dirty, 变化则 sub_140E6D830(cc+3944) 传播): pass 1 清空聚合
+> sub_1405583A0 → 2 生产/政治前置 (sub_140E65F30 / sub_140EE2610 / sub_140BB0030) →
+> 3 内战/占领政府 sub_140D89FD0 → 4 全局规则修正 (gs) → 5 数组容器族 → 6 决议/任务
+> 前缀查名合并 ×4 组 → 7 ideas/民族精神 sub_14119D900 → 8 attache (token 14553) /
+> POTF 沉没舰队门 → 9 **动态修正聚合结果** (sub_140557BF0 求值 + sub_140557840
+> cc+1464 ← CModifier#2 缩放并入) → 10 流亡/志愿族 (cc+1120 数组经 sub_1410DB210
+> 转换合并) → 11 军事组织族 → 12 **难度五档** diff_{very_easy,easy,normal,hard,
+> very_hard}_{ai,player} (gs+1584 难度 + IsAI, 按名查 def sub_14055D480) → 13 间谍
+> 数组/宗主/难度曲线插值 (1433314F8/143330E98) → 尾 sub_1410F82C0(cc+5504) 燃料重算。
+> 调度 = 每小时相位 6 pass⑥ + DailyUpdate 尾部重算门 + MonthlyUpdate pass; 事件驱动
+> 补跑 10 个直接调用点 (决议激活/idea 变更等 effect 触发)。
 
 #### 4.2.8 weekly (CGameState::WeeklyUpdate, sub_1401F2430)
 
@@ -281,7 +290,34 @@ profiler 域 **"gamestate.weekly"**。极简版 daily:
 | 1 | 力量平衡 weekly +1104 | sub_140E58B90: 与 daily 版 (sub_140E560D0) 逐行同构, **唯一差异 = 成员国修正键 153 (MODIFIER_POWER_BALANCE_WEEKLY)** (daily 用键 152) |
 | 2 | 州 weekly | sub_1409E09B0 = **抵抗破坏工厂** (state.cpp:2323): 占领国州级修正 MODIFIER_LOCAL_FACTORY_SABOTAGE (mdef 76) 作每周概率 (random_fixed ∈[0,100000)), 命中 → 随机选州内 1 条有等级建筑, 伤害 = SABOTAGE_FACTORY_DAMAGE(100.0)×(1+抵抗度), clamp ≤1 级; **翻案旧"抵抗/合规推定"** |
 | 3 | 国 weekly | **sub_140718CA0 = CCountry::WeeklyUpdate** (country.cpp:5793): 周累加族 — cc+5312 宣传稳定惩罚 clamp [-0.2,0] / cc+4304 stability clamp [0,1] / cc+5320..5344 四战争支持度惩罚 (-0.3/-0.5/-0.2) / cc+4312 war_support clamp / WEEKLY_MANPOWER (mdef 62) + 流亡 mdef 588 人力 / 占领日志按 GARRISON_LOG_MAX_MONTHS(12) 清理; **on_weekly 派发点** (§4.2.9); major 断言 = cc+5210 与 GetMajors 表一致性 (country.cpp:5810, debug 一次性) |
-| 4 | DoCareerProfileWeeklyUpdate | gs+2240 tag 数组并行 |
+| 4 | DoCareerProfileWeeklyUpdate | gs+2240 tag 数组 tbb 并行, 分裂树 sub_1401BCA30 |
+| 0/5 | 帧泵 + 锁刷写 | 首尾帧泵①② (帧预算门 sub_1402A3210 + idler+1328 槽[17] 泵) + 尾 profiler 锁刷写 (idler+2576/+2584) — 与 daily 同构, 旧表漏行 |
+
+**CCountry::WeeklyUpdate sub_140718CA0** (country.cpp:5793, 定案) 十步主干:
+① **collaboration 加权随机投降接收国周刷新** (写 cc+12, 与投降流共用
+sub_1406DA380; "SurrenderRecipient.IsValid()" 断言) ②/④ 宣传惩罚源 = 谍报
+每国对象 +312/+304 (propaganda_weekly_drift.stability/war_support) ③ cc+5312
+宣传稳定惩罚 / cc+4304 stability / cc+5320..5344 四战争支持度惩罚 —
+修正键 599/600/601 = MODIFIER_WEEKLY_CASUALTIES/CONVOYS/BOMBING_WAR_SUPPORT
+(+ MAX_*/\*_DECAY 族) ⑤ WEEKLY_MANPOWER (mdef 62) + 流亡 mdef 588 人力
+⑥ 占领日志 GARRISON_LOG_MAX_MONTHS(12) 清理 (sub_140FFF5D0) ⑦ **on_weekly
+派发** (§4.2.9) ⑧ characters 域 scoped_ptr 空过 (返回值丢弃 = 域负证)
+⑨ **物流 weekly = sub_141375A20 (thunk) → sub_141375840**: 全体国仓库
+(+520/+532) 装备条目推队列 + 仅人控国 (gs+880/+904) 全装备库
+current−(want+queued) 缺口重算 ⑩ major 断言 (country.cpp:5810 debug 一次性);
+gs+820 = GetMajors 计数。
+
+**AI 域 weekly machinery (定案)**: CAICore vt[7] (sub_1402AD3A0: mode2 预清理
+→ 基派发 → 收尾) + 各 AI 模块槽[15] 覆写 (军事/外交/内政部长 + 加密/建局/
+行动优先/军事子 AI 七体; COperativesAi 无周更); tick 侧派发点未定位 (唯一
+未决, 建议运行期断点)。
+
+**逐域负证 (定案)**: 全语料 rhythm zone 清点 — weekly 后缀唯一 (gamestate.weekly
++ AI 模块树); production ("weekly_production" 仅 UI 文案)/construction/
+deployment/focus/politics/technology/doctrines/army/navy/air/theatre/events/
+decisions/operations/resources/market/raids/projects/occupations/resistance/
+weather/faction/flag **全部无 weekly 通道** (zone 零命中 + gs weekly 不触
+对应槽位 + 域册零记载)。
 
 > 备注: weekly 触发在 hourly tick 内 **daily 调用紧后** (总天数 %7==0),
 > 不在 daily 函数体内。开局初始化序列 (行 7065010 区段) 依次跑
@@ -320,12 +356,18 @@ profiler 域 **"gamestate.monthly"**。触发: 月边界 (骨架 §4.2.4 步骤 
 
 | 序 | 子系统 | 要点 |
 |---|---|---|
-| 1 | **CCountry::MonthlyUpdate** (sub_140703490) | 门 = owned_states>0 (cc+1156); 十段: dip 月更 (MONTHLY_LEASED_IC_DECAY 衰减 + 限时好恶刷新 + 脏表重建) / **major 全量重算** (判定谓词 sub_14070C1C0: 无宗主 && (is_major cc+5209 ∨ is_top_ic cc+5211 ∧ 工厂 ≥ MAJOR_MIN_FACTORIES=35) → cc+5210, 补判 0.7×top 均值; 同谓词亦用于 SetLeader/投降流亡) / "country.calc_modifier" pass (§4.2.7 备注) / 州征兵 + **阵营人力上缴** (token 10476, faction+2288 按 tag 记账 + mdef 648) / 逐国改善关系月更 / **on_monthly 派发** (§4.2.9) / 玩家专属 tag 管理器引用计数 / **季度舰队重整** (月长表 {31,28,...} 直读, 1/5/9 月触发 sub_140218EB0) |
-| 2 | 阵营月更 (+1016) | sub_140D92DF0: 门 = `当前绝对月 == cgs+1192 记录绝对月 + 1` (**每自然月一次守卫**); 主体 = **仅含玩家阵营**的每条 faction goal 以玩家国为 scope 月度重放效果 (AI-only 阵营不跑) |
+| 1 | **CCountry::MonthlyUpdate** (sub_140703490) | 门 = owned_states>0 (cc+1156); 十段: dip 月更 (MONTHLY_LEASED_IC_DECAY 衰减 + 限时好恶刷新 + 脏表重建) / **major 全量重算** (判定谓词 sub_14070C1C0: 无宗主 && (is_major cc+5209 ∨ is_top_ic cc+5211 ∧ 工厂 ≥ MAJOR_MIN_FACTORIES=35) → cc+5210, 补判 0.7×top 均值; 同谓词亦用于 SetLeader/投降流亡) / "country.calc_modifier" pass (§4.2.7 备注) / 州征兵 + **阵营人力上缴** (token 10476, faction+2288 按 tag 记账 + mdef 648) / 逐国改善关系月更 / **on_monthly 派发** (§4.2.9) / 玩家专属 tag 管理器引用计数 / **季度舰队重整** sub_140218EB0 (**翻案: 触发月 = 4/8/12 月, 绝对月 %4==0**; 旧记 1/5/9 系错; **玩家国专属门**); 十段细化: ① dip 月更 sub_140D409D0 (dip+804 租借 IC 按 NDiplomacy::MONTHLY_LEASED_IC_DECAY 衰减 + 限时好恶刷新 + 待定外交动作定时容器刷新) ② major 重算 (谓词内无 0.7 补判 — **翻案: 0.7×top 均值归段⑥**) ⑥ **无阵营国晋升通道** (均值 = hourly 级 sub_1401F1190 写 gs+2168) ⑧ sub_1406CF380 = 返回值弃置无副作用取用器 (疑残留) ⑨ sub_140CD1500 = playthrough 统计月计数器 (+524 递增, 玩家国比较后置 +984 bit2, 单人限定) |
+| 2 | 阵营月更 (+1016) | sub_140D92DF0: 门 = `当前绝对月 == abs_month(gs+1192 起始日期)+1 且同年` (**翻案: gs+1192 = playthrough 起始日期** "PLAYTHROUGH_STATS_STARTING_DATE" 串直证, 非滚动记录月; 阵营 faction goal 「月更」实为**开局后第 2 个自然月一次性重放** — 12 月开局永不触发); 主体 = **仅含玩家阵营**的每条 faction goal 以玩家国为 scope 重放效果 (AI-only 阵营不跑) |
 | 3 | 学说月更 (+1024) | sub_140D7F220: 只对玩家国 doctrine status (160B 元素) 跑月步; 无效 tag 断言 doctrine_system.cpp:80 后兜底元素 0; AI 国不经此路径 |
-| 4 | 三个 "Short Task" | lambda_1 power_balance 玩家侧月更 / lambda_2 月度 history log (门 = 控制台 `history_logger` 开关, nlohmann/json 写 logs/history_dump, armies/navies/compliance/resistance 等全键, historylogger.cpp:594) / lambda_3 GameTelemetry::SendProvincesOccupiedSnapshot (tbb 逐国, 国数≥2) |
+| 4 | 三个 "Short Task" | lambda_1 = **sub_1401C7460** power_balance 玩家侧月更 / lambda_2 = **sub_1401F7B00** SRW 锁下月度 history log (门 = 控制台 `history_logger`, nlohmann/json 写 logs/history_dump, historylogger.cpp:594) / lambda_3 = **sub_1402168D0** GameTelemetry 占领快照 (tbb 逐国, 国数≥2 门直证); 另 5 处帧泵 + Short Task join 形态 (旧表漏行) |
 
 #### 4.2.11 yearly (CGameState 年边界, gs+784 国家数组)
+
+> **AI 域 yearly 除外 (定案)**: AI 模块树有真 yearly 通道 — CAICore 虚槽[9]
+> ("CAICore.YearlyUpdate" / "Module.YearlyUpdate", exe 虚表直读; AI monthly =
+> 槽[8] sub_1402AB4B0 门 owned_states>0) — 旧「不存在 yearly 订阅者系统」加此
+> 除外。其余域 monthly/yearly 负证与 weekly 同法成立 (rhythm zone 全清点,
+> production/focus/characters/operations/raids/projects/market 等全无)。
 
 **不存在 yearly 订阅者系统, 也无 on_yearly on_action** (全语料 0 命中
 on_yearly/on_anniversary/on_new_year)。年门 (定案): 新绝对年 ≠ 旧绝对年 — 绝对年 =
@@ -340,81 +382,19 @@ on_yearly/on_anniversary/on_new_year)。年门 (定案): 新绝对年 ≠ 旧绝
 
 #### 4.2.12 补给小时更新 (CSupplySystem::UpdateSupply, sub_140ECD400)
 
-入口链: HourlyUpdate 计时域 4 → sub_1401C6D30 (gs+984 scoped_ptr 解引用) →
-sub_140EC8DB0 (强制第二参 = 1)。真名 = tbb 任务符号直读 **CSupplySystem::UpdateSupply(bool)**;
-体内 **15 个 tbb parallel_for** (lambda_1..lambda_22)。第二参 = **小时步进模式旗 (定案)**:
-1 = 每小时错峰模式 (调拨按整点过滤、国家每日重算按时隙); 0 = 全量立即模式
-(全收、跳过错峰、哈希清理扩容) — 全 dump 仅 3 处 a2=0 调用 (读档/初始化路径)。
-
-| 阶段 | 动作 | 并行 |
-|---|---|---|
-| 0 | 脏检: 每国 120B 记录@ss+64 (+112 旗), 比对 owned_states 变化与补给系数宏缓存 (cc+1464 键 567, fixed×1e-5) | lambda_1 |
-| 1 | 打脏: 记录旗 \|= 2, tag 入脏国列表 {ss+160} | 串行 |
-| 2 | 三条 id 列表刷新 (ss+88/112/136 → sub_140ECC340/sub_140ECC820) + 逐脏国补给状态重算 | 串行 |
-| 3 | 补给节点全局遍历 (token 1812); 取 `小时 = now % 24` 为全程错峰相位 | 串行/并行双路 |
-| 4 | CSupplyCalculationData (**800B/国**, ss+288) 更新 | lambda_2 |
-| 5 | 国家 id 恒等排列上 8 连 pass: 依赖列表构建 (120B 记录 +88/+100 → calcdata+232)/字节标志压缩剔除 id | lambda_3/4/6/7/8 |
-| 6 | 每省 **216B 记录**扩容 (省界 = gs+700) + 4B/省数组 + 省级 pass | lambda_11 |
-| 7 | 护航/运输队按整点收集 (232B 元素, +4 时刻 `%24==当前小时`; a2=0 全收 + ss+232 哈希清理扩容) | 串行 |
-| 8 | **国家每日重算错峰: `id % 24 == 当前小时` 才执行** (sub_14122E520 清累计 + 30 槽日环 国对象+552..+624 清新槽) — 每日补给重算摊平到 24 小时的削峰机制 | lambda_16 |
-| 9 | 分发结算: **省满足率 = 省记录 rec[1]/rec[0]** (clamp ≤100000); 流入写 calcdata+184 区 40B 条目 {来源/快照/数量}; **库存扣减 calcdata+64** | 串行 + lambda_19 |
-| 10 | 每国三连 pass (sub_14122B820/B300/C700/F110) + 观察者钩子 (单例虚槽[16]→+88→+23776) | 混合 |
-| 11 | 最终并行结算 + **打下一轮脏标** (sub_140ECACF0: 省 32B 记录旗 \|= 4 入 ss+88, 国记录旗 \|= 4 入 ss+184) | lambda_21/22 |
-
-> 备注: ss = CSupplySystem 对象 (gs+984 解引用); 脏国记录 120B/国、省记录 216B/省、
-> 计算数据 800B/国均为本系统私有缓冲 (ss+64/312/288)。
+挂点: HourlyUpdate 计时域 4 (§4.2.6 序 3) → sub_1401C6D30 (gs+984 scoped_ptr
+解引用) → sub_140EC8DB0 (强制第二参 = 1)。12 阶段执行链与 tbb lambda 族 =
+§4.21.1a (域分册)。
 
 #### 4.2.13 战斗小时更新 (CCombatManager, sub_140BB8AE0, gs+608)
 
-每小时对每场活跃战斗: 首小时初始化 → 活跃判定 → XP 收集结算 → 结束善后 +
-战史滑窗。CCombat 虚表行为槽 (COL 链直读; CCombat vt 0x1429BBC58 /
-CLandCombat 0x1429A83D8 / CNavalCombat 0x1429DDB08 / CLandBorderWarCombat 0x1429BC5F0):
-
-| 槽 | 语义 |
-|---|---|
-| [9] | **IsActive**: 双侧参战 tag/单位耗尽即结束 (基类查参战 tag 链表 cb+72 + 共同 tag; CLandCombat 加两侧容器计数) |
-| [13] | **首小时初始化** (byte+81=1 已初始化 / 清 byte+82 结束旗; CLandCombat 先做两侧大体量初始化 sub_1412AC450) |
-| [14] | **结束标记** (byte+82=1, 通知两侧) |
-| [15] | **每小时战斗步进主入口** (CLandCombat 0x1412B81D0): ① 按 define 周期调 **sub_1412BBF90 = 战术重掷核** (见下); ② `++(a1+68)` 时长计数; ③ 遍历两侧参战国 tag 链表, 可战斗者 (sub_140CC6980) 调 **sub_1412BBDB0** (聚合己侧全师人力 (+976 求和) 与装备量 (师+840 池 category&4) max-写**战争统计对象** +360/+364/+416; 状态位计数 = 修饰槽位图+多国旗, 仅玩家参战侧执行带 UI 通知); ④ 尾调基类 0x1413E28C0 = **对两侧 combatant 依次调槽[22] 修饰符全量重算 → 槽[19] 伤害执行步 → 槽[14] 领袖 XP (损失比×0.5) → 槽[32] weighted_participants (情报权重)** — **XP 只是四连的最后一环** |
-| [16] | 结束复核 bool(self, idx, count) (基类 purecall) |
-| [11] | GetDuration (历史 entry 消费) |
-
-流程 (五阶段):
-
-| 阶段 | 动作 |
-|---|---|
-| A | playthrough id 重同步 (gs+1312 优先, 非正取 +1316; 与 cm+32 缓存比, 经 gs+832 恒等表判等价 — 同原初国切换不清场); 非等价清战斗两侧指针 |
-| B | 战史修剪 sub_140BB8910: CCombatHistory (cm+40) 尾部追加 = end_date 升序; **保留 168 小时 (7 天) 滑窗** + 回档守卫 (head.end_date > now 全弹) |
-| C | 主循环 (置 cm+72 _bInCombatUpdate=1): 逐战斗跳过已结束 (+82) → 首小时初始化 ([13]) → 活跃判定 ([9]) → **[15] 每小时战斗步进** (数值推进/单位处理/XP 收集, 见槽表) → 未结束/已结束分别记录 |
-| D | XP 结算 sub_140BB6F60: leader 经验即时发放 (CUnitLeader::AddExperience: leader+3688 += xp, 超 `100000×单位阈值(+444)` 即升级) + **tbb 并行 ApplyCombatXpGains** (任务符号直读, EJobType 参与) + 收尾晋升扫描 (leader+3576/+3588 单位阈值 +2208) |
-| E | 结束善后: 二次遍历, 已结束或 [16] 复核真 → **RemoveCombat** (swap-remove; combatmanager.cpp:1169/1173/1189 三断言) → [14] 通知两侧 → **CCombatHistory::Add** → 逐省 (省战斗数组 province+224) 去重善后 sub_140BB9220 (同原初国战斗聚合 / 撤退判定 / **胜负 = SCombatSideData progress (lb+616) 高者置 win**) |
-
-**战术重掷核 sub_1412BBF90** (每 `TACTIC_SWAP_FREQUENCEY`=12 小时, dword_143335D98 defines 直证; 或任一侧 +304 空): 双方**技能最高领袖 skill 等级** (combatant vt[29] 逐单位取领袖取最大) 比较, 侦察优方 (侧内最大侦察值 statId 6) +`RECON_SKILL_IMPACT`=5 技能当量; 占优方经 sub_1412BB330 (**战术加权随机选择**, "Couldn't select a tactic in phase") 按 `INITIATIVE_PICK_COUNTER_ADVANTAGE_FACTOR`(0.35)×技能差权重掷「反制败方当前战术」的新战术; 未被反制战术六值 (+312..+352) 经 sub_1412AE250 聚合进 battle+160..+200; **a1+208 = 当前战术相位**。
-
-**每小时数值流水** (基类槽[15] 四连):
-
-| 步 | 槽 | 内容 |
-|---|---|---|
-| 1 | 槽[22] | 修饰符全量重算: stacking/over-width/补给/夜战/挖掩/岸轰/空优/情报/包围 (**39 个 define 全部定名**) |
-| 2 | 槽[19] → sub_1412B3300 | **伤害执行步**: 目标分配 (DAMAGE_SPLIT_ON_FIRST_TARGET 主目标 + 强度占比溢出 + 「打弱」评分 = 硬攻×硬度+软攻×(1−硬度), 低 org 优先) → 逐对开火: 防御/突破值给闪避点 (有防御剩 90%/无 60% 命中, sub_140BF9A70) → **STR 骰 1+rand(2) / ORG 骰 1+rand(4)** (装甲优势换 2/6) → ×STR 0.06/ORG 0.053 ×穿甲偏转表 (PIERCING_THRESHOLDS{1,0.75,0.5,0}) → **CArmy::TakeDamage (0x140C8F510) 实扣 +1056 strength/+1064 organisation** (mod 660/661/662, war support 扣减) |
-| 3 | 槽[19] 尾 | **progress (lb+616) 推进**: vt[12] (0x1412B5360) = Σ己侧全部师当前 org, 经 sub_140CDF0E0 每小时整量重写 → 结算 (sub_140CDB850) **高者判胜 = 剩余组织度比较** |
-| 4 | 槽[14]+XP | 领袖 XP (损失比×0.5 分配; XP 预置系数 0.9f = CCombatant+156 常量) + tbb 并行 ApplyCombatXpGains (§4.2.13 阶段 D) |
-
-> 备注: RNG 保护 (random.h:74 主线程断言) 包裹结算段。
-> 备注: **组织度分工** — 战时扣减唯一入口 = 战斗域 TakeDamage (+1064); 恢复
-> (RELIABILITY_ORG_REGAIN, sub_140C82C10) 与移动耗减在师域 tbb 并行小时更新。
+挂点: HourlyUpdate 相位 12 (§4.2.6, 计时域 6)。CCombatManager 五阶段执行链 =
+§4.22.9a; CCombat 行为槽契约 = §4.22.9; 海战步进 = §4.22.10; 边界战 = §4.22.11。
 
 #### 4.2.14 突袭小时更新 (NRaids::CRaidSystem, sub_140E86100, gs+1008)
 
-全串行两遍 (遍 a1+216 分组数组, 176B/组, 组内 +128 实例指针表倒序):
-
-| 遍 | 动作 |
-|---|---|
-| 一 | 逐实例 sub_140FED6C0 = CRaidInstance 每小时推进 (raid_instance.cpp): **相位机 1→2→3→4→5**; 准备中每小时 `++(item+68)`; 各 `raid_canceled_*` 取消路径; 自动发射按 `5×值/100000` 桶对玩家档位 +52 判定 |
-| 二 | 对未置旗 (+400==0) 实例做**预警判定**: 取发起国 (+160) 的 CCountryIntel (国家+4072, §4.11.7) 矩阵中目标国行 (32B = 4×int64 定点 civilian/army/navy/air), 列号 = 突袭类型定义 `*(*(item+152)+32)+32` 0..3 四象限选一; 与 define `NIntel.RAID_MIN_INTEL_FOR_WARNING_ON_LAUNCH`×100 (defines_intel.h:242) 比较: **相位 2 达标线随准备进度从 10^7 线性降到 define 值, 相位 3/4 为定值**; 达标置 +400 旗并经 sub_1419ABC90 按双侧相关度挂入 +240 预警池 (消费方 = alert id 73-77 族) |
-
-> 备注: 方向定案 = `[A][B]` = A 关于 B 的情报 (CAddIntelEffect::Execute 0x14034A8D0
-> 交叉验证); +160 = 发起国 (raid_source.cpp:410 源省断言链)。
+挂点: HourlyUpdate 计时域 12 (§4.2.6 序 5) → sub_1401C6A30 → sub_140E86100。
+管理器两遍结构与预警判定 = §4.27.3 (域分册)。
 
 #### 4.2.15 天气小时更新 (CWeatherManager, sub_140F1C6E0, gs+1672)
 
@@ -492,8 +472,23 @@ CAirWing::HourlyUpdate 逐翼要点: other_combats 死引用压缩 / 无效任�
 | dword_143085210 | 闰年月首累计日表 | 本册 |
 | dword_1433386CC / qword_1433386C0 | 自定义速度表长度/指针 | 本册 |
 | qword_14333CEA8 / dword_14333CEB4 | GS checksum 数组/长度 | 本册 |
-| session+72 | CSession 联机状态枚举 (19 值全表) | §4.28.11 |
-| session+84 | 游戏已开始标志 | §4.28.11 |
-| session+128 | 会话 tick 号 (16 位截断) | §4.28.11 |
+| session+72 | CSession 联机状态枚举 (19 值全表) | §4.28.16 |
+| session+84 | 游戏已开始标志 | §4.28.16 |
+| session+128 | 会话 tick 号 (16 位截断) | §4.28.16 |
 | idler+1729 / idler+1732 | 暂停权威位 / Idle 第二暂停门 (与 +1731 toggle pending 并存勿混) | §4.28.14 |
 | idler+2396 | 加速脉冲计数 (每 tick 减 1) | §4.28.14 |
+
+#### 4.2.20 世界构建两路步序对照 (新局 zone 49 / 读档 zone 62)
+
+> 新局与读档在前端命令层就分流 (书签应用 sub_1401A5630 vs 存档解析 sub_1401C8A60),
+> 于 CStartGameCommand + FE 帧 StartNewGame 汇合; 分流点/入口三通道/就绪旗族见
+> §4.28.18, 执行线程见 §3.11.4。本表只对齐两路步序。
+
+| 阶段 | 新局 (sub_1401A5630, zone 49) | 读档 (sub_1401C8A60, zone 62) |
+|---|---|---|
+| 入口 | CSelectBookmarkCommand::Execute → sub_14067EEE0 (门 gs+2600 ≠ 目标书签) | sub_140DA04F0 v24[85]≠0 → sub_140D9FF80 → sub_1401E2AC0 (gs+2613 置 1, parallel_invoke 双轨 §3.11.4) |
+| gs 重建 | sub_1401EA1B0 (ctor sub_1401D0E30 + 默认初始化链) | 同左 (两路共用) |
+| HistoryDatabase | 销毁 → 重置 ID (sub_140175130) → 角色批产 (sub_1406B97D0) → 装载 (sub_140A3D640) → 两段日期区间应用 (条目 vt[17], §4.13.7) | 仅销毁 (62.3); **history 不再应用** (已物化进存档) |
+| 数据填充 | 历史 effect + boot 模板解析值 (模板字面量) | 存档解析 (sub_142232930) + post-load (sub_1401DA490) |
+| 收尾 | 49.5–49.8 (情报知识 / CGraphicalMap ResetGame / stateDef 收尾); gs+2600 = 所选书签 | post-load 全局重挂波; gs+2600 重置默认书签 (sub_1401DBBB0) |
+| 汇合 | CStartGameCommand::Execute (FE+1590=1) → StartNewGame (门 FE+1591) → CInGameIdler ctor 开局补算 sub_140DD6A30 (Hourly/Daily/Weekly/Monthly 各一遍) → SetIdler → 首帧 | 同左 |

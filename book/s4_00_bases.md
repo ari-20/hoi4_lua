@@ -26,11 +26,12 @@ CCommand 的 RTTI 基链均含 `CPersistent @0`, 其主虚表前 6 槽槽位语�
 | [0] | 析构 (各派生类自有 dtor) | CCountry sub_1406CED50 / CState sub_1409D0F70 / CPoliticalStatus sub_140BA71D0 … |
 | [1] | **Save 入口** (共享 wrapper: `sub_1424C4410(stream)` → 调 [2] → `sub_1424C3A20(stream)`) | 7 类同址 **sub_1424BEC50** |
 | [2] | **每类 writer 本体** (纯虚/覆写) | CCountry **sub_1407191B0** / CCountryPlayerSettings **0X1414E7670** / CState sub_1409E0E90 / CProvince sub_140E81390 / CPoliticalStatus sub_140BB0520 / CCharacter sub_140FA6520 / CCommand sub_14226A110 |
-| [3] | **Load 入口** (共享 wrapper) | 7 类同址 **sub_1424BE690** |
+| [3] | **Load 入口** (共享 wrapper, 详下契约) | 7 类同址 **sub_1424BE690** |
 | [4] | **每类 reader/parser 本体** (纯虚/覆写) | CCountry **sub_140705CE0** / CState sub_1409DBE00 / CProvince sub_140E7F720 / CPoliticalStatus sub_140BAD850 / CCountryPlayerSettings 0X1414E7110 / CCharacter sub_140FA50B0 / CCommand sub_142269E60 |
-| [5] | const false getter (共享, 返 0) | 7 类同址 **sub_14011D220** |
-| [6] | 空桩 (guard_nop/ICF) | — |
-| [7] | 空桩 (guard_nop/ICF) | — |
+| [5] | **重复键检测谓词** `TrackKey(this, token)` — 返真才把键登记进查重表; 基类恒假 (默认不查重) | 7 类同址 **sub_14011D220** |
+| [6] | **预载钩** `PreLoad(this)` — wrapper 进块前调用; 基类空桩; 仅 CFactionGoal 0x140A236E0 / CDoctrineSystem 0x140D7F080 / CFactionSystem 0x140D92C60 / CRaidSystem 0x140E862B0 四类覆写 (= System/Goal 读档前重置自身) | 基类 CFG 桩 |
+| [7] | **文件位置后验钩** `PostLoad2(this, filename, startLine, endLine)` — 块尾 PostLoad 之后调用; 基类空桩; ≥25 类覆写 (集中静态资源模板族 CTrait/CTemplate/CDatabaseEntry) | 基类 CFG 桩 |
+| [8] | **PostLoad(this)** — 本对象块闭合瞬间即调; 178 类实装 (清单 `ref/postload_classes_1193.txt`) | 基类 CFG 桩 |
 
 > 旁证: §4.3 记 CCountry writer = sub_1407191B0; CCountryPlayerSettings
 > serialize = 0X1414E7670 (= 槽[2])、parse = 0X1424BE690 (= 槽[3] Load 入口) ——
@@ -53,8 +54,10 @@ CCommand 的 RTTI 基链均含 `CPersistent @0`, 其主虚表前 6 槽槽位语�
 > 槽 [1]/[3]/[5] 全类同址 ⇒ 定义在 CPersistent 且不被覆写; 槽 [2]/[4] 逐类变 ⇒ 纯虚。
 >
 > **CCountry 谱系 = 单链 CPersistent ← CAIOwner ← CCountry** (vt 实测 11 槽,
-> mi=false); 槽 [8] 起 (CCountry sub_1406FE1D0 日更 / [9][10] sub_1401F8A60)
-> 推定归 CAIOwner 层 (唯 CCountry 一派生, 离线不可再分); [9][10] = ICF 恒等汇点
+> mi=false); 槽 [8] = CCountry::PostLoad (sub_1406FE1D0 → thunk sub_1406FE1E0,
+> 大级联: 政治名重建 → 逐单位 vt+224 钩 → 情报池/战斗/战区重挂 → 占领修复
+> sub_140FF9DE0(cc+4048,0) 等 20+ 子步); [9][10] (sub_1401F8A60) = ICF 恒等汇点
+> 推定归 CAIOwner 层 (唯 CCountry 一派生, 离线不可再分)
 > **CUnit 例外**: CPersistent 在其 **@16** (次基子对象), 故 CUnit 主虚表 [2]/[4] 为空
 > (真实序列化槽在其 +16 子对象虚表) —— **多基类时 CPersistent 槽位随 mdisp 漂移, 勿按主虚表硬套**。
 
@@ -72,6 +75,16 @@ CPersistent 谱系 —— 除上表 7 类外, 另两族**非**实体基类与 CR
 每行 = `类名 / vtable / writer[2] / reader[4] / 槽数`; 统计 writer 真实现 900 /
 purecall 1 / guard_nop 250 (guard_nop = 该层不覆写 writer); 抽查 CCountry 0X1407191B0 /
 CArmy 0X140C90550 / CAce 0X14061BD30 均与书内定案一致。用法: 需某类的 writer/reader → 直接查本表。
+
+共享 Load wrapper sub_1424BE690 调用序 (persistent.cpp, 定案):
+① `vt[6](this)` 预载钩 → ② 循环取 token, 键经 `vt[5](this,token)` 谓词
+(返真才登记查重; 重键报 `Duplicate "k" in file: "f" near line: N`, 文件名/行号
+getter = sub_1424BF960 / sub_1424BFBA0) → ③ `vt[4](this, parser, token)` 逐块
+ReadKey, 嵌套子对象各自递归走同一 wrapper (统一入口 thunk = sub_1424C0AA0
+`return obj->vt[3](obj, parser)`) → ④ 块尾 (tok 4/19) 即调 **`vt[8](this)` =
+PostLoad** → `vt[7](this, filename, startLine, endLine)` 后验钩。
+**无集中全局 PostLoad pass** — 全局次序 = 存档文档深度优先序 (先子后父、
+同层按落盘键序), 全装载链见 §4.28.17。
 
 #### 4.00.2 GUI 框架基类 (View 底座 / tooltip / popup)
 
@@ -159,7 +172,7 @@ CInGameUpdateableInterface@48`; CCountryStateView (0x1429F82E8) / CCountryNavalR
 | [15] | State 0X141746070 (1.2 万行) / Naval 0X141734CC0 | **populate 副** (纯虚) |
 | [16] | — | 界面对象刷新 (断言 `_Idler.CanUpdateGui`) |
 
-> 其余槽未列 (未决)。
+> 补槽 (PE 直读): [0] = _purecall 析构 / [1][12][13] = ret0 / [3][6][10] = CFG_nop / [4] = 0x141237840 = **Repopulate sub_141236980** (sub_141237840 实调后者; 「退订 sub_141236280」为误配, 废) + +1400 窗口非空虚调 win+48 子对象 vt[15] / [7] = 0x141237500 关窗转发 (win+48 子对象 vt[16]) / [8] = 0x141237570 win 主虚表 [12] 转发 ([4][7][8] 高置信)。
 
 CCountryView 成员锚:
 
@@ -192,7 +205,7 @@ CInGameUpdateableInterface (0x142A41C20, 10 槽) 虚表槽表 (基类桩 + **派
 > **interface.tick 中央派发** (定案): sub_140B68600 (体首 profiler 字面量 "interface.tick") —
 > mgr (= idler+1720 大视图对象) 七层注册列表 (begin@+144/+120/+96/+72/+48/+24/+0,
 > 条目 = 8B 裸接口子对象指针) 按 iface+16 七位层掩码逐层遍历, 逐项 `entry->vt[槽](entry)`
-> 无门直调; 另 mgr+200 = 23 固定槽视图数组 (换国 vt[6] / 帧尾脏标 vt[9])。
+> — **门语义 (定案)**: 月/周/日三层与帧层一样过 vt[8] IsOpenAndVisible 门, 年/6月两层无门; [2] 槽层 = 月==5 (0-based, 即 6 月, 月份计算器 sub_140177650 返回 0-based); 年/6月/周三层现无任何注册者 (引擎保留档位, 详 §4.30.46); 另 mgr+200 = 23 固定槽视图数组 (换国 vt[6] / 帧尾脏标 vt[9])。
 > 遍历函数由 CInGameIdler::Idle (0x140DD3A50) **直调** (xref 唯一) — 与渲染链
 > (DDDDF0 → 223D2C0, §4.28.14) 并列, 不经渲染路径。
 > 注册/退订三件: sub_1412362A0 (win+48, mgr, 层掩码) / sub_141236820 (按 7 位掩码逐层
@@ -234,7 +247,7 @@ CPopUpWindow 三虚表 (主 0x14294C238 14 槽 / @16 0x14294C2B0 4 槽 / @56 0x1
 | [2] | 0X140B7D300 | Reload 实现 |
 | [3] | — | CFG_nop |
 
-> 其余槽未列 (未决)。
+> 注失实撤除: 主表 14 槽与 @16 表 4 槽书内已全列 (COL 边界复核: 主表 [13] 后 = @16 表 COL; @16 [3] 后 = @56 表 COL)。
 
 @56 子对象虚表 (CTooltipHandler 形, 2 槽; 真表 0x14294C2D8):
 
@@ -389,7 +402,7 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 |---|---|---|
 | 对象+36 | 目标选择位字 (state owner/controller/occupation/固定 tag 等位选; 0x200 = 命名目标, 0x400 = 参与 assigned-scope 校验开关) | GetTargetTag/GetTargetID 槽族派发 + [17]/[22] 校验门 |
 | 对象+40 | 固定 tag token (u16, 经 map 查找) | 命名目标分支 |
-| 对象+88 | 目标 spec 优先级指针 (CCountryEffect: 非空则优先于基类透传) | CCountryEffect[25] |
+| 对象+88..+295 | 内嵌 CScopedVariable 208B = 目标 spec (CCountryEffect 族; 非空门 = 块+8 dword → 扩展槽[25] 求值 sub_1405437F0, 否则透传基类; 证 = 296B 单值派生类 ctor/dtor/大小三证精确闭合) | CCountryEffect[25]/[26] (43 派生类成对共享) |
 | ctx+24/32/40 | 作用域链节点 (各 scope 子对象槽) | 执行门逐位探针 |
 | ctx+80 | character scope | GetTargetCharacter 槽族 |
 | ctx+120 | MIO scope | GetTargetMio 槽族 |
@@ -488,7 +501,7 @@ CButtonEventDispatcher (0x14273AA20, 2 槽) 虚表槽表 ([0] = 析构 sub_1402D
 |---|---|---|
 | [1] | — | Dispatch (纯虚) |
 
-> 槽 [0] 未列 (未决)。
+> [0] = scalar deleting 析构 sub_1402DE810 (`*a1 = &vftable; if(a2&1) free`) — 注失实撤除 (正文已含)。
 
 CButtonObserver: 抽象, = CButtonEventDispatcher + 10 纯虚 OnXxx (BaseClassArray
 mdisp 全 0 铁证); 具体槽位经 CButtonObserverGlue 落位。
@@ -509,7 +522,7 @@ CButtonObserverGlue (基表 0x14273AA38, 12 槽, 479 派生) 虚表槽表 ([0] =
 | [10] | — | OnMouseWheel |
 | [11] | — | OnKeyboardActivate |
 
-> 槽 [0] 未列 (未决)。+8 起 20×64B std::function 回调表 (**槽内 +56 = callable
+> [0] = 析构 thunk sub_1402DE7C0 (定案)。+8 起 20×64B std::function 回调表 (**槽内 +56 = callable
 > 指针**; 写入侧锚点 E1190→k3 互证)。游戏代码 = CLegacyButtonObserverGlue\<T\>
 > (12 槽与基类全同址, 特化全在 ctor 绑定: OnClick→回调槽 k0 / OnRightClick→k3 /
 > OnDoubleClick→k4)。
@@ -597,7 +610,7 @@ CCommand 虚表槽表:
 | [22] | — | **载荷 writer** (基座默认 = 空实现; 派生覆写) |
 | [23] | — | **载荷 reader** (基座有默认体; 派生覆写) |
 
-> 其余槽未列 (未决)。每类差异序列化全走 [22]/[23] 载荷钩子 (家族 452 派生中
+> 补槽 (PE 直读): [0] = 0x1401C94A0 析构 / [5] = ret0 / [6][7][8][14] = CFG 空桩 — 与抽象基表 0x1427214C8 逐槽同构, 具体命令表六槽无新行为。每类差异序列化全走 [22]/[23] 载荷钩子 (家族 452 派生中
 > 仅 CIsHighCommand 覆写 [2]/[4], 其余全同址)。
 
 执行与路由: 执行 = **虚表 [10] Execute**; 路由 = order.cpp:273 **id→构造函数表**
@@ -789,3 +802,53 @@ dword_143085210 = 闰年月首累计日表), 非逐次从 hours 解析。
 | `EffectRouter` | 0x540EE0 | effect 名 → 工厂实例派发 |
 | `TriggerRouter` | 0x550030 | trigger 名 → 工厂实例派发 |
 | `CInGameIdler` vt slot4 | 0xDD3A50 (槽在 vt+32) | 帧心跳 (A 类: 槽交换, 非补丁) |
+
+#### 4.00.4a CEventScope 消费路径
+
+**CEventScope (176B) 三叉链 (定案)**: +24/+32/+40 = root/from/prev 指针
+(自指即停); **+48/+56/+64 = 外层节点 owned 深拷贝** (析构 sub_140535820 经
+vt[0] deleting dtor 释放三节点 (旧「引用计数对象槽」为误读, 废))。入队
+sub_1401CAFF0 深克隆现场 scope (拷贝构造 + 链深克隆 sub_140536360);
+pending_events 元素 56B = {fire_id@+0, CEvent*@+8, scope*@+16, tag@+24,
+CGameDate@+32/+48} (⚠ gs+1376 块键 = **13793**; 13801 系 show_major)。
+消费 = **CSelectEventOptionCommand (240B) +56 内嵌第三份深克隆**; Execute
+(vt[10] = sub_14153A110) 用它渲染事件/选项名 + 发通知 + 推进 scope RNG, 末尾
+sub_14117FA30(ev, cmd+56, idx) 跑 option CEffect[13], 再 sub_1401EBBE0 出队
+释放。玩家路径全链: idler vt+240 sub_140DC5B10 → 216B 收件箱元素
+(interface+1192) → 泵 sub_140B6B050 → CEventWindow ctor sub_1412381A0 (scope
+平拷@+120); 点击 sub_141239AA0 / 超时 sub_14123C410 / AI 掷骰三入口同归命令。
+**CEventScope reader = vt[4] sub_140538F20 全键表** (country/state/random/
+root/from/prev/saved_event_target 等 17 键, token 名全对上); save_event_target
+写在最外层 FROM 节点 +160 块 (find-by-name 命中覆盖)。delayed_events
+(cc+4752) = 第二通道: 到期消费 sub_1406FC980 把持久 scope 重入发射链。读档
+重建 = loader case 13793 逐元素 Load 后复用 sub_1401CAFF0 显式 pending_id
+再入队 (定案)。
+
+
+#### 4.00.13 CSelectable (选择态基类; 16B 无基类多态根 — rtti bases 空, 不继承 CPersistent)
+
+ctor 唯一 = sub_140BC2AA0(this, type); 不序列化。凡带选择态的对象 (师/舰队/翼/
+战斗/省/州/战略区/环境物/特工/铁路炮) 经它或其内嵌获得选择态。
+
+| 偏移 | 类型 | 语义 | 备注 | 置信 |
+|---|---|---|---|---|
+| +0 | vt | 虚表 (宿主为主基时 = 宿主主表; 内嵌时 = 次表视口) | 纯类表 0x142950FB0 | 定案 |
+| +8 | u32 | **可选类型枚举 id** (非实例 id; 消费端按它分派/过滤) | ctor `*(u32*)(a1+8) = a2` | 定案 |
+| +12 | u8 | _bSelected 选中字节 (ctor 0; Select 置 1; DeselectNotify 清 0; dtor 断言 = false, selectable.cpp:51) | — | 定案 |
+
+虚表 6 槽 (纯类 0x142950FB0): [0] dtor sub_140BC2B60 / [1] 纯虚 (名称填入 out, 各
+宿主布局不一) / [2] 纯虚 OnSelected(mgr 容器, Select 尾回调 vt[+16]) / [3] 纯虚
+OnDeselected(选择集已空旗, vt[+24]) / [4] 纯虚通知广播 (选择集全体 vt[+32]) /
+[5] IsSelectable 基类默认恒真 (sub_1401807B0; 地理/战斗类普遍继承)。
+
+**类型枚举全表** (17 个 ctor 调用点穷举): 0 = CArmy (CUnit 经主表) / 1 = CTaskForce /
+2 = CAirWing / 3 = CCombat (子类共享) / 4 = CProvince (内嵌 @+8) / 5 = CState (@+8) /
+6 = CStrategicRegion (@+8) / 9 = CAmbientObject (@+8) / 11 = CFleet (@+24) /
+12 = COperativeLeader (@+3928) / 13 = CRailwayGun (主表); 7/8/10 无宿主 (负定案)。
+多选规则: 空集或同 type id 方可加选; 陆军(0)/铁路炮(13) 额外要求 *(obj+672) =
+CTheatre* 相等 (同战区方可混选)。选择管理器 = 双全局 qword_14332F698/F6A0 (同对象),
+容器 @+1336, _Selection 双向链表 head@+48/tail@+56/count@+64, 节点 32B。
+
+宿主内嵌偏移: CArmy/CTaskForce/CAirWing/CCombat/CRailwayGun = +0 (主表) /
+CProvince·CState·CStrategicRegion·CAmbientObject = +8 (次表) / CFleet = +24 (次表
+0x142962A70 — §3.9 谱系补行) / COperativeLeader = +3928 (次表 0x142956018)。

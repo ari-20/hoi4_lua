@@ -1,6 +1,6 @@
 
 
-### 4.17 通知系统族 (NNotification 命名空间)
+### 4.17 通知与警报系统族 (NNotification 命名空间 + CAlertManager)
 
 > 族 = `NNotification` 命名空间下**恰 6 个类** (RTTI 全量枚举: 类型描述符直扫 + 基类反查 +
 > 独立重建 COL→CHD→TD 链, 三法同解)。命名空间内另有匿名命名空间 `NNotification::?A0x7797ffe3`
@@ -191,3 +191,79 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 > **界面刷新码通道** (只发消息码不建对象), 与本族**真通知对象通道**互不替代, 二者并列。
 
 > **本域 GUI 类布局**: 见 §4.31.92。
+
+#### 4.17.7 CAlertManager 警报系统族 (alertmanager.cpp; 与 §4.17.1-6 通知系统并列的第二套玩家通知面)
+
+| 项 | 值 |
+|---|---|
+| 类 | CAlertManager (源文件 alertmanager.cpp; **无独立 RTTI 虚表** — 纯聚合结构, 非 CPersistent) |
+| sizeof | 100776B (malloc 0x189A8); ctor sub_140AFDB60 (ctor 内完成 81 项警报注册 + common/alerts.txt 加载) |
+| 挂载 | idler+1944 (CInGameIdler+243×8; 装配 = idler 构造期 sub_140DDE8A0); 紧随 idler+1952 = 72B 条状管理器 (ctor sub_141756990) |
+| 驱动 | CInGameIdler::Idle **暂停门分支内**、iface 帧更新之前 (§4.2.1) 每帧调 sub_140B188A0 (profiler 域 "alert_manager_update"); 四层门: 暂停位 +1729/+1732 全零 ∧ 玩家 tag (gs+1312/1316 >0) ∧ 无全屏窗 (sub_140B67DD0) ∧ renderhide 旗 byte_14332F61F = 0 |
+| 分拍 | 每帧只评估 **1 个**警报 id 的触发条件 (+96432 轮转, 82 帧一周期, 尾置整圈旗 +100432); 82 容器的 widget 定位/glow 刷新 sweep 每帧全量 |
+| 数据文件 | common/alerts.txt (ctor 尾 sub_140B169A0 加载; 格式 `alerts = { <名> = { category = HIGH\|MEDIUM\|LOW } }`) |
+
+CAlertManager 布局 (偏移十进制):
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | 内联槽×82 (1128B/槽) | 警报型主槽 (模板; id i 槽 @ +1128×i) — 无 widget |
+| +92496 | 容器×82 (24B/容器) | **活跃条目表** — id i 容器 @ +92496+24×i; 容器 = {data@+0, cap i32@+8, count i32@+12, allocator*@+16} |
+| +94464 | 容器×82 (24B) | 第二族 (ctor 定形, 读者未展开, 待裁) |
+| +96432 | int32 | round-robin 轮转计数器 (0..81; 复位 sub_140B17A50) |
+| +96436..+96452 | int32×5 | 网格配置 {X0@+96436, Y0@+96440, step_x@+96444, step_y@+96448, 列数@+96452 (sub_140B18130 按 alerticon_offset/alerticon_endposition 属性 + 分辨率宽算)} |
+| +96456 | int32 | 网格游标 (本帧最大格序; 条状管理器排其后) |
+| +96464 | 容器×82 (24B) | 第三族 (待裁) |
+| +98432 | 容器×82 (24B) | 第四族 (待裁) |
+| +100400 | int32 | init = −1 |
+| +100416 | int32 | init = −1 |
+| +100420 | int32 | clamp 缓存 (id 57 用) |
+| +100432 | uint8 | 整圈完成旗 |
+| +100452 | uint32 | 粘滞旗 (dismissed 判据 sub_140B0D980 兜底) |
+| +100488 | uint8 | crypto 联动旗 |
+| +100496 | 容器 (24B) | 有效州集合 (逐帧重建; 源 = cc+360 数组 / cc+372 计数) |
+| +100512 | allocator vt | off_143085170 (与 notification handler 同款分配器桩) |
+| +100520 | int32 | 时间戳钳制 (id 52 用) |
+| +100680 | 32B 节点 | ctor 自建 (推定名→id 哈希索引成员; 载 f32 0.9, 待裁) |
+| +100696 | 32B 节点 | 同上第二节点 |
+
+主槽 / 活跃条目 (1128B 同形; 条目独有 +1112/+1120):
+
+| 元素+N | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | uint8 | 闩锁 (主槽 = 已置位判重; 条目 = 活跃旗) |
+| +8 | 32B 串 | `<名>_instant` (token) |
+| +40 | 32B 串 | `<名>_delayed` + 换行 + `"ALERT_RIGHTCLICK"` |
+| +1040 | 32B 串 | **警报名** (common/alerts.txt 键; 条目名串 = dismissed tooltip 素材) |
+| +1072 | int32 | **severity**: category 映射 sub_140B026F0 — HIGH→2 / 其余类别→1 / 无→0 |
+| +1080 | 16B 键对 | 清除/判重键 (键0+键1; 全零 = 空闲槽) |
+| +1088 | 同上第二槽 | 常为对象指针 (如州 ptr; 合法性清扫 sub_140B37B40 查此槽) |
+| +1096 | int32 | 动作码 (RegisterAlert 第 4 参: 多数 0 / 3-6 补给=5 / 7·67=1 / 22·60=2) |
+| +1104 | qword | 条目锚 (非 0 = 可清除门) |
+| +1112 | CGlobalAlertIcon* | widget (仅条目; ctor sub_140AFF650, 1376B, 主 vt 命名 RTTI + 次 vt@+40, +48 = mgr 回指 / +72 = 警报 id; 窗名 `global_alerticon_window`) |
+| +1120 | int32 | 网格序号 (同格堆叠序, 仅条目) |
+
+红/黄两态 (定案): 条目 +1072 == 2 (category HIGH: 战争/登陆/补给枯竭/海战等) → 显 `red_alert_glow` 隐黄; MEDIUM/LOW → 显 `yellow_alert_glow`。⚠ `theatre_alert_red/yellow/green_glow` = 剧场 UI 自有辉光, 不属本管理器。
+
+原语族 (全定案):
+
+| 函数 | 语义 |
+|---|---|
+| sub_140B01D40 | 底层入队 (mgr, id, 键×3): 主槽闩锁 + 键双重判重 → 主槽拷 1128B 尾插容器 (满则 1.5×扩容) → 锚非 0 即时刷 glow |
+| sub_140B01B00 | 高层 raise (mgr, id) = 1D40 全零键 + 网格堆叠移位 (severity≥新条目者格序 +1) + malloc(1376) 建 CGlobalAlertIcon 存 +1112 |
+| sub_140B17240 | 按键清除 (键匹配 ∧ +1104==0) → 析构 + 摘 widget + 按序删除 |
+| sub_140B062B0 | 点击/确认复合动作: id≤59 特例位图; 含 61/62 (crypto) 清除与 +100488 置位; widget 主回调 sub_140B15B50 与海战 UI (sub_141E6C6C0/C700) 共走此口 |
+| sub_140B172E0 | 清空整容器 (update 尾对当前轮转 id 调用; 精确触发路径待裁 — 推定轮转重评前清, 条目由检查器/事件面重发) |
+| sub_140B175B0 | 全量重建 widget (遍历 82 容器摘除后按 id 启用重发) = 顶栏 dismissed_alerts_button handler (§4.30.29 +2840) |
+| sub_140B17A50 | 复位轮转 (+96432 = 0, 清 +100432); 调用点 = CTopBar @48[7] 逐帧体 |
+| sub_140B37B40 | 逐帧合法性清扫: 重建 +100496 有效州集合 → 全容器倒序查条目 +1088 键, 州失效即摘 (占领翻转/割让即消) |
+
+round-robin 检查器 (update 内第二 switch 按 +96432 分派; raise = sub_140B01B00 / clear = sub_140B17240): id 0..7/19/43/45/46/62 直跳 sweep (无逐帧检查, 由专用批量函数或外部事件面驱动); id 10..14 检查支路未展开 (待裁); 其余逐帧, 评估入口代表例: 3/4 补给两态 = sub_140B26E40 逐州 (州 ptr 为键) / 8 无科研 = sub_140B2B0A0 / 16 选焦点 = 内联 (遍历 cc+4976 评估器表 vt+72) / 22 海战 = sub_140B29870 清 + sub_140B34F20 查 / 40 抵抗 = sub_140B31B80 (severity 动态 0/1/2) / 58 交战中 = sub_140D3FD60 / 63 驻军不足 = sub_140B0D9D0 / 73..77 突袭五件 = gs+1008 CRaidSystem +436/+460/+484/+508/+532 非零即 raise / 78 无燃油 = sub_1410F3570(cc+5504) vs define 双和 / 80 缺电力 = ps+936 < 100000。事件驱动面 (轮转之外): widget 回调 sub_140B15B50 / 海战 UI 双入口 / 顶栏重建 sub_140B175B0 / CTopBar 复位 sub_140B17A50。
+
+消费面 (GUI): ① `global_alerticon_window` 网格 — 每条目一窗, 定位公式 `X = +96436 + step_x×(格序 % 列数)`, `Y = +96440 + step_y×(格序 / 列数)`, 窗 vt+416 SetPosition; red/yellow glow 按 severity 显隐。② 顶栏 `dismissed_alerts_button` — sub_140B0D980 (任一容器有条目 ∨ +100452) 显隐; tooltip = DISMISSED_ALERTS_MENU + sub_140B08E80 拼接全部条目名; 点击 → sub_140B175B0 全量重建。③ 条状管理器 (idler+1952, 72B) — 每帧 sub_1417582C0 与警报更新成对调用; 条目排活跃网格之后 (+96456+1 起), 携 +1368 警报 id / +1372 键 / +1376 隐藏旗 (条目对象类名待裁)。④ 点击链 — 相机跳转 + sub_140B11C30 大 switch 按警报 id 开对应视图 (视图号族 = §4.30.29 顶栏视图编号)。⑤ 音效 define `ALERT_SFX_COOLDOWN_DAYS` (读入 dword_143336E00; 播放点待裁)。
+
+与 NNotification (§4.17.1-6) 边界: alert = **条件轮询** (82 类逐帧 round-robin 重评估, 条件消失即消, common/alerts.txt 配色, 点击跳转, 挂 idler+1944); notification = **事件推送** (业务侧建对象入队, 一次性消息, 超时天数, 挂 iface+1240)。两系统零函数交叠; 海战战果类 (33/41/44) 虽名含 results 仍走 alert 通道。
+
+对拍定案: **零游戏状态写门** (update + 原语族 + 检查器群对 gs/cc 只读; 写仅落 mgr 自身字段与 GUI 元素) + **零存档面** (无 CPersistent 形态; serfam `alert` 零命中; 逐帧重评估自再生成) — sv2_export 无新增叶。风险三点: renderhide 旗置位时整体跳过 / 暂停冻结轮转 (+96432 不推进) / 单 id 82 帧采样延迟 (探针读某警报状态须等轮转位); `alert_manager_update` 出现在 profile_top/folded = 帧级常规项非异常。
+
+> 待裁: +94464/+96464/+98432 三族容器角色; sub_140B172E0 触发路径; 动作码全语义; id 68 未注册废弃槽 (有 case 不可显); id 0 无 raise 点; +100452/+100488 完整写史; 音效播放点; 条状管理器条目对象类名; id 10..14 检查支路。

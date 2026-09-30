@@ -162,13 +162,14 @@ CAirWing 双虚表槽表 — 主表 0X14297ADA8 (CSelectable, 6 槽):
 
 | 槽 | 函数 | 语义 |
 |---|---|---|
-| [1] | _purecall | 空桩 |
-| [2] | OnSelect | 选中翼的所属基地 |
-| [3] | _purecall | 空桩 |
-| [4] | _purecall | 空桩 |
-| [5] | — | 恒真 |
+| [0] | dtor | |
+| [1] | CFG 空桩 (0x14012A2C0) | 无实现 |
+| [2] | OnSelected | 选中翼的所属基地 |
+| [3] | CFG 空桩 | 无实现 |
+| [4] | CFG 空桩 | 无实现 |
+| [5] | 基类默认恒真 (0x1401807B0 继承) | IsSelectable |
 
-副表 0X142979150 (@16, CReferenceObject←CPersistent, 10 槽):
+副表 0X14297ADE0 (@16, CReferenceObject←CPersistent, 10 槽):
 
 | 槽 | 函数 | 语义 |
 |---|---|---|
@@ -176,7 +177,7 @@ CAirWing 双虚表槽表 — 主表 0X14297ADA8 (CSelectable, 6 槽):
 | [2] | 0X140F68B30 | writer |
 | [3] | (§4.00 CPersistent 指纹同址) | Load wrapper |
 | [4] | 0X140F651B0 | loader |
-| [8] | — | PostLoad 补链 (含 ace 重解析与翼名惰性初始化) |
+| [8] | 0X140F62BC0 | PostLoad (随机流恢复 + 翼名惰性初始化 sub_140F5E110 + ace 补链 sub_14061BC70, 缺 ace 报 "Airwing %s has Ace that does not exist.") |
 
 CAirWing writer 0X140F68B30 尾段发射链 (实证 12449/19183 块均在其内):
 
@@ -356,9 +357,9 @@ XP 两链同乘满足比: field-XP sub_140F5DFA0 (×修正键 437 AIR_MISSION_XP
 
 出动数与燃料无关 (零燃料不停飞, 在执行门层再证): 出动数 sub_140F78360 三档 — rocket = 导弹槽系数 (无州 = MISSILE_LAUNCHER_SLOTS, 有州 = 州建筑表扫描) / gun = 1 / air = RNG roll × 姿态表 tf+1260; 任务执行门 sub_140F79A00 (七门: active/region/机数/昼夜/拥挤/载具区域/出击数>0) 与紧急出击门 sub_140F79C10 逐小时 roll。损失记账处满足比 <1e5 反而按比**缩减** (= 减免非惩罚)。
 
-**空军无海军式 OUT_OF_FUEL 战斗修正 (负定案)**: 空战解决器 sub_141978E30 体内无燃料三字段引用。
+**空军无海军式 OUT_OF_FUEL 战斗修正 (负定案)**: 海军 FEX 空侧解算 sub_141978E30 体内无燃料三字段引用 (该函数定性见 §4.15.12 — 非对空战通用解析器)。
 
-翼装备增援链 (与 CSupplyConsumer 无关 — 负定案: CSupplyConsumer 只管基地补给/燃料): 库存分配 = sub_140C54850 桶 / Σ需求 sub_140C4E8A0 / sub_140F5C370 权重 = 执行中?500 + 缺额 + 1000×priority (资格门含任务掩码 variant+1040); 损失链三入口 (空战 sub_141978E30 / 地面-AA sub_140F82CA0 / 空难 sub_140F5DD80) → sub_140C5C5C0 双方记账 → sub_140F63580 "KillAirplanes" 装备/人力扣减 + sub_140F64770 统计/租借原产国/事件; **装备损失不回库存, 唯一回库通道 = 翼除名 100% 退还** (sa+112 消费 sub_140F62AF0 三件套: 退还 sub_141011250 + ace 回收 sub_14061BC70 + 删翼 sub_140F66A40; 空池 pool+52==0 → vt[0] 销毁)。
+翼装备增援链 (与 CSupplyConsumer 无关 — 负定案: CSupplyConsumer 只管基地补给/燃料): 库存分配 = sub_140C54850 桶 / Σ需求 sub_140C4E8A0 / sub_140F5C370 权重 = 执行中?500 + 缺额 + 1000×priority (资格门含任务掩码 variant+1040); 损失链入口 (**§4.15.9 五入口 taxonomy**: 区域空战 sub_140F862A0 / 对地-AA 与陆战 AA sub_140F86A40·sub_1412AADD0 / 空难 sub_140F5DD80 / 部署超容 / 轰炸还击; 旧「三入口」行已重排) → sub_140C5C5C0 双方记账 → sub_140F63580 "KillAirplanes" 装备/人力扣减 + sub_140F64770 统计/租借原产国/事件; **装备损失不回库存, 唯一回库通道 = 翼除名 100% 退还** (sa+112 消费 sub_140F62AF0 三件套: 退还 sub_141011250 + ace 回收 sub_14061BC70 + 删翼 sub_140F66A40; 空池 pool+52==0 → vt[0] 销毁)。
 
 #### 4.15.10 地勤 (ground crew) — 花人力买一次性任务效率加成
 
@@ -388,3 +389,28 @@ populate 链 sub_141F5E740 → sub_141F5E9E0 按基地 +124 base 类型建四类
 | +336 | — | air_group 对空过滤器 (定案) | flag=0 收 air_group 为空的未分配翼; flag=1 收 air_group==a4 的所选组翼 (air_group 对 = 翼 +48) |
 
 > **本域 GUI 类布局**: 见 4.30.45 / 4.31.11 / 4.31.38 / 4.31.40 / 4.31.61 / 4.31.90。
+
+#### 4.15.12 空战解析调度链 (陆 §4.22.9a / 海 §4.22.10 的空军等价链)
+
+**定性定案**: sub_141978E30（「空战解决器」判读废）实为**海军 FEX 空侧解算**
+（唯一调用链在 naval_fire_exchange_group, §4.16.12a 邻域），非对空战通用
+解析器。区域空战真链如下（定案）。
+
+**调度**: 区域空战挂 CStrategicAirManager::HourlyUpdate (sub_140C57D30, §4.2.17)
+步6 逐 SA 串行段 **sub_140C5F4C0**。损失五入口 taxonomy 重排（定案）:
+区域空战 cat1（sub_140F862A0 狗斗）/ 对地-AA cat2（sub_140F86A40）/ 陆战 AA
+cat2（sub_1412AADD0）/ 空难 cat3（sub_140F5DD80）/ 部署超容 cat4
+（sub_140C5B380）/ 战略轰炸还击 cat5（sub_140F75A00）/ 海军 FEX（旧
+sub_141978E30）。
+
+| 段 | 函数 | 语义 | 置信 |
+|---|---|---|---|
+| 接战判定 | sub_140C591C0 | 区域活跃 byte 网格 + 敌 SA 交战判定 → 收集己方 air_superiority\|interception 任务（m+20 & 5）与敌执行中任务, 按 air_defence×air_agility 排序（sub_140C43580/C43B80 归并）— **没有纯空优 vs 空优自由空战, 只打正在执行对地/对海任务的敌任务** | 定案 |
+| 狗斗解析 | sub_140F81A20（拦截份额掷骰+空战XP）→ sub_140F7BE70（逐敌任务对）→ **sub_140F862A0** | 速度/灵巧/效率掷骰, 损失钳 ≥100, cat1 归因 + m+152/164 损失账（**翻案: m+152 = 小时累计被击坠数**, 非已飞里程; m+208 = 拦截因子缓存）, 步9 sub_140F87550 统一 KillAirplanes | 定案 |
+| 拦截/扰断 | 步6 sub_140F7BE70 → 步7 sub_140F77360 → 步8 sub_140C4C570 | 三段全小时活管道: 写敌任务 m+176 taken（DISRUPTION_* defines）→ 写己方空优 m+184（ESCORT_*, 修正键 12）→ 折 m+168 → 对地结算 sub_140F78160 出拦截因子（存 m+208）, 损失 = 出动数×(1−因子), 归因 m+200 扰断方 tag | 定案 |
+| 对地 | **sub_140F82110 ProcessGroundMission** → sub_140F82CA0 | 任务位→目标收集器全表; 多态目标分发（建筑/CAS 入陆战 sub_140BB8380/港击/战略轰炸 sub_140F75A00/师直伤 sub_140C01B70/陆战 vt[240]）+ 州-AA+SAM 掷骰 sub_140F86A40（÷air_defence）; paradrop/布雷扫雷分叉 | 定案 |
+| 空优聚合 | sa+224 160B 行 | pass25-29 产出 + sub_140C66170 友敌聚合 (+0/+8/+16/+24); 消费 = sub_140C54230 制空惩罚公式与国家级均值 sub_140C655F0 | 定案 |
+
+defines 新钉 30+（DISRUPTION_*/ESCORT_*/COMBAT_DAMAGE_SCALE/ACE_*/SAM_MISSION_
+SUPERIORITY/ANTI_AIR_*、修正键 1/12/19/118/356/394/395）; AIR_COMBAT_FINAL_
+DAMAGE_SCALE 零读者（负定案）。m+88 = 8B {region, dist} 对（定案）。

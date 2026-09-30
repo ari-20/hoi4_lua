@@ -326,7 +326,7 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | def 侧 | CRaidInstance+152 → CRaidType*; CRaidType+2472 → CRaidSuccessFactors (.success@+8 / .critical@+40 / .disaster@+72); CRaidType+992 → CRaidSuccessLevels |
 | 运行期 | 0x140FEA7B0 = CRaidInstance 结果判定: `v9 = 0x14158F200(risk_level)` 基础成功率 (全局槽 qword_143331888/9A0/B00); `v11 = 0x14158C770(factors+2472) → 0x14158AEE0(factors+8)` success 组聚合; `v12 = 0x14158C2C0(factors+2472)` 三组聚合和 + risk 灾难基值 (全局槽 qword_1433311C8/2A8/390); `v8 = 0x14158AF70(factors+2472) → 0x14158AEE0(factors+40)` critical 组聚合; `v10 = 0x14158C2C0(...)` 再取一次 = disaster 组 |
 | 阈值 | `成功阈值 v2 = clamp(v9 + v11, 0, 100000 − v12)` |
-| 判定 | `roll >= v2 + v10` → 1 FAILURE; `roll >= v2` → 2 LIMITED_SUCCESS; `roll < v2 × critical_sum / 100000` → 4 CRITICAL_SUCCESS; 否则 → 3 SUCCESS; 结果经 0x140FEC8B0(inst, v5) 写 inst+60 outcome 并结算 |
+| 判定 | `roll < 阈值 × critical_sum / 100000` → 4 CRITICAL_SUCCESS; `roll < 阈值` → 3 SUCCESS; **roll ∈ [阈值, 阈值+disaster) → 1 FAILURE (灾难带); roll ≥ 阈值+disaster → 2 LIMITED_SUCCESS** (低 roll 好; 阈值 = clamp(risk+success, 0, 100000−disaster), 断言 "Disaster risk and success chance sum to more than 1" raid_instance.cpp:491); 结果经 0x140FEC8B0(inst, outcome) 写 inst+60 outcome 并结算 |
 
 | 全局槽 | define 名 | 写入者 |
 |---|---|---|
@@ -428,3 +428,140 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 > 与 §4.27.1 CRaidInstance+272 装备池 / +336 nukes 的接缝: def 侧的 CRaidType+2600 (additional) /
 > +2624 (essential) 是 GUI「装备需求行 required 列」的数据源, 运行期 current 列来自 inst+272
 > (CEquipmentVariantPool) — 与 §4.31.28 记法一致, 仅宿主类需由 CRaidCategory 改为 CRaidType。
+
+#### 4.27.3 相位机执行链与目标选择
+
+**管理器小时入口** (挂点 = HourlyUpdate 计时域 12, §4.2.14/§4.2.6):
+sub_140E86100 (gs+1008) 全串行两遍 (遍 a1+216 分组数组, 176B/组, 组内 +128
+实例指针表倒序): 遍一 = 逐实例下述每小时推进链; 遍二 = 尾段**预警判定**。
+
+**每实例每小时 sub_140FED6C0 顺序** (raid_instance.cpp, 定案): ① phase==5 →
+断言 "Updating a raid that has been ended!" 返回; ② 单位可解除指派检查
+(sub_1414670A0: 师存在 ∧ assignment 一致) 失败 → 取消
+"raid_canceled_cannot_unassign_unit"; ③ 单位在源区分流 (sub_141466410 师在源
+州/翼在源区 ∨ sub_141466F20 可抵达源; 不在 → "raid_canceled_cannot_reach_source"
+/ 无单位名 → "raid_canceled_no_unit"); ④ 源射程复查 (仅源 type 3/4 且
+phase≠4; 失败 → "raid_canceled_source_moved_out_of_range"); ⑤ 结构大检查
+(源有效 sub_141593930 / 源省可解析 sub_141593A60 / 源合法性 (舰存活 ∨ 源省
+owner==属主 ∨ 同阵营) / def+目标有效 / 单位可解析+属主一致 / unit_requirements
+(type+2576) 任一满足 sub_140A9CD50 — 任一失败 → EndRaid(5) 无理由取消);
+⑥ 每相位推进 sub_140FEF850; ⑦ 1→2 迁移 (CanStartPreparing sub_140FEB990:
+仅 phase 1 可真 = 单位在源 + 装备 + 门链第 4 层; 断言 :576) → SetPhase 2;
+⑧ 自动发射检查 sub_140FED100。
+
+每相位推进 **sub_140FEF850**: ① cancel_trigger (type+688 块) 求值真 →
+EndRaid(5) (days_to_prepare≤0 回退 BASE_DAYS_TO_PREPARE dword_143330E64); ② 有效性复查 (phase<4 → 门链第 4 层 / ≥4 → 第 6 层; 失败 →
+EndRaid(5)); ③ **相位 2 (PREPARING)**: 门全过时剩余 = 24×days_to_prepare −
+prep_time(+68) >0 → ++(+68), ≤0 → 到期; ④ **相位 4 (IN_PROGRESS)**:
+distance(+80) += 每小时行程 sub_141465B50; 剩余小时 <1 → 到期。
+
+计时到期 **sub_140FEE5F0**: 相位 2 → 直迁 3 (裸写无副作用); 相位 4 →
+**掷骰判档** (roll = random_fixed %100000; 四值链 = risk 基值 sub_14158F200 /
+success 和 sub_14158C770 / critical 和 sub_14158AF70 / disaster 和
+sub_14158C2C0; 阈值 = clamp(risk+success, 0, 100000−disaster); 映射见
+§4.27.2 判定行) → EndRaid(outcome)。
+
+自动发射 **sub_140FED100** (3→4): 门 = auto_launch(+48)≠0 ∧ CanLaunch
+(sub_140FEB800, 仅 phase 3 可真); 桶 = min(5×chance/100000, 4) ≥
+auto_launch_option(+52) → 发射记账 → SetPhase 4。SetPhase **sub_140FEA1A0**:
+副作用 →2 清 prep_time / →4 清 distance。手动发射 **sub_140FEE320 LaunchRaid**
+(调用者 CExecuteRaidCommand::Execute sub_141B32E70)。发射记账
+sub_1414E9FA0: fire_only_once (type+3017 → 插 used_types) + 目标冷却
+(type+3020 days>0 → status+72 追加 64B 元 {vt@0, CRaidType*@+8,
+**SRaidTarget@+16..+55**, days@+56})。
+
+供弹端 (引擎侧, 定案): CCountry::DailyUpdate → **sub_141097D50** 产弹 (§4.3.10a) + **sub_141098240** 自动把可用弹装填就绪核突袭 (写 inst+336 族) — inst+336 的引擎侧写者。
+
+结算 **EndRaid sub_140FEC8B0(inst, outcome)** 十五步 (定案): ① phase=5 +
+outcome(+60); ② 重建 active/ended 两表; ③ 释放源 + 解除单位指派; ④
+victim_country(+464) 解析; ⑤ 档位 def (outcome 1→type+1000 / 2→+1368 /
+3→+1736 / 4→+2104); ⑥ AI 通知 (strategic ai+8392 环 80B 元素); ⑦ 视效
+(档位 +304/+336 串 → 目标省挂实体); ⑧ **效果执行 sub_14158D490**: actor 块
+(level+8)/victim 块(+96) 以 raid 作用域、division 块(+184) 以单位作用域各调
+块 vt 槽12 Execute; 尾 destroy_additional_equipment (数量 clamp [0,100000] →
+按比例从 inst+272 池抽取销毁); ⑨ nukes(+336)=0; ⑩ **装备归还 sub_140FEF310**
+(def 旗 &1 → 归还国库存; 分队路径旗 → 分队; 核弹: inst+336>0 → 消耗
+country+4880 数组 [72×nuke_type(type+3056)] 槽); ⑪ 指挥点释放 (inst+344
+分配器); ⑫ end_date = gs+1128; ⑬ 取消时 show_for += 属主/目标国; ⑭ 非 5:
+show_for 补交战国 + active→ended 迁移 + **outcome 3/4 → 阵营影响力分**
+(category+216 faction_influence_score_on_success); ⑮ 预警池摘除
+(system+240)。
+
+日更 **sub_1414E9540** (country+1156>0 门): 冷却元素 days−1 到期压缩删除 /
+CanLaunch 天数累计 (+72) / ended 淘汰 (show_for 非空跳过; 天龄 >
+RAID_OUTCOME_REPORT_DAYS_TO_LIVE → 销毁; "DateEnded.has_value()"
+country_raid_status.cpp:176)。
+
+触发器门链 (六层嵌套, 每层含下层; 定案): ① visible (type+248) sub_140A9CEB0
+→ ② +fire_only_once 已用 sub_140A9B5C0 → ③ +show_target (type+336)
+sub_140A9B420 → ④ +!目标冷却 + available (type+424) sub_140A9C4B0 → ⑤
++launchable (type+512) sub_140A9C790 → ⑥ +launchable_from (type+600)
+sub_140A9C990; 变体: 严格门 sub_140A9C430 / 显示门 sub_140A9CBB0; 独立
+cancel_trigger sub_140A9F720。每小时复查只到第 4/6 层; 相位 4 飞行中仅
+cancel_trigger 可拦。装备检查 sub_140FE9EB0: new_phase==1 跳过; essential
+(type+2624) 与 additional (type+2600) 两表对 inst+272 池 + inst+336 nukes
+均须满足。
+
+速度/距离 (定案): 每小时行程 sub_141465B50 = 海军型 NAVAL_TRANSFER_BASE_SPEED
+×NAVAL_SPEED_MODIFIER / 舰源 = 舰速×LAND_SPEED_MODIFIER / 空运 = 最快
+transport (def 旗&0x100000) 属性62×LAND_SPEED_MODIFIER (无 → 断言
+raid_unit.cpp:532); 终式 = RAID_UNIT_SPEED_MULTIPLIER × base ×
+type+3048 speed_multiplier。源→目标距离 sub_1415934A0: type 0/1/3/4 →
+路径距离 ×100000/300000 (**÷3**); type 2 海军 → gs 系。射程 sub_141593390:
+AI 且 type+3016 unlimited_ai_range → 直通; 否则 距离有效 ∧ !(type+3008 旗 ∧
+距离>type+3000) ∧ 单位射程 ≥ 距离。
+
+扫省热路径宿主 (定案): **hourly 入口 sub_140E86100 自身** — 首语句经冷尾
+thunk 0x1419608A0 调 sub_14195ED40 扫省再尾跳检测 (反编译器曾把它伪装成
+_DeleteExceptionPtr(a1+8) — ICF 假名; PE 全镜像 E8 扫描直证唯一 call);
+驱动链 = sub_1401DF400 (§4.2.6 步5) → 突袭域【扫省+检测 → 逐国相位机 →
+预警】。next_target 轮转游标消费者 = **sub_14195E7E0 DetectTargets** (tbb
+任务符号直证; 钳制 ∈[0,detectable_num) 后 (i+next_target)%num 轮转选目标
+逐国检测, 尾 (budget+next_target)%num 推进); next_state (mgr+144) 对称,
+唯一读/写方 = sub_14195ED40。
+
+**StartRaid 尾声 sub_140FEC020 = 海军装备征用 (定案)**: 0x80004003C1 =
+EQUIPMENT_NAVAL 装备旗掩码 (switch 命名表直证); essential/additional 表含
+海军旗才继续 → 三层枚举己方舰队→特混舰队→舰船, 货舱 (舰+96, 16B {装备,量})
+按到源省路径距离升序抽入 inst+272 池, **捐赠过的舰被除名销毁**
+(sub_140D76BD0 = CTaskForce::ScuttleShip 断言直证)。cc+1156 门 = owned_states
+计数 (无州国/流亡跳过冷却维护只清冷却)。**sub_140A9B350 定案 = CP 花费门 (旧 allowed 判读废)**
+(type+2928 经 sub_1406FCEF0: 修正 331/333 − cc+504 已分配 ≥ 花费, strict 另查
+cc+496) ∧ essential 装备可达门 (CNuke amount + 护航 + type+2624 表) — 非
+allowed (type+160); sub_140A9C6D0 = 同体参序变体。档位 +336 = visual_effect
+块的 **animation 成员** (token 64; +304 = token 438 entity, 块键 19493; 音效
+另列 +272 custom_sound); 消费 = 目标省实体上生成 entity 原型按 FNV 名挂动画。
+AI 可用类型 = 两段过滤 (sub_140E82A80 从 status+104 容器按 (tag,category,
+target) 收集 → 就地压缩保留 CP+essential 门 ∧ visible+未用; available/
+launchable 留发射门再查) (定案)。
+
+目标选择 (定案): mgr 侧 **sub_14195ED40 增量轮转扫省** (预算 =
+MAX_STATE_TARGETS_TO_EVALUATE_PER_HOUR; 每省 get-or-create 80B
+CRaidTargetStatus {existing@0, detectable@4, SRaidTarget@8, 旗@48, 容器@56});
+**GetTargetsForType sub_140E82C00** 三重过滤 (受害国非己非同阵营 ∧ 建筑模板
++884 旗 / type+776 目标种类块 (建筑查表 / 省份白名单 / 全通旗) / 严格门∨显示
+门) → 40B SRaidTarget 候选。AI 侧: 节拍 = 每日 ∧ RAIDS_ENABLE_AI ∧ 错峰
+(RAIDS_CREATE_FREQUENCY_DAYS); 建计划 (打分 = 战略欲望 × 近期打过同目标因子
+RAIDS_AVOID_SAME_TARGET_FACTOR × ai_will_do; 已在打跳过) → 匹配
+(**「最近源×最优单位」二重贪心**: 源按路径距离升序 / 单位按成功率因子+距离
+因子降序, 首个过射程+适配) → 维护 (可用 CP 不足 → 取消低分在飞
+RAIDS_SCORE_DIFF_TO_CANCEL) → 发射 (CanLaunch ∧ 成功率 ≥ ai_min_success_chance
+(type+3040 旗?type+3032:RAIDS_MIN_SUCCESS_FOR_LAUNCH) → CExecuteRaidCommand)
+→ 创建 (**门 = 可用 CP ≥ RAIDS_COMMAND_POWER_CAP_TO_CREATE** (资源门非冷却);
+CCreateRaidCommand risk=MEDIUM / auto_launch=0)。玩家侧 CCreateRaidCommand
+ctor sub_141B319B0 (a7 risk→+168 / a8 auto_launch→+172) → Execute → CreateRaid
+→ StartRaid **sub_140FEE030** (指挥点分配器建立+扣费 type+2928; 失败断言
+"Insufficient command power" :350; 成功 → phase=1)。
+
+CRaidType 新字段: +776 目标种类过滤块 / +848 核突袭旗 (nuclear_raids 专路) /
++3008 max_distance 有效旗 / +3040 ai_min_success_chance 有效旗 (定案)。
+
+**预警判定** (管理器遍二, 对未置旗 (+400==0) 实例, 定案): 取发起国 (+160,
+raid_source.cpp:410 源省断言链) 的 CCountryIntel (国家+4072, §4.11.7) 矩阵中
+目标国行 (32B = 4×int64 定点 civilian/army/navy/air), 列号 = 突袭类型定义
+`*(*(item+152)+32)+32` 0..3 四象限选一; 与 define
+`NIntel.RAID_MIN_INTEL_FOR_WARNING_ON_LAUNCH`×100 (defines_intel.h:242) 比较:
+**相位 2 达标线随准备进度从 10^7 线性降到 define 值, 相位 3/4 为定值**; 达标
+置 +400 旗并经 sub_1419ABC90 按双侧相关度挂入 +240 预警池 (消费方 = alert
+id 73-77 族)。方向定案 = `[A][B]` = A 关于 B 的情报 (CAddIntelEffect::Execute
+0x14034A8D0 交叉验证)。

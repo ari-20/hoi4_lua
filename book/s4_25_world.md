@@ -11,18 +11,40 @@ CVariables = ***(gs+2432)***; 元 writer `ADEC0(0x2A4A, *(a1+2432))`; 写序 = �
 **通用布局 (56B: vt@0 / random 种子对 +8/+12 / count@+32 / mask@+36 / extra +40 / max_load_factor +44=0.9 / 尾槽 +48)、RH 桶结构、条目 0x30、空表哨兵 &unk_1430851A0、扫描防御界 (M.lim.PTR_HUGE) = §4.13.2 (权威, 勿重述)**;
 gs 侧宿主差异 = +48 尾槽传 `&dword_14332F2A0` (CGameState 域; 全注册表见 §4.13.2)。
 
-#### 4.25.2 region 制海族 (CNavalRegion / CNavalRegionDominance / CDominanceValues)
+#### 4.25.2 region 制海族 (CStrategicRegion / CNavalRegionDominance / CDominanceValues)
 
-region (346 叶): 数组 = ***(gs+736)***, 数 = ***(gs+748)***; id 1..count-1;
-robj = *(数组+8×id), robj vt 槽1 = 0X140E24810。
+⚠ 原记「CNavalRegion」实名 **CStrategicRegion** (serfam:883; ctor sub_140E1F940 写
+`CStrategicRegion::vftable`; 双子对象 +0 主表 / +8 CSelectable 次表 — 多继承
+CPersistent ← CSelectable ∥ TGeographicalArea)。
 
-CNavalRegion 条目主表:
+region 块 (原版键 10827 "region"; 书环境 346 = 运行时 lexer id): gs writer
+sub_1401F2E40 开块 → 数组按 id 1..count-1 发射 {id, 对象多态写}; 数组 =
+***(gs+736)***, 数 = ***(gs+748)***; 宿主装载 = gs reader sub_1401E59D0 (块 10827
+分支: id→`*(gs+736)[id]`→槽[3] Load wrapper; 原记「loader case 10827」两处实为引用持类)。
+
+CStrategicRegion 条目主表 (sizeof 328 = 0x148, malloc 双证; ctor sub_140E1F940;
+writer = 主 vt 0x14296D558 槽[2] sub_140E24810 — 原记「vt 槽1」系槽位误配;
+reader = 槽[4] sub_140E23A90; 序列化面恰 2 键, 其余全部运行时字段):
 
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|
-| +56 | MSVC SSO 32B | name | size≠0 | |
-| +72 | uint32 | name 的 size | 不序列化 | 写门字段 |
-| +232 | CNavalRegionDominance* | dominance | 恒写块 | writer 0X141006490 = vt 0x142984C40 slot2; ctor 0X141002AA0 |
+| +8 | CSelectable 子对象 | 选择类型 6 / 旗@+20 | 不序列化 | ctor sub_140BC2AA0(+8, 6) |
+| +24 | 匿名结构 (24B) | TGeographicalArea 域 {u1@+24, u2@+32, 容器哨兵@+40} | 不序列化 | 语义未决 |
+| +48 | CStrategicRegionTemplate* | 模板回指 | 不序列化 | Dominance 阈值取 模板+128 |
+| +56 | MSVC SSO 32B | name (键 27) | size≠0 | {buf@56..71, size@72, cap@80} |
+| +88 | uint32 | = 模板+160 | 不序列化 | 语义未决 |
+| +96 | uint32 | region id (ctor a3) | 不序列化 | id 1..count-1 |
+| +104 | 容器 24B | PDX 容器 (内容语义未决) | 不序列化 | 默认构造 sub_14011DF40 形 |
+| +128 | 容器 24B | PDX 容器 (内容语义未决) | 不序列化 | 同形 |
+| +152 | qword×3 | 全 0 | 不序列化 | 语义未决 |
+| +176 | 容器 24B | PDX 容器 (内容语义未决) | 不序列化 | 同形 |
+| +200 | 容器 24B | PDX 容器 (内容语义未决) | 不序列化 | 同形 |
+| +232 | CNavalRegionDominance* | dominance (键 10209) | 恒写块 | ctor malloc(0x80) → sub_141002AA0 |
+| +240 | qword | = 模板条+224 | 不序列化 | 语义未决 |
+| +248 | 容器 24B | 同形容器 (语义未决) | 不序列化 | eh 向量 ctor 一次建三只 |
+| +272 | 容器 24B | 同形容器 (语义未决) | 不序列化 | 同上 |
+| +296 | 容器 24B | 同形容器 (语义未决) | 不序列化 | 同上 |
+| +320 | uint32 | = −1 | 不序列化 | 语义未决 |
 
 注: 条目 vt 0X296FC50 族属 CPowerBalance, 与 dominance 无关。
 
@@ -34,9 +56,10 @@ CNavalRegionDominance (dom) 主表:
 | +8 | CNavalRegion* | region 回指 | | |
 | +16 | std::map | countries | 恒写 | {head@+16, size@+24}; 节点 key = 国 idx u32@+28; 中序 = 写序; 裸 tag 空格连 |
 | +40 | RH | values | ru32(dom+48)>0 | 88B 桶 {dist u8@+4, key 国 idx@+8, value obj@+16}; 桶数组 {buckets@+40, count@+48, mask@+52, extra u8@+56, lf f32@+60 = 0.9} |
-| +64 | 匿名结构 (80B 形状) 向量 | 优势条目表 {data@+64, cap@+72, count@+76} — 80B 条 {国 tag@+0, 强度 qword@+32} | 不序列化 | has_naval_control 遍历源 (sub_141003F50); 探针 3 区恒空; 推定 |
+| +64 | 匿名结构 (80B 形状) 向量 | 优势条目表 {data@+64, cap@+72, count@+76, alloc 哨兵@+80} — 80B 条 {国 tag@+0, 强度 qword@+32} | 不序列化 | has_naval_control 遍历源 (sub_141003F50); 探针 3 区恒空; 推定 |
 | +96 | 容器 24B | 容器#2 | | {data@+96, cap@+104, count@+108, alloc@+112}; 元素 **16B {CProvince\* @+0, value i64 @+8}**; 消费 = sub_141004230 逐元填 NAVAL_HEADQUARTER_PLACE_VALUE 值对 |
-| +120 | fixed×1e-5 | 优势门阈值 (define 派生; 探针 250.0 / 100.0) | 不序列化 | 推定 |
+| +120 | fixed×1e-5 | 优势门阈值 (define 派生: = *(sub_1415A5560(*(region+48))+128); 探针 250.0 / 100.0) | 不序列化 | 推定 (阈值链定案) |
+| — | — | sizeof = 128 (malloc 0x80 直证); reader = 槽[4] 0x1410060C0 (键 11593 countries / 19260 values, 与 writer 两块互证); 19260 块仅 u32@+48>0 发射 (writer 门不对称, reader 无条件接受); +88 ctor 置 0 无消费 | — | 增补定案 |
 
 注: values 值元 = CDominanceValues; 写序 = key 升序 (λ 0X141001700 收集后排序)。
 
@@ -85,7 +108,7 @@ GUI: CWorldTensionPopUpWindow 双源之一 (populate sub_1418B47B0: 本 holder +
 
 | 偏移 | 类型 | 名称 | reader token | 备注 |
 |---|---|---|---|---|
-| +8 | u32 | 规则键 FNV-1 hash32 | — | 解析对键名现算 |
+| +8 | u32 | 规则名 lexer 动态 token id (解析驱动 sub_140A35CB0 现驻留 `__PAIR64__(序号, token id)`; 原记「FNV-1 hash32」翻案) | — | 解析对键名现算 |
 | +12 | u32 | 装入序号 | — | 非玩家选中态 |
 | +16 | 容器 24B | 选项表 | 10598 option | count@+28; 共享 CPdxHybridInlineBufferAllocator<CGameRuleOption,6> |
 | +40 | i32 | 默认选项索引 | 11405 default | 重复默认项报错 (gamerules.cpp:187 源串) |
@@ -94,14 +117,14 @@ GUI: CWorldTensionPopUpWindow 双源之一 (populate sub_1418B47B0: 本 holder +
 | +112 | string | exclude_dlc | 19658 | 同上校验 |
 | +144 | 向量 24B | group 串表 | 63 group | count@+156, alloc@+160 |
 | +168 | string | 图标名 | 181 icon | |
-| +200 | byte | seen 旗 | — | 读到任一 DLC token 置 1 |
-| +201 | byte | 旗 2 | — | 待裁 |
+| +200 | byte | 评估门旗 (两评估器 skip 未置位规则) | — | 定案 |
+| +201 | byte | IsActive 旗 (SetOption sub_140A38860 断言 `pRule->IsActive()`, gamerules.cpp:417) | — | 定案 (原「旗 2 待裁」收口) |
 
 **CGameRuleOption** (单选项, CPersistent, 160B, vt 0x14293BA08; reader 0x140A37B40):
 
 | 偏移 | 类型 | 名称 | reader token |
 |---|---|---|---|
-| +8 | u32 | 选项键 hash32 | 27 name |
+| +8 | u32 | 选项名 lexer 动态 token id (同 +8 翻案) | 27 name |
 | +16 | string | text | 143 |
 | +48 | string | desc | 10644 |
 | +80 | u32 | allow_achievements | 15201 |
@@ -120,6 +143,23 @@ GUI: CWorldTensionPopUpWindow 双源之一 (populate sub_1418B47B0: 本 holder +
 
 > 解析驱动 sub_140A35CB0: 逐规则栈上构造 CGameRule (键哈希+序号) → 共享 Load
 > wrapper 0x1424BE690 → 虚表[4] reader (CGameRule 0x140A37680) → append +40
+#### 4.25.4a CGameRulesInstance (游戏规则运行态实例, gs+1088)
+
+56B (0x38) RTTI 独立类; vt 0x14293BA58 六实槽 ([2] writer sub_140A39830 /
+[3] Load wrapper 0x1424BE690 / [4] reader ReadMember sub_140A37DC0,
+gamerules.cpp:545 断言自证类名); gs+1088 形态 = pdx scoped_ptr 裸指针
+(三处 pdx_scopedptr.h 断言 + 两条 gs 重置路径 malloc(0x38))。
+
+| 偏移 | 类型 | 名称/语义 | 备注 |
+|---|---|---|---|
+| +8 | 容器 24B {data@8, cap@16, count@20} | **唯一序列化成员**: 规则选中表, 元素 8B = {规则名 token id, 选中选项名 token id}; 同规则 upsert 至多一条; 只记非默认选中 (ReadMember 对默认项且无既存条目不入账) | 元素 8B token 对 — 原 s4_01「token 对向量」证实 |
+| +32..+48 | 派生旗区 | scorched_earth / paratroopers / wargoals 三态 / volunteers 三态 / lend_lease / peace_score 三项 / maximum_fort_level 等 — 由 sub_140A38C70 按选中选项名串重算, 不进存档 | 运行期派生 |
+
+存档块协议: 键 15202 `game_rules`; CGameState::Save 经 sub_1424C2E20 委托实例
+槽[1]→[2]; 载入 = gs reader case 15202 重置后经蹦床走槽[3]→[4]; **键与值皆以名串
+落盘** (token id 会话本地, 对拍必须按名匹配); 取值经 sub_140A36C50 回落规则默认项
+(rule+40)。规则库单例 = qword_14332EF20 (实例不持指针, 纯 id 二分关联)。
+
 > 向量; 选项流读 sub_1424C0AA0。
 
 
@@ -135,14 +175,15 @@ GUI: CWorldTensionPopUpWindow 双源之一 (populate sub_1418B47B0: 本 holder +
 
 #### 4.25.6 选择组 (selection_groups; gs+1624)
 
-> ⚠ **宿主口径待裁**: 本节记「按玩家 ×10 组 (每组 10 槽 24B, 玩家块 stride 240B)」, 主文件 §4.1 gs+1624 行记
-> 「= 国家库条数, 每国一组 240B」。两说对「一块 = 一玩家还是一国」不一致 — 按玩家数取法 `(*gs_vt+72)(gs)`
-> 由 writer 侧实证, 但与主文件行未对齐, 未定。
+> 宿主口径定案 = **运行时每国一组** (活体探针: gs+1636 计数 = 440 == countryCount(), 单机档
+> 按「按玩家」应为 1 组; cap@1632 = 474 为容量余量)。本节「按玩家 ×10 组」的"玩家块 stride 240B"
+> 表述转为**存档侧**口径 — 落盘仅玩家块 (20 档无 selection_groups 叶, 存档形未对拍), 与运行时
+> 每国一组在「运行时 vs 落盘」两维并存。
 
 | 项 | 值 | 语义 |
 |---|---|---|
-| 容器 | gs+1624 | 按玩家 ×10 组二维槽 |
-| 玩家块 | stride 240B (= 10 × 24B) | 玩家数 = `(*gs_vt+72)(gs)` 虚拟取 |
+| 容器 | gs+1624 | 每国一组 {data@1624, cap@1632, count@1636, alloc@1640}; 组 stride 240B (= 10 槽 × 24B) |
+| 组块 | stride 240B (= 10 × 24B) | 运行时块数 = 国家库条数 (活体 440); writer 侧取数 `(*gs_vt+72)(gs)` 待与 0X1401F2BE0 复核 |
 | 槽 | 24B {units_data@0, cap@8, count@12, alloc@16} | 空槽判 count>0 |
 | 槽元素 | SControlGroupData 32B | 布局见下表 |
 | 创建命令 | 0X140DC5730 逐类型分支 (RTTI 直证); 拷贝器 0X1401E3DC0 | — |

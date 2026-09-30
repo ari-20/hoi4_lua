@@ -30,9 +30,9 @@ vtable 0X29A2B08, 逐国 scoped-ptr, 扩容 140ECAF00); tag 反查: `*(el+120)`
 | +112 | CSupplySystem* | **系统回指** (ctor 参 a2) | | 不序列化 |
 | +120 | CCountry* | 属主国家 (ctor 参 a3 = `*(gs+784)[i]` 国家数组元素) | | |
 | +128 | 匿名结构 (800B)* | **系统侧每国 800B 记录指针** (ctor 参 a4 = `*(sys+288) + 800*国idx`; 消费 +384 计数/+360 数组随机选; **记录内部 +208 表槽** = 消费者 `cmp byte [idx + *(rec+208)]` 逐省查 byte 表, 基址由 UpdateSupply 世界构建调用建立 — 构建期被跳过则基址 null, 崩溃反证) | | 不序列化; +208 槽推定 |
-| +136 | 匿名结构 (NNB 形状) RH 桶数组 | **disrupted_supply 表头** {tab@+144=空桶 &unk_143086320, count@+152, mask@+156, maxdist u8@+160, load_factor f32 0.9@+164} | ⚠ army_manpower_need (amn) 不在此 — amn +136 属 state_garrison_data (writer 0X141000700 键 14076, SGD+136 u32); loader case 19698 插入本表 | |
-| +168 | 匿名结构 (元素待裁) RH 桶数组 | **运行时供应节点状态表** {tab@+176=空桶 &unk_1430B2C10, count@+184, mask@+188, maxdist@+192, lf 0.9@+196} — **104B 桶** {…, +36 dword, +60 dword, 内层 32B 容器@+80/+88} | 重建 0X14122BD90 (按系统侧 120B 国别记录旗 &2/&4 分支遍历清桶) | 不序列化; 形态定案/语义推定 |
-| +200 | u32 | wanted_supply_trucks | writer sub_1424C2F40 (u32 写器) 读 `*(DWORD*)(v3+200)`; lua reader 亦作 ru32; loader 弃读 | |
+| +136 | 匿名结构 (NNB 形状) RH 桶数组 | **disrupted_supply 表头** {tab@+144=空桶 &unk_143086320, count@+152, mask@+156, maxdist u8@+160, load_factor f32 0.9@+164}; 24B 桶 {dist u8@+4, key 对 u32×2@+8, value fixed@+16}; dtor sub_141219770 | writer 键 19698: 按 key 低字升序发 {350{11{key8,key12}, 776 标记}}; ⚠ army_manpower_need (amn) 不在此 — amn +136 属 state_garrison_data (writer 0X141000700 键 14076, SGD+136 u32); loader case 19698 插入本表 | |
+| +168 | RH 表对象 32B | **节点流缓存表** {tab@+176=空桶 &unk_1430B2C10, count@+184, mask@+188, maxdist@+192, lf 0.9@+196} — **104B 桶全字段定案**: {hash u32@+0 (= k1+13×k0 或 k0+k1), dist u8@+4, key 对 u32×2@+8/+12 = calc 232B 网络条 +4/+8, used_this_tick u8@+16 (命中置 1), node_index i32@+20 (ctor −1; 写 = calc 条 +0), 运行时向量 24B@+24 (count@+36), flow_cache 向量 24B@+48 (16B 条 {省 idx int@0, …}, count@+60), 内层 RH 表对象基@+72 (32B 桶, 条目 +16 dword = 流值槽 idx, 经 sub_140EC8A00 现算; tab@+80, count@+88, mask@+92, extra@+96, lf@+100)} | 五写点 sub_141223990/141220690/141220E00/1412231D0/1412220B0 (皆 find-or-insert sub_14120E510); 重建/清 sub_14122BD90 (&2 全清 / &4 按 flow_cache 条省旗选择性清, lam7 链 141230D40 唯一调用); 读者 sub_141658020 命中返 bkt+72 (断言 country_supply.h:386) | 不序列化; 定案 |
+| +200 | u32 | wanted_supply_trucks | writer 键 19715; writer sub_1424C2F40 (u32 写器) 读 `*(DWORD*)(v3+200)`; lua reader 亦作 ru32; loader 弃读 | |
 | +208 | 容器 24B | 供应流运行时数组 {data@208, cap@+216, count@+220, alloc@+224} — **40B 条** ("ToGive <= RemainingNeed" 流域) | | 不序列化; 形态定案/推定 |
 | +232 | CConvoySubscriber 内嵌 | (+232..+287; vt 0x14295c0f0; 重建 sub_141021F90(+232, country, 32, define)) | 每日重建 0X141230D40 | |
 | +272 | u32 | **train 侧计数** (位于 CConvoySubscriber 内嵌区 +40; get_supply_vehicles_temp train 分支直读) | 推定 | |
@@ -41,8 +41,8 @@ vtable 0X29A2B08, 逐国 scoped-ptr, 扩容 140ECAF00); tag 反查: `*(el+120)`
 | +320 | qword | _TotalTrainInfo 对应聚合 (=0 init) | | 推定 |
 | +328 | 容器 24B | trucks = **_PerVariantTruckInfo** {data@328, cap@+336, count@+340, alloc@+344} — 24B 条 {id 对@0, count u32@+8, damage fixed@+16} | writer 键 19688=truck; 上条断言互证 | |
 | +352 | 容器 24B | **supply capital 迁移早退州表** {data@352, cap@+360, count@+364, alloc@+368} — u32 州 id (CanMoveSupplyCapital 命中即返 0, loc CANT_MOVE_SUPPLY_CAPITAL_*; 失都时清 count=0) | | 不序列化; 高置信 |
-| +376 | u32 | **capital** (supply 首都州 id; >0 才写, loader 弃读) | 0X141220400 以之查州属主 | |
-| +380 | u32 | last_supply_capital_move = **距开局天数** (`(gs小时−43800000)/24`) | loader 弃读 | |
+| +376 | u32 | **capital** (supply 首都州 id; >0 才写, 键 10315; loader 弃读) | 0X141220400 以之查州属主 | |
+| +380 | u32 | last_supply_capital_move = **距开局天数** (`(gs小时−43800000)/24`) | 键 19722 恒写; loader 弃读 | |
 | +384 | fixed×1e-5 | buffer (init = 全局 define qword_143336F08; loader 弃读) | | |
 | +392 | 容器 24B | **settings** {data@392, cap@+400, count@+404, alloc@+408} — **40B 条** {id 对@0, disabled u8@+8, motorization_level 容器 {data@+16, count@+28} 8B {tag u32, level u8}} | writer 键 11101=settings (内 350 node / 11 id / 240 data / 14065 disabled / 19943 motorization_level) | |
 | +416 | fixed×1e-5 | **starting_truck_buffer** (init 1.0; >0 才写; loader 弃读) | 键 19699 | |
@@ -51,7 +51,7 @@ vtable 0X29A2B08, 逐国 scoped-ptr, 扩容 140ECAF00); tag 反查: `*(el+120)`
 | +456 | 容器 24B | 节点指针收集表 {data@456, cap@+464, count@+468, alloc@+472} — 8B 指针条 | 由 temp_nodes 匹配重建; 海港/海运相关 (推定; 邻近断言 "SeaProv > 0") | 不序列化; 形态定案 |
 | +480 | 容器 24B | foreign_homebase_nodes {data@480, cap@+488, count@+492, alloc@+496} — 112B 条 = {裸 key u32@+0 (省 id, 提取件不落叶) + inner 104B 对象@+8} | writer 键 17096 | |
 | +504 | 容器 24B | 每日重建即清 {data@504, cap@+512, count@+516, alloc@+520} (语义未决) | | 形态定案 |
-| +528 | 容器 24B | 每日 sub_140ECA790 重置 {data@528, cap@+536, count@+540, alloc@+544} ("PerCountryIndex >= 0" 增长; 语义未决) | | 形态定案 |
+| +528 | 容器 24B | **每国→省分配条目收集表** {data@528, cap@+536, count@+540, alloc@+544} — 40B 条 {键 u32@0, word@+8, 指针收集向量@+16}; 每全量轮被 sys+360 工作数组按键匹配回填, 分发尾 sub_140EB5210 回填 received/asked ("PerCountryIndex >= 0" 增长) | 语义收窄定案 (原「语义未决」); 回填/分发对 | 高置信 |
 | +552 | 环形 24B | **lost_railways** {data@0, cap@+8, count u32@+12, alloc@+16} 30 槽 int64 | writer 键 19876; loader 逐环实载 | |
 | +576 | 环形 24B | **lost_trains** (同形) | 键 19877 | |
 | +600 | 环形 24B | **lost_trucks_attrition** (同形) | 键 19878 | |
@@ -60,7 +60,11 @@ vtable 0X29A2B08, 逐国 scoped-ptr, 扩容 140ECAF00); tag 反查: `*(el+120)`
 | +652 | u32 | daily_losses_index | 键 19875; loader 弃读 | |
 
 0x1412318a0 = CCountrySupplySystem 全块序列化器 (外层 sub_140ED0450 经 vt
-0X29A2B08 slot+8 虚调; 尾部 4 环 @552/576/600/624 与 0x288/0x28C 吻合)。
+0X29A2B08 slot+8 虚调; 尾部 4 环 @552/576/600/624 与 0x288/0x28C 吻合);
+css 块键发射序 = [基 141 priority] 19688 → 10315 → 19721 → 19715 → 19722 →
+11101 → 19699 → 19710 → 19706 → 17096 → 19698 → 19875 → 19880 → 19876 →
+19877 → 19878 → 19879; 19721 = 恒发无值标记键 (语义未名); vt[8] =
+sub_14122AB10 = _TotalTruckInfo._Allocated 聚合 getter。
 
 **disrupted_supply 桶** (24B; +136 表):
 
@@ -75,26 +79,65 @@ vtable 0X29A2B08, 逐国 scoped-ptr, 扩容 140ECAF00); tag 反查: `*(el+120)`
 
 #### 4.21.1 CSupplySystem 骨架 (sys = *(gs+984); 副 vt 0X2973CC8@+0, 主 vt 0X2973CF0@+8)
 
-⚠ ctor 141218AC0 / Reset 1412202B0 属 **CSupplyCalculationData** (§4.21.2),
-非本类 (本类无 ctor/Reset 定案)。结构由探针 + 读侧调用簇双证: P+8 = 主
-vtable; P+272/276/296/300 = 738 = 国家数; P+352/P+424 无哨兵。
+⚠ ctor 141218AC0 / Reset 1412202B0 属 **CSupplyCalculationData** (§4.21.2);
+本类 ctor = sub_140EC0610。序列化: writer = 主 vt 槽[2] sub_140ED0450 /
+reader = 槽[4] sub_140ECA340; 块 token 11593, 块内容仅 tag 键控每国 css 条目
+(CCountry+1156 > 0 门), **sys 级字段全部不序列化**。
+pdx 向量统一形 = {data qword@+0, cap dword@+8, count dword@+12,
+CPdxAllocator vtable off_143085170@+16}; 九容器实名金源 = 校验和件
+sub_140EC5A80 (supply_cache_* 族, supply_system.cpp:325-577)。
 
 | 偏移 | 类型 | 名称 | 语义 | 备注 |
 |---|---|---|---|---|
 | +0 | — | 副 vtable | RVA 0X2973CC8, 4 槽 (guard nop / 140EC4710 / 140ECA010 / 140ECA130) | 探针定案 |
-| +8 | — | 主 vtable | RVA 0X2973CF0 (CPersistent 链); 序列化指针 = sys+8 | 探针定案 |
-| +16 | qword* | 流值乘数表数据指针 | sub_140EC8A00 流值变换按槽 idx 索引 | 推定 |
-| +64 | 匿名结构* | 每国记录宿主子对象 | 内含每国 120B 记录数组 — entry+112 回指后经 +64 访问, 旗 u8@条+112 的 &2/&4 分支; +88/+112/+136 容器群被校验和件 140EC5A80 覆盖 | 探针非空指针; 语义高置信 |
-| +232 | — | 待裁 | 探针 = float 1.0; 供应重算前省键哈希缓存清条目 (lam 12) 的表头归属待裁 (语料正文作 gs+232) | 待裁 |
-| +256 | — | 待裁 | 探针 = float 对 (0.9 / 0.56); 旧 "countries 容器 {cap@264,count@268}" 行翻案 — countries 由 +264 数组承担 | 待裁 |
-| +264 | 容器 | CPdxArray\<CPdxScopedPtr\<CCountrySupplySystem\>\> | {data@264, cap@272, count@276}; 元素 656B, ctor 141218530 (vtable 0X29A2B08, 双 vt +0/+8, 内嵌 CConvoySubscriber@+232, +112/+120/+128 = CSupplySystem*/CCountry*/自家 800B 记录); lam 4 PerCountryIndex 宿主 | 探针+语料定案 |
-| +288 | 容器 | CPdxArray\<CSupplyCalculationData\> | {data@288, cap@296, count@300}; 800B/项 = 每国供应计算记录, 扩容 140ECAF00 按国家数, ctor 141218AC0 / 每轮重置 1412202B0 (lam 2) | 探针+语料定案 |
-| +312 | 匿名结构 (216B)* | 每省供应聚合表 = **USAggregatedProvinceSupplyData** | lam 9 清零 / lam 10 归并 / lam 11 排序 / lam 15 聚合 / lam 16 驱动; 读侧 140C00590 / 141635650 / 14167CBD0 | 定案 |
-| +336 | u32* | 省自旋锁数组 | 每省 1 锁, 0=空闲 (lam 10 `_InterlockedCompareExchange` + `_mm_pause`) | 定案 |
+| +8 | — | 主 vtable | RVA 0X2973CF0, 6 实槽 ([2] writer sub_140ED0450 / [4] reader sub_140ECA340 / [5] TrackKey 恒假桩); 序列化指针 = sys+8 | PE 直读+函数体定案 |
+| +16 | 容器 | supply_cache_provinces | {data@16, cap@24, count@28}; 32B/省 (条目表见下) | 定案 (原「流值乘数表指针」翻案 — sub_140EC8A00 流值变换读的是本表条 +0 supply_factor) |
+| +40 | 容器 | supply_cache_states | {data@40, cap@48, count@52}; 40B/州 | 定案 |
+| +64 | 容器 | supply_cache_countries | {data@64, cap@72, count@76}; 120B/国 (旗 u8@条+112 的 &2/&4 = 重建分支门, &1/&8 补全) | 收窄定案 (原「每国记录宿主子对象」) |
+| +88 | 容器 | supply_cache_dirty | 脏 id 数组 1, {data@88, cap@96, count@100}; 4B/项 | 定案 |
+| +112 | 容器 | supply_cache_dirty | 脏 id 数组 2, count@124 | 定案 |
+| +136 | 容器 | supply_cache_dirty | 脏 id 数组 3, count@148 | 定案 |
+| +160 | 容器 | supply_cache_dirty | 脏国 tag 数组 1, count@172; 4B tag | 定案 |
+| +184 | 容器 | supply_cache_dirty | 脏国 tag 数组 2, count@196 | 定案 |
+| +208 | 容器 | supply_cache_dirty | 脏国 tag 数组 3, count@220 | 定案 |
+| +232 | RH 表对象 32B | 省键哈希缓存 | {tab@240, count@248, mask@252, extra u8@256, lf f32@260 = 0.9}; 48B 桶 {hash u32@+0, dist u8@+4, key 省 id u32@+8, value 对象指针 qword@+24 (堆上内层 RH 表, 160B 桶), count u32@+32, …}; 全量重算前清空重建 (sub_140ECD400 体内, 以 sys 为基 — 原「gs+232」误记废); 探针 0.56 = 按 float 读 +256..+259 跨字段误读, +260 才是 lf 0.9 | 裁决定案 (原待裁) |
+| +264 | 容器 | CPdxArray\<CPdxScopedPtr\<CCountrySupplySystem\>\> | {data@264, cap@272, count@276, allocvt@280}; 元素 656B, ctor 141218530 (vtable 0X29A2B08, 双 vt +0/+8, 内嵌 CConvoySubscriber@+232, +112/+120/+128 = CSupplySystem*/CCountry*/自家 800B 记录); resize sub_140E95790 按国家数 | 探针+语料定案 |
+| +288 | 容器 | CPdxArray\<CSupplyCalculationData\> | {data@288, cap@296, count@300, allocvt@304}; 800B/项 = 每国供应计算记录, ctor 141218AC0 / 每轮重置 1412202B0 (lam 2), 新元素 ctor 调用@1022355 | 探针+语料定案 |
+| +312 | 容器 | 省聚合行数组 = **USAggregatedProvinceSupplyData** (216B/省) | {data@312, cap@320, count@324}; init sub_140EBBAA0, count←省数; lam 9 清零 / lam 10 归并 / lam 11 排序 / lam 15 聚合 / lam 16 驱动; 读侧 140C00590 / 141635650 / 14167CBD0 | 定案 (升级为容器形) |
+| +336 | 容器 | 省自旋锁数组 | {data@336, cap@344, count@348}; 4B/省, 0=空闲 (lam 10) | 定案 (升级为容器形) |
+| +360 | 容器 | 省供应分配工作数组 | {data@360, cap@368, count@372}; 40B/省; 每全量轮 sub_140ECA790 重置 → css+528 每国收集表回填 → sub_140EB5210 分发 received/asked (回填/分发对) | 定案 |
+| +384 | uint8 | UpdateSupply 重入门 | =1 时 sub_140ECD400 整轮早退; ctor 置 0 | 定案 |
 
-#### 4.21.1a UpdateSupply 并行任务族 (tbb lambda 语义; 网络条目 232B)
+**supply_cache_provinces 条 (32B/省)**: +0 supply_factor fixed (新省 init 1.0; 流值变换 sub_140EC8A00 读此槽) / +8 railway_health qword / +16 controller_index u16 / +18 capital_country_index u16 / +20 supply_node_level u8 / +21 naval_base_level u8 / +22 non_damaged_infra_level u8 / +23 infra_level u8 / +24 旗位 {bit0 has_temp_node, bit1 has_rail, bit2 province_dirty, bit3 province_dirty_railway} (checksum 逐字段直证)。
+**supply_cache_countries 条 (120B/国)**: +8/+40/+64 三 dword 数组 + +88 tag 数组 (均 pdx 向量) + +112 旗位 4 位全入校验和。
 
-网络条目 (232B) 字段: +56 = `Node._TotalSupply` / +64 = `Node._RemainingSupply` (country_supply.cpp:1388 族断言串自证字段名)。
+#### 4.21.1a UpdateSupply 执行链 (12 阶段; tbb lambda 族; 网络条目 232B)
+
+挂点: HourlyUpdate 计时域 4 → sub_1401C6D30 (gs+984 scoped_ptr 解引用) →
+sub_140EC8DB0 (强制第二参 = 1)。真名 = tbb 任务符号直读
+**CSupplySystem::UpdateSupply(bool)**; 体内 **15 个 tbb parallel_for**
+(lambda_1..lambda_22)。第二参 = **小时步进模式旗 (定案)**: 1 = 每小时错峰模式
+(调拨按整点过滤、国家每日重算按时隙); 0 = 全量立即模式 (全收、跳过错峰、
+哈希清理扩容) — 全 dump 仅 3 处 a2=0 调用 (读档/初始化路径)。
+
+12 阶段 (粗粒度; ss = CSupplySystem 对象 = gs+984 解引用, 布局 §4.21.1):
+
+| 阶段 | 动作 | 并行 |
+|---|---|---|
+| 0 | 脏检: 每国 120B 记录@ss+64 (+112 旗), 比对 owned_states 变化与补给系数宏缓存 (cc+1464 键 567, fixed×1e-5) | lambda_1 |
+| 1 | 打脏: 记录旗 \|= 2, tag 入脏国列表 {ss+160} | 串行 |
+| 2 | 三条 id 列表刷新 (ss+88/112/136 → sub_140ECC340/sub_140ECC820) + 逐脏国补给状态重算 | 串行 |
+| 3 | 补给节点全局遍历 (token 1812); 取 `小时 = now % 24` 为全程错峰相位 | 串行/并行双路 |
+| 4 | CSupplyCalculationData (**800B/国**, ss+288) 更新 | lambda_2 |
+| 5 | 国家 id 恒等排列上 8 连 pass: 依赖列表构建 (120B 记录 +88/+100 → calcdata+232)/字节标志压缩剔除 id | lambda_3/4/6/7/8 |
+| 6 | 每省 **216B 记录**扩容 (省界 = gs+700) + 4B/省数组 + 省级 pass | lambda_11 |
+| 7 | 护航/运输队按整点收集 (232B 元素, +4 时刻 `%24==当前小时`; a2=0 全收 + ss+232 哈希清理扩容) | 串行 |
+| 8 | **国家每日重算错峰: `id % 24 == 当前小时` 才执行** (sub_14122E520 清累计 + 30 槽日环 国对象+552..+624 清新槽) — 每日补给重算摊平到 24 小时的削峰机制 | lambda_16 |
+| 9 | 分发结算: **省满足率 = 省记录 rec[1]/rec[0]** (clamp ≤100000); 流入写 calcdata+184 区 40B 条目 {来源/快照/数量}; **库存扣减 calcdata+64** | 串行 + lambda_19 |
+| 10 | 每国三连 pass (sub_14122B820/B300/C700/F110) + 观察者钩子 (单例虚槽[16]→+88→+23776) | 混合 |
+| 11 | 最终并行结算 + **打下一轮脏标** (sub_140ECACF0: 省 32B 记录旗 \|= 4 入 ss+88, 国记录旗 \|= 4 入 ss+184) | lambda_21/22 |
+
+tbb lambda 族 (细粒度)。网络条目 (232B) 字段: +56 = `Node._TotalSupply` / +64 = `Node._RemainingSupply` (country_supply.cpp:1388 族断言串自证字段名)。
 
 | lambda | 链 | 语义 |
 |---|---|---|
@@ -111,7 +154,7 @@ vtable; P+272/276/296/300 = 738 = 国家数; P+352/P+424 无哨兵。
 
 ⚠ ECD400 体内 15 处 start_for 的**文本线序 ≠ 执行序** (lam 9/10/12/15 走旁路启动包装/直调变体)。
 
-海军可达性 (CNavalAccessibilityManager::Update): 逐国过 `country+1156>0` 门 → 64B/国槽位 (边图描述符 + 双标号数组) → 两次字节并查集泛洪 (1419EE6A0), 边放行 = 邻接规则权限位 &2/&4 (141546CC0/C90 → 141547440 adjacency_check); operator() 无独立实体, 内联于串行叶 140E24BE0。邻接规则进入供应热路径**仅此一条通道**; 141038A50/141966FE0/1419EB1F0 三上游均属部队移动侧, 不在供应段。hourlyUpdateUnits (sub_140717BC0) = 纯统计上报 (army+840 装备占用求和 → country.cpp:13281/13314 条件日志, 调试门 byte_143452529 关闭时不执行)。
+海军可达性 (CNavalAccessibilityManager::Update): 逐国过 `country+1156>0` 门 → 64B/国槽位 (边图描述符 + 双标号数组) → 两次字节并查集泛洪 (1419EE6A0), 边放行 = 邻接规则权限位 &2/&4 (141546CC0/C90 → 141547440 adjacency_check); operator() 无独立实体, 内联于串行叶 140E24BE0。邻接规则进入供应热路径**仅此一条通道**; 141038A50/141966FE0/1419EB1F0 三上游均属部队移动侧, 不在供应段。**槽位唯一重建路径 = hourly 相位 8 的 0xE255E0** (全语料唯一调用点; 调用方临时置管理器 +32=1 → 调用 → 返回后无条件复位, 非派发体内部; +32 置位才尾跳 140E24860 PdxParallelForContainer CPdxSpan\<const CCountry\*\> 派发, 真名 Update 见任务符号) —— 读档/新开局后槽位新鲜度依赖首个小时内 tick, 无独立载入重建路径。**detour 接缝定案**: 0xE255E0 序言 offset 11 = `je rel8` (+32 旗判定分支), stolen-bytes 不可搬移 (hk_probe "prologue contains relative control flow"); 可安装接缝 = **0xE24860** 派发体 (序言纯 mov/push/sub, stolen=18; 全语料唯一调用者 = 0xE255E0, 吞它等价吞整拍重建)。hourlyUpdateUnits (sub_140717BC0) = 全单位 vt[18] 小时 tick 逐国串行驱动 (师/舰队快照/铁路炮三容器, 定案见 §4.2.6 相位 10) — 军队数与 army+840 装备占用条件日志 (country.cpp:13281/13314) 只是调试门 byte_143452529 包裹的附属统计, 非本体职能。
 
 #### 4.21.1b DoTradeRoutesUpdate 工人链 (hourly 资源输送路线)
 
@@ -201,42 +244,60 @@ asked=0 → 100000); 复位写点 sub_141230CA0 (写 0, 唯一调用点 sub_1412
 
 #### 4.21.2 CSupplyCalculationData (每国 800B 供应计算记录, 纯结构无虚表)
 
-ctor 141218AC0 (首写 +8, 无 vtable store) / 每轮重置 1412202B0 (lam 2) /
+ctor 141218AC0 / dtor 140EC1290 / 每轮重置 1412202B0 (lam 2) / move 140EBFEE0 /
 扩容 140ECAF00 (按国家数, sys+288 数组); CCountrySupplySystem+128 同指自家记录;
-不序列化。重置语义: 清累计、tag 回哨兵 −1、因子回 1.0。
+不序列化 (仅 checksum 件 sub_140EC5A80 抽查 +184/+440 两表)。
+容器两形: Form P = {data qword@+0, cap dword@+8, count dword@+12, alloc qword@+16};
+RH 表对象 32B = {占位 qword@+0 (不初始化), tab@+8, count@+16, mask@+20, extra u8@+24, lf f32@+28 = 0.9}。
+重置语义: 清累计/各向量 count、+424 = −1、+416 = 0、+352 = 100000、
+两哈希表**惰性清** (扫桶清 dist/flag 并 --count — 旧「条目压实移除」系此误读)。
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +8 | 容器 {data@8, count@16} | 条目表, 24B/项压实 (entry+4 旗为真者移除) | 推定=已处理/失效条目 |
-| +28 | float | 0.9 系数 (不重置) | 推定=衰减/保持率 |
-| +40 | 容器 {data@40, count@48} | 条目表, 12B/项压实 (entry+0 旗) | |
-| +64 | 子结构 120B | 供计算子对象 (ctor 1414DFE80 / 清 1414E1860) | 形态定案/语义推定 |
-| +184 | 连接表 {data@184, 计数@192} | **232B/条**: entry+4 word 目的 id, +8 dword 计数 (>1 门), +56 qword `_TotalSupply`, +64 qword `_RemainingSupply`, +152 qword 值; sub_14121EA10 以 (省,值) 插类型 3 链接 | 断言串自证字段名; 消费可见值落点, 定案 |
-| +196 | dword | (省,值) 对值部 (EA10 读) | 推定=节点本地供应值 |
-| +200 | hybrid 容器 | 计算暂存 | 推定 |
-| +224 | hybrid 容器 | 计算暂存 | 推定 |
-| +248 | hybrid 容器 | 计算暂存 | 推定 |
-| +272 | hybrid 容器 | 计算暂存 | 推定 |
-| +280 | 容器 | 跨国非本地链接源 (EA10 读他国记录此表的 16B 条目) | 推定 |
-| +304 | fixed×1e-5 | truck 侧运输记录值 (get_supply_vehicles_temp: 1e5×ceil_fixed) | 定案 |
-| +312 | u32 | **顶栏后勤面值唯一基数** (sub_14121F1D0 输出 = 本值 × 火车比 × 流量比 ÷ 1e10, 出参传递); 写者全在 UpdateSupply 调用树内 → 供给冻结/重算被吞态停 ctor/重置值 0 = 面值 0% 唯一缺口 (火车比/流量比零数据 = 自动满分不折减); +312 起 216B 行读档分配清零 140ECAF00 | 唯一写者链+探针 定案 |
-| +320 | u32 | train 侧运输记录值 (仅 100000×值 > qword_143331FA0 = **NSupply.MIN_TRAIN_REQUIREMENT** 才写; 冻结态 0 → 火车比自动满分; 若写非零而 css+272 = 0 → 火车比塌 0 反压面值) | 定案 (define 定名闭环) |
-| +352 | fixed×1e-5 | 效率/比例因子 (构造=重置=100000) | 值定案/语义推定 |
-| +424 | i32 | 来源/属主 tag 哨兵 (构造=重置=−1; EA10 以 ≠−1 为处理门) | 哨兵定案/语义推定 |
-| +428 | u32 | 供应节点计数 (141220690 ++; 触发器 num_of_supply_nodes 读) | 定案 |
-| +452 | dword | 计数 (重置清 0) | |
-| +476 | dword | 计数 (重置清 0) | |
-| +500 | dword | 计数 (重置清 0) | |
-| +524 | dword | 计数 (重置清 0) | |
-| +548 | dword | 计数 (重置清 0) | |
-| +560 | hybrid 容器 | 计算用容器 | |
-| +584 | hybrid 容器 | 计算用容器 | |
-| +608 | hybrid 容器 | 计算用容器 | |
-| +632 | hybrid 容器 | 计算用容器 | |
-| +656 | 有序表 {data@656, count@668} | 节点 id → 节点 idx 映射 (141229210 case0 二分目标) | 定案 |
-| +680 | 有序表 {data@680, count@692} | 32B/项, entry[0]=state id; 州→节点集合 (1414E3980 二分目标) | 定案 |
-| +704 | 有序表 {data@704, count@716} | **_NonLocalNodes**: 8B 条 = (省 id, 值), 二分插入 sub_140E905D0; 断言 "!_NonLocalNodes.Contains( NodeProvince )" country_supply.cpp:2919 | |
-| +728 | 有序表 {data@728, count@740} | FindNodeIndex case4 目标 | |
-| +752 | 有序表 {data@752, count@764} | FindNodeIndex case5 目标 | |
-| +776 | qword | — | |
-| +784 | qword | — | |
+| +0 | RH 表对象 32B | **省→供应值缓存** (空补 Dijkstra 终值 qword@桶+16; 未算标记 100000, 不可达 92233720200000); 桶 24B {hash, dist@+4, key 省 id@+8, value@+16}; 写 sub_140325D20 (空补定稿回填) / 读 sub_14121E1B0 命中直返 | 定案 (原「24B/项压实条目表」翻案) |
+| +28 | float | +8 表装载因子 lf = 0.9 | 定案 (原「衰减/保持率系数」翻案) |
+| +32 | RH 表对象 32B | **省→距离+1 缓存** (空补 Dijkstra); 桶 12B {flag u8, key 省 id u32@+4, value u32@+8}; 插入器 sub_1401B04A0 (对象基 calc+32) | 定案 |
+| +64 | 子结构 120B | **省/州/区聚合工作集**: 相对 +64: vec@0 = int×省数 (省→216B 记录 idx, init −1); vec@24 = **216B 聚合记录表** (USAggregatedProvinceSupplyData 同型: +0 word 省 id / +8 Σ(asked−received) / +16 同州链 next / +24 每消费者 24B 向量 {16B ref id, dword tag} / +48 16B 列表 {节点idx,国idx,权重} / +152 节点值); vec@48 int 数组; vec@72 (=calc+136) = int×州数 (州→已有节点 idx, 建重复节点门); vec@96 (=calc+160) = int×区数 (init −1); ctor 1414DFE80 / 清 1414E1860 / find-or-create sub_1414E0460 | 升级定案 (原「语义推定」) |
+| +184 | Form P, 232B 条 | **供应节点表**: +0 dword 节点 idx / +4 word 省 id / +8 dword type (0=州陆地 / 1=空补 / 2=建 (SupplyLevel 门) / 3=跨国非本地链接 / 3·5=海补) / +12 旗 byte / +56 `_TotalSupply` / +64 `_RemainingSupply` / +128 属主 tag / +152 节点值 / **+208 内嵌 Form P (40B 使用记录, count@+220)**; 建 type0 sub_1412229D0 / type1 sub_141222570 / type2 sub_141220690·141220E00 / type3 EA10 | 定案 (type 枚举本轮闭合) |
+| +192 | dword | vec184 cap | 定案 |
+| +196 | dword | vec184 count = **节点数** (EA10 读作新节点 idx) | 定案 (原「(省,值) 值部」翻案) |
+| +200 | qword | vec184 alloc | 定案 |
+| +208 | Form P | 语义待裁 (全语料无读写点, count@220 仅重置清 0; 疑未用残槽) | 存在定案 |
+| +232 | Form P, 4B 条 | 本 tick 涉及的外国 tag 集 (从 sys+64 国家缓存条 +88 复制; 写 sub_14121DEA0 / 读 sub_14122C090 逐 tag→国 idx→该国 calc+440) | 定案 (原「计算暂存」错位翻案) |
+| +256 | Form P, 40B 条 | 单位供应扣减待执行清单 {单位指针@0, …, dword@32}; 排水 = 逐条 sub_141A0ACF0 (sub_14122AA00) | 形定案/写者待裁 |
+| +280 | Form P, 16B 条 | **跨国非本地链接源** {省 id@0, ?@4, 省/参数@8, 值@12}: EA10 逐他国记录读此表 → 本国 +184 插 type3 + +704 登记 | 读侧定案/写者待裁 |
+| +304 | fixed×1e-5 | truck 侧运输记录值 (消费者 = css 摩托化 wanted_trucks 换算三处) | 定案 |
+| +312 | u32 | **顶栏后勤面值唯一基数** (公式 = 本值 × 火车比 × 流量比 ÷ 1e10; 详见 §4.21.1c sub_14121F1D0 行) | 定案维持 |
+| +320 | u32 | train 侧运输记录值 (_IntermediateTransportUsages type0 条累加; 写 sub_14122B820) | 定案维持 |
+| +324 | u32 | **空补节点计数** (首都迁移启发式 <2/<4 门) | 定案 |
+| +328 | Form P, 4B 条 | **供应首都迁移候选省 id 列表** (剪枝 css+352 早退表) | 高置信 |
+| +340 | dword | vec328 count | 定案 |
+| +352 | u32 (qword 写) | **火车满足率** = min(100000, 100000×(100000×+384)÷(100000×+320)); 总量 0 或 ≤ MIN_TRAIN_REQUIREMENT → 100000; 唯一写者 sub_14122B820; **面值公式不消费它** (消费者在火车分配侧) | 定案 (原「效率/比例因子」落位) |
+| +360 | Form P, 4B 条 | 火车按变体分配结果 int×N (N = css+300 数) | 定案 |
+| +384 | u32 | **火车分配量累计** (consumer+760 因子进入每变体结果) | 定案 |
+| +388 | u32 | **卡车分配量累计** | 定案 |
+| +392 | Form P, 4B 条 | 卡车按候选省分配结果 int×N | 定案 |
+| +416 | qword | **CProvince\* 供应首都省指针** (写 sub_14121EF20; 控制权不符整国跳过) | 定案 |
+| +424 | i32 | **供应首都节点 idx** (−1 哨兵; 铁路 tooltip sub_1416583F0 取首都节点 _TotalSupply) | 定案 (原「来源/属主 tag 哨兵」翻案) |
+| +428 | u32 | 供应节点计数 (触发器 num_of_supply_nodes 读) | 定案 |
+| +432 | qword | **Σ asked_supply 累计** (消费者注册时累加; ⚠ 旧记「sys+432」实为 calc+432) | 定案 |
+| +440 | Form P, 16B 条 | **消费者表 supply_cache_consumers** {CReferenceObject id 对@0, CSupplyConsumer\*@8}; 注册者 sub_14121B650 (vec776 排水), checksum 直证 | 定案 |
+| +452 | dword | vec440 count | 定案 |
+| +464 | Form P, 40B 条 | **每变体中间运输使用记录** (convoy tag 键, 断言 :1708; +32 qword 量累加; count 每轮重建) | 定案 |
+| +476 | dword | vec464 count | 定案 |
+| +488 | Form P, 16B 条 | **省→距离评估输出** {省 id@0, 距离 qword@8} (排序后落盘) | 定案 |
+| +500 | dword | vec488 count | 定案 |
+| +512 | Form P, 24B 条 | **每国节点需求清单** {state id@0, ?@4, 省 id@8, 容量基数 qword@16} (lam4 从 sys+40 PerCountryIndex 展开, 断言 :3138) | 定案 |
+| +524 | dword | vec512 count | 定案 |
+| +536 | Form P, 24B 条 | **消费者距离暂存** {16B ref id, qword 距离} (+440 × +232 二重循环) | 定案 |
+| +548 | dword | vec536 count | 定案 |
+| +560 | Form P, 2B 条×省数 | **省→海区/岛链 id** (ctor 0xFFFF; 海补洪泛赋值) | 定案 |
+| +584 | Form P, 2B 条×省数 | **省→第二海补分组 id** (每轮重填 −1 再赋值) | 高置信 |
+| +608 | Form P, 2B 条 | **岛链并查集 parent 表** (合并 + 路径压缩) | 定案 |
+| +632 | Form P, 4B 条 | **海口省 id 列表** (海补轮重建) | 定案 |
+| +656 | Form P, 8B 条 | **(state, node idx) 有序对表** (FindNodeIndex case0; 每轮 sub_1412229D0 尾排序重建 — 键收窄为 state) | 定案 |
+| +680 | Form P, 32B 条 | **state→空补节点 idx 列表** {state id@0, 内嵌 24B 向量@8}; 读者 1414E3980 求和的是**节点**条 +64 | 定案 |
+| +704 | Form P, 8B 条 | **_NonLocalNodes** {(省 id, 节点 idx)}; 断言 country_supply.cpp:2919 | 定案 |
+| +728 | Form P, 8B 条 | FindNodeIndex case4 目标 | 读侧定案/写者待裁 |
+| +752 | Form P, 8B 条 | FindNodeIndex case5 目标 | 读侧定案/写者待裁 |
+| +776 | Form P, 16B 条 | **消费者注册清单** {tag u32@0, CSupplyConsumer\*@8} (lam3 重建 → 注册阶段排水进各国 calc); sizeof = 800 由本容器闭合 | 定案 (原「+776/+784 qword」翻案) |

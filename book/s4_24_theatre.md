@@ -445,7 +445,119 @@ ctor 0X1415B9390; sizeof 0x60 = 96; owner CNavyTheater 回指@+24。
 > **本域 GUI 类布局**: 见 4.31.36。
 - **ApplyCombatXpGains tbb 族** (符号串直证, 定案): 合并核 sub_140BB5AC0 / 发射体
   sub_140BB60F0 / 分裂体 sub_140BB6260 — 战斗经验入账的并行三件套。
-- **COrdersGroup 每帧执行步** (定案): sub_14014D40E0 = og vt[10] Update (sub_140BF1660)
-  → BEA830 懒取 *(og+72) → 成员数组 (og+152/164 契约) 按 +48 类型 switch 分派;
-  sub_14014D1F90 = 订单成员逐单位执行路径 (谓词链 + 四拍节流 + token 14927 消息)。
-  两帧全线程采样 worker 侧 7.5%。
+- **COrdersGroup 小时执行步** (定案): 驱动 = hourly 相位 2 tbb parallel_for →
+  每国 sub_1406FDBA0 → CTheatre::Update sub_140EF8470 (首步清 AI 海运缓存
+  +280) → 逐 og/ag 虚调 **og vt[10] Update sub_140BF1660** → 索引器主执行
+  sub_14014D40E0 (详 §4.24.14) — 非每帧 (高速档多 tick 叠加的采样表象);
+  worker 侧采样 7.5%。
+
+#### 4.24.14 COrdersGroup 小时执行链 (unitcontroller)
+
+驱动 = hourly 相位 2 tbb → 每国 sub_1406FDBA0 → CTheatre::Update
+sub_140EF8470 (①清 AI 海运缓存 +280 ②逐 og (theatre+128/140) 调 vt[10] ③逐 ag
+(theatre+152/164): ag vt[12]() 真者回收解散, 否则同调 vt[10])。og vt[10] =
+**sub_140BF1660 八步序**: ① og+152 order_instance + og+176 fallback 逐实例
+sub_141036640 route_is_ok tick ② leader 根 OI 路径镜像缓存 (+472/+484/+496)
+③ type3 时 oi+184 invasion_source 变化 → sub_140BEB640 重算 og+460/+464 ④
+og+136 leader 非零 → **sub_140C21BC0 距离通讯衰减** (type2 取 og+452 / type3 取
+og+460 / 否则 100000; 钳 [0, dword_143339704) 后查 qword_1433396F8 =
+LEADER_MOD_COMMS_SCALING 表, 对 leader+2096/+2480 两对象各应用一次
+sub_14060FBD0) ⑤ +415 脏旗 → plan_value 重算 ⑥ +417 → sub_140BF3C20 leader
+三档传播 ⑦ **sub_1414D40E0(*(og+72)) 索引器主执行** ⑧ og+44 铁路炮计数非零 →
+og+448 倒计时递减, 到 0 → sub_1414C55D0 重挂 + 重置 (定案)。
+
+索引器主执行 **sub_1414D40E0** (og+72 对象, 408B): ①gamestate TLS 门 ②国别门
+(gs+2408) ③begin sub_140E2CC00(*(indexer+8),1) 置旗清两脏数组 ④--indexer+352
+包围圈倒计时 ⑤逐根 OI: 先逐 scheduled_member (oi+528/540) `member->vt[5]()` →
+sub_1414DA4E0 补位航点维护 (unit+524 ≤0 清 unit+736; 航点数≠1 ∨ 末条 +12 省
+id 失效 ∨ 与当前目的地不符 → 清重灌), 再按 oi+48 switch:
+
+| oi+48 类型 | 分派函数 | 语义 |
+|---|---|---|
+| 2 前线 | (内联) + sub_1414D1F90 | 72h 到期 ∧ sub_1410362A0 解析 CFrontSection (oi+600 root_front → sub_140EF8020(front, oi+608)) ∧ sub_1406FFDB0 (战争 ∨ human_ai 旗) → sub_140EEFFB0/fsC40 采样的省对平铺 indexer+328 包围圈对表; oi+56 父 og 为 field_marshal_group (+57) ∧ oi+908 child_front_ratios>0 → 逐子 og sub_1414D1F90(indexer,oi,child), 否则 (…,0) |
+| 3 海军入侵 | sub_1414D02C0 | 按 oi+124 路径省建 per-省登岸槽位 (8B/省); "pUnit->IsNavalInvasionUnit()" 断言 |
+| 4 空降 | sub_1414D3B40 | 成员 +1461 运输机就绪门; sub_140E2AD40 战略区寻路成 → sub_1414BCA10 航点 + sub_1414C3A50 入队; 败 → sub_140E2A320 次选 → sub_1414C38F0 |
+| 5 地区防御 | sub_1414CA270 | (根实例下标 + 流逝小时) % 4 == 0 才跑; 逐 scheduled_member + oi+224/236 states + oi+256/268 派驻表重算 |
+
+逐军执行 **sub_1414D1F90** (indexer, oi, child_og): 门 = !oi+908 ∨ 子军份额非零
+(sub_141036490, oi+896 72B 条目 +8=group/+24=size); child 时 sub_141033B80 取
+子军 section 界值对存 indexer+376/+380; 逐 scheduled_member 谓词链筛选入列
+(下表) → sub_141029470 虚父 (oi+668 → sub_140BEAA30) 路径 → sub_1414D75F0
+目标计算 → **sub_140BEBDA0(og) 读清 og+414 members_has_changed** → 四拍门 →
+**sub_1414CCF10** 核心分配 → sub_1414D3120 战斗中推进恒跑 → sub_1414CFBB0
+成员→位下发 (og+424 cohesion_type==3 跳过; 有路径者按 v2 % 槽数 indexer+36
+轮转消费 indexer+24 位置槽表) → sub_1414CC9C0 靠拢/集结 (og+428
+proximity_type==4 跳过; 期望距离 sub_1415B0EB0 == og+452 跳过; 否则
+sub_1415B0320 重定位) → AI 钩 sub_1410ABCA0 + sub_1410AC860 逐位发 token 14927
+"province_weight" 消息 (定案)。
+
+谓词链 (逐单位, 定案):
+
+| # | 函数/字段 | 语义 |
+|---|---|---|
+| P0 | sub_140C891E0 | unit+952 CDivisionTemplate* 非零 → template+564 旗 (attrition 豁免旗同字段) 真者整段跳过 = 特殊模板单位不参与前线调度 |
+| P0b | unit+588/+589 | 撤退 / 脱离 |
+| P1 | sub_1414D4CF0 | 已有目的地: unit+748 航点数>0 → 末条航点 +12 省 id ≠0; 否则回落 unit+524 path count > 0 |
+| P2 | sub_140BFFF10 | 在活战斗中 (逐 combat unit+424/436, 对侧 +72 ≥1) |
+| P5 | sub_1414D8EA0 | 可单独调度: 假 ⟺ unit+8==0 ∧ unit+1584 有 leader ∧ 根 OI type2 ∧ og+428 proximity_type==0 (有将官+前线单+非贴近编组者不在此层单独排程) |
+
+入列判定: `(¬P1 ∨ (P2 ∧ ¬unit+589) ∨ unit+584<1) ∧ (¬P2 ∨ 撤退模式) ∧ P5` →
+++indexer+72, 插 indexer+104 候选列 (槽数 indexer+116 非零 → sub_1401B14F0
+(i×成员数 + oi+124 路径数) % N 轮转插位摊匀先后); 循环尾 unit+488 目的地省
+失效 (省 +368 容器无 vt[11]==1 元素) → sub_140C04C60(unit,0,0,0) 清目的地
+(清 unit+687 战略部署旗经 vt[53]、写 unit+488、单省路径 sub_14012B520)。
+
+**双层节流 (定案)**: ① 四拍 = `(og+12 id + 流逝小时) & 3 == 0` (流逝小时 =
+sub_1405339D0(gs+1120) = *(gs+1128)−43800000, 与 §4.2.6 相位 11 错峰同式);
+og+414 members_has_changed 读清真者**旁路**立即重算。② 72h = indexer+352
+倒计时每小时 −1, ≤0 触发前线省对采样后重置 max(HOURS_BETWEEN_ENCIRCLEMENT_
+DISCOVERY, 1) = define 72 (00_defines.lua:2697 包围圈发现刷新周期); ctor 以
+2×sub_140BB5490(og+60) 种子错峰 (推定)。
+
+**sub_1414CCF10** = "Find best unit" 核心分配巨函 (~2300 行, 算法定案):
+**贪心双层** — 外层 **sub_1414C9690 加权择位** (每轮选「槽优先级 int64 × 缺口」
+最大的位; 无人认领冷启动 ×10, 超配边际递减; 满位表 indexer+176 / 空派表 +200
+双排除), 内层 **sub_1414C87B0 逐员定分** (候选按距离²升序 ≤32 插入 / >32 并行
+归并, 逐个整数定分取最优)。评分公式 (定案): 预算 = 1000 ×
+PLAN_FRONTUNIT_DISTANCE_FACTOR (10.0); 距离惩罚 = D × min(dist²,1e8)/1e5 ×
+**PLAN_COHESION_WEIGHTS[og+424] {1,40,80,100}** (cohesion 3 整员硬排除);
+常量奖罚 = 在位 +1e7 / 在途 +2e7 / 他往 −2e7 / ETA 出窗再 −4e7; 段防
+FRONT_TERRAIN_DEFENSE_FACTOR (3.75) / 段攻 FRONT_TERRAIN_ATTACK_FACTOR (5.0);
+粘滞 PLAN_STICKINESS_FACTOR (100.0) 原位 ×S/100 他位 ×100/S (unit+692 粘滞
+键); 距离 = 两省 +176 坐标差平方和 (欧氏直线², 非寻路)。分配输出三写:
+sub_1414D6520 从工作列 indexer+80 摘除 / 槽对象 +40 在途表追加 / v122 门
+(战斗中 ∨ 已在本省 ∨ sub_1414C9D10 指数退避门, unit+696/+700 封顶 24) 放行时
+清 unit+590=0/+592=−1/+680=0, 真指令由 sub_1414CFBB0 下发。metrics 8 列 =
+Front Count | Order | Priority | Min.W | Wanted | At Loc | On Way | Leave
+("Wanted" exe .rdata 实证), 仅玩家国 og 落盘。新字段: 索引器 +80/+92 工作候选
+列 (书 +104 候选列之外第二列) / +176 满位表 / +200 空派表 / +248 排除集 /
++360 metrics 容器; COrderInstance +504/+516 兄弟实例数组 (§4.24.14 早出门
+= 实例数 ≤1) / +136 前线位槽表; CUnit +692 粘滞键 / +696/+700 退避计数 /
++312 军段缓存。
+
+叶点入队 = **sub_1414C3A50**: malloc 32B CPendingAddStrategicRedeploy →
+sub_1414D4B50 即时校验 (vt[1] IsValid → vt[3]) + 追加 indexer+272 待办容器
+(worker 安全延迟命令, §4.00 待命指令族); Execute 走 CUnit 移动校验与拒动协议
+(unit+590/+680 写者即此族, §4.18)。
+
+新字段 (全部不序列化): COrderInstance+56 = 所属 og 回指 (定案); CUnit+216 =
+缓存根订单实例 (sub_140BEF990 写验, 失效串 "deleted_or_unknown", 定案);
+CUnit+224 = 成员订单脏旗 (定案存在); CUnit+488 = 当前移动目的地省指针
+(sub_140C04C60 写清, +164 = 省 id, 高置信); og 索引器 (og+72 对象, 408B):
++16 逐军 scratch 计数 / +24 位置槽表 (16B 条, CFBB0 轮转消费) / +36 槽数 /
++72 可调度成员计数 / +104 候选列 (轮转插位) / +116 槽数 / +128 全成员镜像 /
++152 无路径成员列 / +272 CPending 待办列 / +328 包围圈省对表 / +352 72h 倒计时
+/ +356 AI 日志旗 (→ logs/ai.log) / +368 当前 child og / +376/+380 子军 section
+界值对 (定案)。gs+2408 = 当前处理国 tag 槽 (唯一读点 = 国别门, ≤0 无国语境
+全放行, 推定; **探针: 常规单机小时链 ~10 游戏日 0 写点** — 写者不在单机周期
+链, 更可能 MP/观察者域槽)。
+
+#### 4.24.15 theatre.daily_serial 与 og 日更
+
+**theatre.daily_serial = sub_140EF1410** (sub_140718850 后逐 CTheatre, 定案):
+orders_group (+128) + field_marshal_group (+152) 逐 og **sub_140BEC460 = og
+日更** — B→A 快照 (512/528 → 312/328) + 逐实例 faction_theaters 份额刷新 +
+旗清理 + hq_deploy 分发 (§4.24.10 域)。division_names.update =
+sub_1409C9680 (divisionnamesdatabase.cpp:447 断言): 每国**四个命名库
+(cc+112/120/128/136)** × 两步 (回收步 + 逐组可用 trigger 求值, 不可用
+swap-remove 出 _AllAvailableGroups) (定案)。

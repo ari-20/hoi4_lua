@@ -65,12 +65,12 @@ side 元素 CLandBorderWarCombatant writer 0X1413F0100 = 0X1412BD820 追加:
 注: token 0x39A3 = removed_unit 块键本身 / 0x28A3 = unused / 0x3170 = hours 字段键, 均与 on_* 无关 (探针 token_name 定案); 真键 = **on_win 14747 / on_lose 14748 / on_cancel 14749** (连号, 与 writer 字段序同序)。
 证据: `sub_1413F0070` (border_war 块 writer) / `sub_1413F0100` (侧元素 writer) 对基座 `sub_1412BCF70` / `sub_1412BD820` 的追加调用。
 
-CWar (战争对象; 挂载 = 关系对象+744, §4.10) 布局补行 (高置信, 多批互证):
+CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+73 实为 **CRelation 基字段** (CWarRelation 464B 即战争对象本体, 无独立 CWar 类):
 
 | 偏移 | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|
-| +32 | hours | 开战日期 | 高置信 |
-| +73 | u8 | 状态旗 (非 0 = 排除于统计/存活判定) | 高置信 |
+| +32 | hours | 开战日期 (CRelation 基) | 高置信 |
+| +73 | u8 | 状态旗 (非 0 = 排除于统计/存活判定; CRelation 基) | 高置信 |
 
 #### 4.22.3 CLandCombat 场对象 (writer 0X1413E4150)
 
@@ -91,7 +91,7 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10) 布局补行 (高置信, 
 |---|---|---|---|
 | +8 | u32 | holder.type — id 对之 type (id 对 {type, id}) | type 62 = holder 类; 内联非指针解引用 |
 | +12 | u32 | holder.id — id 对之 id |  |
-| +13..+23 | — | = **vt2 持久化 vtable 槽 (obj+16)** — 陆 0x1429a84b8 / 海 0X1429DBF90; obj 包装布局: obj+0 vt1 / obj+8 refid / obj+24 holder 对 |  |
+| +13..+23 | — | = **vt2 持久化 vtable 槽 (obj+16)** — 陆 0x1429a84b8 / 海 0X1429DDBE0; obj 包装布局: obj+0 vt1 / obj+8 refid / obj+24 holder 对 |  |
 | +24 | CCombatant 容器* | attacker = *(c+24) | 容器包装: cont=rp(c+24/32); **cont[0] = vtable (属映像区间) ⇒ cb = cont 本体**; 见下注 |
 | +32 | CCombatant 容器* | defender = *(c+32) | 容器包装同上 |
 | +40 | CProvince* | location = *(*(c+40)+164) |  |
@@ -110,13 +110,14 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10) 布局补行 (高置信, 
 
 **CCombatant** (cb = 战斗方基座, 232B; writer 0X1413E41F0 + 0X1412BD820; ctor sub_1413E05F0; loader 0X1413E33A0): 基座定案 — **+24 = 宿主战斗回指** (RemoveUnit 经它取 attacker/defender/location/duration); **+216 = is_attacker 旗** (海军 pair-init 第一只=1 第二只=0)。
 
-编制对象 (编成组/编制组合对象; unit 经虚槽[8] 取得) 布局补行 (推定):
+编制对象 (编成组/编制组合对象; unit 经虚槽[8] 取得) 布局补行:
 
 | 偏移 | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|
-| +1136 | fixed×1e-5 | 计划度 (min_planning/has_max_planning 直读) | 推定 |
+| +1136 | fixed×1e-5 | bonus (tok 10931; min_planning/has_max_planning 直读此字段 — 引擎触发器命名与字段名不一致) | 定案 (运行时 lexer token_name(10931)="bonus"; 活体 GER 3 师 0.4055/0.2473/0) |
 
-> ⚠ 编制对象+1136 与 §4.18 CArmy+1136 (bonus, tok 10931) 为**异基同名偏移**, 勿混。
+> 编制对象+1136 与 §4.18 CArmy+1136 同基 (AsArmy = return this, §4.18.13): 同一字段
+> bonus, 曾两记为「异基勿混」系误注, 已并案。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
@@ -392,7 +393,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 |---|---|---|---|
 | +8 | uint32 | holder id 对.type (B400 内联; 非槽头 e+8/+12 — 那是包装 type=3) — **GUI: NavalCombatView target** (refid → view+64; Reload 0X1417EA930 再归一化) | 恒写 |
 | +12 | uint32 | holder id 对.id | 恒写 |
-| +13..+23 | — | = **vt2 持久化 vtable 槽 (obj+16)** — 陆 0x1429a84b8 / 海 0X1429DBF90; obj 包装布局: obj+0 vt1 / obj+8 refid / obj+24 holder 对 |  |
+| +13..+23 | — | = **vt2 持久化 vtable 槽 (obj+16)** — 陆 0x1429a84b8 / 海 0X1429DDBE0; obj 包装布局: obj+0 vt1 / obj+8 refid / obj+24 holder 对 |  |
 | +24 | 匿名结构 (NNB 形状)* | attacker 参战方 (直指, 无陆战容器包装) | |
 | +32 | 匿名结构 (NNB 形状)* | defender 参战方 | |
 | +40 | 匿名结构 (NNB 形状)* | location → 省 idx = u32@对象+164 (陆海基座共有) | 恒写 |
@@ -401,10 +402,12 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +56 | 匿名结构 (NNB 形状)* | terrain 串对象 (门 byte@串对象+16, 串@串对象+24) | |
 | +64 | u8 ×3 | 运行时旗 (+64/+65/+66; ctor 0, writer 不发) — 本表全书统一 res (类布局) 坐标 (attacker@+24 等多函数三向互证) | 不序列化 |
 | +72 | 64B | 运行时区 (+72..+135 = obj+88..+151): **定案 = 4×16B 内联槽 {fixed@+0, CEquipmentVariant*@+8}** (活体: 前 3 槽 fixed=0 + 各持一条 CEquipmentVariant* — vt RVA 0x2951608, +8 = token 70, 实例跨战斗共享 = def 侧; 尾槽 fixed=100.0 (fixed×1e-5) + 空指针, 尾槽指针位与 +128 行同位; 三级 ctor 与 writer/loader 均不触及 → runtime-only; fixed 业务语义未决) | 不序列化 |
-| +128 | 匿名结构 (NNB 形状)* | 运行时指针 (ctor 0; 未名) | 不序列化 |
+| +128 | 观察者指针 | **战斗结束回调观察者** (基类结束通知 sub_1413E2CF0: 非空调其虚槽[2]; dtor 不释放 = 外部登记/注销) | 不序列化 |
 | +136 | CNavalCombatant* | **attacker 镜像指针** (第二份; pair-init sub_1415C28F0 同写) | 不序列化; 定案: 生命期所有权副本 — dtor sub_1415C43E0 经镜像释放两参战方  |
 | +144 | CNavalCombatant* | **defender 镜像指针** (第二份) | 同上  |
-| +152 | u32 | 运行时标量 (ctor 0; 未名) | 不序列化  |
+| +152 | u32 | **海战天气现象枚举** {0 无 / 2 rain_heavy / 3 snow / 4 blizzard / 5 sandstorm} (每小时 sub_1415C5820 按区条现象旗刷新) | 不序列化 |
+| +160 | 匿名结构 (NNB 形状)* | **区天气修正块指针缓存** (= 区条+72, 每小时同函数刷新) — 海战侧天气通道之一 | 不序列化 |
+| +168 | fixed | **昼夜覆盖快照** (DayNight 值, sub_140F19660, 每小时刷新) | 不序列化 |
 | +176 | convoy 条目* | convoy[N] 容器数据 — 条目 writer 0X141AD8690 | count>0 且 client/ntt 非空 |
 | +177..+187 | — | = convoy 容器尾 {cap@+184} (convoy 条目 sizeof 0x48=72 = vt@0 + 表 8 字段恰满) |  |
 | +188 | uint32 | convoy[N] 容器计数 | 同上 |
@@ -421,9 +424,9 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +252 | uint8 | port_strike | 仅真写 yes |
 | +253 | uint8 | naval_strike | 仅真写 yes |
 | +256 | uint32 | sunk_convoys | >0 才写 |
-| +260 | uint8 | hide | 仅真写 yes |
+| +260 | uint8 | hide — 消费点 = 报告生成门 (sub_1415C4C90 首门 `!hide`, 隐蔽战斗不生成海战结果报告); 置位点未钉 | 仅真写 yes |
 | +261 | uint8 | convoy_combat | 仅真写 yes |
-| +264 | fixed×1e-5 | progress — **GUI: 战斗进度条** (combat vt[25] → view+2704; COMBAT_PROGRESS_DESC) | 恒写 |
+| +264 | fixed×1e-5 | progress — **GUI: 战斗进度条** (combat vt[25] → view+2704; COMBAT_PROGRESS_DESC); 初值写者 = 槽13 首小时初始化 sub_1415C4740 (两侧 CFEX 组+744 合成 sub_14198A080) | 恒写 |
 
 **CNavalCombatant** (cb = 对象基; writer 0X141622520)。全字段表:
 
@@ -439,12 +442,12 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +245..+255 | — | = group 容器尾 {alloc@+248}  |  |
 | +256 | 容器 24B | **CFEXAir* 数组** {data@256, cap@264, count@268, alloc@272} (: ctor sub_141976630/sizeof 328 铁证) | 不序列化 |
 | +280 | 容器 24B | **参战将领 (admiral) 指针数组** {data@280, cap@288, count@292, alloc@296} (: leader+3680/+440 军衔等级反推铁证) | 不序列化 |
-| +304 | CCombatTactic* | **CCombatTactic\*** (RTTI 直证; +64 处无名串) — 海战 writer sub_141622520 **不发射本槽** (海战将领面板运行时专用); 陆战侧同槽由 sub_1412BD820 发 tok 11927 `tactic` (门 = 指针非空 ∧ vt[80]) | 不序列化 |
+| +304 | 海=领袖指针 / 陆=CCombatTactic* | **海战侧 = 当前主将 (最高技能 admiral) 指针** — vt[29] 择优 sub_14161E5C0 (admiral 数组取军衔最大), sub_141620940 每小时 `if(!cb+304) cb+304 = vt[29](self); cb+312 = 同值` (cb+312 = last_leader 镜像); 海战 writer sub_141622520 不发射本槽; 陆战侧同槽 = CCombatTactic* (sub_1412BD820 发 tok 11927 `tactic`, 入栈点 sub_1412BB330 见 §4.22.7) | 不序列化 |
 | +312 | 匿名结构 (NNB 形状)* | last_leader → id 对@ptr+8 | |
 | +320 | uint8 | disengage | |
 | +328 | fixed ×2 | **screening_efficiency / carrier_screening_efficiency** (+328/+336) | 不序列化 |
 | +344 | fixed×1e-5 | positioning | 恒写 |
-| +352 | fixed×1e-5 | new_ships_positioning_penalty | ≠0 才写 |
+| +352 | fixed×1e-5 | new_ships_positioning_penalty (每小时递减写者 sub_141620940: >0 时 −= qword_143331DE0) | ≠0 才写 |
 | +360 | fixed×1e-5 | positioning_dominance_bonus | 恒写 |
 | +368 | fixed×1e-5 | anti_air | 恒写 |
 | +376 | fixed×1e-5 | total_initial_strength | 恒写 |
@@ -453,6 +456,9 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +393..+679 | — | = damage_dealt_by_gun_types fixed[36] 数组本体 (+392..+679) |  |
 | +680 | f32 | **damage_dealt_by_ship_types 表 load factor = 1.0f** (ctor 1065353216) | 不序列化  |
 | +688 | 匿名结构 (16B 形状) RH 桶数组 | damage_dealt_by_ship_types — token→fixed RH 哈希表 {load f32@680, buckets@688, count@696 (=写门), aux 16B 容器@704}; loader 经 sub_14161A260(+680, token) 按键插入; 元 {token@+16, fixed@+24}, 键 = token 名 | 门 *(cb+696)≠0 |
+| +744 | 容器 | **以主将 (cb+304) 为键的命中缓存·桶 A** (sub_141622360 每小时清 sub_141989F40 后记录 (主将, member 开火数据)) | 不序列化 |
+| +872 | 容器 | 同上·桶 B (state==4 与否分桶) | 不序列化 |
+| +880..+992 | qword×15 | 每小时统计快照区 (combatant 自身累加, 尾段整体搬到 cb+744 缓存对象) | 不序列化 |
 
 - is_attacker (基座+216) GUI 消费: 脱离战斗命令载荷 CDisengageFromNavalCombatCommand {+40 海战 refid tok 0x2916, +48 is_attacker tok 0x28F5}; 玩家侧选取 sub_1417E7B30。
 - screening 消费: CFEX 伤害减免 = 1−(1−a)(1−b) 合成 (SCREENING_TOOLTIP_LOW_INFO + 四个 SCREEN_RATIO/CAPITAL_RATIO define 加权铁证)。
@@ -616,6 +622,8 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 
 容器 = gs+1472 {d} / gs+1484 {c} 裸 {d, c@d+12} 形态 (非对象), 元素 8B 指针。顶层 writer 链: sub_1401F2E40 逐元素 ADEC0 (tok 0x34FC=13564, elem) → 共享壳 0X1424BEC50 → 块内容 0X140CE6B20 (不在索引; 反汇编 + ctor 0X140CE15E0 / reader 0X140CE5AF0 三向互洽)。块门 = 计数>0 仅此一门 (save/checksum 同路径)。提取形态 = 顶层匿名重复块, 块级 [N] 记在维度 (首块裸, 第 2 起 [2]..; 维度内路径不含块名)。sizeof(CNavalCombatResults) = **0x168=360** 定案: 读档工厂 case 13564 `malloc_base(0x168)` → ctor → push gs+1472 (dump 行 5207661); 第二分配点 combatnaval.cpp:973 同 0x168。读档工厂另在 gs+1496 经 sub_1401B7250 维护 location→块 运行时桶索引 — 注册器 sub_1401CAE40 全体**无 writer 调用** → 纯运行时派生索引, 不发射 (定案)。
 
+**存活期聚合链 (定案)**: 每小时相位 12 战斗结束 → 基类结束通知 sub_1413E2CF0 调**槽[23] 战斗结束钩子** (基类/陆战 = CFG 空桩, **仅 CNavalCombat 覆写 = sub_1415C4C90 海战结果生成** — 陆战不产生本族报告) → 门 = `!hide` ∧ 一侧结束 ∧ 一侧空; strike 战斗 (port/naval) 才走查重 — gs+1496 location 桶查同省既有报告 → 命中 sub_140CE4F90 合并 (刷 date + 侧匹配度判并侧 + 深拷贝 sub_140CE21B0 + 重算 importance); 未命中新建 (malloc 0x168 + ctor sub_140CE15E0 + refid 绑定) → **聚合器 sub_140CE5D50**: date = gs+1128 / location = 省 id / 两侧 = c+136/+144 镜像指针消费 / strike 旗直拷 / importance = 两侧和经 COMBAT_RESULT_PRIORITY_THRESHOLDS 线性查档 clamp ≤2 / to_discard_date = now + COMBAT_RESULT_PRIORITY_DAY_TO_LIVE[档] / shown_to_countries = 两侧活国并集 / +248/+256 = 主/次侧迭代对 (胜侧在前)。**每日清除** sub_1401D7830 (shown 空 ∨ to_discard 过期 → sub_1401EBA80 swap-remove + location 桶解除); **已读注销** = CDispatchNavalCombatResultsCommand::Execute sub_141156890 → sub_140CE4BE0 从 shown_to_countries 移除 tag。
+
 **CNavalCombatResults** (vt 0x14295DD70; sizeof 0x168=360; 块内容 writer 0X140CE6B20)。发射序 = id → location → date → attacker → defender → port_strike → naval_strike → importance → to_discard_date → shown_to_countries (表行序 = 偏移升序, 发射序以本句为准)。全字段表:
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
@@ -623,13 +631,13 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 | +0 | vptr | vftable | — |
 | +8 | uint32 | 自 refid.type (全局命名空间 4713) | 恒写 (`id` 块 0X142220340 同行双写; tok 0xB=11) |
 | +12 | uint32 | 自 refid.id | 恒写 (同上) |
-| +16 | uint8 | flag (ctor=0, 语义未追) | writer 不发 |
+| +16 | uint8 | CReferenceObject 注册/有效旗 (ctor 清 0 / sub_14221E700 置 1) | writer 不发 |
 | +24 | CNavalCombatResultSide 内嵌 (112B) | attacker | 恒写 (ADEC0 整块; tok 0x28F5) |
 | +25..+135 | — | = **attacker CNavalCombatResultSide 内嵌 112B 本体** (+24..+135) 内部 — 子布局见下表  |  |
 | +136 | CNavalCombatResultSide 内嵌 (112B) | defender | 恒写 (tok 0x28F6) |
 | +137..+247 | — | = **defender CNavalCombatResultSide 内嵌 112B 本体** (+136..+247) 内部  |  |
-| +248 | 匿名结构 (NNB 形状)* | 两侧迭代对 {&attacker, &defender} 之一 | writer 不发 |
-| +256 | 匿名结构 (NNB 形状)* | 迭代对之另一 | writer 不发 |
+| +248 | 匿名结构 (NNB 形状)* | 主/次侧迭代对 — 胜侧 (sub_140CE32A0 判定) 在前 | writer 不发 |
+| +256 | 匿名结构 (NNB 形状)* | 迭代对之另一 (次侧) | writer 不发 |
 | +264 | uint32 | location (省 id) | 恒写; tok 0x286D |
 | +272 | vptr | CGameDate 载体 (ctor 写 vt) | writer 不发 |
 | +280 | int32 | date 值 (ctor = 43791240 "-1.1.1.1" 合法值) | 恒写 (经别名槽 +288; tok 0x284A) |
@@ -764,6 +772,9 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 
 #### 4.22.7 战术视图族 (CCombatTactic / CTacticsListView / PreferredTactics entries)
 
+**CCombatTactic = 静态数据库类** (非战斗内对象): 加载器 sub_1406C01D0 (common/combat_tactics; TGameItemDatabase 模式 — 先装 nullCombatTactic 哨兵 (id=0, CNullCombatTactic 派生) → 逐行 malloc(0x178=376) + ctor sub_1406BD5B0(实例, 名, id 自增 1 起) → 名哈希入桶 + 顺序数组); 数据库单例 sub_1406BDB00; 相位表 @db+40 (32B/条, 经 battle+208 相位下标取条); id getter sub_1406C00D0 = *(u32*)(+152); **+224 = 条件触发器容器** (槽[3] Evaluate; 失败打 "TACTIC_CONDITIONS_NOT_MET")。
+**入栈点** = 战术重掷核 sub_1412BBF90 (每 TACTIC_SWAP_FREQUENCEY 12h 或一侧 cb+304 空) → sub_1412BB330 加权随机: 成功 `cb+304 = sub_1406BDDF0(db, 选中 id)` / 失败 `cb+304 = nullCombatTactic` + "Couldn't select a tactic in phase '...' - missing default fallback tactics?" 断言。**权重填充 sub_1412BC860 四道门**: ① tactic+368 旗 ∨ 国家可用; ② 槽[10] 有效; ③ +224 触发器 Evaluate; 乘子 = INITIATIVE_PICK_COUNTER_ADVANTAGE_FACTOR (反制当前战术) × COUNTRY_PREFERRED_TACTIC_WEIGHT_FACTOR (国家修正块 preferred tactic) × ARMY_GENERAL_PREFERRED_TACTIC_WEIGHT_FACTOR (己方将领偏好) × FIELD_MARSHAL_PREFERRED_TACTIC_WEIGHT_FACTOR (对方将领偏好)。
+
 CCombatTactic 布局 8 偏移定案 (CTacticsListEntry Refresh 消费; target = CCombatTactic\*@entry+32, SetTarget 0X141C70760):
 
 | 偏移 (tactic) | 类型 | 语义 |
@@ -805,7 +816,7 @@ writer = CFG 空桩 → **不入档** (静态 reader); 源 = gfx/naval_combat_fl
 #### 4.22.9 CCombat 行为槽 (每小时战斗步进契约; 虚表 0x1429BBC58 基 / 0x1429A83D8 陆)
 
 CCombatManager (§4.22.1 gs+608) 每小时逐战斗调虚表槽[15] = 战斗步进主入口
-(时序上下文 §4.2.13)。行为槽定案 (COL 链直读):
+(五阶段调度链 = §4.22.9a)。行为槽定案 (COL 链直读):
 
 | 槽 | 语义 | 备注 |
 |---|---|---|
@@ -815,10 +826,12 @@ CCombatManager (§4.22.1 gs+608) 每小时逐战斗调虚表槽[15] = 战斗步�
 | [12] | **progress 读取**: Σ己侧全部师当前 org (0x1412B5360) | 经 sub_140CDF0E0 每小时整量重写 lb+616 |
 | [13] | **首小时初始化** (byte+81=1 / 清 byte+82 结束旗) | CLandCombat 先做两侧大体量初始化 sub_1412AC450 |
 | [14] | **结束标记** (byte+82=1, 通知两侧) / 领袖 XP (损失比×0.5) | 双用途: 步进域 [14]=标记, 基类槽[15] 四连内 [14]=XP |
-| [15] | **每小时战斗步进主入口** | 全链 = 战术重掷核 (12h) → 时长计数 → 参战国 tag 遍历 → 基类四连, 详 §4.2.13 |
+| [15] | **每小时战斗步进主入口** | 全链 = 战术重掷核 (12h) → 时长计数 → 参战国 tag 遍历 → 基类四连, 详 §4.22.9a |
 | [16] | 结束复核 bool(self, idx, count) | 基类 purecall |
 | [19] | **伤害执行步** (sub_1412B3300) | 目标分配 → 闪避 → STR/ORG 骰 → 穿甲偏转 → TakeDamage; 尾推 progress |
 | [22] | **修饰符全量重算** (stacking/over-width/补给/夜战/挖掩/岸轰/空优/情报/包围, 39 define) | 每小时步进第 1 步 |
+| [23] | **战斗结束钩子** (结束通知 sub_1413E2CF0 内调) | 基类/CLandCombat = CFG 空桩; **仅 CNavalCombat 覆写 = sub_1415C4C90 海战结果生成** (§4.22.6 聚合链) |
+| [29] | **当前主将 getter** | 基类 = 返回 0 桩; 海军覆写 sub_14161E5C0 = admiral 数组取军衔最大 |
 | [32] | weighted_participants (情报权重) | 步进第 4 环 |
 
 **CArmy::TakeDamage = 0x140C8F510**: 实扣 +1056 strength / +1064 organisation
@@ -834,3 +847,191 @@ CCombatManager (§4.22.1 gs+608) 每小时逐战斗调虚表槽[15] = 战斗步�
 
 **组织度分工**: 战时扣减唯一入口 = TakeDamage(+1064); 恢复
 (RELIABILITY_ORG_REGAIN, sub_140C82C10) 与移动耗减在师域小时更新。
+
+#### 4.22.9a CCombatManager 小时更新链 (五阶段)
+
+CCombatManager (§4.22.1, gs+608) 每小时推进 (挂点 = HourlyUpdate 相位 12,
+§4.2.6): 首小时初始化 → 活跃判定 → XP 收集结算 → 结束善后 + 战史滑窗。
+行为槽语义与战术重掷核细节 = §4.22.9。
+
+五阶段:
+
+| 阶段 | 动作 |
+|---|---|
+| A | playthrough id 重同步 (gs+1312 优先, 非正取 +1316; 与 cm+32 缓存比, 经 gs+832 恒等表判等价 — 同原初国切换不清场); 非等价清战斗两侧指针 |
+| B | 战史修剪 sub_140BB8910: CCombatHistory (cm+40) 尾部追加 = end_date 升序; **保留 168 小时 (7 天) 滑窗** + 回档守卫 (head.end_date > now 全弹) |
+| C | 主循环 (置 cm+72 _bInCombatUpdate=1): 逐战斗跳过已结束 (+82) → 首小时初始化 ([13]) → 活跃判定 ([9]) → **[15] 每小时战斗步进** (步序见下) → 未结束/已结束分别记录 |
+| D | XP 结算 sub_140BB6F60: leader 经验即时发放 (CUnitLeader::AddExperience: leader+3688 += xp, 超 `100000×单位阈值(+444)` 即升级) + **tbb 并行 ApplyCombatXpGains** (任务符号直读, EJobType 参与) + 收尾晋升扫描 (leader+3576/+3588 单位阈值 +2208) |
+| E | 结束善后: 二次遍历, 已结束或 [16] 复核真 → **RemoveCombat** (swap-remove; combatmanager.cpp:1169/1173/1189 三断言) → [14] 通知两侧 → **CCombatHistory::Add** → 逐省 (省战斗数组 province+224) 去重善后 sub_140BB9220 (同原初国战斗聚合 / 撤退判定 / **胜负 = SCombatSideData progress (lb+616) 高者置 win**) |
+
+槽[15] 主入口步序 (CLandCombat 0x1412B81D0; 定案): ① 按 define 周期调
+**sub_1412BBF90 = 战术重掷核** (§4.22.9); ② `++(a1+68)` 时长计数; ③ 遍历两侧
+参战国 tag 链表, 可战斗者 (sub_140CC6980) 调 **sub_1412BBDB0** = 聚合己侧全师
+人力 (+976 求和) 与装备量 (师+840 池 category&4) max-写**战争统计对象**
++360/+364/+416 (状态位计数 = 修饰槽位图+多国旗, 仅玩家参战侧执行带 UI 通知);
+④ 尾调基类 0x1413E28C0 = 对两侧 combatant 四连 (下表)。
+
+四连流水 (基类槽[15] 尾; 各槽语义详见 §4.22.9 槽表):
+
+| 步 | 槽 | 内容 |
+|---|---|---|
+| 1 | 槽[22] | 修饰符全量重算: stacking/over-width/补给/夜战/挖掩/岸轰/空优/情报/包围 (**39 个 define 全部定名**) |
+| 2 | 槽[19] → sub_1412B3300 | **伤害执行步** (目标分配 → 闪避 → STR/ORG 骰 → 穿甲偏转 → TakeDamage 全参数 = §4.22.9 [19]) |
+| 3 | 槽[19] 尾 | **progress (lb+616) 推进**: vt[12] (0x1412B5360) = Σ己侧全部师当前 org, 经 sub_140CDF0E0 每小时整量重写 → 结算 (sub_140CDB850) **高者判胜 = 剩余组织度比较** |
+| 4 | 槽[14]+XP | 领袖 XP (损失比×0.5 分配; XP 预置系数 0.9f = CCombatant+156 常量) + tbb 并行 ApplyCombatXpGains (阶段 D) |
+
+> 备注: RNG 保护 (random.h:74 主线程断言) 包裹结算段。
+> 海战共用本五阶段骨架: CNavalCombat 主虚表槽[15] = sub_1415C3600 (海战每小时
+> 步进主入口, 伤害五层/撤退/结束全链见 §4.22.10)。
+
+#### 4.22.10 海战小时步进主循环
+
+海战与陆战共用 CCombatManager sub_140BB8AE0 (§4.22.9a 五阶段), 逐战斗统一调
+主虚表槽[15]; **CNavalCombat 槽[15] = sub_1415C3600 = 海战每小时步进主入口**
+(无独立海战管理器)。坐标注: CCombat 层海战对象有 16B 前缀包装 e (数组元素
+= malloc 基, 运行时槽 a1 = e; §4.22.5 表基 c = e+16); CNavalCombatant /
+CFEXGroup / CFEXMember 无前缀 (定案)。
+
+主入口五步: ① 天气刷新 sub_1415C5820 (c+152 天气现象 {2,3,4,5} / c+160 区条
+修正 / c+168 昼昼 sub_140F19660); ② **CFEXGroup 对手组配对 sub_1415C55D0**
+(strike 战斗 → 对方组聚合值最大者 (无果 RNG 兜底 combatnaval.cpp:157); 非
+strike → 未配对活跃组中命中缓存相合度 sub_141C6C040 最优 → 双向写 group+32);
+③ 未配对组同侧合并 sub_1415C52B0 (swap-remove + 成员转移 + 组析构); ④ 两侧
+combatant 推进 sub_141620940 (主将 vt[29] sub_14161E5C0 军衔最大 + cb+312 镜像;
+cb+352 >0 → −= POSITIONING_PENALTY_HOURLY_DECAY_FOR_NEWLY_JOINED_SHIPS;
+命中缓存重建 sub_141622360: 清 cb+744/cb+872 两桶 → 逐组逐 member (state==4
+走桶 A, 其余桶 B) → cb+880..+992 统计快照 15 qword 搬入); ⑤ **基类四连
+sub_1413E28C0** (两侧 cb vt[22]→[19]→[14]→[32] — 四连是 **combatant 层虚表槽**,
+§4.22.9 表内两曾混排的两层现分列)。
+
+伤害结算五层 (定案): ① 槽[22] sub_14161E400 属性重算 (cb+344 positioning /
+cb+328/336 screening / cb+368 anti_air = Σ船值×SHIP_TO_FLEET_ANTI_AIR_RATIO×
+positioning/1e10); ② 槽[19] sub_14161F810 → 逐组 **sub_141C6B560** (清组统计
++160..+192 → 统计对方隐蔽单位五类分布 → **group+72 = 平均反潜探测×
+NAVAL_COMBAT_SUB_DETECTION_FACTOR + group+80 air 反潜×NAVAL_COMBAT_AIR_SUB_
+DETECTION_FACTOR** → forces_compare 重算 → 无效 member 清理 (推 group+112) →
+air time_duration 递减 → 防守方无活跃战力 → 潜艇 member+300 =
+SUBMARINE_REVEALED_TIMEOUT); ③ **CFEXMember 状态机 sub_141973470** (state 枚举
+定案: **1=进场/待命, 2=交战, 4=撤退中, 8=撤离(escape_progress), 16=已撤出,
+32=击沉**; 位掩码 &0xB=活跃, &0x38=撤离类); ④ 开火驱动 **sub_141973E20**
+(cooldown[gun_idx] 充能 → 目标选择 sub_141971CC0 (对方组内加权随机, 潜艇按
+TF 激进度与敌组分类计数选类别) → last_target 块写 (member+312 vt/+320 有船/
++324 对方组数/+328 门) → 鱼雷揭示掷骰 → member+300 = SUBMARINE_HIDE_TIMEOUT);
+⑤ 开火执行 **sub_1419740C0** (命中 = (修正 439 +1e5 − 定位优势) − 目标修正
+440 ×攻击量; 重击 = (目标修正 396+1e5+附加)×命中量 + shooter 国修正 467;
+伤害波动 ±COMBAT_DAMAGE_RANDOMNESS; 装甲减免; STR/ORG 系数 COMBAT_DAMAGE_
+TO_STR/ORG_FACTOR; 暴击 = 目标船+1384 属性×CHANCE_TO_DAMAGE_PART_ON_CRITICAL_
+HIT / 装甲, target member+292 critical_hits_received++; 入账 sub_141620FA0;
+伤害应用 船 sub_140C3E0E0 / convoy sub_141AD8610; 实际伤害>0 → **SNavalHit
+记录 sub_1415C6250** (按目标聚合 hit+56 +=, 新建 = malloc(0x50)+sub_1415C5DB0,
+挂开火方 member+384); 击沉判定 → **sub_141975480** (尾部 `*(member+224) = 32`
+= state 32 击沉唯一写点)) (定案)。
+
+接战激活 sub_141971610 (海战开场逐级投入): duration > ALL_SHIPS_ACTIVATE_TIME
+→ 1; 否则按船型类别与两侧空优效率 (修正 11) 对比 CARRIER_ONLY/
+CAPITAL_ONLY_COMBAT_ACTIVATE_TIME。维修撤退 sub_1419717F0: TF 激进度 (TF+916,
+0-5) → REPAIR_AND_RETURN_PRIO_{LOW,MEDIUM,HIGH}_COMBAT 阈值; 航母/主力 ×
+CAPITAL_SHIP_COMBAT_RETREAT_MULT。空战步 sub_141C6C580: air 条目分类收集 →
+sub_14197B890 空战判定, 门 = c+272 air 旗 ∧ port_strike (高置信)。
+
+撤退链 (定案): 玩家命令 CDisengageFromNavalCombatCommand::Execute
+sub_141350F40 → **sub_141621730(cb,1)** (无组 → cb+320=1; 有组 → 逐 member
+state 1/2→8、4→16); member 级自动脱离 sub_141971760; UI 撤离按钮 =
+sub_141C6CEA0(group, id对); case 8 自动撤离: escape_progress += 逃速
+(sub_14196FE80)/24 → ≥100000 → 16 + 航母 air 条目移除 + convoy 护航解除。
+
+结束链 (定案): 槽[16] sub_1415C3690 (主循环阶段 E 二次遍历): **++duration
+(e+68)** + progress 重算 (sub_14198A080 = 100000×攻方桶值/(攻+守), 双 0 →
+50000; strike 恒 0) + 侧脱离判定 (无组 ∨ 全组无战力 ∨ 全组无对手) → 善后
+sub_1416222E0 → 结束; 槽[14] sub_1415C4690 结束标记: convoy 残余
+CONVOY_SINKING_SPILLOVER 沉没外溢 → **非 strike 胜负 = state 32 计数少者胜**
+→ 逐 admiral sub_140C1E880(leader, win, cb) → 基类 → 槽[23] (§4.22.6 结果链)。
+创建链: **sub_140BB99D0** (combatmanager.cpp:1049; 拦截判定: 双方 strike 目标
+交集 RNG 重定向 sub_140D794E0) → malloc(296)+ctor sub_1415C2330 (e+0 vt1
+0x1429DDB08 / e+16 vt2 0x1429DDBE0) → 槽[6] sub_1415C28F0 pair-init (两侧
+malloc(1008) **CNavalCombatant sizeof 定案 0x3F0** + ctor sub_14161A4A0, 双指针
+同源) → 槽[17] SetLocation (terrain = 战区天气区 sub_1415A5560(省+200+48)) →
+槽[18] 省内其他 TF 卷入 (sub_14161AB40: positioning 初值 = MISSION_SPREADS
+[qword_1433398C0][TF+884] + EFFICIENCY_TO_JOIN_COMBAT_RATIO_PENALTY×(1−效率))
+(定案; C7/C8 尾部高置信)。
+
+新字段: c+65/c+66 (e+81/+82) = 已初始化旗/结束旗; c+272 (e+288) = air 战斗
+门旗; CNavalCombat 活体 sizeof e=296/c=280; CCombatant 基座+24 = 宿主战斗回指
+(sub_1401F6EA0); CNavalCombatant+220 = 对方 air 旗; CFEXGroup +160..+184 =
+敌方隐蔽单位分类计数 (AF10 类/+164 B210 类/+168 AF20∧¬B220/+172 B220 潜艇/
++176 invalid/+180 convoy/+184 B230 类) / +188 本组 air 计数 / +192 敌方可反潜
+船计数; CFEXMember+300 = 潜艇隐蔽/暴露状态 (HIDE/REVEALED_TIMEOUT, 递减写者
+未定位) / +312..+328 last_target 块运行时写者 sub_141973E20 / +168 sprite
+(击沉时写船名/"convoy")。SNavalHit 运行时记录器 sub_1415C6250 / SAirHit
+sub_1415C60E0 (定案)。
+
+#### 4.22.11 边界战执行链 (CLandBorderWarCombat)
+
+**主轴 (定案)**: 边界战完全复用 §4.22.9a CCombatManager 五阶段骨架 —
+CLandBorderWarCombat (vt 0x1429BC5F0, 40 槽) 只覆写少量虚槽; **槽[15]
+sub_1413ED810 = 前置三态状态机后直接调 CLandCombat 步进主入口
+sub_1412B81D0** (复用陆战链)。槽契约: [9] IsActive sub_1413EE680 / [11]
+GetTypeId (token **14757 border_war_combat**, 枚举 1, find_by_states 过滤) /
+[12] 时长门 (≥ COMBAT_MINIMUM_TIME dword_1433349A4) / [13] 首小时初始化
+sub_1413EF0F0 / [14] 终局结算 sub_1413EE780 / [15] 每小时步进 / [16] 结束
+复核 (共享 CLandCombat: 任一侧槽[20] 真 → 槽[24] 胜负执行) / [25] 现算进度
+(clamp(100000×A/(A+B)); A+B≤0 → 50000) / [26] GetWidth (c+200 combat_width
+× (c+144+1e5)/1e5)。
+
+推进状态机 (槽[15] 前置, 定案): **c+208 state 0(待就位)→1(单侧就位, 记日期
+c+220)→2(双侧就位, 记 c+216 = start, 进入交战)**; 就位门 = 侧单位容器计数
+(side+32 data, +12 计数)。
+
+IsActive (槽[9]) 结束条件: ① **sub_140700570 真 = 双方已互相宣战 (关系行
++744 存在 CWarRelation ∧ +73==0) → 移除 (升级为全面战争)**; ② 同国/战争对象
+失效∧(关系+672 ∥ 同阵营 ∥ 特殊关系) → 移除; ③ state<2 → 活跃; ④ state==2 →
+双方单位计数均非 0。
+
+判负 (侧槽[20] sub_1413EFBF0, 定案): ① 编制组 (cb+1256) 无效; ② 州控制权
+链丢失 (state+204/+200/省+392 任一 ≠ 我方); ③ 状态机 1 超
+BORDER_WAR_WIN_DAYS_AGAINST_EMPTY_OPPONENTS 天无单位; ④ 状态机 2 无单位;
+⑤ 打满 minimum_duration_in_days 后 Σ战力 <1000 ∨ 槽[25] 判定。
+
+终局结算 (槽[14], borderwarcombat.cpp:605/616, 定案): 按 **c+225 attacker 胜
+/ c+226 defender 胜 / c+227 cancel** 三旗或槽[20] 现算分流 → 胜方对家 on_win
++ 败方 on_lose (cb+1280/+1312; cancel → 双方 on_cancel cb+1344; 经
+sub_140A0F4F0 真发射) → **change_state_after_war (c+224) 真则败方州
+SetController + SetOwner + 重算三连**; 汇合善后 = 双方编制组 +432 战斗回指
+清零 + sub_1409DD080 清州挂载 + 非战态双向 AI 意愿清除 (sub_140D42D70)。
+
+每日 on_border_war_lost (§4.2.7 序13 补全, 定案): 扫 **cc+1120/cc+1132 国家
+边界战州数组**, 门 = state+2149 活跃 ∧ sub_1409D5BA0 进度 >
+NMilitary::BORDER_WAR_VICTORY (qword_1433327B8); **进度 = 州内参战单位
+BORDER_WAR_POWER (单位虚槽[30]) 按归属国分桶占比**。损耗不在步进内算:
+start_border_war 时给编制组挂 **BORDER_WAR_ATTRITION modifier** (量 =
+BORDER_WAR_ATTRITION_FACTOR × 进度/1e5); 受伤单位经侧槽[16] 进
+removed_unit 暂离 (HOURS_REQ_REJOIN_BORDER_WAR_FOR_INJURED_UNITS 倒计时,
+槽[19] 消费回归)。
+
+创建链: CStartBorderWarEffect::Execute → 工厂 sub_140BB6B70 (malloc 248 +
+ctor + 挂 gs+616 + 侧装配 1416B×2 + 州登记 state+2208 rb-tree)。干预面
+(Execute = 虚表[13] 直证): start / set_border_war (置 state+2149 旗
+sub_14030F980) / set_border_war_combat_data / finalize_border_war (置胜旗 +
+silent c+228) / cancel_border_war (置 c+227) (定案)。
+
+#### 4.22.12 陆战战术选择流
+
+**触发** (定案): CLandCombat::[15]（sub_1412B81D0）首段 — 任一侧无战术 ∨
+`时长 % TACTIC_SWAP_FREQUENCEY(12h)` → 重掷核 **sub_1412BBF90**。
+
+**主动权** (定案): 双方 vt[29] 最高技能将领比大小，侦察大者（侧内逐军师统计
+对象+208 取 max）+ RECON_SKILL_IMPACT(5) 技能当量; **败方先掷普通战术，胜方
+后掷并反制败方新战术**，反制乘子 = 1 + INITIATIVE_PICK_COUNTER_ADVANTAGE_
+FACTOR(0.35)×技能差; counter 目标 = 战术 **+144（单值 id，非位图**; 由
+countered_by 串加载后解析）。
+
+**权重五门三偏好** (sub_1412BC860, 定案): active 旗 ∨ 国家解锁表（gs+1024
+注册表对象 +40 名哈希数组）→ 槽[10] → +224 条件触发器（失败静默零权，仅
+tooltip 发 TACTIC_CONDITIONS_NOT_MET）→ 未解锁权重 0; 偏好乘子 = 国家
+cc+5584 / 主将 leader+4272 / 编制内领袖。
+
+**相位定案**: battle+208 = 当选战术 +360（`phase` 名查 db+40 相位表，"no"=−2,
+相位表由 combat_tactics 特殊键 **"phases"** 构建）; **相位不门控选择**，只供
+GUI/文案。六值聚合: counter 关系成立则对方六值整侧归零（sub_1412AE250 +
+sub_1406C01B0）。CCombatTactic 六值 +312..+352 定名（combat_width/attacker/
+defender/attacker_movement_speed/双方 org damage modifier）（定案）。

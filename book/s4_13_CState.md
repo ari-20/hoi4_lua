@@ -21,7 +21,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +80 | u32 | name cap | SSO 内部 (writer 不触) | |
 | +81..+87 | — | = name 串 cap 的高 4B (cap 实为 8B size_t; 串 {buf@56, size@72, cap@80}) | | |
 | +88 | uint32 | state id | 断言 "Strategic location already exist in state: %d" (sub_1409D18B0); CVariables 以 +88 重注册; SetOwner 通知构造 | |
-| +89..+107 | — | = state id@88 尾垫 (+92..+95) + 监听对象数组 {data@96, cap@104, count@108, alloc@112} 头 (owner/controller 变更通知: SetOwner 逐元 vt[+24](elem, st, &tag); 元素类名定案 = **CProductionStatus** (vt RVA 0x2970788 — 活体元素首 qword 直证); 归属未决 — 非任何 cc+3944, +656 反指=0; 消费全定案 (SetOwner sub_1409DE560 逐元 vt[+24](elem, st, &tag) / SetController sub_1409DDA40 整段复制 / Reset 清 count); 注册点未定位 (0x1409D 段内 `sub_1401205A0(...+96)` 0 命中, 推定内联在 province 侧 CProductionStatus 创建路径); **活体分布 = 599/1082 州 count>0**) | | |
+| +89..+107 | — | = state id@88 尾垫 (+92..+95) + 监听对象数组 {data@96, cap@104, count@108, alloc@112} 头 (owner/controller 变更通知: SetOwner 逐元 vt[+24](elem, st, &tag); 元素类名定案 = **CProductionStatus** (vt RVA 0x2970788 — 活体元素首 qword 直证); 归属未决 — 非任何 cc+3944, +656 反指=0; 消费全定案 (SetOwner sub_1409DE560 逐元 vt[+24](elem, st, &tag) / SetController sub_1409DDA40 整段复制 / Reset 清 count); 注册点未定位 (0x1409D 段内 `sub_1401205A0(...+96)` 0 命中, 推定内联在 province 侧 CProductionStatus 创建路径); **活体分布 = 1081/1082 州 count=1 (每州恰 1 个监听者; 元素 RTTI 直证 CProductionStatus; +656 反指=0 复现)**) | | |
 | +108 | uint32 | 监听数组计数 | +120 空时 Reset 置 0 (sub_1409D6BF0; 高置信) | |
 | +109..+119 | — | = 监听数组 {count@108, alloc@112} + CStateHistory* 外置指针@120 头 (非内嵌; 外置对象 {head, cap, count, alloc}, 条目 32B 见下子表) | | |
 | +120 | 内嵌容器 | 州历史条目向量 (CStateHistory 族, 业务名推定) | 32B 条 (见下子表), 独立 allocator; Reset 扩容插入 {2,0,1,0} 迁移 (容器形态定案) — 非「动态修正容器」(旧同名异偏移系误名) | |
@@ -57,7 +57,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +1352 | 内嵌块 | 州资源消耗块基 (真 CModifier 192B: vt@1352, pairs@1368, children@1392; 不序列化) | base pairs@+1368 16B 条 {token, value i64}; loc STATE_RESOURCE_COST "State Consumption" 按 token 查 | |
 | +1368 | 匿名结构 (16B 键值对) 向量 | (+1352 块) base pairs 数据 | 与 +1736 块 pairs@+1752 同构 (base+16 关系) | 定案: +1352 = 真 CModifier (vt + pairs 双证, 探针), +1368 = 其 base pairs 数据槽; 「内联默认 CModifier」读法否定 |
 | +1381..+1543 | — | = 真 CModifier (192B)@1352 内部 — 按 §4.3.8 通用表即闭 | | |
-| +1544 | 内嵌块 | 州生效修正块 (运行时合成, 非序列化) | 重建 sub_1409D54A0: 清 +1560 → category 对象+96 修正 + +1736 脚本块 + 非-core owner/controller 占领修正 + 建筑 +88 + 每省 +480 条目 → sub_140557BF0(st+1928, st+1544) 施加; base pairs@+1560, children {d@+1584, c@+1596} | |
+| +1544 | 内嵌块 | 州生效修正块 (运行时合成, 非序列化) | 重建 sub_1409D54A0 (触发源 = CBuilding::SetLevel 级变 fan-out sub_1409DB480, §4.14.2): 清 +1560 → category 对象+96 修正 + +1736 脚本块 + 非-core owner/controller 占领修正 + 建筑 +88 + 每省 +480 条目 → sub_140557BF0(st+1928, st+1544) 施加; base pairs@+1560, children {d@+1584, c@+1596} | |
 | +1596 | uint32 | (+1544 块) children 计数 | sub_1409E02C0 读 | |
 | +1597..+1735 | — | = 真 CModifier (192B)@1544 (运行时合成生效修正) 内部 — 192B 恰到 +1736, 三块等距互证 | | |
 | +1736 | 内嵌 CModifier | 州 modifier 块 (10597) | 全布局见 §4.3.8 通用表 (+64 回收池 / +88 name / +120 tooltip 串集合 / +152 hidden 集合 / +184 掩码 / +188 深度); base pairs {d@+1752, c@+1764} 16B 元 {mdef idx u32, i64×1e-5}, mdef 表 = *(BASE+53569984) 120B 行 token@+112; children {d@+1776, c@+1788}: added_modifier data=u32@child+188 (≠1 门), name=SSO@child+88, pairs {d@+16, c@+28} (writer 0X140612640; TGWR 脚本州修正) | |
@@ -141,7 +141,7 @@ lf@2308; B@2312 → data@2320 / mask@2328 / count@2332 / extra@2336 / lf@2340;
 |---|---|---|---|
 | +296 | 匿名结构 (32B 形状) 向量 | 记录数组数据 {d@296, cap@304, c@308, alloc@312} | 32B 元/楼: level / partial_health / healthy_levels |
 | +320..+336 | 78×8B 槽序数组 | {u32 槽序, u32 值} (全 (i,−1) 初始; cap=count=78 与 +296 平行) | 形态定案 ; 角色推定 槽→实例映射 |
-| +344 | 匿名结构 (NB 形状)* 向量 | 自有槽实例数组数据 {cap@352, c@356, alloc@360} | 8B 元, **元素 stride = 512B** (活体 elem1−elem0 实测); 元素带 +480 块 / +64 i16, 求和场景; 虚析构逐个删 (高置信); **活体分布: 1035/1082 州非空, 总 2158 实例, 单州最大 8** |
+| +344 | 匿名结构 (NB 形状)* 向量 | 自有槽实例数组数据 {cap@352, c@356, alloc@360} | = **CBuildingStatus+56 视角 (st+288 内嵌)**: 州建筑元素数组 — 元素 = **CBuilding** (496B; +66 healthy_levels / +72 partial_health / +472 status 回指 / +480 def 回指; 定案), 活体 elem1−elem0 实测 512B (分配器取整); 核弹破坏链 sub_1410DC060 逐元素拆级 (def 免损旗门 +868/+883 族) 并尾调 sub_140E5F8C0 = **AddConstruction(repair=1) 修理线** (§4.8.5a); **活体分布: 1035/1082 州非空, 总 2158 实例, 单州最大 8**; 虚析构逐个删 |
 | +356 | uint32 | 自有槽实例数组计数 | 高置信 |
 | +368 | 匿名结构 (NB 形状)* 向量 | 第二数组数据 {d@368, cap@376, c@380, alloc@384} | 借用/视图; 元素: 等级 i16@+66 (>0 门), 类型 token@+8, 修正 def@+88 (def+528 = 名 SSO), 资源块 ptr@+480; 可见性谓词 sub_1409DA7B0 + 修正重建消费 (高置信形状, 名推定); GUI: 建筑修正图标来源 (r3 sub_14174C6F0) + B14 占领资源双列 (资源块+480 的 +764/+768 ×等级 i16@+64 ×100000, 再按占领国折减; sub_14155D120; **+764 = 军工产线数 NUM_TOTAL_MIL_FACTORIES / +768 = 民用产线数 NUM_TOTAL_CIV_FACTORIES** — tooltip OCCUPIED_COUNTRY_INDUSTRIAL_CAPACITY_TOOLTIP 参数绑定直证) |
 | +380 | uint32 | 第二数组计数 | PEACE_COST 分解 sub_1409D2B20 亦读 |
@@ -150,17 +150,20 @@ lf@2308; B@2312 → data@2320 / mask@2328 / count@2332 / extra@2336 / lf@2340;
 | +400 | int32 | 未名标量 | |
 | +404..+407 | — | 尾垫 | |
 
-#### 4.13.1 CResistance (内嵌 st+616, writer 0X140F9CCF0)
+#### 4.13.1 CResistance (内嵌 st+616, writer 0X140F9CCF0; 独立 vtable 0x14297e370)
 
 块门: 全部 ≠0 才写。
 
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|
 | +16 | fixed×1e-5 | resistance | | GUI: StatusView 图标帧+百分比 (Update sub_14156E190, clamp 0..100) |
-| +24 | fixed×1e-5 | resistance_speed | | |
-| +32 | fixed×1e-5 | base_resistance_target | | |
-| +40 | fixed×1e-5 | resistance_target | | |
-| +41..+63 | — | = cr+8 CState* 回指 区尾 + compliance@+64 头 | | |
+| +24 | fixed×1e-5 | resistance_speed | 不序列化, 每日 sub_140F9BF90 重算 (速度公式 sub_140F94690) | |
+| +32 | fixed×1e-5 | base_resistance_target | 不序列化, 每日 sub_140F9BF40 重算 | |
+| +40 | fixed×1e-5 | resistance_target | 邻州扩散落值 (sub_140F921A0: cr+40 += flow) | |
+| +48 | 州 id | 邻流源州 (扩散写入时记源) | | |
+| +48 | 州 id | 邻流源州 (扩散写入时记源, 目标公式 a3 分支) | | |
+| +56 | fixed×1e-5 | 邻流流量 (扩散写入值) | | |
+| +57..+63 | — | = pad + compliance@+64 头 | | |
 | +64 | fixed×1e-5 | compliance | | GUI: StatusView 图标帧+百分比 (Update sub_14156E190) |
 | +72 | fixed×1e-5 | compliance_speed | | |
 | +80 | tag_id | occupied_country_tag | | GUI: 占领面板数据门 (cr+80>0; 0X141566650 → occmgr 链) |
@@ -185,6 +188,8 @@ lf@2308; B@2312 → data@2320 / mask@2328 / count@2332 / extra@2336 / lf@2340;
 | +649..+659 | — | = force_disable_resistance {cap@656, c@660} 头 | | |
 | +660 | u32 | force_disable_resistance 容器计数 | | |
 | +696 | u8 | 脏旗 (add/set_compliance 直写 1) | 不序列化 | 推定 |
+| +704 | i64 | 上次通知快照·抵抗 (变化检测: \|Δ\|≥1e5 或跨 0/满 → 快照更新 + cr+696 脏) | 不序列化 | 定案 |
+| +712 | i64 | 上次通知快照·顺从 (同上) | 不序列化 | 定案 |
 | +720 | — | 标度 100000 | | 728B 全长尾 |
 
 added_resistance_targets 条目 (72B, 0X140F9D2B0):
@@ -198,16 +203,15 @@ added_resistance_targets 条目 (72B, 0X140F9D2B0):
 | +32 | tag_id | occupied | >0 |
 | +40 | string | tooltip | len@+56 ≠0 |
 
-**(国,州) 占领数据对象 (无独立 RTTI 类 — 负定案)** — sub_140FF3BE0(占领mgr, cr+80) 取得;
-set_garrison_strength 链锚定 (§4.32 卡):
+**(国,州) 占领数据对象 = CCountryOccupationData (定案, vt 0x142984928; §4.3.2 记录 dp 同一对象)** —
+sub_140FF3BE0(占领mgr, cr+80) 取得; 即 §4.3.2 记录 dp (occ+96 列表条目 / occ+72 RH 值), 全布局见 §4.3.2 补行表:
 
 | 偏移 | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|
-| +216 | 匿名结构 (24B 槽) 哈希表 | 24B 槽哈希表 {table@+216, mask@+228, spare@+232}; 键 = 州 id (FNV 73244475) | 推定 |
-| +228 | u32 | 上表 mask | 推定 |
-| +232 | u32 | 上表 spare | 推定 |
-| +240 | fixed×1e-5 | garrison override 现值槽 | 推定 |
-| +256 | fixed×1e-5 | garrison override 基值槽 (+240/+256 双写同值) | 推定 |
+| +216 | RH map | **CStateGarrisonData map** 桶数据 {count@+224, mask@+228, extra@+232}; 键 = 州 id (FNV 73244475); 条目 = SGD 264B (§4.3.2 布局表) | 定案 |
+| +228 | u32 | 上表 mask | 定案 |
+| +232 | u32 | 上表 extra | 定案 |
+| SGD+240 / SGD+256 | fixed×1e-5 | garrison override 现值/基值 (set_garrison_strength 效果 sub_140FFE2F0 双写同值; 旧 +240/+256 推定行系 SGD 字段, 基址勘正) | 定案 |
 
 #### 4.13.2 CVariables (脚本变量; 指针 st+2040, writer 0X140BC9280)
 
@@ -359,3 +363,29 @@ CPersistent 真 writer/reader (0x141000640 / 0x140FFBF80); 宿主容器 = occmgr
 | +152 | CResistanceActivity* | resistance_activity (15757) | 读 = 名串查 idb resistance_activity (§4.26.4); 写 = def+8 名串 |
 
 > **本域 GUI 类布局**: 见 4.30.1。
+
+#### 4.13.1a 抵抗活动执行体 (cr+576 active_actions 定名)
+
+**元素定名 (定案)**: cr+576 active_actions 40B 元素 =
+**CResistance::SActiveResistanceAction** (vftable 符号 + RTTI COL 双证, vt
+0x14297e2d0) — 无行为槽纯数据条目: {CResistanceActivity*@+8, pdx vector\<int\>
+倒计时列表@+16 {cap@24, count@28, alloc@32}}。writer 0x140F9D1E0 / reader
+0x140F9BD90, 落盘 = `action(10546)="名" days(10605)={int…}`。
+
+周期消费 (定案): 占领管理器日更 sub_140FF7170 与全局日更 sub_140A74A50 双路
+逐州调 **CResistance::DailyUpdate sub_140F98050** — int 逐日自减 / 到期移除 /
+列表空则整元素移除+置脏, 随后掷选。**触发链 sub_140F97920 三道门**:
+① 发生率门 (rand1 < resistance%×0.312,
+RESISTANCE_ACTIVITY_CHANCE_AT_MAX_RESISTANCE) → ② 渗透率门 (rand2 ≤
+(1e5−驻军强度)×mdef496/1e5, 下限 2%) → ③ rand3 加权选中 (候选收集
+sub_140F94490: allowed/weight/days/max_instances 四 def 访问器 + 现有实例数
+并发检查)。**执行体 sub_140F98340** = 发 "siegeinfo" 通知 (BestVP 省 id) +
+def+184 内嵌 CEffect vt[12] 执行效果块 + days>0 入队 (按 def 查重复用);
+sub_140F92710/sub_140FF4D30 = 驻军人力/装备损耗结算 + resistance_attack_log。
+
+副产: cr+8 = CState* 回指 (定案); added_resistance_targets 72B 条目 =
+CResistance::SAddedResistanceTarget (vt 0x14297e320, reader 0x140F9BEB0 键表
+全解); CResistanceActivity def 912B 七字段访问器链; gs+2617 = 抵抗系统启用
+旗 (与 §4.1「HasGameStarted」同槽); 消费面 = has_active_resistance 触发器
+(0x1427b3470, 被占领∧未平定 target<10) + 特工任务前置校验 + GUI 活动列表
+(sub_140F9A200, RESISTANCE_ACTIVITY_LIST_* loc)。

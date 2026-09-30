@@ -9,3 +9,6 @@
  ds_pin_on: "Units: keep all divisions in supply"
  ds_pin_off: "Units: stop pinning division supply"
  DsPinDesc: "Pin every active country's division effective-supply ratio and stored supply to 100%, zeroing all out-of-supply penalties and removing supply-based movement rejections."
+ ds_access_on: "Navy: naval accessibility once per day"
+ ds_access_off: "Navy: restore hourly naval accessibility"
+ DsAccessDesc: "Naval accessibility (straits and adjacency rights) is fully recomputed every game hour by default; toggled, it runs once per day instead (one full rebuild right after enabling). Trade-off: after capturing a strait or changing access rights, naval pathfinding may lag until the next midnight tick."

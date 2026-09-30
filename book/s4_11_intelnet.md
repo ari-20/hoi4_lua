@@ -349,10 +349,10 @@ economy/army/navy/air 四面板。
 |---|---|
 | RTTI 名 | COperativeLeader |
 | sizeof | 0x10A8 (4264) — 两处独立 malloc_base(0x10A8) + ctor 旁证 |
-| vtable RVA | vt0 0X142954730 / vt1 0X142954848 (+3928 CSelectable 子对象视口) |
+| vtable RVA | vt0 0X142955F00 (主表, §4.4.1 同源) / vt1 **0X142956018** (+3928 CSelectable 子对象视口; 原记 0X142954848 与 0X142954730 均系错值指向字符串数据) |
 | writer (vt slot2) | 0X140C28550 = 基链 0X140C1CE70 (前缀 [0,3928), 基类全表见 §4.4 CUnitLeader) + 特有区 |
 | loader | — |
-| 挂载点 | retired 池 {d@ch+200, c@ch+212} (CCharacter) 与现役 CIntelligenceAgency recruitment/agency 池 (§4.11.14), 同经 ADEC0 |
+| 挂载点 | retired 池 {d@ch+200, c@ch+212} (ch = CCountryCharacters cc+4080; 元素 COperativeLeader* 8B, 键 15702, malloc 0x10A8 = sizeof 直证) 与现役 CIntelligenceAgency recruitment/agency 池 (§4.11.14), 同经 ADEC0 |
 | ctor | 0X140C0BE20 (经 0X140C0C200 基类链) |
 | dtor | 0X140C0D1B0 (触 +3928/+4232/+3944) |
 
@@ -736,6 +736,92 @@ COperativeLeader writer 链 (基 0X140C1CE70 + 0X140C28550):
 
 **AI 四驱动 (CAIModule 基, 名录; 无存档字段; 共性 +64 = owner 上下文; 门控读 CStrategicAI+8765 (csa+5965) 战略首轮就绪旗, §4.34.11)**: COperationsAI (vt 0x1429AC6B0; [14] 周期启动门 → post CLaunchOperationCommand; [15] 周优先级) / COperativesAi (0x14298A2E8; [14] 干员招募+任务分派; 无周更) / CIntelligenceAgencyAI (0x1429AB938; **[15] 建局主逻辑**, DLC 门 25; [14] 仅 metrics 日志) / CCryptologyAI (0x1429AB130; +72 = cryptology 对象指针 (宿主 = agency+288 推定); [14] 日补位 + [15] 周重评估; **密码部门激活门 = 日/周共用前置门**)。四家 AI 行为全链见 §4.34.14。
 
+#### 4.11.16a COperation def (2008B=0x7D8, vt 0x14293F2D8) 与 COperationPhase def (408B=0x198, vt 0x14271ABC0)
+
+**COperation**: [2] writer = 空桩 (**def 不入存档**); [3] Load = 自定 wrapper
+sub_140A7EDB0 (写 {块名 intern id, parser int} 对至 +1996/+2000 — serfam 盲区家族);
+[4] reader = sub_140A7F200 (40 键); [8] PostLoad = sub_140A7D210; ctor sub_140A7BAB0。
+库 = COperationsDatabase (128B, **qword_14332EFA8**; 名索引 RH 表 56B 桶; 书所记
+EFA0 系邻位 idb 键); 工厂 sub_1401679D0 (命中 = move-assign 原位覆盖 + vt[3] 重
+parse = 热重载保位); 装载 boot 序 = operation_tokens → operation_phases →
+common/operations。GUI: 行+2736 = COperation*; is_operation_type 读 op+72。
+
+| 偏移 | 类型 | 语义 (脚本键) | 键 | 置信 |
+|---|---|---|---|---|
+| +8 | u32 | 名字 token id (库 intern id; writer 取块名) | — | 定案 |
+| +16 | CMeanTimeToHappen 56B | ai_will_do (ctor 默认 mean 4 天) | 10819 | 定案 |
+| +72 | CMeanTimeToHappen 56B | target_weight (ctor 默认 mean 66) | 19642 | 定案 |
+| +128 | CAndTrigger 88B | allowed — daily 失效删 op 求值点 | 12263 | 定案 |
+| +216 | CAndTrigger 88B | available (可否发动) | 12264 | 定案 |
+| +304 | 容器 24B (u32 元) | awarded_tokens | 19423 | 定案 |
+| +328 | u32 | days / base_duration (PostLoad 断言非零, operation.cpp:513) | 10605 | 定案 |
+| +336 | fixed×1e-5 | danger_level | 19302 | 定案 |
+| +344 | SSO 32B | difficulty | 10655 | 定案 |
+| +376 | u32 | network_strength (所需谍报网强度) | 19009 | 定案 |
+| +384 | CEffect 88B | on_start (启动期经 sub_140210F70 另发通知 = 名字复用) | 19007 | 定案 |
+| +472 | u32 | operatives / operative_slots (创建链按此扩快照表) | 15646 | 定案 |
+| +480 | CEffect 88B | outcome_execute (普通结局; Complete 在 op+192==0 时执行; 效果容器 count = def+500) | 19432 | 定案 |
+| +568 | CEffect 88B | **outcome_extra_execute** (奖励结局效果, 无 fail 效果键; Complete 在 op+192!=0 时执行; 容器 count = def+588) | 19433 | 定案 |
+| +656 | CEffect 88B | outcome_potential | 14673 | 定案 |
+| +744 | CAndTrigger 88B | optional | 19008 | 定案 |
+| +832 | 容器 24B (u32 元) | required_tokens | 14675 | 定案 |
+| +856 | CAndTrigger 88B | requirements (独立触发器; 原「allowed 触发器」键名纠正) | 15166 | 定案 |
+| +944 | CAndTrigger 88B | selection_target_state (Parse 参 2 = state 域) | 19021 | 定案 |
+| +1032 | u32 | priority (总览行排序键) | 141 | 定案 |
+| +1036 | u32 | target_type (ctor 默认 10304 = province) | 19420 | 定案 |
+| +1040 | CAndTrigger 88B | visible | 11562 | 定案 |
+| +1128..+1131 | u8 ×4 | will_lead_to_war_with (13828) / prevent_captured_operative_to_die (19154) / is_staged_coup (15921) / is_captured_cipher (16141) | 各键 | 定案 |
+| +1136 | SSO 32B | desc | 10644 | 定案 |
+| +1168 | SSO 32B | icon (行动总览行小图标, 行填充 SetGfx def+1168) | 181 | 定案 |
+| +1200 | SSO 32B | map_icon (肖像视图大图标 COperativePortraitView; 地图图标同源) | 14676 | 定案 |
+| +1232 | SSO 32B | **name** (def 名串, getter sub_140CFC0 直读 — on_start 通知系名字复用) | 27 | 定案 |
+| +1264 | fixed×1e-5 | cost_multiplier (ctor 0xAA = 未设哨兵; 未设用全局默认) | 19001 | 定案 |
+| +1272 | u8 | cost_multiplier 设定旗 (读入即置 1) | — | 定案 |
+| +1280 | fixed×1e-5 | time_multiplier (ctor 0xAA 哨兵) | 19002 | 定案 |
+| +1288 | u8 | time_multiplier 设定旗 | — | 定案 |
+| +1296 | fixed×1e-5 | outcome_extra_chance (弃用键 19430 读入写 100000−v 并告警, operation.cpp:476) | 19673 | 定案 |
+| +1304 | fixed×1e-5 | risk_chance (计算器 sub_140A7C110) | 19427 | 定案 |
+| +1312 | fixed×1e-5 | experience (ctor 默认 1.0; Complete 特工经验 = define × 此值/1e5) | 11930 | 定案 |
+| +1320 | u32 | 本 def 在 _cost modifier 类别库的 mdef 索引 (PostLoad 登记) | — | 定案 |
+| +1324 | u32 | 本 def 在 _outcome 类别库的 mdef 索引 | — | 定案 |
+| +1328 | u32 | 本 def 在 _risk 类别库的 mdef 索引 | — | 定案 |
+| +1336 | 容器 24B (u32 元) | cost_modifiers | 19429 | 定案 |
+| +1360 | 容器 24B (u32 元) | outcome_modifiers | 19431 | 定案 |
+| +1384 | 容器 24B (u32 元) | risk_modifiers | 19428 | 定案 |
+| +1408 | CPersistentScriptTargets 264B | operation_target | 19018 | 定案 |
+| +1672 | CPersistentScriptTargets 264B | selection_target | 19019 | 定案 |
+| +1936 | 容器 24B | phases — 元 = COperationPhaseSelection* 8B (每出现一次 phases 键追加一个 32B selection 并入新成员; selection 内才是 member 列表) | 19005 | 定案 |
+| +1960 | COperationResources 32B | equipment 基础资源清单 (创建链先拷它) | 12110 | 定案 |
+| +1992 | u8 | return_on_complete (PostLoad 逐资源元打 return 标) | 19426 | 定案 |
+| +1993 | u8 | scale_cost_independent_of_target (置位 = 全目标口径; cost/time/资源三处一致) | 19350 | 定案 |
+| +1996 | u32 | 名字 intern id (自定 Load 入口现算: 块名 FNV → 全局 intern 表) | — | 高置信 |
+| +2000 | u32 | Load 期 parser 读入 int (与 +1996 成对; 语义未决) | — | 推定 |
+
+实例侧订正: op+192/+193 存档键 = `outcome_extra`/`risk_extra` (原「失败旗/检测旗」
+应更名); Complete 机会 = outcome_extra_chance(+1296) 基值 + 修正。
+
+**COperationPhase** (ctor sub_140149BF0; [2] writer 空桩; [3] Load = 自定
+sub_140A7B2A0 (intern 对至 +400); [4] reader = sub_140A7B2E0 11 键; [8] PostLoad =
+map_icon 空回落 icon + return_on_complete 传导 +104); 库 = COperationPhasesDatabase
+(common/operation_phases, 按名字入库):
+
+| 偏移 | 类型 | 语义 (脚本键) | 键 | 置信 |
+|---|---|---|---|---|
+| +8 | u32 | 名字 token id (phases 库 intern) | — | 定案 |
+| +16 | CAndTrigger 88B | requirements (phase 级门槛) | 15166 | 定案 |
+| +104 | COperationResources 32B | **equipment** (本 phase 资源需求清单; 创建链 sub_140A7BEA0 = 拷 def+1960 基础清单 → 逐选中 phase 并入 +104 → 重复系数缩放) | 12110 | 定案 |
+| +136 | u8 | return_on_complete (PostLoad 传导到 +104) | 19426 | 定案 |
+| +144 | SSO 32B | desc (GUI 阶段条显示文案; 原「+144 名」键名纠正) | 10644 | 定案 |
+| +176 | SSO 32B | icon | 181 | 定案 |
+| +208 | SSO 32B | map_icon (空 → PostLoad 回落 +176) | 14676 | 定案 |
+| +240 | SSO 32B | name (相位显示名, 如 "Dig the tunnels!"; 原「+240 标题」键名纠正) | 27 | 定案 |
+| +272 | SSO 32B | outcome (结局文案) | 19011 | 定案 |
+| +304 | SSO 32B | outcome_extra (奖励结局文案; 与实例旗 op+192 存档键同名族) | 19434 | 定案 |
+| +336 | SSO 32B | risk_extra (冒险结局文案; 实例旗 op+193 同族) | 19435 | 定案 |
+| +368 | SSO 32B | picture (事件肖像图; 原「icon」键名纠正) | 464 | 定案 |
+| +400 | u32 | 名字 intern id (自定 Load 写; GUI 经全局表查) | — | 高置信 |
+| +404 | u32 | Load 期 parser 读入 int (与 +400 成对; 语义未决) | — | 推定 |
+
 #### 4.11.17 行动令牌管理器与情报 defines 全局映射
 
 **CCountryOperationTokenManager** (国别行动令牌管理器, 72B; cc+5552 tokens scopedptr 本体; ctor 0x141405CF0(cc); **入 savegame 国家块**): writer 0x141407F90 / reader 0x141406F20; 落键 = intel_source (19252, +16 内嵌子对象) + operation_assets (16245, RH 表 40B 条目 {+48/+56/+60/+64}, 排序后落盘), reader 兼容旧键 tokens (19016); 与相邻 cc+5544 CCountryOperationManager (内含 CCountryFinishedOperations@+40) 配对 — 干员令牌 def 见 §4.11.16 COperationToken, 本类持运行态令牌清单。
@@ -750,3 +836,127 @@ COperativeLeader writer 链 (基 0X140C1CE70 + 0X140C28550):
 > 名证 = 注册调用点与全名串返回函数双证 (映射表六地址均唯一), 值级与 common/defines/00_defines.lua 对拍一致。
 
 > **本域 GUI 类布局**: 见 4.31.43。
+
+#### 4.11.18 operation 运行推进链
+
+**phases 负定案**: op+248 phases = 创建时逐 selection 加权掷骰选定的**静态变体
+列表** (sub_14119F780, CAIMTTHChance, 种子 = sub_14119F4F0(ops,def,target) 双
+hash), 决定该次 op 的资源/工期/图标 — **运行期无逐段状态机**; 生命周期三态 =
+COLLECTING (duration=0) → 运行 (duration>0) → COMPLETED (op+66)。RAID 五段
+相位机属突袭系统 (§4.27.3), 与 operation 无关。
+
+创建链: **CreateOperationInstance sub_14119E0F0** (def 查找 → 查重
+"Tried to create the same operation twice against the same target"
+operationmanager.cpp:385 → 掷骰选 phases → malloc(408) + 全参 ctor
+sub_1413FE600: +72 def / +80 cc / +88 target / +112 开工哨兵 43808760 /
++208 prepared 哨兵 / 五容器 (+224 快照表 56B/元 / +248 phases / +272 equipment
+/ +336 资源 / +368 return_on_complete); def+472 特工槽数扩 +224; 资源掷骰
+sub_141404A30 (sub_140A7BEA0 逐 phase 并入 phase+104 资源 × 系数 (def+1272
+旗? def+1264 : 全局) + 变体掷骰 sub_140A7BFD0 → +336) (定案)。
+
+启动 **StartOperation sub_141400170** (判定 sub_141A29BC0 CanStart):
+① **op+128 duration = sub_14119EB20** (def+328 基础天数 × 修正;
+tooltip OPERATION_VIEW_BASE_DURATION/DURATION_MALUS_REPETITION/
+DURATION_MALUS_DEFENSE); ② **op+112 = gs+1128 当前总小时**; ③ 玩家国 →
+on_start 通知 (def+1232, sub_140210F70); ④ 特工绑定: +224 逐 56B 元 →
+leader+4224==3 (on_mission) 时经 mission 句柄 slot17 取
+COperativeMissionData 快照填元素+16..+48, **sub_140C26600(leader, op)
+(state→4 on_operation + 绑 op)**; 缺特工 assert "Starting an operation with a
+missing operative!" (operationinstance.cpp:408); ⑤ 资源扣除 (civ → 生产
+sub_141374EF0; equipment → sub_14100EA70 入 +272) (定案)。
+
+daily 推进 **sub_14119E390** (CCountry::DailyUpdate operations 步, 逐 running
+op): ① duration==0 → 资源重算; ② **civ 累计 op+48 < 总需求 op+56 → 生产扣款**
+(op+48 += sub_140E69490(cc+3944) 可用产能; instant 旗 word_14332F623 ∧ 玩家国
+→ 一次付全款); ③ **prepared (op+208)**: 资源齐且未启动 → 写当前小时, 否则
+重置哨兵; ④ 工厂需求聚合 → ops+80 (变则 sub_1406FF1F0(cc,2) 修正重算 bit);
+⑤ **auto_commence (op+64) → 尝试启动** (每 op 每天一次); ⑥ 失效删除
+sub_14119DD20: 目标 tag≤0 / 目标国亡 / 敌对判定 / **def+856 allowed 触发器
+求值失败** → 释放特工 (sub_141403580) + 删实例 (定案)。
+
+到期结算 hourly **sub_14119FE70** (country hourly pass⑥ cc+5544, 逐 running
+op 栈拷贝): ① 目标国亡 → 释放+删 (无条件); ② duration==0 或 completed 跳过;
+③ **到期判定 sub_141403780: gs+1128 ≥ op+112 + 24×op+128** (instant 旗+玩家国
+跳过); ④ 到期 → finished 表记账 (ops+48 双层 RH, 目标 tag count+1); ⑤ 玩家
+可见: 通知 sub_140CD6440 / cryptology op 解密天数扣减 / def "operation_
+rescue_general" 特殊处理 (sub_1401ED990 + sub_140CD43A0 救出将军); ⑥
+auto_repeat (op+65): 可重启 (sub_141A29180) → 构造重启命令入事件队列; 否则
+玩家国弹 OPERATION_VIEW_AUTO_REPEAT_FAIL; ⑦ **sub_1406FFC90(cc) = 到期通知
+登记 (恒真, 写 tag 列表 + cc+136=1) → 所有到期 op 一律当场删除**; ⑧ 待删表
+swap-remove 收尾 (operationmanager.cpp:360) (定案)。
+
+Complete **sub_141403780** 十步: ① 派发 **on_operation_completed**
+on_action (scope = 目标+owner); 特工经验 = qword_1433333B0 × def+1312 / 1e5
+(operationinstance.cpp:548); ② 成功判定: 修正聚合 (国家 cc+1448 + 逐特工
+leader+648 + 目标国) → def+588 触发器 → 掷骰失败 → **op+192 失败旗**;
+③ 效果块 def+480 (成功) / def+568 (失败) 执行 → op+160 完成文本; ④ **op+66
+completed**; ⑤ 特工检测掷骰 → 派发 on_operative_detected_during_operation +
+**op+193 检测旗** (operationinstance.cpp:615/622); ⑥ 特工释放 (leader+4224==4
+∧ 绑定 op → sub_140C249A0 state 4→3 + 清 leader+3968 + 恢复 mission; 快照
+resume_mission → sub_140C26330); ⑦ return_on_complete 支付 (civ/装备返还);
+⑧ debug 门日志 (定案)。
+
+**56B 快照元素形态** (op+224, 三点对读定案): {idpair type@0/id@4,
+resume_mission u32@8, COperativeMissionData 32B@16 {vt@16, type@24, tag@28,
+ptr@32, ptr@40}, present u8@48}。
+
+情报网重算 (七连之一 sub_1412002E0, 每 so 每小时): ① 收集属主 agency 特工
+(ag+216) mission type∈{1,2,5,8} (build_intel_network/quiet_network/
+boost_ideology/propaganda) 按 target tag 聚合; ② 逆序遍历 so+16 网数组每网
+**sub_1411D63A0 全量重算** (countryintelnetwork.cpp:492 "A country should not
+be able to build an intel network on its territory"; TopologyClient BFS
+sub_1411C0780(net+16) + CGainPostProcessor sub_1411C4080; INTEL_NETWORK_* 五
+define qword_143335F60/FF8/E38/ED8/6540); 失效网 (无特工指向
+sub_1411D4EF0) swap-remove; ③ 新目标 → malloc(264) + ctor sub_1411CF7C0 +
+重算。loader 读弃的 net+208/216/224、subnet+32 即此族运行时缓存。
+
+**反谍强度 CIR 公式 (sub_1411F3DF0, 定案 — 全函数 617 行全文定案, 旧「ICF
+巨函 >1.2 万行」记载与语料不符废)**: CIR = BASE_COUNTER_INTELLIGENCE_RATING
+(qword_143335DA8) + 修正 511 MODIFIER_INTELLIGENCE_AGENCY_DEFENSE (读目标国
+cc+1448) + 特工项; tooltip 格式串 "#~ Factor * CIR + Offset = %s * %s + %s"
+直证命名。特工项 = so+40 counter_intel 槽 (mission type==3) 过滤目标 ==
+so+8 → 逐特工 (OPERATIVE_BASE_INTEL_AGENCY_DEFENSE qword_1433313C0 +
+COperativeLeader+1032 修正块 ×511) × (1 + FOREIGN_AGENT_FACTOR
+qword_143337FE0/1e5); 聚合 = 身份排序去重 → **值升序最强者满额、其余 ×
+STACKING (qword_1433380E8)^k 递减**。消费链: ① 网强度目标 = sub_1411F3C80
+→ **sub_1411F3A50 = clamp(Offset qword_143336300 + Factor qword_143336238 ×
+CIR/1e5, 0, 1e7)** (无 so 兜底 1e7) → sub_1411D1260 逐 subnet 直写
+**subnet+64/72/80 = {目标+per_op, per_op, 目标−Offset}** (per_op =
+qword_143336088 × 特工数); ② defense (ag+296) = sub_140FDF110 = CIR +
+LOG_FACTOR × ln(CIR+1)/1e5 (ln = sub_1424EF9D0 定点自然对数), DIVISOR
+qword_143338328 三分支。新字段: subnet+64/72/80 / COperativeLeader+1032 修正
+块 / +288 排序键 tag。
+
+机构 hourly (country hourly pass⑥, sub_140FDD500): ① ag+216 特工逐个维护 +
+state==3 ∧ type==0 → 归位; ② **defense (ag+296) 重算 sub_140FDF110** = clamp
+(网强度 × qword_143338240 + 强度/100000); ③ **特工槽重算 sub_140FDF210**:
+ag+240 max 重算 (sub_140FD7E30), **ag+244 usable = min(旧, 新 max)**; usable
+== max → ag+248 elapsed 清 0; 超编 → 现役−usable 逆序解雇 (在 op 上先
+RemoveOperativeFromOperation sub_1411A1550 → retired 池) (定案)。
+
+机构 daily (sub_140FDBD60): ① in_creation (ag+193) → upgrade_progress ag+200
++= 产能 → 阈 100000×dword_143335600 → 建成 sub_140FDBA00; ② 升级中 (ag+208)
+→ 阈 100000×dword_143335680×(mdef555+1) → sub_140FD78D0; ③ max>usable →
+ag+248++ ≥ 下一槽天数 (sub_140FDD160) → ag+244++; ④ ag+256 = max(旧,
+Σ控制州抵抗镇压值); ⑤ 尾步 → 密码学 (定案)。
+
+**密码学日进度 CCryptology::DailyUpdate sub_1413F71D0** (机构 daily 尾步):
+门 = mdef529 crypto_department_enabled ∧ crypt+52 count>0。① 解密中条目 (+18
+旗) 停止清理 (目标==owner / 目标亡 / 关系判定); ② 剩余天数 = 100000×目标防御
+(sub_1413F7C60) / (100000×我方力度 sub_1413F6CA0); ③ 逐条目 days(+12) −1 →
+≤0 → −1 + 停止 + sub_1413F8D80; ④ 玩家国条目分母 = CRYPTO_BASE
+(qword_143333030) + PER_UPGRADE (qword_1433330F0) × mdef528 目标等级;
+⑤ **sub_1413F6820: +24 进度分子 += 日增量 clamp 阈值; 到阈 → +40 = 完成日,
+未到 → +40 = 43808760**; ⑥ 完成判定 sub_1413F8740 (+16 全解密旗 ∨ 分子≥阈)
+→ 解密关系 + 解密完成事件 + 玩家国弹窗 **CRYPTO_ENEMY_CRYPTO_IS_BROKEN_
+TITLE/_DESC** (定案)。
+
+COperation def (idb qword_14332EFA0, 56B 桶) 新字段: +328 base_duration /
++472 operative_slots / +480 on_success 效果 / +568 on_fail 效果 / +588 成功
+判定触发器 / +856 allowed 触发器 (失效删 op) / +1232 on_start 通知 /
++1264/+1272 资源系数/旗 / +1312 特工经验值 (定案)。COperationInstance 运行时
+字段: +48 civ 累计 / +56 总需求 / +192 失败旗 / +193 检测旗 / +208 prepared
+时刻; sizeof 408B (malloc 直证); +136..159 第二 CGameDate 域 (ctor 哨兵,
+运行时无写者, 推定展示日)。CCountryOperationManager (ops = *(cc+5544),
+sub_14022FFF0): +80 工厂需求聚合 (定案)。word_14332F623 = instant 旗
+(行为定案; 写者未定位)。

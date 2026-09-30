@@ -104,6 +104,19 @@ ctor sub_1410DAB40; writer 0X1410DCCA0 (修速块 + 主 writer)。
 | +480 | CProvinceBuildingItem* | building def 回指 (ctor a3) | | 定案 |
 | +488 | u16 | 待加等级计数 (AddBuildings `+= WORD2(条)`) | | 高置信 |
 
+SetLevel = sub_1410DC4E0 (CBuilding::SetLevel, 中央级变通知器, 定案):
+building.cpp:138 负值/145 超上限/151 陆锁港三断言; 写 +64, healthy 调整 (升
++Δ; 降 min(healthy,new), 相等清 +72 partial_health) → sub_1410DC1C0 重建双
+CModifier (pairs +104/+296 ← def+288/def+96 × healthy) → sub_14195F510 (gs 槽[126]
+数组+8 监听) → sub_141178A10 (status 通知) → flag=1 再加 def+868 旗 →
+sub_1410A8A40(cc+4344 CRadarsPool 按州登记条目, §4.3; 条目 112B, 门 = 州
+控制者==本国 ∨ 同盟) → sub_1407042D0(国, building, 旧级) (cc+4952
+逐建筑型等级计数 += Δ + cc+4320 |= 2 修正重算脏位) → 州侧 sub_1409DB480
+(门 = 建筑类别旗 sub_14060CF80(building+104) 假 → sub_1409D54A0 州生效修正重建
+st+1544 块 + sub_1409E02C0)。施工推进链与触发时序见 §4.8.5a; 修理恢复
+sub_1410DAFD0: healthy<level 时 partial(+72) += amount 钳 1e7, 满 → partial=0、
+healthy+1、**+80 repair_speed_factor 复位 1e5**、通知 kind=4 (定案)。
+
 **州建筑容器 (州对象同构)**: 容器 vtable 0X2999050 同布局 (state_buildings API 用)。州建筑元素
 与省建筑元素同类同 writer (元素 vt 0X142988B28 slot[2] = 0X1410DCCA0; 容器链
 CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_speed_factor
@@ -115,18 +128,31 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +20 | u8 | 脏/待重建旗 (CProvince vt 槽[12] sub_140E7EE30 置 1) | 高置信 |
-| +112 | 匿名结构 (48B 形状) 向量 | **邻接表** {data@+112, count@+124} — 48B 条, 邻省 id u32@条+8 (断言 "…over 256 neighbors", 界 255; 湖泊自动控制者 sub_140E7FCA0 遍历; 省级寻路 A* sub_140E2BDF0 消费; 海峡封锁判定 sub_140E2B7D0) | 定案 |
+| +112 | 匿名结构 (48B 形状) 向量 | **邻接表** {data@+112, count@+124} — 48B 条 (元素布局见下表), 邻省 id u32@条+8 (断言 "…over 256 neighbors", 界 255; 湖泊自动控制者 sub_140E7FCA0 遍历; 省级寻路 A* sub_140E2BDF0 消费; 海峡封锁判定 sub_140E2B7D0) | 定案 |
 | +152 | 匿名结构* | **必需规则对象** (≠0 → GUI province_required_rule 图标显示; 消费 sub_14174C500) | 高置信 |
-| +168 | 匿名结构* | **地形 def 指针** (名 SSO@def+24; 两处独立读法拼 terrain_picture/取 TYPE) | 定案 (消费形态) / 推定 (正名) |
+| +168 | CTerrainType* | **地形 def 指针** (§4.26.7; 唯一写点 = 装载期 map.cpp:1373 区描述符构造循环, definition.csv Terrain 列按名查 terrainDB; 运行期零写点 — 53 读点全量核验均为读形态, `reload terrain` 只重建位图不重指描述符; 换控制权不动地形) | 定案 |
 | +196 | u32 | 省 id (prov+164 = *(desc+196) 互证) | |
-| +210 | u8 | **旗字节: bit0 = 脚本 is_land** (海军移动断言链; ⚠ 与 CMap+568 数组**语义不同**: 湖泊/内陆水域在此为 0, CMap 侧为 1 — 13,494 省全量双读 111 例差异全属此类, 非缺陷); **bit2 (0x4)** = 岛屿旗 (推定); **bit3** = 门 (清 0 时 CBuildingStatus+104 置 5) | bit0 定案 / bit2 推定 / bit3 高置信 |
+| +210 | u8 | **旗字节**: bit0 = 脚本 is_land (海军移动断言链; ⚠ 与 CMap+568 数组**语义不同**: 湖泊/内陆水域在此为 0, CMap 侧为 1 — 13,494 省全量双读 111 例差异全属此类, 非缺陷); **bit1 = 湖泊/内陆水域旗** (高置信; 海峡封锁仅 bit0∧bit1 双 0 的海省可被舰队封锁); **bit2 = 岛屿旗** (定案; setter sub_1414089A0: 陆省且邻接表无非-sea 型边通向陆邻 → 置位, 装载尾遍历); **bit3/bit4 = coastal 双面旗** (定案; 陆侧/海侧由 bit0/1 分派, bitmap 邻接与 definition.csv 海岸分歧时以 bitmap 为准) | bit0/2/3/4 定案 / bit1 高置信 |
+
+邻接表 48B 条目布局 (装载 = bitmap 邻接生成 CalculateAdjacencies sub_140A653D0 → adjacencies.csv 增补进 CMap+16 12B 表 (仅非自然邻接对) → 逐边 sub_14140A5D0 回填; 运行期不可变, 唯一重建 = `reload straits`):
+
+| 条目+N | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | CAdjacencyRule* | 边挂规则指针 (0 = 无规则; §4.14.8) |
+| +8 | u32 | 邻省 id (查找键) |
+| +12 | u32 | through 省 id (海峡/运河水域名) |
+| +16 | u8 | 边型: 0=canal/默认 · 1=sea · 2=river · 3=river_large · 4=impassable (≠4 可通; 补给 Dijkstra 对 2/3 型加罚 qword_143336970) |
+| +17 | u8 | 画线禁用旗 (GUI 连线生成跳过) |
+| +24 | u64 | 边基础通行代价 (A* g-cost 累加源, 战略部署时 ÷ 速度; = 0 边不可用; 写点未逐行定位) |
+| +32 | i32×2 | 第二坐标对 (连线另一端, −1 = 无) |
+| +40 | i32×2 | 第一坐标对 (start/stop 按方向; adjacencies.csv 六坐标列) |
 
 #### 4.14.4 CMap 边界 (map.cpp 方法群 0x140A4D000–0XUNRESOLVED, CMap this 相对)
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +16 | 容器 24B | **海峡/邻接规则表** {data@+16, cap@+24, count@+28, alloc@+32} — **12B 条 {from, to, through} u32×3** (straits loader "no straits will be loaded" / "Adj between … is not adjacent with THROUGH =") | 定案 |
-| +536 | 容器 24B | 8B 指针容器 {data@+536, cap@+544, count@+548, alloc@+552} (map mode 规则族: "Province … added twice to the same or different rules") | 高置信 |
+| +16 | 容器 24B | **海峡/邻接追加表** {data@+16, cap@+24, count@+28, alloc@+32} — **12B 条 {from, to, through} u32×3** (straits loader "no straits will be loaded" / "Adj between … is not adjacent with THROUGH ="; 仅非自然邻接对入此表, 与 desc+112 全量邻接表分属两层) | 定案 |
+| +536 | 容器 24B | **CAdjacencyRule\* 注册表** {data@+536, cap@+544, count@+548, alloc@+552} — loader sub_140A61970 (map.cpp:1148, "Adding same province for two different rules" 查重) 解析 adjacency_rules.txt; 规则布局见 §4.14.8 | 定案 |
 | +560 | u32 | 省表界 (= gs+700 互证) | |
 | +564 | u32 | 陆省数 | |
 | +616 | 容器 24B | **省静态描述符 8B 指针数组** {data@+616, **cap@+624, count@+628**, alloc@+632} — ⚠ 元素是指针 (增长码 `8LL*count` memcpy 铁证) | 定案 |
@@ -198,3 +224,35 @@ railway_manager.cpp:0x1)。
 | 战争迷雾总开关 | byte_14332F63A (**定案**: debug_fow 控制台命令 handler sub_1402589F0, 打印 "Fog of War is now ON/OFF"; §4.34.7) |
 
 **省 map_obj 扩展区锚点 (GUI 图标族)**: **+4796 = 默认锚点 / +5448 = 建筑图标锚点数组** (CNavalBaseMapIcon populate 双消费; 与既有 +4568/+4688/+5984 并列同区)。
+
+#### 4.14.8 CAdjacencyRule (邻接规则对象; 注册于 CMap+536)
+
+ctor sub_141546970; 源 adjacencyrule.cpp (断言串 :160/:219 直证); 规则名 (如 SUEZ_CANAL) 来自 adjacency_rules.txt。
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +8..+11 | u8×4 | **四态权限位掩码**: [0] contested / [1] enemy / [2] friend / [3] neutral; 每字节 4 位 = army(&1)/navy(&2)/submarine(&4)/trade(&8) (ctor 全 0xF) |
+| +16 | 容器 24B | required_provinces u32 数组 {data@+16, cap@+24, count@+28} (SUEZ = 12049 1155 4073 9947) |
+| +40 | u32 | ctor = −1 |
+| +56 | MSVC 串 32B | 规则名 (straits loader 名匹配) |
+| +88 | CCustomOverrideTooltipTrigger 内嵌 | **is_disabled 触发器** (命中 → 状态码 −1 全禁 + tooltip 自定义文案 PERMISSION_BLOCKED_DUE_TO) |
+| +108 | u32 | adjacency_check 调试门 (>0 才开评估日志) |
+| +248 | 88B 组 | enemy 触发器组 (定义旗@+268) |
+| +336 | 88B 组 | friend 触发器组 (定义旗@+356) |
+| +424 | 88B 组 | neutral 触发器组 (定义旗@+444) |
+
+**评估核 sub_141547440(rule, countryHandle, REASON\*) → 状态码**: ① is_disabled 触发器 (槽[3] Evaluate) 命中 → **−1** (全禁, REASON = 触发器 tooltip); ② contested 判定 sub_141548680 — required_provinces 两两控制者 (province+392, 别名归一 sub_140BB5490) 处于战争 → **0**; ③ enemy 组命中 → **1** / friend 组命中 → **2**; ④ 三选二消歧: enemy∧friend 定义未命中 → 3 (neutral) / enemy∧neutral 未命中 → 2 / friend∧neutral 未命中 → 1; ⑤ 兜底 sub_1415478F0 = required_provinces 控制者 vs 过路国关系 (交战 → enemy, 盟友/军通 → friend, 否则 neutral; 已定义组未命中时降 neutral/enemy)。**位掩码取值 sub_141548590 = &rule[8+code]**, code=−1 → 静态字节 byte_14338A8AE (低 4 位清 0) = 全禁 — 「关海峡/运河」唯一机制 = is_disabled 触发器。
+
+| 谓词门 | 掩码 | 语义 |
+|---|---|---|
+| sub_141546B40 | &1 | army 可通行 |
+| sub_141546CC0 | &2 | navy 可通行 (海军寻路 0x140D65D60/0x140D67AA0/0x140D51360/0x140D539A0; 补给海军可达性 0x140FB3520/0x140FB7950) |
+| sub_141546C90 | &4 | submarine 可通行 (同上族) |
+| sub_141546CF0 | &8 | trade 可通行 (0x140CAA1B0 海路节点 / 0x140CB47B0 adjacency.tick 每日巡检 / 0x1412D9890 双端校验) |
+| sub_141546B70 | 参数分派 | EAdjacencyRuleSubject 0=army/1=navy/2=sub/3=trade (未识别枚举告警 + 放行) |
+| sub_141546D20 | 单位自适应 | type 0/13 (陆/铁路炮) → &1; type 1 (海) → 潜艇判定 sub_140D74180 真 → &4 否则 &2; A* 逐边门 sub_140E2B980 与 CUnit[16] 移动校验核 0x140BFA300 均经此 |
+| sub_141547EF0 | 全量 | GUI 描述版 (评估 + REASON + 四行权限表, CAdjacencyRuleIcon 族 tooltip) |
+
+调度: 规则集 = 静态数据, 每次判定全量跑触发器组 (无缓存); 宣战不重建邻接结构, 只改触发器求值结果与 required_provinces 控制者; 运行期唯一重建 = 控制台 `reload straits`。
+
+**海峡舰队封锁 sub_140E2B7D0** (unit, 48B 邻接条目, 严格旗) = (码==2) ∥ (严格旗 ∧ 码==3), 码 = sub_140E2A110(国家句柄 unit+480, 条目): ① 非 sea 型边 (条+16≠1) 或无 through 省 → 1 不适用; ② through 省陆地/湖泊 (desc+210&3≠0) 或无单位 → 4 通行; ③ 扫描省上海军 (type 1, 属主交战, 有船 ∧ 非撤退 (+524≤0) ∧ 非驻港 (+884==0) ∧ 非潜艇) → ④ 敌舰队对过路国情报级 0 (country_intel 无条目) → **3 软封锁** / 有情报 → **2 硬封锁**。三个调用点全部严格旗=0 (只认硬封锁): 移动推进 sub_140C01DC0 (封锁 → sub_140BFB4A0 取消移动, "Cancel movement: strait blocked." unit.cpp:2710) / 海域加权选址 0x140BFD700 / 0x140DFDEA0。A* 路径缓存 sub_140E29E90 记硬封锁位 (a2[4]=1) 与规则位并列双门。**舰队封锁不进补给段** — 补给海军可达性只用规则位 &2/&4; 规则 is_disabled (码 −1) 同时砍补给与贸易通道。
