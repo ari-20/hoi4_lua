@@ -4,6 +4,12 @@
 
 **获取**: `ps = *(cc + 3944)`。
 
+基类子对象 (rtti_hierarchy bases + ctor 0x140E5BFA0 写点序: 先构子对象后覆写
+本类 vftable): CPersistent@+0 / CBuildingListener@+8 (`TListenerTrait<VCBuildingListenable>`
++ CListenerWithMove) / **CStateListener@+16** (vt 0x142A2BD80; 4 槽 [2]/[3] 纯虚;
+sizeof 8; 州 owner/controller 变更监听接口基, CState SetOwner 逐元 vt[+24] 消费即此接口)。
+三子对象对应三虚表 0x142970708 / 0x142970758 / 0x142970788 (vt_rtti 三条同名记录)。
+
 | 偏移 | 类型 | 名称 | 语义 | 备注 |
 |---|---|---|---|---|
 | +88 | 匿名结构 (8B 形状) | lines 容器数据指针 | {data, count}, 元素 8B 指针, count<256 | **GUI: 生产线列表建行** (sub_14173FEA0 → production_lines/item_grid) |
@@ -22,7 +28,7 @@
 | +513..+567 | — | CEquipmentVariantPool 体 | 预留池 {d@520..536} (24B 元, 不序列化) + **序列化装备池 {d@544, cap@552, c@556, alloc@560}** (16B 元 {variant*, amount}) + **allow_zero_entries u8@568**  |  |
 | +568 | uint8 | equip_allow_zero_entries | | |
 | +569..+607 | — | destroyed_stockpile + scheduler | **destroyed_stockpile_equipment {d@576..592}** (40B 元, 零行 B) + **CCreateEquipmentVariantScheduler@600 (32B)** {vt@600, 容器@608 {d@608, cap@616, c@620, alloc@624}}  |  |
-| +608 | CCreateEquipmentVariantSpec* | scheduled_equipment_variants 容器数据指针 | {data@+608, count@**+620**}; ⚠ +616 = capacity 非 count — pop 后 capacity 内残留悬挂槽 (arch 指针仍活→键像真, var 悬挂→字段垃圾 1069219840 类); scheduler vt 0x1429706b8, 池 writer 0X141A00AF0, 元素 16B {arch@0, var@8}; spec 类 CCreateEquipmentVariantSpec **无 hull/train 派生** (泛型 writer 0X141463A90 全型同门); spec 字段: name@+16 / name_group@+48 / icon@+184 / obsolete b@+84 (b84=1 写 yes 正向; +85 系另一字段反向门) / model@+144 / parent_version@+80 / io id 对@+248 / upgrades {d@+96, c@+108} 16B 条 / modules {d@+120, c@+132} 16B 条 |  |
+| +608 | CCreateEquipmentVariantSpec* | scheduled_equipment_variants 容器数据指针 | {data@+608, count@**+620**}; ⚠ +616 = capacity 非 count — pop 后 capacity 内残留悬挂槽 (arch 指针仍活→键像真, var 悬挂→字段垃圾 1069219840 类); scheduler vt 0x1429706b8, 池 writer 0X141A00AF0, 元素 16B {arch@0, var@8}; spec 类 CCreateEquipmentVariantSpec **无 hull/train 派生** (泛型 writer 0X141463A90 全型同门); spec 字段: name@+16 / name_group@+48 / icon@+184 / obsolete b@+84 (b84=1 写 yes 正向, 键 12396) / show_position b@+85 (键 398, **反向门**: 值 0 才写, 默认 true 不落盘) / mark_older_equipment_obsolete b@+86 (键 11175, 正向门 ≠0 写 yes; 把同 archetype 更旧版本标记过时) / model@+144 / parent_version@+80 / io id 对@+248 / upgrades {d@+96, c@+108} 16B 条 / modules {d@+120, c@+132} 16B 条 |  |
 | +609..+619 | — | scheduler 容器内部 | data 尾 + **cap@+616**  |  |
 | +620 | u32 | scheduled_equipment_variants 容器计数 |  |  |
 | +664 | CCicBank 内联 24B | CIC 银行 | {vt 0x1429705A0 九槽, **value i64@+8 (键 776 value, 有序列化 writer/reader — 原记缺失)**, **reserved i64@+16 = 当期预定账** (提取 sub_14145AAF0 按 max(0, value−reserved) 划扣, 民用分配每轮清零)}; 增压系数 = (1+mod625)×(mod624+CIC_BANK_SPEED_BOOST_FACTOR)/1e5; 清零 sub_14145AAE0; 活体 440 国同 vt |  |
@@ -735,7 +741,7 @@ daily serial 本体, 由事件驱动 (ps+1192 脏旗 / calc_modifier 传播 / ho
 | 2 | 工厂捐献 mod 292/293/294 加池总量 | 定案 |
 | 3 | 附属贡赋: 附属侧 mod 374/375 (cic/mic_to_target_factor) → 宗主 +956/+764 受赠; 宗主侧 mod 276/277 (cic/mic_to_overlord_factor) → +952/+760 上缴 (方向定案: 276/277 上缴门 = 本国有宗主) | 定案 |
 | 4 | license 受入 (ps+408 available 克隆侧 lended → ps+888 与 ps+964 FROM_LICENSES 桶; 池重算 sub_140E6C810 经 sub_1406F2F20 扫 **ps+480 授出表** → ps+888/ps+964 — 原「ps+408」订正) | 定案 |
-| 5 | 贸易民厂 (CTrade@CCountryResources+1832, 交换条目+228 lended_cic → ps+888/968) | 定案 |
+| 5 | 贸易民厂 (CResourceExchange 槽容器@CCountryResources+1832; 交换条目+228 lended_cic → ps+888/968) | 定案 |
 | 6 | **消费者×5 调度** (数组序: CConsumerGoods@ps+1072, CContractPayment@+1168, CSpecialProjects@+1096, CLicensedProduction@+1120, CTrade@+1144): 逐个 vt[1](consumer, cc, ps+880 民用池) → **ps+944 += consumer+16** | 定案 |
 | 7 | 军/船厂分配 sub_140E6D4B0 (**两遍制**: 预扣遍可负池 → 分配遍 max(0,·) 截断 = 先到先得) → 民用分配 sub_140E6D010 → sub_140E71350 | 定案 |
 
@@ -782,3 +788,10 @@ vt 0x1427E4130 三基座 (11+5+8 槽): [2] writer = CFG 空桩; **[3] 自定义�
 | +24 | u8 | 0 | — | 已装载旗 (wrapper 置 1, 提交槽消费) |
 | +32 | u32 | 357 none | 10432 spawn_point | 读名字串 → FNV 哈希 (sub_1424BB460) 存入; 非零才覆盖 |
 | +40 | 指针 | — | 其它键 → 委派父 vt[+32] | 提交目标 (父模板回指) |
+
+
+#### 4.8.17 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part10 | sub_1413C09D0（#3） / 经济/建造 / 书 `s4_08_production.md:211-216` 排产入口节（sub_140E5F8C0 AddConstruction/sub_140E5D100 简版）补共享联动步（单例 sub_1413C08A0 + +700 队列）；细作时先裁「联动」具体语义 |

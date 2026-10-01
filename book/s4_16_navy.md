@@ -32,19 +32,62 @@ cc+680, 紧挨师列表 cc+656)。
 
 writer 0X140D7AFA0 的 a1 = **元素+16 视角**; 运行时偏移 = writer 偏移 + 16
 (tf = ser + 16)。⚠ 直接按 writer 偏移读运行时内存会错位读进垃圾。
+⚠ **双表检索纪律**: 本表用 ser 视角、全键表用 tf 视角, 同一数字两表指不同字段
+(ser+1188 = repair_parent id, tf+1188 = repair_child 计数; 1188..1280 窗口 14 对全撞)
+—— 按偏移字面 grep 全书必须带视角读, 词边界过滤救不了同号碰撞。
 
-writer 偏移对照:
+writer↔tf 偏移对照 (writer 体直读 43 偏移全覆盖; 行序 = ser 升序):
 
-| 键 (token) | writer 偏移 (ser) | 运行时偏移 (tf) | 写门 | 备注 |
-|---|---|---|---|---|
-| repair_last_mission | +1248 | tf+1264 | — | 旁证 |
-| spotters | +1536 | tf+1552 | — | 旁证 |
-| strike_forces_on_ship | +1560 | tf+1576 | — | 旁证 |
-| enemy_mines_factor (0x4DAF) | a1+1600 | **tf+1616** (i64 fixed5) | **signed>0** | 定案; 全二进制唯一发射点, 在 spotters 之后 task_force 块尾 (探针 NOR 9025→0.09025 / ENG 539→0.00539) |
-| next_attempt_to_path_to_parent (0x3D04) | +1800 | **tf+1816** | ≠0 | |
-| last_delay_to_path_to_parent (0x3D05) | +1804 | **tf+1820** | ≠1 | |
-| hours_to_wait_for_repair_check (0x3CDC) | +1808 | tf+1824 (u32) | >0 | writer 实发射 (定案) |
-| target_ship_types (0x2810) | 数据 +1840; 计数 +1852 | **tf+1856; tf+1868** | — | 定案: 元素 = 32B MSVC 串非 idpair (三档探针) |
+| 键 (token) | writer 偏移 (ser) | 运行时偏移 (tf) | 类型 | 写门 | 备注 |
+|---|---|---|---|---|---|
+| ship (10400) | +824 | tf+840 | CShip* 容器数据 (8B 指针) | c>0 | 元素 ADEC0 多态 |
+| ship (10400) | +836 | tf+852 | uint32 | c>0 | ship 容器计数 |
+| mission (11450) | +848 | tf+864 | CNavalMission 内嵌 | 恒写 | 存档块名 units; 布局 §4.16.12a |
+| repair_mode (13593) | +1108 | tf+1124 | uint32 | 恒写 | |
+| underway_replenishment (16427) | +1112 | tf+1128 | uint8 | 恒写 | 开关语义见全键表行 |
+| convoys (12386) | +1120 | tf+1136 | CConvoySubscriber 内嵌 | underway_replenishment≠0 | |
+| repair_child (13594) | +1160 | tf+1176 | idpair 容器数据 (8B/元) | c 循环 | |
+| repair_child (13594) | +1172 | tf+1188 | uint32 | c 循环 | 容器计数; loader push 重建 |
+| repair_parent (13595) | +1184 | tf+1200 | 行内 idpair — type | 任一≠0 且有效 | |
+| repair_parent (13595) | +1188 | tf+1204 | 行内 idpair — id | 任一≠0 且有效 | |
+| detached_activity (15225) | +1192 | tf+1208 | uint32 枚举 1..4 | ∈1..4 (0 不写) | |
+| repair_target (13597) | +1200 | tf+1216 | 引用对象指针 (类未名) | ptr≠0 | 发射 u32@obj+164 |
+| refit_equipment_variant (14663) | +1208 | tf+1224 | 引用对象指针 (类未名) | ptr≠0 | 发射 idpair@obj+8 |
+| refit_to_variant_after_repair (14664) | +1216 | tf+1232 | 引用对象指针 (类未名) | ptr≠0 | 发射 idpair@obj+8 |
+| industrial_manufacturer (19160) | +1224 | tf+1240 | 行内 idpair — type | 任一≠0 且有效 | |
+| industrial_manufacturer (19160) | +1228 | tf+1244 | 行内 idpair — id | 任一≠0 且有效 | |
+| merge_with_after_repair (14665) | +1232 | tf+1248 | 行内 idpair — type | 任一≠0 | |
+| merge_with_after_repair (14665) | +1236 | tf+1252 | 行内 idpair — id | 任一≠0 | |
+| hours_waited_for_repairs (15504) | +1240 | tf+1256 | uint32 | >0 | |
+| sortie_efficiency (12970) | +1244 | tf+1260 | uint32 | 恒写 | 载机姿态索引 |
+| repair_last_mission (13598) | +1248 | tf+1264 | uint32 | ≠0 | |
+| repair_split (13596) | +1252 | tf+1268 | uint8 | ≠0 | |
+| merge_split (13996) | +1253 | tf+1269 | uint8 | ≠0 | |
+| is_sea_locked (13998) | +1254 | tf+1270 | uint8 | ≠0 | |
+| auto_reinforcement (15169) | +1255 | tf+1271 | uint8 | ≠0 | |
+| fuel (12003) | +1256 | tf+1272 | i64 fixed5 | ≠0 | per-hour scratch |
+| requested (15132) | +1264 | tf+1280 | i64 fixed5 | ≠0 | |
+| icon (181) | +1272 | tf+1288 | uint32 | 恒写 | |
+| use_fleet_color (15195) | +1276 | tf+1292 | uint8 | 恒写 | 兼任 color (86) 发射门 |
+| color (86) | +1280 | tf+1296 | CColor 内嵌 | !use_fleet_color | |
+| ai_taskforce_composition (17899) | +1312 | tf+1328 | CTaskForceCompositionRequirements 内嵌 224B | 恒写 | 布局见全键表行 |
+| spotters (15275) | +1536 | tf+1552 | idpair 容器数据 (8B/元) | c 循环 | |
+| spotters (15275) | +1548 | tf+1564 | uint32 | c 循环 | 容器计数 |
+| strike_forces_on_ship (15282) | +1560 | tf+1576 | idpair 容器数据 (8B/元) | c 循环 | |
+| strike_forces_on_ship (15282) | +1572 | tf+1588 | uint32 | c 循环 | 容器计数 |
+| enemy_mines_factor (19887) | +1600 | tf+1616 | i64 fixed5 | signed>0 | |
+| next_attempt_to_path_to_parent (15620) | +1800 | tf+1816 | uint32 | ≠0 | |
+| last_delay_to_path_to_parent (15621) | +1804 | tf+1820 | uint32 | ≠1 | |
+| hours_to_wait_for_repair_check (15580) | +1808 | tf+1824 | uint32 | >0 | |
+| naval_headquarter (10193) | +1816 | tf+1832 | 引用对象指针 (容器元, 类未名) | c>0 | 元素发射 idpair@obj+8 |
+| naval_headquarter (10193) | +1828 | tf+1844 | uint32 | c>0 | 容器计数 |
+| target_ship_types (10256) | +1840 | tf+1856 | 32B MSVC 串 — 容器数据 | c>0 | |
+| target_ship_types (10256) | +1852 | tf+1868 | uint32 | c>0 | 容器计数 |
+
+容器形状 (定案): 类内 PDX 容器一律 24B {data@0, cap u32@+8, count u32@+12, 存根@+16}
+—— push 助手 sub_1401CBF60 读 count@+12 / cap@+8, 扩容 ×1.5 经存根对象, 容器构造
+sub_14011DF40; 上表 6 个容器计数槽 (ser+836/+1172/+1548/+1572/+1828/+1852) = 各容器
+data 基 +12, 全部吻合。
 
 CTaskForce 全键表 (writer 0X140D7AFA0, a1 = 元素+16, 首调
 CUnit::Serialize 0X140C06540; 运行时偏移 tf = writer+16; **行序 = writer
@@ -55,7 +98,7 @@ CUnit::Serialize 0X140C06540; 运行时偏移 tf = writer+16; **行序 = writer
 | ship (10400) | tf+840 | 8B 指针 → CShip (ADEC0 多态) — 容器数据 | c>0 | **GUI: MilitaryOverviewItem 命中** (target = tf raw+40 idpair; sub_1402A6F30=*(tf+24) 灌入) |
 | ship (10400) | tf+852 | ship 容器计数 | c>0 | |
 | mission (11450) | tf+864 | 代理对象 | 恒写 | |
-| repair_mode (13593) | tf+1124 | u32 | 恒写 | |
+| repair_mode (13593) | tf+1124 | u32 | 恒写 | ctor 默认 3 (枚举语义未定) |
 | underway_replenishment (16427) | tf+1128 | u8 | 恒写  开关 setter (tf 基): 关 → 退订 sub_141022A70(tf+1136); 开 → Init(tf+1136, country, 128, UNDERWAY_REPLENISHMENT_PRIORITY); 小时维持 sub_140D69090: tf+1128 ∧ ¬sub_1406DFDA0(country+1731 旗) → 自动关; 需求 = ceil(24×IN_COMBAT_FUEL_COST(2.0)×(FUEL_COST_MULT×tf 小时燃料消耗/1e5)/1e5×UNDERWAY_REPLENISHMENT_CONVOY_COST_PER_FUEL(0.28)×(1+modifier(637))) — 按日燃料消耗折算; **收益仅射程** (sub_140D66F90: 射程比 × (0.4×(1+modifier(636)))), 不补燃料/组织度||
 | convoys (12386) | tf+1136 | CConvoySubscriber 内嵌 | underway_replenishment≠0 | |
 | — (15171 = set_task_force_composition_requirements 命令名, 非存档键) | tf+1336 | **CTaskForceComposition 内嵌 104B** (RTTI 实名; vt 0x142973300; 布局见后表) | 非独立键 — 由 tf+1328 对象 writer 0x14198C060 经子键 15166 requirements 发出 | 定案 |
@@ -75,26 +118,26 @@ CUnit::Serialize 0X140C06540; 运行时偏移 tf = writer+16; **行序 = writer
 | repair_last_mission (13598) | tf+1264 | u32 | ≠0 | |
 | hours_waited_for_repairs (15504) | tf+1256 | u32 | ≠0 | |
 | repair_split (13596) | tf+1268 | u8 | ≠0 | |
-| merge_split (13996) | tf+1269 | u8 | ≠0 | |
+| merge_split (13996) | tf+1269 | u8 | ≠0 | 运行时置位点 dump 无静态写点 (待裁) |
 | is_sea_locked (13998) | tf+1270 | u8 | ≠0 | |
 | auto_reinforcement (15169) | tf+1271 | u8 | ≠0 | |
 | fuel (12003) | tf+1272 | i64 fixed5 | ≠0 | **本小时实收** (per-hour scratch): 每小时 tick sub_140D68B90 先清 0, 再由优先级分发 sub_140D64740 (tf+1272 += grant) 灌入; 载入值存活至首整点即被覆盖; loader ser+1256 **落字段** |
 | requested (15132) | tf+1280 | i64 fixed5 | ≠0 | 每小时 sub_140C35280 重算: MISSION_COST×(FUEL_COST_MULT×Σ舰用量缓存/1e5)/1e5 (分派表见下); 上游钳制 = tf+64 补给比 × MAX_FUEL_FLOW_MULT (无补给 ⇒ 少要燃料); 读取器 sub_140D6EAC0; loader ser+1264 **落字段** |
-| icon (181) | tf+1288 | u32 | 恒写 | |
-| use_fleet_color (15195) | tf+1292 | u8 | 恒写 | |
+| icon (181) | tf+1288 | u32 | 恒写 | ctor 默认 dword_1433366B4 |
+| use_fleet_color (15195) | tf+1292 | u8 | 恒写 | ctor 默认 1 (解释 color 键常态缺省) |
 | color (86) | tf+1296 | 对象 (CColor 族) | !use_fleet_color | |
 | ai_taskforce_composition (17899) | tf+1328 | **CTaskForceCompositionRequirements 内嵌 224B** (RTTI 实名; vt 0x142A223C8; CPersistent 族; writer 0x14198C060 / reader 0x14198BF60): +8 = requirements 编成 (CTaskForceComposition@tf+1336, 键 15166) / +112 = fulfillment 编成 (@tf+1440, 键 15167) / +216 = ai_taskforce_composition token (@tf+1544, 19479=undefined 不写) | 恒写 (整个对象写在 17899 键下) | 定案 |
 | spotters (15275) | tf+1552 | 8B idpair {type@0, id@+4} — 容器数据 | c 循环 | |
 | spotters (15275) | tf+1564 | spotters 容器计数 | c 循环 | |
 | strike_forces_on_ship (15282) | tf+1576 | 8B idpair {type@0, id@+4} — 容器数据 | c 循环 | |
 | strike_forces_on_ship (15282) | tf+1588 | strike_forces_on_ship 容器计数 | c 循环 | |
-| enemy_mines_factor (19887) | tf+1616 | i64 fixed5 | signed>0 | |
+| enemy_mines_factor (19887) | tf+1616 | i64 fixed5 | signed>0 | 全二进制唯一发射点, 在 spotters 之后 task_force 块尾 (探针 NOR 9025→0.09025 / ENG 539→0.00539) |
 | next_attempt_to_path_to_parent (15620) | tf+1816 | u32 | ≠0 | |
-| last_delay_to_path_to_parent (15621) | tf+1820 | u32 | ≠1 | |
-| hours_to_wait_for_repair_check (15580) | tf+1824 | u32 | signed>0 | |
+| last_delay_to_path_to_parent (15621) | tf+1820 | u32 | ≠1 | ctor 默认 1 |
+| hours_to_wait_for_repair_check (15580) | tf+1824 | u32 | signed>0 | ctor 默认 0 |
 | **naval_headquarter (10193)** | tf+1832 | 8B 指针 → idpair@obj+8 — 容器数据 | c>0 | |
 | **naval_headquarter (10193)** | tf+1844 | naval_headquarter 容器计数 | c>0 | |
-| target_ship_types (10256) | tf+1856 | 32B MSVC 串 — 容器数据 | c>0 | |
+| target_ship_types (10256) | tf+1856 | 32B MSVC 串 — 容器数据 | c>0 | 元素 = 32B MSVC 串非 idpair (三档探针定案) |
 | target_ship_types (10256) | tf+1868 | target_ship_types 容器计数 | c>0 | |
 
 CTaskForce 运行时字段 (不序列化; 燃料结算链定案):
@@ -730,3 +773,10 @@ transfer。
 
 新钉: CStrategicNavy+16 = owner tag u32; CPendingStratNavyTransfer 56B 全布局
 (§4.00 待命指令族补全)。is_returning 运行期无置 1 写点 (负发现)。
+
+
+#### 4.16.16 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part15 | sub_140EA3680（110 行，#30） / 海军/战略海军 / 书 `s4_16_navy.md:569` §4.16.12 遍一动作清单补行：串行逐 navy 内步（navy+200 小时槽数组自全局表 qword_143337278 填充、钳上限 qword_143336ED0、前置双门）；填充语义（疑轮换/预计到港类）细作时定 |

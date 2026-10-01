@@ -961,3 +961,30 @@ COperation def (idb qword_14332EFA0, 56B 桶) 新字段: +328 base_duration /
 运行时无写者, 推定展示日)。CCountryOperationManager (ops = *(cc+5544),
 sub_14022FFF0): +80 工厂需求聚合 (定案)。word_14332F623 = instant 旗
 (行为定案; 写者未定位)。
+
+
+#### 4.11.19 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part01 | sub_1411F9CF0（636 行，#18） / 谍报/特工 / 书 `s4_11_intelnet.md` 补本件（strategicoperative.cpp:992，条目按 SRootOutResistanceEntryLocationOrderer 重排；触发链 = daily 特工七连 sub_1412023C0，s4_02:189 已点名该七连） |
+| part04 | sub_141951690 (#21) / 特务任务（build/quiet intel network）更新内部件（含 BFS） / s4_11 intelnet 册（§4.11 特务任务侧，mission 分发表补内部） |
+| part06 | sub_1411F7380（#13） / 间谍行动名/信息构建 / 书 `s4_11_intelnet.md` 行动名表：五行动名串 + "from intel network size:" 字段；调用方 = 书载七连 sub_1412014C0（s4_02:189） |
+| part06 | sub_1411CBF90（#20） / 情报网全量重算链最深层 / 书 `s4_11_intelnet.md:907-924` 网强度链补深层定址（sub_1411D1260 逐 subnet 直写内部子件）；若体读证实仅为已载公式的内层实现可降 C |
+| part07 | sub_140FDEC70（#2） / 情报机构分支执行 / 书 `s4_11_intelnet.md` §4.11.14 CIntelligenceAgency 段补：DailyUpdate sub_140FDBD60 内本步定址 + IsValid 门语义（不满足路径 → 断言） |
+| part07 | sub_1411D8590（#31） / 情报网对象引用步 / 书 `s4_11_intelnet.md` 补：CReferenceObject 校验步定址（七连 sub_141200DF0 消费） |
+| part07 | sub_1411FA9A0（#38） / 特工区维护步 / 书 `s4_11_intelnet.md` 特工专项补：0x1411F 两件 + 七连共调的本维护步定址 |
+| part08 | sub_1411C03F0（194 行，#2） / 谍报/情报网 / 书 `s4_11_intelnet.md:907` sub_1411D63A0 全量重算节补内步（二分插入 sub_140326D80 + 0x1411B 条目装配） |
+| part10 | sub_1411D3EC0（#14） / 谍报/情报网 / 书 `s4_11_intelnet.md:924` sub_1411D1260「逐 subnet 直写」行补被调步（"Occupied tag should be known" 占领 tag 知识更新） |
+| part10 | sub_1411F99B0（#25） / 谍报/特工 / 书 `s4_11_intelnet.md`（特工排序族，与 part01 #18 sub_1411F9CF0 同节）补本件：SPropagationOperativeCountryOrderer is_sorted 断言 + 排序/重排体；触发链 = sub_1411F63D0/sub_1412017C0 |
+| part11 | sub_1412BB000（#25） / 谍报 / 书 `s4_11_intelnet.md` 补：师曝光 INTEL_DIVISION_REVEALED 发射点（情报 ≥150 门 + "CombatLoss…" 串 + sub_1401D7460 落曝光；vt 分发无直调，细作先钉分发槽） |
+| part12 | sub_140FDCC90（135 行，#25） / 谍报 / 书 `s4_11_intelnet.md` 机构升级节补行：INTELLIGENCE_ADDITIONAL_UPGRADE_BONUS 加成值（+2104 升级表经 sub_1413FAE80）+ tooltip 装配 |
+| part13 | sub_1411E3B30（130 行，#5） / 谍报/情报网 / 书 `s4_11_intelnet.md` 补 0x1411E 情报网结构操作件（孪生 #6 一并收）；细作先钉 wrapper sub_1411EEDE0/sub_1411EECD0 身份 |
+| part13 | sub_1411D8040（130 行，#7） / 谍报/特工 / 书 `s4_11_intelnet.md` 与 part01 #18（排序重建 sub_1411F9CF0）同节补行：相邻州 id 解析件（"Invalid state id from adjacencies!" 断言可直引） |
+| part14 | sub_1411D0C90（#13） / 谍报/情报网 / 书 `s4_11_intelnet.md` 权值容器节补：有序表插入合并 + 区间重缩放 = sub_1411D0C90（宿主 sub_1411D1E30；s4_11:924 sub_1411D1260 同族邻域） |
+| part14 | sub_1411F58A0（#37） / 谍报/特工 / 书 `s4_11_intelnet.md` 特工任务节（boost_ideology mission）补修正构建器 = sub_1411F58A0（token 串直证 + CModifier 装配） |
+| part15 | sub_1411F88E0（114 行，#8） / 谍报/情报网 / 书 `s4_11_intelnet.md` 补本件（(tag,id) 清单→48B 输出条目构建，双宿主 0x1411F/0x14120）；与 part01 #18 同域并案；细作先钉 sub_14221F310 解析对象与条目语义 |
+| part15 | sub_1411ED950（108 行，#38） / 谍报/特工 / 书 `s4_11_intelnet.md` 并入 part01 #18 案补排序核行：三级键（obj+88 → +16 → 嵌套 +8/+12）插入排序 = is_sorted 断言背后的维持件 |
+| part16 | sub_1411F2CD0（107 行，#8）/ sub_1411EC5B0（#9）/ sub_1411EC7A0（#33）/ sub_1411EC290（#37） / 谍报/特工 / 书 `s4_11_intelnet.md` 特工专项（part07 #38 sub_1411FA9A0 同节）补 0x1411E-F 条目重排族四件定址：5 _QWORD 词条目（#9/#33）与 24B 条目（#37）双形态，键 = 门控 getter（对象 +288 → +72）或对象 +8/+12；细作先裁条目语义（疑特工按国/优先级分区） |
+| part16 | sub_141515FB0（105 行，#26） / 谍报/情报网 / 书 `s4_11_intelnet.md` 登记 0x14151 簇门控谓词（gamestate.h:1125/1126 门）；调用侧 = 事件检查波 sub_1406E8210（s4_02:264 实名）；细作先裁判定语义 |
+| part17 | sub_14152A7E0（101 行，#10） / 谍报/情报网 / 书 `s4_11_intelnet.md` 补 0x14152 单元 vararg 谓词 max 选择器（细作先裁评分式语义：+3944→+888/1e5 −+960 −+952 的三字段含义） |

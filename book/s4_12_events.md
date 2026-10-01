@@ -372,3 +372,13 @@ option 执行链: 三入口 (玩家点击/超时自动/AI 选择) 同归 **CSele
 | 读档 | delayed_event 块 (键 11463) 逐元素重建 | 事件解析失败 ("Invalid event id") → 元素静默丢弃 (元素+8 空不 push) |
 
 > ⚠ cc+4752 (本通道 = 显式延时 hours/days/months, 纯 hourly) 与 cc+4776 (queued_events = MTTH 掷骰命中, 每日检查调度 §4.12.8) 相邻两通道勿混。
+
+
+#### 4.12.10 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part01 | sub_141511CE0（910 行，#3） / 事件/消息(外交) / 书 `s4_12_events.md` 消息/新闻事件发射族补本件（流亡者消息：EXILE_MESSAGE_ARRIVED/REINFORCEMENTS/RETURNED 三态 + SENDER/RECEIVER/COUNT/LOCATION 字段）；触发链注 `s4_02_gametick.md:267` §4.2.7 CCountry::DailyUpdate 的 exile_divisions_transfer 到期步（wrapper sub_141511C30 ← sub_1406E76A0） |
+| part07 | sub_140736F50（#13） / decision.hourly 内部件 / 书 `s4_12_events.md`（决策域）+ `s4_02_gametick.md`:214 pass⑥ 定址补注：sub_14072FC90 内本步（挂起/到期族 + sub_140727AE0 激活 + 通知 + cc+3944 生产联动） |
+| part08 | sub_140CDAC60（188 行，#13） / 事件/军事日志 / 落点候选 `s4_12_events.md:303` 事件检查波节（宿主 sub_1406E8210 已实名）或 `s4_22_combat.md` NCombatLog 节（0x140CD 邻域）；细作先裁条目语义（到期事件 or 战斗日志条目老化）再定册 |
+| part10 | sub_140728D60（#5） / 决议/任务 / 书 `s4_12_events.md`（+1208 cancel_effect trigger / +3120 timeout_effect 字段行）补执行器地址对：timeout = sub_140728D60、cancel = sub_140728400；`s4_03_CCountry.md:1147` +576 cancel_effect 行同注 |

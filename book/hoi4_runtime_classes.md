@@ -133,7 +133,7 @@
 | CStrategicOperative | 0x29a2358 | |
 | COperativesNet / COperativesSubNet | 0x29a1a58 / 0x29a1aa8 | |
 | CCountryReportsMgr | 0x29D10A8 | cc+4064 (书写法 0x1429D10A8 低 32 位; RTTI vt_rtti.json 定案) |
-| CCountryResources | 0x295c4b0 | cc+4600 (§4.3.1/§4.3.3) |
+| CCountryResources | 0x295c4b0 | cc+4600 (§4.3.25 全表; +24 = 0x295C4E8 CPersistent 序列化子表, writer/reader 收 a1 = rs+24) |
 | CResourceDelivery | 0x295c320 | 交付路由元素 |
 | CResourceOrigin | 0x295c370 | 资源起源元素 |
 | CFuelStatus | 0x298b3a8 | cc+5504 (书 §4.3) |

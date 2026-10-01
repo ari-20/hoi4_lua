@@ -358,7 +358,7 @@ idler+1457 边沿, 枚举 ≤8 项启停, 联动对语义待裁) → 渲染就�
 (graphics.cpp:2440) → 过门 `vt+232` 间接调槽[29] → 帧时长 EMA idler+28/32/40/44
 (0.95/0.05)。槽[29] (CInGameIdler 0x140DDDDF0 / CFrontEndIdler 0x140B3D860) =
 **帧渲染 + 瞬态状态横幅**: 段 5 渲染 (全局跳渲染旗 byte_14332F6A9 门 →
-sub_14223D2C0 渲染帧入口 → sub_14223D3F0 **CGraphics::Render2dTree?** 2D 元素树
+sub_14223D2C0 渲染帧入口 → sub_14223D3F0 **CGraphics::Render2dTree (定案**, tbb lambda 符号直证; 双 2D 树 +496/+864 与派发链详 §4.35.4) 2D 元素树
 tbb 并行遍历, 渲染队列 qword_1434530A0 — 真名高置信) + 段 8 四条横幅 (门 = idler+1681
 自动存档伴随位 / idler+2073 ∨ dword_14333CF70 倒计数 / idler+2080 ∨ dword_14333CF74 /
 byte_14333CF38 "Running Test..."; 发射 = 串构造 sub_142245E60 → sub_140B411B0 顶栏) +
@@ -388,7 +388,7 @@ sub_140E1DAA0 (应用) 每帧国家级双管理器 → 写 cc+1696/cc+1700 → �
 **三 idler 公共帧更新体 sub_140B58470** (定案, 两窗 11.7%): CFrontEndIdler (0x140B3CA20) /
 CInGameIdler (0x140DD3A50) / CNudgeIdler (0x1412D49D0) 三者 vt[4]=Idle 共同直调 —
 延迟对象队列 + 子系统表 a1+1776..1840 分发 + gs 容器 vt[16] 三连复位 + 计数清零;
-其 a1+1840 子系统 = **战略地图路线/箭头绘制总控 sub_140165FB20** (5 个 CPdxMap
+其 a1+1840 子系统 = **战略地图路线/箭头绘制总控 sub_14165FB20** (5 个 CPdxMap
 线对象池 → sub_140165D050 待绘条目物化 → sub_14012664D0 折线加点器 (1e-5 定点,
 缩放自适应重采样, 8192 点 flush) → sub_140126AE10 地形贴合缎带网格构建;
 高度采样原语 sub_140A60F10, u8 高度图双线性 ×0.1)。
@@ -811,7 +811,7 @@ lexer」**) → HotkeyManager 单例 → CSettings 触碰 → 语音无障碍族
 全局重建 (0x78, 语义待裁)。④ **Init 主体段** (= **CGameApplication::Init = sub_140180BC0**,
 虚表槽[9]/+72, gameapplication.cpp:812-866 自报行号; 步序): 内存水位日志 (812) →
 InitTextureLookup(gfx/models) (825) → InitBase sub_140181110 (832) → _pGraphics->Init3DTypes
-sub_142238FD0 (840, "Long Task") → LoadAssets sub_140B39270 (849) → **InitGame
+sub_142238FD0 (840, "Long Task") → LoadAssets sub_140B39270 (849; ⚠ 名不符实 = 注册菜单 web_link 解析器回调, 非图形资产装载 — §4.35.6 勘误) → **InitGame
 sub_1401835A0** (853; mod·DLC 与数据库装载宿主 = §4.29 领地, 本链只到调用点) 。⑤ **收尾段**:
 好友处理器预接 + InitFriendsHandler (CGameApplication 具名 lambda) → loc key 冲突告警
 (byte_1434530F0) → error.log 检查/弹出 (sub_1401758A0 ShowErrorLog, 大小门 dword_14332ED60,
@@ -931,3 +931,11 @@ autosave 调度与轮换 (定案):
 
 二进制/文本分叉 (写入侧, 定案): 文件头 "HOI4" + "txt"/"bin"; OOS 转储
 (a3=1) 或 byte_143452529/2B 强制二进制, 否则 CSettings+599 文本选项决定。
+
+
+#### 4.28.22 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part02 | sub_140D9B3B0（446 行） / 存档头解析器 / 书 `s4_28_session.md` T9 行旁补 reader 对应件：sub_140D9B3B0 键集 = writer sub_140BC2710 全键序（player/ideology/ironman/dlcs/tutorial/players_countries/save_version/minor_save_version/cooperative_game/cosmetic_tag/mods）；对 launcher `-start_save` 头解析同源语义有工具价值 |
+| part06 | sub_1406FE9A0（#8） / InitData 期一次性装配 / 书 `s4_28_session.md` CInGameIdler::InitData 链注：sub_140DD6A30 → country.cpp init-only 件 sub_1406FEF10 → 本件（0x140C6-CF 海/陆军族被调；**用途待细作**，先以「InitData 期军事索引装配」占位） |

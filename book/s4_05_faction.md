@@ -340,3 +340,11 @@ GetFullDescription 符号定名; +96 CProgress 指针 / +120 CModifier / +296 CR
 **负定案: 1.19.3 无 on_faction_created** (全语料 0 命中); on_action 三派发点 =
 on_become_faction_member / on_leave_faction / on_assume_faction_leadership。
 DLC50 = "Deeper Factions" (faction_goal_status.cpp:184 断言串)。
+
+
+#### 4.5.10 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part12 | sub_140D84980（134 行，#31） / 外交/阵营 / 书 `s4_05_faction.md:299` UpdateInfluence 行补 worker 地址（定址补注级：串行路 208B 条目求和 + InterlockedAdd64 归约；链语义书已有，无新布局） |
+| part13 | sub_140CBDE80（129 行，#14） / 资源/资源池 / 书 `s4_05`（§4.3.8 rs 节）补资源池逐源累加件（池累加器 sub_140BCB530 = s4_05:23 阵营汇入同款；上游 = e4b2 定案 CCountryResources 重算） |

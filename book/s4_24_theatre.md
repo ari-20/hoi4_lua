@@ -596,3 +596,18 @@ orders_group (+128) + field_marshal_group (+152) 逐 og **sub_140BEC460 = og
 sub_1409C9680 (divisionnamesdatabase.cpp:447 断言): 每国**四个命名库
 (cc+112/120/128/136)** × 两步 (回收步 + 逐组可用 trigger 求值, 不可用
 swap-remove 出 _AllAvailableGroups) (定案)。
+
+
+#### 4.24.16 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part01 | sub_141520DE0（742 行，#10） / 事件/消息(外交) / 与 #3 同节合并收录（志愿军消息三态，同框架同字段）；触发链注 `s4_24_theatre.md:592`（调用方 sub_140718850 在 theatre daily 链） |
+| part01 | sub_1407304F0（685 行，#15） / 军事/军令重建 / 落点候选 `s4_24_theatre.md`（og/orders 链，调用方 sub_14072FB30 邻 sub_140718850）或 `s4_33_commands.md` orders 侧：order path 重容 sub_1401A8550 + scope 清场 sub_140535820 ×5 + AI 容器二分插入 sub_140326D80；细作先钉 sub_14072FB30 身份 |
+| part01 | sub_140EF2180（601 行，#25） / 军事/战区 / 书 `s4_24_theatre.md` 补剧场结构重建编排（前线重建族 0x14103 三件 + 更新族 #40 + 重校验旗 byte_14333D2B0/D2B1；触发 = 占领 bundle 收口 sub_140EF2F30 ×2，e24:100） |
+| part01 | sub_140EF88B0（480 行，#40） / 军事/战区 / 书 `s4_24_theatre.md` 剧场更新族落名（e24:102 五件清单已被 sweep 记载，书内未收；本件 = 族内成员，5 调用方） |
+| part03 | sub_140EF18B0 (#8) / 战区前线 bundle 构建（"Front bundle: %i (%s), ai: %i (%s)"） / s4_24 战区册 / s4_14 省份 bundle 族 |
+| part07 | sub_1419EE6A0（#20） / 寻路纯算子步 / 书 `s4_24_theatre.md` 寻路节（:514 对）补：0x140E2 区三宿主共调的本纯算件定址 |
+| part09 | sub_140EF9F40（163 行，#40） / 军事/战区 / 书 `s4_24_theatre.md` 补重校验族落名行：全 tag 收集 + tbb 并行驱动器（e24:102 五件清单的 EF9F40 成员；theatre.cpp "Theaters or fronts has been fixed" 修复链消费 + 重校验入口 sub_140EEC180） |
+| part13 | sub_140EF1EE0（126 行，#31） / 军事/战区 / 书 `s4_24_theatre.md` 补行：剧场重建锁入口（"Theatre rebuild scope is locked" FATAL 直引；调用方含占领 bundle 收口 sub_140EF2F30） |
+| part14 | sub_1409C62C0（#9） / 军事/师命名 / 书 `s4_24_theatre.md:596` division_names.update 行补：按命名库种类分派件 = sub_1409C62C0（a1+96 ∈ 0..3；case 3 单位遍历赋名 + +169 已赋名旗） |

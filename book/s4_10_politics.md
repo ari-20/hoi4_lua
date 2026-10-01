@@ -1392,3 +1392,41 @@ DR0 零真命中; 停止判定的 `+88 ≥ 0` 分支实际不可达, 停止完�
 > CDiplomaticAction 执行器 sub_141103030 (MESSAGE_HEAD_DIPLOMACY, §4.32 give_guarantee 行) /
 > CCountry::Annex sub_1406D3F00 (§4.10 终结链) / 本函数 / 余一处 (未逐一认领)。
 
+
+
+#### 4.10.37 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part01 | sub_140E439D0（779 行，#5） / 外交/和会 / 书 `s4_10_politics.md:1038` 和会终结算链节（已点名 140E45FB0/140E4F240/140E49760）补本件：逐国州容器 → GetBestVPProvince 省集 → vararg 格式化 sub_140E44D80 ×3；确认为结果条目装配或纯文本构建（细作时先裁） |
+| part01 | sub_1406E3E90（709 行，#14） / 军事/投降 / 书 `s4_10_politics.md:1182-1190` 投降执行体节补单位侧件（借调单位门 sub_140C01960 消费 + 0x140C6 海/陆军族处置；具体移交/清点语义细作时定） |
+| part02 | sub_140E4AA10（实量 172 行） / 和会回合状态 / 书 `s4_10_politics.md` §4.10.26 补行：`*(gs+576 解)+20756` 竞标进行旗 + peace_conference_new_turn / peace_conference_contested_bid 具名事件派发点 |
+| part02 | sub_140E30930（400 行） / 和会竞标国集合 / 书 `s4_10_politics.md` §4.10.26 补行：CountriesBidding robin-hood 集合操作（空集断言） |
+| part03 | sub_140E30370 (#12) + sub_140E30F50 (#20) / 和会 CountriesBidding 表重建/评估（载入后重建 + 回合推进共用，孪生件） / §4.10 和会册（回合推进/载入重建链补步） |
+| part03 | sub_140E4D700 (#17) / 和会 CountriesBidding 评估件（回合推进链专用） / §4.10 和会册（同上合并处理） |
+| part04 | sub_1406F7A90 (#25) / 国家贸易因子/外交评价计算子步（TRADE_FACTOR 宿主 + opinion_modifier 家族） / s4_10 外交册（或 §4.2.7 CCountry::DailyUpdate trade_influence.daily 步补内部） |
+| part04 | sub_140E51570 (#34) / 和会参与者/胜负方链内步（双书载宿主 sub_140E4DD80/sub_140E40640） / s4_10 和会册（§4.10 参与者/胜负方链补步；与部分03 CountriesBidding 三件同册合并） |
+| part05 | sub_140E2DAD0 (#10) + sub_140E2D690 (#17) / 和会 CountriesBidding 容器重建孪生件（与 part03 #12/#17/#20 同宿主对） / §4.10 和会册：五件 bidding 族与本文两件合并收口 |
+| part05 | sub_1406D8B30 (#30) / 投降/迁都事件装配 scoped_buffer 格式化段（host = part03 #11 定案件，上层书载投降巨函 sub_1406E16C0） / s4_10 投降流亡族 / §4.10.32 事件装配步内部 |
+| part06 | sub_140BA7770（#34） / 政党支持度计算/校验 / 书 `s4_10_politics.md` 政党节：TotalPopularity==100 校验 + PopularityChange ∈ [0,100] 区间（断言原文可直引） |
+| part07 | sub_140D38A90（#24） / 盟友战争分数合计 / 书 `s4_10_politics.md` 战争分数/外交节补：diplomacy.cpp 本件定址（三断言 + WarScoreRatio 契约） |
+| part07 | sub_140E40DB0（#27） / 和会历史自修复 / 书 `s4_10_politics.md` 和会节补：竞价历史校验/resize 自修复步定址（读档期） |
+| part07 | sub_140CFC720（#36） / 流亡人力日增长 / 书 `s4_10_politics.md` 流亡节补：EXILE_MANPOWER_DAILY_GROWTH 计算步定址（修正索引 436 + 阈值门） |
+| part08 | sub_14060CC00（188 行，#14） / 修正/modifier / 书 CModifier 通用表（§4.3.8）或 `s4_10_politics.md:108` vecB Add 路径行补实例构建共用步（生产件 sub_14060C920 与拷贝件 sub_1405570F0 均已书载实名） |
+| part09 | sub_140FF5C00（169 行，#24） / 政治/占领 / 书 `s4_10_politics.md` 占领/投降邻域补行：占领收尾清算（_ForeignManpowerReceivers 消费断言 countryoccupationstatus.cpp:908 + 占领旗 + 人力清算）；细作先钉调用方 sub_140D44800/sub_140704380 身份（疑吞并/投降收口） |
+| part09 | sub_140727260（165 行，#32） / 政治/决议 / 书 `s4_10_politics.md` 决议节补行：目标容器按类型分发器（case 0 断言 decision.cpp:3352 + case 1-4 四容器 getter 分发）；五类型枚举语义细作时定 |
+| part09 | sub_14070ED90（165 行，#33） / 政治/内战 / 书 `s4_10_politics.md` 内战节补行：参与国清单存活过滤清理（国+1156≤0 剔除 + 有序数组二分移除 + "civil war initiator is invalid" 断言；+1156 语义待裁，疑存活/拥有州计数） |
+| part10 | sub_1419F1950（#33） / 外交/和会 AI / 书 `s4_10_politics.md` §4.10.26 和会管理器邻域补「和会 AI 谈判」节：peacewinnerai.cpp，Negotiator 门 + turn≤100 门 + 0x140E4 出价簇；派发 = tbb 并行（sub_140E363C0/sub_140E4EBA0） |
+| part12 | sub_140D3A9F0（139 行，#5） / 外交 / 书 `s4_10_politics.md` dip 缓存重建节（s4_02:389 实名 sub_140D46650 链）补本步：+32 关系表（工厂 14346）遍历 → 对偶 tag → rs+744 条目 vt+176 评估 → 尾调 dip 重建；触发链注 CCountry::DailyUpdate（s4_03:1638） |
+| part12 | sub_1406E6830（139 行，#7） / 外交/流亡 / 书 `s4_10_politics.md` 流亡节补 CreateExilesTransfer（country.cpp:15051）：单位集收集 → 0x38 转移对象（0x14151 模块）→ a1+5064 队；与 part01 #3 流亡消息发射件同节合并 |
+| part12 | sub_140D35430（138 行，#11） / 外交 / 书 `s4_10_politics.md` 补 +880 sorted tag 集维护步（三源合并：+656→+88 关系表排除己方 / +392 单值+368 清单 / sub_140D3D300 收集）；调用方双实名（sub_140D46650 + CDiplomacy::DailyUpdate sub_140D3B920），集合语义身份细作时先钉 |
+| part12 | sub_140E47DF0（131 行，#40） / 外交/和会/流亡 / 书 `s4_10_politics.md` 和会节（part01 #5 同域）补流亡对象收集步：+504 map 按 tag find → 条目 scoped 列表过 sub_14151EBE0/EBF0 双谓词（「是流亡 X 且未归还」推定，细作时核）收集入参 |
+| part13 | sub_140E35A80（128 行，#18） / 外交/和会 / 书 `s4_10_politics.md` §4.10.26 补行：和会 scopedptr 数据处理件（调用方 peaceconference.cpp ×2） |
+| part13 | sub_140D30730（123 行，#40） / 外交/战分 / 书 `s4_10_politics.md`（或外交册）补行：战分/盟国数据装配件（WarScoreRatio 断言链直证）；0x14117 GUI 命名条目消费侧一并注 |
+| part14 | sub_1414E7DB0（#3） / 事件/消息(外交) / 书 `s4_10_politics.md:1375` CMessage 布局行补构造器地址 = sub_1414E7DB0；生产者族（Annex sub_1406D3F00 / 0x14153 消息族）同注 |
+| part14 | sub_140E4EF90（#16） / 外交/和会 / 书 `s4_10_politics.md:1038` 和会节补：_HistoryBiddingTurns 末轮查询器 = sub_140E4EF90（rb 树 + RTDynamicCast CStatePeaceAction by +72 州 id） |
+| part14 | sub_1406F9470（#19） / 事件/消息(外交) / 与 #3 同节合并收录（s4_10:1375-1392）：CMessage「COUNTRY_*」kv 重建件 = sub_1406F9470（Annex/CDiplomaticAction 执行器共用） |
+| part14 | sub_140E4CF80（#23） / 外交/和会 / 书 `s4_10_politics.md:1038` 和会终结算链邻域补：冲突胜者映射清退件 = sub_140E4CF80（+568/+584 聚合 → +472/+456 成对擦除，peaceconference.cpp:2811） |
+| part14 | sub_140E3F820（#32） / 外交/和会 / 书 `s4_10_politics.md:1036` PEACE_SCORE_DISTRIBUTION 权重表处补区间取件 = sub_140E3F820（qword_143338638/dword_143338644；空表回退 [0,1)） |
+| part15 | sub_140ED5140（112 行，#17） / 政治/顾问 / 书 `s4_10_politics.md` 顾问槽节（hourly pass⑥ cc+4080 顾问槽刷新链下游）：AdvisorBonuses 有序集登记步（technology.cpp 源；脏旗 byte_14333D29E）；与 #7 并案 |
+| part15 | sub_1402CE350（114 行，#12） / 政治/国焦 / 书 `s4_10_politics.md` 国焦节补：树选择/应用步（"No default tree scripted" 回退 + CEventScope 清场 sub_140535820 ×2）；调用点 0x1401C/0x1401E 装载链一并注 |

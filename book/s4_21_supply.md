@@ -189,7 +189,7 @@ CBC8C0 阈值分流 (定案): `v35 = BASE_LAND_TRADE_RANGE² × ln(两国持有�
 
 运行语义 (defines 收口): 重算预算 = `NGame.TRADE_ROUTE_RECALCULATE_FREQUENCY_DAYS` (vanilla 45, 0=不周期重算; 每日预算 = max(1, 有效路线数/45)), 轮转游标 = gs+2496 `next_trade_route_update_country_idx` (模 gs+796 国家数置脏), 有效路线计数 = gs+2492 `cached_active_trade_route_count` (token 10102), gs+2488 = 每小时元组收集数 (纯运行时)。护航危险评分 = CStrategicNavy 逐战略海区 0-4 级加权归一 (权重 = defines `NNavy.NAVAL_CONVOY_DANGER_RATIOS` vanilla 0.10/0.10/0.10/0.15/0.15, ×1e5 装载; 孪生件 EB06F0 = 水雷危险版)。
 
-贸易管理器刷新域 (定案): 容器 = +1832/+1844 贸易数组、+1856/+1868 交换条目、+1880/+1892 过期表、+2000 脏字节; 巡检 sub_140CBBCD0 (失效即终止 + TRADES_MODIFIED 广播) + 重评 sub_140CBA010 + 全国家刷新 sub_140CBA910 (三者宿主 = F07470 资源并行 harness, 全名 ApplyFunctionToCountryResources<...CCountryResources>); 最大可出口量 sub_140CAD5A0 (a1 = CCountryResources@cc+4600; 四理由 TRADE_MAX_EXPORT_DETAILS_*); 路线继续有效性谓词 sub_140D1C700 (+760/+76/+77 旗全零 + +744 对象存活 + 双 tag 在册; 两窗采样最热点 103 样本)。
+贸易管理器刷新域 (定案): 容器 = +1832/+1844 贸易数组、+1856/+1868 交换条目、+1880/+1892 lend_lease 向量 (键 12618 — CLendLeaseExchange 896B 元, 布局 §4.3.25)、+2000 脏字节; 巡检 sub_140CBBCD0 (失效即终止 + TRADES_MODIFIED 广播) + 重评 sub_140CBA010 + 全国家刷新 sub_140CBA910 (三者宿主 = F07470 资源并行 harness, 全名 ApplyFunctionToCountryResources<...CCountryResources>); 最大可出口量 sub_140CAD5A0 (a1 = CCountryResources@cc+4600; 四理由 TRADE_MAX_EXPORT_DETAILS_*); 路线继续有效性谓词 sub_140D1C700 (+760/+76/+77 旗全零 + +744 对象存活 + 双 tag 在册; 两窗采样最热点 103 样本)。
 
 #### 4.21.1c 读侧与消费面 (UpdateSupply 之外的全部读者)
 
@@ -328,3 +328,14 @@ RH 表对象 32B = {占位 qword@+0 (不初始化), tab@+8, count@+16, mask@+20,
 | +728 | Form P, 8B 条 | FindNodeIndex case4 目标 | 读侧定案/写者待裁 |
 | +752 | Form P, 8B 条 | FindNodeIndex case5 目标 | 读侧定案/写者待裁 |
 | +776 | Form P, 16B 条 | **消费者注册清单** {tag u32@0, CSupplyConsumer\*@8} (lam3 重建 → 注册阶段排水 = **sub_141229D70**: 逐 16B 条按 tag 定国调 sub_14121B650 注册); sizeof = 800 由本容器闭合 | 定案 (原「+776/+784 qword」翻案) |
+
+
+#### 4.21.3 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part08 | sub_14121F4F0（191 行，#10） / 补给 / 书 `s4_21_supply.md:127` 脏国 120B 记录刷新行（sub_140ECC220 已实名）补内步（GetBestVPProvince → 省 id 查记录 sub_14121FF60 + controller tag 门） |
+| part08 | sub_140EC8DC0（183 行，#27） / 补给 / 书 `s4_21_supply.md` §4.21.1d 读档链（sub_140ECA270 入口已实名）+ :129 id 列表刷新行补编排内件（被调 sub_140ECC340/sub_140ECC820 即书载实名对） |
+| part09 | sub_14121AA10（163 行，#38） / 补给 / 书 `s4_21_supply.md` 补行：country_supply.cpp:2812 分配账目步（need−given 差值累加 × 比例/1e5 + ToGive≤RemainingNeed 断言 + 40B 分配台账） |
+| part10 | sub_140EB8DD0（#15） / 补给 / 书 `s4_21_supply.md:114` UpdateSupply 12 阶段链补内步（uint 四元组 SSE 变换，e4g_part08 ①簇；细作时先钉阶段归属与 +偏移） |
+| part12 | sub_141A0B240（139 行，#2） / 补给 / 书 `s4_21_supply.md` 补 supply_consumer 消费者形态行：switch +28 五类取省（自身槽/上级槽/省份对象/直接省槽）+ ValidProvince(:79)/GivenAccess(:93) 双断言门语义 |

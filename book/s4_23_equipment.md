@@ -511,3 +511,13 @@ sub_140CA6EB0** (权重/可交付量/政治 274+外交 376 修正/库存上限/�
 第二站点 sub_140CB5D60 = 命令驱动的取消后再结算 (非调度链)。rs 侧字段勘正:
 rs+1784 = origin / rs+1808 = export 扁平表 / rs+1832 = 按资源桶数组 (writer
 循环基地址留运行期对拍裁定, 链级结论不受影响)。
+
+
+#### 4.23.8 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part07 | sub_1406EBBD0（#14） / 反垄断贸易因子 / 书 `s4_23_equipment.md` 市场节补：TRADE_FACTOR_ANTI_MONOPOLY 计算步定址（THRESHOLD 门 + 修正索引 274/376）+ s4_03 DailyUpdate 链注 |
+| part16 | sub_141444710（108 行，#2） / 经济/装备市场(合同交付) / 书 `s4_23_equipment.md:179` contract_delivery_state 行（ctor 0X1414445A0 已载）补校验件：AreStatesOfSameContract 州同合同门 + 装备转移非负断言；调用侧 = PURCHASE_CONTRACT_PROGRESS_EQUIPMENT_* 进度文本件 sub_14204FBF0 与合同日更族 sub_1419D4AA0（§4.23.3a 邻件） |
+| part16 | sub_1413739F0（105 行，#27） / 军事/后勤 / 书 `s4_23_equipment.md`（production\logistics.cpp 单元 0x14137，装备原型断言）或 `s4_08_production.md` 补后勤处理件；调用侧含 CHistoryLogger JSON 遥测消费；细作先体读定分支 |
+| part17 | sub_140BDFA70（101 行，#13） / 装备/变体统计 / 书 `s4_23_equipment.md:396-402` variant+928 聚合缓存行补内步（78 槽统计合算：a1+256 起 78 qword 槽 + a1+832 特槽；stat_helper.h:119 整数性断言；细作先裁 78 槽 = 装备类目映射与 +832 语义） |

@@ -20,7 +20,7 @@
 | +464 | MSVC 串 32B | CDedicatedServer 名串 | 数据堆上, buf 槽 = 堆指针 | |
 | +468 | — | 名串指针高 dword | ⚠ 勿当独立字段读 (ASLR 假阳性源) | |
 | +469..+599 | — | pad | → gs+600 | |
-| +600 | CFlagManager (内嵌 32B) | 旗管理 | | |
+| +600 | CFlagManager* | 旗管理（堆 32B 对象; gs ctor sub_1401BFD30 malloc(0x20) 写） | 布局 §4.13.3 | |
 | +608 | CCombatManager (内嵌) | 战斗管理 | | §4.22; vt 0X2950688 存于槽自身 (非指针; 探针) |
 | +616 | CCombat* | 战斗明细宿主 | 容器数据 {count@+628}; 元素主 vt 分流: CLandCombat 0X29A83D8 / CNavalCombat 0X29DDB08 / CLandBorderWarCombat 0X29BC5F0 | §4.22 |
 | +617..+627 | — | 战斗明细容器尾 | = pdx 容器@616 {d@616, cap@624, c@628 高位} 内部 | |
@@ -98,7 +98,7 @@
 | +192 | — | = 位域旗 (u32) | bit0 = ironman/成就门 / bit1 = 多人 / bit2 = coop / bit3 = tutorial (逐字段 §4.1.1) |  |
 | +193..+467 | — | = CPersistent 尾段 {位域@192 (bit0=checksum 门 / bit3=tutorial), null-object 句柄@200, 容器B@216, 标志@240, scoped@248} + **CHuman@272 (160B)** + **CDedicatedServer@432 (156B, 名串 "Dedicated server")** |  | |
 | +468 | — | = CDedicatedServer 名串 (gs+464, "Dedicated server") 堆指针的高 dword (随 ASLR 变); 存档真值 multiplayer_random_count 来自静态 dword_143452520 (键 11459) |  | |
-| +469..+1191 | — | = CDedicatedServer 尾 + pad → gs+600; gs+600..+1191 中段全数定案见 §4.1.1 (CFlagManager@600 / CCombatManager@608..683 / 省州区国四数组 / tag 表 / 按国家数组 / RH map@952 / 第 7 管理器@1032 / u32 对列表@1040 / difficulty_setting@1064 / game_rules@1088 / entity@1096 / power_balance@1104 / date@1120 / CGameDate#2@1184)  |  | |
+| +469..+1191 | — | = CDedicatedServer 尾 + pad → gs+600; gs+600..+1191 中段全数定案见 §4.1.1 (CFlagManager*@600 / CCombatManager@608..683 / 省州区国四数组 / tag 表 / 按国家数组 / RH map@952 / 第 7 管理器@1032 / u32 对列表@1040 / difficulty_setting@1064 / game_rules@1088 / entity@1096 / power_balance@1104 / date@1120 / CGameDate#2@1184)  |  | |
 | +1192 | — | 玩家相关 | | |
 | +1193..+1311 | — | = speed@1212 (键 110) + to_be_deleted@1224 (块 19332) + CPeaceConferenceManager@1248 (块 12499) + 串@1280 (探针空, 语义未名)  |  | |
 | +1312 | — | 玩家国 id (键 10805 "player", 详 §1.2 表行) | ||
@@ -301,7 +301,7 @@ sort; key 写门 tid>0 → 引号三字串)。
 | +9..+2063 | — | （覆盖行， 无独立残留） |  |
 | +2064 | 384B | intermediate_statistics (writer 0X1406AA260) | §4.1.10 |
 | +2065..+2447 | — | （覆盖行， 无独立残留） |  |
-| +2448 | CFlagManager 内嵌 | flags | 块恒写 (count=0 空块无叶); §4.1.11 (布局 §4.13.3) |
+| +2448 | CFlagManager 内嵌 | flags | 块恒写 (count=0 空块无叶); 布局与同族宿主 §4.13.3 |
 | +2449..+2479 | — | （覆盖行， 无独立残留） |  |
 | +2480 | uint8 | first_tag | → yes/no 恒写 |
 
@@ -340,12 +340,6 @@ sub_1414E5840 逐 count 写)。尾部两标量 (各 malloc 4B 堆 int):
 |---|---|---|
 | +368 | uint32 | controlled_provinces = u32@rp(interm+368) |
 | +376 | uint32 | province_gaining_weeks_intermediate = u32@rp(interm+376) |
-
-#### 4.1.11 CFlagManager (wrapper+2448 内嵌)
-
-career profile 侧 CFlagManager 宿主 (块恒写 count=0 空块无叶); 键走 token_name
-(`career_profile_overrun_*_flag` 16025/16028 实证; ⚠ 勿裸用 SL.tok 数字回退)。
-**类布局 (vtable 0X14295BB98 / writer 0X140CBFFC0 / 条目 CScriptFlag 48B 全字段) = §4.13.3 (权威, 勿重述)**。
 
 #### 4.1.12 SCareerProfileCountryData (blob 164 键)
 
@@ -591,3 +585,10 @@ RB-tree (std::map 形态): head = *(gs+2520), 规模 = *(gs+2528) (≠0 门); �
 | +32 | uint32 | value | 恒写 (0 值也写) |  |
 
 ⚠ gs+2520 与 session_meta #.id 同址撞车: gs+2520 实属本块, 见 §4.1.7。
+
+
+#### 4.1.17 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part02 | sub_140715A10（463 行） / 每国聚合（疑焦点/学说侧） / 书 `s4_01_CGameState.md` 或 `s4_02_gametick.md` 相位链注：tbb 每国循环内聚合 + 0.85 系数 + nationalfocus/doctrine UI 双消费；**身份待细作**，先以「未明聚合」登记占位 |

@@ -184,6 +184,7 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 | +824 | 引用列表 | **互斥科技 (mutually_exclusive) 引用** | tech+224 源 |
 | +860 | 匿名结构 (元素待裁) 向量 | 被门控后继列表 | tech+176 源 |
 | +872 | u32 数组 | **特殊项目 id 表** {data@+872, count@+884} — AddResearchPoints sub_140ED5690 notify 时逐 id 调 sub_140E75C40 推进 cc+4008 program_status | 定案 |
+| +896 | 24B 容器 {d@+896, cap@+904, c@+908, alloc@+912} | **folder 关联条目列表** (键 11873 folder; 元素 56B = CFolderPosition, 下表) | 消费器 sub_140ED6CD0 doctrine 四军种 folder 名 memcmp 源 (§4.7 已载) |
 | +984 | u32 | 科技可用年 | >0 门 (year 窗直证) |
 | +988 | u32 | max_level | |
 | +992 | — | 基础成本 | 进度条分母: ×qword_143332BA0/1e5 ∨ 空槽 qword_143332A38 |
@@ -194,6 +195,19 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 | +1312 | u32 | XP boost 配置 | IsBoostableByXP = +1312≠0 且 +1328>0 |
 | +1320 | — | XP boost 配置 | |
 | +1328 | — | XP boost 配置 | >0 门 |
+
+CFolderPosition (folder 关联条目; 56B; vt 0x1429440B8; def 侧件 — writer 槽 [2] =
+CFG 空桩不落档; reader 0x140AD2A80 键 27 name / 76 position):
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +8 | MSVC 串 32B | folder 名串 (reader case 27 写入) |
+| +40 | uint32 | 名串小写折叠 FNV-1a hash 缓存 (基值 0x811C9DC5 × 16777619, A-Z+32 折叠; 默认 −1; 写名后现算) |
+| +48 | position 载荷 8B | 键 76 position 值对象 (内部类型待裁, 基链暗示 CVector\<int,1\> 族) |
+
+> 消费链: sub_140AD01A0 遍历 template+896 条目, 对 folder def 容器逐项 +40 hash
+> 相等 (预筛) && 名串 stricmp 相等配对, 未中返回 null_object 单例; 上游
+> sub_140ED6CD0 对返回 def 名串 memcmp 四军种 folder 名 → 写 CTechnologyStatus+320。
 
 **解锁列表元素** (tech+104 列表首元):
 

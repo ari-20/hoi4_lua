@@ -538,3 +538,43 @@ CAirWing::HourlyUpdate 逐翼要点: other_combats 死引用压缩 / 无效任�
 | 数据填充 | 历史 effect + boot 模板解析值 (模板字面量) | 存档解析 (sub_142232930) + post-load (sub_1401DA490) |
 | 收尾 | 49.5–49.8 (情报知识 / CGraphicalMap ResetGame / stateDef 收尾); gs+2600 = 所选书签 | post-load 全局重挂波; gs+2600 重置默认书签 (sub_1401DBBB0) |
 | 汇合 | CStartGameCommand::Execute (FE+1590=1) → StartNewGame (门 FE+1591) → CInGameIdler ctor 开局补算 sub_140DD6A30 (Hourly/Daily/Weekly/Monthly 各一遍) → SetIdler → 首帧 | 同左 |
+
+
+#### 4.2.21 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part01 | sub_140F0EF20（761 行，#8） / 统计/军事 / 书 `s4_02_gametick.md` §4.2.6 hourly 主调度步骤表补行（军事命名指标采集器：IS_TRAINING/TOTAL_*_MAN_HOUR/AVG_ENTRENCHMENT_* 逐军写入；被调 sub_140F0A580 关联 s4_18:573 训练行列）；统计/账本域若成册再迁 |
+| part03 | sub_140EB43C0 (#1) / 供应链脏检 CCachedCountryTag 缓存表重建（UpdateSupply depth2） / e4a1 供应链域补深层（书 s4_02 补给阶段注） |
+| part03 | sub_140F7D590 (#2) / 空军地面任务执行步（ProcessGroundMission 内部） / 空军任务册（书 §4.2.17 步12 补内部） |
+| part03 | sub_140F661E0 (#35) / 航空联队统计聚合（机数/combat 统计候选实现） / 空军册（§4.2.17 步1 十段对址） |
+| part06 | sub_1401ECE70（#24） / hourly 链国家逐时更新前步 / 书 `s4_02_gametick.md` §4.2.6 hourly 链注：调用点 7055139-7055140（与 sub_1401CF000 相邻、紧前于 DoCountryHourlyUpdates）；**身份待细作**（"g_ExitOnTriggerText was invalid" 串先钉） |
+| part06 | sub_1406FC510（#40） / hourly pass⑥ 复合体内步 / 书 `s4_02_gametick.md:214` pass⑥ 行补定址：sub_1406FD800 体内 delayed_events 与 decision.hourly 之间的零参步（布尔门控 sub_1406DADE0 通知；疑即书载 calc_modifier 槽位，体读定案后顺带核对该行「sub_1406DADE0 通知」归属描述与体序的出入） |
+| part07 | sub_140717700（#5） / 未明任务体（军事推定） / 先挂 `s4_02_gametick.md` 任务体注（tbb 通道 sub_1401B8650 → 本件）；细作定域（CProductionStatus 生产线 +1152 背引用摘除 + cc+632 argmax 聚合是主线） |
+| part07 | sub_140ECBDD0（#17） / 未明 hourly 任务体 / 先挂 `s4_02_gametick.md` 任务体注；细作定域（/100000 → 对象+428 写值经 sub_1414E6350） |
+| part07 | sub_140EA4FB0（#35） / pass⑥ 错峰日步链聚合 / 书 `s4_02_gametick.md`:214 定址补注：sub_140EA56A0（define × f()/1e5 调用点）及其本子步 |
+| part08 | sub_140C66480（185 行，#18） / 空军/战略空军 / 书 `s4_02_gametick.md:482` 步2 行（lambda_1 分裂体已实名）补伴生三连名单（sub_140F62A50/sub_141961F30/sub_140C66480，part05 #6 已裁定同链 B） |
+| part08 | sub_140737F60（184 行，#20） / 决议/冷却 / 书 `s4_02_gametick.md:214` pass⑥ decision.hourly 步骤 + `s4_12_events.md:117` 冷却节补注：到期移除第三通道 = sub_140737F60（"should_remove" 脚本钩子 + taken swap-remove + a1+112 链表摘除；书载 re_enable/remove 双通道 = sub_140737480 之外的应到未到件） |
+| part08 | sub_140664760（184 行，#21） / AI/CStrategy / 书 `s4_02_gametick.md:269` 行 15（CStrategy 串行重算已实名）或 `s4_34_ai.md` 补内步名；细作先定查询/过滤语义 |
+| part10 | sub_140736C30（#4） / 决议/任务 / 书 `s4_02_gametick.md:214` decision.hourly 内部结构行：「到期清扫」步定址 = sub_140736C30（编排 timeout/cancel 执行器对 + scope 构造族） |
+| part10 | sub_1406685B0（#12） / AI / 书 `s4_02_gametick.md:269` sub_14066A050 UpdateStrategy 行 + `s4_34_ai.md` 补内步（领导策略/省集容器重建，sub_140D3CA30 = part05 #12 已 B 待细） |
+| part10 | sub_1410EF160（#18） / 角色/顾问槽 / 书 `s4_02_gametick.md:214` pass⑥ cc+4080 顾问槽刷新行补实现地址 = sub_1410EF160；同处补注**并行侧复合件 sub_1406FDBA0**（hourly_parallel OnlyChangeSafe 变体：生产 sub_140717700 + 战区 sub_140EF8470 + 决议 sub_14072FE70 + 顾问槽四组件，tbb 任务 sub_1401BB280 派发）——串行 pass⑥ 之外的平行路径，书内未收 |
+| part11 | sub_140EAEE80（#19） / 军事/小时更 / 书 `s4_02_gametick.md` hourly 链占位行：sub_1401DF400→sub_140EA79F0→本件，逐对象 +1784 累计 ≥100000 触发 +1832 对象 vt+176 刷新；计量语义待细作 |
+| part11 | sub_1411D6830（#26） / 统计/账本 / 书 `s4_02_gametick.md`（或统计域册）占位行：链 sub_140EB2EC0→sub_1411FAE40→sub_1412002E0→sub_1411D63A0→本件；五全局因子分解四分量写账本行（sub_140D066D0）；语义待细作 |
+| part12 | sub_140621040（137 行，#16）+ sub_14061CE50（137 行，#17） / 调度/池化对象 / 书 `s4_02_gametick.md` §4.2.6 hourly 步骤表补行：活跃 rb-tree 条目到期/过滤 → idler+320 pending 压队或 free 数组回收（Xtime 戳 + sub_1414855F0 文件装载路）；**对象类型待裁**（条目带文件装载 vt 路，疑新闻/媒体资产池——若坐实纯资产则改 A 并移表） |
+| part12 | sub_140F04EE0（136 行，#21） / 统计/军事 / 书 `s4_02_gametick.md` §4.2.6 hourly 统计行（part01 #8 同节）补采样窗步进件：[+16,+24] 日期窗按 qword_143335EC0 步长推进钳位 |
+| part13 | sub_1402AF230（127 行，#28） / 调度/idler 每日更新 / 书 `s4_02_gametick.md` 每日相位（或 `s4_28_session.md` idler 节）补行；细作先钉宿主 sub_140DD9740（"Daily update: "）身份与 resistance 消费语义 |
+| part14 | sub_14072D970（#1） / 决议/任务 / 书 `s4_02_gametick.md:214` decision.hourly 行（通知步 sub_1406DADE0 处）补注：FROM-scope 构建执行共享原语 = sub_14072D970（CEventScope 族 + sub_140735D00 查找/sub_14072D770 派发对）；GUI 点击/外交/情报多点直调同源 |
+| part14 | sub_140724D60（#2） / 决议/任务 / 书 `s4_02_gametick.md:214` decision.hourly 邻域（或 s4_12 决议节）补：逐州目标收集步 = sub_140724D60（gs+724 州计数；宿主 sub_140727260 按 a2+272 决议种类分派，decision.cpp:3352） |
+| part14 | sub_1409D69A0（#8） / 军事/边境战争 / 书 `s4_02_gametick.md:267` on_border_war_lost 行邻域（或 s4_13_CState 边境战争节）补：贡献分桶累加步 = sub_1409D69A0（宿主 sub_1409D5BA0 BORDER_WAR_* 族）；细作先裁「贡献」计量口径（vt+240 取值对） |
+| part14 | sub_140EED100（#14）/ sub_140F000E0（#31） / 军事/战区 / 书 theatre 册（或 s4_02 §4.2 重校验处）补：e4g_part01 #40 重校验族五件现到齐两件地址 = sub_140EED100（双容器分调 sub_140C72780/sub_140E887F0）、sub_140F000E0（+360 列表调 sub_140EFF3C0）；余 EFAC10/EF9F40/EF88B0 三件仍未见本 |
+| part14 | sub_140EA56A0（#15） / 军事/海军-补给邻域（待裁） / 书 `s4_02_gametick.md:214` pass⑥ 组件清单补注（与 part10 备注① career 漏列同性质）：sub_140EA56A0 = 装备池属主千分比（rb 树 sub_140EA4FB0 + sub_1410041A0）；细作先裁容器语义（0x140EA 域）与 +232 池身份 |
+| part15 | sub_14129E610（114 行，#7） / 政治/国家修正 / 书 `s4_02_gametick.md:318`「country.calc_modifier = 13 pass」备注步表补行（本件为 calc_modifier 直调内步）+ `s4_10_politics.md` CModifier 节；顾问通道 sub_140ED5140（#17）并案 |
+| part15 | sub_140D750B0（114 行，#10） / 调度/hourly 编排 / 书 `s4_02_gametick.md:191` DoCountryHourlyUpdates 十三相位表补注（a1+1832 清单逐条挂 a1+824 句柄）；**对象身份细作先钉**（a1 ≠ gs，gs+1832 为会话计数不符） |
+| part15 | sub_1409D5930（112 行，#22） / 地理/州（空军基地） / 书 `s4_02_gametick.md:262` 步 8 行（州合规修复链）补定址：state.cpp:1763 "air base without access" 断言串已书，本件即其实现件（GetOperationalStatus×控制器门 + 0x140C5 翼族清点）；宿主 = 州归属修复件 sub_1409D73E0（s4_13:67 SetOwner 链已实名） |
+| part15 | sub_140EA3940（110 行，#29） / 调度/日更头 / 书 `s4_02_gametick.md` 日更头节补注：日头四连 sub_1401D7830（战报清除，s4_22:641 已书）→ sub_1401D77E0 → sub_1401D79E0 → sub_1401D7900（编排 = sub_140DD9740 "Daily update: "）；本步 = gs+224/+248 双容器到期 swap-remove；**两容器身份细作先钉**（s4_01 布局未见行，本批线索） |
+| part16 | sub_140736150（106 行，#20） / 决议/cancel / 书 `s4_02_gametick.md:214` ⑥ decision.hourly 行（或 `s4_12_events.md` 决议节）补 **should_cancel 字段执行器**第三通道（与已载 cancel_effect sub_140728400 / remove_effect sub_140728A40 同族同宿主 sub_140736C30/AF0；"should_cancel" 脚本钩子 + eventscope 环断言） |
+| part16 | sub_140731670（103 行，#38） / 决议/available / 同上节补 **available 字段触发器求值步**（"available" 串直证；书 s4_02:214 已载「可用性评估 sub_1407313C0」行邻注定址；GUI 邻域 0x14172/0x14116 消费点一并记） |
+| part17 | sub_140E567B0（102 行，#4） / 政治/权力平衡 / 书 `s4_02_gametick.md:409` lambda_1 行（sub_1401C7460 power_balance 玩家侧月更已实名）补内步名（400B 记录 (名,值) 收集）；§4.3.21 power_balance 系统节同步注 |
+| part17 | sub_140727F80（102 行，#6）+ sub_1407290C0（101 行，#15） / 决议/mission 模块 / 书 `s4_02_gametick.md:214` pass⑥ decision.hourly 步 + `s4_12_events.md:117` 冷却节补注：cancel/timeout 通知发射对（token 构造 + 模块钩子 sub_140735D00 + a1+1208/a1+3120 子对象 vt+96 发射 + idler tag 门 GUI 刷新 sub_140B6E1A0；编排宿主 0x140736F50）；书载 re_enable/re |
+| part17 | sub_1411F2AD0（100 行，#18） / 谍报/情报网(算法内步) / 书 `s4_02_gametick.md:189` diplomatic_pressure 双表行（sub_141200DF0 已实名）补内步（经 sub_1411F8F10 间接的稳定排序 + 双遍 Q15 定点衰减加权求和，双和输出）；细作先裁 40B 记录字段语义 |

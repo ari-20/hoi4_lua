@@ -313,6 +313,15 @@ upgrades 容器 (U = q+136):
 | request | 12613 | {data@U+24, count@U+36} | 24B 内联 {variant@+0, request int64@+8, total int64@+16}; equipment_variant_index (13891) = variant 的 id 对 (非 0 才写) |
 | delivery | 13231 | {data@U+48, count@U+60} | 指针 e → **CUpgradeDelivery** (sizeof 96: status@+8 / progress@+16 / total_progress@+24 同请求元素 CEquipmentDelivery 形态 / produced@+32; writer 0x141510680 / reader 0x14150F100) |
 
+request 行的发射主体 = **CArmyUpgradesRequests::CUpgradeRequestPersister** (24B 栈上
+值适配器; vt 0x1429D1F20; CPersistent 派生; [2] writer 0x141510700 / [4] reader
+0x14150F1B0): 外层 writer/reader 对 U+24 容器逐元素现场装配 {vt@+0, 目标缓冲指针@+8,
+变体 DB ctx@+16 = `*(*(U+16)+56)`}, 一元素一枚、永不独立存在 (写读两侧装配均恰
+3 qword, sizeof 24 定案)。适配器发/收三键: 12613 request → 元+8 / 10770 total →
+元+16 / 13891 equipment_variant_index → 元+0 variant 的 id 对 (非 0 才写; reader
+侧 assert `_Request._pVariant` reinforcement.cpp:1259, 无效请求报
+"Invalid equipment request on line " :1316)。
+
 #### 4.18.4 CDivisionTemplate
 
 国家挂载容器 {data@cc+440, count@cc+452}; 全局容器 {data@*(gs+1776), count@*(gs+1788)}; vtable 0X294F5B0; 布局基 d = 对象+24。
@@ -1099,3 +1108,20 @@ CCountryManpower::Add, manpower.cpp:466 断言 "Giving exile manpower to a natio
 not in exile"; exile 旗直加流亡池, 常态经 sub_140CFE290 从世界人力池 cc+1120
 扣减可得量后入池 — 扣减分支待 PE 验算)。名号回收/重登记的精确语义待 PE 验算
 (删除期 tracker 建 176B CNameGroupMember 后释放, 取新名回填)。
+
+
+#### 4.18.21 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part01 | sub_140C053E0（826 行，#4） / 军事/部署 / 书 `s4_18_army.md:719`（CUnit/CArmy [18] 每小时 tick 行）补列该分支（省链聚合 a1+544 表，寻路成/次选 = s4_24:514 的 140E2AD40/140E2A320 对）；命令侧入口 sub_140C02A60（← MIO/编装 Execute 141968F70/1413672E0）一并注 |
+| part02 | sub_1406D6E50（452 行） / 陆军清单装配 / 书 `s4_18_army.md` 附录行：`CPdxHybridInlineBufferAllocator<CArmy*,16>` 装配原语 + +656/+668 军队向量 + +472/+480 双 id 过滤谓词；四调用方（faction/country/gamestate×2）与用途待细作 |
+| part02 | sub_140C790A0（401 行） / 装备定点分发 + RefreshAbilities 通知 / 书 `s4_18_army.md`（或 `s4_23_equipment.md`）补行：`值×率/100000` 定点逐对象分发链 + "RefreshAbilities" 具名串构造点（≠ vt[22] 本体 sub_140C8D450，是其上游触发通道之一） |
+| part06 | sub_140BF3E80（#27） / 军令组将领摘除 / 书 `s4_18_army.md` 或 `s4_33_commands.md` orders 侧：ordersgroup.cpp 断言直引 + 8 调用方全 0x140BF 模块（细作先裁落点册） |
+| part08 | sub_140615000（193 行，#6） / 军事/军队 / 书 `s4_18_army.md` CArmy::HourlyUpdate 步骤表（s4_02:216 行 7 引）补该分配计算步；细作先裁条目语义（候选对象 +40 location 对 army location 求值取最大 → 定标配额） |
+| part10 | sub_140BFBC30（#28） / 军事/碾过结算 / 书 `s4_18_army.md:1000` 碾过结算行补被调 = sub_140BFBC30（+ railway_gun.cpp OVERRUN_POPUP 侧入口 sub_140E8C020 双通道） |
+| part12 | sub_14144D790（139 行，#3） / 军事/部队史 / 书 `s4_18_army.md:197` CUnitHistoryEntry 全表行补构造件地址（字段侧 a6/a7 双旗 +88 = gs+1128 当前日期；余无新布局，轻注即可） |
+| part12 | sub_140C6EC80（139 行，#6） / 军事/部队史 / 书 `s4_18_army.md` 部队史节补**写入门**：CCombatManager 进省/夺省（part05 #2）触发的条目型分类（5/6/7/8/9/0 六型，所有权/容量门各表行）——新发现须及时同步书（铁律 1） |
+| part14 | sub_141375600（#30） / 后勤 / 书 `s4_18_army.md:943` logistics 台账行补被调聚合步 = sub_141375600（三元组去重累计，+16 求和） |
+| part15 | sub_140614C40（115 行，#1） / 军事/军队分配 / 书 `s4_18_army.md:719` CArmy[18] 每小时 tick 行——并入 part08 #6（sub_140615000 分配步）案作其内部步（名单匹配加权和；被调清单解析 sub_140614E70 一并注），匹配语义细作时定 |
+| part17 | sub_140C79820（101 行，#12） / 军事/军队 / 书 `s4_18_army.md:728` CArmy::[18] 步骤表补内步谓词（sub_140BFD6D0 列表异 tag 检测：+392 tag + sub_140BB52F0 同组比较 + getter 门；细作先裁列表语义与返回值消费点） |

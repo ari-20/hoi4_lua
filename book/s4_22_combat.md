@@ -12,7 +12,8 @@
 | +616 | CCombat* | 战斗明细 (details) 容器数据 — {count@+628}; 元素主 vtable 分流 CLandCombat / CNavalCombat / CLandBorderWarCombat |  |
 | +617..+627 | — | = details 容器尾 {cap@+624} |  |
 | +628 | u32 | details 容器计数 | logmgr 实为 +2176/+2188 容器 (元素 NCombatLog::CManager, vt 0X295D8D8), 非本槽 |
-| +629..+647 | — | = details 容器尾 {alloc@+632} + **+640 注册 token id** (ctor sub_140BB3E00 注册; 运行时, 未名) |  |
+| +629..+639 | — | = details 容器尾 {alloc@+632} |  |
+| +640 | uint32 | **玩家国缓存** (country-link index 域) | ctor sub_140BB3E00(·,0) 初始化 (country-link 解析, gamestate.cpp:7520 断言; 经 sub_1401DA7C0 查 gs+832 链表); hourly (sub_140BB8AE0) 与 gs+1312/1316 玩家 union 直比, 变化时写回并逐战斗 sub_1413E3EE0 通知; 不序列化 (link-index 与玩家 union 值域精确等同待裁) |
 | +648 | CCombatHistory (内嵌) | 战斗历史 (hist) | vtable 0X2950638 (= mgr+40) |
 | +656 | CCombatHistory* | **CCombatHistory 链表头** — Clear sub_140BB7BB0 沿 next@e+56 逐节点 free; 节点带 CGregorianDate vt@e+8 = end_date 族B (§3.7a) |  |
 | +664 | 匿名结构 (NNB 形状)* | 历史链表 **tail** | Clear 同清 (高置信) |
@@ -32,6 +33,21 @@
 | 海陆战分流 | combat `day uint32 > 0x7FFFFFFF` 即海战 (NBAT 前缀) | 陆战按 id 升序重编号 |
 | 魔数 | 陆战 600/65536 魔数已改通用 |  |
 | combat_details 字段族 | 参战双 attacker/defender 各含 units/losses/size/org_damage/str_damage/manpower casualties 等 | writer 0X1414B59B0 族; pfx 参数区分 CBAT/NBAT 前缀 |
+
+序列化 (§4.00.1 标准槽契约): [1] Save wrapper 0x1424BEC50 / [2] writer 0x140BBAFF0 /
+[3] Load wrapper 0x1424BE690 / [4] reader 0x140BBA070 (mgr 无坐标桥, a1 = 本体)。
+reader 键表 (三元素类均双 vtable 主@+0 / CPersistent@+16, 序列化统一从 +16 基进;
+堆分配后经 sub_140BB6CA0 线性查重注册):
+
+| 键 (token) | 元素类 | 尺寸 | ctor |
+|---|---|---|---|
+| land_combat (10521) | CLandCombat | 216 | sub_1412AA360 |
+| naval_combat (10522) | CNavalCombat | 296 | sub_1415C2330 |
+| border_war_combat (14757) | CLandBorderWarCombat | 248 | sub_1413EB800 |
+
+history 键 10293 直读 +648 (经槽[+24] Load wrapper); history writer 门 =
+count@+672 非零 (侵入链表逐元素多态写, writer 0x140BBAEA0)。writer 逐条目键 =
+元素虚槽[+80] 返回的静态 token id (GetSaveToken), 值 = 元素+16 CPersistent 基。
 
 #### 4.22.2 边界战族 (CLandBorderWarCombat / CLandBorderWarCombatant)
 
@@ -1093,3 +1109,13 @@ cc+5584 / 主将 leader+4272 / 编制内领袖。
 GUI/文案。六值聚合: counter 关系成立则对方六值整侧归零（sub_1412AE250 +
 sub_1406C01B0）。CCombatTactic 六值 +312..+352 定名（combat_width/attacker/
 defender/attacker_movement_speed/双方 org damage modifier）（定案）。
+
+
+#### 4.22.13 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part01 | sub_140CDBF40（601 行，#26） / 军事/战斗日志 / 书 `s4_22_combat.md` CStatsObserver 节（:177/:232/:359）补 vararg 写入口（CGameDate 打戳 + 装备池退库 sub_14100CAE0 消费；调用方 = 碾过结算 sub_140C895B0，s4_18:1000 定案） |
+| part09 | sub_140BBA1B0（167 行，#27） / 军事/战斗 / 书 `s4_22_combat.md` 补行：CCombatManager::remove_combat（战斗更新期移除禁令断言 + 活跃表外移除断言 + 栈跟踪打印通道；5 个模块内调用点） |
+| part14 | sub_140BB8180（#40） / 军事/空军对海 / 书 `s4_22_combat.md`（combatmanager.cpp 邻域）补对海攻击执行件 = sub_140BB8180（convoy 自打断言门 + sub_1415C 装配族） |
+| part15 | sub_140BB79A0（112 行，#21） / 军事/战斗管理 / 书 `s4_22_combat.md` §4.22.9a 五阶段节补壳名：去重遍历壳 → 进省登记件 sub_140BB9220（双方书内已实名，本壳未定址 = 定址补注级）；触发含 hourly 相位 12 |

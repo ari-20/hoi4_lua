@@ -648,8 +648,12 @@ CCountryCharacters (ch = cc+4080 解引用; vt 0x14298AE18) — 权威骨架已�
 s4_03 §4.3.1 chars 表 (H 批 writer/reader 全键反编译归一; 序列化仅 5 键
 19622/19968/19485/15702/17327)。本册侧要点复核: +112 = pArmyLeader /
 +136 = pNavyLeader (cpp:220/226 断言铁证, 原「army/navy 领袖数组」名保留);
-+200 = retired 特工池 (探针定案 ✓); +224 = recruit_scientist 招募池
-(空池每小时补生成); +264 待解任顾问队列 / +288 待清理领袖队列 (leader_type 分派)。
++200 = retired 特工池 (探针定案 ✓); +224 = recruit_scientist 招募池 =
+**CScientistRecruitmentPool** (88B 推定; vt 0x14298AD78; writer 0x1414ED250 /
+reader 0x1414ED0E0; 键 16389 scientist = 科学家指针向量 {data@M+8, cap@+16,
+count@+20}; 元素名串发射, reader 按名解析取 `*(obj+192)` 入池; 回指 CCountry*@+32;
+第二向量@+40 与惰性静态指针@+80 不序列化; CCountryCharacters ctor 内联装配,
+无独立 ctor; 空池每小时补生成) / +264 待解任顾问队列 / +288 待清理领袖队列 (leader_type 分派)。
 
 CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创建中门 /
 +200 进度累计 / +208 升级目标 / +216 现役特工数组 {d,c@+228} / +240/+244/+248
@@ -736,3 +740,11 @@ CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创
 
 **等级上限 = logistics 梯 count−1** (sub_140AE9520 读 db+724+24×t; 活证 t0/1/2 = 11、t3 = 0)。
 晋升链 (def+444)、技能上限 (sub_140AE9520)、skill_advantage 触发器 (+440) 三链落位。
+
+
+#### 4.4.25 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part09 | sub_1405589F0（171 行，#21） / 角色/将领 / 书 `s4_04_characters.md` §4.4.22 五段之⑤**定址补注**：条件源第一支 = CUnitLeader+3840 动态修正注册表倒计时 tick（64B 条目 --@+16 到期剔除 + scope 重建 vt+24 复评返「有变化」）——书已收五段外层契约，本步未定址 |
+| part09 | sub_14055F330（166 行，#31） / 角色/将领 / 书 `s4_04_characters.md` §4.4.22 五段之⑤**定址补注**：条件源第二支 = +3840 注册表 validity 复评（+180 门 + vt+24 复评 + 216B 步进目标集 idpair 比对返「需重评估」） |

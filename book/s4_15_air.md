@@ -415,3 +415,45 @@ defines 新钉 30+（DISRUPTION_*/ESCORT_*/COMBAT_DAMAGE_SCALE/ACE_*/SAM_MISSION
 SUPERIORITY/ANTI_AIR_*、修正键 1/12/19/118/356/394/395）; AIR_COMBAT_FINAL_
 DAMAGE_{SCALE,PLANES,PLANES_FACTOR} **三件套全零读者（负定案）**。m+88 = 8B
 {region, dist} 对（定案）。
+
+
+#### 4.15.13 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+
+| 来源 | 函数与身份 / 建议落点 |
+|---|---|
+| part01 | sub_140BB1070（711 行，#13） / 空军 / 书 `s4_15_air.md:341` 翼级燃料行（昼夜门 sub_140F80A40/拥挤门 sub_140F80930/系数合成器 sub_140F5F880 均已点名）补聚合体函数名与链（HourlyUpdate → sub_140C57D30 → thunk sub_140BB37D0 → 本件，rb-tree 计数登记） |
+| part02 | sub_140BB0860（467 行） / 空军任务-联队追踪 / 书 `s4_15_air.md` 新增「air_update_tracer（任务-联队追踪器）」小节：AirWingEntries[TaskIndex] 对账结构 + 两条断言原文 + 每任务联队表维护语义 |
+| part02 | sub_140F7CEF0（392 行） / 空军任务路径节点 / 书 `s4_15_air.md` 新行：airmission 路径节点（NodeIndex>=0 不变量） |
+| part04 | sub_140C53270 (#4) / 空军计数/效率聚合（AIR_COUNT_ORIGIN/AVG_EFFICIENCY 宿主 + strategicair 链 + 地图箭头共用） / s4_15 空军册（§4.2.17 战略空军链/计数聚合段） |
+| part04 | sub_140F7E600 (#10) / 地面任务执行/评估步（ProcessGroundMission 直调 ×2） / s4_15 空军册（s4_02:488 步10-12 补内部；与部分03#2 孪生合并细作） |
+| part04 | sub_140F7A760 (#16) / 空军任务省坐标校验/路径步（airmission.cpp 断言实名） / s4_15 空军册（任务路径规划域，宿主 sub_140E0D390 一并定案） |
+| part04 | sub_140BB3800 (#17) / 战略空军链联队聚合（strategicair.cpp 宿主 → airwing HourlyUpdate 族） / s4_15 空军册（§4.2.17 步补内部） |
+| part05 | sub_140C64EE0 (#6) / 战略空军 §4.2.17 步2 lambda_1 tbb 分裂体体内段（sub_140C46030 书载实名，本件系其内部） / 书 §4.2.17 步2 / s4_15 战略空军册补 lambda 簇内部 |
+| part06 | sub_140F852A0（#6） / 空军任务指派 / 书 `s4_15_air.md` §4.2.17 任务链补：StopTrainingAtMax define 训练门 + raid 任务指派串；7 调用方含书载 HourlyUpdate sub_140F62750，一并注 |
+| part06 | sub_140F7DDD0（#11） / 空军任务执行共用步 / 书 `s4_15_air.md` §4.2.17（ProcessGroundMission 步12 宿主 + airbase 断言件双证，4 调用方定址） |
+| part06 | sub_140E7EE70（#14） / 空降落地处理 / 书 `s4_15_air.md` 空降任务节（PROV_TEXT_* 文本键 + 唯一调用方 sub_140F84680）+ `s4_12_events.md` on_action 表注 on_units_paradropped_in_state 派发点 |
+| part06 | sub_140F76470（#29） / 空袭目标消费 / 书 `s4_15_air.md` 空袭节（"Consumer without Supply Location targetted for Air Strike!" + 唯一调用方 sub_140F82CA0） |
+| part07 | sub_140F814A0（#3） / 空军侦察执行 / 书 `s4_15_air.md` §4.2.17 任务链补：ProcessAirRecon 子步定址 + (100000−占比)×强度/1e5 四路分摊公式 + CConvoyClient 过滤 |
+| part07 | sub_140F76CC0（#8） / 空军战略目标收集 / 书 `s4_15_air.md` 补 SStrategicTarget 收集/评分步（vtable 两态 + 0x1410D 前线族取点 + 定点修正合成） |
+| part07 | sub_140C5DCB0（#10） / 空军任务注册校验 / 书 `s4_15_air.md` 任务注册表节补：_ActiveMissionRegions/_ActiveMissions/_AllActiveMissions 三表操作 + 断言门 |
+| part07 | sub_140F7CAC0（#16） / 空军补给打击目标 / 书 `s4_15_air.md` 补 SAirSupplyTarget/STargetPriority 收集步（与 #8 成对） |
+| part08 | sub_140F856B0（190 行，#11） / 空军/任务(raid) / 书 `s4_15_air.md` 任务指派节（part06 #6 sub_140F852A0 同区）补「联队突袭任务指派」本件（7 宿主含 CAirWing::HourlyUpdate/部署分派/转场恢复三书实名件）；raid 语义（空袭 raid）细作时与 s4_27_raid 对碰 |
+| part08 | sub_140C60290（183 行，#28） / 空军/战略空军 / 书 `s4_15_air.md:335` ProcessAirBasesHourly 行（sub_140C5EFC0 已实名）补训练任务许可分支（MISSION_TRAINING 掩码断言） |
+| part08 | sub_140F800F0（182 行，#29） / 空军/王牌 / 书 `s4_15_air.md` 补王牌事件链节（aces.cpp 单元 0x14061A-B 全库无册：击杀处理 sub_14061AA90 → 本件 scope 构建派发；王牌域若成册再迁） |
+| part08 | sub_140C648B0（181 行，#39） / 空军/战略空军(对舰) / 书 `s4_15_air.md` §4.2.17 strategicair 行补对舰目标校验件（pShip 断言 + 基地准入 + 翼目标选择；触发链含翼转移推进 sub_140F64B70 与舰船击沉链 sub_141975480 双书实名宿主） |
+| part09 | sub_14070B680（176 行，#8） / 空军/军事 / 书 `s4_15_air.md` 补行：按国家单位直方图原语（来源国+控制国双计数，+72/+76 控制旗门）；10 个空军任务侧调用方与用途（疑对地打击目标计数）细作时定 |
+| part09 | sub_140F85C30（174 行，#12） / 空军/王牌 / 书 `s4_15_air.md` 补王牌 on_action 六名清单与派发件（on_ace_killed/on_ace_promoted 等 ×7 槽 0x14333D5F8..628；触发链 = 空战结算 sub_140A774B0）；与 §4.12 事件域 on_action 机制交叉注 |
+| part09 | sub_140F7E290（172 行，#18） / 空军 / 书 `s4_15_air.md` 补行：对地目标权重累积器（距离钳位 + 师数占比 1e10×命中/(1e5×师数) 定点缩放 + 32B 目标条目输出；first-match-only 参数） |
+| part09 | sub_140C5D240（171 行，#20） / 空军/空域统计 / 书 `s4_15_air.md`（或 `s4_16_navy.md` 交叉）补行：空域统计登记链（airregionstatistics.cpp 枚举 8 = 统计种类；参战国家对数组产出 sub_140C53270 + 逐国登记 sub_141962C40）；触发 = airmission.cpp 任务处理件 sub_140F82CA0 |
+| part09 | sub_140F83AA0（170 行，#23） / 空军/海军水雷 / 书 `s4_15_air.md` 补空侧布雷/扫雷任务处理行（NAVAL_MINES DLC 门 + CAirMission::ProcessNavalMinesPlantingAndSweeping + 布雷 sub_140E9F1D0 与 `s4_16_navy.md:552-553` 海军舰侧镜像互注） |
+| part10 | sub_140F84680（#1） / 空军/空投 / 书 `s4_15_air.md:411` ProcessGroundMission 行补：paradrop 分叉地址 = sub_140F84680（被调 sub_140E7EE70 = part06 #14 空降落地，on_units_paradropped_in_state 派发） |
+| part11 | sub_140F84A50（#37） / 空军 / 书 `s4_15_air.md` 补行：翼级损失×系数结算（qword_143334C08 门、sub_140F7B540 结算、sub_140C5CD60 gs+840 表落地、通知 sub_140D19260→sub_141179A90）；调用方 sub_140F82CA0；语义细节待细作 |
+| part11 | sub_140F66BE0（#9） / 空军 / 书 `s4_15_air.md:139` _StatsPerMission 行注补重建器函数名 **sub_140F66BE0**（18 位任务掩码→remap int8[18] + 624B 条目数对齐；包装 sub_140F661E0） |
+| part12 | sub_140F5D8C0（135 行，#26） / 空军 / 书 `s4_15_air.md` 翼级生命周期节补注销/换组路：排序表摘除 + airwing.cpp:84 断言 + air group 摘除对（sub_1414EC080/1414EBC80）+ 销毁 |
+| part13 | sub_140C5DAA0（130 行，#8） / 空军/战略空军 / 书 `s4_15_air.md` 战略空军节补行：region 活跃任务表注销去重步（_ActiveMissions/_AllActiveMissions Contains 不变量；链 = airmission 任务收尾 sub_140F859D0） |
+| part13 | sub_140F73A40（126 行，#30） / 空军/任务 / 书 `s4_15_air.md` 补行：airmission 递归容器遍历件（part02 #40 路径节点同族链） |
+| part13 | sub_140B662E0（126 行，#32） / 空军/联队 / 书 `s4_15_air.md` 补行：联队任务许可/基地访问校验链（airwing IsAnyMissionTypeAllowed → 本件 → strategicair HasAccess(Tag)） |
+| part14 | sub_140F859D0（#38） / 空军 / 书 `s4_15_air.md` 任务节补 mission-airmission 绑定步 = sub_140F859D0（翼/基地登记 + 人力比 +80 + 航路联动；airmission.cpp:809/816） |
+| part14 | sub_140F68420（#39） / 空军 / 书 `s4_15_air.md`（airwing.cpp 邻域，s4_02:481 CAirWing::HourlyUpdate 行同注）补人力缺口补足步 = sub_140F68420（808 池正负双向 + a1+128 累计） |
+| part15 | sub_140F796E0（109 行，#33） / 空军/任务派发 / 书 `s4_15_air.md` 任务派发节补：翼任务位标志逐位派发总控（13+ 位 → 任务码 2..0x8000；与 part04 #10 sub_140F7E600 / part07 #16 sub_140F7CAC0 同簇并案；位表细作时逐位对 CAirMission 任务枚举） |
+| part15 | sub_140F65F20（109 行，#34） / 空军/翼级 / 书 `s4_15_air.md` 补 CAirWing::HourlyUpdate（s4_02:481）内步行：全局表插值 + token 115 修正 + 随机 Roll 累加翼+568；**累积量语义细作先裁**（经验/损耗/燃料嫌疑，getter +200/+212 择路待钉） |
