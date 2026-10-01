@@ -162,16 +162,22 @@ mission 块 (units; 存档块名, 非 RTTI 类名) 补录:
 | already_spotted (0x3BB3) | ms+104 (tf+968) | u8 | ≠0 写 yes | 0X140FBEA80 |
 | stop_training_at_max_xp (19076) | ms+69 (tf+933) | u8 | ≠0 写 | sub_140FB9B30; 仅 type==7 TRAINING 时 sub_140FBA460 从命令载荷写; 作用 = 训练任务燃料成本混合门 (0.15/0.6 经验加权) |
 
-#### 4.16.3 CShip (writer 0X140C3E6C0)
+#### 4.16.3 CShip (writer 0X140C3E6C0 = vt[2]; reader 0x140C3C5A0 = vt[4])
 
 | 项 | 值 |
 |---|---|
-| RTTI 名 | — |
-| sizeof | — |
-| vtable RVA | 0X2957F28 |
+| RTTI 名 | CShip |
+| sizeof | **2360 (0x938)** (CTaskForce loader case 10400 malloc(0x938) 直证 — 原「≥2360」封口, +2360..尾空白不存在) |
+| vtable RVA | 0X2957F28 (主表); 第二表 0x2957F90 = +24 IOfficerHolder 子对象 |
 | writer | 0X140C3E6C0 (= vt slot2; a1 = sh 直基; 首调基类 0X142220340) |
-| loader | — |
+| reader | 0x140C3C5A0 (= vt slot4; serfam 行 840 + loader 对新舰调 slot3 wrapper 双证) |
+| ctor / dtor | 0x140C2FEA0 / 0x140C30380 |
 | 挂载点 | CTaskForce ship 容器 (tf+840/tf+852) |
+
+**+128..+1783 = 内嵌 CSubUnitDefinition 克隆 1656B** (copy ctor 自 null def; reader 键 12259 经 sub_140B961B0 重克隆) — 原空白 +236..+839 与 +864..+1575 全部是克隆体内部, **按 §4.18.19 布局 −128 映射即全解** (活体 1524 艘 vt 全中: sprite "heavy_cruiser"@sh+232 (def+104+128)、主统计数组 statId=(off−288−128)/8? 否 — statId=(off−416)/8 式即 def 偏移 −128、reliability = statId65 = 0.8、critical_parts cap4、map_icon=3(ship)@sh+1544 (def+1416)、DB 母本索引=72@sh+1548 (def+1420)); 克隆体后 +1784 = strength。
+⚠ 原「舰统计重算 sub_140C21570」误挂 — 该函数触 +4168, 2360B 对象物理不可能, 系他类函数; 原「+856 CModifier 树」活体全零且 getter 不读 (待裁); GUI「+1576 旗」定名 = 克隆 type 位域 capital_ship 0x40 位。
+
+loader 兼容读入键 (writer 均不发射, 8 个新增): air_wings (12213) → +1840 航母机库注册 (strategicair.cpp:5946 断言) / start_experience_factor (13548) → +1824 / pride_of_the_fleet (15002) → +2068 / ordered_name (15501) → +2112 / unordered_name (15502) → +2116 / name (27) → +2080 旧名缓冲 / division_name (14596) 旧 ship_name 键 / refitting (15228) 容忍跳过。held_officer 键名 = 10660 定案。
 
 CShip 键表 (writer 0X140C3E6C0 直证清单; **行序 = writer 发射序落盘契约,
 非偏移升序**):
@@ -213,6 +219,8 @@ CShip/CTaskForce GUI 消费表:
 
 #### 4.16.4 CFleet (writer 0x140D5EBC0 = vt[2]; ⚠ 旧址 0x1412318A0 = CCountrySupplySystem writer, 清偿批勘误)
 
+> 特混舰队任务分桶件 = **sub_140D51B80** (暗区快裁定案: 按 tf+884 任务类型分桶 + tf+864 CNavalMission 分发; 8 调用方全 CFleet 族)。细节细作留专批。
+
 **sizeof = 304 (0x130)** (malloc 0x130 双站点 + ctor 覆盖 +0..+303 + 活体 +300 alpha 恰填满四重证); RTTI 名 = CFleet (活体 COL 直读 .?AVCFleet@@ + vt_rtti.json 双证); 主虚表 RVA 0x2962A18 / CSelectable 次表 0x2962A70; reader = vt[4] 0x140D582B0; ctor 0x140D503D0 / dtor 0x140D50840 (fleet.cpp:162/163 断言) / 工厂 CreateFleet 0x140D545A0; 基类 = CReferenceObject + CSelectable (ctor sub_140BC2AA0(a1+24, 11))。派生: **CTaskForce sizeof = 1888 (0x760)** (loader 15157 分支 malloc 直证)。挂载点 = cc+632 {d} / cc+644 {c}, 元素 CFleet*。
 
 ⚠ GUI 锚「CFleet+1584/+2696 idpair」**物理不可能** (sizeof=304) — 系 GUI 项类自身偏移误挂 CFleet 名下, 待重勘; 「fl+24 = 类型标签 11」实为 CSelectable 第二基类虚表 (type id 11 落 +32, selected 旗落 +36); 「fl+44 = 容器 cap」实为 hours RH 结构基死槽 (count@+56/mask@+60/lf 0.9@+68)。
@@ -237,7 +245,7 @@ CShip/CTaskForce GUI 消费表:
 | +176 | idpair 8B | **leader** {type@176, id@180} (键 10423; 门 ≠ qword_14333D528 空哨兵) | |
 | +184 | 容器 | **task_force** {d@184, cap@192, count@196, alloc@200} — 元 8B CTaskForce* (writer 逐元写 键 15157 + 元+16 视角) | |
 | +208 | CNavyTheaterGroup* | **所属编组** (getter 0x140D50F00 / setter 0x140D5A620; 挂组 sub_1415B9550: fleet+208 = group 且 group+32 成员向量 += fleet; 组 vtable 0x29DCCE0 RTTI 直证) | |
-| +216 | CNavalBase* | **home_base** (键 10241, 发射 *(u32*)(ptr+164) 基 id; loader 解析失败报 "Invalid province ID for fleet home base") | |
+| +216 | CProvince* | **home_base = 家港省指针** (键 10241, 发射 *(u32*)(prov+164) = 省 id — §4.14 定案; loader 解析失败报 "Invalid province ID for fleet home base"; G 批活体 vt 0x2971B18 RTTI 直证 — D13 原记「CNavalBase*」订正, 88B 的 CNavalBase 无 +164 槽) | |
 | +224 | MSVC 串 32B | name (键 27; ctor 默认 "FLEET_NAME_NOT_SET") | |
 | +256 | u32 | icon (键 181) | |
 | +260 | u8 | **automated_homebase** (键 10395, bool 恒写) | |
@@ -446,22 +454,26 @@ resources 叶名 `<building>.<level>`。
 
 #### 4.16.8 CNavalBase
 
-CNavalBase (vtable 0X29731C0):
+CNavalBase (vtable 0X29731C0; **sizeof = 88 (0x58)** malloc 三重证; writer = vt[2] 0x140EB2180 / reader = vt[4] 0x140EAC9A0; ctor 无独立函数 — 内联于建基地工厂 sub_140E9F210; dtor sub_140E9DAB0; 序列化只发 3 键: 15334 ships_in_repair (count≠0) / 141 priority (门 = **≠1**, ctor 默认 1 — 原「≠0」订正) / 15434 disabled 逐元; province/level/max_level 不序列化, 读档由 init sub_140EB1DF0 从 prov+400 建筑实例派生 (inst+66→level、inst+64→max_level); 存档叶形 = strategic_navy.naval_base.<省id>.priority — 元素头串 = 省 id 十进制串; **省→基地 RH 表在管理器 M+40** (全局 547 条, 活体与各国 bases 容器同对象群)):
+⚠ 原跨类同偏移警告订正: 「CNavalBase+392 = owner tag」不存在 (88B 对象) — 该偏移实为 **CProvince+392 controller** 之误标。
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
+| +8 | CStrategicNavy* | owner 回指 (其 +96 = 管理器 M) |
 | +16 | uint32 | province |
 | +20 | uint32 | level |
 | +24 | uint32 | max_level |
 | +28 | uint32 | **修理容量** (min 钳 + 超容警报双证; GUI = CNavalBaseMapIcon populate 消费) |
-| +32 | u32 | priority — writer ADFE0 按 u32 存读 (定案); ≠0 才写 |
+| +32 | u32 | priority — writer ADFE0 按 u32 存读 (定案); **门 = ≠1** (ctor 默认 1; 原「≠0 才写」订正) |
 | +40 | idpair | ships_in_repair 容器数据 (8B 内联对 {type@0, id@+4}); count@+52; **GUI: 修理队列数据源归属定案** (CNavalRepairWindow 队列 = CStrategicNavy+24 bases 容器 → 本字段, 非 §4.8 refit 生产线; 行类 CNavalRepairQueueNavalBaseEntry 行+3904 = nb / CNavalRepairQueueShipEntry 行+48 = 船 idpair); 发射 = `#N` 恒编号 (1 起容器序, 值 "id=N type=T") |
 | +41..+51 | — | = ships_in_repair 容器尾  |
 | +52 | u32 | ships_in_repair 容器计数 |
 | +53..+63 | — | = ships_in_repair 容器尾 + disabled 前置  |
 | +64 | string | **disabled_for_repairs 串列表** 容器数据 (token 0x3C4A = 15434, writer 直证); count@+76 |
 | +65..+75 | — | = disabled_for_repairs 容器尾  |
-| +76 | u32 | disabled_for_repairs 串列表容器计数 (⚠ CNavalBase+392 = owner tag u32, 与 CStrategicNavy+392 容器跨类同偏移并存, 勿混) |
+| +76 | u32 | disabled_for_repairs 串列表容器计数 |
+| +80 | ptr | 第二容器分配器指针 (共享静态 off_143085170) + 尾填充至 88 — 对象到 88 为止, 原「+80..尾 空白」闭合 |
+| ⚠ | — | 原「CNavalBase+392 = owner tag u32」跨类警告**废** — 88B 对象无 +392 槽, 该偏移实为 CProvince+392 controller 误标 (§4.14) |
 修理链: 入队 sub_140EAB160 (本国优先 + repair_mode 降序) + 插入位规则 sub_140EA4EE0; 队列小时处理 sub_140EA1280 + 交战门 sub_140EA10E0; 速率 = sub_140D655B0 (NAVALBASE_REPAIR_MULT × modifier 475 × 基地系数, **补给门**用 calc+184 _RemainingSupply)。
 
 
@@ -546,9 +558,11 @@ sub_140C38740 → 归队; 在修理目标省且任务=8 也跑一次状态机) /
 侦查引擎 (PATROL, sub_140FBB0A0): ① 现目标失效/敌区不在我区 → sub_140FBA800
 (mission,0) 清 (连带 +104/+128/+120 归零 + spotters 摘除); ② 无目标 → +112
 侦查区扫省: 国别 + 接敌 + 可见 + 移动舰强度门 (SUB_DETECTION_CHANCE_BASE 族)
-→ 检测值 (sub_140FB0830) + 隐蔽值 (sub_140FABB80) 加权择优 → 设目标;
-③ 有目标同区: **+120 = 本小时侦查速度 → +128 += +120 (进度, 1e7 封顶)**;
-≥1e7 完全侦出 → +104 锁存 + notify 3 级; 过 LOW/MEDIUM 阈值 → notify 1/2 级;
+→ 检测值 (sub_140FB0830: 侦查速 = 1.0×(面侦−0.8×敌面侦)×0.001 + 1.0×(潜侦−0.8×敌潜侦)×0.001 + 速度差×(0.2/0.5 两档), ×(1+协同), 下限 0.01; 候选门 = (2.0×侦查速 + 0.5×侦测^1.5)/100, 潜艇另过 5% 门) + 隐蔽值 (sub_140FABB80) 加权择优 → 设目标;
+③ 有目标同区: **+120 = 本小时侦查速度 → +128 += +120 (进度, 1e7 封顶;
+再走 max(进度, 目标侧侦测值) 兜底步)**;
+≥1e7 完全侦出 → +104 锁存 + notify 3 级 (全侦出掷 = rand×100 ≤ 侦查速, 速度
+竞赛式); 过 LOW(1e6)/MEDIUM(7e6) 阈值 → notify 1/2 级;
 首侦出可触发 pride-of-fleet 通报 (sub_140C1F9E0)。
 
 状态机公共段: 前奏 = 区域变化 → **sub_140FBE3C0 区域范围重建** (舰队区域 ∩

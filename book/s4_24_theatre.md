@@ -40,6 +40,39 @@ writer 绑定总表:
 
 #### 4.24.2 CTheatre (464B, writer 0X140F025C0)
 
+**CControllerArea / COwnerArea (area 块元素双类; 280B = 0x118 同布局; 原「vt 0x14295e818」实为两张相邻 vtable — CControllerArea 7 槽 0x14295E818 + COwnerArea 9 槽 0x14295E858, RTTI COL 直证; COwnerArea 无独立 ctor, 调用点内联 sub_140CF05C0 → 换 vptr; **序列化负定案: 本类零落盘** — reader case 11157 只把锚省 id 读入 theatre+48, post-load 链 sub_1401DA490 → sub_140704D20 → sub_140EFC6D0 (CTheatre::UpdateMainProvince, theatre.cpp:2557) 经 prov+208 重建 theatre+24, sub_140EFC390 重建 front+112):
+
+| 类 | 洪水分组键 | 省侧回指槽 | 注册容器 |
+|---|---|---|---|
+| CControllerArea (前线区) | 省+392 controller (别名归一 sub_140BB52F0) + 同 region 组 | CProvince+208 | CCountry+1352 |
+| COwnerArea (所有者区) | 州+200 owner tag (sub_140E796B0) + 同 region 组 | CProvince+216 | CCountry+1376 |
+
+两类共用 vt[1] GetTag = +40 优先省的 controller tag。成员布局 (+0..+279 全覆盖):
+
+| 偏移 | 类型 | 语义 | 备注 |
+|---|---|---|---|
+| +0 | vptr | CControllerArea 0x14295E818 (7 槽); COwnerArea 实例 ctor 后改写 0x14295E858 | 定案 |
+| +8 | 自有子对象 24B 容器 | {data@8, cap@16, count@+20, alloc@24}; 元 = 多态自有子对象 (dtor 虚调) | 定案 |
+| +32 | qword | 裸槽 ctor 清零 (区内无任何读写点) | 定案(负) |
+| +40 | CProvince* | **优先陆省锚** (晋升规则见 vt[4] AddProvince); 发射两跳 ru32(rp(+40)+164); GetTag 源 | 定案 (原锚吻合) |
+| +48 | CProvince* 24B 容器 | **本区省表** (有序, 按省 +164 id 二分插查); {data@48, cap@56, count@+60} — oi+168 门吻合 | 定案 (原锚吻合) |
+| +64 | — | +48 容器 alloc 槽 (共占) | 定案 |
+| +72 | 64B 记录 24B 容器 | **边界段记录表** {d@72, cap@80, count@+84, alloc@88}; 元 64B {外方 tag, 双侧边界省容器, 均值对@+56} | 定案 |
+| +96 | CProvince* 24B 容器 | **边境省表** (有外控邻接的省) {d@96, cap@104, count@+108, alloc@112} | 定案 |
+| +120 | CProvince* 24B 容器 | flag&4 省表 (静态描述符 +210 位 2 置位的省; 位义待裁) {d@120, cap@128, count@+132, alloc@136} | 形定案 |
+| +144 | 侵入式双链表 | **邻接区观察链** {head@144, tail@152, count@+160}; 外节点 0x20 {内节点*@0, prev/next}; 内节点 {邻区*, refcount i32@+8} (活体 refcnt 102/32) | 定案 |
+| +164 | u8 | 邻接链迟删除模式旗 (置 1 时摘除走「标记外节点 byte@+24=1」路径不摘链 — 迭代保护) | 定案 |
+| +168 | u8 | ctor 清零, 族内无读写点 | 定案(存在) |
+| +176 | CProvince* 24B 容器 | 位条件省表 (`(flags&8)≠0 ∨ (flags&2)==0 ∨ 无陆邻省(flags&3)==0` 的省; 位义待裁) {d@176, cap@184, count@+188, alloc@192} | 形定案 |
+| +200 | 记录对象* 24B 容器 | **国家×区域交互记录表** {d@200, cap@208, count@+212, alloc@216}; 仅前线区有数据 (活体 429/411/435) | 定案 |
+| +224 | u32 24B 容器 | **per-country 下标数组** {d@224, cap@232, count@+236, alloc@240}; count = 国家总数 (活体 440); 元 −1 哨兵 | 定案 |
+| +248 | CStrategicRegion* 24B 容器 | **关联战略区表** {d@248, cap@256, count@+260, alloc@264}; 来源 = +176 条件省表; 活体元 vt 0x296D558 与 §4.25.2 同址 | 定案 |
+| +272 | u32 | 全局实例序号 (ctor 参 dword_14333CC38++) | 定案 |
+
+全链路: 载局三连 sub_140CF55F0/5D80/59A0 (sub_140DC1B30 三连调 + 效果分支 case 19687) → SetController 增量 sub_140CF6FA0/7AC0 (延迟冲洗 sub_140CF81C0) → 合并 sub_140CF67D0 / TrySplit sub_140CF87C0 (areas.cpp:594) / owner 分裂 sub_140CF8F20。加省/删省 = 两类共用 vt[4]/vt[5] ("Adding/Removing province %i to %i." areas.cpp:444/467; +48 容器按省 id 有序插)。
+
+**全字段表** (发射序 = 表序; id 对锚 {id=1, type=67}):
+
 **全字段表** (发射序 = 表序; id 对锚 {id=1, type=67}):
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
@@ -70,7 +103,7 @@ writer 绑定总表:
 | +176 | COrdersGroup\* 向量 (多态含 CArmyGroup\*) | 双挂镜像容器 — reader 12462/14337 双 push, 纯运行时索引; 消费 863B0 按 og+152/164 契约读 | 不序列化 |
 | +240..+271 | 内嵌 CColor | 默认白 | 不序列化 |
 | +280..+407 | 匿名结构 (128B 形状) | **互斥量保护的待处理条目队列** (ctor sub_140EEA130 / dtor sub_140E9E3D0: +16/+40 = 静态空分配器哨兵; +24 容器 {d@24, cap@32, c@36, alloc@40} 元素 stride 40; +48 = std::mutex (dtor 经 sub_14251DC00 加锁, 尾 Mtx_unlock(+48)); +120 = −1 哨兵; +124 = mutex 递归计数 (== 0x7FFFFFFF → _Throw_Cpp_error(6)); 条目 40B: +16 = 裸指针数组 d, +28 = count, 数组元素逐个 j_free) | 不序列化; **AI 海运转移规划缓存** (ai_strategy.cpp "The AI is attempting to naval transfer a unit"): 容器#1 (+280) 48B 条 {u32 键对 + 内嵌容器 + u32}; 容器#2 (+304) 40B 条 {qword 键对 + 24B 记录指针数组}; AI 工作线程写 (gamestate 断言直证), CTheatre::Update 每帧首步清空 (sub_140EA2340) — 故须 mutex; 查询/入队族 sub_140E9F9C0/140EA40A0/140E9FC80/140EA5320 |
-| +408 | AreaAndFrontProvinces 向量 (192B 元素) | **「Fronts per enemy area」字典** (theatre.cpp:416/435 断言直证) {d@408, cap@416, c@420, alloc@424}; 元素 = {己方区域 CControllerArea*@+0, 敌方区域@+8, CFront*@+16 (认领/新建的前线), 省份累积器容器@+24..+47}; 每帧 tbb 并行通道 (sub_140EF97A0→140EED730 清重建→140EECA10 旧前线认领→140EEB190 逐条目: 空则新建 CFront (type=66, area 存 front+112)) | 不序列化 |
+| +408 | AreaAndFrontProvinces 向量 (192B 元素) | **「Fronts per enemy area」字典** (theatre.cpp:416/435 断言直证) {d@408, cap@416, c@420, alloc@424}; 元素 = {己方区域 CControllerArea*@+0, 敌方区域@+8, CFront*@+16 (认领/新建的前线), 省份累积器容器@+24..+47}; 每帧 tbb 并行通道 (sub_140EF97A0→140EED730 清重建→140EECA10 旧前线认领→140EEB190 逐条目: 空则新建 CFront (type=66, area 存 front+112)); 段构建体 = **sub_140EEE090** (省对配对, "Failed to build a front against enemy…" 断言) | 不序列化 |
 | +432 | CArmyGroup* 向量 | pdx 容器 {d@432, cap@440, c@444, alloc@448} (dtor sub_1401A4F70 逐元 deleting + alloc 释放) — **本帧被移出/解散的 CArmyGroup 引用登记表 (keep-alive)**: CTheatre::Update sub_140EF8470 对 +152 中 ag->vt[12] (sub_140BF1F20 递归「子 og 全部可回收」) 真者 push → sub_140F00410 摘除 (+152/+176 双摘) → sub_140BF3D70 Disband | 不序列化 |
 > **CTheatre::Update (sub_140EF8470) 运行侧** (定案): 唯二调用点 = sub_1401BB280
 > (DoCountryHourlyUpdates hourly_parallel 执行器, §4.2.6 相位 2) → **跑在 tbb worker
@@ -180,6 +213,8 @@ vt 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏�
 注 (GUI): Badge 名字聚合 tooltip — +560 容器逐元 +80 = 含军名清单 (军→单名 +80); 0X14169D860 → UNASSIGN_ARMY(_GROUP)。
 
 #### 4.24.5 COrderInstance (968B, writer 0X14104B570)
+
+> 归一化子步 = **sub_1410489E0** (暗区快裁: child_front_ratios oi+896 SChildFrontData; WeightSoFar == 100_fixed 断言, 末非空元收余量定标)。细节细作留专批。
 
 **全字段表** (sizeof 0x3C8=968 reader malloc 定案; 发射序 = 表序, 与 GER 存档键序逐行对齐):
 

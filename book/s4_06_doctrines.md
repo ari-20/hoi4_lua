@@ -6,8 +6,10 @@
 `STemporary*` / GUI 件, 见 §4.6 正文) 与 **def 侧** (静态定义库, 见 §4.6.1–4.6.12)。
 def 侧八类全部不入存档 (writer = CFG 空桩)。
 
-**CDoctrineSystem**: `doc = *(gs + 1024)`。国家条目容器: data@doc+8,
-count@doc+20, stride 0xA0, 元素按国家 idx 排列。
+**CDoctrineSystem**: `doc = *(gs + 1024)` — **32B 容器对象定案** {vt 0x1427C5020 族 9 槽
+(serfam 记 32 系断言串字节误计), data@doc+8, cap@doc+16, count@doc+20, alloc@doc+24};
+writer 0x140D810B0 (块键 11593 countries) / reader 0x140D7FDA0 / PreLoad 0x140D7F080;
+国家条目 stride 0xA0, 元素按国家 idx 排列; 活体 cap==count==440 全中。
 
 **CCountryDoctrineStatus** (vtable RVA 0X29653F8, writer 0X1413CF470; 0xA0 字节):
 
@@ -352,15 +354,14 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 | 类 | 键 (token id) | 目标偏移 |
 |---|---|---|
 | CDoctrineBaseTemplate | name (27) | +40 |
-| | description (15906) | +32 |
+| | description (15906) | +72 |
 | | icon (181) | +104 |
 | | xp_type (16769) | +36 |
-| | xp_cost (19741) | +32 (与 description 同址 — 待裁) |
+| | xp_cost (19741) | +32 |
 | | available (12264) | +608 |
 | | visible (11562) | +520 |
 | | ai_will_do (10819) | +696 |
 | CFolderTemplate | name (27) | +32 |
-| | icon (181) | +224 |
 | | tab_gfx (16785) | +64 |
 | | ledger_gfx (16748) | +96 |
 | | color_frame (16797) | +128 |

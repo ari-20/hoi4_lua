@@ -323,11 +323,12 @@ CPersistent 基子对象 (vptr 落点) = **template+32**。
 |---|---|---|---|
 | −8 | u32 | — | **token = 19479 `undefined`** |
 | +0 | vtable | — | CComplexity vptr (= template+32) |
-| +8 | u32 | 675 min | **复杂度下限** (默认 = dword_1433321F4) |
-| +12 | u32 | 676 max | **复杂度上限** (默认同上) |
-| +16 | u64 | — | 0 (ctor `*(_OWORD*)(C+8) = 0` 覆盖 +8..+23) |
+| +8 | u32 | 名字 token (默认 357 none; 进诊断文案; H 批翻案 — 原「675 min」订正) | 定案 |
+| +16 | u32 | **675 min = 复杂度下限** (ctor 默认 = dword_1433321F4; 键分派 sub_1414654F0 + 校验器三证) | 定案 |
+| +20 | u32 | **676 max = 复杂度上限** (默认同上; 原「+12」订正) | 定案 |
+| +24 | NProject::SOutput vt | SOutput 子对象 | 定案 |
 | +24 | NProject::SOutput vt | — | SOutput 子对象 |
-| +32 | 匿名结构 (88B) | — | effect/条件体 (ctor sub_14053CFD0) |
+| +32 | CEffect (88B) 内联 | effect/条件体 (ctor sub_14053CFD0) | H 批升格 |
 | +120 | 匿名结构 (88B) | — | 同上 |
 | +208 | 匿名结构 (88B) | — | 同上 |
 | +296 | 匿名结构 | — | (ctor sub_1406419E0) |
@@ -350,6 +351,8 @@ CPersistent 基子对象 (vptr 落点) = **template+32**。
 | +840..+1064 | 容器/分配器/字节混布 | — | locale/哈希桶等 |
 | +1080 | — | — | 尾 (推定 sizeof ≈ 1088) |
 
+> **sizeof = 1088 定案** (与 CProjectTemplate+1112 相邻成员精确咬合); 校验器 slot[7] 有第三诊断
+> "Max is smaller than min" (cpp:53); [3] = 自定 Load wrapper → serfam 失明根因确认。
 > **复杂度参数语义**: min / max = 该模板在复杂度轴上的取值区间 (键 675/676);
 > CComplexity 的 reader 只有这两键 ⇒ 其余字段全是运行时容器 (高置信)。
 > 校验函数 = slot[7] **0x141465030** (源文件 `special_projects/projects/project_complexity.cpp`),
@@ -434,3 +437,36 @@ std::map 头 → **S+88 map<u32,u32> 是其成员** (键 = 专精 id, 值 = 点�
 = sub_140493270 → sub_140FE0A30 / add_breakthrough_progress = sub_140493160。
 池重建 sub_141483450 → sub_141481780 (模板+1112 visible 求值; 新建 gs+1904 id
 发生器, 通知 type 86)。
+
+
+#### 4.7.10 CTechnologySharingGroup (科技共享组实例, 80B = 0x50; vt 0x142721740 19 槽; writer/reader = 槽[2]/[4], 存档键 14100 "tech_sharing_group" — 与库内容文件键 14094 "technology_sharing_group" 为两个 token)
+
+**宿主形态**: gs+928 = **vector\<组指针\>** {data@928, cap@936, count@940, alloc@944} 持全部实例
+(非单指针; 组实例惰性创建 — 首个 add_to_tech_sharing_group 效果才 malloc(0x50) 推入);
+国家侧成员表 = ts+280 (CModifyTechnologySharingBonusEffect 0X14031FB10 → sub_140ED5110 按组 id 查找)。
+
+| 偏移 | 类型 | 语义 | 备注 |
+|---|---|---|---|
+| +0 | vt | 0x142721740 (19 槽) | [2]/[4] 序列化 (键 11 = id / 14116 = bonuses / 11593 = countries) |
+| +8 | u32 | 组 id (= 模板名 token; 初始 357 none) | 定案 |
+| +16 | fixed×1e-5 | 每国加成标量 (ctor 自模板+112 research_sharing_per_country_bonus 拷贝) | 定案 |
+| +24 | 容器 24B | 成员 tag 表 {d@24, cap@32, count@36, alloc@40} | 11593 |
+| +48 | i64 向量 24B | **与成员表平行同下标的加成累加器数组** {d@48, cap@56, count@60, alloc@64} | 14116 |
+| +72 | 模板回指 160B | CTechnologySharingGroupTemplate (查库失败回退库+80 默认模板); +48[i] 与 +24[i] 平行 push/swap-remove | 定案 |
+
+vtable 19 槽: [2]/[4] 序列化 / [9] 每日巡检 (唯一 daily 职责, §4.2 步 9) / [10]/[11] 加/踢成员
+(+24 与 +48 双数组平行 push/swap-remove) / [12]..[17] 模板代理 (name/desc/picture/categories/
+已研成计数/成员 tag 表; is_faction_sharing (模板+120) 分流槽[16]/[17] 阵营成员表 vs 自有成员表) /
+[18] 固定串。
+
+**加成传播定案** (补「不在 daily」空白): join/leave 即时双向维护 (组 ↔ ts+280), 数值无缓存槽,
+在研究成本求值时**懒计算** (sub_140ED6E30 → sub_140ED6C10 → sub_140D821E0; GUI tooltip 同链)。
+单组公式: `(1e5 + 修正207 MODIFIER_RESEARCH_SHARING_PER_COUNTRY_BONUS_FACTOR) × N ×
+(own_48[i] + 组+16) / 1e5`; **N = 组内已研成 (状态 == 4) 该科技的成员数**; 双门 = 组 categories ∩
+科技 categories 非空 + 科技模板+1033 字节 (语义待裁); clamp [0, MAX_TECH_SHARING_BONUS]。
+
+效果/触发器五件套: add (14092) → sub_1401CA430 全链 / remove → sub_1401EB690 / modify
+(effect+88/+96 → `+48[idx] += 值`, sub_140D83BC0); vtable 0x1427521D0/0x1427522E0/0x1427524F0
+([13] = Execute)。模板 160B 全键表: id/name/desc/picture/research_sharing_per_country_bonus/
+is_faction_sharing/categories/available。阵营级派生类 CTechnologySharingFaction 多 `upgrade=` 键
+(reader 待裁); 科技模板+1033 字节语义待裁。

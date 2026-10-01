@@ -7,7 +7,7 @@
 
 mgr = *(gs+1680); 两级结构 pool → wing (定案)。
 
-#### 4.15.1 CStrategicAirManager (mgr = *(gs+1680); vtable 0X29588F8)
+#### 4.15.1 CStrategicAirManager (mgr = *(gs+1680); vtable 0X142958918)
 
 | 偏移 (mgr) | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
@@ -228,9 +228,9 @@ m = CAirMission 本体 (wing+128 起); 下一 wing 字段 +424 = m+296, 全封�
 | +129..+139 | — | = priority 容器尾 {cap@+136} | | |
 | +140 | u32 | priority 容器计数 | | |
 | +144 | — | = priority 容器尾 {alloc@+144} | | |
-| +152 | u32 | 已飞里程 (F71120 速度计算读 m+152/156/160/164 族) | 不序列化 | |
-| +156 | idpair | ace id 对 (默认 qword 哨兵) | 不序列化 | |
-| +164 | u32 | 所属 tag 缓存 | 不序列化 | |
+| +152 | u32 | **小时累计被击坠数** (累加 + 出动余量扣减 + sub_140F63580 收割三处独立证实; KillAirplanes 步9 参数) | 不序列化 | |
+| +156 | idpair | **击杀方王牌 id 对** (受害任务侧记录, 默认 qword 哨兵) | 不序列化 | |
+| +164 | u32 | **击杀方 tag** | 不序列化 | |
 | +168 | qword ×3 | 扰断三件套 (+168 有效 / +176 taken / +184 reduction) | 不序列化 | |
 | +192 | fixed×1e-5 | region_change_penalty | writer 在 strategic_region 门内无条件写, 0 值也出叶 — 对象层 raw≠0 才返回会丢叶, 段内须 inline | |
 | +200 | u32 | 未名 (F6CF90/F6DB20 地面任务目标选择读 m+200/208 族) | 不序列化 | 未决 |
@@ -406,11 +406,12 @@ sub_141978E30）。
 | 段 | 函数 | 语义 | 置信 |
 |---|---|---|---|
 | 接战判定 | sub_140C591C0 | 区域活跃 byte 网格 + 敌 SA 交战判定 → 收集己方 air_superiority\|interception 任务（m+20 & 5）与敌执行中任务, 按 air_defence×air_agility 排序（sub_140C43580/C43B80 归并）— **没有纯空优 vs 空优自由空战, 只打正在执行对地/对海任务的敌任务** | 定案 |
-| 狗斗解析 | sub_140F81A20（拦截份额掷骰+空战XP）→ sub_140F7BE70（逐敌任务对）→ **sub_140F862A0** | 速度/灵巧/效率掷骰, 损失钳 ≥100, cat1 归因 + m+152/164 损失账（**翻案: m+152 = 小时累计被击坠数**, 非已飞里程; m+208 = 拦截因子缓存）, 步9 sub_140F87550 统一 KillAirplanes | 定案 |
-| 拦截/扰断 | 步6 sub_140F7BE70 → 步7 sub_140F77360 → 步8 sub_140C4C570 | 三段全小时活管道: 写敌任务 m+176 taken（DISRUPTION_* defines）→ 写己方空优 m+184（ESCORT_*, 修正键 12）→ 折 m+168 → 对地结算 sub_140F78160 出拦截因子（存 m+208）, 损失 = 出动数×(1−因子), 归因 m+200 扰断方 tag | 定案 |
+| 狗斗解析 | sub_140F81A20（拦截份额掷骰+空战XP）→ sub_140F7BE70（逐敌任务对）→ **sub_140F862A0** | 速度加成 = 0.65×base×(min(攻速/守速, 3.5)−1); 敏捷减伤 = 0.45×base×(min(守敏/攻敏, 4.0)−1) 仅守优生效, 归一除数 800/100; **顶速伤害加成项 (TSDBF 0.025) 原版恒 0** — 内层 trunc((spd/100)×2500/1e5) 在 spd<4000 截断为零 (双重定标瑕疵); 击坠 = AIR_COMBAT_DAMAGE_SCALE(载具档, vanilla 1/5)×总攻值×0.01÷守方 air_defence, base = 0.2×分配机数, 随机取整; 损失钳 ≥100 量纲 = **0.001 架** (100 fixed5, 非 1 架), 多机钳分配双钳 ≥100 同值实参; 防守条目 count 消耗 = −round(分配/3); cat1 归因 + m+152/164 损失账（**翻案: m+152 = 小时累计被击坠数**, 非已飞里程; m+156/160 = 击杀方王牌 id 对 / m+164 = 击杀方 tag; m+208 = 拦截因子缓存）, 步9 sub_140F87550 统一 KillAirplanes | 定案 |
+| 拦截/扰断 | 步6 sub_140F7BE70 → 步7 sub_140F77360 → 步8 sub_140C4C570 | 三段全小时活管道: 写敌任务 m+176 taken（DISRUPTION_* defines）→ 写己方空优 m+184（ESCORT_*, 修正键 12; **ESCORT 侦查因子复用 DISRUPTION_DETECTION_FACTOR 槽, 无独立 define**）→ 折 m+168 → 对地结算 sub_140F78160 出拦截因子（存 m+208; **= clamp(1−sqrt(taken/防御骰)/3.162, 0.001, 1), PE 除数 316200 = 手写 sqrt(10) 精确**; 防御骰 = 出动×(1+速)×(1+0.5攻)×(1+0.5防)）, 损失 = 出动数×(1−因子), 归因 m+200 扰断方 tag | 定案 |
 | 对地 | **sub_140F82110 ProcessGroundMission** → sub_140F82CA0 | 任务位→目标收集器全表; 多态目标分发（建筑/CAS 入陆战 sub_140BB8380/港击/战略轰炸 sub_140F75A00/师直伤 sub_140C01B70/陆战 vt[240]）+ 州-AA+SAM 掷骰 sub_140F86A40（÷air_defence）; paradrop/布雷扫雷分叉 | 定案 |
 | 空优聚合 | sa+224 160B 行 | pass25-29 产出 + sub_140C66170 友敌聚合 (+0/+8/+16/+24); 消费 = sub_140C54230 制空惩罚公式与国家级均值 sub_140C655F0 | 定案 |
 
 defines 新钉 30+（DISRUPTION_*/ESCORT_*/COMBAT_DAMAGE_SCALE/ACE_*/SAM_MISSION_
 SUPERIORITY/ANTI_AIR_*、修正键 1/12/19/118/356/394/395）; AIR_COMBAT_FINAL_
-DAMAGE_SCALE 零读者（负定案）。m+88 = 8B {region, dist} 对（定案）。
+DAMAGE_{SCALE,PLANES,PLANES_FACTOR} **三件套全零读者（负定案）**。m+88 = 8B
+{region, dist} 对（定案）。

@@ -115,8 +115,10 @@
 | CArmy_vt0 / CArmy_vt1 | 0x295a2b0 / 0x295a490 | CArmy 双虚表 (书 §4.18) |
 | CNavyLeader | 0x2955dc0 | (书 §4.4.6; 海军将领导出族在角色册) |
 | CNavalBase / CNavalBase_vt2 / CNavalBase_vt3 | 0x29732e0 / 0x2973260 / 0x29731c0 | 海军基地三连 |
-| CUnitHistoryEntry | 0x29c1818 | 部队 history 容器 |
-| CStrategicAirMgr | 0x29588f8 | gs+0x690 (书 §4.15) |
+| CUnitMedalStore | 0x29c1818 | 部队授勋商店 (616B; §4.18 army_history 子表) |
+| CUnitHistory | 0x29c1868 | 部队史块 (+1592 内嵌; 元 = CUnitHistoryEntry*) |
+| CUnitHistoryEntry | 0x29c1bc8 | 部队史/授勋条目 (328B; §4.18) |
+| CStrategicAirMgr | 0x2958918 | gs+0x690 (书 §4.15) |
 | CStrategicAirCountry | 0x29587d8 | 国条 |
 | CAirWingPool | 0x297ae38 | 翼池 |
 | CAirBase | 0x2958780 | 基地 |
@@ -411,7 +413,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +856 | **tag 串表** | (全部 tag 反查) |
 | +880 | uint8 向量 | `_CountryControllersEnable` (按国家 idx; 探针 333/333 = country_count) |
 | +904 | uint32 向量 | 控制器计数 (按国家 idx; 探针 333/333 = country_count) |
-| +928 | CTechnologySharingGroup* (0x50, loader case 14100) | tech_sharing_group |
+| +928 | CTechnologySharingGroup* 向量 24B | **tech_sharing_group 组指针表** {data@928, cap@936, count@940, alloc@944} — 持全部实例 (非单指针; 组实例惰性创建: 首个 add_to_tech_sharing_group 才 malloc(0x50) 推入; 活体 count=0); 布局见 §4.7 CTechnologySharingGroup |
 | +936..+960 | 匿名结构 (NNB 形状) | — |
 | +984 | CSupplySystem* (vt0 0X2973CC8; 序列化基+8) | supply2 (天气不在此 — 天气 = gs+1672) |
 | +992 | 铁路管理 CRailwayManager | rail_way |
@@ -810,6 +812,13 @@ name_groups 同链写法: `hoi4.read_cstr(p) or hoi4.read_str(p)`)。
   (`M.date_opt` 核心 + `M.date`/`M.date_raw`/`M.date_quoted` 三个包装),
   `objects_v2` U.date / `sv2_lib` SL.date / 各 sv2 段一律委托, 禁止再写
   本地副本 (收敛前曾有 12 处拷贝, 语义分歧见 §3.7b)。
+- **÷1e5 换算存在多条舍入路径 (GUI/显示域横向台账)**: ① 裸 magic-mul
+  `imul 0x29F16B11C6D1E109; sar rdx,0xE` = **截断向零** (计数文本族常用);
+  ② 舍入器 sub_1424ED730 = 正支 (x+50000)/1e5 **round-half-up**, 负支
+  (x−50000)/1e5 **round-half-away-from-zero**; ③ Q15 分数支 sub_1424ED580
+  加 0x4000 后 round-half-up 且带溢出饱和哨兵; ④ 阈值直比 (不换算, 比较在定点域);
+  ⑤ float 域 `cvttss2si` (截断) 且无钳位 (如 CTinyUnitCounter spotting)。
+  读显示值须按消费点所属路径定舍入方向, 勿统一按截断处理。
 
 ### 3.7a CGameDate 内嵌序列化两族判别通则
 

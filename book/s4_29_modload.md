@@ -9,7 +9,7 @@
 
 #### 4.29.1 PHYSFS 虚拟文件系统层 (virtualfilesystem_physfs.cpp)
 
-引擎静态链入 **PhysicsFS** (90 个 `?PHYSFS_*` 导出符号, 见 §4.29.6)。
+引擎静态链入 **PhysicsFS** (108 个 `?PHYSFS_*` 导出符号, 见 §4.29.6)。
 
 引擎封装层 (`clausewitz/pdx_core/virtualfilesystem_physfs.cpp`) 关键函数:
 
@@ -48,7 +48,7 @@ key token → 槽位 (对象基点 a1; token id 取运行时 lexer):
 | 238 | version | +488 | MSVC 串 | — |
 | 712 | remote_file_id | +520 | MSVC 串 | — |
 | 713 | description_file | +552 | MSVC 串 | — |
-| 374 | steam_id | +624 | uint64 | 写入 sub_1424C08D0 |
+| 374 | steam_id | +624 | uint64 | 写入 sub_1424C08D0 (存储区 8B — 拷贝构造两 dword 连拷; 唯一解析写者 sscanf("%i") 4B 写, 高位保持 0) |
 | 375 | pdx_id | +632 | MSVC 串 | — |
 | 378 | affects_checksum | +665 | uint8 | 写入 sub_1424C0C00 |
 | 610 | affects_compatability | +666 | uint8 | 同上 |
@@ -134,7 +134,10 @@ sub_142076450 对启用集合建 16 字节条目表 `{int 权重 @+0, CDLCDescri
 > 备注: 目录级独占, 非文件级覆盖 — 声明者缺的文件不会由低优先级源补位。
 > 备注 (**定案**): `v11` = 全部命中记录的声明者索引**最小值** — 声明者自身与其上方 (索引更小) 的源不受过滤, 下方全部隐藏。声明者优先级由 §4.29.4 排序决定: 声明者排索引 1 → 同目录其他 mod / DLC / 原版内容全部消失; 声明者被依赖降权推后 (实测索引 5) → 索引 ≤4 的 mod 内容照常保留。多声明者命中同一目录时取最小索引者的排位为界。
 
-#### 4.29.6 PHYSFS 导出符号清单 (90)
+#### 4.29.6 PHYSFS 导出符号清单 (108)
+
+> 下表展开 88 名 (全部真实导出); 另有 20 个实导出未逐名列: isSymbolicLink、
+> setBuffer、signed 整型 read/write/swap 全族 {S,L}{B,L}E{16,32,64}。
 
 | 族 | 符号 |
 |---|---|
@@ -157,3 +160,17 @@ sub_142076450 对启用集合建 16 字节条目表 `{int 权重 @+0, CDLCDescri
 | 库条目数 | mod 内容已解析的量化指标 |
 
 > 备注: mod 内容文件被 §4.29.5 独占过滤时 **无解析告警** — 表现为"文件存在但静默不生效", 与文件缺失可区分 (后者伴随 texture/parse 报错)。
+
+#### 4.29.7a PHYSFS 挂载管理器单例 (qword_14344A568)
+
+**"dlc" / "mod" 搜索路径的 owner 管理器** (CGameApplication::Init 步 12 域预接, getter 族
+sub_140643800/3810; §4.28.21); 与 §4.29.4 挂载优先级体系互证 — dlc_load.json 解析出的
+mod/dlc 目录挂载经此管理器执行。
+
+#### 4.29.8 synchronized_dynamic_tokens boot 期预装载 (sub_140176F30)
+
+common/synchronized_dynamic_tokens/*.txt 枚举逐文件 token 预注册 (CGameApplication::Init
+步 1, §4.28.21); 完成旗 byte_1435E1AB1 置位 + dword_1435E1AB8 ← dword_1435E1AB4 计数快照。
+**语义 = mod token id 空间的 boot 期预填充** (先于 mod 装载的固定 token 集) — 与
+「离线 token 表 ≠ 运行时 lexer」纪律同源: 凡按 token id 取名仍须游戏内
+GAME.layout.token_name, 但此目录的 token 在任何 mod 之前即占位。

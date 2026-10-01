@@ -19,6 +19,9 @@ gs+1864 = **region 数组计数** (BHU 3,789), 非省数 (定案)。
 
 | 偏移 | 类型 | 名称 | 语义 | 备注 |
 |---|---|---|---|---|
+| +0 | vt | CProvince 主虚表 | — | 定案 |
+| +8 | CSelectable 内嵌 16B | 选择态基件 (type id = 4; ctor sub_140BC2AA0(a1+8, 4); §4.00.13) | — | 不序列化 |
+| +16 | u32 | CSelectable type id 半 (与 +20 旗) | — | 定案 |
 | +24 | 内嵌 | 监听器列表头 (TListenableTrait) | SetController 通知 sub_140E788B0(a1+24,…) | 不序列化 |
 | +56 | uint32 | victory_points | 胜利点 (token 12156, ≠0 才写; SetVictoryPoints sub_140E810F0 断言 `_pState`, 尾调 CState BestVP 重算) | **GUI: 胜利点文本** (≠0 显隐; sub_14174DD50 → STATE_VIEW_WICTORY_POINTS/VALUE) |
 | +64 | MSVC SSO 32B | 动态名 {SSO/ptr@+64, size@+80 (门≠0), cap@+88} | CRenameProvinceEffect 写 / CResetProvinceEffect 清; loader case 27 | |
@@ -32,17 +35,19 @@ gs+1864 = **region 数组计数** (BHU 3,789), 非省数 (定案)。
 | +184 | 省静态描述符* | 静态描述符桥 | → CMap+616 省静态描述符 (见 4.14.3) | |
 | +192 | CState* | **_pState 州回指** (断言原文 `_pState`; writer 以 *(X+200) 作 tag 比较 (CState+200=owner) + CState::SetOwner 链 + GetName 州名回退 + StateView SetTarget +1416 直存此值 + Refresh 比对链 *(prov+192) 解引用, 多源互证) | 默认控制者 = 其 +200 owner | |
 | +200 | CStrategicRegion* | **无州省名源对象 = 战略区指针** (GetName: 无州且 +200≠0 → 其内嵌串, 为空 → "PROV<id>"); **其 +88/+96 双存区数字 id** (探针全 276 区逐一对值恒相同; writer 写 +96, 消费端 +88/+96 双读皆通; 旧「当前天气 id」误 — 天气链实为 **区 id → gs+1672 天气管理器查键**) | 探针 vt 0X296D558 直证; GUI: 天气修正 tooltip | |
-| +208 | 匿名结构* | **面/战区节点** (面级寻路 A* sub_140CF3B20 消费, +40 = 面首省; 兼 theatre 隶属查询键: 值即 country+360 theatres 各 theatre+24 数组元素; sub_140E7D690 比对找回所属 theatre; theatre 对象 +60 = 排序键 int, is_in_home_area 按 +60 最大选首都 theatre — 推定) | | 不序列化 (高置信/推定) |
-| +216 | COwnerArea* | owner area 回指 (supply 系统; setter sub_140E810E0, 写入对象带 `&COwnerArea::vftable` RTTI 直读) | | 不序列化 |
+| +208 | CControllerArea* | **面/战区节点 = 前线控制区回指** (CControllerArea 洪水分组键 = 省+392 controller, 注册 CCountry+1352; 兼 theatre 隶属查询键与面级寻路 A* sub_140CF3B20 消费 (+40 = 面首省); 完整布局 §4.24.2) | | 不序列化 (定案) |
+| +216 | COwnerArea* | **owner area 回指** (所有者区双类体系: COwnerArea 洪水分组键 = 州+200 owner, 注册 CCountry+1376; setter sub_140E810E0; 完整布局 §4.24.2) | | 不序列化 (定案) |
 | +224 | 容器 24B | **在场单位本体数组** {data@+224, cap@+232, count@+236, alloc@+240} — 8B 元全类型 (AddUnit sub_140E79B10 首支恒插; combatmanager 遍历建战斗) | | 不序列化 |
-| +248 | 容器 24B | type==1 (海军) 单位子对象数组 {data@+248, cap@+256, count@+260, alloc@+264} (陆省无港断言 "Trying to move navy to land province with no port!") | | 不序列化 |
-| +272 | 容器 24B | type==0 (陆军) 单位位置对象数组 {data@+272, cap@+280, count@+284, alloc@+288} (tooltip 在场单位显示消费) | | 不序列化 |
-| +296 | 容器 24B | type==13 单位子对象数组 {data@+296, cap@+304, count@+308, alloc@+312} (**type13 = CRailwayGun 铁路炮** — sub_140E87E70 写 `&CRailwayGun::vftable` 且 sub_140BF8B50(a1,13,a2); 类型号分派 sub_141A949B0 case 13 → sub_1410E6290; 增删 sub_140E79B10 case 13 push 本数组) | | 不序列化 (定案) |
+| +248 | 容器 24B | type==1 (海军) 单位子对象数组 {data@+248, cap@+256, count@+260, alloc@+264} (陆省无港断言 "Trying to move navy to land province with no port!"); 删除摘除 = CProvince::RemoveUnit sub_140E7FA10 (§4.18.20) | | 不序列化 |
+| +272 | 容器 24B | type==0 (陆军) 单位位置对象数组 {data@+272, cap@+280, count@+284, alloc@+288} (tooltip 在场单位显示消费); 删除摘除同 sub_140E7FA10 | | 不序列化 |
+| +296 | 容器 24B | type==13 单位子对象数组 {data@+296, cap@+304, count@+308, alloc@+312} (**type13 = CRailwayGun 铁路炮** — sub_140E87E70 写 `&CRailwayGun::vftable` 且 sub_140BF8B50(a1,13,a2); 类型号分派 sub_141A949B0 case 13 → sub_1410E6290; 增删 sub_140E79B10 case 13 push 本数组; 删除摘除同 sub_140E7FA10) | | 不序列化 (定案) |
 | +320 | 容器 24B | strategic_province_location u32 token 数组 {data@+320, **cap@+328**, count@+332, **alloc@+336**} | **块键 = 10230 (定案)**; AddStrategicLocation 断言 "…already exist in province: %d" + 置 mapdata+5984=1 | **GUI: 省侧战略位置行** (sub_1417507F0 → strategic_locations_grid) |
 | +344..+367 | — | **保留区 (负定案)** — 24B 无写者无消费者: 1.19.3 province.cpp 方法群内零读写, ctor (sub_140E78EC0/sub_140E79050) 在 +336 与 +368 之间整段跳过 (非「填 0」) | | 定案 (负) |
 | +368 | 容器 24B | **在场战斗数组** {data@+368, cap@+376, count@+380, alloc@+384} — 8B CCombat* 元 add-unique (combatmanager sub_140BB77E0 建战斗后 sub_140E797F0 插入) | | 不序列化 |
 | +392 | tag_id | controller | 控制国, 写门 (writer 0x140E81390) = `*(p+392) > 0 && tid != dctl && (!tid \|\| !dctl \|\| !同国(tid,dctl))`; dctl = rp(p+192) 有则 +200 否则 sub_140BB3E00 默认槽, 同国 = sub_140BB52F0 → **gs+832**(=qword 索引 104) 映射表 [tid]==[dctl] (tag 别名对, KR 傀儡 D04 两槽实证); 0x283F; loader case 10303 → **SetController sub_140E801A0** 对接 country 族 Add/RemoveControlledProvince; 两效果类 Execute 直调 | **GUI: 省名占领着色/+TAG 后缀** (sub_14174C8E0 → STATE_PROVINCE_NAME_OCCUPIED_COLOR/STATE_PROVINCE_PLUS_TAG) **+ 外交/密码 SetTarget 转发键** (DiplomacyView[11] / AgencyView[11] / OccupationView[11] 同链) |
 | +400 | CBuildingStatus 内嵌 112B | buildings (+400..+511, 见 4.14.1) | vtable 0X2999050; dtor sub_141171C10(a1+400) | **GUI: 省建筑行** (可见性门 def+8==19649 rail_way / +802 / +824 / +883·+885 DLC; sub_14174DD50 → province_building_entries) |
+| +504 | u8 | prov+504 类别旗 (= CBuildingStatus+104 门位; ctor 默认 5) | — | 定案 |
+| +512..+519 | — | **纯尾部填充 8B (负定案)** — 双 ctor + reader + 方法群三路零写点 | — | 定案(负) |
 
 > SetController (sub_140801A0 级联 — 定案链, province.cpp:394 "Call NotifyControllerChanged"):
 > 门 = `*(prov+392) == 新tag` → 近空转; a4=0 轻路径仅对旧/新两国置 `cc+4320 |= 0x40` 脏位;

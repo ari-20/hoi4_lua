@@ -414,20 +414,22 @@ action `request_equipment_purchase` 的**响应执行**逐单驱动, 另有 dire
 | action 响应执行 | sub_141AA53F0 | CRequestEquipmentPurchaseAction::Execute (request_equipment_purchase_action.cpp:174/181 断言): 按 a1+104 响应码三路 — 0 = 建 request 入队 sub_140DEBED0 (回存 idpair @a1+336); 2 = request→contract 立即成交 sub_140DEC0B0; 其他 = 拒绝 sub_140DEC690 + 买方收 refused_market_trade 通知 | 定案 |
 | request 入队 | sub_140DEBED0 | malloc(240) + 带参 ctor sub_1419D5FD0 构造 CPurchaseRequest → push 进 mkt+96 买方槽内 vector (**槽按买方 (请求发起国) tag 索引**, 三函数全用 req+92=buyer 解 idx) | 定案 |
 | request→contract | sub_140DEC0B0 | "ContainsPendingRequest( PurchaseRequest )" 断言 (equipment_market_system.cpp:195) → sub_140DEB170 从 req+24 的 216B def 拷 draft → sub_140DEDA40 从槽内移除 → sub_140DECDD0 成交 | 定案 |
-| 成交主体 | sub_140DECDD0 | ExecutePurchaseDraft 八步: ①五断言 (cpp:146-151) ②malloc(808)+ctor sub_1419D4370 ③挂双回调 (lambda_1 完成 sub_1419D5370→c+624 / lambda_2 未竟 sub_1419D53B0→c+688) ④sub_1419D5850 入库 (by_seller mkt+48 / by_buyer mkt+72 / 主容器 mkt+0 三点) ⑤**卖方 CProductionStatus+1192 脏旗置 1** ⑥通知 13288 ⑦sub_140DEC380 全局信号 ⑧buyer/seller 国家侧 market 外层对象 (rp(cc+4024)) +136 挂链追加合同 sub_140DEB660 (§4.23.2) + 玩家方 sub_140206EA0 | 定案 |
+| 成交主体 | sub_140DECDD0 | ExecutePurchaseDraft 八步: ①五断言 (cpp:146-151) ②malloc(808)+ctor sub_1419D4370 ③挂双回调 (lambda_1 完成 sub_1419D5370→c+624 / lambda_2 未竟 sub_1419D53B0→c+688) ④sub_1419D5850 入库 (by_seller mkt+48 / by_buyer mkt+72 / 主容器 mkt+0 三点) ⑤**买方 CProductionStatus+1192 脏旗置 1** (def+68 buyer → cc+3944 → byte+1192=1; 原「卖方」说废 — F4 验算) ⑥通知 13288 ⑦sub_140DEC380 全局信号 ⑧buyer/seller 国家侧 market 外层对象 (rp(cc+4024)) +136 挂链追加合同 sub_140DEB660 (§4.23.2) + 玩家方 sub_140206EA0 | 定案 |
 | direct-buy 命令 | sub_1403042D0 | 草稿池构造 → sub_140DEC4F0 三谓词校验 (draft 全量 / 补贴在买方国补贴表 sub_1413B9CF0 / 池+价格档有效 sub_1413B9C90) → 过 = sub_140DEBDF0 包装成交; 不过 = 回显 "Can not make the contract." | 定案 |
 | request 拒绝/撤回 | sub_140DEC690 / sub_141AA68F0 | 装备退还卖方 sub_1419D6A10(seller, req+96 def 池) + 补贴退还买方 sub_1413B7740(buyer, req+168) + 移除; 撤回 = 解析 a1+336 ref idpair 同函数 | 定案 |
 | 读档 loader | sub_140DF16B0 | 逐 request malloc(240) + 无参 ctor sub_1419D6020 + 成员解析 sub_140DF13B0 → push 槽 (writer sub_140DF48B0 配对; 非撮合路径) | 定案 |
 
-定价链: **sub_1413BA720** (market_core.cpp:307/311 断言) = IC_TO_CIC_FACTOR
+定价链: **sub_1413BA720** (market_core.cpp:307/31 断言 (「311」经 PE 立即数 0x1F 勘误为 31)) = IC_TO_CIC_FACTOR
 (qword_1433319C8) × (variant 价格 (variant+976 或 sub_14100EB00 档覆盖回退) ×
-档因子 / 100000) / 100000; 档因子三档 = price_levels map 查询 (sub_1419D3FD0)
+档因子 / 100000) / 100000; 档因子映射 (F4 验算: 0→LOW / 1→标准 / 2→HIGH / ≥3→断言+标准, 原 1↔2 错位说废) = price_levels map 查询 (sub_1419D3FD0)
 返 0 → LOW_PRICE_LEVEL_FACTOR (qword_143331BA8) / 1 → HIGH_PRICE_LEVEL_FACTOR
 (qword_143331CE8) / 其他 → 100000 标准 (定案)。def 懒计算 sub_141445CD0
 (IsComplete sub_1414453F0 懒触发): def+208 = 合同总 CIC 价 (Σ variant IC×档
 因子×IC_TO_CIC_FACTOR); def+200 = 补贴抵扣 = min(def+136 补贴总额,
 总价×F/(F+1e5)) (F = PURCHASE_CONTRACT_SUBSIDY_BONUS_SPEED_FACTOR);
 IsComplete ⇔ state+8 (factory_cic_progress) == def+208 − def+200 (定案)。
+
+F4 验算边界注 (24 点 21 一致; 定价总式/懒计算/五断言串/平滑分期记账全套证实): ① **CicCostInRange (sub_1413B9250) 语义 = i64 溢出防护非价格带** — 单条乘积与累计两段溢出检查 (负/js 分支), 恒用空池即恒走 variant+976 基价; **五断言全在 debug 门下, 非调试会话 request→contract 路径无数值校验**; ② price_levels map 未命中返缺省 1 = 标准档; ③ 钳位 sub_1419D76A0 = 两端吞噬 (<SNAP_LIMIT → 0 / >1e5−SNAP_LIMIT → 1e5, 区间内原值); ④ **第二完成谓词 sub_1419FF370**: collected (c+496) ≥ def+208−def+200 (≥ 比较), 与 IsComplete (== 比较、factory_cic_progress) 并行使用 — 合同 +608 u32 = 产能估算 speed 副本 (书表「+605..615 未名」段内定名)。
 
 护运输送三层 (定案):
 
@@ -459,9 +461,22 @@ LEND_LEASE_DELIVERY_TOTAL_DAYS (dword_143337218); 有效量 = 容量×
 (损耗累计)**; 双边关系账 sub_140D2A0E0/sub_140D2A0A0 (war_score 的
 lend_lease_sent/received 键 14483/14484, §4.10) (定案)。CLendLeaseExchange
 ctor sub_14196A480: CConvoyClient 基 (到 +128, tag@+24, subscriber@+32,
-eff@+72, eff_lost@+80) + request@+128 + subscriber2@+136 + 宿主@+176 + 串@+184
-+ 九个 CEquipmentVariantPool 64B @+216..+728 + CGameDate×3 @+792/+808/+816 +
-route 指针区 @+848 起 (高置信; 九池语义未决)。
+eff@+72, eff_lost@+80) + request@+128 + subscriber2@+136 + 宿主@+176 +
+**对端 tag_id@+184 (仅存档形态为字符串)** + route 指针@+192 (= rs+1928[taker idx])
++ **九个 CEquipmentVariantPool 64B 逐池定名**: +216/+280/+344 = 来源池 (action
+载荷 +136/+200/+264 拷入, sub_14196AD40) / +408 = 应发总量工作池 (运行期, 不落盘) /
++472 = 交付对账 / +536 = 本日可交付快照 (运行期, 不落盘) / +600 = 剩余未交付 /
++664 = taker 已收 / +728 = 本期累计交付 — 七池落盘 (键 12541/13327/13664/12622/
+12623/12629/12624, 落盘序非键号序) + CGameDate×**4** @+792/+808/+816/+832 (原「×3」
+漏记 +832) + 六标量账 @+848..+888 (原「route 指针区」订正 — route 在 +192)。
+流向链闭合: action 响应 2 → get-or-create (双挂 rs+1880 与对端 rs+1904{+1916}, 新表)
+→ 日更池路由 sub_140CDE7E0 → 护航到位回调 (槽[14] 扣船 → 槽[11] 分批交付) → 到期
+整池出清 + XP/装备账/关系账/战争分; 变体旗 variant+1032 bit0 = 需护航运输旗。
+池类 CEquipmentVariantPool 64B = 分组层 (archetype+1048 设计指纹为键, 24B 条目含
+Σ量) + flat 层 (variant*+量) + 旗位@56; 18 原语全反编译 (SubPool 靠 sub_1424EF6F0
+取负直证)。待裁: +280 日常链全无消费者 / +808/+832 两日期语义 / +200/+208 谁是谁 /
++312 计划表写入者 / 载入后 +192 挂回点 / 取消时余量返还 / +472 账目方向 (操作序列
+定案、语义推定)。
 
 cli+80 (efficiency_due_to_lost) 写者探针定案 = **sub_140CA87D0 内偏移 893 处** (CConvoyClient 域内; dr_watch 活跃合同 cli+80, 15 游戏日 64 命中 — 重算频率高于每日, 随路线/危险重算批触发; 旧「槽[10] 每日重算」推定修正为「sub_140CA87D0 条件重算」; 静态调用方 = sub_141D6D600/sub_141DBB740 (传 rs); ⚠ 合同到期释放后地址复用会串写他对象 — 长窗 watch 须重新取活跃地址)。
 

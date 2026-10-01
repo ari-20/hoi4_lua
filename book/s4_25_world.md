@@ -159,6 +159,8 @@ gamerules.cpp:545 断言自证类名); gs+1088 形态 = pdx scoped_ptr 裸指针
 槽[1]→[2]; 载入 = gs reader case 15202 重置后经蹦床走槽[3]→[4]; **键与值皆以名串
 落盘** (token id 会话本地, 对拍必须按名匹配); 取值经 sub_140A36C50 回落规则默认项
 (rule+40)。规则库单例 = qword_14332EF20 (实例不持指针, 纯 id 二分关联)。
+构造 = sub_140A34D20 (世界重置步 4, §4.28.18 内 49.2 步 13 步分解表; 默认值 +32 word = 257 / +36 = −1 / +44 = 1); 初始化/重灌 = **sub_140A355F0**
+(把选项 id 数组从临时表重灌 ×1.5 扩容并重建查找表; 不触 +8 选中表)。
 
 > 向量; 选项流读 sub_1424C0AA0。
 
@@ -196,9 +198,9 @@ SControlGroupData (32B):
 |---|---|---|
 | +0 | — | vtable |
 | +8 | — | CSelectable id 对 |
-| +16 | u32 | province id 对.type (province/state 分流 = 按当前地图模式是否为 2) |
-| +20 | u32 | province id 对.id |
-| +24 | u32 | state id (type-6 CState 条目 +88) |
+| +16 | u32 | 键 10304 province / 键 11925 naval — 三独立键位之一 (创建命令按当前地图模式==2 把同一省 id 分流落 +16 或 +20) |
+| +20 | u32 | 键 11926 air (地图模式分流落点, 同上) |
+| +24 | u32 | state id (type-6 CState 条目 +88; 恒走自己键) |
 
 存档形 (键 selection_groups, 10286; 每玩家一块):
 

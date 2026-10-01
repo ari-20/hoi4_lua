@@ -44,7 +44,9 @@ CCommand 的 RTTI 基链均含 `CPersistent @0`, 其主虚表前 6 槽槽位语�
 > "Unexpected token" 报错桩) —— 已知实例群: `CAssetFactoryParticle` (0x142B501A8,
 > [3] = 0x142331870) / `CBrowserType` (0x142B53C58, [3] = 0x1422DE0B0) /
 > **§4.19 本地化表达式族六类** (CBoundLocalization / CFormattedLocalization /
-> NScript::CConstant / CCollection / CNamedCollection / NMath::CExpression)。
+> NScript::CConstant / CCollection / CNamedCollection / NMath::CExpression) /
+> **CTraitTemplate** (§4.8.12b; [3] 自定 wrapper 落 +968/+976, [4] 标准非退化 — 变体形态) /
+> **CTask** (§4.8.12a; [4] = 报错桩形态, [2] 亦 CFG 空桩 — 纯运行时对象零序列化)。
 > **`ref/serfam_1193.txt` 的指纹判据 = `[1]==0x1424BEC50 && [3]==0x1424BE690`,
 > 故该族结构性失明** (不在表内) — 用 serfam 判定「是否 CPersistent 族」时须先排除本形态。
 > 虚槽 (例 0x140631ED0 / 0x140631EA0 / 0x140631EE0, stats/bonus/group 三族)。
@@ -343,7 +345,7 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | [10] | 逐类 (4) | — | — |
 | [11] | **HasMultipleTooltipVars** (默认: 叶 0; 单子查子 [7] 串空; 多子数 "非空" 个数 >1) | 4 | sub_140540690 |
 | [12] | **ExecuteChecked** — Execute 作用域校验包装 (过则调 [13]; 不过按 [19] 掩码抛 "Invalid Scope", effect.cpp:555) | 5 | sub_14053D9E0 |
-| **[13]** | ★ **Execute** | **375** | 9 锚点全中: CAddLegitimacyEffect 0X140362C80 / CAddStateClaimEffect / CAddStateCoreEffect / CCreateEquipmentVariantEffect 0X14049BFA0 / CCreateUnitEffect / CAddIntelEffect / CCreateFactionEffect / CSetFactionManifestEffect / CSetFactionRuleEffect |
+| **[13]** | ★ **Execute** | **375** | 9 锚点全中: CAddLegitimacyEffect 0X14034AA80 / CAddStateClaimEffect / CAddStateCoreEffect / CCreateEquipmentVariantEffect 0X14049BFA0 / CCreateUnitEffect / CAddIntelEffect / CCreateFactionEffect / CSetFactionManifestEffect / CSetFactionRuleEffect |
 | [14] | 默认 `return 1` | 462 | sub_1401807B0 |
 | [15] | 默认 (恒定) | 470 同 sub_14053FFD0 | 无覆写 |
 | [16] | 默认 (恒定) | 470 同 sub_1405404F0 | 无覆写 |
@@ -429,36 +431,47 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 > **CEffect 与 CTrigger 的 GetDesc/行为槽位号不同** (7/13 vs 21/22), 勿混。
 > 覆写数极低的槽 (1-5 变) = 基类共享样板; 覆写数高的槽 = 逐类行为所在。
 
-#### 4.00.4 求值/事件 scope 上下文对象
+#### 4.00.4 CEventScope 求值/事件 scope 上下文对象 (176B = 0xB0; vftable RVA 0x27D43E8; writer sub_14053BDA0 / reader vt[4] sub_140538F20 17 键对账)
 
-> 无独立 RTTI 类 (负定案) — Execute/Evaluate 求值上下文与事件 scope 共用的引擎上下文对象,
-> 按求值槽位引用 (effect 端 ctx / trigger 端 ctx 同体)。挂接见 §4.32 各卡「scope ctx」引用。
+> Execute/Evaluate 求值上下文与事件 scope 同体 (effect 端 ctx / trigger 端 ctx 同构)。
+> 原「无独立 RTTI 类」负定案修正: 有 vftable (0x27D43E8, 活体+类树双证)。
+> ⚠ 原 +192/+296 两行废 (sizeof 176B 内两偏移结构上不可能, 系 effect/loader-ctx
+> 侧偏移误置); 原 +92 并回 +88 (operation id 对高位 dword, 无独立槽)。
 
-| 偏移 | 类型 | 名称/语义 | 证据 |
+| 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +8 | u32 | 国 tag id (求值与事件 scope 共用基槽) | 高置信 (三批互证) |
-| +12 | u32 | RNG 计数 | 高置信 |
-| +16 | u32 | RNG 种子 | 高置信 |
-| +24 | 匿名结构 (NNB 形状)* | root 作用域对象 | 高置信 (sub_14054D0B0 / sub_14054EB40 消费) |
-| +32 | 匿名结构 (NNB 形状)* | from 作用域对象 | 高置信 |
-| +40 | 匿名结构 (NNB 形状)* | prev 作用域对象 | 推定 |
-| +80 | 句柄 | 类型化对象句柄 (CCharacter ref; 解引用 = sub_140535C20) | 高置信 |
-| +92 | 句柄 | 类型化对象句柄 (与 +80 同式位对) | 推定 |
-| +96 | 句柄 | combatant 对象句柄 | 推定 |
-| +104 | 句柄 | 类型化对象句柄 (与 +80 同式位对) | 推定 |
-| +112 | 句柄 | CArmy 引用 id 对 | 推定 |
-| +120 | 句柄 | MIO 对象句柄 | 推定 |
-| +128 | 句柄 | 采购合同对象句柄 | 推定 |
-| +136 | 句柄 | RAID 引用 id 对 | 推定 |
-| +144 | 句柄 | NProject 项目句柄 | 推定 |
-| +168 | u32 | 州 id (州域 effect/trigger 直读) | 高置信 (八批互证) |
-| +172 | uint8 | 作用域存在旗 (非零 = 有效; scope_exists 极性锚定) | 推定 |
-| +192 | — | create_equipment_variant 语境槽 | 推定 |
-| +296 | — | 所有者限定槽 (CEventScope+96 = CCombatant\* 单指针消费旁证) | 推定 |
+| +8 | u32 | 国 tag id (键 10394; tag 串→id 查表, 失败报 "Invalid country tag.") | 定案 |
+| +12 | u32 | RNG 计数 (键 10171; loader ctx+192==3 走二进制读否则 hash 派生) | 定案 |
+| +16 | u32 | RNG 种子 | 定案 |
+| +24 | CEventScope* | root 作用域 (键 11412; owned 持有 @+48, malloc(0xB0) 递归读入) | 定案 |
+| +32 | CEventScope* | from 作用域 (键 10639; owned @+56) | 定案 |
+| +40 | CEventScope* | prev 作用域 (键 11413; owned @+64) | 定案 |
+| +48 | 引用计数对象槽 | root 的 owned 持有位 (析构 sub_140535820 虚调释放) | 定案 |
+| +56 | 引用计数对象槽 | from 的 owned 持有位 | 定案 |
+| +64 | 引用计数对象槽 | prev 的 owned 持有位 | 定案 |
+| +72 | CStrategicRegion* | **strategic_region 裸指针** (键 12014; 按 id 查 gs 区域表回填指针) | 定案 |
+| +80 | 8B id 对 | character (键 19478; sub_1401B2240 成对读) | 定案 |
+| +88 | 8B id 对 | operation (键 12059; loader ctx+296 门限定; 原 +92 = 本对高位, 无独立槽) | 定案 |
+| +96 | CCombatant* | combatant 裸指针 — **不持久化** (writer 断言 "CEventScope cannot persist CCombatant", eventscope.cpp:184) | 定案 |
+| +104 | 8B id 对 | ace (键 12770) | 定案 |
+| +112 | 8B id 对 | unit (键 10403; 解析端有 obj−16 容器调整) | 定案 |
+| +120 | 8B id 对 | MIO industrial_organisation (键 14501) | 定案 |
+| +128 | 8B id 对 | purchase_contract (键 19773) | 定案 |
+| +136 | 8B id 对 | raid_instance (键 19183) | 定案 |
+| +144 | 8B id 对 | project (键 10022) | 定案 |
+| +152 | 8B id 对 | **faction (键 10877)** — 书缺行 | 定案 |
+| +160 | 块 | saved_event_target (键 13217; 112B 元 CSavedEventTarget; 0x30B 堆节点双容器) | 定案 |
+| +168 | u32 | 州 id (键 439) | 定案 |
+| +172 | uint8 | 作用域存在旗 (scope_exists 极性锚定) | 定案 (活体 = 1) |
 
-- 附注: 事件 scope 对象另有 id 对容器 {data@+8, count@+20} (子效果解引用; §4.12.6 CSavedEventTarget 112B 元)。
-- 附注: scope 侧位场 =+36 u32 作用域键位图 (this/root/prev/from/owner/controller/occupied/capital/random/0x400 已处理 + event_target tag u16@+40) — 与 §4.00.3 [6] Parse 行一致。
-- 附注 (定案, 函数族): 本表对象 = **CEventScope** (CCountry +16 内嵌 176B 件同体, vt 见主 md 类树);
+- 附注: 除 +72/+96 两裸指针外, 句柄槽全部为 8B id 对 {表选择子, 键} (sub_14221F310 注册表解析);
+  空槽判定 = 全零判定 (哨兵 qword_14333D528 在 1.19.3 活体 = 0, 书记 0x02DF8CA0_0005EA66 系 1.19.2 值)。
+- 附注: 源键位场 (+36 u32 作用域键位图 + event_target tag u16@+40) **属 effect/trigger 对象**
+  (§4.00.3 [6]/[4] 行), 不在 CEventScope 上 (176B 内 +32/+40 被指针占满)。⚠ CEffect[6]
+  parse (sub_14053D4C0) 与 CTrigger[4] parse (sub_14054AE70) 在 controller (0x020 vs 0x440)/
+  occupied (0x040 vs 0x420) 两键位映射上互相交叉且 CEffect 版与共享求值器相反 — 疑引擎真实不一致。
+- 附注 (定案, 函数族): 本表对象 = **CEventScope** (原记「CCountry+16 内嵌 176B 件同体」误置 —
+  CCountry+16 是 name 串缓存; +16 内嵌 scope 实为 delayed_event 元素 (0xC8) 的 +16, §4.12);
   函数族全在 0x53 区 — **拷贝构造 sub_140534F00** (置 vftable+默认值后经 sub_140535FD0 拷全部
   载荷并克隆 +160 块) / **默认根构造 sub_140535110** (root/from/prev = 自指根哨兵) /
   **析构 sub_140535820** (+48/+56/+64 三引用计数对象虚调释放 + 销毁 +160 块) /
@@ -699,7 +712,7 @@ CCommand 实例布局 (基类 0x28B):
 
 **字体族** (全 .gfx/.gui 解析件 writer 空桩, 不入存档): **CFont** (vt 0x142B57ED0, 基 CPersistentWithToken; reader 0x14237E6B0): name(27)→+16 / cursor_offset(659)→+48 / selection_offset(720)→+56 ← **CBitmapFont** (0x142B41888, 附 +64 CLostDeviceInterface 虚基; reader 0x14229EC60; ctor 0x1422980C0): +72 宿主回指 / +88 color / +96 border_color / +208 fontfiles 串向量 {cap@+216, count@+220, alloc@+224} / +272 textcolors 定长阵列 / +12560 icons_add_height u8 / +12564 icon_scale f32=1.0 / +12568 起 40 个 32B 图元槽; reader 键 path(372) 追加 / fontfiles(718) 重置整表载入 (两者混用告警) / color(86) / border_color(461) / textcolors(714) / icons_add_height(595) / icon_scale(604); fontName(34)/colorcodes(297)/color_override(370) = deprecated 告警跳过 ← **CGameBitmapFont** (0x1429E6BE8, sizeof 0x3640; 脚本 `bitmapfont`(295) 块经 def 工厂钩子 0x140B410E0 malloc+ctor 0x141640D30 产出, 同钩子 a3==271 分支产 0x2C0 伴随对象); **CBitmap** (0x142B49820 无基) = 底层 BMP 载入器 (+48 就绪旗, 读 14B 头), 与字体无序列化关系。
 
-**资产工厂族**: **CAssetFactoryAudio** (vt 0x142B503F8, ctor 0x1423492E0, dtor 变体 0x142349050 / 0x142349870; 基 CPersistent): [1] Save wrapper 0x1424BEC50 / **[2] writer = CFG 空桩** / [3] Load wrapper 0x1424BE690 / [4] **reader 0x14234A010**; 对象 +32/+56 两子容器 (sub_142348FE0 / sub_142348F70)。**CAssetFactory** (.asset 工厂基类; vt 0x142B50890, 基 CPersistent; writer 空桩; reader 0x14234DB90): reader 开头双旗门 = `+24 != (a3==438)` skip / `+25` 置位时只收 light(84)/entity(438)/particle(407) 三键, animation(64) → SAnimationData。**CAssetFactoryParticle** (0x142B501A8): [3] = **自定义 Load wrapper 0x142331870** (全量 SParticleSystemReader 解析), [4] = 基 reader — 与 CBrowserType (0x142B53C58, [3] 自定义 Load 0x1422DE0B0, reader 0x14236DFF0) 同属「wrapper 自定类」serfam 盲区实例 (另见 §4.00.1)。**CBrowser** (0x142B46F70, 基 CGuiObject + CTextInputReceiver@+128) = 内嵌 CEF 网页窗, 排除; CBrowserContext/CBrowserInstance 抽象基实现见本表 Steam 族。**开发/调试设施族 (负定案, 整族排除出存档域)**: **CNudgerStrategy** (vt 0x142A42FF0, 7 槽 5 纯虚, 无基非 CPersistent) = nudge 编辑器资产微调策略抽象基; 派生 CStateNudger (0x142A44BF0) / CStrategicRegionNudger (0x142A45220) / CSupplyNudger (0x142A45568) / CUnitsNudger (0x142A45A18) / CDatabaseNudger / CWeatherNudger / CBuildingsNudger / CAmbientObjectNudger (0x142A43130) 同构 `CNudgerStrategy@0 + CReloadableInterface/CReloadDispatcher@40` 多基 (12 槽), 激活 = 编辑器 GUI `interface/nudge.gui`, 仅写 mod 文本文件零存档面; **CDBNudger** (vt 0x142A44290 + 次 0x142A442D0, ctor 兼 dtor 0x141B504F0 / 0x141B51B40, sizeof ≥16448 — ctor 最大写偏移 16440, 上界提示; 槽 [1] 0x141B51F00 / [2] 0x141B52180 / [3] 0x141B52FF0) = 库级 nudge 器巨型对象 (~16KB)。**CCameraControlStrategy** (vt 0x142AFDA60, 11 槽 4 纯虚, 独立抽象基与 Nudger 无继承) → CFirstPersonStrategy (0x142AFDA90) / CTurnTableStrategy (0x142AFE5F8), 部署于 assetviewer/previewer 调试查看器。**HOI4EditorInterface** (vt 0x142727500, 基 CEditorInterface) = 启动参数 `-editor`/`--editor` 进入编辑器主循环 (sub_14209E610) 的界面根类。**CMapIdler** (12736B, CIdler 轻量支 +CLostDeviceInterface@8, 非 CGameIdler 支) = assetviewer/previewer 调试场景 idler (ctor 直绑 previewer_quit/record/next_asset 等 12 键); **CNudgeIdler** (3984B, CGameIdler 支 + CReloadDispatcher@1512) = nudge 编辑器场景 idler (副表邻串 interface/nudge.gui/ambient_objects/strategic_regions/buildings) — 两者与上列 Nudger/相机策略同场景。**CEvolveEquipmentImgui** (0x142A3D808, 7 纯虚) → **CEvolvePlaneImgui** (vt 0x14299B678, ctor 0x141198770, 104B, [2] 0x141B06800 OnUpdate) / **CEvolveShipImgui** (0x14299B768, ctor 0x141198800, 112B, [2] 0x141B076E0) / **CEvolveTankImgui** (0x14299B7E0, ctor 0x141198890, 120B, [2] 0x141B08020) = "DEBUG UI" 装备演化调试器。四类**均非 CPersistent** (槽 [1..4] = `_purecall` / CFG 桩 / 0x14039DAB0 / 0x1401807B0 样板) ⇒ 纯编辑器层不可序列化。**CLogger** (vt 0x142B91D18, 4 槽 2 纯虚抽象基) → CFileLogger (§4.00.9 文件族) / CFilterLogger (0x142B3AF58, 按类别 id 哈希路由转发, 全局表 qword_1434521A8 + OutputDebugString 旁路) / CNullLogger (0x142B91D40 空实现); **CTestLogger** (0x1429B3A68, CPersistent 壳 writer 空桩) → CEquipmentInFieldLogger / CManpowerLogger 遥测件, **CTestLoggersArray** (0x142737248) reader 0x14136E580 = 多态反序列化工厂 (tag 14054/14055); CTest/CTestBundle (0x142737148/0x142737198, writer 空桩) 与 CTestDatabase (0x142737218, 常驻装载 "tests" 目录) 同属自动化测试框架。**StackWalker** (0x142B58708) → CCustomStackWalker (0x142B5B3D8, 线程局部单例 0x1435B9F60) → CPdxCrashReportImpl (0x142B5B320 接口) → CPdxCrashReportWindows (0x142B5AA48) → CrashReporter.exe = 崩溃诊断链。**CAutotestSettings** (0x142724378, writer 空桩 reader 0x1401F8D30, 版本 tag 15531) 与 **CAnimViewerGraphics** (0x142AFD7B8, reader 0x14223B060, 版本 tag 53/55/296) 均为只读入解析件。以上整族 serfam 命中者 writer 一律 CFG 空桩 = 引擎不落盘。
+**资产工厂族**: **CAssetFactoryAudio** (vt 0x142B503F8, ctor 0x1423492E0, dtor 变体 0x142349050 / 0x142349870; 基 CPersistent): [1] Save wrapper 0x1424BEC50 / **[2] writer = CFG 空桩** / [3] Load wrapper 0x1424BE690 / [4] **reader 0x14234A010**; 对象 +32/+56 两子容器 (sub_142348FE0 / sub_142348F70)。**CAssetFactory** (.asset 工厂基类; vt 0x142B50890, 基 CPersistent; writer 空桩; reader 0x14234DB90): reader 开头双旗门 = `+24 != (a3==438)` skip / `+25` 置位时只收 light(84)/entity(438)/particle(407) 三键, animation(64) → SAnimationData。**CAssetFactoryParticle** (0x142B501A8): [3] = **自定义 Load wrapper 0x142331870** (全量 SParticleSystemReader 解析), [4] = 基 reader — 与 CBrowserType (0x142B53C58, [3] 自定义 Load 0x1422DE0B0, reader 0x14236DFF0) 同属「wrapper 自定类」serfam 盲区实例 (另见 §4.00.1)。**CBrowser** (0x142B46F70, 基 CGuiObject + CTextInputReceiver@+128) = 内嵌 CEF 网页窗, 排除; CBrowserContext/CBrowserInstance 抽象基实现见本表 Steam 族。**开发/调试设施族 (负定案, 整族排除出存档域)**: **CNudgerStrategy** (vt 0x142A42FF0, 7 槽 5 纯虚, 无基非 CPersistent) = nudge 编辑器资产微调策略抽象基; 派生 CStateNudger (0x142A44BF0) / CStrategicRegionNudger (0x142A45220) / CSupplyNudger (0x142A45568) / CUnitsNudger (0x142A45A18) / CDatabaseNudger / CWeatherNudger / CBuildingsNudger / CAmbientObjectNudger (0x142A43130) 同构 `CNudgerStrategy@0 + CReloadableInterface/CReloadDispatcher@40` 多基 (12 槽), 激活 = 编辑器 GUI `interface/nudge.gui`, 仅写 mod 文本文件零存档面; **CDBNudger** (vt 0x142A44290 + 次 0x142A442D0, ctor 兼 dtor 0x141B504F0 / 0x141B51B40, sizeof ≥16448 — ctor 最大写偏移 16440, 上界提示; 槽 [1] 0x141B51F00 / [2] 0x141B52180 / [3] 0x141B52FF0) = 库级 nudge 器巨型对象 (~16KB)。**CCameraControlStrategy** (vt 0x142AFDA60, 11 槽 4 纯虚, 独立抽象基与 Nudger 无继承) → CFirstPersonStrategy (0x142AFDA90) / CTurnTableStrategy (0x142AFE5F8), 部署于 assetviewer/previewer 调试查看器。**HOI4EditorInterface** (vt 0x142727500, 基 CEditorInterface) = 启动参数 `-editor`/`--editor` 进入编辑器主循环 (sub_14209E610) 的界面根类。**sub_14209E610 = 进程主入口体** (WinMain 实现; 双角色定案: 常态分支建 CMapApplication 走游戏路, `-editor` 分支进 PdxEditor 编辑器路 — pdx_editor/startup.cpp 断言串 + mount previewer_assets/userdir 解析/日志挂载即编辑器分支段; 旧两处记载「WinMain 体」与「编辑器主循环」系同一函数的两段)。**CMapIdler** (12736B, CIdler 轻量支 +CLostDeviceInterface@8, 非 CGameIdler 支) = assetviewer/previewer 调试场景 idler (ctor 直绑 previewer_quit/record/next_asset 等 12 键); **CNudgeIdler** (3984B, CGameIdler 支 + CReloadDispatcher@1512) = nudge 编辑器场景 idler (副表邻串 interface/nudge.gui/ambient_objects/strategic_regions/buildings) — 两者与上列 Nudger/相机策略同场景。**CEvolveEquipmentImgui** (0x142A3D808, 7 纯虚) → **CEvolvePlaneImgui** (vt 0x14299B678, ctor 0x141198770, 104B, [2] 0x141B06800 OnUpdate) / **CEvolveShipImgui** (0x14299B768, ctor 0x141198800, 112B, [2] 0x141B076E0) / **CEvolveTankImgui** (0x14299B7E0, ctor 0x141198890, 120B, [2] 0x141B08020) = "DEBUG UI" 装备演化调试器。四类**均非 CPersistent** (槽 [1..4] = `_purecall` / CFG 桩 / 0x14039DAB0 / 0x1401807B0 样板) ⇒ 纯编辑器层不可序列化。**CLogger** (vt 0x142B91D18, 4 槽 2 纯虚抽象基) → CFileLogger (§4.00.9 文件族) / CFilterLogger (0x142B3AF58, 按类别 id 哈希路由转发, 全局表 qword_1434521A8 + OutputDebugString 旁路) / CNullLogger (0x142B91D40 空实现); **CTestLogger** (0x1429B3A68, CPersistent 壳 writer 空桩) → CEquipmentInFieldLogger / CManpowerLogger 遥测件, **CTestLoggersArray** (0x142737248) reader 0x14136E580 = 多态反序列化工厂 (tag 14054/14055); CTest/CTestBundle (0x142737148/0x142737198, writer 空桩) 与 CTestDatabase (0x142737218, 常驻装载 "tests" 目录) 同属自动化测试框架。**StackWalker** (0x142B58708) → CCustomStackWalker (0x142B5B3D8, 线程局部单例 0x1435B9F60) → CPdxCrashReportImpl (0x142B5B320 接口) → CPdxCrashReportWindows (0x142B5AA48) → CrashReporter.exe = 崩溃诊断链。**CAutotestSettings** (0x142724378, writer 空桩 reader 0x1401F8D30, 版本 tag 15531) 与 **CAnimViewerGraphics** (0x142AFD7B8, reader 0x14223B060, 版本 tag 53/55/296) 均为只读入解析件。以上整族 serfam 命中者 writer 一律 CFG 空桩 = 引擎不落盘。**调试右键菜单 (rightclickmenu.gui)** (定案): **`interface/rightclickmenu.gui` 是 -debug 模式的开发者菜单, 与玩家单位下令无关** (原 §4.33 十余行「rightclickmenu 地图右键菜单派发链」标注系路过 Idle 巨函的误标, 已勘误 — 玩家右键下令真实入口在地图输入/选择层 sub_140DCEFD0 簇)。构建器 = **sub_1402A3730** (每次右键按名清空重建 rightClickMenu 窗内 "options" listbox): 门 = debug 旗 byte_14332EC69 (启动串 "debug"/"crash_data_log" 置位; 控制台命令可翻转) ∧ 修饰键 ∧ button==2, 三个 idler (frontend sub_140B3CA20 / ingame sub_140DD3A50 [额外门 idler+2061, 写者未定位] / nudge sub_1412D49D0) 每帧扫各自 GUI 事件队列拾取。条目 = 三类硬编码对象 × .gui 模板: CRightClickReloadItem (vt 0x1429A9E58, 模板 right_click_entry_2, "Reload: <开窗源 .gui 文件名>") / CRightClickOpenItem (vt 0x1429AA018, 模板 right_click_entry, "Open: <州相关串>", 门 = 地图命中省视图 → state+168 有效旗 ∧ CStateDatabase 单例 qword_14332F070 已载断言 gameidler.cpp:1382) / CRightClickCloseItem (vt 0x1429A9C98, loc CLOSE, 仅置 +1376 关闭旗); 另 empty_right_click_entry 250x21 无按钮占位行 — 仅占位行 (count≤1) 时菜单隐藏。Open/Reload 动作 = **WinExec 经 dilepad 开发者工具通道** (CLogger 名串 "dilepad"; "@FILE@"/"@LINEINFO@" 占位符命令行), 零 CCommand 投递、零引擎调用。菜单开着再右键 = memcmp 源文件名短路不重建。旁系: byte_14332F60C 门 (右键+单修饰键) 走「窗口名::元素名」调试叠字层, 不经本菜单。
 
 **MP 平台抽象基 ← 实现配对表** (§4.00.9 Steam 族补基座行; 基座全纯虚接口, 实现见 Steam 族/本表):
 
@@ -713,9 +726,9 @@ CCommand 实例布局 (基类 0x28B):
 | CSystem | 0x142B3CE30 | 9 / 7 | CPdxSystem |
 | CPdxEvents | 0x142B3E948 | 26 / 9 | **CSdlEvents** (0x142B52948; [2] 0x142362CD0 do-PollEvent 循环抽干 / [3] 0x142362D10 注册 watch 回调对 / [4] 0x142362CF0 PushEvent 类型 256) |
 
-**网络服务器族**: **CServer** (抽象基, vt 0x142B52AC8 ≥30 槽, [5][6][7][30][35][36] 纯虚; [4] 0x142363E10 经 +72 连接对象转发发包) → 唯一 RTTI 实现 **CProxyServer** (0x142B53598, proxy_server.cpp; [6] Update 间隔 >1.0s 打 "Long update!"; [3] 清 +348/+392/+472 连接状态 (24B 条, count@+480)); CDummyServer (0x142B52C28 31 槽, 单机空实现, 工厂 sub_14224E3E0/E870)。**CSession** (会话信息可观察包装, vt 0x142B3E9D8; +8/+16 观察者双链表首尾 / +24 count / +28 挂起旗 / +40 全局计数门 dword_143453198)。**CPlayerLobby** (大厅玩家面板, vt 0x142A0EC58; RTTI lambda 证 KickPlayer/BanPlayer; [22] 0x14186F3A0 = server_id_button → SERVER_ID_COPY)。**CChat** (游戏内聊天控制器, vt 0x1429ADE98, 基 CReloadableInterface ← CReloadDispatcher ← HotkeyListener; slash 命令表 `/slap /whisper /invite /newchannel /ban /kick /roll /save` 硬编码; 创建点 sub_1419A9090) → **CGameChat** (0x142A24E48, chat_window/chat_inbox_window/chat_item)。**CFriendsHandler** (平台好友表处理器, vt 0x1429D5378 19 槽, 懒建单例存储 qword_143339C70, getter sub_140A31BB0) → **CFriendsHandlerSteam** (680B Steam 后端: ctor 内建基后原位换表; 内嵌 "CAREER_PROFILE_YOU" 自好友件 CFriendsHandlerFriendSteam + 5 个排行榜/文件共享 CCallResult)。**ChatSettingsProviderImpl** (vt 0x142969468; 6 薄 getter 全委托 CSettings 单例 (0x1401FA5E0) +904/+912 域)。**HotkeyManager** (vt 0x142B3EE88, 基 CPdxEventHandler; +14 子对象串表 / +80 注册表 count@+92; 单例旗 byte_1434531B1)。
+**网络服务器族**: **CServer** (抽象基, vt 0x142B52AC8 ≥30 槽, [5][6][7][30][35][36] 纯虚; [4] 0x142363E10 经 +72 连接对象转发发包) → 唯一 RTTI 实现 **CProxyServer** (0x142B53598, proxy_server.cpp; [6] Update 间隔 >1.0s 打 "Long update!"; [3] 清 +348/+392/+472 连接状态 (24B 条, count@+480)); CDummyServer (0x142B52C28 31 槽, 单机空实现)。**CSession** (会话信息可观察包装, vt 0x142B3E9D8; +8/+16 观察者双链表首尾 / +24 count / +28 挂起旗 / +40 全局计数门 dword_143453198; ctor 重载对 = sub_14224E3E0/sub_14224E870 (9 参全量重载; 函数体首段逐行同构 + CSession::vftable 直证, 创建会话对象本身)。**CPlayerLobby** (大厅玩家面板, vt 0x142A0EC58; RTTI lambda 证 KickPlayer/BanPlayer; [22] 0x14186F3A0 = server_id_button → SERVER_ID_COPY)。**CChat** (游戏内聊天控制器, vt 0x1429ADE98, 基 CReloadableInterface ← CReloadDispatcher ← HotkeyListener; slash 命令表 `/slap /whisper /invite /newchannel /ban /kick /roll /save` 硬编码; 创建点 sub_1419A9090) → **CGameChat** (0x142A24E48, chat_window/chat_inbox_window/chat_item)。**CFriendsHandler** (平台好友表处理器, vt 0x1429D5378 19 槽, 懒建单例存储 qword_143339C70, getter sub_140A31BB0) → **CFriendsHandlerSteam** (680B Steam 后端: ctor 内建基后原位换表; 内嵌 "CAREER_PROFILE_YOU" 自好友件 CFriendsHandlerFriendSteam + 5 个排行榜/文件共享 CCallResult)。**ChatSettingsProviderImpl** (vt 0x142969468; 6 薄 getter 全委托 CSettings 单例 (0x1401FA5E0) +904/+912 域)。**HotkeyManager** (vt 0x142B3EE88, 基 CPdxEventHandler; +14 子对象串表 / +80 注册表 count@+92; 单例旗 byte_1434531B1)。
 
-**CApplication 应用族** (只载不存 + 单实例锁): **CApplication** (vt 0x142B3C288 + 次表@+8; 基 CPersistent + CApplicationObservable 多基) — 主表 [1] **无 Save wrapper (CFG 空桩)**、[2] writer 空桩、[3] Load wrapper + [4] reader 0x14222E600 (只读 name(27)→+72 窗类名) = **应用单例只载不存** (serfam 指纹需 [1]+[3] 故未命中); ctor 0x14222B420 内 `FindWindowExA(0,0,+72,0)` 单实例互斥 ("An instance of this game is already running on this computer! Exiting."), **实例指针落 qword_143452450 (主单例定案**: ctor 写入, 18 引用全在 CApplication 编译单元 0x14222B5F0..0x14222EDD0)。**CApplicationObservable** (应用事件广播壳, vt 0x142B3C260 主表 4 槽; CApplication/CGameApplication/CMapApplication 公共多基 mdisp 8)。**CMapApplication** (0x142AE6950, 主进程应用; ctor sub_1420A13C0 由 WinMain 体 sub_14209E610 内建) / **CGameApplication** (0x1427182E0 族, ctor sub_140151EC0 注册 defines 组, caller sub_14015FB30)。**CGameGraphics** (0x14294A338, 基 CGraphics + CLostDeviceInterface 虚继承@+206320; [1] SaveW/[3] LoadW 持久化图形设置到用户设置**非存档**)。
+**CApplication 应用族** (只载不存 + 单实例锁): **CApplication** (vt 0x142B3C288 + 次表@+8; 基 CPersistent + CApplicationObservable 多基) — 主表 [1] **无 Save wrapper (CFG 空桩)**、[2] writer 空桩、[3] Load wrapper + [4] reader 0x14222E600 (只读 name(27)→+72 窗类名) = **应用单例只载不存** (serfam 指纹需 [1]+[3] 故未命中); ctor 0x14222B420 内 `FindWindowExA(0,0,+72,0)` 单实例互斥 ("An instance of this game is already running on this computer! Exiting."), **实例指针落 qword_143452450 (主单例定案**: ctor 写入, 18 引用全在 CApplication 编译单元 0x14222B5F0..0x14222EDD0)。**CApplicationObservable** (应用事件广播壳, vt 0x142B3C260 主表 4 槽; CApplication/CGameApplication/CMapApplication 公共多基 mdisp 8)。**CMapApplication** (0x142AE6950, 主进程应用; ctor sub_1420A13C0 由 WinMain 体 sub_14209E610 内建) / **CGameApplication** (0x1427182E0 族, 对象 1272B = malloc(0x4F8); **ctor = sub_140147EE0** (main.cpp:2136 直调, 对象 1272B; 预建 CSession "localhost" + ~28 对热重载注册 + 加载条组 65 回调, 详 §4.28.21); sub_140151EC0 = **析构函数** (恢复双 vtable 后 j_free 释放 20+ 成员对象); sub_14015FB30 = 标量删除析构包装。**CGameGraphics** (0x14294A338, 基 CGraphics + CLostDeviceInterface 虚继承@+206320; [1] SaveW/[3] LoadW 持久化图形设置到用户设置**非存档**)。
 
 #### 4.00.10 CColor (颜色值对象; writer 0X14224CA10)
 
@@ -825,6 +838,13 @@ root/from/prev/saved_event_target 等 17 键, token 名全对上); save_event_ta
 再入队 (定案)。
 
 
+
+**docvar（@target 文本变量）注册器** (暗区定案): 框架 = lambda 签名
+`CFixedPoint(CEventScope const&, int, CScopedVariable const*)` 的求值回调注册; leader/army
+族全集 = **sub_14006EF30** (6,040 行; number of units controlled by leader /
+num_units_in_state 等键), state 族 = **sub_140069A80** (resource@steel /
+non_damaged_building_level 等)。loc 文本 `@变量名` 的可用集以此二注册器为准。
+
 #### 4.00.13 CSelectable (选择态基类; 16B 无基类多态根 — rtti bases 空, 不继承 CPersistent)
 
 ctor 唯一 = sub_140BC2AA0(this, type); 不序列化。凡带选择态的对象 (师/舰队/翼/
@@ -849,6 +869,25 @@ OnDeselected(选择集已空旗, vt[+24]) / [4] 纯虚通知广播 (选择集全
 CTheatre* 相等 (同战区方可混选)。选择管理器 = 双全局 qword_14332F698/F6A0 (同对象),
 容器 @+1336, _Selection 双向链表 head@+48/tail@+56/count@+64, 节点 32B。
 
+**方法地址** (selectable.cpp, 定案): Add = sub_140BC32D0 (":71/:72 断言; 尾插 + vt[+16] OnSelected + 监听者广播) / Remove = sub_140BC2D80 (":82/:104; :104 串原文 "selecatble" 引擎错拼) / Clear = sub_140BC2F60 / CanAdd = sub_140BC2CC0 (战区键取件 sub_140BF9660) / 成员级加入门 = sub_140DDFA60 (属主相同 + 组 id 相同或双方非零经 sub_140BB52F0 判同)。
+
 宿主内嵌偏移: CArmy/CTaskForce/CAirWing/CCombat/CRailwayGun = +0 (主表) /
 CProvince·CState·CStrategicRegion·CAmbientObject = +8 (次表) / CFleet = +24 (次表
 0x142962A70 — §3.9 谱系补行) / COperativeLeader = +3928 (次表 0x142956018)。
+
+
+#### 4.00.14 CUnitAdjuster (三维修正器; 40B; vt 0x142789CD0)
+
+跨域通用修正件 — 州地形五统计组 (§4.18.19)、将领 per-skill 数组与四技能缓存 (§4.4)、
+trait 条件修正表 (§4.4.23)、战术权重 (§4.22.7) 共用同一 40B 布局:
+
+| 偏移 | 类型 | 语义 | 备注 |
+|---|---|---|---|
+| +0 | vt | CUnitAdjuster | 0x142789CD0 |
+| +8 | u32 | 上下文 token (地形 token / 品类 token 等; factory sub_141016A40) | 定案 |
+| +16 | fixed×1e-5 | attack 修正 | 定案 |
+| +24 | fixed×1e-5 | defence 修正 | 定案 |
+| +32 | fixed×1e-5 | movement 修正 | 定案 |
+
+消费 = RecalcSkillBonuses sub_140C21280 (§4.4) / 战术权重四道门 (§4.22.7) / 州五统计组
+(§4.18.19: night 11944 / fort 11947 / river 11946 / amphibious 11945 / snow 12036)。

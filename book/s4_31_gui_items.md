@@ -928,7 +928,7 @@ CShipArchetypeItem ctor sub_1417F2740; CShipArchetypeHeaderItem ctor sub_141D42A
 |---|---|---|---|---|---|
 | 工厂格图标 | sub_141D68F10 状态机 | +1352 下标/+1328+1332 状态 (线+24/+28/+64 三段 ✓)/+1360=线+240 ✓ | 左键 → CAddProductionLineFactoriesCommand (目标=(下标+1)×每格数−线+232 ✓) | PRODUCTION_FACTORY_ASSIGN_DESC / _DOCKYARD_ | 定案 |
 | 母港行 | sub_141DB3940 | CStrategicNavy (gamestate+1688)+24 容器; 条目+16 州/+24 等级 | 右键缩放地图 sub_141DB2E10 | PRODUCTION_NAVAL_DEPLOYMENT_STATE_NAME / PRODUCTION_DEPLOY_TO_BASE | 定案 |
-| 剧场行 | sub_141DB2BA0 | CNavyTheater (country+352)+16 容器 | 按视图+1408/+1416 选中线发命令 | PRODUCTION_DEPLOY_TO_RESERVE_FLEET_THEATER | 定案 |
+| 剧场行 | sub_141DB2BA0 | CNavyTheater (country+352) 容器 {data@theater+0, count@+12} (装配器 sub_141DB04C0) | 按视图+1408/+1416 选中线发命令 | PRODUCTION_DEPLOY_TO_RESERVE_FLEET_THEATER | 定案 |
 | 特混行 | 左键设目标/右键选中 | country+632 CTaskForce**; item+1360=tf+24 id 对 | +1368 内嵌 CNavyTheaterTaskForceItem 徽章 (§4.24 复用) | PRODUCTION_DEPLOY_TO_FLEET | 定案 |
 | 命令出口 | RTTI 实名 | CSetNavalDeploymentTargetCommand (+40 线/+56 target) / CSetShipRefitDeploymentTargetCommand (+40/+48/+56) | 与 §4.30.3 vt[11] 地图点省通道同字段互证 | countrycommands.cpp L1500 断言 | 定案 |
 
@@ -1597,6 +1597,7 @@ CArmiesView 本体 (1640B) 全布局 + CDivisionsSummaryItemView 行件 (1432B; 
 | 面板元素/行为 | 取值函数 | 对象+偏移 | 语义+出处 | loc key / 元素 | 置信 |
 |---|---|---|---|---|---|
 | 理念行基类 | 派生复用 | {+24 CIdea\* def / +32 u32}; ps+80 ✓ | CGameSetupIdeaItem/CNationalSpiritItem 派生 | — | 定案 |
+| CNationalSpiritItemSmall/Big | 零虚覆写, 真入口 = 基类非虚 refresh sub_141C47340 | {+24 CIdea\* def / +32 u32} 同基; 主表 0x1429D9210/0x1429D92C8 各 2 槽 + 次表 0x1429D9228/0x1429D92E0 各 19 槽; 1344B | 政治窗双池 +31416/+31464 + 三旁路装配点 (sub_1415F4200/141F4D2F0/141F4D0C0); ctor a4=1/0 选元素名 | spirit_idea_entry_small / spirit_idea_entry | 定案 (类名悬案结案: 同行件小/大两排版) |
 | 国家精神行 | refresh sub_141C47340 | def 组过滤 `*(*(def+2720)+96)+120==1`; cc+3712 ✓ | Small/Big 两派生 | spirit_idea_entry[_small] | 定案 |
 | 流亡人力行 | payload = tag id | dip+400 ✓ / cc+832 ✓ / cc+808 ✓ | 空军重组窗 | airwing_manpower_item | 定案 |
 | 学说 track 行 | Update sub_141F690B0 | {+40 track/+48 索引/+52 tag} | 进度值/全掌握门 | track_progress_item | 定案 |
@@ -1706,7 +1707,7 @@ CArmiesView 本体 (1640B) 全布局 + CDivisionsSummaryItemView 行件 (1432B; 
 | 新建剧场组行 | 三分流 | CTheatreSelector+1752 | CAssignToTheaterGroupCommand / CSetNavyTheaterGroupForCommand ✓ / CMoveAirWingAndAirGroupToAirTheatreCommand | NEW_THEATER_GROUP | 定案 |
 | 新舰条目按钮 | 点击翻转显隐 | editor+8360 钮 → editor+8352 CSubUnitDefinitionSelectionWindow | 真名 NTaskForceCompositionEditor::CNewShipEntryButton; 无命令 | task_force_composition_editor_new_entry | 定案 |
 
-**定案 3 项**: 每国补给对象真名 = **CCountrySupplySystem** (vt 0x142973CC8/0x142973CF0, ctor sub_141218530; getter sub_1406EE6E0 体 = `gs[123]+264` 每国指针表按 tag idx 索引) / 五字段分两级 — **条目级 +200 卡车需求基数 / +312 卡车在役数**; **记录级 (\*(条目+128), 800B) +304 卡车缓冲比定点 / +320 火车在役数** / 槽[20] = **当前卡车比例百分比** (sub_141D7D400: `1e10*(条目+312)/(1e5*(条目+200))` clamp 0..1e5 → 进度条 `100*v/1e5`)。未决: CDeployBaseItem [19..25] 槽名 / 外国占用者谓词链 / def+84==357 字段名 / 模板控制器三列表模型。
+**定案 3 项**: 每国补给对象真名 = **CCountrySupplySystem** (vt 0x1429A2B08/0x1429A2B58, ctor sub_141218530; getter sub_1406EE6E0 体 = `gs[123]+264` 每国指针表按 tag idx 索引) / 五字段分两级 — **条目级 +200 卡车需求基数 / +312 卡车在役数**; **记录级 (\*(条目+128), 800B) +304 卡车缓冲比定点 / +320 火车在役数** / 槽[20] = **当前卡车比例百分比** (sub_141D7D400: `1e10*(条目+312)/(1e5*(条目+200))` clamp 0..1e5 → 进度条 `100*v/1e5`)。未决: CDeployBaseItem [19..25] 槽名 / 外国占用者谓词链 / def+84==357 字段名 / 模板控制器三列表模型。
 
 #### 4.31.59 市场/贸易杂项 (CAddEquipmentToMarketWindow / CAddToMarketEquipmentItem / CMarketAccessOverviewWindow / CMarketAccessOverviewItem / CTradeOfferWindow / CCancelSellingContractPopup / CIncomingLendLeaseEquipmentItem)
 
@@ -1848,7 +1849,7 @@ CArmiesView 本体 (1640B) 全布局 + CDivisionsSummaryItemView 行件 (1432B; 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
 | +32 | 匿名结构 (NNB 形状)* | 构造上下文（建筑定义侧；项 +740 使能值 → facet+176 SetEnabled；可建谓词 sub_1406896B0，高置信） |
-| +40 | 窗件块 (1288) | 回调 sub_1416D10；收尾恰至 1328 |
+| +40 | 窗件块 (1288) | 回调 sub_141716D10；收尾恰至 1328 |
 
 > ctor 内查子件 "start_construction_button"；点击按 def 使能旗开地图选址模式。
 
@@ -2959,3 +2960,19 @@ ctor sub_1414991A0。
 > `"gui element '%s' does not exist."` 并回落 `a2[62]`。
 > 容器 dtor `sub_141391300`: 宿主窗 `+165 &= ~0x10` (解冻) → 回写 `+165 |= 0x10` →
 > `Block[9]` (通知对象) `vt[0](.., 1)` → `sub_1422A97E0`。
+
+#### 4.31.93 GUI 行件长尾批简卡 (基链/大小/元素名/装配点简卡, 非全布局)
+
+| 类 | 基链 / vtable | 大小 | 元素名 | 装配点与语义 |
+|---|---|---|---|---|
+| NInternationalMarket::CSubsidyOverview | CUpdateable@0 (0x142AB34B0, 6 槽) + CReloadableInterface@16 (0x142AB34E8) | 232B | — | **市场窗补贴总览内嵌控制器 (非行件本体)**: 挂 CPurchasableEquipmentWindow+2680, 回调 ToggleSubsidiesOverview; 邻座 CListController/CSubsidyListItem/CListWidget 族 = 行件真身 (定案) |
+| NInternationalMarket::CContractEquipmentType | CStandardlistboxItem@0 (→COption 链, 0x142AB4F50, 13 槽) + TListboxItem@56 (0x142AB4FC0) | 72B | contract_equipment_type | 市场合同详情「按装备类型」可选行 (宿主池 +5576, 件内 equipment_icon) (定案) |
+| NFactions::NUi::CConfirmFactionFacilityProgram | CFactionPopup@0 (→CPopUpWindow→CUpdateable, 0x1429C42C0, 19 槽) + CReloadableInterface@16 + CTooltipHandler@56 | 4216B | — (faction_popup 变体 6) | 阵营设施计划确认弹窗; 同簇 ADD_FACILITY_BUTTON 邻串; 装配 sub_141472080 (高置信) |
+| NFactions::NUi::CChangeGoalItemRow | CStandardGridBoxItem@0 (0x142A92F18, 19 槽零覆写) | 32B | change_goal_item_pair_container | 换目标窗 (CChangeGoalWindow, populate = §4.5.2 表 goal_status 行已载 sub_141C08C40) 成对 goal 行容器行; 数据/命令出口在邻座定案, 本类只持布局 (定案) |
+| NFactions::NUi::CChangeRuleItemPair | CStandardGridBoxItem@0 (0x142A93360, 19 槽) | 32B | change_rule_item_pair_container (+24 = box_list 子件) | 换规则窗「规则对」容器行; 规则语义/命令出口复用 §4.31.56 CChangeRuleItem (rule def@+1408) (定案) |
+| NAirSelectionUI::CDisbandAllOption | CAirWingOptionButton@0 → CWingsToolbarWidget@0 (0x142A9C0C8, 4 槽) | 1312B | btn_delete | 翼选工具栏「解散全部」选项钮; 装配 sub_141CF5ED0 与 SplitWing 同池; 邻串 AIRWING_DISBAND (定案) |
+| NAirSelectionUI::CSplitWingOption | 同上 (0x142A9C488, 4 槽) | 1312B | split_wing_btn | 翼选「联队分半」选项钮; blocked 态独立 loc 键 SELECT_HALF_WINGS[_BLOCKED] (定案) |
+| CDecisionViewEventCategoryHeader | CStandardGridBoxItem@0 + CTooltipHandler@24 (0x142A70828, 19 槽); 成员 CCheckBoxObserverGlue@+64 | 400B | event_header | 决议网格 (decision_grid) 事件类目头行, 勾选经 glue 回调宿主过滤类目; 池 win+1512 (定案) |
+| NCareerProfile::CCareerProfilePageDot | CStandardlistboxItem@0 (→COption 链) + TListboxItem@56 (0x142AA9E50, 13 槽) | 1440B | career_profile_page_dot | 生涯档案多页导航页点行, 回调切 CCareerProfilePages (装配 sub_141FE4DB0) (定案) |
+
+> 注: CStandardGridBoxItem (19 槽 gridbox) 与 CStandardlistboxItem→COption+TListboxItem@56 (13+24 槽 listbox) 是两套并行行件基座; 同族派生常零虚覆写 (仅 ctor 换表), 简卡记「基链 + 元素名 + 大小 + 装配点」即足。槽值均 PE 直读; 任务书所给 vtable 有 4 处笔误已经本轮 PE 复读纠正 (见 flow_sweep/e15a 头部勘误)。

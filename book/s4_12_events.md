@@ -302,20 +302,50 @@ CCombatant" (:0x58E); +106..+111 = 112B 对齐尾 pad。⚠ 该 writer/reader �
 
 检查调度 = **每 20 天错峰** (EVENT_PROCESS_OFFSET = dword_143336F50, 默认 20): 国家侧 CGameState::DailyUpdate 并行波 → sub_1401BA6F0 → sub_1406E8210, 相位 = cc+4750 (ctor sub_1406C9CC0 写 country_idx % 20), 门 = 相位 == gs+1156 年积日 % 20; 州侧 worker sub_1409D7760, 相位 = st+2032 (州 ctor sub_1409CFB10 写 定义对象+160 % 20)。bypass 旗 byte_14332F61A && !IsAI → 免相位门强制检查 (调试)。
 
-**AddEventsToFire sub_140A0D4E0** (掷骰筛选, 五步): ① is_triggered_only (ev+1055) 置位跳过 / exclusive (ev+1058) 本轮只掷一个; ② fire_only_once (ev+1057) → 查 gs+1336 哈希 (sub_1401DF300) 已 fired 跳过; ③ trigger 预筛 sub_141180350 (系统启用位门 `(ev+1048 & dword_14332F248) == ev+1048` → ev+104 CTrigger 槽[3] Evaluate); ④ MTTH 权重 sub_14117FC00 → 核 sub_140551E40: 基值 ev+24, 逐 CMTTHModifier (ev+32 数组 count@+44; factor@+88 乘/add@+296 加) → `1e6×N_days/MTTH` 钳 [1,1e6]; ⑤ 掷骰 `rng % 1e6 < P ∥ force` 入队。
+**AddEventsToFire sub_140A0D4E0** (掷骰筛选, 五步): ① is_triggered_only (ev+1055) 置位跳过 / exclusive (ev+1058) 本轮只掷一个; ② fire_only_once (ev+1057) → 查 gs+1336 哈希 (sub_1401DF300) 已 fired 跳过; ③ trigger 预筛 sub_141180350 (系统启用位门 `(ev+1048 & dword_14332F248) == ev+1048` → ev+104 CTrigger 槽[3] Evaluate); ④ MTTH 权重 sub_14117FC00 → 核 sub_140551E40: 基值 = CEvent+896 MTTH 块 +920 (默认 1 天), 逐 CMTTHModifier (块内 +928 向量; factor@+88 乘/add@+296 加) → `1e6×N_days/MTTH` 钳 [1,1e6]; ⑤ 掷骰 `rng % 1e6 < P ∥ force` 入队。
 
 发射链: 掷中候选 → **cc+4776 容器** ({data@+4776, count@+4788}; 与 cc+4752 delayed_events 相邻勿混) → CCountry::DailyUpdate 串行段 "country.queued_events" 逐条再复核 trigger → sub_140A0F4F0 (断言 "Scope.GetRandom() != CCrudeRandom()") → **sub_140A0F6F0 真发射体**: fire_only_once 复核 → timeout_days (ev+1032) 到期时刻 = now+24×days → sub_1401CAFF0 pending_events (gs+1376) 入队 (56B 元 {fire_id/CEvent*/scope*/tag/date×2}; scope = CEventScope 176B 深克隆, §4.00.4a) → AI/hidden (IsAI ∥ ev+1059) 路径逐 option 掷 (sub_141539CB0 trigger + sub_141539B80 CAIMTTHChance 权重) 构造 CSelectEventOptionCommand (sub_141539E40, 240B) 入命令队列; 玩家路径 = idler 虚槽 +240 挂事件收件箱; fire_only_once 落账 sub_1401CA1D0 (§4.12.7); major (ev+1056) → 广播分支 (遍历 gs+784 各国)。
 
-**CEvent** (1064B = 0x428; ctor sub_14117F1A0; ReadKey = sub_141180B10; +0/+24 双 vt CReferenceObject 基; +104 trigger / +192 第二 trigger / +280 内嵌默认 CEventOption (504B 至 +783) / +872 option 向量 {cap@+880, count@+884} / +896 类型结构 / +952/+976 title/desc 容器):
+**CEvent** (1064B = 0x428; vt 0x142999BE8 11 槽 + 第二表 0x142999C40 @+24 名串基视图; ctor sub_14117F1A0; ReadKey = sub_141180B10; 活体抽验 5 实例全对上):
 
-| 偏移 | 类型 | 键/语义 |
-|---|---|---|
-| +8 | u32 | id token (fired 查询比对) |
-| +12 | u32 | 事件序号 (统计表索引) |
-| +24 | u64 fixed×1e-5 | mean_time_to_happen 基值 |
-| +32 | CMTTHModifier* 数组 | mtth modifier 族 (count@+44); ⚠ 待裁: 延时事件 writer 路 (sub_141181300 键 440) 双证读 +32 为 MSVC 串名 {size@+48}, 与数组说两说并存 — 待 §4.12 侧重验/探针 (§4.12.9) |
-| +96 | u32 | ctor 第三参 (类型码) |
-| +1032 | i32 | timeout_days (14389) |
+| 偏移 | 类型 | 键/语义 | 置信 |
+|---|---|---|---|
+| +8 | u32 | **CIdPair.type = 50** (ctor 写哨兵 qword_14333D528 整 8B; 原「id token / 事件序号」两行翻案为一个 idpair) | 定案 |
+| +12 | u32 | **CIdPair.id** (writer 键 11 写 +12; fired 表以 CEvent 指针为键非此值; 活体 1000001) | 定案 |
+| +16 | u8 | idpair 已注册旗 (setter 成功置 1) | 定案 |
+| +24 | ptr | 第二 vtable 0x142999C40 (名串基视图; 原「MTTH 基值」翻案) | 定案 |
+| +32 | SSO 32B | 事件规范名 (id 键反查成功回填; 活体 "denmark_political_events.1"; 原 +32 数组/串两说 — **串说胜结案**) | 定案 |
+| +64 | SSO 32B | id 键原文串 (finalize 缺 option 报错打印此串) | 定案 |
+| +96 | u32 | **事件族类型码** (ctor 第二参; 作 +104/+280/+896 子解析 scope): country/news/unit_leader = 4 / state = 2 / operative = 8 (装载器五分支 + 活体双证) | 定案 |
+| +104 | CAndTrigger 88B | trigger (10595; vt[5] Parse 带 +96; 发射门 = +1048 位掩码) | 定案 |
+| +192 | CAndTrigger 88B | **show_major** (13801; Parse scope 字面 4) — 原「第二 trigger」键名定案 | 定案 |
+| +280 | CEventOption 504B | 内嵌默认 option (序号 −1; immediate 键 10837 → 其 vt[3]) | 定案 |
+| +784 | CEffect 88B | **after 块** (17136) | 定案 |
+| +872 | 向量 24B | option 指针向量 {data@872, cap@880, **count@884**, alloc@888}; 元 = malloc(0x1F8) CEventOption (ctor 第三参 = push 前计数 = option 序号) | 10598 |
+| +896 | CMeanTimeToHappen 56B | **mean_time_to_happen 块** {类型码@+912, MTTH 基值@+920 (默认 1 天), CMTTHModifier* 向量@+928} — 原「+24 基值/+32 modifier 数组」两行系权重核块内坐标误锚, 双双翻案 | 10596 |
+| +952 | 向量 24B | **title 向量** — 元 CTriggeredText* (128B: 文本串 + CAndTrigger) | 10643 |
+| +976 | 向量 24B | **desc 向量** (同构; 注册期缺 desc 检查 count@988) | 10644 |
+| +1000 | SSO 32B | picture (464) | 定案 |
+| +1032 | i32 | timeout_days (ctor 默认 = 全局 dword_143336720) | 14389 |
+| +1036 | u32 | 解析出处·文件 id (Parse override 从解析上下文取 8B 戳) | 定案 |
+| +1040 | u32 | 解析出处·行号 | 定案 |
+| +1044 | u8 | 出处已置旗 (dtor 若置位回写 0xAA 毒值) | 定案 |
+| +1048 | u32 | 系统依赖位掩码 (触发预筛门 `(v & dword_14332F248) == v`); ⚠ 已定位写者只写 0, 非零写者未定位 (待裁) | 门公式定案 |
+| +1052 | u8 | 国家作用域族旗 (state_event = 0, 其余 1) | 定案 |
+| +1053 | u8 | operative_leader_event 专属旗 | 定案 |
+| +1054 | u8 | unit_leader_event 旗 | 定案 |
+| +1055 | u8 | is_triggered_only (11115; 置位跳过掷骰) | 定案 |
+| +1056 | u8 | major (11241) | 定案 |
+| +1057 | u8 | fire_only_once (11002; fired 哈希键 = CEvent 指针) | 定案 |
+| +1058 | u8 | exclusive (11776; 本轮已掷中一个则其余跳过) | 定案 |
+| +1059 | u8 | hidden (11404; finalize 门) | 定案 |
+| +1060 | u8 | news_event 旗 (12776) | 定案 |
+| +1061 | u8 | fire_for_sender (13947; ctor 默认 1) | 定案 |
+| +1062 | u8 | minor_flavor (12941) | 定案 |
+
+> CMTTHModifier 504B 构成补齐: CAndTrigger 门头 + factor/add 两 CScopedVariable 208B
+> (初值 1.0/0), 与 §4.34 MTTH 行完全吻合; CAIMTTHChance 272B 实为 CMeanTimeToHappen 派生类。
+> ⚠ 延时事件 writer 路 (sub_141181300 键 440) 读 +32 为串名的旧疑案按串说结案 (见 +32 行)。
 | +1048 | u32 | 系统依赖位掩码 (与 dword_14332F248 相与) |
 | +1052 | u16 | unit_leader_event 型写 0x101 |
 | +1055 | u8 | is_triggered_only (11115) |

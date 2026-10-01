@@ -161,7 +161,7 @@ operative 对象 (`COperativeLeader`) 的 nationalities 容器 = **+3944** (uint
 | sizeof | 216B |
 | vtable RVA | 0X29A1AA8 |
 | writer | 0X141208490 (modifiers 块 token 0x31E6 后直读 a1+8/+16/+24) |
-| loader | 0X1412073E0 (case 12774 → sub_140DEF040(a2, a1+8) 同基) |
+| loader | 0X1412073E0 (case 12774 → sub_141203A60(a2, a1+8) 同基) |
 | ctor | 0X1411CFAA0 (三清零) |
 | 挂载 | net+120 sub_intel_networks 容器元素 |
 | modifiers 基址 | = subnet 基址自身 (内联三槽 +8/+16/+24) |
@@ -220,7 +220,7 @@ coverage_per_occupied (0x4BFD, sub+120) 块: 第 1 条 tag=`.#1`, 第 2 条起�
 | tokens | `*(cc+5552)+16` (§4.11.17) | 定案: 元素 24B 五字段 — idx@+8 = 属主 tag / **pool@+12 = ci.static_intel_pools 池下标 u32** / id@+16 = 池内哈希键 / disc@+20 = ci+208 (探针+二进制全链无指针读法) |
 | agency | `*(ag+288)+16` | 机构对象 = CIntelligenceAgency (§4.11.14) |
 
-写门: 开键 14196B990 — 块仅 idx>0 且 pool≠0 且 tag 查表非空落盘。
+写门: 开键 sub_14197F040 — 块仅 idx>0 且 pool≠0 且 tag 查表非空落盘。
 
 #### 4.11.6 tokens.operation_assets (排序发射; 宿主类 = §4.11.17)
 
@@ -689,6 +689,7 @@ recruitment 三容器 (容器 writer 0X141579010 count>0 才开块; 8B 指针元
 | recruitable_operatives | {d@+40, c@+52} | 0x4B45 |  |
 | recruitable_operatives_not_to_spy_master | {d@+64, c@+76} | 0x4B54 | ctor 0x141579120 双子容器 |
 
+> COperativeRecruitment 增补 (reader 0x14157B590): 19270 days_until_next_batch / 19462 days_recruiting 两废键标量吞弃不落字段 (旧版余键); 槽[8] 0x14157A520 = 三矢量清空例程 (此类唯一 [8] 覆写); 容器元素 0 值写 `none`(357) 占位 (writer 0x141579010, count>0 开块)。
 COperativeLeader writer 链 (基 0X140C1CE70 + 0X140C28550):
 
 | 字段 | 偏移 (e) | 写门 |
@@ -740,7 +741,7 @@ COperativeLeader writer 链 (基 0X140C1CE70 + 0X140C28550):
 
 **COperation**: [2] writer = 空桩 (**def 不入存档**); [3] Load = 自定 wrapper
 sub_140A7EDB0 (写 {块名 intern id, parser int} 对至 +1996/+2000 — serfam 盲区家族);
-[4] reader = sub_140A7F200 (40 键); [8] PostLoad = sub_140A7D210; ctor sub_140A7BAB0。
+[4] reader = sub_140A7F200 (43 键); [8] PostLoad = sub_140A7D210; ctor sub_140A7BAB0。
 库 = COperationsDatabase (128B, **qword_14332EFA8**; 名索引 RH 表 56B 桶; 书所记
 EFA0 系邻位 idb 键); 工厂 sub_1401679D0 (命中 = move-assign 原位覆盖 + vt[3] 重
 parse = 热重载保位); 装载 boot 序 = operation_tokens → operation_phases →
@@ -900,7 +901,7 @@ resume_mission → sub_140C26330); ⑦ return_on_complete 支付 (civ/装备返�
 resume_mission u32@8, COperativeMissionData 32B@16 {vt@16, type@24, tag@28,
 ptr@32, ptr@40}, present u8@48}。
 
-情报网重算 (七连之一 sub_1412002E0, 每 so 每小时): ① 收集属主 agency 特工
+情报网重算 (七连之一 sub_1412002E0, 每 so 每日, §4.2.7 特工日更通道): ① 收集属主 agency 特工
 (ag+216) mission type∈{1,2,5,8} (build_intel_network/quiet_network/
 boost_ideology/propaganda) 按 target tag 聚合; ② 逆序遍历 so+16 网数组每网
 **sub_1411D63A0 全量重算** (countryintelnetwork.cpp:492 "A country should not

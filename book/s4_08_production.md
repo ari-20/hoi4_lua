@@ -17,7 +17,7 @@
 | +232 | CEquipmentVariant* | foreign_lease_equipments 容器数据指针 | 元素 = variant 指针, 无条件写 id 对 |  |
 | +233..+243 | — | foreign_lease_equipments 内部 | data 尾 + **cap@+240**  |  |
 | +244 | u32 | foreign_lease_equipments 容器计数 |  |  |
-| +245..+511 | — | 容器群 + licensed + 池头 | foreign_lease alloc@248 + **运行时容器 C {d@256}** (AI 装备比较, 不序列化) + **容器 D {d@280}** (不序列化) + **industrial_organisations {d@304..320}** (块 19162) + **policies {d@328..344}** + **运行时容器 E {d@352}** + **named_equipment_bonuses {d@376..392}** (块 10206, 200B 元) + **CLicensedProductionStatus@400 (112B)** {avail@408, 运行时容器@432, owned@456, 运行时容器@480, owner 反指@504, 条目+0 qword → 对象 +0 = 目标国 tag (is_licensing_any_to; 推定)} + **CEquipmentVariantPool@512** 头  |  |
+| +245..+511 | — | 容器群 + licensed + 池头 | foreign_lease alloc@248 + **运行时容器 C {d@256}** (AI 装备比较, 不序列化) + **容器 D {d@280}** (不序列化) + **industrial_organisations {d@304..320}** (块 19162) + **policies {d@328..344}** + **运行时容器 E {d@352}** + **named_equipment_bonuses {d@376..392}** (块 10206, 200B 元) + **CLicensedProductionStatus@400 (112B; vt 0x1429C0C88; writer 0x14143B7C0 / reader 0x14143AF10; ctor sub_141436D40; = 4 个同构 24B 容器 + 反指)** {lp+8 = **available (键 12264)** 受让许可表 — 元 = CEquipmentVariant 克隆 1208B {idpair@+8, 接收 tag@+28, 授予 tag@+32, 原型@+1008, 原变体@+1016, license 回指@+1024} / lp+32 = 容器 (语义待裁) / **lp+56 = owned_license (键 14259) = 我持有的许可表 (付费方)** / **lp+80 = 授出许可表 = CEquipmentProductionLicense\* 活跃指针表** (writer 不发但读档由受让国块回填 — 原「运行时容器」误导; **纯运行时容器是 lp+32**) / lp+104 = CProductionStatus\* 反指; +8/+56 引擎存档键自名} + **CEquipmentVariantPool@512** 头  |  |
 | +512 | 匿名结构 (16B 形状) 向量 | equipments 池 (12122) | {data@+32, count@+44} 16B 条 {variant*, amount fixed×1e-5} | 写门: amount≠0 或 allow_zero(uint8@+568)==1; **GUI: 市场库存变体量查** (sub_14100EB00) |
 | +513..+567 | — | CEquipmentVariantPool 体 | 预留池 {d@520..536} (24B 元, 不序列化) + **序列化装备池 {d@544, cap@552, c@556, alloc@560}** (16B 元 {variant*, amount}) + **allow_zero_entries u8@568**  |  |
 | +568 | uint8 | equip_allow_zero_entries | | |
@@ -25,11 +25,11 @@
 | +608 | CCreateEquipmentVariantSpec* | scheduled_equipment_variants 容器数据指针 | {data@+608, count@**+620**}; ⚠ +616 = capacity 非 count — pop 后 capacity 内残留悬挂槽 (arch 指针仍活→键像真, var 悬挂→字段垃圾 1069219840 类); scheduler vt 0x1429706b8, 池 writer 0X141A00AF0, 元素 16B {arch@0, var@8}; spec 类 CCreateEquipmentVariantSpec **无 hull/train 派生** (泛型 writer 0X141463A90 全型同门); spec 字段: name@+16 / name_group@+48 / icon@+184 / obsolete b@+84 (b84=1 写 yes 正向; +85 系另一字段反向门) / model@+144 / parent_version@+80 / io id 对@+248 / upgrades {d@+96, c@+108} 16B 条 / modules {d@+120, c@+132} 16B 条 |  |
 | +609..+619 | — | scheduler 容器内部 | data 尾 + **cap@+616**  |  |
 | +620 | u32 | scheduled_equipment_variants 容器计数 |  |  |
-| +621..+671 | — | scheduler 尾 + modules + CicBank 头 | alloc@624 + **enable_equipment_modules {d@632..648}** (块 15212, u32 token 元) + **CCountry 反指@656** + **CCicBank@664** {vt, value i64@672}  |  |
+| +664 | CCicBank 内联 24B | CIC 银行 | {vt 0x1429705A0 九槽, **value i64@+8 (键 776 value, 有序列化 writer/reader — 原记缺失)**, **reserved i64@+16 = 当期预定账** (提取 sub_14145AAF0 按 max(0, value−reserved) 划扣, 民用分配每轮清零)}; 增压系数 = (1+mod625)×(mod624+CIC_BANK_SPEED_BOOST_FACTOR)/1e5; 清零 sub_14145AAE0; 活体 440 国同 vt |  |
 | +672 | fixed×1e-5 | cic_bank | **GUI: 国际市场视图命中** (CCountryInternationalMarketView) |  |
-| +673..+1191 | — | 四工厂池 + consumer 群 + 运行时区 | **工厂池×4 (96B 无 vt)**: +688=military / +784=dockyard / +880=civilian / +976=保留 (探针 GER 132/31/168/0; {**+0 u32 = controlled 数 / +4 u32 = owned 数 (num_of_controlled/owned 对偶; 推定)**, **val@+8 = 工厂总量**, **+32 qword = 受损工厂 Σ(1+州修正)×(level−healthy) (tooltip loc key PRODUCTION_CIVILIAN_FACTORIES_DAMAGED 铁证 + SetLevel +66=healthy; 原「项目占用扣减」翻案)**, **dword@+40 = 已分配产线工厂**, dword@+56 (ps+936) — **定案 = 电力覆盖率 min(1, 能源产量/能源需求)** (重置默认 1.0 sub_140E66060; 真值写者 sub_140E6AE80: 煤预留→产量 ps+1288→min(1e5, 1e5×产量/需求) 写三池; 能源资源 = coal, ps+1264 def tok 20005, amount=已预留煤/need=缺口); 活探针 14 国次恒 1.0 = 煤覆盖足够时的钳制上限 (GER 产量 2755 ≥ 需求 2749.24), 非常量; 消费 = 单厂速度 lerp (sub_1415C9B40) + 缺电惩罚 (sub_1415CA210); 总需求链: +928 求和 → ps+1336 ×单厂能耗成本 = ps+1328 (GER 416.55×6.60=2749.24 精确闭合) — 另 **dword@+48 (ps+928) = 工厂能耗需求权重 (定案)**: 写点 sub_140E64510 `+48 += v20×v18×level/1e5` (v18 = 1e5+州修正 LOCAL_FACTORIES(65); v20 = 1e5+国修正 FACTORY_ENERGY_CONSUMPTION(398)+州 LOCAL_FACTORY_ENERGY_CONSUMPTION(397)+每级基建能耗(657)×基建); sub_140E64B90 经 ps+1296/1304/1312 三池指针表求和 → ps+1336; 曾记「消费品百分比样值」「恒 = +16 同值」两说均废; 六国活值 1.0~2.0 量级与此公式吻合), **+64 = 可用工厂公式减项 (军池 = 转出合计 ≡ +72++80; 民用池 = 生活消费品侧, 见 §4.31.30 — ⚠ 四池此槽语义不同, 勿按军池外推)**, **+72 = 上缴宗主 (mic_to_overlord_factor) / +76 = 受赠所得 / +80 = 外赠目标国 (mic_to_target_factor)** — 军池定案, 写入 sub_140E6C810/sub_140E611B0, 即 UI 侧 ps+696/+728/+752/+760/+764/+768/+792}) + **consumer×5 @1072..1191** {vt, enabled u8@+8, u64 双 dword@+12, **值 @对象+16**} (顺序 CConsumerGoods@1072 / CSpecialProjects@1096 / CLicensedProduction@1120 / CTrade@1144 / CContractPayment@1168 — 类序由工具提示 loc key 用法互证, §4.31.30) + dirty@1192 + 运行时@1194/1196/1198 (探针 0x40003/各国异值/≈tag 槽) + **max_factories_for_repair@1200** + **运行时容器 F {d@1208}**  | **GUI: 运营军工厂双读数** (军池 val@696÷1e5 −分配760 −768 / −728 −752; sub_141743200→sub_14173B2D0 → PRODUCTION_OPERATIONAL_FACTORIES_VALUE) **+ 造船厂读数** (船池 val@792 → dockyards_output_value) **+ tab 使能** (军厂钮 ps+696>0 / 船厂钮 ps+792>0; sub_141739E20) **+ 占用条** (military_factories_usage bar=100−比例; naval_factories_usage × sub_140E69130) **+ 民用池全项工具提示** (§4.31.30) |
+| +673..+1191 | — | 四工厂池 + consumer 群 + 运行时区 | **工厂池×4 (96B 无 vt)**: +688=military / +784=dockyard / +880=civilian / +976=保留 (探针 GER 132/31/168/0; {**+0 u32 = controlled 数 / +4 u32 = owned 数 (num_of_controlled/owned 对偶; 推定)**, **val@+8 = 工厂总量**, **+32 qword = 受损工厂 Σ(1+州修正)×(level−healthy) (tooltip loc key PRODUCTION_CIVILIAN_FACTORIES_DAMAGED 铁证 + SetLevel +66=healthy; 原「项目占用扣减」翻案)**, **dword@+40 = 已分配产线工厂**, dword@+56 (ps+936) — **定案 = 电力覆盖率 min(1, 能源产量/能源需求)** (重置默认 1.0 sub_140E66060; 真值写者 sub_140E6AE80: 煤预留→产量 ps+1288→min(1e5, 1e5×产量/需求) 写三池; 控制台 Energy Ratio 命令全局覆盖槽 qword_14332F688 (钳 0..1e5, ≥0 时替换三池真值); 能源资源 = coal, ps+1264 def tok 20005, amount=已预留煤/need=缺口); 活探针 14 国次恒 1.0 = 煤覆盖足够时的钳制上限 (GER 产量 2755 ≥ 需求 2749.24), 非常量; 消费 = 单厂速度 lerp (sub_1415C9B40) + 缺电惩罚 (sub_1415CA210); 总需求链: +928 求和 → ps+1336 ×单厂能耗成本 = ps+1328 (单厂成本 = min(ENERGY_COST_CAP 6.6, BASE_ENERGY_COST 0.25 + SCALING_COST_BY_FACTORY_COUNT×(Σ池val−出口折减)/1e5), 出口折减 = ENERGY_SCALE_PER_TRADE_FACTORY_EXPORT×(1+mod399); GER 416.55×6.60=2749.24 精确闭合) — 另 **dword@+48 (ps+928) = 工厂能耗需求权重 (定案)**: 写点 sub_140E64510 `+48 += v20×v18×level/1e5` (v18 = 1e5+州修正 LOCAL_FACTORIES(65); v20 = 1e5+国修正 FACTORY_ENERGY_CONSUMPTION(398)+州 LOCAL_FACTORY_ENERGY_CONSUMPTION(397)+每级基建能耗(657)×基建); sub_140E64B90 经 ps+1296/1304/1312 三池指针表求和 → ps+1336; 曾记「消费品百分比样值」「恒 = +16 同值」两说均废; 六国活值 1.0~2.0 量级与此公式吻合), **+64 = 可用工厂公式减项 (军池 = 转出合计 ≡ +72++80; 民用池 = 生活消费品侧 (tooltip 可用 = 总量−受损912−建造920−消费侧944; 材料在 §4.8.9 本节) — ⚠ 四池此槽语义不同, 勿按军池外推)**, **+72 = 上缴宗主 (mic_to_overlord_factor) / +76 = 受赠所得 / +80 = 外赠目标国 (mic_to_target_factor)** — 军池定案, 写入 sub_140E6C810/sub_140E611B0, 即 UI 侧 ps+696/+728/+752/+760/+764/+768/+792}) + **consumer×5 @1072..1191** {vt, enabled u8@+8, u64 双 dword@+12, **值 @对象+16**} (顺序 CConsumerGoods@1072 / CSpecialProjects@1096 / CLicensedProduction@1120 / CTrade@1144 / CContractPayment@1168 — 类序由工具提示 loc key 用法互证) + dirty@1192 + 运行时快照 6B @1194 u32 + 1198 u16 (资源存量变更检测缓存) + **max_factories_for_repair@1200** + **运行时容器 F {d@1208}**  | **GUI: 运营军工厂双读数** (军池 val@696÷1e5 −分配760 −768 / −728 −752; sub_141743200→sub_14173B2D0 → PRODUCTION_OPERATIONAL_FACTORIES_VALUE) **+ 造船厂读数** (船池 val@792 → dockyards_output_value) **+ tab 使能** (军厂钮 ps+696>0 / 船厂钮 ps+792>0; sub_141739E20) **+ 占用条** (military_factories_usage bar=100−比例; naval_factories_usage × sub_140E69130) **+ 民用池全项工具提示** (§4.8.9 表; 原 §4.31.30 引用断链说废 — 该节是工厂格行件) |
 | +1192 | uint8 | dirty | | |
-| +1200 | uint32 | max_factories_for_repair | | |
+| +1200 | uint32 | max_factories_for_repair | **唯一写者 = sub_140E711A0 (hourly, 自 sub_140E696E0)**: `min(旧值, ceil_1e5(INITIAL_ALLOWED_FACTORY_RATIO_FOR_REPAIRS × ((ps+888)/1e5 − ps+944))/1e5)`, 单调不升; Reset sub_140E65BB0 置 0 → 战时自由民厂 0 即恒 0 (探针 440 国全 0); define 装载器钳 [0,1e5] (defines_game.h:258) | |
 | +1201..+1255 | — | discount + resource cost | **discount {d@1232..1248}** (块 10202, 40B 元) + **CProductionResourceCost@1256 (32B)** {vt, resource def*@1264 (= null_object 单例 → "none" 占位根因), amount@1272, need@1280} (块 12781) |  |
 | +1256 | 匿名结构 (NNB 形状) | energy_production_cost | amount fixed×1e-5@+16, need@+24 (恒 0), resource token@(*(ps+1264)+8) | |
 | +1257..+1351 | — | 运行时聚合区 | 聚合 u64@1288 (探针 ENG=550.0) + **工厂池内指表 {1296→880 民用, 1304→688 军用, 1312→784 造船厂}** (探针差值 192/96 实证) + 四经济聚合 i64@1320..1344 (探针 FRA 50.30/462.72/137.00/3.3775) + **last_named_equipment_bonus i32@1352 (ctor 默认 −1 非 0)**; 对象总大小 1360B  |  |
@@ -123,7 +123,7 @@ deployment 形态分型:
 
 | 类型 | deployment 形态 | 写门 |
 |---|---|---|
-| naval (57) | 指针@元素+272, writer 0X140D148B0 三分支 (tf/ship/base; 实测走 base 分支) | — |
+| naval (57) | 指针@元素+272, writer 0X140D148B0 三分支 (tf 对 / theatre 对@+20 / base; 实测走 base 分支) | — |
 | refit (71) | 块内联@元素+248 {tf 对@+260/+264, base u32@+276, ship 对@+280/+284} | base 仅在无 tf 对时写 |
 | railway_gun (75) | **无 deployment** (272B 类 +248..+271 = names 容器, 无 +272 槽) | — |
 
@@ -133,12 +133,12 @@ deployment 对象布局 (naval: dep = 元素+272 解引用; refit 形态同构�
 |---|---|---|---|
 | +12 | u32 | tf.type — id 对之 type (对) | type==16 为哨兵 |
 | +16 | u32 | tf.id — id 对之 id | type==16 为哨兵 |
-| +17..+27 | — | **第二 id 对@+20** {type@20, id@24} — ctor qword_14333D528 默认, writer 不发 = 运行时 |  |
+| +17..+27 | — | **第二 id 对@+20** {type@20, id@24} = theatre 对 — ctor qword_14333D528 默认, writer 第二分支实发 (键 12058) |  |
 | +28 | uint32 | base | 实测走 base 分支 |
-| +29..+47 | — | base@+28 尾 + naval: u64=0@+32 / refit: **ship 对 {type@32, id@36}** + naval: null 单例指针@+40 / refit: 0 + naval: **ICAW 块头@+48** (sub_141012160 从 deployment 状态拷入) / refit: null 单例  |  |
+| +29..+47 | — | base@+28 尾 + naval: u64=0@+32 / refit: **ship 对 {type@32, id@36}** (CShipRefitDeployment 派生增量, 键 10400, sub_140D14990) + naval: null 单例指针@+40 / refit: 0 + naval: **ICAW 块头@+48** (sub_141012160 从 deployment 状态拷入) / refit: null 单例  |  |
 | +48 | 内嵌 | initial_carrier_air_wing_deployment: 容器 {data@dep+56, count@dep+68}, 元素 16B {名对象指针@+0 (token@+8), value int64@+8} | |
 
-**类名/基链 (1.19.3 实证)**: 部署对象 = **CNavalDeployment** (80B, vt 0x14295FB48, ctor 0x140D0D2F0, writer 0x140D14860 / reader 0x140D124E0), 基 = **CNavalDeploymentTarget** (vt 0x14295FAF8; 基 writer 0x140D148B0 = 上表三分支); refit 侧派生 = **CShipRefitDeployment** (vt 0x14295FB98, +32 = ship 对)。+32 = 运行时槽 (naval = 0 / refit = ship 对); +40 = 有效位单例指针 (ctor sub_140AC4DD0, ICAW 写门之一); +48 ICAW 池 vt = CEquipmentArcheTypePool (写门 = 非全空 sub_141010B70 ∧ +40 非空)。
+**类名/基链 (1.19.3 实证)**: 部署对象 = **CNavalDeployment** (80B, vt 0x14295FB48, ctor 0x140D0D2F0, writer 0x140D14860 / reader 0x140D124E0), 基 = **CNavalDeploymentTarget** (vt 0x14295FAF8; 基 writer 0x140D148B0 = tf 对 / theatre 对@+20 / base 三分支); refit 侧派生 = **CShipRefitDeployment** (vt 0x14295FB98, +32 = ship 对, 键 10400 增量)。+40 = 有效位单例指针 (ctor sub_140AC4DD0, ICAW 写门之一); +48 ICAW 池 vt = CEquipmentArcheTypePool (写门 = 非全空 sub_141010B70 ∧ +40 非空)。
 
 #### 4.8.3 names 容器 (176B 元素)
 
@@ -233,16 +233,22 @@ industrial_complex 民用 — 探针 token_name 定案**, def+736 类别互换) 
 |---|---|---|
 | cost (sub_140F69E60) | max(1, floor[(1+mod(国, def+912 成本修正 id)) × (动态项 + def+744 基础 + def+756×当前等级)]) — "Building cost is non-positive" building_production_line.cpp:805; 动态项 = sub_140F69FD0 (def+752 块, 缓存 +124/门+128/级标+132, 失效时扫全国同 def 队列线重算) | 定案 |
 | 转换成本 (sub_140F6C770) | def+748 × (1+mod), mod = 159 MIL_TO_CIV / 160 CIV_TO_MIL (按线 def 类别选 BDB+968/+960 侧), min 1 | 定案 |
-| 速度核 (sub_140F6D3A0) | loc_factor × 单厂速度×工数 × (MIO + Σmods + 1e5)/1e5; mods = mod(国, def+896) + mod(州RH桶, def+904) + mod(州RH桶, 548 STATE_PRODUCTION_SPEED_BUILDINGS_FACTOR); def+676 设施旗再加 mod(国,630)+mod(州RH,629); 州RH桶 = sub_1409D8B10(state, tag); loc_factor = sub_1414B7FA0(def): def+1192 ? def+1088 州条件因子表 : 1.0 | 定案 |
+| 速度核 (sub_140F6D3A0) | loc_factor × 单厂速度×工数 × (mod166 + 缺电调整 + Σmods + 1e5)/1e5 (内层归一后外层再 /1e5 归一 loc_factor 定点); **括号首项 = mod166 PRODUCTION_SPEED_BUILDINGS + 缺电调整 sub_1415C9A40 (= mod166 + sub_1415CA210: 覆盖率≥1e5 → +mod167 POWERED; <1e5 → −mod166×(1e5−max(0,覆盖率×(1+mod168)))/1e5)** — 原「MIO +」项系军线公式串味幻影, 说废 (函数全程无 MIO 输入); 尾钳负值 0; mods = mod(国, def+896) + mod(州RH桶, def+904) + mod(州RH桶, 548 STATE_PRODUCTION_SPEED_BUILDINGS_FACTOR); def+676 设施旗再加 mod(国,630)+mod(州RH,629); 州RH桶 = sub_1409D8B10(state, tag; state+2256 RH 表 208B 条目, 未命中回落 state+1352); loc_factor = sub_1414B7FA0(def): def+1192 ? def+1088 州条件因子表 : 1.0 | 定案 (F2 验算) |
 | 单厂速度 (sub_1415C9B40) | lerp(BASE_FACTORY_SPEED qword_1433363C0, POWERED_FACTORY_SPEED qword_1433365B0, max(0, ps+936 × (1+mod168 OUT_OF_POWER_FACTOR))) | 定案 |
-| CIC 增压 (sub_141A2F7F0) | 线当日不会完成 (剩余>speed>0) 时从 ps+664 CCicBank (值@+672) 抽取增速, 日上限 = country+1448 容器值 × speed/1e5 钳 ≤ 剩余; **line+104 = 抽取量** (运行时缓存, 不落档; 与 created_date 无关 — created_date hours 实值 @+88, +96 为序列化代理锚, §3.7a) | 定案 |
+| CIC 增压 (sub_141A2F7F0) | 线当日不会完成 (剩余>speed>0) 时从 ps+664 CCicBank 抽取增速, 日上限三因子 = (1+mod625)×(mod624 + CIC_BANK_SPEED_BOOST_FACTOR 0.25)×speed, 钳 ≤ 剩余−speed (country+1448 容器值即 mod 域); **line+104 = 抽取量** (运行时缓存, 不落档; 与 created_date 无关 — created_date hours 实值 @+88, +96 为序列化代理锚, §3.7a); **CCicBank 台账** (vt 0x1429705A0, writer 0x14145ABA0 / reader 0x14145AAB0 键 776 `value`): cap@ps+672 = add_cic 脚本资源 (effect sub_140490030 充值, 持久), used@ps+680 = 当轮已抽 (hourly 清 0), 日结算 cap −= 消耗 (建筑与铁路两族) | 定案 |
+| 基建完好度加速 (sub_1414B97F0) | def+876 infrastructure_construction_effect 门: 速度核之外再乘 (1 + INFRA_MAX_CONSTRUCTION_COST_EFFECT(1.0) × 州基建 healthy/上限), 满基建最多 ×2 | 定案 |
 | 修理速度 (sub_140F6A400) | (BASE_FACTORY_REPAIR qword_143334340 + 100×speed/cost) × (sub_140F6CD40 因子+1e5)/1e5 × def+848 × building+80 repair_speed_factor, 钳 ≤1e7 | 定案 |
 
 分配阻断门 (sub_140E61320 内, 定案): ① 省建筑 ∧ sub_140E7DDF0(prov,1) 省内有
-进行中战斗 (prov+368 数组, CCombat vt[11]==1) → 该线 0 工厂; ② 铁路线 ∧ 州∈
-控制者 cc+5592 焦土名单 (scorched_states) → 阻断。分配核: 可用池 = line+24 +
-line+28 + (ps+888)/1e5 − ps+944 − ps+920; 请求上限 = requested − 相对线贡献
-(sub_140F6D300)。
+进行中战斗 (prov+368 数组, CCombat vt[11]==1) → 该线 0 工厂; ② 铁路线
+(vt[22]==2) 与 **def 为 rail_way/supply_node (def+880 补给点) 的建筑线** (省
+ptr 非空) ∧ 州∈控制者 cc+5592 焦土名单 (scorched_states) → 阻断; 日推进修理
+分支对 rail_way/supply_node def 有同款速度归零抑制。分配核: 可用池 = line+24 +
+line+28 + (ps+888)/1e5 − ps+944 − ps+920 (line+24 = 完好 / line+28 = 受损
+拆分; 溢出 = max(0, 分配量 + 民池受损÷1e5 − 可用池), 军线 setter
+sub_140E611B0 同款); 请求上限 = requested − 相对线贡献 (sub_140F6D300,
+is_subject 门下取相对线 +24); requested = vt[11] = MAX_CIV_FACTORIES_PER_LINE
+(15) 常量桩 (building/railway/railway-gun-repair 三族同值)。
 
 建成交付 = **CBuilding::SetLevel sub_1410DC4E0** 中央通知器
 (building.cpp:138 负值/145 超上限/151 陆锁港三断言): 写 +64 level, healthy 调整
@@ -272,10 +278,16 @@ path(+128), 速度经 sub_141A02190 (复用 sub_140F6D3A0, def = BDB+936 铁路 
 铁路施工进度本体存 CProvinceRailwayInfo+80 (§4.14.6) — 两套载体 (定案)。
 
 building 线虚槽契约 (定案): [9]=RegisterId 0x140F6A6E0 / [10]=GetSpeed+刷 cost
-sub_140F6E3E0 (写 +40/+48) / [14]=GetSpeed(out&) sub_140F6E060 (读 +48 缓存;
-relative 有效∧非 is_subject → 读相对线 +48) / [17]=SetAmount 0x1414B5A70 /
-[19]=ReduceAmountBy 0x1414B5AD0 / [21]=GetNumToRepair sub_140F6ADC0 (返 +120) /
-[22]=常量桩 0x14029C820 `return 1` (分配门; 铁路线同槽返 2 → 焦土阻断) /
+sub_140F6E3E0 (写 +40/+48) / [11]=GetRequestedFactories 0x141A2F790
+(MAX_CIV_FACTORIES_PER_LINE 常量桩) / [14]=GetSpeed(out&) sub_140F6E060 (读 +48 缓存;
+relative 有效∧非 is_subject → 读相对线 +48) / [17]=SetAmount 0x140F6E300
+(thunk `jmp 0x1414B5A70`) /
+[19]=ReduceAmountBy 0x140F6E3D0 (thunk `jmp 0x1414B5AD0`) / [21]=GetNumToRepair sub_140F6ADC0 (返 +120) /
+[22]=常量桩 0x14029C820 `return 1` (分配门; 铁路线同槽返 2 → 焦土阻断;
+CRailwayProductionLine/CRailwayGunRepairLine 基座 = CGeneralProductionLine,
+RTTI cast 对二者返 0 走 vt[22]==2 分支) / [23]=位置 getter 0x140F6C860 =
+sub_1410DB850(线+112) (省; 州建筑返 0) / [26]=修理谓词 0x140F6E190 =
+vt[21](线)>0 (= to_repair>0) /
 [24]=DailyUpdate sub_140F6A710 / [25]=完成判定 sub_140F6E160 (amount==0 ∧
 to_repair==0)。
 
@@ -429,8 +441,12 @@ qword_143337B80 × max(0, 原型年份@arch+984 − 当前年)) / 1e5); Σ修正
 ② **借出** (池重算消费者 sub_1419FE820 + setter sub_14070CEA0): 授予方民池逐
 owned 许可 lended_cic(+8) = min(required_cic, 余量)。③ **受入** (池重算步 4):
 avail 侧 lended → 受让国 ps+888 += 1e5×n 且 ps+964 (FROM_LICENSES 桶; 原「ps+968 FROM_TRADE」订正) += n。
-方向注: owned (ps+456 容器) = 本国授予 (我方为借出方) / avail (ps+408) = 他国
-授予我方 (推定, 与消费者方向互证)。
+方向注 (E 批反编译反转): **lp+56/ps+456 owned_license = 我持有 (受让方, 付费方)** /
+**lp+80/ps+480 = 我授出 (授予方, 收款方)** / lp+8/ps+408 available = 市场克隆表
+(create_production_license sub_141437120 向受让国 ps+408 push 克隆 + 把 license 注册
+进受让国 +456 与授予国 +480) — 原「owned = 本国授予 / avail = 他国授予我方」方向全反, 废。
+has_any_license 触发器读 **lp+56 count@ps+468** (accessor 0x14143AB80 = a1+56);
+is_licensing_any_to 的 tag 匹配在 license+16 非「解引用+0」。
 
 CRocketProductionLine (火箭产线, ~120B; vt 0x14297C260; **不经 CProductionLine 支系 — CReferenceObject+CPersistent 直系**; writer 0x140F71830 / reader 0x140F71530; 宿主容器 = ps+136 rocket_lines(13304)):
 
@@ -442,7 +458,7 @@ CRocketProductionLine (火箭产线, ~120B; vt 0x14297C260; **不经 CProduction
 | +56 | CProductionStatus* | — | owner 反指 |
 | +64 | CEquipment* | equipment_variant_index (13891) | 火箭装备引用 |
 | +72 | 匿名结构 (NNB 形状) | building (10319) | 发射场建筑名 |
-| +80 | CRocketDeployment* | deployment (12181) | 部署目标 (32B: vt 0x14295FBE8, +24 = base 11398 >0 写) |
+| +80 | CRocketDeployment* | deployment (12181) | 部署目标 (32B 全定案: {vt 0x14295FBE8, tag u32@+8 目标国 (运行时), CEquipmentVariant* @+16 (运行时缓存), base u32@+24 = 键 11398 >0 门, ctor 取建筑定义+88}; writer 0x140D14970 / reader 0x140D12610; 消费链: 火箭线日推进 sub_140F712D0 → sub_140D0DC80 经 CStrategicAirManager(gs+1680) per-country 条目按 base 序号定位基地, 产成枚数灌进 CAirWing) |
 | +104 | fixed×1e-5 | produced (12204) | 已产出 |
 
 CConvoyShip (护航舰, ~72B; vt 0x142A3AC18; writer 0x141AD8690 / reader 0x141AD8240; convoy_ship.cpp:54 断言):
@@ -539,7 +555,7 @@ RTTI `NIndustrialOrganisation::COrganisation`; vtable 0x142967A28 (10 槽)。基
 | +360 | uint32 | 解锁队列处理游标 |
 | +368 | uint32 向量 | allowed_policies vector {data@+368, cap@+376, count@+380, alloc@+384} (元素 u32 政策 id) |
 | +392 | token | 当前附着政策 (初 19479 `undefined`) |
-| +400 | 匿名结构 (NNB 形状) | policy cooldown 区 (+400..+447; 载荷@+416, 存在旗@+424; 子字段见 §4.31.41) — **无日倒计时 (负定案)**: 冷却 = set_mio_policy_cooldown 脚本效果写入的绝对日期门, 改政策时比较日期而非每日递减 |
+| +400 | 匿名结构 (NNB 形状) | policy cooldown 区 (+400..+447; 载荷@+416, 存在旗@+424; 子字段见 §4.31.41) — **无日倒计时 (负定案)**: 冷却 = set_mio_policy_cooldown 政策 def 侧解析回调 (sub_1402FADA0 表注册) 写的基天数 (policy+76, 负值拒) → 附着时换算实例绝对日期门, 改政策时比较日期而非每日递减 (比较点未定位 — F2 未能复核项) |
 | +448 | CVariables 内嵌 | variables (子布局见 §4.31.41) |
 | +504 | CFlagManager 内嵌 | flags {vtable@+504, data@+512, count@+524, alloc@+528}; 条目 48B 见 §4.13.3 |
 
@@ -618,7 +634,8 @@ daily 校验 = §4.8.12 日更四连 #2 sub_140DBC140 (available ∧ visible ∧
 |---|---|---|---|
 | +8 | uint32 | 特质 def token (库查找键; STraitId 的 token 源) | 19015 token |
 | +16 | COrganisationTemplate* | 属主模板反指 (入表时写) | — |
-| +24 / +56 | SSO 32B×2 | name / icon | 27 / 181 |
+| +24 | SSO 32B | name | 27 name |
+| +56 | SSO 32B | icon | 181 icon |
 | +88 | uint8 | 旗 (ctor 0, 无 reader 写者) | 16379 吞值不落 (未决) |
 | +96 | CAnonymousEquipmentGroup 208B | 装备组 (名串 → 构造 → 三连后处理; 内部子布局推定) | 11538 limit_to_equipment_type |
 | +304 | CTraitBonus 头 | **加成表** (equipment_bonus / production_bonus 双键共写; 校验败报 "...contains token that are not equipment/production stats" :245/:260; 块内区分机制未决) | 12647 / 16218 |
@@ -636,11 +653,11 @@ daily 校验 = §4.8.12 日更四连 #2 sub_140DBC140 (available ∧ visible ∧
 | +968 | qword | 自定 [3] wrapper 落点 (推定解析位置) | [3] 写 |
 | +976 | uint8 | 已载旗 ([3] 盖 1) | [3] 写 |
 
-19 键 reader = sub_140A50000 (上表键列全表; 未命中报错桩)。辅助: sub_1403B7500/sub_1403B78B0 = u32 token 列表 reader 两变体 (差异未决); 特质条件组旧推定注 (+528/+616/+848/+856 四组) 已由本表取代 (available=+528 / visible=+616 与旧注对调; +848 区实为未名块)。
+19 键 reader = sub_140A50000 (上表键列全表; 未命中报错桩)。辅助: sub_1403B7500/sub_1403B78B0 = u32 token 列表 reader 两变体 (差异未决); 早前「特质条件组」四组推定注 (+528/+616/+848/+856) 已由本表取代: available=+528 / visible=+616 与该推定互异 (推定说废); +848 区实为未名块。
 
-**COrganisationTemplate** (ctor 0x140A51750; sizeof ≥1460, 推定 1464 — 尾部待复核; reader 19+24 键): +8 name token / +16 include (10236) / +24 token 列表 (16370) / +48 SSO name / +80 SSO icon / +112 fixed research_bonus (12641) / +120 u32 task_capacity (16220) / +136 SSO background (156) / +168 xp_research_type (15373: 10397 army→1 / 10398 navy→2 / 11926 air→3) / **+176 initial_trait 单体槽 (984B)** / **+184 trait 数组 (984B 元; +196 count)** / +208 equipment_type 装备组 (16217, 208B) / +416 SSO research_categories (19164) / +440 STreeFlavorText 数组 (48B 元; 16361 tree_header_text) / +464 token 列表 remove_trait (11884) / **+488 override_trait 数组 (984B 元)** / +536 条件块头 (§4.8.12 +280 所指; available cond+88=+624 / visible cond+176=+712 与本表吻合) / +624 available CAndTrigger (12263 allowed 打条件块 / 12264 打本槽) / +712 visible CAndTrigger (11562) / +800..+1320 六 CEffect on_* (10141 on_design_team_assigned_to_tech / 10142 …_to_variant / 10143 on_industrial_manufacturer_assigned / 10196 on_tech_research_cancelled / 10197 on_tech_research_completed / 10198 on_industrial_manufacturer_unassigned) / +1328 CMeanTimeToHappen ai_will_do (10819)。
+**COrganisationTemplate** (ctor 0x140A51750; sizeof ≥1460, 推定 1464 — 尾部逐字节复核前为推定档; reader 19+24 键): +8 name token / +16 include (10236) / +24 token 列表 (16370) / +48 SSO name / +80 SSO icon / +112 fixed research_bonus (12641) / +120 u32 task_capacity (16220) / +136 SSO background (156) / +168 xp_research_type (15373: 10397 army→1 / 10398 navy→2 / 11926 air→3) / **+176 initial_trait 单体槽 (984B)** / **+184 trait 数组 (984B 元; +196 count)** / +208 equipment_type 装备组 (16217, 208B) / +416 SSO research_categories (19164) / +440 STreeFlavorText 数组 (48B 元; 16361 tree_header_text) / +464 token 列表 remove_trait (11884) / **+488 override_trait 数组 (984B 元)** / +536 条件块头 (§4.8.12 +280 所指; available cond+88=+624 / visible cond+176=+712 与本表吻合) / +624 available CAndTrigger (12263 allowed 打条件块 / 12264 打本槽) / +712 visible CAndTrigger (11562) / +800..+1320 六 CEffect on_* (10141 on_design_team_assigned_to_tech / 10142 …_to_variant / 10143 on_industrial_manufacturer_assigned / 10196 on_tech_research_cancelled / 10197 on_tech_research_completed / 10198 on_industrial_manufacturer_unassigned) / +1328 CMeanTimeToHappen ai_will_do (10819)。
 
-> **本域 GUI 类布局**: 见 4.31.30 / 4.31.33 / 4.31.41。
+> **本域 GUI 类布局**: 见 4.31.33 / 4.31.41 (原 4.31.30 引用断链, 民用池 tooltip 在 §4.8.9)。
 
 #### 4.8.13 生产线 daily 推进执行链
 
@@ -687,8 +704,9 @@ memcpy, 无模拟逻辑。
 
 线+136 重算 / cost (conversion 旗+140 选择 v4/v5) → produced += 速率 → 每完成
 单位 vt[19](line,1) + **sub_1410DC4E0(建筑, u16@(建筑+64)+1) 等级+1** (交付链与
-省/州联动详见 §4.14 施工链节); 属国共建时进度镜像对方线+56 且宗主分摊
-(MASTER_BUILD_AUTONOMY_FACTOR qword_143330F20, mod 291); 关联建筑条件满足时
+省/州联动详见 §4.14 施工链节); 属国共建时进度镜像对方线+56 且宗主分摊:
+delta = MASTER_BUILD_AUTONOMY_FACTOR (**−0.7**) × (speed × 相对线+24 ÷
+(相对线+24 + 线+24)) ÷ 100 × (1+mod291), 记线宿主国自治对象; 关联建筑条件满足时
 暂存 {对象@+160, 完成数@+168} 由 serial 步 7 收集 (定案)。
 
 #### 4.8.14 效率日增长
@@ -715,13 +733,14 @@ daily serial 本体, 由事件驱动 (ps+1192 脏旗 / calc_modifier 传播 / ho
 |---|---|---|
 | 1 | ps+1192 脏清零 → 四池基础重填 (sub_140E64510, ps+688/784/880/976) | 定案 |
 | 2 | 工厂捐献 mod 292/293/294 加池总量 | 定案 |
-| 3 | 附属贡赋: 附属侧 mod 374/375 (cic/mic_to_target_factor) → 宗主 +956/+764 受赠; 宗主侧 mod 276/277 (cic/mic_to_overlord_factor) → +952/+760 上缴 (方向 = 推定) | 定案(量)/推定(向) |
-| 4 | license 受入 (ps+408 侧 lended → ps+888 与 ps+964 FROM_LICENSES 桶) | 定案 |
+| 3 | 附属贡赋: 附属侧 mod 374/375 (cic/mic_to_target_factor) → 宗主 +956/+764 受赠; 宗主侧 mod 276/277 (cic/mic_to_overlord_factor) → +952/+760 上缴 (方向定案: 276/277 上缴门 = 本国有宗主) | 定案 |
+| 4 | license 受入 (ps+408 available 克隆侧 lended → ps+888 与 ps+964 FROM_LICENSES 桶; 池重算 sub_140E6C810 经 sub_1406F2F20 扫 **ps+480 授出表** → ps+888/ps+964 — 原「ps+408」订正) | 定案 |
 | 5 | 贸易民厂 (CTrade@CCountryResources+1832, 交换条目+228 lended_cic → ps+888/968) | 定案 |
 | 6 | **消费者×5 调度** (数组序: CConsumerGoods@ps+1072, CContractPayment@+1168, CSpecialProjects@+1096, CLicensedProduction@+1120, CTrade@+1144): 逐个 vt[1](consumer, cc, ps+880 民用池) → **ps+944 += consumer+16** | 定案 |
-| 7 | 军/船厂分配 sub_140E6D4B0 → 民用分配 sub_140E6D010 → sub_140E71350 | 定案 |
+| 7 | 军/船厂分配 sub_140E6D4B0 (**两遍制**: 预扣遍可负池 → 分配遍 max(0,·) 截断 = 先到先得) → 民用分配 sub_140E6D010 → sub_140E71350 | 定案 |
 
-消费者共式 (五件 Update): available = max(0, 民池+8 − 民池+32(ps+912) − ps+944
+消费者共式 (五件 Update, CConsumerGoodsConsumer vt 0x1429705F0, [1] =
+sub_1419FE790): available = max(0, 民池+8 − 民池+32(ps+912) − ps+944
 − ps+920); 份额 = ConsumerGoods min(经济法则需求 (mod 102/103 + define
 MINIMUM_NUMBER_OF_FACTORIES_TAKEN_BY_CONSUMER_GOODS_PERCENT qword_143331498 +
 军/民池量), available) / SpecialProjects min(sub_140E63E40, available) /
@@ -735,7 +754,8 @@ active+damaged; **sub_140C97B90(原型) 真 (海军族) 吃船厂池、假吃军
 
 民用分配 **sub_140E6D010** (production.cpp:2542): ps+920 清零 + general 线
 line+24 清零 + CCicBank 清零 (sub_14145AAE0(ps+664), 非计息); 修复线优先
-(vt[26] 谓词, 预算 = ps+1200 max_factories_for_repair); 全部建筑线按 vt[11]
+(vt[26] 谓词, 预算 = ps+1200 max_factories_for_repair — 预算写者 = hourly
+sub_140E711A0, 式见 §4.8 主表 +1200 行); 全部建筑线按 vt[11]
 请求; sub_140E6AD10 分配并收集受影响国递归再分配; UI 通知 17 (定案)。
 
 hourly 维护 sub_140E696E0 补 (§4.2.6 pass④ 增补): 非脏分支也跑
@@ -748,5 +768,17 @@ vs CCountryResources+1096..1100) → 变更则能量记账 (sub_140E5A100) + 军
 |---|---|---|---|
 | ps+944 | u32 累加 | 民用池消费侧合计 (消费者×5 各加 consumer+16) | 定案 |
 | ps+956/+960 | u32 | 民用池受赠所得 / 外赠目标 (军池对偶 +764/+768) | 定案 |
-| ps+1194/1196/1198 | u32×3 | CCountryResources+1096..1100 资源存量快照 (变更检测缓存) | 定案 |
+| ps+1194 + ps+1198 | u32 + u16 (6B 快照) | 资源存量快照 (CCountryResources+1096.. 变更检测缓存; 原 u32×3 说废) | 定案 (F2 验算) |
 | ps+1200 | u32 | max_factories_for_repair (修复线预算) | 定案 |
+
+#### 4.8.16 CBuildingDatabase::CIntermediateBuildingTemplateData (建筑 def 解析期中间格, 48B; def 侧只读件不入存档)
+
+vt 0x1427E4130 三基座 (11+5+8 槽): [2] writer = CFG 空桩; **[3] 自定义单值 Load wrapper 0x1424BE620** (读当前标量入 +16, 置旗 +24 — §4.00.1 wrapper 自定类盲区又一实例); [4] reader 0x140688670; **[7] 提交槽 0x140687B60** (旗 +24 置位时把 +16 抄给 +40 回指父对象的 +16, 再虚调父 vt[+56] 续解析); 第三基 CPersistent 表 reader = 产线族 0x1414BC5A0。持有者 = CBuildingDatabase 解析路径 sub_140683BC0 的 this+160 矢量。语义 = 建筑定义解析期「中间模板格子」(缓存 spawn_point 名哈希/延迟值, 提交槽回填父模板), def 装载期临时体, 随 db 重建废弃。
+
+| 偏移 | 类型 | 初值 | reader 键 | 语义 |
+|---|---|---|---|---|
+| +8 | u32 | — | — | CDatabaseObject 基类 id |
+| +16 | i64 | 0 | (自定义 Load wrapper 单值) | 延迟值格 |
+| +24 | u8 | 0 | — | 已装载旗 (wrapper 置 1, 提交槽消费) |
+| +32 | u32 | 357 none | 10432 spawn_point | 读名字串 → FNV 哈希 (sub_1424BB460) 存入; 非零才覆盖 |
+| +40 | 指针 | — | 其它键 → 委派父 vt[+32] | 提交目标 (父模板回指) |

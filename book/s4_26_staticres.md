@@ -90,7 +90,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | strategic_resource | 0x332f088 | +40 | +52 | tok8 | 否 | 8 (7+none) tok8; db+64 是字符串另物 |
 | autonomous_state | 0x332ee18 | +64 | +76 | "msvc8" | 否 | ⚠ 特例: 无 arr/cnt — defs=内联指针数组@db+48, 名 MSVC@def+8, count 扫描; puppet 名也可直接读 def 对象 sso@+8 (§4.10) |
 | ideology_group | 0x3330db8 | +96 | +108 | tok8 | 是 | 4 tok8 无 Null Object (democratic/communism/fascism/neutrality) |
-| sub_unit | 0x332f090 | +64 | +76 | tok8 | 否 | CSubUnitDatabase 158 (157+none) tok8 (charmgr sub_unit_modifiers 键) |
+| sub_unit | 0x332f090 | +64 | +76 | tok8 | 否 | CSubUnitDatabase 158 (157+none) tok8 (charmgr sub_unit_modifiers 键); 磁盘解析加载器 = sub_140AC3130 |
 | wargoal | 0x332ef28 | +64 | +76 | tok8 | 否 | CWarGoalDatabase 11 (10+none) tok8 |
 | gamerules | 0x332ef20 | +40 | +52 | tok8 | 否 | ⚠ 稀疏: 86 槽大半脏指针 (BHU 仅 4 槽可命名), 枚举须逐槽 kptr+名过滤; 规则实例侧用 rule_key |
 | terrain | 0x332f0a8 | +64 | +76 | "sso24" | 否 | CTerrainDatabase A 族; sso@def+24 (+8 非 token) |
@@ -509,7 +509,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vt[2]=空桩 = 只读 def 
 | +884 | u8 | need_detection (19201) | |
 | +885 | u8 | naval_headquarter (10193) | |
 | +886 | u8 | naval_supply_hub (10194) | |
-| +887 | u8 | (10352 键, 原版表无 — 推定 DLC/新键) | |
+| +887 | u8 | (10352 键 = drawn_at_distance, 原版表有名) | |
 | +888 | u8 | affects_energy (16533) | |
 | +892 | u32 | detecting_intel_type (19532) | |
 | +976 | 匿名结构 (元素待裁) 向量 | state_damage_modifier (10031) 族之一 (province_damage_modifiers 10029→+976 静态修正表); 活体: 仅 dam/dam_mountain/cataract_dam_mountain 三 def 各 1 条, 元素 = 三者**共享**的带 vtable 对象 (vt RVA 0x2608640 未录 RTTI, +8 = u32 165) | "Could not find static modifier" 直证 |

@@ -343,7 +343,7 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 | +217..+271 | 匿名结构 (55B 形状) | = **CVariables 56B 全形** {vt@216, u32@224 = random 种子#1 (ctor=1; §4.13.2 random 对写形反序 = 存档 `<+228> <+224>`), u32@228 = random 种子#2 ctor 常量 1587985054 (float 位型, 语义未名), pad, 静态空串指针@240, 桶数据指针@248 (ctor=0), u8@256, u32@260=常量 1063675494, 回指指针@264} — 空判 (u32@224==1 && u32@248==0) 与 ctor 初值完全互证 (0X140BC5BD0) |  |
 | +272 | CFlagManager | flags — {vt@272, data@280, {cap u32@288, count u32@292}, 静态指针@296}; 元素 48B {key token@+8, date hours u32@+24, value i16@+40, days i16@+42}; 叶 = flags.<名>.value/.date/.days | 门 = i32 计数@+292 >0; 块键 tok 10697 |
 
-表后注② CUnitMedalStore 布局: history 容器 {data@+8, count@+20}, 元 = CUnitMedal*, 叶 `history = { history_queue = <medal ref> }` (tok 10293/12340); +32 勋章修正块 (并入将领 b1, §4.4.3); amount u32@+608, 叶 `amount = N` (tok 417)。
+表后注② CUnitMedalStore 布局 (616B = 0x268 malloc 直证): history 容器 {data@+8, count@+20}, **元 = CUnitHistoryEntry\* (328B; 两处 reader 均 malloc(0x148) 直证; 勋章 def 只以名驻条目 +104, 不入队)**, 叶 `history = { history_queue = <medal ref> }` (tok 10293/12340); +32 勋章修正块 (并入将领 b1, §4.4.3); amount u32@+608, 叶 `amount = N` (tok 417)。
 
 表后注③ writer 0X140FA6520 全函数不触 +456 (该处无字段行)。
 
@@ -591,12 +591,17 @@ operative 版 sub_140C12340 (状态机: state 0 → 清 captured(+4016)/capture_
 
 特质 XP 引擎 = **GainXpForTraits sub_140C14BD0** (zone "Gain XP for Traits"):
 in_progress (+3576) 逐特质累进; 修正 = 国修正 (trait+2672 指id) ×
-(1+修正 594 MODIFIER_TERRAIN_TRAIT_XP_GAIN_FACTOR) + trait_xp_factor (+3600);
-XP 按可学特质数+1 均摊 (UNIT_LEADER_USE_NONLINEAR_XP_GAIN byte_143330E4D);
-MAX_NUM_TRAITS (dword_143336994) 门; 门 = trait+2220 category 掩码 ⊆ flags ∧
+(1+修正 594 MODIFIER_TERRAIN_TRAIT_XP_GAIN_FACTOR — **仅 terrain 类特质**,
+判据 IsTerrainTrait sub_140AEB5A0 = gain_xp 子触发器树含 is_fighting_in_terrain
+token 13133) + trait_xp_factor (+3600);
+XP 按可学特质数+1 均摊 (UNIT_LEADER_USE_NONLINEAR_XP_GAIN byte_143330E4D,
+非线性 100000×a3/(100000×(i+1)); 阈值比较 ≥ 即到阈);
+MAX_NUM_TRAITS (dword_143336994, 默认 −1 恒过) 门; 门 = trait+2220 category 掩码 ⊆ flags ∧
 触发器 (trait+324→+304 / trait+236→+216); 到阈 → 收割 sub_140C1E370 →
 **AddTrait sub_140C0EC40**。三入口: 战斗 (flags=7, ApplyCombatXpGains tbb →
-sub_140C14A80) / 特工任务日更 (flags=8, sub_140FC2830 按 mission type 取
+sub_140C14A80; 得点式头乘 = BASE_LEADER_TRAIT_GAIN_XP 0.45 ×
+(1+mod45(leader)+mod45(country)) 加法合成, 侧账 FIELD_MARSHAL_XP_RATIO 0.3 /
+THEATER_COMMANDER_LAND_EXPERIENCE_SCALE 0.1) / 特工任务日更 (flags=8, sub_140FC2830 按 mission type 取
 *_DAILY_XP_GAIN define × 修正 45) / 行动完成 (flags=8, OPERATION_COMPLETION_XP
 qword_1433333B0 × op+224 参与特工) (定案)。
 
@@ -611,13 +616,15 @@ modifier id +2672 / trait_xp_factor 引用清单 +2680 (16B 元, Add/Remove 双�
 terrain 类 +3788 已见数递减 → Rebuild; 第 3 参 ≥0 → 入 traits_to_remove
 (timed trait)。RemoveTrait sub_140C23100: 压缩 + vt[33] + on_remove + 扣账。
 
-晋升 (定案): 军衔全自动 — AddExperience sub_140C14950 (leader+3688 += xp; 超
-100000×下级 def+444 → LevelUp sub_140C1D950 可连升 → 派发
+晋升 (定案): 军衔全自动 — AddExperience sub_140C14950 (leader+3688 += xp;
+**严格 >** 100000×下级 def+444 → LevelUp sub_140C1D950 可连升, 升后
+LevelUpTo sub_140C271B0 内 xp = max(0, xp−100000×新档 cost) → 派发
 **on_unit_leader_level_up**); FM 晋升 = SetLeaderType sub_140C202C0 (命令
 CPromoteUnitLeaderCommand / promote_leader 效果)。AddExperience 其余入口:
 **演习 = sub_140C8FF80** (CArmy::[19] 日 tick 尾 army.cpp:4906; sub_140C895B0
 实为碾过/强推 overrun 结算 (§4.18.18 定案) / 海军训练 sub_1415C1060 / 铁路炮 sub_140E8C020 / 舰长晋升
-sub_141451580 / 师军官 sub_141451020 / gain_xp 效果 sub_1402E7D20 / 控制台
+sub_141451580 / 师军官 sub_141451020 / **击溃 shatter sub_1412AE910
+(XP_GAIN_FOR_SHATTERING 35/单位)** / gain_xp 效果 sub_1402E7D20 / 控制台
 gain_xp sub_14025C7F0 / 反谍捕获附带 sub_140FDC3A0。
 
 任命/顾问维护 = **CCountryCharacters::HourlyUpdate sub_1410ECB40** (hourly
@@ -637,10 +644,13 @@ on_capture (captured+4016 / capture_date+4032) + 56B CCapturedOperativeReference
 入捕获方 agency+264 + **on_operative_captured**; 获释 = EndCooldown state-0
 分支 (enable_date 到点自动获释回 on_mission)。
 
-CCountryCharacters (ch = cc+4080 解引用; vt 0x14298AE18) 容器骨架: +88 二分表
-(推定 advisor 角色名映射) / +112 army 领袖数组 {d,c@+124} / +136 navy 领袖数组
-{d,c@+148} / +200 retired 特工池 {d,c@+212} / +224 角色池 (空位补生成) / +264
-顾问状态队列 {d,c@+276} / +288 领袖清理队列 {d,c@+300} (定案; +224/+88 高置信)。
+CCountryCharacters (ch = cc+4080 解引用; vt 0x14298AE18) — 权威骨架已统一至
+s4_03 §4.3.1 chars 表 (H 批 writer/reader 全键反编译归一; 序列化仅 5 键
+19622/19968/19485/15702/17327)。本册侧要点复核: +112 = pArmyLeader /
++136 = pNavyLeader (cpp:220/226 断言铁证, 原「army/navy 领袖数组」名保留);
++200 = retired 特工池 (探针定案 ✓); +224 = recruit_scientist 招募池
+(空池每小时补生成); +264 待解任顾问队列 / +288 待清理领袖队列 (leader_type 分派)。
+
 CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创建中门 /
 +200 进度累计 / +208 升级目标 / +216 现役特工数组 {d,c@+228} / +240/+244/+248
 升级槽三元 / +252 特工死亡计数 / +256 反谍强度缓存 / +264 捕获特工登记表
@@ -709,3 +719,20 @@ CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创
 > (+236/+324); +56 有效门四证 (ctor 1 / TNullObject 0 / resolve :1317 / trait_xp_factor
 > 元素门)。原「+152 修正块」碎片属 CAdvisor 域 (s4_04:435), 本类 +152 为 allowed 块
 > 虚槽位 — 两类勿混。
+
+
+#### 4.4.24 CUnitLeaderSkill 全字段表 (456B; 库 = CUnitLeaderDatabase 1056B 七梯, 单例 qword_14332F0D0; token 12357/14533/14534/14535/14536/15152/15153; Array[0] = TNullObject; 梯内按 +448 分 4 桶)
+
+| 偏移 | 类型 | 语义 | 备注 |
+|---|---|---|---|
+| +0 | vt | CUnitLeaderSkill | |
+| +8 | u8 | 非 null 旗 | 定案 |
+| +16 | CModifier 内嵌 | skill 修正块 (b7 消费, §4.4.3) | 定案 |
+| +208 | CModifier 内嵌 | 第二 CModifier | 定案 |
+| +400 | SSO 32B | 名串 | 定案 |
+| +440 | u32 | **军衔等级** (writer 恒写无判空直接解引用) | 定案 |
+| +444 | u32 | **下级 XP 阈值** (数据源 = common/unit_leader/00_skills.txt leader_skills 块 cost 键直读, navy 100..25600 / CC 与 FM 100..10000 九级 / operative 100,1000; SKILL_LEVEL_NEXT_AMOUNT define 于 1.19.3 不存在; 兼 XP 比例分母; 活证 100/300) | 定案 |
+| +448 | u32 | 分桶码 (梯内 4 桶键) | 定案 |
+
+**等级上限 = logistics 梯 count−1** (sub_140AE9520 读 db+724+24×t; 活证 t0/1/2 = 11、t3 = 0)。
+晋升链 (def+444)、技能上限 (sub_140AE9520)、skill_advantage 触发器 (+440) 三链落位。

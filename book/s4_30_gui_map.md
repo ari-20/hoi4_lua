@@ -1539,9 +1539,8 @@ glue 网格 = **26 槽位 +264..+32496 步距 1288**（+23448 新对象插入后
 | +273 | u8 | allwaystransparent (319) ≡ alwaystransparent (470) | 拼写双键同槽 |
 | +280 | 向量 {data@+280, cap@+288, count@+292, alloc@+296} | animation (64) 帧动画表 | 元素 SAnimationMapData 144B (含 vt, 1.5× 增长) |
 | +304..+360 | i64×8 | — | ctor 全 -1 句柄缓存 (推定 textureFile1..8 纹理缓存) |
-| +368 | CClass* | — | ctor=a3 (推定 纹理图集/后备纹理) |
-| +384 | SSO 串 | masking_texture (577) | |
-| +408 | i32 | — | ctor -1 |
+| +368 | CClass* | — | ctor init 0 (推定 纹理图集/后备纹理) |
+| +384 | SSO 串 | masking_texture (577) | {size@+400, cap@+408 (ctor 15)} |
 | +416 | i32 | — | ctor -1 (推定) |
 | +424 | SSO 串 | clicksound (284) | |
 | +456 | i64 | dx_offset (735) | 同 anchor 枚举 helper |
@@ -2039,7 +2038,7 @@ CCombatLogView / +680 CGarrisonLogView / +688 CArmyLeaderTraitWindow / +696
 CNavyLeaderTraitWindow / +704 CInsigniaSelectionWindow; +528 一槽类名未名
 (vt 0x1429FFC68)。
 
-#### 4.30.47 CInGameInterfaceHandler (全 GUI 聚合根; 1248B=0x4E0, CInGameIdler ctor malloc 直证存 +1720; **无主虚表** — ctor/dtor 无 vftable 写入, 纯聚合根 dtor 直调; ctor sub_140B614C0 真实范围 0x1F86B = 全视图装配点; dtor sub_140B63730; 全量 Reload sub_140B6B1A0)
+#### 4.30.47 CInGameInterfaceHandler (全 GUI 聚合根; 1248B=0x4E0, CInGameIdler ctor malloc 直证存 +1720; **无主虚表** — ctor/dtor 无 vftable 写入, 纯聚合根 dtor 直调; ctor sub_140B614C0 真实范围 0x1F86B = 全视图装配点; dtor sub_140B63730; 全量 Reload sub_140B6B1A0; **清空复位 = sub_140B64CF0** (InitData/会话重建路调用, 其 10 件直调下游全 GUI 族 — 装备设计器视图清空 sub_14177E0C0 即其一体))
 
 GUI reader 从根定位任意窗的唯一访问路径表 (66 个堆分配子对象全数定类, 70 次 malloc − 4 次窗名串临时分配, 逐槽「malloc 尺寸 ↔ 类名」配对):
 
@@ -2119,3 +2118,28 @@ GUI reader 从根定位任意窗的唯一访问路径表 (66 个堆分配子对�
 > collateral/repaired), Reload 末尾重取 = mod token 重排安全; +1100 = CRef 槽;
 > 24B 动态数组容器 ×13 形 {data, dword, count@+12, allocator@+16}; +432 = 懒填充
 > 槽 (ctor 置 0 / dtor 有释放 / 全库静态写点未见)。书内原 11 项既有锚全部吻合。
+
+#### 4.30.48 地图下令输入链 (锚 = sub_140DCEFD0; CInGameIdler 输入事件消费, 1034 行)
+
+签名 (idler, u8 鼠标按住旗); 唯一调用点 = Idle 巨函 sub_140DD3A50 (帧内点击善后后、
+debug rightclickmenu 门 byte_14332EC69 前)。idler 槽: +1280 输入管理器 (vt[+192] 光标) /
++1288 键盘态 / +1336 选择集 / +1720 前台窗口栈 / +1764 拖拽锚 / +1772/1773/1734 待决旗 /
++1880 输入事件链 (next@+144, +128 已消费旗; 类型 1=键盘 3/4=鼠标, 载荷+4 动作 1 按下 2 释放)。
+三段结构 (定案):
+
+| 段 | 动作 |
+|---|---|
+| 键盘事件 | 控制台开关键 53 → 懒构造 CConsoleCmdManager (sub_1424B4C40, 224B 三 std::function 谓词门 sub_1424B4BD0, 全局 qword_1435E1A80) 后开面板 (关 = sub_142081040); 键码谓词三件 = sub_142272FA0 键码版 / sub_142272F40 字符版 / sub_142273160 数字版; 面板聚焦件 (全局 qword_14344A590, 160B; +124 激活旗) 激活时 UP/DOWN = 历史 ↑/↓ (sub_142081C30/sub_1420805C0; 键码 1073741906/1073741905) 与 PAGEUP/PAGEDOWN = 值 ∓/+ 步进 (sub_1420811F0/1140, 1e-5 定点; 1073741899/1073741902) — 旧记 0x40000021 系常数全语料零命中, 已按实现函数体直证更正; 字符键 = 聚焦件开 (sub_1420812A0); 数字键 (sub_142272050 取 0..9) → sub_140DDB280 存控制组 (§4.33 10285); 'h' → sub_140DDCAB0 取消移动 (10415); BACKSPACE/HOME → 镜头聚焦首都 sub_141262730 (双路: 州表 + tag 回退; 相机 z 修正 0.3×(qword_14332F408+576) 待 PE 验算); PAUSE 类键 72 → idler vt[71](1); **ESC (27) 旁路**: 未消费事件落 LABEL_151 二次分派 — 选择非空清空 (sub_1402A0110 全清 + sub_140B64FE0/FF0 关当前视图 + sub_142275B50 标记消费) / 海军移动预览 → 栈上 CDeleteOrderGroupCommand (ctor sub_141837380, 48B) 入队 / 否则 sub_140B69010 单机取消链 (RTTI 排除 CNetworkServer/CProxyServer) |
+| 鼠标释放 (右键下令主路) | ① 拾取 sub_140B56460 = 反投影 sub_140B53890 (三拾取面射线步进取最近点, 平面交兜底) + 省 id 纹理 *(handler+40)+2096 {宽@48, 高@52, u16 数据@24} → gs vt[+8] 取省对象; ② 海军分流 sub_141816E80 (naviesview.cpp:162 混编断言): handler+480 态 +257 海军旗下把选择集舰队 (type 11 ∪ type 1 父舰队去重) 重指派点中省并**吞右键**; ③ 收集 sub_140B54210 (三拾取面命中单位, 同省叠队环形轮选; graphicalmap.cpp:1036 断言) + 清省选择 sub_1402A0100 + 下令允许门 sub_140F41710 (UI 阻塞/修饰键/铁路炮工具组合); ④ 点中省 +392 有单位且 (选择计数 == 0 或首元素类型 ∉ {≤1, 13, 11, 2}, 判定件 sub_14072B2D0/首元素取件 sub_140BC30D0) → previous 模式保存 sub_140E16B80 + 切模式 9 → **sub_140B6C390 = CInGameInterfaceHandler::SelectProvince** (lambda 符号串直证) 按地图模式分派; ⑤ 三路发射: 空军翼选中 → sub_1415B72C0 (12222) / 铁路炮工具 → sub_140E8B230 (19872) / 默认 **sub_140BC3190** 遍历选择集逐成员 vt[+32](成员, 省, Ctrl, Shift) 下令 = 真实地面移动令发射点 (下游寻路/命令构造 = §4.14/§4.18 域)。左键按下旁支: 修饰键 (iface+1288 vt[7]/[6]/[5]) ∧ 攻击 ping 粘锁 (门 sub_1417CDA00 / is_offensive 解析 sub_1417CD970 / 发后清锁 sub_1417CC590; 锁位 = iface+560 件 +5242/+5243) → 反投影 + 高度采样 sub_140A61480 (qword_143339D28+376 表 u8×0.1) → CSendPingCommand (14350); 无 ping 则记拖拽锚 (+1764, +1773/+1772 门 = sub_140E137B0 模式≠27, +1734 = 1) + sub_1402A0100 清选择集中省 |
+| 帧尾判定 (按住 ∧ 待决) | 位移 ≥ 1.0 且框宽+高 ≥ 30.0 px → **sub_140DC9860 框选** (8 角反投影 → 6 平面视锥 → 按类型优先级 sub_140B73340 逐类查询 → CanAdd 过滤 → Add); 否则单击: 收集 → Ctrl 切换选 (Remove 反选 / CanAdd 混选门) → type 4 省去重门 (gs+1316 缓存省比对) → Clear → 视图接纳 sub_140B6AC80 (type 6→+528 表 / type 4→+520 表; 模式 1 仅放行 type 0/1/13) → 按类型遍历成员 (0: obj+496→+272/+284 / 1: +248/+260 / 13: +224/+236 滤 13) 逐个 sub_140DDFA60 (属主+组门) → Add |
+
+**输入事件对象槽形** (idler+1880 链节点, 首次定案): +0/+8/+28 = 键码/索引(−1 无效)/屏蔽旗;
++72/+76 = 指针类 (3=左键 4=右键)/相位 (1=press 2=release); +124 = 设备类型 (1=键盘 0=鼠标);
++128 = 已消费旗; +144 = next。访问器族五件 = sub_142275B30/+142275B50/+140D11940/+14139E9B0/
++14139E9A0 (全语料 100-234 处高频)。选择集补: +68 = 延迟摘除旗。地图相机 (idler vt[37] 取件):
++1664..+1684 当前位/速 / +1688..+1708 双目标三元组 / +1704 固定 10.0f / +1712 飞行中旗
+(sub_141261320/141262730 体直证)。CCountry 补: +4120 = 首都州 id / +184→+176 = 首都坐标 {x,z}。
+
+CInGameInterfaceHandler 读数补: +192 当前省 id / +200 起按模式 8B 跨距处理器表 / +480
+navies view 态 (+257 海军旗) / +768 选中省 refid 表 {计数@+780} / +1008 当前地图模式。
+§4.33 四行 (10285/14350/19872/10415/12222) 的「上游 = sub_140DCEFD0」经锚体逐点核实为真。

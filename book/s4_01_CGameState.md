@@ -181,6 +181,7 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 | writer | VA | 覆盖范围 |
 |---|---|---|
 | sub_140BC2710 | 0X140BC2710 | 存档头元数据族 (键表见下) |
+| sub_1401F29A0 | 0X1401F29A0 | **顶格汇合 writer** (all_playthrough 块 + 15933 + logmgr + ships_built 汇合发射) |
 | sub_1401F2E40 | 0X1401F2E40 | 会话计数 / id / 静态计数族 (键表见下) |
 | sub_1401F2DD0 | 0X1401F2DD0 | all_playthrough_data 块 + statistics_collection_enabled u8@gs+2232 |
 
@@ -238,9 +239,9 @@ writer sub_1401F2E40 中段填充 4711 项缓冲 (type = 4712+i):
 
 | 源 | 形态 | 基址 |
 |---|---|---|
-| ① | RH map | BASE+54758992 |
-| ② | RH map | BASE+54759000 |
-| ③ | map 对象指针数组 — **8B 步进 ×100 槽** (dump 原文 `v17 += 2` dword 对; 终界 &dword_1434520E0 = debug_current_ref_id) | BASE+54759008 |
+| ① | RH map | BASE+54861232 (qword_143451DB0) |
+| ② | RH map | BASE+54861240 (qword_143451DB8) |
+| ③ | map 对象指针数组 — **8B 步进 ×100 槽** (dump 原文 `v17 += 2` dword 对; 终界 &dword_1434520E0 = debug_current_ref_id) | BASE+54861248 (qword_143451DC0) |
 
 RH map 布局:
 

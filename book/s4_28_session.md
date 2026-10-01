@@ -185,7 +185,7 @@ data 结构 (语义推定):
 
 **CMessageTypeSettings** (消息开关寄存器, 16B; vt 0x1429D8F40; writer 0x141578A80 / reader 0x141578810; 单例 0x332EF60): +8 u8=1 / **+12 u32 五路开关位掩码: bit0=onmap(10677) / bit1=log(10676) / bit2=popup(10678) / bit3=pausepopup(11064) / bit4=icon(181)** (writer 逐位 unmask, reader OR 逐位置位)。玩家消息路由被持久化 (存档实写)。
 
-**聊天/大厅持久件族 (MP 会话元数据域)**: **CChatMessage** 基 (vt 0x1422E77D0; +8 message CString) → CStandardChatMessage (0x1422E7930, +48 user) / CPersonalChatMessage (0x1422E78A0, +48 alluserlist / +56 user / +88 userslist 链) / CCountryChatMessage (0x1422E77F0, 再 +112 id / +120 name) / CSystemMessage (0x1422E7980, +48 key_value_pairs 串对向量 stride 64)。**CChatMessageObservable** (持久槽异位: [6]=Save / [7]=writer 0x14226A110 / [8]=Load / [9]=reader 0x142269E60 — serfam [2]/[4] 指纹盲区实例): 写 default_state (499) 打包记录 {+12 u32 / +22 u16 / +24 u8 / +28 u32 / +32 u32} + object (65) 历史块; ⚠ [7]/[9] 与 §4.00.7 CCommand 家族共享 writer/reader **同址** — 数据语义按 chat 上下文读, 非命令对象。**CGameLobby / CLargefileHandler / CLargefileHandlerInterface** (三类共享 writer 0x142220340 / reader 0x14221FC10): 本体 = CID 对 {+8 u32 type(225), +12 u32 id(11)}, 落 `id = { … }` 块 (大厅/会话元数据, 高置信)。**CPdxSocialPlayerId** (vt 0x142969418; writer 0x142401C80 / reader 0x142401250): +8 u32 id / +24 平台→u64 RH 表 (stride 40), 键 765 pops_id / 767 msgr_id / 374 steam_id。
+**聊天/大厅持久件族 (MP 会话元数据域)**: **CChatMessage** 基 (vt 0x142B498B0; slot[2] writer 0x1422E77D0; +8 message CString) → CStandardChatMessage (0x142B49920, slot[2] 0x1422E7930, +48 user) / CPersonalChatMessage (0x142B49990, slot[2] 0x1422E78A0, +48 alluserlist / +56 user / +88 userslist 链) / CCountryChatMessage (0x142B49A00, slot[2] 0x1422E77F0, 再 +112 id / +120 name) / CSystemMessage (0x142A0E8D0, slot[2] 0x1422E7980, +48 key_value_pairs 串对向量 stride 64)。**CChatMessageObservable** (持久槽异位: [6]=Save / [7]=writer 0x14226A110 / [8]=Load / [9]=reader 0x142269E60 — serfam [2]/[4] 指纹盲区实例): 写 default_state (499) 打包记录 {+12 u32 / +22 u16 / +24 u8 / +28 u32 / +32 u32} + object (65) 历史块; ⚠ [7]/[9] 与 §4.00.7 CCommand 家族共享 writer/reader **同址** — 数据语义按 chat 上下文读, 非命令对象。**CGameLobby / CLargefileHandler / CLargefileHandlerInterface** (三类共享 writer 0x142220340 / reader 0x14221FC10): 本体 = CID 对 {+8 u32 type(225), +12 u32 id(11)}, 落 `id = { … }` 块 (大厅/会话元数据, 高置信)。**CPdxSocialPlayerId** (vt 0x142969418; writer 0x142401C80 / reader 0x142401250): +8 u32 id / +24 平台→u64 RH 表 (stride 40), 键 765 pops_id / 767 msgr_id / 374 steam_id。
 
 #### 4.28.11 CSettings / CSystemSettings (settings.txt 总表; 双向往返)
 
@@ -262,8 +262,8 @@ data 结构 (语义推定):
 | +14 | u8 | draw_sky (10268) | 1 |
 | +15 | u8 | draw_bloom (10269) | 1 |
 | +16 | u8 | draw_tooltips (10270) | 1 |
-| +17 | u8 | draw_hires_terrain (10271) | 1 |
-| +18 | u8 | draw_citysprawl (10272) | 0 |
+| +17 | u8 | draw_hires_terrain (10271) | 0 |
+| +18 | u8 | draw_citysprawl (10272) | 1 |
 | +19 | u8 | draw_shadows (10273) | 1 |
 | +20 | u8 | draw_weather_effects (13972) | 1 |
 | +21 | u8 | draw_water_reflections (13973) | 1 |
@@ -322,7 +322,7 @@ CNullIdler 归 §4.00.9。
 | 偏移 | 类型 | 语义 | 备注 |
 |---|---|---|---|
 | +36 | f32 (推定) | 帧时长 EMA (槽[29] 帧尾: 0.95×旧 + 0.05×新) | 槽[29] |
-| +64 | f32 (推定) | 本帧耗时 (sub_1401F7F80 前后掐表) | 槽[29] |
+| +64 | u64 (QPC tick) | 本帧耗时 (sub_1401F7F80 前后掐表) | 槽[29] |
 | +1264 | 指针 | **渲染管理器** (槽[28] 就绪门实参 / 槽[29] 段 2/5/9 消费) | §1.1b.1 家族槽 |
 | +1328 | 指针 | **idler 管理器 = CApplication 本体** (字段: +56 current / +112 待入 / +120 旧 / +64 切换请求旗 / +128 保留旗) | SetIdler = sub_14222EA60 |
 | +1457 | u8 | 遮罩/输入联动边沿缓存 (槽[28] 段 1) | 槽[28] |
@@ -362,7 +362,7 @@ sub_14223D2C0 渲染帧入口 → sub_14223D3F0 **CGraphics::Render2dTree?** 2D 
 tbb 并行遍历, 渲染队列 qword_1434530A0 — 真名高置信) + 段 8 四条横幅 (门 = idler+1681
 自动存档伴随位 / idler+2073 ∨ dword_14333CF70 倒计数 / idler+2080 ∨ dword_14333CF74 /
 byte_14333CF38 "Running Test..."; 发射 = 串构造 sub_142245E60 → sub_140B411B0 顶栏) +
-教程帧更 (idler+2608) + 帧尾 EMA idler+36 / 本帧耗时 idler+64 + 旗清扫。
+**ImGui 观察窗旗表刷新** (idler+2608 = 观察窗 28 槽对象, sub_141198E70 在全局旗门下调; 旧「教程帧更」误标 — 教程帧更的门在 gs+2615/gs+2608, 走 §4.28.18 教程链, 异类勿混) + 帧尾 EMA idler+36 / 本帧耗时 idler+64 + 旗清扫。观察窗工具族 = 内嵌 Dear ImGui ("Debug##Default" 串直证, 上下文槽 qword_143451C80)。
 **每帧对象/动画分发泵** sub_14029EEF0: 双 idler Idle (0x140DD3A50 / 0x140B3CA20) 每帧直调
 (xref 全集), 双缓冲轮选 + 半程相位判定 → sub_14222EB50 = **地图 Idler 每帧对象更新分发**
 (CMapIdler::[4] 亦调; 高置信): 矩阵作用域缓冲 → 逐实例 64B 世界矩阵快照 → 分发
@@ -423,6 +423,7 @@ FE 旗族与载入回调槽 (实例布局增量):
 | +1590 | u8 | 载入完成旗 | 槽[80] 置 / 槽[14] 读 |
 | +1591 | u8 | 启动请求旗 | 槽[55] 置 / StartNewGame 消费 (消费时清 0 再置回 1) |
 | +1593 | u8 | 退出中旗 | 槽[84] 置 / Idle 尾部事件泵门 |
+| +1904 | CGameLobby* | 第二大厅槽 (InGame 侧; ctor 亦 malloc(0x4C8)+sub_140D975E0 独立构造, 与 +1568 不同槽) | |
 
 **六节拍槽 64-69** (主表 0x142968FF0; GUI 侧脉冲, 详行为注记 §4.2.4 步骤 15):
 
@@ -443,7 +444,7 @@ FE 旗族与载入回调槽 (实例布局增量):
 |---|---|---|---|---|
 | CUseMilFac | 0x142A27BC8 | use_mil_fac | 0x1419D2CF0: 剩余可用军工 = (*(cc+3944 体 +888)/100000 − +944 − +920) == 0 → done | TUT_MIL_FAC |
 | CUseCivFac | 0x142A27C28 | use_civ_fac | 0x1419D2780: 同构 (民用厂域量) | TUT_CIV_FAC |
-| CUseNavDock | 0x142A27CE8 | use_nav_dock | 0x1419D3260: 同构 (船坞域量) | TUT_NAV_DOCK |
+| CUseNavDock | 0x142A27C88 | use_nav_dock | 0x1419D3260: 同构 (船坞域量) | TUT_NAV_DOCK |
 | CIsQueueDiv | 0x142A27D48 | is_queue_div | 0x1419CE4A0: 建造/训练队列有 division → done | (无文本) |
 | CIsResearchingTech | 0x142A27DA8 | is_researching_tech | 0x1419CE610: 遍历科技槽表 {d@+160, c@+172} (§4.7.6 ts+172 同容器 ✓) 全槽在研 → done | TUT_RESEARCH |
 | CHasSetNatFocus | 0x142A27CE8 | has_set_nat_focus | (玩家已设国策 → done) | TUT_NAT_FOC |
@@ -473,6 +474,31 @@ FE 旗族与载入回调槽 (实例布局增量):
 > 另 6 类 (CTutMoveCameraTo 0x142A27E08 / CTutSelectAllDivsIn 0x142A27E68 / CTutCommandGroup 0x142A27EC8 / CTutFrontline 0x142A27F28 / CTutOffensiveOrder 0x142A27F88 / CTutAirbase 0x142A27FE8) **无独立 ctor 符号** (创建内联于 0x1419CA5C0), sizeof 待裁; 其 [9]/[10] 依次 = 0x1419D0A90/0x1419C9B30、0x1419D0C30/0x1419C9270、0x1419D0400/0x1419C9270、0x1419D0950/0x1419C9870、0x1419D0AF0/0x1419C9DF0、0x1419CEB50/0x1419C8FB0。
 
 教程族补全 (宿主与装载): 定义宿主 = **CInGameIdler** (ingameidler.cpp): loader 0x140DD7D20 读 tutorial/tutorial.txt, token tutorial (11768) → **CTutorialChapter** (4160B; writer 空桩, reader 0x1419CA5C0) 进 idler+2400 向量, token hint (10274) → **CTutorialHint** (2768B; reader 0x1419CBB00; +2648 提示窗名 / +2688 CHintOpener 向量) 进 +2424 向量; **CTutorialMinimized** (非 CPersistent, 内嵌 idler+2448, Reload 0x1419CCB10 重建句柄, 窗口名 "tutorial_minimized")。CTutorialChapter: +3960 = objective 指针向量 / +4056 末章旗 / +4104 CHintOpener 向量 (键 highlight_provinces/regions/states/open_hint)。CTutorialObjective 主虚表 11 槽: [9] = 完成判定 (单参轮询 / 双参事件处理两型) / [10] = 定义参数解析 (state=int / target=TAG 串 / 无参三组); CTutMoveCameraTo 判定 0x1419D0A90 = 查管理器+124 bool → 防重置 +80 → 发 GUI 事件 "tutorial_objective_done" 字面值 (qword_14332F6A0 槽[31] 广播链 ✓)。全族 17 个 CTut* + 2 库件 writer 全空桩 = 教程纯 UI 引导、零存档面。
+
+**CTutorialChapter 字段补全** (§4.18.17/§4.24 定案旁证; 基址 = chapter):
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +3912 | u32 | 目标国 tag (tutorial_step 脚本事件的 tag 实参) |
+| +3920 | SSO 32B | .gui 窗口名 (键 11769 window) |
+| +3952 | 窗口对象* | **章节提示窗** (懒创建; +165 bit3(0x8) = 窗打开态) — ⚠ 与 CCountry+3952 (CDeploymentStatus, §4.18.10) 同号异类勿混 |
+| +3960 | 对象* 向量 | objective 指针向量 (元素 +80 = done 旗) |
+| +3984 | 容器 | reader case 写入三列表之一 (键名映射待裁) |
+| +4008 | 容器 | 同上第二列表 |
+| +4032 | 容器 | 同上第三列表 |
+| +4056 | u8 | 末章旗 |
+| +4057 | u8 | **用户关闭旗** (置 1 = sub_140DD8720 教程激活时; 清 0 = 最小化条重开链 sub_140DE08C0; 置 1 后 Idle 不自动重开) |
+| +4064 | SSO 32B | 章节文本模板 (键 143 text; 含 $STATE$/$THEATRE$/$DAYS_OF_PLANNING$/$PLANNING_MAX$ 占位符) |
+| +4096 | i32 | state 键 tag (−1 = 无国语境; ≥1 经 gs+712 数组 [计数 gs+724] 解国) |
+| +4104 | CHintOpener* 向量 (1384B 元, ctor sub_1419C6970) | open_hint 逐条 push; 元素 +1328 按钮名 SSO / +1360/+1368 缓存命中元件与宿主窗; 绑定失败报 "Cannot find button named: %s On hint window named: %s" (tutorial.cpp:988) |
+| +4128 | i32 | direction_pointer 键 tag (10220; >−1 才驱动指针) |
+| +4136 | 容器 (64B 元, count@4148) | show_in_window 表 (13764; 串 → 窗型库查名须 containerWindowType 612; 13765 show_objects_in_window / 18986 show_object_if_visible 依序追加) |
+
+**章节提示窗创建/打开链 sub_1419CD070** (三调用点: Idle 每帧教程段 [门 = gs+2615 教程激活旗 ∧ gs+2608 当前章节序 ∈ 界 ∧ 窗未开 ∧ +4057 = 0] / 最小化条重开链 sub_1419CA160→sub_140DE08C0 / 销窗重建 sub_1419CC710): ①懒建窗 (工厂 = idler+1272 宿主 vt[12], 窗名 = +3920); ②正文 = +4064 模板按变量表格式化 (tag −1 支 2 变量 / ≥1 支前插 STATE=国名 sub_1409D91D0 + THEATRE=战区名) → FindChild "text_1" (父槽[15]) 写入; ③逐 CHintOpener 绑定按钮; ④三按钮 minimize (chapter+48) / **countinue** (+1336, 引擎原样拼错) / exit_to_menu (+2624) 绑 chapter 数据; ⑤尾段 show_in_window 表驱动高亮 (视图名直比 "countryconstructionview" 额外写构造进度) + direction_pointer > −1 时经 idler vt[34] 懒建指针 → 摄像机/指针矩阵对准目标国。姊妹拍 sub_1419D23B0 = objective 逐个 vt[9] 求值, 全达成广播 "tutorial_step" (+last_step) / 未达成 "tutorial_step" (0) + 指针熄灭。
+
+**define 共享辨析**: DAYS_OF_PLANNING / PLANNING_MAX 在本链只是教程文本变量 — `100000×PLANNING_MAX/PLANNING_GAIN` (qword_143332648/qword_143332448, 原版 0.3/0.02 → 15 天展示值); 与 §4.18.17 真实计划链共享同对 define 全局但**零控制流交集**, 勿据串锚误判本族为作战计划机制 (原流程审计「作战计划」定域说废)。
+
+**gs 新锚**: +2608 u32 = 当前教程章节序 / +2615 u8 = 教程激活旗 (⚠ idler 侧同号 +2608 = idler 字段, 异类勿混)。
 
 **CTriggeredText** (条件触发文本, 128B; vt 0x142999B98; writer=CFG 不入档; reader 0x141180E60): +8 文本键 (143 text / 220 key) / +40 CAndTrigger 内嵌 88B (10595)。
 
@@ -626,20 +652,84 @@ FE OnEnter 时各可跑一次; zone 计时 sub_14222E270; 全序定案):
 | 步 | 内容 | 证据 |
 |---|---|---|
 | 49.1 | 日志 "Resetting game" | gameapplication.cpp |
-| 49.2 | gs 重建 = sub_1401EA1B0 (ctor sub_1401D0E30 清全部容器/管理器 + 默认初始化链: game_rules / 省 VP / 市场 / 突袭 / 阵营 / 学说 / 海军 / 角色 mgr ctor / 难度条目 sub_1401E0EE0) | "Resetting gamestate. Total time:" |
+| 49.2 | gs 重建 = sub_1401EA1B0 (ctor sub_1401D0E30 清全部容器/管理器 + 默认初始化链: game_rules / 省 VP / 市场 / 突袭 / 阵营 / 学说 / 海军 / 角色 mgr ctor / 难度条目 sub_1401E0EE0) — **13 步内部分解见下表** | "Resetting gamestate. Total time:" |
 | — | HistoryDatabase 销毁 (惰性单例 qword_143339CC0) | sub_140A3CF40 + sub_140A3D210 (49.3) |
 | 49.4 | 重置 ID 分配器 sub_140175130; **角色批产 sub_1406B97D0 (gs+1704)** — 重置 ID 后、历史应用前 | "Reseting IDs. Time:" |
 | — | start_date 落位: gs+1192 = 书签+376; SetCurrentDate (纪元 dword_143089AD8) | — |
 | — | HistoryDatabase 装载 sub_140A3D640(histdb, 1) → **两段日期区间应用** sub_140A3D2A0 (第一段纪元→界; SetCurrentDate(start_date) 后第二段→start_date); 条目执行 = CHistoryEntry 族 vt[17] (§4.13.7: COwnerChange → SetOwner/SetController / CSetStateBuildings / CSetStateVictoryPoints / CHistoryAddEffectState → effect 重放) | history.cpp:165 |
 | — | gs+2600 = 所选书签; 渐变边界生成 (sub_1406D9040 逐国 + sub_140B70B30); 49.5 sub_1401E2230 (语义未决); 49.6 情报知识刷新; 49.7 CGraphicalMap ResetGame (sub_140B58360); 49.8 stateDef 侧收尾 sub_140A64600 | — |
 
+**sub_1401EA1B0 世界重置 13 步内部分解** (221 行薄编排层, 进度类 48; 行序 = 执行序
+即契约序; 步号 (48,N,13) = zone 计数):
+
+| 步 | 进度 | 动作 |
+|---|---|---|
+| 头 | — | sub_1401AAA50() gs 访问计数 ++ (Count ≤ 2 断言, gamestate.h:1140); 尾配对递减 = sub_140193F90 (Count ≥ 0, gamestate.h:1146) |
+| 1 | (48,1) | sub_1401D0E30(gs) = gs ctor (清全部容器/管理器) |
+| 2 | (48,2) | 逐州 sub_1409D6BF0 + sub_1409DED70 (清州) |
+| 3 | (48,3) | sub_1401E0EE0(gs) = 难度条目 |
+| 4 | (48,4) | malloc(56) + ctor sub_140A34D20 → **CGameRulesInstance** 挂 gs+1088 → sub_140A355F0 重灌选项表 (§4.25.4a) |
+| 5 | (48,5) | **sub_1401E1580** = CWeatherManager (1424B) 重建 + init + 以 gs+1128 当前日期重置, 挂 gs+1672 |
+| 6 | (48,6) | 逐州 **sub_1409DD000** = 州 CBuildingStatus (st+288) / 省 CBuildingStatus (prov+400) 实例清 + 从建筑库重建 |
+| 7 | (48,7) | **sub_1401E0E30** = 逐国默认重置 (country.cpp:2409 trade influence 缓存断言族, 进度类 46) + 两全局单例重置 |
+| 8 | (48,8) | malloc(640) + ctor sub_140E83B80 → 突袭管理器挂 gs+1008 → **sub_140E86420** 全量重建 176B/条目目标表 + 二遍筛 |
+| 9 | (48,9) | malloc(232) + **sub_140D91410** = NFactions::CFactionSystem 挂 gs+1016 |
+| 10 | (48,10) | malloc(32) + **sub_140D7C660** = NDoctrines::CDoctrineSystem 挂 gs+1024 (CPdxArray 逐国 push 160B 条目); init 波 = sub_140D7F1D0 (条目 → sub_1413CE1D0 清容器 + 按国数 ×1.5 扩容) |
+| 11 | (48,11) | **sub_1401E0C60** = gs+2176 {data/cap@2184/count@2188} 逐国 malloc(40) 建 NCombatLog::CManager (元素 +32 = 国 tag; count 非 0 懒建跳过) |
+| 12a | — | gs+1688 已存 → **sub_140EAB8B0** 复用重置 (逐国 navy 重置 sub_140EAB6A0 + 清 24B/条目观察表, 活计数 @mgr+48); 否则 malloc(64) + **sub_140E9D710** 新建 (ctor +60 f32 = 0.9 比例常数, 消费点待裁) → **sub_140EA8100** 逐国 malloc(464) 建 CStrategicNavy (sub_140E9D320 + init sub_140EA7C70) 入 mgr+8 数组 (进度类 50) |
+| 12b | — | **sub_1401F0980** = 规则位 25 (sub_1401AEB50(25)) 为真 → 建 CStrategicOperativeManager (104B, ctor sub_140EB2D00) 挂 gs+1696; 为假 → 销毁置空 |
+| 尾 | (48,12→13) | malloc(160) + ctor sub_1406B4B20 = **CCharacterManager** 挂 gs+1704 → sub_140193F90 计数 −− |
+
+要点: ① 步 12a 二选一 = **读档路复用已加载管理器 / 开局路新建** (与「初灌 vs 读档
+loader 分工」互证); ② 步 4/9/10/12a/尾 的 malloc 尺寸 (56/232/32/64/160) = 五管理器
+对象大小首次精确化; ③ 所有槽挂载均走 pdx::scoped_ptr 裸指针形态。
+
+**sub_1401D0E30 (gs ctor) 内部 17 步进度表** (进度类 47, 权 17 — 「清全部」的内部
+展开, 与外层 13 步 (类 48) 编排层不同层不冲突; 读档路复用重置发生在 ctor 内部:
+步 8/9 的 gs+1680/+1688 非空门即外层 12a「已存 → 复用」分支的实体):
+
+| 步 | 动作 (定案件加粗) |
+|---|---|
+| 前 | gs+2408/2618/1168/1176/1328/1316 清; **gs+212 = 系统启用位图快照** (sub_1401AE6A0); gs+16 子对象重建 (sub_140BC0880 → sub_1401C4B00; **对偶 dtor sub_140BC0960**, 240B 临时件); gs+212/2216/2264/2272 清; **sub_1401EB060(gs+1376) pending_events 清** (56B/条目, +32 CGregorianDate 复位) |
+| 1 | **sub_1401EAFB0(gs+1336) fired_event_names 哈希桶清** (桶数为运行时值非 511 常数); gs+1208/1364/2576/1624 区清; 补给 sys 重建 (sub_1401EC950, §4.21.1d) |
+| 2–3 | sub_1401D6290(gs) |
+| 3 后 | 逐国 [1, gs+796): **sub_1406E3DB0** (cc+656 数组/cc+632 列表成员重置, vt[44] 槽 — 语义待裁) → sub_1406E2DE0; major 断言 (gamestate.cpp:3129); gs+820 = 0 |
+| 4 | 逐州 [1, gs+724) 非空 → sub_1409D7330 (州 CBuildingStatus@+288 + 辖省 CProvince+400 成对销毁包装 — §4.13「成对销毁」调用壳) |
+| 5 | gs+2176 combat log manager 数组全释放清零 + sub_140CDAF60 (**SCombatDataPersistence 全局条目表清场**, 1096B/条) |
+| 6 | 逐省 [1, gs+700): **sub_140E7A910** (CProvince 重置: +24/+208/+216/+368 数组/5 计数器/+400/+64/+56/+160) |
+| 7 | 逐州 [1, gs+724): sub_1409D6BF0 (外层 13 步表步 2 同件) |
+| 8 | gs+1680 非空 → **sub_140C4EF30 CStrategicAirManager 复用重置** (清计数 +24/+40、4 组指针数组 +48/+144/+168/+192、3 张 32B 元表 +72/+96/+120) — 海军 12a 的对称件 |
+| 9 | gs+1688 非空 → **sub_140EAB8B0** 海军复用重置 (外层 12a 同件) |
+| 10 | malloc(64) + ctor sub_140F03310 → gs+1712 (旧槽释放; 归属名待裁); sub_140BB7BB0(gs+608); sub_140CBF670(gs+600) |
+| 11 | gs+1128 = dword_143086B38; gs+1144/1152/1160 清; **sub_140BBEA60(gs+1248) CPeaceConferenceManager 数组清**; **sub_140D91D90 阵营成员数组清 (fac+32)** |
+| 12 | gs+928 数组 (c@940) 全释放 |
+| 13 | gs+1424/1448/1472 三数组全释放; gs+1496 map 清 (std::map RB-tree) |
+| 14 | 10 个 dword 全局统计槽清零 (dword_14333CA00/D590/D5CC/D5D4/D5F0/D5C0/C77C/D5DC/D5E0/D5E8) + sub_140710AB0/CEB3E0/CEB3F0/BE00D0 |
+| 15 | gs+1568 = 0; sub_140CBF670(gs+600) 二遍 |
+| 16 | gs+1728/1752 两张 112B 元表清; 进度系统 72 槽重置 (sub_142233720 = random 调用记录环清场); idler 别名 vt[+16] → **sub_140B52130 突袭 GFX 管理器懒建** (56B, ctor sub_14167D7F0; graphicalmap.cpp:3732 断言); gs+1864..1944 清; **sub_140BBD600(gs+1952) CIdCounterStore 重置 pass** (释放 +56 引用对象清 +44); **sub_1401D61F0(gs+1064) difficulty_setting 数组清**; gs+1088 game_rules 释放; gs+1800/1776/2440/2615/1824/1236 区清 |
+| 17 | **sub_1401EC5C0 = game_unique_id 生成** (boost uuid v4 + BCryptRandom, 存 gs+1832 — 书有槽与读侧, 此为生成侧); **sub_1401D1D60 = unit-leader CID 注册表压空哨兵** (gs+1040 追加全局空 idpair qword_14333D528 — 与「idx0 = null 哨兵不写」定案互证); **sub_1401C3C50 = gs+2618 重置进行旗清零** (ctor 入口置 1 / 出口清 0); gs+2168/1320 清; 表外尾 sub_140BB2B90(gs+2536) 容器清 + gs+2492 = 0 |
+
 书签应用包装 = sub_14067EEE0 (门 `gs+2600 != 目标书签` 才重建); FE OnEnter 进前端
 时对当前书签先建一次 = **主菜单存在完整 gs 的根因** (§1.1b 互证)。
 CStartGameCommand::Execute = sub_14163DA10: 玩家 tag 兜底 + lobby+148 bit2 +
 FE 槽[80] SetLoadingComplete (FE+1590=1); 副产 sub_140DE2C00: gs+2216 = −1
 (禁首轮自动存档)。两路汇合后 = FE 帧 StartNewGame sub_140B3E9A0 (门 FE+1591) →
-构造 CInGameIdler (ctor sub_140DC1B30 内 **sub_140DD6A30 开局补算** =
-Hourly+Daily+Weekly+Monthly 各一遍, 门 HasGameStarted) → SetIdler → 首帧。
+构造 CInGameIdler (ctor sub_140DC1B30 内 **sub_140DD6A30 = CInGameIdler::InitData(bool)**
+开局补算, 门 HasGameStarted) → SetIdler → 首帧。
+
+**InitData 定案** (profiler 域串直证, ingameidler.cpp:4888→5119; 唯一调用点 = ctor
+传 a2=0; 进度类 54/12 步, 为 ctor 类 53/19 步的第 8 步; 头部 = idler+1535 置位 +
+random 调用记录环重置)。主分叉 = gs+2612 HasGameStarted:
+
+| 路 | 序列 (定案件加粗) |
+|---|---|
+| 读档完成路 (≠0) | fired_events 哈希重建 (§4.12) → **sub_140EF9280 theatre/fronts 修复** ("Theaters or fronts has been fixed…") → 短版逐国四连 (**sub_140D46170 附属列表重建** token 12497 置脏 cc+298 / **sub_140705950 逐舰队位置重算** / **sub_140715370 贸易影响缓存重建** (cc+252 对表 +264 缓存旗) / **sub_140718B60 首都校验选都迁都** (country.cpp:7071)) → 逐州 **sub_140F9AE60+sub_140F9ADB0 CResistance 驻军/占领修复** (state+616, resistance.cpp:426/103) → 逐国 Decision.UpdateTargetedDecisions (调用点补) → **sub_1401EF500 "Starting ALL AI (In parallel)" tbb 并行 AI 全量启动** |
+| 新局路 (=0) | gs+1192 ← 日期快照 → 战略海军并行 sub_140EAB300 / 战略空军建 sub_1401E13E0 / **补给+铁路 init 对 sub_1401E1540** → **sub_140EF9150 theatre 全局重置** (~12 全局清 + 6 子重置) → **sub_140DD7A60 阵营×附属关系网置脏** → 长版逐国 pass (名称组 tracker 清 sub_1406FF150 → OOB 装载 → **GenerateNonHistoricalAttributes sub_1406EB150** 随机理念/特质 → 政治 → 附属 → rs 控制州重算 sub_1406FF1E0 → **人力重算 sub_140CFE420** (cc+808, 修正键 73/74, 定点式待 PE 验算) → 舰队 init **sub_1406FEF10** (country.cpp:8824 构建期门) → 战略空军缺失重建 sub_1406FE910 → **生产线 init sub_1406FEE10** (+160/+172/+256) → **landlocked_start 推导 sub_140716520** (cc+5619) → 舰队重算 → 贸易影响 → 首都) → 国家颜色刷新 → **Hourly → Weekly → Daily → Monthly 各一遍** (顺序 = dump 行序 L7065010-13 直证; 四调度期间 gs+1672+841 与 gs+984+384 置 1 后回 0; 旧「Hourly+Daily+Weekly+Monthly」字面序废) → 逐国 rs 资源池重算三连 (**sub_140CB51D0 extracted 池全量重算** +40/+48/+568 三槽 / calc_modifier / sub_14070C890) → tbb 并行逐国段 |
+| 合流段 (进度 4–12) | sub_140BBAE50 (gs+608 容器清旗, 语义待裁) → idler vt[+560] → **sub_1401F18B0 三段全局一致性校验** (owner/controller 占领 gamestate.cpp:6845 / 州建筑超限 :6875 / 战时宗主附庸 :6900) → 读档路补 AI 启动 → 补给重建 (sub_140ECA270) + rs 租借条目重算 **sub_140705930** (+984 回写) → 铁路逐国 **sub_140B51FF0** (gs+992 +68 旗门) → !a2 玩家档案同步对 **sub_140DC5F30 (按名线性) + sub_140DC5D00 (按键二分)** (gs+248 ↔ gs+16 两张 160B 命名条目表; a2 语义推定「跳过玩家档案同步」, 待裁) → idler+2216 = 168/−1 (gs+192 bit0 门) → error.log 刷新 (idler+1328) |
+
+InitData 伴随新识槽位: cc+252/264 (贸易影响缓存) / cc+298 (关系置脏) / cc+368/380/392
+(附属列表) / cc+3944 内 +160/+172/+256 (生产线) / cc+5619 写者 / mp+16 / gs+1192/1824/608 /
+idler+1535/2216/1328 / state+616 内 4 槽 / 管理器槽 +5979。
 
 **history/ 装载两层次** (boot 静态 DB 与新局 HistoryDatabase):
 
@@ -697,6 +787,44 @@ Hourly+Daily+Weekly+Monthly 各一遍, 门 HasGameStarted) → SetIdler → 首�
 > 待裁: 单机新局是否经新局分支 sub_140D9F9C0 (写模式开档 + 空档解析, 世界保持
 > 书签版) 未定 — 无 xref 的 GUI 回调 sub_141F46870 携带描述符直调 sub_140DA04F0;
 > 探针 = 观察新局启动是否产生新 .hoi4 文件 + logs 顺序。
+
+#### 4.28.21 进程启动 bootstrap 链 (main → CGameApplication ctor → Init 14 步)
+
+五段地图 (定案): ① **进程引导段** (main.cpp, WinMain 后): 图形硬件检查 (Shader Model 3.0
+弹窗) → 日志 "Creating application..." (main.cpp:2136) → malloc(0x4F8) → **sub_140147EE0
+= CGameApplication ctor**。② **构造段** (无 IO 纯注册): 基类 CApplication 单实例互斥 →
+预建 **CSession("localhost", type=2, 666, 32)** (9 参重载 sub_14224E870; 666/32 参数语义
+待裁) → **~28 对热重载注册** (门 = **byte_14332EC69 = `-debug`/`crash_data_log` 命令行门** — 关闭则只建对象不挂目录监听; 控制台 toggle 件 = sub_14024C670; 与 launcher 默认不带 -debug 的现役约定互证; 统一形态 new CDatabaseReloader<T>
+→ 组名 → sub_1422564C0; 组名表: define / countrycolors / ideas / focus / cfocus / decision
+(递归) / ability / scriptedgui / scripteddiplomaticaction / scriptedmapmodes / onaction /
+scripted_triggers / scripted_effects / ai_strategy / ai_strategy_plans / ai_equipment /
+ai_templates / occupation_modifiers / occupation_laws / **occupation_laws 组名被
+common/resistance_activity 目录复用 (引擎怪癖)** / intelligence_agency_upgrades /
+intelligence_agencies / bop / peace_conference (递归) / equipment_graphic_database /
+assets / gfx (目录 = interface, CGFXReloader sub_140147E50) / train_gfx_database; 各落点
+= CGameApplication +936..+1176 reloader 指针区) → 加载条组 65 start/end 回调注册
+(sub_142257B00; 单例 qword_1434531C0, +56/+64 双槽) → main 填启动参数 (sub_1401A7B70 →
++1192 40B 结构) + 窗口图标。③ **Init 前置段** (vt[+72] 虚调后): **synchronized_dynamic_tokens
+token 预装载 sub_140176F30** (common/synchronized_dynamic_tokens/*.txt 枚举 → token 预注册;
+完成旗 byte_1435E1AB1 — **mod token id 空间的 boot 期填充点, 印证「离线 token 表 ≠ 运行时
+lexer」**) → HotkeyManager 单例 → CSettings 触碰 → 语音无障碍族单例群 → qword_1433304E0
+全局重建 (0x78, 语义待裁)。④ **Init 主体段** (= **CGameApplication::Init = sub_140180BC0**,
+虚表槽[9]/+72, gameapplication.cpp:812-866 自报行号; 步序): 内存水位日志 (812) →
+InitTextureLookup(gfx/models) (825) → InitBase sub_140181110 (832) → _pGraphics->Init3DTypes
+sub_142238FD0 (840, "Long Task") → LoadAssets sub_140B39270 (849) → **InitGame
+sub_1401835A0** (853; mod·DLC 与数据库装载宿主 = §4.29 领地, 本链只到调用点) 。⑤ **收尾段**:
+好友处理器预接 + InitFriendsHandler (CGameApplication 具名 lambda) → loc key 冲突告警
+(byte_1434530F0) → error.log 检查/弹出 (sub_1401758A0 ShowErrorLog, 大小门 dword_14332ED60,
+CreateProcessA; 失败日志 gameapplication.cpp:922) → main 进 Run/主循环前置。
+
+ctor 成员初始化要部: +864 = CGameGraphics* / +888 = 引擎单例槽 / +896 = CSession* (1976B) /
++904 = 日期定时器容器 (80B CGregorianDate 元; 0.85f 常数待 PE 验算) / +912 = career profile
+奖项壳 (2024B, 内嵌 NCareerProfile::SCareerProfileAwards@+288) / +920 = scoped singleton 槽
+(CPersistedMioQueueDb) / **+936 = CDefinesReloader** / **+1184 = localisation watcher 看柄** /
++1192 = 启动参数 40B 结构 / +1232 = SSO 串。伴生定案: HotkeyManager 单例 qword_1434531A8 首启
+于 Init 前置段; clausewitz clock.cpp 时钟启动; CSettings +952/+960 默认 0.1 双 double (语义待裁)。
+加载条 start 回调 = sub_140A59850 (按 phase 0..3 填步骤 id); end 回调 = sub_140A59E80
+("Loading bar group: N is missing chunk M", loadprogressimpl.cpp:117)。
 
 #### 4.28.19 新开局世界构建链 (进程骨架与历史装配细节)
 

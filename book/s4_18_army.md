@@ -115,7 +115,7 @@ loader-only legacy 键 (writer 不发射):
 | +1192 | u32 | was_paradropped (tok 12008) | 值 = 全局计数 dword_143335314 快照 | >0 写 |
 | +1196 | u32 | unit_controller_pause (tok 13754) | vt0[18] 0X140C881D0 消费 | ≠0 写 |
 | +1200 | u32 | 0-init 未名 | | 不序列化 |
-| +1208 | 内嵌块 | acclimatization 块基 | ctor sub_1406140A0; cold/hot 两槽 | tok 14417, 非空才写 (门 sub_140614BC0) |
+| +1208 | NAcclimatization::CData 内嵌 64B | acclimatization 块 (vt 0x1427DE000, writer 0x1406167B0 / reader 0x140616320): +8 值表矢量 16B 元 {定义指针, i64 值} (动态键 = 每元素定义对象+32 token, 未知名报 "Found unknown acclimatization token name") / +32 actively_gaining 类型指针 (14446, 读类型名回查库 qword_143330450) / +40 actively_gaining_speed (14447) / +48 other_loss (14448) / +56 max_acclimatization (14606, ctor 10000000=100.0, 仅非默认才写); 废键 14441 is_gaining 吞弃 | ctor sub_1406140A0 | tok 14417, 非空才写 (门 sub_140614BC0) |
 | +1216 | vector 24B | 未名 | {data@1216, count@1228, alloc@1232} | 不序列化; 形态定案/未名 |
 | +1272 | 匿名结构 (NNB 形状) | officer wrapper (officer 键) | officer 子块载体, 布局见下方 officer 子表 | writer 槽1 0X1413EACF0 (经 wrapper 对象 vt; ship 侧由 0X140C3E6C0 对 sh+2120 虚调用实证); 先写内嵌 officer[1] 再遍历追加向量 → savefull `officer[2]/officer[3]…` (追加向量非仅读档入口, 多军官舰实证) |
 | +1408 | fixed×1e-5 | held_officer | 随军军官 experience | |
@@ -182,18 +182,37 @@ army_history 子块布局 (+1592; 键 army_history; 写门 = u32@+1644 ≠ 0; ct
 | +1624 | scoped_ptr<CUnitMedalStore> | → CUnitMedalStore |
 | +1632 | CUnitHistoryEntry** | history 条目数组数据 {data@+1632, count@+1644} (写门源 = count@+1644≠0) |
 
-CUnitMedalStore (vt 0x1429C1818, sizeof 0x268B, writer 0X14144D130; 元素基址 H = 条目):
+CUnitMedalStore (vt 0x1429C1818, **sizeof 616 = 0x268 malloc 直证, 原「0x268B」hex 误读**; writer 0X14144D130; 元素基址 H = 条目; **类名三分: 0x29C1818 = 本类 / +1592 块 = CUnitHistory (vt 0x29C1868) / 条目 = CUnitHistoryEntry (vt 0x29C1BC8, 328B)**):
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
-| H+8 | 容器 data | history 条目 vector {data@+8, count@+20} → CUnitHistoryEntry (同现役条目) | |
+| H+8 | 容器 data | history 条目 vector {data@+8, count@+20} → **CUnitHistoryEntry\* (两处 reader 均 malloc(0x148) 直证)** | |
 | H+20 | u32 | history 条目计数 | |
 | H+32 | CModifier | CModifier #1 | 不落盘 |
 | H+224 | CModifier | CModifier #2 | 不落盘 |
 | H+416 | CModifier | CModifier #3 | 不落盘 |
 | H+40/+52 | 匿名结构 (元素待裁) 向量 | 普通 history_queue 容器 (不变) | |
 | H+608 | uint32 | amount | >0 才写 |
-| 条目+72 | u32 | 受勋调用参 | 推定 |
+
+CUnitHistoryEntry (328B = 0x148; writer 0x14144F560 / ParseKey 0x14144ED30; 活体授勋条目验证) — 328B 全表:
+
+| 偏移 | 类型 | 语义 | 备注 |
+|---|---|---|---|
+| +8 | 串 32B | army_names | |
+| +40 | 串 32B | custom_lockey (原「+8 seed / +40 子队列」碎锚修正) | |
+| +72 | u32 | unique (活体 8/9/12/13) | |
+| +76 | u32 | target_country | |
+| +80 | CGameDate 形 union | 事件日期 (= gs+1128 快照; **CGameDate 端指针约定: Save 读 this−16, date 键实际发射 +80..+95**) | |
+| +96..+111 | union | 受勋后 +104 = 勋章 def (活体 vt96 保持 CGameDate vt 而 +104 = 堆指针) | |
+| +112 | u8 | medal_count 授勋旗 (授后清 0) | |
+| +113 | u8 | inherit | |
+| +114 | u8 | sunk_ship 门 (舰侧) | |
+| +120 | CSunkShipInfo 168B | 沉船信息 | |
+| +288 | 队列宿主 | location 宿主队列 (原「+40 子队列」修正至此) | |
+| +312 | fixed×1e-5 | multiplier 经验 (ctor 100000) | |
+| +320 | u32 | orders | |
+
+授勋链 (定案): hash 分支置 medal_count → AddEntry 门 (store+608 < cap ∧ unit_medals.cpp:1038 时间戳 < 国价值 650) → 库选章 (类别 0/1 分触发器) → 挂章 + 折国陆军经验 (def+760 因子) → 落 store 队列 + amount++ + 三 CModifier 重建 → on_add_history 事件。原书条目 4 个「推定」碎锚全部升级/修正。
 | 条目+104 | CUnitMedal* | unit_medals medal 定义指针 | ptr≠0 且 **ru8(def+16)≠0** 才写; 名 = MSVC 串@def+24 (size@+40); 两队列 (store history 与普通 army_history 队列) 通用, ship 条目同型顺带适用 (def 对象) |
 | 条目+112 | u8 | 可受勋旗 (受勋后清 0) | 推定 |
 | 条目+312 | i64 | 受勋调用参 | 推定 |
@@ -304,7 +323,7 @@ upgrades 容器 (U = q+136):
 | +12 (对象基) | u32 | id.id — id 对之 id | |
 | d+8 | string (SSO) | name | |
 | d+40 | string (SSO) | localization_key | |
-| d+72 | CSubUnitGrid 内嵌 | **regiments 网格** (subunit_grid.cpp 类名断言直证) | {列数 u16@+0, 列高 u16@+2, data@+8, cap u32@+16, count@+20, alloc@+24}; **元素 = CSubUnitDefinition* 8B 直接引用** (token@def+8, 有效旗@def+16 — def 自身字段非包装结构); 坐标 x=slot//列高, y=slot%列高 (非方格时旧读 +0 低 u16 全错); 写者六通道 = 载入 reader (键 12195, def+1448 & 0x1000000 置位拒绝) / setter 六件套 0x140BA51F0-6140 / 批量 0x140FBF810 / 0x140B93340 / 设计器 GUI 七函数 + 交互层三函数 / 网格 ctor; **writer 发射序 = 倒序 16871→12188→12195** |
+| d+72 | CSubUnitGrid 内嵌 | **regiments 网格** (subunit_grid.cpp 类名断言直证) | {列数 u16@+0, 列高 u16@+2, data@+8, cap u32@+16, count@+20, alloc@+24}; **元素 = CSubUnitDefinition* 8B 直接引用** (token@def+8, 有效旗@def+16 — def 自身字段非包装结构); 坐标 x=slot//列高, y=slot%列高 (非方格时旧读 +0 低 u16 全错); 写者六通道 = 载入 reader (键 12195, def+1448 & 0x1000000 置位拒绝) / setter 六件套 0x140BA51F0-6140 / 批量 0x140FBF810 / 0x140B93340 / 设计器 GUI 七函数 + 交互层三函数 / 网格 ctor; **writer 发射序 = 倒序 16871→12188→12195** ; 复位消费者 = sub_140BA47B0 (CCountry 复位链 §4.3) |
 | d+104 | CSubUnitGrid 内嵌 | support 网格 (布局同 regiments) | 序列化键 12188 |
 | d+136 | CSubUnitGrid 内嵌 | regimental_support 网格 (布局同 regiments) | 序列化键 16871; regiments 本尊键 = 12195 |
 | d+296 | 容器 {data@296, count@308} | 装备模块引用数组 | 键 13657, 元素 CIdentifier 经专键 13891 逐条写 |
@@ -448,7 +467,7 @@ Execute (0X140350470) 五步:
 
 #### 4.18.7 CDivisionTemplateData
 
-writer 0X140BA6A40; vt 0x14294F560 (RTTI: CPersistent 直接派生); ctor 0X140B95480; sizeof 0x248; 偏移基 data = wrapper+24。表行序 = 偏移升序 = writer 物理落盘序。
+writer 0X140BA6A40; vt 0x14294F560 (RTTI: CPersistent 直接派生); ctor 0X140B95480; sizeof 0x248; 偏移基 data = wrapper+24。表行序 = 偏移升序; writer 发射序与升序交叉 (三网格倒序 16871→12188→12195, +542 obsolete 先于 +436 is_army_hq, +448 role 殿后)。
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
@@ -909,31 +928,34 @@ tpl+480 部署类型 (1=路由宿主 2=需宿主在册) / tpl+504 流亡路由; 
 |---|---|---|---|
 | 生成·日步门 | sub_141510110 | `q+224 + 24×REINFORCEMENT_REQUEST_DAYS_FREQUENCY (dword_143337C10, 7 天) ≤ 当前小时` → 重建 (前置门 = `(gs 小时−43800000)%24 == 师id%24` 错峰, CArmy::HourlyUpdate 内联) | 定案 |
 | 生成·重建 | sub_14150F740 | reinforcement 重建 + 超配回流 + upgrades 重建 + 经验折减; 每次写 q+224=now | 定案 |
-| 生成·请求填充 | sub_141507410 | 逐 def: 缺口 = **模板需求表 (CDivisionTemplateData+264 need map) − (army+840 池存量 − Σ既有请求 need)**; 缺口>0 → 新建 176B CReinforcementRequest 或并入; 首个请求注册 R → cc+3960 (sub_14150A140) | 定案 |
+| 生成·请求填充 | sub_141507410 | 逐 def: 缺口 = **模板需求表 (CDivisionTemplateData+264 need map) − (army+840 池存量 + Σ既有请求 need)**; 缺口>0 → 新建 176B CReinforcementRequest 或并入; 首个请求注册 R → cc+3960 (sub_14150A140) | 定案 |
 | 生成·超配回流 | sub_14150AA00 | 池+请求 > 需求表 → 缩 need, produced 超余经 sub_140E6F910 退 ps+512; need 空 → status=2 | 定案 |
 | 生成·upgrades | sub_14150F740 尾 | 收集 army+840 池变体 → def 级去重 → 对 deliveries 已发运量出净额 → 24B 元 {variant, 净额, 需求表量} 压 q+160; 注册 U → cc+3968 | 定案 |
-| 生成·经验折减 | 同上中段 | CArmyManpower Σvalue > Σneed (缺员) → army+1072 experience ×= Σneed/Σvalue | 定案 |
+| 生成·经验折减 | 同上中段 | CArmyManpower Σvalue > Σneed (**超员, 模板缩编场景**) → army+1072 experience ×= Σneed/Σvalue; 缺员不乘因子, XP 走 cap (≤ 1e5×Σ持有) | 定案 |
 | 分配·主循环 | sub_140D10310 | deployment.daily (§4.18.16 步①) 首段: 收 ps+512 国家库存 → 收集消费者 (cc+3960 R 表 / cc+3968 U 表 / 部署三队列 / 装备市场国别表等) → sub_140D0BDD0 排序 (**优先级 = base@+16 + vt[3]×priority@+8**, 平局 vt[4] 身份) → 逐变体依序 `vt[2](variant, remaining)` 分完; 消费量 sub_140E6EB90 扣 ps+512 | 定案 |
-| 分配·请求叶 | sub_14150E070 | `produced += min(need−produced, remaining)` (archetype 档位对齐); 齐套 (readiness≥1e5) → status=1 | 定案 |
-| 分配·升级叶 | sub_14150DA70 | chunk = min(1e5×EQUIPMENT_UPGRADE_CHUNK_MAX_SIZE, 元.request, remaining) → 新建 **CUpgradeDelivery** (96B: status@+8 / progress@+16 / total@+24 / produced 池@+32) 压 q+184 | 定案 |
-| 交付·每小时 | sub_14150E460 | CArmy::HourlyUpdate 无条件调用 (前置门 sub_140DF6D30 被封锁不补); **三态状态机**: 0→1 = 日期 e+160 ≤ now (等待超时 = 请求日 + 24×REINFORCEMENT_REQUEST_MAX_WAITING_DAYS dword_143337CCC 14 天, 未齐套也发运) ∧ readiness>0; 1→2 = progress += 1e5×0.3/h (REINFORCEMENT_EQUIPMENT_DELIVERY_SPEED qword_143337770), total = clamp(army+72, [1e5, 1.5e6]); 2 = 台账 kind7 + **sub_140C78F60 并入 army+840 池** ("Reinforcing %lli equipment(s) to army with id %i." army.cpp:3127) + 齐套毁请求/未齐套复位; upgrades deliveries 同型内联 (→ sub_140C78E90 army.cpp:3148) | 定案 |
-| 交付·人力通道 | sub_14150E730 | 逐 tag (CArmyManpower+976 m+48 标签表): 转入 = min(1e5×REINFORCEMENT_MANPOWER_CHUNK qword_1433378F0 × rate, cc+808/832 可用, 缺口); 扣国库 sub_140CFE7E0; manpower_pool (q+88) 进度累计 | 定案 |
+| 分配·请求叶 | sub_14150E070 | `produced += min(need−produced, remaining)` (archetype 档位对齐; **status≠0 不消费门**); 齐套 (readiness = 1e5×Σproduced/Σneed **聚合比**, 非逐变体 min) → status=1 | 定案 |
+| 分配·升级叶 | sub_14150DA70 | chunk = min(1e5×EQUIPMENT_UPGRADE_CHUNK_MAX_SIZE, 元.request, remaining) (元.request −= chunk) → 新建 **CUpgradeDelivery** (96B: status@+8 / progress@+16 / total@+24 / produced 池@+32; ctor status=1 直接起步) 压 q+184 | 定案 |
+| 交付·每小时 | sub_14150E460 | CArmy::HourlyUpdate 无条件调用 (前置门 sub_140DF6D30 被封锁不补); **三态状态机**: 0→1 = 日期 e+160 ≤ now (等待超时 = 请求日 + 24×REINFORCEMENT_REQUEST_MAX_WAITING_DAYS dword_143337CCC 14 天, 未齐套也发运) ∧ readiness>0; 1→2 = progress += 1e5×0.3/h (REINFORCEMENT_EQUIPMENT_DELIVERY_SPEED qword_143337770), total = clamp(army+72, [1e5, **1.5e6 = 1e5×SUPPLY_PATH_MAX_DISTANCE** (0x143331208)]), total_progress 每小时重写; 2 = 台账 kind7 + **sub_140C78F60 并入 army+840 池** ("Reinforcing %lli equipment(s) to army with id %i:" army.cpp:3127) + 齐套毁请求/未齐套复位 (need←produced 拷贝 / produced 清 / date+336h); upgrades deliveries 同型内联 (→ sub_140C78E90 army.cpp:3148) | 定案 |
+| 交付·人力通道 | sub_14150E730 | 逐 tag (CArmyManpower+976 m+48 标签表): 转入 = min(**0.1×Σneed_tag**, cc+808/832 可用, 缺口) **∧ 进度门** (manpower_pool q+88 进度 += 1e5×rate/h, > 1e5×转入量才发); rate = REINFORCEMENT_MANPOWER_DELIVERY_SPEED(1e6)×army+64/1e10; 扣国库 sub_140CFE7E0 | 定案 |
 | 清理·R 摘除 | sub_14150F3A0 | 请求计数==0 ∧ CArmyManpower 缺口≤0 → 从 cc+3960 移除 | 定案 |
 | 清理·U 摘除 | sub_14150F740 尾 | 计数 (q+172)==0 ∧ U+96 注册旗 → 从 cc+3968 移除, 清旗 | 定案 |
-| 清理·取消全部 | sub_14150A640 / sub_14150A7E0 | 逐请求 produced 退回 ps+512 → 毁 (army 拆卸/变 owner 路径; garrison 宿主变体同型); 师删除 → army+840 池整体退库 (sub_1401D6690) | 定案 |
+| 清理·取消全部 | sub_14150A640 / sub_14150A7E0 | 逐请求 produced 退回 ps+512 → 毁 (army 拆卸/变 owner 路径; garrison 宿主变体同型); 师删除 → army+840 池整体退库 (sub_1401D6690; 池退库执行件 = sub_140E60E50 → CProductionStatus+512, §4.18.20) | 定案 |
 | 台账 | sub_141374FB0 / sub_141374F90 / sub_141371390 | 缺口登记/发运消费 CLogisticsStatus (cc+3992) 计数板 kind 0/1/6/7 (kind 索引 = *(def+1336)); logistics.daily 逐师聚合需求表 | 定案 |
 
 驻军 (garrison) 平行链 (对照): 创建 sub_141507740 (宿主 CStateGarrisonData) /
-日重建门 sub_14150FED0 / 每小时 sub_14150E6A0 → sub_141506D30 (**速度 =
+日重建门 sub_14150FED0 / 每小时 sub_14150E6A0 (**total 无下钳, 与陆军 [1e5,·]
+区分**) → sub_141506D30 (**速度 =
 GARRISON_EQUIPMENT_DELIVERY_SPEED qword_143331320 = 4.0** 与陆军 0.3 分槽;
 总时长 = sub_14150A530 州补给距离查表) / 交付并入宿主池 host+144 (非
 army+840) + 置州脏旗 / 人力 sub_14150EA90 + sub_14150F5F0
-(GARRISON_MANPOWER_REINFORCEMENT_SPEED qword_143331270) / 驱动 sub_140FF6D10
-州级逐 garrison / 摘除 sub_14150F420 (定案)。
+(GARRISON_MANPOWER_REINFORCEMENT_SPEED qword_143331270; chunk = [1400,2000]
+人 × 距离因子 [0.7,1.0]) / 驱动 sub_140FF6D10
+州级逐 garrison / 摘除 sub_14150F420 (定案)。REINFORCEMENT_DELIVERY_SPEED_MIN
+(0.6) 全码零引用 = 死 define。
 
-关键语义更正与新钉: **CArmyManpower m+8 value = 目标/应编, m+40 need =
-已到位** (缺口 = Σvalue−Σneed; XP 折减 = ×(Σneed/Σvalue) 缺员才降 — 旧
-「value=已持有」方向修正)。请求族**主虚表运行时分配接口**: [1]=Wants/
+关键语义定案: **CArmyManpower m+8 value = 已持有/到位 (交付写入者
+sub_140C67F50 加向 m+8), m+40 need = 应编需求**; 缺口 = Σneed−Σvalue; XP
+折减 = ×(Σneed/Σvalue) 超员 (Σ持有>Σ应编, 模板缩编场景) 才降。请求族**主虚表运行时分配接口**: [1]=Wants/
 GetAmount / [2]=Distribute / [3]=乘数 / [4]=身份 — 与持久虚表 (对象+24,
 §4.00.1 Save/writer/reader 槽) **两套槽位勿混** (定案)。ps+512 =
 CEquipmentVariantPool 国家装备库存 (data@+520, count@+532; +536 第二池 =
@@ -941,8 +963,10 @@ CEquipmentVariantPool 国家装备库存 (data@+520, count@+532; +536 第二池 
 向量@+8 (24B 元 {variant, ?, amount@+16}), 序列化向量@+32 (16B 元 {variant,
 amount@+8}), allow_zero u8@+56}, ctor 0x14100C710 — produced/army+840 池/
 ps+512 库存三处同型 (定案)。army+72 = 交付总时长缓存 (init −100000 未置;
-语义 = 补员运输时长; **探针定案: 请求创建期一次性写** — 小时链 ~10 游戏日
-0 写点且值不变, 写者收窄到请求创建/重建路径 sub_141507410 族)。CDivisionTemplateData+264 = 装备
+语义 = 补员运输时长, fix5 活值域 3.0~14.6; **部署后冻结的部署期一次性快照** —
+探针定案: DR0 watch 2.5 游戏年零命中, 强制重建/交付直调零命中, 师链
+(ctor/重建/请求填充/交付/人力/进度/注册/日步门) 静态全链 0 写点; 写点疑在
+师部署/新建一次性计算, 未定位)。CDivisionTemplateData+264 = 装备
 需求表 need map {data@d+272, count@d+284}, 16B 元 {CEquipmentVariant*,
 amount i64} (定案)。
 
@@ -1056,3 +1080,22 @@ fixed5}; 原「+816..+976 五统计组细节未决」收口)** / def+1016 = 动�
 *(CArmy+952)+564), 非本类; 原「+1336 logistics kind 索引」host 存疑 (本类该处 =
 need_equipment_modules 容器 data 槽); 原「+1536..+1548 基地容量四档」= land/carrier/
 mega/submarine 四个 air_wing_size (上表定案)。
+
+#### 4.18.20 单位删除链 (CGameState::DeleteUnit = sub_1401D6690; ~654 行)
+
+签名 (gs, unit, disband_flag); a3 = 删(0)/散(1) 旗 (§4.32 delete_unit 族); 日志门
+byte_143452529 打 "Deleting unit ..." (vt+104 槽[13] 取名)。五段编排 (定案):
+
+| 段 | 动作 | 关键函数 |
+|---|---|---|
+| 入闸 | unit 指针压 gs+1400 数组 (计数 gs+1412; §4.2「已登记删除」去重闸, sub_1401D7460 查重同数组); 尾部对称自摘 (swap-erase) | — |
+| 远征预清理 | vt[7] (+56) 父单位 +476 > 0 → 清 unit+476 + 从属主国 idreg (国+760/+772) 摘除 (⚠ 760/772 vs 784/796 双 idreg 分工待裁: 推定 760=收编远征 / 784=借调); 非载入态 (gs+2618 == 0) 宿主国 CCountryAI 记账 | sub_140C04370 (ClearExpeditionaryOwner) / sub_1402AB5A0 (→ CStrategicAI+8960 48B 条 {tag@+8, 计数@+12} 按原初国归并累加 = 远征人力 AI 台账) |
+| 删/散分叉 | a3=0 删除 → **名号回收**: army → cc+112 mode0 / convoy → cc+120 mode1 逐船 / railway gun → cc+128 mode2 (三 mode 表 = §4.3.9); a3=1 解散 → **人力退还**: army 走 CArmyManpower (army+976) value 容器 (data@+16, count@+28) 逐 tag 分摊 `100000×金额×value÷1e10` (sub_140BB5490 原初国归一去重) 退 cc+808; 总系数 = (100000 − DISBAND_MANPOWER_LOSS) × {1 流亡支 / ENCIRCLED_DISBAND_MANPOWER_FACTOR 常态 / NAVAL_TRANSFER_DISBAND_MANPOWER_FACTOR 海运} ÷ 100000 (**流亡支 IDA 丢支 / convoy 15 位定点式 / railway gun 128/64 除数 三处待 PE 验算**); convoy 人力输入 = Σ +840 池元素 +2056 | sub_140C8E520 / sub_140C3D900 / sub_140E8D310 / sub_140C69A30 → sub_140CFE1B0 / sub_140D65040 |
+| 引用清理 (不分删散, 序) | ① 借调单位: 门 sub_140C01960 (unit+472 ≠ unit+480 且非同原初国) → 国+784/+796 idreg 摘除 ② iface (qword_14332F698) +1336 列表摘除 (门 unit+12 旗; +1336 语义待裁, 推定选中/关注表) ③ 省在场四表摘除 (主表 prov+224/+236 + 三分型表 248/272/296 系 swap-erase, §4.14) ④ 国名册三型分派 (type0 army → country.cpp:8333 / type1 舰队 cc+632/+644 扫描 / type13 railway gun) ⑤ **CCountryAI::RemoveReferences 双派发** (经 CCountry::RemoveUnit 一次 + 锚内直调一次, 同一 cc+552 目标; 订阅表逐项 vt[23] OnUnitDeleted 级联) ⑥ gs+1600/+1612 玩家选中单位表摘除 ⑦ logical_country → cc+360/+372 战区数组 → theatre+128/+140 og 数组三级扫描, 逐 og 摘成员钩 (og+80/+92 摘除 + og+152/+164 与 +176/+188 引用表清 + og+415 脏旗 → 重算 og+452/+456; **钩节点 = &unit+184, 清 +8 置 +40 — 形状待 PE 验算**) | sub_14070FFD0 / sub_1402A00F0 / sub_140E7FA10 / sub_140710140 → sub_1406FF9F0·sub_140D597F0 族·sub_1406FFBD0 / sub_1402AC3C0 / sub_1401EBCF0 / sub_140BF29B0 |
+| 尾段 | type==13 且 unit+1088 ≠ 0 → 用其 og 命令列表构造 CUnassignRailwayGunFromOrdersGroup (ctor sub_140E8E630, RTTI 直证; sizeof 72) → IsValid sub_140E8F590 → Execute sub_140E8F1F0 (§4.33 19871) → holder 复位 sub_1401C28C0; vt[0](unit,1) 标量析构; 非载入态 iface vt[23] 派发 + 216B UI 事件 (码 2) 入 iface+1192/+1204 队列 + sub_140B6B050 刷新 | sub_140E8E630 / sub_140E8F590 / sub_140E8F1F0 / sub_1401C28C0 |
+
+配套定案: cc+808 人力池 = {tag@+8, 常态池@+12, 流亡池@+24} (sub_140CFE1B0 =
+CCountryManpower::Add, manpower.cpp:466 断言 "Giving exile manpower to a nation
+not in exile"; exile 旗直加流亡池, 常态经 sub_140CFE290 从世界人力池 cc+1120
+扣减可得量后入池 — 扣减分支待 PE 验算)。名号回收/重登记的精确语义待 PE 验算
+(删除期 tracker 建 176B CNameGroupMember 后释放, 取新名回填)。

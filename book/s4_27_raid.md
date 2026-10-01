@@ -142,7 +142,9 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 | 项 | 值 |
 |---|---|
-| 单例槽 | qword_14332F000 (`_pInstance && "Instance not created."` 断言, gameitemdatabase.h:142) |
+| 单例槽 | qword_14332F000 (`_pInstance && "Instance not created."` 断言, gameitemdatabase.h:142); 懒构造器 sub_1401731C0 (Init_thread 模式, malloc 0xC8, 三层 vtable 直写 TGameItemDatabase→TReloadableGameItemDatabase→CRaidDatabase) |
+| 装载路 | LoadDatabases (sub_14018BB20, LOADING_DATABASES 阶段) → 目录数组 {"common/raids/categories", "common/raids"} .txt → InitFromDirectory → 逐文件 CRaidCategory/CRaidType reader; **db = 进程级静态资源, 会话读档不重 parse** (修正器对象生在 def 装载期, 随 db 重建整体废弃) |
+| ⚠ 勿混认 | qword_14332F080 = **CStrategicRegionDatabase** 单例 (ctor sub_140ABFD90), 非 raid DB |
 | CRaidType 工厂 | sub_140A9D2D0(db, name) → malloc 0xBF8 + ctor 0x140A9A170, 注册进 **db+144** 哈希表 (查重 sub_140A972A0(db+144)) |
 | CRaidCategory 工厂 | sub_140A9D170(db, name) → malloc 0xE0 + 内联 ctor, 注册进 **db+88** 哈希表 |
 | CRaidType+32 = CRaidCategory* | reader `case 702 category` → `*(a1+32) = sub_140A9D170(sub_1401636B0(), &name)` |
@@ -288,9 +290,34 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | [10] | 0x14158E980 | 0x14158E8A0 | 断言 `"Non-unit success chance modifier computed based on only a unit"` (raid_database_extras.cpp:1227); sub_140535110 / sub_140541DC0 / sub_1405520E0 三件套 = CVariables 局部作用域 + 求值 (推定 = tooltip/求值包装) |
 
 > 槽 [7]/[8] 两派生**同址** ⇒ 定义在基类且不被覆写; [0]-[6]/[9]/[10] 逐派生覆写。
+> ⚠ **契约形态**: 本族 = 精简 11 槽 def 侧契约 — [1] = ParseKey 单键 reader (由
+> sub_14158A1B0 块循环驱动, 非逐键 switch 大表), **无 Save/Load wrapper / 无 writer**
+> = 不入存档的 def 侧脚本对象 (运行期事件也不加修正器 — 全 exe 唯一构造点 = 工厂);
+> 与宿主 CRaidSuccessFactors 的 CPersistent 九槽形态两层并存, 勿混排。
+> Std [3] CanTargetAffect 白名单 = {11058 interception / 12166 anti_air / 12237 radar /
+> 12335 air_superiority / 13025 resistance / 16599 enemy_units}; [5] UsesScopes 白名单 =
+> {10406 strength / 11930 experience / 11958 air_defence / 11979 organisation / 12196 recon /
+> 12229 strategic_bomber / 12238 air_agility / 12668 reliability} (mask 实参被忽略);
+> [6] 参与门: Std = 仅 resistance 非 0 时查 owner-target 关系 (sub_140E7E780);
+> Custom = enable CAndTrigger 门。Compute [7] = 先查 [6] 门 (真 → 贡献 0), 否则
+> [9]/[10] 取输入值 → 区间映射; owner = CRaidInstance+88 对象 +8 tag, target = inst+160。
 > 工具函数 RTTI 直证: `NRaids::NUtils::BuildRaidSuccessFactorsTooltip(CRaidInstance const&, CToolTip&)`
 > 与 `BuildRaidWarningTooltip(...)` 的 lambda 参数类型 = `CRaidSuccessChanceModifier const&`
 > ⇒ 修正器对象被 tooltip 逐条遍历 (高置信)。
+
+**Std 输入值取值表** ([9] 无单位 / [10] 带单位两变体; token 分派全表):
+
+| token | 取值 |
+|---|---|
+| 12335 air_superiority | 目标州→战略区域 owner 空域数据: `100000×x/(x+y)` (分母 ≤0 → 50000); 区域缺失报 "Failed to find target strategic region..." |
+| 12524 intel | 56B 情报结构五项和 − 第六项 (sub_140FE6110/150) |
+| 13025 resistance | 目标州 `*(state+632)` 抵抗值 |
+| 16599 enemy_units | 目标省 +272 容器逐国: `tag==victim ∨ 同阵营` 累加 100000 (省内敌国计数) |
+| 11058 interception | 目标区域机翼遍历: 类型==4 ∧ 基地==区域 → 累加 `100000×wing+124` |
+| 12166 anti_air | `100000×(int)州防空等级 sub_1409D8110` |
+| 12237 radar | owner+4344 覆盖查 (0 → 0, 否则 100000 二值) |
+| 12229 strategic_bomber / 12238 air_agility / 12668 reliability / 11958 air_defence | 单位族: 机翼/师 + 目标省 → 对应 getter (strength = 师 vt 槽[34] / organisation = 槽[36] / experience = sub_141466640 / recon = sub_140BFD6E0) |
+| 其它 | out = 0 |
 
 **修正器字段表** (偏移升序):
 
@@ -301,20 +328,22 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | +24 | i64 | i64 | 16596 reference | 参考值 (ctor 默认 100000) |
 | +32 | i64 | i64 | 16601 start_reference | 起始参考 |
 | +40 | i64 | i64 | 16600 start_weight | 起始权重 |
-| +48 | — | u32 | 10646 scope | 作用域枚举 (ctor 0) |
-| +56 | — | 匿名结构 (88B) | 16675 formula | 公式 (CTrigger/表达式体) |
-| +112 | — | 匿名结构 | 10376 enable | 启用条件 |
+| +48 | — | u32 | 10646 scope | **作用域位掩码** (ctor 0): 读值 token 分派 439 state→2 / 10394 country→4 / 10403 unit→256 / 19478 character→8, 其它值报 "Invalid scope type for custom raid success chance modifier"; 此值 = UsesScopes 快路径缓存掩码 |
+| +56 | — | CMeanTimeToHappen 56B | 16675 formula | **公式块** (ai_will_do 同族: 基值 + 条件加权条目; ctor sub_1405516A0; IsValid 所查 count@+44 即本块容器 +100) |
+| +112 | — | CAndTrigger 88B | 10376 enable | **启用条件** (ctor sub_140549F40, 默认 +144 = 10600 and; slot[6] 求值出口 = 其 vt[+24]) |
 | +132 | — | u32 | — | 计数/门 (slot[6] 用) |
 | +200 | — | u8 | 16676 can_target_affect | 默认 0 |
 | +201 | — | u8 | 16677 can_actor_affect | 默认 1 |
 
-**工厂 0x1415917E0 分派规则** (按 token):
+**工厂 0x1415917E0 分派规则** (按 token; dump 394357-394539 逐句实读):
 
 | 修正器 token | 产出 |
 |---|---|
-| 11398 base | **Custom** (malloc 0xD0) |
-| 其它任意 token | **Standard** (malloc 0x30) |
-| 特例 (白名单: 10406 strength / 11058 interception / 11930 experience / 11958 air_defence / 11979 organisation / 12166 anti_air / 12196 recon / 12229 strategic_bomber / 12237 radar / 12238 air_agility / 12335 air_superiority / 12524 intel / 12668 reliability / 13025 resistance / 16599 enemy_units) | **Standard** (直通分支) |
+| 11398 base | **不建对象** — sub_1424C0A70 读数直落组 base 字段 (组+0) 后 return |
+| 白名单 15 token (10406 strength / 11058 interception / 11930 experience / 11958 air_defence / 11979 organisation / 12166 anti_air / 12196 recon / 12229 strategic_bomber / 12237 radar / 12238 air_agility / 12335 air_superiority / 12524 intel / 12668 reliability / 13025 resistance / 16599 enemy_units) | **Standard** (malloc 0x30; token = 脚本 token 本身; 无 IsValid 门直入组容器) |
+| 其它任意 token | **Custom** (malloc 0xD0; token = 键名串 FNV 哈希 sub_1424BB460; 解析块体后过 vt[2] IsValid 门, 假 → 报 "Custom success chance modifier not correctly set up" 并销毁) |
+
+> 原「11398 → Custom / 其它任意 token → Standard」两行互换系误记, 说废 (PE + dump 双重直读)。
 
 > Custom 建好后调 `(*vt[2])(obj)` 校验, false ⇒ 报 `"Custom success chance modifier not correctly set up"`
 > (Custom 的 IsValid = formula 至少 1 条)。
@@ -324,7 +353,7 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | 步 | 内容 |
 |---|---|
 | def 侧 | CRaidInstance+152 → CRaidType*; CRaidType+2472 → CRaidSuccessFactors (.success@+8 / .critical@+40 / .disaster@+72); CRaidType+992 → CRaidSuccessLevels |
-| 运行期 | 0x140FEA7B0 = CRaidInstance 结果判定: `v9 = 0x14158F200(risk_level)` 基础成功率 (全局槽 qword_143331888/9A0/B00); `v11 = 0x14158C770(factors+2472) → 0x14158AEE0(factors+8)` success 组聚合; `v12 = 0x14158C2C0(factors+2472)` 三组聚合和 + risk 灾难基值 (全局槽 qword_1433311C8/2A8/390); `v8 = 0x14158AF70(factors+2472) → 0x14158AEE0(factors+40)` critical 组聚合; `v10 = 0x14158C2C0(...)` 再取一次 = disaster 组 |
+| 运行期 | 0x140FEA7B0 = CRaidInstance 结果判定 (调试重判变体 — 控制台强制档命令调用; 生产链内联于 0x140FEE5F0, 数值同码): `v9 = 0x14158F200(risk_level)` 基础成功率 (全局槽 qword_143331888/9A0/B00); `v11 = 0x14158C770(factors+2472) → 0x14158AEE0(factors+8)` success 组聚合; `v12 = 0x14158C2C0(factors+2472)` 三组聚合和 + risk 灾难基值 (全局槽 qword_1433311C8/2A8/390); `v8 = 0x14158AF70(factors+2472) → 0x14158AEE0(factors+40)` critical 组聚合; `v10 = 0x14158C2C0(...)` 再取一次 = disaster 组; roll = random_fixed %1e5, file:line 实参仅作日志不作种子 |
 | 阈值 | `成功阈值 v2 = clamp(v9 + v11, 0, 100000 − v12)` |
 | 判定 | `roll < 阈值 × critical_sum / 100000` → 4 CRITICAL_SUCCESS; `roll < 阈值` → 3 SUCCESS; **roll ∈ [阈值, 阈值+disaster) → 1 FAILURE (灾难带); roll ≥ 阈值+disaster → 2 LIMITED_SUCCESS** (低 roll 好; 阈值 = clamp(risk+success, 0, 100000−disaster), 断言 "Disaster risk and success chance sum to more than 1" raid_instance.cpp:491); 结果经 0x140FEC8B0(inst, outcome) 写 inst+60 outcome 并结算 |
 
@@ -358,8 +387,8 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 | 函数 | 作用 |
 |---|---|
-| 0x14158C450 | **区间映射**: `out = start_reference + (start_weight − weight) × (ref − start_ref) / (a4 − a3)`, 再 clamp 到 `[min(ref,start_ref), max(ref,start_ref)]`; 除零 ⇒ 0xFFFFFFFF 后 clamp |
-| 0x14158AC10 | **作用域注入**: 按 UsesScopes 掩码把 target 的 province/state/country/leader 写进 CVariables (+176 局部变量表); 掩码位 2/4/8/256 分别对应四个注入点 |
+| 0x14158C450 | **区间映射**: `out = clamp(start_weight + (weight − start_weight) × (ref − start_reference) × 100000 / (reference − start_reference), min(start_weight, weight), max(start_weight, weight))` — 输入度量在 start_reference 处贡献 start_weight、reference 处贡献 weight, 两点线性插值、两点外截断; **除零 (reference == start_reference) 贡献 = max(start_weight, weight)** (quot = 0xFFFFFFFF 加基项后截断到上端, 非 0) (原式常数项与斜率方向均误, 说废; dump 3716756-3716798 逐句) |
+| 0x14158AC10 | **作用域注入**: 按 UsesScopes 掩码写 CVariables (+176 局部变量表); 无条件首步 sub_141592B00 = 目标省/州/leader 基础 scope (SRaidTarget 字段), 掩码位 **2 = state (439, sub_140FE6C70 → 州 id) / 4 = country (10394, owner_tag) / 8 = character (19478, 乘员) / 256 = unit (10403, 师/翼)** (reader 键值分派 + 注入函数双重直证; 原「province/state/country/leader」含糊措辞说废) |
 | 0x141592760 | **UsesScopes 实现**: Custom = 扫 formula 触发器的 scope 掩码; `(v3 & a2) != 0` 快路径 (v3 = 缓存掩码@+48) |
 | 0x14158DF40 | **目标解析 + 诊断** (state/province 缺失时报错) |
 
@@ -505,7 +534,7 @@ cancel_trigger 可拦。装备检查 sub_140FE9EB0: new_phase==1 跳过; essenti
 速度/距离 (定案): 每小时行程 sub_141465B50 = 海军型 NAVAL_TRANSFER_BASE_SPEED
 ×NAVAL_SPEED_MODIFIER / 舰源 = 舰速×LAND_SPEED_MODIFIER / 空运 = 最快
 transport (def 旗&0x100000) 属性62×LAND_SPEED_MODIFIER (无 → 断言
-raid_unit.cpp:532); 终式 = RAID_UNIT_SPEED_MULTIPLIER × base ×
+raid_unit.cpp:532 后 base = 1e5 兜底); 终式 = RAID_UNIT_SPEED_MULTIPLIER × base ×
 type+3048 speed_multiplier。源→目标距离 sub_1415934A0: type 0/1/3/4 →
 路径距离 ×100000/300000 (**÷3**); type 2 海军 → gs 系。射程 sub_141593390:
 AI 且 type+3016 unlimited_ai_range → 直通; 否则 距离有效 ∧ !(type+3008 旗 ∧
@@ -542,10 +571,15 @@ CRaidTargetStatus {existing@0, detectable@4, SRaidTarget@8, 旗@48, 容器@56});
 +884 旗 / type+776 目标种类块 (建筑查表 / 省份白名单 / 全通旗) / 严格门∨显示
 门) → 40B SRaidTarget 候选。AI 侧: 节拍 = 每日 ∧ RAIDS_ENABLE_AI ∧ 错峰
 (RAIDS_CREATE_FREQUENCY_DAYS); 建计划 (打分 = 战略欲望 × 近期打过同目标因子
-RAIDS_AVOID_SAME_TARGET_FACTOR × ai_will_do; 已在打跳过) → 匹配
-(**「最近源×最优单位」二重贪心**: 源按路径距离升序 / 单位按成功率因子+距离
-因子降序, 首个过射程+适配) → 维护 (可用 CP 不足 → 取消低分在飞
-RAIDS_SCORE_DIFF_TO_CANCEL) → 发射 (CanLaunch ∧ 成功率 ≥ ai_min_success_chance
+RAIDS_AVOID_SAME_TARGET_FACTOR × ai_will_do; **「近期」= 环条目天龄 ≤
+RAIDS_AVOID_SAME_TARGET_DURATION_DAYS 180 天**; 欲望项 = clamp(1000×desire+1e5,
+≥0); 已在打跳过) → 匹配
+(**「最近源×最优单位」二重贪心**: 源按路径距离升序 / 单位按商式
+`500×max(1+Σ成功率修正, 0) ÷ (1+0.1×km)` 降序 (km = MAP_SCALE_PIXEL_TO_KM
+7.114 × 路径距, 3× 与 ÷3 相消), 首个过射程+适配) → 维护 (可用 CP 不足 → 取消
+低分在飞 RAIDS_SCORE_DIFF_TO_CANCEL; **nr_days_launchable > 
+RAIDS_CANCEL_AFTER_DAYS_LAUNCHABLE 60 → AI 取消**) → 发射 (CanLaunch ∧ 成功率
+(success 组聚合, 不含 risk 基值) ≥ ai_min_success_chance
 (type+3040 旗?type+3032:RAIDS_MIN_SUCCESS_FOR_LAUNCH) → CExecuteRaidCommand)
 → 创建 (**门 = 可用 CP ≥ RAIDS_COMMAND_POWER_CAP_TO_CREATE** (资源门非冷却);
 CCreateRaidCommand risk=MEDIUM / auto_launch=0)。玩家侧 CCreateRaidCommand
@@ -556,12 +590,14 @@ ctor sub_141B319B0 (a7 risk→+168 / a8 auto_launch→+172) → Execute → Crea
 CRaidType 新字段: +776 目标种类过滤块 / +848 核突袭旗 (nuclear_raids 专路) /
 +3008 max_distance 有效旗 / +3040 ai_min_success_chance 有效旗 (定案)。
 
-**预警判定** (管理器遍二, 对未置旗 (+400==0) 实例, 定案): 取发起国 (+160,
-raid_source.cpp:410 源省断言链) 的 CCountryIntel (国家+4072, §4.11.7) 矩阵中
-目标国行 (32B = 4×int64 定点 civilian/army/navy/air), 列号 = 突袭类型定义
+**预警判定** (管理器遍二, 对未置旗 (+400==0) 实例, 定案): 取**受害国**
+CCountryIntel (国家+4072, §4.11.7) 矩阵中**发起国行** (inst+88+8, 32B = 4×int64
+定点 civilian/army/navy/air), 列号 = 突袭类型定义
 `*(*(item+152)+32)+32` 0..3 四象限选一; 与 define
 `NIntel.RAID_MIN_INTEL_FOR_WARNING_ON_LAUNCH`×100 (defines_intel.h:242) 比较:
-**相位 2 达标线随准备进度从 10^7 线性降到 define 值, 相位 3/4 为定值**; 达标
+**相位 2 达标线随准备进度从 10^7 线性降到 define 值 (严格 >), 相位 3/4 为定值
+(取 ≥)**; 运行期只用 ON_LAUNCH 一档 — HALFWAY/EARLY 两 define 仅情报台账 GUI
+消费; 达标
 置 +400 旗并经 sub_1419ABC90 按双侧相关度挂入 +240 预警池 (消费方 = alert
 id 73-77 族)。方向定案 = `[A][B]` = A 关于 B 的情报 (CAddIntelEffect::Execute
 0x14034A8D0 交叉验证)。

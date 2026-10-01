@@ -268,7 +268,7 @@ CBrowserType 同族)。
 |---|---|---|---|
 | +8 | u32 | 元素计数 | ctor 置 0 |
 | +16 | qword | 预留 (清零) | ctor |
-| +24 | CPdxInlineBufArray\<NCollection::COperator,16\> {data@24, cap@32, count@36, alloc@40} | **算子/元素数组** (内联 16 项) | ctor 置 `*(a1+24) = a1+49` (内联路径, 当分配器 vt[4] == sub_140161270 时) |
+| +24 | CPdxInlineBufArray\<NCollection::COperator,16\> {data@24, cap@32, count@36, alloc@40} | **算子/元素数组** (内联 16 项) | ctor 置 `*(a1+24) = a1+56` (内联路径, 当分配器 vt[4] == sub_140161270 时) |
 | +48 | 分配器对象 (264B) | `CPdxHybridInlineBufferAllocator<COperator,16,int>` vt 0x142719840; 尾 +312 = &off_143085170 | 48 + 264 = 312 ✓ |
 | +320 | qword | 第二容器 data | ctor 置 0 |
 | +328 | qword | 第二容器 cap | ctor 置 0 |
