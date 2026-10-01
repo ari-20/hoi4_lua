@@ -192,7 +192,7 @@ profiler 域 **"gamestate.hourly"**; gamestate.cpp:5918-5920 断言窗口 (定�
 | 12 | 战斗 (计时域 6) | +608 | CCombatManager 每小时推进 (§4.22.9a) |
 | 13 | 阵营 | +1016 | **CFactionSystem::HourlyUpdate** (§4.2.18) — 位于战斗后、ai_update 前 (函数体顺序直读) |
 | 14 | **ai_update** (sub_1401D7E40) | | 门 = idler vt+880 网络判别 + session+84; 收集的 CAICountry 策略数组以作业 "Short Task" 并行发射 |
-| 15 | DoCareerProfileHourlyUpdate | | sub_1401F1190 (身份未决, 推定包装) → sub_1401B1C40(gs+2240) 逐 tag 生涯统计 |
+| 15 | gs major top-K IC 重算 + career profile | | **sub_1401F1190** = gs major top-K IC 重算 (定案; ai_update 后无条件, 与 §4.2.10 行互引): K = max(MIN_MAJOR_COUNTRIES, 2), 逐国 (tag>0 ∧ owned_states>0) 工厂数 (sub_140E69340(cc+3944)) 插入排序, 写 cc+5211 top-IC 旗 (sub_1407128F0); 产物 gs+2168 top-IC 均值 (除零写 −1) / gs+1320 基准国 tag; 紧后独立调用 **sub_1401B1C40(gs+2240)** = DoCareerProfileHourlyUpdate 逐 tag 生涯统计 (该标签只覆盖此件) |
 
 > 备注: 每两子系统间夹一个**帧保活重入块** (§4.2.4 备注: byte_1430864E0 门 +
 > sub_1402A3210 帧间隔判定 + sub_14222EEB0(mgr,0) 重入一帧), 防长 tick 假死,
@@ -206,8 +206,8 @@ sub_1401F7380/sub_1401B8650/sub_1401BB280 各占 ~3%):
 
 | 相位 | 内容 | 并行性 |
 |---|---|---|
-| 0 | preHourlyUpdate: 逐活跃国 sub_140705410 = ① 逐 CNuke 推进 (cc+4880, 72B/元素 = §4.3.8 尺寸直证; sub_14109A520) ② cc+4328 对象日期驱动刷新 (sub_1414E8370, 身份未决)。theatre 管理/移除不在此相位 (在相位 5 pass①) | 串行 |
-| 1 | CTaskForce 波次 #1: 逐国收集进全局数组 (qword_14332F2E0 / 计数 dword_14332F2EC) → sub_1401B1AF0 = **PdxParallelForContainer(CPdxArray\<CTaskForce\*\>)** 并行 (memfn sub_140D74D20, 读 cc+4016, 身份未决); 门 = sub_1401AEB50(52) 设置位测试 (dword_14332F248) | tbb join A |
+| 0 | preHourlyUpdate: 逐活跃国 sub_140705410 = ① 逐 CNuke 推进 (cc+4880, 72B/元素 = §4.3.8 尺寸直证; sub_14109A520) ② cc+4328 **CPlayerAiPrefs 托管偏好到期回默认** (§4.3.1): 门 sub_1414E82D0 (非默认签名 {1,0,0,1,−1}); sub_1414E8370 到期判定 (gs+1128 天数 ≥ timeout@+4340 + 365, 参考 CGameDate「1.1.1.1」哨兵 43808760 只读常量) → 写回默认 {偏好 0x01000001, −1}。theatre 管理/移除不在此相位 (在相位 5 pass①) | 串行 |
+| 1 | CTaskForce 波次 #1: 逐国收集进全局数组 (qword_14332F2E0 / 计数 dword_14332F2EC) → sub_1401B1AF0 = **PdxParallelForContainer(CPdxArray\<CTaskForce\*\>)** 并行 (memfn **sub_140D74D20 = CTaskForce 海军总部挂接重建**, 定案: 遍历属主国 naval_headquarter_status (cc+4016 CBC 80B 条) 匹配 tf+496 当前省 (陆省换战略区) → 命中推入 tf+1832 naval_headquarter 容器; 前/后串行 pass sub_140D752B0/140D750B0 向总部对象 +48 注册表推 {旗 1/0, tf+824} 32B 订阅标记); 门 = sub_1401AEB50(52) 设置位测试 (dword_14332F248) | tbb join A |
 | 2 | hourly_parallel: 国家数组拷贝双键排序 (键 = cc+5488 EWMA + cc+668 师数; >32 元素 sub_1401B6BE0 并行归并, 否则 sub_1401B6870 插入) → tbb parallel_for (auto_partitioner) 每国 sub_1406FDBA0 (countryHourlyUpdateOnlyChangeSafePrivateAndCache; EWMA stamp 头 sub_140CFEAD0 / 尾 sub_140CFEAF0, 作用于 cc+5424 块, 5496 = 块内 +72 槽) | **tbb join B** (阻塞) |
 | 3 | sub_1401E4700 = **CGameState::ProcessDeferredTargetedDecisions**: Country Deferred + State Deferred Targeted Decisions 两段 (域名串直证) | 串行 |
 | 4 | **DoTradeRoutesUpdate** (sub_1401D9890, §4.21.1b): 守卫对 sub_1401B79E0/B7A40 夹 (推定并行只读窗); 内部 sub_1401B1860 = PdxParallelCombine 合并段 (start_for 符号直证; 串行兜底逐国 + _InterlockedAdd 计数) | 内部 tbb |
@@ -216,8 +216,8 @@ sub_1401F7380/sub_1401B8650/sub_1401BB280 各占 ~3%):
 | 7 | 军队收集: 逐国收集 CArmy* 进本地数组 → tbb parallel_for (start_for 符号 = PdxParallelForContainer(CPdxArray\<CArmy\*\>); memfn = **sub_140C88A70 CArmy::HourlyUpdate**: gs+2617 门 → sub_1414E4780、+1192 倒数、**army+1080 attrition 缓存重算** (§4.18.14)、+976 求和 ×100000 写 +1208) | **tbb join C** (阻塞) |
 | 8 | 海军可达性: gs+1032 管理器 (scoped_ptr, "_pPtr" 断言) 调用方临时置 +32=1 → sub_140E255E0 (→ sub_140E24860 PdxParallelForContainer 派发, EJobType=1; 串行叶 sub_1419EE650, §4.21) → 复位 +32=0 | **tbb join D** (阻塞) |
 | 9 | CTaskForce 波次 #2: 重收集 → sub_1401B1AF0 并行 (memfn = **sub_140D71760 CTaskForce::HourlyUpdate** 高置信: idpair 解析 → 海军区域查询写 tf+1616 → 逐舰船 +840 数组三连 sub_140C32E10/C32C90/C3E4A0) | **tbb join E** (阻塞) |
-| 10 | hourlyUpdateUnits: 占领 bundle 包夹 (sub_140EED690 ++ / sub_140EF2F30 −−, 计数归零 → profiler "theatremanager.endbundle" 复位 g_OccupationBundleConquer/Relation, theatre.cpp:5572) 内逐活跃国 sub_140717BC0 = **全单位 vt[18] 小时 tick 串行驱动** (旧"纯统计上报"说翻案): ① cc+656 师容器逐师调 **vt[18]** (144 槽 = CArmy::[18] 0x140C881D0 每师每小时总入口, §4.18) + sub_140C00000 战中场次计数 → cc+4904; ② cc+632 舰队容器快照拷贝逐元调 sub_140D577F0 (语义未决); ③ cc+680 铁路炮容器逐元调 vt[18] (CRailwayGun::[18] 0x140E8B8E0); 调试门 byte_143452529 仅包军队数/装备占用 before/after 条件日志 (country.cpp:13281/13314), vt[18] 循环无条件执行; 主线程采样占比 ~8-11% = hourly 调度内最重单件; 兄弟调用 sub_1407164E0 (**CCountryFuelStatus 燃料小时结算** cc+5504, §4.3.16) | 串行 (bundle 窗口) |
-| 11 | 错峰日步 (**两套, 定案**): 同一相位源 `hour = (gs+1128 − 43800000) % 24` 分两腿 — ① tbb parallel_for (lambda_5) 每师门 `hour%24 == 师 id%24` (**无 +1**) → C881D0 内联日更块 = **CArmyRequests (+1144)**: 141510110 到期判断 (到期 14150F740 重建请求 + 经验按 +976 need/value 折减) + 14150E460 每小时无条件推进 (reinforcement/upgrades delivery → 140C78E90 装备入 +840 池 → 触发 vt[22] RefreshAbilities); ② 串行尾遍门 `((army+28 师 id)+1) % 24 == hour` (**有 +1**) → **sub_140C89090 指挥链聚合重建** (army+1584 leader 旗门; 清 8 统计容器 +1816/+2008/+2200/+2392/+2968/+3160/+2584/+2776, 从 +3528 数组四组重灌, 虚槽 [28]/[30]; 聚合对象类身份未决) — 相位差 +1 使指挥链与 requests 重建错日撞车, 各每师每天恰一次 | **tbb join F** (阻塞) |
+| 10 | hourlyUpdateUnits: 占领 bundle 包夹 (sub_140EED690 ++ / sub_140EF2F30 −−, 计数归零 → profiler "theatremanager.endbundle" 复位 g_OccupationBundleConquer/Relation, theatre.cpp:5572) 内逐活跃国 sub_140717BC0 = **全单位 vt[18] 小时 tick 串行驱动** (旧"纯统计上报"说翻案): ① cc+656 师容器逐师调 **vt[18]** (144 槽 = CArmy::[18] 0x140C881D0 每师每小时总入口, §4.18) + sub_140C00000 战中场次计数 → cc+4904; ② cc+632 舰队容器快照拷贝逐元调 **sub_140D577F0 = CFleet 小时驱动** (定案: fleet+176 有效性预处理 → 快照 task_force 容器 → 重组分支 (sub_140D51360 真 sub_140D530E0 / 假 sub_140D5A660 按 tf+884 分桶) → 逐 CTaskForce 双断言 fleet.cpp:548/550 调 **vt[18] = 0x140D705F0 移动更新**); ③ cc+680 铁路炮容器逐元调 vt[18] (CRailwayGun::[18] 0x140E8B8E0); 调试门 byte_143452529 仅包军队数/装备占用 before/after 条件日志 (country.cpp:13281/13314), vt[18] 循环无条件执行; 主线程采样占比 ~8-11% = hourly 调度内最重单件; 兄弟调用 sub_1407164E0 (**CCountryFuelStatus 燃料小时结算** cc+5504, §4.3.16) | 串行 (bundle 窗口) |
+| 11 | 错峰日步 (**两套, 定案**): 同一相位源 `hour = (gs+1128 − 43800000) % 24` 分两腿 — ① tbb parallel_for (lambda_5) 每师门 `hour%24 == 师 id%24` (**无 +1**) → C881D0 内联日更块 = **CArmyRequests (+1144)**: 141510110 到期判断 (到期 14150F740 重建请求 + 经验按 +976 need/value 折减) + 14150E460 每小时无条件推进 (reinforcement/upgrades delivery → 140C78E90 装备入 +840 池 → 触发 vt[22] RefreshAbilities); ② 串行尾遍门 `((army+28 师 id)+1) % 24 == hour` (**有 +1**) → **sub_140C89090 指挥链聚合重建** (army+1584 leader 旗门; → army+192 = _pOrdersGroup → **og+136 = CArmyLeader\*** (§4.24.3) → sub_140C20F70 = 清**将领对象** 8 统计容器 +1816/+2008/+2200/+2392/+2968/+3160/+2584/+2776 (坐标 = 将领非 army) + 从将领 +3528 数组 (count@+3540) 四组键 (+864/+1056/+1248/+1440) 重灌 + vt[28] (0x140C20FA0 四槽聚合) + vt[30] + 将领名串广播; 聚合对象 = **CArmyLeader** 定案; ⚠ §4.18「国+136」坐标勘正为 og+136) — 相位差 +1 使指挥链与 requests 重建错日撞车, 各每师每天恰一次 | **tbb join F** (阻塞) |
 | 12 | postHourlyUpdate (sub_140705630): ① sub_1406FF1F0 批量重算本小时累积修改器后 **cc+4320 清零** (§4.3.23); ② `(tag_idx + gs 小时) % 24 == 0` 错峰每日脉冲 → 确定性 random_int (random.cpp:258) → 构造 CEventScope → on_action ×2 (§4.2.9) — **on_daily 派发**; ③ cc+4880 72B/项桶数组 (计数 +4892) 逐桶到期处理 — **桶 = 核弹在途打击 CNuclearStrike** (24B 条 {+8=13718, +16 省 id, +20 飞行小时}; 相位 0 sub_14109A520 推进 / 本相位 sub_141098460 到期结算 sub_1410986E0 + 压缩删除, §4.3.10a); ④ cc+4744 convoys 派生值缓存重算 | 串行 |
 
 > 备注: tbb 机制件 (join B 三件套, start_for 实例): 入口 sub_1401F7380 (execute 槽[1],
@@ -541,6 +541,13 @@ CAirWing::HourlyUpdate 逐翼要点: other_combats 死引用压缩 / 无效任�
 
 
 #### 4.2.21 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+| e4b2_dd6a30 | sub_140DC5F30 / 1396841 / 123 / **玩家条目→命名档案表同步 (按名)** / 遍历 gs+248 玩家条目 (160B/条, gs+260 计数), 以条目+32 名字在 gs+16 有序 160B 命名表线性查得后清写对端字段 / gs+248/260 = 书 s4_02:102 |
+| e4b2_dd6a30 | sub_14070C260 / 2764230 / 8 / **CProductionStatus 两方法对** / sub_140E6DB80(*(cc+3944)) + sub_140E6DE60(同) / cc+3944; 与书 s4_02:294 「sub_140E6D830(cc+3944) 传播」同族 |
+| e4b2_dd6a30 | sub_14070C260 / 2764230 / 8 / **CProductionStatus 两方法对** / sub_140E6DB80(*(cc+3944)) + sub_140E6DE60(同) / cc+3944; 与书 s4_02:294 「sub_140E6D830(cc+3944) 传播」同族 |
+| e4b2_dd6a30 | sub_14070C260 / 2764230 / 8 / **CProductionStatus 两方法对** / sub_140E6DB80(*(cc+3944)) + sub_140E6DE60(同) / cc+3944; 与书 s4_02:294 「sub_140E6D830(cc+3944) 传播」同族 |
+| e4c3c_part2 | sub_1419DCBD0 / 6861759 / 地图模式着色 / **逐省颜色写入原语**（容器 data@+0 按 4×下标写色 dword，变才写 + sub_14012B520 脏区传播；锚二 ×15 + 宿主 140E1A890 尾部逐国展开） / 定案（结构直证 + 书 s4_02 *(a1+56) |
+| e4g_part10 | 26 / 155 / sub_140728400 (402100) / 决议/任务 / **cancel_effect 字段执行器**（串直证，与 #5 同构同断言）；调用方 = #4 ×2 + sub_140738260（"Decision.UpdateTargetedDecisions"，书 s4_02:214 |
+| e4g_part14 | - 本批 C 档 1 件（#33 sub_140C45AC0，书 s4_02:482 已实名于 HourlyUpdateThreadedInternal 并行 lambda 簇清单；本批体读补一精化注：其 RTTI = lambda_1 的 start_for 子任务派生点，可作该书行括注）；B 档「定址补注」级共 9 |
 
 | 来源 | 函数与身份 / 建议落点 |
 |---|---|

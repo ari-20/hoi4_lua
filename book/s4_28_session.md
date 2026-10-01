@@ -23,7 +23,7 @@ sub_140BC2640(gs+16, human) 按 id@+152 有序插入); writer 0X140BBC970。
 | +8 | 容器 24B | pinned_strategic_regions | 未实现 | {data@+8, cap@+16, count@+20, alloc@+24}; u32 列表; writer 块 12506 (有 writer 无提取) |
 | +20 | uint32 | pinned_strategic_regions 计数 | 未实现 | |
 | +32 | MSVC SSO 32B | user | | 引号 (账号名); size@+48 |
-| +64 | MSVC SSO 32B | 玩家显示名 | | "X controls Y" 通告构建器读 +64: sub_140CEEA30 与 gs 同步点 5231331 两处同构; 高置信 |
+| +64 | MSVC SSO 32B | name 玩家显示名 | | "X controls Y" 通告构建器读 +64: sub_140CEEA30 与 gs 同步点 5231331 两处同构; **定案** (CAddHuman/CAddPlayer 两命令经 CHuman 6 参 ctor 0x140BBC630 传参互锁: arg1=+32 user / arg2=+64 name) |
 | +96 | SProfileBadge (内嵌 16B) | 档案徽章 | | {vt@+96, u32@+104, u32@+108}; CAddPlayerCommand 复制源同位; 定案 |
 | +112 | uint32 | tag | | = 国 idx |
 | +120 | CGameDate (内嵌 24B) | 日期 | | {vt1@+120, hours@+128, vt2@+136}; ctor/copy ctor 三元组; 高置信: MP 加入/就绪时刻候选 (探针: 本档 hours=43808760 未设哨兵, 相容候选; 单机无法终验) |
@@ -32,7 +32,7 @@ sub_140BC2640(gs+16, human) 按 id@+152 有序插入); writer 0X140BBC970。
 | +152 | int32 | id | ≠-1/0xFFFFFFFF 才写 | |
 
 注: ⚠ +136 是 +120 同一日期的 vt2, 非第二日期。
-注: +148 ctor 值 = 9 = 0b1001 (bit0 = country_leader 默认 1 + bit3 = 1); ctor2 在 a6≠0 时置 11 = 0b1011 (再置 bit1)。**序列化只走 bit0** (writer `*(a1+148) & 1`; reader 只 XOR bit0 保留其余位) → **bit1/bit3 为无消费者的运行时保留旗** (全 dump 零掩码读; 业务名无锚 — 未决)。
+注: +148 ctor 值 = 9 = 0b1001 (bit0 = country_leader 默认 1 + bit3 = 1); ctor2 在 a6≠0 时置 11 = 0b1011 (再置 bit1)。**序列化只走 bit0** (writer `*(a1+148) & 1`; reader 只 XOR bit0 保留其余位) → **bit1 = hotjoin 旗** (运行时置位: CAddPlayerCommand hotjoin 路径经 ctor2 a6 写 11; 9→11 系位组合非状态枚举), bit3 写侧无独立锚 (未决)。
 
 #### 4.28.2 gameplaysettings
 
@@ -93,6 +93,8 @@ mgr = ***(BASE+54728200)***; 匹配 (writer 0X1420787E0): 播放集路径末两�
 | +8 | uint32 | type | | |
 | +12 | uint32 | id | | |
 
+第二容器 {data@+32, count@+44, 64B 条} (内层发射键 13120 id_counter)。
+
 #### 4.28.6 entity
 
 对象 = ***(gs+1096)***; writer 0X140E97CD0。
@@ -151,10 +153,10 @@ data 结构 (语义推定):
 | 类 | 窗/交互 | 语义/消费点 |
 |---|---|---|
 | CMedalItem / CRibbonItem | 窗 medal_item / ribbon_item | 创建点 = CAwardsView 族 populate sub_141F7F060; +104 = 已收集标记 → "collect_button" lambda 签名含 NGameTelemetry::SAwardCollectedData |
-| CMedalPickerItem / CRibbonPickerItem | CAwardDisplay::ToggleMedalPicker / ToggleRibbonPicker → sub_141FA7560 / 141F92ED0 | a4 = CCareerProfileMedal::CTierColors (u32@a4+8 = tier); 图标 sub_141E92E70 / 141E7E210 按 tier 着色 |
-| CMedalPopupWindow / CRibbonPopupWindow | 基 = NCareerProfile::CBasePopupWindow (0x5E0B) | **win+1496/+1500 = {成就 id, tier}** 工厂一次性 qword 写入 (ribbon 仅 id/tier 恒 1); [6]SetupContent sub_1419C4580 / 1419B1620 → **CMedalDatabase 0x14332EE30 / CRibbonDatabase 0x14332EE48** = career_medal / career_ribbon DB 运行时址; **win+112 = Show 时间戳**, Update 超时两级 define = **dword_1433374B8 隐内容 / dword_1433373FC 关窗**; 源断言 career_profile\medal_and_ribbon_popup_window.cpp |
+| CMedalPickerItem / CRibbonPickerItem | CAwardDisplay::ToggleMedalPicker / ToggleRibbonPicker → sub_141FA7560 / sub_141FA7E70 | a4 = SCareerProfileMedalData (u32@a4+8 = tier; CTierColors = def+160 数组, 图标函数内部经 sub_1406ABC90 取); 图标 sub_141E92E70 / sub_141E931B0 按 tier 着色 |
+| CMedalPopupWindow / CRibbonPopupWindow | 基 = NCareerProfile::CBasePopupWindow (0x5E0B) | **win+1496/+1500 = {成就 id, tier}** 工厂一次性 qword 写入 (ribbon 仅 id/tier 恒 1); [6]SetupContent sub_1419C4580 / sub_1419C4DE0 → **CMedalDatabase 0x14332EE30 / CRibbonDatabase 0x14332EE48** = career_medal / career_ribbon DB 运行时址; **win+112 = Show 时间戳**, Update 超时两级 define = **dword_1433374B8 隐内容 / dword_1433373FC 关窗**; 源断言 career_profile\medal_and_ribbon_popup_window.cpp |
 
-弹窗队列管理器 = CGameGui+2560; 帧消费 sub_140DD3A50 → sub_1419C5390 三分支:
+弹窗队列管理器 = CInGameIdler+2560 (80B malloc 对象; Idle=vt[4] 消费链, ctor/dtor 挂卸); 帧消费 sub_140DD3A50 → sub_1419C5390 三分支:
 
 | 偏移 | 名称/语义 |
 |---|---|
@@ -189,7 +191,26 @@ data 结构 (语义推定):
 
 #### 4.28.11 CSettings / CSystemSettings (settings.txt 总表; 双向往返)
 
-**CSystemSettings** (基类子对象 @CSettings+0; vt 0x142B3B9A0; writer 0x14222B100 / reader 0x14222AE20; Reset 0x14222A440): +152 graphics → CGraphicsSettings\* (193; refreshRate 在此类内, 与本类分开取) / +160 language (187) / +192 master_volume (237, 100.0) / +196 dev_master_volume (586, 50.0) / +200 sound_fx_volume (231) / +204 music_volume (232, 75.0) / +208 ambient_volume (322, 50.0) / +212 voice_volume (740) / +216 scroll_speed (233, 50.0; CSettings::Reset 覆盖 22.0) / +220 corner_scrolling (800) / +224 camera_rotation_speed (234) / +228 zoom_speed (235) / +232 mouse_speed (236) / +237 graceful_exit (736, 仅真值落盘) / +238 minimap_visible (741) / +304 last_game_version (747)。f32 写原语 0x1424C3100 (值走 xmm0)。
+**CSystemSettings** (基类子对象 @CSettings+0; vt 0x142B3B9A0; writer 0x14222B100 / reader 0x14222AE20; Reset 0x14222A440; f32 写原语 0x1424C3100 值走 xmm0):
+
+| 偏移 | 类型 | 键 (token) / 语义 | 默认 |
+|---|---|---|---|
+| +152 | CGraphicsSettings* | graphics (193; refreshRate 在此类内, 与本类分开取) | — |
+| +160 | 串 32B | language (187) | — |
+| +192 | f32 | master_volume (237) | 100.0 |
+| +196 | f32 | dev_master_volume (586) | 50.0 |
+| +200 | f32 | sound_fx_volume (231) | — |
+| +204 | f32 | music_volume (232) | 75.0 |
+| +208 | f32 | ambient_volume (322) | 50.0 |
+| +212 | f32 | voice_volume (740) | — |
+| +216 | f32 | scroll_speed (233; CSettings::Reset 覆盖 22.0) | 50.0 |
+| +220 | u8 | corner_scrolling (800) | — |
+| +224 | f32 | camera_rotation_speed (234) | — |
+| +228 | f32 | zoom_speed (235) | — |
+| +232 | f32 | mouse_speed (236) | — |
+| +237 | u8 | graceful_exit (736, 仅真值落盘) | — |
+| +238 | u8 | minimap_visible (741) | — |
+| +304 | 串 32B | last_game_version (747) | — |
 
 **CSettings** (≥968B; vt 0x142724468; writer 0x1401FC6F0 / reader 0x1401FB010; Reset 0x1401FA720; 未知 token 回退 CSystemSettings reader 同函数):
 
@@ -244,8 +265,10 @@ data 结构 (语义推定):
 | +792 | u8 | is_always_aprils_fools (15029, 仅真值落盘) |
 | +800 | scoped_ptr<匿名结构 (8B 形状)> | **game_rules 数据对象 (15202 块)**, 元素 8B {u32,u32} 对; +808 = 已载入旗; 相关全局 qword_14332EF20 |
 | +896 | 匿名结构 (NNB 形状) | cvaa_settings (19674) |
-| +952 | f64 | hotkey_activation_delay (19681) |
-| +960 | f64 | hotkey_actualization_delay (19682) |
+| +904..+909 | u8 位旗区 ×6 | 运行期旗 (Reset `dword@904 = 0` 清 +904..+907 + `word@908 = 0` 清 +908/+909; writer/reader 均不触及 = **runtime-only**, settings.txt 与 savegame 均不落盘)。+904 = chat 域旗 (getter sub_1419B27B0; ChatSettingsProviderImpl 薄 getter 委托, §4.00 族览); +905 / +908 = 语音无障碍族读 (SpeechInputTextboxHandler ctor 拷入自身) | 高置信 (复位/读点直证, 各旗位语义未逐位定名) |
+| +912 | 子对象 (16B 头 + u32 数组容器) | chat/大厅设置块 (**runtime-only**; Reset 经 sub_1401FA480 拷贝默认; getter sub_1419B2710 返址; ChatSettingsProviderImpl 6 薄 getter 全委托本域) | 推定 (chat 域归属) |
+| +952 | f64 | hotkey_activation_delay (19681; Reset 默认 0.1) |
+| +960 | f64 | hotkey_actualization_delay (19682; Reset 默认 0.1) |
 
 读侧忽略残留: 10259 outliner / 10535 interval / 10655 difficulty / 11537 last_dlcs / 11540 last_mods / 15944 playthrough_stats_highlights。安全区事故排查: autosave 在 +552 (枚举 int); refreshRate 在 CGraphicsSettings (vt 0x142B3B700, CSystemSettings+152 指针, writer 0x142229D60) — 两处分开取。
 
@@ -343,6 +366,7 @@ CNullIdler 归 §4.00.9。
 | +2400 | 容器 | 教程章向量 (§4.28.15 族) | |
 | +2424 | 容器 | hint 向量 (§4.28.15 族) | |
 | +2448 | 内嵌 | CTutorialMinimized (§4.28.15 族) | |
+| +2560 | 弹窗队列管理器 (80B 无虚表, malloc) | 生涯勋章/绶带弹窗队列宿主 (帧消费 sub_140DD3A50 → sub_1419C5390 三分支; ctor/dtor 挂卸, §4.28.8) | |
 
 **驱动契约** (定案): Idle = 0x140DD3A50 (基类 CGameIdler 槽[4] 覆写; 每帧经
 管理器派发, §4.2.1); **OnEnter = 0x140DE0150 (jmp thunk → setterB sub_1402A2A30:
@@ -934,6 +958,15 @@ autosave 调度与轮换 (定案):
 
 
 #### 4.28.22 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+| e4c3c_part1 | sub_140B572D0 / 6073765 / 563 行 / 地图叠加绘制/渲染 / **双 idler 帧渲染槽共用的地图叠加绘制**：调用方 = sub_140DDDDF0（= CInGameIdler 槽[29] 帧渲染，书 §4.28.14 已载）+ sub_140B3D860（= CFrontEnd |
+| e4c3c_part1 | sub_140B572D0 / 6073765 / 563 行 / 地图叠加绘制/渲染 / **双 idler 帧渲染槽共用的地图叠加绘制**：调用方 = sub_140DDDDF0（= CInGameIdler 槽[29] 帧渲染，书 §4.28.14 已载）+ sub_140B3D860（= CFrontEnd |
+| e4c3c_part1 | sub_140B572D0 / 6073765 / 563 行 / 地图叠加绘制/渲染 / **双 idler 帧渲染槽共用的地图叠加绘制**：调用方 = sub_140DDDDF0（= CInGameIdler 槽[29] 帧渲染，书 §4.28.14 已载）+ sub_140B3D860（= CFrontEnd |
+| e4c3c_part1 | sub_140B572D0 / 6073765 / 563 行 / 地图叠加绘制/渲染 / **双 idler 帧渲染槽共用的地图叠加绘制**：调用方 = sub_140DDDDF0（= CInGameIdler 槽[29] 帧渲染，书 §4.28.14 已载）+ sub_140B3D860（= CFrontEnd |
+| e4c3c_part1 | sub_140B572D0 / 6073765 / 563 行 / 地图叠加绘制/渲染 / **双 idler 帧渲染槽共用的地图叠加绘制**：调用方 = sub_140DDDDF0（= CInGameIdler 槽[29] 帧渲染，书 §4.28.14 已载）+ sub_140B3D860（= CFrontEnd |
+| e4c3c_part1 | sub_140B572D0 / 6073765 / 563 行 / 地图叠加绘制/渲染 / **双 idler 帧渲染槽共用的地图叠加绘制**：调用方 = sub_140DDDDF0（= CInGameIdler 槽[29] 帧渲染，书 §4.28.14 已载）+ sub_140B3D860（= CFrontEnd |
+| e4c3c_part1 | sub_140B572D0 / 6073765 / 563 行 / 地图叠加绘制/渲染 / **双 idler 帧渲染槽共用的地图叠加绘制**：调用方 = sub_140DDDDF0（= CInGameIdler 槽[29] 帧渲染，书 §4.28.14 已载）+ sub_140B3D860（= CFrontEnd |
+| e4c3c_part1 | sub_140B572D0 / 6073765 / 563 行 / 地图叠加绘制/渲染 / **双 idler 帧渲染槽共用的地图叠加绘制**：调用方 = sub_140DDDDF0（= CInGameIdler 槽[29] 帧渲染，书 §4.28.14 已载）+ sub_140B3D860（= CFrontEnd |
+| e4e_part3 | sub_140125090（#3） / `s4_28_session.md:638-639`（`-start_tag` = argv "start_tag=" → qword_143085070 / `-start_save` = argv → qword_143085090 两行启动链）与 `s4_02_game |
 
 | 来源 | 函数与身份 / 建议落点 |
 |---|---|

@@ -53,14 +53,14 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +438..+615 | — | = 内嵌 CStrategicResourcePool (176B; save 实名 resources, token 11842, `steel=8` 实拍) — 布局见 §4.13.6 | | |
 | +616 | 内嵌 CResistance | 抵抗力 | 全字段见 §4.13.1 | GUI: 州面板阻力/合规容器 (sub_14174E8E0, 激活门 sub_140F9B4B0) + 占领法州上下文 (法 id sub_1406F2F20 / 法 sub_140F99DB0) |
 | +617..+1343 | — | = CResistance 全长 728B (cr = st+616; §4.13.1); 尾 cr+720 = 100000 标度 | | |
-| +1344 | CFlagManager* | 脚本旗标 | SetOwner 时 sub_140CBFA90 清理; 见 §4.13.3 | |
+| +1344 | CFlagManager* | 脚本旗标 | 过期递减 = sub_140CBFA90 flag_manager.daily (调用点 = states.daily, 非 SetOwner); 见 §4.13.3 | |
 | +1352 | 内嵌块 | 州资源消耗块基 (真 CModifier 192B: vt@1352, pairs@1368, children@1392; 不序列化) | base pairs@+1368 16B 条 {token, value i64}; loc STATE_RESOURCE_COST "State Consumption" 按 token 查 | |
 | +1368 | 匿名结构 (16B 键值对) 向量 | (+1352 块) base pairs 数据 | 与 +1736 块 pairs@+1752 同构 (base+16 关系) | 定案: +1352 = 真 CModifier (vt + pairs 双证, 探针), +1368 = 其 base pairs 数据槽; 「内联默认 CModifier」读法否定 |
 | +1381..+1543 | — | = 真 CModifier (192B)@1352 内部 — 按 §4.3.8 通用表即闭 | | |
 | +1544 | 内嵌块 | 州生效修正块 (运行时合成, 非序列化) | 重建 sub_1409D54A0 (触发源 = CBuilding::SetLevel 级变 fan-out sub_1409DB480, §4.14.2): 清 +1560 → category 对象+96 修正 + +1736 脚本块 + 非-core owner/controller 占领修正 + 建筑 +88 + 每省 +480 条目 → sub_140557BF0(st+1928, st+1544) 施加; base pairs@+1560, children {d@+1584, c@+1596} | |
 | +1596 | uint32 | (+1544 块) children 计数 | sub_1409E02C0 读 | |
 | +1597..+1735 | — | = 真 CModifier (192B)@1544 (运行时合成生效修正) 内部 — 192B 恰到 +1736, 三块等距互证 | | |
-| +1736 | 内嵌 CModifier | 州 modifier 块 (10597) | 全布局见 §4.3.8 通用表 (+64 回收池 / +88 name / +120 tooltip 串集合 / +152 hidden 集合 / +184 掩码 / +188 深度); base pairs {d@+1752, c@+1764} 16B 元 {mdef idx u32, i64×1e-5}, mdef 表 = *(BASE+53569984) 120B 行 token@+112; children {d@+1776, c@+1788}: added_modifier data=u32@child+188 (≠1 门), name=SSO@child+88, pairs {d@+16, c@+28} (writer 0X140612640; TGWR 脚本州修正) | |
+| +1736 | 内嵌 CModifier | 州 modifier 块 (10597) | 全布局见 §4.3.8 通用表 (+64 回收池 / +88 name / +120 tooltip 串集合 / +152 hidden 集合 / +184 掩码 / +188 深度); base pairs {d@+1752, c@+1764} 16B 元 {mdef idx u32, i64×1e-5}, mdef 表 = *(BASE+53669264) 120B 行 token@+112; children {d@+1776, c@+1788}: added_modifier data=u32@child+188 (≠1 门), name=SSO@child+88, pairs {d@+16, c@+28} (writer 0X140612640; TGWR 脚本州修正) | |
 | +1737..+1927 | — | = 州脚本修正 CModifier@1736 (带 vt, ctor a1[217]) 内部 — 192B 恰到 +1928 | | |
 | +1928 | 内嵌容器 | dynamic_modifier (15361) | 容器对象 (vt+8 自序列化), {d@+1968, c@+1980} 64B 条目 (§4.13.4); 块门 = sub_14060D020(st+1928) 为假 (非空) 才写 (CState writer 0X1409E0E90) | GUI: dynamic_modifiers_grid 行重建 (r1 sub_14174C8E0 逐条填格) |
 | +1929..+1999 | — | = 动态修正容器 (72B) {…, data@1968, count@1980}; 空 = count@+52==0 (sub_14060D020 直读式) | | |
@@ -68,7 +68,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +2012 | uint32 | 上述计数 | Reset 置 0 | |
 | +2013..+2023 | — | = 通知表 {d@2000, cap@2008, c@2012, alloc@2016..2023} 内部 | | |
 | +2024 | CEventScope* | **CEventScope\*** (0xB0; Reset 释放旧对象后 malloc + ctor sub_140535110 写 `&CEventScope::vftable`, 再 sub_14053B5F0(scope, *(*(st+48)+160), 1) 以 stateDef+160 州 id 设作用域) | 投递时作为事件作用域实参传入 sub_140A0F4F0 | |
-| +2025..+2039 | — | = CEventScope*@2024 (176B, 州事件作用域 — ctor 即建, Reset 换新; SetOwner 配合发 on_state_owner_changed) 尾 + u32@2032 = id % dword_143336F50 (**州事件掷骰相位**: 每日州并行 worker 以 `id%N == gs+1156 年积日%N` 判定本州当日是否掷事件候选, N = dword_14332F650 低字节; §4.2.7) | | |
+| +2025..+2039 | — | = CEventScope*@2024 (176B, 州事件作用域 — ctor 即建, Reset 换新; SetOwner 配合发 on_state_owner_changed) 尾 + u32@2032 = id % dword_143336F50 (**州事件掷骰相位**: 每日州并行 worker 以 `id%N == gs+1156 年积日%N` 判定本州当日是否掷事件候选, N = dword_143336F50 低字节; §4.2.7) | | |
 | +2040 | CVariables* | 州脚本变量 | RH 表, 见 §4.13.2 | |
 | +2048 | 匿名结构 (8B 形状) 向量 | strategic locations 对数组数据 — 8B 条 {loc_id u32, value u32} | AddStrategicLocation sub_1409D18B0 实读 (重复断言含 +88 id; 1.5x 增长); 默认 value = 首省 +164 | GUI: 州侧 strategic locations 过滤 (条目 v4[1]==prov.id; r2 sub_1417507F0 — 第二 u32 = prov_id, tooltip 双名 getter 再证) |
 | +2056 | uint32 | 上述容量 cap (1.5x 增长) | 定案 | |
@@ -99,16 +99,16 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +2224 | CPersistent* 向量 | temporary_resource_list 容器数据指针 (块键 15754) | 元素 **32B 多态 CPersistent 后代** (逐条 sub_1424C24F0 = `(*(elem vt[1]))(elem, writer)` 即元素自身 vt[1] 自序列化, 尾原子 16; 非 dynamic_modifiers/SDynamicModifierEntry — 后者 64B); reader sub_1409CF450; Reset 逐条虚析构后清 count; **元素具体类名待裁 (无 RTTI 直证)** | |
 | +2225..+2235 | — | = temporary_resource_list {d@2224, cap@2232, c@2236} (15754; 条目 32B 多态) 内部 | | |
 | +2236 | u32 | temporary_resource_list 容器计数 | | |
-| +2237..+2247 | — | = temporary_resource_list {alloc@2240..2247} 尾 + 三 RH 表头全形 {qword@0 (ctor 未显式初始化), data@+8 = 空表哨兵 &unk_143090170, mask@+16, count@+20, extra u8@+24, lf f32@+28 = 0.9} (桶 208B); 对象尾 = +2344, 之后无字段 | | |
-| +2248 | 匿名结构 (208B 形状) RH 桶数组 | per-tag 值对 RH 表 A | 208B 桶 {used u8@+4, key tag u32@+8, 值对数组 {data@+32, c@+44} 16B 条 {token, i64}}; Reset sub_1409D70F0, tag 查找 sub_1409D8B10 (定案形态) | |
+| +2237..+2247 | — | = temporary_resource_list {alloc@2240..2247} 尾 + 三 RH 表头全形 {qword@0 (ctor 未显式初始化), data@+8 = 空表哨兵 &unk_143090170, count@+16, mask@+20, extra u8@+24, lf f32@+28 = 0.9} (桶 208B); 对象尾 = +2344, 之后无字段 | | |
+| +2248 | 匿名结构 (208B 形状) RH 桶数组 | per-tag 值对 RH 表 A | 208B 桶 {used u8@+4, key tag u32@+8, CModifier 内嵌@+16 (pairs 容器 {data@+32, c@+44} 16B 条 {token, i64}, 与 +2256 行同构)}; Reset sub_1409D70F0, tag 查找 sub_1409D8B10 (定案形态) | |
 | +2256 | CModifier* RH 桶数组 | 每国州级 modifier 哈希表 | 桶 208B = {hash@0, dist u8@+4, tag@+8, **CModifier 内嵌@+16**}; 掩码@2268 / 空桶回退@2272; 命中谓词 = tag 相等 ‖ sub_140BB52F0 同原初国 | 定案: 桶载 CModifier 内嵌 (vt+357 签名 + pairs 四元组双证, 探针); 旧「值对数组」读法 = CModifier.pairs@+32 误位 |
-| +2280 | 匿名结构 (208B 形状) RH 桶数组 | active_targeted_modifier RH 表 (布局互证 {data@+2288, count@+2296, cap@+2300}) | 见 §4.13.5 | |
-| +2312 | 匿名结构 (208B 形状) RH 桶数组 | per-tag 值对 RH 表 B (同 +2248 形态) | **定案: B = 表 A (+2248) 的 swap 备份 double buffer** — 重建链 sub_1409D7760 把 data/mask/count/extra 四域成对 A↔B 换位后清 B 重算写回 A; 无独立业务语义, 旧「占领资源转移」语义注销 (探针附证: 占领折减公式实读 A 表, A 表键 = 州属主) | GUI: B14 占领资源折减 ((行值+100000)/100000; sub_14155D120) |
+| +2280 | 匿名结构 (208B 形状) RH 桶数组 | active_targeted_modifier RH 表 (布局 = {data@+2288, count@+2296, mask@+2300}, §4.13.5) | 见 §4.13.5 | |
+| +2312 | 匿名结构 (208B 形状) RH 桶数组 | **pending_targeted_modifier** (键 19236, 同 +2248 形态) | 装载缓存 swap 对 = A(+2248)↔B(+2312) — 重建链 sub_1409D7760 把 data/count/mask/extra 四域成对换位; 旧「占领资源转移」语义注销 (占领折减公式实读 A 表, A 表键 = 州属主) | GUI: B14 占领资源折减 ((行值+100000)/100000; sub_14155D120) |
 
 三 RH 表 (+2248 / +2280 / +2312) 表头均按 +2237..+2247 行全形落位, 对象内绝对偏移
-= 表基 + 相对: A@2248 → data@2256 / mask@2264 / count@2268 / extra@2272 / lf@2276;
-active_targeted_modifier@2280 → data@2288 / mask@2296 / count@2300 / extra@2304 /
-lf@2308; B@2312 → data@2320 / mask@2328 / count@2332 / extra@2336 / lf@2340;
+= 表基 + 相对: A@2248 → data@2256 / count@2264 / mask@2268 / extra@2272 / lf@2276;
+active_targeted_modifier@2280 → data@2288 / count@2296 / mask@2300 / extra@2304 /
+lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 对象尾 = +2344。⚠ +2280 行旧互证读法 {count@2296, cap@2300} 与全形推导
 (mask@2296 / count@2300) 不合 — 定案: 表头全形成立, **mask@2296 / count@2300** 。
 
@@ -262,8 +262,8 @@ mask@vo+36 = 0; 无门遍历会把 .rdata 静态区编译时间戳串当变量�
 
 脚本旗标容器, 本体 32B {vt, data@+8, cap@+16, count@+20, alloc@+24}; 条目类 =
 **CScriptFlag** 48B。序列化槽 [1] writer (开闭块内联, 无独立 Save wrapper) /
-[3] reader (解析循环本体) — 与 §4.00.1 CPersistent 标准四槽契约不对称 ([2]/[4] 为
-CFG 空桩 0x14012A2C0), 派发协议层解释待裁, 不影响布局。reader 键 = 条目名串
+[3] reader (解析循环本体) — 与 §4.00.1 CPersistent 标准四槽契约不对称 ([2] = CFG 空桩
+0x14012A2C0; [4] = 0x1424BEC40 "Unexpected token" 异常 thunk, 即 reader 默认分支通用件), 派发协议层解释待裁, 不影响布局。reader 键 = 条目名串
 (经 sub_1424BB460 转 token) + 776 value / 10314 date / 10605 days。
 
 | 偏移 | 类型 | 名称/语义 | 写门 | 备注 |
@@ -339,8 +339,8 @@ value@+40, days@+42} 搬入被删槽, 末条目虚 dtor 后 count--)。
 |---|---|---|---|
 | +4 | uint8 | dist | ⚠ dist==0 空桶必须跳过 — state 510 崩溃源 |
 | +8 | tag_id | tag_id | |
-| +9..+31 | — | = tag@+8 尾 + 桶内垫至值对象指针@+32 (桶 {dist@4, tag@8, ptr@32}) | |
-| +32 | 匿名结构 (NNB 形状) | 值对象指针 (vtable 0x2A0125D0) | 值对象内两对 {token uint32@+0, value fixed×1e-5@+8} stride 16 (token 27=amphibious_invasion_defence, 254=planning_speed); 尾部 name/data 即存档 added_modifier 块 (writer 双写); vtable 0x2A0125D0 (RTTI 无名) |
+| +16 | CAddedModifier (192B) 内嵌 | 值对象 = CModifier 内嵌@+16 (vt 写入 + key2 idpair 第二 u32@+24; writer sub_1424C24F0 收桶+16) | 定案 |
+| +32 | 容器数据指针 | = 内嵌 modifier 的 base pairs 数据槽 (16B {mdef idx u32, i64×1e-5} 对; token 27=amphibious_invasion_defence, 254=planning_speed) | |
 
 added_modifier 定案: 值对象 = entry+16, 即 CAddedModifier (writer 0X140612640, 递归同类) —
 **其 192B 全布局 (base pairs@+16 / children@+40 / name@+88 / custom_modifier_tooltip@+120 / hidden_modifier@+152 / data@+188 等) = §4.3.8 (权威, 勿重述)**;

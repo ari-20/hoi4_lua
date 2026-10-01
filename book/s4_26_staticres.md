@@ -43,7 +43,7 @@
 
 | 表 | 挂载 | 布局 | 访问器 |
 |---|---|---|---|
-| modifier 定义表 | `rp(BASE+53569984)` | stride 120, token u32@def+112, cnt@BASE+53569996 (BHU 4,486 / kr2 5,285); **id 空间两段定案: 静态宇宙 = 0..665 稠密 666 槽 (注册点全解 100%, 离线 id→名全表数据件 `ref/modifier_idmap.txt`), 动态段 = 脚本动态 modifier 自 666 起编号** (wrapper sub_14060C290 内 index = 计数器+666, 随 mod 变, 离线不可枚举; 旧「712 项」含错位窗假阳证伪, 以 666 全表为准) | `modifier_token(idx)` / `modifier_count` / `modifier_category_mask`（掩码 u32@0x332f248） |
+| modifier 定义表 | `rp(BASE+53669264) (= qword_14332ED90)` | stride 120, token u32@def+112, cnt@BASE+53669276 (= dword_14332ED9C) (BHU 4,486 / kr2 5,285); **id 空间两段定案: 静态宇宙 = 0..665 稠密 666 槽 (注册点全解 100%, 离线 id→名全表数据件 `ref/modifier_idmap.txt`), 动态段 = 脚本动态 modifier 自 666 起编号** (wrapper sub_14060C290 内 index = 计数器+666, 随 mod 变, 离线不可枚举; 旧「712 项」含错位窗假阳证伪, 以 666 全表为准) | `modifier_token(idx)` / `modifier_count` / `modifier_category_mask`（掩码 u32@0x332f248） |
 | modifier tooltip 格式化器 | `sub_14055A0C0(修正块, out, def_idx, lambda, …)` → `sub_1410E46D0(值串, 国名, 件)` | 越界门: `a3 > dword_14332ED9C`（=cnt 槽）→ 越界返空串 | loc 模板 `$MODIFIER$: $VALUE$` 渲染入口 |
 | modifier tooltip 取数 | — | 越界过 → 查定义表 `qword_14332ED90 + 120*a3`; 类别掩码 `u32@def+104` 经 `qword_1433300A0(修正块)` 谓词门滤 | GUI `Get*Tooltip` 族逐修正名 + 值组装多行串 |
 | external_rules 定义 | `rp(BASE+53575920)` | `M.dim.EXTERNAL_RULES`=28 槽, 键 token u32@defs+56*i+40（[0]="none" 哨兵+27 规则键） | `rule_key(i)` / `rule_def_flags(i)`（字节@+48/49/50） |
@@ -551,7 +551,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vt[2]=空桩 = 只读 def 
 | 类 | 关键布局 |
 |---|---|
 | CStrategicLocationTemplate (要冲定义, 40B; vt 0x14271B960) | +8 token 哨兵 357 none / +16 vec<{building u32, level u32}> (data@16/cap@24/cnt@28); reader 每键解 building type (miss → "Invalid building type", strategic_locations_database.cpp:11), RHS 必整数; 形 `suez_canal = { suez_canal = 2 }` |
-| CStrategicRegionTemplate (战略区定义, 336B; vt 0x1429DBE50) | +8 provinces (10288) / +32 名规范化 sso32 / +64 名原文 (27) / +160 id (181, ctor -1) / +168 u8=1 / +176 weather (12040, 元素 224B, 内 period=12042) / +272 naval_terrain (15147) / +312 static_modifiers (15136, 元素 80B); **writer 0x1415A6F40 = nudge/调试回写通道** (非存档, 存档侧 = CStrategicRegion 实例 §4.3) |
+| CStrategicRegionTemplate (战略区定义, 336B; vt 0x1429DBE50) | +8 provinces (10288) / +32 名规范化 sso32 / +64 名原文 (27) / +128 dominance 阈值 / +160 id (181, ctor -1) / +168 u8=1 (有效旗; 世界装载按此门建区) / +176 weather (12040, 元素 224B, 内 period=12042) / +224/+228 锚点 {x i32, y i32} (region+100 锚点省 / +240 坐标副本 / 邻接锚距² 三者源) / +272 naval_terrain (15147) / +312 static_modifiers (15136, 元素 80B); **writer 0x1415A6F40 = nudge/调试回写通道** (非存档, 存档侧 = CStrategicRegion 实例 §4.3) |
 | CDifficultySetting (自定义难度项, 120B; vt 0x142935978) | +8 HasNullObject 活位 / +16 multiplier 对象 (10912, 默认 null 单例 qword_143330368) / +24 countries 国名哈希列 (11593) / +48 modifier 文本 (10597) / +56 key 名 (220) / +88 icon (181); **def ↔ 存档实例 CDifficultySettingItem (0xD8, gs+1064) 分工对** |
 | CBookmark (主菜单书签, 400B; vt 0x1427E3E08; writer=CFG) | +16 name (27) / +48 desc (10644) / +112 picture (464) / +160 filters (10669) / +240 default → CBookmarkCountryEntry* 列 (11405, 每块 344B) / +384 date (10314); 消费只在前端 |
 | CCountryTagAliasEntry (~800B; vt 0x1427EA8D0) | **+264 u32 别名 token** (resource.lua tok264 ✓); 键表 = 12048 variable / 13272 fallback / 13649 original_tag / 15763 country_score / 15764 global_event_target / 15765 event_target; ctor 端验 "invalid alias tag %s" / "alias is already existing tag %s" |

@@ -123,7 +123,7 @@ sub_1410DAFD0: healthy<level 时 partial(+72) += amount 钳 1e7, 满 → partial
 healthy+1、**+80 repair_speed_factor 复位 1e5**、通知 kind=4 (定案)。
 
 **州建筑容器 (州对象同构)**: 容器 vtable 0X2999050 同布局 (state_buildings API 用)。州建筑元素
-与省建筑元素同类同 writer (元素 vt 0X142988B28 slot[2] = 0X1410DCCA0; 容器链
+与省建筑元素同类同 writer (元素 vt 0x14298A7B8 slot[2] = 0X1410DCCA0; 容器链
 CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_speed_factor
 行 (i64@+80, ≠100000 才写) 州侧同样适用 (实测 489 州炼油 0.69188 / 116 基建 0.5)。
 ⚠ 对象层 state_buildings reader 含 +80 读取 (与 province_buildings 镜像)。
@@ -152,14 +152,16 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | +32 | i32×2 | 第二坐标对 (连线另一端, −1 = 无) |
 | +40 | i32×2 | 第一坐标对 (start/stop 按方向; adjacencies.csv 六坐标列) |
 
-#### 4.14.4 CMap 边界 (map.cpp 方法群 0x140A4D000–0XUNRESOLVED, CMap this 相对)
+#### 4.14.4 CMap 边界 (map.cpp 方法群 0x140A4D000 起; 断言族 0x140A5DDC0–0x140A66750; 单例 qword_143339D28, sizeof 0x840 = 2112B; ctor sub_140A5AEC0 / 清理 sub_140A5B5A0 / 定义装载 sub_140A64720; CMap this 相对)
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +16 | 容器 24B | **海峡/邻接追加表** {data@+16, cap@+24, count@+28, alloc@+32} — **12B 条 {from, to, through} u32×3** (straits loader "no straits will be loaded" / "Adj between … is not adjacent with THROUGH ="; 仅非自然邻接对入此表, 与 desc+112 全量邻接表分属两层) | 定案 |
 | +536 | 容器 24B | **CAdjacencyRule\* 注册表** {data@+536, cap@+544, count@+548, alloc@+552} — loader sub_140A61970 (map.cpp:1148, "Adding same province for two different rules" 查重) 解析 adjacency_rules.txt; 规则布局见 §4.14.8 | 定案 |
 | +560 | u32 | 省表界 (= gs+700 互证) | |
-| +564 | u32 | 陆省数 | |
+| +564 | u32 | 非海省数 (land+lake+unknown; 类型旗 land=2/sea=4/lake=8/unknown=1) | |
+| +568 | u32 数组 | 省号→紧凑 id 重映射 (4B×省数, 初值 −1; 构建器 sub_140A5F1F0) | |
+| +592 | u32 向量 | 非海省省号列表 {d@592, cap@600, c@604, alloc@608} (+564 = 其计数) | |
 | +616 | 容器 24B | **省静态描述符 8B 指针数组** {data@+616, **cap@+624, count@+628**, alloc@+632} — ⚠ 元素是指针 (增长码 `8LL*count` memcpy 铁证) | 定案 |
 
 #### 4.14.5 CProvinceBuildingItem 定义对象侧字段 (def 相对)
@@ -191,7 +193,7 @@ province" supply_system_utils.cpp:0x31C 铁证); `*(gs+992)` 容器 +8 =
 **CProvinceRailwayInfo\*[] 按省 id 直索引**。
 
 **CProvinceRailwayInfo** (0x70 = 112B; vtable 0X2972C80; writer 0X140E95DD0; ctor
-0X140E922A0; dtor 0X140E92750): +8 = CProvince* 省反查 / +16 = 指回省体内 +400 块
+0X140E922A0; dtor 0X140E92750): +8 = 省静态描述符* (§4.14.3 +184 描述符桥; 省 id 取 desc+196) / +16 = 指回省体内 +400 块
 back-ref / +24 = railway 模板 def (断言 "_pStatus->IsValidTemplateInLocation(RailwayTemplate)"
 railway_manager.cpp:0x1)。
 
@@ -205,7 +207,7 @@ railway_manager.cpp:0x1)。
 | +80 | 容器 24B | rail_way_construction {d@80, cap@88, c@92, alloc@96} — 16B 条 {邻省 u32@0, 进度 fixed×1e-5 i64@8}; **非空 = 施工中 (阻断语义由此表达, 非 +104)** | c>0 |
 | +92 | uint32 | 上行 construction 容器计数 | c>0 |
 | +104 | u32 | **cooldown** (tok 14622; writer sub_140E95DD0) — 单标量**无位段** (旧记「阻断旗」已翻案: 阻断由 +80 非空表达) | >0 |
-| +472 | 内嵌状态块 | 与 CBuildingStatus +104 门 byte / +108 省 id 同构; 地图悬停链 sub_1410DB850/6520 经其还原省/州 | — |
+| (无此槽) | — | 悬停链 sub_1410DB850 的 a1 = **CBuilding** (+472 = CBuildingStatus\* 回指, §4.14.2), 经其 +104 门/+108 省 id 还原省/州 — 本类 112B 无 +472 | — |
 
 #### 4.14.7 CRailwayManager (gs+992)
 
@@ -214,7 +216,7 @@ railway_manager.cpp:0x1)。
 | 管理器 | `M = *(gs + 992)` (vtable 0X2972CD0 guard; manager writer 0X140E95EF0) | |
 | 槽数组 | {data@M+8, slots u32@M+20} | 元素 = CProvinceRailwayInfo* (0x70 字节, vtable 0X2972C80 guard); 非空槽才写省号块 |
 | 顶格 cooldown | u32 数组 {d@M+32, c@M+44} | c>0 才写 (0X1401B3D80 单行) |
-| 省反查 | 省指针@info+8 → 省 id = ru32(CProvince+196) | |
+| 省反查 | 省静态描述符指针@info+8 → 省 id = ru32(desc+196) (CProvince+164 才是 id; §4.14.6 +8 同判) | |
 
 > CRailwayManager ctor 0X140E92510 {slots cap@M+16, alloc@M+24}; 实例对象 = §4.14.6
 > CProvinceRailwayInfo; 轨道升级图标侧 (CRailwayMapIcon + 五 define) 见 §4.30.16。

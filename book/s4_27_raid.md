@@ -273,7 +273,7 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 > 全零 ⇒ 报错 `": success_levels must have at least one non-empty raid outcome in order to count as valid"`
 > (raid_database_extras.cpp:712)。
 
-**CRaidSuccessChanceModifier 基类槽位契约** (两派生虚表同序对照):
+**CRaidSuccessChanceModifier 基类槽位契约** (两派生 = **NRaids::CRaidSuccessChanceStandardModifier** (48B, vt 0x1429DA408) / **NRaids::CRaidSuccessChanceCustomModifier** (208B, vt 0x1429DA468; COL 0x142D1F518/0x142D1F598), 虚表同序对照):
 
 | 槽 | Standard (vt 0x1429DA408) | Custom (vt 0x1429DA468) | 语义 |
 |---|---|---|---|

@@ -2,7 +2,7 @@
 
 ### 4.15 战略空军族 (CStrategicAirManager → CStrategicAir → CAirWingPool → CAirWing)
 
-> 坐标注: 本册表内偏移一律 = 书基坐标; 运行时方法 this = 书基−16 (raw)。
+> 坐标注: 本册表内偏移一律 = 裸对象坐标; 仅 0x2958918 虚表方法 this = R+8 (调整桩 sub_140C4AD58 `a1−8` 直证), 其余族 writer (CStrategicAir sub_140C66970 / CAirWing sub_140F68B30 / CAirWingPool sub_140F68FF0) this 与书表 1:1。
 > 换算仅在此注, 正文只用书基坐标。
 
 mgr = *(gs+1680); 两级结构 pool → wing (定案)。
@@ -245,11 +245,11 @@ m = CAirMission 本体 (wing+128 起); 下一 wing 字段 +424 = m+296, 全封�
 
 | 偏移 | 类型 | 名称 |
 |---|---|---|
-| +8 | 友方条目数组* | friend 容器 {data@+8, count@+20} 152B 条 |
+| +8 | 友方条目数组* | friend 容器 {data@+8, count@+20} 152B 条 (元素发射: strength 10754 / org 10983 / name 10864 — 恒写无门) |
 | +9..+31 | — | = friend 容器尾 {cap@+16, count@+20, alloc@+24} |
 | +32 | 匿名结构 (152B 形状) 向量 | enemy 容器 {data@+32, count@+44} 152B 条 |
 | +33..+55 | — | = enemy 容器尾 {cap@+40, count@+44, alloc@+48} |
-| +56 | tag_id | tag (140BA5C20 串) |
+| +56 | tag_id | tag (sub_140BB4E70 串) |
 
 #### 4.15.7 SAirWingCombatData (152B 条; writer 0X141964700)
 

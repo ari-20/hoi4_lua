@@ -289,10 +289,10 @@ RH 表对象 32B = {占位 qword@+0 (不初始化), tab@+8, count@+16, mask@+20,
 | +192 | dword | vec184 cap | 定案 |
 | +196 | dword | vec184 count = **节点数** (EA10 读作新节点 idx) | 定案 (原「(省,值) 值部」翻案) |
 | +200 | qword | vec184 alloc | 定案 |
-| +208 | Form P | 语义待裁 (全语料无读写点, count@220 仅重置清 0; 疑未用残槽) | 存在定案 |
+| +208 | Form P | **休眠残槽 (负定案)**: 生命周期四件 (ctor 141218AC0 Form P 初始化 / reset 1412202B0 仅清 count@220 / move 140EBFEE0 / dtor) 之外, 全 supply 域字面量与指针算术两形扫描均无推入/读取点 → 1.19.3 恒空。⚠ 同号异体: css+208 = CNavalBaseConvoyClient 挂接表, 节点条目内嵌 +208 = 每接收方发放台账, 勿混 | 定案 (负向; 语义待裁闭合) |
 | +232 | Form P, 4B 条 | 本 tick 涉及的外国 tag 集 (从 sys+64 国家缓存条 +88 复制; 写 sub_14121DEA0 / 读 sub_14122C090 逐 tag→国 idx→该国 calc+440) | 定案 (原「计算暂存」错位翻案) |
-| +256 | Form P, 40B 条 | 单位供应扣减待执行清单 {单位指针@0, …, dword@32}; 排水 = 逐条 sub_141A0ACF0 (sub_14122AA00) | 形定案/写者待裁 |
-| +280 | Form P, 16B 条 | **跨国非本地链接源** {省 id@0, ?@4, 省/参数@8, 值@12}: EA10 逐他国记录读此表 → 本国 +184 插 type3 + +704 登记 | 读侧定案/写者待裁 |
+| +256 | Form P, 40B 条 | **消费者供给发放账单** {CSupplyConsumer*@0, qword@8, qword@16, qword@24, dword 键@32}; 排水 = UpdateSupply 尾段 sub_14122AA00 逐条 CSupplyConsumer::AddReceivedSupply (sub_141A0ACF0; supply_consumer.cpp:167/181 断言); **写者负定案 (休眠)**: 全域无推入点, 排水在而账本恒空 (原「单位指针@0」系首参误记 — 首参 = 消费者对象) | 形定案 / 写者定案 (负向) |
+| +280 | Form P, 16B 条 | **跨国非本地链接源** {省 id@0, ?@4, 省/参数@8, 值@12}: EA10 逐他国记录读此表 → 本国 +184 插 type3 + +704 登记; **写者负定案 (休眠)**: 节点创建族与全域无推入点 → type3/+704 链路原版不可达 (高置信推论) | 读侧定案 / 写者定案 (负向) |
 | +304 | fixed×1e-5 | truck 侧运输记录值 (消费者 = css 摩托化 wanted_trucks 换算三处) | 定案 |
 | +312 | u32 | **顶栏后勤面值唯一基数** (公式 = 本值 × 火车比 × 流量比 ÷ 1e10; 详见 §4.21.1c sub_14121F1D0 行) | 定案维持 |
 | +320 | u32 | train 侧运输记录值 (_IntermediateTransportUsages type0 条累加; 写 sub_14122B820) | 定案维持 |
@@ -325,12 +325,13 @@ RH 表对象 32B = {占位 qword@+0 (不初始化), tab@+8, count@+16, mask@+20,
 | +656 | Form P, 8B 条 | **(state, node idx) 有序对表** (FindNodeIndex case0; 每轮 sub_1412229D0 尾排序重建 — 键收窄为 state) | 定案 |
 | +680 | Form P, 32B 条 | **state→空补节点 idx 列表** {state id@0, 内嵌 24B 向量@8}; 读者 1414E3980 求和的是**节点**条 +64 | 定案 |
 | +704 | Form P, 8B 条 | **_NonLocalNodes** {(省 id, 节点 idx)}; 断言 country_supply.cpp:2919 | 定案 |
-| +728 | Form P, 8B 条 | FindNodeIndex case4 目标 | 读侧定案/写者待裁 |
-| +752 | Form P, 8B 条 | FindNodeIndex case5 目标 | 读侧定案/写者待裁 |
+| +728 | Form P, 8B 条 | (省 id, 节点 idx) 有序对表 — FindNodeIndex (sub_141229210) case4 目标; 变体读者 sub_141223990 / sub_1414E2AF0; **写者负定案 (恒空, case4 恒 −1)** | 读侧定案 / 写者定案 (负向) |
+| +752 | Form P, 8B 条 | (省 id, 节点 idx) 有序对表 — FindNodeIndex case5 目标; 变体读者 sub_14120F110/141210470/1412220B0/1414E2AF0; **写者负定案 (恒空, case5 恒 −1)** | 读侧定案 / 写者定案 (负向) |
 | +776 | Form P, 16B 条 | **消费者注册清单** {tag u32@0, CSupplyConsumer\*@8} (lam3 重建 → 注册阶段排水 = **sub_141229D70**: 逐 16B 条按 tag 定国调 sub_14121B650 注册); sizeof = 800 由本容器闭合 | 定案 (原「+776/+784 qword」翻案) |
 
 
 #### 4.21.3 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+| e4e_part4 | sub_141210470（1001 行） / 军事/供给 / 书 `s4_21_supply.md` lam14 行（EBD720→ED0F90→14121EA10 供应节点非本地链接处理）下钻两级补地址：sub_14121F810（type 3/5 条计数 + 缩放）→ sub_141210470（heap 驱 |
 
 | 来源 | 函数与身份 / 建议落点 |
 |---|---|

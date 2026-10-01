@@ -209,23 +209,29 @@ CAlertManager 布局 (偏移十进制):
 |---|---|---|
 | +0 | 内联槽×82 (1128B/槽) | 警报型主槽 (模板; id i 槽 @ +1128×i) — 无 widget |
 | +92496 | 容器×82 (24B/容器) | **活跃条目表** — id i 容器 @ +92496+24×i; 容器 = {data@+0, cap i32@+8, count i32@+12, allocator*@+16} |
-| +94464 | 容器×82 (24B) | 第二族 (ctor 定形, 元素构造 = sub_1401BFD10, 0x18×0x52; 读者未展开, 待裁) |
+| +94464 | CGameDate×82 (24B/项) | **音效冷却戳** — id i 项 @ +94464+24×i; 项 +8 = 下次允许播放小时; 消费 = sub_140B166A0 (写入 `now + ALERT_SFX_COOLDOWN_DAYS×24`) |
 | +96432 | int32 | round-robin 轮转计数器 (0..81; 复位 sub_140B17A50) |
 | +96436..+96452 | int32×5 | 网格配置 {X0@+96436, Y0@+96440, step_x@+96444, step_y@+96448, 列数@+96452 (sub_140B18130 按 alerticon_offset/alerticon_endposition 属性 + 分辨率宽算)} |
 | +96456 | int32 | 网格游标 (本帧最大格序; 条状管理器排其后) |
-| +96464 | 容器×82 (24B) | 第三族 (待裁) |
-| +98432 | 容器×82 (24B) | 第四族 (待裁) |
-| +100400 | int32 | init = −1 |
-| +100416 | int32 | init = −1 |
+| +96464 | 容器×82 (24B) | 休眠成员 (负定案: 1.19.3 无读写点, 字面量+索引形双重检索; 元素 ctor 与 +92496 族同款); 业务名未决 |
+| +98432 | 容器×82 (24B) | 同 +96464 (休眠负定案) |
+| +100400 | int32 | 海战类警报副钮逐条轮转游标 (sub_140B143B0 每次 +1, sub_140B288F0 读比对选中项; init −1 = 无游标) |
+| +100416 | int32 | 逐师/逐组跳转轮转游标 (sub_140B0FB00 模 count 递增, −1 复位; 供 sub_140B13FD0 点击链) |
 | +100420 | int32 | clamp 缓存 (id 57 用) |
-| +100432 | uint8 | 整圈完成旗 |
-| +100452 | uint32 | 粘滞旗 (dismissed 判据 sub_140B0D980 兜底) |
-| +100488 | uint8 | crypto 联动旗 |
+| +100432 | uint8 | 整圈完成旗 (兼音效总闸: 首圈 82 帧内静音) |
+| +100440 | 容器 (24B) | **已解除警报 id 列表** (int32/项; count@+100452); push = sub_140B062B0, 清 = sub_140B175B0, 判 = sub_140B0D980 |
+| +100452 | int32 | = +100440 容器 count (dismissed 判据 `!= 0`) |
+| +100464 | 容器 (24B) | **crypto 已解除 id 列表** (int32/项); id 61 检查器 sub_140B1ECE0 查重 |
+| +100488 | uint8 | crypto 点击确认一次性门 (点击 61/62 置 1; sub_140B1ECE0 消费后自清; sub_140B17450 亦清) |
 | +100496 | 容器 (24B) | 有效州集合 (逐帧重建; 源 = cc+360 数组 / cc+372 计数) |
 | +100512 | allocator vt | off_143085170 (与 notification handler 同款分配器桩) |
 | +100520 | int32 | 时间戳钳制 (id 52 用) |
-| +100680 | 32B 节点 | ctor 自建 (推定名→id 哈希索引成员; 载 f32 0.9, 待裁) |
-| +100696 | 32B 节点 | 同上第二节点 |
+| +100680 | 有序映射 (16B 头) | int 键 std::map 形 (自链哨兵 32B, 节点键@+28) = **id 71 上一轮项目 id 集** (边沿检测); 消费 = sub_140B2F4B0 |
+| +100696 | 有序映射 (16B 头) | 同形 = **id 70 上一轮项目 id 集**; 消费 = sub_140B2FF30 |
+| +100712 | 平坦哈希 | **警报名→id 索引** (键 = 名串, 值@节点+40 = id; 128 桶); 仅注册期写入, 查找侧休眠 |
+| +100740 | f32 | +100712 最大载因子 = 0.9 (0x3F666666) |
+| +100744 | int32 | id 65 学说逐个点击游标 (sub_140B10070, 越界归零) |
+| +100752 | int32 | id 72 项目逐个跳转游标 (sub_140B14FD0 / sub_140B16360) |
 
 主槽 / 活跃条目 (1128B 同形; 条目独有 +1112/+1120):
 
@@ -238,7 +244,7 @@ CAlertManager 布局 (偏移十进制):
 | +1072 | int32 | **severity**: category 映射 sub_140B026F0 — high→2 / medium→1 / low→0 (未知名报 "Unexpected alert category" 后落 0) |
 | +1080 | 16B 键对 | 清除/判重键 (键0+键1; 全零 = 空闲槽) |
 | +1088 | 同上第二槽 | 常为对象指针 (如州 ptr; 合法性清扫 sub_140B37B40 查此槽) |
-| +1096 | int32 | 动作码 (RegisterAlert 第 4 参: 多数 0 / 3-6 补给=5 / 7·67=1 / 22·60=2) |
+| +1096 | int32 | 动作码 (RegisterAlert 第 4 参; **注册期写入后全 dump 无读点 = 休眠遗留字段**, 值分布: 多数 0 / 3-6 补给=5 / 7·67=1 / 22·60=2 即全部信息 — 疑被 sub_140B11C30 id 大 switch 取代的通用点击行为机制残迹) |
 | +1104 | qword | 条目锚 (非 0 = 可清除门) |
 | +1112 | CGlobalAlertIcon* | widget (仅条目; ctor sub_140AFF650, 1376B, 主 vt 命名 RTTI + 次 vt@+40, +48 = mgr 回指 / +72 = 警报 id; 窗名 `global_alerticon_window`) |
 | +1120 | int32 | 网格序号 (同格堆叠序, 仅条目) |
@@ -253,7 +259,13 @@ CAlertManager 布局 (偏移十进制):
 | sub_140B01B00 | 高层 raise (mgr, id) = 1D40 全零键 + 网格堆叠移位 (severity≥新条目者格序 +1) + malloc(1376) 建 CGlobalAlertIcon 存 +1112 |
 | sub_140B17240 | 按键清除 (键匹配 ∧ +1104==0) → 析构 + 摘 widget + 按序删除 |
 | sub_140B062B0 | 点击/确认复合动作: id≤59 特例位图; 含 61/62 (crypto) 清除与 +100488 置位; widget 主回调 sub_140B15B50 与海战 UI (sub_141E6C6C0/C700) 共走此口 |
-| sub_140B172E0 | 清空整容器 (update 尾对当前轮转 id 调用; 精确触发路径待裁 — 推定轮转重评前清, 条目由检查器/事件面重发) |
+| sub_140B172E0 | **活跃条目群析构器**: 逐条目 dtor (1128B 步) + count=0 (data/cap 不动)。调用点 ① update 门失败回退路径 (玩家 tag ≤0 ∨ 全屏窗开 → 清当前轮转 id 活跃条目后照常推进轮转; 正常帧路径不经过) ② +92496 族容器元素 dtor sub_140AFFFC0 |
+| sub_140B166A0 | 音效播放 (id): +94464[id] 冷却门 (上次日 ≤ 当前日放行) + +100432 总闸; `<警报名>_sound` 经 sub_140B69E40 播放并回写冷却 = `now + ALERT_SFX_COOLDOWN_DAYS×24`; 唯一调用者 = sub_140B01D40 尾 (每次成功入队); 断言 alertmanager.cpp:1281 |
+| sub_140B10070 | id 65 学说逐个点击推进 (+100744 游标; 按目录名 land/naval/air/special_forces_doctrine_folder 分派视图 7/8) |
+| sub_140B14FD0 / sub_140B16360 | id 72 项目逐个跳转推进 (+100752 游标, 视图 5) |
+| sub_140B0FB00 | 逐师跳转游标推进 (+100416; 供 sub_140B13FD0 点击链) |
+| sub_140B001F0 | CAlertManager dtor (清理序: +100712 哈希 → 两映射 → 8 个尾部容器 → 三族数组逆序 → 主槽族) |
+| sub_140B2FF30 / sub_140B2F4B0 | id 70/71 检查器 (+100696/+100680 前态集边沿检测; 新 id 出现 → 清树 + 批量重建 + sub_140B177B0 复用 raise) |
 | sub_140B175B0 | 全量重建 widget (遍历 82 容器摘除后按 id 启用重发) = 顶栏 dismissed_alerts_button handler (§4.30.29 +2840) |
 | sub_140B17A50 | 复位轮转 (+96432 = 0, 清 +100432); 调用点 = CTopBar @48[7] 逐帧体 |
 | sub_140B37B40 | 逐帧合法性清扫: 重建 +100496 有效州集合 → 全容器倒序查条目 +1088 键, 州失效即摘 (占领翻转/割让即消) |
@@ -279,7 +291,7 @@ CAlertManager 布局 (偏移十进制):
 
 | id | common/alerts.txt 键 | 动作码 | round-robin 检查路径 |
 |---|---|---|---|
-| 0 | alert_hostile_troops | 0 | 直跳 sweep (无 raise 点, 待裁) |
+| 0 | alert_hostile_troops | 0 | 无 raise 点 (负定案: 检查支路为空操作, 60 个 raise 调用点零命中; 死位) |
 | 1 | alert_naval_invasion | 0 | 直跳; 第一 switch case 批量 sub_140B183F0: 入侵列表逐项 4 档威胁值 (sub_1406FD050) 与缓存 severity 比对 → 四态互换 |
 | 2 | alert_naval_invasion | 0 | 同 id 1 |
 | 3 | alert_low_supply | 5 | 直跳; 前置块逐州 (cc+360 州数组) sub_140B26E40, 州 ptr 为键 |
@@ -289,16 +301,16 @@ CAlertManager 布局 (偏移十进制):
 | 7 | alert_enemy_air_superiority | 1 | 直跳; sub_140B33A70 → sub_140B36100 (键控 raise) |
 | 8 | alert_no_research | 0 | sub_140B2B0A0 |
 | 9 | alert_deployment_ready | 0 | sub_140B1EFE0 |
-| 10 | alert_production_no_template | 0 | 检查支路未展开 (待裁) |
-| 11 | alert_free_civilian_factories | 0 | 同 id 10 (待裁) |
-| 12 | alert_free_military_factories | 0 | 同 id 10 (待裁) |
-| 13 | alert_free_naval_dockyards | 0 | 同 id 10 (待裁) |
-| 14 | alert_no_equipment_production | 0 | 同 id 10 (待裁) |
+| 10 | alert_production_no_template | 0 | sub_140702890(cc,0)≠0 → raise: +88 产线数组中存在「非五类豁免 (sub_140C97430/97B90/97C00/97C40/97C80, 业务名未决) ∧ 产出占比>0 ∧ vt+248 未过」线 (a2 非 0 = tooltip 逐条拼行模式) |
+| 11 | alert_free_civilian_factories | 0 | sub_140E6A540 ==0 → raise (反向): (+888/1e5 − +944 − +920) 逐 +112 行加 (行+24 − MAX_CIV_FACTORIES_PER_LINE) 不中途归零 ⇔ 有富余民用工厂 (行+24 业务名推定) |
+| 12 | alert_free_military_factories | 0 | 内联: (+696/1e5) − +752 − +728 > 0 → raise (军事工厂富余) |
+| 13 | alert_free_naval_dockyards | 0 | sub_140E69130 >0 → raise: (+792/1e5) − +848 − +824 − 阵营共享扣减 (sub_140EA60A0; 扣减项精确语义推定) |
+| 14 | alert_no_equipment_production | 0 | sub_1407008C0(cc,0)≠0 → raise: 全局装备原型表 (country.cpp:12654 niche 位图) 存在未被产线/生产/建设覆盖的原型; DLC 门 29/38 (逐原型豁免函数业务名未决) |
 | 15 | alert_pick_new_idea | 0 | sub_140B27690 |
 | 16 | alert_select_focus | 0 | 内联: 遍历 cc+4976 评估器表 vt+72 全 false → raise |
 | 17 | alert_volunteer_transfer | 0 | sub_140B36FC0 |
 | 18 | alert_trade_import_unfullfilled | 0 | 内联: cc+4600 对象 +1856 数组, 需求 sub_140CA81F0 vs 供给 sub_140CAD5A0 取整比较 |
-| 19 | alert_expeditionary_force | 0 | 直跳 sweep (专用批量函/外部事件面) |
+| 19 | alert_expeditionary_force | 0 | 无 raise 点 (负定案, 同 id 0: 60 个 raise 调用点 `, 19)` 零命中, 两 switch 均无支路) |
 | 20 | alert_available_wargoal | 0 | 内联: cc+3976 对象 +104 数组逐国查 +728 槽空/位 73 |
 | 21 | alert_enemy_generate_wargoal | 0 | sub_140D3FB30(cc+3976 对象) |
 | 22 | alert_naval_combat | 2 | sub_140B29870 清 + sub_140B34F20 查 (键控) |
@@ -347,7 +359,7 @@ CAlertManager 布局 (偏移十进制):
 | 65 | alert_doctrine_unlock | 0 | sub_140B036C0 |
 | 66 | alert_officer_corps | 0 | sub_140B2C110 |
 | 67 | alert_losing_trains | 1 | sub_140B26CE0 |
-| 68 | (未注册死 id) | — | 第二 switch 有 case (走 sub_140B0D390(1, ·)) 但 ctor 未注册不可显 (待裁) |
+| 68 | (未注册死 id) | — | 第二 switch 有 case (走 sub_140B0D390(1, ·), 门 = gs+1104 系逐国对象 +8 字节非零 — 常规局推定为 0 不可达) 但 ctor 未注册不可显; 若 raise 真发生主槽名空 → 音效断言 alertmanager.cpp:1281 绊 (debug 门) |
 | 69 | alert_industrial_org_sizeup | 0 | 内联: cc+3944 对象 +304 数组 sub_140DB6020 |
 | 70 | ui_alert_special_project_available | 0 | sub_140B2FF30 → 内部 sub_140B177B0(mgr, id) 复用 |
 | 71 | ui_alert_special_project_available | 0 | sub_140B2F4B0 → 同 id 70 复用 |
@@ -364,10 +376,10 @@ CAlertManager 布局 (偏移十进制):
 
 事件驱动面 (round-robin 之外): widget 回调 sub_140B15B50 / 海战 UI 双入口 sub_141E6C6C0 / sub_141E6C700 (以 idler+1944 取 mgr) / 顶栏重建 sub_140B175B0 / CTopBar 复位 sub_140B17A50。renderhide 渲染开关旗 byte_14332F61F 的 toggle 点 = sub_140252D70 (回显 "Rendering is now SHOWN/HIDDEN"); +94464 第二族容器的元素构造 = sub_1401BFD10 (24B 元素)。
 
-消费面 (GUI): ① `global_alerticon_window` 网格 — 每条目一窗, 定位公式 `X = +96436 + step_x×(格序 % 列数)`, `Y = +96440 + step_y×(格序 / 列数)`, 窗 vt+416 SetPosition; red/yellow glow 按 severity 显隐。② 顶栏 `dismissed_alerts_button` — sub_140B0D980 (任一容器有条目 ∨ +100452) 显隐; tooltip = DISMISSED_ALERTS_MENU + sub_140B08E80 拼接全部条目名; 点击 → sub_140B175B0 全量重建。③ 条状管理器 (idler+1952, 72B) — 每帧 sub_1417582C0 与警报更新成对调用; 条目排活跃网格之后 (+96456+1 起), 携 +1368 警报 id / +1372 键 / +1376 隐藏旗 (条目对象类名待裁)。④ 点击链 — 相机跳转 + sub_140B11C30 大 switch 按警报 id 开对应视图 (视图号族 = §4.30.29 顶栏视图编号)。⑤ 音效 define `ALERT_SFX_COOLDOWN_DAYS` (读入 dword_143336E00; 播放点待裁)。
+消费面 (GUI): ① `global_alerticon_window` 网格 — 每条目一窗, 定位公式 `X = +96436 + step_x×(格序 % 列数)`, `Y = +96440 + step_y×(格序 / 列数)`, 窗 vt+416 SetPosition; red/yellow glow 按 severity 显隐。② 顶栏 `dismissed_alerts_button` — sub_140B0D980 (任一容器有条目 ∨ +100452) 显隐; tooltip = DISMISSED_ALERTS_MENU + sub_140B08E80 拼接全部条目名; 点击 → sub_140B175B0 全量重建。③ 条状管理器 (idler+1952, 72B) — 每帧 sub_1417582C0 与警报更新成对调用; 条目排活跃网格之后 (+96456+1 起); 条目类 = **CDiplomacyRequestIcon** (1384B, malloc 0x568; 主 vt + 次 vt@+40; +48 条状管理器回指; 窗名 global_alerticon_window; +1368 CReference 目标 + +1376 ref 内嵌件 — 与外交请求条共用类)。④ 点击链 — 相机跳转 + sub_140B11C30 大 switch 按警报 id 开对应视图 (视图号族 = §4.30.29 顶栏视图编号)。⑤ 音效 = sub_140B166A0 (冷却戳 +94464[id], define `NGame.ALERT_SFX_COOLDOWN_DAYS` 读入 dword_143336E00; 唯一调用者 = sub_140B01D40 尾)。
 
 与 NNotification (§4.17.1-6) 边界: alert = **条件轮询** (82 类逐帧 round-robin 重评估, 条件消失即消, common/alerts.txt 配色, 点击跳转, 挂 idler+1944); notification = **事件推送** (业务侧建对象入队, 一次性消息, 超时天数, 挂 iface+1240)。两系统零函数交叠; 海战战果类 (33/41/44) 虽名含 results 仍走 alert 通道。
 
 对拍定案: **零游戏状态写门** (update + 原语族 + 检查器群对 gs/cc 只读; 写仅落 mgr 自身字段与 GUI 元素) + **零存档面** (无 CPersistent 形态; serfam `alert` 零命中; 逐帧重评估自再生成) — sv2_export 无新增叶。风险三点: renderhide 旗置位时整体跳过 / 暂停冻结轮转 (+96432 不推进) / 单 id 82 帧采样延迟 (探针读某警报状态须等轮转位); `alert_manager_update` 出现在 profile_top/folded = 帧级常规项非异常。
 
-> 待裁: +94464/+96464/+98432 三族容器角色; sub_140B172E0 触发路径; 动作码全语义; id 68 未注册废弃槽 (有 case 不可显); id 0 无 raise 点; +100452/+100488 完整写史; 音效播放点; 条状管理器条目对象类名; id 10..14 检查支路。
+> 仍开放: id 68 门字节 (gs+1104 系逐国对象 +8) 业务名; id 10 豁免五函数与 id 14 原型表逐项业务名; +96464/+98432 休眠容器业务名; id 11 行 +24 字段业务名。

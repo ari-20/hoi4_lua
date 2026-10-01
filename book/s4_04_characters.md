@@ -12,7 +12,7 @@ RTTI 定案。
 | CUnitLeader | 0X2955B90 | _purecall (0X14253C3B8) | **抽象**: SerializeBody 纯虚, 无直接实例 writer |
 | CArmyLeader | 0X2955CA8 | 0X140C28200 | 首行调基 writer 0X140C1CE70 |
 | CNavyLeader | 0X2955DC0 | 0X140C283F0 | 同上 |
-| COperativeLeader | 0X2955F00 | 0X140C28550 | 特有区全字段表见 §4.11 |
+| COperativeLeader | 0X2955F00 | 0X140C28550 | 特有区字段表 = §4.11 |
 
 谱系 (RTTI 直读):
 
@@ -150,12 +150,12 @@ trait 四类修正源 = modifier (trait+864) / non_shared_modifier (trait+1056) 
 
 | 块 | 块锚 (= CModifier+16 成员基; 对象物理基 = 锚−16) | 来源/用途 |
 |---|---|---|
-| b0 | +664 | **最终输出 A**: += b5 快照 + b7.data + (有 HQ? b11 FM-mod : b9 non_shared) + FM 分享(b9,b5) |
-| b1 | +856 | **最终输出 B**: += b6 trait.modifier + b8 non_shared + (有 HQ? b12 corps-mod : b10 FM-mod) + FM 分享(b10,b6) + 勋章修正 (char+208 store+32) |
+| b0 | +664 | **最终输出 A (军级 corps)**: += b6 trait.modifier + b8 non_shared + (有 HQ? b12 corps-mod : b10 FM-mod) + FM 分享 (FM.b10×v35 + FM.b6×v35×qword_143338288/1e5); 快照输出 → b4 |
+| b1 | +856 | **最终输出 B (元帅 FM)**: += b7 trait.modifier 聚合 + b9 non_shared 聚合 + 勋章修正 (char+208 store+32) + (有 HQ 且 HQ+57 假? b11 FM-mod : b13 corps-mod) + FM 分享 (FM.b11×v35 + FM.b7×v35×qword_143338288/1e5) |
 | b2 | +1048 | b1 的缩放副本 (权重@+1220, 系数 v4) |
 | b3 | +1240 | b1 的缩放副本 (权重@+1412, 系数 qword_143333338) |
-| b4 | +1432 | 快照块 (b4 ← +648 总计器) |
-| b5 | +1624 | 快照块 (b5 ← b0.data) |
+| b4 | +1432 | 快照块 (b4 ← b0 块, src 648) |
+| b5 | +1624 | 快照块 (b5 ← b1 块, src 840) |
 | b6 | +1816 | ← 每 trait **modifier** (trait+864) |
 | b7 | +2008 | ← 每 trait **modifier** (trait+864); 另 += skill(+3680)+16 |
 | b8 | +2200 | ← 每 trait **non_shared_modifier** (trait+1056) |
@@ -164,7 +164,7 @@ trait 四类修正源 = modifier (trait+864) / non_shared_modifier (trait+1056) 
 | b11 | +2776 | ← 每 trait **field_marshal_modifier** (trait+1440) |
 | b12 | +2968 | ← 每 trait **corps_commander_modifier** (trait+1248) |
 | b13 | +3160 | ← 每 trait **corps_commander_modifier** (trait+1248) |
-| b14 | +3352 | b0 输出快照 (name SSO@+3424; RebuildModifiers 名链最后一站) |
+| b14 | +3352 | b1 输出快照 (name SSO@+3424; RebuildModifiers 名链最后一站) |
 
 表内块锚 = CModifier+16 成员锚, 对象物理基 = 锚−16; 15 块对象阵实际 **+648..+3527** (ctor 0X140C0C2A0 直写 vtable×15), 与 traits@+3528 无缝; 块内「name SSO@+72」即 CModifier+88 (绝对地址两算等价)。army 有 HQ 时 b12/b13 另 += HQ 主将 skill 修正。
 
@@ -173,8 +173,8 @@ trait 四类修正源 = modifier (trait+864) / non_shared_modifier (trait+1056) 
 | 项 | 值 |
 |---|---|
 | 触发条件 | general 无 cooldown 且 FM (经 HQ obj+440→leader) 无 cooldown |
-| general b1 增量 | += FM.b10 / FM.b6 (缩放 qword_143338288 = FM 分享 define) |
-| general b0 增量 | += FM.b9 / FM.b5 |
+| general b0 增量 | += FM.b10×v35 + FM.b6×v35×qword_143338288/1e5 (sub_140C21570 / sub_140C19AC0 双站点) |
+| general b1 增量 | += FM.b11×v35 + FM.b7×v35×qword_143338288/1e5 (qword_143338288 = FM 分享 define) |
 
 冷却日期物理布局 (组门 u32@+3716≠0 下两对 CGregorianDate):
 
@@ -189,7 +189,7 @@ trait 四类修正源 = modifier (trait+864) / non_shared_modifier (trait+1056) 
 
 ctor 0X140C0C2A0 写哨兵 43808760 入 +3728/+3752。
 
-#### 4.4.5 CArmyLeader 尾段全字段表 (writer 0X140C28200, vt 0X2955CA8 slot2)
+#### 4.4.5 CArmyLeader 尾段全字段表 (writer 0X140C28200, vt 0X2955CA8 slot2; vt[18] = 0x140C10A10 FM 分享权重计算 / vt[15] = sub_140C16C90 FM HQ 下辖 general 数 getter u32@HQ+572)
 
 首行调基 writer, 以下为派生尾段。
 
@@ -231,7 +231,7 @@ ctor 0X140C0C2A0 写哨兵 43808760 入 +3728/+3752。
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
 | +3944 | uint32 | attack_skill | 门 ≠0; tok 14537 |
-| +3945..+3959 | 匿名结构 (15B 形状) | = attack 16B 元 {pad4, def 指针@+3952} (navy 伴随指针按 army 同构 setter + dtor 推定, 四 assert 直证 setter 同型) |  |
+| +3945..+3959 | 匿名结构 (15B 形状) | = attack 16B 元 {pad4, def 指针@+3952} (navy 伴随指针 setter sub_140C24870/sub_140C256B0 带 pAttackSkill/pDefenseSkill assert 实名直写 +3952/+3968, 定案) |  |
 | +3960 | uint32 | defense_skill | 门 ≠0; tok 14538 |
 | +3961..+3975 | 匿名结构 (15B 形状) | = defense 16B 元 {pad4, def 指针@+3968} (同构 army) |  |
 | +3976 | uint32 | maneuvering_skill | 门 ≠0; tok 15150 |
@@ -327,7 +327,7 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 | +73..+103 | SSO 串本体 (31B) | = name SSO 本体 (+72..+103) |  |
 | +104 | tag_id (i32) | country 所属国 | 门 >0 引号 tag (sub_140BB59C0); tok 10394 |
 | +108 | tag_id (i32) | nationality 国籍 | 门 >0; tok 19480 (现档零叶) |
-| +112 | uint32 枚举 | gender — 0=undefined / 1=male (tok 12775) / 2=female (tok 10773) | **恒写**; 枚举→串 sub_1413F04A0 (其它值 assert "Invalid enum value"); 块键 tok 19481 |
+| +112 | uint32 枚举 | gender — 0=undefined (tok 19479) / 1=male (tok 12775) / 2=female (tok 10773) | **恒写**; 枚举→串 sub_1413F04A0 (其它值 assert "Invalid enum value"); 块键 tok 19481 |
 | +120 | CCharacterPortraits 内嵌 | portraits — 容器/元素表见 §4.4.10 | **仅文本模式**整块 (0X1424C2E20); 块键 tok 19497 |
 | +121..+151 | 匿名结构 (31B 形状) | = portraits {vt@120 尾 + pdx 24B 容器@128 {d@128, cap@136, c@140, alloc@144}} — 元素 56B 同 §4.4.10 (0X14139DE90 ctor 直证) |  |
 | +152 | std::map 头指针 | country_leaders — 节点 {_Left@0, _Parent@8, _Right@16, isnil@+25}, 载荷 CCountryLeader* @node+40; 空载荷写常量 357 (none) | 门 qword@+160≠0; 块键 tok 19973; 后继 sub_1401FF1F0 (中序) |
@@ -384,7 +384,7 @@ key 解析:
 | 判别 | 与 template ref@adv+24 互斥, ref 优先 |
 | vtable RVA / sizeof | 0x1429BBA98 / **0x438=1080** (loader/factory malloc 实证) |
 | 本体 writer | 0X1413E0350 — **全部叶恒写无 ≠0 门** (obj = rp(adv+32)) |
-| ctor | 0X14129DE10 置 0 |
+| ctor | 参数化 sub_1413DEAF0 / 默认 sub_1413DECC0 (TNullObject 用); 0X14129DE10 系 CAdvisor ctor 勿混 |
 | 堆指针实证 | writer 0X1412A5390 反汇编 `mov r8,[rbx+20h]` |
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
@@ -436,7 +436,7 @@ RebuildModifiers sub_1412A5030 清 +432 归并 traits (trait+152 修正块), slo
 
 #### 4.4.15 CAdvisor 全字段表 (792B=0x318, vt 0x1429A7D60, writer 0X1412A5390, loader sub_1412A3C70, factory sub_14129ED90)
 
-writer 0X1412A5390 (dump 缺失, vtable slot2 直证)。
+writer 0X1412A5390 (vtable slot2 直证)。⚠ can_be_fired (14487) 仅 ==0 时发射 (模板侧恒写, 段侧复刻 advisor 块须按条件发射)。
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
@@ -465,7 +465,7 @@ writer 0X1412A5390 (dump 缺失, vtable slot2 直证)。
 | +728 | SSO 串 | desc loc 键 {size@744, cap@752} | loader tok 10644 |
 | +760 | SSO 串 | **desc 解析文本缓存** (writer 盲区) | +728 经 loc 校验解析入 |
 
-#### 4.4.16 CCountryLeader 全字段表 (336B=0x150, vt 0X14297F6C0, writer 0X140FCC690, loader sub_140FCBDA0, factory sub_140FCAF30)
+#### 4.4.16 CCountryLeader 全字段表 (336B=0x150, vt 0x142981350, writer 0X140FCC690, loader sub_140FCBDA0, factory sub_140FCAF30)
 
 country_leaders map 载荷 @node+40。
 
@@ -480,7 +480,7 @@ country_leaders map 载荷 @node+40。
 | +304 | u32 (hours) | expire (tok 12277) | factory ← 模板日期 |
 | +312 | CGameDate vt | expire 保存视图 (writer/loader 官方寻址, hours = 视图−8) | §3.7a 视图规则互证 |
 | +320 | CIdeology* | ideology def obj (tok 11838 写 idx@obj+8) | loader 校验 *(obj+56); **GUI: ideology_ico 有领袖分支** (party+112/+124 门 → CCountryLeader+320 → +16 SSO 名拼 `GFX_ideology_<名>[_<TAG>]`; sub_140B48C70 复核闭合) |
-| +328 | i32 | id (tok 11, ≠-1 门) | **write-only 镜像** (loader AB970 读弃); **有符号域** — 存档实证负值 -2 (黄粱 historical.character[1804]), 读取须 i32 还原 (旧按 u32 直读印 4294967294) |
+| +328 | i32 | id (tok 11, ≠-1 门) | **write-only 镜像** (loader sub_1424C08D0 读弃); **有符号域** — 存档实证负值 -2 (黄粱 historical.character[1804]), 读取须 i32 还原 (旧按 u32 直读印 4294967294) |
 
 #### 4.4.17 CScientist 全字段表 (312B=0x138, vt 0x14297EAB8, writer 0X14140CF50, loader sub_14140C3D0)
 
@@ -499,7 +499,7 @@ ctor 内联于 CCharacter loader tok 16389 分支。
 
 #### 4.4.18 write-only 叶族群
 
-行为定案: loader 单参只读丢弃壳 (ABB10 定点 / ABCA0 布尔 / AB970 整数) 实证下列存档叶**写出不回读**, 加载时由模板/factory 重建。
+行为定案: loader 单参只读丢弃壳 (sub_1424C0A70 定点, 解析后置 0 / sub_1424C0C00 布尔 / sub_1424C08D0 整数) 实证下列存档叶**写出不回读**, 加载时由模板/factory 重建。
 
 | 类 | write-only 叶 |
 |---|---|
@@ -556,7 +556,7 @@ ctor 内联于 CCharacter loader tok 16389 分支。
 
 **CCountryLeaderTrait** (顾问/高指挥特质定义, ~472B; vt 0x1427EA648; writer 桩; reader 0x14071FC50 巨 reader): +8 id / +24 特质名串 / +64 CTrigger available / +168 未名容器 / **+344 targeted_modifier 向量 (14623, 544B 元)** / **+368 equipment_bonus 指针向量 (12647, 元素 CTraitEquipmentBonus 0xA0)** / **+392 ai_strategy 指针向量 (12544, 元素 CAIStrategyReader 0x20)** / +420 sprite token (61) / +424 command_cap_cost (16408) / +432 command_cap_increase (16375) / +440 command_power (14467) / +448 bool random (10171) / +456 ai_will_do 子对象 (10819)。GUI 消费 = §4.31 CCountryLeaderTraitItem 数据源。
 
-**CScientistLevel** (科学家按专长技能等级容器, 32B; vt 0x1429BF088; **唯一实现写槽的类**: writer 0x1414606F0 / reader 0x1414603E0, 入档): 容器 {d@8, cap@16, count@20, alloc@24}, 元素 32B = {spec id u32@0 (= specialization idb def+8), 内嵌 SSkillLevel 24B {vt@+8, u32@+16, u32@+24 推定 = 等级/进度}}; ctor 按 specialization 库 (0x332F068) 全量预填; reader 按 id find-or-append, id 不在库抛 "specialization %s in save file does not match any in DB." (scientist_skill_levels.cpp:120)。
+**CScientistLevel** (科学家按专长技能等级容器, 32B; vt 0x1429BF088; **唯一实现写槽的类**: writer 0x1414606F0 / reader 0x1414603E0, 入档): 容器 {d@8, cap@16, count@20, alloc@24}, 元素 32B = {spec id u32@0 (= specialization idb def+8), 内嵌 SSkillLevel 24B {vt@+8, i64×1e-5@+16 (键 11930), u32@+24 (键 10348)} (SSkillLevel writer 0x141460750)}; ctor 按 specialization 库 (0x332F068) 全量预填; reader 按 id find-or-append, id 不在库抛 "specialization %s in save file does not match any in DB." (scientist_skill_levels.cpp:120)。
 
 > **本域 GUI 类布局**: 见 4.31.21 / 4.31.36 / 4.31.52 / 4.31.57。
 
@@ -705,7 +705,7 @@ CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创
 | +2496 | 容器 24B (32B 串元) | custom_gain_xp_trigger_tooltip | 14789 | 定案 |
 | +2520 | 容器 24B (8B 指针元) | 校验期指针容器 (finalize 增长重拷; 父特质解析关联推定) | — | 结构定案 |
 | +2544 | 容器 (32B 元) | 校验期容器 {指针@0, u32@8, 引用对象@16 (release 销毁)} — finalize 按 count@+2552 遍历 | — | 结构定案 |
-| +2568 | 容器 24B (u32 元) | unit_type — 元 = subunit def 的 db 索引 (def+0x58C, §4.18) | 11230 | 定案 |
+| +2568 | 容器 24B (u32 元) | unit_type — 元 = subunit def 的 db 索引 (def+1420, §4.18) | 11230 | 定案 |
 | +2592 | u32 | attack_skill | 14537 | 定案 |
 | +2596 | u32 | defense_skill | 14538 | 定案 |
 | +2600 | u32 | logistics_skill | 14540 | 定案 |

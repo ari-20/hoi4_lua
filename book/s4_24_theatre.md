@@ -9,9 +9,9 @@ writer 绑定总表:
 | 类 | sizeof | vtable | writer (slot2) | ctor | reader (slot4) |
 |---|---|---|---|---|---|
 | CTheatre | 0x1D0=464 | 0x142975A48 | 0X140F025C0 | 0X140EE9E50 | 0X140EFE2B0 |
-| CTheaterGroup | 0x60=96 | 0x1429E5C50 | 0X14163AA40 | 0X141639B00 | — |
-| CArmyGroup | 0x250=592 | 0x142952348 | 0X140BF75A0 | 0X140BE9BC0 | — |
-| COrdersGroup | 0x230=560 | 0x1429522B0 | 0X140BF7630 | 0X140BE9C10 | — |
+| CTheaterGroup | 0x60=96 | 0x1429E5C50 | 0X14163AA40 | 0X141639B00 | 0X14163A850 |
+| CArmyGroup | 0x250=592 | 0x142952348 | 0X140BF75A0 | 0X140BE9BC0 | 0x140BF2ED0 |
+| COrdersGroup | 0x230=560 | 0x1429522B0 | 0X140BF7630 | 0X140BE9C10 | 0x140BF30A0 |
 | COrderInstance | 0x3C8=968 | 0x142986718 | 0X14104B570 | 0X141027A10 | 0X14103E110 |
 | CFront | 0x88=136 | 0x142975B40 | 0X140F01A60 | (内联于 reader) | 0X140EFCF10 |
 
@@ -312,7 +312,7 @@ reader 0X140EFCF10; front 块全字段落盘。
 | +101..+111 | — | = count 尾 + alloc@+104 (哨兵) + 垫  |  |
 | +112 | CFrontSection\* | 区对象指针 (AI 口袋追击 sub_14108C290 经 vt[1] 取控制方 tag; §4.24.7 布局吻合); area 标量 = ru32(rp(rp(fr+112)+40)+164) | 恒写 |
 | +113..+124 | — | 拆分见 +120/+124 两行 | case 10720 word 写 0x0100 (低半 = +124 配对标记, 高半 = 1) |
-| +125 | uint8 | dirty — ctor 初值 = 1 (新建 front 默认脏; reader 13444 skip) | 恒写 → yes/no |
+| +125 | uint8 | dirty — ctor 初值 = 1 (新建 front 默认脏; reader 13444 经 sub_1424C0C00 双参形态**载入** +125) | 恒写 → yes/no |
 
 **reader 补键表** (writer 无对应键):
 
@@ -394,8 +394,8 @@ ctor 0X141639B00; vt 0x1429E5C50。
 | obj 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
 | +8 | uint32 | priority | **≠1 才写** (默认抑制) |
-| +9..+31 | — | = priority 尾 (+9..+15) + **qword@+16 (属 CEquipmentDistributable 基类域)** — 基 ctor 0X1415A7410 只做三事 (`*(a1+8)=1` priority 默认 / `*a1 = &CEquipmentDistributable::vftable` / `*(a1+16)=0`); 该 vt 0x1429DC100 (含 +24 CPersistent 视口全 19 实槽) 及派生域逐扫均无 +16 消费 ⇒ 保留槽死字段 (负定案) + **vt2@+24 = CPersistent 视口**  | 基 ctor 0X1415A7410 |
-| +32 | uint32 | country tag_id → 引号串 | 恒写 |
+| +9..+31 | — | = priority 尾 (+9..+15) + **qword@+16 (属 CEquipmentDistributable 基类域)** — 基 ctor 0X1415A7410 只做三事 (`*(a1+8)=1` priority 默认 / `*a1 = &CEquipmentDistributable::vftable` / `*(a1+16)=0`); vt 0x1429DC100 实为 6 槽 5 实 (RTTI 证 CEquipmentDistributable 无基类); CPersistent 视口住派生类主表 0x142A1CE18 [7..15] 与 0x142A1CE50; 该域及派生域逐扫均无 +16 消费 ⇒ 保留槽死字段 (负定案)  | 基 ctor 0X1415A7410 |
+| +32 | uint32 | country tag_id → 引号串 | 门 tag>0 (sub_140BB59C0 体; ctor 清零) |
 | +40 | 内嵌 | hq_assembled_equipment = CEquipmentVariantPool (writer 0X141012DB0): 数组 {d@obj+72, c@obj+84} stride 16 {variant ptr, amount i64 fix5}; **元素写门 amount≠0 或零旗 u8@obj+96**; id 对 = {type@variant+8, id@variant+12}; allow_zero_entries = u8@obj+96 **恒写** | 恒写块 |
 | +41..+103 | — | = **池1 CEquipmentVariantPool 64B** (ctor 0X14100C710): vt@40 + 容器1@48 {d@48, cap@56, c@60, alloc@64} stride 24B 预扩容 max(1, defines/10) — **容量预置但恒空的保留容器** (writer 0x141012DB0 只遍历容器2 并写零旗 +56, 容器1 零触) + **容器2@72 = hq_assembled_equipment 数组本体** (stride 16) + 零旗 u8@96  | 0X14100C710 |
 | +104 | 内嵌 | hq_requested_equipment = CEquipmentArcheTypePool (writer 0X141012D40): 数组 {d@obj+112, c@obj+124} stride 16 {archetype ptr, amount i64 fix5}; **键名动态** = token_name(ru32(archetype+8)) | amount≠0 |
@@ -415,16 +415,16 @@ ctor 0X141639B00; vt 0x1429E5C50。
 | sizeof | 0x28 = 40 |
 | vtable RVA | 0x1429D2B88 (RTTI 仅继 CPersistent; 旧记 0X1429D0F38 系无关 lambda 表) |
 | writer (vt slot2) | 0X141518C70 — 逐元 ADEC0 token 13777 theater_group |
-| ctor / dtor | 0x1415182D0 / vt[1] deleting |
+| ctor / dtor | 0x1415182D0 / vt[0]=0x1415183E0 deleting (vt[1]=0x1424BEC50 系家族共享 Save wrapper, §4.00.1) |
 | loader (vt slot4) | 0X1415189D0 — 收 13777 建 CNavyTheaterGroup |
 | 挂载点 | CCountry writer 0X1407191B0 以 token 15159 navy_theater 整块发射 cc+352 (段侧已实现) |
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
-| +8 | uint32 | country tag → 引号串 |  |
+| +8 | uint32 | country tag (运行时; 不序列化 — writer 零读 +8, loader 仅 case 13777) |  |
 | +16 | CNavyTheaterGroup* 向量 | theater_group 数组 (CPdxScopedPtr 独占; loader sub_14031ECD0 直证) {d@+16, cap@+24, c@+28, alloc@+32} | 逐元 ADEC0 tok 13777 |
 
-#### 4.24.12 CNavyTheaterGroup (96B; writer 0X1415B9B20 / reader 0X1415B97E0 / ctor 0X1415B9390 / dtor 0X1415B9460; navytheatergroup.cpp)
+#### 4.24.12 CNavyTheaterGroup (96B; vtable 0x1429DCCE0; writer 0X1415B9B20 / reader 0X1415B97E0 / ctor 0X1415B9390 / dtor 0X1415B9460; navytheatergroup.cpp)
 
 ctor 0X1415B9390; sizeof 0x60 = 96; owner CNavyTheater 回指@+24。
 

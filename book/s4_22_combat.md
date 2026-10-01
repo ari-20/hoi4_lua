@@ -32,7 +32,7 @@
 | 场容器三类分流 | gs+616 场容器混装三类对象, **主 vtable `*e` 分流**: 陆战 0X29A83D8 / 海战 0X29DDB08 / 边界战 0X29BC5F0** | ⚠ 按 day 正负分流会把 CLandBorderWarCombat (day=68 正值) 误入 land_combat, 致 8196 插槽后索引整体漂移 (~770 伪 DIFF) — 必须按主 vtable 分流 |
 | 海陆战分流 | combat `day uint32 > 0x7FFFFFFF` 即海战 (NBAT 前缀) | 陆战按 id 升序重编号 |
 | 魔数 | 陆战 600/65536 魔数已改通用 |  |
-| combat_details 字段族 | 参战双 attacker/defender 各含 units/losses/size/org_damage/str_damage/manpower casualties 等 | writer 0X1414B59B0 族; pfx 参数区分 CBAT/NBAT 前缀 |
+| combat_details 字段族 | 参战双 attacker/defender 各含 units/losses/size/org_damage/str_damage/manpower casualties 等 | writer 0x1413E4150 陆战块 + combatant 族 (0X1414B59B0 系生产线族 writer 勿混, §4.8); pfx 参数区分 CBAT/NBAT 前缀 |
 
 序列化 (§4.00.1 标准槽契约): [1] Save wrapper 0x1424BEC50 / [2] writer 0x140BBAFF0 /
 [3] Load wrapper 0x1424BE690 / [4] reader 0x140BBA070 (mgr 无坐标桥, a1 = 本体)。
@@ -696,8 +696,8 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 | +0 | vptr | vftable | — |
 | +8 | uint32 | unique_id.type (type=4713) | 恒写 (0X142220260; tok 0x30AA unique_id) |
 | +12 | uint32 | unique_id.id | 恒写 (同上) |
-| +16 | SCachedInfo 内嵌 (0xC8=200B) | cached_info | 恒写 (ADEC0; tok 0x31EB) — **与 4.22.5 member.cached_info 同一 writer 0X141976430 同一结构**, 全字段表见 §4.22.5 member.cached_info 行 |
-| +17..+215 | — | = **SCachedInfo 内嵌 200B (0xC8)** 本体 (+16..+215) — 全字段表见 §4.22.5 member.cached_info 行 (同一 writer 0X141976430 同结构) |  |
+| +16 | SCachedInfo 内嵌 (0xC8=200B) | cached_info | 恒写 (ADEC0; tok 0x31EB) — **与 4.22.5 member.cached_info 同一 writer 0X141976430 同一结构**, 字段表 = §4.22.5 member.cached_info 行 |
+| +17..+215 | — | = **SCachedInfo 内嵌 200B (0xC8)** 本体 (+16..+215) — 字段表 = §4.22.5 member.cached_info 行 (同一 writer 0X141976430 同结构) |  |
 | +216 | SNavalHit* 向量 | naval_hit 数组数据 — 8B 指针元素 → SNavalHit; [N] 第 2 起编 | 门 计数@+228>0; tok 0x30A8 |
 | +217..+227 | — | = naval_hit 容器 {d@216, **cap@224**, c@228, alloc@232... } 的 data 尾 + cap@224 — ⚠ 见下行宿主回指 说明 +232 为 CFEXGroup* 而非 alloc  |  |
 | +228 | int32 | naval_hit 计数 | |
@@ -831,20 +831,20 @@ CCombatTactic 布局全表 (376B 全覆盖; CTacticsListEntry Refresh 消费; ta
 
 #### 4.22.8 CShipCombatReader (海战视图特效静态配置; vt 0x1429E82F0)
 
-writer = CFG 空桩 → **不入档** (静态 reader); 源 = gfx/naval_combat_fl.txt (推定); reader 0x141664C90 / ctor-dtor 0x141661700。
+writer = CFG 空桩 → **不入档** (静态 reader); 源 = gfx/naval_combat.txt; reader 0x141664C90 / ctor-dtor 0x141661700。
 
 | 偏移 | 类型 | 键 (token) | 语义 |
 |---|---|---|---|
 | +8 | MSVC 串 32B | naval_formation (12631) | 阵容字串 |
-| +40 | fixed | naval_formation_scale (12632) | 阵容缩放 |
+| +40 | f32 | naval_formation_scale (12632) | 阵容缩放 (ctor 默认 1.0f) |
 | +48 | MSVC 串 32B | naval_combat_formation (12633) | 战形字串 |
-| +80 | fixed | naval_combat_formation_scale (12634) | 战形缩放 |
-| +84 | u64 | naval_random_start_time (12913) | 随机起始时刻 |
+| +80 | f32 | naval_combat_formation_scale (12634) | 战形缩放 |
+| +84 | f32 | naval_random_start_time (12913) | 随机起始时刻 |
 | +88 | vec | naval_hit_effects_small (12635) | {d@88, cap@96, c@100, alloc@104} 图形特效对象 |
 | +112 | vec | naval_hit_effects_big (12636) | 同上 |
 | +136 | vec | naval_miss_effects_small (12637) | 同上 |
 | +160 | vec | naval_miss_effects_big (12638) | 同上 |
-| +184 | u64 | naval_death_time (12640) | 死亡时刻 |
+| +184 | f32 | naval_death_time (12640) | 死亡时刻 |
 
 > 与 §4.22 海战 combatant +384 SNavalHit (战斗事件收发器) 同名不同域, 勿混。
 
@@ -868,8 +868,8 @@ CCombatManager (§4.22.1 gs+608) 每小时逐战斗调虚表槽[15] = 战斗步�
 | [19] | **伤害执行步** (sub_1412B3300) | 目标分配 → 闪避 → STR/ORG 骰 → 穿甲偏转 → TakeDamage; 尾推 progress |
 | [22] | **修饰符全量重算** (stacking/over-width/补给/夜战/挖掩/岸轰/空优/情报/包围, 34 distinct define) | 每小时步进第 1 步 |
 | [23] | **战斗结束钩子** (结束通知 sub_1413E2CF0 内调) | 基类/CLandCombat = CFG 空桩; **仅 CNavalCombat 覆写 = sub_1415C4C90 海战结果生成** (§4.22.6 聚合链) |
-| [29] | **当前主将 getter** | 基类 = 返回 0 桩; 海军覆写 sub_14161E5C0 = admiral 数组取军衔最大 |
-| [32] | weighted_participants (情报权重) | 步进第 4 环 |
+| [29] ⚠ combatant 层 | **当前主将 getter** (两行属 CCombatant 主表 34 槽, 非 CCombat 26 槽/CLandCombat 27 槽) | 基类 = 返回 0 桩; 海军覆写 sub_14161E5C0 = admiral 数组取军衔最大 |
+| [32] ⚠ combatant 层 | weighted_participants (情报权重) | 步进第 4 环 |
 
 **CArmy::TakeDamage = 0x140C8F510**: 实扣 +1056 strength / +1064 organisation
 (mod 660/661/662; war support 扣减)。伤害流水: 目标分配
@@ -1042,7 +1042,7 @@ sub_1415C60E0 (定案)。
 #### 4.22.11 边界战执行链 (CLandBorderWarCombat)
 
 **主轴 (定案)**: 边界战完全复用 §4.22.9a CCombatManager 五阶段骨架 —
-CLandBorderWarCombat (vt 0x1429BC5F0, 40 槽) 只覆写少量虚槽; **槽[15]
+CLandBorderWarCombat (vt 0x1429BC5F0, 27 槽 — slot[27] 位 = vtC COL 前哨) 只覆写少量虚槽; **槽[15]
 sub_1413ED810 = 前置三态状态机后直接调 CLandCombat 步进主入口
 sub_1412B81D0** (复用陆战链)。槽契约: [9] IsActive sub_1413EE680 / [11]
 GetTypeId (token **14757 border_war_combat**, 枚举 1, find_by_states 过滤) /
@@ -1083,9 +1083,9 @@ removed_unit 暂离 (HOURS_REQ_REJOIN_BORDER_WAR_FOR_INJURED_UNITS 倒计时,
 槽[19] 消费回归)。
 
 创建链: CStartBorderWarEffect::Execute → 工厂 sub_140BB6B70 (malloc 248 +
-ctor + 挂 gs+616 + 侧装配 1416B×2 + 州登记 state+2208 rb-tree)。干预面
+ctor + 挂 gs+616 + 侧装配 1416B×2 + 省登记 province+368 在场战斗数组 (sub_140E797F0 add-unique)。干预面
 (Execute = 虚表[13] 直证): start / set_border_war (置 state+2149 旗
-sub_14030F980) / set_border_war_combat_data / finalize_border_war (置胜旗 +
+sub_14030F980) / set_border_war_data (14741) / finalize_border_war (置胜旗 +
 silent c+228) / cancel_border_war (置 c+227) (定案)。
 
 #### 4.22.12 陆战战术选择流

@@ -2,7 +2,7 @@
 
 ### 4.7 CTechnologyStatus (科技)
 
-**获取**: `ts = *(cc + 3936)`; **vtable RVA 0X2974FA0**; ctor 0X140ED3E80;
+**获取**: `ts = *(cc + 3936)`; **vtable RVA 0X2974FA0**; sizeof **352** (0x160, malloc 直证); ctor 0X140ED3E80;
 writer 0X140EE5430。
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
@@ -12,11 +12,11 @@ writer 0X140EE5430。
 | +88 | vector\<u32\> 24B | **per-建筑 max_level 加成缓存** (按建筑 def+736 索引; 完成科技时按 tech+56 {def*,u32} 对 max 累积) {cap@96, count@100, alloc@104} | 写点 0X140EE3E70 `ts88[4*def+736]=max(cur,val)`; 消费 0X1411731F0 配 loc BUILDING_CURRENT_MAX_LEVEL_CAPPED |
 | +112 | vector\<指针\> 24B | **国家可用战斗战术 (combat tactics) 累积表** (元素=tactic 对象, id@elem+148 去重) {cap@120, count@124, alloc@128} | 完成科技时把 tech+80 元素按 +148 去重 push; fallback 构造串 "nullCombatTactic" |
 | +136 | vector\<CTechnology*\> 24B | technologies {cap@144, count@148, alloc@152} — **元素 8B 指针** (count<4096) | 导出须过滤门 (下) |
-| +160 | vector\<CResearchSlot*\> 24B | slots {cap@168, count@172, alloc@176} — **元素 8B 指针** (writer 双重解引用实锤; 对象 0x48B) | loader case 11879 逐槽 malloc(0x48); **GUI: 研究槽行** (research_slots_grid; Repopulate@48[9] 0X1415FA1A0 → 0X1415FA300 建行 CResearchSlotItem(0x580), item+1336=slot; 可见门 sub_1415FB5D0 非本人槽不画) |
+| +160 | vector\<CResearchSlot*\> 24B | slots {cap@168, count@172, alloc@176} — **元素 8B 指针** (writer 双重解引用实锤; 对象 72B) | loader case 11879 逐槽 malloc(0x48); **GUI: 研究槽行** (research_slots_grid; Repopulate@48[9] 0X1415FA1A0 → 0X1415FA300 建行 CResearchSlotItem(0x580), item+1336=slot; 可见门 sub_1415FB5D0 非本人槽不画) |
 | +184 | vector\<指针\> 24B | **_EquipmentBonuses** (国家侧生效装备加成列表) {cap@192, count@196, alloc@200} | assert "!_EquipmentBonuses.Contains( &Bonus )" (technology.cpp:0x5D7) |
 | +208 | vector\<40B 条 {def ptr@0, name 串@+8..}\> 24B | **_AdvisorBonuses** (国家侧顾问/加成列表) {cap@216, count@220, alloc@224} | assert "!_AdvisorBonuses.Contains( Bonus )" (technology.cpp:0x5E5) |
-| +232 | vector\<CLimitedUseTechBonus*\> 24B | limited_use_bonus {cap@240, count@244, alloc@248} — **元素 8B 指针** (对象 0x80B); **per-tech lub 块 BlackICE 实测峰值 115 (GER/bi8), 防御界须 ≥256** | loader case 13283 malloc(0x80)+push |
-| +256 | vector\<CLimitedUseTechCostReduction*\> 24B | cost_reduction {cap@264, count@268, alloc@272} — **元素 8B 指针** (对象 0x70B) | loader case 19531 增长码全四元组 |
+| +232 | vector\<CLimitedUseTechBonus*\> 24B | limited_use_bonus {cap@240, count@244, alloc@248} — **元素 8B 指针** (对象 128B); **per-tech lub 块 BlackICE 实测峰值 115 (GER/bi8), 防御界须 ≥256** | loader case 13283 malloc(0x80)+push |
+| +256 | vector\<CLimitedUseTechCostReduction*\> 24B | cost_reduction {cap@264, count@268, alloc@272} — **元素 8B 指针** (对象 112B) | loader case 19531 增长码全四元组 |
 | +280 | vector\<CTechnologySharingGroup*\> 24B | **本国 technology sharing group 成员表** (组 id@elem+8) {cap@288, count@292, alloc@296} | CModifyTechnologySharingBonusEffect::Execute 0X14031FB10 → sub_140ED5110 按组 id 查找; Add/Remove 效果经 gs 管理器 push/erase |
 | +304 | CCountry* | 回指 (ctor 参数 a2) | +312=`*(a2+8)` 即国 tag 初值 |
 | +312 | u32 | override_icons_tag | loader case 17939 互证; 定案: writer sub_140BB59C0 = 通用 tag 发射器, **tag>0 门** (零叶不发射, 发射为引号国家串) |
@@ -50,7 +50,7 @@ loader 0X140EE16F0):
 | +104 | vector\<指针\> 24B | 完成时注入 CProductionStatus 的解锁列表 A (源自模板+632, 库 qword_14332EEC0 解析; 携 design_team) {cap@112, count@116, alloc@120} | 高置信 (equipment variant 族); **GUI: 科技图标回退源** (*(tech+104) 首元 +1000 旗 → 首解锁装备图; 模板图为先) |
 | +128 | vector\<指针\> 24B | 完成时注入生产的解锁列表 B (源自模板+656) {cap@136, count@140, alloc@144} | 高置信 |
 | +152 | vector\<CSubUnitDefinition*\> 24B | 完成时注入 cc+3952 管理器的解锁列表 (sub_140D0E200(cc+3952, elem, 1)) {cap@160, count@164, alloc@168} | 定案 : 元素 = **CSubUnitDefinition\*** (科技解锁的子单位定义, 非 equipment variant); cc+3952 管理器 = {+32 副本数组 (1656B 克隆, clone ctor 0X1403C77D0, 按 elem+1420 回溯 DB 母本), +56 token RH 去重}, 克隆体 +1471 = 解锁旗 OR 累积; CCountry writer 键 12181 "deployment" 整对象落盘 |
-| +176 | vector\<CTechnology*\> 24B | **被本科技门控的后继科技表** (源自模板+860; 同时把本科技注册进对方听众列表, 并写对方 +360=本科技) {cap@184, count@188, alloc@192} | 状态变化逐个 sub_140ED6B50 通知 |
+| +176 | vector\<CTechnology*\> 24B | **被本科技门控的后继科技表** (源自模板+848 容器; 同时把本科技注册进对方听众列表, 并写对方 +360=本科技) {cap@184, count@188, alloc@192} | 状态变化逐个 sub_140ED6B50 通知 |
 | +200 | vector\<CTechnology*\> 24B | **前置/关联科技表** (源自模板+776; GetTechState 读其 +368 参与本科技状态计算) {cap@208, count@212, alloc@216} | 高置信 |
 | +224 | vector 24B | **互斥科技 (mutually_exclusive) 表** (源自模板+824; CompleteResearch sub_140EE1270 互斥门: 任一 +368==4 已研究 → 断言拒绝) {cap@232, count@236, alloc@240} | 定案 |
 | +248 | vector 24B | **path 族引用** (研究路径树, 源自模板+800; 含听众互注册) {cap@256, count@260, alloc@264} | 定案 |
@@ -76,24 +76,24 @@ loader 0X140EE16F0):
 | +496 | u32 | design_team 对.id | |
 | +500 | u32 token | **locked_design_team** (键 19182; lexer token 直存, 写出转串) | ≠"undefined"(19479) 才写 |
 
-#### 4.7.2 CResearchSlot (1163B)
+#### 4.7.2 CResearchSlot (72B)
 
-**CResearchSlot** (0x48B; ctor 0X140ED2CF0 + loader 内联构造互证):
+**CResearchSlot** (72B; ctor 0X140ED2CF0 + loader 内联构造互证):
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +8 | token | 名 (占位 10830="empty"; 有在研时 = tech+8 名 token) | RESEARCH_NO_RESEARCH 串常驻化 |
 | +16 | CTechnologyStatus* | 回指 | |
-| +24 | CTechnology* | 在研 tech | **GUI: 行标题/空槽支路** (tech+8 名 → title 窗; slot+24==0 → UNUSED_SLOT + GFX_research_line_bg + empty_research_slot_glow; 0X141BE4BF0) |
+| +24 | CTechnology* | 在研 tech (reader case 12766 落 points 后附带清 slot+24 — 读档即解除在研) | **GUI: 行标题/空槽支路** (tech+8 名 → title 窗; slot+24==0 → UNUSED_SLOT + GFX_research_line_bg + empty_research_slot_glow; 0X141BE4BF0) |
 | +32 | fixed×1e-5 | research — **存档键 points** (键 12766; 定名) | **GUI: 进度条分子回退** (tech+408 缺时取本值; research_progressbar) |
 | +40 | fixed×1e-5 | progress — **存档键 used_saved_points** (键 13499; 定名) | |
 | +48 | u64 | **死字段 (负定案)**: 全语料无运行时写者 (ctor/loader 置 0, SetTechnology/daily 链均不触) | 保留槽 |
 | +56 | fixed×1e-5 | points_factor | ≠100000 才写 (键 13956) |
 | +64 | u32 | **槽位序号** (ctor 第三参 = ts+172 当前槽数; SyncSlotsToCount 以之定位) | 定案 |
 
-#### 4.7.3 CLimitedUseTechBonus (2059B)
+#### 4.7.3 CLimitedUseTechBonus (128B)
 
-**CLimitedUseTechBonus** (0x80B; ctor 0X140ED2C20):
+**CLimitedUseTechBonus** (128B; ctor 0X140ED2C20):
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
@@ -107,9 +107,9 @@ loader 0X140EE16F0):
 | +112 | fixed×1e-5 | bonus (键 10931) | |
 | +120 | u32 | **死字段 (负定案)**: 无写者 (ctor 置 0; id 分配器只写 +48; uses 消耗链不触) | 保留槽 |
 
-#### 4.7.4 CLimitedUseTechCostReduction (1803B)
+#### 4.7.4 CLimitedUseTechCostReduction (112B)
 
-**CLimitedUseTechCostReduction** (0x70B; ctor 0X140ED2C90):
+**CLimitedUseTechCostReduction** (112B; ctor 0X140ED2C90):
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
@@ -182,10 +182,10 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 | +776 | 匿名结构 (元素待裁) 向量 | 前置列表 (计数@+788) | tech+200 源 |
 | +800 | 引用向量 | **path 族引用** (研究路径树) | 含听众互注册; tech+248 源 |
 | +824 | 引用列表 | **互斥科技 (mutually_exclusive) 引用** | tech+224 源 |
-| +860 | 匿名结构 (元素待裁) 向量 | 被门控后继列表 | tech+176 源 |
+| +848 | 匿名结构 (40B 元素待裁) 向量 | 被门控后继列表 {d@848, cap@856, count@860, alloc@864} | tech+176 源; 元素 40B 模板键结构 |
 | +872 | u32 数组 | **特殊项目 id 表** {data@+872, count@+884} — AddResearchPoints sub_140ED5690 notify 时逐 id 调 sub_140E75C40 推进 cc+4008 program_status | 定案 |
 | +896 | 24B 容器 {d@+896, cap@+904, c@+908, alloc@+912} | **folder 关联条目列表** (键 11873 folder; 元素 56B = CFolderPosition, 下表) | 消费器 sub_140ED6CD0 doctrine 四军种 folder 名 memcmp 源 (§4.7 已载) |
-| +984 | u32 | 科技可用年 | >0 门 (year 窗直证) |
+| +984 | u32 | start_year (token 11874; 「科技可用年」系语义释义) | >0 门 |
 | +988 | u32 | max_level | |
 | +992 | — | 基础成本 | 进度条分母: ×qword_143332BA0/1e5 ∨ 空槽 qword_143332A38 |
 | +1034 | bool | **force_use_small_tech_layout** (reader case 19623) | 科技图标门第二键 ∨ tech+116==0; 邻 +1036 = **show_equipment_icon** (reader case 13950) |
@@ -230,8 +230,8 @@ ctor 0x141A35060) = **内联三元状态容器** (非常规派生族):
 
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +8 | 匿名结构 (union 指针) | **current state 指针** (指向 +24 / +232 / +360 / +488 之一, 或自指 +24 表示「无状态」) | reader 0x141A37880 `*(a1+8) = a1+24` / `= v10` |
-| +16 | u8 | **tag 有效门**: 1 = +8 指向自身 (+24) 即「无当前状态」; 0 = 指向实状态 | 同上 |
+| +8 | 匿名结构 (union 指针) | **current state 指针** (指向 +24 / +232 / +360 / +488 之一) | reader 0x141A37880 `*(a1+8) = a1+24` / `= v10` |
+| +16 | u8 | **tag 三值**: 1 = PROTOTYPE 活动态 (ctor 默认, +8 指向 +24) / 0 = Simple 态 / −1 = 惰性哨兵 (writer 守卫) | 同上 (§4.7.9a 同判) |
 | +24 | CPrototypeProjectState (208B) | **slot 0 = PROTOTYPE_STATE** | 见下 |
 | +232 | CSimpleProjectState (128B) | **slot 1 = RESEARCH_COMPLETED** | 见下 |
 | +360 | CSimpleProjectState (128B) | **slot 2 = STOPPING_STATE** | 见下 |
@@ -257,11 +257,11 @@ ctor 0x141A35060) = **内联三元状态容器** (非常规派生族):
 
 | current_state 值 | 目标 |
 |---|---|
-| 0 | `*(a1+8) = a1+24` (无状态) |
+| 0 | `*(a1+8) = a1+24`, tag 置 1 (回 PROTOTYPE 态) |
 | 1 | a1+232 (RESEARCH_COMPLETED / Simple) |
 | 2 | a1+360 (STOPPING_STATE / Simple) |
 | 3 | a1+488 (STOPPED_STATE / Simple) |
-| default | 断言 `"bad state for project state machine"` (project_state.cpp:629), 回落 = 无状态 |
+| default | 断言 `"bad state for project state machine"` (project_state.cpp:629), 回落 = tag 1 (PROTOTYPE) |
 
 **writer 0x141A37CD0 发射键表** (只三键):
 
@@ -276,8 +276,7 @@ ctor 0x141A35060) = **内联三元状态容器** (非常规派生族):
 > RESEARCH_COMPLETED / STOPPED_STATE 是终态标记, 无进行中进度 (高置信)。
 > writer 开头 `if (*(char*)(this+16) == -1) sub_140722EC0(&v6, this+8)` = +8/+16 联合体的
 > 惰性初始化守卫 (与 reader 的 +16 门呼应)。
-> **迁移单向链 (推定)**: slot 0 → slot 1 → slot 2 → slot 3; reader 的 switch 无 case 指向 +24
-> ⇒ 载档后 `current_state == 0` 即「无状态」, 不可能再回 PROTOTYPE_STATE; slot 0 的进入点未定位。
+> 迁移为枢纽图 (定案, §4.7.9a): PROTOTYPE 可直达各态, reader case 0 = 回 PROTOTYPE 的进入点。
 > 断言串给出源文件 = `special_projects/projects/project_state.cpp`。
 
 **CBaseProjectState** (128B; vt 0x142A2FFB0; COL 0x142D5E9F0; CHD nbases=2: self + CPersistent):
@@ -296,11 +295,11 @@ ctor 0x141A35060) = **内联三元状态容器** (非常规派生族):
 |---|---|---|---|
 | +8 | 匿名结构 (88B 块) | **内嵌回调/监听体** {+8 自指/链表头, +16 u8 门=1, +24 函数对象 56B, +80 槽} — 析构 sub_141A35480 读 `+8+112` 容量判堆/内联 (SSO 上限 15) | ctor + dtor |
 | +72 | i64 | **phase_progress** (键 10251) — 本状态内进度 | writer/reader |
-| +80 | u32 | phase_progress 尾槽 (与 +72 同写同拷; 推定 = 进度分母/门) | writer 0x141A37CB0 |
+| +80 | u32 | phase_progress 尾槽 (与 +72 同写同拷) — 完成门直接证据: 相位满判定 = progress ≥ 100000×(int)(+80) | writer 0x141A37CB0 |
 | +88 | MSVC 串 32B | 状态名 {buf@+88, size@+104, cap@+112=15} | ctor |
 | +120 | u32 | **状态枚举 id** (0/1/2/3, 与 SM switch 的 current_state 同域) | ctor 三处写 1/2/3 |
 
-**CPrototypeProjectState vs CSimpleProjectState** (两者 CHD 均 nbases=3, sizeof 差 8):
+**CPrototypeProjectState vs CSimpleProjectState** (两者 CHD 均 nbases=3, sizeof 差 80 = 208 vs 128):
 
 | 项 | CPrototypeProjectState (vt 0x142A30060) | CSimpleProjectState (vt 0x142A30008) |
 |---|---|---|
@@ -348,9 +347,7 @@ CPersistent 基子对象 (vptr 落点) = **template+32**。
 | +296 | 匿名结构 | — | (ctor sub_1406419E0) |
 | +352 | 指针 | — | 空 |
 | +360 | 指针 | — | 空 |
-| +368 | 匿名结构 (容器) | — | {allocator, data, 尾} 同构三组 (与 +376/+384) |
-| +376 | 匿名结构 (容器) | — | {allocator, data, 尾} 同构三组 (与 +368/+384) |
-| +384 | 匿名结构 (容器) | — | {allocator, data, 尾} 同构三组 (与 +368/+376) |
+| +368 | 匿名结构 (24B 容器)×4 | — | 四个 24B 容器步长 24 @ B+368/392/416/440 (ctor 四置分配器哨兵; 旧记「三组 {allocator,data,尾}」系首容器三槽误拆) |
 | +440 | 匿名结构 | — | — |
 | +456 | u8 | — | 门 |
 | +464 | CNarrative vt | — | **CNarrative 子对象起点** (= CProjectTemplate+496) |
@@ -385,10 +382,10 @@ CPersistent 基子对象 (vptr 落点) = **template+32**。
 | 10028 special_project_parent | template+664 | — |
 | 10044 empty_reward_weight | template+904 | 带门 `+960 u8` 的块 |
 | 10126 breakthrough_cost | (循环) | 专精突破成本表 (校验 `"Breakthrough cost of specialization: "`) |
-| 15606 project_tags | template+776 | — |
-| 16388 unique_prototype_rewards | template+880 | `CInlinableGameItem<CPrototypeReward>` reader |
+| 15606 project_tags | template+1072 | vector<u32> {data@1072, cap@1080, count@1084} (元素解析 sub_140A937A0 push); template+776 属键 12264 available (CTrigger), 另 12263 allowed → +1112 |
+| 16388 unique_prototype_rewards | template+880 | `CInlinableGameItem<CPrototypeReward>` reader (SUniformReader<CPrototypeRewardDatabase,6>) |
 | 17462 resource_cost | template+968 | — |
-| 17468 generic_prototype_rewards | template+880 | 同上 (SUniformReader variant) |
+| 17468 generic_prototype_rewards | template+880 | 同上 (SUniformReader 模板参数 <…,1>, 与 16388 的 <CPrototypeRewardDatabase,6> 参数差) |
 | 11562 visible | template+688 | CTrigger 子对象 |
 
 > CProjectTemplate sizeof ≥ 1144 (ctor 尾部 `sub_140549F40(a1+1112)`), writer 空桩;
@@ -424,23 +421,24 @@ CProject = 448B, ctor sub_140FE0070 malloc 0x268; 池内联数组步长 448)。
 sub_140E785D0 (CProgramStatus 日更: 设施日更 sub_141443DD0 / S+56 待删队列
 清算 / 数活跃科学家 / S+104 逐 token 基础研究入账 sub_140E75C40
 (dword_1433335B8×n) / scientist+308 倒计时); ② **sub_141482020 CProjectPool
-日更** (资源重聚 sub_1414830F0 → 逐项目 **sub_140FE2A80**: 门 = 设施 CRef
-已设 ∧ 未完成; 设施引用失效/无科学家/停态 → sub_141A37390 推进; 推进后完成
-→ sub_140FE3F00 结算 (+445 只结算一次门 / RNG 种子 project.cpp:416 / 迭代奖励
+日更** (资源重聚 sub_1414830F0 → 逐项目 **sub_140FE2A80** (IsStopped 分支另调 sub_140FE4700 已停项目日巡): 门 = 设施 CRef
+已设 ∧ 未完成 ∧ (设施引用失效 ∨ 停态) → sub_141A37390 推进; 推进后完成
+→ sub_140FE3F00 结算 (+445 只结算一次门 / RNG 种子 project.cpp:416/417/418 三粒 / 迭代奖励
 sub_140FE0D20 / SProjectHistory 88B 追加 / 事件 "special_project_researched");
 **设施健康且态=PROTOTYPE → BeginStopping** (设施未派科学家则项目转入停止)。
 日推进 sub_141A37390: STOPPING +100000/日; 其余态增量 = 设施/科学家速度
-sub_141BE7200; **sp_fast (byte_14332F681, 控制台 `sp_fast` sub_1411AA750)** 时
-直接迁移 / **sp_instant (byte_14332F680, 控制台 `sp_instant` sub_1411AB1E0)**
-日跳即完成 (控制台命令表实名直证; 同族 = `sp_available` / `sp_research_all` /
-`sp_unlock_all` / `sp_breakthrough`)。
+sub_141BE7200; **`sp_fast` (sub_1411AA750) 翻转 byte_14332F680** (相位门放宽: progress>0 即满) /
+**`sp_instant` (sub_1411AB1E0) 翻转 byte_14332F681** (状态直接迁移; 非停态→+232 tag=0,
+STOPPING→+488) — ⚠ 引擎源码命令名↔行为旗绑定本身互换: 敲 `sp_fast` 得「任意正进度
+即过门」、敲 `sp_instant` 得「状态一步迁移」(命令注册区 + 两函数体直证; 同族 =
+`sp_available` / `sp_research_all` / `sp_unlock_all` / `sp_breakthrough`)。
 
 **原型态推进 sub_141A37490 (定案)**: 相位满 (phase_progress ≥ 100000×相位长)
 → **iterations(+140)++** → 从 [_ComplexityMin(+128), _ComplexityMax(+132))
 掷随机复杂度 → project_progress(+136) += v9 钳 [0,100]; <100: 经 +144/+200
 回调发迭代奖励事件; ≥100: 经 +64 回调发项目完成; 完成后遍历 CProgram+176
 支援科学家容器对各国同 token 项目 sub_140FE0A30 加进度。+128/+132 由模板经
-sub_141A37C20 初始化 (template+48/+52; 断言 "_ComplexityMax != 0 && \"Complexity
+sub_141A37C20 初始化 (template+48/+52; 另写 SM+104 = slot0+80 相位分母 ← template+16、SM+440 = slot2+80 ← dword_1433323B0; 断言 "_ComplexityMax != 0 && \"Complexity
 in Project is 0\"" project_state.cpp:240)。
 
 **研究点银行定案**: S+80 = CBreakthroughProgress (24B 无 vtable), 其 +8 =
@@ -449,7 +447,7 @@ std::map 头 → **S+88 map<u32,u32> 是其成员** (键 = 专精 id, 值 = 点�
 / 阵营支援科学家 sub_140E77EB0 / effect。effect 族: complete_project Execute
 = sub_140493810 (未完成强制完成 / 已完成换设施 restart) / add_project_progress
 = sub_140493270 → sub_140FE0A30 / add_breakthrough_progress = sub_140493160。
-池重建 sub_141483450 → sub_141481780 (模板+1112 visible 求值; 新建 gs+1904 id
+池重建 sub_141483450 → sub_141481780 (模板+1112 allowed (键 12263) trigger 求值; 新建 gs+1904 id
 发生器, 通知 type 86)。
 
 

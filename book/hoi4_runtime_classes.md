@@ -105,7 +105,7 @@
 |---|---|---|
 | CState | 0x2936cc0 | 州主虚表 (书 §4.13) |
 | CProvince | 0x2971b18 | 省主虚表 (书 §4.14) |
-| CCharacter | 0x297ea60 | gs+0x6A8 角色 (书 §4.4) |
+| CCharacter | 0x297ea60 | gs+1704 角色 (书 §4.4) |
 | CAdvisorTemplate | 0x29bba98 | 顾问模板 |
 | CPolitics | 0x294fda8 | cc+3984 (书 §4.10) |
 | CTechnologyStatus | 0x2974fa0 | cc+3936 (书 §4.7) |
@@ -114,22 +114,22 @@
 | CSubUnitStatBonus | 0x295faa8 | 解锁兵种 bonus |
 | CArmy_vt0 / CArmy_vt1 | 0x295a2b0 / 0x295a490 | CArmy 双虚表 (书 §4.18) |
 | CNavyLeader | 0x2955dc0 | (书 §4.4.6; 海军将领导出族在角色册) |
-| CNavalBase / CNavalBase_vt2 / CNavalBase_vt3 | 0x29732e0 / 0x2973260 / 0x29731c0 | 海军基地三连 |
+| CStrategicNavyManager / CStrategicNavy / CNavalBase | 0x29732e0 / 0x2973260 / 0x29731c0 | gs+1688 海军三连 (PE COL 直证; 旧「海军基地三连」命名误) |
 | CUnitMedalStore | 0x29c1818 | 部队授勋商店 (616B; §4.18 army_history 子表) |
 | CUnitHistory | 0x29c1868 | 部队史块 (+1592 内嵌; 元 = CUnitHistoryEntry*) |
 | CUnitHistoryEntry | 0x29c1bc8 | 部队史/授勋条目 (328B; §4.18) |
-| CStrategicAirMgr | 0x2958918 | gs+0x690 (书 §4.15) |
+| CStrategicAirMgr | 0x2958918 | gs+1680 (书 §4.15) |
 | CStrategicAirCountry | 0x29587d8 | 国条 |
 | CAirWingPool | 0x297ae38 | 翼池 |
 | CAirBase | 0x2958780 | 基地 |
 | CStrategicAir_vt2 | 0x2958968 | 空军次虚表 |
-| CCombatManager | 0x2950688 | gs+0x260 (书 §4.22) |
-| CCombatLogManager | 0x295d8d8 | gs+0x268 |
+| CCombatManager | 0x2950688 | gs+608 (书 §4.22) |
+| CCombatLogManager | 0x295d8d8 | gs+616 |
 | CCombatLogEntry | 0x295d888 | 日志条目 |
 | CLandBorderWarCombat | 0x29bc5f0 | 边境战争战斗 |
 | CCountryIntel | 0x295f188 | cc+4072 (书 §4.11) |
 | CCountryIntelAgency | 0x2981f68 | cc+4032 |
-| CStrategicOperativesMgr | 0x2973b80 | gs+0x6A0 (书 §4.11) |
+| CStrategicOperativesMgr | 0x2973b80 | gs+1696 (书 §4.11) |
 | CStrategicOperative | 0x29a2358 | |
 | COperativesNet / COperativesSubNet | 0x29a1a58 / 0x29a1aa8 | |
 | CCountryReportsMgr | 0x29D10A8 | cc+4064 (书写法 0x1429D10A8 低 32 位; RTTI vt_rtti.json 定案) |
@@ -137,18 +137,18 @@
 | CResourceDelivery | 0x295c320 | 交付路由元素 |
 | CResourceOrigin | 0x295c370 | 资源起源元素 |
 | CFuelStatus | 0x298b3a8 | cc+5504 (书 §4.3) |
-| CSpecialProjectStatus / CSpecialProjectPool / CSpecialProject | 0x2971838 / 0x29c6e28 / 0x29717e0 | (书 §4.7.9) |
+| NProject::CProgramStatus (SM) / NProject::CProjectPool / NProject::CProgram | 0x2971838 / 0x29c6e28 / 0x29717e0 | cc+4008 (§4.7.9) |
 | CBreakthroughProgress | 0x2a2c040 | |
 | CEquipmentVariant | 0x2951608 | (书 §4.23.1) |
-| CExperienceStatus / CExperienceElem | 0x29a80c0 / 0x2958040 | cc+5512 |
-| CPowerBalanceSystem / CPowerBalanceEntry | 0x296fca0 / 0x296fc50 | gs+0x450 (书 §4.3) |
-| CPeaceConferenceMgr | 0x270AE28 | gs+0x4E0 (书 §4.10.26) |
+| CCountryExperienceStatus / CExperienceElem | 0x29a80c0 / 0x2958040 | cc+5512 |
+| CPowerBalanceSystem / CPowerBalanceEntry | 0x296fca0 / 0x296fc50 | gs+1104 (书 §4.3) |
+| CPeaceConferenceMgr | 0x270AE28 | gs+1248 (书 §4.10.26) |
 | CPeaceConference / CWarScoreBreakdown | 0x2950e58 / 0x2960128 | (书 §4.10.27) |
 | CDoctrineCs / CDoctrineFolder / CDoctrineTrack | 0x29653f8 / 0x29653a8 / 0x2965358 | (书 §4.6) |
 | CLoopHistory / CLoopHistoryEntry | 0x29d2a48 / 0x29d29a8 | (书 §4.3.11) |
 | COrganisation | 0x2967a28 | MIO (书 §4.8) |
-| CWeatherManager | 0x2977810 | gs+0x688 (书 §4.20) |
-| CSupplySystem | 0x2973cf0 | gs+0x3D8 (书 §4.21) |
+| CWeatherManager | 0x2977810 | gs+1672 (书 §4.20) |
+| CSupplySystem | 0x2973cf0 | gs+984 (书 §4.21) |
 | CRailwayManager / CProvinceRailwayInfo | 0x2972cd0 / 0x2972c80 | (书 §4.14.6/§4.14.7) |
 | CProductionStatus | 0x2970788 | 州监听元素 (**非** cc+3944; 书 §4.13) |
 | CIntelSource | 0x295f138 | 谍报网内联 @net+168 (书 §4.11) |
@@ -381,7 +381,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +248..+271 | **联机同步校验对象** (24B; CCheckSyncCommand 载荷源 — sub_140DA3F20 定时构造, ctor sub_140DE5D10 读 +248+12 dword 计数) | top_meta |
 | +256 | 同上对象成员 (+248 对象 +8) | top_meta |
 | +272 | 同上对象尾成员 (+248 对象 +24 起) | — |
-| +384 | bitfield (bit3 = tutorial 旗, loader 13842) | — |
+| +384 | CHuman country-link id (CHuman@272 内 +112, §4.1.1; 旧记 bitfield 系 gs+192 bit3 事实的重复登记) | — |
 | +432 | 匿名结构 (NNB 形状) | — |
 | +468 | 会话/顶部元数据 (TOPC) | top_meta |
 | +600 | 匿名结构 (32B 形状) | flags |
@@ -522,7 +522,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +2544 | 容器 (未名) | — |
 | +2576 | 32B 元素数组 | **边界高亮自定义色表** (count@+2588 = defines BORDER_COLOR_CUSTOM_HIGHLIGHTS/4; gamestate.cpp:781 警言铁证) (border_color) |
 | +2600 | 指针 | **当前书签对象** (新局 sub_1401A5630 写所选书签; 读档 sub_1401E2AC0 重置默认书签 — Null-Object getter sub_1401DBBB0; 全量重建门 = 与目标书签指针不等, sub_14067EEE0 → sub_1401A5630, §4.28.18) |
-| +2608 | u32 | **tutorial 章节 id** (loader case 13842, 另置 gs+384 bit3 与 u8@+2615=1) (tutorial) |
+| +2608 | u32 | **tutorial 章节 id** (loader case 13842, 另置 gs+192 位域 bit3 与 u8@+2615=1) (tutorial) |
 | +2612 | uint8 | **HasGameStarted** (getter sub_1401E2930; 世界构建 sub_1401E2AC0 开头置 1) |
 | +2613 | uint8 | **世界构建进行中门** (sub_1401E2AC0 开头置 1 / 尾清 0; 多系统读者以 `!+2613` 作跳过门, §4.28.18) |
 | +2615 | uint8 | tutorial 旗 A (同上) (tutorial) |
@@ -807,7 +807,7 @@ name_groups 同链写法: `hoi4.read_cstr(p) or hoi4.read_str(p)`)。
 - **哨兵值全表 (u32 空间)**: 0 = 未初始化; 43808760 = 默认构造 "1.1.1.1";
   43817520 = CGameDate 默认构造 "2.1.1.1" (见上条); 43791240 (0x29C3388) =
   "-1.1.1.1" **合法值** (部分字段当哨兵滤, 部分字段照写, 见 §3.7b);
-  43791352 (0x29C77F8) = obsolete_change_date 字段专属默认哨兵。
+  43808760 (0x29C77F8) = obsolete_change_date 字段专属默认哨兵。
 - **reader 侧唯一实现**: 日历换算全库只在 `hoi4_layout.lua` 实现一次
   (`M.date_opt` 核心 + `M.date`/`M.date_raw`/`M.date_quoted` 三个包装),
   `objects_v2` U.date / `sv2_lib` SL.date / 各 sv2 段一律委托, 禁止再写
@@ -858,6 +858,10 @@ name_groups 同链写法: `hoi4.read_cstr(p) or hoi4.read_str(p)`)。
   的症状 = 把 vt 低 32 位当 hours → "323369.4.26.9" 式巨年。
 - **实用规则**: ADEC0 序列化的 date → hours = ptr−8; 见 0X1422690C0 直调
   → hours = arg+8。拿不准时对拍一个已知日期叶即可分辨。
+- **发射器别名映射** (书内历史代号 → 1.19.3 dump 实名): ADEC0 =
+  sub_1424C2E20 (嵌套块发射器) / ADFE0 = sub_1424C2F40 (u32 叶) /
+  AE670 = sub_1424C35D0 (i64 fixed 叶) — 代号在 dump 无同名函数, 按名
+  grep 落空时用本行换算。
 - **24B 形态 (= 通用本体)**: CGameDate = 24B:
 
   | 偏移 | 类型 | 内容 |

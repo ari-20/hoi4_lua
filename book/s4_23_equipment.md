@@ -208,7 +208,7 @@ contract_definition (def = c+24; 表行序 = 偏移升序, 括注 = 合同绝对
 | +136 (+160) | qword | 补贴 CIC 总额 (ctor = 0 从 draft 拷贝; 不序列化; IsComplete ⇔ factory_cic_progress == +208−+200) |
 | +144 (+168) | 匿名结构 (48B 形状) 向量 | contract_draft.subsidies {data@144, count@156}, stride 48 (元素布局见下表) |
 | +168 (+192) | uint32 | contract_draft.speed |
-| +176 (+200) | std::map | price_levels → levels: head@176, size@184; **节点 key = idpair 8B {type@+28, id@+32}** = **CEquipmentVariant 自身 CReferenceObject idpair** (L2 门 = 全局 CIdentifier 注册表可解析 sub_14221F310, 不可解析静默丢弃; 读侧 sub_1419D3FD0 / 写侧 sub_1419D40F0 双证), value 枚举 u32@+36; 中序 = 写序 (map 形态定案: 收集 sub_1419D3E00 → 写 sub_140DF4390) |
+| +176 (+200) | std::map | price_levels → levels: head@176, size@184; **节点 key = idpair 8B {type@+28, id@+32}** = **CEquipmentVariant 自身 CReferenceObject idpair** (L2 门 = 全局 CIdentifier 注册表可解析 sub_14221F310, 不可解析静默丢弃; 读侧 sub_1419D3FD0 / 写侧 sub_1419D40F0 双证), value 枚举 u32@+36 (**档因子映射 sub_1413B8CC0 链: 0→LOW_PRICE_LEVEL_FACTOR 0.75 (qword_143331BA8) / 1→标准 100000 / 2→HIGH_PRICE_LEVEL_FACTOR 1.25 (qword_143331CE8) / ≥3→断言后落标准**); 中序 = 写序 (map 形态定案: 收集 sub_1419D3E00 → 写 sub_140DF4390) |
 | +192 (+216) | u8 | 懒计算完成标志 (ctor = 0) |
 | +200 (+224) | i64×1e-5 | 补贴抵扣 = min(+136, 总价×F/(F+1e5)) (F = PURCHASE_CONTRACT_SUBSIDY_BONUS_SPEED_FACTOR; 不序列化) |
 | +208 (+232) | i64×1e-5 | 合同总 CIC 价 (Σ variant IC×价格档因子×IC_TO_CIC_FACTOR, market_core.cpp 断言锚; 不序列化) |

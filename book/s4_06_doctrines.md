@@ -6,7 +6,7 @@
 `STemporary*` / GUI 件, 见 §4.6 正文) 与 **def 侧** (静态定义库, 见 §4.6.1–4.6.12)。
 def 侧八类全部不入存档 (writer = CFG 空桩)。
 
-**CDoctrineSystem**: `doc = *(gs + 1024)` — **32B 容器对象定案** {vt 0x1427C5020 族 9 槽
+**CDoctrineSystem**: `doc = *(gs + 1024)` — **32B 容器对象定案** {vt 0x142965448 (RTTI NDoctrines::CDoctrineSystem; 0x1427C5020 系 NProject::CComplexity 虚表勿混) 族 9 槽
 (serfam 记 32 系断言串字节误计), data@doc+8, cap@doc+16, count@doc+20, alloc@doc+24};
 writer 0x140D810B0 (块键 11593 countries) / reader 0x140D7FDA0 / PreLoad 0x140D7F080;
 国家条目 stride 0xA0, 元素按国家 idx 排列; 活体 cap==count==440 全中。
@@ -45,6 +45,7 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 | +24 | 匿名结构 (96B) | tracks 容器数据指针 — {data, count}; 元素内联 96B (count<64) |
 | +25..+35 | — | = tracks 容器 {d@24, **cap@32**, c@36, alloc@40} 的 data 尾 + cap@32 (元素内联 96B) |
 | +36 | u32 | tracks 容器计数 |
+| +56 | CSubDoctrineTemplate* 向量 | completed_subdoctrines 容器 {d@56, cap@64, c@68} (键 16791, 8B 元素; writer/reader 双向) |
 
 **CTrackStatus** (vtable 0X2965358; 96B):
 
@@ -75,7 +76,7 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 |---|---|---|
 | +8 | string | name |
 | +9..+39 | — | = name SSO 32B 本体 (buf@8 尾 + size@+24 + cap@+32=15) |
-| +40 | **内嵌 NDoctrines::STrackFilter (48B, vt 0X1427CFC00)** | filter 对象 vtable — ⚠ dm+40 非 {data,count} 容器; dm+48/52 是定义指针, 按容器 data/count 读即错; 布局见下表 |
+| +40 | **内嵌 NDoctrines::STrackFilter (48B, vt 0x1427D1130)** | filter 对象 vtable — ⚠ dm+40 非 {data,count} 容器; dm+48/52 是定义指针, 按容器 data/count 读即错; 布局见下表 |
 | +41..+87 | — | = STrackFilter 内嵌体本体 (+40..+87) + 尾 pad |
 | +88 | fixed×1e-5 | daily_mastery |
 | +96 | fixed×1e-5 | bonus |
@@ -125,7 +126,7 @@ CFolderDatabase 的模板实例特例: `TGameItemDatabase<CFolderDatabase>` (非
 | 目录 | def 类 | 脚本键 |
 |---|---|---|
 | common/doctrines/folders | CFolderTemplate | allowed / name / ledger / ledger_gfx / tab_gfx / color_frame / sound |
-| common/doctrines/tracks | CTrackTemplate | name / background / background_offset / icon / icon_frame / active / mastery |
+| common/doctrines/tracks | CTrackTemplate | name / background / background_offset / icon / icon_frame / active / progress_type / mastery |
 | common/doctrines/grand_doctrines | CGrandDoctrineTemplate | folder / name / description / icon / available / xp_cost / xp_type / ai_will_do / tracks / milestones + 扁平效果键 |
 | common/doctrines/subdoctrines (**递归**) | CSubDoctrineTemplate | track / allow_in_multiple_tracks / name / description / icon / available / visible / reward_gfx / xp_cost / xp_type / ai_will_do / rewards / xor + 扁平效果键 |
 
@@ -143,9 +144,7 @@ CFolderDatabase 的模板实例特例: `TGameItemDatabase<CFolderDatabase>` (非
 | CMasteryConditions 求值器 (三遍掩码扫描 → +88/+89/+90) | sub_1409E4870 |
 
 层级与引用关系 (定案): folder ← grand (`+760` 持 folder 定义指针) → grand `+792` tracks 名表解析为
-`CTrackTemplate*` 数组; **track → subdoctrine 是反向的** — subdoctrine 持 `track` 指针 (`+760`), 即
-subdoctrine 声明自己可放进哪个 track; subdoctrine `+784` 内联 rewards 数组; grand/sub 各自 `+768` 内联
-milestones 数组; mastery 条件块 (CMasteryConditions) 为**内嵌**非指针 (Sub `+832` / Track `+120`)。
+`CTrackTemplate*` 数组; **track → subdoctrine 是反向的** — subdoctrine 持 `+760` tracks 容器 {d@760, cap@768, c@772, alloc@776} (8B CTrackTemplate\* 元, 逐名查库 push), 即 subdoctrine 声明自己可放进哪些 track; subdoctrine `+784` 内联 rewards 数组; **milestones 仅 grand 有** (`+768` 内联数组, cap@776/计数@780 — Sub 无此容器, 键 16771 读弃); mastery 条件块 (CMasteryConditions) 为**内嵌**非指针 (Sub `+832` / Track `+120`)。
 
 #### 4.6.2 CDoctrineBaseTemplate (学说 def 基类)
 
@@ -202,8 +201,7 @@ vtable RVA 0x142719148, sizeof 824, ctor `sub_1401497F0`; 基类 = CDoctrineBase
 | 偏移 | 类型 | 名称 | 备注 |
 |---|---|---|---|
 | +760 | NDoctrines::CFolderTemplate* | folder 定义指针 | 键 folder (11873), 查 CFolderDatabase 按名解析 |
-| +768 | 匿名结构 (400B) | milestones 数组数据 | 键 milestones (16771) → sub_1409CD530 |
-| +772 | uint32 | milestones 计数 | |
+| +768 | 匿名结构 (400B) | milestones 数组数据 | 键 milestones (16771) → sub_1409CD530; cap@+776, 计数@+780 |
 | +784 | void* | allocator (off_143085170) | ctor |
 | +792 | NDoctrines::CTrackTemplate** | tracks 数组数据 | 键 tracks (16772), 经 SUniformDatabaseReader<CTrackDatabase> |
 | +816 | uint32 | max_track_rows | 键 max_track_rows (16804) |
@@ -218,9 +216,7 @@ vtable RVA 0x1427192f8, sizeof 968, ctor `sub_14014B2B0`; 基类 = CDoctrineBase
 
 | 偏移 | 类型 | 名称 | 备注 |
 |---|---|---|---|
-| +760 | NDoctrines::CTrackTemplate* | track 定义指针 | 键 track (139), 查 CTrackDatabase 按名解析 |
-| +768 | 匿名结构 (400B) | milestones 数组数据 | 键 milestones (16771) → sub_1409CD530 |
-| +772 | uint32 | milestones 计数 | |
+| +760 | NDoctrines::CTrackTemplate* 向量 | tracks 容器 {d@760, cap@768, c@772, alloc@776} | 键 track (139) 逐名查 CTrackDatabase push, 8B 元素; Sub 无 milestones 容器 (键 16771 读弃) |
 | +784 | NDoctrines::CRewardTemplate* | rewards 数组数据 | 键 rewards (16770) 块循环逐元素产 472B 元 |
 | +792 | uint32 | rewards cap | |
 | +796 | uint32 | rewards 计数 | |
@@ -259,12 +255,12 @@ CString — 与 CDoctrineBaseTemplate 的 name→+40 (CString) 不同址。`fram
 #### 4.6.7 CMilestoneTemplate (里程碑 def)
 
 vtable RVA 0x1427190f8, sizeof 400, ctor `sub_1409CD980` (**基类 = 裸 CPersistent**, 无 CDatabaseObject
-/ 无 CPersistentWithToken)。**非独立命名 def 对象** — 作为 grand/sub `+768` 内联数组元素存在, 数组
+/ 无 CPersistentWithToken)。**非独立命名 def 对象** — 仅作为 grand `+768` 内联数组元素存在 (Sub 无 milestones), 数组
 `malloc(400*n)` + `memset(0x190)` + 逐元素 ctor; 另有拷贝式 ctor `sub_140149B70` (数组扩展用)。
 
 | 偏移 | 类型 | 名称 | 备注 |
 |---|---|---|---|
-| +8 | uint64 | required_progress | 键 required_progress (16774) → sub_1424C0AA0 |
+| +8 | uint64 | required_progress | 键 required_progress (16774) → sub_1424C0A70 (fixed5 标量 reader) |
 | +16 | CEffect 内嵌效果块 | 触发/效果内容块 (ctor sub_14053CFD0; 条目认领谓词 sub_141529A80) | 块内 +88 CModifier = mile+104 / +104 查表区 = mile+120 / +280 CSubUnitStatBonus = mile+296 / +336 CString = mile+352 / +360 容器头 = mile+376 |
 | +120 | 匿名结构 (88B) | CModifier 查表区 (CEffect+104) | ctor sub_140555FB0 |
 
@@ -282,7 +278,7 @@ vtable RVA 0x1427192a8, sizeof 472, ctor `sub_1409E5750`; 基类 CPersistentWith
 | +16 | CString (32B) | 串 A | ctor |
 | +48 | CString (32B) | 串 B | ctor |
 | +80 | CEffect 内嵌效果块 | 触发/效果内容块 (ctor sub_14053CFD0; 认领谓词 sub_141529A80; mastery (16780) → +464 确被处理) | 块内 +88 CModifier = rwd+168 / +104 查表区 = rwd+184 / +280 CSubUnitStatBonus = rwd+360 |
-| +464 | uint64 | mastery | 键 mastery (16780) → sub_1424C0AA0 |
+| +464 | uint64 | mastery | 键 mastery (16780) → sub_1424C0A70 (fixed5 标量 reader) |
 
 reader `sub_1409E5240` 仅一键 `mastery`; 其余读弃。**不存在独立的奖励类型枚举 (负定案)**: 脚本侧
 reward 条目 = 具名 + 类别/单位子块, 无 `type = xxx` 键; 引擎侧只有 name token / 2×CString /
@@ -369,11 +365,11 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 | | sound (441) | +224 |
 | | ledger (10354) | +264 |
 | CGrandDoctrineTemplate | folder (11873) | +760 |
-| | milestones (16771) | +768 |
+| | milestones (16771) | +768 (cap@+776, 计数@+780) |
 | | tracks (16772) | +792 |
 | | max_track_rows (16804) | +816 |
 | | max_track_columns (16805) | +820 |
-| CSubDoctrineTemplate | track (139) | +760 |
+| CSubDoctrineTemplate | track (139) | +760 容器 {d@760, c@772} |
 | | rewards (16770) | +784 |
 | | xor (12043) | +808 |
 | | reward_gfx (16803) | +928 |
@@ -411,11 +407,11 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 | 环节 | 函数 | 要点 |
 |---|---|---|
 | XP 成本门 | sub_1413CB2D0 | `def+32 xp_cost × (1 − cost_reduction 折扣)` (折扣源 CCountryDoctrineStatus+64 容器, sub_1413CB6D0 读); 玩家/AI 共用 (AI 评分 sub_1413CBB60 = 三参糖) |
-| Execute 入口 | 0x141A7BF90 / 0x141A7C1B0 → sub_1413CCBA0 | 已选查重 (任一 folder+16 == 该 grand → 拒) → available 求值 (def+608 块 vt+24) → Set 链 |
+| Execute 入口 | 0x141A7BF90 (CUnlockGrandDoctrineCommand::IsValid) → sub_1413CCBA0 / 0x141A7C1B0 (CUnlockSubDoctrineCommand::IsValid) → sub_1413CBDB0 + sub_1413CCD80 独立链 | 已选查重 (任一 folder+16 == 该 grand → 拒) → available 求值 (def+608 块 vt+24) → Set 链 |
 | 换 grand | sub_140FC6A20 SetGrandDoctrine | 逐 track Clear → 按新 grand def+804 槽数补建 CTrackStatus (track+80 = 父回指 / +88 = folder 回指) → folder+16 = 新 def → 旧注销 sub_1413CEE00(type3) / 新注册 sub_1413CD240(type3) → UI 通知 |
 | 换 sub | sub_14147C8A0 SetSubDoctrine | mastery_bank (track+32) 存量保存 → Clear → track+8 = 新 def → 注销/注册 type4 → sub_14147C000 存量重结算 (换学说保留已攒掌握度) |
 | 清空 | sub_14147C650 Clear | +16 rewards / +24 mastery / +32 mastery_bank 清零; 逐奖励档注销 type5 |
 | mastery 推进 | sub_14147C000 AddMastery | `track+24 += 增量`; 逐 reward 门槛消耗制 (累计 ≥ 门槛 → 档数++ 且累计 −= 门槛); 档数变化 → sub_14147CB00 发放 (type5 注册 + UI 消息); 全档完成 (track+16 == def+796) → sub_140FC87B0 完成通知 |
-| mastery 汇入 effect | sub_1413CD100 | STrackFilter 匹配 → 逐命中 track AddMastery; 无命中报 "Failed to add mastery to any tracks" |
+| mastery 汇入 effect | sub_1413CDA80 (STrackFilter 匹配: 逐 track sub_140FC8670 读 filter 五字段测试) + sub_1413CD100 (单 track def 或全量汇入) | 逐命中 track AddMastery; 无命中报 "Failed to add mastery to any tracks" |
 
 调度: 日边界 CDoctrineSystem::DailyUpdate sub_140D7ED90 (tbb 两遍遍国家条目) + 串行收尾逐国 sub_1413CCF90: ① 逐 folder sub_140FC7EB0 folder 日步 — track def active 触发器门 (sub_1409E6B80) → track+72 每日 mastery 产出值 >0 灌入 (完成/无 def 走 sub_14147BFD0 衰减支路); ② daily_mastery 容器 (+88, 112B 元) 逐条 `--days` + 到期紧凑删除。月边界 sub_140D7F220 (仅玩家国)。

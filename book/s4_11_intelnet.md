@@ -131,7 +131,7 @@ operative 对象 (`COperativeLeader`) 的 nationalities 容器 = **+3944** (uint
 
 | 偏移 (g) | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +8 | 图顶点向量 wrapper* | 顶点向量 wrapper = *(g+8), {beg@+16, end@+24} | 顶点 80B 内联 (下表); 边 = 环形链表 sentinel@*(wrapper), 元素 {next@0, from@+16, to@+24} |
+| +8 | 图顶点向量 wrapper* | 顶点向量 wrapper = *(g+8), {beg@+16, end@+24} (writer 整体门 = 顶点数>0; 首发顶点数叶 257 "vertices") | 顶点 80B 内联 (下表); 边 = 环形链表 sentinel@*(wrapper), 元素 {next@0, from@+16, to@+24} |
 | +16 | uint32 | **sub_network_count** (token 0x3D26 图 writer 直发 — **互换警告解除**) |  |
 | +24 | 匿名结构 | quiet 容器数据指针 — {d, c} |  |
 | +25..+35 | — | = quiet 容器尾 {cap@+32}  |  |
@@ -294,16 +294,16 @@ ctor sub_1413F61D0; 24B 槽 {data@+40, count@+52}。其内 **CCountryDecryptionS
 | +18 | uint8 | 解密中旗 | |
 | +24 | — | 进度分子 | 行进度条分子 |
 | +40 | — | 解密完成日 | sub_1413F6820 进度到阈才写当前日期 |
-| +48 | uint32 | date | 与 +52 联合为存档 `date` 键 (记录 writer sub_1413F9060 逐键定案) |
-| +52 | uint32 | date | 同上 (联合门) |
+| +40 | uint32 | date hours (CGameDate 域 {vt1@+32, hours@+40, vt2@+48}) | 键 10314 |
+| +48 | CGameDate 第二虚表指针 (8B) | date 序列化锚 (ADEC0(10314, a1+48) 代理, hours 在 vt−8) | 恒写 |
 
 CCryptology 哈希索引层 (RH; 适用「暂停态 RH 表仍会重建」纪律):
 
 | 偏移 | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|
-| +72 | RH 桶数据 | 哈希索引层 {data@+72, mask@+84, extra@+88}; 12B 槽 {占位旗@+0, tag@+4, 值@+8} | 推定 |
+| +64 | RH 结构基 | 哈希索引层表基 (data@+72 = 基+8, count u32@+80, mask@+84, extra u8@+88, lf f32@+92 = 0.9 = 1063675494 ctor 直证; 静态空桶哨兵 &unk_143086250); 12B 槽 {占位旗@+0, tag@+4, 值@+8} | 定案 (insert/ctor 双向) |
 
-行进度条 = 100000×分子/分母 clamp 1..100 (天数 sub_1413F7960); 分母 (攻防分离) =
+记录四旗/分子键名: active (11390) / hide (679) / decryption (13042) / amount (417) / days (10605) / target (107) / date (10314)。GUI 进度条 = fixed 域中间量再 ×100/1e5 取整 clamp 1..100 (数值等价)。天数 sub_1413F7960; 分母 (攻防分离) =
 define 组合 qword_143333030 = **CRYPTO_BASE_CRYPTO_LEVEL** +
 qword_1433330F0 = **CRYPTO_CRYPTO_LEVEL_PER_CRYPTO_UPGRADE**×level/1e5
 (双 define 注册串直证), 再按目标国自身 mdef528 修正取值 (cc+1464 修正在表键)。
@@ -459,7 +459,7 @@ impl 自己的序列化器):
 | 存档键 | 块数据 | 写门/格式 |
 |---|---|---|
 | civilian_factories / total (代价) | civ i64×1e-5@op+48, total i64×1e-5@op+56 | 门 civ≠0; writer 0X141404B00 |
-| resources | 容器 {d@op+344, c@op+356}, 元素子表见下 | 门 count≠0 |
+| resources | COperationResources* 容器 {d@op+344, c@op+356}, 元素子表见下 (§4.11.16; 对象基 = op+336) | 门 count≠0 |
 | return_on_complete (tok 19426/0x4BE2) | 容器 {d@op+368, c@op+380}, 元素子表见下 | 门 count≠0; writer 0X141404B00; 存档形态 = 半行匿名对象 `{ {id=X type=Y}` ␍ `amount}` → 提取器折 `return_on_complete.@.#N` = amount/1e5 (id 对被提取器丢弃; USA 锚 0x1AEAA→1.1025) |
 
 ops 容器 (sub_14022FFF0 实例表) 形态补记: {data@+16, count@+28}, 8B 指针元 (推定)。
@@ -534,7 +534,7 @@ civilian_factories 条适配器 (非 GUI 类, 匿名 ns 函子 parse/serialize �
 
 | 类 | sizeof | vtable | 共用 writer (vt slot2) | 派生 |
 |---|---|---|---|---|
-| CStateBased | 32 | 0x142A1F538 | — | CNetworkBased / CRootOutResistance |
+| CStateBased | 32 | 0x142A1F488 | — | CNetworkBased (0x142A1F538) / CRootOutResistance |
 | CNetworkBased | 32 | 0x142a1f538 | 0X141A31840 | CBuildIntelNetwork / CQuietIntelNetwork / CBoostIdeology / CPropaganda (零新增字段, 仅覆 vtable) |
 | CCountryBased | 24 | 0x142a1fa50 | 0X141A328B0 (只发 target) | CControlTrade / CCounterIntelligence / CDiplomaticPressure |
 
@@ -707,12 +707,12 @@ COperativeLeader writer 链 (基 0X140C1CE70 + 0X140C28550):
 | 块 | writer | 布局 |
 |---|---|---|
 | priority | 0X1411A2690 (ADFE0(0x8D), 挂载 ADEC0(0x4A38)) | u32@ops+88 恒写 (默认 1 照写 — 439 叶全量实证; 与 supply priority 默认不落盘规则不同) |
-| finished (ops+40 子对象, vt 0X27E7528) | 0X1411A19A0 | 外 RH {data@+16, mask@+28, extra@+32} 48B 桶 {dist@+4, op token id@+8, 内表 ptr@+24, 内 mask@+36, 内 extra@+40}; 内表 12B 桶 {dist@0, tagidx@+4, count@+8}; 发射 = 外桶逐有效键一块 (op token 名), 内 tag 按 tagidx 升序 "TAG count" 空格连接 |
-| running (gate count@ops+28≠0; {data@ops+16}) | 0X141404B00 (块名 = token@*(op+72)+8 op def) | id 对 {type@op+8, id@op+12}; duration u32@op+128 ≠0 才写 date+duration (date hours@op+112, CGameDate 代理 vt@+120 hours 在 vt−8 — raids 同构); equipment 块恒写 (ADEC0(0x2F4E, op+272), allow_zero_entries@op+272+56); target = 国 idx@op+88 → 引号 tag 恒写; target_provinces = ptr@op+96 → u32@ptr+164 (指针门); operative_slots 门 count@op+236≠0: {data@op+224} 56B 元 (0X141BE6A40): operative id 对 {type@0, id@+4} 非零门 / resume_mission u32@+8 ≠0 写 yes / mission 块门 b@+48≠0 对象@el+16 (0X14194E520): mission 枚举@+8 → sub_140FC4150 switch 0..8 裸名 / target_country 国 idx@+12 >0 / target_state ptr@+16 → u32@ptr+88; phases 门 count@op+260≠0: {data@op+248} 8B 指针 → token 名 u32@*(el)+8 引号空格单行; prepared: hours@op+208 ≠ 43808760 才写 (vt 代理@+216) |
+| finished (ops+40 子对象, vt 0X27E7528) | 0X1411A19A0 | 外 RH {data@+16, mask@+28, extra@+32} 48B 桶 {dist@+4, op token id@+8, 内表 ptr@+24, 内 mask@+36, 内 extra@+40}; 内表 12B 桶 {dist@0, tagidx@+4, count@+8}; 外层 op-token 键先收集再排序 (sub_14119D460, std::sort 形) 后逐键发射; 内 tag 按 tagidx 升序 "TAG count" 空格连接 |
+| running (gate count@ops+28≠0; {data@ops+16}) | 0X141404B00 (块名 = token@*(op+72)+8 op def) | id 对 {type@op+8, id@op+12}; duration u32@op+128 ≠0 才写 date+duration (date hours@op+112, CGameDate 代理 vt@+120 hours 在 vt−8 — raids 同构); equipment 块恒写 (ADEC0(0x2F4E, op+272; 对象 = CEquipmentVariantPool, vt 0x142749270), allow_zero_entries 旗@op+328 以键 10208 落盘); target = 国 idx@op+88 → 引号 tag 恒写; target_provinces = ptr@op+96 → u32@ptr+164 (指针门); operative_slots 门 count@op+236≠0: {data@op+224} 56B 元 (0X141BE6A40): operative id 对 {type@0, id@+4} 非零门 / resume_mission u32@+8 ≠0 写 yes / mission 块门 b@+48≠0 对象@el+16 (0X14194E520): mission 枚举@+8 → sub_140FC4150 switch 0..8 裸名 / target_country 国 idx@+12 >0 / target_state ptr@+16 → u32@ptr+88; phases 门 count@op+260≠0: {data@op+248} 8B 指针 → token 名 u32@*(el)+8 引号空格单行; prepared: hours@op+208 ≠ 43808760 才写 (vt 代理@+216) |
 
 #### 4.11.16 情报机构事务族 (资源/令牌/阶段/升级/历史机构/转移动作)
 
-**COperationResources** (行动资源清单容器; vt 0x14271AB70; writer 0x140A7B070 / reader 0x140A7AB40; 入档): 容器 {d@8, c@20} 32B 元 = {i64 amount@0 (civilian 元 = raw/1e5 整写, 装备元 = fixed), u32 days@8, def 指针@16 (civilian → civilian_factories(19421) 块 / 装备 → def+8 token 名), u8 civilian 旗@24}; 挂载 = op+344 resources 块。
+**COperationResources** (行动资源清单容器; vt 0x14271AB70; writer 0x140A7B070 / reader 0x140A7AB40; 入档): 容器 {d@8, c@20} 32B 元 = {i64 amount@0 (civilian 元 = raw/1e5 整写, 装备元 = fixed), u32 days@8, def 指针@16 (civilian → civilian_factories(19421) 块 / 装备 → def+8 token 名), u8 civilian 旗@24}; 挂载 = op+336 resources 容器对象基 (§4.11.15 op+344 行系容器 data 指针视角)。
 
 **COperationToken** (行动奖励令牌定义, ~184B; vt 0x14271ADF0; writer=CFG; reader 0x140A7FC30; idb operation_tokens 已挂): +16 desc (10644) / +48 icon (181) / +80 name (27) / +112 text_icon (19424) / +144 i64 intel_gain (19022) / +152 {dword intel 来源种类, u8 旗@156} (19252) / +160 targeted_modifier 容器 (14623, 8B 修饰 def 指针, 去重报错)。
 
@@ -964,6 +964,7 @@ sub_14022FFF0): +80 工厂需求聚合 (定案)。word_14332F623 = instant 旗
 
 
 #### 4.11.19 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+| e4b1b_tick_small | sub_1407164C0 / 1773670 / 情报 / **CCryptology 日结 fold 包装** / `sub_1413F8EF0(*(cc+4032)+288)` / 体直证; 调用点 L4967854; `*(cc+4032)+288` = CCryptology 挂载式 (书 §4.11.9 |
 
 | 来源 | 函数与身份 / 建议落点 |
 |---|---|

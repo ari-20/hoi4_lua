@@ -228,18 +228,18 @@ CShip 键表 (writer 0X140C3E6C0 直证清单; **行序 = writer 发射序落盘
 | 键 (token) | sh 偏移 | 类型 | 门 | 备注 |
 |---|---|---|---|---|
 | definition (12259) | +136 | u32 (ADCE0 枚举式) | 恒写 | |
-| last_sunk_ship_info_read (15624) | +56 | u32 | ≠0 | |
+| organisation (11979) | +1792 | i64 fixed5 | 恒写 | |
+| strength (10406) | +1784 | i64 fixed5 | 恒写 | |
+| experience (11930) | +1800 | i64 fixed5 | ≠0 | 本级进度 (sub_140C31840 得经验, 钳 ≤ +1808 下级所需); +2048 = 经验脏旗  |
 | sunk_convoys (12418) | +60 | u32 | ≠0 | |
 | equipment (12110) | +64 | 代理 (idpair 族) | 恒写 | **GUI: ShipStats 装备定义行** (+64 池 → 池+1008 def 可见门; sub_141BEF820) |
-| strength (10406) | +1784 | i64 fixed5 | 恒写 | |
-| organisation (11979) | +1792 | i64 fixed5 | 恒写 | |
-| experience (11930) | +1800 | i64 fixed5 | ≠0 | 本级进度 (sub_140C31840 得经验, 钳 ≤ +1808 下级所需); +2048 = 经验脏旗  |
+| ship_name (15500) | ptr@+2072 | 对象 (名称块; vt+8 分发在 officer 之前) | 恒写 | **GUI: 舰名/删除确认文案** (glue+7928 sub_141BECA70 → CONFIRMDELETESHIP / DISBAND_PRIDE_OF_FLEET_COST; 投 CDeleteShipCommand {+40 舰, +48 特混舰队}) |
+| government_in_exile_tag (15034) | +2052 | tag (sub_140BB4E70→串) | >0 | **GUI: 流亡/可见谓词** (+1576 旗 + +64 池旗 + define 15 门; sub_140C33A50) |
 | refit_production_line (15234) | +1848 | 行内 idpair — type | 任一≠0 且有效 | |
 | refit_production_line (15234) | +1852 | 行内 idpair — id | 任一≠0 且有效 | |
-| government_in_exile_tag (15034) | +2052 | tag (BA5C20→串) | >0 | **GUI: 流亡/可见谓词** (+1576 旗 + +64 池旗 + define 15 门; sub_140C33A50) |
-| manpower (10300) | +2056 | u32 | 恒写 | |
 | max_manpower (10608) | +2060 | u32 | 恒写 | |
-| ship_name (15500) | ptr@+2072 | 对象 (名称块; vt+8 分发在 officer 之前) | 恒写 | **GUI: 舰名/删除确认文案** (glue+7928 sub_141BECA70 → CONFIRMDELETESHIP / DISBAND_PRIDE_OF_THE_FLEET_COST; 投 CDeleteShipCommand {+40 舰, +48 特混舰队}) |
+| manpower (10300) | +2056 | u32 | 恒写 | |
+| last_sunk_ship_info_read (15624) | +56 | u32 | ≠0 | |
 | (officer 内联对象, 无键名) | +2120 | 对象 (vt+8 自序列化; ≈144B 跨 +2120..+2263; seed@+2120+32, 追加军官向量 {d@+2232, c@+2244} = obj+112/+124) | 恒写; **对象定名 = CHeldOfficer 内联** (CShip ctor 虚表写入 + IOfficerHolder vt[1]=0X140C30D10 返 ship+2120 双证) — **舰长数据源定案**: 舰长 = 本对象, 非 +2232 追加向量/非独立 id 对; 军官角色 CRef 走 CUnit+24 指挥官链 (舰→tf+24); **记录族布局与师侧同构** (§4.18.1 officer 子表: 内嵌记录 = 块1 @ship+2144 (seed@+8, name@+16, portraits@+48, male@+80), 追加记录 → officer[2+], 键序 seed/name/portraits/male, held_officer.experience i64 fix5@+2256 >0 写) | |
 | history (10293) | +2264 | 容器对象 (ADEC0 多态; 门 = 内部 count @+2264+52 = sh+2316) | count≠0 | 元素布局定案: {+114 = is_sunk 门, +120 = 内嵌 168B CSunkShipInfo (§4.31.29 同型)}; **容器类名定案 = CUnitHistory {+24 type=1 舰, +40 元素向量 c@+52}; owner 槽按 ctor 变体分注 — 舰侧 sub_141445E00 落 +16, 军侧 sub_141445E90 落 +8 (同 vtable 0x1429C1868)**; **GUI: CNaviesViewSunkShipItem** (target = 元素+120 内嵌; assist@+161 / level@+120 / def@+104 全中); **GUI: CShipHistoryEntryItem = 舰长授勋行** (槽[13] 返本容器 ✓; 条目+112 = awardable 旗/+80 日期/+104 icon; 槽[14] 建 CMedalTemplateItem, 点击 = CGiveMedalCommand; **+114/+120 本行不消费** — 沉船归因归 §4.31.30) |
 | critical_damage (15357) | +2328 | 16B 元容器数据 {名称串 ptr@0 (*(ptr)+24 = 长度校验), u32@+8}; assert「Invalid damaged part name on ship」ship.cpp:1159 | c>0 | |
@@ -383,7 +383,7 @@ general 线特化)。
 | +328 | 容器 24B | **task_force_templates** {d@328, cap@336, c@340, alloc@344} — **136B 内联元** {name MSVC 串@+0 (token 27), composition_requirements 多态对象@+32 (token 15168)} | 块 token 15175 task_force_template | loader: name 空或 composition 无效不入容器 |
 | +340 | u32 | task_force_templates **容器计数** | | |
 | +341..+351 | — | = templates 容器尾 {alloc@+344}  |  |  |
-| +352 | RH 结构基 | convoy_escort_presence_history RH **结构基 @+352** (loader 插入点 = a1+344 ser; struct+0 = 四面无读者死槽 (负定案), data@+360=struct+8, mask@struct+20=+372, extra@struct+24=+376; 条目 40B 见 §4.16.11) |  |  |
+| +352 | RH 结构基 | convoy_escort_presence_history RH **结构基 @+352** (loader 插入点 = a1+344 ser; struct+0 = 四面无读者死槽 (负定案), data@+360=struct+8, count@struct+16=+368 (写入门字段), mask@struct+20=+372, extra@struct+24=+376, lf@struct+28=+380; 条目 40B 见 §4.16.11) |  |  |
 | +361..+371 | — | = RH 结构体内  |  |  |
 | +372 | u32 | convoy_escort_presence_history RH mask | | |
 | +376 | u8 | convoy_escort_presence_history RH extra | | |
@@ -398,20 +398,18 @@ token 全序表:
 
 | token | S 偏移 | 语义 |
 |---|---|---|
-| 13066 | +304 | naval_transport 容器数据 |
-| 13066 | +316 | naval_transport 容器计数 |
-| 14923 | +152 | regional_convoys |
-| 14654 | +176 | per_region_access 容器数据 (i8) |
-| 14654 | +188 | per_region_access 容器计数 |
-| 14658 | +200 | per_region_mines 容器数据 (i64; 定案, 探针 AUS 168→1.357) |
-| 14658 | +212 | per_region_mines 容器计数 |
-| 15588 | +128 | per_region_danger 容器数据 — 稠密 u32 区域数组, writer 写 "idx val" 对仅 val>0 → savefull 折叠单叶 .#1 |
-| 15588 | +140 | per_region_danger 容器计数 |
-| 19972 | +416 | homebase_observers 容器数据 — 元 {prov u32@0, count u8@+4}, 逐元匿名块 "prov count" |
-| 19972 | +428 | homebase_observers 容器计数 |
-| 15305 | +224 | naval_accident |
-| 15336 (0x3BE8) | +440 | dockyards (双 token 双槽) |
-| 15338 (0x3BEA) | +444 | dockyards (双 token 双槽) |
+| 13066 | +304/+316 | naval_transport 容器 (门 c>0) |
+| 14923 | +152 | regional_convoys (稀疏数组壳) |
+| 14654 | +176/+188 | per_region_access 容器 (i8; >0 才写 idx=val 对) |
+| 14658 | +200/+212 | per_region_mines 容器 (i64; 定案, 探针 AUS 168→1.357) |
+| 15175 | +328/+340 | task_force_template 块 (136B 元 {name 27, composition 15168}) |
+| 15305 | +224/+236 | naval_accidents 容器 (门 c>0) |
+| 12790 | +24/+36 | naval_base 块 (逐基地块, 宿主 §4.16.8) — ⚠ 同键在 §4.16.4 CFleet 侧为 reader 兼容旧跳过键, 两域同名勿串 |
+| 15336 | +440 | dockyards max_allowed (恒写) |
+| 15338 | +444 | dockyards used (恒写) |
+| 15588 | +128/+140 | per_region_danger 容器 — 稠密 u32 区域数组, writer 写 "idx val" 对仅 val>0 → savefull 折叠单叶 .#1 |
+| 15631 | +352 | convoy_escort_presence_history RH (§4.16.11; 门 count>0 且 gs+748 区域表 count (区域 id 遍历界)) |
+| 19972 | +416/+428 | homebase_observers 容器 — 元 {prov u32@0, count u8@+4}, 逐元匿名块 "prov count" |
 
 #### 4.16.6 SRegionalConvoyData (48B)
 
@@ -450,7 +448,7 @@ CNavalUnitTransfer (176B = 0xB0; vt 0X296D8A8; 元素 writer 0X140E28F40;
 | +69..+79 | — | = unit count 尾 + **alloc@72**  |  |
 | +80 | uint32 | target_provinces | 无条件 |
 | +84 | uint32 | province | 无条件 |
-| +88 | tag_id | country (BA5C20→串) | 无条件 |
+| +88 | tag_id | country (sub_140BB4E70→串) | 无条件 |
 | +92 | uint8 | **invasion_group (0x316A)** | **≠0 仅真写 yes** (定案) |
 | +93 | uint8 | is_returning (0x3938) | ≠0 |
 | +94 | uint8 | force_revalidate_route (0x393F) | ≠0 |
@@ -528,13 +526,14 @@ a1=rec:
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +8 (间接) | uint32 | region = uint32@(*(rec+8)+88) |
+| +8 (间接) | uint32 | region = uint32@(*(rec+8)+88) (键 10827 恒写) |
 | +16 | u32 | equipment.type — id 对之 type (id 对 {type, id}) |
 | +20 | u32 | equipment.id — id 对之 id |
+| +24 | qword | 累加器 (添加器 sub_140EAAE10 `*(rec+24) += a3`; 不序列化) |
 | +32 | u8 | **is_sunk** (token 14661; ≠0 才写) |
 | +36 | u32 | ship.type — id 对之 type (id 对 {type, id}) |
 | +40 | u32 | ship.id — id 对之 id |
-| +44 | tag u32 | **country** (token 10394, BA5C20→串; 恒写) |
+| +44 | tag u32 | **country** (token 10394, sub_140BB4E70→串; 恒写) |
 | +56 | hours | **to_discard_date** (token 15510) — 24B {vt1@+48, hours@+56, vt2@+64}, ADEC0 代理 = vt2@+64; 恒写 |
 
 #### 4.16.10 CNavalMineReport (80B)
@@ -547,11 +546,12 @@ c@S+260} writer 不发射 (token 15321 仅 loader 识)。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
-| +8 (间接) | uint32 | region = uint32@(*(rec+8)+88) | — |
+| +8 (间接) | uint32 | region = uint32@(*(rec+8)+88) (键 10827 恒写) | — |
 | +16 | idpair | equipment {type@+16, id@+20} | — |
+| +24 | qword | 累加器 (添加器 sub_140EAAF00 同式; 不序列化) | — |
 | +32 | u8 | is_sunk | ≠0 |
 | +36 | idpair | ship {type@+36, id@+40} | — |
-| +44 | tag u32 | country (token 10394, BA5C20→串) | — |
+| +44 | tag u32 | country (token 10394, sub_140BB4E70→串) | — |
 | +48..+71 | CGameDate 24B | date {vt1@+48, hours@+56 = 43808760 哨兵, vt2@+64} | 只发 to_discard_date (代理 = vt2@+64) |
 | +72 | tag u32 | country 尾部多发 (token 10394; 同键双发 = 重复标量叶不编号形态; 推定 = 布雷国+被炸国二元组) | — |
 
@@ -564,7 +564,7 @@ cc → 水雷管理器 → 元 {+176/+188} → 子 {+184} → 表 {data@+112, co
 |---|---|---|---|
 | +4 | uint8 | dist | 有效值 1..0xFE |
 | +8 | uint32 | region | |
-| +16 | 环形缓冲 | value 内嵌 {buf@+16, capacity@+24, head@+28, tail@+32} | 元素 uint32 (0/1); 落盘 = head..tail 环形展开 (count = tail<head ? capacity+tail−head : tail−head; 满载 capacity−1; ⚠ 线性读法读出槽外垃圾) |
+| +16 | 环形缓冲 | value 内嵌 {buf@+16, capacity@+24, head@+28, tail@+32} | 元素 i32 三态 {−1 无数据哨兵, 0 无护航, N 活跃护航 TF 计数} (生产端 sub_140EB0970 Σ+−1 push / 消费端 sub_140EA58B0 按 ≥0 分母 >0 分子, 720 窗口); 落盘 = head..tail 环形展开 (count = tail<head ? capacity+tail−head : tail−head; 满载 capacity−1; ⚠ 线性读法读出槽外垃圾) |
 
 #### 4.16.12 NNavalMission::EMissionType 枚举与 AI 侧任务写点 (A6 锚)
 
@@ -633,7 +633,7 @@ A6 活体读锚 (-human_ai 现场可直接读):
 
 | 锚 | 地址式 | 读法 | 证据档 |
 |---|---|---|---|
-| 特混舰队枚举容器 | tf_arr = rp(cc+632), tf_n = read_i32(cc+644) | CTaskForce\* 平表 (per-country; 元素 rp(tf_arr+8\*i)) | 定案 (§4.31.30 + sub_1406D35A0 双证) |
+| 特混舰队枚举容器 | tf_arr = rp(cc+632), tf_n = read_i32(cc+644) | CFleet\* 平表 (per-country; 元素 rp(tf_arr+8\*i)) — 更正: 原「CTaskForce\* 平表」系误认; sub_1406D35A0 = 逐 CFleet\* 平铺其 +184 task_force 容器的收集器 (writer 键 15156=fleet 级/15157=task force 级两级树), 特混任务类型须经 rp(fleet+184) 二级取 CTaskForce\* 后再读 (对 fleet 元素直读 tf+884 越界) | 定案 (§4.31.30 + sub_1406D35A0 双证, 二级展开更正) |
 | 特混当前任务类型 | read_u32(tf+884) | EMissionType u32 (0..9) | 定案 (写点直读) |
 | 特混内嵌任务对象 | tf+864 | CNavalMission 内嵌 (vt 0x14297F038); mission+8 = tf 回指 / mission+20 = 任务类型 (= tf+884) | 定案 |
 | 任务 spotting 族 | ms = rp(tf+864) | spotting_speed fixed5@+120 / spotting_process i64@+128 (≠0 才写); idpair 门 = 任一 dword≠0: spotting_target@+136 / spotting_convoy_client@+144 / spotting_unit_transfer@+152 / strike_force_target@+160 (后三枚存档未见, writer 支持) | 定案 (savefull 对拍) |
@@ -658,7 +658,7 @@ A6 活体读锚 (-human_ai 现场可直接读):
 | vtable RVA | 0x142957DE8 |
 | writer | 0X140C2E7D0 |
 | loader | — |
-| 挂载点 | gs+1424 (指针数组), cnt @gs+1436 |
+| 挂载点 | gs+1424 (指针数组), cnt @gs+1436; gs writer 逐元多态键 **11928 (sunk_ship)** |
 | ctor | 0X140C2D6B0 |
 
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
@@ -667,7 +667,7 @@ A6 活体读锚 (-human_ai 现场可直接读):
 | +8 | MSVC SSO 32B (size@+24) | name | 空串也写 `""` |  |
 | +40 | MSVC SSO 32B (size@+56) | killer_name | 空串也写 `""` | 引号 |
 | +72 | uint32 | country | 恒写 |  |
-| +76 | uint32 | killer_country | 恒写 | 国 idx → 引号 tag (BA5C20 直查无 >0 门) |
+| +76 | uint32 | killer_country | 恒写 | 国 idx → 引号 tag (sub_140BB4E70 直查无 >0 门) |
 | +80 | CGameDate (24B 双 vtable) | date | 恒写 (无门 date3) | {vt1@+80, hours@+88, vt2@+96}; ctor 哨兵 43808760; writer ADEC0 收 a1+96 = &vt2; 形态通则见 §3.7a |
 | +104 | CSubUnitDefinition* | definition | 恒写 | def 对象 |
 | +112 | CSubUnitDefinition* | killer_definition | 恒写 | def 对象 → token idx@def+8 裸名 |
@@ -686,12 +686,12 @@ A6 活体读锚 (-human_ai 现场可直接读):
 
 | 项 | 值 |
 |---|---|
-| RTTI 名 | — |
-| sizeof | — |
-| vtable RVA | — |
-| writer | 0X140EB39E0 |
+| RTTI 名 | CSunkConvoyInfo (元素类) |
+| sizeof | 24 (元素) |
+| vtable RVA | 0x2973C28 (元素) |
+| writer | 0X140EB39E0 (块); 元素 writer/reader 与 §4.16.13 CSunkShipInfo 同族 |
 | loader | — |
-| 挂载点 | gs+1448 (指针数组), cnt @gs+1460 |
+| 挂载点 | gs+1448 (指针数组), cnt @gs+1460 (块键 14369 / 元素键 14370) |
 
 元素主表:
 
