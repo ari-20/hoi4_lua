@@ -1728,7 +1728,7 @@ CEquipmentVariantBuilder (8800B; 重锚后 15/15 布局字段零漂移):
 | +8713 | u8 | 预览重算门之二 |
 | +8720 | qword | design team ref 缓存 |
 | +8728 | NIndustrialOrganisation::CTraitBonus | 第二 design team bonus 内嵌 (vt 三方向直证; 其容器@+8736) |
-| +8768 | id 对 {type,id} | **参考变体 id 对** (双非零才 sub_14221F310 解析; 失败回退 sub_140E67ED0(ps, arch, tag) 按原型找现役; 哨兵 qword_14333D528; 行为合一于 sub_141490980) |
+| +8768 | id 对 {type,id} | **参考变体 id 对** (门 = 双非零 ∧ sub_14221F310 解析 ∧ result._pType+1008 == draft._pType+5984 同型; 否则回退 sub_140E67ED0(ps, arch, tag) 按原型找现役; 哨兵 qword_14333D528; 行为合一于 sub_141490980) |
 | +8776 | 8B 元向量 | **槽-模块编辑表** — 元素 {槽id u32@+0, 模块id u32@+4} idpair (写入者 sub_1414919B0: 逐槽查当前模块非零 append / 零则移除; LoadVariant sub_141491500 从镜像#1+184 降级重建; {cap@+8784, count@+8788, alloc@+8792}) |
 
 草稿 draft (builder 内草稿对象):

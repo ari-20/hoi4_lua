@@ -290,7 +290,7 @@ vt 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏�
 
 #### 4.24.6 CFront (136B, writer 0X140F01A60)
 
-reader 0X140EFCF10; front 块全字段落盘。
+reader 0X140EFCF10; front 块全字段落盘 (writer 键集 = {id 壳, 13444, 10288 provinces 数组形, 13544, 13120, 13093 section 块, 11157}; +56 provinces ptr 数组发射键 10288 / +88 section ptr 数组块键 13093 — 元素类 CFrontSection reader malloc 0x60 + ctor sub_140EE9E00 互证)。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|

@@ -4,7 +4,7 @@
 
 **获取**: `ps = *(cc + 3944)`。
 
-基类子对象 (rtti_hierarchy bases + ctor 0x140E5BFA0 写点序: 先构子对象后覆写
+基类子对象 (rtti_hierarchy bases ⚠ 该 ref 件系 1.19.2 谱系快照, vt 列勿直引 — 以 ctor 写点序为准 + ctor 0x140E5BFA0 写点序: 先构子对象后覆写
 本类 vftable): CPersistent@+0 / CBuildingListener@+8 (`TListenerTrait<VCBuildingListenable>`
 + CListenerWithMove) / **CStateListener@+16** (vt 0x142A2BD80; 4 槽 [2]/[3] 纯虚;
 sizeof 8; 州 owner/controller 变更监听接口基, CState SetOwner 逐元 vt[+24] 消费即此接口)。
@@ -416,7 +416,7 @@ CUpgradeDelivery (升级交付元素, 96B; vt 0x1429D1ED0; CPersistent@0 + CEqui
 
 | 偏移 | 类型 | 键 (token) | 语义 |
 |---|---|---|---|
-| +8 | u32 | status (208) | 交付状态 |
+| +8 | u32 | status (208) | 交付状态 (**≠0 才写** — loader 默认 0 互锁, 存档常无此键) |
 | +16 | fixed×1e-5 | progress (11013) | 仅 status==1 写 |
 | +24 | fixed×1e-5 | total_progress (13818) | ≠100000 写 |
 | +32 | CString 32B | produced (12204) | 产出装备变体名 |
@@ -483,7 +483,7 @@ CConvoyShip (护航舰, ~72B; vt 0x142A3AC18; writer 0x141AD8690 / reader 0x141A
 
 CSunkConvoyInfo (沉船记录, ≤32B; vt 0x142973C28; writer 0x140EB39E0 / reader 0x140EB3820): +8 month(123) / +12 convoys(12386) / +16 killer_country(13555) / +20 owner(10302)。
 
-CNavalBaseConvoyClient (海军基地运输客户; vt 0x1429A29C0; writer 0x140CBE140 = CConvoyClient 基字段全量 / reader 0x140CB73D0; 自身增量不序列化; **id 对仅 +16 旗置位才写**): +24 country(10394) / +32 CConvoySubscriber 内嵌 (convoys_subscriber 15717, 门 = +44≠0) / +72 efficiency(13799) / +80 efficiency_due_to_lost_convoys(15592) / +88 combat id 容器 / +112 spotter(15488) / +120 request(12613)。
+CNavalBaseConvoyClient (海军基地运输客户; vt 0x1429A29C0; writer 0x140CBE140 = CConvoyClient 基字段全量 / reader 0x140CB73D0; 自身增量不序列化; **id 对仅 +16 旗置位才写**): +24 country(10394) / +32 CConvoySubscriber 内嵌 (convoys_subscriber 15717, 门 = +44≠0) / +72 efficiency(13799) / +80 efficiency_due_to_lost_convoys(15592) / +88 combat id 容器 (块键 10518) / +112 spotter(15488) / +120 request(12613)。
 
 CResourceExchange (资源贸易单, 240B; vt 0x14295C410; writer 0x140CBEEC0 / reader 0x140CB8E10; trade.cpp:3023 断言):
 

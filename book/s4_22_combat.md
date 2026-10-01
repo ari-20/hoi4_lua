@@ -43,7 +43,7 @@ reader 键表 (三元素类均双 vtable 主@+0 / CPersistent@+16, 序列化统�
 |---|---|---|---|
 | land_combat (10521) | CLandCombat | 216 | sub_1412AA360 |
 | naval_combat (10522) | CNavalCombat | 296 | sub_1415C2330 |
-| border_war_combat (14757) | CLandBorderWarCombat | 248 | sub_1413EB800 |
+| border_war_combat (14757) | CLandBorderWarCombat | 248 | sub_1413EB800 (reader 分支尾另调 sub_1413EFB00 = 读档后修复步) |
 
 history 键 10293 直读 +648 (经槽[+24] Load wrapper); history writer 门 =
 count@+672 非零 (侵入链表逐元素多态写, writer 0x140BBAEA0)。writer 逐条目键 =

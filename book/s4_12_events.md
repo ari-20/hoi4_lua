@@ -348,16 +348,6 @@ CCombatant" (:0x58E); +106..+111 = 112B 对齐尾 pad。⚠ 该 writer/reader �
 > CMTTHModifier 504B 构成补齐: CAndTrigger 门头 + factor/add 两 CScopedVariable 208B
 > (初值 1.0/0), 与 §4.34 MTTH 行完全吻合; CAIMTTHChance 272B 实为 CMeanTimeToHappen 派生类。
 > ⚠ 延时事件 writer 路 (sub_141181300 键 440) 读 +32 为串名的旧疑案按串说结案 (见 +32 行)。
-| +1048 | u32 | 系统依赖位掩码 (与 dword_14332F248 相与) |
-| +1052 | u16 | unit_leader_event 型写 0x101 |
-| +1055 | u8 | is_triggered_only (11115) |
-| +1056 | u8 | major (11241) |
-| +1057 | u8 | fire_only_once (11002) |
-| +1058 | u8 | exclusive (11776) |
-| +1059 | u8 | hidden (11404) |
-| +1060 | u8 | news_event 型置 1 |
-| +1061 | u8 | fire_for_sender (13947) |
-| +1062 | u8 | minor_flavor (12941) |
 
 option 执行链: 三入口 (玩家点击/超时自动/AI 选择) 同归 **CSelectEventOptionCommand::Execute → sub_14117FA30** (event.cpp:271 "Executing event: %i with option #%i"; idx<0 → 内嵌默认 option, 0≤idx<count → ev+872 元素) → sub_141539B70 = option+288 CEffect 槽[12] ExecuteChecked (vt+96; §4.00.3 同口径, 内部转调 [13])。option trigger 过滤 sub_141539CB0 (`!opt+501 ∥ opt+500 == immediate` 门 → opt+408 CAndTrigger 槽[3] Evaluate)。玩家事件窗口: sub_14123B0B0 建 "options_grid" 时逐 option 过滤 (窗口+4732 immediate 旗) — **窗口构建时一次性求值, 非每帧**; 超时自动选 sub_14123C410 (gs+1128 ≥ 窗口+4672 门 → 第一个 trigger 过的 option)。
 

@@ -528,7 +528,7 @@ civilian_factories 条适配器 (非 GUI 类, 匿名 ns 函子 parse/serialize �
 
 #### 4.11.13 mission impl 基类与 per-impl 全布局
 
-谱系 (RTTI 全扫 12 类全齐): NOperativeMissions::IOperativeMission 纯接口 (无自身 typeinfo) → CNoMission 8B / CStateBased 32B → {CNetworkBased 32B (零新增字段) → CBuildIntelNetwork 64B / CQuietIntelNetwork 32B / CBoostIdeology 72B / CPropaganda 64B; CRootOutResistance 32B 直承 CStateBased} / CCountryBased 24B → CControlTrade / CCounterIntelligence / CDiplomaticPressure 各 56B。COperativeMissionData 32B = 任务快照非任务对象 (见下); COperativeMission 句柄 32B = leader+4232 内嵌。清偿补注: **mission+88 = 州对象缓存**（州+204 = 控制国比对, 书定案）、**mission+96 = 意识形态指针**（kind5 "#~ No ideology" 门）——CSetOperativeMission 旧推定废。命名空间多出的 2 条 RTTI = CQuietIntelNetwork::GetProvincesInRangeOfState lambda 载体 (vt 0x142A20148 / 0x142A20180)。
+谱系 (RTTI 全扫 12 类全齐): NOperativeMissions::IOperativeMission 纯接口 (无自身 typeinfo) → CNoMission 8B / CStateBased 32B → {CNetworkBased 32B (零新增字段) → CBuildIntelNetwork 64B / CQuietIntelNetwork 32B / CBoostIdeology 72B / CPropaganda 64B; CRootOutResistance 32B 直承 CStateBased} / CCountryBased 24B → CControlTrade / CCounterIntelligence / CDiplomaticPressure 各 56B。COperativeMissionData 32B = 任务快照非任务对象 (从不落盘负定案; 见下); COperativeMission 句柄 32B = leader+4232 内嵌。清偿补注: **mission+88 = 州对象缓存**（州+204 = 控制国比对, 书定案）、**mission+96 = 意识形态指针**（kind5 "#~ No ideology" 门）——CSetOperativeMission 旧推定废。命名空间多出的 2 条 RTTI = CQuietIntelNetwork::GetProvincesInRangeOfState lambda 载体 (vt 0x142A20148 / 0x142A20180)。
 
 **中间基类表** (RTTI 定案):
 
@@ -594,7 +594,7 @@ register 流程: 国 id>0 → gs+1696 operatives mgr per-country 项 (sub_140EB2
 
 > 六对均由 `sub_141E8FF70(handler, owner, do, undo)` 注册，注册点各自 vftable 实名直证
 > (sub_141954150 = CBuildIntelNetwork / sub_141952310 = CBoostIdeology / sub_141955BE0 =
-> CControlTrade / sub_141956F60 = CCounterIntelligence / sub_1419585D0 = CDiplomaticPressure /
+> CControlTrade / sub_141956F60 = CCounterIntelligence / sub_1419585D0 = CDiplomaticPressure (⚠ 双注册点: sub_1419585D0 默认 ctor 与 sub_141958620 全参 ctor 注册同一对 do/undo — Set* 0X140FC58D0 实际调用全参者) /
 > sub_1419DEC50 = CPropaganda)。**副作用 = 有序数组的插入/删除 (mission 索引登记)**: do 端
 > sub_1411FCFC0 对 8B 元素 {tag u32@0, idx u32@4} 有序数组二分查找，未命中则 sub_1401B1640 插入;
 > undo 端 sub_1411DC2B0 同型二分删除。do/undo 体形完全同构 (唯索引数组基址不同): do 以空 ref 哨兵

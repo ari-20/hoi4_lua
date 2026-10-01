@@ -23,7 +23,7 @@ sub_140BC2640(gs+16, human) 按 id@+152 有序插入); writer 0X140BBC970。
 | +8 | 容器 24B | pinned_strategic_regions | 未实现 | {data@+8, cap@+16, count@+20, alloc@+24}; u32 列表; writer 块 12506 (有 writer 无提取) |
 | +20 | uint32 | pinned_strategic_regions 计数 | 未实现 | |
 | +32 | MSVC SSO 32B | user | | 引号 (账号名); size@+48 |
-| +64 | MSVC SSO 32B | name 玩家显示名 | | "X controls Y" 通告构建器读 +64: sub_140CEEA30 与 gs 同步点 5231331 两处同构; **定案** (CAddHuman/CAddPlayer 两命令经 CHuman 6 参 ctor 0x140BBC630 传参互锁: arg1=+32 user / arg2=+64 name) |
+| +64 | MSVC SSO 32B | name 玩家显示名 | | "X controls Y" 通告构建器读 +64: sub_140CEEA30 与 sub_141153210 两处同构; **定案** (CAddHuman/CAddPlayer 两命令经 CHuman 6 参 ctor 0x140BBC630 传参互锁: arg1=+32 user / arg2=+64 name) |
 | +96 | SProfileBadge (内嵌 16B) | 档案徽章 | | {vt@+96, u32@+104, u32@+108}; CAddPlayerCommand 复制源同位; 定案 |
 | +112 | uint32 | tag | | = 国 idx |
 | +120 | CGameDate (内嵌 24B) | 日期 | | {vt1@+120, hours@+128, vt2@+136}; ctor/copy ctor 三元组; 高置信: MP 加入/就绪时刻候选 (探针: 本档 hours=43808760 未设哨兵, 相容候选; 单机无法终验) |
@@ -136,7 +136,7 @@ career def 布局 (CCareerProfileMedal / CCareerProfileRibbon 同型 getter 族)
 |---|---|---|
 | +8 | u32 | 硬编码 id (非 token; 与 §4.26 规格表同款双证) |
 | +24 | MSVC 串 | 名 key 串 (tooltip 走 DB+40 loc 表) |
-| +56 | u32 | **非序列化 config 字段** (真名未决) — **非 tier 数**: tier 槽为固定 3 个内嵌 88B 对象 @+296/+384/+472 (reader 由 bronze/silver/gold 三键直写), tier 数 = 编译期 3, 不依赖 +56; def reader 无 +56 case, 值由 def ctor 从 token 流读入 |
+| +56 | u32 | **非序列化 config 字段** (真名未决) — **非 tier 数**: tier 槽为固定 3 个内嵌 88B 对象 @+296/+384/+472 (medal def 560B 专用; ribbon def 无 tier 槽; reader 由 bronze/silver/gold 三键直写), tier 数 = 编译期 3, 不依赖 +56; def reader 无 +56 case, 值由 def ctor 从 token 流读入 |
 | +72 | MSVC 串 | 显示名 loc 串 (sub_1406ABD30 直读) |
 | +104 | MSVC 串 | 描述 loc 串 (sub_1406ABCA0) |
 | +136 | MSVC 串 | quote loc 串 (仅绶带; sub_1406B03F0) |
@@ -154,7 +154,7 @@ data 结构 (语义推定):
 |---|---|---|
 | CMedalItem / CRibbonItem | 窗 medal_item / ribbon_item | 创建点 = CAwardsView 族 populate sub_141F7F060; +104 = 已收集标记 → "collect_button" lambda 签名含 NGameTelemetry::SAwardCollectedData |
 | CMedalPickerItem / CRibbonPickerItem | CAwardDisplay::ToggleMedalPicker / ToggleRibbonPicker → sub_141FA7560 / sub_141FA7E70 | a4 = SCareerProfileMedalData (u32@a4+8 = tier; CTierColors = def+160 数组, 图标函数内部经 sub_1406ABC90 取); 图标 sub_141E92E70 / sub_141E931B0 按 tier 着色 |
-| CMedalPopupWindow / CRibbonPopupWindow | 基 = NCareerProfile::CBasePopupWindow (0x5E0B) | **win+1496/+1500 = {成就 id, tier}** 工厂一次性 qword 写入 (ribbon 仅 id/tier 恒 1); [6]SetupContent sub_1419C4580 / sub_1419C4DE0 → **CMedalDatabase 0x14332EE30 / CRibbonDatabase 0x14332EE48** = career_medal / career_ribbon DB 运行时址; **win+112 = Show 时间戳**, Update 超时两级 define = **dword_1433374B8 隐内容 / dword_1433373FC 关窗**; 源断言 career_profile\medal_and_ribbon_popup_window.cpp |
+| CMedalPopupWindow / CRibbonPopupWindow | 基 = NCareerProfile::CBasePopupWindow (0x5E0B) | **win+1496/+1500 = {成就 id, tier}** 工厂一次性 qword 写入 (ribbon 工厂只写 +1496 id, +1500 不写 — tier 恒 1 音效硬编码); [6]SetupContent sub_1419C4580 / sub_1419C4DE0 → **CMedalDatabase 0x14332EE30 / CRibbonDatabase 0x14332EE48** = career_medal / career_ribbon DB 运行时址; **win+112 = Show 时间戳**, Update 超时两级 define = **dword_1433374B8 隐内容 / dword_1433373FC 关窗**; 源断言 career_profile\medal_and_ribbon_popup_window.cpp |
 
 弹窗队列管理器 = CInGameIdler+2560 (80B malloc 对象; Idle=vt[4] 消费链, ctor/dtor 挂卸); 帧消费 sub_140DD3A50 → sub_1419C5390 三分支:
 
@@ -265,8 +265,8 @@ data 结构 (语义推定):
 | +792 | u8 | is_always_aprils_fools (15029, 仅真值落盘) |
 | +800 | scoped_ptr<匿名结构 (8B 形状)> | **game_rules 数据对象 (15202 块)**, 元素 8B {u32,u32} 对; +808 = 已载入旗; 相关全局 qword_14332EF20 |
 | +896 | 匿名结构 (NNB 形状) | cvaa_settings (19674) |
-| +904..+909 | u8 位旗区 ×6 | 运行期旗 (Reset `dword@904 = 0` 清 +904..+907 + `word@908 = 0` 清 +908/+909; writer/reader 均不触及 = **runtime-only**, settings.txt 与 savegame 均不落盘)。+904 = chat 域旗 (getter sub_1419B27B0; ChatSettingsProviderImpl 薄 getter 委托, §4.00 族览); +905 / +908 = 语音无障碍族读 (SpeechInputTextboxHandler ctor 拷入自身) | 高置信 (复位/读点直证, 各旗位语义未逐位定名) |
-| +912 | 子对象 (16B 头 + u32 数组容器) | chat/大厅设置块 (**runtime-only**; Reset 经 sub_1401FA480 拷贝默认; getter sub_1419B2710 返址; ChatSettingsProviderImpl 6 薄 getter 全委托本域) | 推定 (chat 域归属) |
+| +904..+909 | u8 位旗区 ×6 | 运行期旗 (Reset `dword@904 = 0` 清 +904..+907 + `word@908 = 0` 清 +908/+909; writer/reader 均不触及 = **runtime-only**, settings.txt 与 savegame 均不落盘)。+904 = chat 域旗 (getter sub_1419B27B0; ChatSettingsProviderImpl 薄 getter 委托); +905 / +908 = 语音无障碍族读 (SpeechInputTextboxHandler ctor 拷入自身)。高置信 (复位/读点直证, 各旗位语义未逐位定名) |
+| +912 | 子对象 (16B 头 + u32 数组容器) | chat/大厅设置块 (**runtime-only**; Reset 经 sub_1401FA480 拷贝默认; getter sub_1419B2710 返址; ChatSettingsProviderImpl 6 薄 getter 全委托本域)。推定 (chat 域归属) |
 | +952 | f64 | hotkey_activation_delay (19681; Reset 默认 0.1) |
 | +960 | f64 | hotkey_actualization_delay (19682; Reset 默认 0.1) |
 
@@ -846,7 +846,7 @@ ctor 成员初始化要部: +864 = CGameGraphics* / +888 = 引擎单例槽 / +89
 奖项壳 (2024B, 内嵌 NCareerProfile::SCareerProfileAwards@+288) / +920 = scoped singleton 槽
 (CPersistedMioQueueDb) / **+936 = CDefinesReloader** / **+1184 = localisation watcher 看柄** /
 +1192 = 启动参数 40B 结构 / +1232 = SSO 串。伴生定案: HotkeyManager 单例 qword_1434531A8 首启
-于 Init 前置段; clausewitz clock.cpp 时钟启动; CSettings +952/+960 默认 0.1 双 double (语义待裁)。
+于 Init 前置段; clausewitz clock.cpp 时钟启动; CSettings +952/+960 = hotkey 双 delay 默认 0.1 (§4.28.11 表)。
 加载条 start 回调 = sub_140A59850 (按 phase 0..3 填步骤 id); end 回调 = sub_140A59E80
 ("Loading bar group: N is missing chunk M", loadprogressimpl.cpp:117)。
 

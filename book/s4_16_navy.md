@@ -220,7 +220,7 @@ mission 块 (units; 存档块名, 非 RTTI 类名) 补录:
 **+128..+1783 = 内嵌 CSubUnitDefinition 克隆 1656B** (copy ctor 自 null def; reader 键 12259 经 sub_140B961B0 重克隆) — 原空白 +236..+839 与 +864..+1575 全部是克隆体内部, **按 §4.18.19 布局 −128 映射即全解** (活体 1524 艘 vt 全中: sprite "heavy_cruiser"@sh+232 (def+104+128)、主统计数组 statId=(off−288−128)/8? 否 — statId=(off−416)/8 式即 def 偏移 −128、reliability = statId65 = 0.8、critical_parts cap4、map_icon=3(ship)@sh+1544 (def+1416)、DB 母本索引=72@sh+1548 (def+1420)); 克隆体后 +1784 = strength。
 ⚠ 原「舰统计重算 sub_140C21570」误挂 — 该函数触 +4168, 2360B 对象物理不可能, 系他类函数; 原「+856 CModifier 树」活体全零且 getter 不读 (待裁); GUI「+1576 旗」定名 = 克隆 type 位域 capital_ship 0x40 位。
 
-loader 兼容读入键 (writer 均不发射, 8 个新增): air_wings (12213) → +1840 航母机库注册 (strategicair.cpp:5946 断言) / start_experience_factor (13548) → +1824 / pride_of_the_fleet (15002) → +2068 / ordered_name (15501) → +2112 / unordered_name (15502) → +2116 / name (27) → +2080 旧名缓冲 / division_name (14596) 旧 ship_name 键 / refitting (15228) 容忍跳过。held_officer 键名 = 10660 定案。
+loader 兼容读入键 (writer 均不发射, 8 个新增): air_wings (12213) → +1840 航母机库注册 (strategicair.cpp:5946 断言) / start_experience_factor (13548) → +1824 / pride_of_the_fleet (15002) → +2068 / ordered_name (15501) → +2112 / unordered_name (15502) → +2116 / name (27) → +2080 旧名缓冲 / division_name (14596) 旧 ship_name 键 / refitting (15228) 容忍跳过。held_officer 键名 = 10660 定案; 另有 case 19176 → sub_1413EAA60(a1+2120) (officer 对象操作, 不落值域)。
 
 CShip 键表 (writer 0X140C3E6C0 直证清单; **行序 = writer 发射序落盘契约,
 非偏移升序**):
@@ -408,7 +408,7 @@ token 全序表:
 | 15336 | +440 | dockyards max_allowed (恒写) |
 | 15338 | +444 | dockyards used (恒写) |
 | 15588 | +128/+140 | per_region_danger 容器 — 稠密 u32 区域数组, writer 写 "idx val" 对仅 val>0 → savefull 折叠单叶 .#1 |
-| 15631 | +352 | convoy_escort_presence_history RH (§4.16.11; 门 count>0 且 gs+748 区域表 count (区域 id 遍历界)) |
+| 15631 | +352 | convoy_escort_presence_history RH (§4.16.11; 双重门 = RH count>0 ∧ gs+748 > 1 — 极早期档不发射该块) |
 | 19972 | +416/+428 | homebase_observers 容器 — 元 {prov u32@0, count u8@+4}, 逐元匿名块 "prov count" |
 
 #### 4.16.6 SRegionalConvoyData (48B)
@@ -449,7 +449,7 @@ CNavalUnitTransfer (176B = 0xB0; vt 0X296D8A8; 元素 writer 0X140E28F40;
 | +80 | uint32 | target_provinces | 无条件 |
 | +84 | uint32 | province | 无条件 |
 | +88 | tag_id | country (sub_140BB4E70→串) | 无条件 |
-| +92 | uint8 | **invasion_group (0x316A)** | **≠0 仅真写 yes** (定案) |
+| +92 | uint8 | **invasion_group (0x316A)** | **≠0 仅真写 yes** (ctor 第 4 参创建即写 = sub_140700570 敌对判定旗, 运行时来源定案) |
 | +93 | uint8 | is_returning (0x3938) | ≠0 |
 | +94 | uint8 | force_revalidate_route (0x393F) | ≠0 |
 | +96 | uint32 | cooldown (0x391E) | >0 |
@@ -564,7 +564,7 @@ cc → 水雷管理器 → 元 {+176/+188} → 子 {+184} → 表 {data@+112, co
 |---|---|---|---|
 | +4 | uint8 | dist | 有效值 1..0xFE |
 | +8 | uint32 | region | |
-| +16 | 环形缓冲 | value 内嵌 {buf@+16, capacity@+24, head@+28, tail@+32} | 元素 i32 三态 {−1 无数据哨兵, 0 无护航, N 活跃护航 TF 计数} (生产端 sub_140EB0970 Σ+−1 push / 消费端 sub_140EA58B0 按 ≥0 分母 >0 分子, 720 窗口); 落盘 = head..tail 环形展开 (count = tail<head ? capacity+tail−head : tail−head; 满载 capacity−1; ⚠ 线性读法读出槽外垃圾) |
+| +16 | 环形缓冲 | value 内嵌 {buf@+16, capacity@+24, head@+28, tail@+32} | 元素 i32 三态 {−1 无数据哨兵, 0 无护航, N 活跃护航 TF 计数} (生产端 sub_140EB0970 Σ+−1 push / 消费端 sub_140EA58B0 按 ≥0 分母 >0 分子, 720 窗口); 每条目发射门 = 环非空 (tail != head); 落盘 = head..tail 环形展开 (count = tail<head ? capacity+tail−head : tail−head; 满载 capacity−1; 运行时新建条目即 cap=721 (malloc 0xB44); ⚠ 线性读法读出槽外垃圾) |
 
 #### 4.16.12 NNavalMission::EMissionType 枚举与 AI 侧任务写点 (A6 锚)
 
@@ -697,7 +697,7 @@ A6 活体读锚 (-human_ai 现场可直接读):
 
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|
-| +8 | uint32 | month | 恒写 |  |
+| +8 | uint32 | month (绝对月序号 = 12×((当前 hours−43800000)/8760)+月) | 恒写 |  |
 | +12 | uint32 | convoys | 恒写 |  |
 | +16 | tag_id | killer_country | 恒写 | tag 引号 |
 | +20 | tag_id | owner | 恒写 | tag 引号 |
