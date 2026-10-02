@@ -1269,11 +1269,11 @@ Parse 列口径: 「共用」= 实例自身虚槽 [6] (CEffect 仅作用域键 0
 | CWithTooltipOverrideEffect | +88 / +176 | 内嵌 CEffect (子效果) / bindable tooltip 覆写对象 | 推定 |
 | CCustomOverrideTooltipTrigger | +88 / +120 / +152 | tooltip 对象 / not_tooltip 对象 / not_tooltip 已置旗 | 推定 |
 | 变量载荷对象 (208B 脚本值) | +0 / +8 / +9..+11 | {vt@+0, 值形态门 u8@+8, 只读旗 u8@+9/+10/+11} | 推定 |
-| CScopedVariable 槽系 (独立条目, 208B, vt 0x142718428) | +88 起 (208B 距) | 槽+8 = 已赋值旗 / +9 = IsValue 旗 / +13 = temp 旗; **值槽 = 对象内 +64 (构造种子: 默认 0 / 种子构造 sub_140541CF0(obj, 值), 100000 = 定点 1.0)**; [2] writer 0x1401AAEA0 (真实现, 可写档) / [3] 0x140545E20 (值表达式 Load) / [4] 基 skip; 求值 = sub_140544C90; +512 = tooltip std::string | 定案 (构造+reader 双证; 原「+208 判别字节」= 相邻槽对象首字节, 已并入口径) |
+| CScopedVariable 槽系 (独立条目, 208B, vt 0x142718428) | +88 起 (208B 距) | 槽+8 = 已赋值旗 / +9 = IsValue 旗 / +13 = temp 旗; **值槽 = 对象内 +64 (构造种子: 默认 0 / 种子构造 sub_140541CF0(obj, 值), 100000 = 定点 1.0)**; [2] writer 0x1401AAEA0 (真实现, 可写档) / [3] 0x140545E20 (值表达式 Load) / [4] 基 skip; 求值 = sub_140544C90; +512 = tooltip std::string — **全 208B 布局与值编码闭环见 §4.32.16a** | 定案 (构造+reader 双证; 原「+208 判别字节」= 相邻槽对象首字节, 已并入口径) |
 | 变量族类层次 | — | CVariableEffect 中间基 (ctor 0X14032D260, 0x220B) → CValueEffect (0x128B, 值槽+88) / CIntEffect (0x130B, 旗+88 + 值+96) / CArrayEffect (0x398B, 4 值槽); CArrayTrigger 中间基同族 | 推定 |
 | random_list | +88 / +100 / 条目+240 | 条目指针数组 @+88, 计数 int @+100, 条目对象 (= CRandomListEffectMember: modifier(10597) 键造 0x1F8 元入 +216 数组 {cap@+224, count@+228, alloc@+232}, 余键转发 @+240 效果树; writer 空桩 = 解析件) | 推定 (成员侧定案) |
 | 数组索引化访问约定 | — | **计数格 = `<名>^num` (元素 = `<名>^<i>` — 措辞定案: ^num 是计数格非「元素名」; Parse 拼名 sub_1403B8920 双写 a1+88 原名 / a1+296 `^num` 计数格)**; 索引描述符 = 100000×i 定点 (写 desc+64) | 高置信 |
-| 临时变量上下文 | TLS+32 | 临时变量容器 (getter sub_14054F730) | 高置信 |
+| 临时变量上下文 | TLS+24 活跃旗 / TLS+32 | 临时变量容器 (getter sub_14054F730; 进入清容器 sub_140550CD0 / 退出清旗 sub_140550C80; 种子机制 §4.32.16a) | 定案 |
 | meta_trigger 私载荷 | +88 / +120 / +144 | 文本树槽 / 变量绑定 map / debug byte | 推定 |
 | 集合运行时视图 (16B 元) | +8 | {begin@+8, end@+16}; 动态集合判别 = `*(u32*)(集合对象+8) == 5` | 推定 |
 | has_navy_size 载荷 | +376 / +416 | archetype 链 (载荷+64 → def 对象+8) / unit 名串 | 推定 |
@@ -1338,6 +1338,58 @@ influence ratio 共用 `VALUE` 标签 (无独立 FACTION_RATIO 标签); EFFECT_M
 | COriginalSameIdeologyGroupTrigger | 0x14293B518 | joining_rules(19547) 默认树内部件: scope vs 阵营领袖意识形态组双等 (cc+808 账本) |
 | COriginalGovernmentInExileTrigger | 0x14293B5D8 | joining_rules 内部件: 流亡政府判定 (sub_141191500) |
 | COriginalChangeLeaderTrigger | 0x14293B698 | joining_rules 内部件: FROM 侧领导权变更判定 |
+
+#### 4.32.16a CScopedVariable 全布局与变量值编码 (scopedvariable.cpp 定案)
+
+CScopedVariable (208B, vt 0x142718428; 默认 ctor sub_14014AFD0 / 常量种子 ctor sub_140541CF0 / 文本 ctor sub_140541AA0 — 两具名 ctor 置 +8..+11 dword=256 即 IsValue 预置, MIO/项目槽预置 19479 undefined)。只读判定 `IsReadOnly = +9 | +10 | +11` (断言 :1430 逐项):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +8 | u8 | 已赋值旗 (parse 入口置 1) |
+| +9 | u8 | IsValue (常量值旗) |
+| +10 | u8 | `.random` 只读旗 (求值现发随机, 不落条目) |
+| +11 | u8 | `.ai_random` 只读旗 (AI RNG 路 sub_140543C40) |
+| +12 | u8 | `.global` 旗 → 全局容器 gs+2432 |
+| +13 | u8 | temp 旗 = +100 旗 && 全部特殊域为空 (解析尾统一计算) |
+| +14 | u8 | `temp_var:` 前缀旗 → TLS 临时容器 |
+| +16 | u32 | 事件目标类型: 1=GLOBAL / 3=LOCAL_WITH_FALLBACK |
+| +20 | u16 | 事件目标 id (sub_140F58F90 查名) |
+| +24 | 16B | 国家 tag 字面量 (CTag 对象) |
+| +40 | u32 | 数字 id (`.123` 数字段; state 等) |
+| +44 | u32 | 作用域属性对 (`.owner` → sub_1405433D0: 国→国+4080 CCountryCharacters→名哈希→sub_1410EBCB0) |
+| +48 | u32 | 上行属性对之第二字 (属性 id 对成对落槽) |
+| +52 | u32 | MIO id (`mio:`; 默认 19479; 求值 = 国+3944 列表 sub_140E5D090) |
+| +56 | u32 | 特殊项目 id (`sp:`; 默认 19479; 求值 = \*(国+4008)+24 sub_1414823B0) |
+| +64 | i64 | 常量值槽 (定点; `token:N` = N×100000; `constant:` int×100000 / fixed 原值) |
+| +72 | CScopedVariable* | `名?默认` 缺省值表达式 (递归) |
+| +80 | CScopedVariable* | 未知前缀的作用域规格对象 (ctor 541AA0) |
+| +88 | vector\<u32\> | 作用域跳链 token 表: from=10639 / root=11412 / prev=11413 / this·id=10691 |
+| +112 | string 32B | 变量名 (小写化) |
+| +144 | CScopedVariable* | `名@目标` 目标规格 (递归) |
+| +152 | u8 | `.num` 旗 (名字构造时字面 `^num`) |
+| +160 | CScopedVariable* | `名^索引` 索引表达式 (递归) |
+| +168 | void* | `mtth:` 数据库对象指针 (求值 sub_1405520E0) |
+| +176 | string 32B | 原始文本 (parse 原串留存) |
+
+变量值 = 带类型域整数, 编码/解码双向闭合 (定案): 编码器 sub_140543CF0 (tag \| 0x40000000) / sub_140543DA0 (state \| 0xC000000000000000) / sub_140543E30 (角色 = \*(char+3924) \| 0x8000000000000000, 其余 scope = \*(obj+12) \| 0x20000000) / sub_140543EE0 (汇总)。解码装载 sub_1405443F0 按 `值 & 0xFFFFFFFFF0000000` 分派 → CEventScope 槽 → 每作用域变量容器:
+
+| 掩码 | 装载器 | scope 槽 | 家族 | 变量容器 |
+|---|---|---|---|---|
+| 0x10000000 | sub_14053B4F0 | +144 | 特殊项目 (idb 族 86) | project+312 (**新收容器**) |
+| 0x30000000 | sub_14053A690 | +152 | 阵营 CFaction (88) | fac+2624 |
+| 0x40000000 | tag 串化链 | +8 tag | 国家 | \*(cc+536) |
+| 0x60000000 | sub_14053B030 | +120 | MIO 组织 (79) | org+448 |
+| 0x8000000000000000 | gs 角色注册表链 | 角色域 | 角色 CCharacter (73) | char+216 |
+| 0xA000000000000000 | sub_14053B1B0 | +128 | 采购合同 (81) | contract+752 |
+| 0xC000000000000000 | sub_14053B5F0 | state 域 | 州 (含裸定点 state: 值%100000==0 且 ≤100000×州数) | \*(st+2040) |
+| 0xE000000000000000 | sub_14053B270 | +136 | raid 实例 (84) | raid+96 (**新收容器**) |
+| 0x2XXXXXXX | sub_14053A400 | +80 | 角色域 | char+216 |
+
+事件目标 (定案): `save_event_target_as` (tok 15765 → 处理器 sub_1405461E0, 类型须 3) / `save_global_event_target_as` (tok 15764 → sub_140548860, 类型须 1) — 变量名 = `event_target:<名>.id` / `global_event_target:<名>.id`, 落 CSV +16 类型 / +20 id; parse 分派 = sub_1407214A0 (效果+272 对象)。
+
+核心函数 (15 簇函数全定性): 解析器 **sub_140546530** (1990 行, 纯解析期, 语法全图 — 前缀 `var:/temp_var:/token:/mtth:/mio:/sp:/constant:` + 中缀 `?默认 ^索引 @目标 :作用域 .属性` + 后缀 `.random/.ai_random/.num/.global` + `from/root/prev/this/id` 跳链 + 定点字面量; 致命错误 = 解析期 terminate) / 容器解析 **sub_140542500** (七级优先: global→tag→state→属性对→规格对象→事件目标→跳链; 出参 a3 tag/a4 state/a5..a10 六 kind 对象) / 求值 **sub_140544C90** (792 调用点; 优先级: IsValue→ai_random→MTTH→MIO→项目→作用域编码→TLS/持久容器→FNV-1 域注册表快查→按名查 (+72 默认兜底)) / 进入 **sub_140541DC0** / 退出 **sub_140542150** / PRNG **sub_1405441F0** / 事件目标两处理器 / temp 定位 sub_140542330 / clear sub_1405431D0 / has sub_140545B20 / 名构造器 sub_1405454A0 (@目标求值加作用域判别后缀, `^num`/`^<i>` 索引命名 = §4.32.16 数组索引化约定的实现体)。
+
+随机种子子系统 (定案, CVariables 种子对 +8/+12 的写入机制, §4.13.2): TLS 布局 = TEB->ThreadLocalStoragePointer[TlsIndex] 的 +24 活跃旗 / +32 临时 CVariables (temp_var 容器; 进入 sub_140550CD0 首次清容器 / 退出 sub_140550C80 清旗)。进入作用域 sub_140541DC0: `random_seed = 13×seed(ctx) + 17×seed(_pFrom) + 容器+8` 写 TLS 临时变量; PRNG sub_1405441F0: xorshift 三轮 (常量 1587985055/1255572915/1759714724/458671337/−1831433054) → `&0x7FFFFFFF % 100000` 定点 [0,1), 种子自增; 退出 sub_140542150: TLS 种子 ≠ 进入时存档 → 容器 +8/+12 双 dword 重哈希 (murmur3 finalizer 变体, 常量链 2126043716/282605150/1831007003 与 542824007/−1259093227/947560250)。`.random` 变量 = 读即现发, 不写条目。
 
 #### 4.32.17 表达式求值 VM
 

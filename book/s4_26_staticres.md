@@ -54,6 +54,47 @@
 
 > 其余全局槽位 (断言门/锁/动态数组容量等) 不影响访问器语义, 不逐项列。
 
+#### 4.26.2b PDX 内嵌 Lua C API 包装映射 (桥侧写 chunk 受益)
+
+引擎内嵌 lua 定案 = **Lua 5.1 基底** (三证: luaL_ref 走 FREELIST_REF=0 空闲链 rawgeti(t,0); lua_gettable 结果**原位覆写 key 槽** (5.1 lapi 形态, top 不变); lua_objlen 在场)。栈槽 TValue = **16 字节** {value 8B, tt 4B+pad}; lua_State: +16 top / +24 base / +32 global_State\*; `lua_gettop = (top−base)>>4`。协议常量: `LUA_REGISTRYINDEX = −10000` (0xFFFFD8F0); 伪索引判定 `idx ≥ −9999 || idx == 0 → abs = gettop + idx + 1`; 类型码 0=nil / 1=boolean / 3=number / 4=string / 5=table / 6=function; lua 层「空 ref」哨兵 = **−2** (区别于 LUA_REFNIL=−1, ref 槽传递全程带 `!= −2` guard)。
+
+包装映射 (24 个, 逐个读体定案; 全为薄包装):
+
+| 包装 | 等价标准 API | 要点 |
+|---|---|---|
+| sub_1421ABA10 | lua_gettop | `(top−base)>>4` |
+| sub_1421AB370 | index2addr | 伪索引换算内联; 无效索引 → 哨兵常量 0x142B32A30 |
+| sub_1421ACA40 | lua_type | 无效 → −1; 否则 tt@TValue+8 |
+| sub_1421ABB60 | lua_isstring | tt==3 或 4 |
+| sub_1421AC890 | lua_tolstring | 数字可串化; TString {len@+16, data@+24} |
+| sub_1421AC860 | lua_tointeger | `(int)double` 截断; 串可转 |
+| sub_1421AC930 | lua_tonumber | 串可转; 失败 0.0 |
+| sub_1421AC800 | lua_toboolean | truthy 判定 |
+| sub_1421ABD30 | lua_objlen | tt3→串化长 / tt4→TString len / tt5→luaH 取长 |
+| sub_1421AC060 | lua_pushstring | strlen; NULL → push nil |
+| sub_1421AC020 | lua_pushnil | — |
+| sub_1421ABF70 | lua_pushinteger | — |
+| sub_1421AC130 | lua_pushvalue | — |
+| sub_1421AC240 | lua_rawgeti | 整数键直取 (无 metamethod) |
+| sub_1421AB9E0 | lua_gettable | 核心 sub_1421B74A0 (luaV_gettable): __index 链深 ≤100 (超限 "loop in gettable"); 值 tt==6 (function) → 调用之 |
+| sub_1421AC380 | lua_remove | 自 idx 起下移覆写 + top−16 |
+| sub_1421AC6B0 | lua_settop | 负 idx → `top += 16*(idx+1)` (即 pop −idx−1); 非负 → nil 填充 |
+| sub_1421ABCF0 | lua_next | 核心子 sub_1421B3A90; 有下一对 top+16, 无则 top−16 返 0 |
+| sub_1421AC300 | lua_rawseti | 带 GC barrier (sub_1421B1F00) |
+| sub_1421ADFC0 | luaL_ref | nil → −1; 空闲链头 = rawgeti(t, 0); 无空槽则 `lua_objlen(t)+1` |
+| sub_1421AE1D0 | luaL_unref | ref<0 no-op |
+| sub_1421ADA90 | luaL_loadbuffer | — |
+| sub_1421ABDB0 | lua_pcall | — |
+| sub_1421B3920 族 12 个 | luaH 层/内部 | rawget / next / rawseti / luaV_gettable / 串化 / 串转数 / __index 元表取 / GC barrier / 栈扩容 / typeerror / "loop in gettable" / __index 函数调用 |
+
+脚本文件装载执行通道 (defines 装载 §4.26.13 与 mod 脚本共用):
+
+| 函数 | 语义 |
+|---|---|
+| sub_14206FEF0 | 装载执行: 读文件 (上限 1 MB = 0x100000) → luaL_loadbuffer (chunkname=文件名) → lua_pcall(0,0,0); 任一步非 0 → sub_142070000 上报; CFileException → 返回 −1000; 否则透传 pcall 结果 |
+| sub_142070000 | 错误上报: lua_isstring 门 (失败 = 断言串 "must be error message at top of stack") → 取消息 → traceback 组装 → "\nLUA Error: \<msg\>\n\<traceback\>" 日志流 (消息空则缀 " - no script source to reload"); debug 断言门下追加一次性 "…\n See error.log for details." |
+| sub_142072B90 | mod 脚本通道: "script/" 前缀 + ".lua" 后缀定位后经 sub_14206FEF0 执行 |
+
 #### 4.26.3 非 DB 静态注册表
 
 | 表 | 挂载 | 布局 | 访问器 |
@@ -96,7 +137,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | key | 单例 RVA | arr@ | cnt@ | def 名 | nonull | 备注 |
 |---|---|---|---|---|---|---|
 | state_category | 0x332f968 | +64 | +76 | tok8 | 否 | CStateCategoryDatabase 14 (13+none) tok8; STATE 段 (kr2 事故族) |
-| building | 0x332ee28 | +64 | +76 | tok8 | 否 | CBuildingDatabase 56 (55+none) tok8; states buildings (取代 legacy BLD2_NAMES); **+232/+244 与 +832/+844 = 两类别 def 子集容器** (高置信, 填充点未找; GUI = 海军 HQ 站点匹配链, §4.16.14) |
+| building | 0x332ee28 | +64 | +76 | tok8 | 否 | CBuildingDatabase 56 (55+none) tok8; states buildings (取代 legacy BLD2_NAMES); **+232/+244 与 +832/+844 = 两类别 def 子集容器** (高置信, 填充点未找; GUI = 海军 HQ 站点匹配链, §4.16.14); **\*(库+936) = rail_way 建筑模板 def 缓存** (定案三证: 铁路 info ctor RailwayTemplate 断言 / 指针等同比较 / 生产线读取; 消费 = 铁路造价公式, §4.14.6) |
 | equipment | 0x332eec0 | +104 | +116 | tok8 | 否 | CEquipmentDatabase 457 tok8 (变体+原型合并; upgrades@176/38, modules@224/313 另有) |
 | technology | 0x332f0a0 | +72 | +84 | "sso16" | 否 | 553 (arr[0]=null 空名) sso@def+16; folders@168/17 (folders 子表元素类 = **CTechnologyFolder**, 208B, ctor sub_140ACC080); 条目类 = CTechnologyTemplate (见下「条目类」表) |
 | focus | 0x332ef70 | +88 | +100 | tok8 | 否 | CNationalFocusDatabase 10888 tok8; arr@64/22 = focus styles (名 sso@+8) |
@@ -303,7 +344,9 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 defines 全部 13 个头文件簇 3,823 个单键函数定性完毕 (ai/game/military/supply/intel/diplomacy/project/raid_defines/mapmode/industrial_organisation/faction/doctrines + defines.cpp 骨架另计 6 函数): **每函数 = 恰载 1 个 define 的装载器** (C++ 模板实例化), 非 getter、非业务函数 (多 define 组合/条件取值/误聚类均为 0, 负定案)。define 存储 = `.data/.bss` 散置独立全局 (RVA 0x330E18..0x33A9E0 + 日期槽 0x3089AD0/0x3089AF0), **无 CDefines 巨对象** — `this` 形参全程未用, 不存在 this+偏移访问器族。装载器骨架:
 
 ```
-取命名空间表 sub_1421AC060(v, "NS") → type==5 (LUA_TTABLE) 门
+取命名空间表 → type==5 (LUA_TTABLE) 门      ← 取表 = pushstring("NS", sub_1421AC060)
+                                              + lua_rawgeti(REGISTRY, 根表ref) + lua_gettable + lua_remove 四连
+                                              (NS 表经 luaL_ref 以 registry ref 形态传读者)
   → 读者(&栈, "KEY", &存储全局)      ← 唯一职责点
   → [可选钳位] 读回全局, 越界记 Warning + 写回边界字面量
 else → 日志 "Error reading \"KEY\": no lua object named NS" (读者不调, 全局保持原值)
@@ -326,15 +369,18 @@ else → 日志 "Error reading \"KEY\": no lua object named NS" (读者不调, �
 | sub_142071190 | 变长数组 (堆) | 5 | 槽 = begin 指针, 元素 round(x×1e5); 消费侧 `*(槽 + 8*i)` |
 | sub_142070C50 | vec\<i32\> (堆) | 5 | 槽 = begin 指针, 消费侧 `*(int*)(槽 + 4*i)` |
 | sub_142070C60 | table(f32) 向量 | 5 | 堆向量; 扩容 cap×1.5 取整至少 +1 |
-| sub_1420711A0 | vec\<string\> | 5 | 先清空旧向量 |
+| sub_142070C70 | vec\<float4\> (堆, 16B/元素) | 5 | 每元素恰 4 float (少 1/多/型错 0/1/2/3 三档, 经 sub_142072E10 诊断); 消费 = COUNTERINTELLIGENCE_ACTIVITY_LEVEL_THRESHOLD_COLORS |
+| sub_1420711A0 | vec\<string\> | 5 | 先清空旧向量; 非串元素静默跳过 |
 | sub_142071C30 | vec3f @+0..+11 | 5 | 恰 3 元, 错则 "expected 3 parameters" |
 | sub_14074B130 | 定长 4 元数组 guard | 5 | sub_142071190 读后 count@+12==4 门, 拷 4×qword; 否则 "expected an array of 4 intel values" (intel 四类数组专用) |
 | sub_142072800 | string | — | 拷入 0x143090xxx 串区 |
 | sub_14074BA30 | CGameDate | 4 (string) | `sscanf("%d.%d.%d.%d")` 解析入日期对象 |
-| sub_142071770 | table→dword | 5 | 数值表元素 |
+| sub_142071770 | vec2f @+0..+7 | 5 | 恰 2 元 (错则 "expected 2 parameters" 记日志非抛); 消费 = 铁路炮粗定位偏移 / INTEL_MAP_MODE_MAP_ICON_OFFSET 地图图标 2D 偏移 |
 | sub_1424EF6F0 | 取负构造器 | — | `*dst = −src`; 仅钳位负界使用 |
 
 ⚠ **颜色 define 双形态**: 裸 float[4]@+0 (sub_1420720F0 路线) vs CColor 对象 {vt@+0, r@+16..a@+28} (sub_14074B2C0 路线, 支持 HSV 3 参) 并存 — `define(name)` 读颜色键须按消费方区分, 不能一律按裸 4 字节读。⚠ 数组型 define (变长数组 + vec\<i32\> 族) 槽值 = **堆 begin 指针**, `define()` 返回原始 qword 对这些键是指针非值。
+
+⚠ **错误语义两级 (定案)**: vec 族内**元素级**型错 = throw luabind::cast_failed (进程级异常, 携目标类型 RTTI Type Descriptor; 装载链 functor 每键单独 catch 续跑, §4.26.13); **顶层**键缺失/型错 = "\nLUA Error: incorrect lua value: KEY" 日志 + 槽保持入口清的 0 (不抛)。定长元组计数错只记 "expected N parameters" 日志 (读完即返非抛)。读者族 = PDX 引擎 lua 值抽取公共层 (pdx_lua.cpp 编译单元), 调用者普查: 标量读者被 defines loader 族独占 (fx1e-5 ×2258 / i32 ×1356 / f32 ×407 / fx32k ×74 / bool ×42), 定长/动态向量族消费 mapmode/raid/intel 等 13 簇 define 的颜色/偏移/标签键 — 运行时业务/GUI/存档路径直呼为零。
 
 取整式汇编核验 (勿按伪码直抄): fx1e-5 (sub_142072500) = `comiss x,0 取符号 → mulss ×100000.0 (常量池 0x271FC68 实读) → ±0.5 (0x271FC54/0x2724298/0x27242B0) → cvttss2si`, 即 x≥0 取 `trunc(x·1e5+0.5)`、x<0 取 `trunc(x·1e5−0.5)` = **半值远离零** (0.35→35000 / −0.8→−80000; 非银行家舍入; vanilla 注释 0.9 ↔ MAX 常量 90000 闭环)。fx32k (sub_142072200) 同款 (×32768.0, 常量 0x27242A4; MAX_AIR_EXPERIENCE=500→16384000)。
 
@@ -374,7 +420,7 @@ else → 日志 "Error reading \"KEY\": no lua object named NS" (读者不调, �
 |---|---|---|
 | `ref/token_table_1193.txt` | 静态 token 全表 10,765 条 (id 11..19998) | 现役 (离线, exe 提取) |
 | `ref/token_map_1193.txt` | 10,765 条, 提取注册函数 sub_1400831C0 (含 entry/idglob/caller 溯源列) | session_meta 数据源 |
-| `ref/defines_map_1193.txt` | **4,424 名 / 4,452 目** / 25 多义名（全 loader 族扫描; 形态含 `(float *)&`/`(bool *)&` cast 与无 `&` 全局; 护栏 = 调用点后 1.5KB 内有 `Error reading "NAME"` 诊断串; loader 侧 3,823 函数函数级对账全中零错配, 另证 7 漏收名: NAI.BUILDING_TARGETS_BUILDING_PRIORITIES 0x33384A0 (vec-string) / NGame.START_DATE 0x3089AD0 与 END_DATE 0x3089AF0 (date 槽) / NDiplomacy.TENSION_TIME_SCALE_START_DATE 0x3089568 (date) / NMapMode.INTEL_MAP_MODE_MAP_ICON_OFFSET 0x3332520 (table) / NMapMode.SUPPLY_COUNTRY_BORDER_FRIEND_COLOR 0x3339460 与 NFactions.FACTION_PING_MAP_AVAILABLE_COLOR 0x3339A80 (CColor 对象) — date/CColor 形态是离线扫描器 cast 白名单漏收主因) | **冻结基线**（1.19.3 离线快照, 无再生配方; 运行时数据源已改为镜像扫描, 见 §4.26.5a） |
+| `ref/defines_map_1193.txt` | **4,424 名 / 4,452 目** / 25 多义名（全 loader 族扫描; 形态含 `(float *)&`/`(bool *)&` cast 与无 `&` 全局; 护栏 = 调用点后 1.5KB 内有 `Error reading "NAME"` 诊断串; loader 侧 3,823 函数函数级对账全中零错配, 另证 7 漏收名: NAI.BUILDING_TARGETS_BUILDING_PRIORITIES 0x33384A0 (vec-string) / NGame.START_DATE 0x3089AD0 与 END_DATE 0x3089AF0 (date 槽) / NDiplomacy.TENSION_TIME_SCALE_START_DATE 0x3089568 (date) / NMapMode.INTEL_MAP_MODE_MAP_ICON_OFFSET 0x3332520 (vec2f, 2×f32) / NMapMode.SUPPLY_COUNTRY_BORDER_FRIEND_COLOR 0x3339460 与 NFactions.FACTION_PING_MAP_AVAILABLE_COLOR 0x3339A80 (CColor 对象) — date/CColor 形态是离线扫描器 cast 白名单漏收主因) | **冻结基线**（1.19.3 离线快照, 无再生配方; 运行时数据源已改为镜像扫描, 见 §4.26.5a） |
 | `ref/serfam_1193.txt` | 1,153 行 CPersistent 族指纹表 (slot1=Save wrapper 判定; 盲区见 §4.00.1/方法论) | 现役 (可序列化性速查) |
 | `ref/boot_registry.tsv` | 320 槽 boot 注册表 (槽位/ctor 签名/库分级; §4.26.8 数据源) | 现役 |
 | `ref/vt_rtti.json` | 9,254 vtable→RTTI 类名 | 版本变更需重扫 |
@@ -791,7 +837,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vt[2]=空桩 = 只读 def 
 | 步 | 函数/槽 | 语义 |
 |---|---|---|
 | 1 | sub_1424DC600 | 枚举 common/defines/*.lua |
-| 2 | sub_14206FEF0 | 逐文件 dofile; 失败 → 日志 "An error occured when loading defines in %s. Defines won't be reloaded." 且**整批放弃** |
+| 2 | sub_14206FEF0 | 逐文件装载执行 (loadbuffer+pcall, 机制见 §4.26.2b); 失败 → 日志 "An error occured when loading defines in %s. Defines won't be reloaded." 且**整批放弃** |
 | 3 | functor 注册表 | qword_143338428 {data@0x338428, count@dword_143338434} — 每键一个 CRT 静态初始化小函数 push (vtable off_143087EA8 族); 依序跑全量, 每 functor 的 luabind::cast_failed **单独 catch 续跑不中断** ("Define cast failed" / "Unable to load a define: %s"; 计数桩 sub_1425F8030 `++*(u32*)(ctx+576)`) |
 | 4 | — | 日志 "%d defines loaded" |
 | 5 | sub_14074BDC0 | PostLoadValidate (下表) |

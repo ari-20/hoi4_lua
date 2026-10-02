@@ -708,6 +708,9 @@ static const luaL_Reg hoi4_lib[] = {
     {"dr_watch", hoi4_dr_watch},                 // DR0 write watch (in-process)
     {"dr_off", hoi4_dr_off},                     // disarm DR watch
     {"dr_hits", hoi4_dr_hits},                   // collected hit ring
+    {"dr_state", hoi4_dr_state},                 // diag: read back thread DR regs
+    {"dr_selfdr", hoi4_dr_selfdr},               // diag: CPU-real DR of calling thread
+    {"dr_threadtest", hoi4_dr_threadtest},         // diag: fresh-thread DR end-to-end test
     {"dr_gwatch", hoi4_dr_gwatch},               // guard-page watch
     {"dr_goff", hoi4_dr_goff},                   // guard disarm
     {"dr_ghits", hoi4_dr_ghits},                 // guard hit aggregation

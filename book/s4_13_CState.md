@@ -235,6 +235,12 @@ sub_140FF3BE0(占领mgr, cr+80) 取得; 即 §4.3.2 记录 dp (occ+96 列表条�
 | +40 | uint8 | extra (尾部溢出桶数) | 遍历上界 = mask + 1 + extra (缺 extra 即丢尾部条目) |
 | +44 | float | RH max_load_factor = 0.9 (0x3F666666=1063675494; ctor 常数互证) | |
 
+> **random 种子对 +8/+12 写入机制** (定案): 进入作用域 sub_140541DC0 组合种子
+> `13×seed(ctx) + 17×seed(_pFrom) + 容器+8` 写 TLS 临时变量 `random_seed`; 脚本 PRNG
+> sub_1405441F0 每发 `xorshift 三轮 → &0x7FFFFFFF % 100000` 并自增种子; 退出
+> sub_140542150 检 TLS 种子 ≠ 进入时存档 → **+8/+12 双 dword 重哈希** (murmur3
+> finalizer 变体, 常量链两组)。全链详见 §4.32.16a。
+
 RH 扫描防御界 = 具名界 `M.lim.PTR_HUGE` (65536, RH 扫描类; 对象层
 variables73 maxn = LAYOUT.lim.PTR_HUGE)。
 

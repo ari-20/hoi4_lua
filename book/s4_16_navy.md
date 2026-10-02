@@ -364,7 +364,7 @@ general 线特化)。
 | +153..+163 | — | = regional_convoys 容器尾  |  |  |
 | +164 | uint32 | regional_convoys 容器计数 |  |  |
 | +165..+175 | — | = regional_convoys/access 容器尾  |  |  |
-| +176 | int8 | per_region_access 容器数据指针 | int8 数组; **>0 才写 idx=val 对** |  |
+| +176 | int8 | per_region_access 容器数据指针 | int8 数组; **>0 才写 idx=val 对**; 值枚举 {0=allowed, 1=avoid, 2=blocked} (定案, sub_140EA62F0 本地化键生成器直证, §4.16.5a) |  |
 | +177..+187 | — | = access 容器尾  |  |  |
 | +188 | uint32 | per_region_access 容器计数 |  |  |
 | +189..+199 | — | = access/mines 容器尾  |  |  |
@@ -377,7 +377,9 @@ general 线特化)。
 | +236 | uint32 | naval_accidents 容器计数 |  |  |
 | +248 | CNavalMineReport* 向量 24B | **mine_report** {d@248, cap@256, c@260, alloc@264} | loader malloc 0x50 + CNavalMineReport::vftable | loader-only; ⚠ 现版 writer 不发射 (token 15321 仅 loader 识) |
 | +272 | 匿名结构 (NNB 形状) 向量 24B | **active CNavalMission\* 平表** {d@272, cap@280, c@284, alloc@288} (元素 vt 0X297F038 = CNavalMission RTTI 直查) | 不序列化  |  |
+| +296 | uint8 | **舰队刷新脏旗** (推定名; 小时更新读清, 置位触发属主国逐元素 sub_140D59BE0 + sub_140A66B70 舰队刷新链) | 不序列化  | 高置信 |
 | +297 | uint8 | **bases dirty flag** (基地增删后置 1; sub_140EAAFE0/sub_140EAACF0/sub_140EAA7F0 三处写) | 不序列化  |  |
+| +298 | uint8 | **naval access/interest 缓存脏旗** (小时更新读清 → sub_140EADF80 重建 +72 国缓存) | 不序列化  |  |
 | +304 | CNavalUnitTransfer* 向量 | naval_transport 容器数据指针 | 元素 = 8B 指针 → CNavalUnitTransfer (vt 0X296D8A8, 176B=0xB0; 字段表按指针解引用读取, 见 §4.16.7) | reader Country.navy.naval_transports |
 | +316 | uint32 | naval_transport 容器计数 |  |  |
 | +328 | MSVC 串 向量 24B | **task_force_templates** {d@328, cap@336, c@340, alloc@344} — **136B 内联元** {name MSVC 串@+0 (token 27), composition_requirements 多态对象@+32 (token 15168)} | 块 token 15175 task_force_template | loader: name 空或 composition 无效不入容器 |
@@ -387,7 +389,7 @@ general 线特化)。
 | +361..+371 | — | = RH 结构体内  |  |  |
 | +372 | uint32 | convoy_escort_presence_history RH mask | | |
 | +376 | uint8 | convoy_escort_presence_history RH extra | | |
-| +384 | 匿名结构 (200B 形状) | **per-navy 邻接规则 (海峡/运河通行) 缓存** — 200B 无 vtable {owner 回指 + 3×64B block (kind 2/1/0, region→u16 组映射 + 376B 元规则 RH)}; 谓词链落 adjacencyrule.cpp (EAdjacencyRuleSubject) | 不序列化  |  |
+| +384 | 匿名结构 (200B 形状) | **per-navy 邻接规则 (海峡/运河通行) 缓存** — 200B 无 vtable {owner 回指 + 3×64B block (kind 2/1/0, region→u16 组映射 + 376B 元规则 RH)}; 谓词链落 adjacencyrule.cpp (EAdjacencyRuleSubject); **消费入口 = sub_140EA9120/9510 → sub_1419ED790** (ENavalPathing 判定, §4.16.5a) | 不序列化  |  |
 | +392 | uint32 向量 24B | **naval_supply_hub 省份缓存** {d@392, cap@400, c@404, alloc@408} — u32 省 id (填充者 sub_140EB1840 遍历 controlled_provinces → prov+480 建筑实例数组 → 建筑类型共享状态 F+886 旗 = naval_supply_hub 类型旗 tok 10194, 定案; ⚠ **CNavalBase+392 = owner tag u32 跨类同偏移并存, 勿混**) | 不序列化  |  |
 | +416 | 匿名结构 (8B 形状) 向量 | homebase_observers {d@416, c@428} 8B 元 {prov u32@0, count u8@+4} | 逐元匿名块 "prov count" |  |
 | +428 | uint32 | homebase_observers 容器计数 |  |  |
@@ -408,8 +410,26 @@ token 全序表:
 | 15336 | +440 | dockyards max_allowed (恒写) |
 | 15338 | +444 | dockyards used (恒写) |
 | 15588 | +128/+140 | per_region_danger 容器 — 稠密 u32 区域数组, writer 写 "idx val" 对仅 val>0 → savefull 折叠单叶 .#1 |
-| 15631 | +352 | convoy_escort_presence_history RH (§4.16.11; 双重门 = RH count>0 ∧ gs+748 > 1 — 极早期档不发射该块) |
+| 15631 | +352 | convoy_escort_presence_history RH (§4.16.11; 双重门 = RH count>0 ∧ gs+748 > 1 — 极早期档不发射该块; loader: region id 门 0 < id < \*(gs+748), 条目值钳 ≥721 int, 32 位终化哈希常数 73244475 两轮) |
 | 19972 | +416/+428 | homebase_observers 容器 — 元 {prov u32@0, count u8@+4}, 逐元匿名块 "prov count" |
+
+#### 4.16.5a CStrategicNavy 运行时操作层 (strategicnavy.cpp 定案)
+
+簇定性 = **CStrategicNavy/CNavalBase/CNavalUnitTransfer 的运行时操作面** (存档 loader + 修理队列 + 海运下单/拆分 + 寻路判定); **非 AI 战略海军评估层** (负定案: 全簇无一函数被 AI 主循环调用, 任务分配逻辑在 CNavalMission/ai 域, 本簇只供判定原语)。this 三型: loader/下单/拆分/寻路族 a1 = S (CStrategicNavy\*); 修理队列族 a1 = CNavalBase\* (NB+16 省 id / NB+40 队列)。入口四路: 读档 (vt slot10) / 每小时 tick phase 9 (sub_1401DF400 → sub_140EA79F0 → sub_140EA76B0 → 逐基地 sub_140EA1280; TF 侧 sub_140D731A0 → sub_140E9F4E0, §4.16.8) / 玩家·AI 命令 (§4.16.15 四入口) / 修理 UI (§4.16.8 移舰对)。
+
+运行时判定与工具函数 (12 函数簇内书先前未收的 7 个):
+
+| 函数 | 身份 | 定案要点 |
+|---|---|---|
+| sub_140EA62F0 | 海域访问级别本地化键生成器 | f(out 串, access_level): 三值枚举 → "NAVAL_REGION_ACCESS_{ALLOWED,AVOID,BLOCKED}\n…_DESC" 双键拼接 (本地化变量 LVL=1); 其它值断言 :3384 后返空串; 调用者 = GUI tooltip 族 3 处 |
+| sub_140EA9120 | CheckNavalPath (省对版) | a2 = ENavalPathing {0..4}; 两省各经 prov+184 描述符 (+210 bit0 is_land → GetProvince(+200 配对海省)) → 海省+200 战略区 → 区+88 数字 id → sub_1419ED790(S+384 缓存, …); 映射 0→(1,2) / 1→(2,2) / {2,3}→(2,2) / 4→(3,1) (二元组业务名推定); 未识别枚举断言 :2646; 调用者 5 处全为海军任务/移动判定族 |
+| sub_140EA9510 | CheckNavalPath (区对象直连版) | a3 直接持区 +88 字段 (免省→区换算); 同款断言与映射; 调用者 2 处; 与 EA9120 = 同一判定两接口层 |
+| sub_140EA6F20 | 权重随机选取 | 输入 24B/元 {权重 u64@0, 值 qword@+8, idpair@+16} 排序态前缀和游走; 随机 = random_fixed 全局 pcg 源行 4172 播种 (确定性重放, OOS 安全); **空表/零权缺省 = 100000 (fixed 1.0)**; 唯一消费者 = 船体统计 sub_140C309D0 |
+| sub_140E9F4E0 | CNavalBase::AddTaskForceShipsToRepairQueue | 见 §4.16.8 修理链表 |
+| sub_140EAE9C0 / sub_140EAEB30 | 修理队列移舰对 | 见 §4.16.8 修理链表 |
+| sub_140EAA8C0 | CNavalBase::DetachProvinceTaskForceShips | 见 §4.16.8 修理链表 |
+
+确定性 RNG 定案: 本簇 2 处随机 (源行 280 洗牌 / 4172 权重抽取) 均走 random_fixed 全局 pcg 带 (文件, 源行) 标签 — 重放确定。
 
 #### 4.16.6 SRegionalConvoyData (48B)
 
@@ -516,6 +536,17 @@ CNavalBase (vtable 0X29731C0; **sizeof = 88 (0x58)** malloc 三重证; writer = 
 | +80 | ptr | 第二容器分配器指针 (共享静态 off_143085170) + 尾填充至 88 — 对象到 88 为止, 原「+80..尾 空白」闭合 |
 | ⚠ | — | 原「CNavalBase+392 = owner tag u32」跨类警告**废** — 88B 对象无 +392 槽, 该偏移实为 CProvince+392 controller 误标 (§4.14) |
 修理链: 入队 sub_140EAB160 (本国优先 + repair_mode 降序) + 插入位规则 sub_140EA4EE0; 队列小时处理 sub_140EA1280 + 交战门 sub_140EA10E0; 速率 = sub_140D655B0 (NAVALBASE_REPAIR_MULT × modifier 475 × 基地系数, **补给门**用 calc+184 _RemainingSupply)。
+
+修理链全环 (queue 小时处理两相 + 批量入队 + 移舰 + 拆船, 定案):
+
+| 环节 | 函数 | 语义 |
+|---|---|---|
+| 小时处理 相 1 | sub_140EA1280 | 同省特混舰队合并候选: repair_parent (tf+1200) 空 ∧ detached_activity (tf+1208) ≠1 ∧ repair_mode (tf+1124) ∉ {0,5} ∧ 无任务 (tf+864 内嵌 CNavalMission) ∧ 无子 ∧ 属主 = 省控制国 (prov+392) → sub_140D64C30 合并; 入队前断言 TF+496 所在省 = 基地省 (:707) |
+| 小时处理 相 2 | sub_140EA1280 | 队列重建: 船+1784 日期过期 ∨ 船+2340 旗 → 出队 (compact); 其所在 TF (船+1832 回指) 排序 (≤32 插入 sub_140E9B900 / 归并 sub_140E9BFB0); 交战门 sub_140EA10E0 过且 repair_mode ≠0 → sub_140EAB160 重入队; 不过 → sub_140D67780 |
+| TF 批量入队 | sub_140E9F4E0 | CTaskForce 小时链 sub_140D731A0 调; 收集过期/旗位船经 NB+40 线性查重后**确定性洗牌** (random_fixed 源行 280 播种, OOS 安全), 按插入位规则 sub_140EA4EE0 定点插入 |
+| 移舰 (绝对下标) | sub_140EAE9C0 | 查全部重复项删除 (幂等) → min(目标下标, 队长) 重插; UI 拖拽左右分支之一 (修理窗 sub_141356A80 / sub_141353990) |
+| 移舰 (同属主组内) | sub_140EAEB30 | 过滤与目标船同属主 (sub_140C30D00 属主 + sub_140BB52F0 同国判定) 的队列成员, 截断到组内目标位原位回写 |
+| 基地移除拆船 | sub_140EAA8C0 | 基地移除族 sub_140EAA7F0 (S+297 三写点之一) 唯一调用; 遍历省海军单位容器 (prov+248/+260) 拆散全部成员船 (sub_140D77FF0); 时间预算门 = random_fixed 源行 547 抽值 vs qword_143337038 阈值 (超预算停止收集) |
 
 
 #### 4.16.9 CNavalAccidentReport (72B)
@@ -773,3 +804,9 @@ transfer。
 
 新钉: CStrategicNavy+16 = owner tag u32; CPendingStratNavyTransfer 56B 全布局
 (§4.00 待命指令族补全)。is_returning 运行期无置 1 写点 (负发现)。
+
+单位脱离拆分 sub_140EAA5C0 (定案): 断言 transfer ∈ S+304 ∧ NT+88 country == S+16
+(:2994) ∧ 单位在 transfer 内 (:3001) → 为该单位造新 transfer (sub_140E25F50 +
+sub_140E25AB0 挂接) 并写 **unit+760 = new (唯一写点)**; 新 NT push **归属主国海军
+S+304**; 原 NT (NT+68 计数) 归零 → swap-remove 出 S+304 + 虚调析构删除。调用者 =
+CUnit 域 sub_1406D2FC0 / sub_1406D2CB0 (单位删除/脱离路径)。

@@ -126,6 +126,8 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 
 **CCombatant** (cb = 战斗方基座, 232B; writer 0X1413E41F0 + 0X1412BD820; ctor sub_1413E05F0; loader 0X1413E33A0): 基座定案 — **+24 = 宿主战斗回指** (RemoveUnit 经它取 attacker/defender/location/duration); **+216 = is_attacker 旗** (海军 pair-init 第一只=1 第二只=0)。
 
+**CLandCombatant** (陆军参战方, vt 0x1429A82C0; writer vt[2] = 0x1412BD820 = 上行基域 writer 同址 → 字段覆盖即基座 232B 全量, 无自有增量; reader 0x1412BA300) — 类名绑定补注: §4.18.5 vt[22] 战斗修正消费 (kind=4 条目) 的 this 即本类; PERS 指纹实证进存档, 账面 = 基座表全量 (原「散提维持」结案)。
+
 编制对象 (编成组/编制组合对象; unit 经虚槽[8] 取得) 布局补行:
 
 | 偏移 | 类型 | 名称/语义 | 置信 |

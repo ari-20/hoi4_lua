@@ -145,6 +145,8 @@ deployment 对象布局 (naval: dep = 元素+272 解引用; refit 形态同构�
 | +29..+47 | — | base@+28 尾 + naval: u64=0@+32 / refit: **ship 对 {type@32, id@36}** (CShipRefitDeployment 派生增量, 键 10400, sub_140D14990) + naval: null 单例指针@+40 / refit: 0 + naval: **ICAW 块头@+48** (sub_141012160 从 deployment 状态拷入) / refit: null 单例  |  |
 | +48 | 内嵌 | initial_carrier_air_wing_deployment: 容器 {data@dep+56, count@dep+68}, 元素 16B {名对象指针@+0 (token@+8), value int64@+8} | |
 
+**CShipRefitProductionLine** (refit 生产线类名绑定; writer 0x140F71FF0 = 军线基 writer + 双键增量 **12181 deployment@+248 / 14666 original_eq_cost@+336**; reader 0x140F71D40; 1.19.3 writer 未见 ≠0 门, 旧门注待活体复核) — §4.8 军线字段表 (+265..+336 区) 全在其账, 本行补类名锚。
+
 **类名/基链 (1.19.3 实证)**: 部署对象 = **CNavalDeployment** (80B, vt 0x14295FB48, ctor 0x140D0D2F0, writer 0x140D14860 / reader 0x140D124E0), 基 = **CNavalDeploymentTarget** (vt 0x14295FAF8; 基 writer 0x140D148B0 = tf 对 / theatre 对@+20 / base 三分支); refit 侧派生 = **CShipRefitDeployment** (vt 0x14295FB98, +32 = ship 对, 键 10400 增量)。+40 = 有效位单例指针 (ctor sub_140AC4DD0, ICAW 写门之一); +48 ICAW 池 vt = CEquipmentArcheTypePool (写门 = 非全空 sub_141010B70 ∧ +40 非空)。
 
 #### 4.8.3 names 容器 (176B 元素)
@@ -490,7 +492,7 @@ CResourceExchange (资源贸易单, 240B; vt 0x14295C410; writer 0x140CBEEC0 / r
 
 | 偏移 | 类型 | 键 (token) | 语义 |
 |---|---|---|---|
-| +128 | CTrade* | — | owner 反指 (注册 *(owner+1832)+24×idx) |
+| +128 | CCountryResources* | — | **rs 回链** (seller 的 rs 本体; 注册 \*(rs+1832)+24×idx; 消费 = 进口反删 sub_140CBBA40 取 \*(+128)+32 seller 国 — 勘误: 原「CTrade\*」系类名误标, 槽被解引用 +1832/+1856 等 rs 专属偏移 + reader 写 a1−24 = rs 本体直证) |
 | +136 | uint32 | receiver (198) | 接收国 |
 | +144 | CResource* | resource (12388) | 资源定义名 (写 = *(def+8) token) |
 | +152 | fixed×1e-5 | delivered (12489) | 已交付量 (reader 负值钳 0) |

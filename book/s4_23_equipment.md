@@ -484,7 +484,7 @@ eff@+72, eff_lost@+80) + request@+128 + subscriber2@+136 + 宿主@+176 +
 +312 计划表写入者 / 载入后 +192 挂回点 / 取消时余量返还 / +472 账目方向 (操作序列
 定案、语义推定)。
 
-cli+80 (efficiency_due_to_lost) 写者探针定案 = **sub_140CA87D0 内偏移 893 处** (CConvoyClient 域内; dr_watch 活跃合同 cli+80, 15 游戏日 64 命中 — 重算频率高于每日, 随路线/危险重算批触发; 旧「槽[10] 每日重算」推定修正为「sub_140CA87D0 条件重算」; 静态调用方 = sub_141D6D600/sub_141DBB740 (传 rs); ⚠ 合同到期释放后地址复用会串写他对象 — 长窗 watch 须重新取活跃地址)。
+cli+80 (efficiency_due_to_lost) 写者探针定案 = **sub_140CA87D0 内偏移 893 处** (CConvoyClient 域内; dr_watch 活跃合同 cli+80, 15 游戏日 64 命中 — 重算频率高于每日, 随路线/危险重算批触发; 旧「槽[10] 每日重算」推定修正为「sub_140CA87D0 条件重算」; 静态调用方 = sub_141D6D600/sub_141DBB740 (传 rs); ⚠ 合同到期释放后地址复用会串写他对象 — 长窗 watch 须重新取活跃地址); **第二写者 sub_140CAB520** (交付量重算步④: 复位 +72/+80 = 100000 后经 sub_140CA9C70 重算 — SetAmount 路径, 双写者并存)。
 
 CConvoyClient 基类布局 (ctor sub_140CA48C0, trade.cpp:339; 派生 =
 CEquipmentConvoyClient / CNavalBaseConvoyClient (§4.8.10) / CResourceOrigin /
@@ -504,16 +504,23 @@ CPurchaseDraft (与 contract def 同构, 偏移 = def−64): seller@+0 / buyer@+
 equipments 池@+8 (= def+72) / subsidies 容器@+72 (= def+144) / speed@+104
 (= def+168); CRequestEquipmentPurchaseAction: +104 响应码 (0=send/2=accept/
 其他=refuse) / +336 _MarketPurchaseRequestRef idpair (定案)。
-CResourceDeliveryRoute (vt 0x14295C320): +8 状态字节 / +52 买方 tag / +96
-海区数组 / +108 海区计数 / +120 废弃标志 (定案)。
+CResourceDeliveryRoute (vt 0x14295C320): +8 状态字节 (=2 活跃态) / +48 第二端
+tag (路线两端 tag 对之一, 港口 BFS 配套谓词 sub_140CAA8C0 双端放行; 推定 seller) /
++52 买方 tag (落盘键 tag) / +56 receiver tag (运行期写点, 交付重算 sub_140CA9EF0 写
+exchange+136) / +96 海区数组 (元 8B = 战略海区指针; 元素 +224 = 海区权重 fx1e-5 /
++232 = 覆盖谓词键对象, 安全覆盖率 sub_140CA7700 消费) / +108 海区计数 / +120 日期槽
+(建/改贸易 sub_140CB5D60 写 \*(gs+1128) 当前日期 hours; 勘误: 原「废弃标志」系布尔
+误读 — 语义待 writer/reader 侧终裁, 现按日期写点记录)。
 
 #### 4.23.3b resources.daily 执行链
 
 **resources.daily = sub_140CABB30** (trade.cpp; 挂 CCountry::DailyUpdate 串行段
 `*(cc+4600)` CCountryResources, 定案): export/extra/lend-lease/exchange 四族
 权利对象虚槽 vt[+80] 日更 → 结算尾 = 每资源累积表清零 + **逐资源贸易履行结算
-sub_140CA6EB0** (权重/可交付量/政治 274+外交 376 修正/库存上限/比例分配;
-"NEGATIVE RESOURCE EXCHANGE" trade.cpp:4302 断言) + 租借交换逆序到期收尾。
+sub_140CA6EB0** (权重/可交付量/政治 274+外交 376 修正/库存上限/比例分配; 其被调
+**交付量重算 sub_140CA9EF0** = "NEGATIVE RESOURCE EXCHANGE" trade.cpp:4302 断言真宿主 —
+断言归属勘误: 原「:4302 在 CA6EB0」系调用链头误记; 交付量公式 = `delivered = clamp(量,0) ×
+eff(+72) × eff_lost(+80) / 1e10` 全整型定点) + 租借交换逆序到期收尾。
 第二站点 sub_140CB5D60 = 命令驱动的取消后再结算 (非调度链)。rs 侧字段勘正:
 rs+1784 = origin / rs+1808 = export 扁平表 / rs+1832 = 按资源桶数组 (writer
 循环基地址留运行期对拍裁定, 链级结论不受影响)。

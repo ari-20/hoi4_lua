@@ -195,10 +195,10 @@ GFX 名 = `GFX_strategic_location_<lexer名>` 拼名; tooltip 双名 getter 再�
 province" supply_system_utils.cpp:0x31C 铁证); `*(gs+992)` 容器 +8 =
 **CProvinceRailwayInfo\*[] 按省 id 直索引**。
 
-**CProvinceRailwayInfo** (0x70 = 112B; vtable 0X2972C80; writer 0X140E95DD0; ctor
+**CProvinceRailwayInfo** (0x70 = 112B; vtable 0X2972C80; writer 0X140E95DD0; reader vt[4] 0X140E95200; ctor
 0X140E922A0; dtor 0X140E92750): +8 = 省静态描述符* (§4.14.3 +184 描述符桥; 省 id 取 desc+196) / +16 = 指回省体内 +400 块
 back-ref / +24 = railway 模板 def (断言 "_pStatus->IsValidTemplateInLocation(RailwayTemplate)"
-railway_manager.cpp:0x1)。
+railway_manager.cpp:0x1; ctor 补: +8 ← prov vt[+8](省id)+184 / +16 ← 省+400 / +24 ← sub_141175A30(省建筑槽, \*(CBuildingDatabase+936)) 定位或建 / +32 resize 到 desc+124 邻接数)。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
@@ -212,14 +212,37 @@ railway_manager.cpp:0x1)。
 | +104 | uint32 | **cooldown** (tok 14622; writer sub_140E95DD0) — 单标量**无位段** (阻断由 +80 非空表达); **消费 = 铁路炮省图 A\* 路径阻断位** (sub_140E87390 族: cooldown==0 才可通行) | >0 |
 | (无此槽) | — | 悬停链 sub_1410DB850 的 a1 = **CBuilding** (+472 = CBuildingStatus\* 回指, §4.14.2), 经其 +104 门/+108 省 id 还原省/州 — 本类 112B 无 +472 | — |
 
+reader token 语义 (vt[4] sub_140E95200, 定案; 通用 Load wrapper 0X1424BE690 逐 token 分派):
+
+| token | 名 | 行为 |
+|---|---|---|
+| 10765 | neighbour | **读入即弃** (块 → 平衡跳; 旧档兼容键, 无落点) |
+| 14622 | cooldown | 标量直读 +104 |
+| 19649 | rail_way | 读等级 u32 数组入 +32; 断言 size == 邻接数 (:48, `+44 == \*(desc+124)`) 后重建 +56 边缓存 — 来源 = **desc+112 邻接数组 (48B/条, 邻省 id @条+8), 计数 desc+124**, 仅 level>0 的边以 {邻省id, level} 8B 对插入有序表 |
+| 19881 | rail_way_construction | 读 16B 对表 → 归并排序 (≤32 直插) → 整表赋值 +80 |
+
+SetRailway 族 (定案; 断言串 :80/:94/:102/:109/:120 直证):
+
+| 函数 | 语义 |
+|---|---|
+| sub_140E95870 (邻省, 新级) | 全量设级: 邻接序号查找 (sub_14140A320, 线性扫 desc+112) → `levels[idx] = max(现值, 新级)` → 越 MAX_RAILWAY_LEVEL (dword_1433349D8) 先告警 + 断言再钳位 → 同步 +56 边表 (二分改级/插入) → 首条 level>0 边确保铁路建筑存在 (+24 空时建 CBuilding, 经 sub_1410DC4E0 设级) |
+| sub_140E928E0 (邻省, delta, clearProgress) | 增量变体: clamp(delta+现值, ≤MAX) 后调上行; clearProgress ≠0 时移除 +80 对应条目 (**升级完成即清施工进度**) |
+| sub_140E92D00 (邻省, 进度增量, 国家) | AddRailwaysInConstruction: +80 进度累加 → 完工判 `进度 ≥ 100000×(\*(def+744) + \*(def+756)×(lv+1)) + 国家修正值` (def = \*(CBuildingDatabase+936); 修正 = sub_14055E360(cc+1464, …, \*(def+912))) → 完工则增量设级 +1 并清进度 + CSupplySystem vt[+24](desc+196) 刷补给节点, 返 1 |
+
+配套定案: 双省对称入口 sub_140E93090 UpgradeRailwayPair (两侧各 AddRailwaysInConstruction; 对称断言 :532/:533; 消费者 = 生产线日推进 sub_141A02660); 造价 helper sub_140E932C0 (**汇编核验**: `imul def+756 → add def+744 → imul 100000` 转定点); 运行期取 info 入口 sub_140E92860 (M+8 槽按省 id 直索引, 槽空懒建)。
+
 #### 4.14.7 CRailwayManager (gs+992)
 
 | 项 | 值 | 语义 |
 |---|---|---|
-| 管理器 | `M = *(gs + 992)` (vtable 0X2972CD0 guard; manager writer 0X140E95EF0) | |
+| 管理器 | `M = *(gs + 992)` (vtable 0X2972CD0 guard; manager writer 0X140E95EF0; **[0] dtor 0X140E927F0; [3] Load wrapper 0X1424BE690; [4] reader 0X140E954B0** — 序列化槽模型同 §4.00.1) | |
 | 槽数组 | {data@M+8, slots u32@M+20} | 元素 = CProvinceRailwayInfo* (0x70 字节, vtable 0X2972C80 guard); 非空槽才写省号块 |
 | 顶格 cooldown | u32 数组 {d@M+32, c@M+44} | c>0 才写 (0X1401B3D80 单行) |
 | 省反查 | 省静态描述符指针@info+8 → 省 id = ru32(desc+196) (CProvince+164 才是 id; §4.14.6 +8 同判) | |
+| reader (vt[4]) token 语义 | 14622 cooldown → M+32; 19649 rail_way → 逐省块循环 (读省 id, 断言 >0, 槽空 malloc(0x70)+ctor 后交 info vt[3] Load wrapper); 其余 → 基类 0X1424BEC40 | 定案 |
+| 冷却日更 | gs 日更串行 sub_1401D4810 → thunk sub_1401C6AB0(M) → sub_140E942F0: 倒序扫冷却表, info+104 递减, 归零 → CSupplySystem vt[+24](省 id) 刷节点 + swap-remove (**+104 即 IsOnCooldown 判据**, :544) | 定案 |
+| 开局铁路网 | map/railways.txt 装载器 sub_140E90D50 → sub_140E95B70 SetRailwaysAlongPath (省序列逐相邻对双向 SetRailway + 逐省刷节点; PathLength>1 断言) | 定案 (路径串直证) |
+| build_railway effect | Execute = sub_14034DE00 (invalid level 报错 + 寻路 sub_140E936F0) → sub_140E92AB0 AddRailwayLevelAlongPath (逐相邻对增量设级 + 刷节点); 其余 92AB0 调用者 = 两省段升级 sub_140E61760 (建造完成侧) + GUI 侧 3 处 (推定) | 定案/推定 |
 
 > CRailwayManager ctor 0X140E92510 {slots cap@M+16, alloc@M+24}; 实例对象 = §4.14.6
 > CProvinceRailwayInfo; 轨道升级图标侧 (CRailwayMapIcon + 五 define) 见 §4.30.16。

@@ -22,7 +22,81 @@
 | sub_1424DB5F0 | 挂载后刷新 | 被上述各挂载路径在成功后统一调用 |
 
 > 备注: `PHYSFS_mount` 第三参 `appendToPath` 恒为 0 — 挂载顺序 (而非 append 语义)
-> 决定同名文件的优先级: **后挂载者优先** (PHYSFS 搜索路径前插)。
+> 决定同名文件的优先级: **后挂载者优先** (PHYSFS 搜索路径前插)。库层实现点 =
+> mount 公共核心 sub_1424F77F0 头插分支 (§4.29.1a)。
+
+#### 4.29.1a PHYSFS 库本体 (physfs.cpp / vendored PhysicsFS 3.x 魔改)
+
+分工定案: 库实现层 `clausewitz/pdx_core/physfs/physfs.cpp` (0x1424F24F0..0x1424F9220,
+19 函数) 与封装层 (§4.29.1, virtualfilesystem_physfs.cpp 0x1424DD 域) 两层 — 封装层调库
+导出, 库不感知引擎。库状态 Config 块基址 `xmmword_1435E3F90` (sub_1424F6320 magic-static
+getter; `word_1435E4088` 已初始化旗):
+
+| 偏移 | 内容 |
+|---|---|
+| +8 | 搜索路径 DirHandle 单链表头指针 |
+| +16 | 写目录 DirHandle 句柄 (空 → mkdir/写报错误码 13) |
+| +40 | archiver 列表头指针 (openDirectory 扩展名选型循环起点) |
+| +64 | 挂载前缀长度 (canonical 化缓冲预留) |
+| +88 | 全局互斥体 (std::mutex; 冻结位 =1 时全库跳锁) |
+| +248 | init 成功位 (archiver 注册完置 1) |
+| +249 | permitSymbolicLinks 旗 (VFS init 封装层置 1) |
+| +250 | 冻结位 (freezeConfig 写; =1 锁消隐) |
+
+挂载公共核心 sub_1424F77F0(io, newDir, mountPoint, appendToPath) = mount/mountIo/
+mountHandle/mountMemory/addToSearchPath/setSaneConfig 七入口公共: dirName strcmp 去重
+(已挂载直返成功) → createDirHandle (sub_1424F70D0) → **appendToPath=0 头插 / 非 0 尾插**
+(§4.29.1 前插定案 / §4.29.4 挂载序逆序即优先级序的函数级实现点)。DirHandle 56B:
+{+0 io, +8 dirName, +16 mountPoint (尾随 '/'), +32 dirName 长度, +40 archiver, +48 next}。
+
+freezeConfig (0x1424F3620) = 翻转 +250 返回旧值 (set-state 语义)。引擎用法 =
+**临时解冻窗**: `old = freeze(0)` → 装载/挂载 → `freeze(old)` (silhouette_portraits 装载
+sub_140124A70 等); 帧内常规文件访问跑在锁消隐态, 跨线程装载窗内恢复互斥。
+
+getPrefDir 死链 (负定案): `PHYSFS_getPrefDir` 唯一调用者 = `PHYSFS_setSaneConfig`
+(0x1424F5640), 而 setSaneConfig 全 dump 无调用者 — **引擎 userdir 解析不经 PHYSFS
+prefdir 路线**, 三级回退全在引擎侧 sub_140120DA0: userdir.txt 存在即用 (来源旗
+byte_14332EC54) → 否则读 launcher-settings.json "gameDataPath" 键 (sub_1401223E0,
+含 %USER_DOCUMENTS% 替换与路径分隔归一; 来源旗 byte_14332EC55) → 回退
+Documents/\<app\>。PHYSFS 只接收算好的路径 (sub_1424DD7F0 设写目录)。
+
+游戏 boot 接线 (定案): main sub_140126E50 → sub_140128C10: VFS init 封装
+sub_1424DD3E0 (PHYSFS_init + permitSymbolicLinks(1) + 挂 baseDir) → userdir 解析
+sub_140120DA0 → 挂载+设写目录 sub_1424DD7F0 → "if.pdx" 批量挂载 sub_1424DD6B0 →
+CDLCManager (+104 容器) 逐条 DLC 挂载 sub_142078210 → mod 向量逐条 sub_142078230 →
+"integrated_dlc" 目录 \*.dlc 枚举挂载 (sub_1424E0BA0)。第二调用点 sub_14209E610 =
+编辑器域 boot (显式 freeze(1)), 与游戏运行时无关。
+
+库内部函数定位 (19 函数浓缩; 断言行号均 physfs.cpp):
+
+| 函数 | 身份 | 要点 |
+|---|---|---|
+| ?PHYSFS_init | 库初始化 | baseDir/userDir 解析 (尾分隔符断言 :1271/:1272) + archiver 两轮注册 + state+248=1 |
+| ?PHYSFS_mkdir | 写目录下组件级建目录 | verifyPath + 逐段 stat/mkdir; 写目录空 → 错误码 13; 唯一引擎入口 = VFS「确保目录树」封装 sub_1424DBA40 (截图落盘/openWrite 前置) |
+| ?PHYSFS_getPrefDir | prefdir 计算+逐级建目录 | 静态缓存 0x1435E4098; 引擎死链 (见上) |
+| ?PHYSFS_readBytes | 缓冲读循环 | PHYSFS_File {+0 io, +24 buf, +32 bufsize, +40 datalen, +48 bufpos}; zip/7z 头部小读同走此路 |
+| sub_1424F8A60 | openDirectory (archiver 选型) | 扩展名 utf8stricmp 匹配循环 + 兜底循环 → archiver+48 openArchive; 无命中 → 错误码 6 |
+| sub_1424F70D0 | createDirHandle | openDirectory + 填 dirName/mountPoint (尾随 '/') |
+| sub_1424F9220 | verifyPath (路径越界/symlink 防线) | 挂点前缀校验 + 逐组件 stat; symlink 拒绝 = +249 旗=0 时 (错误码 12); stat/openRead/enumerate/mkdir/delete 五导出共用 |
+| sub_1424F6AE0 | createNativeIo | 'r'/'w'/'a' 三模式 + 80B io 对象 |
+| sub_1424F8410 | 枚举桥 (挂点影子条目) | 请求目录是 mountPoint 严格前缀时发射挂载点组件名, filetype 恒 4 (vendored 扩展标记「挂载点影子目录」, 值域外) |
+| sub_1424F2740 / 2610 / 24F0 | memoryIo destroy/dup/read 三件套 | 48B MemoryIoInfo {buf, len, pos, parent, refcount, destruct}; PHYSFS_mountMemory 后端; refcount 原子, 减 0 才 destruct |
+| sub_1424F68F0 / 6440 / 6D90 / 6590 | DirTree init/add/free | 64 哈希桶; add 两函数互递归建中间目录; zip (sub_1425189D0) 与 7z (sub_142512FA0) 条目装载共用 |
+| sub_1424F8630 / 75F0 | archiver 注销两型 | deinit 全注销 (仍有挂载 → 错误码 8 + "nothing should be mounted during shutdown" 断言) / 单注销 |
+| sub_1424F2910 | lockConfig | 输出 {链表头, 互斥体, 冻结位} 三元组; 冻结位=0 才加锁; 九导出统一入口 |
+| sub_142515B30 / sub_14250AD70 | zip / 7z openArchive (相邻簇) | zip 局部头签名 "PK\x03\x04" / 7z 签名 0xAFBC7A37+0x1C27 |
+
+错误码全表 (PHYSFS_getErrorByCode 0x1424F3850, 30 项; vendored 相对上游在 1 插
+unknown error、9 插 invalid argument): 0 no error / 1 unknown error / 2 out of memory /
+3 not initialized / 4 already initialized / 5 argv[0] is NULL / 6 unsupported /
+7 past end of file / 8 files still open / 9 invalid argument / 10 not mounted /
+11 not found / 12 symlinks are forbidden / 13 write directory is not set /
+14 file open for reading / 15 file open for writing / 16 not a file /
+17 read-only filesystem / 18 corrupted / 19 infinite symbolic link loop / 20 i/o error /
+21 permission denied / 22 no space available for writing / 23 filename is illegal or
+insecure / 24 tried to modify a file the OS needs / 25 directory isn't empty /
+26 OS reported an error / 27 duplicate resource / 28 bad password /
+29 app callback reported error。每线程错误码槽 = tls[TlsIndex]+2140。
 
 #### 4.29.2 descriptor 解析 (dlc.cpp)
 
