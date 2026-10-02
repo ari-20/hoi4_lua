@@ -1,7 +1,7 @@
 ### 4.35 渲染/UI 体系
 
-> 渲染与界面域专项调查的定案落账。账目: 域内 A 档 248 件归位 16 子系统 (§4.35.13);
-> ≥1,000 行大件 34 个全列入册。阅读顺序 = §4.35.1 管线总览 → §4.35.2-5 各层 → §4.35.7-13 子系统与台账。
+> 渲染与界面域定案落账。§4.35.13 = 域内 248 件按 16 子系统的函数地图;
+> ≥1,000 行大件 34 个全列入册。阅读顺序 = §4.35.1 管线总览 → §4.35.2-5 各层 → §4.35.7-13 子系统与函数地图。
 
 #### 4.35.1 管线总览与帧驱动
 
@@ -239,7 +239,7 @@ byte_143453088 (控制台可注册): sub_14223D2C0 帧首/尾各一次设备调�
 
 
 #### 4.35.5 图形设备 ABI 与三后端
-> **h3d 勘误升级**: ① ABI 表 = **92 槽** (0x1430BF7B0..0x1430BFA88 含端点, 非「~70」); ② 后端簇身份 — **dx11 = id 1 (书漏)**, id 3 (串 opengl4) 与 id 1 **共用 D3D11 函数域** (首槽 CreateDXGIFactory2 + D3D11CreateDevice; gfx_opengl4.cpp 全 dump 零引用); GL 簇仅 id 2 (SDL_GL_CreateContext/glewInit 直证), D3D9 簇 id 0。③ 分派机制: 选择器 sub_1424047C0 唯一调用点 = sub_142228800 (CGraphicsSettings 方法, settings+172 驱动) → 整表重装 → 槽 BFA80 后端能力装载; off_1430BF7C0 = GetOwnBackendId (三后端 ret 0/1/2 常数桩); settings+72 = 用户选择 id (串解析写, +76 显式旗) / +172 = 生效 id。④ **42 槽语义已认领** (高频全含: Begin/EndScene/SetViewport/Clear/Draw 族/SetVertexStream "Bad vertex buffer" 51 refs/纹理全生命周期/RT 族/着色器编译绑定/混合深度状态/剪裁推弹对 BF988+BFA18/截图/线框)  — 92 槽语义状态全表 (★ = 跨后端互证认领):
+> **勘误**: ① ABI 表 = **92 槽** (0x1430BF7B0..0x1430BFA88 含端点, 非「~70」); ② 后端簇身份 — **dx11 = id 1 (书漏)**, id 3 (串 opengl4) 与 id 1 **共用 D3D11 函数域** (首槽 CreateDXGIFactory2 + D3D11CreateDevice; gfx_opengl4.cpp 全 dump 零引用); GL 簇仅 id 2 (SDL_GL_CreateContext/glewInit 直证), D3D9 簇 id 0。③ 分派机制: 选择器 sub_1424047C0 唯一调用点 = sub_142228800 (CGraphicsSettings 方法, settings+172 驱动) → 整表重装 → 槽 BFA80 后端能力装载; off_1430BF7C0 = GetOwnBackendId (三后端 ret 0/1/2 常数桩); settings+72 = 用户选择 id (串解析写, +76 显式旗) / +172 = 生效 id。④ **42 槽语义已认领** (高频全含: Begin/EndScene/SetViewport/Clear/Draw 族/SetVertexStream "Bad vertex buffer" 51 refs/纹理全生命周期/RT 族/着色器编译绑定/混合深度状态/剪裁推弹对 BF988+BFA18/截图/线框)  — 92 槽语义状态全表 (★ = 跨后端互证认领):
 
 | 槽 | 语义 | refs |
 |---|---|---|
@@ -418,7 +418,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 | S15 | 调试/ImGui | pdx_dearimgui | sub_1421CBE30 Begin 原语; 观察窗族 |
 | S16 | 面板/视图 GUI 行件 | (0x1416-0x141F GUI 区) | ~120 件, §4.35.13 分组台账 |
 
-#### 4.35.14 地图箭头族布局与管线 (CMapArrowManager 族; h3b 定案)
+#### 4.35.14 地图箭头族布局与管线 (CMapArrowManager 族)
 
 **类清单 (RTTI 认领 11 类)**: CMapArrowManager (lambda COL 0x1429a6848 直证类名) / CMapArrowDefinition (COL 0x1429a6348) / CMapArrowDefinitionInstance (基类 CLostDeviceInterface) / CMapArrowSymbolDefinition (推定) / CMapArrowTextDefinition (COL 0x1429a62a8) / CMapArrowButtonDefinition (COL 0x1429a62f8) / CArrowObject (COL 0x142b47c08, 基类 CPdx3DObject, ~216B: +96 CColor SetColor=sub_14126C590 / +112 顶点缓冲 + AABB 对) / CArrowType (COL 0x142b51ac8, ≥340B 含 5 std::string + f32 0.2) / CMapArrowObject (GfxCommonArrowUpdateCallback lambda RTTI 串 + hybrid allocator COL 直证类名) / USMapArrowVertex (COL 0x1429a65e0) / GfxCommonArrowUpdateCallback (COL 0x1429a59e0; 签名 `void(const CMapArrowObject*, const COrderInstance*, const COrdersGroup&, float, const CMapMode*)` mangled 直证)。
 
@@ -432,7 +432,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 
 **defines 全族** (NGraphics): ARROW×5 / RAID_ARROW×14 / RAILWAY_MAP_ARROW×15 / RIVER_SUPPLY+SUPPLY_CONSUMER×3, 含数据槽 dword_1433363BC (ARROW_MOVEMENT_SPEED)。主要未决: qword_1430B2E18 初值 / CMapArrowObject 完整布局 (≥512B 无 ctor) / mgr+184 辅助数组语义。
 
-#### 4.35.15 地图模式管线 (CMapModeManager 三段; h3c 定案)
+#### 4.35.15 地图模式管线 (CMapModeManager 三段)
 
 **切换段** (~80 处统一点): sub_140A66DE0 = CMapModeDispatcher::OnMapModeChange (mapmodedispatcher.cpp:238 实名) → 旧模式退出清理 (overlay 隐藏/hover 清/层停用) → 新模式入场预着色 → **sub_140E17F30 SetMapMode 状态机**: 同 id 非 force 早退 / 释放旧实例 / vt+184 通知 / switch(id) 写 bank 槽对 (sub_140F31D20) + 层子模式 (sub_140F3B090) + 行选脏闩 (+129/+130) / ≥40 查自定义库 qword_14332F040 → 每路尾调 sub_140E18DF0 SelectModeInstances 向 hub (mgr+64) 灌 tag 色 → 尾取 24B 槽可见性掩码。
 
@@ -442,7 +442,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 
 **模式注册表**: 40 个硬编码 id 全表 (−1..39, 含槽对/层选参/行选逐模式表); id→loc 名 17 项 (sub_140E028C0, "MAPMODE_DEFAULT/STRATEGIC_AIR/…/RAIDS"; 1/32 与 16/38 别名组, 28 = DEFAULT 别名); **custom 模式 id = 40+下标**, 库单例 qword_14332F040 (64B; item+232 名 / +272 激活旗)。**CMapModeManager 288B 字段级增量**: +4 层选参 / +16+24 实例 shared_ptr / +80/+84 行选 (+129/+130 脏闩) / +64 hub / +88 全量重建旗 / +96 hub 对象 / +272/+276/+280 (自定义模式暂存)。
 
-#### 4.35.13 渲染系 A 档归位台账 (248 件)
+#### 4.35.13 渲染域函数地图 (16 子系统, 248 件)
 
 按子系统分组 (★ = ≥1,000 行)。S16 面板/视图行件 108 件逐件全表见下,
 其余子系统全列。

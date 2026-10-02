@@ -113,7 +113,7 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +40 | +24 | uint32 | priority | 默认 = dword_143337624(NAir define) | 键 141 恒写 | c7344505;w1183990 |
 | +44 | +28 | uint32 | allow_mission_type | 位掩码;默认 = *(首 variant+1040);断言 `_EquipmentMissionTypes` | 键 11057 恒写 | c7344532;w1183991;x727852(拷贝源) |
 | +48 | +32 | uint32 | equipment_mission_types | 位掩码(装备可做任务;与 allow_mission_type 区分) | 不序列化;重建器 sub_140F667B0 real 帧直写:+44 基线 + 国旗 0x80(def+1448&0x100000400)+ 规则 19 位 0x1000/0x2000 − **有有效基地(sub_140F61600≠0 基地控制者 tag;非机数判定) 0x800** − 低机 0x400(阈值 = MIN_PLANE_COUNT_AIR_SUPPLY dword_143332D68) | c7344533;x727848-727877;6450788(读 +48&0x400) |
-| +56 | +40 | CAirWingPool* | _pPool 回指 | 断言 "Calling hourly update on an airwing with no pool." | 不序列化 | c7344534;x727848,7737778,h2c§21 |
+| +56 | +40 | CAirWingPool* | _pPool 回指 | 断言 "Calling hourly update on an airwing with no pool." | 不序列化 | c7344534;x727848,7737778 |
 | +64 | +48 | uint32 | air_group.type | id 对 {+64,+68} | 非零且可解析才写(12227) | c7344535;w1184025-1184033 |
 | +68 | +52 | uint32 | air_group.id | | | 同上 |
 | +72 | +56 | uint32 | transferring_to.type | id 对 {+72,+76};解析链:RH 表→{d@tb+8, mask@tb+20} 24B 桶→obj@+16→*(obj+104)→u32@+88 = region id(0X14221F310) | 写门 = id 对非零且解析非空 | c7344536;x7737757(qword 写);w1183911 |
@@ -140,8 +140,8 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +460 | +444 | uint32 | other_combats 容器计数 | | | w1183949 |
 | +464 | +448 | — | other_combats 容器 alloc | | | 容器形状 |
 | +472 | +456 | CEquipmentVariantPool(内联 64B) | equipment 池 | {data@+504, cap@+520, count@+516, allow_zero u8@+528};16B 条 {variant*, amount×1e-5};ctor 尾填池并置 allow_zero=1,count 处维护同款 | GUI: 装备构成列表(原引「SetupDerived 直读 +488/+500」= 书表帧引述,real = +504/+516);writer 键 12110;allow_zero 写门同生产池(writer 0X141012DB0) | c7344552(sub_14100C710(翼+59)),7344671-7344682(填充/data@504/count@516/allow_zero=1);w1183987;l981452 |
-| +536 | +520 | fixed×1e-5 | experience | | | c7344555;h2c§21(sub_140F65F20 读写) |
-| +544 | +528 | uint8 | 经验增长脏标志 | xp 低于 cap 且增加时置 1;ctor 默认 1;HourlyUpdate 门读;xp 步尾清 0 | 不序列化 | c7344556;6450838;h2c§21 |
+| +536 | +520 | fixed×1e-5 | experience | | | c7344555 (sub_140F65F20 读写) |
+| +544 | +528 | uint8 | 经验增长脏标志 | xp 低于 cap 且增加时置 1;ctor 默认 1;HourlyUpdate 门读;xp 步尾清 0 | 不序列化 | c7344556;6450838 |
 | +552 | +536 | CModifier 内嵌 192B | wing 动态修正块 | (+552..+743;ctor sub_140555FB0 内核@+568,vtable@+552) | 不序列化 | c7344558/7344569;dtor c7344722(翼+69) |
 | +744 | +728 | uint32 | ace.type | id 对 {+744,+748};非零且可解析才写(12770) | GUI: Ace 名/头像(sub_140F5AAB0 → CAce;名 sub_14061A5D0;无 ace → 隐藏+禁用) | c7344570(a1[93]);w1183977 |
 | +748 | +732 | uint32 | ace.id | | | 同上 |
@@ -159,7 +159,7 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +2544 | +2528 | uint64 | region 快照(idpair 形态) | 传 sub_140F859D0(翼+144, …) | 不序列化;原表「u32 region 快照」按实读改 qword | c7344620(a1[318]);6450802 |
 | +2552 | +2536 | uint32 | carrier_air_wing_kills 容器数据指针 | 24B 容器 {data@+2552, cap@+2560, count@+2564, alloc@+2568};**扁平 16B 元 {key u64 装备类别 bitmask@+0, value u32@+8}**(非 RH map);键经 equipment_category 表 sub_140F8A750 转 token(0x400→fighter / 0x8000→naval_bomber …;多位键取首位置,equipment_category.cpp:52 断言) | c>0 才写(19901) | c7344586(sub_14011DF40(翼+319));dtor c7344697;w1184010-1184018(data 帧+2536/count 帧+2548/元读法) |
 | +2564 | +2548 | uint32 | kills 容器计数 | c>0 | | w1184010 |
-| +2576 | +2560 | fixed×1e-5 | air_untrained_pilots_penalty_factor | xp 步 sub_140F65F20 写「修正值 + 12500」;**本体不序列化** —— writer 仅在门旗置位时发 19863 **无值旗键**(原 writer 链「+2560 值」列不成立) | ctor 低字节 0xAA(其余 7B 未显式清;ctor 尾即调 xp 步算出,语义待裁);块 dtor sub_14014D1D0 挂 +2576 | c7344597;dtor c7344692(翼+322);w1184023;h2c§21 |
+| +2576 | +2560 | fixed×1e-5 | air_untrained_pilots_penalty_factor | xp 步 sub_140F65F20 写「修正值 + 12500」;**本体不序列化** —— writer 仅在门旗置位时发 19863 **无值旗键**(原 writer 链「+2560 值」列不成立) | ctor 低字节 0xAA(其余 7B 未显式清;ctor 尾即调 xp 步算出,语义待裁);块 dtor sub_14014D1D0 挂 +2576 | c7344597;dtor c7344692(翼+322);w1184023 |
 | +2584 | +2568 | uint8 | penalty 已算门旗 | sub_140F65F20 置 1;writer 19863 发射门 | ctor = 0 | c7344598;w1184023 |
 | +2592 | +2576 | STimedDisabling* | timed_disabling | malloc 12B 对象{remaining_hours uint32@+4, should_start_on_transfer uint8@+8}(ssot 运行时恒 1,存档读回 no — 演化字段);writer 0X141A2F740(块键 15799);td 空按默认 0/no;HourlyUpdate 尾 sub_141A2F6C0 解引用 tick | | c7344600-7344615(a1[324],malloc(0xC)+sub_141A2F690);dtor c7344687(翼+324);w1183908(ptr ← 帧+2576);6450843 |
 | +2600 | +2584 | uint32 | role_icon_index | >0 才写(15526) | GUI: 联队角色图标(sub_140F5F670) | c7344616(dword650);w1184034 |

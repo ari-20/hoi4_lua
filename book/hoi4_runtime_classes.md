@@ -1195,3 +1195,4 @@ writer 的实写行为选变体, 禁止按"显示值看着一样"混用** (两�
 | 4.32 | `book/s4_32_effect_triggers.md` | 4.32 脚本 effect/trigger 全量逐名定案卡 |
 | 4.33 | `book/s4_33_commands.md` | 4.33 命令子类 (具体 CCommand 派生: 载荷布局 + 行为槽 + 内层启动函数 + 调用方通道/分布 §4.33.19) |
 | 4.34 | `book/s4_34_ai.md` | 4.34 AI 决策域 (CAICore 主干 / CCountryAI 部长分治 / tick 链 / AI 数据库族) |
+| 4.35 | `book/s4_35_render_ui.md` | 4.35 渲染/UI 体系 (帧驱动管线 / CGraphics 双 2D 树与绘制派发 / 设备 ABI 三后端 / 16 子系统函数地图 / 地图箭头与地图模式管线) |
