@@ -85,9 +85,10 @@ static int dr_arm_threads(ULONG64 addr) {
     THREADENTRY32 te; te.dwSize = sizeof(te);
     BOOL ok = Thread32First(snap, &te);
     DWORD pid = GetCurrentProcessId();
+    DWORD self = GetCurrentThreadId();      // helper 不能 Suspend 自己（挂死且 3s 超时报 0）
     int armed = 0;
     while (ok) {
-        if (te.th32OwnerProcessID == pid) {
+        if (te.th32OwnerProcessID == pid && te.th32ThreadID != self) {
             HANDLE h = OpenThread(THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT |
                                   THREAD_SET_CONTEXT, FALSE, te.th32ThreadID);
             if (h) {

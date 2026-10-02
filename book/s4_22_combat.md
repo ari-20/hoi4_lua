@@ -11,19 +11,19 @@
 | +608 | CCombatManager (内嵌) | 战斗主管理 | vtable 0X2950688; 0X2950688 存于槽自身 (非指针; 探针定案) |
 | +616 | CCombat* | 战斗明细 (details) 容器数据 — {count@+628}; 元素主 vtable 分流 CLandCombat / CNavalCombat / CLandBorderWarCombat |  |
 | +617..+627 | — | = details 容器尾 {cap@+624} |  |
-| +628 | u32 | details 容器计数 | logmgr 实为 +2176/+2188 容器 (元素 NCombatLog::CManager, vt 0X295D8D8), 非本槽 |
+| +628 | uint32 | details 容器计数 | logmgr 实为 +2176/+2188 容器 (元素 NCombatLog::CManager, vt 0X295D8D8), 非本槽 |
 | +629..+639 | — | = details 容器尾 {alloc@+632} |  |
 | +640 | uint32 | **玩家国缓存** (country-link index 域) | ctor sub_140BB3E00(·,0) 初始化 (country-link 解析, gamestate.cpp:7520 断言; 经 sub_1401DA7C0 查 gs+832 链表); hourly (sub_140BB8AE0) 与 gs+1312/1316 玩家 union 直比, 变化时写回并逐战斗 sub_1413E3EE0 通知; 不序列化 (link-index 与玩家 union 值域精确等同待裁) |
 | +648 | CCombatHistory (内嵌) | 战斗历史 (hist) | vtable 0X2950638 (= mgr+40) |
 | +656 | CCombatHistory* | **CCombatHistory 链表头** — Clear sub_140BB7BB0 沿 next@e+56 逐节点 free; 节点带 CGregorianDate vt@e+8 = end_date 族B (§3.7a) |  |
 | +664 | 匿名结构 (NNB 形状)* | 历史链表 **tail** | Clear 同清 (高置信) |
-| +672 | u32 | 历史条目 **count** | Clear 同清 (高置信) |
-| +676 | u8 | 运行时旗 (ctor 0; 未名) | 不序列化 |
-| +680 | u8 | **_bInCombatUpdate 战斗更新中旗** | 断言 "Removing combat during combat update!" combatmanager.cpp:0x495; 不序列化 |
+| +672 | uint32 | 历史条目 **count** | Clear 同清 (高置信) |
+| +676 | uint8 | 运行时旗 (ctor 0; 未名) | 不序列化 |
+| +680 | uint8 | **_bInCombatUpdate 战斗更新中旗** | 断言 "Removing combat during combat update!" combatmanager.cpp:0x495; 不序列化 |
 | +688..+2175 | — | **非战斗族** (mgr sizeof≈80, ctor 止于 +72; 本段属 gs 其他子系统 — 定案) |  |
 | +2176 | NCombatLog::CManager* | combat log manager 指针数组数据 (按国家) | 元素 NCombatLog::CManager vt 0X295D8D8 |
 | +2177..+2187 | — | = log manager 数组尾 (cap 候选 +2184 未直读) |  |
-| +2188 | u32 | log manager 数组 **界/计数** | gs loader case 14037 `if(id <= *(a1+2188))` 铁证; CManager sizeof 0x28=40 {vt@0, log{d@8,c@20}, tag@32} |
+| +2188 | uint32 | log manager 数组 **界/计数** | gs loader case 14037 `if(id <= *(a1+2188))` 铁证; CManager sizeof 0x28=40 {vt@0, log{d@8,c@20}, tag@32} |
 
 三类分流与字段族:
 
@@ -55,27 +55,27 @@ count@+672 非零 (侵入链表逐元素多态写, writer 0x140BBAEA0)。writer 
 
 | 偏移 (c) | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
-| +200 | i64 (fixed×1e-5) | combat_width |  |
-| +208 | u32 | combat_state |  |
-| +212 | u32 | minimum_duration_in_days |  |
-| +216 | i32 | start (bi1 实测 −2) |  |
-| +224 | u8 | change_state_after_war (yn) |  |
+| +200 | int64 (fixed×1e-5) | combat_width |  |
+| +208 | uint32 | combat_state |  |
+| +212 | uint32 | minimum_duration_in_days |  |
+| +216 | int32 | start (bi1 实测 −2) |  |
+| +224 | uint8 | change_state_after_war (yn) |  |
 
 side 元素 CLandBorderWarCombatant writer 0X1413F0100 = 0X1412BD820 追加:
 
 | 偏移 (cb) | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
-| +1216 | u32 | tag tid | tid=0 → "---" |
+| +1216 | uint32 | tag tid | tid=0 → "---" |
 | +1224 | 匿名结构 (NNB 形状)* | state = \*(\*(cb+1224)+88) |  |
 | +1232 | CProvince* 向量 | province 容器 {d@cb+1232, c@cb+1244} → 元素 +164 裸名 (省 id) |  |
 | +1256 | id 对 | orders_group {type@cb+1256, id@cb+1260} | 折叠单叶 |
-| +1264 | u32 | max_units |  |
-| +1272 | i64 (fixed×1e-5) | modifier (AE590 族) |  |
+| +1264 | uint32 | max_units |  |
+| +1272 | int64 (fixed×1e-5) | modifier (AE590 族) |  |
 | +1280 | MSVC 串 | on_win | 门 size@+16≠0 |
 | +1312 | MSVC 串 | on_lose | 门 size@+16≠0 |
 | +1344 | MSVC 串 | on_cancel | 门 size@+16≠0 |
-| +1376 | i64 (fixed×1e-5) | dig_in_factor (AE590 族) |  |
-| +1384 | i64 (fixed×1e-5) | terrain_factor (AE590 族) |  |
+| +1376 | int64 (fixed×1e-5) | dig_in_factor (AE590 族) |  |
+| +1384 | int64 (fixed×1e-5) | terrain_factor (AE590 族) |  |
 | +1392 | 匿名结构 (12B 形状) 向量 | removed_unit 容器 {d@cb+1392, c@cb+1404} — 12B 条 {id 对@0, hours u32@8} |  |
 
 注: token 0x39A3 = removed_unit 块键本身 / 0x28A3 = unused / 0x3170 = hours 字段键, 均与 on_* 无关 (探针 token_name 定案); 真键 = **on_win 14747 / on_lose 14748 / on_cancel 14749** (连号, 与 writer 字段序同序)。
@@ -86,7 +86,7 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 | 偏移 | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|
 | +32 | hours | 开战日期 (CRelation 基) | 高置信 |
-| +73 | u8 | 状态旗 (非 0 = 排除于统计/存活判定; CRelation 基) | 高置信 |
+| +73 | uint8 | 状态旗 (非 0 = 排除于统计/存活判定; CRelation 基) | 高置信 |
 
 #### 4.22.3 CLandCombat 场对象 (writer 0X1413E4150)
 
@@ -105,11 +105,11 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 
 | 偏移 (c) | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +8 | u32 | holder.type — id 对之 type (id 对 {type, id}) | type 62 = holder 类; 内联非指针解引用 |
-| +12 | u32 | holder.id — id 对之 id |  |
+| +8 | uint32 | holder.type — id 对之 type (id 对 {type, id}) | type 62 = holder 类; 内联非指针解引用 |
+| +12 | uint32 | holder.id — id 对之 id |  |
 | +13..+23 | — | = **vt2 持久化 vtable 槽 (obj+16)** — 陆 0x1429a84b8 / 海 0X1429DDBE0; obj 包装布局: obj+0 vt1 / obj+8 refid / obj+24 holder 对 |  |
-| +24 | CCombatant 容器* | attacker = *(c+24) | 容器包装: cont=rp(c+24/32); **cont[0] = vtable (属映像区间) ⇒ cb = cont 本体**; 见下注 |
-| +32 | CCombatant 容器* | defender = *(c+32) | 容器包装同上 |
+| +24 | CCombatant* 向量 | attacker = *(c+24) | 容器包装: cont=rp(c+24/32); **cont[0] = vtable (属映像区间) ⇒ cb = cont 本体**; 见下注 |
+| +32 | CCombatant* 向量 | defender = *(c+32) | 容器包装同上 |
 | +40 | CProvince* | location = *(*(c+40)+164) |  |
 | +48 | uint32 | day | >0x7FFFFFFF → naval_combat 键 |
 | +52 | uint32 | duration |  |
@@ -137,44 +137,44 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
-| +16 | fixed×1e-5 | shore_bombardment_collateral_damage_factor | >0 |
+| +16 | fixed×1e-5 | **岸轰总值** (每小时 [22] 重算写入 = Σ舰攻击/参战数×cap; 勘误: 原记 collateral 因子 — collateral 因子另在 modifier 652) | >0 |
 | +24 | CCombat* | **宿主战斗回指** (ctor a2) | 不序列化 |
 | +32 | CUnit* | unit 容器数据指针 — {d, c} 8B 指针, id 对内联@elem+24 {type, id} | 恒写 |
 | +33..+43 | — | = unit 容器尾 {cap@+40}  |  |
-| +44 | u32 | unit 容器计数 | 恒写 |
+| +44 | uint32 | unit 容器计数 | 恒写 |
 | +45..+55 | — | = unit 容器尾 {alloc@+48}  |  |
 | +56 | 侵入链表 | **参战 tag 链表 A = 参战单位 logical_country (unit+480) 集** — 32B 节点 {tag u32@0, prev@8, next@16, u8@24}; {head@56, tail@64, count@72} (消费点见下表) | 不序列化 |
 | +80 | 侵入链表 | **参战 tag 链表 B = 与 logical 不同的 owner (unit+472) 集** (远征军原属主参战认定) {head@80, tail@88, count@96} | 不序列化 |
-| +104 | 容器 24B | **参战 tag 平铺数组** {data@104, cap@112, count@116, alloc@120} — u32 tag (与链 A 同键 = logical_country 集, dedup sub_1401B0250) | 不序列化 |
+| +104 | uint32 向量 24B | **参战 tag 平铺数组** {data@104, cap@112, count@116, alloc@120} — u32 tag (与链 A 同键 = logical_country 集, dedup sub_1401B0250) | 不序列化 |
 | +128 | 匿名结构 (32B 形状) 向量 | **weighted_participants 容器本体 (32B)** — tok 10755 块; RH 表: 空哨兵/数据@+136, 计数@+144 = 块门, 掩码 u32@+148, extra u8@+152 (桶数 = 掩码+1+extra); 桶 24B {hash u32@+0, 距离 byte@+4 (≠0 占用), tag id u32@+8, weight **i64 fixed×1e-5**@+16}; writer 0X1413E41F0 尾段 → sub_1411DCF90 (按 tag 升序发 `"TAG" 值`); loader case 10755 → 对象基 +128 | 计数≠0 写块 |
-| +152 | u8 | 运行时旗 (ctor 0; 未名) | 不序列化 |
-| +156 | f32 | 标量 (ctor 1063675494 = 0.9; 未名) | 不序列化 |
+| +152 | uint8 | 运行时旗 (ctor 0; 未名) | 不序列化 |
+| +156 | float | 标量 (ctor 1063675494 = 0.9; 未名) | 不序列化 |
 | +160 | fixed×1e-5 | size 容器数据指针 — fixed 数组 | c>0 |
 | +161..+171 | — | = size 容器尾 {cap@+168} (ctor 按国家数扩容) |  |
-| +172 | u32 | size 容器计数 | c>0 |
+| +172 | uint32 | size 容器计数 | c>0 |
 | +173..+183 | — | = size 容器尾 {alloc@+176}  |  |
 | +184 | fixed×1e-5 | losses | 恒写 |
-| +192 | 容器 24B | **第二 per-country fixed 数组 = size 孪生** {data@192, cap@200, count@204, alloc@208} — ctor sub_1413E05F0 与 +160 连调 sub_140611B00 按国家数扩容, 但全 dump 无读方 → 无消费者无 writer, 恒零沿袭 | 不序列化 |
-| +216 | u8 | **is_attacker 旗** (ctor a3; RemoveUnit 以它选侧); **+218 = player_participates** | 不序列化 |
+| +192 | 匿名结构 (NNB 形状) 向量 24B | **第二 per-country fixed 数组 = size 孪生** {data@192, cap@200, count@204, alloc@208} — ctor sub_1413E05F0 与 +160 连调 sub_140611B00 按国家数扩容, 但全 dump 无读方 → 无消费者无 writer, 恒零沿袭 | 不序列化 |
+| +216 | uint8 | **is_attacker 旗** (ctor a3; RemoveUnit 以它选侧); **+218 = player_participates** | 不序列化 |
 | +219 | uint8 | has_flanked_opponent | ≠0 写 yes |
 | +224 | tag_id | last_hit → 引号串 | tid>0 |
-| +232 | idpair 向量 | front id 对列表 {d, c} 8B 指针 | 同 unit |
+| +232 | idpair 向量 | front id 对列表 {d, c} 8B 指针 | 同 unit; **运行时元素消费 = CUnit\*** (vt[21]/[46]/+312/+496 全按完整单位; writer 发射 refid 不变 — 勘误定案) |
 | +233..+243 | — | = front 容器尾 {cap@+240}  |  |
-| +244 | u32 | front 容器计数 | 同 unit |
+| +244 | uint32 | front 容器计数 | 同 unit |
 | +245..+255 | — | = front 容器尾 {alloc@+248}  |  |
-| +256 | 匿名结构 (NNB 形状)* | reserves id 对列表 | 同 unit |
+| +256 | 匿名结构 (NNB 形状)* | reserves id 对列表 | 同 unit (元素运行时 = CUnit\*) |
 | +257..+267 | — | = reserves 容器尾 {cap@+264}  |  |
-| +268 | u32 | reserves 容器计数 | 同 unit |
+| +268 | uint32 | reserves 容器计数 | 同 unit |
 | +269..+279 | — | = reserves 容器尾 {alloc@+272}  |  |
-| +280 | 匿名结构 (NNB 形状)* | retreat id 对列表 | 同 unit |
+| +280 | 匿名结构 (NNB 形状)* | retreat id 对列表 | 同 unit (元素运行时 = CUnit\*) |
 | +281..+291 | — | = retreat 容器尾 {cap@+288}  |  |
-| +292 | u32 | retreat 容器计数 | 同 unit |
+| +292 | uint32 | retreat 容器计数 | 同 unit |
 | +293..+303 | — | = retreat 容器尾 {alloc@+296}  |  |
 | +304 | CCombatTactic* | tactic ref → ru32(tac+152) | 指针非空 (writer 另有 vmethod80 门未接) |
 | +305..+319 | — | = tactic ref 尾 + air_plane 前置  |  |
 | +320 | 匿名结构 (飞机条目) | air_plane 容器数据指针 — {d, c} 8B 指针 → **CAirInLandCombat** (vt 0x1429A8270; writer 0X1412BD780 / reader 0x1412BA1D0): amount u32@A+20 / air_wing 对{A+8,+12} (13161) / air_count u32@A+16 (13162) / damage_factor fixed@A+24 (13163) 恒写; date hours@A+40 ≠ dword_143086B20 才写 (族A 证1, ptr=A+48) |  |
 | +321..+331 | — | = air_plane 容器尾 {cap@+328}  |  |
-| +332 | u32 | air_plane 容器计数 |  |
+| +332 | uint32 | air_plane 容器计数 |  |
 | +333..+343 | — | = air_plane 容器尾 {alloc@+336}  |  |
 | +344 | fixed×1e-5 | anti_air_attack | >0 |
 | +352 | uint32 | air_kills | >0 (<0x80000000 防御) |
@@ -182,11 +182,11 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 | +353..+407 | — | = air_kills/air dmg 六值区内  |  |
 | +408 | 匿名结构 (NNB 形状)* | org fixed 数组 (writer 0X1406128E0) | c>0 |
 | +409..+419 | — | = org_loss_summary 容器尾 {cap@+416} (**键名正名 org_loss_summary** tok 13839) |  |
-| +420 | u32 | org 容器计数 | c>0 |
+| +420 | uint32 | org 容器计数 | c>0 |
 | +421..+431 | — | = org_loss_summary 容器尾 {alloc@+424}  |  |
 | +432 | 匿名结构 (NNB 形状)* | str_loss_summary fixed 数组 | c>0 |
 | +433..+443 | — | = str_loss_summary 容器尾 {cap@+440}  |  |
-| +444 | u32 | str_loss_summary 容器计数 | c>0 |
+| +444 | uint32 | str_loss_summary 容器计数 | c>0 |
 | +445..+455 | — | = str_loss_summary 容器尾 {alloc@+448}  |  |
 | +456 | uint32 | org_loss_summary_index | 恒写 |
 | +460 | uint32 | num_org_losses | 恒写 |
@@ -208,15 +208,15 @@ log 子族 (lb):
 |---|---|---|---|
 | +8 | 匿名结构 (group 条目) | group[N] 容器数据指针 — {d, c} 8B 指针 → writer 0X140CE00D0 (元素布局见本表后子表) | 对恒写 / 池空判写 / tid>0 |
 | +9..+19 | — | = group 容器尾 {cap@+16} |  |
-| +20 | u32 | group[N] 容器计数 |  |
+| +20 | uint32 | group[N] 容器计数 |  |
 | +21..+31 | — | = group 容器尾 {alloc@+24}  |  |
 | +32 | 匿名结构 (12B) | leader_hours[N] 容器数据指针 — {d, c} 12B 条 {对@0, time u32@8} | writer 0X140CE0B80 |
 | +33..+43 | — | = leader_hours 容器尾 {cap@+40}  |  |
-| +44 | u32 | leader_hours[N] 容器计数 |  |
+| +44 | uint32 | leader_hours[N] 容器计数 |  |
 | +45..+55 | — | = leader_hours 容器尾 {alloc@+48}  |  |
 | +56 | 匿名结构 (32B) | damage[N] 容器数据指针 — {d, c} 32B 条 {from tid@8, receiver@12, to@16, value fixed@24} (**SDamageDone**, loader 内符号) | 恒写 (0X140CE11D0) |
 | +57..+67 | — | = damage 容器尾 {cap@+64}  |  |
-| +68 | u32 | damage[N] 容器计数 |  |
+| +68 | uint32 | damage[N] 容器计数 |  |
 | +69..+79 | — | = damage 容器尾 {alloc@+72}  |  |
 | +80 | fixed×1e-5 | total_damage | >0 |
 | +88 | 内嵌 | combat_side_data (同下侧 writer) | |
@@ -230,8 +230,8 @@ lb+8 group[N] 条目 (ge = 元素基; CActivityInGroup, vt 0X295D6F8, sizeof 0x8
 
 | 元素+N | 类型 | 名称/语义 |
 |---|---|---|
-| +8 | u32 | group 对.type — 对 {type@ge+8, id@ge+12} |
-| +12 | u32 | group 对.id |
+| +8 | uint32 | group 对.type — 对 {type@ge+8, id@ge+12} |
+| +12 | uint32 | group 对.id |
 | +16..+63 | 匿名结构 | division_template 内联 8B 对 + enemy_dmg 16B {type, id, fixed} (子偏移未单列) |
 | +64 | 池 | damaged_equipment 池 |
 | +128 | tid | damage_dealer |
@@ -252,14 +252,14 @@ lb+8 group[N] 条目 (ge = 元素基; CActivityInGroup, vt 0X295D6F8, sizeof 0x8
 | +409..+471 | — | = equipment_recovered 池本体尾 (64B) |  |
 | +472 | 匿名结构 (16B) | 16B 容器数据指针 — modifier_hours 数组 (token 0x375C) | B 候选 (零叶未实证) |
 | +473..+483 | — | = modifier_hours 容器尾 {cap@+480} (hybrid buffer, RTTI allocator 条目 USModifierHours) |  |
-| +484 | u32 | 16B 容器计数 | B 候选 (零叶未实证) |
+| +484 | uint32 | 16B 容器计数 | B 候选 (零叶未实证) |
 | +485..+495 | — | = modifier_hours 容器尾 {alloc@+488}  |  |
 | +496 | tag_id | tags 容器数据指针 — {d, c} u32 tid 数组 | c>0 |
 | +497..+507 | — | = tags 容器 data 尾; cap 推定 +504 |  |
-| +508 | u32 | tags 容器计数 | c>0 |
+| +508 | uint32 | tags 容器计数 | c>0 |
 | +509..+519 | — | = tags 容器尾 + leader 对前置 (ctor 哨兵 qword_14333D528); alloc 推定 +512 |  |
-| +520 | u32 | leader.type — id 对之 type (对 {type, id}) | 任一非零写 |
-| +524 | u32 | leader.id — id 对之 id | 任一非零写 |
+| +520 | uint32 | leader.type — id 对之 type (对 {type, id}) | 任一非零写 |
+| +524 | uint32 | leader.id — id 对之 id | 任一非零写 |
 
 reason 枚举 (equipment_lost 四桶分桶键):
 
@@ -280,11 +280,11 @@ reason 枚举 (equipment_lost 四桶分桶键):
 |---|---|---|---|
 | +8 | 匿名结构 (24B) | 空判容器A 容器数据指针 — {d, c} 24B 条 | 空判用 |
 | +9..+19 | — | = 空判容器A 尾 {cap@+16} |  |
-| +20 | u32 | 空判容器A 容器计数 | 空判用 |
+| +20 | uint32 | 空判容器A 容器计数 | 空判用 |
 | +21..+31 | — | = 空判容器A 尾 {alloc@+24} |  |
 | +32 | CEquipmentVariant* | 条目 容器数据指针 — {d, c} 16B {variant, amount fixed×1e-5}; id 对 = {type@var+8, id@var+12} | 条目写门 amount≠0 ∨ az |
 | +33..+43 | — | = 条目容器尾 {cap@+40} |  |
-| +44 | u32 | 条目 容器计数 |  |
+| +44 | uint32 | 条目 容器计数 |  |
 | +45..+55 | — | = 条目容器尾 {alloc@+48} |  |
 | +56 | uint8 | **az = allow_zero_entries** | 恒写 |
 
@@ -307,7 +307,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 |---|---|---|---|
 | +8 | 匿名结构 (log 条目) | log[N] 容器数据指针 — {d, c} 8B 指针逐条 (元素 vt 0X295D888 校验) | count≠0 = 块门 |
 | +9..+19 | — | = log 容器尾 {cap@+16} |  |
-| +20 | u32 | log[N] 容器计数 | count≠0 = 块门 |
+| +20 | uint32 | log[N] 容器计数 | count≠0 = 块门 |
 | +21..+31 | — | = log 容器尾 {alloc@+24} |  |
 | +32 | uint32 | tag tid | 恒写引号 |
 
@@ -317,42 +317,42 @@ reason 枚举 (equipment_lost 四桶分桶键):
 |---|---|---|---|
 | +8 | 匿名结构 (子条目) | enemy_equipment 容器数据指针 — {d, c} 8B 指针子条目 | c>0 |
 | +9..+19 | — | = enemy_equipment 容器尾 {cap@+16}  |  |
-| +20 | u32 | enemy_equipment 容器计数 | c>0 |
+| +20 | uint32 | enemy_equipment 容器计数 | c>0 |
 | +21..+31 | — | = enemy_equipment 容器尾 {alloc@+24}  |  |
 | +32 | 匿名结构 (子条目) | equipment_recovered 容器数据指针 — {d, c} 同构 | c>0 |
 | +33..+43 | — | = equipment_recovered 容器尾 {cap@+40}  |  |
-| +44 | u32 | equipment_recovered 容器计数 | c>0 |
+| +44 | uint32 | equipment_recovered 容器计数 | c>0 |
 | +45..+55 | — | = equipment_recovered 容器尾 {alloc@+48}  |  |
 | +56 | CLoss* 向量 | **equipment 四容器合并序 #1** {d, c} 8B 指针, writer 按容器序连续写 — +56..+151 = CVector\<CLoss*\>[4] 内联数组 (eh vector dtor 铁证); 元素 CLoss 族 vt 0X295D518 / CEquipmentLoss 0X295D568 / CManpowerLoss 0X295D5B8; CLoss::Serialize 0X140CE0540 = reason@+8 tok 13902 + date 代理@+32; reader 0X140CDE000 双键 (10314 date→+32 子块 / 13902 reason→u32@+8)。CEquipmentLoss (vt 0X295D568) = CLoss + equipment 块@+40 (≥48B): writer 0X140CE04F0 = equipment(12110)@+40 + reason + date / reader 0X140CDDF90 同三键; CManpowerLoss (vt 0X295D5B8) 预期同构加 manpower 数 (未展开) |  |
 | +57..+67 | — | = 四容器 #1 尾 {cap@+64}  |  |
-| +68 | u32 | 四容器 #1 计数 | |
+| +68 | uint32 | 四容器 #1 计数 | |
 | +69..+79 | — | = 四容器 #1 尾 {alloc@+72}  |  |
 | +80 | 匿名结构 (NNB 形状)* | 四容器 #2 | |
 | +81..+91 | — | = 四容器 #2 尾 {cap@+88}  |  |
-| +92 | u32 | 四容器 #2 计数 | |
+| +92 | uint32 | 四容器 #2 计数 | |
 | +93..+103 | — | = 四容器 #2 尾 {alloc@+96}  |  |
 | +104 | 匿名结构 (NNB 形状)* | 四容器 #3 | |
 | +105..+115 | — | = 四容器 #3 尾 {cap@+112}  |  |
-| +116 | u32 | 四容器 #3 计数 | |
+| +116 | uint32 | 四容器 #3 计数 | |
 | +117..+127 | — | = 四容器 #3 尾 {alloc@+120}  |  |
 | +128 | 匿名结构 (NNB 形状)* | 四容器 #4 | |
 | +129..+139 | — | = 四容器 #4 尾 {cap@+136}  |  |
-| +140 | u32 | 四容器 #4 计数 | |
+| +140 | uint32 | 四容器 #4 计数 | |
 | +141..+151 | — | = 四容器 #4 尾 {alloc@+144}  |  |
 | +152 | 匿名结构 (manpower 子条目) | manpower 容器数据指针 — {d, c} → 子条目: reason u32@+8 恒写, date hours@+24 (族A, ptr=+32) 恒写, mp_losses 3×u32@+40 恒写 |  |
 | +153..+163 | — | = manpower 容器尾 {cap@+160}  |  |
-| +164 | u32 | manpower 容器计数 |  |
+| +164 | uint32 | manpower 容器计数 |  |
 | +165..+175 | — | = manpower 容器尾 {alloc@+168}  |  |
 | +176 | CPerTemplateStats* | division_template 容器数据指针 — {d, c} → CPerTemplateStats (0x38): division 对 {type@+8, id@+12} 恒写, date hours@+40 (族A 证3, ptr=+48) 恒写, SCombatStats 子对象@+16 vt 槽2 虚写 win u32@条目+24 / total u32@条目+28 |  |
 | +177..+187 | — | = division_template 容器尾 {cap@+184}  |  |
-| +188 | u32 | division_template 容器计数 |  |
+| +188 | uint32 | division_template 容器计数 |  |
 | +189..+199 | — | = division_template 容器尾 {alloc@+192}  |  |
 | +200 | 匿名结构 (8B) | combat_data_index 容器数据指针 — 内联 8B {id i32@0 (符号化), attacker u8@4 → yes/no} | 恒写 |
 | +201..+211 | — | = combat_data_index 容器尾 {cap@+208}  |  |
-| +212 | u32 | combat_data_index 容器计数 | 恒写 |
+| +212 | uint32 | combat_data_index 容器计数 | 恒写 |
 | +213..+223 | — | = combat_data_index 容器尾 {alloc@+216}  |  |
-| +224 | u32 | group.type — id 对之 type (对内联 {type, id}) | 恒写 |
-| +228 | u32 | group.id — id 对之 id | 恒写 |
+| +224 | uint32 | group.type — id 对之 type (对内联 {type, id}) | 恒写 |
+| +228 | uint32 | group.id — id 对之 id | 恒写 |
 
 装备子条目 (writer 0X140CE04F0) = 三件套:
 
@@ -416,12 +416,12 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +48 | uint32 | day (基座共有; 海战按有符号解释, 0xFFFFFFFF = −1) | 恒写 |
 | +52 | uint32 | duration (基座共有) | 恒写 |
 | +56 | 匿名结构 (NNB 形状)* | terrain 串对象 (门 byte@串对象+16, 串@串对象+24) | |
-| +64 | u8 ×3 | 运行时旗 (+64/+65/+66; ctor 0, writer 不发) — 本表全书统一 res (类布局) 坐标 (attacker@+24 等多函数三向互证) | 不序列化 |
+| +64 | uint8 ×3 | 运行时旗 (+64/+65/+66; ctor 0, writer 不发) — 本表全书统一 res (类布局) 坐标 (attacker@+24 等多函数三向互证) | 不序列化 |
 | +72 | 64B | 运行时区 (+72..+135 = obj+88..+151): **定案 = 4×16B 内联槽 {fixed@+0, CEquipmentVariant*@+8}** (活体: 前 3 槽 fixed=0 + 各持一条 CEquipmentVariant* — vt RVA 0x2951608, +8 = token 70, 实例跨战斗共享 = def 侧; 尾槽 fixed=100.0 (fixed×1e-5) + 空指针, 尾槽指针位与 +128 行同位; 三级 ctor 与 writer/loader 均不触及 → runtime-only; fixed 业务语义未决) | 不序列化 |
 | +128 | 观察者指针 | **战斗结束回调观察者** (基类结束通知 sub_1413E2CF0: 非空调其虚槽[2]; dtor 不释放 = 外部登记/注销) | 不序列化 |
 | +136 | CNavalCombatant* | **attacker 镜像指针** (第二份; pair-init sub_1415C28F0 同写) | 不序列化; 定案: 生命期所有权副本 — dtor sub_1415C43E0 经镜像释放两参战方  |
 | +144 | CNavalCombatant* | **defender 镜像指针** (第二份) | 同上  |
-| +152 | u32 | **海战天气现象枚举** {0 无 / 2 rain_heavy / 3 snow / 4 blizzard / 5 sandstorm} (每小时 sub_1415C5820 按区条现象旗刷新) | 不序列化 |
+| +152 | uint32 | **海战天气现象枚举** {0 无 / 2 rain_heavy / 3 snow / 4 blizzard / 5 sandstorm} (每小时 sub_1415C5820 按区条现象旗刷新) | 不序列化 |
 | +160 | 匿名结构 (NNB 形状)* | **区天气修正块指针缓存** (= 区条+72, 每小时同函数刷新) — 海战侧天气通道之一 | 不序列化 |
 | +168 | fixed | **昼夜覆盖快照** (DayNight 值, sub_140F19660, 每小时刷新) | 不序列化 |
 | +176 | convoy 条目* | convoy[N] 容器数据 — 条目 writer 0X141AD8690 | count>0 且 client/ntt 非空 |
@@ -456,8 +456,8 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +233..+243 | — | = group[N] 容器尾 {cap@+240}  |  |
 | +244 | uint32 | group[N] 容器计数 | |
 | +245..+255 | — | = group 容器尾 {alloc@+248}  |  |
-| +256 | 容器 24B | **CFEXAir* 数组** {data@256, cap@264, count@268, alloc@272} (: ctor sub_141976630/sizeof 328 铁证) | 不序列化 |
-| +280 | 容器 24B | **参战将领 (admiral) 指针数组** {data@280, cap@288, count@292, alloc@296} (: leader+3680/+440 军衔等级反推铁证) | 不序列化 |
+| +256 | 匿名结构 (NNB 形状) 向量 24B | **CFEXAir* 数组** {data@256, cap@264, count@268, alloc@272} (: ctor sub_141976630/sizeof 328 铁证) | 不序列化 |
+| +280 | 匿名结构 (NNB 形状) 向量 24B | **参战将领 (admiral) 指针数组** {data@280, cap@288, count@292, alloc@296} (: leader+3680/+440 军衔等级反推铁证) | 不序列化 |
 | +304 | 海=领袖指针 / 陆=CCombatTactic* | **海战侧 = 当前主将 (最高技能 admiral) 指针** — vt[29] 择优 sub_14161E5C0 (admiral 数组取军衔最大), sub_141620940 每小时 `if(!cb+304) cb+304 = vt[29](self); cb+312 = 同值` (cb+312 = last_leader 镜像); 海战 writer sub_141622520 不发射本槽; 陆战侧同槽 = CCombatTactic* (sub_1412BD820 发 tok 11927 `tactic`, 入栈点 sub_1412BB330 见 §4.22.7) | 不序列化 |
 | +312 | 匿名结构 (NNB 形状)* | last_leader → id 对@ptr+8 | |
 | +320 | uint8 | disengage | |
@@ -470,11 +470,11 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +384 | fixed×1e-5 | total_damage_dealt | 恒写 |
 | +392 | fixed×1e-5[36] | damage_dealt_by_gun_types.#1 — 36 值恒写单行 | 恒写 |
 | +393..+679 | — | = damage_dealt_by_gun_types fixed[36] 数组本体 (+392..+679) |  |
-| +680 | f32 | **damage_dealt_by_ship_types 表 load factor = 1.0f** (ctor 1065353216) | 不序列化  |
+| +680 | float | **damage_dealt_by_ship_types 表 load factor = 1.0f** (ctor 1065353216) | 不序列化  |
 | +688 | 匿名结构 (16B 形状) RH 桶数组 | damage_dealt_by_ship_types — token→fixed RH 哈希表 {load f32@680, buckets@688, count@696 (=写门), aux 16B 容器@704}; loader 经 sub_14161A260(+680, token) 按键插入; 元 {token@+16, fixed@+24}, 键 = token 名 | 门 *(cb+696)≠0 |
-| +744 | 容器 | **以主将 (cb+304) 为键的命中缓存·桶 A** (sub_141622360 每小时清 sub_141989F40 后记录 (主将, member 开火数据)) | 不序列化 |
-| +872 | 容器 | 同上·桶 B (state==4 与否分桶) | 不序列化 |
-| +880..+992 | qword×15 | 每小时统计快照区 (combatant 自身累加, 尾段整体搬到 cb+744 缓存对象) | 不序列化 |
+| +744 | 匿名结构 (NNB 形状) 向量 | **以主将 (cb+304) 为键的命中缓存·桶 A** (sub_141622360 每小时清 sub_141989F40 后记录 (主将, member 开火数据)) | 不序列化 |
+| +872 | 匿名结构 (NNB 形状) 向量 | 同上·桶 B (state==4 与否分桶) | 不序列化 |
+| +880..+992 | uint64×15 | 每小时统计快照区 (combatant 自身累加, 尾段整体搬到 cb+744 缓存对象) | 不序列化 |
 
 - is_attacker (基座+216) GUI 消费: 脱离战斗命令载荷 CDisengageFromNavalCombatCommand {+40 海战 refid tok 0x2916, +48 is_attacker tok 0x28F5}; 玩家侧选取 sub_1417E7B30。
 - screening 消费: CFEX 伤害减免 = 1−(1−a)(1−b) 合成 (SCREENING_TOOLTIP_LOW_INFO + 四个 SCREEN_RATIO/CAPITAL_RATIO define 加权铁证)。
@@ -488,12 +488,12 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +20 | uint32 | member[N] 容器计数 | |
 | +21..+31 | — | = member 容器尾 {alloc@+24}  |  |
 | +32 | 匿名结构 (NNB 形状)* | opponent_group = *(g+32) → 在 *(oppg+56) 的 group 数组找下标 (**loader 读档时清零**: case 12419 u32 解析 + `*(+32)=0`, 运行时再解回指针 — 定案) | 找到才写 |
-| +40 | i32 | **opponent_group 下标缓存** (ctor = −1) | 不序列化  |
+| +40 | int32 | **opponent_group 下标缓存** (ctor = −1) | 不序列化  |
 | +48 | fixed×1e-5 | forces_compare | 恒写 |
 | +56 | CNavalCombatant* | **宿主参战方回指** (ctor a2; 与「*(oppg+56) 的 group 数组」自洽: oppg+56=对方 combatant, 其+232=group 数组) | 不序列化  |
 | +64 | uint32 | disengage_counter (**ctor = dword_143335E1C define 初值**) | 恒写 |
 | +68 | uint32 | chasing_counter | 恒写 |
-| +72 | qword ×2 | 运行时 (+72/+80; ctor 0, 未名) | 不序列化  |
+| +72 | uint64 ×2 | 运行时 (+72/+80; ctor 0, 未名) | 不序列化  |
 | +88 | CFEXAir* 向量 | air[N] 容器数据 (vt 0x142A212E8, sizeof 328; ctor sub_141976630) | |
 | +89..+99 | — | = air 容器尾 {cap@+96}  |  |
 | +100 | uint32 | air[N] 容器计数 | |
@@ -505,7 +505,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +136 | CFEXAir* 向量 | airs_to_delete 容器数据 (零样本未接; 推定同 air 型) | |
 | +137..+147 | — | = airs_to_delete 容器尾 {cap@+144} (loader case 13870 创建 air 推入) |  |
 | +148 | uint32 | airs_to_delete 容器计数 (alloc@+152) | |
-| +160 | qword ×4 | 运行时 (+160/+168/+176/+184; ctor 0, 未名) + +192 u32 (sizeof 200 尾部) | 不序列化  |
+| +160 | uint64 ×4 | 运行时 (+160/+168/+176/+184; ctor 0, 未名) + +192 u32 (sizeof 200 尾部) | 不序列化  |
 
 **member 条目 = CFEXMember** (m = 条目基; sizeof 456; vt 0X142A1F1C8; ctor sub_14196F350; writer 0X1419760B0; loader 0X1419748F0):
 
@@ -601,7 +601,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +180 | uint32 | names 门 | |
 | +181..+191 | — | = names 容器尾 {alloc@+184} (门 = count@+180) |  |
 | +192 | fixed×1e-5 | damage_mult (ctor=100000=1.0) | 恒写 |
-| +200 | qword ×6 | 运行时标量 (+200/+208/+216/+224/+232/+240; ctor 全零, 未名) | 不序列化  |
+| +200 | uint64 ×6 | 运行时标量 (+200/+208/+216/+224/+232/+240; ctor 全零, 未名) | 不序列化  |
 | +248 | uint32 | time_duration | 恒写 |
 | +256 | SNavalHit* 向量 | naval_hit[N] 容器数据 (同 member 条目) | |
 | +257..+267 | — | = naval_hit 容器尾 {cap@+264}  |  |
@@ -611,7 +611,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +281..+291 | — | = air_hit 容器尾 {cap@+288}  |  |
 | +292 | uint32 | air_hit[N] 容器计数 |  |
 | +293..+303 | — | = air_hit 容器尾 {alloc@+296} |  |
-| +304 | 容器 24B | **damage_received 容器** {data@304, cap@312, count@316, alloc@320} — sizeof 328 恰满; 与 AirEntry+112 **同族同源** (合并器 sub_1415C75C0, 经 thunk sub_14197A570 = `(a1+304)`); 持久化迁移至 AirEntry+112; writer 不发射 (runtime-only) | 不序列化 |
+| +304 | 匿名结构 (NNB 形状) 向量 24B | **damage_received 容器** {data@304, cap@312, count@316, alloc@320} — sizeof 328 恰满; 与 AirEntry+112 **同族同源** (合并器 sub_1415C75C0, 经 thunk sub_14197A570 = `(a1+304)`); 持久化迁移至 AirEntry+112; writer 不发射 (runtime-only) | 不序列化 |
 
 **convoy 条目** (cv = 条目基; writer 0X141AD8690; 存档键 convoy; RTTI 无独立类名):
 
@@ -728,7 +728,7 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 |---|---|---|---|
 | +8 | 匿名结构 (NNB 形状)* | 装备数据库对象 → refid @obj+8 | 门 ptr≠0 (0X142220260); tok 0x3643 equipment_variant_index |
 | +16 | uint32 | count | 恒写; tok 0x29EA count |
-| +20 | tag_id (i32) | tag (国家 id, BA5C20 串化) | 恒写 — **发射序首字段**, 先于 equipment_variant_index; tok 0x2A02 tag |
+| +20 | tag_id (int32) | tag (国家 id, BA5C20 串化) | 恒写 — **发射序首字段**, 先于 equipment_variant_index; tok 0x2A02 tag |
 
 **CNavalCombatAirEntry** (条目; vt 0X14295C440; writer 0X140CE6630; ctor 0X140CE1450; sizeof 0x88 = 136, 分配点 sub_140CE21B0 malloc 直证)。原生发射序 = max → alive → killed → tag → equipment_variant_index → air_base → naval_hit×N → air_hit×N; 段 evi 前置与原生序不同 — 叶键互异, 多重集无序配对无害 (20 档实证)。全字段表:
 
@@ -739,7 +739,7 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 | +16 | uint32 | max | 恒写; tok 0x2A4 max |
 | +20 | uint32 | alive | 恒写; tok 0x30A3 alive |
 | +24 | uint32 | killed | 门 >0 才写; tok 0x336C killed |
-| +28 | tag_id (i32) | tag (BA5C20 串化) | 恒写; tok 0x2A02 |
+| +28 | tag_id (int32) | tag (BA5C20 串化) | 恒写; tok 0x2A02 |
 | +32 | 串 (SSO 32B) | air_base (ctor 写 cap 15 布局锚) | 恒写 (!AAFD0 时); tok 0x2FB6 |
 | +33..+63 | — | = CNavalCombatAirEntry air_base SSO 32B 本体 (buf@32 尾 + size@+48 + cap@+56=15) |  |
 | +64 | SNavalHit* 向量 | naval_hit 数组数据 | 门 计数@+76>0; tok 0x30A8 |
@@ -770,7 +770,7 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 |---|---|
 | CDispatchNavalCombatResultsCommand (vt 0x142993578; 命令 writer slot22 0X14116F7B0, tok 0x34FD) | 运行时清除命令, 非存档结构 |
 | sub_140CE6D20 (vptr 0x14295DE20; 写 region 0x2A4B / is_sunk 0x3945 / equipment 0x2F4E / ship 0x28A0 / country 0x289A ×2 / to_discard_date 0x3C96) | RTTI 扫描未名, 推定海战事故报告姊妹类 |
-| UI 族六件: CNavalCombatResultsWindow / CNavalCombatResultsMapIcon / Lost·Survivor GridBoxItem | 纯 UI |
+| UI 族六件: CNavalCombatResultsWindow (5088B; 内嵌 **CInternalSideData 每侧聚合件 ×2 @+3912/+4480** (560B/件: 10 容器 +8..+247, idpair ×2 @+248/+256, SSO 串 ×7 @+264..+487, 子对象指针 @+536/+552; 复位 sub_1417D6980, 真 ctor sub_1417D61A0; 纯显示侧零存档 — survivors_grid 装配 sub_1417D7740)) / CNavalCombatResultsMapIcon / Lost·Survivor GridBoxItem | 纯 UI |
 | sunk_convoys_history {d@gs+1448, c@gs+1460} | 相邻容器 (元素 writer 0X140EB39E0, tok 0x3821/0x3822) |
 
 不确定点:
@@ -795,13 +795,13 @@ CCombatTactic 布局全表 (376B 全覆盖; CTacticsListEntry Refresh 消费; ta
 
 | 偏移 (tactic) | 类型 | 语义 | 备注 |
 |---|---|---|---|
-| +8 | u32 | only_show_for 国 tag id | 定案 |
+| +8 | uint32 | only_show_for 国 tag id | 定案 |
 | +16 | MSVC 串 32B | 内部名 (FNV32 桶键) | 定案 |
 | +48 | MSVC 串 32B | 显示名 (活体 = 本地化文案「进攻」等; 本地化覆写点未定位) | 定案/覆写点待裁 |
 | +80 | MSVC 串 32B | countered_by 串 — 加载器尾 (combattactics.cpp:406) 名哈希查桶回填 +144 = 对方 id; 判定 sub_1406C01B0 = 对方 id == 本方 +144; **被反制侧六值不聚合** (sub_1412AE250) | counter 链闭环 |
 | +112 | MSVC 串 32B | 图标串 | 定案 (原锚吻合) |
-| +144 | u32 | countered_by 对方 id (加载器回填) | 定案 |
-| +152 | u32 | id (= 顺序下标; 越界回 null 哨兵) | 定案 (原锚吻合) |
+| +144 | uint32 | countered_by 对方 id (加载器回填) | 定案 |
+| +152 | uint32 | id (= 顺序下标; 越界回 null 哨兵) | 定案 (原锚吻合) |
 | +160 | fixed×1e-5 | aggressiveness — **无消费者** (键可解析写入, 全扫无读; vanilla 未用, 推定预留键) | 推定 |
 | +168 | 内联 base 权重块 | CMeanTimeToHappen 形状 {factor@+192, 修饰符向量@+200..+216}; 求值器 sub_1405520E0, 无修饰符直返 +192; +184 常量 16 用途未名 | 定案/16 待裁 |
 | +224 | CAndTrigger 88B 内联 | 条件触发器 (token 10600 "and"; 子条件向量@+232) — 槽[3] Evaluate, 失败打 "TACTIC_CONDITIONS_NOT_MET" | 定案 (原锚吻合) |
@@ -811,11 +811,11 @@ CCombatTactic 布局全表 (376B 全覆盖; CTacticsListEntry Refresh 消费; ta
 | +336 | fixed×1e-5 | attacker_movement_speed | 定案 |
 | +344 | fixed×1e-5 | attacker_org_damage_modifier | 定案 |
 | +352 | fixed×1e-5 | defender_org_damage_modifier | 定案 |
-| +360 | i32 | 阶段索引 1 | 定案 |
-| +364 | i32 | 阶段索引 2 | 定案 |
-| +368 | u8 | 可用旗 (active) | 定案 (原锚吻合) |
-| +369 | u8 | 门字节 (未初始化填充对 +370/+371 同段) | 定案(负) |
-| +372 | u32 | 图形注册表条目索引 (ctor 期按名哈希查询/注册, 活体按加载序连号) | 推定 |
+| +360 | int32 | 阶段索引 1 | 定案 |
+| +364 | int32 | 阶段索引 2 | 定案 |
+| +368 | uint8 | 可用旗 (active) | 定案 (原锚吻合) |
+| +369 | uint8 | 门字节 (未初始化填充对 +370/+371 同段) | 定案(负) |
+| +372 | uint32 | 图形注册表条目索引 (ctor 期按名哈希查询/注册, 活体按加载序连号) | 推定 |
 
 六值类型 = 定点×1e-5 (i64), 非 f64 (活体位型 5000/25000/400000 + parser 读取路径双证); +160/+192 同为 fixed。六值定名双源 = reader token 表 + tooltip 格式化器 sub_1406BDE10 的 TACTICS_* loc 键。权重填充六值聚合即上述六值进 battle+160..+200。
 数据库单例 = BASE+0x3330C90 (桶@+4/+8、顺序数组@+16/+24/+28、相位表@+40 32B 串×5、计数@+52); vtable 11 槽 ([3] Load wrapper→[4] Reader、[9] GetName = &+48、[10] 恒真有效槽)。
@@ -836,15 +836,15 @@ writer = CFG 空桩 → **不入档** (静态 reader); 源 = gfx/naval_combat.tx
 | 偏移 | 类型 | 键 (token) | 语义 |
 |---|---|---|---|
 | +8 | MSVC 串 32B | naval_formation (12631) | 阵容字串 |
-| +40 | f32 | naval_formation_scale (12632) | 阵容缩放 (ctor 默认 1.0f) |
+| +40 | float | naval_formation_scale (12632) | 阵容缩放 (ctor 默认 1.0f) |
 | +48 | MSVC 串 32B | naval_combat_formation (12633) | 战形字串 |
-| +80 | f32 | naval_combat_formation_scale (12634) | 战形缩放 |
-| +84 | f32 | naval_random_start_time (12913) | 随机起始时刻 |
+| +80 | float | naval_combat_formation_scale (12634) | 战形缩放 |
+| +84 | float | naval_random_start_time (12913) | 随机起始时刻 |
 | +88 | vec | naval_hit_effects_small (12635) | {d@88, cap@96, c@100, alloc@104} 图形特效对象 |
 | +112 | vec | naval_hit_effects_big (12636) | 同上 |
 | +136 | vec | naval_miss_effects_small (12637) | 同上 |
 | +160 | vec | naval_miss_effects_big (12638) | 同上 |
-| +184 | f32 | naval_death_time (12640) | 死亡时刻 |
+| +184 | float | naval_death_time (12640) | 死亡时刻 |
 
 > 与 §4.22 海战 combatant +384 SNavalHit (战斗事件收发器) 同名不同域, 勿混。
 
@@ -865,7 +865,7 @@ CCombatManager (§4.22.1 gs+608) 每小时逐战斗调虚表槽[15] = 战斗步�
 | [14] | **结束标记** (byte+82=1, 通知两侧) / 领袖 XP (损失比×0.5) | 双用途: 步进域 [14]=标记, 基类槽[15] 四连内 [14]=XP |
 | [15] | **每小时战斗步进主入口** | 全链 = 战术重掷核 (12h) → 时长计数 → 参战国 tag 遍历 → 基类四连, 详 §4.22.9a |
 | [16] | 结束复核 bool(self, idx, count) | 基类 purecall |
-| [19] | **伤害执行步** (sub_1412B3300) | 目标分配 → 闪避 → STR/ORG 骰 → 穿甲偏转 → TakeDamage; 尾推 progress |
+| [19] | **伤害执行步** (**0x1412B82E0**; 勘误: 原记 sub_1412B3300 系其单次齐射伤害应用内层件, 3 调用点) | 目标分配 (ENGAGEMENT_WIDTH_PER_WIDTH 预算 + DAMAGE_SPLIT_ON_FIRST_TARGET 聚焦钳 0.9 + 打弱评分) → 闪避 → STR/ORG 骰 → 穿甲偏转 → TakeDamage; 空军支援波次 (2×4h 冷却) + 侧翼检测 (≥3 省 → cb+219) + cb+220 敌空军旗; 尾推 progress |
 | [22] | **修饰符全量重算** (stacking/over-width/补给/夜战/挖掩/岸轰/空优/情报/包围, 34 distinct define) | 每小时步进第 1 步 |
 | [23] | **战斗结束钩子** (结束通知 sub_1413E2CF0 内调) | 基类/CLandCombat = CFG 空桩; **仅 CNavalCombat 覆写 = sub_1415C4C90 海战结果生成** (§4.22.6 聚合链) |
 | [29] ⚠ combatant 层 | **当前主将 getter** (两行属 CCombatant 主表 34 槽, 非 CCombat 26 槽/CLandCombat 27 槽) | 基类 = 返回 0 桩; 海军覆写 sub_14161E5C0 = admiral 数组取军衔最大 |
@@ -888,6 +888,8 @@ PIERCING_THRESHOLDS{1,0.75,0.5,0} 出索引 → 乘数表 **PIERCING_THRESHOLD_D
 
 **组织度分工**: 战时扣减唯一入口 = TakeDamage(+1064); 恢复
 (RELIABILITY_ORG_REGAIN, sub_140C82C10) 与移动耗减在师域小时更新。
+
+**伤害流水增补 (定案)**: STR/ORG 伤害修正真源 = LAND_COMBAT_STR/ORG_DAMAGE_MODIFIER 0.060/0.053; **穿甲双比值分工** (方向相反): 目标穿甲/射手装甲 → 骰面档 (装甲优势扩骰 STR 2/ORG 6); 射手穿甲/目标装甲 → 伤害乘数档 {1, 0.8, 0.65, 0.5} (穿甲不足减伤)。闪避 = **unit+596 闪避配额计数器** (防御覆盖序号 vs 计数比较切换 90/60 档并 ++; 输入 = eff_def×(防 stat/10)/1e5)。新定案字段: CLandCombat c+64 战宽门 / c+152 边界战旗 (3 消费点) / CCombatant cb+220 敌空军旗 (陆海同槽) / CArmy 槽 46 = GetCombatWidth (Σ subunit def+88×营数) / 槽 39 = org 比 / 槽 34 = 强度比; 战术六值 c+168/+176 = combat_tactics.txt attacker/defender **伤害权** (加进骰基数: 强度比 + 该值); 战宽 getter = CLandCombat 槽 26 (0x1412ADE10, 地形×战术宽度+方向附加); 增援链 = 权重² 随机 + 接受率门 + 超宽踢尾 (COMBAT_OVER_WIDTH_PENALTY −1/% 钳 −0.33); 附带建筑损伤 sub_1412ABD80 (要塞 FORT 0.005/命中率 5% + 基建 0.0022, 暴击支 CRITICAL_BOMBARDMENT_DAMAGE 弹窗 ×40 巨伤 0.25%); debug 门 "Debug.OldCombat" byte_14332F64F / byte_143389FD4 控制台全跳伤害步。
 
 #### 4.22.9a CCombatManager 小时更新链 (五阶段)
 
@@ -1109,13 +1111,3 @@ cc+5584 / 主将 leader+4272 / 编制内领袖。
 GUI/文案。六值聚合: counter 关系成立则对方六值整侧归零（sub_1412AE250 +
 sub_1406C01B0）。CCombatTactic 六值 +312..+352 定名（combat_width/attacker/
 defender/attacker_movement_speed/双方 org damage modifier）（定案）。
-
-
-#### 4.22.13 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
-
-| 来源 | 函数与身份 / 建议落点 |
-|---|---|
-| part01 | sub_140CDBF40（601 行，#26） / 军事/战斗日志 / 书 `s4_22_combat.md` CStatsObserver 节（:177/:232/:359）补 vararg 写入口（CGameDate 打戳 + 装备池退库 sub_14100CAE0 消费；调用方 = 碾过结算 sub_140C895B0，s4_18:1000 定案） |
-| part09 | sub_140BBA1B0（167 行，#27） / 军事/战斗 / 书 `s4_22_combat.md` 补行：CCombatManager::remove_combat（战斗更新期移除禁令断言 + 活跃表外移除断言 + 栈跟踪打印通道；5 个模块内调用点） |
-| part14 | sub_140BB8180（#40） / 军事/空军对海 / 书 `s4_22_combat.md`（combatmanager.cpp 邻域）补对海攻击执行件 = sub_140BB8180（convoy 自打断言门 + sub_1415C 装配族） |
-| part15 | sub_140BB79A0（112 行，#21） / 军事/战斗管理 / 书 `s4_22_combat.md` §4.22.9a 五阶段节补壳名：去重遍历壳 → 进省登记件 sub_140BB9220（双方书内已实名，本壳未定址 = 定址补注级）；触发含 hourly 相位 12 |

@@ -9,10 +9,10 @@
 | 偏移 | 类型 | 名称 | 语义 | 参见 |
 |---|---|---|---|---|
 | +152 | hours | 日期#0 **载入快照** | CGameDate 尾 {hours@152, vt2@160}; CPersistent 基类成员。**只有读档路径写, 之后不随时钟推进** (新建局停在 ctor 哨兵 43808760; 当前日期在 +1128) | §4.1.2 |
-| +168 | 容器 24B | player_countries | {d@168, cap@176, c@180, alloc@184}; 元素 160B, tag@元素+112 | writer 头块 13671 |
+| +168 | 匿名结构 (NNB 形状) 向量 24B | player_countries | {d@168, cap@176, c@180, alloc@184}; 元素 160B, tag@元素+112 | writer 头块 13671 |
 | +192 | — | 位域旗 (u32) | bit0 = ironman/成就门 (存档名比对, 非 checksum) / bit1 = 多人局 / bit2 = cooperative_game / bit3 = tutorial | §4.1.2 |
 | +200 | 匿名结构 (NNB 形状)* | null-object 句柄 | | |
-| +216 | 容器 24B | **启用 mod 名列表** (MSVC 串 32B/元; {d@216, cap@224, c@228, alloc@232}; scanner 键 14185 载入, op= 拷贝; 元素 cap>15 走堆) | 序 = mod 加载序 |  |
+| +216 | MSVC 串 向量 24B | **启用 mod 名列表** (MSVC 串 32B/元; {d@216, cap@224, c@228, alloc@232}; scanner 键 14185 载入, op= 拷贝; 元素 cap>15 走堆) | 序 = mod 加载序 |  |
 | +240 | — | 标志 | | |
 | +248 | 匿名结构 (NNB 形状)* | scoped | | |
 | +272 | CHuman (内嵌 160B) | 人类玩家槽 | 共用布局: 名串@+32 / 二名串@+64 / badge@+96 / country-link id@+112 (sub_1401DA7C0 "country link index") / CGameDate@+120 / 枚举@+148 / 入参@+152 | |
@@ -24,7 +24,7 @@
 | +608 | CCombatManager (内嵌) | 战斗管理 | | §4.22; vt 0X2950688 存于槽自身 (非指针; 探针) |
 | +616 | CCombat* | 战斗明细宿主 | 容器数据 {count@+628}; 元素主 vt 分流: CLandCombat 0X29A83D8 / CNavalCombat 0X29DDB08 / CLandBorderWarCombat 0X29BC5F0 | §4.22 |
 | +617..+627 | — | 战斗明细容器尾 | = pdx 容器@616 {d@616, cap@624, c@628 高位} 内部 | |
-| +628 | u32 | 战斗明细容器计数 | 战斗日志管理 (logmgr) = +2176/+2188 容器, 元素 NCombatLog::CManager (vt 0X295D8D8) | §4.22 |
+| +628 | uint32 | 战斗明细容器计数 | 战斗日志管理 (logmgr) = +2176/+2188 容器, 元素 NCombatLog::CManager (vt 0X295D8D8) | §4.22 |
 | +629..+647 | — | 容器尾 | = {alloc@632 = 哨兵} + CCombatHistory 内嵌头@648 | |
 | +648 | CCombatHistory (内嵌) | 战斗历史 | | §4.22; vt 0X2950638 (= CCombatManager+40) |
 | +649..+687 | — | CCombatHistory 体 | = {q@656, q@664, u32@672, u8@676, u8@680, pad→683} + pad@684..687 — CCombatManager 全长 76B (+608..+683) | ctor sub_140BB66F0 |
@@ -50,21 +50,21 @@
 | +1193..+1247 | — | 日期#2 尾 | = CGameDate#2 vt2@1200 + **小时进度累积器 f32@1208** (时间推进调度器每帧 `+= 帧耗时/(速率×加成)`, 攒满 1.0 生成 CHourlyTickCommand 后重置; 详 §4.2.2) + speed u32@1212 (键 110; 探针=4) + u8@1216 (**hourly tick 进行中标志**: tick 首置 1 尾清 0, 兼一帧至多一小时的生成门, 详 §4.2.2) + to_be_deleted {d@1224, cap@1232, c@1236, alloc@1240} (块 19332 + assert; 元素 8B 双 u32; hourly tick 尾 sub_1401D6290 清扫, §4.2.6) + CPeaceConferenceManager 头@1248 (每 hourly tick 末被驱动, §4.2.4) | |
 | +1248 | CPeaceConferenceManager (内嵌) | 和会管理器 | | §4.10.26; vt 0X2720E48 (RTTI+探针); 谍报网在国家侧 (§4.11) |
 | +1249..+1311 | — | 和会管理器体 | = {vt@1248, q@1256, q@1264, off@1272} (块 12499) + MSVC 串@1280..1311 (SSO; **runtime-only 不序列化** — writer/reader 仅 13632 会议容器, 本机 9 档 peace_conference 块全空互证; 运行期临时名, 写点未定位) | |
-| +1312 | u32 | **玩家国 id** (int>0 = 动态国 id, 否则 4 字符 tag 在 +1316) — 键 10805 = token "player" (旧标 "playthrough id" 系误读); 运行时十余处按玩家 tag 消费 (通知门∧!human_ai / AI 玩家国策略解析 / 焦点历史只写该国 / Focus.AutoComplete ×10) | 探针 121 | §4.1.2; §4.3.15a |
-| +1316 | u32 | 玩家国 tag 半 (4 字符; +1312 ≤0 时有效) | | |
-| +1320 | u32 | **tension_scaling_base_country** (键 13913 = token 同名; 紧张度缩放基国) | 探针 9 | §4.1.2 |
+| +1312 | uint32 | **玩家国 id** (int>0 = 动态国 id, 否则 4 字符 tag 在 +1316) — 键 10805 = token "player" (旧标 "playthrough id" 系误读); 运行时十余处按玩家 tag 消费 (通知门∧!human_ai / AI 玩家国策略解析 / 焦点历史只写该国 / Focus.AutoComplete ×10) | 探针 121 | §4.1.2; §4.3.15a |
+| +1316 | uint32 | 玩家国 tag 半 (4 字符; +1312 ≤0 时有效) | | |
+| +1320 | uint32 | **tension_scaling_base_country** (键 13913 = token 同名; 紧张度缩放基国) | 探针 9 | §4.1.2 |
 | +1328 | 指针 (对象 +132 u8 门 / +352 子对象) | 运行时对象指针; 不序列化 (writer/loader 均不触; 消费形态 sub_14222BDC0(*(gs+1328)) 三证) | | |
 | +1336 | — | fired_event_names 桶头 | {u32@1336, 桶数@1340=511, 桶 ptr@1344=malloc(0xFF8)} | |
 | +1352 | token 对 向量 | **fired_events** (loader case 11003; 8B 元素, push 原语 sub_1401CBF60 1.5× 增长, 容器 {data@1352, cap@1360, count@1364, alloc@1368}) | | |
 | +1376 | 匿名结构 (56B 形状) 向量 | pending_events | {d@1376, c@1388}; 元素 56B, 四子键 10993/11/10646/11585; 元素 scope 链 @e+16 逐层递归 (root@sc+24/from@+32/prev@+40, 自指即停), **每层**发 saved_event_target (块 0x33A1, 门 *(sc+160)≠0, 112B 元素 {state@+8/country tid@+12/character idpair@+16/name u16@+104}) | 块 13793 (13801 = show_major, 勿混) |
-| +1400 | — | runtime-only 残渣 (无消费者、无 loader/writer — 负定案) | | |
+| +1400 | — | runtime-only 残渣 (无 loader/writer — 负定案; ⚠ 待裁: sub_140BBA690 实证存在按省驻单位评估的读侧消费, 「无消费者」结论需复核) | | |
 | +1424 | 匿名结构 (0xA8 形状) 向量 | sunk_ship | {d@1424, c@1436} | |
 | +1448 | 匿名结构 (24B 形状) 向量 | sunk_convoys | {d@1448, c@1460}; 元素 0x18 | |
 | +1472 | CNavalCombatResults** | 海战结果主数组 (元素键 13564 = token `naval_combat_result`) | | |
 | +1496 | 匿名结构 (72B 形状) | **CNavalCombatResults\* 按区域 id 索引的 RH 表** (键 = results+264; loader case 13564 = token `naval_combat_result`, 主数组在 +1472) | f32 1.0 + 环形哨兵 + 16 桶侵入哈希 | |
 | +1560 | — | 未决区 | q@1560 + u32@1568 + u8@1572; 无消费者、不序列化 (负定案) | |
 | +1576 | 内嵌 | gameplaysettings | ctor sub_140BBB0D0; 块 11102; 区内 +1584 = 难度枚举 | |
-| +1584 | u32 | 难度枚举 | 键 10655 转串; 探针=2 | |
+| +1584 | uint32 | 难度枚举 | 键 10655 转串; 探针=2 | |
 | +1585..+1623 | — | 枚举尾 | = CArmy* 向量 {d@1600, cap@1608, c@1612, alloc@1616} (探针 37 项, 元素 vt=CArmy) | |
 | +1624 | CSelectionGroup** | 选择组 | 10 组 × 240B, 组内 10 槽 × 24B {data@+0, cap@+8, count@+12, alloc@+16}; loader case 10286 | §4.23 |
 | +1625..+1671 | — | 选择组容器 | = selection-groups 容器 {d@1624, cap@1632, c@1636, alloc@1640} (探针 cap474/cnt333 — 每国一组 240B, 块 10286) + pdx@1648..1671 (空) | |
@@ -76,7 +76,7 @@
 | +1705..+1775 | — | 管理器间区 | = CWorldThreat*@1712 (malloc 0x40; 键 0x2BBD=11261 + assert "threat"; 探针 vt RVA 0X2976738) + u32@1720 + saved_event_target {d@1728, cap@1736, c@1740, alloc@1744} (块 13217, 元素 112B 步进) + pdx@1752..1775 (空) | |
 | +1776 | CReferencedDivisionTemplate** | 编制模板 | 编制模板容器数据 (元素 vt 0X294F5B0, RTTI); count@+1788 | §4.18 |
 | +1777..+1787 | — | 编制模板容器尾 | = division_templates 容器 {d@1776, cap@1784, c@1788, alloc@1792} 内部 (块 13369, 元素键 12112) | |
-| +1788 | u32 | division_templates 容器计数 | stockpile 共用区语义见 §4.23.2 | §4.23 |
+| +1788 | uint32 | division_templates 容器计数 | stockpile 共用区语义见 §4.23.2 | §4.23 |
 | +1789..+1799 | — | 容器尾 | = division_templates alloc@1792 尾 + equipment 变体容器头 {d@1800} (块 12122) | |
 | +1801..+1811 | — | equipment 容器内部 | = {cap@1808, c@1812, alloc@1816} | |
 | +1813..+1831 | — | equipment 尾 | = alloc@1816 尾 + game_unique_seed u32@1824 (键 13737) + game_unique_id 串头@1832 前 pad | |
@@ -134,14 +134,14 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 | +2536 | 匿名结构 (16B 形状) | **战略空军 region→兵力树** (pdx 容器; strategicair.cpp) | | |
 | +2552 | — | 总线头 | | |
 | +2560 | 指针 | 三容器对象 (ctor 零填; 复位调 `sub_140DC3B70` 逐容器清 {data@+0/count@+12/子对象@+16} 三组) — 语义待裁 | | |
-| +2568 | u8 | 运行时旗 (全 dump 唯一引用 sub_141AF5D10 置 0, 无读方, 不序列化) | | |
+| +2568 | uint8 | 运行时旗 (全 dump 唯一引用 sub_141AF5D10 置 0, 无读方, 不序列化) | | |
 | +2576 | — | 边界色高亮数组 | +2576..+2591; assert "BORDER_COLOR_CUSTOM_HIGHLIGHTS…"; 数量 = dword_143338A64/4 | |
 | +2592 | 匿名结构 (NNB 形状)* | reload 总线头 | off_143085170 | |
 | +2600 | CBookmark* | **TNullObject\<CBookmark,CBookmark\>\* 空对象句柄** (sub_1401DBBB0 返回全局 qword_14332F350, 创建于 CBookmarkDatabase ctor sub_14067C250) — 非回调 | | |
-| +2608 | u32 | 键 13842 = **tutorial_chapter** | 置位时写 gs+2615=1 并置 gs+192 位域 bit3 = tutorial 旗 | |
+| +2608 | uint32 | 键 13842 = **tutorial_chapter** | 置位时写 gs+2615=1 并置 gs+192 位域 bit3 = tutorial 旗 | |
 | +2615..+2618 | — | 标志区 | | |
-| +2615 | u8 | tutorial_chapter 门 | trigger is_tutorial 消费 (getter sub_1401E2A80 直读) | 定案 |
-| +2617 | u8 | **会话/事件发射门** | 加载期置 0, 开局置 1; transfer_state 系 SetOwner/SetController 第三参极性与 add_to_faction 的 on_offer_join_faction 事件发射门御此位 (两批互证) | 高置信 |
+| +2615 | uint8 | tutorial_chapter 门 | trigger is_tutorial 消费 (getter sub_1401E2A80 直读) | 定案 |
+| +2617 | uint8 | **会话/事件发射门** | 加载期置 0, 开局置 1; transfer_state 系 SetOwner/SetController 第三参极性与 add_to_faction 的 on_offer_join_faction 事件发射门御此位 (两批互证) | 高置信 |
 
 
 #### 4.1.4 未决清单
@@ -309,6 +309,15 @@ sort; key 写门 tid>0 → 引号三字串)。
 | +2449..+2479 | — | （覆盖行， 无独立残留） |  |
 | +2480 | uint8 | first_tag | → yes/no 恒写 |
 
+SCareerProfileCountryData 军事统计 max 记录 (偏移相对 SCareerProfileCountryData 基; 每小时写者 = sub_140715A10, 宿主链 = DoCareerProfileHourlyUpdate sub_1401B1C40 直调; 全部 CAS max 语义 — 仅更大才写):
+
+| 偏移 | 类型 | 名称/语义 | 备注 |
+|---|---|---|---|
+| +368 | uint32 | army 数 max | 推进码 4 |
+| +372 | uint32 | 舰船总数 max | 推进码 5 |
+| +392 | uint32 | 入外国控制省部队数 max | 推进码 46 |
+| +544 | 未名 | 工时累计 | 定案 |
+
 #### 4.1.10 intermediate_statistics (wrapper+2064)
 
 **9 个 CTimeSeries** (vt 0x1429ccb20) 连续内嵌 stride 40 (基址 interm =
@@ -342,8 +351,8 @@ sub_1414E5840 逐 count 写)。尾部两标量 (各 malloc 4B 堆 int):
 
 | 偏移 (interm) | 类型 | 名称 |
 |---|---|---|
-| +368 | uint32 | controlled_provinces = u32@rp(interm+368) |
-| +376 | uint32 | province_gaining_weeks_intermediate = u32@rp(interm+376) |
+| +368 | uint32 | controlled_provinces = uint32@rp(interm+368) |
+| +376 | uint32 | province_gaining_weeks_intermediate = uint32@rp(interm+376) |
 
 #### 4.1.12 SCareerProfileCountryData (blob 164 键)
 
@@ -589,10 +598,3 @@ RB-tree (std::map 形态): head = *(gs+2520), 规模 = *(gs+2528) (≠0 门); �
 | +32 | uint32 | value | 恒写 (0 值也写) |  |
 
 ⚠ gs+2520 与 session_meta #.id 同址撞车: gs+2520 实属本块, 见 §4.1.7。
-
-
-#### 4.1.17 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
-
-| 来源 | 函数与身份 / 建议落点 |
-|---|---|
-| part02 | sub_140715A10（463 行） / 每国聚合（疑焦点/学说侧） / 书 `s4_01_CGameState.md` 或 `s4_02_gametick.md` 相位链注：tbb 每国循环内聚合 + 0.85 系数 + nationalfocus/doctrine UI 双消费；**身份待细作**，先以「未明聚合」登记占位 |

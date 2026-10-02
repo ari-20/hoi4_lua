@@ -1323,7 +1323,7 @@ Wing2MT.__index = function(self, k)
   if k == "manpower" then return ru32(a + 0x70) end
   if k == "air_accidents" then return ru32(a + 0x74) end
   if k == "experience" then return (rp(a + 0x208) or 0) / 1e5 end
-  if k == "name" then return U.cstr(a + 0x988) end
+  if k == "name" then return U.sso(a + 2440) end  -- §13.6 定案 SSO (旧 cstr 读法把 SSO 头当指针)
   if k == "wtag" or k == "tag_id" then
     local tid = ru32(a + 0x9B4)
     if not tid or tid == 0 then return nil end
@@ -1445,7 +1445,8 @@ Base2MT.__index = function(self, k)
     return O.kptr(sp) and ru32(sp + 88) or nil
   end
   if k == "capacity" then return ru32(a + 120) end
-  if k == "base_flag" then return ru32(a + 128) & 0xFF end
+  if k == "base_flag" then return ru32(a + 124) or 0 end  -- §13.6 writer 定案 (旧 +128 系 has_manpower 字节)
+  if k == "has_manpower" then return ru8(a + 128) or 0 end
   if k == "level" then return ru32(a + 132) end
   if k == "allow_equipment_type" then return rp(a + 136) or 0 end
   if k == "country_slots" then          -- 元素 = CCountryAirContainer 指针 (§4.15.9)

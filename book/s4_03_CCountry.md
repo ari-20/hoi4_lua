@@ -34,28 +34,28 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +144 | MSVC 串 32B | **prev_name** (改名前上一代 name 副本; sub_140716580 尾段: 新值≠旧值时落旧值) | 不序列化 (高置信; 探针 GER 三串均空=未改名) |
 | +176 | MSVC 串 32B | **prev_adjective** (同上) | 不序列化 |
 | +208 | MSVC 串 32B | **prev_definite** (同上) | 不序列化 |
-| +240 | 容器 24B | cached trade influence 数组 {data@240, cap@248, count@252, alloc@256} — 8B 值, 按下标 *(obj+4) 取 (探针 GER cap=count=333=全局 tag 槽数; Reset 按 gamestate vt+72 扩容) | 断言 "Trying to get cached trade influence before it exists" (sub_1406EC770) |
+| +240 | uint32 向量 24B | cached trade influence 数组 {data@240, cap@248, count@252, alloc@256} — 8B 值, 按下标 *(obj+4) 取 (探针 GER cap=count=333=全局 tag 槽数; Reset 按 gamestate vt+72 扩容) | 断言 "Trying to get cached trade influence before it exists" (sub_1406EC770) |
 | +252 | uint32 | 上述数组计数/有效位 | if(*(a1+252)) 门 |
 | +264 | uint8 | _HasCachedTradeInfluence 旗 | 断言原文 (sub_140712930/1406DAAF0) |
-| +272 | u8 | 运行时旗 (+272 见上; +280 无静态可见消费 (全域命中皆异类, 负定案), ctor qword a1[35] 零填; 消费 = sub_141F3BFA0 随机国家候选资格门 (错误串 FE_RANDOM_COUNTRY_ERROR_NO_COUNTRIES 直证; 旧记「三处消费」系 weathermanager.cpp sub_140F20EF0 同偏移异对象误命中); ctor qword a1[34] 零填; **全量国家双槽恒 0**, 与 +5209/+5210 major 族不同义) | 不序列化 (定案) |
-| +288 | u32 | 休眠成员 (ctor 零填, 全 dump 无读写点, 运行时恒 0 — 负定案; 疑裁撤特性残留) | 不序列化 (定案) |
-| +292 | u8 | 休眠成员 (ctor 零填同 +288 序列, 全 dump 无读写点 — 负定案) | 不序列化 (定案) |
-| +296 | 容器 24B | **OOB 待加载队列** {data@296, cap@304, count@308, alloc@312} — 72B 元 {串@+40}; 0X140702E70 遍历调 LoadOOB (拼 "history/units/<名>.txt" → vt+24 Parse); 门 = owned_states(+1156)>0 或 tag≤0 | 不序列化 (高置信; 探针 GER count=0) |
+| +272 | uint8 | 运行时旗 (+272 见上; +280 无静态可见消费 (全域命中皆异类, 负定案), ctor qword a1[35] 零填; 消费 = sub_141F3BFA0 随机国家候选资格门 (错误串 FE_RANDOM_COUNTRY_ERROR_NO_COUNTRIES 直证; ⚠ weathermanager.cpp sub_140F20EF0 同偏移异对象勿混); ctor qword a1[34] 零填; **全量国家双槽恒 0**, 与 +5209/+5210 major 族不同义) | 不序列化 (定案) |
+| +288 | uint32 | 休眠成员 (ctor 零填, 全 dump 无读写点, 运行时恒 0 — 负定案; 疑裁撤特性残留) | 不序列化 (定案) |
+| +292 | uint8 | 休眠成员 (ctor 零填同 +288 序列, 全 dump 无读写点 — 负定案) | 不序列化 (定案) |
+| +296 | 匿名结构 (72B 形状) 向量 24B | **OOB 待加载队列** {data@296, cap@304, count@308, alloc@312} — 72B 元 {串@+40}; 0X140702E70 遍历调 LoadOOB (拼 "history/units/<名>.txt" → vt+24 Parse); 门 = owned_states(+1156)>0 或 tag≤0 | 不序列化 (高置信; 探针 GER count=0) |
 | +320 | MSVC 串 32B | **当前 OOB 文件名** (LoadOOB 写入 "history/units/X.txt" 路径) | 不序列化 |
 | +352 | CNavyTheater* | 海军剧场 | vt 0X29D2B88 (探针+RTTI) |
 | +360 | CTheatre** | theatres 容器数据指针 — writer 壳 `if((cc+372))` 计数>0 才整块写; 舰队在 +632/+644 | §4.24 |
 | +368 | uint32 | theatres 容器 cap | loader case 12217 增长码 {data,cap,count,alloc} |
-| +372 | u32 | theatres 容器计数 | §4.24 |
+| +372 | uint32 | theatres 容器计数 | §4.24 |
 | +376 | 指针 (allocator) | theatres 容器 allocator | 同上 |
 | +377..+383 | — | = theatres 容器 alloc@+376 指针尾 (四元组 {data@360, cap@368, count@372, alloc@376} 到齐) | |
 | +384 | 指针数组数据 (8B 元) | **air_theatre 指针数组数据** | writer 尾段 ADEC0 0x4DED 循环 + 断言 "Trying to remove air theatre…" (sub_1406E8C90) |
-| +396 | u32 | air_theatre 计数 | 同上 |
+| +396 | uint32 | air_theatre 计数 | 同上 |
 | +400..+431 | — | = air_theatre 容器 alloc@+400 (四元组 {384,392,396,400}) + **侵入式串链表 24B@408** {head@408, tail@416, count u32@424, u32@428} (节点 48B {MSVC 串 32B@+0, next@+40}; 清扫 = sub_14061C4F0 逐节点 free 串堆缓冲 + SSO 复位; ctor 纯零填; **全 dump 无引擎写点 = 休眠成员**; 不序列化, dtor 唯一触点 — 休眠定案; ctor unwind 异常清理路径亦调 sub_14061C4F0(a1+51) 为第二触点 (异常安全语义); 全 dump 67 调用点皆清扫/复位用途无插入点 — 业务名不可静态考, 负定案) | |
-| +432 | u32 | **instances_counter** (可定制建筑实例计数器; writer 键 12464 **恒写**; loader case 12464 读而弃之; 与 +436 无伴生门关系; 探针 GER=1022) | 定案 |
-| +436 | u8 | templates_locked (仅真写; 兼 reason 串门: 门开则 MSVC 串@cc+464 **空串照写 `""`**) | |
+| +432 | uint32 | **instances_counter** (可定制建筑实例计数器; writer 键 12464 **恒写**; loader case 12464 读而弃之; 与 +436 无伴生门关系; 探针 GER=1022) | 定案 |
+| +436 | uint8 | templates_locked (仅真写; 兼 reason 串门: 门开则 MSVC 串@cc+464 **空串照写 `""`**) | |
 | +440 | CDivisionTemplate** | 编制模板 id 容器数据 | **GUI: TemplateChanger 可改编模板列表源** (锁+过时+HQ 三滤; sub_14169D590) **+ 驻军模板列表** (占领驻军窗 [2] 0X14156C940) |
 | +441..+451 | — | = 编制模板容器尾 {cap@448} | |
-| +452 | u32 | 编制模板 id 容器计数 (MIO 关联区) | |
+| +452 | uint32 | 编制模板 id 容器计数 (MIO 关联区) | |
 | +453..+463 | — | = 编制模板容器尾 {alloc@456 = &off_143085170 哨兵} | |
 | +464 | MSVC 串 32B | **templates_locked reason 串** {buf@464, size@480, cap@488=15} | 定案 |
 | +496 | fixed×1e-5 | command_power | §4.3.11 country_fields; **GUI: HQ 部署 CP 行** (populate 缓存 view+17744; HQ_DEPLOY_CP_COST) |
@@ -83,8 +83,8 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +560 | CFlagManager* | **国家脚本旗 store** (set/country_flag 族落点; 解引用后 {entries@+8, count@+20}, 条目 48B {token@+8, setdate@+24, value\|days@+40} — country.flags savefull 直出同构; ⚠ flag token 取值 = 全 lexer 域（mod 旗在 lexer 扩展段，读侧上界必须用 lexer_token_max 运行时值，非原版 10 万界）) | vt 0X295D3D8 (探针+RTTI); 全字段布局与同族宿主 §4.13.3 |
 | +561..+567 | — | = CFlagManager 指针尾 | |
 | +568 | CGameDate 内嵌 24B | {vt1@568, hours@576=43808760 ctor 哨兵, vt2@584} — **pride_of_the_fleet 关联日期** (与 +600 date_lost 成对; 复位 sub_1406E2DE0 尾置 +592 与 +608) | 不序列化 |
-| +592 | u32 | pride_of_the_fleet.type — id 对之 type (id 对 {id@+596, type@+592}; 初值 = **qword_14333D528 全局 8B 拷入**) | §4.3.8 起 |
-| +596 | u32 | pride_of_the_fleet.id — id 对之 id | §4.3.8 起 |
+| +592 | uint32 | pride_of_the_fleet.type — id 对之 type (id 对 {id@+596, type@+592}; 初值 = **qword_14333D528 全局 8B 拷入**) | §4.3.8 起 |
+| +596 | uint32 | pride_of_the_fleet.id — id 对之 id | §4.3.8 起 |
 | +597..+607 | — | = pride_of_the_fleet id 对 {type@592, id@596} 尾 (ctor 整 qword 拷 qword_14333D528) + **第二 CGameDate@600** 头 | |
 | +608 | hours | pride_of_the_fleet_date_lost (哨兵 43808760 照发) | §4.3.8 起 |
 | +609..+615 | — | = **第二 CGameDate {vt1@600, hours@608=43808760 哨兵, vt2@616}** 的内部 (+608/+616 = 同一日期对象的 hours/vt2); dtor 将两日期 vt 复位 CGregorianDate 基 vt (CGameDate⊂CGregorianDate) | |
@@ -92,63 +92,63 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +617..+631 | — | = 第二 CGameDate vt2@616 尾 + **u8@624 pride_of_the_fleet 日期有效旗** (定案: reset 同组零填; 日更 sub_1406E76A0 旗开读 +608 折算失旗舰天数, ≥ dword_1433321A8 define 窗口外免罚; 置 1 = sub_1406DADE0) + 填充@625..631 | |
 | +632 | CFleet** | 舰队 容器数据指针 (元素 = CFleet\*; 特混舰队经 CFleet+184 二级展开 — 全特混平铺收集器 = sub_1406D35A0 逐 CFleet\* append 其 +184 task_force 容器, navy 页 Update 0X141ECCCA0 消费; 原「{键,数} 舰型汇总」系 vector append 误读, 负定案) | §4.16 (writer 键 15156 = fleet 级 / 15157 = task force 级, 两级对象树); **GUI: B13 navy 页取全特混舰队平表** |
 | +633..+643 | — | = 舰队容器 {data@632, cap@640, count@644, alloc@648} 内部 (ctor sub_14011DF40 + dtor 擦除) | |
-| +644 | u32 | 舰队 容器计数 | §4.16 |
+| +644 | uint32 | 舰队 容器计数 | §4.16 |
 | +645..+655 | — | = 舰队容器 count@644 尾 + alloc@648..655 | |
 | +656 | CArmy** | 师列表 容器数据指针 — {data, count} | §4.18 |
 | +657..+667 | — | = 师列表 {data@656, cap@664, count@668, alloc@672} 内部 | |
-| +668 | u32 | 师列表 容器计数 | §4.18 |
+| +668 | uint32 | 师列表 容器计数 | §4.18 |
 | +669..+679 | — | = 师列表 count@668 尾 + alloc@672..679 | |
 | +680 | CRailwayGun** | 铁路炮 容器数据指针 | |
 | +681..+691 | — | = 铁路炮 {data@680, cap@688, count@692, alloc@696} 内部 | |
-| +692 | u32 | 铁路炮 容器计数 | |
+| +692 | uint32 | 铁路炮 容器计数 | |
 | +693..+727 | — | = 铁路炮 count@692 尾 + alloc@696..703 + **休眠 24B 向量@704** {data@704, cap@712, count@716, alloc@720 = CPdxNewDeleteAllocator 哨兵} (8B 平凡元素; ctor {0,0,0,哨兵} / dtor 0x1406CBBC0 分配器整体 dealloc 非逐元析构 / 日更时体 0x1406FDBA0 仅清 count; **全 dump 四元组扫描无引擎写点 = 休眠成员**; 空态: 全量国家 count 恒 0; 不序列化 — 休眠定案, 业务名不可静态考 (负定案)) | |
 | +728 | 内嵌 | cached_navy_strength: {d@+736, c@+748} 8B 元素 {舰种 token, 数量} (宿主 vt = CNavyStrengthCache::vftable, 类名直读) | §4.3.8 起 |
 | +729..+759 | — | = CNavyStrengthCache (vt 0X27E71D0) vt@728 尾 + **容器 {data@736, cap@744, count@748, alloc@752}** 四元组补齐 | |
 | +760 | 内嵌块 | expeditionaries_sent 容器块 {count@+772}; writer `if(*(a1+772)) sub_1406C8960(a2, 13427, a1+760)` | §4.10.19 |
-| +772 | u32 | expeditionaries_sent 计数 (写门) | 定案 |
+| +772 | uint32 | expeditionaries_sent 计数 (写门) | 定案 |
 | +773..+783 | — | = expeditionaries_sent 容器 {data@760, cap@768, count@772, alloc@776..783} = count 尾 3B + alloc | |
 | +784 | 内嵌块 | volunteers_sent 容器块 {count@+796}; writer 键 13426 | §4.10.19 |
-| +796 | u32 | volunteers_sent 计数 (写门) | 定案 |
+| +796 | uint32 | volunteers_sent 计数 (写门) | 定案 |
 | +797..+807 | — | = volunteers_sent 容器 {data@784, cap@792, count@796, alloc@800..807} = count 尾 3B + alloc | |
 | +808 | CCountryManpower (内嵌 40B) | **人力块宿主** — 布局见下行; writer 0X140CFE9D0 ratio>0 才写 | §4.3.8 起; **GUI: Reorg confirm 人力门** (sub_14202C760) |
 | +809..+847 | — | = CCountryManpower (vt 0X295EB90) 本体: {vt@808, tag u32@816 (=cc+8), manpower.current u32@820 (键 11125), **ratio qword@824 (键 694**; GER 250000/ENG 105000/SOV 154500), exile u32@832 (键 15036; >0 才写), max u32@836 (键 15047), 尾 qword@840 (= 库块 sub_140CFA0F0 +32 拷贝, 与 +816/+820/+824/+832/+836 同批从库块拷入; writer 不写)} | |
 | +848 | CCountryColors (内嵌) | **颜色/外观对象 #1** (vt+32 finalize; loader 键 11450 解析入 +848; 化妆 tag 解析 sub_1401DB180) | **GUI: 阵营成员行色源** (sub_1406ECF80(cc) = 沿 CDiplomacyStatus(+848 色 obj/+392 宗主 tag) 爬宗主链取色 getter — 返回+32 = cc+880 行色, 返回+16 同 rgba = 阵营默认色种子; 非新字段) |
 | +849..+879 | — | = CCountryColors#1 vt@848 尾 + **间隙 8B@856** + CColor#1 vt@864 尾 + **CColor +8 间隙@872** (rgba@880 已知) — 两间隙 ctor/dtor/writer/reader 全域不触, 推定 = MSVC 对齐填充 (CColor 16B 对齐使 rgba 落 +880 需 8B 垫) | |
-| +880 | 4×f32 | **color** (16B 色值) | 复制对 +976 |
+| +880 | 4×float | **color** (16B 色值) | 复制对 +976 |
 | +881..+911 | — | = rgba@880 尾 15B + CColor#2 vt@896 + **+8 间隙@904..911** | |
-| +912 | 4×f32 | **color_ui** (第二 16B 色值) | 复制对 +1008 |
+| +912 | 4×float | **color_ui** (第二 16B 色值) | 复制对 +1008 |
 | +913..+927 | — | = rgba_ui@912 尾填充 15B | |
 | +928 | uint8 | 颜色旗字节 | 复制 +1024 |
 | +929..+943 | — | = flag@928 后尾填充 15B | |
 | +944 | CCountryColors 内嵌 #2 | **原始副本宿主** (+944..+1039: vt@944, rgba@976, rgba_ui@1008, flag@1024) | ctor 定案 |
 | +945..+975 | — | = CCountryColors#2 vt@944 尾 + **间隙 8B@952** + CColor vt@960 尾 + **+8 间隙@968** (rgba@976 已知) | |
-| +976 | 4×f32 | color **原始副本** (化妆 tag 应用前快照) | 高置信 |
+| +976 | 4×float | color **原始副本** (化妆 tag 应用前快照) | 高置信 |
 | +977..+1007 | — | = rgba@976 尾 15B + CColor#2 vt@992 + **+8 间隙@1000** | |
-| +1008 | 4×f32 | color_ui **原始副本** | 高置信 |
+| +1008 | 4×float | color_ui **原始副本** | 高置信 |
 | +1009..+1023 | — | = rgba_ui@1008 尾填充 15B | |
 | +1024 | uint8 | 颜色旗 **原始副本** | 高置信 |
 | +1025..+1063 | — | = flag@1024 后 Colors#2 尾填 15B + **owned_provinces {data@1040, cap@1048, count@1052, alloc@1056}** | |
-| +1040 | 容器 24B | **owned_provinces 缓存** {data@1040, cap@1048, count@1052, alloc@1056} — u32 省 id (**不序列化**; neighbors 计算第二源; 探针 GER count=300) | 擦除 0X14070FB90 / 空查 0X1406FCFA0 / getter 0X1406D1DF0 |
+| +1040 | uint32 向量 24B | **owned_provinces 缓存** {data@1040, cap@1048, count@1052, alloc@1056} — u32 省 id (**不序列化**; neighbors 计算第二源; 探针 GER count=300) | 擦除 0X14070FB90 / 空查 0X1406FCFA0 / getter 0X1406D1DF0 |
 | +1064 | 匿名结构 (NNB 形状)* | **controlled_provinces 数据** (u32 省 id 数组) | AddControlledProvince sub_1406D00A0 dup 查 *(prov+164) 后插入 |
-| +1076 | u32 | controlled_provinces 计数 | 同上; **GUI: 世界紧张度战争行 投降进度门** (CWorldTensionWarEntry) |
+| +1076 | uint32 | controlled_provinces 计数 | 同上; **GUI: 世界紧张度战争行 投降进度门** (CWorldTensionWarEntry) |
 | +1077..+1087 | — | = controlled_provinces {data@1064, cap@1072, count@1076, alloc@1080..1087} = count 尾 + alloc | |
 | +1088 | int64 | **首都控制区 BestVP 省缓存** (-1=无) | 断言 "Country with no province worth any VP in capital controller area" (sub_1406D9350) |
 | +1089..+1119 | — | = BestVP@1088 (i64=−1) 尾 + **休眠 24B 向量@1096** {data@1096, cap@1104, count@1108, alloc@1112 哨兵} (与 +704 同家族: ctor sub_14011DF40 / dtor 整体 dealloc / 无写点; 空态: 全量国家 count 恒 0; ⚠ 同号异类碰撞: 他类 +1096 有 RH 表 {mask@1108, extra@1112} 形态 (0x141303160 系), 勿混; 不序列化 — 休眠定案, 业务名不可静态考 (负定案)) | |
 | +1120 | CState** | **controlled_states 数据** (vector<CState*>) | SetController sub_1409DDA40 推入/移除 |
-| +1132 | u32 | controlled_states 计数 | 同上 |
+| +1132 | uint32 | controlled_states 计数 | 同上 |
 | +1133..+1143 | — | = controlled_states {data@1120, cap@1128, count@1132, alloc@1136..1143} = count 尾 + alloc | |
 | +1144 | CState** | **owned_states 数据** (vector<CState*>, 本国拥有州表) | SetOwner sub_1409DE560 对新主 sub_1406D1DF0 查重推入并重建 cc+1040 owned_provinces 缓存 + cc+4932 owned points, 对旧主 sub_14070FB90 移除并擦缓存 (双向配对); all/any_owned_state (GUI 串 TRIGGER_*_OWNED_STATE) 直遍历之; AddContestedState (sub_1406CFF30) 只推 +1168, 其 assert "not contested, use AddContestedOwner" 说的是州侧 contested-owner 属性门槛非容器名 (assert 曾被误作容器命名证据) |
-| +1156 | u32 | **owned_states 计数** | 同上; **GUI: 密码候选门** (≤0 排除; sub_141A228B0) **+ 国列表门** (与 capital cc+4120 / cc+5210 并列; 贸易过滤同键); trigger is_capital / owns_any_state_of / transfer_state 系「旧主失尽所有州」门同读此计数; **亦作 global_every_army_leader 收集器国侧门** (>0 才收集; 推定) |
+| +1156 | uint32 | **owned_states 计数** | 同上; **GUI: 密码候选门** (≤0 排除; sub_141A228B0) **+ 国列表门** (与 capital cc+4120 / cc+5210 并列; 贸易过滤同键); trigger is_capital / owns_any_state_of / transfer_state 系「旧主失尽所有州」门同读此计数; **亦作 global_every_army_leader 收集器国侧门** (>0 才收集; 推定) |
 | +1157..+1167 | — | = owned_states {data@1144, cap@1152, count@1156, alloc@1160..1167} | |
 | +1168 | CState** | **contested_states_pending 暂存队列数据** (合入 +1144 前的暂存) | AddContestedState 先暂存, points 重算并入 |
-| +1180 | u32 | 上述队列计数 | 高置信 |
+| +1180 | uint32 | 上述队列计数 | 高置信 |
 | +1181..+1191 | — | = contested_pending {data@1168, cap@1176, count@1180, alloc@1184..1191} | |
 | +1192 | CState** | cores 容器数据指针 — vector<CState*> 8B 州指针, 经 gs+712 反查州 id, 保容器序 (禁止排序); 与 §4.1.2 TOPC 条目非同一对象 (TOPC = gs 基) | §4.3.8 起; **GUI: 被占领国 owned states 计数** (cc+1192/{+1204} × state+204==玩家 过滤 → 州数 "x/y"; sub_14155D120) |
-| +1204 | u32 | cores 容器计数 | §4.3.8 起 |
+| +1204 | uint32 | cores 容器计数 | §4.3.8 起 |
 | +1205..+1215 | — | = cores {data@1192, cap@1200, count@1204, alloc@1208..1215} | |
 | +1216 | CState** | claims 容器数据指针 — vector<CState*> 与 cores 完全同构; c>0 才写 | §4.3.8 起 |
 | +1217..+1227 | — | = claims {data@1216, cap@1224, count@1228, alloc@1232} 的 data 尾 + cap@1224..1227 | |
-| +1228 | u32 | claims 容器计数 | §4.3.8 起 |
+| +1228 | uint32 | claims 容器计数 | §4.3.8 起 |
 | +1229..+1247 | — | = claims count@1228 尾 + **alloc@1232..1239** + strategic_region_data 块头 **{max_load f32@1240=1.0, pad@1244}** | |
 | +1248 | 内嵌 | **strategic_region_data 链式迭代表头** (侵入式链表; ctor 全布局: {f32 max_load@1240=1.0, 侵入链头节点@1248 (malloc 0x20 自链), 链尾@1256 见下行, 桶@1264, 水位@1272, 末界@1280 见下行, mask@1288=7, 桶数@1296=8}; +1304 = 控制州大陆去重缓存见下行; +1352 = CControllerArea 注册容器 (前线区, 分组键 = 省+392 controller) / +1376 = COwnerArea 注册容器 (所有者区, 分组键 = 州+200 owner) — 两类完整布局 §4.24.2 / +1400 = 战区分配器记录 (sub_140CF59A0 逐国重算记录·区域互指) / +1424 = 战区分配记录历史档见下行; **+1328 = wargoal 容器** {data@1328, cap@1336, count@1340, alloc@1344} — 元+60 目标 tag / 元+64 类型, 类型 def+816 = annex 旗 (推定); **与 dip+104 available_wargoals 非同一容器** (全量 451 国计数分布: 同值 4 / 仅本侧非空 14 / 仅 dip+104 非空 1)) | writer 块键 0x39C2; 节点键 = CStrategicRegion*, 写 id@region+96; 值对象 {command_power i64@+16, more_ground_crews_enabled u8@+56, modifier 块@+64} |
 | +1249..+1263 | — | = **侵入链头哨兵节点@1248** (malloc 0x20, {next@0 自链, 回链指针@节点+8 → &cc+1256}) 尾 + **侵入链尾指针@1256** (ctor 0; dtor sub_1406CB960 经哨兵回链清零; writer 沿 next 迭代至回卷) | 定案 |
@@ -211,7 +211,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4088 | 内嵌 | **incoming_diplomatic_action**; writer ADEC0 0x3D0E | §4.10 |
 | +4089..+4095 | — | = incoming_diplomatic_action@4088 指针尾 7B | |
 | +4096 | SInvasionReport* 数组 (vt 0x1429D2950; writer 0x1415165C0 / reader 0x141516410) | invasion_report 容器数据指针 {cap@4104, count@4108, alloc@4112 哨兵} — (指针数组) | 元素: tag tid@+8 / enemy tid@+12 / province=*(e+16)+164 / date hours@+40 (CGregorianDate 24B @+32); +24 = *(province+200) 装载快照 (高置信) |
-| +4108 | u32 | invasion_report 容器计数 | |
+| +4108 | uint32 | invasion_report 容器计数 | |
 | +4109..+4119 | — | = invasion_report 容器尾 {alloc@4112} | |
 | +4120 | uint32 | capital | §4.3.8 起; **GUI: 国列表门** (sub_1406EC810 = gs 表[cc+4120]; capital=0 国行跳过) |
 | +4124 | uint32 | original_capital (GER=64 对拍定案) | §4.3.8 起 |
@@ -223,9 +223,9 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4176 | MSVC 串 | graphical_culture_2d 原文串 | 同上 |
 | +4177..+4207 | — | = 串尾 + neighbors 前置 | |
 | +4208 | uint8* | **neighbors 位图#1** {data@4208, cap u32@4216, n@4220} (位图 ensure 结构 {data, cap, n, alloc}: 1.5× 增长 + memset 补 0, sub_1402C1560 — 定案) — 字节/国 (探针 GER n=333=tag 槽数); 重算 = sub_14070AF30 遍历 **controlled_provinces(+1064)** → 省静态描述符(+184) 邻接表(+112, 48B 元, id@+8) → 邻省 **controller(+392)** ≠ 己者去重入位图1/列表1; 控区变更后刷新 (0X1406EAB50/0X1406FF1F0/0X140E801A0) | 不序列化 (高置信) |
-| +4232 | 容器 24B | **neighbors 列表#1** {data@4232, cap@4240, count@4244, alloc@4248} — u32 tag (断言 "Asking if X is a neighbor of Y…" country.h; **探针 GER count=11** = 德 1939 邻国信度锁死) | 不序列化 |
+| +4232 | uint32 向量 24B | **neighbors 列表#1** {data@4232, cap@4240, count@4244, alloc@4248} — u32 tag (断言 "Asking if X is a neighbor of Y…" country.h; **探针 GER count=11** = 德 1939 邻国信度锁死) | 不序列化 |
 | +4256 | uint8* | **neighbors 位图#2** {data@4256, cap u32@4264, n@4268} (同位图 ensure 结构) (探针 333; 语义 = 拥有口径); 重算 = sub_14070AF30 遍历 **+1040 (owned)** → 邻省 **owner(+192→+200)** ≠ 己者入位图2/列表2 | 不序列化 |
-| +4280 | 容器 24B | **neighbors 列表#2** {data@4280, cap@4288, count@4292, alloc@4296} (探针 GER=11) | 不序列化 |
+| +4280 | 匿名结构 (NNB 形状) 向量 24B | **neighbors 列表#2** {data@4280, cap@4288, count@4292, alloc@4296} (探针 GER=11) | 不序列化 |
 | +4304 | fixed×1e-5 | stability | §4.3.8 起 |
 | +4312 | fixed×1e-5 | war_support | §4.3.8 起 |
 | +4313..+4319 | — | = war_support@4312 (**i64×1e-5 8B**) 尾 — stability@4304 同型 (ctor 初值全局) | |
@@ -242,65 +242,65 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4601..+4607 | — | = 资源/租借 rs@4600 指针尾 7B | |
 | +4608 | CConvoys (内嵌 136B) | **convoys** — writer ADEC0 0x3062; **第二容器 {data@cc+4688, cap@4696, count@4700, alloc@4704}** — 8B 堆对象指针元, runtime-only (dtor 拆除); 消费 = sync manager "Convoys" desync dump (sub_140DAB4C0); sub_1402BC8A0 可用护航 = 缓存总量 (+4728/+4736, /1e5) − +4716 占用 — 护航分配明细, 业务名推定; 活体形态进展: 元素本体 ≥24B 无 vtable 结构 {u32@0, u32@4, u32@8 (与 +4 同值), u32/char4@12, 8B 堆指针@+16} (本档 103 国非空, 单国 ≤6 条) | §4.3.16 |
 | +4609..+4743 | — | = **CConvoys 136B (vt 0X27E7130, ctor sub_1410203E0)**: {vt@4608, tag u32@4616, **CEquipmentVariantPool 64B 内嵌@4624** (容器A 24B 元 + 容器B + u8), 容器@4688 {data@4688, cap@4696, c@4700, alloc@4704}, qword@4712, qword@4720, u8@4728, qword@4736} — 租借护航计算域 | |
-| +4744 | u32 | convoys 派生计算值 (sub_1402BC8A0(cc+4608); 0X140705630 消费) | 推定 |
+| +4744 | uint32 | convoys 派生计算值 (sub_1402BC8A0(cc+4608); 0X140705630 消费) | 推定 |
 | +4749 | uint8 | dirty_controlled_states | §4.3.8 起 |
-| +4750 | u8 | **tick 分片槽 = hash(tag) % dword_143336F50** (ctor 写入; 消费 0X1406E8210: `hour % N == +4750` 才跑 delayed_event 同步 (写 +4776 伴随表) — 错峰调度; 探针 GER=2) | 不序列化 |
+| +4750 | uint8 | **tick 分片槽 = hash(tag) % dword_143336F50** (ctor 写入; 消费 0X1406E8210: `hour % N == +4750` 才跑 delayed_event 同步 (写 +4776 伴随表) — 错峰调度; 探针 GER=2) | 不序列化 |
 | +4752 | 匿名结构 (0xC8 形状)* | delayed_event 容器数据指针 — 元素 0xC8: 事件对象指针@+8, 名 SSO@+32, originator tid@+192, 延迟总小时@+196 | §4.3.8 起 |
 | +4753..+4763 | — | = delayed_event 容器尾 {cap@+4760} | |
-| +4764 | u32 | delayed_event 容器计数 | §4.3.8 起 |
+| +4764 | uint32 | delayed_event 容器计数 | §4.3.8 起 |
 | +4765..+4823 | — | = delayed_event 容器尾 {alloc@+4768} + 伴随表/串表本体 | |
 | +4776 | CEvent** | **delayed_event 伴随事件指针表** {data, cap@4784, count@4788, alloc@4792} — 8B CEvent* 元 (按事件对象同步删除) | dtor + 消费者 0X1406EA3A0 |
-| +4800 | 容器 24B | **关联名称串表** {data, cap@4808, count@4812, alloc@4816} — 32B MSVC 串元 (对象改名时删旧推新) | dtor + pusher 增长码 |
+| +4800 | MSVC 串 向量 24B | **关联名称串表** {data, cap@4808, count@4812, alloc@4816} — 32B MSVC 串元 (对象改名时删旧推新) | dtor + pusher 增长码 |
 | +4824 | CAce* | ace 容器数据 {cap@4832, alloc@4840} (serialize 0X14061BD30; 计数无 ≤64 上限, 探针 GER 80+ 王牌) | §4.3.8 起; reader Country.aces; **类名定案 = CAce** (ctor 直写 vtable 符号, 「CAirAce」无符号; sizeof 376B 双 malloc); 元素全表见 §4.3.12 合并版 (+1384 行废 — 376B 无此域, 熟悉机型 = +24 掩码) |
 | +4825..+4835 | — | = ace 容器尾 | |
-| +4836 | u32 | ace 族容器计数 | §4.3.8 起 |
+| +4836 | uint32 | ace 族容器计数 | §4.3.8 起 |
 | +4837..+4847 | — | = ace 容器 {data@4824, cap@4832, count@4836, alloc@4840..4847} = count 尾 + alloc | |
-| +4848 | 容器 24B | **civil_war_target tag 容器** {data@4848, cap@4856, count@4860, alloc@4864} (writer 逐元键 0x314B=12619 写 tag 名; 探针 GER count=0) | 定案 |
-| +4872 | u32 | **civil_war_initiator** (writer 键 0x3802=14338, >0 才写 tag 名) | 定案 |
-| +4876 | u32 | **m_OriginalTag** (original_tag tid; 三证: "original tag: " 调试串 + `_CountriesForOriginalTags` assert (国管理器 **+2440** = 24B vector/identity 桶) + 名回退; **gs+832 = 每国 original-tag 恒等表 u32 数组**, sub_140BB5490(tag)=identity[tag], **sub_140BB52F0(A,B) = 「同原初国」谓词** (内战分离 tag/换 tag 继承=同国, 宗主-傀儡=不同国; 全引擎 3146 处调用); COriginalTagTrigger/CAnyCountryWithOriginalTagOfTrigger RTTI 实名; >0 时名称缓存优先用它) | §4.3.8 起 |
+| +4848 | uint32 向量 24B | **civil_war_target tag 容器** {data@4848, cap@4856, count@4860, alloc@4864} (writer 逐元键 0x314B=12619 写 tag 名; 探针 GER count=0) | 定案 |
+| +4872 | uint32 | **civil_war_initiator** (writer 键 0x3802=14338, >0 才写 tag 名) | 定案 |
+| +4876 | uint32 | **m_OriginalTag** (original_tag tid; 三证: "original tag: " 调试串 + `_CountriesForOriginalTags` assert (国管理器 **+2440** = 24B vector/identity 桶) + 名回退; **gs+832 = 每国 original-tag 恒等表 u32 数组**, sub_140BB5490(tag)=identity[tag], **sub_140BB52F0(A,B) = 「同原初国」谓词** (内战分离 tag/换 tag 继承=同国, 宗主-傀儡=不同国; 全引擎 3146 处调用); COriginalTagTrigger/CAnyCountryWithOriginalTagOfTrigger RTTI 实名; >0 时名称缓存优先用它) | §4.3.8 起 |
 | +4880 | CNuke* | nukes 容器数据 {cap@4888, alloc@4896}; 元素 72B **CNuke** (vt 0X27E7270): +8 自存 token / +32 nuclear_strikes 容器 / +24 amount / +60 nukes_ready — 全表见 §4.3.8; **ctor 预填 2 条默认 CNuke** (do/while v5<2 推入, 1.5x 增长) | §4.3.8 起 |
 | +4881..+4891 | — | = nukes 容器 {data@4880, cap@4888, count@4892, alloc@4896} = data 尾 + cap | |
-| +4892 | u32 | nukes 容器计数 | §4.3.8 起 |
+| +4892 | uint32 | nukes 容器计数 | §4.3.8 起 |
 | +4893..+4903 | — | = nukes count@4892 尾 + alloc@4896..4903 | |
-| +4904 | u32 | 战斗计数字段族 (num_armies_in_combat, 详见 §4.3.8 起 标量行) | §4.3.8 起 |
-| +4908 | u32 | **num_ships_in_combat**; writer 键 0x35BE | §4.3.8 起 |
-| +4912 | u32 | num_ships | §4.3.8 起 |
-| +4916 | u32 | convoys_destroyed | §4.3.8 起 |
+| +4904 | uint32 | 战斗计数字段族 (num_armies_in_combat, 详见 §4.3.8 起 标量行) | §4.3.8 起 |
+| +4908 | uint32 | **num_ships_in_combat**; writer 键 0x35BE | §4.3.8 起 |
+| +4912 | uint32 | num_ships | §4.3.8 起 |
+| +4916 | uint32 | convoys_destroyed | §4.3.8 起 |
 | +4917..+4935 | — | = convoys_destroyed@4916 尾 + **占领度量 4×u32@4920/4924/4928/4932** (控制省-core己 / 控制省-claim己 / owned points / contested points; 重算 sub_14070BDB0, 消费 sub_1406DA100 占领比率; 不序列化) | |
-| +4936 | u32 | research_slot **动态可用科研槽数** (初值 = dword_14333701C 全局, 运行时 defines 填; ideas/国策加成后的现值——⚠ 非 ts+172 槽容量, 两者独立: BICE 实测容量恒 6 而动态 0~6, 动态=0 国无可用槽) | §4.3.8 起 / §4.7 |
+| +4936 | uint32 | research_slot **动态可用科研槽数** (初值 = dword_14333701C 全局, 运行时 defines 填; ideas/国策加成后的现值——⚠ 非 ts+172 槽容量, 两者独立: BICE 实测容量恒 6 而动态 0~6, 动态=0 国无可用槽) | §4.3.8 起 / §4.7 |
 | +4937..+4943 | — | = research_slot@4936 (u32) 尾 3B + 无引用填充槽@4940 (ctor 未触; 全域零命中, 定案) | |
 | +4944 | CBuildingStatus* | **buildings 国家侧建筑宿主** (writer 键 12121 "buildings" 恒写块; loader case 12121 → vt+24 parse; 0x78B, ctor sub_141171AD0(2, 0, cc+8): {vt, alloc 哨兵@24, 容器@32/56/80, u32@104=2, u32@108=0, u32@112=tag}) | 定案 (gs+1000 注互证, §4.1) |
-| +4952 | 容器 24B | **建筑类累计表** {data@4952, cap@4960, count@4964, alloc@4968} — 8B 内联对 {token u32@+0, value i32@+4} (按 token 累加差值) | dtor + 消费者 0X1407042D0 |
+| +4952 | uint32 向量 24B | **建筑类累计表** {data@4952, cap@4960, count@4964, alloc@4968} — 8B 内联对 {token u32@+0, value i32@+4} (按 token 累加差值) | dtor + 消费者 0X1407042D0 |
 | +4953..+4975 | — | = 建筑类累计表 {data@4952, cap@4960, count@4964, alloc@4968..4975} 内部 | |
 | +4976 | CNationalFocusTree* | focus_tree (名 MSVC@+8) | §4.3.8 起; vt 0X2739BB8 (探针+RTTI) |
 | +4984 | 匿名结构 (NNB 形状)* | **continuous_focus_palette** (loader case 14045: 数据库解析 sub_1406C22A0, fallback sub_1402D2580; 存后 focus_status 刷新) | §4.3.8 起 (定案) |
 | +4992 | CFocusStatus* | focus 对象 (CFocusStatus 宿主, §4.3.12) | §4.3.8 起 |
 | +4993..+4999 | — | = focus_status@4992 指针尾 7B | |
 | +5000 | 内嵌块 | **focus_cost_reduction = CReducedFocusCost** (全布局 §4.3.15b) | writer 键 0x27F1 |
-| +5024 | u32 | focus_cost_reduction 块计数 (写门) | 定案 |
+| +5024 | uint32 | focus_cost_reduction 块计数 (写门) | 定案 |
 | +5025..+5039 | — | = CReducedFocusCost 本体尾 (§4.3.15b) | |
 | +5040 | CVolunteerForceTransfer* 向量 | **volunteers_transfer 指针数组数据** {cap@+5048, alloc@+5056} (8B 元; 元素 160B, ctor sub_1415201A0 RTTI 直读; loader case 13309/13419 对位); writer 循环 ADEC0 0x346B | §4.10.19 |
-| +5052 | u32 | volunteers_transfer 计数 | 定案 |
+| +5052 | uint32 | volunteers_transfer 计数 | 定案 |
 | +5053..+5063 | — | = volunteers_transfer 容器尾: count@5052 高 3B + **alloc@5056 哨兵** | ctor a1[630..632] |
 | +5064 | 匿名结构 (8B 形状) 向量 | **exile_divisions_transfer 指针数组数据** {cap@+5072, alloc@+5080} (8B 元, 元素多态 vt); writer 循环 ADEC0 0x3AC1 | §4.10.19 |
-| +5076 | u32 | exile_divisions_transfer 计数 | 定案 |
+| +5076 | uint32 | exile_divisions_transfer 计数 | 定案 |
 | +5077..+5111 | — | = exile 容器尾 (count@5076 高 3B + alloc 哨兵@5080) + **civil_war 动态 tag 会话注入表 {d@5088, cap@5096, c@5100, alloc@5104}** — 16B 元 {key 对象指针, u32 tag}; 查值 0X1406F8340 先查本表再落 +5112 持久层 (civilwar.cpp:662 建国路径); 运行时-only 不序列化 | ctor sub_14011DF40(a1+636) |
 | +5112 | 匿名结构 (16B 形状) 向量 | **dynamic_revolution_tag 容器数据** (16B 条 {obj 指针@0, tag u32@+8}; ideology token@obj+20) | writer 块键 0x3564; loader 增长码四元组 |
-| +5120 | u32 | dynamic_revolution_tag cap (1.5x 增长) | 定案 |
-| +5124 | u32 | dynamic_revolution_tag count | 定案 |
+| +5120 | uint32 | dynamic_revolution_tag cap (1.5x 增长) | 定案 |
+| +5124 | uint32 | dynamic_revolution_tag count | 定案 |
 | +5128 | 指针 (allocator) | dynamic_revolution_tag allocator | 定案 |
 | +5129..+5135 | — | = dynamic_revolution_tag 容器尾: alloc@5128 高 7B 哨兵 | |
 | +5136 | tag_id* | given_air_volunteer_permission 容器数据指针 {cap@+5144, alloc@+5152} — (tag 数组) | §4.3.8 起 |
 | +5137..+5147 | — | = given_air_volunteer_permission 容器尾: data@5136 高 7B + **cap@5144** | |
-| +5148 | u32 | given_air_volunteer_permission 容器计数 | §4.3.8 起 |
+| +5148 | uint32 | given_air_volunteer_permission 容器计数 | §4.3.8 起 |
 | +5149..+5159 | — | = 同容器尾: count@5148 高 3B + **alloc@5152 哨兵** | |
 | +5160 | tag_id* | received_air_volunteer_permission tag 数组数据 {cap@+5168, alloc@+5176} | §4.3.8 起 |
 | +5161..+5171 | — | = received_air_volunteer_permission 容器尾: data@5160 高 7B + **cap@5168** | |
-| +5172 | u32 | received_air_volunteer_permission tag 数组计数 | §4.3.8 起 |
+| +5172 | uint32 | received_air_volunteer_permission tag 数组计数 | §4.3.8 起 |
 | +5173..+5183 | — | = 同容器尾: count@5172 高 3B + **alloc@5176 哨兵** | |
 | +5184 | uint32* | received_air_volunteer_permission count 并行数组数据 (导出形 "TAG=cnt" 串) | §4.3.8 起 |
 | +5185..+5195 | — | = received_counts 并行数组容器尾: data@5184 高 7B + **cap@5192** | |
-| +5196 | u32 | received_air_volunteer_permission **counts 数组计数** | writer 断言 Tags.GetSize==Counts.GetSize (country.cpp:0x3F0) |
+| +5196 | uint32 | received_air_volunteer_permission **counts 数组计数** | writer 断言 Tags.GetSize==Counts.GetSize (country.cpp:0x3F0) |
 | +5197..+5207 | — | = 同容器尾: count@5196 高 3B + **alloc@5200 哨兵** (紧贴 +5208 旗 dword) | |
 | +5208 | uint8 | **和平会议挂起旗 (surrender 抑制)** — surrender sub_1406E16C0 首行 `if (!*(cc+5208))` 才进投降逻辑; **置 1 = 和会创建时对所有 winner+loser tag** (peaceconference.cpp), 清 0 = 和会侧 + 国家重置 | 高置信 (探针 GER=0) |
 | +5209 | uint8 | **is_major** (仅真写; 与 +5210 major 并存双键; writer 键 0x34BE; **两键分立实证: 全量国家分布 = (0,1) 5 国 + (0,0) 446 国, 无 (1,1)**, 本档 +5209 恒 0) | §4.3.8 起 |
@@ -314,15 +314,15 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +5225..+5255 | — | = assign_all_forces_to 串本体 | |
 | +5256 | MSVC 串 | cosmetic_tag {buf@5256, size@5272, cap@5280=15; 名称缓存组合源之一} | §4.3.8 起 |
 | +5257..+5311 | — | = cosmetic_tag 串尾 (size@5272, cap@5280=15; ctor+探针双证) + **+5288/+5296/+5304 = army/navy/air_score 三缓存** (i64×1e-5: ARMY/NAVY/AIR_SCORE_MULTIPLIER defines × 军力摘要; 日更 sub_1406D77C0; getter 0X1406EC030/0X1406F30B0/0X1406EB6A0; 探针 GER 16.350/13.000/0.000; GUI Country 面板消费) | sub_1406D77C0 |
-| +5312 | fixed×1e-5 (i64) | **propaganda_stability_penalty** (≠0 才写裸键; writer 键 19272) | §4.3.8 起 |
-| +5320 | fixed×1e-5 (i64) | **being_bombed_support_penalty** (≠0 才写; writer 键 15440) | §4.3.8 起 |
-| +5328 | Q15 (i64) | heroes_dying_war_support_penalty (门非零才写, writer 0X1407191B0 尾段) | §4.3.8 起; writer 键 15441 互证 |
-| +5336 | fixed×1e-5 (i64) | **convoy_raiding_war_support_penalty** (≠0 才写; writer 键 15439) | §4.3.8 起 |
-| +5344 | fixed×1e-5 (i64) | **propaganda_war_support_penalty** (≠0 才写; writer 键 19271) | §4.3.8 起 |
+| +5312 | fixed×1e-5 (int64) | **propaganda_stability_penalty** (≠0 才写裸键; writer 键 19272) | §4.3.8 起 |
+| +5320 | fixed×1e-5 (int64) | **being_bombed_support_penalty** (≠0 才写; writer 键 15440) | §4.3.8 起 |
+| +5328 | Q15 (int64) | heroes_dying_war_support_penalty (门非零才写, writer 0X1407191B0 尾段) | §4.3.8 起; writer 键 15441 互证 |
+| +5336 | fixed×1e-5 (int64) | **convoy_raiding_war_support_penalty** (≠0 才写; writer 键 15439) | §4.3.8 起 |
+| +5344 | fixed×1e-5 (int64) | **propaganda_war_support_penalty** (≠0 才写; writer 键 19271) | §4.3.8 起 |
 | +5352 | fixed×1e-5 | accidents_score | §4.3.8 起; writer 键 0x37FC 互证 |
 | +5353..+5359 | — | = accidents_score 本体: i64 (+5352..+5359) 的尾 7B, 无独立字段 (探针 0.013) | |
 | +5360 | CCountryPlayerSettings (内嵌) | **player_settings** (vt 名直读; 内容器 {data@5368, cap@5376, count@5380, alloc@5384}, u8@5392) | writer 键 0x3857; **GUI: 决议 ignored 名集 (定案)** = 本对象 (token 14423) 内 ignored 决议名集合 — 写侧 CIgnoreDecisionCommand::Execute 0X141157240 (+72=1 插入/=0 删除) + CIgnoreAllAvailableDecisionCommand::Execute 0X141156FD0; 读侧 sub_1414E7100(cc+5360, def+288 名) 命中 → 行状态元 1, 未中 2 |
-| +5380 | u32 | player_settings 写门/计数 | 定案 |
+| +5380 | uint32 | player_settings 写门/计数 | 定案 |
 | +5381..+5415 | — | = player_settings (64B, +5360..+5423) 尾: count@5380 高 3B + **alloc@5384 哨兵** + **u8@5392 = unit_controller_weights_tracking 调试旗** (控制台 "Toggled unit controller weights tracking" 翻转; 探针 0) + pad + **第二运行时容器 {d@5400, cap@5408, c@5412, alloc@5416}** — ⚠ +5416 = 本容器 alloc (序列化器 0X1414E7670 只发第一容器, 本容器不落盘) | dtor sub_1406CCDD0 |
 | +5416 | CPdxNewDeleteAllocator* | 第二运行时容器 alloc (哨兵 &off_143085170) | 定案 |
 | +5424 | std::function\<bool(bool)\> | (ctor sub_140CFEA50 由 lambda 构造, 类型名含 `CCountry::QEAA_H_Z`; 读者 0X1406FDBA0 sub_140CFEAD0/3C0) | 不序列化 (形态定案; 语义未决) |
@@ -330,21 +330,21 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +5504 | CCountryFuelStatus* (0xE8=232B; vt 0x298B3A8) | **fuel_status** (writer 键 0x3B10=15120; loader case 15120 → vt+24 parse; ctor sub_1410F0AF0(cc); surrender 调 sub_1410F7F50; 其 +8 = **燃料量** (Q15; setter sub_1410F7F50 / 比 getter sub_1410F3570; §4.30 油料子窗同源) — 定案; 全链详 §4.3.16) | 定案; **GUI: 油料子窗** (logistics_fuel_window; 详 §4.3.14 B15 注) |
 | +5512 | CCountryExperienceStatus* | 经验/活动 (0xA0B, ctor sub_1412A6130(cc)) | §4.3.8 起; vt 0X29A80C0 (探针+RTTI) |
 | +5513..+5519 | — | = CCountryExperienceStatus 指针@5512 尾 7B | |
-| +5520 | 容器 24B | **name_group** 容器 (32B 串条目) | writer 块键 0x3C87 |
-| +5532 | u32 | name_group 计数 | 定案 |
+| +5520 | MSVC 串 向量 24B | **name_group** 容器 (32B 串条目) | writer 块键 0x3C87 |
+| +5532 | uint32 | name_group 计数 | 定案 |
 | +5533..+5543 | — | = name_group 容器尾: count@5532 高 3B + **alloc@5536 哨兵** | |
 | +5544 | scoped_ptr<CCountryOperationManager> | **operations** → **CCountryOperationManager** (0x60B; 内联 ctor: vt + CCountryFinishedOperations vt@+40, f32@+76=0.9) | writer ADEC0 0x4A38, 前置 scopedptr 断言 (定案) |
 | +5552 | scoped_ptr<CCountryOperationTokenManager> | **tokens** → **CCountryOperationTokenManager** (0x48B; ctor sub_141405CF0(cc); 落键 intel_source/operation_assets, 旧键 tokens 兼容 — 布局 §4.11.17) | writer ADEC0 0x4A48 (定案) |
 | +5553..+5559 | — | = tokens scopedptr@5552 尾 7B | |
 | +5560 | 匿名结构 (88B 形状)* | **active_ability 数组数据** (88B 条目) | writer 块键 0x3891, 子键 id/start_date/country/leader/num_units/strategic_region/cost 全对位; 消费详 §4.3.5 |
-| +5572 | u32 | active_ability 计数 | 定案 |
+| +5572 | uint32 | active_ability 计数 | 定案 |
 | +5573..+5583 | — | = active_ability 容器尾: count@5572 高 3B + **alloc@5576 哨兵** | |
 | +5584 | CCombatTactic* | preferred_tactic: u32@*(cc+5584)+152 (writer 0X1407191B0; GER=0/CHI=42 定案) | §4.3.8 起; GER=0 时 = CNullCombatTactic 空对象 (vt 0X27E6588, 探针+RTTI) |
 | +5585..+5591 | — | = preferred_tactic 指针@5584 尾 7B | |
 | +5592 | CState** | **scorched_states 数据** (8B 州指针数组, 写 state id@+88; writer 块键 19917=0x4DCD, 8B 步进, count@5604 门) | writer 块键 0x4DCD; loader 增长码四元组 | ⚠ 已消解: 与五容器族行 raids {d@csa+5592, 80B 元, writer 0x14066B3F0 键 19184} 系 cc/csa 两锚系同号并存 (本行 = cc 本体; raids = CStrategicAI), 双 writer 互证无重叠 (定案)
 | +5593..+5599 | — | = scorched_states 数据尾 | |
-| +5600 | u32 | scorched_states cap (1.5x) | 定案 |
-| +5604 | u32 | scorched_states count (写门) | 定案 |
+| +5600 | uint32 | scorched_states cap (1.5x) | 定案 |
+| +5604 | uint32 | scorched_states count (写门) | 定案 |
 | +5608 | 指针 (allocator) | scorched_states allocator | 定案 |
 | +5609..+5615 | — | = scorched_states 容器尾: alloc@5608 高 7B 哨兵 | |
 | +5616 | uint8 | **underway_replenishment** (仅真写; +5618 removed_controlled_province / +5619 landlocked_start ctor 全零互证) | writer 键 0x402B |
@@ -359,7 +359,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 
 | 偏移 | 类型 | 名称/语义 | 参见 |
 |---|---|---|---|
-| occ+8 | u32 | 驻军优先级 (写门 ≠1 才写, §4.3.6; 旧记「occmgr 回指」不成立 — ctor 链不写 +8, 占领管理器即 occ 本身, 记录回指 = dp+8 → occ) | |
+| occ+8 | u32 | 驻军优先级 (写门 ≠1 才写, §4.3.6; ctor 链不写 +8, 占领管理器即 occ 本身, 记录回指 = dp+8 → occ) | |
 | occ+24 | CDivisionTemplate* | 表3 记录 驻军模板 | |
 | occ+32 | CCountry* | 所有者国 (州表经 cc+1120/cc+1132 双容器; 旧「CState* 向量」系 writer 视角误标) | |
 | occ+64 | — | **通国占领状态 RH 表头占位** (load 0.9f@+92 自检) | |
@@ -376,8 +376,8 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | occ+136 | 匿名结构 (NNB 形状)* | owning 裸指针 → ~2.3KB runtime-only 助手对象 {+8 多态成员(带串), +600/+16 容器, +2256..+2288 多态槽×4} (dtor sub_140FF2F20→sub_141689370+free; writer 不触); 语义推定 | 形态定案/语义推定 |
 | occ+144 | CArmyManpowerValues (内嵌) | ctor sub_140FF2940 装 vt; 内联容器 {data@+152, cap@+160, count@+164} (foreign_manpower 求和链闭合) | 定案 |
 | occ+152..+164 | — | = CArmyManpowerValues 内联容器 {data@+152, cap@+160, count@+164} (空态共享容器静态) | |
-| occ+160 | — | = CArmyManpowerValues 内联容器 cap (上 144 行内嵌容器成员; 旧记法指针系 dp+160 行误挂, 详 §4.3.6) | |
-| occ+280 | COccupationLaw* | 默认法槽 (ctor sub_140FF2940 自 lawdb+88 装填; finder 回退链 rec+160 → occ+280 → 全局默认; 断言 countryoccupationstatus.cpp:561) | 定案 |
+| occ+160 | — | = CArmyManpowerValues 内联容器 cap (上 144 行内嵌容器成员; 非指针, 详 §4.3.6) | |
+| occ+280 | COccupationLaw* | 默认法槽 (ctor sub_140FF2940 自 lawdb+88 装填; lawdb 库类 = COccupationLawDatabase; finder 回退链 rec+160 → occ+280 → 全局默认; 断言 countryoccupationstatus.cpp:561) | 定案 |
 | occ+248 | — | 记录槽 (GUI 消费) | GUI |
 | occ+256 | CScopedPtr 向量 (8B 元) | **resistance_attack_log** (键 0x4ACE=19150; 元素 = pdx CScopedPtr 8B, 断言非空 pdx_scopedptr.h:129; 条目类 **CResistanceActivityLog 定案** (vtable 符号 0x142984888, ctor sub_140FF2B50)) {d@occ+256, c@occ+268} 8B 指针数组 (探针 SIA 47 条 ↔ cnt 一致) | 条目 writer 0X141000640; 元素表见下 |
 | occ+288 | u8 | 州↔记录对账进行中门旗 (phase C sub_140FFE6D0) | |
@@ -429,10 +429,10 @@ CStateGarrisonData (SGD, vt 0x1429848d8, 264B; writer 0x141000700 / reader 0x140
 | +48 | 向量 | 装备池 A {data@+48, count@+60} |
 | +80 | 指针 | 脏旗宿主 (变化写 宿主+1312 = 1) |
 | +88 | 指针 | 所有者链 (宿主 = *(SGD+88)+8+32) |
-| +96 | u8 | **驻军禁用 bool** (= 需求 < 0; sub_140FFCB60) |
-| +104 | 容器 | 人力池 (CArmyManpowerValues 形; 求和 sub_140C69830, 日扣 sub_140FF8BE0) |
+| +96 | uint8 | **驻军禁用 bool** (= 需求 < 0; sub_140FFCB60) |
+| +104 | 匿名结构 (NNB 形状) 向量 | 人力池 (CArmyManpowerValues 形; 求和 sub_140C69830, 日扣 sub_140FF8BE0) |
 | +136 | fixed×1e-5 | army_manpower_need (= 需求 × 模板人力(模板+400); 触发器 garrison_manpower_need 读全记录 Σ sub_140FF87C0) |
-| +144 | 容器 | 装备池 B (请求生成 sub_140FF88F0 → sub_140E6F910) |
+| +144 | 匿名结构 (NNB 形状) 向量 | 装备池 B (请求生成 sub_140FF88F0 → sub_140E6F910) |
 | +208 | RH map | equipment_need (模板+288 装填 sub_14100D330) |
 | +216 | 入参 | 装备满足率查表入参 (sub_140B99610(SGD+216, SGD+144, SGD+208)) |
 | +240 | fixed×1e-5 | **strength 现值** (= min(1e5−(1e5−eq)^GARRISON_STR_POW_EQUIPMENT(3), 1e5−(1e5−mp)^GARRISON_STR_POW_MANPOWER(2)), sub_140FFC4E0, mp = min(1e5, 1e5×池/需求); set_garrison_strength 效果与 +256 双写; 边界: 池==0∧需求==0 → 1e5, 按需 getter sub_140FF5490(a3=1) 同型路径返 0 (穿透口径)) |
@@ -493,7 +493,7 @@ CModifierEntry target = {item+32 = CModifier\* (= cc+1448 country_modifiers), it
 
 #### 4.3.5 活动能力与借调条 (CActiveAbilityItem / 借调 strip)
 
-> 可用性校验体 = **sub_1406DD920** (1,123 行; CP 不足/冷却/已激活组门 + 拒绝原因 loc 装配; 指令执行与 GUI 共用 — 暗区快裁定案, 细节细作留专批)。
+> 可用性校验体 = **sub_1406DD920** (1,123 行; CP 不足/冷却/已激活组门 + 拒绝原因 loc 装配; 指令执行与 GUI 共用)。
 
 **CActiveAbilityItem**: target = item+48 = CAbility\* (宿主 unit counter 非虚注入, 池@counter+280 {data+416, c+428}); 数据 = cc+5560 active_ability 88B 条目, 按条目+16==将领收集 (将领 +4168 HQ 引用 / +288 tag); 条目+72 = u8 隐藏门; 条目+0「id 代理对象」真身 = CAbility 本体。
 
@@ -549,21 +549,21 @@ reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccup
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
 | +0 | vt | CModifier | 不序列化 |
-| +8 | u32 | =357 (none) 「末次键」调试 token (与 CTechnologySharing+8 同款) | — |
+| +8 | uint32 | =357 (none) 「末次键」调试 token (与 CTechnologySharing+8 同款) | — |
 | +16 | vector 24B | **base pairs** {d@16, cap@24, c@28, alloc@32} — 16B 元 {mdef idx u32@0, pad@4, value i64×1e-5@+8} | c>0; 叶名 = 修饰 def token, 值 fixed5 (可负 — 读侧有符号 /100000) |
 | +40 | vector 24B | **children** {d@40, cap@48, c@52, alloc@56} — 8B 指针元 → 嵌套 CModifier (= added_modifier 块); child 关键位 = name SSO@child+88 / data=u32@child+188 | c>0 (本档 0 叶) |
 | +64 | vector 24B | **children 回收池** (`vector<CModifier*>` 自由表 {d@64, cap@72, c@76, alloc@80} — ClearChildren(flag=0) 整体 append 入池不删实例, GetOrRecycleChild LIFO 弹尾元重填复用; 仅 flag=1 路径真毁) | writer 不触 = 运行时 |
 | +88 | MSVC SSO 32B | **name** (size@+104; writer 键 27=name / parser 同址读入; 存档形态例 `added_modifier.name="operative_mission_icons_small|1情报网"`) | size≠0 引号 |
 | +120 | 匿名结构 (40B RH 桶) RH 桶数组 | **custom_modifier_tooltip 串集合** (表基 = mod+120; 槽 40B {hash, probe, 串} = 引擎 RH 桶族中的 40B 桶宽, 含 SSO 串内联; 键 768 每串 FNV-1a 插入; 消费 = 描述构建器 sub_14055B220 遍历追加为额外提示行) | writer 不触 |
-| +148 | u32 | 常量 1063675494 = 0.9f 精确位型 (0x3F666666, §3.2; RH load factor) | 不序列化 |
+| +148 | uint32 | 常量 1063675494 = 0.9f 精确位型 (0x3F666666, §3.2; RH load factor) | 不序列化 |
 | +152 | uint32 RH 桶数组 | **hidden_modifier mdef idx 集合** (表基 mod+152, 槽 8B u32 集, 键 769 块内 pair 的 mdef idx 插入; 消费 = 行构建器 sub_140E630F0 探针命中即跳过该行) | writer 不触 |
 | +160 | MSVC 串 | 第二 MSVC 串 {静态空@160, size@168, cap@176} (ctor 指向静态空串, dtor 非静态才 free) | writer 不触 |
-| +180 | u32 | 常量 1063675494 = 0.9f (hidden 集 mod+152 表 RH 尾, ctor 直证; §3.2) | 不序列化 |
-| +184 | u32 | **pair 接纳类别掩码** (sub_140557940 首行 `(mdef+100 flags & mod+184) != 0` 才合并该 pair; 国家聚合用 0xFFFFFF=24 类位) | 不序列化 |
+| +180 | uint32 | 常量 1063675494 = 0.9f (hidden 集 mod+152 表 RH 尾, ctor 直证; §3.2) | 不序列化 |
+| +184 | uint32 | **pair 接纳类别掩码** (sub_140557940 首行 `(mdef+100 flags & mod+184) != 0` 才合并该 pair; 国家聚合用 0xFFFFFF=24 类位) | 不序列化 |
 
 > +184 双读归一定案: ctor 0xFFFFFFFF 与 pair 合并门掩码同一位型 (i32 −1 = 全类接纳初值), 无冲突; 不序列化。
 > 归一补证: body ctor sub_140555FB0 全 dump 184 个调用点全部经它, `*(a1+168) = -1` (mod+184 = 0xFFFFFFFF) 无任何内嵌点写异值; 掩码读 sub_140557940 首行 (def+100 & a1[21]) 与 pair 合并门位型自洽 — 两假说 (内嵌点差异/误读) 皆否定。
-| +188 | u32 | **data = 子级展开深度** (writer 键 240=data, ≠1 才写; merge 时 dst.data>0 → 每来源生一个命名 child (data=dst−1); 存档形态 `added_modifier.data=0` 吻合; ⚠ parser 对 data 读值即弃 — 加载后由宿主 recalc 重建) | ≠1 才写 |
+| +188 | uint32 | **data = 子级展开深度** (writer 键 240=data, ≠1 才写; merge 时 dst.data>0 → 每来源生一个命名 child (data=dst−1); 存档形态 `added_modifier.data=0` 吻合; ⚠ parser 对 data 读值即弃 — 加载后由宿主 recalc 重建) | ≠1 才写 |
 
 修饰定义表寻址 (BASE 相对; 供 +16 pair 的 def_idx → def 解引用):
 
@@ -588,7 +588,7 @@ reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccup
 
 叠加律 (定案): 多来源同 id 聚合 = **纯加法** (sub_140557940 `entry.value += value×scale/100000`); 乘法结构 (X_FACTOR 族) 由公式点自算 `base×(1+Σfactor)/100000`; 无 max 型合成; 防负防爆由读取钳位 (def+96 bit4) 承担。
 
-⚠ 修饰值叶静默缺失排查: 定义表基址手抄掉位即全族缺叶 — 以符号名 qword_14332ED90 / dword_14332ED9C 为准 (十进制 BASE+ 值手抄亦有掉位前科)。
+⚠ 修饰值叶静默缺失排查: 定义表基址手抄掉位即全族缺叶 — 以符号名 qword_14332ED90 / dword_14332ED9C 为准 (十进制 BASE+ 值手抄亦会掉位)。
 ⚠ 全族闭合证据: ctor sub_140555FB0 / dtor sub_1405566B0 / writer sub_140612640 三方闭合; 与 state added_modifier 同 writer 互证。
 
 cc+3672 动态修正容器:
@@ -596,7 +596,7 @@ cc+3672 动态修正容器:
 | 偏移 (容器) | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +40 | 匿名结构 (64B) | 条目数组 容器数据指针 — {data, count}, 元素 64B |  |
-| +52 | u32 | 条目数组 容器计数 |  |
+| +52 | uint32 | 条目数组 容器计数 |  |
 | 元素+8 | tag_id | tag (i32) | >0 才写 |
 | 元素+12 | int32 | state 州 id | >0 才写 |
 | 元素+16 | int32 | days | ≥0 才写 (哨兵 -1) |
@@ -607,20 +607,20 @@ cc+3672 动态修正容器:
 
 动态修正求值 (定案; 求值函数 sub_140557BF0, calc_modifier 内先跑): 逐条目 — ① scope 决策: 条目 tag@+8 > 0 → tag 国 scope / state@+12 > 0 → 州 scope / 否则容器 scope; ② **enabled 门**: def+180 无 trigger 声明, 或 def+160 CTrigger 槽+24 Evaluate 对 scope 真 → 写条目+32 enabled=1; 假 → enabled=0 且 value 槽清零; ③ enabled 时双路并入聚合表: 静态部分 def+248 CModifier (sub_140557840, 类别位门 def+100) + 动态变量 def+440 数组 (216B/条) × def+452 计数逐条 sub_140544C90 对 scope 求值写条目 value 容器。容器虚方法 (vt 0x1427D62B8) 仅序列化四槽 + dtor, 应用逻辑全在求值函数。载入零态 = CCountry Reset → sub_140558400 容器重置 + 燃料块 init (sub_1410F2960)。
 
-#### 4.3.9 名字组 tracker (cc+112 + 8×mode)
+#### 4.3.9 名字组 tracker (四槽位; ⚠ 槽位序 ≠ mode 值序)
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| cc+112 + 8×mode | CNameGroupTracker* | tracker 本体; mode 0=division 1=ship 2=railway_gun 3=operative | |
+| cc+112/120/128/136 | CNameGroupTracker* | 四 tracker (malloc 0x68, CCountry ctor 建); **槽位↔mode: cc+112 mode 0 = division / cc+120 mode 1 = ship / cc+128 mode 3 = railway_gun / cc+136 mode 2 = operative codename** — 原「cc+112+8×mode」公式对后两位不成立 (勘误定案) | |
 | +16 | 匿名名字条目 | unavailable_groups 容器数据 {d@+16, cap@+24, c@+28, alloc@+32} | 8B CNameGroup* 元, 元素名 = cstr(*(g+8)) 或 MSVC@g+8; writer 键 14603 (legacy 14567 同址) |
-| +28 | u32 | unavailable 容器计数 |  |
+| +28 | uint32 | unavailable 容器计数 |  |
 | +40 | 匿名名字条目 | available_groups 容器数据 {d@+40, cap@+48, c@+52, alloc@+56} | 同上; writer 键 14602 (legacy 12264) |
-| +52 | u32 | available 容器计数 | 同上 |
-| +64 | u32 | runtime-only (ctor 零; 可用组重建 sub_1409C9460 开头清零) — 语义推定 | 形态定案/语义推定 |
+| +52 | uint32 | available 容器计数 | 同上 |
+| +64 | uint32 | runtime-only (ctor 零; 可用组重建 sub_1409C9460 开头清零) — 语义推定 | 形态定案/语义推定 |
 | +68 | uint8 | runtime-only (ctor 零) — 语义推定 | 形态定案/语义推定 |
 | +72 | 匿名结构 (176B) | post_mortem 容器数据 {d@+72, cap@+80, c@+84, alloc@+88} — 第三容器, 元素 176B **CNameGroupMember 内联** (writer 0X1409C9B80, 键 14604) | 下表; BlackICE 实测峰值: ship 761/div 572 (bi8), 防御界须 ≥4096 |
-| +84 | u32 | post_mortem 容器计数 |  |
-| +96 | u32 | **mode** (0=division 1=ship 2=railway_gun 3=operative) | ctor a3 |
+| +84 | uint32 | post_mortem 容器计数 |  |
+| +96 | uint32 | **mode** (0=division 1=ship **2=operative codename 3=railway_gun** — 勘误: 原后两位对调; 三重证据 = 四 tracker 创建点 mode 实参 0/1/3/2 (cc+112/120/128/136) + mode 2 回调遍历 country+4032 情报机构 +216 特工 + mode 3 回调遍历铁路炮容器 +832/+984; 与 CNameGroup+336 E_NAME_GROUP_TYPE 同域) | ctor a3 |
 
 post_mortem 元素布局:
 
@@ -631,8 +631,8 @@ post_mortem 元素布局:
 | +16 | MSVC 串 (32B) | **串#1 = 身份名** (runtime-only; assign 不复制 = 身份字段) | ctor 栈 buf@+16 |
 | +48 | int32 | **名字库记录 serial** | -1 = 未命名 |
 | +52 | pad | (copy-ctor 跳过) |  |
-| +56 | u32 | **owner id** (国/特工) |  |
-| +64 | qword | **owner 对象回指** |  |
+| +56 | uint32 | **owner id** (国/特工) |  |
+| +64 | uint64 | **owner 对象回指** |  |
 | +72 | 匿名结构 (NNB 形状)* | 恒 0 空指针 (唯一写点 sub_1409C9240 的唯一调用点实参恒 0) — 定案 | 定案 (负) |
 | +80 | 匿名结构 (NNB 形状) | equipment id 对指针 (→{type@+8, id@+12}) | ptr≠0 门, 写 tok 12110 |
 | +88 | 匿名结构 (NNB 形状)* | id 对宿主#2 (默认 = qword_14333D528 = **BSS 零全局**; runtime-only) | 推定 |
@@ -658,11 +658,11 @@ CNuke 元素布局 (72B, vt 0X27E7270; writer/loader/RTTI 三源定案):
 |---|---|---|---|
 | +8 | — | 自存 token 13517 | 恒写 |
 | +16 | 匿名结构 (NNB 形状)* | 宿主回指 |  |
-| +24 | i64 | amount (**×1e8 = 1 弹**; 999 弹钳顶 = 99900000000; 扣弹/产弹/装填全链同量纲) | 恒写 |
-| +32 | 容器 24B | nuclear_strikes (多态元 CNuclearStrike, 下表) | count≠0 开块 (块 13719, 条 13718 ADEC0) |
-| +56 | u32 | **热核级旗** (1 = thermonuclear: 破坏域全州/装备全灭/伤害 max 档/视效 nuke_big_entity; ctor 第三参直存; 国侧复位预填 entry0=tier0/entry1=tier1; writer sub_14109A660 / loader sub_141099F80 均不触) | 不序列化 |
-| +60 | u32 | nukes_ready | 恒写 |
-| +64 | u32 | 待投余量 (num_nukes_left_to_drop 累加项; 落地清扫 sub_141098460 置 0) | 定案 |
+| +24 | int64 | amount (**×1e8 = 1 弹**; 999 弹钳顶 = 99900000000; 扣弹/产弹/装填全链同量纲) | 恒写 |
+| +32 | CNuclearStrike* 向量 24B | nuclear_strikes (多态元 CNuclearStrike, 下表) | count≠0 开块 (块 13719, 条 13718 ADEC0) |
+| +56 | uint32 | **热核级旗** (1 = thermonuclear: 破坏域全州/装备全灭/伤害 max 档/视效 nuke_big_entity; ctor 第三参直存; 国侧复位预填 entry0=tier0/entry1=tier1; writer sub_14109A660 / loader sub_141099F80 均不触) | 不序列化 |
+| +60 | uint32 | nukes_ready | 恒写 |
+| +64 | uint32 | 待投余量 (num_nukes_left_to_drop 累加项; 落地清扫 sub_141098460 置 0) | 定案 |
 
 CNuclearStrike 元素 (24B 多态; loader 逐元装载 = **在途打击随档持久**, 旧「弃读运行时重建」读法废):
 
@@ -670,8 +670,8 @@ CNuclearStrike 元素 (24B 多态; loader 逐元装载 = **在途打击随档持
 |---|---|---|
 | +0 | vt |  |
 | +8 | — | 键 13718 |
-| +16 | u32 | province (10304) |
-| +20 | u32 | time (424) — 飞行小时 (0..NUKE_DELAY_HOURS dword_1433351D8, 默认 2) |
+| +16 | uint32 | province (10304) |
+| +20 | uint32 | time (424) — 飞行小时 (0..NUKE_DELAY_HOURS dword_1433351D8, 默认 2) |
 
 #### 4.3.11 country_fields 标量字段族 (覆盖率体检定案)
 
@@ -681,18 +681,18 @@ CNuclearStrike 元素 (24B 多态; loader 逐元装载 = **在途打击随档持
 |---|---|---|---|
 | +496 | fixed×1e-5 | command_power |  |
 | +536 | CVariables* | variables 族 (reader country_variables73) |  |
-| +544 | u32 | scripted_gui_random 种子 (writer sub_1407191B0 直读 cc+544 发 u32 叶, 键 15716 恒写) | ⚠ i32 符号门: 大值读 i32 (-2080830976 ↔ u32 2214136320), 勿按 u32 直读有符号字段 |
+| +544 | uint32 | scripted_gui_random 种子 (writer sub_1407191B0 直读 cc+544 发 u32 叶, 键 15716 恒写) | ⚠ i32 符号门: 大值读 i32 (-2080830976 ↔ u32 2214136320), 勿按 u32 直读有符号字段 |
 | +1192 | CState* | cores 容器数据指针 — `vector<CState*>` 8B 州指针 → gs+712 反查州 id | 保容器序单行 (FRA 尾部非升序 = 插入序, 禁止排序); c>0 |
-| +1204 | u32 | cores 容器计数 |  |
+| +1204 | uint32 | cores 容器计数 |  |
 | +1205..+1215 | — | = cores count 尾 + cores alloc@1208 |  |
 | +1216 | CState* | claims 容器数据指针 — 同构 `vector<CState*>` {cap@+1224} | ⚠ 非 stride-4 u32 id 读法 (误读形态 = 指针 lo/hi 对); c>0 |
-| +1228 | u32 | claims 容器计数 |  |
+| +1228 | uint32 | claims 容器计数 |  |
 | +1229..+4123 | — | = §4.3 CCountry 主表全覆盖 (全量定案); 本行不再记账 |  |
 | +4120 | uint32 | capital | GER=64 对拍定案 |
 | +4124 | uint32 | original_capital | GER=64 对拍定案 |
 | +4125..+4763 | — | = §4.3 主表 + **CRadarsPool@+4344 (256B 全闭)** + rs@+4600 + **CConvoys@+4608 (136B 全闭)** + delayed_event@+4752/+4764 (定案) |  |
 | +4752 | 匿名事件条目 (0xC8)* | delayed_event 容器数据指针 — 元素 0xC8 | 下表 |
-| +4764 | u32 | delayed_event 容器计数 | 下表 |
+| +4764 | uint32 | delayed_event 容器计数 | 下表 |
 | *(cc+5544)+88 | int32 | operations 顶层 priority | writer 0X1411A2690 ADFE0(0x8D=141); CZE/ITA/SWI=2 唯三/GER=1 |
 | 州自有 | CVariables* | states variables.random: st+2040 指针, random = vo+12/vo+8 (与国家 CVariables 同构同序; writer 0X140BC9280 尾 ADEC0(0x2A4A, *(st+2040))) |  |
 
@@ -713,15 +713,15 @@ CEventScope 递归布局 (sc = 作用域首址):
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
 | +8 | tag_id | country → tag 引号 | >0 |
-| +12 | u32 | random 值 2 (存档序第二) | **恒写** (默认 1) |
-| +16 | u32 | random 值 1 (存档序第一 — **写序反**, CHRX variables.random 同款) | **恒写** (默认 1587985054 = 0x5EB5B01E 魔数种子) |
+| +12 | uint32 | random 值 2 (存档序第二) | **恒写** (默认 1) |
+| +16 | uint32 | random 值 1 (存档序第一 — **写序反**, CHRX variables.random 同款) | **恒写** (默认 1587985054 = 0x5EB5B01E 魔数种子) |
 | +24 | CEventScope* | root | ≠自指 (自指 = 根哨兵, 递归终止; 读取深度上限 8) |
 | +32 | CEventScope* | from |  |
 | +40 | CEventScope* | prev = CEventScope* 递归 |  |
-| +48 | qword | runtime-only 保留 (ctor sub_140534CA0 与 +56/+64 三连清零) — 定案 (负) | 不序列化 |
-| +56 | qword | 同上 | 定案 |
-| +64 | qword | 同上 | 定案 |
-| +72 | CStrategicRegion* | strategic_region = u32@*(sc+72)+88 | ptr 非空 |
+| +48 | uint64 | runtime-only 保留 (ctor sub_140534CA0 与 +56/+64 三连清零) — 定案 (负) | 不序列化 |
+| +56 | uint64 | 同上 | 定案 |
+| +64 | uint64 | 同上 | 定案 |
+| +72 | CStrategicRegion* | strategic_region = uint32@*(sc+72)+88 | ptr 非空 |
 | +80 | uint32 | character id 对.type | 任非零 (对) |
 | +84 | uint32 | character id 对.id | 任非零 (对) |
 | +88 | uint32 | operation id 对.type | 任非零 (对) |
@@ -753,13 +753,13 @@ CEventScope 递归布局 (sc = 作用域首址):
 |---|---|---|---|
 | +12 | int32 | last_collaborated_surrender_recipient | 带符号 >0 才写; 值 = 国 idx → 引号 tag (writer 0X1407191B0 → sub_140BB4E70 串表); reader combat_support_scalars |
 | +29..+771 | — | = **CCountryManpower (40B @+808)** 与各 id 对/容器实底 (max_exile/add.. 全闭 + RH/六容器); 本行不再记账 |  |
-| +136 | CNameGroupTracker* | operative_codenames_tracker (= names_trackers 基 cc+112 + 8×mode, mode 3) | post_mortem 全字段镜像 names_trackers 模式 (mode 0-2 属 names_trackers); §4.3.6 |
+| +136 | CNameGroupTracker* | operative_codenames_tracker (**mode 2**, 槽位 3) | post_mortem 全字段镜像 names_trackers 模式; §4.3.6 |
 | +728 | 内嵌 | cached_navy_strength.sub_units: {d@+736, c@+748} 8B 元素 {舰种 token, 数量} | **块门 = 师/舰队/铁路炮容器任一非空** (writer `if(cc+668\|\|cc+644\|\|cc+692)`; 无军队国整块不写 — KR 被吞并 VNC 实证) |
 | +760 | idpair | expeditionaries_sent 容器数据指针 — {d, c} 8B 内联对 {type@+0, id@+4} (writer sub_1406C8960 token 13427; `if ((cc+772))` 门) | c>0; `id=N type=T` |
-| +772 | u32 | expeditionaries_sent 容器计数 |  |
+| +772 | uint32 | expeditionaries_sent 容器计数 |  |
 | +773..+795 | — | = expeditionaries_sent 容器 {d@760, cap@768, c@772, alloc@776} 内部 (pdx 24B) |  |
 | +784 | idpair | volunteers_sent 容器数据指针 — {d, c} 8B 内联对 {type@+0, id@+4} | c>0; `id=N type=T` |
-| +796 | u32 | volunteers_sent 容器计数 |  |
+| +796 | uint32 | volunteers_sent 容器计数 |  |
 | +797..+4107 | — | = volunteers_sent@784 + **CCountryManpower@808** + CCountryColors ×2 (含 +8 间隙) + owned/controlled/contested/cores/claims 五容器 + strategic_region_data RH 头 + 六容器@1304..1440 + 二 CRuleOverrides/CModifier#2 内嵌 — 定案, 本行不再记账 |  |
 | +820 | uint32 | manpower.current (CCountryManpower@+808 内 +12) | CTX 段 |
 | +824 | uint32 | manpower_ratio | writer 0X140CFE9D0 AE670(694, [blk+16]); qword≠0 才写 (门 = ≠0 非 >0); GER 250000/ENG 105000/SOV 154500 |
@@ -767,7 +767,7 @@ CEventScope 递归布局 (sc = 作用域首址):
 | +836 | uint32 | max_exile manpower (CCountryManpower@+808 内 +28) | 独立 >0 才写 (writer 0X140CFE9D0 内 exile(+24)>0 与 max(+28)>0 两门互不联动) |
 | +4016 | CCustomizableBuildingCollection* | naval_headquarter_status CBC: {d@+40, c@+52} 80B 条 | 条目布局见下表; CBC vt 0X27E7418 (探针+RTTI); §4.16 关联 |
 | +4096 | 匿名结构 (report 条目) | invasion_report 容器数据指针 — (指针数组) | 元素: tag tid@+8 / enemy tid@+12 / province=*(e+16)+164 / date hours@+40 |
-| +4108 | u32 | invasion_report 容器计数 |  |
+| +4108 | uint32 | invasion_report 容器计数 |  |
 | +4109..+4311 | — | = invasion_report count 尾 + intel_agency@4032 尾 + incoming_diplo@4088 尾 + original_capital@4124 尾 + graphical_culture 串@4136 + stability@4304 (定案) |  |
 | +4304 | fixed×1e-5 | stability |  |
 | +4312 | fixed×1e-5 | war_support |  |
@@ -775,7 +775,7 @@ CEventScope 递归布局 (sc = 作用域首址):
 | +4324 | uint32 | original_research_slots | ≠0 才写 (亡国 0 不写) |
 | +4749 | uint8 | dirty_controlled_states |  |
 | +4848 | tag_id | civil_war_target 容器数据指针 — u32 tid 数组 → tag 引号 | c>0 |
-| +4860 | u32 | civil_war_target 容器计数 | c>0 |
+| +4860 | uint32 | civil_war_target 容器计数 | c>0 |
 | +4861..+4907 | — | = civil_war 尾 + initiator@4872 + original_tag@4876 + nukes 四元组@4880 + **占领度量 4×u32@4920..4935** + num_armies@4904 (定案) |  |
 | +4904 | uint32 | num_armies_in_combat | 均 ≠0 才写 (num_ships 首轮 MISS_MEM = 日缓存刷新时序非布局问题); reader combat_support_scalars |
 | +4908 | uint32 | num_ships_in_combat |  |
@@ -785,31 +785,31 @@ CEventScope 递归布局 (sc = 作用域首址):
 | +4936 | uint32 | research_slot |  |
 | +4944 | CBuildingStatus* | buildings 容器宿主 (vt 0X2999050; 条目 writer = CBuilding vt 0x298A7B8 槽[2] sub_1410DCCA0): level=lv%65536 (键 10348, entry+64) / healthy=lv/65536 (键 18560, entry+66) / partial_health (键 18559, entry+72) **恒写** | **repair_speed_factor ≠100000 才写** (键 15662, entry+80); reader 对称无门 |
 | +5040 | CVolunteerForceTransfer* | volunteers_transfer 容器数据指针 — {d, c} 8B 指针元 → CVolunteerForceTransfer (0xA0, ctor 0X1415201A0); 块 writer sub_141523660 | c>0; 段 sv2_sec_c_volunteers |
-| +5052 | u32 | volunteers_transfer 容器计数 |  |
+| +5052 | uint32 | volunteers_transfer 容器计数 |  |
 | +5053..+5075 | — | = volunteers_transfer 容器 {d@5040, cap@5048, c@5052, alloc@5056} 内部 (pdx 24B) |  |
 | +5064 | CExileDivisionsTransfer* | exile_divisions_transfer 容器数据指针 — {d, c} 8B 指针元 → CExileDivisionsTransfer (0x38, ctor 0X1415117A0); 块 writer sub_141513970 | c>0; 同段 mode="exile" |
-| +5076 | u32 | exile_divisions_transfer 容器计数 |  |
+| +5076 | uint32 | exile_divisions_transfer 容器计数 |  |
 | +5077..+5123 | — | = exile 容器 {d@5064, cap@5072, c@5076, alloc@5080} 内部 + **civil_war 动态 tag 注入表 {d@5088, cap@5096, c@5100, alloc@5104}** (运行时-only) |  |
 | +5112 | 匿名结构 (16B) | dynamic_revolution_tag 容器数据指针 — (0x3569 推定): 16B 元 {子对象 ptr@+0, tag_id u32@+8} → 引号 tag; ideology = 裸 token 11838, 解引用层级 = 元→ptr→+8 (sub_140ADCDD0) |  |
-| +5124 | u32 | dynamic_revolution_tag 容器计数 |  |
+| +5124 | uint32 | dynamic_revolution_tag 容器计数 |  |
 | +5125..+5147 | — | = dyn_rev 容器 {d@5112, cap@5120, c@5124, alloc@5128} + given_air 容器 {d@5136, cap@5144} 内部 |  |
 | +5136 | tag_id | given_air_volunteer_permission 容器数据指针 | tag 数组 |
-| +5148 | u32 | given_air_volunteer_permission 容器计数 | tag 数组 |
+| +5148 | uint32 | given_air_volunteer_permission 容器计数 | tag 数组 |
 | +5160 | tag_id | received_air_volunteer_permission tag 数组数据 |  |
-| +5172 | u32 | received_air_volunteer_permission tag 数组计数 |  |
+| +5172 | uint32 | received_air_volunteer_permission tag 数组计数 |  |
 | +5184 | uint32 | received_air_volunteer_permission count 并行数组 (导出 "TAG=cnt" 串) |  |
 | +5209 | uint8 | **is_major** (JAP/ITA/AUS=1, GER/ENG=0) | ⚠ 与 major@+5210 为两字段勿混; TGWR 等 mod 另落 is_major 叶 |
 | +5210 | uint8 | major (vanilla 叶) |  |
 | +5213 | uint8 | reserved_dynamic_country |  |
 | +5214 | uint8 | use_legacy_ai_pp_spend |  |
 | +5256 | MSVC 串 | cosmetic_tag |  |
-| +5312 | Q15 i64 | propaganda_stability penalty | 同批同 helper (sub_1407191B0), ≠0 才写; reader Country.combat_support_scalars |
-| +5320 | Q15 i64 | being_bombed_support penalty | 同批同 helper (sub_1407191B0), ≠0 才写 |
-| +5328 | Q15 i64 | heroes_dying penalty (heroes_dying_war_support_penalty) | ≠0 才写 (writer 0X1407191B0 尾段 ADFE0(15441), 同批同 helper); reader Country.combat_support_scalars |
-| +5336 | Q15 i64 | convoy_raiding_war_support penalty | 同批同 helper (sub_1407191B0), ≠0 才写 |
-| +5344 | Q15 i64 | propaganda_war_support penalty | 同批同 helper (sub_1407191B0), ≠0 才写 |
+| +5312 | Q15 int64 | propaganda_stability penalty | 同批同 helper (sub_1407191B0), ≠0 才写; reader Country.combat_support_scalars |
+| +5320 | Q15 int64 | being_bombed_support penalty | 同批同 helper (sub_1407191B0), ≠0 才写 |
+| +5328 | Q15 int64 | heroes_dying penalty (heroes_dying_war_support_penalty) | ≠0 才写 (writer 0X1407191B0 尾段 ADFE0(15441), 同批同 helper); reader Country.combat_support_scalars |
+| +5336 | Q15 int64 | convoy_raiding_war_support penalty | 同批同 helper (sub_1407191B0), ≠0 才写 |
+| +5344 | Q15 int64 | propaganda_war_support penalty | 同批同 helper (sub_1407191B0), ≠0 才写 |
 | +5352 | fixed×1e-5 | accidents_score |  |
-| +5584 | CCombatTactic* | preferred_tactic = u32@*(cc+5584)+152 | writer 0X1407191B0; GER=0 / CHI=42; GER=0 时 = CNullCombatTactic 空对象 |
+| +5584 | CCombatTactic* | preferred_tactic = uint32@*(cc+5584)+152 | writer 0X1407191B0; GER=0 / CHI=42; GER=0 时 = CNullCombatTactic 空对象 |
 | +5618 | uint8 | removed_controlled_province |  |
 | +5632 | fixed×1e-5 | coastal_protection_ratio |  |
 | tg+88 | uint8 | navy_theater.theater_group.is_important (tg = theater_group 对象) | ≠0 写 yes, 常态 0 不发射 |
@@ -827,16 +827,16 @@ country.ace (CAce 元素; writer 0X14061BD30; 段侧实现 sv2_sec_c_country_sca
 
 | 偏移 (e) | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
-| +8 | u32 | type | id 块恒写 |
-| +12 | u32 | id | id 块恒写 |
+| +8 | uint32 | type | id 块恒写 |
+| +12 | uint32 | id | id 块恒写 |
 | +240 | MSVC 串 | name | 恒写 (空串照写) |
 | +272 | MSVC 串 | surname | 恒写 (空串照写) |
 | +304 | MSVC 串 | callsign | 非空才写 (size@+320) |
 | +336 | uint8 | is_female | ≠0 |
 | +344 | uint8 | alive | =0 写 no |
-| +348 | u32 | kill_type | ≠0 |
-| +352 | u32 | killer_name id 对.type | 任非零 (对 e+352/+356) |
-| +356 | u32 | killer_name id 对.id | 任非零 (对) |
+| +348 | uint32 | kill_type | ≠0 |
+| +352 | uint32 | killer_name id 对.type | 任非零 (对 e+352/+356) |
+| +356 | uint32 | killer_name id 对.id | 任非零 (对) |
 | +360 | int32 | killer_country | 带符号 >0 → 引号 tag |
 | +364 | uint8 | handled | ≠0 写 yes |
 | +368 | 匿名结构 (NNB 形状)* | modifier (SSO@*(e+368)+8) | 指针非 0 |
@@ -871,7 +871,7 @@ CProgramItemBase target = NProject::CProgram (+56 CRef 柄):
 | +160 | 拆除中 |
 | +176 | 支援科学家 |
 | +248 | 进度 fix5 |
-| +376 | **未读原型奖励计数器 (翻案定案)** — u32; ctor 0; Execute 0x141EF3F20 清零 + 项目 id 通知。⚠「+368 旗容器」说与 ctor 无 +368 vt 写相抵, 整行标待复核 (推定) |
+| +376 | uint32 未读原型奖励计数器 — ctor 0; Execute 0x141EF3F20 清零 + 项目 id 通知; ⚠「+368 旗容器」说与 ctor 无 +368 vt 写相抵, 整行待裁 (推定) |
 
 facility def 布局补行 (def = CProgram+72 所指):
 
@@ -902,7 +902,7 @@ CAce 合并版全布局 (376B = 0x178; 类名 CAce 定案; writer 0X14061BD30 / 
 | +232 | idpair | 指派翼 idpair | 定案 |
 | +336 | uint8 | **is_female** 女性旗 (GUI 侧头像族解析; 布局补行并表) | 推定 |
 | +340 | uint32 | **portrait 整数** (ctor/reader/存档 portrait=78/活证 78 四证 — 原串说废) | 定案 |
-| +344 | u8 | **alive** (两表归并 — KIA = 零值语义; 原「+344 KIA/alive 两说」结案) | 定案 |
+| +344 | uint8 | **alive** (两表归并 — KIA = 零值语义; 原「+344 KIA/alive 两说」结案) | 定案 |
 | +368 | CAceDef* | **ace def 指针** (ApplyAceDef sub_14061B7D0 写; writer 表只见 def+8 名串) | 定案 (原锚吻合) |
 
 #### 4.3.13 CLoopHistory / 队列族 (country.history @cc+4040 / logistics @cc+3992 / strategic_air history — 三处同构, 唯一队列 writer 0X141517EC0, 全 dump 仅此一处写 max_elements token, 无类型分流)
@@ -937,7 +937,7 @@ CLoopHistory (elem, 0x38):
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +8 | 行句柄** 数组* | data = 行**对象**指针数组 | |
-| +16 | u32 | **cap** | ctor/dtor 定案 |
+| +16 | uint32 | **cap** | ctor/dtor 定案 |
 | +20 | uint32 | rows (行数 = 容量) | data 迭代上界 |
 | +24 | CPdxNewDeleteAllocator* | **alloc** (&off_143085170 单例) | ctor/dtor |
 | +32 | uint32 | **max_elements** | **writer 0X141517EC0 直读 +32**; 定案: +16 ≡ +20 ≡ +32 三槽值恒等 (46 队列零差, 探针); max 随族异 — history=1 / logistics=7 / strategic_air=5 (「30/12/1」系家族特定样本非普适) |
@@ -1001,7 +1001,7 @@ B15 后勤面板消费 — 行数值 = sub_141D9BFE0 → sub_141371450 聚合桶
 | 运行时写者② 日更聚合 | CCountry::DailyUpdate sub_1406E76A0 → sub_141371390(logi) + 燃料史 sub_1410F2B50(fs) → sub_141373E50 七列写 ld[17]（桶 +136; 7 列 = `EFuelHistoryData::FUEL_DATA_COUNT`, col0 = (fuel≪15)/32768000） |
 | 运行时写者③ 事件重填 | sub_141375840（同①填充段, 不推队列; 调用者 = 投降/吞并/读档族 0x140714170 / 0x140713DD0 / 0x14122F2F0 / 0x1419A4DE0 / 0x1419D6A60 / 0x14049CDA0） |
 | 运行时写者④ 懒写回 | sub_1413719A0（logistics.cpp:934 断言 "CEquipmentType seems not be an archetype"; archetype 需求算毕写 ld[15] 单元格; 调用链 sub_141D99C10 行件读端 → sub_141371830, GUI 读端触发） |
-| 桶 push 入口翻案 | 「sub_141516980/sub_1415173C0 全 dump 无调用者 ⇒ 走间接调用」**证伪**——sub_141516980 直调调用者即上列①②③三路（前次普查漏）; 落盘 writer 0X141375A30 见 §4.3.13 外层守卫 |
+| 桶 push 入口 | sub_141516980 直调调用者 = 上列①②③三路; 落盘 writer 0X141375A30 见 §4.3.13 外层守卫 |
 
 kind 枚举（k 值 = sub_141371450 首参桶号）：
 
@@ -1037,13 +1037,13 @@ fp = *(cc+4992); ctor 0X1402CB9C0 (malloc 0xB8); vt BASE+0X2739D50, slot2 = writ
 | +16 | CNationalFocus* | current 对象 → 名 SSO@+24 | ptr≠0; def 对象; **GUI: 国策进度块 label/goal_ico(_shine)** (外交 active_national_focus_info; 门 sub_141433D90 情报) |
 | +24 | CNationalFocus* | current_continuous (0x36E5) → 名@+24 | ptr≠0; GER/test1/test2 0 现, BHU 6 例; reader Country.focus.current_continuous; def 对象 (CContinuousNationalFocus 系) |
 | +32 | CNationalFocus* | shine 容器数据指针 — {d, c} 8B focus 指针, 名 = C 串@elem+24 (与 completed 同形态) | c>0 整块 |
-| +40 | u32 | shine 容器 cap | ctor |
-| +44 | u32 | shine 容器计数 | c>0 整块 |
+| +40 | uint32 | shine 容器 cap | ctor |
+| +44 | uint32 | shine 容器计数 | c>0 整块 |
 | +48 | 匿名结构 (NNB 形状)* | shine 容器 alloc |  |
 | +56 | fixed×1e-5 | progress | **≠0 才写**; **GUI: 国策进度条** (progressbar = 1e7×progress/total; NO_NATIONAL_FOCUS / UNKNOWN_INFO) |
 | +64 | CNationalFocus* | completed 容器数据指针 — {d, c} 8B CNationalFocus 指针 | 逐元双形态 (下表) |
-| +72 | u32 | completed 容器 cap | ctor |
-| +76 | u32 | completed 容器计数 | 逐元双形态 (下表) |
+| +72 | uint32 | completed 容器 cap | ctor |
+| +76 | uint32 | completed 容器计数 | 逐元双形态 (下表) |
 | +80 | 匿名结构 (NNB 形状)* | completed 容器 alloc |  |
 | +88 | RH 图 | **本视角国自有完成图** (定案): 写入侧 CompleteFocus sub_1402DC740 → sub_1402CD590 = **fp+88 FNV(def) RH 插** 直证; 读侧 sub_1402D6C40 = 命中且 byte+4≠0xFF (**0xFF = 空桶/墓碑**); 桶结构 32B {base@+88, buckets@+96 (默认空桶哨兵 &unk_143086980), count u32@+104, mask u32@+108, extra u8@+112, load_factor f32=0.9@+116} — 16B 桶 {hash u32@+0, dist u8@+4, key CNationalFocus*@+8} (插入器 sub_1402C5240 写 +0 哈希; 查找器 sub_1402C7270 只读 +4/+8, +0 无值语义) | originator 查询①; ctor 逐字段; runtime-only; **GUI: 焦点块状态码** (fp+88 命中 → item+48 状态 1..4 五状态窗 +56..+88; **状态 2 = 查看国自己完成**; 联合国策进度住工作国 fp, UI 经 sub_140DF65C0 GetWorkingCountry 换 fp 显示) |
 | +120 | CNationalFocus* 向量 | **available focuses 可选候选缓存 (定案)** {d@+120, cap@+128, c@+132, alloc@+136} — 8B CNationalFocus* 按 focus id(e+8) 有序二分插入; 维护 = **完成路径增量** (sub_1402CD590: 有序移除自身 sub_1402C86B0 + 逐 def+1440 dependents 前置满足者有序插入 sub_1402D5F60); **全量重建唯一调用点 = 焦点树切换/恢复 sub_140711A60** (sub_1402D7340: 清空 → 遍历树全焦点 → 前置容器 (def+1392,{d,c@1404}) 空 或 每依赖组有备选 ∈ fp+64 → 插入; "Country focus tree is not set" nationalfocus.cpp:1612); daily 只做旁路扫描消费, 从不重建; AI DecideFocus sub_14131DAF0 **不读本表** (自走树扫描); 互斥在选择时判定 (ExclusiveItem 状态 4 输入 = def+1416 互斥组任一元 ∈ fp+88, sub_1402CEFA0 — 与 fp+120 无关) | runtime-only |
@@ -1076,9 +1076,9 @@ CNationalFocus def (size 0x620, ctor 0X1402CB440):
 | +280 | 值块 | x (token 32) |
 | +320 | 值块 | relative_position_id (token 14029) |
 | +360 | 触发器 | historical_ai (token 13862) |
-| +448 | 触发器容器 | **available** (token 12264); 条目计数@+468 |
-| +712 | 触发器容器 | **bypass** (bypass_conditions, token 13241); 计数@+732 |
-| +800 | 触发器容器 | **cancel** (token 10469); 条目计数@+820 |
+| +448 | 匿名结构 (NNB 形状) 向量 | **available** (token 12264); 条目计数@+468 |
+| +712 | 匿名结构 (NNB 形状) 向量 | **bypass** (bypass_conditions, token 13241); 计数@+732 |
+| +800 | 匿名结构 (NNB 形状) 向量 | **cancel** (token 10469); 条目计数@+820 |
 | +888 | — | ai_will_do 值块 (token 10819) |
 | +944 | 效果块 | **select_effect** (token 13244) — 选择焦点时执行 (§4.3.15a) |
 | +1032 | 效果块 | **completion_reward** (token 12784) — vt[10] 完成时执行 |
@@ -1133,8 +1133,8 @@ CContinuousNationalFocus def (成员解析 sub_1406C3310; fp+24 current_continuo
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
 | +160 | 值块 | ai_will_do (token 10819) |
-| +216 | 触发器容器 | **available** (token 12264) |
-| +304 | 触发器容器 | **enable** (token 10376/705) |
+| +216 | 匿名结构 (NNB 形状) 向量 | **available** (token 12264) |
+| +304 | 匿名结构 (NNB 形状) 向量 | **enable** (token 10376/705) |
 | +392 | — | idea (token 10491) |
 | +400 | 效果块 | **daily_reward** (token 14046); 计数@+420 |
 | +488 | 效果块 | **select_effect** (token 13244) |
@@ -1162,7 +1162,7 @@ CFocusInlayWindowInstance (56B 内联元):
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
 | +0 | vt |  |
-| +8 | u32 | =357 类登记 id |
+| +8 | uint32 | =357 类登记 id |
 | +16 | {x,y} | position |
 | +24 | def* | CFocusInlayWindow def |
 | +32 | CPositionOverride 向量 | CPositionOverride 表 {104B 元: +8 x / +12 y / +16 CAndTrigger} |
@@ -1174,8 +1174,8 @@ CFocusInlayWindow def = 216B 数据库项 (TGameItemDatabase; 单例 qword_14332
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
 | +8 | — | id |
-| +16 | NInlayWindowScript::SIcon (64B 元) 向量 (容器归属定案: ctor sub_140A6C410 三容器基址; db = TGameItemDatabase<CFocusInlayWindowDatabase>) | scripted_images 表 — 元素类 vftable 直证 (SIconReader 解析); 字段布局待 GUI 批细作 — 定案 |
-| +40 | NInlayWindowScript::SButton (192B 元) 向量 (同上容器归属定案) | buttons 表 — 元素 {vt@0, u32@8, u32@12, CAndTrigger 88B@16, 块@104..+191} — 定案 |
+| +16 | NInlayWindowScript::SIcon 向量 | scripted_images 表 — 64B 元, 元素类 vftable 直证 (SIconReader 解析); 容器归属定案: ctor sub_140A6C410 三容器基址; db = TGameItemDatabase<CFocusInlayWindowDatabase>; 字段布局待裁 — 定案 |
+| +40 | NInlayWindowScript::SButton 向量 | buttons 表 — 元素 {vt@0, u32@8, u32@12, CAndTrigger 88B@16, 块@104..+191} — 定案 |
 | +64 | NInlayWindowScript::SProgressbar (248B 元) 向量 | progressbars 表 — 元素 {vt@0, 数据@8..+39, CScopedVariable@40, token 19479 "undefined" 默认@92/96, SSO@152, SSO@216} — 定案 |
 | +88 | MSVC SSO | window_name |
 | +120 | CAndTrigger (88B) | visible |
@@ -1251,7 +1251,7 @@ CCountry 内嵌块 @cc+5000 (40B 本体; vt 名直读; 与 fp+88/fp+152 表族�
 | +24 | uint32 | count |
 | +28 | uint32 | mask |
 | +32 | uint8 | extra |
-| +36 | f32 | load_factor = 0.9 (复位函数写 0x3F666666) |
+| +36 | float | load_factor = 0.9 (复位函数写 0x3F666666) |
 
 桶条目 (48B stride):
 
@@ -1373,6 +1373,11 @@ priority u32 = 玩家可设等级 (0=低 1=中 2=高, ctor=1); 写者 = CSetFuel
 | ref (division / task_force / air_wing id 对) | 471 / 15157 / 13161 | {type@+16, id@+20} 任一 ≠0 且 sub_14221F310(e+16) ∉ {0, 16} (0 = 目标已不存在, 16 = 哨兵型亦不写; KR SIC 三条失败 ref 实证) |
 
 ⚠ ref=0 槽: training 照写, 仅 division 叶省 (ref 全 0 孤儿整体不写的口径不成立)。
+
+日更收敛步 = sub_1412A8060 (CCountry::DailyUpdate 内; 公式定案): 键 46-55 取界 lerp
+收敛, 钳位字段 +16..+64; mdef 46/47、50/51、54/55 = XP_GAIN_{ARMY,NAVY,AIR}(_FACTOR);
+日累计钳 FIELD_EXPERIENCE_MAX_PER_DAY ×3 / 存量钳 MAX_{ARMY,NAVY,AIR}_EXPERIENCE;
+训练 XP lerp 目标 = 军队计数<<15 (ARMY_COUNT_DAILY_LERP / DECREASE_FOR_TRAINING_XP)。
 
 #### 4.3.18 CConvoys (cc+4608; writer 0X141022CF0 + 池 writer 0X141012DB0; 池类 = **CEquipmentVariantPool** 64B, vt 0x142749270, reader 0x1410113B0)
 
@@ -1571,16 +1576,16 @@ CPowerBalance 主表:
 | +32 | CPowerBalanceSide* | right_side | 恒写 | |
 | +40 | CPowerBalanceSide* | trending_side | 恒写 | 同 template (+16) |
 | +48 | fixed×1e-5 | value | 恒写 | |
-| +56 | 容器 24B | countries | c>0 且 idx>0 | {data@+56, cap@+64, count@+68, alloc@+72}; 元 = u32 国 idx → 引号 tag |
+| +56 | 匿名结构 (NNB 形状) 向量 24B | countries | c>0 且 idx>0 | {data@+56, cap@+64, count@+68, alloc@+72}; 元 = u32 国 idx → 引号 tag |
 | +68 | uint32 | countries 计数 | c>0 且 idx>0 | |
-| +80 | 容器 24B | modifier | 恒写循环 | {data@+80, cap@+88, count@+92, alloc@+96}; 元 = 8B 指针 → MSVC@ptr+424 引号 |
+| +80 | 匿名结构 (NNB 形状) 向量 24B | modifier | 恒写循环 | {data@+80, cap@+88, count@+92, alloc@+96}; 元 = 8B 指针 → MSVC@ptr+424 引号 |
 | +92 | uint32 | modifier 计数 | 恒写循环 | |
-| +104 | 容器 24B | ranges 合并视图缓存 | 不序列化 | {data@+104, cap@+112, count@+116, alloc@+120}; 8B 指针 → 1856B CPowerBalanceRange; Rebuild sub_140E58950 = 左 ranges + 右 ranges + def ranges 合并排序; 连续性校验 sub_140E56190 ("gap/overlap detected") |
-| +128 | 容器 24B | 左侧 ranges 收集暂存 | 不序列化 | {data@+128, cap@+136, count@+140, alloc@+144}; Rebuild merge 源 |
-| +152 | 容器 24B | 右侧 ranges 收集暂存 | 不序列化 | {data@+152, cap@+160, count@+164, alloc@+168} |
+| +104 | 匿名结构 (NNB 形状) 向量 24B | ranges 合并视图缓存 | 不序列化 | {data@+104, cap@+112, count@+116, alloc@+120}; 8B 指针 → 1856B CPowerBalanceRange; Rebuild sub_140E58950 = 左 ranges + 右 ranges + def ranges 合并排序; 连续性校验 sub_140E56190 ("gap/overlap detected") |
+| +128 | 匿名结构 (NNB 形状) 向量 24B | 左侧 ranges 收集暂存 | 不序列化 | {data@+128, cap@+136, count@+140, alloc@+144}; Rebuild merge 源 |
+| +152 | 匿名结构 (NNB 形状) 向量 24B | 右侧 ranges 收集暂存 | 不序列化 | {data@+152, cap@+160, count@+164, alloc@+168} |
 | +176 | CPowerBalanceRange* | 当前/默认 range 缓存 | 不序列化 | |
 | +184 | CModifier (内嵌 192B) | 平衡自身修正块 | 不序列化 | 运行时合成; 序列化走 +80 指针数组非本内嵌; 全布局见 §4.3.8 通用表 (分区见下方映射表) |
-| +376 | 容器 24B | sides | c>0 | {data@+376, cap@+384, count@+388, alloc@+392}; 80B 元素 = CPowerBalanceSideInfo (ctor 0X140E55020, 下方子表) |
+| +376 | 匿名结构 (NNB 形状) 向量 24B | sides | c>0 | {data@+376, cap@+384, count@+388, alloc@+392}; 80B 元素 = CPowerBalanceSideInfo (ctor 0X140E55020, 下方子表) |
 | +388 | uint32 | sides 计数 | c>0 | |
 
 注 (写入点): +176 唯一写入点 = sub_140E58770 (Rebuild 尾调): min 含 / max 排他 /
@@ -1615,7 +1620,7 @@ CPowerBalanceSide 主表 (~288B; ctor 0X140A8B8C0):
 | +0 | vt | CPowerBalanceSide | 不序列化 | |
 | +8 | uint8 | valid | | |
 | +16 | MSVC SSO 32B | name | | |
-| +48 | u32 | id | | **u32 FNV-1a ci-hash** (ctor sub_140A8B8C0 初值 −1); 赋值 = 自身 reader vt[4] sub_140A8ED10 case 11 → sub_140612C40(&v6, a2, a1+16), hash 落 +16+32 |
+| +48 | uint32 | id | | **u32 FNV-1a ci-hash** (ctor sub_140A8B8C0 初值 −1); 赋值 = 自身 reader vt[4] sub_140A8ED10 case 11 → sub_140612C40(&v6, a2, a1+16), hash 落 +16+32 |
 | +56 | MSVC SSO 32B | icon | | |
 | +88 | CEffect (内嵌 88B) | on_activate | | 键 15557 |
 | +176 | CEffect (内嵌 88B) | on_deactivate | | 键 15558 |
@@ -1650,7 +1655,7 @@ CPowerBalanceSide 的 reader = sub_140A8ED10 (vt 0x142940000 [4])。四者非同
 | +1776 | MSVC SSO 32B | desc loc 键 | | |
 | +1808 | uint8 | valid | | THasNullObject mdisp 直证 |
 | +1816 | MSVC SSO 32B | id | | |
-| +1848 | u32 | id hash | | **u32 FNV-1a ci-hash**; 读取点 = 自身 reader vt[4] sub_140A8ECE0 case 11 → sub_140612C40(&v4, a2, a1+1816), hash 落 +1816+32 |
+| +1848 | uint32 | id hash | | **u32 FNV-1a ci-hash**; 读取点 = 自身 reader vt[4] sub_140A8ECE0 case 11 → sub_140612C40(&v4, a2, a1+1816), hash 落 +1816+32 |
 
 #### 4.3.23 国级周期更新入口 (hourly / daily / weekly / monthly 时序钩子)
 
@@ -1671,6 +1676,13 @@ CPowerBalanceSide 的 reader = sub_140A8ED10 (vt 0x142940000 [4])。四者非同
 > + sub_1401D85A0 相位 2 (sub_1401B6BE0 归并 / sub_1401B6870 插入); 插入式双键入口对
 > sub_1401B4780/sub_1401B4900 (EWMA 键/师数键) 同族 (定案)。
 > 备注: 活跃国门 = owned_states cc+1156 > 0 (hourly/daily/weekly/monthly 四级共用)。
+> 备注: **trade_influence 贸易影响力十因子** (装配器/求和 = sub_1406DD280; 定案):
+> BASE=sub_1406EC400 / DISTANCE=sub_1406EF880 / PUPPET_MASTER=sub_1406F7180 /
+> PUPPET=sub_1406F7370 / PARTY_SUPPORT=sub_1406F8420 / RELATION=sub_1406F8010 /
+> TROOPS=sub_1406F0960 / NAVIES=sub_1406F06F0 / ANTI_MONOPOLY=sub_1406EBBD0
+> (§4.23.3b 公式) / OPERATIVE_MISSION=sub_1406F7A90; 终式 =
+> S×(1e5+他国 mdef225 TRADE_OPINION_FACTOR [他国+1464])/1e5 (÷1e5 magic-mul, PE 核);
+> 前置门 = 他国 cc+1156>0。
 
 #### 4.3.10a 核弹投放执行链
 
@@ -1772,7 +1784,7 @@ CPersistent（双序列化路径: 主表槽 [8..11] 与子表槽 [1..4] 同 writ
 | 偏移 | 类型 | 名称/语义/键 | 序列化 | 证据档 |
 |---|---|---|---|---|
 | +0 | vptr | 主虚表 0x14295C4B0（CEquipmentDistributable 链; [8]Save/[9]writer/[10]Load/[11]reader） | — | 定案 |
-| +8 | uint32 | priority（141）= CEquipmentDistributable 基类「分配优先级」(基类 ctor sub_1415A7410 默认 1; rs ctor 尾覆写 3; writer 门 ≠1 = 非基类默认才落盘; reader case 141 回读 — 高置信; 消费点 [谁读它排序] 需活体) | 是 | 高置信 |
+| +8 | uint32 | priority（141）= CEquipmentDistributable 基类「分配优先级」(基类 ctor sub_1415A7410 默认 1; rs ctor 尾覆写 3; writer 门 ≠1 = 非基类默认才落盘; reader case 141 回读 — 高置信; 消费点 [谁读它排序] 需活体; **活体: 载档后读值 = 1** — 读档走基类默认路径, ctor 置 3 只在新建会话态) | 是 | 高置信 |
 | +12..+15 | — | 对齐垫 (priority 后) | 否 | 高置信 |
 | +16..+23 | 8B | CEquipmentDistributable 第二基类字段 (基类 ctor 置 0; 消费未定位) | 否 | 高置信 |
 | +24 | vptr | CPersistent 序列化子对象 0x14295C4E8（[1]/[2]/[3]/[4] = Save/writer/Load/reader）; **writer/reader 的 a1 基点** | — | 定案 |
@@ -1780,7 +1792,7 @@ CPersistent（双序列化路径: 主表槽 [8..11] 与子表槽 [1..4] 同 writ
 | +40 | CStrategicResourcePool 内嵌 (176B) | produced（12204）资源产量池 | 是 | 定案 |
 | +216 | CStrategicResourcePool 内嵌 | transfer_overlord_subject（16764）宗主转运池 | 是 | 定案 |
 | +392 | CStrategicResourcePool 内嵌 | imported（12482）进口池 | 是 | 定案 |
-| +568 | CStrategicResourcePool[3] (3×176) | to_use（12483; 单块包 3 池; [0]/[2] 直拷 sub_140BCAF50, [1] = f(1)−f(0) 差值合成 sub_140BCB3B0）; 池 [2] 基 = rs+920 = 产线消耗释放回收池 (equipment_production_line.cpp:653 释放遍 trade.h:554 断言直证); [0]/[1] = 基准/含预备总池 (推定需活体) | 是 | 定案 (落盘契约: 块 2 = mem[1]−mem[0] delta 编码, 读侧 pool[1] += pool[0] 重组) |
+| +568 | CStrategicResourcePool[3] (3×176) | to_use（12483; 单块包 3 池; [0]/[2] 直拷 sub_140BCAF50, [1] = f(1)−f(0) 差值合成 sub_140BCB3B0）; 池 [2] 基 = rs+920 = 产线消耗释放回收池 (equipment_production_line.cpp:653 释放遍 trade.h:554 断言直证); [0]/[1] = 基准/含预备总池 (推定需活体)。**池内网格 (活体)**: 池 = 头 48B + 8×16B 元 {资源 id u32@+0, 量 i64 fixed×1e-5@+8}; 首元 id = `none` 哨兵 (lexer 直证 oil/aluminium/rubber/tungsten/steel/chromium/coal 七资源随 mod); 尾锚读数 = 空容器哨兵 0x2E85170 非业务量; **活体对拍: P0 == P1 全程相等 (暂停与跑 6.5 月后均等 — 本会话无预备消耗), P2 = 负值累计且跑动期有增量 (tungsten −49→−48) = 产线释放持续发生** | 是 | 定案 (落盘契约: 块 2 = mem[1]−mem[0] delta 编码, 读侧 pool[1] += pool[0] 重组) |
 | +1096 | uint32 | 变更检测缓存低半 = to_use 装载代数（reader case 12483 装载尾 ++, 0xFFFF 回绕置 1） | 否（派生缓存） | 高置信 |
 | +1100 | uint16 | 变更检测缓存高半（ctor 清零; 生产侧 6B 快照 ps+1194/1198 与之对账） | 否（派生缓存） | 高置信 |
 | +1104 | CStrategicResourcePool 内嵌 | to_export（12484） | 是 | 定案 |
@@ -1788,10 +1800,10 @@ CPersistent（双序列化路径: 主表槽 [8..11] 与子表槽 [1..4] 同 writ
 | +1456 | CStrategicResourcePool 内嵌 | exported（12485） | 是 | 定案 |
 | +1632 | CStrategicResourcePool 内嵌 | 第 4 池（资源向量@+1640 = §4.3.3 only_imported 推定行宿主） | 否 | 推定 |
 | +1808 | CResourceOrigin* 向量 {d@+1808, cap@+1816, c@+1820, alloc@+1824} | 资源权利对象列表; 逐元素键 12473 origin 发多态子块（无包裹键, 重复键发射）; 元素 1016B（ctor 0x140CA5090, owner tag 抄 rs+32） | 是 | 定案 |
-| +1832 | CResourceExchange* 槽容器数组 {d@+1832, cap@+1840, c@+1844, alloc@+1848} | 按 资源 def+216 cat 索引的 24B 槽（ctor 预扩至全局 cat 数槽, 槽 = sub_14011DF40 形 24B 容器）; 槽内元素逐个键 12486 export 发子块; 元素 = CResourceExchange（240B; vt 0x14295C410 / writer 0x140CBEEC0 / reader 0x140CB8E10; +128 = rs 回链, §4.8） | 是 | 定案 |
-| +1856 | 容器 {d@+1856, cap@+1864, c@+1868, alloc@+1872} | 运行时容器（ctor 初始化 / dtor 清扫; writer/reader 均不触; §4.21 刷新域标注「交换条目」; 静态排除: 贸易巡检/重评/最大可出口三件不触 — 需活体: 元素 vt 校验对照 CResourceExchange 系 + human_ai 跑 1 月观察与贸易窗口联动) | 否（runtime-only） | 未决（语义, 需活体） |
+| +1832 | CResourceExchange* 向量 24B | 按 资源 def+216 cat 索引的 24B 槽组, 头 {d@+1832, cap@+1840, c@+1844, alloc@+1848}（ctor 预扩至全局 cat 数槽, 槽 = sub_14011DF40 形 24B 容器）; 槽内元素逐个键 12486 export 发子块; 元素 = CResourceExchange（240B; vt 0x14295C410 / writer 0x140CBEEC0 / reader 0x140CB8E10; +128 = rs 回链, §4.8） | 是 | 定案 |
+| +1856 | 匿名结构 (NNB 形状) 向量 | 运行时容器（ctor 初始化 / dtor 清扫; writer/reader 均不触; §4.21 刷新域标注「交换条目」; 静态排除: 贸易巡检/重评/最大可出口三件不触; **活体: 439 国 rs 全构造前提下 {d,c} 全空, 跑 6.5 个游戏月后复查仍全空 = 本环境零实例零 churn** — 语义仍待裁, 元素 vt 校验需非空实例) | 否（runtime-only） | 未决（语义; 活体零活动已证） |
 | +1880 | CLendLeaseExchange* 向量 {d@+1880, cap@+1888, c@+1892, alloc@+1896} | lend_lease（12618）; 元素 896B（malloc 0x380）, ctor sub_14196A480: CConvoySubscriber@+136 / rs 回链@+176 / 10×64B 容器 @+216..+728 / CGameDate×4 @+792..+840 | 是 | 定案 |
-| +1904 | 容器 {d@+1904, cap@+1912, c@+1916, alloc@+1920} | 在途输入条目队列 (8B 元素指 0x14196 交换族 896B 对象; 求和 getter sub_140CA7C70 = Σ(元+880); 唯一消费 = 燃料日更 sub_1410F71B0 取和入 fuel+40 参与资源槽分配 — 机制定案, 业务名「inbound 租借/输送条目」高置信) | 否（runtime-only） | 定案 (机制) |
+| +1904 | 匿名结构 (8B 形状) 向量 | 在途输入条目队列 (8B 元素指 0x14196 交换族 896B 对象; 求和 getter sub_140CA7C70 = Σ(元+880); 唯一消费 = 燃料日更 sub_1410F71B0 取和入 fuel+40 参与资源槽分配 — 机制定案, 业务名「inbound 租借/输送条目」高置信) | 否（runtime-only） | 定案 (机制) |
 | +1928 | CResourceDeliveryRoute* 数组 {d@+1928, cap@+1936, c@+1940, alloc@+1944} | delivery_routes（13476）; 按买方国 idx 索引（ctor 尾扩到国家容器规模并 null 填充）; writer 跳 idx 0, 逐非空元素以 route+52 tag 名（sub_140BB4E70）为键发命名子块; reader 按 tag 名回填原槽 vt[3]（trade.cpp:3844 未知 tag 报错） | 是 | 定案 |
 | +1952 | modify_building_resources 表向量 {d@+1952, cap@+1960, c@+1964, alloc@+1968} | modify_building_resources（14547, 门 count≠0）; 外条 32B {建筑 token u32@+0, 内表 24B 向量@+8}, 内元 16B {u32 资源 idx, fixed×1e-5 → sub_1424ED730 转整落盘}; reader 外键走 TGameItemDatabase 查建筑 | 是 | 定案 |
 | +1976 | 16B 条向量 {d@+1976, cap@+1984, c@+1988, alloc@+1992} | extra_resource_origin（15049, 逐条重复发块）; 条 = {CResourceOrigin* @+0（键 12473 子块）, giver tag u32@+8（键 12500 giver; writer 转 tag 名串 / reader 存 tag id）}; reader 建新 CResourceOrigin（tag 抄 rs+32） | 是 | 定案 |
@@ -1831,26 +1843,4 @@ rs+1976 条解引用; 消费行 §4.3.3）:
 | +24 | uint32 | tag（owner, 抄 rs+32） | 推定 |
 | +128 | CState* | 州指针 | 推定 |
 | +904 | uint32 | tag 第二落点（ctor 填） | 推定 |
-| +992 | 容器 {d@+992, count@+1004} | given_resource_rights — 8B 条 {res_key u32@+0, tid u32@+4}; res_key 1..7 = 资源索引序 (oil..coal), 资源名 = 运行时本国资源向量动态收集（非静态表, mod 新资源自动对） | 定案 |
-
-
-#### 4.3.26 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
-
-| 来源 | 函数与身份 / 建议落点 |
-|---|---|
-| part03 | sub_140704380 (#11) / 投降/迁都链国家事件 CEventScope 装配与发射 / s4_03 国册 / §4.10.32 投降链事件步 |
-| part06 | sub_1406E71F0（#26） / 志愿军转移创建 / 书 `s4_03_CCountry.md:280` cc+5040 volunteers_transfer 行旁补创建通道（ctor sub_1415201A0 直证；调用方含 part02 #10 装配原语） |
-| part07 | sub_1412A8060（#12） / 经验状态日收敛 / 书 `s4_03_CCountry.md` §4.3.15/§4.3.17 补：DailyUpdate 内 es 收敛步定址（键 46-55 取界 + lerp 收敛 + 钳位字段 +16..+64） |
-| part08 | sub_14070DEC0（195 行，#1） / 军事/占领(受控省) / 书 `s4_03_CCountry.md:132-134` controlled_provinces 表行补注 remove/压缩侧件（Add 侧 sub_1406D00A0 已实名，本件 = SetController 联动的摘除+抵抗门+UI 通知侧）；`s4_14_CProvince.md:47` SetController 行同步补注 |
-| part08 | sub_1406E5110（193 行，#5） / 政治/国家评分 / 书 `s4_03_CCountry.md:314` +5288/+5296/+5304 三缓存行补注 air 分量计算体（AIR_SUP 求和 + SCORE_CALC_AIR/MULT 登记；姊妹件 sub_1406E5990 = SCORE_CALC_TOTAL 一并补名）；0x141F 国评 GUI 区消费链细作时一并定 |
-| part09 | sub_1406DD280（179 行，#3） / 经济/贸易 / 书 `s4_03_CCountry.md`（或 `s4_08_production.md` 贸易侧）补行：国家变量 TRADE_FACTOR_OPERATIVE_MISSION 求和公式（Σ10 分项 getter + 变量表读改 + define 225 修正 ×(1+mod/1e5)）；细作时先枚举 6 调用方分支与 define 225 身份 |
-| part11 | sub_1414FABB0（#3） / 统计/报表（生产历史） / 书 `s4_03_CCountry.md:1475` §4.3.20 CCountryReportsManager 补：生产两列 14-tick 均值滚动历史（≤79 槽、gs+1128 日期戳；列0 = sub_140E69340 净IC、列1 = PS+720/816/912 三项和）；触发点 = 事件检查波 sub_1406E8210 尾（sub_1406CD820(cc+4064)） |
-| part11 | sub_1406EF880（#16）+ sub_1406F8420（#27）+ sub_1406F8010（#32） / 经济/贸易影响力 / 书 `s4_03_CCountry.md:1638` CCountry::DailyUpdate 链（或 s4_08_production.md 若成域）补：贸易影响力因子族 **TRADE_FACTOR_{DISTANCE, PARTY_SUPPORT, RELATION}**（+已有 OPERATIVE_MISSION 共 4 件），装配器 = sub_1406DD280（"_HasCachedTradeInfluence \/\/ IsFir |
-| part11 | sub_14070E230（#12） / 军事/州控制 / 书 `s4_03_CCountry.md:137` controlled_states 行注补移除步函数名 **sub_14070E230**（SetController 体内调用；含 scorched_states 联动摘除 + +4749/+5618/PS+1192 三 dirty 旗） |
-| part13 | sub_141513E00（127 行，#25） / 外交/每日更新 / 书 `s4_03_politics.md` DailyUpdate 链（:1638 邻）补步：来件外交行动（incoming_diplomatic_action）scopedptr 消费；或外交行动册若成册再迁 |
-| part13 | sub_140CFC490（125 行，#35） / 人力/流亡国 / 书 `s4_03_politics.md` 人力行补：流亡国人力日增长取值件（EXILE_COUNTRY_NORMAL_MANPOWER_DAILY_GROWTH define 消费）；细作先核 sub_140CFBFF0 上游是否全 GUI tooltip 链（若全是 → 降 A 改记 tooltip 取值件） |
-| part14 | sub_14109A2A0（#18） / 军事/核弹 / 书 `s4_03_CCountry.md:1722` 核弹节 ⑧ 行补地址：on_nuke_drop 发射器 = sub_14109A2A0（含 idler vt+184/128 联动与 sub_1412905A0 前步） |
-| part16 | sub_1411782F0（107 行，#10） / 经济/资源(租借) / 书 `s4_03_CCountry.md:239` rs@+4600 行补逐条目查询/汇总内步（条目 +480 对象/+516 计数；被查池原语 sub_140CB4BF0）；调用侧州具族 0x1409D 与资源池 0x140CB 双消费 |
-| part16 | sub_1406C1640（107 行，#14） / 政治/持续国策 / 书 `s4_03_CCountry.md:274` continuous_focus_palette 行（loader case 14045 sub_1406C22A0 已载）补默认树 fallback 选树件（"No default tree scripted, will apply first scripted instead."）；调用侧 = 调色板装载 sub_1406C23A0 + 逐国默认重置 sub_1401E0E30 |
-| part16 | sub_1406D2CB0（104 行，#34） / 军事/铁路炮 / 书 `s4_03_CCountry.md:753`（师/舰队/铁路炮容器块门行）或 `s4_14_CProvince.md:43` type13 行补 **Add 侧登记件**（_RailwayGuns.Contains + 所有权断言；调用侧含 railway_gun.cpp OVERRUN_POPUP 件 sub_140E8C020 part10 #28 已实名） |
-| part17 | sub_14142E180（102 行，#3） / 全局进度/比率查询 / 细作先体读 sub_14142DF10 + qword_143336ED0 写者定语义（候选 = 世界紧张度/投降进度类全局进度，消费面 = 战略海军串行遍 part03 #22 实名链 + 8 GUI 宿主）；定册后再选落点（候选 = s4_03:133 世界紧张度战争行注或国家缓存区） |
+| +992 | 匿名结构 (8B 形状) 向量 | given_resource_rights — 8B 条 {res_key u32@+0, tid u32@+4}; res_key 1..7 = 资源索引序 (oil..coal), 资源名 = 运行时本国资源向量动态收集（非静态表, mod 新资源自动对） | 定案 |

@@ -9,7 +9,7 @@ writer 0X140EE5430。
 |---|---|---|---|
 | +8 | CSubUnitStatBonus 内嵌 56B | 子单位加成累计器 {vt@+8, 向量@{+16,+24,+28,+32} 与 {+40,+48,+52,+56}} | ctor sub_1406419E0 直写 vt; Reset sub_140641D40 |
 | +64 | vector\<CTechnology*\> 24B | **_ResearchedTechs** (已完成科技, 按 tech+8 名 token 排序的二分查找容器) {cap@72, count@76, alloc@80} | assert "_ResearchedTechs.Contains( pTechnology ) == false" (technology.h:0x27D); loader case 11869 在 level≥max 时二分插入 |
-| +88 | vector\<u32\> 24B | **per-建筑 max_level 加成缓存** (按建筑 def+736 索引; 完成科技时按 tech+56 {def*,u32} 对 max 累积) {cap@96, count@100, alloc@104} | 写点 0X140EE3E70 `ts88[4*def+736]=max(cur,val)`; 消费 0X1411731F0 配 loc BUILDING_CURRENT_MAX_LEVEL_CAPPED |
+| +88 | vector\<uint32\> 24B | **per-建筑 max_level 加成缓存** (按建筑 def+736 索引; 完成科技时按 tech+56 {def*,u32} 对 max 累积) {cap@96, count@100, alloc@104} | 写点 0X140EE3E70 `ts88[4*def+736]=max(cur,val)`; 消费 0X1411731F0 配 loc BUILDING_CURRENT_MAX_LEVEL_CAPPED |
 | +112 | vector\<指针\> 24B | **国家可用战斗战术 (combat tactics) 累积表** (元素=tactic 对象, id@elem+148 去重) {cap@120, count@124, alloc@128} | 完成科技时把 tech+80 元素按 +148 去重 push; fallback 构造串 "nullCombatTactic" |
 | +136 | vector\<CTechnology*\> 24B | technologies {cap@144, count@148, alloc@152} — **元素 8B 指针** (count<4096) | 导出须过滤门 (下) |
 | +160 | vector\<CResearchSlot*\> 24B | slots {cap@168, count@172, alloc@176} — **元素 8B 指针** (writer 双重解引用实锤; 对象 72B) | loader case 11879 逐槽 malloc(0x48); **GUI: 研究槽行** (research_slots_grid; Repopulate@48[9] 0X1415FA1A0 → 0X1415FA300 建行 CResearchSlotItem(0x580), item+1336=slot; 可见门 sub_1415FB5D0 非本人槽不画) |
@@ -19,9 +19,9 @@ writer 0X140EE5430。
 | +256 | vector\<CLimitedUseTechCostReduction*\> 24B | cost_reduction {cap@264, count@268, alloc@272} — **元素 8B 指针** (对象 112B) | loader case 19531 增长码全四元组 |
 | +280 | vector\<CTechnologySharingGroup*\> 24B | **本国 technology sharing group 成员表** (组 id@elem+8) {cap@288, count@292, alloc@296} | CModifyTechnologySharingBonusEffect::Execute 0X14031FB10 → sub_140ED5110 按组 id 查找; Add/Remove 效果经 gs 管理器 push/erase |
 | +304 | CCountry* | 回指 (ctor 参数 a2) | +312=`*(a2+8)` 即国 tag 初值 |
-| +312 | u32 | override_icons_tag | loader case 17939 互证; 定案: writer sub_140BB59C0 = 通用 tag 发射器, **tag>0 门** (零叶不发射, 发射为引号国家串) |
-| +316 | u32 | next_bonus_id (ctor/Reset 置 1; 取后自增) | loader case 13286 → sub_1424C08D0(a2, a1+316) 实写 (§4.7.6 dest 透传) |
-| +320 | u32 | **land doctrine 等级缓存** (doctrine tech 注册 sub_140ED6CD0 写 = sub_140ED79C0 计算值; land_doctrine_level 触发器读) | 定案 |
+| +312 | uint32 | override_icons_tag | loader case 17939 互证; 定案: writer sub_140BB59C0 = 通用 tag 发射器, **tag>0 门** (零叶不发射, 发射为引号国家串) |
+| +316 | uint32 | next_bonus_id (ctor/Reset 置 1; 取后自增) | loader case 13286 → sub_1424C08D0(a2, a1+316) 实写 (§4.7.6 dest 透传) |
+| +320 | uint32 | **land doctrine 等级缓存** (doctrine tech 注册 sub_140ED6CD0 写 = sub_140ED79C0 计算值; land_doctrine_level 触发器读) | 定案 |
 | +328 | vector\<CTechnology*\> 定容 4 | **四军种 doctrine 当前 tech 指针槽: [0]=land / [1]=naval / [2]=air / [3]=special_forces** {cap@336, count@340, alloc@344} | ctor 定容 4; 0X140ED6CD0 按模板 folder 名 memcmp "land/naval/air/special_forces_doctrine_folder" 写入 |
 
 **过滤门 (导出 technologies 时)** — writer 0X140EE5430 四条件或 (定案; bonus 是
@@ -45,7 +45,7 @@ loader 0X140EE16F0):
 |---|---|---|---|
 | +8 | token | name = 模板名 token (ctor `+8=*(template+60)`) | ⚠ template+60=名 token 非数字 id; **GUI: 在研科技名** (slot+24 tech → tech+8 → title 窗; sub_140EDEBB0 → sub_140EC9A60) |
 | +48 | 匿名结构 (32B 形状)* | 次级通知列表头 (懒分配; 32B 条 {u32=1, ptr=tech+16, u8, u8}) | 推定 |
-| +56 | vector\<16B {def*, u32}\> 24B | **本科技授予的建筑 max_level 加成表** (源自模板+584 48B 条) {cap@64, count@68, alloc@72} | CompleteResearch 将其 max 累积进 ts+88 |
+| +56 | vector\<16B {def*, uint32}\> 24B | **本科技授予的建筑 max_level 加成表** (源自模板+584 48B 条) {cap@64, count@68, alloc@72} | CompleteResearch 将其 max 累积进 ts+88 |
 | +80 | vector\<指针\> 24B | **本科技解锁的战斗战术** (源自模板+608 40B 条, 按名查全局表; fallback "nullCombatTactic") {cap@88, count@92, alloc@96} | CompleteResearch 推入 ts+112 |
 | +104 | vector\<指针\> 24B | 完成时注入 CProductionStatus 的解锁列表 A (源自模板+632, 库 qword_14332EEC0 解析; 携 design_team) {cap@112, count@116, alloc@120} | 高置信 (equipment variant 族); **GUI: 科技图标回退源** (*(tech+104) 首元 +1000 旗 → 首解锁装备图; 模板图为先) |
 | +128 | vector\<指针\> 24B | 完成时注入生产的解锁列表 B (源自模板+656) {cap@136, count@140, alloc@144} | 高置信 |
@@ -60,21 +60,21 @@ loader 0X140EE16F0):
 | +344 | CTechnologyStatus* | 回指 (SetLevel/GetTechState 经它回 ts) | |
 | +352 | CTechnologyTemplate* | 模板 (template+988=max_level, +60=名 token, +56=1 基库序, +736=0 基索引, +1312/+1328=XP boost 配置; §4.7.7) | writer/loader/Init 三证 |
 | +360 | CTechnology* | **门控科技回链** (本科技被 +176 主之科技门控时指主; InitPostRead `if(!+360)` 才重算 +368) | 高置信; **GUI: 科技图标门** (!tech+360 ∨ sub_140EE3DD0(template+1034 ∨ tech+116==0) — **tech+116 = +104 容器 count** (非独立字段), 图标门第二键) |
-| +368 | u32 | **科技状态枚举缓存**: 1=前置齐 / 2=可研究 (默认) / 3=可研究 (含 +360 门控支路) / 4=已研究 (level≥max) / 5=在研 / 6=不可研究 (XP boost 不足等) | 0X140EDEE40 全文; InitPostRead/RefreshAll 重算并通知 |
-| +372 | u32 | level | SetLevel=0X140EE34F0 互证; loader case 10348 → sub_1424C08D0(a2, a1+372) 实写 |
+| +368 | uint32 | **科技状态枚举缓存**: 0=ctor 态 / 1=前置齐 / 2=可研究 (默认) / 3=可研究 (含 +360 门控支路) / 4=已研究 (level≥max) / 5=在研 / 6=不可研究 (XP boost 不足等) | 0X140EDEE40 全文; InitPostRead/RefreshAll 重算并通知 |
+| +372 | uint32 | level | SetLevel=0X140EE34F0 互证; loader case 10348 → sub_1424C08D0(a2, a1+372) 实写 |
 | +376 | CGameDate 24B {vt1@+376, hours@+384, vt2@+392} | date (ctor 哨兵 43808760; 门 = 本值≠0 — ctor 恒初始化 → 块写则 date 必写, 未完成科技 = "1.1.1.1"; ADEC0 代理 = a1+392=&vt2) | 定案 |
-| +400 | i64 | **加成值累计器** (AddAdvisorBonus `+=def+48`; AddEquipmentBonus `+=bonus+56`; 运行时重算, writer 不写) | 高置信 |
+| +400 | int64 | **加成值累计器** (AddAdvisorBonus `+=def+48`; AddEquipmentBonus `+=bonus+56`; 运行时重算, writer 不写) | 高置信 |
 | +408 | fixed×1e-5 | research_points (键 11868) | loader 实写; **GUI: 进度条分子** (tech+408 ∨ slot+32; 分母 = 模板+992×qword_143332BA0/1e5 ∨ qword_143332A38; 归一 1e7; research_progressbar) |
 | +416 | fixed×1e-5 | design_team_bonus (键 19165) | ≠0 才写; loader 实写 |
 | +424 | fixed×1e-5 | research_points_from_design_team (键 16378) | ≠0 才写; loader 实写 |
 | +432 | std::map 根 {count@+440} | **research_points_per_mio** (key=token, value=fixed; 键 19181, RB-tree 遍历) | writer+loader 双证 |
 | +448 | fixed×1e-5 | ahead_reduction (键 13284) | ≠0 才写; loader 实写 |
 | +456 | fixed×1e-5 | bonus (键 10931) | ≠0 才写 (**叶门**, 不参与块存在门); loader 实写 |
-| +464 | vector\<u32\> 24B | limited_use_bonus.uses {cap@472, count@476, alloc@480} uint32 数组 (count<64) | |
-| +488 | u8 | **use_experience = _BoostedByXP** (键 15370) | ≠0 才写; assert "_BoostedByXP == false" (technology.cpp:0x82A) 双锚; **GUI: ETA 门** (tech+488 → 剩余天数 ETA_SHORT_D/DAYS; sub_140EDA1B0; 门 = 在研且窗可见) |
-| +492 | u32 | design_team 对.type (id 对 {type@492, id@496}) | 任一非零才写; loader case 19159 "双双有效才落"; **GUI: 设计商图标/名** (GFX_research_line_mio_bg; sub_14221F310 + sub_140DB8C20) |
-| +496 | u32 | design_team 对.id | |
-| +500 | u32 token | **locked_design_team** (键 19182; lexer token 直存, 写出转串) | ≠"undefined"(19479) 才写 |
+| +464 | vector\<uint32\> 24B | limited_use_bonus.uses {cap@472, count@476, alloc@480} uint32 数组 (count<64) | |
+| +488 | uint8 | **use_experience = _BoostedByXP** (键 15370) | ≠0 才写; assert "_BoostedByXP == false" (technology.cpp:0x82A) 双锚; **GUI: ETA 门** (tech+488 → 剩余天数 ETA_SHORT_D/DAYS; sub_140EDA1B0; 门 = 在研且窗可见) |
+| +492 | uint32 | design_team 对.type (id 对 {type@492, id@496}) | 任一非零才写; loader case 19159 "双双有效才落"; **GUI: 设计商图标/名** (GFX_research_line_mio_bg; sub_14221F310 + sub_140DB8C20) |
+| +496 | uint32 | design_team 对.id | |
+| +500 | uint32 token | **locked_design_team** (键 19182; lexer token 直存, 写出转串) | ≠"undefined"(19479) 才写 |
 
 #### 4.7.2 CResearchSlot (72B)
 
@@ -89,7 +89,7 @@ loader 0X140EE16F0):
 | +40 | fixed×1e-5 | progress — **存档键 used_saved_points** (键 13499; 定名) | |
 | +48 | u64 | **死字段 (负定案)**: 全语料无运行时写者 (ctor/loader 置 0, SetTechnology/daily 链均不触) | 保留槽 |
 | +56 | fixed×1e-5 | points_factor | ≠100000 才写 (键 13956) |
-| +64 | u32 | **槽位序号** (ctor 第三参 = ts+172 当前槽数; SyncSlotsToCount 以之定位) | 定案 |
+| +64 | uint32 | **槽位序号** (ctor 第三参 = ts+172 当前槽数; SyncSlotsToCount 以之定位) | 定案 |
 
 #### 4.7.3 CLimitedUseTechBonus (128B)
 
@@ -97,15 +97,15 @@ loader 0X140EE16F0):
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +8 | u32 | uses (键 13285) | ≠0 才写 |
-| +12 | u32 | **claim** (键 11310; 定名) | |
+| +8 | uint32 | uses (键 13285) | ≠0 才写 |
+| +12 | uint32 | **claim** (键 11310; 定名) | |
 | +16 | MSVC SSO 32B (size@+32, cap@+40) | name | |
-| +48 | u32 | id (ctor 初值 **−1**; AddLimitedUseTechBonus 经 sub_140735C80 落 next_bonus_id) | |
+| +48 | uint32 | id (ctor 初值 **−1**; AddLimitedUseTechBonus 经 sub_140735C80 落 next_bonus_id) | |
 | +56 | vector\<CTechnologyTemplate*\> 24B | **technology 适用列表** (writer 逐条写模板+60 名 token; loader 按名解析+有效性旗模板+64 过滤) {cap@64, count@68, alloc@72} | 键 10335 |
 | +80 | vector\<类别 def*\> 24B | **category 适用列表** (writer 写类别对象+44 id) {cap@88, count@92, alloc@96} | 键 702 |
 | +104 | fixed×1e-5 | ahead_reduction (键 13284) | |
 | +112 | fixed×1e-5 | bonus (键 10931) | |
-| +120 | u32 | **死字段 (负定案)**: 无写者 (ctor 置 0; id 分配器只写 +48; uses 消耗链不触) | 保留槽 |
+| +120 | uint32 | **死字段 (负定案)**: 无写者 (ctor 置 0; id 分配器只写 +48; uses 消耗链不触) | 保留槽 |
 
 #### 4.7.4 CLimitedUseTechCostReduction (112B)
 
@@ -115,9 +115,9 @@ loader 0X140EE16F0):
 |---|---|---|---|
 | +8 | fixed×1e-5 | cost_reduction (键 19537) | |
 | +16 | vector\<CTechnologyTemplate*\> 24B | tech 适用列表 {cap@24, count@28, alloc@32} | 键 10335 |
-| +40 | u32 | uses (键 13285) | |
+| +40 | uint32 | uses (键 13285) | |
 | +48 | MSVC SSO 32B (size@+64, cap@+72) | name | |
-| +80 | u32 | id (ctor 初值 **−1**) | |
+| +80 | uint32 | id (ctor 初值 **−1**) | |
 | +88 | vector\<类别 def*\> 24B | **category 适用列表**  {cap@96, count@100, alloc@104} | 键 702 |
 
 #### 4.7.5 writer/loader 键速查 (本族全部存档键)
@@ -170,29 +170,35 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +56 | u32 | 1 基库序 | tech+352 行互证 |
+| +56 | uint32 | 1 基库序 | tech+352 行互证 |
 | +60 | token | 名 token | 非数字 id |
-| +64 | u8 | 有效旗 | lub loader 按之过滤 |
+| +64 | uint8 | 有效旗 | lub loader 按之过滤 |
 | +336 | — | 完成效果块 | |
 | +392 | — | 完成 modifier | |
 | +584 | 48B 条列表 | 建筑 max_level 加成列表 | tech+56 源 |
 | +608 | 40B 条列表 | 战术列表 (计数@+620) | tech+80 源 |
 | +632 | CEquipmentArchetype* 向量 | 生产解锁列表 A — **装备原型指针** (元素 +1365 = 已解锁旗门) (计数@+644) | tech+104 源 |
 | +656 | 装备原型/变体指针向量 | 生产解锁列表 B (prod 双表 sub_140E5E220 注册) (计数@+668) | tech+128 源 |
+| +680 | 24B 条列表 {目标指针@0, 触发器@8} (计数@+692) | **子单位解锁 (带触发器门)** — 逐条触发器求值 (对象 vt+24 槽) 为真 ∨ … 且目标+16 有效 | tech+152 源 (ctor 0x140ED2DD0) |
+| +704 | 40B 条列表 (计数@+716) | **科技 categories 类别表** — 元素 = 类别 def* (sub_140ACBD90 解析; def+48 有效门; 无效报 "Technology \"X\" has invalid category \"Y\"" technology.cpp:199) | **tech+248 源** (勘误: tech+248 = categories 类别指针表, 非 path 引用) |
+| +752 | 152B 条列表 {名串@+8, u32@+40} (计数@+764) | **前置研究加成/计数链** (GUI 研究栏消费, sub_140EE2F80/0x140EE2FE0 递归计数; 条+40 载入未消费待裁) | — |
 | +776 | 匿名结构 (元素待裁) 向量 | 前置列表 (计数@+788) | tech+200 源 |
-| +800 | 引用向量 | **path 族引用** (研究路径树) | 含听众互注册; tech+248 源 |
+| +800 | 引用向量 | **path 族引用** (研究路径树; **AND 语义** — 元素 +40=所需等级, +64=有效旗; 资格判定 0x140ED7CE0/0x140ED8F00 **现读模板不缓存**) | 前置列表 +776 = **OR 语义**; tech+248 ≠ 本行源 (tech+248 实为 categories, 见 +704 行) |
 | +824 | 引用列表 | **互斥科技 (mutually_exclusive) 引用** | tech+224 源 |
 | +848 | 匿名结构 (40B 元素待裁) 向量 | 被门控后继列表 {d@848, cap@856, count@860, alloc@864} | tech+176 源; 元素 40B 模板键结构 |
 | +872 | u32 数组 | **特殊项目 id 表** {data@+872, count@+884} — AddResearchPoints sub_140ED5690 notify 时逐 id 调 sub_140E75C40 推进 cc+4008 program_status | 定案 |
-| +896 | 24B 容器 {d@+896, cap@+904, c@+908, alloc@+912} | **folder 关联条目列表** (键 11873 folder; 元素 56B = CFolderPosition, 下表) | 消费器 sub_140ED6CD0 doctrine 四军种 folder 名 memcmp 源 (§4.7 已载) |
-| +984 | u32 | start_year (token 11874; 「科技可用年」系语义释义) | >0 门 |
-| +988 | u32 | max_level | |
+| +896 | 匿名结构 (NNB 形状) 向量 24B | **folder 关联条目列表** (键 11873 folder; 元素 56B = CFolderPosition, 下表) | 消费器 sub_140ED6CD0 doctrine 四军种 folder 名 memcmp 源 (§4.7 已载) |
+| +984 | uint32 | start_year (token 11874; 「科技可用年」系语义释义) | >0 门 |
+| +988 | uint32 | max_level | |
 | +992 | — | 基础成本 | 进度条分母: ×qword_143332BA0/1e5 ∨ 空槽 qword_143332A38 |
+| +1033 | uint8 | **双语义同字节**: 科技共享加成豁免 (sub_140ED6C10 首门, 命中即返 0) + AI 落后年份加权豁免 (0x140ED5B50); 脚本键名待裁 | 双语义定案, 键名待裁 |
 | +1034 | bool | **force_use_small_tech_layout** (reader case 19623) | 科技图标门第二键 ∨ tech+116==0; 邻 +1036 = **show_equipment_icon** (reader case 13950) |
+| +1035 | uint8 | **绕过研究资格检查旗** (消费者 0x2060254 所属 GUI/AI 函数) | — |
 | +1104 | CAIResearchNeed 32B | **research 需求聚合** (need 条目 16B {token u32, need i64}; 向量 data@+1112; ctor 内联 sub_1413C4F10) | §4.34.6 |
 | +1136 | 匿名结构 (NNB 形状) | **on_research_complete_limit** 触发器 (ctor sub_140549F40) | reader case 13738 limit 分支 (vt+40) / case 19672 |
 | +1224 | 匿名结构 (NNB 形状) | **on_research_complete** 效果 (ctor sub_14053CFD0) | reader case 13738 (vt+24) |
-| +1312 | u32 | XP boost 配置 | IsBoostableByXP = +1312≠0 且 +1328>0 |
+| +1244 | uint8 | **on_research_complete 效果存在门** (聚合器 0x140EE3E70: 门真且 gs+2617 真 → 模板+1136 触发器求值 (vt+24 槽) 真 → 执行模板+1224 效果 (vt+96 槽)) | — |
+| +1312 | uint32 | XP 类型 (0=不可 XP 解锁) / **+1320 = 解锁 XP 量 / +1328 = 加速 XP 量** | IsBoostableByXP = +1312≠0 且 +1328>0; SetBoostedByXP 扣模板+1328 量 XP 置 +488 (0x140EE4ED0); UnlockByXP 门 = +1312≠0∧+1320>0 (0x140EE5010) |
 | +1320 | — | XP boost 配置 | |
 | +1328 | — | XP boost 配置 | >0 门 |
 
@@ -231,7 +237,7 @@ ctor 0x141A35060) = **内联三元状态容器** (非常规派生族):
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
 | +8 | 匿名结构 (union 指针) | **current state 指针** (指向 +24 / +232 / +360 / +488 之一) | reader 0x141A37880 `*(a1+8) = a1+24` / `= v10` |
-| +16 | u8 | **tag 三值**: 1 = PROTOTYPE 活动态 (ctor 默认, +8 指向 +24) / 0 = Simple 态 / −1 = 惰性哨兵 (writer 守卫) | 同上 (§4.7.9a 同判) |
+| +16 | uint8 | **tag 三值**: 1 = PROTOTYPE 活动态 (ctor 默认, +8 指向 +24) / 0 = Simple 态 / −1 = 惰性哨兵 (writer 守卫) | 同上 (§4.7.9a 同判) |
 | +24 | CPrototypeProjectState (208B) | **slot 0 = PROTOTYPE_STATE** | 见下 |
 | +232 | CSimpleProjectState (128B) | **slot 1 = RESEARCH_COMPLETED** | 见下 |
 | +360 | CSimpleProjectState (128B) | **slot 2 = STOPPING_STATE** | 见下 |
@@ -294,10 +300,10 @@ ctor 0x141A35060) = **内联三元状态容器** (非常规派生族):
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
 | +8 | 匿名结构 (88B 块) | **内嵌回调/监听体** {+8 自指/链表头, +16 u8 门=1, +24 函数对象 56B, +80 槽} — 析构 sub_141A35480 读 `+8+112` 容量判堆/内联 (SSO 上限 15) | ctor + dtor |
-| +72 | i64 | **phase_progress** (键 10251) — 本状态内进度 | writer/reader |
-| +80 | u32 | phase_progress 尾槽 (与 +72 同写同拷) — 完成门直接证据: 相位满判定 = progress ≥ 100000×(int)(+80) | writer 0x141A37CB0 |
+| +72 | int64 | **phase_progress** (键 10251) — 本状态内进度 | writer/reader |
+| +80 | uint32 | phase_progress 尾槽 (与 +72 同写同拷) — 完成门直接证据: 相位满判定 = progress ≥ 100000×(int)(+80) | writer 0x141A37CB0 |
 | +88 | MSVC 串 32B | 状态名 {buf@+88, size@+104, cap@+112=15} | ctor |
-| +120 | u32 | **状态枚举 id** (0/1/2/3, 与 SM switch 的 current_state 同域) | ctor 三处写 1/2/3 |
+| +120 | uint32 | **状态枚举 id** (0/1/2/3, 与 SM switch 的 current_state 同域) | ctor 三处写 1/2/3 |
 
 **CPrototypeProjectState vs CSimpleProjectState** (两者 CHD 均 nbases=3, sizeof 差 80 = 208 vs 128):
 
@@ -336,9 +342,9 @@ CPersistent 基子对象 (vptr 落点) = **template+32**。
 |---|---|---|---|
 | −8 | u32 | — | **token = 19479 `undefined`** |
 | +0 | vtable | — | CComplexity vptr (= template+32) |
-| +8 | u32 | 名字 token (默认 357 none; 进诊断文案; H 批翻案 — 原「675 min」订正) | 定案 |
-| +16 | u32 | **675 min = 复杂度下限** (ctor 默认 = dword_1433321F4; 键分派 sub_1414654F0 + 校验器三证) | 定案 |
-| +20 | u32 | **676 max = 复杂度上限** (默认同上; 原「+12」订正) | 定案 |
+| +8 | uint32 | 名字 token (默认 357 none; 进诊断文案) | 定案 |
+| +16 | uint32 | **675 min = 复杂度下限** (ctor 默认 = dword_1433321F4; 键分派 sub_1414654F0 + 校验器三证) | 定案 |
+| +20 | uint32 | **676 max = 复杂度上限** (默认同上; 原「+12」订正) | 定案 |
 | +24 | NProject::SOutput vt | SOutput 子对象 | 定案 |
 | +24 | NProject::SOutput vt | — | SOutput 子对象 |
 | +32 | CEffect (88B) 内联 | effect/条件体 (ctor sub_14053CFD0) | H 批升格 |
@@ -347,9 +353,9 @@ CPersistent 基子对象 (vptr 落点) = **template+32**。
 | +296 | 匿名结构 | — | (ctor sub_1406419E0) |
 | +352 | 指针 | — | 空 |
 | +360 | 指针 | — | 空 |
-| +368 | 匿名结构 (24B 容器)×4 | — | 四个 24B 容器步长 24 @ B+368/392/416/440 (ctor 四置分配器哨兵; 旧记「三组 {allocator,data,尾}」系首容器三槽误拆) |
+| +368 | 匿名结构 (24B 形状) 向量 ×4 | — | 四个 24B 容器步长 24 @ B+368/392/416/440 (ctor 四置分配器哨兵) |
 | +440 | 匿名结构 | — | — |
-| +456 | u8 | — | 门 |
+| +456 | uint8 | — | 门 |
 | +464 | CNarrative vt | — | **CNarrative 子对象起点** (= CProjectTemplate+496) |
 | +472 | MSVC 串 32B | — | CNarrative name |
 | +504 | MSVC 串 32B | — | CNarrative desc |
@@ -359,7 +365,7 @@ CPersistent 基子对象 (vptr 落点) = **template+32**。
 | +632 | 匿名结构 | — | (ctor sub_14011DF40) |
 | +656 | 匿名结构 (88B) | — | (ctor sub_140549F40) |
 | +744 | 匿名结构 (88B) | — | (ctor sub_140549F40) |
-| +840..+1064 | 容器/分配器/字节混布 | — | locale/哈希桶等 |
+| +840..+1064 | 匿名结构 (NNB 形状) | — | locale/哈希桶等 |
 | +1080 | — | — | 尾 (推定 sizeof ≈ 1088) |
 
 > **sizeof = 1088 定案** (与 CProjectTemplate+1112 相邻成员精确咬合); 校验器 slot[7] 有第三诊断
@@ -460,9 +466,9 @@ std::map 头 → **S+88 map<u32,u32> 是其成员** (键 = 专精 id, 值 = 点�
 | 偏移 | 类型 | 语义 | 备注 |
 |---|---|---|---|
 | +0 | vt | 0x142721740 (19 槽) | [2]/[4] 序列化 (键 11 = id / 14116 = bonuses / 11593 = countries) |
-| +8 | u32 | 组 id (= 模板名 token; 初始 357 none) | 定案 |
+| +8 | uint32 | 组 id (= 模板名 token; 初始 357 none) | 定案 |
 | +16 | fixed×1e-5 | 每国加成标量 (ctor 自模板+112 research_sharing_per_country_bonus 拷贝) | 定案 |
-| +24 | 容器 24B | 成员 tag 表 {d@24, cap@32, count@36, alloc@40} | 11593 |
+| +24 | uint32 向量 24B | 成员 tag 表 {d@24, cap@32, count@36, alloc@40} | 11593 |
 | +48 | i64 向量 24B | **与成员表平行同下标的加成累加器数组** {d@48, cap@56, count@60, alloc@64} | 14116 |
 | +72 | 模板回指 160B | CTechnologySharingGroupTemplate (查库失败回退库+80 默认模板); +48[i] 与 +24[i] 平行 push/swap-remove | 定案 |
 
@@ -475,10 +481,10 @@ vtable 19 槽: [2]/[4] 序列化 / [9] 每日巡检 (唯一 daily 职责, §4.2 
 在研究成本求值时**懒计算** (sub_140ED6E30 → sub_140ED6C10 → sub_140D821E0; GUI tooltip 同链)。
 单组公式: `(1e5 + 修正207 MODIFIER_RESEARCH_SHARING_PER_COUNTRY_BONUS_FACTOR) × N ×
 (own_48[i] + 组+16) / 1e5`; **N = 组内已研成 (状态 == 4) 该科技的成员数**; 双门 = 组 categories ∩
-科技 categories 非空 + 科技模板+1033 字节 (语义待裁); clamp [0, MAX_TECH_SHARING_BONUS]。
+科技 categories 非空 + 科技模板+1033 字节 (**共享加成豁免门**, 命中即不计入; 双语义同字节见模板表); clamp [0, MAX_TECH_SHARING_BONUS]。
 
 效果/触发器五件套: add (14092) → sub_1401CA430 全链 / remove → sub_1401EB690 / modify
 (effect+88/+96 → `+48[idx] += 值`, sub_140D83BC0); vtable 0x1427521D0/0x1427522E0/0x1427524F0
 ([13] = Execute)。模板 160B 全键表: id/name/desc/picture/research_sharing_per_country_bonus/
 is_faction_sharing/categories/available。阵营级派生类 CTechnologySharingFaction 多 `upgrade=` 键
-(reader 待裁); 科技模板+1033 字节语义待裁。
+(reader 待裁); 科技模板+1033 字节 = 共享豁免 + AI 落后年份豁免双语义 (键名待裁)。

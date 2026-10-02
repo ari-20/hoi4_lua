@@ -12,9 +12,9 @@ writer 0X140F22A70 / loader 0X140F1F780 (12066/12067/10647 读后即弃)。
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|
 | +8 | CGameState* | gs 回指 | 不序列化 | HourlyUpdate/DoUpdatePasses/区换档均以 mgr+8 取 gs |
-| +16 | 容器 24B | provinces | | {data@+16, cap@+24 (1.5x), count@+28, alloc@+32}; 元素内联 384B = 0x180 (SWeatherPerProvince, §4.20.2) |
-| +40 | 容器 24B | 含活跃自定义修正的省份指针表 | | {data@+40, cap@+48, count@+52, alloc@+56}; 8B 条 = SWeatherPerProvince*; vt slot8: custom_modifiers 有 param>0 者入表, 随后 +840=1 并调 HourlyUpdate |
-| +64 | 容器 24B | regions | | {data@+64, cap@+72, count@+76, alloc@+80}; 元素内联 352B = 0x160 (SWeatherPerRegion, §4.20.3) |
+| +16 | 匿名结构 (NNB 形状) 向量 24B | provinces | | {data@+16, cap@+24 (1.5x), count@+28, alloc@+32}; 元素内联 384B = 0x180 (SWeatherPerProvince, §4.20.2) |
+| +40 | 匿名结构 (NNB 形状) 向量 24B | 含活跃自定义修正的省份指针表 | | {data@+40, cap@+48, count@+52, alloc@+56}; 8B 条 = SWeatherPerProvince*; vt slot8: custom_modifiers 有 param>0 者入表, 随后 +840=1 并调 HourlyUpdate |
+| +64 | 匿名结构 (NNB 形状) 向量 24B | regions | | {data@+64, cap@+72, count@+76, alloc@+80}; 元素内联 352B = 0x160 (SWeatherPerRegion, §4.20.3) |
 | +88 | uint32 | current_province | | 轮转游标 (DoUpdatePasses 自增回绕); 键 0x2F22; loader 弃读 |
 | +92 | uint32 | current_region | | 轮转游标; 键 0x2F23; loader 弃读 |
 | +96 | 内嵌 | terrain_modifiers[9] | | +96..+311: 按天气现象枚举 (0..8) 的容器数组, 槽 = 24B {data, cap@+8, count@+12, alloc@+16}; 条 = CWeatherTerrainModifier {vt@0, terrain id u32@+8, value i64 fixed@+16}; 消费: 省温度更新以省 +44 terrain id 查 slot1 得温度增量, mud 掷判查 slot6 |
@@ -40,7 +40,7 @@ writer 0X140F22A70 / loader 0X140F1F780 (12066/12067/10647 读后即弃)。
 | +512 | fixed | snow_gain_to_cm | | |
 | +520 | fixed×2 | snow_melt_temperature | | 区间 {+520/+528} |
 | +536 | fixed×2 | snow_melt_multiplier | | 区间 {+536/+544} |
-| +552 | fixed×2 | snowing.temperature | | 区间 {+552/+560} |
+| +552 | fixed×2 | snowing.temperature | | 区间 {+552/**hi**, +560/**lo**} (⚠ E1 定案: 区间序反 — hi@+552/lo@+560, 与 +608 arctic 同族反序; 暖温抑制雪) |
 | +568 | uint32 | snow_visual_min | | 雪视觉下限钳位; 公式: level = 255×snow/mgr+504, 非零且 <128 → 钳 128 (脏链 0x140F1F3D0) |
 | +576 | fixed×2 | weather_ground_snow_medium | | 区间 {+576/+584}; post-load 选 ground-snow modifier |
 | +592 | fixed×2 | weather_ground_snow_high | | 区间 {+592/+600} |
@@ -66,12 +66,12 @@ writer 0X140F22A70 / loader 0X140F1F780 (12066/12067/10647 读后即弃)。
 | +842 | uint8 | 第二跳过旗 | | 与 +841 并联门控 |
 | +848 | fixed×3 | 当前太阳方向单位向量 | | +848/+856/+864; fixed 1e5; +848 恒 0, 在 Y-Z 平面逐时旋转; 旋转公式与 DayNight 点积消费链全解; 定案 |
 | +872 | fixed | 季节插值因子 (命名不可证) | | 计算定案 = 当前游戏日期在两至点/年界之间的插值百分比 (fixed 1e5 量纲; 0X140F15EB0 唯一计算, 另 3 处清零); **零读者定案** (全 dump 0 读点) → 未消费的计算残值 |
-| +880 | 容器 24B | 每省 DayNight 数组 | | {data, cap@+888, count@+892, alloc@+896}; 条 816B: +0..+575 = 24 小时槽×24B{3 fixed}, DayNight fixed@+576, GmtOffset fixed@+584, +592/+600 qword, Hour u32@+608, prev DayNight@+616, 内嵌 CModifier@+624 |
+| +880 | 匿名结构 (NNB 形状) 向量 24B | 每省 DayNight 数组 | | {data, cap@+888, count@+892, alloc@+896}; 条 816B: +0..+575 = 24 小时槽×24B{3 fixed}, DayNight fixed@+576, GmtOffset fixed@+584, +592/+600 qword, Hour u32@+608, prev DayNight@+616, 内嵌 CModifier@+624 |
 | +904 | u8 缓冲 | 雪贴图前缓冲 | | (mapW/4)×(mapH/4); +920 后缓冲, 泥 +912/+928 (双缓冲) |
-| +936 | 容器 24B | 脏天气瓦片表 | | u32 瓦片 id; {data, cap@+944, count@+948, alloc@+952} |
+| +936 | 匿名结构 (NNB 形状) 向量 24B | 脏天气瓦片表 | | u32 瓦片 id; {data, cap@+944, count@+948, alloc@+952} |
 | +960 | u8 数组 | 每省脏旗 | | |
 | +968 | 内嵌 | weather_effects[9] | | +968..+1399; 9×48B; u32@+12, u32@+36; 解析器 case 12654 经 SWeatherEffectsReader{vt, data=a1+968} |
-| +1400 | 容器 24B | visual_mud_effects | | {data, cap@+1408, count@+1412, alloc@+1416}; 8B 条 = modifier 定义指针; 省更新判省 custom modifier ∈ 此表 → +312=1 |
+| +1400 | 匿名结构 (NNB 形状) 向量 24B | visual_mud_effects | | {data, cap@+1408, count@+1412, alloc@+1416}; 8B 条 = modifier 定义指针; 省更新判省 custom modifier ∈ 此表 → +312=1 |
 
 演化函数族 (调度 = 每小时主调度序位 7 → CWeatherManager::HourlyUpdate):
 
@@ -95,7 +95,7 @@ temperature_offset 全部读后弃 → post-load 重算。
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|
 | +8 | uint32 | province_id | | writer 键 10304; loader 弃读 |
-| +16 | 容器 24B | 邻省表 | 不序列化 | vector\<SWeatherPerProvince*\> {data, cap@+24, count@+28, alloc@+32}; RTTI CPdxHybridInlineBufferAllocator\<SWeatherPerProvince*,128\>; 温度邻居平滑用 |
+| +16 | 匿名结构 (NNB 形状) 向量 24B | 邻省表 | 不序列化 | vector\<SWeatherPerProvince*\> {data, cap@+24, count@+28, alloc@+32}; RTTI CPdxHybridInlineBufferAllocator\<SWeatherPerProvince*,128\>; 温度邻居平滑用 |
 | +40 | uint8 | weather_active | | 初始化器 0X140F1D750: 省 def+0 非零且 def+192 像素数>0 才置 1; 定案 |
 | +44 | uint32 | terrain id | | −1=无; 查 mgr terrain_modifiers 槽得温度增量 |
 | +48 | fixed | 地面雪累积量 | | post-load 对 ground_snow 带选 modifier; 高置信 |
@@ -112,7 +112,7 @@ temperature_offset 全部读后弃 → post-load 重算。
 | +304 | uint8 | mud | | writer 12038; loader 实载 |
 | +312 | uint8 | visual_mud_active | | 省 custom modifier ∈ mgr visual_mud_effects 时置 1 |
 | +320 | fixed | prev_snow | | `+320 = +64` |
-| +328 | 容器 24B | custom_modifiers | | {data, cap@+336, count≤16@+340, alloc@+344}; 16B 条 {名对象指针 (名 cstr@+424), param uint32@+8}; loader case 15409 实载 |
+| +328 | 匿名结构 (NNB 形状) 向量 24B | custom_modifiers | | {data, cap@+336, count≤16@+340, alloc@+344}; 16B 条 {名对象指针 (名 cstr@+424), param uint32@+8}; loader case 15409 实载 |
 | +352 | fixed | 生效温度 (核心单写) | | mud 判据用; +280 为解析基值 (脏链 0x140F1F3D0 先清后置时序) |
 | +360 | uint8 | temperature dirty 旗 | | 高置信 |
 | +368 | fixed | 温度变化累积器 | | 随机游走, 钳 ±mgr+320 |
@@ -127,9 +127,9 @@ id≠0 调 sub_140F220D0 重建 +72 修正块。
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|
 | +8 | uint32 | region_id | | writer 10827; loader 弃读 |
-| +16 | 容器 24B | 区地形直方图 | | 按 terrain id 索引的 u16; {data, cap@+24, count@+28, alloc@+32}; 构建点 mgr init 0X140F1CB90; 消费点 0X140F15B40 现象持续期乘数; 与 +40 互锁; 定案 |
+| +16 | 匿名结构 (NNB 形状) 向量 24B | 区地形直方图 | | 按 terrain id 索引的 u16; {data, cap@+24, count@+28, alloc@+32}; 构建点 mgr init 0X140F1CB90; 消费点 0X140F15B40 现象持续期乘数; 与 +40 互锁; 定案 |
 | +40 | uint64 | 归一化除数 | | = 有效地形省数×1e5; 定案 |
-| +48 | 容器 24B | active_modifiers | | u16 数组 {data@+48, cap@+56, count@+60, alloc@+64}; writer 15264 块, 仅 cnt>0; u16 逐条匿名 #N; **= 脚本条件天气修正开关缓存** — 触发器定义在 region def+48 → {data@+312, count@+324} 80B 条 (vt+24 = Eval), 每次换档六旗变化或 period 缺失时重估, 置位者以 ×1.0 并入 +72 修正块 (sub_140F220D0); 落盘值 = 上次求值结果, 加载后首轮换档即重估 |
+| +48 | 匿名结构 (NNB 形状) 向量 24B | active_modifiers | | u16 数组 {data@+48, cap@+56, count@+60, alloc@+64}; writer 15264 块, 仅 cnt>0; u16 逐条匿名 #N; **= 脚本条件天气修正开关缓存** — 触发器定义在 region def+48 → {data@+312, count@+324} 80B 条 (vt+24 = Eval), 每次换档六旗变化或 period 缺失时重估, 置位者以 ×1.0 并入 +72 修正块 (sub_140F220D0); 落盘值 = 上次求值结果, 加载后首轮换档即重估 |
 | +72 | CModifier (内嵌) | 区动态天气修正块 | | {vt@+72, dword@+80, pairs@+88}; post-load 按六现象旗重建; "Null weather modifier for region." 断言 |
 | +96..+263 | — | 死区/对齐填充 (168B) | 不序列化 | 拷贝构造跳过 |
 | +264 | uint8 | rain_light | | |
@@ -161,8 +161,7 @@ rl, rh, snow, bliz, sand, aw, nact, act)。
 | 12037 | blizzard | |
 | 12054 | snowing | 补充键 (+snowing) |
 
-注: 区 weather period 定义不在运行时元素上 — 在 strategic region 静态定义
-{data@+176, count@+188}, 224B 条 (CWeatherChancePeriod 族)。
+注: 区 weather period 定义不在运行时元素上 — 在 strategic region 静态定义的 **+48 子对象** (`*(区定义+48)`) 的 {data@+176, count@+188}, 224B 条 (CWeatherChancePeriod 族); period 选取 0x140F191F0 先把日期归整到当日 0 点 (/24) 再线性扫。
 
 **CWeatherEntry / CWeatherPositionEntry (CWeatherNudger 行件, GUI)**: CWeatherEntry = CWeatherNudger 的 **104B 数据库周期行** (模板 nudge_window_database_period_entry): from/to 日期编辑框 + apply (回写 **period+8/+32 hours** 并横扫 **224B CWeatherChancePeriod 子表 ✓**) /delete/select 三钮; Update 0X141B89380 管 apply 显隐与 select 帧。CWeatherPositionEntry = 位置行 ("Position N"): **obj+1376/1380 = 位置 id/序号对**; select 点击写 **nudger+1236/+1240 当前位置**, Update 按当前位置匹配切显隐。
 
@@ -204,3 +203,16 @@ rl, rh, snow, bliz, sand, aw, nact, act)。
 标量直读者 (非修正块): 雪判定 0x140BDE4C0 / 0x140E00590 / 0x1412B82E0 (省条+64>0); 触发器域雪量 0x140F1A610 = min(snow + 省条+48 地面雪累积, mgr+504); getter 族 0x140DBB1D0 温度 / 0x140D98090 offset / 0x140BCC3A0 雪 / 0x140C3ACC0 水; 战斗快照 snow 写入链 (定案): 陆战每小时步进头 sub_1412B82E0 判省雪量 (GetProvinceWeather +64>0) → sub_140CDF0F0 置 lb+744 bit0 → 结算 consolidation sub_140CDB850 快照 snow(+1093) = 防守侧 lb+744 bit0 / defensive_victory(+1092) = 防守 win 位 / overrun(+1094) 结算清零 / player_is_attacker(+1095) = attacker+584 vs gs+原初国 → sub_140CD9660 入池 (init 0x140CDD810)。**负结论**: 战斗攻防合成链无直接天气 token 读取 — 战斗的天气影响通道 = 修正块合成 + CCombat+1093 快照。海战侧另有**三快照通道** (§4.22.5 CNavalCombat c+152 现象枚举 / c+160 区修正块指针 / c+168 昼夜值, sub_1415C5820 每小时刷新)。昼夜联动: air 族全配 sub_140F19660 (DayNight 值 vs define DAY_NIGHT_COVERAGE_FACTOR) — air 修正 = 天气修正 × 昼夜档。
 
 UI 面: 现象图标档位 0x1415C5820 (区旗直读, 无 arctic/sandstorm 档) / 省修正 tooltip 0x141880500 ("weather_mud" 键族) / 温度 tooltip 0x1415D9A20 / 天气 map mode 0x141D9F360 (区条+active_modifiers) / 雪渲染双带 0x140476810 (POSTEFFECT_*_SNOW defines 归一混合) / 州天气摘要 0x140DA5C80 / 0x140DA8A40 (区条+320 使能旗); 渲染缓存族 (mgr+784/+808/+904..+928/+936/+960/+768/+832) 为渲染层自有缓存, 演化后经脏链惰性重绘, UI 数据每帧重取无独立定时器。
+
+#### 4.20.7 实现层增补 (loader 侧与并行拓扑)
+
+| 项 | 定案 |
+|---|---|
+| 省初始化核 | sub_140F11390 (书未记): 与演化核同骨架但温度 = 时段带**中点**直写 +280/+352; HourlyUpdate init 相专用 tbb 重载 (sub_140F1C6E0 先直启 PdxParallelFor 全量跑初始化核再进 passes) |
+| P2 相温度提交 | 省 modifiers 相 tbb 叶 (sub_140F12F10/0x140F23370): **+280←+352 / +296←+368** (脏门 +360) — 两个存档字段的运行时写者; 提交后 sub_140F21C60(prov,mgr,0) 修正块重建 |
+| DayNight 每时计算 | sub_140F20C50: 日弧分数+GmtOffset → 24 小时槽·太阳向量点积 → Feather 归一钳 [0,1e5]; feather 全局派生链 = FeatherMax=DAY_NIGHT_FEATHER/2、Diff=1e10/带宽; 变化时重建条内 pairs (静态表第 7 定义 +88) |
+| PdxParallelFor 拓扑 | grain 计算器 sub_1401DB390(jobtype, count): 0→max(1,count/threads); 1→max(1,count/(3×threads)); 2→1; **3→−1 = 串行执行** (调用方 `if (grain==-1)` 落内联串行循环); 天气省相用 jobtype 1, init/区相用 0; 同函子串行/tbb 两路收敛到同一核, 无确定性问题 |
+| 静态 modifier 定义表 | 区修正块重建 sub_140F220D0: 单例 +40..+80 六现象定义指针 (雪/暴雪/雨轻/雨重/沙暴/mud) ×1.0 并入; active_modifiers 条目 (80B {+64 触发器, +72 modifier 定义}) 非零 ×1.0 并入; +88 = day_night (第 7 定义) |
+| mud 掷判除数 | sub_140F22420 完整公式 = chance[6] × 水量分数(÷mgr+424 值, 经 sub_140F22730 出参槽) × 省附加 × 干湿滞回带(+640/+648) × 地形槽 6 乘数 < 单掷; 脏+温度下限双门 |
+| randomize_weather | sub_140F1F710: 写 seed → 置 init 旗 → HourlyUpdate(0) |
+| HourlyUpdate 尾 | 地图模式 33 (= 天气模式) → 缓存脏位 +86 |

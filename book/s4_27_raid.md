@@ -24,23 +24,23 @@
 | +16 | 匿名结构 (NNB 形状)* | dummy 对象 (id 对 @*(+16)+8 {type@+0, id@+4}, 恒写) |
 | +24 | CRaidInstance* | raid_instance 容器数据指针 — 指针数组 (c>0) |
 | +25..+35 | — | = raid_instance 容器尾 {cap@+32, c@+36, alloc@+40} |
-| +36 | u32 | raid_instance 容器计数 |
-| +48 | 容器 24B | used_types (键 16724; CRaidCategory* 指针数组 {d@48, cap@56, c@60, alloc@64}; 元素→def token 名串; 插入点 0X1414E9FA0 `if(*(def+3017)) push`) |
-| +72 | 容器 24B | target_cooldowns (键 16727; CRaidTargetCooldownStatus 64B 元素 {d@72, cap@80, c@84, alloc@88}; 元 = {vt@0, SRaidTarget 40B 拷贝@8..47, +48..+63 = 目标位置快照尾槽 (leader_province) + cooldown 天数 u32@+56 (def+3020)}; 元素内无日期) |
+| +36 | uint32 | raid_instance 容器计数 |
+| +48 | CRaidCategory* 向量 24B | used_types (键 16724; CRaidCategory* 指针数组 {d@48, cap@56, c@60, alloc@64}; 元素→def token 名串; 插入点 0X1414E9FA0 `if(*(def+3017)) push`) |
+| +72 | 匿名结构 (64B 形状) 向量 24B | target_cooldowns (键 16727; CRaidTargetCooldownStatus 64B 元素 {d@72, cap@80, c@84, alloc@88}; 元 = {vt@0, SRaidTarget 40B 拷贝@8..47, +48..+63 = 目标位置快照尾槽 (leader_province) + cooldown 天数 u32@+56 (def+3020)}; 元素内无日期) |
 | +96 | uint32 | priority (恒写; ctor 默认 = 1) |
-| +104 | 容器 24B | available raid types (CRaidType* 数组 {d@104, cap@112, c@116, alloc@120}; 从 CRaidDatabase 单例 qword_14332F000+176 按 tag 过滤重建; 不写盘; 名推定/备选 usable_types) |
-| +128 | 容器 24B | active raids (CRaidInstance* 数组 {d@128, cap@136, c@140, alloc@144}; phase≠5; CreateRaid 查重 "Already has a raid against this target") |
-| +152 | 容器 24B | ended raids (历史) (CRaidInstance* 数组 {d@152, cap@160, c@164, alloc@168}; phase==ENDED; 按 end_date + define dword_143332398 天龄淘汰) |
+| +104 | uint32 向量 24B | available raid types (CRaidType* 数组 {d@104, cap@112, c@116, alloc@120}; 从 CRaidDatabase 单例 qword_14332F000+176 按 tag 过滤重建; 不写盘; 名推定/备选 usable_types) |
+| +128 | 匿名结构 (NNB 形状) 向量 24B | active raids (CRaidInstance* 数组 {d@128, cap@136, c@140, alloc@144}; phase≠5; CreateRaid 查重 "Already has a raid against this target") |
+| +152 | 匿名结构 (NNB 形状) 向量 24B | ended raids (历史) (CRaidInstance* 数组 {d@152, cap@160, c@164, alloc@168}; phase==ENDED; 按 end_date + define dword_143332398 天龄淘汰) |
 
 **CRaidInstance** (writer 0X140FEF9C0, a1 = inst; 全字段定案):
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
-| +8 | u32 | id.type — id 对之 type (对 {type, id} (B400)) | 恒写 |
-| +12 | u32 | id 对.id — B400 壳 | 恒写 |
-| +16 | u8 | 基类标志 (=0) | 高置信 |
+| +8 | uint32 | id.type — id 对之 type (对 {type, id} (B400)) | 恒写 |
+| +12 | uint32 | id 对.id — B400 壳 | 恒写 |
+| +16 | uint8 | 基类标志 (=0) | 高置信 |
 | +24 | CEquipmentDistributable 内嵌 24B | 第二基类 {vt@+24, u32=1@+32, ptr=0@+40} (RTTI 直证) | 不序列化 |
-| +48 | u8 | auto_launch (键 10155) | ≠0 |
+| +48 | uint8 | auto_launch (键 10155) | ≠0 |
 | +52 | uint32 | auto_launch_option 枚举 (0=VERY_LOW 1=LOW 2=MEDIUM 3=HIGH(默认) 4=VERY_HIGH) | ≠3 才写 |
 | +56 | uint32 | phase: 0=NONE 1=ASSEMBLING 2=PREPARING 3=PREPARED 4=IN_PROGRESS 5=ENDED (断言 "Saving invalid raid phase!" raid_instance.cpp:0xDB) | ≠0 |
 | +60 | uint32 | outcome: 0=NONE 1=FAILURE 2=LIMITED_SUCCESS 3=SUCCESS 4=CRITICAL_SUCCESS 5=CANCELED | ≠0 |
@@ -59,14 +59,14 @@
 | +216 | 内嵌 | raid_source (56B, 非指针; 布局见下表) | b@+4≠0 (0X141593F60) |
 | +217..+271 | — | = raid_source 56B 本体细分 {+220 u8 有效门, +224 ptr, +232 id 对哨兵, +240 u32, +248 building 内嵌块 (sub_1413C0880 构造)} |  |
 | +272 | CEquipmentVariantPool 内嵌 64B | equipment (键 12110; {vt@272, 容器1{d@280, cap@288, c@292, alloc@296}, 容器2{d@304, cap@312, c@316, alloc@320}, u8@328}; ctor 0X14100C710 — CEquipmentVariantPool 同体异名, §4.23.3) | 空判 sub_141010BA0 + ADEC0 |
-| +336 | u32 | nukes (键 13517) | ≠0 |
+| +336 | uint32 | nukes (键 13517) | ≠0 |
 | +344 | CCommandPowerAllocator 内嵌 56B | 突袭指挥点花费分配器 {vt@344, ptr@352, qword@360, CString 名@368 cap@392=15} (RTTI 直证) | 不序列化 |
 | +400 | uint8 | detected → yes | ≠0 |
 | +408 | vtable (CGameDate 族) | end_date (0x28E1) 内嵌 CGameDate vt 指针 | 定案 |
-| +416 | u32 | end_date 内嵌 CGameDate hours | 定案 |
+| +416 | uint32 | end_date 内嵌 CGameDate hours | 定案 |
 | +417..+431 | — | = end_date 24B 本体 {vt1@408, hours@416, vt2@424=ADEC0 代理基} |  |
-| +432 | u8 | end_date 门 bool | ≠0 才写; 定案 |
-| +440 | 容器 24B | show_for (键 11173; u32 tag id 数组 {d@440, cap@448, c@452, alloc@456} — 可见该突袭的国家列表) | c>0 |
+| +432 | uint8 | end_date 门 bool | ≠0 才写; 定案 |
+| +440 | uint32 向量 24B | show_for (键 11173; u32 tag id 数组 {d@440, cap@448, c@452, alloc@456} — 可见该突袭的国家列表) | c>0 |
 | +464 | tag_id | victim_country (键 10164) → 引号 | tid>0 |
 
 raid_source (@inst+216; 56B 内嵌块):
@@ -98,10 +98,10 @@ raid_source type enum → token 映射:
 |---|---|---|---|
 | +0 | 匿名结构 (target 条目) | target 容器数据指针 — 数组 {d, c} 8B 指针 (targets.target[N] 数组序) |  |
 | +1..+11 | — | = target 容器尾 {cap@+8, c@+12, alloc@+16} |  |
-| +12 | u32 | target 容器计数 |  |
+| +12 | uint32 | target 容器计数 |  |
 | +24 | 匿名结构 (NNB 形状) | 目标索引辅助 (+24/+56/+112; target ptr↔index 双向簿记; 断言 "Inconsistent target index" raid_target_manager.cpp:0xFA) — 与 +32/+64/+120 三合为三张 RH 目标反查索引 | 不序列化 |
 | +32 | CRaidTargetStatus* RH 桶数组 | 目标反查索引 (+32/+64/+120; 各 {种子 u32+lf f32 前缀, 24B 桶 {hash, key*, value*}}): 表#2 = CBuildingStatus*→CRaidTargetStatus* (探针 53 项 ≈ detectable 51); 表#1/#3 本档空 (推定 state/province 变体) — 定案 | 不序列化 |
-| +88 | 容器 24B | 省索引目标查找数组 {d@88, cap@96, c@100, alloc@104} (8B 元; 按 `u32@(gs+724)`=省数 预分配清零) | 不序列化 |
+| +88 | 匿名结构 (8B 形状) 向量 24B | 省索引目标查找数组 {d@88, cap@96, c@100, alloc@104} (8B 元; 按 `u32@(gs+724)`=省数 预分配清零) | 不序列化 |
 | +144 | uint32 | next_state | 恒写 |
 | +145..+163 | — | = existing targets 容器 {d@152, cap@160, c@164=existing_target_num 键同址, alloc@168} |  |
 | +164 | uint32 | existing_target_num | 恒写 |
@@ -122,7 +122,7 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | +49 | uint8 | valid (键 0x4AF6=19190) | 恒写 yes/no |
 | +56 | uint8 | detected 容器数据指针 — u8 数组 {d, c} | c>0 |
 | +57..+67 | — | = detected 容器尾 {cap@+64, c@+68} (键 0x4B06=19206) |  |
-| +68 | u32 | detected 容器计数 | c>0 |
+| +68 | uint32 | detected 容器计数 | c>0 |
 
 内层 SRaidTarget (@t+8):
 
@@ -131,8 +131,8 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | +0 | CBuilding* | building ptr → template = token@*(bld+480)+8, location = u32@*(bld+472)+108 |
 | +8 | CProvince* | province ptr → id@+164 |
 | +16 | CState* | state ptr → id@+88 |
-| +24 | u32 | leader.type — id 对之 type (id 对) |
-| +28 | u32 | leader.id — id 对之 id |
+| +24 | uint32 | leader.type — id 对之 type (id 对) |
+| +28 | uint32 | leader.id — id 对之 id |
 | +32 | CProvince* | leader_prov ptr → +164 |
 
 
@@ -160,10 +160,10 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 | 偏移 | 类型 | 键 (token) | 名称/语义 |
 |---|---|---|---|
-| +8 | u32 | — | token (CPersistentWithToken) |
-| +24 | u8 | — | 门 (ctor 0) |
-| +32 | u32 | 19252 intel_source | **情报来源枚举**: 默认 3; 0=19238 civilian / 1=10397 army / 2=11925 naval / 3=11926 air |
-| +36 | u8 | 16733 free_targeting | 自由选目标旗 |
+| +8 | uint32 | — | token (CPersistentWithToken) |
+| +24 | uint8 | — | 门 (ctor 0) |
+| +32 | uint32 | 19252 intel_source | **情报来源枚举**: 默认 3; 0=19238 civilian / 1=10397 army / 2=11925 naval / 3=11926 air |
+| +36 | uint8 | 16733 free_targeting | 自由选目标旗 |
 | +40 | CTrigger (88B) | 11562 visible | 可见条件 |
 | +128 | CTrigger (88B) | 12264 available | 可用条件 |
 | +216 | CString 32B | 12815 faction_influence_score_on_success | 成功后阵营影响力分 (字符串形态, 待裁) |
@@ -174,15 +174,15 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 | 偏移 | 类型 | 键 (token) | 名称/语义 |
 |---|---|---|---|
-| +8 | u32 | — | token (CPersistentWithToken) |
-| +24 | u8 | — | 门 (ctor 0) |
+| +8 | uint32 | — | token (CPersistentWithToken) |
+| +24 | uint8 | — | 门 (ctor 0) |
 | +32 | CRaidCategory* | 702 category | 类别 (db 内建/查找) |
 | +40 | 匿名结构 | 19243 arrow | 箭头参数块 (sub_140A98030) |
 | +48 | 匿名结构 | 16731 unit_model | 单位模型 (sub_140A987F0) |
 | +56 | CString 32B | — | (ctor; 无键映射, 待裁) |
 | +88 | CString 32B | — | (同上) |
-| +120 | i64 | — | 0 (ctor) |
-| +128 | i64 | — | **100000** (ctor 默认 = 1.0 fixed) |
+| +120 | int64 | — | 0 (ctor) |
+| +128 | int64 | — | **100000** (ctor 默认 = 1.0 fixed) |
 | +136 | 匿名结构 | 16687 unit_animations | (sub_140A98600) |
 | +152 | 分配器对象* | — | off_143085170 |
 | +160 | CTrigger (88B) | 12263 allowed | 允许条件 |
@@ -195,12 +195,14 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | +992 | CRaidSuccessLevels (1480B) | 19185 success_levels | 结果档位 (见下) |
 | +2472 | CRaidSuccessFactors (104B) | 16591 success_factors | 成功率因子 (见下) |
 | +2576 | 匿名结构 (88B 元素) 向量 | 19189 unit_requirements | 元素 88B {d@2576, cap@2584, c@2588, alloc@2592} |
-| +2600 | 匿名结构 (256B 元素) RH 桶数组 | 19200 additional_equipment | CEquipmentRequirements 表#1 |
-| +2624 | 匿名结构 (256B 元素) RH 桶数组 | 16725 essential_equipment | CEquipmentRequirements 表#2 |
+| +2600 | 匿名结构 | 19200 additional_equipment | **std::map 红黑树** {节点 48B malloc(0x30), key = 装备类型对象, value = i32 定点 amount} — 勘误: 原记「256B 元素 RH 桶数组」系 malloc 0x30 树节点误读为桶头; 值对象 CEquipmentRequirements (256B) 属 +2576 unit_requirements 路径 |
+| +2616 | uint32 | — | **nukes 需求表#1 旁 dword** (reader 键 13517 直写; 与 +2600 表并存) |
+| +2624 | 匿名结构 | 16725 essential_equipment | 同 +2600 形态 (std::map 红黑树) |
+| +2640 | uint32 | — | **nukes 需求表#2 旁 dword** (键 13517 直写; 消费 = 核弹装填通道 sub_140FEC7E0: nuke_type 匹配 + max(+2616,+2640)−nukes 上限) |
 | +2648 | 匿名结构 | 16588 starting_point | (sub_140A98220) |
 | +2664 | 分配器对象* | — | off_143085170 |
 | +2688 | 分配器对象* | — | off_143085170 |
-| +2696 | u8 | — | 0 |
+| +2696 | uint8 | — | 0 |
 | +2704 | CString 32B | 19198 unit_icon | 单位图标 |
 | +2736 | CString 32B | 19199 target_icon | 目标图标 |
 | +2768 | CString 32B | 16735 custom_terrain_icon | 地形图标 |
@@ -208,18 +210,18 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | +2832 | CString 32B | 10151 custom_map_icon | 地图图标 |
 | +2864 | CString 32B | 16732 launch_sound | 发动音效 |
 | +2896 | CString 32B | 16736 target_loc_key | 目标 loc 键 |
-| +2928 | i64 | 14467 command_power | 指挥点花费 |
-| +2936 | 匿名结构 (容器 24B) | 10819 ai_will_do | AI 权重 (sub_1424C0AA0) |
+| +2928 | int64 | 14467 command_power | 指挥点花费 |
+| +2936 | 匿名结构 (24B 形状) 向量 | 10819 ai_will_do | AI 权重 (sub_1424C0AA0) |
 | +2992 | fixed×1e-5 | 10387 range_factor | 射程系数 |
 | +3000 | fixed×1e-5 | 591 max_distance | 最大距离 |
-| +3016 | u8 | 16762 unlimited_ai_range | AI 射程无限旗 |
-| +3017 | u8 | 11002 fire_only_once | 仅一次旗 |
-| +3020 | u32 | 14545 days_re_enable | 再启用天数 (ctor 默认 = dword_143331648) |
-| +3024 | u32 | 16720 days_to_prepare | 准备天数 (ctor 默认 −1) |
-| +3032 | i64 | 16679 ai_min_success_chance | AI 最低成功率 |
-| +3040 | u8 | — | 0 |
-| +3048 | i64 | 19251 speed_multiplier | 速度倍率 (ctor 默认 100000) |
-| +3056 | u32 | 19439 nuke_type | 核弹类型 id (sub_141099BD0) |
+| +3016 | uint8 | 16762 unlimited_ai_range | AI 射程无限旗 |
+| +3017 | uint8 | 11002 fire_only_once | 仅一次旗 |
+| +3020 | uint32 | 14545 days_re_enable | 再启用天数 (ctor 默认 = dword_143331648) |
+| +3024 | uint32 | 16720 days_to_prepare | 准备天数 (ctor 默认 −1) |
+| +3032 | int64 | 16679 ai_min_success_chance | AI 最低成功率 |
+| +3040 | uint8 | — | 0 |
+| +3048 | int64 | 19251 speed_multiplier | 速度倍率 (ctor 默认 100000) |
+| +3056 | uint32 | 19439 nuke_type | 核弹类型 id (sub_141099BD0) |
 
 **通用 reader 原语表** (def 族通用):
 
@@ -260,7 +262,7 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 | 元素内偏移 | 类型 | 键 (token) | 名称/语义 |
 |---|---|---|---|
-| +0 | i64 | 19250 destroy_additional_equipment | 摧毁额外装备数 (ctor 默认 100000) |
+| +0 | int64 | 19250 destroy_additional_equipment | 摧毁额外装备数 (ctor 默认 100000) |
 | +8 | 匿名结构 (88B, count@+20) | 16594 actor_effects | 发动方效果块 (读掩码 2048) |
 | +96 | 匿名结构 (88B, count@+20) | 16723 victim_effects | 受害方效果块 (读掩码 2048) |
 | +184 | 匿名结构 (88B, count@+20) | 16589 division_effects | 师级效果块 (读掩码 256) |
@@ -323,17 +325,17 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 | 偏移 | Std | Custom | 键 (token) | 名称/语义 |
 |---|---|---|---|---|
-| +8 | u32 | u32 | — | token = 修正器 id (air_superiority / intel / resistance / …) |
-| +16 | i64 | i64 | 593 weight | 权重 |
-| +24 | i64 | i64 | 16596 reference | 参考值 (ctor 默认 100000) |
-| +32 | i64 | i64 | 16601 start_reference | 起始参考 |
-| +40 | i64 | i64 | 16600 start_weight | 起始权重 |
-| +48 | — | u32 | 10646 scope | **作用域位掩码** (ctor 0): 读值 token 分派 439 state→2 / 10394 country→4 / 10403 unit→256 / 19478 character→8, 其它值报 "Invalid scope type for custom raid success chance modifier"; 此值 = UsesScopes 快路径缓存掩码 |
+| +8 | uint32 | uint32 | — | token = 修正器 id (air_superiority / intel / resistance / …) |
+| +16 | int64 | int64 | 593 weight | 权重 |
+| +24 | int64 | int64 | 16596 reference | 参考值 (ctor 默认 100000) |
+| +32 | int64 | int64 | 16601 start_reference | 起始参考 |
+| +40 | int64 | int64 | 16600 start_weight | 起始权重 |
+| +48 | — | uint32 | 10646 scope | **作用域位掩码** (ctor 0): 读值 token 分派 439 state→2 / 10394 country→4 / 10403 unit→256 / 19478 character→8, 其它值报 "Invalid scope type for custom raid success chance modifier"; 此值 = UsesScopes 快路径缓存掩码 |
 | +56 | — | CMeanTimeToHappen 56B | 16675 formula | **公式块** (ai_will_do 同族: 基值 + 条件加权条目; ctor sub_1405516A0; IsValid 所查 count@+44 即本块容器 +100) |
 | +112 | — | CAndTrigger 88B | 10376 enable | **启用条件** (ctor sub_140549F40, 默认 +144 = 10600 and; slot[6] 求值出口 = 其 vt[+24]) |
-| +132 | — | u32 | — | 计数/门 (slot[6] 用) |
-| +200 | — | u8 | 16676 can_target_affect | 默认 0 |
-| +201 | — | u8 | 16677 can_actor_affect | 默认 1 |
+| +132 | — | uint32 | — | 计数/门 (slot[6] 用) |
+| +200 | — | uint8 | 16676 can_target_affect | 默认 0 |
+| +201 | — | uint8 | 16677 can_actor_affect | 默认 1 |
 
 **工厂 0x1415917E0 分派规则** (按 token; dump 394357-394539 逐句实读):
 
@@ -396,12 +398,12 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 | 元素内偏移 | 类型 | 键 (token) | 名称/语义 |
 |---|---|---|---|
-| +0 | 匿名结构 (24B 容器) | 12110 equipment | CEquipmentRequirements 数组 {d@0, cap@8, c@12, alloc@16}, 元素 256B (ctor sub_14158AAB0) |
+| +0 | 匿名结构 (24B 形状) 向量 | 12110 equipment | CEquipmentRequirements 数组 {d@0, cap@8, c@12, alloc@16}, 元素 256B (ctor sub_14158AAB0) |
 | +24 | CBattalionTypeRequirements vt | 19191 battalion_types | **CBattalionTypeRequirements** 内嵌子对象 |
-| +32 | 匿名结构 (24B 容器) | — | battalion_types 记录数组 {d@+32, cap@+40, c@+44, alloc@+48}, **记录 20B** |
+| +32 | 匿名结构 (24B 形状) 向量 | — | battalion_types 记录数组 {d@+32, cap@+40, c@+44, alloc@+48}, **记录 20B** |
 | +56 | OWORD | — | 直拷字段 (CopyAssign) |
 | +72 | OWORD | — | 直拷字段 |
-| +80 | u8 | — | 0 |
+| +80 | uint8 | — | 0 |
 
 > 元素 reader = sub_140A989E0 → 每 token 调 0x141592080: `12110 equipment` → 追加 256B
 > CEquipmentRequirements 元素 → sub_1424C0AA0 分发其 reader 0x141590CA0;
@@ -411,7 +413,7 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +8 | 匿名结构 (24B 容器) | battalion type 记录数组 {d@+8, cap@+16, c@+20, alloc@+24} |
+| +8 | 匿名结构 (24B 形状) 向量 | battalion type 记录数组 {d@+8, cap@+16, c@+20, alloc@+24} |
 
 > **记录结构 (20B, 定案)**: `{token u32@+0 (营/子单位 id), min u32@+4 + valid u8@+8, max u32@+12 + valid u8@+16}` —
 > reader 以 `v6 += 5` (5 dword = 20B) 步进; 块内键 **675 min / 676 max** 由 sub_141589AA0 写入 {值, valid} 对;
@@ -426,21 +428,21 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | 偏移 | 类型 | 键 (token) | 名称/语义 |
 |---|---|---|---|
 | +8 | CEquipmentGroup vt | — | CEquipmentGroup 内嵌子对象 (ctor 后覆写为 CAnonymousEquipmentGroup) |
-| +16 | u32 | — | 装备组 id/type (reader 键 225 从解析出的组写入) |
+| +16 | uint32 | — | 装备组 id/type (reader 键 225 从解析出的组写入) |
 | +24 | CString 32B | — | 组名 {buf@+24, size@+40, cap@+48} |
 | +56 | CString 32B | — | 组描述 {buf@+56, size@+72, cap@+80} |
-| +88 | 匿名结构 (32B 容器) | — | (sub_14011DF40) |
+| +88 | 匿名结构 (32B 形状) 向量 | — | (sub_14011DF40) |
 | +112 | CAnonymousEquipmentGroup vt | — | 第二个 CAnonymousEquipmentGroup 子对象 |
-| +120 | 匿名结构 (32B 容器) | — | — |
-| +144 | u8 | — | 旗 |
-| +152 | 匿名结构 (32B 容器) | — | — |
-| +176 | u8 | — | 旗 |
-| +184 | 匿名结构 (32B 容器) | — | — |
-| +208 | u8 | — | 旗 |
-| +216 | 匿名结构 (24B 容器) | 15211 modules | 模块 id 数组 (元素 24B, sub_1403099D0 读) |
-| +240 | i64 | 417 amount | 数量 (sub_141589AA0 读) |
-| +244 | u8 | — | 0 |
-| +252 | u8 | — | 0 |
+| +120 | 匿名结构 (32B 形状) 向量 | — | — |
+| +144 | uint8 | — | 旗 |
+| +152 | 匿名结构 (32B 形状) 向量 | — | — |
+| +176 | uint8 | — | 旗 |
+| +184 | 匿名结构 (32B 形状) 向量 | — | — |
+| +208 | uint8 | — | 旗 |
+| +216 | 匿名结构 (24B 形状) 向量 | 15211 modules | 模块 id 数组 (元素 24B, sub_1403099D0 读) |
+| +240 | int64 | 417 amount | 数量 (sub_141589AA0 读) |
+| +244 | uint8 | — | 0 |
+| +252 | uint8 | — | 0 |
 
 > sizeof = 256 (`memset 0x100` + `<< 8` stride 定案)。
 > 两处需求表挂载: CRaidType+2600 ← 键 19200 additional_equipment; CRaidType+2624 ← 键 16725 essential_equipment (同 reader)。
@@ -457,6 +459,12 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 > 与 §4.27.1 CRaidInstance+272 装备池 / +336 nukes 的接缝: def 侧的 CRaidType+2600 (additional) /
 > +2624 (essential) 是 GUI「装备需求行 required 列」的数据源, 运行期 current 列来自 inst+272
 > (CEquipmentVariantPool) — 与 §4.31.28 记法一致, 仅宿主类需由 CRaidCategory 改为 CRaidType。
+
+#### 4.27.2b CRaidInstance 虚表槽位与 CEquipmentDistributable 契约 (reader 侧定案)
+
+主虚表 0x142983A78 17 槽: [2]=writer 0x140FEF9C0 / [4]=**reader 0x140FEE810** (19 键全表, 10 键新定名: 225 type/107 target/10403 unit/10383 raid_source/10465 end_date/10519 phase/19011 outcome/19196 risk_level/19197 auto_launch_option/19206 detected) / [8]=**读档重挂 0x140FEDEB0** / [11..16] = 第二虚表 0x142983AD0 同块排放 (0x142983AD0 − 0x142983A78 = 88)。**CEquipmentDistributable 六槽契约** (第二基): [1]=UsesEquipment 0x140FEE450 (两 map contains → 定点 1e5/0) / [2]=Distribute 0x140FEE540 (this = inst+24 → −24 调整 thunk; 按两 map 需求缺口装填 inst+272 池, 返未满足量) / [3]=GetPriority = status+96×1e5 / [4]=GetId {0, inst id, kind=14} — 纯虚槽唯一覆写。
+
+实现层增补: 剩余小时估算 sub_140FEA4A0 (phase2 = 24×days−prep_time; phase4 = ceil(剩余距/时距), GUI 进度消费); SetPreparationProgress sub_140FEF570 (消息串直证方法名); StartRaid 成功失败两路尾都**无条件挂 system+240 预警池** (sub_1419ABC80); status+16 dummy = 占位 CRaidInstance。
 
 #### 4.27.3 相位机执行链与目标选择
 
@@ -601,12 +609,3 @@ CCountryIntel (国家+4072, §4.11.7) 矩阵中**发起国行** (inst+88+8, 32B 
 置 +400 旗并经 sub_1419ABC90 按双侧相关度挂入 +240 预警池 (消费方 = alert
 id 73-77 族)。方向定案 = `[A][B]` = A 关于 B 的情报 (CAddIntelEffect::Execute
 0x14034A8D0 交叉验证)。
-
-
-#### 4.27.4 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
-
-| 来源 | 函数与身份 / 建议落点 |
-|---|---|
-| part09 | sub_140E85780（179 行，#2） / 突袭/raid / 书 `s4_27_raid.md:95` raid targets mgr 节补一行：CRaidDatabase+176 清单重建通道（逐 raid 类型双国家 id 数组 +856/+880 解析入 sub_14195E530 有序集；与已定案的增量扫省重建 0x14195ED40 并列，两通道关系细作时裁） |
-| part12 | sub_1419AD5C0（133 行，#32） / 袭扰战 / 书 `s4_27_raid.md` 补可袭省清单重建：raids 管理器（gs+1008）作谓词参逐省判定（sub_140A9CEB0），差量维护有效表/缓存；触发宿主 0x1419A raids 簇 |
-| part16 | sub_140E77A70（107 行，#11） / 抵抗/突袭(raid) / 书 `s4_27_raid.md`（0x140E7 raid 单元）登记内件定址；细作先体读定语义（被调 0x14144 两件须先辨是否共享原语再记依赖） |

@@ -80,8 +80,8 @@ key token → 槽位 (对象基点 a1; token id 取运行时 lexer):
 | +8 | 外部参数 2 | — | 构造期注入 |
 | +16 | MSVC 串 | 路径串 1 | — |
 | +48 | MSVC 串 | 路径串 2 | `.mod` 扫描根 |
-| +80 | MSVC 串容器 | disabled_dlcs | count@+92 |
-| +104 | MSVC 串容器 | enabled_mods | count@+116 |
+| +80 | 匿名结构 (NNB 形状) 向量 | disabled_dlcs | count@+92 |
+| +104 | 匿名结构 (NNB 形状) 向量 | enabled_mods | count@+116 |
 
 | 函数 | 语义 | 要点 |
 |---|---|---|
@@ -174,3 +174,11 @@ common/synchronized_dynamic_tokens/*.txt 枚举逐文件 token 预注册 (CGameA
 **语义 = mod token id 空间的 boot 期预填充** (先于 mod 装载的固定 token 集) — 与
 「离线 token 表 ≠ 运行时 lexer」纪律同源: 凡按 token id 取名仍须游戏内
 GAME.layout.token_name, 但此目录的 token 在任何 mod 之前即占位。
+
+#### 4.29.9 DLC feature gate 与归属校验链 (gamedlc.cpp / dlc.cpp)
+
+**feature gate** (sub_1401AEB50, gamedlc.cpp:230): feature id → **dword_14332F248 位测试** (未知 id 一次性告警 "Unrecognized DLC feature flag."); boot 掩码构建 sub_1401AEDA0 = 12 名查询置位 + 收尾强制 `|=0x1E` (四个 legacy 扩展恒开); 掩码 setter/getter = sub_1401AED90/0x1401AE6A0 (存档 11546 恢复环 sub_141998D60→sub_1401AED90); 超集判定 sub_1401AED80 `(mask & g) == mask`; 伴生全局 dword_14332F24C = 4608 (语义未定)。位→DLC 名 (代码字面串): 0x1 Poland / 0x20 La Resistance / 0x40 Battle for the Bosporu / 0x80 No Step Back / 0x100 By Blood Alone / 0x400 Arms Against Tyranny / 0x800 Trial of Allegiance / 0x2000 Gotterdammerung / 0x4000 Graveyard of Empires / 0x8000 No Compromise No Surrender / 0x10000 Peace For Our Time / 0x20000 Thunder at Our Gates; 位 0x2/0x4/0x8/0x10 ↔ TFV/DoD/WtT/MtG 四名对应为推定 (恒置无查询串)。431 个消费点 (效果/命令族大量消费, 最热 id 50/57/19/25)。
+
+**DLC 归属校验链**: CDLCManager::VerifyAllDLCOwnership sub_14207C2A0 (tbb 符号直证类名; **dlc_signature 缓存**命中跳过逐项校验, 否则并行校验后回写); 签名 = sub_142078270 = **MD5(MachineGuid 注册表值 + Σ.dlc 文件字节 + 66B 盐 "DontStealMyGamePlz__WINNERS_DONT_USE_DRUGS__DONT_COPY_THAT_FLOPPY")**; 单件校验 sub_14207CC90 (校验和门→商店后端查询, 0=拥有/2=未拥有/3=校验和致命; type 表实际只走 1=steam); 单件校验和 sub_1420774D0 = MD5(name+itoa(len)+path+itoa(steam_id)+itoa(0)+pops_id+deps+replace_paths+"y"/"n"+archive 字节+**19B 盐 "h4rdc0r3Gam3r4lyfe"**); 串行兜底 sub_14207D4B0。
+
+**注册表与 UGC**: `.dlc` 扫描 sub_14207B540 (**键 = name 字段** — 勘误: §4.29.4 「键 = registry id」只对 mod 注册表成立; 插入前门按 type 校验 steam_id/pops_id/+648 非空, type 0 拒绝 "Incorrect DLC descriptor" :858); 过滤谓词 sub_14207AA60 (types 1/3/5/6/7 查 disabled_dlcs, 2/4/8 查启用 mod 名单); Workshop 安装器 sub_142079E00 (挂载 workshop 目录→找 zip→写 `ugc_<id>.mod` 描述件→按 ugc 键回查); 订阅增量安装 sub_142075200 (mtime < 安装时间才重装)。**CDLCManager 具名** (qword_14344A568 单例, 兼 §4.29.7a 挂载管理器)。CDLCDescriptor 增补: +592 pops_id (token 765) / +584 type (来源语义: 正常装机不触发 break 行) / +628/+648/+664 启用位 (ctor 默认 1) / +72 registry id (装载器注入非解析键); 764/767 rail_id/msgr_id 负定案。

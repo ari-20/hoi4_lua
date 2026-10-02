@@ -44,7 +44,7 @@ ctor = `sub_141BBE880(this, &window_name)`; 三具体类均先调本 ctor 再写
 | +96 | CButtonEventDispatcher + 回调束 (1288B) | 束头 = CButtonEventDispatcher 子对象 (dtor 回写其 vftable); 束内 **12 个 GUI 事件回调槽** (安装器 sub_141BBE0A0, 逐槽 `CLegacyButtonObserverGlue<CNotification>` + sub_1402A69E0 挂 std::function); 基 ctor 仅装 2 个非空 (sub_1402A08F0 / sub_141BBF120, 二者均操作 +1432 过期旗), 余 10 空; 束跨度 = +96 → +1384 = 1288B | 结构/尺寸定案; 逐槽元素名待裁 (需 .gui 侧 `notification_entry` 元素名对齐) |
 | +1384 | CGameDate 内嵌 24B | **创建时刻** {vt@1384, hours@1392, 视图 vt@1400} | ctor: +1392 = `*(gs+1128)` 当前小时 |
 | +1408 | CGameDate 内嵌 24B | **超时基线** {vt@1408, hours@1416, 视图 vt@1424} | ctor: +1416 = 43808760 (CGameDate ctor 哨兵 "1.1.1.1") |
-| +1432 | u8 | **已过期/待移除旗** (置 1 → 下一帧自毁) | sub_1402A08F0 置 1; sub_141BBF1B0 收尾判 |
+| +1432 | uint8 | **已过期/待移除旗** (置 1 → 下一帧自毁) | sub_1402A08F0 置 1; sub_141BBF1B0 收尾判 |
 | +1436 | int32 | **超时天数** (ctor 初值 −1; 0 触发 notification.h:39 断言) | setter sub_141378090 (断言门 `Days > 0`); 默认值源 = define `INFO_MESSAGE_TIMEOUT_DAYS` (sub_14083FD20 读, 兜底 1) |
 
 **CNotification 主虚表 9 槽** (0x142A4B708):
@@ -88,7 +88,7 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 | +48 | CClass* | **`notification_list`** (OverlappingElementsBox, 通知条目列表) | sub_1413916B0: `sub_1422BCBA0(a1[5], "notification_list", 1)` → `a1[6]` |
 | +56 | int32 对 | GUI positionType **`maximum_offset`** {x@56, y@60} | 来源定案 (`sub_1422BD000(...,"maximum_offset",1)+240` → `a1[7]`); 轴角色待裁 |
 | +64 | int32 对 | GUI positionType **`maximum_size`** {x@64, y@68} | 来源定案 (同上 `"maximum_size"` → `a1[8]`); 轴角色待裁 |
-| +72 | u8 | **本帧有条目被摘除门** (Update 收集到 `*(条目+72)+1432 == 1` 的通知 → 从列表 `vt[82](+656)` 摘除 → 置 1 → 触发布局重算) | 触发条件定案; 清除点推定 (每帧开头不清, 残留到下次置位) |
+| +72 | uint8 | **本帧有条目被摘除门** (Update 收集到 `*(条目+72)+1432 == 1` 的通知 → 从列表 `vt[82](+656)` 摘除 → 置 1 → 触发布局重算) | 触发条件定案; 清除点推定 (每帧开头不清, 残留到下次置位) |
 
 **主虚表 6 槽 (0x1429B59A8)**: [0] 0x141391390 dtor (回写 CUpdateable vftable; 调
 `*(Block[8] vt+664)` 释窗; sub_1422560A0(Block+2)) / [1] 0x141391B30 **Update** (CUpdateable[1] 覆写) /
@@ -145,7 +145,7 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 | +1472 | 匿名结构 (32B, std::string 形) | **正文串** (loc key, 如 `NOTIFICATION_OUR_GENERAL_SICK_DESC`) | ctor |
 | +1504 | int32 | **发送方 tag** (consumed `sub_140B44AC0(..., a1+1504, ...)` 挂 `sender_flag`) | ctor 六参版 |
 | +1508 | int32 | **接收方 tag** (`receiver_flag`) | ctor 六参版 |
-| +1512 | u8 | **图标变体旗** (`diplo_war_large_icon` vs `diplo_war_large_icon2`) | ctor 六参版 a6 |
+| +1512 | uint8 | **图标变体旗** (`diplo_war_large_icon` vs `diplo_war_large_icon2`) | ctor 六参版 a6 |
 | +1520 | 内嵌对象 (56B) | 引用/观察者对象 (析构 = `*(+56)` 对象 vt[4](.., flag)) | ctor unwind 链; 类名待裁 |
 | +1576 | CClass* | **点击动作对象** (vt[2] 被调) | sub_1417C97D0 |
 | +1584 | 匿名结构 (32B, std::string 形) | 附加串 (ctor 置空) | ctor |
@@ -208,28 +208,28 @@ CAlertManager 布局 (偏移十进制):
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
 | +0 | 内联槽×82 (1128B/槽) | 警报型主槽 (模板; id i 槽 @ +1128×i) — 无 widget |
-| +92496 | 容器×82 (24B/容器) | **活跃条目表** — id i 容器 @ +92496+24×i; 容器 = {data@+0, cap i32@+8, count i32@+12, allocator*@+16} |
+| +92496 | 匿名结构 (NNB 形状) 向量 ×82 (24B/容器) | **活跃条目表** — id i 容器 @ +92496+24×i; 容器 = {data@+0, cap i32@+8, count i32@+12, allocator*@+16} |
 | +94464 | CGameDate×82 (24B/项) | **音效冷却戳** — id i 项 @ +94464+24×i; 项 +8 = 下次允许播放小时; 消费 = sub_140B166A0 (写入 `now + ALERT_SFX_COOLDOWN_DAYS×24`) |
 | +96432 | int32 | round-robin 轮转计数器 (0..81; 复位 sub_140B17A50) |
 | +96436..+96452 | int32×5 | 网格配置 {X0@+96436, Y0@+96440, step_x@+96444, step_y@+96448, 列数@+96452 (sub_140B18130 按 alerticon_offset/alerticon_endposition 属性 + 分辨率宽算)} |
 | +96456 | int32 | 网格游标 (本帧最大格序; 条状管理器排其后) |
-| +96464 | 容器×82 (24B) | 休眠成员 (负定案: 1.19.3 无读写点, 字面量+索引形双重检索; 元素 ctor 与 +92496 族同款); 业务名未决 |
-| +98432 | 容器×82 (24B) | 同 +96464 (休眠负定案) |
+| +96464 | 匿名结构 (NNB 形状) 向量 ×82 (24B) | 休眠成员 (负定案: 1.19.3 无读写点, 字面量+索引形双重检索; 元素 ctor 与 +92496 族同款); 业务名未决 |
+| +98432 | 匿名结构 (NNB 形状) 向量 ×82 (24B) | 同 +96464 (休眠负定案) |
 | +100400 | int32 | 海战类警报副钮逐条轮转游标 (sub_140B143B0 每次 +1, sub_140B288F0 读比对选中项; init −1 = 无游标) |
 | +100416 | int32 | 逐师/逐组跳转轮转游标 (sub_140B0FB00 模 count 递增, −1 复位; 供 sub_140B13FD0 点击链) |
 | +100420 | int32 | clamp 缓存 (id 57 用) |
 | +100432 | uint8 | 整圈完成旗 (兼音效总闸: 首圈 82 帧内静音) |
-| +100440 | 容器 (24B) | **已解除警报 id 列表** (int32/项; count@+100452); push = sub_140B062B0, 清 = sub_140B175B0, 判 = sub_140B0D980 |
+| +100440 | 匿名结构 (NNB 形状) 向量 24B | **已解除警报 id 列表** (int32/项; count@+100452); push = sub_140B062B0, 清 = sub_140B175B0, 判 = sub_140B0D980 |
 | +100452 | int32 | = +100440 容器 count (dismissed 判据 `!= 0`) |
-| +100464 | 容器 (24B) | **crypto 已解除 id 列表** (int32/项); id 61 检查器 sub_140B1ECE0 查重 |
+| +100464 | 匿名结构 (NNB 形状) 向量 24B | **crypto 已解除 id 列表** (int32/项); id 61 检查器 sub_140B1ECE0 查重 |
 | +100488 | uint8 | crypto 点击确认一次性门 (点击 61/62 置 1; sub_140B1ECE0 消费后自清; sub_140B17450 亦清) |
-| +100496 | 容器 (24B) | 有效州集合 (逐帧重建; 源 = cc+360 数组 / cc+372 计数) |
+| +100496 | 匿名结构 (NNB 形状) 向量 24B | 有效州集合 (逐帧重建; 源 = cc+360 数组 / cc+372 计数) |
 | +100512 | allocator vt | off_143085170 (与 notification handler 同款分配器桩) |
 | +100520 | int32 | 时间戳钳制 (id 52 用) |
 | +100680 | 有序映射 (16B 头) | int 键 std::map 形 (自链哨兵 32B, 节点键@+28) = **id 71 上一轮项目 id 集** (边沿检测); 消费 = sub_140B2F4B0 |
 | +100696 | 有序映射 (16B 头) | 同形 = **id 70 上一轮项目 id 集**; 消费 = sub_140B2FF30 |
 | +100712 | 平坦哈希 | **警报名→id 索引** (键 = 名串, 值@节点+40 = id; 128 桶); 仅注册期写入, 查找侧休眠 |
-| +100740 | f32 | +100712 最大载因子 = 0.9 (0x3F666666) |
+| +100740 | float | +100712 最大载因子 = 0.9 (0x3F666666) |
 | +100744 | int32 | id 65 学说逐个点击游标 (sub_140B10070, 越界归零) |
 | +100752 | int32 | id 72 项目逐个跳转游标 (sub_140B14FD0 / sub_140B16360) |
 
@@ -245,7 +245,7 @@ CAlertManager 布局 (偏移十进制):
 | +1080 | 16B 键对 | 清除/判重键 (键0+键1; 全零 = 空闲槽) |
 | +1088 | 同上第二槽 | 常为对象指针 (如州 ptr; 合法性清扫 sub_140B37B40 查此槽) |
 | +1096 | int32 | 动作码 (RegisterAlert 第 4 参; **注册期写入后全 dump 无读点 = 休眠遗留字段**, 值分布: 多数 0 / 3-6 补给=5 / 7·67=1 / 22·60=2 即全部信息 — 疑被 sub_140B11C30 id 大 switch 取代的通用点击行为机制残迹) |
-| +1104 | qword | 条目锚 (非 0 = 可清除门) |
+| +1104 | uint64 | 条目锚 (非 0 = 可清除门) |
 | +1112 | CGlobalAlertIcon* | widget (仅条目; ctor sub_140AFF650, 1376B, 主 vt 命名 RTTI + 次 vt@+40, +48 = mgr 回指 / +72 = 警报 id; 窗名 `global_alerticon_window`) |
 | +1120 | int32 | 网格序号 (同格堆叠序, 仅条目) |
 

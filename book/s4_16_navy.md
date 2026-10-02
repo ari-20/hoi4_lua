@@ -21,7 +21,7 @@ cc+680, 紧挨师列表 cc+656)。
 |---|---|---|---|
 | +8 | CNavy* | per 容器数据指针 — country navy 数组 | {data, count}; 元素 = CNavy* (vtable 0X2973260) |
 | +9..+19 | — | = per 容器尾 {cap@+16}  |  |
-| +20 | u32 | per 容器计数 |  |
+| +20 | uint32 | per 容器计数 |  |
 | +21..+31 | — | = per 容器尾 {alloc@+24}  |  |
 | +32 | 匿名结构 (24B 形状) RH 桶数组 | **naval supply hub 全局 RH 表** {结构基@+32, entries@+40 (24B 元 {hash@0, dist@+4, payload, ptr@+16}), count@+48, mask@+52, extra u8@+56, maxload f32@+60=0.9; 清理/扩桶 sub_140EA21B0/sub_140EAE2C0}  |  |
 | +48 | uint32 | world_bases — **定名: = supply hub RH 表 count** (586 叶互证) |  |
@@ -146,7 +146,7 @@ CTaskForce 运行时字段 (不序列化; 燃料结算链定案):
 |---|---|---|
 | +312 | CSubUnitDefinition* | 合成统计对象 (0x678B; ctor 0x141018D00); **+712 = statId 69 STAT_COMMON_FUEL_CONSUMPTION = Σ舰每小时燃料用量缓存**; vt[57] (0x140BFBFB0) 读取; 聚合核 sub_140B9AD70 (与师统计同框架, 入口 sub_140C86CC0 传 tf+840 ships 容器) |
 | +512 | u32 数组 | 移动路径省份 {data@+512, count@+524}; +524 > 0 = 在航未达 (HOLD/reserve 在航成本门) |
-| +933 | u8 | stop_training_at_max_xp (见 mission 补录表) |
+| +933 | uint8 | stop_training_at_max_xp (见 mission 补录表) |
 
 海军修正 STAT 桥 (定案): 海军族 modifier id (NAVY_*/NAVAL_*/SUBMARINE_*/CARRIER_* 等 61 个) **不按名直量消费**, 经 subunit stat 定义桥 sub_140BAAA20 — stat+1536 (加值 id) / stat+1544 (因子 id) 查 cc+1464 国家聚合表, 结果并入舰统计总线 (与 statId 体系同宿主)。
 
@@ -180,10 +180,10 @@ detached_activity 状态设置器 = sub_140D731A0 (taskforce.cpp:6079 断言): �
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +0 | vtable | — | 槽 0..8; [6]/[7] CFG 空桩 |
-| +8 | 容器 24B {data, cap, count@+20, alloc} | **A 紧凑映射 = 唯一序列化源** | 元素 16B (见下表); 按 {sub_unit, role} 二分有序, 同键插入 amount 累加 |
-| +32 | 容器 24B | B amounts 读入暂存 | 键 amount (417) |
-| +56 | 容器 24B | C sub_units 读入暂存 | 键 sub_units (12176), 兼容旧名 archetype (12103) |
-| +80 | 容器 24B | D roles 读入暂存 | 键 roles (14278) |
+| +8 | 匿名结构 (NNB 形状) 向量 24B | **A 紧凑映射 = 唯一序列化源** | 元素 16B (见下表); 按 {sub_unit, role} 二分有序, 同键插入 amount 累加 |
+| +32 | 匿名结构 (NNB 形状) 向量 24B | B amounts 读入暂存 | 键 amount (417) |
+| +56 | 匿名结构 (NNB 形状) 向量 24B | C sub_units 读入暂存 | 键 sub_units (12176), 兼容旧名 archetype (12103) |
+| +80 | 匿名结构 (NNB 形状) 向量 24B | D roles 读入暂存 | 键 roles (14278) |
 
 A 容器元素 (16B; 有序键 = {sub_unit, role}):
 
@@ -262,7 +262,7 @@ CShip/CTaskForce GUI 消费表:
 
 #### 4.16.4 CFleet (writer 0x140D5EBC0 = vt[2]; ⚠ 旧址 0x1412318A0 = CCountrySupplySystem writer, 清偿批勘误)
 
-> 特混舰队任务分桶件 = **sub_140D51B80** (暗区快裁定案: 按 tf+884 任务类型分桶 + tf+864 CNavalMission 分发; 8 调用方全 CFleet 族)。细节细作留专批。
+> 特混舰队任务分桶件 = **sub_140D51B80** (按 tf+884 任务类型分桶 + tf+864 CNavalMission 分发; 8 调用方全 CFleet 族)。
 
 **sizeof = 304 (0x130)** (malloc 0x130 双站点 + ctor 覆盖 +0..+303 + 活体 +300 alpha 恰填满四重证); RTTI 名 = CFleet (活体 COL 直读 .?AVCFleet@@ + vt_rtti.json 双证); 主虚表 RVA 0x2962A18 / CSelectable 次表 0x2962A70; reader = vt[4] 0x140D582B0; ctor 0x140D503D0 / dtor 0x140D50840 (fleet.cpp:162/163 断言) / 工厂 CreateFleet 0x140D545A0; 基类 = CReferenceObject + CSelectable (ctor sub_140BC2AA0(a1+24, 11))。派生: **CTaskForce sizeof = 1888 (0x760)** (loader 15157 分支 malloc 直证)。挂载点 = cc+632 {d} / cc+644 {c}, 元素 CFleet*。
 
@@ -274,25 +274,25 @@ CShip/CTaskForce GUI 消费表:
 |---|---|---|---|
 | +0 | vt | CFleet 主虚表 0x2962A18 | [2] writer / [4] reader |
 | +8 | idpair 8B | CReferenceObject::ref {type@+8, id@+12} (基类 writer 发键 225/11) | 舰队数字 id 直印 AddTaskForce 日志 |
-| +16 | u8 | 基类尾旗 (ctor 0; 活体 1, 写点未定位) | 语义待裁 |
+| +16 | uint8 | 基类尾旗 (ctor 0; 活体 1, 写点未定位) | 语义待裁 |
 | +24 | vt | **CSelectable 子对象虚表** 0x2962A70 | |
-| +32 | u32 | CSelectable type id = **11** | |
-| +36 | u8 | selected 旗 (dtor 断言 false, fleet.cpp:163) | |
+| +32 | uint32 | CSelectable type id = **11** | |
+| +36 | uint8 | selected 旗 (dtor 断言 false, fleet.cpp:163) | |
 | +40 | RH 结构基 | hours_without_patrol_missions_pairs RH 表 (死槽@+40; 桶数组@+48, **count@+56, mask@+60, extra@+64, lf 0.9@+68**; 24B 桶 {dist u8@+4, region ptr@+8 → id@+88, hours u32@+16}) | 键 15599 成对发射 |
-| +72 | 容器 | **strategic_region** {d@72, cap@80, count@84, alloc@88} — 元 8B CRegion* (id@ptr+88) | 键 12014: 先收 u32 数组再发射, 门 count>0 |
-| +96 | 容器 | **区域范围表** {d@96, cap@104, count@108, alloc@112} — 元 16B {CFleet*, start u32, end u32}, 对排序后区域数组切段 (fleet.cpp:1788 断言) | 重建 sub_140D530E0 |
+| +72 | 匿名结构 (NNB 形状) 向量 | **strategic_region** {d@72, cap@80, count@84, alloc@88} — 元 8B CRegion* (id@ptr+88) | 键 12014: 先收 u32 数组再发射, 门 count>0 |
+| +96 | CFleet* 向量 | **区域范围表** {d@96, cap@104, count@108, alloc@112} — 元 16B {CFleet*, start u32, end u32}, 对排序后区域数组切段 (fleet.cpp:1788 断言) | 重建 sub_140D530E0 |
 | +120 | 16B 节点 | 自引用范围节点 {self@120, start@128=0, end@132=区域数镜像} (无区域时挂进每个 TF mission) | |
-| +136 | u32 | **tick_to_check_naval_invasion_support** (键 15583, 门 >0; 书原表无此键) | |
-| +144 | map 容器 | **bombardment_region** {d@144, cap@152, count@156, alloc@160} — 16B 元 {region ptr@+0 → id@ptr+88, val u32@+8}; 门 count≠0; 写序 = 容器序 | 提取器: 首对 region 进键名, 余对 " k=v" 拼进值 |
+| +136 | uint32 | **tick_to_check_naval_invasion_support** (键 15583, 门 >0; 书原表无此键) | |
+| +144 | 匿名结构 (16B 形状) 向量 | **bombardment_region** {d@144, cap@152, count@156, alloc@160} — 16B 元 {region ptr@+0 → id@ptr+88, val u32@+8}; 门 count≠0; 写序 = 容器序 | 提取器: 首对 region 进键名, 余对 " k=v" 拼进值 |
 | +168 | CCountry* | **owner 国家指针** (ctor sub_140BB4390) | |
 | +176 | idpair 8B | **leader** {type@176, id@180} (键 10423; 门 ≠ qword_14333D528 空哨兵) | |
-| +184 | 容器 | **task_force** {d@184, cap@192, count@196, alloc@200} — 元 8B CTaskForce* (writer 逐元写 键 15157 + 元+16 视角) | |
+| +184 | 匿名结构 (NNB 形状) 向量 | **task_force** {d@184, cap@192, count@196, alloc@200} — 元 8B CTaskForce* (writer 逐元写 键 15157 + 元+16 视角) | |
 | +208 | CNavyTheaterGroup* | **所属编组** (getter 0x140D50F00 / setter 0x140D5A620; 挂组 sub_1415B9550: fleet+208 = group 且 group+32 成员向量 += fleet; 组 vtable 0x29DCCE0 RTTI 直证) | |
 | +216 | CProvince* | **home_base = 家港省指针** (键 10241, 发射 *(u32*)(prov+164) = 省 id — §4.14 定案; loader 解析失败报 "Invalid province ID for fleet home base"; G 批活体 vt 0x2971B18 RTTI 直证 — D13 原记「CNavalBase*」订正, 88B 的 CNavalBase 无 +164 槽) | |
 | +224 | MSVC 串 32B | name (键 27; ctor 默认 "FLEET_NAME_NOT_SET") | |
-| +256 | u32 | icon (键 181) | |
-| +260 | u8 | **automated_homebase** (键 10395, bool 恒写) | |
-| +261 | u8 | **_TaskForcesLock** (AddTaskForce 断言, fleet.cpp:608) | |
+| +256 | uint32 | icon (键 181) | |
+| +260 | uint8 | **automated_homebase** (键 10395, bool 恒写) | |
+| +261 | uint8 | **_TaskForcesLock** (AddTaskForce 断言, fleet.cpp:608) | |
 | +272 | CColor 32B | color (键 86; {vt@272, R f32@288, G@292, B@296, **A f32@300**}; 原记 f32×3 吻合, 补 A) | writer 校验和流门跳过 name/color/icon |
 
 writer 全键序 (发射契约): [基类块 键 11 {11 id, 225 type}] → leader (10423) → name (27) → color (86) → icon (181) → task_force (15157 逐元) → strategic_region (12014) → hours_without_patrol_missions_pairs (15599, 8B 对收集→sort→成对) → bombardment_region (15483) → tick_to_check_naval_invasion_support (15583) → home_base (10241) → automated_homebase (10395)。
@@ -352,45 +352,45 @@ general 线特化)。
 |---|---|---|---|---|
 | +24 | CNavalBase* | 海军基地 容器数据指针 | 元素 = CNavalBase* (vtable 0X29731C0), count<4096; **+40 = 省 id→CNavalBase RH 表** (解析器 sub_140E7C420 定案, GUI 基地图标/修理窗共用) |  |
 | +25..+35 | — | = bases 容器尾 {cap@+32}  |  |  |
-| +36 | u32 | 海军基地 容器计数 |  |  |
+| +36 | uint32 | 海军基地 容器计数 |  |  |
 | +37..+47 | — | = bases 容器尾 {alloc@+40}  |  |  |
-| +48 | CNavalBase* 容器 24B | 基地引用数组 {d@48, cap@56, c@60, alloc@64} (运行时-only; 基地被移除时对应槽置空 — sub_140EAAFE0 跨国转移) | 不序列化 | 形态定案/语义推定 |
-| +72 | 容器 24B | **naval access/interest 国缓存** {d@72, cap@80, c@84, alloc@88} — u32 国 idx 数组 (四源: 派系成员 + diplo+392 单 tag + wargoal 目标国 RH + military_access/docking_rights 关系国; 填充者 sub_140EADF80; 探针 GER/JAP 实证) | 不序列化  |  |
-| +104 | 容器 24B | **per-region CNavalMission\* 桶** {d@104, cap@112, c@116, alloc@120} — 276 桶×24B vector (区域数维; GER 桶 138/147/173 探针实证) | 不序列化; **GUI: 任务扩展行数据源** (CNavalMissionExtensionEntry: region+88 = 桶下标; **mission+8 = CTaskForce\* 新锚 / mission+20 = 任务类型 u32**; pride 判定 = ship+1832 == tf 回指; tooltip SPECIFIC_NAVY_CONTAINS_PRIDE_OF_FLEET) |  |
+| +48 | CNavalBase* 向量 24B | 基地引用数组 {d@48, cap@56, c@60, alloc@64} (运行时-only; 基地被移除时对应槽置空 — sub_140EAAFE0 跨国转移) | 不序列化 | 形态定案/语义推定 |
+| +72 | uint32 向量 24B | **naval access/interest 国缓存** {d@72, cap@80, c@84, alloc@88} — u32 国 idx 数组 (四源: 派系成员 + diplo+392 单 tag + wargoal 目标国 RH + military_access/docking_rights 关系国; 填充者 sub_140EADF80; 探针 GER/JAP 实证) | 不序列化  |  |
+| +104 | 匿名结构 (NNB 形状) 向量 24B | **per-region CNavalMission\* 桶** {d@104, cap@112, c@116, alloc@120} — 276 桶×24B vector (区域数维; GER 桶 138/147/173 探针实证) | 不序列化; **GUI: 任务扩展行数据源** (CNavalMissionExtensionEntry: region+88 = 桶下标; **mission+8 = CTaskForce\* 新锚 / mission+20 = 任务类型 u32**; pride 判定 = ship+1832 == tf 回指; tooltip SPECIFIC_NAVY_CONTAINS_PRIDE_OF_FLEET) |  |
 | +128 | u32 数组 | per_region_danger 容器数据 {d@128, c@140} | 稠密 u32 区域数组, 见 token 全序表; 块门 c≠0 但全 0 值时提取器无叶 → 全 0 不发射 |  |
-| +140 | u32 | per_region_danger 容器计数 |  |  |
+| +140 | uint32 | per_region_danger 容器计数 |  |  |
 | +141..+151 | — | = danger/regional_convoys 容器尾 (cap/alloc) |  |  |
 | +152 | SRegionalConvoyData* | regional_convoys 容器数据指针 — 稀疏数组 {data@S+152, count@S+164} | 305 战略区域, **stride 48 = SRegionalConvoyData** (下表) | 定案; reader Country.navy.regional_convoys; 提取器: 有条目时块前缀被吞 → 有条目不发容量行 / 无条目发 regional_convoys.#1=容量 |
 | +153..+163 | — | = regional_convoys 容器尾  |  |  |
-| +164 | u32 | regional_convoys 容器计数 |  |  |
+| +164 | uint32 | regional_convoys 容器计数 |  |  |
 | +165..+175 | — | = regional_convoys/access 容器尾  |  |  |
 | +176 | int8 | per_region_access 容器数据指针 | int8 数组; **>0 才写 idx=val 对** |  |
 | +177..+187 | — | = access 容器尾  |  |  |
-| +188 | u32 | per_region_access 容器计数 |  |  |
+| +188 | uint32 | per_region_access 容器计数 |  |  |
 | +189..+199 | — | = access/mines 容器尾  |  |  |
 | +200 | int64 | mines 容器数据指针 | 8B 数组 |  |
 | +201..+211 | — | = mines 容器尾  |  |  |
-| +212 | u32 | mines 容器计数 | 8B 数组 |  |
+| +212 | uint32 | mines 容器计数 | 8B 数组 |  |
 | +213..+223 | — | = mines/accident 容器尾  |  |  |
-| +224 | CNavalAccidentReport* 容器 | naval_accidents 容器数据指针 | 元素 8B 指针 → CNavalAccidentReport (vt 0X295DDC8; **元素 writer 0X140CE6590 = vt slot2**; 0X140EB2250 = CStrategicNavy::Serialize 专用, 勿混) | 定案; loader 门 rec+8 (region 指针) 非空 |
+| +224 | 匿名结构 (NNB 形状) 向量 | naval_accidents 容器数据指针 | 元素 8B 指针 → CNavalAccidentReport (vt 0X295DDC8; **元素 writer 0X140CE6590 = vt slot2**; 0X140EB2250 = CStrategicNavy::Serialize 专用, 勿混) | 定案; loader 门 rec+8 (region 指针) 非空 |
 | +225..+235 | — | = accident 容器尾  |  |  |
-| +236 | u32 | naval_accidents 容器计数 |  |  |
-| +248 | CNavalMineReport* 容器 24B | **mine_report** {d@248, cap@256, c@260, alloc@264} | loader malloc 0x50 + CNavalMineReport::vftable | loader-only; ⚠ 现版 writer 不发射 (token 15321 仅 loader 识) |
-| +272 | 容器 24B | **active CNavalMission\* 平表** {d@272, cap@280, c@284, alloc@288} (元素 vt 0X297F038 = CNavalMission RTTI 直查) | 不序列化  |  |
-| +297 | u8 | **bases dirty flag** (基地增删后置 1; sub_140EAAFE0/sub_140EAACF0/sub_140EAA7F0 三处写) | 不序列化  |  |
+| +236 | uint32 | naval_accidents 容器计数 |  |  |
+| +248 | CNavalMineReport* 向量 24B | **mine_report** {d@248, cap@256, c@260, alloc@264} | loader malloc 0x50 + CNavalMineReport::vftable | loader-only; ⚠ 现版 writer 不发射 (token 15321 仅 loader 识) |
+| +272 | 匿名结构 (NNB 形状) 向量 24B | **active CNavalMission\* 平表** {d@272, cap@280, c@284, alloc@288} (元素 vt 0X297F038 = CNavalMission RTTI 直查) | 不序列化  |  |
+| +297 | uint8 | **bases dirty flag** (基地增删后置 1; sub_140EAAFE0/sub_140EAACF0/sub_140EAA7F0 三处写) | 不序列化  |  |
 | +304 | CNavalUnitTransfer* 向量 | naval_transport 容器数据指针 | 元素 = 8B 指针 → CNavalUnitTransfer (vt 0X296D8A8, 176B=0xB0; 字段表按指针解引用读取, 见 §4.16.7) | reader Country.navy.naval_transports |
 | +316 | uint32 | naval_transport 容器计数 |  |  |
-| +328 | 容器 24B | **task_force_templates** {d@328, cap@336, c@340, alloc@344} — **136B 内联元** {name MSVC 串@+0 (token 27), composition_requirements 多态对象@+32 (token 15168)} | 块 token 15175 task_force_template | loader: name 空或 composition 无效不入容器 |
-| +340 | u32 | task_force_templates **容器计数** | | |
+| +328 | MSVC 串 向量 24B | **task_force_templates** {d@328, cap@336, c@340, alloc@344} — **136B 内联元** {name MSVC 串@+0 (token 27), composition_requirements 多态对象@+32 (token 15168)} | 块 token 15175 task_force_template | loader: name 空或 composition 无效不入容器 |
+| +340 | uint32 | task_force_templates **容器计数** | | |
 | +341..+351 | — | = templates 容器尾 {alloc@+344}  |  |  |
 | +352 | RH 结构基 | convoy_escort_presence_history RH **结构基 @+352** (loader 插入点 = a1+344 ser; struct+0 = 四面无读者死槽 (负定案), data@+360=struct+8, count@struct+16=+368 (写入门字段), mask@struct+20=+372, extra@struct+24=+376, lf@struct+28=+380; 条目 40B 见 §4.16.11) |  |  |
 | +361..+371 | — | = RH 结构体内  |  |  |
-| +372 | u32 | convoy_escort_presence_history RH mask | | |
-| +376 | u8 | convoy_escort_presence_history RH extra | | |
+| +372 | uint32 | convoy_escort_presence_history RH mask | | |
+| +376 | uint8 | convoy_escort_presence_history RH extra | | |
 | +384 | 匿名结构 (200B 形状) | **per-navy 邻接规则 (海峡/运河通行) 缓存** — 200B 无 vtable {owner 回指 + 3×64B block (kind 2/1/0, region→u16 组映射 + 376B 元规则 RH)}; 谓词链落 adjacencyrule.cpp (EAdjacencyRuleSubject) | 不序列化  |  |
-| +392 | 容器 24B | **naval_supply_hub 省份缓存** {d@392, cap@400, c@404, alloc@408} — u32 省 id (填充者 sub_140EB1840 遍历 controlled_provinces → prov+480 建筑实例数组 → 建筑类型共享状态 F+886 旗 = naval_supply_hub 类型旗 tok 10194, 定案; ⚠ **CNavalBase+392 = owner tag u32 跨类同偏移并存, 勿混**) | 不序列化  |  |
+| +392 | uint32 向量 24B | **naval_supply_hub 省份缓存** {d@392, cap@400, c@404, alloc@408} — u32 省 id (填充者 sub_140EB1840 遍历 controlled_provinces → prov+480 建筑实例数组 → 建筑类型共享状态 F+886 旗 = naval_supply_hub 类型旗 tok 10194, 定案; ⚠ **CNavalBase+392 = owner tag u32 跨类同偏移并存, 勿混**) | 不序列化  |  |
 | +416 | 匿名结构 (8B 形状) 向量 | homebase_observers {d@416, c@428} 8B 元 {prov u32@0, count u8@+4} | 逐元匿名块 "prov count" |  |
-| +428 | u32 | homebase_observers 容器计数 |  |  |
+| +428 | uint32 | homebase_observers 容器计数 |  |  |
 | +440 | uint32 | dockyards max_allowed |  |  |
 | +444 | uint32 | used |  |  |
 
@@ -438,13 +438,13 @@ CNavalUnitTransfer (176B = 0xB0; vt 0X296D8A8; 元素 writer 0X140E28F40;
 | +16 | uint8 | id 块门 (refid 经 B400) | ≠0 |
 | +24 | idpair | combat 容器数据指针 — id 对数组 {d, c} | c>0 |
 | +25..+35 | — | = combat 容器 {data@24, **cap@32**, count@36, alloc@40} 内部 (pdx 24B) |  |
-| +36 | u32 | combat 容器计数 | c>0 |
+| +36 | uint32 | combat 容器计数 | c>0 |
 | +37..+47 | — | = combat count 尾 + **alloc@40**  |  |
-| +48 | u32 | spotter.type — id 对之 type (refid 对) | 任一≠0 |
-| +52 | u32 | spotter.id — id 对之 id | 任一≠0 |
+| +48 | uint32 | spotter.type — id 对之 type (refid 对) | 任一≠0 |
+| +52 | uint32 | spotter.id — id 对之 id | 任一≠0 |
 | +56 | idpair | unit 容器数据指针 — refid 数组 {d, c} | 元素有效且 A3D0−16≠0 |
 | +57..+67 | — | = unit 容器 {data@56, **cap@64**, count@68, alloc@72} 内部  |  |
-| +68 | u32 | unit 容器计数 |  |
+| +68 | uint32 | unit 容器计数 |  |
 | +69..+79 | — | = unit count 尾 + **alloc@72**  |  |
 | +80 | uint32 | target_provinces | 无条件 |
 | +84 | uint32 | province | 无条件 |
@@ -455,7 +455,7 @@ CNavalUnitTransfer (176B = 0xB0; vt 0X296D8A8; 元素 writer 0X140E28F40;
 | +96 | uint32 | cooldown (0x391E) | >0 |
 | +104 | uint32 | path 容器数据指针 — u32 数组 {d, c} | c>0 |
 | +105..+115 | — | = path 容器 {data@104, **cap@112**, count@116, alloc@120} 内部 (u32 省 id 数组) |  |
-| +116 | u32 | path 容器计数 | c>0 |
+| +116 | uint32 | path 容器计数 | c>0 |
 | +117..+135 | — | = path count 尾 + **alloc@120..127** + **convoys 块对象@+136** 前 pad  |  |
 | +136 | 内嵌 | convoys 块对象 | 无条件 |
 
@@ -472,8 +472,8 @@ modify_building_resources 内层元 (16B):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +0 | u32 | level |
-| +8 | i64 fixed5 | amount (⚠ 内存 300000 ↔ save 3) |
+| +0 | uint32 | level |
+| +8 | int64 fixed5 | amount (⚠ 内存 300000 ↔ save 3) |
 
 resources 叶名 `<building>.<level>`。
 
@@ -483,9 +483,9 @@ resources 叶名 `<building>.<level>`。
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +8 | u32 | allocated (已分得运输船数) |
-| +12 | u32 | requested (申请数; RequestConvoys sub_141022950 写) |
-| +16 | u32 | 静态标签 (Init 第 3 参: 2/4/32/128; 分配面不读) |
+| +8 | uint32 | allocated (已分得运输船数) |
+| +12 | uint32 | requested (申请数; RequestConvoys sub_141022950 写) |
+| +16 | uint32 | 静态标签 (Init 第 3 参: 2/4/32/128; 分配面不读) |
 | +24 | CCountry* | 订阅宿主国 |
 | +32 | 桶指针 | 所属优先级桶 (订阅时回填) |
 
@@ -505,14 +505,14 @@ CNavalBase (vtable 0X29731C0; **sizeof = 88 (0x58)** malloc 三重证; writer = 
 | +20 | uint32 | level |
 | +24 | uint32 | max_level |
 | +28 | uint32 | **修理容量** (min 钳 + 超容警报双证; GUI = CNavalBaseMapIcon populate 消费) |
-| +32 | u32 | priority — writer ADFE0 按 u32 存读 (定案); **门 = ≠1** (ctor 默认 1; 原「≠0 才写」订正) |
+| +32 | uint32 | priority — writer ADFE0 按 u32 存读 (定案); **门 = ≠1** (ctor 默认 1; 原「≠0 才写」订正) |
 | +40 | idpair | ships_in_repair 容器数据 (8B 内联对 {type@0, id@+4}); count@+52; **GUI: 修理队列数据源归属定案** (CNavalRepairWindow 队列 = CStrategicNavy+24 bases 容器 → 本字段, 非 §4.8 refit 生产线; 行类 CNavalRepairQueueNavalBaseEntry 行+3904 = nb / CNavalRepairQueueShipEntry 行+48 = 船 idpair); 发射 = `#N` 恒编号 (1 起容器序, 值 "id=N type=T") |
 | +41..+51 | — | = ships_in_repair 容器尾  |
-| +52 | u32 | ships_in_repair 容器计数 |
+| +52 | uint32 | ships_in_repair 容器计数 |
 | +53..+63 | — | = ships_in_repair 容器尾 + disabled 前置  |
 | +64 | string | **disabled_for_repairs 串列表** 容器数据 (token 0x3C4A = 15434, writer 直证); count@+76 |
 | +65..+75 | — | = disabled_for_repairs 容器尾  |
-| +76 | u32 | disabled_for_repairs 串列表容器计数 |
+| +76 | uint32 | disabled_for_repairs 串列表容器计数 |
 | +80 | ptr | 第二容器分配器指针 (共享静态 off_143085170) + 尾填充至 88 — 对象到 88 为止, 原「+80..尾 空白」闭合 |
 | ⚠ | — | 原「CNavalBase+392 = owner tag u32」跨类警告**废** — 88B 对象无 +392 槽, 该偏移实为 CProvince+392 controller 误标 (§4.14) |
 修理链: 入队 sub_140EAB160 (本国优先 + repair_mode 降序) + 插入位规则 sub_140EA4EE0; 队列小时处理 sub_140EA1280 + 交战门 sub_140EA10E0; 速率 = sub_140D655B0 (NAVALBASE_REPAIR_MULT × modifier 475 × 基地系数, **补给门**用 calc+184 _RemainingSupply)。
@@ -527,13 +527,13 @@ a1=rec:
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
 | +8 (间接) | uint32 | region = uint32@(*(rec+8)+88) (键 10827 恒写) |
-| +16 | u32 | equipment.type — id 对之 type (id 对 {type, id}) |
-| +20 | u32 | equipment.id — id 对之 id |
-| +24 | qword | 累加器 (添加器 sub_140EAAE10 `*(rec+24) += a3`; 不序列化) |
-| +32 | u8 | **is_sunk** (token 14661; ≠0 才写) |
-| +36 | u32 | ship.type — id 对之 type (id 对 {type, id}) |
-| +40 | u32 | ship.id — id 对之 id |
-| +44 | tag u32 | **country** (token 10394, sub_140BB4E70→串; 恒写) |
+| +16 | uint32 | equipment.type — id 对之 type (id 对 {type, id}) |
+| +20 | uint32 | equipment.id — id 对之 id |
+| +24 | uint64 | 累加器 (添加器 sub_140EAAE10 `*(rec+24) += a3`; 不序列化) |
+| +32 | uint8 | **is_sunk** (token 14661; ≠0 才写) |
+| +36 | uint32 | ship.type — id 对之 type (id 对 {type, id}) |
+| +40 | uint32 | ship.id — id 对之 id |
+| +44 | tag uint32 | **country** (token 10394, sub_140BB4E70→串; 恒写) |
 | +56 | hours | **to_discard_date** (token 15510) — 24B {vt1@+48, hours@+56, vt2@+64}, ADEC0 代理 = vt2@+64; 恒写 |
 
 #### 4.16.10 CNavalMineReport (80B)
@@ -548,12 +548,12 @@ c@S+260} writer 不发射 (token 15321 仅 loader 识)。
 |---|---|---|---|
 | +8 (间接) | uint32 | region = uint32@(*(rec+8)+88) (键 10827 恒写) | — |
 | +16 | idpair | equipment {type@+16, id@+20} | — |
-| +24 | qword | 累加器 (添加器 sub_140EAAF00 同式; 不序列化) | — |
-| +32 | u8 | is_sunk | ≠0 |
+| +24 | uint64 | 累加器 (添加器 sub_140EAAF00 同式; 不序列化) | — |
+| +32 | uint8 | is_sunk | ≠0 |
 | +36 | idpair | ship {type@+36, id@+40} | — |
-| +44 | tag u32 | country (token 10394, sub_140BB4E70→串) | — |
+| +44 | tag uint32 | country (token 10394, sub_140BB4E70→串) | — |
 | +48..+71 | CGameDate 24B | date {vt1@+48, hours@+56 = 43808760 哨兵, vt2@+64} | 只发 to_discard_date (代理 = vt2@+64) |
-| +72 | tag u32 | country 尾部多发 (token 10394; 同键双发 = 重复标量叶不编号形态; 推定 = 布雷国+被炸国二元组) | — |
+| +72 | tag uint32 | country 尾部多发 (token 10394; 同键双发 = 重复标量叶不编号形态; 推定 = 布雷国+被炸国二元组) | — |
 
 has_mined 深扫链 (复合链, 推定; 单批孤证, cc 侧首跳管理器指针未钉偏移):
 cc → 水雷管理器 → 元 {+176/+188} → 子 {+184} → 表 {data@+112, count@+124, 48B 条 {id@+8}} → 对象旗 {+184 u8, +200, +210 u8}。
@@ -564,7 +564,7 @@ cc → 水雷管理器 → 元 {+176/+188} → 子 {+184} → 表 {data@+112, co
 |---|---|---|---|
 | +4 | uint8 | dist | 有效值 1..0xFE |
 | +8 | uint32 | region | |
-| +16 | 环形缓冲 | value 内嵌 {buf@+16, capacity@+24, head@+28, tail@+32} | 元素 i32 三态 {−1 无数据哨兵, 0 无护航, N 活跃护航 TF 计数} (生产端 sub_140EB0970 Σ+−1 push / 消费端 sub_140EA58B0 按 ≥0 分母 >0 分子, 720 窗口); 每条目发射门 = 环非空 (tail != head); 落盘 = head..tail 环形展开 (count = tail<head ? capacity+tail−head : tail−head; 满载 capacity−1; 运行时新建条目即 cap=721 (malloc 0xB44); ⚠ 线性读法读出槽外垃圾) |
+| +16 | 匿名结构 (NNB 形状) (环形缓冲 §3.4) | value 内嵌 {buf@+16, capacity@+24, head@+28, tail@+32} | 元素 i32 三态 {−1 无数据哨兵, 0 无护航, N 活跃护航 TF 计数} (生产端 sub_140EB0970 Σ+−1 push / 消费端 sub_140EA58B0 按 ≥0 分母 >0 分子, 720 窗口); 每条目发射门 = 环非空 (tail != head); 落盘 = head..tail 环形展开 (count = tail<head ? capacity+tail−head : tail−head; 满载 capacity−1; 运行时新建条目即 cap=721 (malloc 0xB44); ⚠ 线性读法读出槽外垃圾) |
 
 #### 4.16.12 NNavalMission::EMissionType 枚举与 AI 侧任务写点 (A6 锚)
 
@@ -590,7 +590,7 @@ sub_140C38740 → 归队; 在修理目标省且任务=8 也跑一次状态机) /
 | 0 | HOLD | 内联 | 门: `+49==0 ∧ AGGRESSION_SETTINGS_VALUES[+52] > 0`; 扫本省 (tf+496 → prov+260/prov+248) 他舰 TF: 非 HOLD 关系 + 目标舰型过滤 (tf+1868 计数≠0 时逐舰 sh+136 def 匹配 tf+1856 清单) + 战斗序列 ≥3 (交战国) → **sub_140BB99D0 开战**; 无果 +68=0 |
 | 1 | PATROL | sub_140FBB0A0 | 侦查引擎 (下); 目标失效清 +112/+108/+136; +108 在区递增; 完全侦出 (+128 ≥ 1e7) → +104 锁存 + 三级 notify (sub_140C01B70: 1=部分/2=发现/3=可攻击; 阈值 SPOTTING_MISSION_DETECTION_THRESHOLD_LOW/MEDIUM) |
 | 2 | STRIKE_FORCE | sub_140FB3C90 | strike 目标 (+160) 有效且就绪 (sub_140FBE950) → 追击目标省; 无目标 → 舰队目标省 (fleet+216) 待命; 同省相遇 → sub_140BB99D0 开战 + sub_140D766E0 注销目标 |
-| 3 | CONVOY_RAIDING | sub_140FBC730 | 目标态: +144 护航客户 / +152 海运运输 (+92 is_returning 区分); sub_140FBB810 接敌现运 (省 +272/+284 与 +296/+308 TF 在场表 → tf+760 运输: 返航∨态<2 + 冷却 +96≤0 + 无 spotter + invasion_group>0; 检测过 UNIT_TRANSFER_DETECTION_CHANCE_BASE 门) 失败 → sub_140FBADC0 搜护航客户 (CONVOY_DETECTION_CHANCE_BASE 门); 检测进度都是 +128 |
+| 3 | CONVOY_RAIDING | sub_140FBC730 | 目标态: +144 护航客户 / +152 海运运输 (**+92 invasion_group 区分** — 勘误: 此行原记「+92 is_returning」系交叉引用旧说, +92 实义见 §4.16.7 表 invasion_group 行); sub_140FBB810 接敌现运 (省 +272/+284 与 +296/+308 TF 在场表 → tf+760 运输: 返航∨态<2 + 冷却 +96≤0 + 无 spotter + invasion_group>0; 检测过 UNIT_TRANSFER_DETECTION_CHANCE_BASE 门) 失败 → sub_140FBADC0 搜护航客户 (CONVOY_DETECTION_CHANCE_BASE 门); 检测进度都是 +128 |
 | 4 | CONVOY_ESCORT | sub_140FBBF00 | 扫区域→省→省 +368/+380 客户在场表: 客户 × tf+1856 目标舰型 × mission+16 国别匹配, 敌我强度比择优 → **sub_140BB85D0 接敌** |
 | 5 | MINES_PLANTING | 内联 | 有海权国 ∧ +212 区域数>0: 布雷量 = NAVAL_MINES_PLANTING_SPEED_MULT × sub_140D6F120(tf); 确定性 RNG (种子=小时) 遍历 +200 区域, sub_141003F50 海权优势方==我 → × (NAVAL_DOMINANCE_MINES_PLANTING_BONUS+1e5)/1e5; 查现存上限 NAVAL_MINES_IN_REGION_MAX → sub_140E9F1D0 布雷 |
 | 6 | MINES_SWEEPING | sub_140FB8840 | 对称: NAVAL_MINES_SWEEPING_SPEED_MULT × sub_140D6F1F0(tf); 海权加成 NAVAL_DOMINANCE_MINES_SWEEPING_BONUS; sub_140E9F1D0 负量扫除 |
@@ -711,38 +711,38 @@ A6 活体读锚 (-human_ai 现场可直接读):
 | 偏移 | 类型 | 语义 | 写门 | 置信 |
 |---|---|---|---|---|
 | +8 | CTaskForce* | 宿主回指 | 不序列化 | 定案 |
-| +16 | u32 | 拥有国 handle type 槽 (拷自 tf+472 refid type 段; 解析只读 +16) | 不序列化 | 定案 |
-| +20 | u32 | EMissionType (键 11450 mission) | 恒写 | 定案 |
-| +24 | u32 | 移动目标省 id (回港/入侵跟随/区域漫游; sub_140FB95F0 发 CNavalMissionMoveCommand 后清 0) | 键 333 move ≠0 写 | 定案 |
-| +32 | i64 fixed5 | 雷达覆盖合计 (Σ区域雷达贡献, 钳 0..1e5) | 键 12237 radar >0 写 | 定案 |
-| +40 | i64 fixed5 | 制空权值 (区域加权平均, sub_140FBD630) | 键 12335 air_superiority >0 写 | 定案 |
-| +48 | u8 | IsInAssignedRegions (sub_140FBE7F0 每小时重算) | 键 12468 is_in_regions ≠0 写 | 定案 |
-| +49 | u8 | 分舰维修旗 (= tf+913; 置位时 HOLD/破交/护航拒接敌) | 不序列化 | 定案 |
-| +52 | u32 | **接敌规则索引 navy_engagement_rule** (0=不接敌; ctor 默认 2=medium; 接敌门统一 AGGRESSION_SETTINGS_VALUES[+52] ≤0 拒) | 键 13358 恒写 | 定案 |
-| +56 | u32 | TRAINING 小时计数 (在训练区递增, ≥24 归零+日报; SetType 清 0) | 键 12656 hours >0 写 | 定案 |
-| +60 | u32 | hours_in_mission (非训练型活跃计数, ≥24 归零+日报) | 键 17190 >0 写 | 定案 |
+| +16 | uint32 | 拥有国 handle type 槽 (拷自 tf+472 refid type 段; 解析只读 +16) | 不序列化 | 定案 |
+| +20 | uint32 | EMissionType (键 11450 mission) | 恒写 | 定案 |
+| +24 | uint32 | 移动目标省 id (回港/入侵跟随/区域漫游; sub_140FB95F0 发 CNavalMissionMoveCommand 后清 0) | 键 333 move ≠0 写 | 定案 |
+| +32 | int64 fixed5 | 雷达覆盖合计 (Σ区域雷达贡献, 钳 0..1e5) | 键 12237 radar >0 写 | 定案 |
+| +40 | int64 fixed5 | 制空权值 (区域加权平均, sub_140FBD630) | 键 12335 air_superiority >0 写 | 定案 |
+| +48 | uint8 | IsInAssignedRegions (sub_140FBE7F0 每小时重算) | 键 12468 is_in_regions ≠0 写 | 定案 |
+| +49 | uint8 | 分舰维修旗 (= tf+913; 置位时 HOLD/破交/护航拒接敌) | 不序列化 | 定案 |
+| +52 | uint32 | **接敌规则索引 navy_engagement_rule** (0=不接敌; ctor 默认 2=medium; 接敌门统一 AGGRESSION_SETTINGS_VALUES[+52] ≤0 拒) | 键 13358 恒写 | 定案 |
+| +56 | uint32 | TRAINING 小时计数 (在训练区递增, ≥24 归零+日报; SetType 清 0) | 键 12656 hours >0 写 | 定案 |
+| +60 | uint32 | hours_in_mission (非训练型活跃计数, ≥24 归零+日报) | 键 17190 >0 写 | 定案 |
 | +64 | i64 (低 32 位) | num_convoys_in_regions (sub_140FBE250 并行重算 Σ; 高 32 位运行时未用) | 键 15540 >0 写 | 定案 |
-| +68 | u8 | 本小时活跃旗 (switch 前置 1; 无敌/无区清 0; 门控 24h 日报) | 不序列化 | 定案 |
-| +69 | u8 | stop_training_at_max_xp (= tf+933) | 键 19076 ≠0 写 | 定案 |
+| +68 | uint8 | 本小时活跃旗 (switch 前置 1; 无敌/无区清 0; 门控 24h 日报) | 不序列化 | 定案 |
+| +69 | uint8 | stop_training_at_max_xp (= tf+933) | 键 19076 ≠0 写 | 定案 |
 | +72 | SOrderInstanceRef 内嵌 | group_to_escort 订单引用 (空引用判定 sub_1410381D0 — **非活订单时才序列化**, 活订单由订单系统自持; case 9 消费) | 键 15484 | 定案 |
 | +96 | CStrategicRegion* | invasion bombardment region (sub_140FBA6B0 设置; case 9 消费/清零) | 键 15483 → region+88 id | 定案 |
-| +104 | u8 | already_spotted (完全侦出锁存, 换目标复位) | 键 15283 ≠0 写 | 定案 |
-| +108 | u32 | hours_in_spotting_region (PATROL 在侦查区递增, 换区/失效清 0) | 键 15290 >0 写 | 定案 |
+| +104 | uint8 | already_spotted (完全侦出锁存, 换目标复位) | 键 15283 ≠0 写 | 定案 |
+| +108 | uint32 | hours_in_spotting_region (PATROL 在侦查区递增, 换区/失效清 0) | 键 15290 >0 写 | 定案 |
 | +112 | CStrategicRegion* | spotting_region (sub_140FBA7E0 设置连带 +108 清 0) | 键 15285 → region+88 id | 定案 |
-| +120 | i64 fixed5 | spotting_speed (本小时侦查速度 sub_140FB0830) | 键 15300 ≠0 写 | 定案 |
-| +128 | i64 | spotting_process (检测进度累积, 1e7 封顶 = 完全侦出; 目标/港/型切换清 0) | 键 15280 ≠0 写 | 定案 |
+| +120 | int64 fixed5 | spotting_speed (本小时侦查速度 sub_140FB0830) | 键 15300 ≠0 写 | 定案 |
+| +128 | int64 | spotting_process (检测进度累积, 1e7 封顶 = 完全侦出; 目标/港/型切换清 0) | 键 15280 ≠0 写 | 定案 |
 | +136 | refid 8B | spotting_target (敌 TF) | 键 15277 | 定案 |
 | +144 | refid 8B | spotting_convoy_client (破交目标护航客户, sub_140FBA990) | 键 15489 | 定案 |
 | +152 | refid 8B | spotting_unit_transfer (破交目标海运运输, sub_140FBAB00) | 键 15490 | 定案 |
 | +160 | refid 8B | strike_force_target (STRIKE 追击目标) | 键 15281 | 定案 |
 | +168 | CStrategicRegion* | accessible_regions_range 锚区 | 键 15292 (⚠ 裸指针 i64 发射/loader 原样回读 — 跨会话陈旧指针, 首小时区域比对自愈) | 定案 |
-| +176 | 容器 {d, cap@+184, c@+188} | accessible_regions_in_fleet per 区域 bool 数组 | 键 15293 | 定案 |
-| +200 | 容器 {d, cap@+208, c@+212} | accessible_regions (舰队区域 ∩ 省区间 ∩ 可达 — 状态机「任务区域」唯一来源) | 键 15299 逐 region id | 定案 |
-| +224 | u32 | hours_to_wait_for_base_check (sub_140FB7630 每小时减 1) | 键 15581 ≠0 写 | 定案 |
+| +176 | 匿名结构 (NNB 形状) 向量 | accessible_regions_in_fleet per 区域 bool 数组 | 键 15293 | 定案 |
+| +200 | 匿名结构 (NNB 形状) 向量 | accessible_regions (舰队区域 ∩ 省区间 ∩ 可达 — 状态机「任务区域」唯一来源) | 键 15299 逐 region id | 定案 |
+| +224 | uint32 | hours_to_wait_for_base_check (sub_140FB7630 每小时减 1) | 键 15581 ≠0 写 | 定案 |
 | +232 | CStrategicRegion* | convoy_spotting_region (护航客户路线选区 sub_140FBD850 / 运输选区 sub_140FBDAB0) | 键 15491 → region+88 id | 定案 |
 | +240 | CFleet* | _pFleet 缓存 (`_RegionRange._pFleet == _pNavy->GetFleet()` 断言族) | 不序列化 | 定案 |
-| +248 | u32 | ppStart (省区间下界) | 不序列化 | 定案 |
-| +252 | u32 | ppEnd (省区间上界, 开区间) | 不序列化 | 定案 |
+| +248 | uint32 | ppStart (省区间下界) | 不序列化 | 定案 |
+| +252 | uint32 | ppEnd (省区间上界, 开区间) | 不序列化 | 定案 |
 
 邻近结构 (F6 重钉, 定案): province+272 {data, count@+284} 与 province+296
 {data, count@+308} = **省在场单位双表（陆军/type13; 「TF 表」判读废）**
@@ -773,10 +773,3 @@ transfer。
 
 新钉: CStrategicNavy+16 = owner tag u32; CPendingStratNavyTransfer 56B 全布局
 (§4.00 待命指令族补全)。is_returning 运行期无置 1 写点 (负发现)。
-
-
-#### 4.16.16 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
-
-| 来源 | 函数与身份 / 建议落点 |
-|---|---|
-| part15 | sub_140EA3680（110 行，#30） / 海军/战略海军 / 书 `s4_16_navy.md:569` §4.16.12 遍一动作清单补行：串行逐 navy 内步（navy+200 小时槽数组自全局表 qword_143337278 填充、钳上限 qword_143336ED0、前置双门）；填充语义（疑轮换/预计到港类）细作时定 |

@@ -111,7 +111,7 @@
 | 12057 | CSetOrderGroupOrdersInstanceNamesCommand | 五槽自定义 | 0x142a0a648 |
 | 12092 | CHourlyTickCommand | 五槽自定义 | 0x142976f78 |
 | 12098 | CSetGameSpeedCommand | 五槽自定义 | 0x1429771d0 |
-| 12118 | CCreateOperationCommand | 五槽自定义 | 0x142978310 |
+| 12118 | CCreateOperationCommand | 五槽自定义 | 0x142978310  建令工厂 = sub_141A26700 (行动视图自动重复重建; 载荷源 a3+64/+65/+72/+88/+96; 布局补全定案: +72 ← *a2 / +76 ← a3+88 i32 / +80 ← a3+96 i64; 初始化 +12=−1 / +20=0xFFFF0000; 特工数组源 = a3+224 容器 56B 元前 12B) |
 | 12142 | CSetProductionLineCommand | 五槽自定义 | 0x142993af0 |
 | 12144 | CSetResearchCommand | 五槽自定义 | 0x142994f40 |
 | 12147 | CChangeProductionLinePriorityCommand | 五槽自定义 | 0x142994c20 |
@@ -363,7 +363,7 @@
 | 15337 | CSetMaxAllowedRepairDockyards | 五槽自定义 | 0x1429b0178 |
 | 15339 | CReorderNavalRepairQueue | 五槽自定义 | 0x1429b0308 |
 | 15340 | CSwitchNavalRepairDockyard | 五槽自定义 | 0x1429b0498 |
-| 15341 | CRequestExpeditionariesCommand | 五槽自定义 | 0x142996a98 |
+| 15341 | CRequestExpeditionariesCommand | 五槽自定义 | 0x142996a98  IsValid 四门 = REQUEST_EXP_NOT_AI (⚠ 语义方向待裁, sub_1406FFC90) / MUST_BE_IN_SAME_FACTION (cc+3976+656 阵营) / NOT_SHARING_WAR (cc+3976+176/+188 战清单) / WE_ARE_NOT_AT_WAR (sub_140D3FD60) |
 | 15342 | CAddToOrRemoveShipFromNavalRepairQueue | 五槽自定义 | 0x1429b03d0 |
 | 15344 | CChangeNavalBaseRepairPriorityCommand | 五槽自定义 | 0x1429b0560 |
 | 15345 | CDisengageFromNavalCombatCommand | 五槽自定义 | 0x1429b07b8 |
@@ -596,7 +596,7 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 
 > 编成域五项已全部由下「清偿定案」覆盖 (①⑤ 直接、② CStrategicRedeployment +48 不序列化、③④ 见清偿③④); 上界活体实读 = 3 并入 12615 行。
 
-> 机动/订单域补充：新 helper sub_1424C0900/C3020（文本标量通道）、u32 数组三件套、find-instance 两株；运行时全局 qword_14333D528 = 当前前线 idpair（三证）；订单实例 +48 类型枚举（1/3/4）、+184 源省、CUnit+704 动作队列。**死命令壳 2（14901/14857, 清偿定案无生效路由）、空操作 1（14987）**。
+> 机动/订单域补充：新 helper sub_1424C0900/C3020（文本标量通道）、u32 数组三件套、find-instance 两株；运行时全局 qword_14333D528 = **只读常量「无效 idpair {-1,-1}」**（全库 2567 引用 0 写入 — 勘误: 原「当前前线 idpair」三证皆消费侧; IsValid 判 ≠ 此值 = 判非空）；订单实例 +48 类型枚举（1/3/4）、+184 源省、CUnit+704 动作队列。**死命令壳 2（14901/14857, 清偿定案无生效路由）、空操作 1（14987）**。
 
 > **清偿定案（编成/机动域）**: ① XP 刻度不对称 = 引擎原生不一致（内存两命令同 1e-5 XP; 盘上 create cost=原值 i64 通道、update cost=整 XP /100000+u32 通道——重放后 Update 扣减缩水 1e5 倍）; ② 13753 +48 = 动作类型 id 13898; ③ DLC 门 sub_1401AEB50(57) = **Thunder at Our Gates**（dlc052）; ④ 补给 wrapper = **CCountrySupplySystem**（sub_1406CF380 = per-country getter, +16=priority 与 §4.21 同槽）; ⑤ CUnit 虚槽 +424 = SetStrategicRedeploying(bool)→写 +687, +56/+64 = 军官载体 getter; ⑥ CUnit 1.19.3 主虚表 = **0x1429530D8**。
 
@@ -967,7 +967,7 @@ writer [22] / reader [23] 体内的公共 helper（逐调用对名定案，读�
 | 14857 | CSetOrdersLinkCommand | 0x142A0CFB0 | sizeof 104; +40 集团军 idpair 8B(14482) / +48 订单实例引用 24B(14642; 系统 idpair@+0/群 idpair@+8/order_index@+16 推定形) / +72 订单实例引用 24B(14643 同构) | 定案: **死命令壳**（Execute=CFG 空桩, 同 14901 款; 无生效路由） | 本地无调用方（d0 空、无 INLINE_POST） | — | 书内定案死命令壳——Execute=CFG 空桩（同 14901 款），无生效路由 | — | 与书 §4.33.15 既有定案一致，本域 census 复核通过〈定案〉 |
 | 15782 | COrderDeleteChildFront | 0x142A0B390 | sizeof 64; +40 组 idpair 8B(63) / +48 orders 实例号 u32(13815) / +52 子前线组 idpair 8B(15781) | 0x141845F90 定案: 删 orders 前线子节 | 玩家UI — sub_140F4E9E0（session_post；串 "click_assign_frontline"/"expand_ahead"/"expand_behind"/"child_edge"/"swap_left"/"swap_right"/"Invalid user paint tool value" = 前线绘制工具集）；d1 sub_140DD3A50（Idle 巨函，挂 sub_1401F0590 小时调度器）。 | 前线编辑/绘制模式下删除某 orders 组前线的一个子节（paint tool 状态机与右键菜单两入口）。 | orders 组（idpair 63）+ orders 实例号 + 子前线组 idpair（15781）。 | Execute 0x141845F90 删 orders 前线子节（子前线组引用摘除）。 | 玩家前线编辑器专用；工具串证据极强。〈定案〉 |
 | 12729 | COrderSetParadropSourceCommand | 0x142A0CA38 | sizeof 80; +40 部队 idpair 8B(63, +296 门) / +48 订单序号 i32(12342) / +52 空投源省 u32(10304, 仅非零写) / +56 划入单位数组 {cap@64,count@68}(10403) | 定案: 设空降源：新建 4 型订单实例挂接+单位划入+管线刷新 | 玩家UI — sub_140F55F00（空降订单 UI 处理器，串 "CONFIRM_DELETE_ORDER_PARADROP"，session_post 投递）；上游 sub_140F4E9E0（订单绘制/分配工具集：click_assign_frontline/expand_ahead/expand_behind/swap_left/swap_right）→ sub_140DD3A50（Idle 巨函） | 玩家在空降订单上指定空投源省（部队+136/+128 选中的订单，源省有效性门 +184/+124/+112 检查，非法订单弹删除确认） | 部队 idpair（+296 门）+ 订单序号 + 空投源省 + 划入单位数组 | 设空降源省：新建 4 型订单实例挂接 + 单位划入 + 管线刷新 | 纯玩家 UI 订单编辑链，本命令无 AI 通道（定案） |
-| 12730 | COrderSetParadropTargetCommand | 0x142A0CB00 | sizeof 56; +40 部队 idpair 8B(63, +296 门) / +48 订单序号 i32(12342) / +52 空投目标省 u32(10304, 仅非零写) | 定案: 订单写空投目标省 + sub_141029490(inst,4) 准备流水线 | 玩家UI — 同 12729 链（sub_140F55F00 同一处理器构源/目标两命令，session_post；上游 140F4E9E0 → 140DD3A50 右键菜单） | 玩家在空降订单上指定空投目标省（同一 UI 流程的第二步） | 部队 idpair + 订单序号 + 空投目标省 | 订单写空投目标省 + sub_141029490(inst,4) 触发准备流水线 | 与 12729 成对，纯玩家 UI（定案） |
+| 12730 | COrderSetParadropTargetCommand | 0x142A0CB00 | sizeof 56; +40 部队 idpair 8B(63, +296 门) / +48 订单序号 i32(12342) / +52 空投目标省 u32(10304, 仅非零写) | 定案: 订单写空投目标省 + sub_141029490(inst,4) = **GenerateOrderName 名字生成** (勘误: 原记「准备流水线」; 按战略区键哈希查国家名字池 + 确定性种子写订单名) | 玩家UI — 同 12729 链（sub_140F55F00 同一处理器构源/目标两命令，session_post；上游 140F4E9E0 → 140DD3A50 右键菜单） | 玩家在空降订单上指定空投目标省（同一 UI 流程的第二步） | 部队 idpair + 订单序号 + 空投目标省 | 订单写空投目标省 + sub_141029490(inst,4) = GenerateOrderName 名字生成 | 与 12729 成对，纯玩家 UI（定案） |
 | 13099 | COrderMembersFairSplitCommand | 0x142A0C268 | sizeof 64; +40 源订单组 idpair 8B(13113) / +48 目标订单组 idpair 8B(13114) / +56 源组订单序号 u32(13115) / +60 目标组订单序号 u32(13116) | 定案: 两 COrdersGroup 各取一订单做成员省均分 | 玩家UI — sub_140EFF3C0（session_post；140EF 订单编辑 UI 域，大量订单组/前沿成员收集逻辑） | 玩家对两订单组执行"公平拆分"成员操作（前沿按省均分语境） | 源/目标订单组 idpair + 各自订单序号 | 两 COrdersGroup 各取一订单做成员省均分 | 纯玩家 UI（高置信：session_post 单证 + 订单编辑域语境，无第二证） |
 | 13578 | COrderReplaceRootCommands | 0x142A0BDB8 | sizeof 112; +40 部队 idpair 8B(63) / +48 单位数组 {cap@56,count@60}(10403) / +72 前线 idpair 8B(10720, +296 门) / +80 分节 u32(13093) / +88 比例下限 i64(10639) / +96 比例上限 i64(10640) / +104 子分节管理旗 u8(15783) | 定案: 部队单位清单改挂前线 root 订单 | AI — sub_141A402E0（断言 ai\force_concentration\ai_force_concentration.cpp:692，AI 通道）、sub_141A79AC0（断言 ai\ai_volunteer_general.cpp:49，AI 通道）、sub_141A4FE10（141A4 簇，AI 通道）、sub_141069F50（串 "stout_defend"/"no root instances, is this legit Carl?"）；上游 sub_141A4E0C0/sub_141A4E420（串 "_Fronts.GetSize() == 1"/"stout_defender"） | AI 兵力集中、志愿军将军派遣、坚守战略执行时把单位清单改挂前线 root 订单（含比例上下限与分节参数计算） | 部队 idpair + 单位数组 + 前线 idpair（+296 门）+ 分节 + 比例上下限 + 子分节管理旗 | 部队单位清单改挂前线 root 订单 | 纯 AI 命令，本域唯一完全无玩家通道的订单命令（定案） |
 | 13580 | COrderReplaceFallbackCommands | 0x142A0BB60 | sizeof 96; +40 部队 idpair 8B(63) / +48 单位 idpair 数组 {cap@56,count@60}(10403 平铺) / +72 路径省数组 24B(372) | 定案: 排空部队两份挂起清单后按单位+path 省表重落 fallback 订单 | AI — sub_1414ACB50（变参聚合辅助：组包单位清单+路径省表后两次 sub_14029EB30 AI 通道投递，实测）← sub_1414AC9A0 ← sub_141A4E420（"stout_defender"）与 sub_141069F50（"stout_defend"）两条 AI 上游链 | AI 战略调整/订单失效时，为部队重落 fallback（撤退/整补）订单 | 部队 idpair + 单位 idpair 数组（平铺）+ 路径省数组（24B/省） | 排空部队两份挂起清单后按单位+path 省表重落 fallback 订单 | 纯 AI（定案：AI 通道实测 + 双 AI 上游链） |
@@ -1130,17 +1130,17 @@ CSetResearchCommand (12144) 载荷:
 
 | 偏移 | 类型 | 语义 |
 |---|---|---|
-| +40 | u32 | 目标国 tag id (= gs 国家数组下标, >0 门) |
+| +40 | uint32 | 目标国 tag id (= gs 国家数组下标, >0 门) |
 | +44 | — | tag ref 尾 4B (零填可; 解析 sub_140BB48F0 取址) |
 | +48 | CTechnologyTemplate* | 目标科技**模板** (模板+56 = 1 基实例索引进 ts+136; ⚠ 非 CTechnology 实例——实例 +352 才是模板) |
-| +56 | i32 | 槽号 (0 ≤ x < ts+172 容量; 可用槽数 = cc+4936 动态值) |
-| +60 | u8 | XP 旗: 0 = 短路放行/免 XP; 非 0 = 加验模板+1312 并置 use_experience |
+| +56 | int32 | 槽号 (0 ≤ x < ts+172 容量; 可用槽数 = cc+4936 动态值) |
+| +60 | uint8 | XP 旗: 0 = 短路放行/免 XP; 非 0 = 加验模板+1312 并置 use_experience |
 
 CSetNationalFocusCommand (13245) 载荷:
 
 | 偏移 | 类型 | 语义 |
 |---|---|---|
-| +40 | u32 | 目标国 tag id (同上) |
+| +40 | uint32 | 目标国 tag id (同上) |
 | +44 | — | tag ref 尾 4B |
 | +48 | CNationalFocus* | 目标国策 def (§4.3.13) |
 
@@ -1154,11 +1154,11 @@ CAddConstructionCommand (12151) 载荷:
 
 | 偏移 | 类型 | 语义 |
 |---|---|---|
-| +40 | u32 | 目标国 tag id |
+| +40 | uint32 | 目标国 tag id |
 | +44 | — | tag ref 尾 4B (零填可) |
 | +48 | CBuildingReference 内嵌 | {vt@+48 = 0x142971F30, +56 州 id i32 (键 10349 location), +60 建筑 def 名 token (键 19482 template), **+64 = country tag_id** (键 10394 country; writer sub_1413C0D80 经 sub_140BB59C0 发引号 tag, 门 >0; ctor 默认 {州 id=−1, token=19479 undefined})} |
-| +72 | i32 | 数量 (Execute 逐次加) |
-| +76 | u8 | 插入位置枚举 (IsValid 门 < 3) |
+| +72 | int32 | 数量 (Execute 逐次加) |
+| +76 | uint8 | 插入位置枚举 (IsValid 门 < 3) |
 
 > IsValid (0x1411616F0): tag>0 → ref 检 sub_1413C0920 → 州检 sub_1411771B0 →
 > 可建神谕 sub_1411749A0(州, token, tag, 1) → 枚举 < 3。CBuildingReference ctor
@@ -1170,11 +1170,11 @@ CSelectEventOptionCommand (10645) 载荷 (sizeof 240):
 
 | 偏移 | 类型 | 语义 |
 |---|---|---|
-| +40 | u32 | id (文本标量通道) |
+| +40 | uint32 | id (文本标量通道) |
 | +44 | CIdentifier 8B | 目标事件 id 对 (双 dword, 零=无效) |
-| +52 | u32 | actor 国 tag (解析上下文串→tag 通道, >0 门) |
+| +52 | uint32 | actor 国 tag (解析上下文串→tag 通道, >0 门) |
 | +56 | 匿名结构 (176B 形状) | 事件 scope (嵌套对象通道, 占至 +232) |
-| +232 | u32 | option 选项序号 |
+| +232 | uint32 | option 选项序号 |
 
 > Execute (0x14153A110): event id 解析 (sub_14221F310) → 门 = 事件 def+884
 > 选项数 >0 且 actor>0 → sub_141180110(事件, scope+56) 按选项落子 → "EVENT"
@@ -1189,10 +1189,10 @@ CCreateTradeCommand (12387) 载荷 (sizeof 64):
 
 | 偏移 | 类型 | 语义 |
 |---|---|---|
-| +40 | u32 | importer 进口国 tag (12390; 文本通道 = 国名串→tag; >0 门) |
-| +44 | u32 | exporter 出口国 tag (12389; 同上; >0 门) |
+| +40 | uint32 | importer 进口国 tag (12390; 文本通道 = 国名串→tag; >0 门) |
+| +44 | uint32 | exporter 出口国 tag (12389; 同上; >0 门) |
 | +48 | 资源 def 指针 8B | 12388; gameitemdatabase 按 id 解析; IsValid 判 def+16 可贸易旗 |
-| +56 | u32 | amount 数量 (417) |
+| +56 | uint32 | amount 数量 (417) |
 
 > Execute (0x141BA54B0): sub_140CB5D60(exporter, importer, 资源def, amount)
 > 建交易 → UI 国/同盟等价容差 (sub_140BB52F0) → ThreadIsMainThread 断言
@@ -1806,15 +1806,3 @@ ctor 三变体自身，全部外部引用 = 工厂注册槽写入；本地零业
 | 8 | 同偏移双行 | 同一偏移两行并存 = 复用/联合槽 (两种解释按实例取舍), 非笔误; 与 §0.4 合并偏移格禁令不冲突 (禁的是 `+N/+M` 压缩写法) |
 | 9 | 业务名列 | 逐类判读产物 (446 类全覆), 置信随卡注 (五档词表); 摘要列只投业务义, 结构行 (对齐垫/哨兵) 不计业务义 |
 | 10 | 写点对账 | 业务名与 Execute 消费侧写点逐一对账; 探针差与 sem_biz 矛盾时以写点为准, 修 registry 并记待办台账 |
-
-
-#### 4.33.22 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
-| e4c1b_order_small | sub_142273160 / 5814426 / L3919940 / **数字键事件谓词** / 键码→字符 ∈ '0'..'9' (sub_1422686A0−48≤9) ∧ 索引有效 / 体直证; 消费 = sub_142272050 取位值 → sub_140DDB280 控制组 (§4.33 10285 |
-| e4c1b_order_small | sub_140E8B6D0 / 2742993 / L3920164 / **铁路炮选中判定** / 取 idler+1336 首元素, `+8 == 13` (铁路炮类型) / 体直证; 消费 = 真 → sub_140E8B230 投 CRailwayGunManualOrderCommand (§4.33 1 |
-
-| 来源 | 函数与身份 / 建议落点 |
-|---|---|
-| part06 | sub_140727AE0（#23） / 决议激活共用执行步 / 书 `s4_33_commands.md:902` CSelectDecisionCommand 行 / `s4_32_effect_triggers.md:755` activate_decision 行旁定址补注（三调用方 = 激活执行 1407357F0 / 目标化分派 140735BE0 / 0x140736F50） |
-| part11 | sub_1402AB120（#38） / 外交/远征军 / 书 `s4_33_commands.md:697` CRequestExpeditionariesCommand 行补 IsValid 四门：REQUEST_EXP_NOT_AI / MUST_BE_IN_SAME_FACTION（cc+3976+656 阵营）/ NOT_SHARING_WAR（cc+3976+176/+188 战清单）/ WE_ARE_NOT_AT_WAR（sub_140D3FD60）；⚠ NOT_AI 门（sub_1406FFC90）语义方向细作时先裁 |
-| part11 | sub_141A26700（#22） / 军事/行动 / 书 `s4_33_commands.md:765` CCreateOperationCommand 调用方列补：sub_14119FE70（行动视图自动重复重建）的建令工厂 = sub_141A26700（载荷源 a3+64/+65/+72/+88/+96） |
-| part13 | sub_140728A40（128 行，#20） / 决议/脚本效果 / 书 `s4_33_commands.md`（或 `s4_02_gametick.md:214` 决议链）补行：决议 **remove_effect** 块执行件（0x140736 编排族消费） |

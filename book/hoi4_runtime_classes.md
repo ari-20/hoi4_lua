@@ -155,7 +155,7 @@
 | CActivityElem | 0x295a5b0 | 活动 xp_by_template 元素 (书 §4.3) |
 | CActivityElemAir | 0x2965260 | 活动 xp_by_airwing 元素 (书 §4.3) |
 | CCountryCharacters | 0x298ae18 | cc+4080 (书 §4.3; 旧称 legacy DEEP.chars_vt) |
-| CWeatherProvince | 0x2977770 | 天气省级元素 (@mgr+0x10, stride 0x180; 书 §4.20) |
+| CWeatherProvince | 0x2977770 | 天气省级元素 (@mgr+16, stride 384; 书 §4.20) |
 | CCountrySupplySystem | 0x29a2b08 | 补给国级元素 (书 §4.21) |
 | CScriptedGuiData | 0x29848d8 | SGD (书 §4.30) |
 
@@ -260,6 +260,28 @@ weekly·monthly·yearly 主循环与跨域时序）= §4.2；域内业务执行�
 3. 交付前 `python tools/md_table_check.py` 必须报 0 问题；改完 grep 复查
    `\.md` / `全字段表见` / `+0x` / `~~` / 批次名残留。
 
+### 0.5 覆盖口径 (防误读)
+
+本书定位 = **运行时扩展的操作面地图**（Lua 读/写/引擎调用的安全边界），
+不限于存档结构。字段按证据来源分三层，**三层是并列维度不是覆盖率递减**：
+
+| 层 | 证据来源 | 完备性 | 对运行时扩展的意义 |
+|---|---|---|---|
+| 持久层 | writer/reader 直读偏移 | persistent 类全覆盖（封闭集） | sv2 发射段的对拍地基 |
+| 初始化层 | ctor 直证写点（malloc 尺寸 + 置值） | 按域补全中（开放推进） | 字段存在性全图 + 「不入档」标注的来源 |
+| 运行层 | hourly/daily tick、事件、GUI 写点 | 按域推进（无封闭清单） | 扩展 mod 最高频的读写面（暂停位/全局旗/缓存/累计器均在此层） |
+
+由此三条推论，读表前须知：
+
+1. **writer 偏移全覆盖 ≠ 全字段视图**——runtime-only 字段（书内 491+ 处
+   `runtime-only`/`不入档`/`不序列化` 标注）不出现在任何 writer 里，只从
+   初始化层/运行层证据收录。
+2. **负定案是账不是缺口**——「纯壳」「CFG 空桩不序列化」「无独立布局」
+   类的判定带证据链，等价于「此处无操作面」的地图信息。
+3. **布局条目的操作维度**：可写性（写域门）、写门（写出条件）、指针
+   生命周期（代际失效/重建点）与偏移同样是一等信息；消费偏移前先核
+   §0.2 vtable 校验与 §0.3 指针有效性。
+
 ## 0.A 复原流程 (给实现者)
 
 1. 读 §1 拿全局根; §2 类树定位目标类
@@ -302,7 +324,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +36 | f32 | 帧时长 EMA (槽[29] 帧尾 `36 = 36×0.95 + Δ×0.05`) | §4.28.14 帧渲染槽对 |
+| +36 | float | 帧时长 EMA (槽[29] 帧尾 `36 = 36×0.95 + Δ×0.05`) | §4.28.14 帧渲染槽对 |
 | +64 | u64 | 本帧耗时 (sub_1401F7F80 掐表; 原 f32 推定修正) | 同上 |
 | +1264 | 指针 | 渲染管理器 (槽[28]/[29] 渲染链消费) | 同上 |
 | +1457 | uint8 | 遮罩/输入联动边沿缓存 | 同上 |
@@ -381,29 +403,29 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +248..+271 | **联机同步校验对象** (24B; CCheckSyncCommand 载荷源 — sub_140DA3F20 定时构造, ctor sub_140DE5D10 读 +248+12 dword 计数) | top_meta |
 | +256 | 同上对象成员 (+248 对象 +8) | top_meta |
 | +272 | 同上对象尾成员 (+248 对象 +24 起) | — |
-| +384 | CHuman country-link id (CHuman@272 内 +112, §4.1.1; 旧记 bitfield 系 gs+192 bit3 事实的重复登记) | — |
+| +384 | CHuman country-link id (CHuman@272 内 +112, §4.1.1) | — |
 | +432 | 匿名结构 (NNB 形状) | — |
 | +468 | 会话/顶部元数据 (TOPC) | top_meta |
 | +600 | 匿名结构 (32B 形状) | flags |
 | +608 | CCombatManager (内嵌, vt@槽自身 0X2950688; **+608..+687 全区间 = mgr 体内**) | combat / combat_details |
-| +616 | 战斗明细容器数据 (CCombat 宿主**; count@+628) | combat_details |
-| +628 | 战斗明细容器计数 (logmgr = +2176/+2188 容器) | combat_details |
+| +616 | CCombat** | combat_details |
+| +628 | uint32 | combat_details |
 | +640 | 注册 id (combat mgr 体内) | — |
 | +648 | CCombatHistory (内嵌, vt 0X2950638) | combat_history |
 | +656 | CCombat* | combat 容器数据指针 |
-| +672 | u32 | combat 容器计数 |
+| +672 | uint32 | combat 容器计数 |
 | +680 | _bInCombatUpdate 旗 (combat mgr 体内, 断言定案) | — |
 | +688 | **省指针数组** 数据 | province_buildings / province_extras |
-| +696 | u32 | **省数组 cap** (四元组 {data@688, cap@696, count@700, alloc@704}) (counts) |
+| +696 | uint32 | **省数组 cap** (四元组 {data@688, cap@696, count@700, alloc@704}) (counts) |
 | +700 | 省数 | counts |
 | +704 | CPdxNewDeleteAllocator* | 省数组 allocator (—) |
 | +712 | **州表** 数据 | state / state_buildings / state_extras |
-| +720 | u32 | **州表 cap** (loader states 用 id<*(gs+724) 铁证) (counts) |
-| +724 | u32 | **州表 count** (= 州库条目数, loader 铁证) (counts) |
+| +720 | uint32 | **州表 cap** (loader states 用 id<*(gs+724) 铁证) (counts) |
+| +724 | uint32 | **州表 count** (= 州库条目数, loader 铁证) (counts) |
 | +728 | CPdxNewDeleteAllocator* | 州表 allocator (—) |
 | +736 | 区域表数据 (loader case 10827 region) | strategic_region |
-| +744 | u32 | 区域表 cap (—) |
-| +748 | u32 | 区域表 count (counts) |
+| +744 | uint32 | 区域表 cap (—) |
+| +748 | uint32 | 区域表 count (counts) |
 | +752 | CPdxNewDeleteAllocator* | 区域表 allocator (—) |
 | +760 | 匿名结构 (NNB 形状) 向量 | region→country 表 |
 | +784 | **国家指针数组** | (全部国家 API) |
@@ -423,23 +445,23 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +1024 | 学说 CDoctrineSystem | doctrine |
 | +1032 | scoped_ptr<匿名结构 (NNB 形状)> | — |
 | +1040 | idpair | 全局 unit-leader CID 注册表 数据指针 (定制 vector, CGameState::Save sub_1401F2E40: 条目 8B {type u32@+0 (=4713), id u32@+4}; idx0 = null 哨兵不写; 序 = 注册序; 即顶层 `unit_leader` 存档块) |
-| +1048 | u32 | CID 注册表 cap (loader 12354 铁证) (—) |
-| +1052 | u32 | 全局 unit-leader CID 注册表 计数 |
+| +1048 | uint32 | CID 注册表 cap (loader 12354 铁证) (—) |
+| +1052 | uint32 | 全局 unit-leader CID 注册表 计数 |
 | +1064 | CDifficultySettingItem** | difficulty_settings 容器数据 (元素 0xD8, 内嵌 CModifier@+16; loader case 13999) (difficulty) |
-| +1076 | u32 | difficulty_settings 容器计数 (difficulty) |
+| +1076 | uint32 | difficulty_settings 容器计数 (difficulty) |
 | +1088 | scoped_ptr<CGameRules> | game_rules |
 | +1096 | entity 持久注册器 (loader case 438) | entity |
 | +1104 | CPowerBalanceSystem* (vt 0X296FCA0) | power_balance / country_characters (§4.3.21) |
-| +1112 | u32 | 哨兵字段 (-1; 语义未定) (—) |
+| +1112 | uint32 | 哨兵字段 (-1; 语义未定) (—) |
 | +1120 | 内嵌 CGameDate | **当前日期对象** {vt@1120, days@1128} (SetCurrentDate sub_1401EDBA0 铁证) (date) |
 | +1136 | 尾 vtable (CGameDate) | 当前日期对象尾 vt2 (对象 = {vt1@1120, hours@1128, vt2@1136}) (date) |
 | +1144..+1160 | 派生日期缓存 (year@+1144, monthlen@+1148, doy@+1156, month@+1160; SetCurrentDate 写入) | date |
 | +1168 | 会话 id/哈希 (loader case 13954) | session |
-| +1180 | u32 | **debug_current_ref_id** (载入 case 11597 → 本槽; 写盘取静态 dword_1434520E0) (id) |
+| +1180 | uint32 | **debug_current_ref_id** (载入 case 11597 → 本槽; 写盘取静态 dword_1434520E0) (id) |
 | +1184 | 内嵌 CGameDate | **start_date** (日期#2 三元组 {vt1@1184, hours@1192, vt2@1200}; loader case 10464) (start_date) |
-| +1192 | u32 (hours) | **start_date** hours (日期#2 三元组中点 {vt1@1184, hours@1192, vt2@1200}) (start_date) |
+| +1192 | uint32 (hours) | **start_date** hours (日期#2 三元组中点 {vt1@1184, hours@1192, vt2@1200}) (start_date) |
 | +1200 | 尾 vtable (CGameDate) | start_date 日期#2 尾 vt2 (三元组 {vt1@1184, hours@1192, vt2@1200}; loader case 10464) (start_date) |
-| +1212 | u32 | **游戏速度 speed** (loader case 110) (speed) |
+| +1212 | uint32 | **游戏速度 speed** (loader case 110) (speed) |
 | +1216 | uint8 | 旗 (未名) (—) |
 | +1224 | scoped_ptr<匿名结构 (NNB 形状)> | — |
 | +1248 | CPeaceConferenceManager (内嵌, vt 0X2720E48) | peace_conference |
@@ -448,9 +470,9 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +1280 | 内嵌 SSO 串 (cap 15) | **恒空串** (当前档 32B 全零, 仅 cap 字段 @+1304 = 15, len 0) — 非会话名载体 (—) |
 | +1312 | 玩家 tag 对 (ctor 零填; combat 族线索保留高置信) | player |
 | +1316 | 玩家 tag 对 (ctor 零填; combat 族线索保留高置信) | player |
-| +1320 | u32 | **tension_scaling_base_country** (国家 idx; loader case 13913) (tension) |
-| +1336 | u32 | fired_event_names 水位 (—) |
-| +1340 | u32 | fired_event_names 桶数 (= 511; malloc 0xFF8 = 8×511) (—) |
+| +1320 | uint32 | **tension_scaling_base_country** (国家 idx; loader case 13913) (tension) |
+| +1336 | uint32 | fired_event_names 水位 (—) |
+| +1340 | uint32 | fired_event_names 桶数 (= 511; malloc 0xFF8 = 8×511) (—) |
 | +1344 | 匿名结构 (桶链) 数组 | **fired_event_names 链式哈希桶数组** (桶内节点 {next@+8, id u32@+12}; writer sub_1401F2E40 以 +1340 为桶数界逐条以 token 11 `id` 发射, 紧接注册块名串 `fired_event_names` — 定案) (fired_event_names) |
 | +1352 | token 对 向量 | **fired_events** (loader case 11003; 8B 元素, push 原语 sub_1401CBF60, 容器 {data@1352, cap@1360, count@1364, alloc@1368} — 定案) (fired_events) |
 | +1376 | 匿名结构 (56B 形状) 向量 | pending_events 元素 56B |
@@ -465,11 +487,11 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +1584 | 会话/顶部元数据 (TOPC) | top_meta |
 | +1600 | CArmy* 向量 | (探针 37 项, 元素 vt = CArmy) |
 | +1624 | CSelectionGroup 数组**指针** (10 组 × 240B, 组内 10 槽 × 24B {data@0, cap@8, count@+12, alloc@16}; **指针数组, 非内嵌头**, loader case 10286 `*(gs+1624)+240*组号`) | selection_groups |
-| +1632 | u32 | 选择组容器 cap (容器 = {data@1624, cap@1632, count@1636, alloc@1640}) (selection_groups) |
-| +1636 | u32 | 选择组容器计数 (= 国家库条数; 每国一组 240B) (selection_groups) |
+| +1632 | uint32 | 选择组容器 cap (容器 = {data@1624, cap@1632, count@1636, alloc@1640}) (selection_groups) |
+| +1636 | uint32 | 选择组容器计数 (= 国家库条数; 每国一组 240B) (selection_groups) |
 | +1640 | CPdxNewDeleteAllocator* | 选择组容器 allocator (—) |
 | +1648 | u32 向量 | **MP_locked_countries** 数据 (国家 idx 列表; loader case 11572) (multiplayer) |
-| +1660 | u32 | MP_locked_countries 计数 (multiplayer) |
+| +1660 | uint32 | MP_locked_countries 计数 (multiplayer) |
 | +1672 | CWeatherManager* (vt 0X2977810; loader case 12040) | weather |
 | +1680 | 战略空军 CStrategicAirManager | strategic_air / air_wings |
 | +1688 | CNavyManager* (别名, vt 0X29732E0; 元素 CStrategicNavy) | navy / program_status / deployment_hq |
@@ -478,18 +500,18 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +1712 | 匿名结构 (NNB 形状) | **threat 世界紧张度管理** (0x40; loader case 11197) (threat) |
 | +1728 | 匿名结构 (112B 形状) 向量 | **saved_event_target** (loader case 13217; 元素 112B {state@+8/country tid@+12/character idpair@+16/name u16@+104}) (saved_event_target) |
 | +1752 | 匿名结构 (NNB 形状) 向量 | scope→saved event target |
-| +1776 | CReferencedDivisionTemplate** 容器数据 (count@+1788) | division_templates |
-| +1784 | u32 | 编制模板容器 cap (loader 13369 循环 12112) (—) |
-| +1788 | u32 编制模板容器计数 (stockpile 共用区语义见 §4.23.2) | division_templates 计数 |
+| +1776 | CReferencedDivisionTemplate** | division_templates |
+| +1784 | uint32 | 编制模板容器 cap (loader 13369 循环 12112) (—) |
+| +1788 | uint32 | division_templates 计数 |
 | +1792 | CPdxNewDeleteAllocator* | 编制模板容器 allocator (—) |
-| +1800 | CEquipmentVariant** 容器数据 (cap@+1808, count@+1812) | equipments |
-| +1808 | u32 | 装备变体容器 cap (loader 12122) (—) |
-| +1812 | u32 装备变体容器计数 | equipments 计数 |
+| +1800 | CEquipmentVariant** | equipments |
+| +1808 | uint32 | 装备变体容器 cap (loader 12122) (—) |
+| +1812 | uint32 | equipments 计数 |
 | +1816 | CPdxNewDeleteAllocator* | 装备变体容器 allocator (—) |
-| +1824 | u32 | **game_unique_seed** (loader case 13737) (seed) |
+| +1824 | uint32 | **game_unique_seed** (loader case 13737) (seed) |
 | +1832 | SSO 串 | **game_unique_id** (size@+1848, cap@+1856=15; loader case 15232) (uid) |
-| +1864 | u32 | **land_combat_id** (loader case 13478) (id) |
-| +1868 | u32 | **navy_id** (loader case 13477) (id) |
+| +1864 | uint32 | **land_combat_id** (loader case 13478) (id) |
+| +1868 | uint32 | **navy_id** (loader case 13477) (id) |
 | +1872 | CNonstaticIdGenerator\<74\> (内嵌, vt 铁证) | **railway_gun_index** (**非裸 u32, 是 id 生成器对象**; loader case 19733) (railway_gun_index) |
 | +1888 | CNonstaticIdGenerator\<79\> (内嵌) | **industry_organisation_index** (loader case 14492) (industry_organisation_index) |
 | +1904 | CNonstaticIdGenerator\<86\> (内嵌) | **special_project_index** (loader case 16401) (special_project_index) |
@@ -499,7 +521,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +1960 | 未名 | — |
 | +1968 | 未名 | — |
 | +2008 | 匿名结构 (160B 形状) | — |
-| +2168 | u32 | **average_major_ic** (÷1e5 fixed5; loader case 13885) (ic) |
+| +2168 | uint32 | **average_major_ic** (÷1e5 fixed5; loader case 13885) (ic) |
 | +2176 | combat log manager 指针数组数据 (supply2 = rp(gs+984)+8; loader case 14037) | combat_log |
 | +2188 | combat log 数组上界/计数 | combat |
 | +2200 | 匿名结构 (NNB 形状) | **all_playthrough_data 宿主** (loader case 16067 + 合并 sub_1401E3270 铁证) (all_playthrough_data) |
@@ -509,20 +531,20 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +2272 | 匿名结构 (NNB 形状) | **career_profile_player_flags** (0x20, ctor sub_140CBF4A0; loader case 16065) (career) |
 | +2280 | unordered_map (未名; head 自环 + buckets 16) | — |
 | +2344..+2368 | 未名 | — |
-| +2376..+2400 | 未名容器簇 | — |
+| +2376..+2400 | 匿名结构 (NNB 形状) 向量 | — |
 | +2408..+2424 | 未名 | — |
 | +2432 | 全局 CVariables** (0x38, defines 全局入构; loader case 10826) | variables |
 | +2440 | 24B 元素数组 | **逐国家 24B 数据数组** {cap@+2448, count@+2452, alloc@+2456} (count = 国家库条数 451) (—) |
 | +2464 | scoped_ptr<匿名结构 (NNB 形状)> | — |
-| +2492 | u32 | **cached_active_trade_route_count** (loader 10102) (trade) |
-| +2496 | u32 | **next_trade_route_update_country_idx** (loader 10103) (trade) |
+| +2492 | uint32 | **cached_active_trade_route_count** (loader 10102) (trade) |
+| +2496 | uint32 | **next_trade_route_update_country_idx** (loader 10103) (trade) |
 | +2504 | std::map (未名) | — |
 | +2520 | std::map | **ships_built** (map<u32 键, u32 数量>; loader case 10192) (ships_built) |
-| +2536 | 容器 (未名) | — |
-| +2544 | 容器 (未名) | — |
+| +2536 | 匿名结构 (NNB 形状) 向量 | — |
+| +2544 | 匿名结构 (NNB 形状) 向量 | — |
 | +2576 | 32B 元素数组 | **边界高亮自定义色表** (count@+2588 = defines BORDER_COLOR_CUSTOM_HIGHLIGHTS/4; gamestate.cpp:781 警言铁证) (border_color) |
 | +2600 | 指针 | **当前书签对象** (新局 sub_1401A5630 写所选书签; 读档 sub_1401E2AC0 重置默认书签 — Null-Object getter sub_1401DBBB0; 全量重建门 = 与目标书签指针不等, sub_14067EEE0 → sub_1401A5630, §4.28.18) |
-| +2608 | u32 | **tutorial 章节 id** (loader case 13842, 另置 gs+192 位域 bit3 与 u8@+2615=1) (tutorial) |
+| +2608 | uint32 | **tutorial 章节 id** (loader case 13842, 另置 gs+192 位域 bit3 与 u8@+2615=1) (tutorial) |
 | +2612 | uint8 | **HasGameStarted** (getter sub_1401E2930; 世界构建 sub_1401E2AC0 开头置 1) |
 | +2613 | uint8 | **世界构建进行中门** (sub_1401E2AC0 开头置 1 / 尾清 0; 多系统读者以 `!+2613` 作跳过门, §4.28.18) |
 | +2615 | uint8 | tutorial 旗 A (同上) (tutorial) |
@@ -699,7 +721,7 @@ CCountry (cc)
 | +0 | left |
 | +8 | parent |
 | +16 | right |
-| +25 | color/isnil byte |
+| +25 | color/isnil uint8 |
 | … | 键值 (偏移见类条目; 常见: 键 token@+32, 值@+40) |
 
 - 容器对象首 8 字节 = 头节点指针; 头节点自身是哨兵

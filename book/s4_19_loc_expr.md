@@ -160,7 +160,7 @@ CBrowserType 同族)。
 |---|---|---|---|
 | +0 | CFormattedLocalization vt | 0x1427E4068 | sub_14067EF90 写 vftable |
 | +8 | MSVC 串 (SSO 32B, cap@+24) | 字面量 / 格式串 / 值 | sub_14067EF90: `*(_OWORD *)(v7+8)=0` + cap=15 哨兵 |
-| +40 | u8 | 变体 tag (0=串 / 1=二值 / 2=u32 / −1=空) | 同 CFormattedLocalization |
+| +40 | uint8 | 变体 tag (0=串 / 1=二值 / 2=u32 / −1=空) | 同 CFormattedLocalization |
 | +48 | CPdxInlineBufArray\<SArgument,11\> {data@48, cap@56, count@60, alloc@64} | **SArgument 数组** (元素 88B, 内联 11 项) | sub_14067EF90 尾 `sub_14011DF40((void*)(v7+48))`; 分配器 vt 0x142B40B8 |
 
 > 48 + 24 = 72 ✓。**"Missing localization key" 判据 (定案)**: `entry+40 == 0 && entry+24 == 0`
@@ -173,8 +173,8 @@ CBrowserType 同族)。
 | +0 | MSVC 串 (SSO 32B, cap@+16) | **参数名 / 键名** | sub_1423A51C0 从 a2 移入 |
 | +32 | CFormattedLocalization vt | 0x1427E4068 | `*(_QWORD *)(a1+32) = &…vftable'` |
 | +40 | MSVC 串 (SSO 32B, cap@+56) | 值串 | sub_1423A51C0 |
-| +72 | u8 | tag (同 §4.19.3 CFormattedLocalization) | — |
-| +80 | u8 | 旗 | — |
+| +72 | uint8 | tag (同 §4.19.3 CFormattedLocalization) | — |
+| +80 | uint8 | 旗 | — |
 
 > 32 + 48 = 80, 再 +8 = 88 ✓。**CBoundLocalization +8 装 SLocEntry (72B); SLocEntry +48 装
 > SArgument (88B) = {键名, 值}** — 两个内联分配器名 (`SLocEntry,14` / `SArgument,11`)
@@ -185,9 +185,9 @@ CBrowserType 同族)。
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
 | +8 | 联合体 (tag@+40) | 载荷: tag=0 → MSVC 串 (SSO 32B, cap@+32) / tag=1 → 16B 值对 / tag=2 → u32 | 拷贝 ctor sub_1423A50D0 按 `*(a2+32)` 分三档 |
-| +40 | u8 | **变体 tag**: 0=串 / 1=二值 / 2=u32 / −1=空 | sub_1423A50D0 / sub_1423A37A0 |
+| +40 | uint8 | **变体 tag**: 0=串 / 1=二值 / 2=u32 / −1=空 | sub_1423A50D0 / sub_1423A37A0 |
 | +8 (tag=0) | MSVC 串 (SSO, cap@+32) | 字面量 / 格式串 | sub_1423A7EA0 → sub_1423A8920 |
-| +8 (tag=2) | u32 | **formatter id** (见 §4.19.2 loc formatter 注册表) | sub_1423A8920 写 `*(u32*)(a1+8) = v49` |
+| +8 (tag=2) | uint32 | **formatter id** (见 §4.19.2 loc formatter 注册表) | sub_1423A8920 写 `*(u32*)(a1+8) = v49` |
 | +8 (tag=1) | 16B 值对 | formatter 返回值 (两 qword) | sub_1423A37A0 |
 | +24 (tag=1) | 16B 值对 | formatter 返回值 (两 qword) | sub_1423A37A0 |
 
@@ -200,7 +200,7 @@ CBrowserType 同族)。
 |---|---|---|---|
 | +8 | CPdxArray\<SOperand\> {data@8, cap@16, count@20, alloc@24} | **操作数数组** (216B/项) | sub_14141D1B0 遍历 `*v2 + 216*idx` |
 | +24 | 分配器对象* | &off_143085170 ×2 之一 | sub_140324DE0 |
-| +32 | 第二容器 {…@32, cap@40, count@44, alloc@48} | 第二段 (指令/常量池), 由 sub_14141C0D0 填 | sub_14141D1B0 读 a1+32 |
+| +32 | 匿名结构 (NNB 形状) 向量 | 第二容器 {d@32, cap@40, count@44, alloc@48} — 第二段 (指令/常量池), 由 sub_14141C0D0 填 | sub_14141D1B0 读 a1+32 |
 | +48 | 分配器对象* | &off_143085170 ×2 之一 | sub_140324DE0 |
 | +208 | i8 | **表达式状态 tag** (−1 = 未初始化 / 1 = 已解析) | sub_14032BA40 三步: 旧 tag≠−1 → 调 vt[0]; 置 −1; 调 ctor; 置 1 |
 
@@ -208,9 +208,9 @@ CBrowserType 同族)。
 
 | 操作数内偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +0 | u32 | **名字 token id** (FNV 输入) | sub_14141F030 |
+| +0 | uint32 | **名字 token id** (FNV 输入) | sub_14141F030 |
 | +8 | CNamedCollection* | **命名集合指针** (解析结果) | sub_14141F030 写回 |
-| +208 | u8 | **操作数种类 tag**: 2 = 命名集合引用 (其余 = 字面量/变量) | sub_14141F030 跳过非 2 |
+| +208 | uint8 | **操作数种类 tag**: 2 = 命名集合引用 (其余 = 字面量/变量) | sub_14141F030 跳过非 2 |
 
 > 216 = 208 + 8, 与 CPdxArray 元素 stride 一致; 216B 内其余字段未展开 (未决)。
 
@@ -243,7 +243,7 @@ CBrowserType 同族)。
 |---|---|---|---|
 | +8 | CPdxInlineBufArray\<SSchema::SEntry,25\> {data@8, cap@16, count@20, alloc@24} | schema 表 (元素 40B) | sub_140AA7EA0 逐 40B 拷贝; 分配器 vt 0x142942208 |
 | +32 | MSVC 串 (SSO) | **常量名** (def 键名) | sub_14012CC60 |
-| +48 | u32 | **值类型 tag / 序号** | sub_140AA76C0 = `*(u32*)(a1+48) = a2` |
+| +48 | uint32 | **值类型 tag / 序号** | sub_140AA76C0 = `*(uint32*)(a1+48) = a2` |
 | +56 | — | 预留 (ctor 清零, reader 未写) | — |
 
 **SSchema::SEntry (40B)**: `+36` = 名 token (FNV, 键 `key`=220) / `+32`、`+33` = 旗
@@ -266,13 +266,13 @@ CBrowserType 同族)。
 
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +8 | u32 | 元素计数 | ctor 置 0 |
-| +16 | qword | 预留 (清零) | ctor |
+| +8 | uint32 | 元素计数 | ctor 置 0 |
+| +16 | uint64 | 预留 (清零) | ctor |
 | +24 | CPdxInlineBufArray\<NCollection::COperator,16\> {data@24, cap@32, count@36, alloc@40} | **算子/元素数组** (内联 16 项) | ctor 置 `*(a1+24) = a1+56` (内联路径, 当分配器 vt[4] == sub_140161270 时) |
 | +48 | 分配器对象 (264B) | `CPdxHybridInlineBufferAllocator<COperator,16,int>` vt 0x142719840; 尾 +312 = &off_143085170 | 48 + 264 = 312 ✓ |
-| +320 | qword | 第二容器 data | ctor 置 0 |
-| +328 | qword | 第二容器 cap | ctor 置 0 |
-| +332 | u32 | 第二容器 count (推定, ctor 未显式置) | 容器四字段惯例 |
+| +320 | uint64 | 第二容器 data | ctor 置 0 |
+| +328 | uint64 | 第二容器 cap | ctor 置 0 |
+| +332 | uint32 | 第二容器 count (推定, ctor 未显式置) | 容器四字段惯例 |
 | +336 | 分配器对象* | &off_143085170 | ctor |
 | +344 | 内嵌 NPdxLoc::CBoundLocalization (32B) | 集合的「绑定文本」伴随体 | sub_140147000(a1+344) |
 
@@ -286,8 +286,8 @@ CBrowserType 同族)。
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
 | +8 | CPersistentWithToken 基 (u32 token) | 名 token | 基类 mdisp 0 |
-| +16 | u32 | 名 token 副本 | sub_140130230 |
-| +24 | u8 | 有效旗 | ctor 置 0 |
+| +16 | uint32 | 名 token 副本 | sub_140130230 |
+| +24 | uint8 | 有效旗 | ctor 置 0 |
 | +32 | NScript::CCollection 内联体 (376B) | 集合本体 | sub_140147090(v14+32) |
 | +80 | CPdxArray\<CNamedCollection*\> {data@80, cap@88, count@92, alloc@96} | **元素列表** (子集合指针数组) | ctor 尾 `*(*(a1+80) + 8*(*(a1+92))++) = v12` |
 
@@ -313,10 +313,3 @@ RH 表 {buckets@+56, mask@+68, 哨兵@+72}, 命中取 `entry+16` = CNamedCollect
 > 再递归 `sub_1423A6200`。`v6 = sub_1424C4FE0(a2+48)` = 权重 (整数),
 > `sub_141594360(v10+1, 0, 100000*v6)` = CScriptableValue(seed=0, base=权重×100000)。
 > ⚠ 与 §4.31 已载的 `CRandomLocList` (0x1429423D0) 同族 — 该族此前只登记容器件, 成员件为本节补。
-
-
-#### 4.19.8 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
-
-| 来源 | 函数与身份 / 建议落点 |
-|---|---|
-| part03 | sub_141372E80 (#32) / 装备 archetype 后勤计算（logistics.cpp） / 生产/后勤册（s4_19 族） |

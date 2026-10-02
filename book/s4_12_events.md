@@ -14,14 +14,14 @@
 
 | 偏移 | 类型 | 语义 (键 token) |
 |---|---|---|
-| +8 | u32 | 宿主 event id token (作子对象 parse 的 scope token) |
+| +8 | uint32 | 宿主 event id token (作子对象 parse 的 scope token) |
 | +16 | CAIMTTHChance 内嵌 272B | ai_chance (10599, 子 vt[3] 读) |
 | +288 | CEffect 内嵌 88B | option 效果体 (匿名效果 token 全走 default → 子 vt[4]) |
 | +376 | std::string 32B | name (27) |
 | +408 | CAndTrigger 内嵌 92B | trigger (10595, 子 vt[5] 带宿主 token; +32 = 10600) |
-| +496 | u32 | option 序号 (内嵌默认 -1) |
-| +500 | u8 | original_recipient_only (11705) |
-| +501 | u8 | 11705 已给旗 |
+| +496 | uint32 | option 序号 (内嵌默认 -1) |
+| +500 | uint8 | original_recipient_only (11705) |
+| +501 | uint8 | 11705 已给旗 |
 
 #### 4.12.2 决策状态族 (CDecisionStatus / 冷却 / 定时·定向决策)
 
@@ -30,24 +30,24 @@
 | 偏移 | 容器/语义 (存档键) | 备注 |
 |---|---|---|
 | +8 | owner (CCountry*) | ctor 入参直存 |
-| +16 | 运行时容器 | 不序列化 |
+| +16 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
 | +64 | **decisions_taken** (14343) | 决策名串列表 (writer 逐元写 *(dec+288) 名) |
 | +88 | **decision_to_re_enable** (14542) | CDecisionCooldown* |
 | +112 | **decision_to_remove** (14543) | CDecisionCooldown* |
-| +136 | 运行时容器 | 不序列化 |
+| +136 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
 | +160 | **active_timed_decision** (14347) | CTimedDecision* (书 §4.3 "d@160 c@172" 即此) |
-| +184 | 运行时容器 | 不序列化 |
-| +208 | 运行时容器 | 不序列化 |
+| +184 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
+| +208 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
 | +232 | **active_targeted_decision** (14422) | CTargetedDecision* |
 | +256 | **active_targeted_timed_decision** (14814) | CTargetedDecision* |
-| +280 | 运行时容器 | 不序列化 |
-| +304 | 运行时容器 | 不序列化 |
+| +280 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
+| +304 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
 | +328 | **random_item** (14734) | 24B 记录元 |
-| +352 | 运行时容器 | 不序列化 |
-| +376 | 运行时容器 | 不序列化 |
-| +400 | 运行时容器 | 不序列化 |
-| +424 | 运行时容器 | 不序列化 |
-| +448 | u16 ctor=1 | **决策脏/待更新旗** (+448 u8; +449 = 独立第二旗)。ctor sub_140723C70 写 `*(WORD*)(a1+448)=1` (= +448 置 1 / +449 置 0); 多处更新点写 `*(BYTE*)(a1+448)=1`; 消费/清除点 = `sub_1407378E0(ds, flag)`: `if (*(BYTE*)(ds+448) || flag) {…重算…}; *(BYTE*)(ds+448)=0`; **+449 = decision_to_remove 处理重入锁字节 (定案)**: sub_140737480 入口 `if(!*(ds+449)){*(ds+449)=1;…处理 ds+112 到期/移除…; *(ds+449)=0;}` 防 remove 效果级联重入, 稳态恒 0; ds 取得链 = sub_1406CF4D0 单行 `return *(QWORD*)(a1+4000)` |
+| +352 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
+| +376 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
+| +400 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
+| +424 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
+| +448 | uint16 ctor=1 | **决策脏/待更新旗** (+448 u8; +449 = 独立第二旗)。ctor sub_140723C70 写 `*(WORD*)(a1+448)=1` (= +448 置 1 / +449 置 0); 多处更新点写 `*(BYTE*)(a1+448)=1`; 消费/清除点 = `sub_1407378E0(ds, flag)`: `if (*(BYTE*)(ds+448) || flag) {…重算…}; *(BYTE*)(ds+448)=0`; **+449 = decision_to_remove 处理重入锁字节 (定案)**: sub_140737480 入口 `if(!*(ds+449)){*(ds+449)=1;…处理 ds+112 到期/移除…; *(ds+449)=0;}` 防 remove 效果级联重入, 稳态恒 0; ds 取得链 = sub_1406CF4D0 单行 `return *(QWORD*)(a1+4000)` |
 
 **CDecisionCooldown** (冷却记录, 24B; vt 0x1427EB450; writer 0x140738A50 / reader 0x1407337F0): +8 CDecision* (写名 = *(dec+288); 读按名走决策库 RH 反查 sub_140722CC0 + 280 有效门) / +16 i32 days (10605)。垃圾键抛 "Unexpected token when reading decision on cooldown"。
 
@@ -312,38 +312,38 @@ CCombatant" (:0x58E); +106..+111 = 112B 对齐尾 pad。⚠ 该 writer/reader �
 
 | 偏移 | 类型 | 键/语义 | 置信 |
 |---|---|---|---|
-| +8 | u32 | **CIdPair.type = 50** (ctor 写哨兵 qword_14333D528 整 8B; 原「id token / 事件序号」两行翻案为一个 idpair) | 定案 |
-| +12 | u32 | **CIdPair.id** (writer 键 11 写 +12; fired 表以 CEvent 指针为键非此值; 活体 1000001) | 定案 |
-| +16 | u8 | idpair 已注册旗 (setter 成功置 1) | 定案 |
-| +24 | ptr | 第二 vtable 0x142999C40 (名串基视图; 原「MTTH 基值」翻案) | 定案 |
+| +8 | uint32 | **CIdPair.type = 50** (ctor 写哨兵 qword_14333D528 整 8B; ) | 定案 |
+| +12 | uint32 | **CIdPair.id** (writer 键 11 写 +12; fired 表以 CEvent 指针为键非此值; 活体 1000001) | 定案 |
+| +16 | uint8 | idpair 已注册旗 (setter 成功置 1) | 定案 |
+| +24 | vtable (名串基视图) | 第二 vtable 0x142999C40 | 定案 |
 | +32 | SSO 32B | 事件规范名 (id 键反查成功回填; 活体 "denmark_political_events.1"; 原 +32 数组/串两说 — **串说胜结案**) | 定案 |
 | +64 | SSO 32B | id 键原文串 (finalize 缺 option 报错打印此串) | 定案 |
-| +96 | u32 | **事件族类型码** (ctor 第二参; 作 +104/+280/+896 子解析 scope): country/news/unit_leader = 4 / state = 2 / operative = 8 (装载器五分支 + 活体双证) | 定案 |
+| +96 | uint32 | **事件族类型码** (ctor 第二参; 作 +104/+280/+896 子解析 scope): country/news/unit_leader = 4 / state = 2 / operative = 8 (装载器五分支 + 活体双证) | 定案 |
 | +104 | CAndTrigger 88B | trigger (10595; vt[5] Parse 带 +96; 发射门 = +1048 位掩码) | 定案 |
 | +192 | CAndTrigger 88B | **show_major** (13801; Parse scope 字面 4) — 原「第二 trigger」键名定案 | 定案 |
 | +280 | CEventOption 504B | 内嵌默认 option (序号 −1; immediate 键 10837 → 其 vt[3]) | 定案 |
 | +784 | CEffect 88B | **after 块** (17136) | 定案 |
 | +872 | 向量 24B | option 指针向量 {data@872, cap@880, **count@884**, alloc@888}; 元 = malloc(0x1F8) CEventOption (ctor 第三参 = push 前计数 = option 序号) | 10598 |
-| +896 | CMeanTimeToHappen 56B | **mean_time_to_happen 块** {类型码@+912, MTTH 基值@+920 (默认 1 天), CMTTHModifier* 向量@+928} — 原「+24 基值/+32 modifier 数组」两行系权重核块内坐标误锚, 双双翻案 | 10596 |
+| +896 | CMeanTimeToHappen 56B | **mean_time_to_happen 块** {类型码@+912, MTTH 基值@+920 (默认 1 天), CMTTHModifier* 向量@+928} | 10596 |
 | +952 | 向量 24B | **title 向量** — 元 CTriggeredText* (128B: 文本串 + CAndTrigger) | 10643 |
 | +976 | 向量 24B | **desc 向量** (同构; 注册期缺 desc 检查 count@988) | 10644 |
 | +1000 | SSO 32B | picture (464) | 定案 |
-| +1032 | i32 | timeout_days (ctor 默认 = 全局 dword_143336720) | 14389 |
-| +1036 | u32 | 解析出处·文件 id (Parse override 从解析上下文取 8B 戳) | 定案 |
-| +1040 | u32 | 解析出处·行号 | 定案 |
-| +1044 | u8 | 出处已置旗 (dtor 若置位回写 0xAA 毒值) | 定案 |
-| +1048 | u32 | 系统依赖位掩码 (触发预筛门 `(v & dword_14332F248) == v`); ⚠ 已定位写者只写 0, 非零写者未定位 (待裁) | 门公式定案 |
-| +1052 | u8 | 国家作用域族旗 (state_event = 0, 其余 1) | 定案 |
-| +1053 | u8 | operative_leader_event 专属旗 | 定案 |
-| +1054 | u8 | unit_leader_event 旗 | 定案 |
-| +1055 | u8 | is_triggered_only (11115; 置位跳过掷骰) | 定案 |
-| +1056 | u8 | major (11241) | 定案 |
-| +1057 | u8 | fire_only_once (11002; fired 哈希键 = CEvent 指针) | 定案 |
-| +1058 | u8 | exclusive (11776; 本轮已掷中一个则其余跳过) | 定案 |
-| +1059 | u8 | hidden (11404; finalize 门) | 定案 |
-| +1060 | u8 | news_event 旗 (12776) | 定案 |
-| +1061 | u8 | fire_for_sender (13947; ctor 默认 1) | 定案 |
-| +1062 | u8 | minor_flavor (12941) | 定案 |
+| +1032 | int32 | timeout_days (ctor 默认 = 全局 dword_143336720) | 14389 |
+| +1036 | uint32 | 解析出处·文件 id (Parse override 从解析上下文取 8B 戳) | 定案 |
+| +1040 | uint32 | 解析出处·行号 | 定案 |
+| +1044 | uint8 | 出处已置旗 (dtor 若置位回写 0xAA 毒值) | 定案 |
+| +1048 | uint32 | 系统依赖位掩码 (触发预筛门 `(v & dword_14332F248) == v`); ⚠ 已定位写者只写 0, 非零写者未定位 (待裁) | 门公式定案 |
+| +1052 | uint8 | 国家作用域族旗 (state_event = 0, 其余 1) | 定案 |
+| +1053 | uint8 | operative_leader_event 专属旗 | 定案 |
+| +1054 | uint8 | unit_leader_event 旗 | 定案 |
+| +1055 | uint8 | is_triggered_only (11115; 置位跳过掷骰) | 定案 |
+| +1056 | uint8 | major (11241) | 定案 |
+| +1057 | uint8 | fire_only_once (11002; fired 哈希键 = CEvent 指针) | 定案 |
+| +1058 | uint8 | exclusive (11776; 本轮已掷中一个则其余跳过) | 定案 |
+| +1059 | uint8 | hidden (11404; finalize 门) | 定案 |
+| +1060 | uint8 | news_event 旗 (12776) | 定案 |
+| +1061 | uint8 | fire_for_sender (13947; ctor 默认 1) | 定案 |
+| +1062 | uint8 | minor_flavor (12941) | 定案 |
 
 > CMTTHModifier 504B 构成补齐: CAndTrigger 门头 + factor/add 两 CScopedVariable 208B
 > (初值 1.0/0), 与 §4.34 MTTH 行完全吻合; CAIMTTHChance 272B 实为 CMeanTimeToHappen 派生类。
@@ -365,12 +365,30 @@ option 执行链: 三入口 (玩家点击/超时自动/AI 选择) 同归 **CSele
 
 > ⚠ cc+4752 (本通道 = 显式延时 hours/days/months, 纯 hourly) 与 cc+4776 (queued_events = MTTH 掷骰命中, 每日检查调度 §4.12.8) 相邻两通道勿混。
 
+#### 4.12.9b on_action 系统 (onaction.cpp 装载与执行)
 
-#### 4.12.10 链内深扫定址补注表 (e4 批 G 快裁 B 档集中落账; 置信 = 快裁级, 细作时升定案)
+**COnActionDataBase** (336B; TGameItemDatabase 模板宿主; 单例旁 qword_143339E80 = 全局 Null Object; 装载总入口 = sub_140A79930: +312 表对齐国数扩容 → 枚举目录 *.txt → 逐文件 sub_140A760D0):
 
-| 来源 | 函数与身份 / 建议落点 |
-|---|---|
-| part01 | sub_141511CE0（910 行，#3） / 事件/消息(外交) / 书 `s4_12_events.md` 消息/新闻事件发射族补本件（流亡者消息：EXILE_MESSAGE_ARRIVED/REINFORCEMENTS/RETURNED 三态 + SENDER/RECEIVER/COUNT/LOCATION 字段）；触发链注 `s4_02_gametick.md:267` §4.2.7 CCountry::DailyUpdate 的 exile_divisions_transfer 到期步（wrapper sub_141511C30 ← sub_1406E76A0） |
-| part07 | sub_140736F50（#13） / decision.hourly 内部件 / 书 `s4_12_events.md`（决策域）+ `s4_02_gametick.md`:214 pass⑥ 定址补注：sub_14072FC90 内本步（挂起/到期族 + sub_140727AE0 激活 + 通知 + cc+3944 生产联动） |
-| part08 | sub_140CDAC60（188 行，#13） / 事件/军事日志 / 落点候选 `s4_12_events.md:303` 事件检查波节（宿主 sub_1406E8210 已实名）或 `s4_22_combat.md` NCombatLog 节（0x140CD 邻域）；细作先裁条目语义（到期事件 or 战斗日志条目老化）再定册 |
-| part10 | sub_140728D60（#5） / 决议/任务 / 书 `s4_12_events.md`（+1208 cancel_effect trigger / +3120 timeout_effect 字段行）补执行器地址对：timeout = sub_140728D60、cancel = sub_140728400；`s4_03_CCountry.md:1147` +576 cancel_effect 行同注 |
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +40 | Lookup 引擎数组 | {data@+40, cap@+48, count@+52}; 元素 40B {名串 32B, token u32@+32}; 分配器 +56 |
+| +64 | Array 引擎数组 | {data@+64, cap@+72, count@+76}; 元素 = COnActionList*; **Array[0] = Null Object** (helper.h:35 断言「Array 比 Lookup 大 1」); 分配器 +80 |
+| +88..+304 | COnActionList* ×28 | PostLoad 具名缓存 28 槽 (下表) |
+| +312 | 按国三列派发表 | 引擎数组 {count@+324}; 行 24B = 国 idx (1 基), 列 +0=on_daily_ / +8=on_weekly_ / +16=on_monthly_ (F1 直写三列; §4.26.7 既载三槽即列 1-3) |
+
+**COnActionList** (216B = 0xD8 malloc 直证; maxoff 312 系 DB 侧 a1+312 误聚合):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +8 | uint32 | 名字哈希低 32 位 |
+| +16 | vtable* | 第二基 (CProfiledScopeObject) |
+| +24 | uint8 | 有效位 (0 = Null Object — 查名落空无害化, 执行器直接返回) |
+| +32 | string 32B | on_action 名 |
+| +64 | uint32 | 名 token (空对象 = −1) |
+| +72 | 引擎数组 | **random_events 表** {count@+84}; 元素 8B {事件引用 u32@0, 权重 u32@+4}; 分配器 +88 |
+| +96 | 引擎数组 | **events 直挂表** {count@+108}; 元素 4B 事件引用; 分配器 +112 |
+| +120 | CEffect 88B 内嵌 | `effect = {...}` 效果块 (Parse 键 89 转发其槽[3]) |
+| +208 | uint32 | random_events 权重累加和 |
+| +212 | uint32 | 源文件 id (装载批次号) |
+
+查名原语 = sub_140A792B0 → sub_140A75940 (线性扫 Lookup: 哈希预筛 + stricmp; **未命中返 Array[0] Null Object 非 nil** — 查名即执行永远安全)。F3 Parse: 键 11353 random_events (校验门 byte_14332EC69 开时查无效事件报 :58) / 键 11354 events / 键 89 effect。PostLoad (vt[2] sub_140A774B0) 28 槽缓存表: +88 on_army_leader_daily / +96 on_army_leader_won_combat / +104 on_army_leader_lost_combat / +112 on_navy_leader_won_combat / +120 on_navy_leader_lost_combat / +128 on_army_leader_promoted / +136 on_deployed_leader_defeated / **+144 on_daily / +152 on_weekly / +160 on_monthly (书既载三槽即 8-10 号)** / +168 on_generate_wargoal / +176 on_send_volunteers / +184 on_market_access_rights / +192 on_non_aggression_pact / +200 on_lend_lease / +208 on_guarantee / +216 on_improve_relation / +224 on_cancel_foreign_manpower / +232 on_boost_party_popularity / +240 on_stage_coup / +248 on_embargo / +256 on_request_licensed_production / +264 on_transfert_spymaster (引擎拼写非 transfer) / +272 on_request_foreign_manpower / +280 on_docking_rights / +288 on_military_access / +296 on_offer_military_access / +304 on_offer_air_base_access。尾链: 空军王牌/政治/timedactivity 三域缓存 PostLoad 扇出 (sub_140F85C30/0x140E4FED0/0x140ADCAC0 — 王牌 on_action 全局族 qword_14333D5F8..628 即此路填充) + "on_ruling_party_change_immediate" 弃用警告 (:390)。

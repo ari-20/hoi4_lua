@@ -18,19 +18,19 @@ writer 0x140D810B0 (块键 11593 countries) / reader 0x140D7FDA0 / PreLoad 0x140
 | +8 | — | country | TAG 写入 (sub_140BB59C0) | |
 | +16 | 匿名结构 (80B) | folders 容器数据指针 | {data, count}; 元素内联 80B | count<16 |
 | +17..+27 | — | = folders 容器 {data@16, **cap@24**, count@28, alloc@32} 的 data 尾 (17..23) + cap@24 (pdx 24B 通式) |  |  |
-| +28 | u32 | folders 容器计数 |  | count<16 |
+| +28 | uint32 | folders 容器计数 |  | count<16 |
 | +29..+39 | — | = folders count@28 尾 (29..31) + **alloc@32**  |  |  |
 | +40 | CCombatTactic* | enable_tactic 容器数据指针 | {data, count}; 元素 8B 指针 → token@目标+152 | <64 |
 | +41..+51 | — | = enable_tactic 容器 {d@40, **cap@48**, c@52, alloc@56} 的 data 尾 + cap@48  |  |  |
-| +52 | u32 | enable_tactic 容器计数 |  | <64 |
+| +52 | uint32 | enable_tactic 容器计数 |  | <64 |
 | +53..+63 | — | = enable_tactic count@52 尾 + **alloc@56**  |  |  |
 | +64 | 匿名结构 (64B) | cost_reduction 容器数据指针 | {data, count}; 元素内联 64B | <64 |
 | +65..+75 | — | = cost_reduction 容器 {d@64, **cap@72**, c@76, alloc@80} 的 data 尾 + cap@72  |  |  |
-| +76 | u32 | cost_reduction 容器计数 |  | <64 |
+| +76 | uint32 | cost_reduction 容器计数 |  | <64 |
 | +77..+87 | — | = cost_reduction count@76 尾 + **alloc@80**  |  |  |
 | +88 | 匿名结构 (112B) | daily_mastery 容器数据指针 | {data, count}; 元素内联 112B | <64 |
 | +89..+99 | — | = daily_mastery 容器 {d@88, **cap@96**, c@100, alloc@104} 的 data 尾 + cap@96  |  |  |
-| +100 | u32 | daily_mastery 容器计数 |  | <64 |
+| +100 | uint32 | daily_mastery 容器计数 |  | <64 |
 | +101..+111 | — | = daily_mastery 计数尾 + 容器头 |  |  |
 | +112 | 匿名结构 (24B) | **equipment_bonus 容器** {data@112, cap@120, **count@124**, alloc@128} | writer 0X1413CF470 块尾第五段; 条目 24B **SDoctrineEquipmentBonusHandle** (vt 0X2965210): {vt@0, id lexer token u32@+8 (装备原型名, token 串发射不带引号), index u32@+12 (调用方 ordinal: 选中路径 0/track 跨档序号/milestone 序号), equipment_bonus u32@+16 (国家 named_equipment_bonus 库槽位号, sub_140E60110 经 last_named_equipment_bonus 递增分配, 非加成数值), pad@20}; 块门 = count≠0 (零容器连键带体不写), 条目无逐条门 0 值照写 (MD towed_gun_equipment index=0 bonus=0 实证); +136..+159 第六个 24B 容器 = 运行时不序列化 | count≠0 |
 
@@ -44,7 +44,7 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 | +16 | — | grand_doctrine 名 (同上) |
 | +24 | 匿名结构 (96B) | tracks 容器数据指针 — {data, count}; 元素内联 96B (count<64) |
 | +25..+35 | — | = tracks 容器 {d@24, **cap@32**, c@36, alloc@40} 的 data 尾 + cap@32 (元素内联 96B) |
-| +36 | u32 | tracks 容器计数 |
+| +36 | uint32 | tracks 容器计数 |
 | +56 | CSubDoctrineTemplate* 向量 | completed_subdoctrines 容器 {d@56, cap@64, c@68} (键 16791, 8B 元素; writer/reader 双向) |
 
 **CTrackStatus** (vtable 0X2965358; 96B):
@@ -58,7 +58,7 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 | +40 | fixed×1e-5 | daily_mastery |
 | +48 | 匿名结构 (24B) | leaders_daily_mastery 容器数据 — {data@+48, count@+60} 24B 元 (writer 0X14147CD00) |
 | +49..+59 | — | = leaders_daily_mastery 容器 {d@48, **cap@56**, c@60, alloc@64} 的 data 尾 + cap@56 (24B 元) |
-| +60 | u32 | leaders_daily_mastery 容器计数 |
+| +60 | uint32 | leaders_daily_mastery 容器计数 |
 
 **STemporaryCostReduction** (64B 内联):
 
