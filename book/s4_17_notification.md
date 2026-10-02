@@ -244,7 +244,7 @@ CAlertManager 布局 (偏移十进制):
 | +1072 | int32 | **severity**: category 映射 sub_140B026F0 — high→2 / medium→1 / low→0 (未知名报 "Unexpected alert category" 后落 0) |
 | +1080 | 16B 键对 | 清除/判重键 (键0+键1; 全零 = 空闲槽) |
 | +1088 | 同上第二槽 | 常为对象指针 (如州 ptr; 合法性清扫 sub_140B37B40 查此槽) |
-| +1096 | int32 | 动作码 (RegisterAlert 第 4 参; **注册期写入后全 dump 无读点 = 休眠遗留字段**, 值分布: 多数 0 / 3-6 补给=5 / 7·67=1 / 22·60=2 即全部信息 — 疑被 sub_140B11C30 id 大 switch 取代的通用点击行为机制残迹) |
+| +1096 | int32 | 动作码 (RegisterAlert 第 4 参; **有活读点 — 勘误: 原「休眠遗留字段」失实**: 点击主入口 sub_140B13C90 命中条目后喂 sub_140A66DE0 消费; 值分布: 多数 0 / 3-6 补给=5 / 7·67=1 / 22·60=2) |
 | +1104 | uint64 | 条目锚 (非 0 = 可清除门) |
 | +1112 | CGlobalAlertIcon* | widget (仅条目; ctor sub_140AFF650, 1376B, 主 vt 命名 RTTI + 次 vt@+40, +48 = mgr 回指 / +72 = 警报 id; 窗名 `global_alerticon_window`) |
 | +1120 | int32 | 网格序号 (同格堆叠序, 仅条目) |
@@ -311,7 +311,7 @@ CAlertManager 布局 (偏移十进制):
 | 17 | alert_volunteer_transfer | 0 | sub_140B36FC0 |
 | 18 | alert_trade_import_unfullfilled | 0 | 内联: cc+4600 对象 +1856 数组, 需求 sub_140CA81F0 vs 供给 sub_140CAD5A0 取整比较 |
 | 19 | alert_expeditionary_force | 0 | 无 raise 点 (负定案, 同 id 0: 60 个 raise 调用点 `, 19)` 零命中, 两 switch 均无支路) |
-| 20 | alert_available_wargoal | 0 | 内联: cc+3976 对象 +104 数组逐国查 +728 槽空/位 73 |
+| 20 | alert_available_wargoal | 0 | 内联: cc+3976 对象 +104 数组逐国查 **+744** 槽空/位 73 (修正: 原「+728」系取槽笔误, 判位 +73 无误) |
 | 21 | alert_enemy_generate_wargoal | 0 | sub_140D3FB30(cc+3976 对象) |
 | 22 | alert_naval_combat | 2 | sub_140B29870 清 + sub_140B34F20 查 (键控) |
 | 23 | alert_few_manpower | 0 | sub_140B0E110 |
@@ -364,17 +364,19 @@ CAlertManager 布局 (偏移十进制):
 | 70 | ui_alert_special_project_available | 0 | sub_140B2FF30 → 内部 sub_140B177B0(mgr, id) 复用 |
 | 71 | ui_alert_special_project_available | 0 | sub_140B2F4B0 → 同 id 70 复用 |
 | 72 | ui_alert_program_unassigned_scientist | 0 | 内联: cc+4008 对象 +32 数组 sub_141442B30 + 位 160 |
-| 73 | alert_raid_available | 0 | 内联: gs+1008 (CRaidSystem*) +436 非零即 raise |
-| 74 | alert_raid_launchable | 0 | 同上 +460 |
-| 75 | alert_raid_detected | 0 | 同上 +484 |
-| 76 | alert_raid_completed | 0 | 同上 +508 |
-| 77 | alert_got_raided | 0 | 同上 +532 |
+| 73 | alert_raid_available | 0 | 内联: gs+1008 (CRaidSystem*) **+532** 非零即 raise (勘误: 原五 raid 行偏移整体错位一行 — 双 switch 互证重排) |
+| 74 | alert_raid_launchable | 0 | 同上 **+508** |
+| 75 | alert_raid_detected | 0 | 同上 **+436** |
+| 76 | alert_raid_completed | 0 | 同上 **+460** |
+| 77 | alert_got_raided | 0 | 同上 **+484** |
 | 78 | alert_out_of_fuel | 0 | sub_1410F3570(cc+5504, &fuel) vs qword_143331E18 + qword_143331D68 (define 双和) |
 | 79 | alert_headquarter_admiral | 0 | 内联: cc2+4016 对象 +52 == sub_1415C6330() ∨ ≥ dword_143332744 → clear |
 | 80 | alert_lack_of_power | 0 | 内联: cc+3944 对象 +936 < 100000 → raise (工业容量比, §4.30.29 同锚) |
 | 81 | alert_faction_can_select_goal | 0 | sub_1401AEB50(50) 门 + cc+3976 对象 +656 MIO/阵营对象扫描 (+1568/+1588/+1580/+3336/+1612 等) |
 
 事件驱动面 (round-robin 之外): widget 回调 sub_140B15B50 / 海战 UI 双入口 sub_141E6C6C0 / sub_141E6C700 (以 idler+1944 取 mgr) / 顶栏重建 sub_140B175B0 / CTopBar 复位 sub_140B17A50。renderhide 渲染开关旗 byte_14332F61F 的 toggle 点 = sub_140252D70 (回显 "Rendering is now SHOWN/HIDDEN"); +94464 第二族容器的元素构造 = sub_1401BFD10 (24B 元素)。
+
+worker 层补全 (定案): 簇实为 7 函数 (清单 6 + **sub_140B188A0 = 每帧 update 驱动本体**, 内核四层门/82 容器 sweep/glow 公式与书逐段一致); **sub_140B026F0** = category→severity 映射 (high→2/medium→1/low→0, exe 三串尺寸 4/6/3 直证; 唯一调用者 = alerts.txt loader sub_140B169A0); **sub_140B13FD0** = 条状图标转发器 sub_141E6C3F0 的点击处理 (id 3/4 缺补给选师跳转: 动作码 5 + 三级解引用取最小 id 单位; id 43 游标 +100416; 其余 "Not implemented" :5865); **sub_140B0E290** = 海军入侵威胁评估 (直袭玩家/盟友时威胁档出参写 4 — id 1/2「4 档威胁值」来源点, 与条目 +1072 severity 值域无关); **sub_140B0AB70** = BuildTooltip (按键三元组 +1080/+1088/**+1104** 定位活跃条目, 按 id 委托组 40 函数重建 +8/+40 文案; default "invalid enum" :2072); **sub_140B11C30** 点击大 switch 补 id 68 开视图支 (视图 12) 与 **id 73-77 五个 raid 点击游标 +100756..+100772** (+100776 恰 = sizeof, 布局尾界闭合)。
 
 消费面 (GUI): ① `global_alerticon_window` 网格 — 每条目一窗, 定位公式 `X = +96436 + step_x×(格序 % 列数)`, `Y = +96440 + step_y×(格序 / 列数)`, 窗 vt+416 SetPosition; red/yellow glow 按 severity 显隐。② 顶栏 `dismissed_alerts_button` — sub_140B0D980 (任一容器有条目 ∨ +100452) 显隐; tooltip = DISMISSED_ALERTS_MENU + sub_140B08E80 拼接全部条目名; 点击 → sub_140B175B0 全量重建。③ 条状管理器 (idler+1952, 72B) — 每帧 sub_1417582C0 与警报更新成对调用; 条目排活跃网格之后 (+96456+1 起); 条目类 = **CDiplomacyRequestIcon** (1384B, malloc 0x568; 主 vt + 次 vt@+40; +48 条状管理器回指; 窗名 global_alerticon_window; +1368 CReference 目标 + +1376 ref 内嵌件 — 与外交请求条共用类)。④ 点击链 — 相机跳转 + sub_140B11C30 大 switch 按警报 id 开对应视图 (视图号族 = §4.30.29 顶栏视图编号)。⑤ 音效 = sub_140B166A0 (冷却戳 +94464[id], define `NGame.ALERT_SFX_COOLDOWN_DAYS` 读入 dword_143336E00; 唯一调用者 = sub_140B01D40 尾)。
 

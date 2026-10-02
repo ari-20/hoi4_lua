@@ -424,12 +424,12 @@ token 全序表:
 | sub_140EA62F0 | 海域访问级别本地化键生成器 | f(out 串, access_level): 三值枚举 → "NAVAL_REGION_ACCESS_{ALLOWED,AVOID,BLOCKED}\n…_DESC" 双键拼接 (本地化变量 LVL=1); 其它值断言 :3384 后返空串; 调用者 = GUI tooltip 族 3 处 |
 | sub_140EA9120 | CheckNavalPath (省对版) | a2 = ENavalPathing {0..4}; 两省各经 prov+184 描述符 (+210 bit0 is_land → GetProvince(+200 配对海省)) → 海省+200 战略区 → 区+88 数字 id → sub_1419ED790(S+384 缓存, …); 映射 0→(1,2) / 1→(2,2) / {2,3}→(2,2) / 4→(3,1) (二元组业务名推定); 未识别枚举断言 :2646; 调用者 5 处全为海军任务/移动判定族 |
 | sub_140EA9510 | CheckNavalPath (区对象直连版) | a3 直接持区 +88 字段 (免省→区换算); 同款断言与映射; 调用者 2 处; 与 EA9120 = 同一判定两接口层 |
-| sub_140EA6F20 | 权重随机选取 | 输入 24B/元 {权重 u64@0, 值 qword@+8, idpair@+16} 排序态前缀和游走; 随机 = random_fixed 全局 pcg 源行 4172 播种 (确定性重放, OOS 安全); **空表/零权缺省 = 100000 (fixed 1.0)**; 唯一消费者 = 船体统计 sub_140C309D0 |
+| sub_140EA6F20 | 权重随机选取 | 输入 24B/元 {权重 u64@0, 值 qword@+8, idpair@+16} 排序态前缀和游走; 随机 = random_fixed 全局计数器哈希流 (§4.28.13) 源行 4172 播种 (确定性重放, OOS 安全); **空表/零权缺省 = 100000 (fixed 1.0)**; 唯一消费者 = 船体统计 sub_140C309D0 |
 | sub_140E9F4E0 | CNavalBase::AddTaskForceShipsToRepairQueue | 见 §4.16.8 修理链表 |
 | sub_140EAE9C0 / sub_140EAEB30 | 修理队列移舰对 | 见 §4.16.8 修理链表 |
 | sub_140EAA8C0 | CNavalBase::DetachProvinceTaskForceShips | 见 §4.16.8 修理链表 |
 
-确定性 RNG 定案: 本簇 2 处随机 (源行 280 洗牌 / 4172 权重抽取) 均走 random_fixed 全局 pcg 带 (文件, 源行) 标签 — 重放确定。
+确定性 RNG 定案: 本簇 2 处随机 (源行 280 洗牌 / 4172 权重抽取) 均走 random_fixed 全局计数器哈希流 (§4.28.13, 非 O'Neill PCG) 带 (文件, 源行) 标签 — 重放确定。
 
 #### 4.16.6 SRegionalConvoyData (48B)
 

@@ -711,6 +711,12 @@ static const luaL_Reg hoi4_lib[] = {
     {"dr_state", hoi4_dr_state},                 // diag: read back thread DR regs
     {"dr_selfdr", hoi4_dr_selfdr},               // diag: CPU-real DR of calling thread
     {"dr_threadtest", hoi4_dr_threadtest},         // diag: fresh-thread DR end-to-end test
+    {"dr_selfarm", hoi4_dr_selfarm},               // self-set DR0 on calling thread (poison bypass test)
+    {"dr_tracestart", hoi4_dr_tracestart},         // trace: who calls NtSetContextThread
+    {"dr_tracestop", hoi4_dr_tracestop},           // trace: unhook ntdll setters
+    {"dr_tracedump", hoi4_dr_tracedump},           // trace: dump captured calls
+    {"dr_top", hoi4_dr_top},                       // ring aggregated by RIP + total
+    {"dr_selftest", hoi4_dr_selftest},             // diag: end-to-end DR check (alloc->arm->write->hit)
     {"dr_gwatch", hoi4_dr_gwatch},               // guard-page watch
     {"dr_goff", hoi4_dr_goff},                   // guard disarm
     {"dr_ghits", hoi4_dr_ghits},                 // guard hit aggregation

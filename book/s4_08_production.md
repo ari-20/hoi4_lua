@@ -796,3 +796,20 @@ vt 0x1427E4130 单链继承 (CIBTD←CDatabaseObject←CPersistentWithToken←CP
 | +24 | uint8 | 0 | — | 已装载旗 (wrapper 置 1, 提交槽消费) |
 | +32 | uint32 | 357 none | 10432 spawn_point | 读名字串 → FNV 哈希 (sub_1424BB460) 存入; 非零才覆盖 |
 | +40 | 指针 | — | 其它键 → 委派父 vt[+32] | 提交目标 (父模板回指) |
+
+#### 4.8.17 production.cpp worker 补全 (20 未覆盖函数定性; 27 已收复核零冲突)
+
+| 项 | 定案 |
+|---|---|
+| **ps+656** | = **CGameState\* 反指** (定案; \*(ps+656)+1120 恰落 gs 内嵌 CGameDate; 建筑线模板解析链 \*(owner+656)+8 同链) |
+| destroyed_stockpile_equipment reader | = **sub_140E6B350** (块键 14425, 分派自 ps 主 reader sub_140E6BD90; 键序 amount(417)/date(10314)/equipment(12110), 变体名经 sub_14221F310 解析); **元素 date 真实回读** (对象+16 值+24, reader/writer 对称; 伪码 v42 系 IDA 误标 — capstone 实测 `lea rdx,[rbp-0x40]`, 无「读档重置哨兵」设计) |
+| named_equipment_bonuses 操作件 | 移除 sub_140E6F170 (:4298) / 按 handle 查 sub_140E70BC0 (:4240); 条目 **+192 = 名字 token** / +8 = 装备匹配规则头; last_named_equipment_bonus 键 16749 读侧直证 |
+| foreign_lease 查找 ×2 | sub_140E68A60 (带变体名) / sub_140E68C10 (带旗); 条目 **+28 = id 对主字 / +1052 = 布尔旗** (条目类型 = CEquipmentVariant 系, 高置信) |
+| 换装族 | 批量 sub_140E64FB0 / 单线 sub_140E6FE60 (line+136 匹配旧变体 → 逐线 vt[29] SetEquipmentVariant + vt[11] 上限钳 + 重分配) |
+| 军线重排族 | MoveLine sub_140E65310 (priority 下标不变量校验 :1708) + 尾段级联 sub_140E71250 (:1678); **vt[22] (+176) = 线型枚举分派** (0 = 军线走 MoveLine / 1..3 走插入; 枚举名待命令域批次); vt[10] (+80) = 重排/换旗后级联通知槽; 调用者全在 14115 产线命令域 (重排/置顶/换型/is_converting 换旗五命令 Execute) |
+| 变体生命周期 | available 移除+最佳表失效 sub_140E6F6B0 (清 ps+208 槽 [archetype+1336] → 重扫重算; :3590); 装备变体全量初始化 sub_140E701E0 (:616/:632 断言, 过滤旗 archetype+1365 与 CEquipmentType+999; +999 语义未决); PostLoad 链 140712930 → 140E6FF30 → 701E0/70790/70E60/条件 6C810; 最佳变体 getter ×2 (68E40 扫 ps+184 / 68410 扫 ps+160) |
+| civil war 重建 | sub_140E662A0 (簇外; 生产状态从母国重建, 清 available 后重建); 唯一调用者 = civilwar.cpp 内战生成主函数 sub_1410DDFE0 |
+| 池重算/市场 | 池重算公共入口 sub_140E6D9A0 = sub_140E6C810 的 IsDeleting 断言包装 (:2309; 调用者 = license 命令 / resources.daily / license PostLoad); 市场扣库存 sub_140E6EBC0 (ps+512 池 min 钳; **护航装备在 market_core.cpp:519 分流走 gs+4608 CConvoys**) |
+| 原型产能占比聚合 | sub_140E61FA0 (vt[14] (+112) = 逐线产出量读槽; 变体+872 = 占比分母; 除零兜底); 消费者 = GUI 统计面板 sub_141F2BE90 |
+| ps 主 reader 分派增补 | 14425 → 140E6B350 / 19162 → 140E59400 / 16277 → 140E59720 / 19835 → ps+664 / 16749 → ps+1352 / 15212 → ps+632 / 15231 → 军线 ctor 140F718B0 |
+| 变体创建链 | sub_1419A30E0 (注册 → 旧引用−− → 70F90 → 批迁移 → "created equipment: " 日志; 高置信, 本体属军线/装备域) |

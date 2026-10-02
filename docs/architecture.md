@@ -119,7 +119,7 @@ effect/trigger 回调在引擎线程内、帧内、持锁状态下被调起，�
 |---|---|---|---|
 | 内存读 | `hoi4_primitives.cpp` | 无（只读） | 一切取数 |
 | 内存写 | `hoi4_primitives.cpp` | 写域门 + 写后回读校验 | 改状态、改载荷 |
-| 写点捕获 | `hoi4_dr.cpp` | DR0 硬件写断点 / PAGE_GUARD 守卫页 | 反查「谁写了这个字段」 |
+| 写点捕获 | `hoi4_dr.cpp` | DR 硬件写断点（槽位仲裁）/ PAGE_GUARD 守卫页 | 反查「谁写了这个字段」 |
 | 虚表槽钩子 | `hoi4_hook.cpp` | 安装门（6 条，§3.3） | 拦/改/替换虚方法 |
 | 函数体重定向 | `hoi4_detour.cpp` + `hoi4_lde.h` + `hoi4_pdata.h` | LDE 全指令窃取 + 拒绝相对流 + `.pdata` 函数起点门 + 悬停验证 | 拦非虚函数（路由器、mod 指定目标） |
 | effect/trigger 路由 | `hoi4_vtable.cpp` | 名快照 + 工厂实例 | mod 自定义 effect/trigger |
@@ -305,18 +305,39 @@ effect/trigger 的路由是 DLL 的核心 mod 能力：mod 文本里写 `m4_debu
 `hoi4_dr.cpp`：静态穷举后仍拿不到「谁写了这个地址」时的就地捕获器（写者藏在
 qword 索引形态 `a1[N]`、表驱动绑定或并行 lambda 内时 grep 不到）。
 
-**DR0 硬件写断点**（推荐）：`dr_watch(addr)` 枚举全部线程 Suspend→`SetThreadContext`
-（`Dr0=addr`，`Dr7` 置 RW=01 写 + LEN=11 四字节）→Resume；VEH 捕
-`STATUS_SINGLE_STEP`，比对 `ContextRecord->Rip` 归属后记 `(RVA, 调用链)` 入无锁环，
-`dr_hits()` 取。零代码修补 → 无 stolen bytes / 寄存器破坏风险。
+**DR 硬件写断点**（推荐）：`dr_watch(addr)` 收**绝对地址**（须 4 字节对齐，
+错对齐拒绝）——helper 线程枚举全部线程 Suspend→`SetThreadContext`→Resume；
+每线程取**第一个空闲 DR 槽**并全线程强制同一槽，只 OR 本槽的 Dr7 位
+（RW=01 写 + LEN=11 四字节），**绝不整写 Dr7 / 绝不清别人的槽**。VEH 捕
+`STATUS_SINGLE_STEP`，按 `Dr6.Bn` 归因到本工具的槽（会话检测 Dr0-2 的执行
+断点命中由此放行，不会被吞），记 `(RVA, 调用链, tid, slot, watch)` 入无锁环。
+零代码修补 → 无 stolen bytes / 寄存器破坏风险。
 
-- **调用线程不能 `SetThreadContext` 自己**——该函数经 helper 线程装载。
-- 一次可装 4 个（Dr0–Dr3）；新线程不带 DR 是已知限制。
-- `dr_ring_addr()` 返环基址，供外部 `ReadProcessMemory` 轮询。
+- **槽位仲裁**：会话检测（§3.6）常驻 Dr0/Dr1/Dr2，`dr_watch` 落在空闲槽
+  （通常 Dr3）；`dr_off()` 按 `Dr_i == watch 地址` 精确撤除本工具的槽，其他
+  用户（会话钩子）不动。旧版清 Dr1-Dr3 + 整写 Dr7 = 一次 watch 静默杀掉会话
+  事件——已修（2026-10-02）。
+- **DR7 编码**：使能位 `L(i)=bit 2i`（非稠密排布），RW/LEN 域每槽 4 字节
+  （`16+4i`）；多路 watch 上限 4，第 5 路报 0（no free slot）。
+- **调用线程不能 `SetThreadContext` 自己**——装载经 helper 线程；
+  `dr_selfarm(addr)` 是例外（当前线程真句柄不挂起 self-set，非受支持 API
+  用法但本环境实测生效，判据以真实写命中为准）。
+- 新线程不带 DR 是硬件语义：布点后新起的线程要重新 `dr_watch` 覆盖。
+- `dr_hits()` 返环内容 + `total`（累计命中，不随 64 环滚动）；`dr_top([n])`
+  按 RIP 聚合（hits 降序）——热点字段用这个。`dr_ring_addr()` 返环基址供
+  外部 `ReadProcessMemory` 轮询。
+- **生效判据 = 真实写入产生命中**。`dr_selftest()` 一次调用完成端到端自检
+  （engine_alloc 堆块 → self-arm → 真实写 → 查命中 → 撤 → free，返
+  `hit>=1` 即通过）。`dr_selfdr()` / `dr_state()` 只是上下文快照诊断——
+  `dr_selfdr` 的软件异常（RaiseException）不产生 #DB，**返回 0 不可作失效
+  证据**：2026-10-02 曾据其误判「游戏线程 DR 全灭」，后被双进程自然写命中
+  （gs+1128，RIP RVA 0x164343，链首 0x1DD4EF）翻案——DR 在游戏线程上
+  端到端可用。
 
 **守卫页**：`dr_gwatch(addr)` = `VirtualProtect(page, PAGE_READWRITE|PAGE_GUARD)`
-+ VEH 捕 `STATUS_GUARD_PAGE_VIOLATION`，按地址过滤聚合，`dr_ghits()` 取、`dr_goff()` 撤。
-三个必踩坑（都会致死）：
++ VEH 捕 `STATUS_GUARD_PAGE_VIOLATION`，`dr_ghits()` 取、`dr_goff()` 撤。
+注意它是**页级**访问探针：同一页的读和写都触发（`dr_ghits` 计数含页上全部
+访问，精确字段要靠 offset 过滤），不是写断点的等价替代。三个必踩坑（都会致死）：
 
 1. 被观测页基址必须在 `VirtualProtect` **之前**赋值，否则首个违规不识别；
 2. **非本页的 guard 违规也要重新武装**——返回 `CONTINUE_SEARCH` 而不重挂 =
@@ -325,9 +346,9 @@ qword 索引形态 `a1[N]`、表驱动绑定或并行 lambda 内时 grep 不到�
    否则同一指令无限重触发。
 
 **场景边界**：低频页（每小时写点、事件驱动字段）两条路线都可用；**每帧访问的
-热 GUI 元件页不要用守卫页**——异常风暴会把进程打死（多次实例取证），改用 DR
-指令断点或回到静态穷举。外部调试器路线（`DebugActiveProcess`）也不可行：游戏
-看门狗检查调试端口本身，会自灭。
+热 GUI 元件页不要用守卫页**——异常风暴会把进程打死（多次实例取证），改用 DR。
+外部调试器路线（`DebugActiveProcess`）也不可行：游戏看门狗检查调试端口本身，
+会自灭。
 
 ### 3.11 出站网络
 
@@ -513,7 +534,7 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 
 **引擎调用原语**：`call_u64` `call_void` `engine_alloc` `engine_free` `name_to_token` `load_save` `session_pending`
 
-**写点捕获**：`dr_watch` `dr_off` `dr_hits` `dr_gwatch` `dr_goff` `dr_ghits` `dr_ring_addr`
+**写点捕获**：`dr_watch` `dr_off` `dr_hits` `dr_top` `dr_selftest` `dr_gwatch` `dr_goff` `dr_ghits` `dr_ring_addr`
 
 **defines**：`define_lookup` `define_targets` `defines_build` `defines_count`
 
@@ -560,7 +581,7 @@ reader（容器布局 / 偏移 / 枚举链 / 挂载点）住 `hoi4_layout.lua` +
 | `hoi4_primitives.cpp` | 407 | 内存读写原语 |
 | `hoi4_lua_policy.cpp` | 391 | Lua 文件访问白名单 |
 | `hoi4_defines.cpp` | 382 | defines 扫描 |
-| `hoi4_dr.cpp` | 367 | 写点捕获（DR0 硬件写断点 + 守卫页 VEH） |
+| `hoi4_dr.cpp` | 367 | 写点捕获（DR 硬件写断点 + 槽位仲裁 + 守卫页 VEH） |
 | `hoi4_detour.cpp` | 356 | Tier 2 函数体重定向引擎 + DLL 入口（`DllMain`） |
 | `hoi4_session.cpp` | 294 | 会话生命周期（DR 断点） |
 | `hoi4_call.cpp` | 275 | 受门控引擎调用 + 写侧包装 |

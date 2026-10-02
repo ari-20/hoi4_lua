@@ -300,6 +300,11 @@ target = view+272 {count@+284} 师 idpair 数组 + +260 部署军团。**CTempla
 | ListView 部署/撤退列表窗 | BuildTooltip | view+10656 / view+12024 窗柄 | 两列表悬停分派 | DEPLOY_BUTTON_* / SWITCH_STRATEGIC_REDEPLOYMENT_MODE* | 定案 (机制) |
 | 撤编全选注记 | BuildTooltip | view+304/+305 旗 bytes | HQ 撤编注记开关 | DISBAND_ALL_UNIT(_NOTE) | 高置信 |
 | 设计器名字组行项点击 | sub_1414A38A0 → sub_141763E10 | **行项 +1328 (CDivisionDesignerView\*) / +1336 载荷 / +1344 旗** → ES(+11096) 名字组落账 + designer+17705 脏旗 | **CArmy+1328 簇属主裁定 = CDesignerEquipmentCategoryItem**, 非 CArmy | designer_div_name_group_entry | 定案 |
+| 师列表排序比较器 | sub_1416B4D80 (ListView 大 Setup **sub_141693010** 列表槽 **+27168** 注册, 槽族 stride 1376: +16160..+28544; 断言 armiesview.cpp:342 "LeftArmy && RightArmy") | og = CUnit+192 → og+440 父集团军; 同群军序 ag+560{+572} / 无群 theatre+128{+140} / 跨群 theatre+152{+164} / 跨战区 cc+360{+372} (signed <) | 军群树层级排序 (师 og → 父军集团 → 战区 → 国家战区表), 触达六组偏移全数书已收 (GUI 消费侧互证零冲突); 槽族尾槽 +28544 = HqSlotTemplateChanger (RTTI vftable 直写) | — | 定案 |
+| 师排序键权重 | sub_14169D210 (包装 sub_1416B5780 注册列表槽 **+23040**; 断言 armiesview.cpp:303 "Unhandled case" 落空 → 0) | 移动态枚举 sub_14169BF10: +524 path count / 省 controller vs +480 logical_country 敌对(sub_140700600) / sub_140C01650 撤退 / sub_140C00000 = d+436 is_army_hq / +1112÷+1120 挖掘比 (门 sub_1416B3BF0 = 无路径+非 HQ 可挖掘) | 撤退 300000 < 向敌 400000 < HQ 500000 / 挖掘 100000+100000×dig_in÷cap < 向友 600000 (哨兵 0x10001869F) | — | 定案 |
+| 列排序键换算对 | sub_14169C4E0 / sub_1416ADE80 (共享断言 armiesview.cpp:4024 `_SortComparators.GetSize()==1 \|\| ==3`) | 换算 = col+(desc?7:1)+(n==1?0:2); 应用 = *(x+1368) 控件 vt 下发排序模式 1/3 (调用域 *(x+328) 列表族 8 站点) | 列头点击 → 排序键 id 换算 | — | 定案 |
+| 习服图标帧 | sub_14169B310 (断言 armiesview.cpp:5457; 调用者含 CArmyDivisionView 子面板刷新 sub_1416B89C0 ✓) | 类别单例 sub_140614DF0 线性查索引 → frame = 2×索引+1; 习服值 (CUnit+1208 NAcclimatization::CData) ≥100000 (满档 1.0) 再 +1 | 习服图标帧选择 | — | 定案 |
+| 多选燃料日耗行 | sub_14169A340 (断言 armiesview.cpp:457 "Invalid range") | Σ 逐单位双燃料 getter ×24 累计 (a4 累计出参); 首格单位名 = sub_140B9F5C0 (模板 data+400 首格缓存) 链 | FUEL_DAILY {AMOUNT} 选中集汇总行 | — | 定案 |
 
 #### 4.30.6 空军视图三件套 (ReorganizationWindow / DetailsPopUp / WingsByBaseView)
 
@@ -1859,34 +1864,138 @@ target 句柄定案: *(target) = NInternationalMarket::CPurchaseRequest (vt 0x14
 
 #### 4.30.38 CMapModeManager (全地图模式管理器; 情报账本 = mode 30)
 
-ctor sub_140DFCD30 全布局 (qword_14333CFB8 = 本类实名, 见 §4.11.10):
+单例 qword_14333CFB8 (本类实名, 见 §4.11.10); **对象 288 B** (ctor 调用点 sub_140E13750 malloc 直证); ctor = sub_140DFCD30, 尾调模式切换总派发 sub_140E17F30(mgr, 0, 0, 0) 切到模式 0。
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +0 | — | 当前 mode id | −1 初值; 30 = 情报账本 |
+| +4 | uint32 | 未决 (ctor 清零, 簇内无写点) | 疑与 +8 成对 |
+| +8 | — | **previous 模式 id** (保存模式 sub_140E16B80 `a1[2] = *a1` 直证写入) | 清除 = sub_140DFDBF0 (调用者 sub_1417CAC10) |
 | +16 | shared_ptr | 当前 mode 实例 — ptr | 与 +24 成对 {ptr, ctrl}; sub_140DFD540 = 原子增引→调 lambda→释放 |
 | +24 | shared_ptr | 当前 mode 实例 — ctrl | 同上 |
-| +48 | 指针 | → 160B 堆管理对象 (23 槽×0x88 = 23×136 数组在其内; `_DWORD(+36) = 23` 槽计数) | NotifyProvinceChanged 经 sub_140F31B50(+48 缓存, prov+164) 标脏 |
+| +32 | shared_ptr | **保存的模式实例 — ptr** (E16B80 拷自 +16/+24) | 与 +40 成对; DFDBF0 清 |
+| +40 | shared_ptr | 保存的模式实例 — ctrl | 同上 |
+| +48 | 指针 | → **GradientBorderManager (GBMan)**, 160 B 堆对象 (ctor 日志 `_pGBMan->LoadDatabase: ` + gradientbordermanager.cpp:354/363 串直证; 布局见下) | NotifyProvinceChanged 经 sub_140F31B50(+48 缓存, prov+164) 标脏 |
 | +64 | — | tag 观察者 hub | |
-| +72 | — | context | |
-| +96 | — | 子对象 sub_140A9A0F0 | |
+| +72 | — | context = gs | |
+| +80 | uint32 | **页号 A** (初值 7; 模式切换按模式写 0-7) | 脏位 = +129 |
+| +84 | uint32 | **页号 B** (同上) | 脏位 = +130 |
+| +88 | uint8 | formatter 有效旗 (DFDB00 重置 formatter 时清零) | 省 tooltip 消费 |
+| +96 | — | formatter 子对象 = **pdx scoped_ptr** (pdx_scopedptr.h:134 断言; vt[3](buf, prov_id) 追加行) | 非「泛型子对象」 |
+| +128 | uint8 | tooltip DEBUG 门 (非 0 → DEBUG 省份转储分支) | 写者未决 (疑 settings/调试通道) |
+| +129 | uint8 | 脏位 A (E17F30/E16980/E139C0 置位; ctor 初值 1) | |
+| +130 | uint8 | 脏位 B (同上) | |
 | +144 | CVector | — | |
-| +176 | tween 结构 | 双 tween 结构之一 | 0.9f 初值 (1063675494); mode 切换淡入淡出 (推定) |
-| +208 | tween 结构 | 双 tween 结构之一 | 同上 |
+| +168 | rh 表 A 头 | **省 id → 控制国下标 倒排表** (头部五字段见子表) | 定案 (四链证据见下注) |
+| +200 | rh 表 B 头 | **控制国下标 → 省 id 集合 倒排表** (40 B 条目 {距@4, key@8, 数据@16, 数量@28}) | 同上 |
 | +232 | CVector | — | |
-| +272 | — | 事件门旗 | |
+| +256 | — | 0 (ctor 清零, 簇内无消费) | 未决 |
+| +264 | — | 0 (同上) | 未决 |
+| +272 | — | 事件门旗 (省控制权事件 sub_140E16980 入口门) | |
+| +276 | uint32 | −1 初值 (簇内零读写) | 未决 (疑事件 pending 槽) |
+| +280 | — | **脚本模式实例指针槽** (E17F30 入口清零; mode ≥40 时写入库条目) | |
 
-NotifyProvinceChanged sub_140E168F0 (流程): 门旗+272 → prov+392 变体 →
-sub_140F31B50(+48 缓存, prov+164) 标脏 + hub 通知。
+rh 表头五字段 (A/B 同构; 哈希 = 0x045D9F3B 两轮雪崩, mgr 族 helper 共用):
 
-mode id 表:
+| 字段 | A 表 | B 表 | 语义 |
+|---|---|---|---|
+| data | +176 | +208 | 空表哨兵 = &unk_143086250 / &unk_1430B15D0 (全引擎共享判空式) |
+| 计数 | +184 | +216 | |
+| 掩码 | +188 | +220 | |
+| 最大探查距 | +192 | +224 | u8 |
+| 最大负载因子 | +196 | +228 | f32 = **0.9f** (exe 双 mov 指令直证; 插入时 `((计+1)/掩码) > 负载` 触发 rehash sub_140E132C0) |
 
-| 值 | 名称 | 语义 |
-|---|---|---|
-| 20 | MilitaryDeployment | — |
-| 21 | ToOrder | — |
-| 29 | OperationSelectTarget | — |
-| 30 | 情报账本 | 情报页地图着色 (§4.18 GUI 消费节) |
+注 (定案, 四链证据): +176..+228 两槽为 rh 表非 tween — ① rh 插入/查找原语 (sub_140DF9AD0/sub_1401B04A0/sub_140DFA4E0) 按头 +8/+16/+20/+24/+28 读字段, E16660 以 mgr+168/+200 为头调用即 +176..+228; ② 0.9 = 经典 rh 最大负载因子, 与比较式吻合, 簇内无该两槽浮点读取; ③ 空表 data 哨兵为全引擎共享判空常量; ④ E16980→E16660 双表行为闭环 (上)。
+
+省控制权倒排索引维护 (sub_140E16980 ← CMapModeDispatcher 转发, 门 +272): 新 owner tag 经 sub_140BB5490 (gs+832) 解析 → A 表按 prov_id 查旧值 (同值早退) → B 表按旧 owner 压缩式移除 prov_id → A 表插 prov_id→新 owner, B 表插新 owner 条目并追加 prov_id (断言 "pProvinces != nullptr" mapmodemanager.cpp:359 = 溢出区空指针防御) + hub 通知 + 双脏位置位。
+
+GBMan (mgr+48, 160 B) 与图层对象 (各 136 B, sub_141596CE0 构造):
+
+| 偏移 | 语义 |
+|---|---|
+| +24 | 图层指针数组 (23 个独立 malloc(136) 图层对象) |
+| +32 | 数组容量 (1.5× 增长, 最少 23) |
+| +36 | 数组计数 = 23 (23 个独立 136 B 堆块, 非 23×136 连续块) |
+| +48 | LoadDatabase (sub_140F33890) 建的 72 B 库件 |
+| +56 | gs 回引 |
+| +64 | 子件 (sub_1419DC530 装载) |
+| +72..+94 | 23 图层脏字节 (图层对象 +84 = 自身下标; 模式切换经 sub_140F3B090 置位) |
+| +95 | 选择槽脏位 A |
+| +96 | 选择槽脏位 B |
+| +100 | 组选择槽 A = 当前选中图层 id (−1 = 无; 模式切换经 sub_140F31D20 写) |
+| +104 | 组选择槽 B (同上) |
+| +128 | 容器 |
+
+图层对象 136 B: +76 f32 = GRADIENT_BORDERS_CAMERA_DISTANCE_OVERRIDE_* define 落点 / +80 f32 = GRADIENT_BORDERS_OUTLINE_CUTOFF_* 落点 / +84 = 脏字节下标 / +116 = dword 子模式值 / +128 = 刷新 byte。define 存储槽: dword_143332CD0/143331C5C = DIPLOMACY 对, dword_143332D90/143331D18 = DIPLOMACY_ON_INTEL_LEDGER 对 (模式 9/23/30 切换写入图层)。图层重建分派 = sub_140F33D50(db, 图层号); s4_30:678「脏旗 *(mgr+48)+83」= 图层 11 脏字节, 模式 30 选择槽 {1,11} 完全闭合。
+
+mode id 实名表 (sub_140E028C0 = id→"MAPMODE_XXX" 键名构造器, 定案):
+
+| id | 名 | id | 名 |
+|---|---|---|---|
+| 0、28 | MAPMODE_DEFAULT | 9 | MAPMODE_DIPLOMACY |
+| 1、32 | MAPMODE_STRATEGIC_AIR | 10 | MAPMODE_FACTIONS |
+| 2 | MAPMODE_STRATEGIC_NAVY | 11 | MAPMODE_PLAYERS |
+| 3 | MAPMODE_OPERATIVES | 12 | MAPMODE_INFRASTRUCTURE |
+| 4 | MAPMODE_STATES | 13 | MAPMODE_MANPOWER |
+| 5 | MAPMODE_SUPPLY_MAP_MODE | 14 | MAPMODE_IDEOLOGY |
+| 6 | MAPMODE_RESISTANCE | 15 | MAPMODE_TERRAIN |
+| 7 | MAPMODE_COMPLIANCE | 16、38 | MAPMODE_RAIDS |
+| 8 | MAPMODE_RESOURCES | ≥40 | "MAPMODE_" + 脚本模式名 (库 {数组@+40, 计@+52}, 条目 8 B/项) |
+| 20 | MilitaryDeployment (无本地化键) | 23 | **造宣称目标选择** (MAPMODE_FABRICATE_*) |
+| 21 | ToOrder (同上) | 27 | **建筑/铁路建造模式** (CONSTRUCTION_MAPMODE_*; 「模式≠27」拖拽门语义: 建造下不记拖拽锚) |
+| 18/19 | **征募部署选区** (DEPLOYMENT_SELECT_AREA) | 29/30 | OperationSelectTarget / 情报账本 |
+
+模式按钮 gfx 键名对: sub_140E02FA0 / sub_140E026B0 — mode<40 常量串 `GFX_mapmode_buttons_(de)selected_small`, ≥40 前缀 + 脚本模式名; 调用者 = CMapModesInterface 族 (§4.30 +552 件) + 前端 setup 界面 (frontendgamesetupview)。
+
+模式切换总派发 sub_140E17F30(mgr, newMode, force, resetDrawTool) 逐模式配置表 (GBMan 选择槽 {A,B} → sub_140F3B090(组,值) 写图层 +116 并置脏 → 图标重建类型 sub_140E18DF0 (0 全清/1 逐州建筑/2 逐国/3-13 各异) → 双页号):
+
+| mode | {A,B} | F3B090 | 图标类型 | 页 B | 页 A | 备注 |
+|---|---|---|---|---|---|---|
+| −1 | {−1,−1} | — | 0 | 7 | 7 | |
+| 0 DEFAULT | {5,0} | (1,0) | 0 | 0 | 7 | |
+| 1/32 STRATEGIC_AIR | {5,−1} | — | 13 | 3 | 3 | 族旗 dword_14338AA14 = 2 |
+| 2 STRATEGIC_NAVY | {5,0} | (1,0) | 13 | 3 | 3 | |
+| 3 OPERATIVES | {0,10} | (0,0) | 0 | 0 | 2 | |
+| 4 STATES | {2,0} | (0,0)(1,0) | 0 | 0 | 2 | 图层脏字节 db+74 |
+| 5 SUPPLY | {4,3} | (0,0) | 0 | 0 | 7 | 另两图层重建 sub_140F33D50(db,4/3) |
+| 6 RESISTANCE | {0,12} | (0,0)(1,0) | 12 | 0 | 7 | 脏字节 db+84 |
+| 7 COMPLIANCE | {0,12} | (0,0)(1,1) | 12 | 0 | 7 | 同上 |
+| 8 RESOURCES | {0,−1} | (0,0) | 5 | 0 | 7 | |
+| 9 DIPLOMACY | {1,−1} | — | 0 | 0 | 2 | 图层 0 +80/+76 ← DIPLOMACY define 对; db+73 |
+| 10 FACTIONS | {0,−1} | (0,1) | 0 | 6 | 6 | |
+| 11 PLAYERS | {0,−1} | (0,2) | 0 | 5 | 5 | |
+| 12 INFRASTRUCTURE | {7,0} | (1,0) | 0 | 0 | 2 | |
+| 13 MANPOWER | {8,0} | (1,0) | 0 | 0 | 2 | 脏字节 db+80 |
+| 14 IDEOLOGY | {0,−1} | (0,3) | 0 | 0 | 2 | |
+| 15 TERRAIN | {9,0} | (1,0) | 0 | 0 | 2 | |
+| 16/38 RAIDS | {0,−1} | (0,0) | 0 | 0 | 0 | |
+| 17 | {0,5} | (0,0) | 0 | 3 | 3 | |
+| 18 | {0,−1} | (0,0) | 4 | 0 | 2 | 部署选区 |
+| 19 | {0,−1} | (0,0) | 3 | 0 | 2 | 同上 |
+| 20/21 MMD 族 | {0,−1} | (0,0) | 6 | 0 | 2 | |
+| 22 战役计划 | {0,19} | — | 8 | 1 | 2 | 脏字节 db+91; §4.30 主填充→模式 22 落点 |
+| 23 造宣称 | {1,−1} | — | 9 | 0 | 2 | 图层 0 define 对同模式 9 |
+| 24 | {−1,−1} | — | 10 | 7 | 4 | |
+| 25 | {2,−1} | (0,0) | 10 | 2 | 7 | |
+| 26 | {5,−1} | — | 10 | 3 | 3 | |
+| 27 建造 | {6,−1} | — | 1 | 0 | 2 | 图标 1 = 逐州建筑图标 (sub_140E161C0) |
+| 28 DEFAULT | {0,−1} | (0,4) | 0 | 0 | 7 | |
+| 29 OpSelectTarget | {0,−1} | (0,0) | 7 | 0 | 2 | |
+| 30 情报账本 | {1,11} | — | 0 | 0 | 2 | 图层 11 脏字节 (+83); DIPLOMACY_ON_INTEL_LEDGER define 对 |
+| 31 | {0,13} | (0,0)(1,0) | 0 | 0 | 2 | 脏字节 db+85 |
+| 33 | {14,−1} | (1,0) | 0 | 0 | 2 | 脏字节 db+86 |
+| 34 | {17,−1} | (1,0) | 0 | 0 | 2 | db+89 |
+| 35 | {18,−1} | (1,0) | 0 | 0 | 2 | db+90 |
+| 36 | {20,−1} | — | 5 | 3 | 3 | db+92 |
+| 37 | {21,−1} | — | — | 3 | 3 | db+93 |
+| 39 | {22,0} | — | 0 | 3 | 3 | db+94 |
+| ≥40 | 脚本自带 | — | 按 +264 映射 {1→0, 2→2, 3→6, 4→5, 默认 7} | — | — | mgr+280 = 库条目, 装载 sub_140AAE2F0 |
+
+default 分支: 40 ≤ mode < 库计数走脚本模式装载; 越界断言 "invalid map mode" (mapmodemanager.cpp:1154)。尾调 sub_140E16D10 = 33 B 逐模式图例/色阶配置拼装 → sub_14163F8D0 发布到全局块 xmmword_14338A9F0/xmmword_14338AA00/word_14338AA10 + dword_14338AA14 族旗 (模式 1/32 → 2, 查表族 → 1/2, 其余 0)。
+
+省悬浮 tooltip 构建器 **sub_140E05340** (3488 行; 上游 sub_140E7CF80; 定案) 三通道互斥: ① mode ≥40 → sub_140AAF060 委派脚本模式自带 tooltip; ② 模式实例 (+16 shared_ptr) 非空 → 实例 vt[9](buf, prov, 0) 追加 (交互模式 20/21/29 通道); ③ switch(mode) 内建体覆盖 {3 operatives, 5 supply, 6/7 resistance·compliance, 8 resources (ExtraResource 关系单侧缺失断言 mapmodemanager.cpp:3639), 9 diplomacy ((owner)−(subject) + 敌/友/阵营/舆论好坏阈 dword_143334F68/dword_143335018), 12 infrastructure (州 BuildingStatus 条目 +64 等级), 13 manpower (州+2104), 14 ideology, 15 terrain, 18/19 部署选区, 22 battle plan, 23 造宣称五态, 27 建造全套 CONSTRUCTION_MAPMODE_*, 30 intel (sub_140E004E0)}; 0/4/32 走 PROVINCE_CLICK_VIEW 公共块 (PING/点击切换国 tooltip); +128 门或 debugFlag → DEBUG 省份转储块 (Province/Controller Area/State ID/…/Weather 全字段)。
+
+配套单例/门旗: qword_143339E48 = **CMapModeDispatcher** (+8 = CMapModeManager\*; sub_140A66DE0 实名 OnMapModeChange, mapmodedispatcher.cpp:238), 模式设置入口族 sub_140A66{BF0..7750} ×13; byte_1435E1B52 (断言总门) 与 byte_1435E1B51 (E028C0 专用) 两旗勿混; byte_14332EC69 = DEBUG_CLICK_SWITCH_COUNTRY / byte_14332F63D = 外交态度 dump 调试旗。
 
 #### 4.30.39 CPanelController (左右面板控制器; ctor sub_142061510; 176B; 通用控件, 现见空军重组窗)
 

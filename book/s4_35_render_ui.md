@@ -464,7 +464,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 | S14 3D 实体/动画/粒子 | 4 | ★sub_14228D730 1,400 挂点查找; ★sub_14228AF80 1,461 attachment 定位; ★sub_1423AE8F0 1,115 float4 流变换; sub_1423FE460 280 粒子更新 |
 | S15 调试/ImGui | 9 | ★sub_1422095C0 2,394 profiler SIMD 内核; ★sub_1421CBE30 1,426 Begin 原语; ★sub_1421F4480 1,156 / ★sub_1421F9450 1,134 观察窗族; ★sub_141B0F6D0 1,066 Faction Member 窗; ★sub_1410652F0 1,128 AI 前线调试; sub_1421D9B40 213; sub_1422A2F90 114 DebugTexture; sub_140222300 105 采样三缓冲 |
 | S17 资产装载/压缩 | 6 | ★sub_142388030 2,950 bzip2 解码; ★sub_14250CD90 1,537 range 解码; ★sub_14123D920 1,087 旗帜图集装载; sub_140B406A0 248 国旗图集; sub_140B40BD0 202 装载屏轮换; sub_140FA30E0 470 库条目实例化 |
-| S18 基础库旁支 | 5 | sub_140E84150 192 批量释放; sub_14029E0F0 118 POD 拷贝; sub_140B6BC60 115 idpair 去重; sub_140210AF0 202 核爆遥测 (素材包误纳); sub_1406A40E0 101 career 云清理 |
+| S18 基础库旁支 | 5 | sub_140E84150 192 批量释放; sub_14029E0F0 118 POD 拷贝; sub_140B6BC60 115 idpair 去重; sub_140210AF0 202 核爆遥测 (素材包误纳); sub_1406A40E0 101 生涯档案提交/上传总入口 (10 步: 本地/云载入合并→保存→云删除/上传路由; §4.28.22) |
 S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 
 ##### S16a 军队/军事 (24)
@@ -488,7 +488,7 @@ S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 | ★sub_141D51300 | 1,170 | 生产线 refit 明细 |
 | sub_141D26B30 | 1,127 | 模板 AI 评估 |
 | sub_140AE8120 | 1,125 | 特质加成装配 (unitleadertraits.cpp) |
-| sub_1416B1C00 | 1,108 | 勋章历史窗 |
+| sub_1416B1C00 | 1,108 | UNIT DETAILS 四页统计窗 Setup (CArmyDivisionStatsView; ctor/Reload 双调用者直证) |
 | sub_14158CA70 | 1,095 | 袭击装备缺口 |
 | sub_14175C2B0 | 1,045 | 师编制网格 |
 | sub_1416B05C0 | 1,006 | 部署师列表 |

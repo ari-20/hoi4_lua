@@ -489,6 +489,30 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
   另 sub_140BB3E00 与 sub_140BB3E72 = gamestate.h:1126 国家索引规范化的**代码克隆对**
   (同断言/同 guard/四条独立证据), 火焰热度为同一逻辑函数机械分摊。
 
+setter 全家对照 (定案, 函数→槽一一对应; 消费端构造临时 scope 的全部写入点; id 对槽 setter 的统一断言通道 = ref.h:83 `"GetPtr() != 0 && \"This Object is not created or a valid CReferenceObject...\""` — 先解 \*(a2+8) 再落槽, 无效引用 = debug 断言 + 落哨兵 qword_14333D528):
+
+| setter | 槽 | 语义 | 备注 |
+|---|---|---|---|
+| sub_14053A610 | +8 | SetCountry (clear 门变体 = sub_14053B470 tag 版) | 消费端最高频 (178 调用点) |
+| sub_14053B670 | +72 | strategic_region 裸指针直写 | |
+| sub_14053A400 | +80 | character CID 对直写 | 断言 "Character.IsValid()" |
+| sub_14053B8E0 | +80 | character (自 unit leader 取) | 断言 "pUnitLeader->LookupCharacter()" |
+| sub_14053B330 | +80 | character (自 CReferenceObject 取 a2+8) | ref.h:83 |
+| sub_14053B0F0 | +88 | operation id 对 | ref.h:83 |
+| sub_14053A590 | +96 | combatant 裸指针直写 | |
+| sub_14053A250 | +104 | ace id 对 | ref.h:83 |
+| sub_14053B6B0 | +112 | unit (取 a2+24) | 断言 "pUnit" eventscope.cpp:598 |
+| sub_14053B030 | +120 | MIO id 对 | ref.h:83 |
+| sub_14053B1B0 | +128 | purchase_contract id 对 | ref.h:83 |
+| sub_14053B270 | +136 | raid_instance id 对 | ref.h:83 |
+| sub_14053A690 | +152 | faction id 对 | ref.h:83 |
+| sub_14053B5F0 | +168 | SetState (u32 直写) | |
+| sub_14053B4B0 | +168 | SetState (自描述符 a2+88 取 id) | |
+
+配套: getter sub_140535C20 (+80 解析) / sub_140535DB0 (+88 解析); **第二构造变体 sub_140534FE0** (默认根 + 全槽哨兵 + **+16 写 RNG 种子初值魔数 1587985054**, 高置信 — 与 CVariables ctor 种子#2 常量同源); 全载荷拷贝 = sub_140535FD0 (copy ctor 内核)。scope RNG 进入/退出配对体 = sub_140542150 (TLS random_seed 重哈希, §4.32.16a)。
+
+- 附注 (定案, idpair 解析原语口径): **sub_14221F310(idpair) 返回 = 对象 raw+16** (本体 = 返回值−16; 全零/未注册 → 0; 三档表选择子 type>4712 / 100..4712 / <100)。三处独立互证: 判零式 `v==16` (armiesview tooltip) / 返回+456..+460 落 CUnit+472/+476 owner 域 (raw 坐标) / GetTheatre 调用前显式−16。**sub_1402AA280 = raw 直取糖** (函数体即前者−16)。凡消费解析返回值再按偏移读, 偏移一律属 raw 坐标系 — 勿按返回值基址记偏移。
+
 #### 4.00.5 基类普查与工具法
 
 - **槽位方差法 (定基类槽语义的通用法)** 以 `CEffect` 为例:
@@ -771,7 +795,7 @@ CSettings+896 内嵌 56B; SAudioContext/SSDLAudioContext = 音频后端运行时
 
 **网络服务器族**: **CServer** (抽象基, vt 0x142B52AC8 ≥30 槽, [5][6][7][30][35][36] 纯虚; [4] 0x142363E10 经 +72 连接对象转发发包) → 唯一 RTTI 实现 **CProxyServer** (0x142B53598, proxy_server.cpp; [6] Update 间隔 >1.0s 打 "Long update!"; [3] 清 +348/+392/+472 连接状态 (24B 条, count@+480)); CDummyServer (0x142B52C28 31 槽, 单机空实现)。**CSession** (会话信息可观察包装, vt 0x142B3E9D8; +8/+16 观察者双链表首尾 / +24 count / +28 挂起旗 / +40 全局计数门 dword_143453198; ctor 重载对 = sub_14224E3E0/sub_14224E870 (9 参全量重载; 函数体首段逐行同构 + CSession::vftable 直证, 创建会话对象本身)。**CPlayerLobby** (大厅玩家面板, vt 0x142A0EC58; RTTI lambda 证 KickPlayer/BanPlayer; [22] 0x14186F3A0 = server_id_button → SERVER_ID_COPY)。**CChat** (游戏内聊天控制器, vt 0x1429ADE98, 基 CReloadableInterface ← CReloadDispatcher ← HotkeyListener; slash 命令表 `/slap /whisper /invite /newchannel /ban /kick /roll /save` 硬编码; 创建点 sub_1419A9090) → **CGameChat** (0x142A24E48, chat_window/chat_inbox_window/chat_item)。**CFriendsHandler** (平台好友表处理器, vt 0x1429D5378 19 槽, 懒建单例存储 qword_143339C70, getter sub_140A31BB0) → **CFriendsHandlerSteam** (680B Steam 后端: ctor 内建基后原位换表; 内嵌 "CAREER_PROFILE_YOU" 自好友件 CFriendsHandlerFriendSteam + 5 个排行榜/文件共享 CCallResult)。**ChatSettingsProviderImpl** (vt 0x142969468; 6 薄 getter 全委托 CSettings 单例 (0x1401FA5E0) +904/+912 域 (§4.28.11))。**HotkeyManager** (vt 0x142B3EE88, 基 CPdxEventHandler; +14 子对象串表 / +80 注册表 count@+92; 单例旗 byte_1434531B1)。
 
-**CApplication 应用族** (只载不存 + 单实例锁): **CApplication** (vt 0x142B3C288 + 次表@+8; 基 CPersistent + CApplicationObservable 多基) — 主表 [1] **无 Save wrapper (CFG 空桩)**、[2] writer 空桩、[3] Load wrapper + [4] reader 0x14222E600 (只读 name(27)→+72 窗类名) = **应用单例只载不存** (serfam 指纹需 [1]+[3] 故未命中); ctor 0x14222B420 内 `FindWindowExA(0,0,+72,0)` 单实例互斥 ("An instance of this game is already running on this computer! Exiting."), **实例指针落 qword_143452450 (主单例定案**: ctor 写入, 18 引用全在 CApplication 编译单元 0x14222B5F0..0x14222EDD0)。**CApplicationObservable** (应用事件广播壳, vt 0x142B3C260 主表 4 槽; CApplication/CGameApplication/CMapApplication 公共多基 mdisp 8)。**CMapApplication** (0x142AE6950, 主进程应用; ctor sub_1420A13C0 由 WinMain 体 sub_14209E610 内建) / **CGameApplication** (0x1427182E0 族, 对象 1272B = malloc(0x4F8); **ctor = sub_140147EE0** (main.cpp:2136 直调, 对象 1272B; 预建 CSession "localhost" + ~28 对热重载注册 + 加载条组 65 回调, 详 §4.28.21); sub_140151EC0 = **析构函数** (恢复双 vtable 后 j_free 释放 20+ 成员对象); sub_14015FB30 = 标量删除析构包装。**CGameGraphics** (0x14294A338, 基 CGraphics + CLostDeviceInterface 虚继承@+206320; [1] SaveW/[3] LoadW 持久化图形设置到用户设置**非存档**; CGraphics 布局持双 2D 树 +496/+864 等槽 — 详 §4.35.3)。
+**CApplication 应用族** (只载不存 + 单实例锁): **CApplication** (vt 0x142B3C288 + 次表@+8; 基 CPersistent + CApplicationObservable 多基) — 主表 [1] **无 Save wrapper (CFG 空桩)**、[2] writer 空桩、[3] Load wrapper + [4] reader 0x14222E600 (只读 name(27)→+72 窗类名) = **应用单例只载不存** (serfam 指纹需 [1]+[3] 故未命中); ctor 0x14222B420 内 `FindWindowExA(0,0,+72,0)` 单实例互斥 ("An instance of this game is already running on this computer! Exiting."), **实例指针落 qword_143452450 (主单例定案**: ctor 写入, 18 引用全在 CApplication 编译单元 0x14222B5F0..0x14222EDD0)。**CApplicationObservable** (应用事件广播壳, vt 0x142B3C260 主表 4 槽; CApplication/CGameApplication/CMapApplication 公共多基 mdisp 8)。**CMapApplication** (0x142AE6950, 主进程应用; ctor sub_1420A13C0 由 WinMain 体 sub_14209E610 内建) / **CGameApplication** (**1.19.3 主表 0x1427168E0 19 槽 — 0x1427182E0 = 1.19.2 旧址, 1.19.3 同址为字符串数据, 全表与热重载家族见 §4.28.21a**; 对象 1272B = malloc(0x4F8); **ctor = sub_140147EE0** (main.cpp:2136 直调, 对象 1272B; 预建 CSession "localhost" + ~28 对热重载注册 + 加载条组 65 回调, 详 §4.28.21); sub_140151EC0 = **析构函数** (恢复双 vtable 后 j_free 释放 20+ 成员对象); sub_14015FB30 = 标量删除析构包装。**CGameGraphics** (0x14294A338, 基 CGraphics + CLostDeviceInterface 虚继承@+206320; [1] SaveW/[3] LoadW 持久化图形设置到用户设置**非存档**; CGraphics 布局持双 2D 树 +496/+864 等槽 — 详 §4.35.3)。
 
 **词法 / 序列化 I/O / 异常 / 日志 / 系统杂件族** (全非 CPersistent 零 gameplay 耦合; 批量登记免再查):
 
@@ -907,13 +931,58 @@ root/from/prev/saved_event_target 等 17 键, token 名全对上); save_event_ta
 重建 = loader case 13793 逐元素 Load 后复用 sub_1401CAFF0 显式 pending_id
 再入队 (定案)。
 
-
+**interface 收件箱通道全貌** (ingameinterfacehandler.h 定案): 容器 = handler+1192 {data, cap@1200, count@1204, alloc@1208}, **216B 条目** {载荷 u32@+0, CEventScope 拷贝@+24 (kind4), u8@+200 (kind4), **分发 kind u8@+208**}, **尾插 ×1.5 扩容 (线性排空向量, 非环形队列)**; 推送骨架 = h:197 ThreadIsMainThread 断言 (每实例化一个注册旗字节, 全语料仅此一锚 ×38 处) → 尾插 → `byte_14332F6AA` (= settings **render_thread** 旗) 为 0 才立即泵。**泵三件**: sub_140B6B050 (cpp:1031, CanUpdateGui 断言仅 render_thread 旗下查 \*(\*(handler+384)+1458)) → 分发器 sub_140B60870 (switch kind) → 排空 sub_140B6B8C0 (kind4 析构 scope 拷贝; 尾 count = 0 data 复用)。**kind 0-6 分发表**: 0 = 泛用刷新 (handler+392 对象 vt 槽[9]) / 1 = 视图码标脏 (handler+8N+200 处理器表, 23 = "Why would you do this?!" 断言哨; sub_141236950 标脏) / 2 = 位掩码区刷新 (1→+592 / 2→+624 / 4→+472 / 8→+648 / **16·32·64→+600/+608/+616 三装备设计器** / 128→+728) / 3 = 视图切换 (当前码 +1008, 旧码栈 {+168, cap+176, c+180}; 码 23 不压) / 4 = **CEventWindow 弹窗** (malloc 0x1290 → ctor sub_1412381A0, scope 拷贝@+24 — 上链的完整展开) / 5 = tag 匹配关窗 (关 18/19) / 6 = **监听广播** (handler+1216 表逐元 vt 槽[1])。7 个实例化旗字节 = 58C(kind1) / 1E1(kind2) / 8D4(kind5) / DC24(kind3) / 3F5(kind0) / CF8C(kind4) / 8A46A(kind6)。36 个推送消费端全定性 (13 个 RTTI 实名: CSetPortraitEffect[13] (12,1) / CSetStateNameEffect[13] / CAddRaidHistoryEntryEffect[13] 双推送 / CNavyCancelRefit·CPromoteUnitLeader·CBecomeSpyMaster·CSetDivisionTemplateSymbol·CCreateTrade [10] / 四特工转移动作共享 [56] (4,1) / CLeaveFactionConfirmationWindow[17] (12,3) / CProgramOngoingProjectView[11] = kind6 监听注册端; 余 23 个 = DeleteUnit (2,2) / 租借取消 (14,1) / conveyor 收尾 (14,1) / 建筑改级伴随件 / 游戏速度写者 / 教程族等, 全部对上书内既有锚)。handler+384 = GUI 根句柄 (+1458 = CanUpdateGui 字节 / +1272 = 窗口管理器)。
 
 **docvar（@target 文本变量）注册器** (暗区定案): 框架 = lambda 签名
 `CFixedPoint(CEventScope const&, int, CScopedVariable const*)` 的求值回调注册; leader/army
 族全集 = **sub_14006EF30** (6,040 行; number of units controlled by leader /
 num_units_in_state 等键), state 族 = **sub_140069A80** (resource@steel /
 non_damaged_building_level 等)。loc 文本 `@变量名` 的可用集以此二注册器为准。
+
+**消费端全量形态 (eventscope.h 簇 620 函数定性)**: 该簇 = **CEventScope 的消费端集合**
+(620/620 函数体内嵌 eventscope.h:193 防环断言; 0x14053 区 CEventScope 方法本体**不在簇内** —
+按簇名找类方法会扑空)。三块构成: ① 集合算子体系 ≈239 个 (§下) ② 临时 scope 构造/拆解
+用户 272 个 (ctor→用→dtor 164 / copy 44 / 多 setter 手搭链 64) ③ 业务域消费端 ≈139 个
+(on_action 派发实现 42 — §4.12.9b 的执行层名单 / console trigger·effect 命令 /
+NLoc::SScopeLocalizer scope 本地化 desc (虚槽[25] 取基文案 + 按深度缩进) / 触发器内树
+求值包装 53 (名单快照→逐元素设 scope→sub_14054AB30 评内树, all/any 语义) / 杂项 30
+(scripted_gui_ai 求值入口 sub_1413277E0 / 装备库查询 / AI 目标评分))。事件真发射体簇内
+仅 sub_140A0F6F0 一个 (其余事件族函数只构造 scope 后转投)。防环断言语义 = 「把旧 scope
+设为新临时 scope 的 from 前」检查一级自反 (不递归查全链, 高置信)。
+
+**script_collection_evaluator.h 集合算子链游走器** (双批互证定案; 与 §4.32 count_in_collection
+所引 triggers 侧同体系两侧): 模板 `CCollectionEvaluator<元素类型>` = 脚本集合「算子链运行期
+游走器」, **195 实例 = 12 元素类型 (country/state/faction/unit/character/combatant/project/
+operation_instance/industrial_organisation/purchase_contract/raid_instance/strategic_region;
+无 ace 无 province) × 每型恰 15 + 15 族内分发/无字面量变体**。链视图 = `{begin,end}` 指向
+**16B/条 {kind u32@+0, payload@+8}** 数组 (无独立 RTTI 类); 游走器统一五参 `(求值帧, &链视图,
+当前元素, 访客, 游标)`, 逐元素 ctor(sub_140535110)/bind/dtor 固定成本 + :193 FROM 环守卫;
+bind helper 按型分件 (country = sub_14053B470 / state = sub_14053B4B0 / combatant =
+sub_14053A590 三件直证, 余推定同族)。kind 七类骨架: 0-3 = 四内建集合源 (faction_members
+19584 = dip+656→成员{+88,+100} / owned_states 12321 = cc+1144 / controlled_states 12320 =
+cc+1120 / country_and_all_subjects 10237 = dip+368 附属 tag); **kind 4 = 通用算子节点**
+(payload 对象指针, 空返 0, 非空新 scope 上 vt[3] 判定真才递归 — 勘误: 原凭 unit 型实例猜
+「unit 型算子」不确); **kind 5/6 = 极性对且语义逐型分叉** (state 链 = st+176 cores 隶属门
+± 即「该州是/不是 <tag> 核心」过滤对; country/faction/io 链 = named/dynamic 集合源禁用
+报错, 名经 sub_1403C4FE0/C50A0 以 token 13178/17404 运行时取) — **kind 值非全局统一枚举**。
+内建源可迭代性 = 元素类型静态决定 (country 型全四源; faction 仅 kind0; 其余 9 型全报错)。
+三种失败通道: GetSize 不支持 (evaluator.h:130) / [Parallel]ForEach 不支持 (:230) / 链尾非叶
+断言 `"Target and leaf node in operator doesn't match"` (:171, 96/195 断言形; 99/195 叶派发形)。
+
+短路语义逐消费族不同 (定案): **all 族** (all_collection_elements 引擎 sub_1404C9E00) 叶访客
+失败置 `*ok=0` 返 1 逐层上抛中止, 空集恒真; **any 族** (sub_1404CA360) `--count` ≤0 置 ok=1
+短路; **count/ForEach 族** (count_in_collection 五模式 sub_14051DC20 分派) 无短路全量遍历
+(叶对象数组 vt[12] 副作用访问); **GetSize** 末链节 `**a4 += 1` 累加 (0x140A 族 = ForEach+
+GetSize 双模式合一)。消费面另含 collection 输入解析 type-4/6 (sub_1403C5160/sub_140A12F10)
+与两套同形世界根分发器 (sub_14140EA50 / sub_1404BA300: case1 = gs+784 国家表过滤
+cc+1156>0 有拥有州 / case2 = 全部国家)。**经典 every_owned_state / any_country 等卡不经本簇**
+(§4.3 直遍历 own 容器, 独立实现)。与 CTrigger 槽关系: 不占 [22] Evaluate 槽, 是上述触发器
+引擎下层共用迭代核心; 逐元素子触发器求值 = sub_14054AB30。叶层双实现: 串行与 tbb 并行
+(198 行同构族 ×31: 8 层区间栈二分分裂 + continuation/child task + 取消支持)。容器锚负定案:
+成员/州/国家表全部书已收, 本簇新原语 = 链视图形态 + kind 表 + 访客协议四款。同族同型同
+行数多实例 = **逐字节同码克隆** (仅自递归名/断言守卫字节异, 链接器未做 ICF)。断言通道 =
+sub_1424C8080 (条件断言, debug 总门 byte_1435E1B52 + 每站点 once 门) / 错误收集
+sub_1424C8950 + 格式化 sub_1424C8E60 + 算子名 sub_1424BC260。
 
 #### 4.00.13 CSelectable (选择态基类; 16B 无基类多态根 — rtti bases 空, 不继承 CPersistent)
 

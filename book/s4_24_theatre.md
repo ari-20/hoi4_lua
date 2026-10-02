@@ -313,7 +313,7 @@ reader 0X140EFCF10; front 块全字段落盘 (writer 键集 = {id 壳, 13444, 10
 | +89..+99 | — | = section 容器 data 尾 + cap@+96  |  |
 | +100 | uint32 | section 容器计数 | c>0 |
 | +101..+111 | — | = count 尾 + alloc@+104 (哨兵) + 垫  |  |
-| +112 | CFrontSection\* | 区对象指针 (AI 口袋追击 sub_14108C290 经 vt[1] 取控制方 tag; §4.24.7 布局吻合); area 标量 = ru32(rp(rp(fr+112)+40)+164) | 恒写 |
+| +112 | CControllerArea\* | 区对象指针 (勘误: 原「CFrontSection\*」系类名误标 — 错误串 "Front refers to invalid controller area…" theatre.cpp:3685/3688 + EFBED0 以 prov+208 区指针直接赋值 + EEB190 建造存区对象三函数闭环; AI 口袋追击 sub_14108C290 经 vt[1] 取控制方 tag; area 标量 = ru32(rp(rp(fr+112)+40)+164); +124 u8 = 区锚省验证位) | 恒写 |
 | +113..+124 | — | 拆分见 +120/+124 两行 | case 10720 word 写 0x0100 (低半 = +124 配对标记, 高半 = 1) |
 | +125 | uint8 | dirty — ctor 初值 = 1 (新建 front 默认脏; reader 13444 经 sub_1424C0C00 双参形态**载入** +125) | 恒写 → yes/no |
 
@@ -327,6 +327,8 @@ reader 0X140EFCF10; front 块全字段落盘 (writer 键集 = {id 壳, 13444, 10
 | 10983 | enemies 单串形读侧键 — 与 13544 数组形同目标 front+56; 断言 "Front refers to invalid country tag" 同串 |
 
 注: +16 u8 = **CReferenceObject 基类 IsStored 旗** (定案, 非本族语义字段); +120 u32 / +128 qword 两槽 ctor 置 0、dtor 不触、writer 不触 ⇒ +120 = area 锚省 id (读写异位: writer 从 +112 两跳取值; post-load sub_140EFC6D0 → sub_140EFC390 以 +120 取省 → 省+208 = CArea → 回填 +112, 失败删 front theatre.cpp:3685/3688); +128 qword = ctor 清零后全库无访问者 (负定案: 保留槽)。
+
+theatre.cpp worker 补全 (定案): 未收 9 函数定性 — **sub_140EF5AE0** = CFront::FloodPath (:3043 无限循环日志) / **sub_140EFBED0** = CTheatre::FixFrontsAfterAreaReplaced (区替换时前线重定位/删除, :1415) / **sub_140EFD790** = CFrontSection reader vt[4] (元素类实名 **CFrontSection::SPerCountrySection**) / **sub_140F00F50** = CFrontSection::TakeProvincesAndPairs / **sub_140EEA6A0** = ~CTheatre (vt[0]) / **sub_140F00580** = RemoveOrdersGroupFromTheaterGroup (:1745 "come to me, Ilya") / **sub_140F018F0** = SetMainProvince (CTheatre+232 主省槽) / **sub_140EF8630** = CFront vt[8] RegisterWithNewId (type = 66, sections > 128 fatal)。结构性新定案: **NTheatreManager 三组静态** = g_OccupationBundleConquer/Relation (0x14333D2C0/330, 各 0x70B, _IsActive@+96, 断言串实名) + SInterpolatedFrontBundle 派发队列 (0x14333D398, 16B 条目 {og idpair, instance_id, u8}, <4 串行/≥4 tbb); **CFront/CTheatre vt[8] = RegisterWithNewId** (id 高水位 dword_143087264/268); **managerobj+1941 = 战区脏旗双写点** (sub_140EF1EE0 入 1 / 出 (gs+1312>0) — 主文件 CSession+1941 待裁条由此消解); CFront reader 补键 141(priority)/10288(丢弃); AddUnit 补 empty-og 清理链与重校验差异旗置位; 收口 "theatremanager.endbundle" profiler 域。调用主干: 读档完成 sub_140DD6A30 → sub_140EF9280; 前线重建 sub_140EE9560(tbb) → sub_140EF9710 (脏门 front+125) → sub_140EEE090 BuildSections → FloodPath/TakeProvincesAndPairs; 区替换 sub_140CF7E10 → sub_140EFBED0; bundle 窗 EED690 → EFCA60 入队 → EF2F30 → EF1EE0×2 → EF18B0。
 
 #### 4.24.7 CFrontSection (96B, writer 0X140F01FD0)
 
@@ -528,6 +530,28 @@ id 失效 ∨ 与当前目的地不符 → 清重灌), 再按 oi+48 switch:
 proximity_type==4 跳过; 期望距离 sub_1415B0EB0 == og+452 跳过; 否则
 sub_1415B0320 重定位) → AI 钩 sub_1410ABCA0 + sub_1410AC860 逐位发 token 14927
 "province_weight" 消息 (定案)。
+
+unitcontroller 层补全 (定案): **sub_1414D75F0 前线槽 wanted 规划** — DPP
+(PLAN_PROVINCE_PRIO_DISTRIBUTION_*) 四点插值分支在 1.19.3 现态**死亡** (权重和恒 0 →
+每槽 wanted 恒 1, 高置信体读; 四 define 名经 loader 反查定名)。**前线槽记录字段**
+(sub_1414C2740 访问, 双函数交叉 = metrics 转储 sub_1414C7700 "AI FRONT DUMP" 门
+indexer+356 打印 + 评分消费 sub_1414C87B0): +8 wanted / +28 AtLoc / +52 OnWay /
++88 前线数; C87B0 消费 define 反查全录 (DISTANCE_FACTOR / COHESION_WEIGHTS /
+TERRAIN_DEFENSE / ATTACK / STICKINESS), 插入排序阈值 170。**CPendingStratNavyTransfer
+补全**: 56B 布局 +8/+40/+48 语义定案 (分组工厂 sub_1414D5A70, :393 断言), 32B 派单条目
+布局, 新读点 oi+580。**case 3 海军入侵批量补位** (sub_1414D02C0): 槽位轮转 = 成员序号 %
+槽数; **每轮批量上限 = dword_1430B3860 = 3** (exe .data 静态实读, 非 define); 与 s4_34
+拒动协议条的 case 3 = **同函数两阶段**, 非两函数。case 4 空降 (sub_1414D3B40):
+scheduled_member 存**指入式指针 unit+184** (−184 还原单位; 与 §4.24.9 owner thunk 同规),
+indexer+368 进口清零。**sub_1414D9280** = AI「把师送到前线」移动总校验 (:4270 断言; 行号
+表 4270/4397/4410/4446/4499/4526/4555), 海军登岸拆分 = sub_1419690B0 → TransportUnit/再寻路,
+FRONT_MIN_PATH_TO_REDEPLOY 路径长门; **sub_1414D5030** = 海军入侵单单位目标省选择
+(1.1 容差兵力比; PLAN_MAX_PROGRESS_TO_JOIN / RESERVE_TO_COMMITTED_BALANCE 双 define 门;
+CCommand 直执行路径 sub_141361B30 vt[9]/[10], :4140 断言; 调用者 = 战斗推进 sub_1414D3120);
+**sub_1414CC9C0** 靠拢拒因 6 写法 = +590=1 / +680=6 / +592=0, 下发统一走退避门 sub_1414C9D10。
+**sub_1414C55D0** 铁路炮分配重挂: ProvincesInRange 半径 = 2×聚集宽度; AI 日志通道键 =
+NAVAL_TRANSFER_PRIORITY; 炮跨海也走 TransportUnit 工厂。单位类型判据 = **unit+8 非 0 =
+IsNavalInvasionUnit (:1939) ∧ ≠ 13 = IsNavalTransferUnit (:236)**。
 
 谓词链 (逐单位, 定案):
 

@@ -38,8 +38,11 @@
 2. **常见容器三型** (详见 §3):
    - std::vector: 连续元素, `{data 指针, count, cap}` 三件套的偏移随类而变,
      每个字段条目单独标注
-   - robin-hood 哈希表: 桶 24 字节 `{值/指针@+0, dist uint32@+4, 键@+8}`;
-     dist=0 空桶, dist∈{0xFE,0xFF} 墓碑/特殊标记双值都跳; 遍历上界 = mask+1+extra (extra 为尾部溢出桶数)
+   - robin-hood 哈希表: 桶 24 字节 `{值/指针@+0, dist uint8@+4, 键@+8}`
+     (dist 实为 u8 — 原「uint32」系类型误标, 读侧 read_u32+&0xFF 实操等价);
+     dist=0 空桶; **pdx RH 无墓碑** (erase = backward shift deletion, sub_141201B60
+     全代码实证; 0xFF = 迭代哨兵非墓碑; 0xFE 墓碑系 apd RH map 分型特有);
+     防御扫描仍跳 dist∈{0,0xFE,0xFF}; 遍历上界 = mask+1+extra (extra 为尾部溢出桶数)
    - std::map (红黑树): 节点 `{left@+0, parent@+8, right@+16, isnil byte@+25,
      ...}`, 中序遍历顺序 = 存档顺序; 头节点 = 容器对象首指针
 3. **业务浮点 = int64 × 1e-5 定点** (fixed×1e-5), 全游戏普遍使用
@@ -387,7 +390,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 
 接缝定案：**第四路征服（调试工具直接征服）** — 无战争/条约上下文，只走控制权（SetController）从不触所有权（SetOwner），帧级驱动；不属 §4.3.6 占领日更六阶段、§4.10.32 投降/吞并、§4.10.26-31 和会任何一路，与既有链仅在级联下游共享占领 bundle 聚合与 occ/dp 写门族（本函数不产生新写门形态）。负结论：函数体无任何游戏对象偏移直写、无 gs+1128 日期读、无序列化调用 — massconquer 启用会话中对拍必炸（每帧控制权翻转；默认 BSS 零关闭，不执行命令即无影响）。
 
-> 待裁：gs+1312（Idle 顶部 >0 → 写 CSession+1941）；CInGameIdler vt 槽[110]（返回值传入本函数但被忽略）；sub_140EEC180 是否另有生产调用点；失败日志省列表条目形态（省名 vs 省 id）。
+> 待裁：gs+1312（Idle 顶部 >0 → 写 CSession+1941 — **+1941 语义已消解 = 战区脏旗双写点** (sub_140EF1EE0 入 1 / 出 (gs+1312>0), §4.24.6 worker 补全); 余下 gs+1312 门本身待裁）；CInGameIdler vt 槽[110]（返回值传入本函数但被忽略）；sub_140EEC180 是否另有生产调用点；失败日志省列表条目形态（省名 vs 省 id）。
 
 ### 1.2 gs 偏移 → 管理器总表 (全部为指针, 解引用后见各节)
 
@@ -703,14 +706,24 @@ CCountry (cc)
 
 ### 3.2 robin-hood 哈希表
 
-桶 24 字节: `{值或指针 uint64@+0, dist uint32@+4, 键 uint32@+8}`。
-- dist = 0: 空桶; 墓碑/特殊标记 = **0xFE 与 0xFF 双值** (各表实证不一: apd RH map 0xFE=墓碑, 他表 0xFF=墓碑; 防御取并集)
+桶 24 字节: `{值或指针 uint64@+0, dist uint8@+4, 键 uint32@+8}` (**dist = u8**, `_DistancePlus1` 行 58 断言原文直证; 原「uint32」类型误标 — M.rh read_u32+&0xFF 实操等价)。
+- dist = 0: 空桶。**pdx RH 无墓碑 (定案)**: erase = backward shift deletion (sub_141201B60 全代码实证), 0xFF = 迭代哨兵 `nIteratorSentinelDistance` 非墓碑; 0xFE 墓碑系 apd RH map 分型特有 (本簇 0 实证) — 防御扫描仍跳 dist∈{0, 0xFE, 0xFF} (双分型取并集)
+- 裸表头 24B = `{data@+0, count@+8, mask@+12, extra u8@+16, lf f32@+20=0.9}` (CVariables/occlusion 四实例互证)
 - 遍历: 扫描全部桶, 跳过 dist∈{0, 0xFE, 0xFF}; 上界 = mask+1+extra
   (mask = 表对象内 uint32 字段, extra = 表对象内 uint8 字段, 位置见类条目;
   漏掉 extra 会丢失尾部分裂桶 —— OCC 表实测教训)
 - 值对象仍需 vtable 校验 (残留指针可能是悬垂)
-- ⚠ **桶分型注意 (待裁)**: 上式为通用正形; 在案存在布局不同的变体 — §4.1.8 gs+2208 桶 {dist uint8@+4, key u32@+8, value@+16} 与 §4.26.5 id 注册表桶 {dist@+4, type u32@+8, id u32@+12, obj@+16}。套用正形前先对表, 勿跨型混读。
-- **RH 表通用尾**: {…, extra u8, **max_load_factor f32 = 0.9** (0x3F666666 = 1063675494)} — CVariables+44 / CNavalRegionDominance+60 / CModifier+148/+180 四处 ctor 常数同构互证。
+- **桶分型成因 (定案, 原「待裁」升)**: 正形与 §4.1.8 gs+2208 变体 {dist uint8@+4, key u32@+8, value@+16}、§4.26.5 id 注册表桶 {dist@+4, type u32@+8, id u32@+12, obj@+16} 的差异 = **模板参数序所致**; 套用正形前仍先对表, 勿跨型混读
+- **RH 表通用尾**: {…, extra u8, **max_load_factor f32 = 0.9** (0x3F666666 = 1063675494)} — CVariables+44 / CNavalRegionDominance+60 / CModifier+148/+180 四处 ctor 常数同构互证
+- 哈希 (pdx RH): 字符串键 = FNV-1 32 位; u32 键 = **×0x045D9F3B 双轮雪崩**; rehash 触发 = lf×容量 (推定, 插入纯实例被内联未剥离)
+
+### 3.2a clausewitz 模板容器三件 (scoped_ptr / scoped_buffer / CRef)
+
+| 模板 | 语义 | 要点 |
+|---|---|---|
+| pdx_scoped_ptr\<T\> | **独占持有裸指针** {_pPtr@+0} | 全头唯一断言串 `_pPtr` 4 站点 (行 119/124 构造后、129 operator->、134 get); 释放走对象虚表 [1] deleting dtor (T 须多态); 与 scoped_buffer 仅同名家族。书内 scoped 槽判据 = 断言站点 (已取证实例槽 +2792/+5544 两例) |
+| pdx_scoped_buffer | **线程本地 scratch bump 分配器** (非元素容器) | 全局 PerBufferSize dword_1435E3ECC (max_align 对齐断言 .cpp:30) + 每线程 malloc 挂 TLS {_pStart@+2120, _Position@+2128, 旗@+2136}; 分配 = 8B 对齐游标前进 + memset 变体; **溢出 = 断言死, 无堆增长**; 与 CPdxHybridInlineBufferAllocator **非同族** (字节级/元素级、无/有 fallback、无/有 vtable 三重区分, 勿混) |
+| CRef\<T\> | **非拥有观察引用** | 全头唯一断言站点 = 行 83 GetPtr (§4.00.4 setter 表已收); **簇内 0 处引用计数增减** — 生命周期由引擎数据库持有, CRef 槽实存解出的裸指针 (8B 数组形态实证); 悬空判定仅 debug 门开时经 sub_14221F310 三档注册表查表 (阈值 0x64/0x1268); CReferenceObject 计数槽未决 (vtable 零直引, 不影响读层) |
 
 ### 3.3 std::map (红黑树)
 

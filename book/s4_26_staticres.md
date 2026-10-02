@@ -491,6 +491,71 @@ PostLoad 走 CPersistent 槽[8], §4.28.17)。COnActionDataBase 实测 [2]=sub_1
 | 天气 | 无独立运行时注册表 | 编译期 enum |
 | 补给 | 无独立省注册表 | hub=省建筑 supply_node, 摩托化等级 50000/100000 内联 0X14194D5F0, 基数 = define SUPPLY_HUB_FULL_MOTORIZATION_TRUCK_COST |
 
+#### 4.26.8a 数据库 TNullObject\<T\> 空对象族 (null_object.h 定案)
+
+与上 GUI `CNull\<X\>` 外壳族**同模式不同机制的平行族**: `TNullObject<T,T>` (RTTI 双参恒同) = **真类布局单层对象** (无外壳/内层双层、无 TNullGuiObjectTrait 尾基), 创建 = **覆写形四步 50/50 零例外**: `malloc(真类尺寸) → 真类 ctor 完整构造 → TNullObject vftable 覆写 +0[+8/+16] → 尾部有效旗清 0`。**虚表复制律 (定案)**: Null 虚表 = 真类虚表的**函数槽级复制, 仅 RTTI COL 换名** — 50 类中 38 类槽 100% 全同 / 11 类仅 [0] dtor 换轻量版 / 1 类 (CAIStrategyDatabaseEntry) 次虚表全覆写; CPersistent 系 9 函数槽对齐 §4.00.1 ([2] writer = CFG 空桩 = 不落盘, 静态库条目本就不存盘)。**方法桩三形态**: 全空桩全语料仅 CNullCombatTactic [10] 一例 (`return 1`→`return 0`, 空战术不可被选); 回默认值桩 = 轻量 dtor + 共享空桩槽; 其余全部有逻辑 — **本族「空」在状态不在方法** (有效旗 0 / id −1 / 空名 token, 消费端靠旗位短路); 「行为全空」表述仅适用 GUI 壳形族。断言: 全局门 byte_1435E1B52 + sub_1424C8080 四态; 行 133 = `Get()` 前置断言 / 行 140 = 创建后非空断言; 具名锚 = **`CNullDifficultySetting::Get()`** sub_1409B8900。规模: **50 模板实例落 51 全局单例** (CTechnologyTemplate 双例 0x590/0x58 同虚表不同内层), 126 函数角色矩阵 = P 工厂宿主 22 / G 纯 getter 48 / F 回退访问器 12 (含索引回退形 sub_14071F2B0: `idx∈[0,cnt)` 越界才走空对象) / C 消费者 44; 消费语义 = **各数据库 arr[0] 越界/缺省回退哨兵的实体** (§4.26.4 末同源)。
+
+实例台账 (50 实例 + 伴随件; 槽/尺寸 hex; 访问器括注断言行):
+
+| 槽 | T (真类) | sz | 真类 ctor | 访问器 |
+|---|---|---|---|---|
+| 0x14332F350 | CBookmark | 0x190 | sub_14067BE30 | sub_1401DBBB0(140) |
+| 0x14332F990 | CTechnologyTemplate (小例) | 0x58 | sub_140ACACF0 | sub_1403202C0(133) |
+| 0x14332FB10 | CIdea | 0xD10 | sub_140FCCEA0 | sub_1403697C0(133)/sub_140A429F0(140) |
+| 0x143330368 | CStaticModifier | 0x220 | sub_140556430 | sub_140559230(133) |
+| 0x143330440 | CAbility | 0x550 | sub_140612DC0 | — |
+| 0x143330478 | CAgencyUpgradeBranch | 0x58 | — | 内联消费 |
+| 0x143330480 | CAgencyUpgrade | 0x270 | sub_140622760 | 内联消费 |
+| 0x1433304E8 | CAIStrategyDatabaseEntry | 0xD50 | sub_14064B640 | sub_140647EA0(140) |
+| 0x143330690 | CIdeologyGroup | 0x650 | sub_1424BE3C0+内联 | sub_141191580(133)/sub_14067D410(140) |
+| 0x1433306A0 | CBuildingTemplate | 0x510 | sub_1406817A0 | sub_140686BF0(133)/sub_140687470(140) |
+| 0x1433306A8 | CBuildingSpawnPoint | 0x60 | — | sub_1416733F0(133)/sub_1406873F0(140) |
+| 0x143330B88 | NCareerProfile::CCareerProfileMedal | — | sub_1406AB120 | sub_14201B100(133) |
+| 0x143330BA0 | NCareerProfile::CCareerProfileRibbon | — | sub_1401C1640 | sub_14201B180(133) |
+| 0x143330C60 | CCharacterTemplate | 0x248 | sub_1413F0A00 | sub_1406BC7D0(140) |
+| 0x143330C68 | CAdvisorTemplate | 0x438 | sub_1413DECC0 | 内联消费 |
+| 0x143330C70 | CCountryLeaderTemplate | 0x90 | sub_1406BB370 | — |
+| 0x143330C78 | 无名 48B 件 (vtable 清零, 非模板实例) | 0x30 | sub_14139CBD0 | sub_140BD90B0(133) |
+| 0x143330DA8 | CCountryLeaderTrait | — | sub_1401511B0 | sub_14071F2B0 (索引回退形 133) |
+| 0x143330DB8 | NCountry::CMetadata | 0x50 | sub_140720410 | — |
+| 0x143330DD8 | CDecisionCategory | 0x3F8 | sub_1407235F0 | sub_14072DCA0(140) |
+| 0x143330DE8 | CPowerBalance | 0x190 | sub_140E54EE0 | sub_140E56730(133)/sub_14072DD20(140) |
+| 0x143330DF8 | CDecision | 0xD38 | sub_140722F50 | 内联消费 |
+| 0x143339B18 | CDifficultySetting (具名 CNullDifficultySetting) | 0x78 | sub_1409B7F30 | sub_1409B8900(133) |
+| 0x143339B40 | NDLC::CMetadata | — | sub_1409CA7E0 | — |
+| 0x143339BA0 | CStateTemplate | 0x1D0 | sub_140ABBEE0 | 内联消费 |
+| 0x143339BA8 | CStateCategory | — | sub_1405566B0 | sub_1409D9200(140) |
+| 0x143339BE8 | CEquipmentType | 0x5C8 | sub_140C922A0 | sub_1409F8570(133)/sub_141490900(140) |
+| 0x143339BF0 | CEquipmentUpgrade | 0x160 | sub_1415373A0 | 内联消费 |
+| 0x143339BF8 | CEquipmentModule | 0x2D8 | sub_1409F00C0 | sub_140C95660(133) |
+| 0x143339CA0 | CWarGoalType | 0x338 | sub_140A39D10 | sub_141C8F9E0(133)/sub_140A3B3E0(140) |
+| 0x143339CD8 | CTechnologyTemplate (主例) | 0x590 | sub_140ACACF0 | sub_140AD0A80(140) |
+| 0x143339CE0 | CIdeaCategory | 0x88 | sub_140FCD560 | sub_140A420D0(133) |
+| 0x143339CE8 | CIdeaGroupType | 0x78 | sub_140FCD690 | sub_140A42A70(140) |
+| 0x143339D00 | CIdeology | 0x140 | sub_141190B80 | sub_140A48480(140) |
+| 0x143339E30 | CUnitLeaderTrait 域伴随件 | 0xD8 | sub_141408430 | — |
+| 0x143339E58 | CMessageTypeSettings | 0x10 | sub_1415780B0 | sub_1415783F0(140) |
+| 0x143339E60 | CMessageType | 0x90 | sub_141577E30 | 内联消费 |
+| 0x143339E80 | COnActionList | 0xD8 | sub_1424CFAD0 | 内联消费 |
+| 0x143339EB8 | COpinionModifier | — | — | sub_140A81F60(140) |
+| 0x14333A068 | CPowerBalanceTemplate | 0x198 | sub_140E54EE0 系 (内联) | — |
+| 0x14333A070 | CPowerBalanceSide | 0x120 | sub_140A8B8C0 | sub_140E57000(140) |
+| 0x14333A078 | CPowerBalanceRange | 0x740 | sub_140A8B6D0 | sub_140A8D660(133)/sub_140E56F80(140) |
+| 0x14333A0B0 | CScriptedTriggerTemplate | 0x88 | sub_140549F40 | 内联消费 |
+| 0x14333A0D8 | CStrategicRegionTemplate | 0x150 | sub_1415A3DF0 | 内联消费 |
+| 0x14333A0E8 | CStrategicResource | 0x110 | sub_140BCA520 | sub_140AC26A0(140) |
+| 0x14333A208 | CSubUnitCategory | 0x70 | sub_141017F70 | 内联消费 |
+| 0x14333A210 | CSubUnitDefinition | 0x678 | sub_141018F60 | sub_140AC4DD0(133)/sub_140B9E9C0(133) |
+| 0x14333A228 | CTechnologyFolder (非 CPersistent 2 虚槽小类) | — | sub_1424CFAD0 | 内联消费 |
+| 0x14333A248 | CTerrainType | 0x200 | sub_14143BB90 | sub_140AD6B30(140) |
+| 0x14333A250 | CTerrainGraphics | 0x70 | sub_14143BA60 | 内联消费 |
+| 0x14333A278 | CUnitMedal | 0x430 | sub_141446280 | 内联消费 |
+| 0x14333A288 | CUnitLeaderSkill | — | sub_1405566B0 | sub_140AE9C50(140) |
+| 0x14333A2A8 | CUnitLeaderTrait | 0xA90 | sub_140AE3980 | sub_140AE9CD0(140) |
+| 0x14333D528 | idpair 哨兵 (数据槽非对象, 2567 处读引用零写者) | — | — | — |
+
+> CTechnologyTemplate 双例语义区分未决 (0x14332F990 小件疑 folder-entry 形, 不影响机制定案)。消费域代表: 书签 UI (CBookmark) / 外交关系视图 (CIdeologyGroup/COpinionModifier) / 装备 MIO (CEquipmentType/Module) / 科技理念 (CTechnologyTemplate/CIdea 族) / 难度设置 (CDifficultySetting) / 州模板校验 (CStateTemplate 族) / 聊天设置 (CMessageType)。
+
 #### 4.26.9 验证体系
 
 | 层 | 工具 | 覆盖 | 基线 (KR2) |

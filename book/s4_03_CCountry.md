@@ -529,7 +529,7 @@ CModifierEntry target = {item+32 = CModifier\* (= cc+1448 country_modifiers), it
 
 reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccupationData = **0x140FFA320** (整记录 reader, 非仅法名段) / SGD = **0x140FFC420**。
 
-占领链行为链 (定案; 调度 = 日任务 "daily.occupation_update" → 逐国 (门 cc+1156>0) sub_1406E7680 → sub_140FF7170 六阶段): ① 模板重验 sub_140FF9DE0 → ② 默认占领法重验 sub_140FFF110 → ③ 州↔记录对账 sub_140FFE6D0 (死记录移除 / 找建 dp / 建 SGD ctor sub_140FF2D20 / 目标基值 sub_140F9BF40 / 邻州扩散 sub_140FF45E0 → sub_140F921A0 写 cr+40 (flow = RESISTANCE_RATIO_DIFF_TO_SPREAD 0.5×(源.cr+40 − 邻.cr+40)/1e5, 仅 >0 才写; defines:572) / 均值 sub_140FFEBA0 写 dp+56/64) → ④ 顺从缓存衰减 sub_140FF7380 (STATE_COMPLIANCE_DECAY_FOR_LOST_STATES) → ⑤ 逐控制州推进 sub_140F98050 (限时目标到期 / operational 重算 cr+520 / **cr+64 += cr+72 顺从** / **cr+16 += cr+24 抵抗** / LOCAL_ pairs 重建 sub_140F97640 / 活动掷骰 sub_140F97920) → ⑥ 逐记录 SGD 维护 sub_140FF6D10 (需求 sub_140FFCB60 → 人力日扣 sub_140FF8BE0 → 装备请求 sub_140FF88F0 → 交付子对象维护 → 强度 sub_140FFC4E0)。**州并行日更不推进抵抗** (sub_140F9C1C0 仅清 cr+696 脏旗)。载入重建零态: SGD 由 phase C 对账补建; occ+136 助手 sub_140FFE5A0 重建; 速度 (cr+24/cr+72) 与目标 (cr+32/cr+40) 不落盘每日重算; 驻军不足惩罚**不进抵抗公式** (目标/速度均无 SGD+240 项), 走穿透率 **sub_140F92B20** = (1e5−强度)×(1+Σmdef496 三源)/1e5 (下限 0.02 = RESISTANCE_ACTIVITY_MIN_GARRISON_PENETRATE_CHANCE, 钳 [0,1e5]) 与活动概率 sub_140F92E00 (基值 1.0 + mdef505 三读取点: 控制国 cc+1464 / 州×tag / 控制国→被占国外交关系 rel+304 CModifier, 无档位阈值; 终式 = 抵抗%×0.312×(1+Σ505) 钳 [0,1e5]) → 攻击驻军 sub_140F92710 (掷骰 RNG = sub_142233DB0 random_fixed 全局 pcg, 输出 [0,1e5); 门① rand<发生率 严格< / 门② rand≤穿透率 含等号 / 门③ ΣW×rand 加权取) → sub_140FF4D30 扣池+写 occ+256 日志; 攻击损耗 = 因子 (1+Σ497×3+498, 下限 0.1) × 损耗率 (0.016 人力 / 0.02 装备) × (1−min(硬度, 0.90)), **2^15 定点** (占领域唯一非 ×1e5 域), 池按 (1−损耗) 缩减。
+占领链行为链 (定案; 调度 = 日任务 "daily.occupation_update" → 逐国 (门 cc+1156>0) sub_1406E7680 → sub_140FF7170 六阶段): ① 模板重验 sub_140FF9DE0 → ② 默认占领法重验 sub_140FFF110 → ③ 州↔记录对账 sub_140FFE6D0 (死记录移除 / 找建 dp / 建 SGD ctor sub_140FF2D20 / 目标基值 sub_140F9BF40 / 邻州扩散 sub_140FF45E0 → sub_140F921A0 写 cr+40 (flow = RESISTANCE_RATIO_DIFF_TO_SPREAD 0.5×(源.cr+40 − 邻.cr+40)/1e5, 仅 >0 才写; defines:572) / 均值 sub_140FFEBA0 写 dp+56/64) → ④ 顺从缓存衰减 sub_140FF7380 (STATE_COMPLIANCE_DECAY_FOR_LOST_STATES) → ⑤ 逐控制州推进 sub_140F98050 (限时目标到期 / operational 重算 cr+520 / **cr+64 += cr+72 顺从** / **cr+16 += cr+24 抵抗** / LOCAL_ pairs 重建 sub_140F97640 / 活动掷骰 sub_140F97920) → ⑥ 逐记录 SGD 维护 sub_140FF6D10 (需求 sub_140FFCB60 → 人力日扣 sub_140FF8BE0 → 装备请求 sub_140FF88F0 → 交付子对象维护 → 强度 sub_140FFC4E0)。**州并行日更不推进抵抗** (sub_140F9C1C0 仅清 cr+696 脏旗)。载入重建零态: SGD 由 phase C 对账补建; occ+136 助手 sub_140FFE5A0 重建; 速度 (cr+24/cr+72) 与目标 (cr+32/cr+40) 不落盘每日重算; 驻军不足惩罚**不进抵抗公式** (目标/速度均无 SGD+240 项), 走穿透率 **sub_140F92B20** = (1e5−强度)×(1+Σmdef496 三源)/1e5 (下限 0.02 = RESISTANCE_ACTIVITY_MIN_GARRISON_PENETRATE_CHANCE, 钳 [0,1e5]) 与活动概率 sub_140F92E00 (基值 1.0 + mdef505 三读取点: 控制国 cc+1464 / 州×tag / 控制国→被占国外交关系 rel+304 CModifier, 无档位阈值; 终式 = 抵抗%×0.312×(1+Σ505) 钳 [0,1e5]) → 攻击驻军 sub_140F92710 (掷骰 RNG = sub_142233DB0 random_fixed 全局计数器哈希流 (§4.28.13), 输出 [0,1e5); 门① rand<发生率 严格< / 门② rand≤穿透率 含等号 / 门③ ΣW×rand 加权取) → sub_140FF4D30 扣池+写 occ+256 日志; 攻击损耗 = 因子 (1+Σ497×3+498, 下限 0.1) × 损耗率 (0.016 人力 / 0.02 装备) × (1−min(硬度, 0.90)), **2^15 定点** (占领域唯一非 ×1e5 域), 池按 (1−损耗) 缩减。
 
 **CMajorCountrySelectionEntry / CMinorCountrySelectionEntry (国选器条目, GUI)**: (各 0x598B, def country_entry / country_entry_mini/_medium; 真入口 = 槽[19] Update 0X141F4A350/0X141F4A890): target = **+48 CBookmarkCountryEntry\*** (更正: 非 CCountry\* — ctor a1[6] = 第 4 参候选条目, tag 经其 +8 idpair 间接); Major 填 country_name (tag≤0 走 INTERESTING_COUNTRIES_OTHER_COUNTRIES 伪条目)/country_flag/country_leader 三元素, Minor 只填 country_flag; **大卡门 = CBookmarkCountryEntry+272 (minor 旗, 键 11242) == 0 — 定案** (候选元素类 = CBookmarkCountryEntry, vt 0x1427E3DB8: +8 tag idpair / +24 MSVC 串 / +128/+160 容器 / +184 CAndTrigger available (12264) / +272 minor u16 / +280 OWORD / +152 ideology; Parse sub_14067E210 case 11242→+272 直证; 装载器 sub_14067DB80 按 +272 分档计数入 a2+240 容器; 原「判定对象=条目自身 +272」方向对但宿主类落名有误; CCountry+272 恒 0 与此门无涉); 同一选中高亮尾。
 
@@ -1840,7 +1840,29 @@ rs+1976 条解引用; 消费行 §4.3.3）:
 
 | 条目内偏移 | 类型 | 名称/语义 | 证据档 |
 |---|---|---|---|
-| +24 | uint32 | tag（owner, 抄 rs+32） | 推定 |
-| +128 | CState* | 州指针 | 推定 |
-| +904 | uint32 | tag 第二落点（ctor 填） | 推定 |
-| +992 | 匿名结构 (8B 形状) 向量 | given_resource_rights — 8B 条 {res_key u32@+0, tid u32@+4}; res_key 1..7 = 资源索引序 (oil..coal), 资源名 = 运行时本国资源向量动态收集（非静态表, mod 新资源自动对） | 定案 |
+| +24 | uint32 | tag（owner, 抄 rs+32） | 定案 (ctor sub_140CA51D0 直证; 原「推定」升) |
+| +128 | CState* | 州指针 (权利授予 wrapper sub_140CA6760 按 origin+128 == 州 查找命中) | 定案 (ctor 直证; 原「推定」升) |
+| +904 | uint32 | tag 第二落点 (= 抄 +24, ctor 直证) | 定案 (原「推定」升) |
+| +992 | 匿名结构 (8B 形状) 向量 | given_resource_rights — 8B 条 {res_key u32@+0, tid u32@+4}; res_key 1..7 = 资源索引序 (oil..coal), 资源名 = 运行时本国资源向量动态收集（非静态表, mod 新资源自动对）; **写者 = sub_140CB58F0 单资源 / sub_140CB5AF0 批量** (有序向量按 res_key 二分, 命中改条+4 / 未中 sub_140C9EBF0 插入; 前置断言 trade.cpp:1985 `HasOwnRightsTo ∥ GetRightsHolderTo == RightsHolder` / :1986 `def->GetIndex() > 0`); 共同宿主 wrapper = sub_140CA6760 | 定案 |
+
+#### 4.3.25a 资源贸易运行时 (trade.cpp 全簇定性)
+
+16 函数全定性 (ctor/dtor 族 + 运行时重算 + 权利与属国转移 + 序列化 + 民厂分配/UI 文本; 断言行号锚定 trade.cpp 源 ≥4700 行)。对外入口: **resources.daily** sub_140CABB30 → 结算 sub_140CA6EB0 (×3 调交付重算) / **hourly DoTradeRoutesUpdate** sub_1401D9890 → 工作体 sub_140CBC8C0 → 快检 sub_140CA7990 / 全量 sub_140CA90F0 (港口 BFS sub_140CABF00 + 海路四值枚举 sub_140CAA1B0) / 资源并行 harness (F07470 系) → 巡检/重评/extra origins sub_140CBA140 / 民厂消费者 (civ_factory_consumer.cpp 虚槽 sub_1419FE9B0) → 进口民厂分配 sub_140CBAA10 / 命令域 sub_140CB5D60 (建/改/删出口贸易: 现存交换查 +136 receiver → 无则建、有则摘旧重建且**起始日期从旧交换保留**; amount ≤0 = 取消) / UI 贸易视图 (出口面板 sub_140CAEF80 五段文本 / 消耗明细 sub_140CB4220 / 进口请求 tooltip 族)。
+
+公式 (全整型定点, 无浮点):
+
+| 公式 | 定案式 |
+|---|---|
+| 交付量 (sub_140CA9EF0) | `delivered = clamp(量,0) × eff(+72) × eff_lost(+80) / 1e10`; 返回值魔数 = 进位修正合并渲染, 非独立语义 |
+| 护航申请量 (sub_140CA78F0) | `ceil((1e5 − coverage) × 期望(+120) / 1e5)` |
+| 海区安全覆盖率 (sub_140CA7700) | `1e5 × Σ(受控海区权重 region+224) / Σ(权重) × CONVOY_CONTROLLED_ROUTE_COST_REDUCTION_FACTOR / 1e5` (谓词 = sub_141003F50(region+232, tag)); define qword_1433334D0 定名 |
+| RequiredCic (sub_140CAAA20) | `ceil(1e5 × 量 / 单位成本)`, cost(1)==0 或量==INT64_MAX → 0xFFFFFFFF |
+| 属国资源转移 (sub_140CB4100) | produced 池快照 × mdef 641 `MODIFIER_RESOURCES_TO_OVERLORD_FACTOR`; 属国聚合器 sub_140CBDE80 遍历 **dip+368 数组/{count@+380} 属国 tag 表** |
+
+CConvoyClient 基类补行: **+124 u8** (ctor 清 0; sub_140CAB520 消费门); dtor = sub_140CA5600 (+88 战斗 idpair 表逐元解绑 — 元素 −16 还原 CNavalCombat, sub_1415C5090 注销; +112 spotter 反清 sub_140FBA990(对象+848, 0) 后复位哨兵)。CConvoySubscriber init (sub_141021F90) 末两参 = kind (8 = 资源交换 / 0x10 = 资源 origin) + priority define (NMarket.RESOURCE_EXPORT_PRIORITY dword_143334208 / NMarket.RESOURCE_ORIGIN_PRIORITY dword_14333415C)。
+
+进口民厂分配 sub_140CBAA10 (定案): 遍历 rs+1856 `_ResourceImports` 扁平表, 逐条 `Required(+224) − Assigned(+228) ≥ 0` 断言 (:3207) 后 min(预算, 缺口) 分配; 部分分配 → 按剩余量重算 RequiredCic (TRADE_WAS_MODIFIED), 全额 → **从 seller 出口桶反删** (sub_140CBBA40, TRADE_WAS_TERMINATED)。
+
+UpdateExtraResourceOrigins sub_140CBA140 三环 (定案): ① 清除 — giver tag 命中 dip+152 交战国缓存即删 + 州+204 controller 与条+8 giver 失配删 (同原初国内战场景留); ② 补建 — 本国持有州满足 (stateDef+260 资源条 >0 ∨ 州+448 数组有正值 ∨ 州+436 可见旗 ∨ sub_1409DAA80) 且 rs+1808 无该州 origin → 建补; ③ 终检 — origin 州 controller ≠ 本国 tag 即删 = **origin 存续条件 = 州仍由本国控制**。
+
+> 港口 BFS 队列元 SFindAllPortsQueueItem 16B {省指针, 距离} (内联 64 项起步); 配套谓词 sub_140CAA8C0 = 省+204 controller 对路线两端 tag (+48/+52) 及其宗主 (dip+392)/hosting (dip+424) 任一同原初国即放行。海路四值枚举 sub_140CAA1B0 的门控全局对象 (sub_140E23570 返回值, +0 bit1 门 / +64 成员数组) 身份未决 (结构近似阵营/从属过滤器, 无业务串可锚, 不强行定名)。

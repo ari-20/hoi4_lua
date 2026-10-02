@@ -246,16 +246,24 @@ int hoi4_profile_top(lua_State *Ls);
 int hoi4_profile_folded(lua_State *Ls);
 int hoi4_profile_threads(lua_State *Ls);
 int hoi4_profile_status(lua_State *Ls);
-// hardware debug-register watch (hoi4_dr.cpp): in-process DR0 write watch.
+// hardware debug-register watch (hoi4_dr.cpp): in-process DR write watch.
 // No debug port (the game's watchdog self-exits on one); a first-chance VEH
-// catches the single-step, logs RIP+stack, and continues. dr_watch takes the
-// WATCH RVA (relative to image base), NOT an absolute address.
+// catches the single-step, logs RIP+stack+tid, and continues. dr_watch takes
+// an ABSOLUTE 4-byte-aligned address (NOT an RVA); DR slots are arbitrated
+// (first free slot of Dr0-Dr3, same slot forced on every thread) so the
+// session hooks' Dr0/Dr1/Dr2 are never clobbered.
 int hoi4_dr_watch(lua_State *Ls);
 int hoi4_dr_off(lua_State *Ls);
 int hoi4_dr_hits(lua_State *Ls);
-int hoi4_dr_state(lua_State *Ls);
-int hoi4_dr_selfdr(lua_State *Ls);
+int hoi4_dr_top(lua_State *Ls);                // ring aggregated by RIP + total count
+int hoi4_dr_state(lua_State *Ls);              // diag: saved-context snapshot, NOT a validity criterion
+int hoi4_dr_selfdr(lua_State *Ls);             // diag: software-exception context snapshot, NOT a validity criterion
+int hoi4_dr_selftest(lua_State *Ls);           // end-to-end check: alloc -> arm -> real write -> hit
 int hoi4_dr_threadtest(lua_State *Ls);
+int hoi4_dr_tracestart(lua_State *Ls);
+int hoi4_dr_selfarm(lua_State *Ls);
+int hoi4_dr_tracestop(lua_State *Ls);
+int hoi4_dr_tracedump(lua_State *Ls);
 int hoi4_dr_gwatch(lua_State *Ls);
 int hoi4_dr_goff(lua_State *Ls);
 int hoi4_dr_ghits(lua_State *Ls);

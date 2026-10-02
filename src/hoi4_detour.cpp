@@ -15,6 +15,7 @@
 // each gate is DETOUR_DESIGN.md.
 #include "hoi4_common.h"
 #include "hoi4_detour.h"
+int dr_trace_early_install(void);
 #include "hoi4_pdata.h"
 #include <tlhelp32.h>   // thread enumeration for the suspend-and-verify window
 
@@ -318,7 +319,11 @@ static int install_hooks(void) {
     // quit-to-menu round trips used to raise no event at all (2026-09-26
     // crash class, see hoi4_session.cpp idler-edge note).
     install_fe_v4_vtable_hook();
-    return 1;
+    
+    // 追凶: ntdll setter tracer 早期安装 (DR 调查; 失败不阻断启动)
+    __try { dr_trace_early_install(); }
+    __except (EXCEPTION_EXECUTE_HANDLER) { L("[ntt] early install crashed"); }
+return 1;
 }
 
 BOOL APIENTRY DllMain(HMODULE hMod, DWORD reason, LPVOID reserved) {

@@ -943,6 +943,18 @@ CAIForeignMinister 主评估 `sub_1412E9A00` 在调 StartAction `sub_1412F0810` 
 > `faction+88 members[0]` id 对匹配 (只有领袖国才走本通道)。
 > 第三条通道 = 市场合同 (GUI 草稿窗 + AI 直接构造 sub_14119AE70 / sub_141B95250), 不经 StartAction。
 
+#### 4.10.25a CDiplomaticAction 执行器与命令通道 (diplomaticaction.cpp 定案)
+
+**type 枚举 (+104)** = {0=PROPOSE, 1=DECLINE, 2=ACCEPT} (三源互证: 串映射 + 和会只认 2 + 命令循环 0→2 auto-accept 翻转)。**执行器 = CDiplomaticAction::Execute sub_141103030** (自由函数): vt[26] ResolveType → +104 三态分派 → PP 载荷结算 / 双侧通知 / vt[27] 接受-拒绝簿记 (拒绝日期冷却 + on_action; 接受撤 offer 关系) → Apply 或 incoming 投递 → 新闻件 + UI 刷新。8 个调用点 = 命令队列循环 (唯一常规通道) / COfferJoinFactionAction::Apply (AutoJoin ACCEPT) / 内战生成器 (宣战直发) / 控制台外交命令族 ×5 / 调试命令。
+
+**CDiplomaticActionCommand** (48B CCommand 派生, vt 0x14298B708; +40 = _pAction; [9] IsValid 0x141138E10 / [13] Clone 0x141100530; ctor sub_1410F9DE0): 执行循环 sub_141104690 (递归深 ≤12 :142 断言; **call_allies(12233) 弹窗门** — handler+1192 收件箱推送 216B 元 {+0 u32=2, +208 u8=2}, **尾插** — 勘误: 原「push-front」系插入方向误记, 收件箱为尾插线性向量, §4.00.4a); 收件箱投递 sub_141513B40。上游: UI 动作按钮 → §4.10.22 controller → 本命令队列; AI 应答 → CAIForeignMinister::Hourly → sub_1412EF660 → 同队列; 宣战旁路不进队列 (CDeclareWarAction::Apply 直调, 书已收)。
+
+**虚表槽新语义** (执行器直读; 槽位定案/语义高置信): [27] 已接受谓词 (+216) / [40] PP 载荷 (+320) / [44] PP 金额退款旗 (+352) / [46] 关系 token 出参 (+368) / [47][48] actor/recipient 国 (+376/+384) / [57] CanApply (尾转 +456) / [10]-[21] 通知谓词+消息构建 12 槽 / [22] (+176) incoming 串。**三类 vtable 补全** (exe COL 解析): CCallAllyAction 0x14298C700 / CJoinAllyAction 0x14298C920 / CAskForStateControlAction 0x14298DEA8 / CGiveStateControlAction 0x14298E0C8 / CDiplomaticActionCommand 0x14298B708。
+
+**AI 公式 (capstone 逐指令核验)**: CCallAllyAction[64] 分数式 = +5×join 分 + CALL_ALLY_BASE_DESIRE + Σmodifier(cc+1464, 键 315) → ≥ DIPLOMATIC_ACTION_PROPOSE_SCORE 时 +1000 → major(cc+5210)×2 → 有宗主 ÷2 → −10×versus 威胁 (define 8 名全对名); CJoinAllyAction[65] = 1604 行 18 因子装配器 (1e-5 定点), 尾转 vt[35]。
+
+新消费点与外围 (定案): **宣战后自动阵营邀约链** = Apply 尾对 dip+656 为空的战争目标构建 COfferJoinFactionAction (CanExecute + WillAIAccept 门入队); **宣战校验器** sub_141137F30 (declare_war(10111) db 触发器 + 附属同阵营/自战门; CDeclareWarAction[57] 等 4 调用点); **dip+1448** = 按国 AI 因子容器 (token 315 键, CJoinAllyAction[65] 尾段消费); **dip+176** = state_control 族参战度求值实参; **间谍主转交 PP 槽** = sub_140BB4560(cc)+72 (i64 1e-5, 扣费 = 100000×FACTION_INTELLIGENCE_UNLOCK_COST); **CRequestForeignManpowerAction+120** = 请求人力数 (cc+808 池收支); **CRequestLicensedProductionAction** = 书「序列化特化 4 类」之外第 5 例 (槽[4] reader sub_14113F040; 派生容器 +120{c@+132}/+144{c@+156}/+168); CGenerateWarGoalAction[32] = 阵营一致性谓词 (dip+656/dip+392 双门); **执行遥测** = qword_14332F5C0 按 action token 下标 u32 计数数组 (byte_14332F5A1 门; cap@5C8/count@5CC/分配器@5D0); 界面弹窗向量 = 视图+1192/{cap+1200, count+1204} (216B 元 push-front)。
+
 #### 4.10.26 和会管理器 (CPeaceConferenceManager, 内嵌 @gs+1248)
 
 | 项 | 值 | 语义 |
