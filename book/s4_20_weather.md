@@ -81,7 +81,7 @@ writer 0X140F22A70 / loader 0X140F1F780 (12066/12067/10647 读后即弃)。
 | DoUpdatePasses | 0x140F18AD0 | (mgr, nPasses) 省/区双游标轮转 (+752/+756 区段) + tbb 并行 |
 | 省并行体 | 0x140F10D60 | 逐省调核心 0x140F11820 + 邻居温度平滑 (邻省表累积 +280/+296 → 平均 → +352/+368 按 mgr+328/+336 收敛) |
 | 省核心 | 0x140F11820 | prev 缓存刷新 → period 选取 0x140F191F0 (strategic region 静态定义 224B 表, 断言 "No weather period found for region") → 地形温度增量 (terrain_modifiers 槽1) → 随机游走 `+368 += 2×(mgr+312×(rand%1e5−50000)/1e5)` 钳 ±mgr+320 → 温度合成出带钳位 → 雪 (区旗 snow/blizzard 增益 / 消融 0x140F21B70, **融雪半数转 water +56**) → 非水域省 water 0x140F22730 + mud 掷判 0x140F22420; 变化检测 (prev_snow/mud/visual_mud) → 脏链 0x140F1F3D0 |
-| 区换档 | 0x140F20EF0 | gs+1128 < region+336 未到期 return; period==null fallback → 读 region def+48 触发器容器 {data@+312, count@+324} 80B 条逐条 Eval 写 region+48; 否则: 区温 = 区内活跃省平均 → 极寒抑制 (snow/blizzard 概率 ×(1−插值)/1e5; **区温 <1.0°C 时 rain_light/rain_heavy 概率直接置零**) → arctic_water (旗已开用 end 带) → 现象概率 = chance[k] × terrain_modifiers 地形乘数 0x140F15B40 (槽 2..5 = rain_light/rain_heavy/snow/blizzard, sandstorm = 槽 7) → 持续期抽样 0x140F15C50 (双掷取小加权: 24×min + (24×max−24×min)×min(双掷)/1e5 小时; min>max 报脚本错) → 到期重排 `region+336 = gs+1128 + 持续期`; 六旗变化 → 重估触发器 + 修正块重建 0x140F220D0 |
+| 区换档 | 0x140F20EF0 | gs+1128 < region+336 未到期 return; period==null fallback → 读 region def+48 触发器容器 {data@+312, count@+324} 80B 条逐条 Eval 写 region+48; 否则: 区温 = 区内活跃省平均 → 极寒抑制 (snow/blizzard 概率 ×(1−插值)/1e5; **区温 < snowing.temperature.hi (+552, 缺省 define 值 1.0) 时 rain_light/rain_heavy 概率直接置零** — 勘误: 原记「1.0°C」独立常数, 实为温度带 hi 本身 (≥hi 时 snow/blizzard 概率为带插值取 0 的退化 = 完整 ×0, 雨放行)) → arctic_water (旗已开用 end 带) → 现象概率 = chance[k] × terrain_modifiers 地形乘数 0x140F15B40 (槽 2..5 = rain_light/rain_heavy/snow/blizzard, sandstorm = 槽 7) → 持续期抽样 0x140F15C50 (双掷取小加权: 24×min + (24×max−24×min)×min(双掷)/1e5 小时; min>max 报脚本错) → 到期重排 `region+336 = gs+1128 + 持续期`; 六旗变化 → 重估触发器 + 修正块重建 0x140F220D0 |
 | 哈希 RNG | 0x140F19F00 | (mgr, out, salt): `salt + mgr+776` → 固定常量族混淆 → [0,1e5); 全天气域掷点同款内联 — 并行安全 (无共享 RNG 状态) 且同 seed 同 salt 确定性可重放 |
 | 修正块重建 | 0x140F220D0 | 清 region+88 pairs → 六现象静态定义 modifier ×1.0 + active_modifiers[i] 非零条目 ×1.0 并入; 断言 "Null weather modifier for region." |
 | post-load | 0x140F1CA40 (vt slot8) | 重建 mgr+40 活跃省表 → +840=1 → 立即 HourlyUpdate(0) init 全量轮; loader 0x140F1F780 case 12065 区条逐区立即重建修正块 — 读档后第一帧前已是完整重算态 (落盘弃读值仅作 writer 对拍参照) |
@@ -171,7 +171,7 @@ rl, rh, snow, bliz, sand, aw, nact, act)。
 
 **CSeasons** (季节总表, 1352B; vt 0x14296BC48; writer=CFG; reader 0x140DF97F0): +16 CSeasonType[4] 内联 ×176B (winter 10783 / spring 10933 / summer 10934 / autumn 10935) / +720 **CTreeSeasonType[8]** 内联 ×64B (tree_winter/spring/summer/autumn 各 ×2, 10970-10977); 元素 CTreeSeasonType (64B, vt 0x14296BBF8, serfam 在册): 起止 CGameDate×2 + +56 序号。
 
-**CWeatherChancePeriod** (天气时段定义, 224B; vt 0x1429DBE00; writer 0x141A0FA10 / reader 0x141A0EE80; serfam 在册): +8/+32 起止 CGameDate ×2 / **+56 CWeatherElementRange (温度带, ctor 默认 lo=-1000000 (-10.0) / hi=3500000 (35.0))** / **+80..+224 = CWeatherElementChance[9] × 16B** — **现象枚举真表** (sub_141A0F550, .rdata 0x142A2C550): 0 no_phenomenon / 1 temperature / 2 rain_light / 3 rain_heavy / 4 snow / 5 blizzard / 6 mud / 7 sandstorm / 8 arctic_water (与 §4.20.1 terrain_modifiers[9] 同序); **chance[9] 自身另成一套序** (reader 0x141A0EE80): 槽 5 = arctic_water / 6 = mud / 7 = sandstorm / 8 = min_snow_level, 与 terrain_modifiers 不同序; chance[k] 值 @ +88+16k — **区换档抽样权重表即此 chance[9]**, 槽 0 = 无现象权重; duration 表 (§4.20.1 +656..+744) = no_phenomenon/rain_light/rain_heavy/snow/blizzard/sandstorm 六键。
+**CWeatherChancePeriod** (天气时段定义, 224B; vt 0x1429DBE00; writer 0x141A0FA10 / reader 0x141A0EE80; serfam 在册): +8/+32 起止 CGameDate ×2 / **+56 CWeatherElementRange (温度带, ctor 默认 lo=-1000000 (-10.0) / hi=3500000 (35.0))** / **+80..+224 = CWeatherElementChance[9] × 16B** — **现象枚举真表** (sub_141A0F550, .rdata 0x142A2C550): 0 no_phenomenon / 1 temperature / 2 rain_light / 3 rain_heavy / 4 snow / 5 blizzard / 6 mud / 7 sandstorm / 8 arctic_water (与 §4.20.1 terrain_modifiers[9] 同序); **chance[9] 全槽序 (合并定案)**: 槽 0 = no_phenomenon 兜底权重 (+88) / **槽 1 = rain_light (+104) / 槽 2 = rain_heavy (+120) / 槽 3 = snow (+136) / 槽 4 = blizzard (+152)** (与 terrain_modifiers 槽 2..5 一一对应 — 区换档消费直证补钉) / 槽 5 = arctic_water (+168) / 槽 6 = mud (+184) / 槽 7 = sandstorm (+200) / 槽 8 = min_snow_level (+216); chance[k] 值 @ +88+16k — **区换档抽样权重表即此 chance[9]**, 槽 0 = 无现象权重; duration 表 (§4.20.1 +656..+744) = no_phenomenon/rain_light/rain_heavy/snow/blizzard/sandstorm 六键。
 
 **CWeatherElementRange** (数值区间, 24B; vt 0x1429DBD60; **自定义 Save/Load 0x141A0F5E0/0x141A0ED30 → 不在 serfam 但确实落档**): +8 lo / +16 hi (fixed×1e-5)。
 
@@ -212,7 +212,51 @@ UI 面: 现象图标档位 0x1415C5820 (区旗直读, 无 arctic/sandstorm 档) 
 | P2 相温度提交 | 省 modifiers 相 tbb 叶 (sub_140F12F10/0x140F23370): **+280←+352 / +296←+368** (脏门 +360) — 两个存档字段的运行时写者; 提交后 sub_140F21C60(prov,mgr,0) 修正块重建 |
 | DayNight 每时计算 | sub_140F20C50: 日弧分数+GmtOffset → 24 小时槽·太阳向量点积 → Feather 归一钳 [0,1e5]; feather 全局派生链 = FeatherMax=DAY_NIGHT_FEATHER/2、Diff=1e10/带宽; 变化时重建条内 pairs (静态表第 7 定义 +88) |
 | PdxParallelFor 拓扑 | grain 计算器 sub_1401DB390(jobtype, count): 0→max(1,count/threads); 1→max(1,count/(3×threads)); 2→1; **3→−1 = 串行执行** (调用方 `if (grain==-1)` 落内联串行循环); 天气省相用 jobtype 1, init/区相用 0; 同函子串行/tbb 两路收敛到同一核, 无确定性问题 |
-| 静态 modifier 定义表 | 区修正块重建 sub_140F220D0: 单例 +40..+80 六现象定义指针 (雪/暴雪/雨轻/雨重/沙暴/mud) ×1.0 并入; active_modifiers 条目 (80B {+64 触发器, +72 modifier 定义}) 非零 ×1.0 并入; +88 = day_night (第 7 定义) |
+| 静态 modifier 定义表 | 区修正块重建 sub_140F220D0: 单例 **+40 rain_light / +48 rain_heavy / +56 snow / +64 blizzard / +72 sandstorm / +80 arctic_water 六现象定义指针** (消费直证定案 — 勘误: 原记「雪/暴雪/雨轻/雨重/沙暴/mud」列序有误且 mud 不在区静态表 [泥走省侧 terrain_modifiers 槽6 与 chance slot6]) ×1.0 并入; active_modifiers 条目 (80B {+64 触发器, +72 modifier 定义}) 非零 ×1.0 并入; +88 = day_night (第 7 定义, DayNight 每时计算 0x140F20C50 消费直证) |
 | mud 掷判除数 | sub_140F22420 完整公式 = chance[6] × 水量分数(÷mgr+424 值, 经 sub_140F22730 出参槽) × 省附加 × 干湿滞回带(+640/+648) × 地形槽 6 乘数 < 单掷; 脏+温度下限双门 |
 | randomize_weather | sub_140F1F710: 写 seed → 置 init 旗 → HourlyUpdate(0) |
 | HourlyUpdate 尾 | 地图模式 33 (= 天气模式) → 缓存脏位 +86 |
+
+weathermanager.cpp 簇对账增补 (12 函数闭环; 簇 = 含锚子集, 单元伴生 24 零锚函数已验证, 真实规模 ≈ 5200 行):
+
+**调度链上端** (定案): gamestate idler 0x1401DF400 → 计时域 7 → HourlyUpdate(mgr,
+bAdvanceSeed = **1 硬编码**); 三调用者全数实证 (idler 传 1 / post-load 0x140F1CA40 传 0 /
+randomize_weather 0x140F1F710 传 0)。DoUpdatePasses 轮转拓扑: 省 jobtype 1 PdxParallelFor +
+省相 2 tbb **CProvinceWeatherUpdateModifiersThreaded** + 区相 **CRegionWeatherUpdateThreaded**
+(functor 符号直证); 双游标 (+88/+92) 跨 pass 连续不重置; 线程纪律 = 每批主线程断言 +
+RNG 上下文守卫对。
+
+**第 4 参 a4 = 剩余 pass 倒计数** (机制级定案): 一切掷点 salt = seed + id + a4; period 查找
+时刻 = now − 24×a4 ⇒ **init (init_run_passes = N) 本质 = 逐日回溯预热** (第 k 遍按 N−k 天前
+时段演化, 末遍收敛当日); 常态小时更新单 pass a4 恒 0。
+
+**单 d 复用** (定案, 天气重放关键): 一次区换档内 arctic 掷 / 降水级联分子 / 沙暴掷 / 持续期
+第 1 掷**全部同一个 d** = hash(seed + region_id + a4) % 1e5; 省侧温度游走与 mud 掷同源; 持续
+期第 2 掷 = 同链以中间态 −1255572915 摄动 — **重放天气必须按单 d 模型, 不可按独立多掷建模**。
+哈希常数族全表: 2126043716/282605150/1831007003 ∥ 542824007/−1259093227/947560250 →
+合流 1255572915/1759714724/458671337/−1831433054 → &0x7FFFFFFF %100000 (无共享可变状态,
+同 seed 同 salt 可重放)。
+
+**区换档转换概率全公式** (0x140F20EF0 定案): 空概率短路 (chance 槽 0..4 全 ≤0 清旗直跳
+沙暴支) → 极寒抑制 → arctic_water 双带滞回 (未置旗 {暖阈+608/冷阈+616} / 已置旗换 end 带
+{+624/+632}, 因子方向反转) → 降水级联 (加权累计抽样, 阈值序 rl→rh→snow→blizzard→slot0 兜底)
+→ **沙暴互斥** (任一降水旗置位 ⇒ 沙暴强制 0; 全无降水才掷, 且要求区内全部省过
+`*(prov+184)+210 bit0` 资格旗 [语义名待裁, 推定陆地旗]) → 持续期按**更新后**旗选表。
+period 日期归一 = 43800000 小时 (1825000 天) 纪元基底年同月日 (**年度复现**) + 当日 0 点对齐。
+
+**省核精化** (0x140F11820): 地形温度修正 = 带整体平移 (terrain_modifiers 槽1 命中值同加
+period 带 lo/hi, 非直接加温度); 游走累积器 +368 钳 = clamp(±mgr+320) 标准对称钳 (helper
+0x1424EF6F0 = 一元取负); 出带时 +368 只清越界侧符号; 雪下限 = max(0, period+216
+min_snow_level)×mgr+504 (slot8 消费)。**mud 滞回第二轴**: 水量下限门 (mgr+432) 只对无泥省
+生效 (已泥省不因短期变干掉泥); 温度门 (mgr+480) 无滞回照清; water 更新出参 = mgr+424
+water_gain_max 直传 mud 作除数。
+
+**DayNight 与 feather 三全局落址** (定案): FeatherMin = qword_14333D3F8 / FeatherMax =
+qword_14333D3F0 / FeatherDiff = qword_1430B1DC8; DayNight = Diff × (槽三分量点积 − Min)/1e5
+钳 [0,1e5]; 值 >0 时并入静态表 +88 day_night 定义 ×值。**省温度 OOS getter 0x140F1A0C0**
+(槽 30): 门 0 ≤ id < mgr+28 → out = *(mgr+16 + 384×id + 280), 越界写 0; 调用者 5 处 (区侧
+槽 72 getter 未单独钉死维持)。
+
+未决: 资格旗语义名; prov+192 对象与 qword_143334848 落名 (mud 省附加乘数源);
+chance_increase.mud 双值高低; OOS 槽 72 区侧 getter VA; RNG 守卫对内部 (random 域);
+邻居平滑细节 (书已记骨架)。

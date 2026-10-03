@@ -237,6 +237,8 @@ hourly 粒度收尾两函数 (骨架 §4.2.4 步骤 16/17):
 | sub_1401D7460 | to_be_deleted **登记侧** (gamestate.cpp:6934 "Delete unit next"): SRWLock 独占下 unit idpair (+24, 8B) 二分插入 gs+1224 有序数组 (计数 gs+1236); 已在 gs+1400 数组 (计数 gs+1412) 则跳过 — 与 sub_1401D6290 清扫配对; 入径 = CArmy::[18] 兵力阈值解散 + DF7A40 卡死删除 |
 | sub_140BBED50(gs+1248) | CPeaceConferenceManager 每小时推进: sub_140BBEDA0 逐和会推进+收割 (+221 结束旗); 首个和会经 sub_140E50B20 人类参与守门 — **human_ai 全局旗 (BASE+0x332F639) 在此参与判定**, 被托管时 AI 自动接手 (sub_140E50BB0) |
 
+> **和会人类守门 sub_140E50B20 双条件定案** (human_ai 托管和会死锁根因, 运行时探针 + 反编译直证): 遍历 conf+96 OutWinners 逐国判定, 命中任一即返回「需等待人类」(= 跳过 sub_140E50BB0 AI 接手): ① sub_140700750(国) 人控 且 byte_14332F639=0 (human_ai 关) — human_ai 开则此条件失效 ✓; ② **sub_1402AA8A0(国) = 控制台 `ai` 命令族扮演判定 (byte_14332F63C 旗 + qword_14332F668/674 扮演国指针表)** — human_ai 不写这簇, 与 ① 完全正交。sub_1402AA8A0 语义: 63C=1 (白名单, 控制台 `ai` 开, 回显 "AI is now ON"): 空表→0 / 在表→1 / 不在→0; 63C=0 (黑名单, 默认): **空表→1 / 在表→0 / 不在→1**。默认态 (63C=0, 空表) 对全部国家返回 1 → 守门恒「等待」→ **human_ai 单开时和会死锁** (UI 全按钮无响应, 进度条冻结, conf+216 turn=0 / +220 waiting=1 / +456 已表态空; 实证: GER_1941_11_19_06 档 1942.1 赫尔辛基条约卡死, conf+520 negotiator=主胜方 tag)。**修复 = 控制台 `ai` 一次** (63C→1 空白名单全员 return 0 → 守门 return 0 → 下个 hourly sub_140E50BB0 自动接手, 和会当小时结算)。`ai` 副作用 = 全局「无人类扮演国」态, 与 human_ai 托管目标一致。
+
 #### 4.2.7 daily (CGameState::DailyUpdate, sub_1401D4810)
 
 profiler 域 **"gamestate.daily"**; gamestate.cpp:6227/6310 source_location。
@@ -277,7 +279,8 @@ profiler 域 **"gamestate.daily"**; gamestate.cpp:6227/6310 source_location。
 > ① 前置聚合 sub_140ED1DB0 = 每活跃国阵营/关联国集 32B 四象限求和 + 命中门关联国
 > 二分插入排序表 (双容器输出);
 > ② 表打包 = 静态上限 440B sub_140D05260 (INTEL_COUNTRY_LEVEL_MAXIMUMS 4×i64 缺省
-> 100000 + 静源 4 槽 OP_TOKENS/BROKEN_CYPHER/RADAR/INTEL_NETWORK, countryintel.cpp:98–112
+> 100000 + 静源 4 槽 OP_TOKENS/BROKEN_CYPHER/RADAR/INTEL_NETWORK (**define 表序非池槽序**;
+> RADAR 静源池槽 = 3, radar.cpp 三站点直证 §4.11.19), countryintel.cpp:98–112
 > 断言直证; tooltip sub_141E9CAF0 双消费点) / 动态绝对上限 336B sub_140D04D70 (6 槽
 > DYNAMIC_INTEL_SOURCE_*_ABSOLUTE_MAXIMUMS, :157–162, 缺省哨兵 92233720200000) /
 > 权重 12 qword define (qword_143335C60 族);
@@ -377,9 +380,14 @@ weather/faction/flag **全部无 weekly 通道** (zone 零命中 + gs weekly 不
 `on_daily`/`on_weekly`/`on_monthly` 于 +144/+152/+160。解析器 sub_140A760D0
 (onaction.cpp:434/449/464 报错串)。
 
-执行器 sub_140A79BA0: HasGameStarted (gs+2617) 门 → 直挂事件 + random_events
-加权掷骰入事件队列 → 效果块执行。**脚本随机种子 = 总小时数 + source_location id**
-(同刻同点结果确定性)。
+执行器 sub_140A79BA0 (全引擎 86 调用点统一入口, a4 全 0): HasGameStarted (gs+2617;
+a4 = IgnoreGameRunningCheck 才可豁免) ∧ gs+2618 删除期断言 → 列表 +24 存活门 →
+直挂事件 + random_events 加权掷骰均先过 sub_141180350 触发器门才入事件队列
+(sub_140A0F4F0) → 内联 CEffect **槽[12] ExecuteChecked (vt+96)** 同步执行效果块
+(非入队)。**脚本随机 = Random::Get 全局流** (dword_143452520 counter / dword_143452524
+seed 混合; file/line 实参仅入调试日志与 OOS 记账环, 不参与求值 — 勘误: 原「总小时数 +
+source_location id 派生种子」不成立, 函数体直证 + §4.28.13 播种双链互证; 流随存档
+序列化键 11458/11459, 跨机确定性来自全局流本身)。
 
 | on_action | 引擎派发函数 | 触发时机 |
 |---|---|---|
@@ -406,7 +414,7 @@ profiler 域 **"gamestate.monthly"**。触发: 月边界 (骨架 §4.2.4 步骤 
 | 1 | **CCountry::MonthlyUpdate** (sub_140703490) | 门 = owned_states>0 (cc+1156); 十段: dip 月更 (MONTHLY_LEASED_IC_DECAY 衰减 + 限时好恶刷新 + 脏表重建) / **major 全量重算** (判定谓词 sub_14070C1C0: 无宗主 && (is_major cc+5209 ∨ is_top_ic cc+5211 ∧ 工厂 ≥ MAJOR_MIN_FACTORIES=35) ∨ 阵营主 → cc+5210; 在阵营内不自动降级; 同谓词亦用于 SetLeader/投降流亡) / "country.calc_modifier" pass (§4.2.7 备注) / 州征兵 + **阵营人力上缴** (token 10476, faction+2288 按 tag 记原人力 (不缩放); mdef648 = MODIFIER_FACTION_SUBJECT_CONTRIBUTION_GAIN 只缩放贡献分 ×(1+mdef648), 取条目+104 比率 × 州月征兵增量, 向零截断) / 逐国改善关系月更 / **on_monthly 派发** (§4.2.9) / 玩家专属 tag 管理器引用计数 / **季度舰队重整** sub_140218EB0 (触发月 = 4/8/12 月, 绝对月 %4==0; **玩家国专属门**); 十段细化: ① dip 月更 sub_140D409D0 (dip+804 租借 IC 按 NDiplomacy::MONTHLY_LEASED_IC_DECAY 衰减 + 限时好恶刷新 + 待定外交动作定时容器刷新) ② major 重算 (谓词内无 0.7 补判, 补判归段⑥) ⑥ **无阵营国晋升通道** (均值 = hourly 级 sub_1401F1190 写 gs+2168; 补判门 = 工厂 ≥ 0.7×均值 **且** ≥35 双条件 AND) ⑧ sub_1406CF380 = 返回值弃置无副作用取用器 (疑残留) ⑨ sub_140CD1500 = playthrough 统计月计数器 (+524 递增, 玩家国比较后置 +984 bit2, 单人限定) |
 | 2 | 阵营月更 (+1016) | sub_140D92DF0: 门 = `当前绝对月 == abs_month(gs+1192 起始日期)+1 且同年` (gs+1192 = playthrough 起始日期 "PLAYTHROUGH_STATS_STARTING_DATE" 串直证, 非滚动记录月; 阵营 faction goal 「月更」实为**开局后第 2 个自然月一次性重放** — 12 月开局永不触发); 主体 = **仅含玩家阵营**的每条 faction goal 以玩家国为 scope 重放效果 (AI-only 阵营不跑) |
 | 3 | 学说月更 (+1024) | sub_140D7F220: 只对玩家国 doctrine status (160B 元素) 跑月步; 无效 tag 断言 doctrine_system.cpp:80 后兜底元素 0; AI 国不经此路径 |
-| 4 | 三个 "Short Task" | lambda_1 = **sub_1401C7460** power_balance 玩家侧月更 / lambda_2 = **sub_1401F7B00** SRW 锁下月度 history log (门 = 控制台 `history_logger`, nlohmann/json 写 logs/history_dump, historylogger.cpp:594) / lambda_3 = **sub_1402168D0** GameTelemetry 占领快照 (tbb 逐国, 国数≥2 门直证); 另 5 处帧泵 + Short Task join 形态 (旧表漏行) |
+| 4 | 三个 "Short Task" | lambda_1 = **sub_1401C7460** power_balance 玩家侧月更 / lambda_2 = **sub_1401F7B00** SRW 锁下月度 history log (门 = 控制台 `history_logger` [PE 字符串对 "history_logger"+"Toggle history logger", 命令体 sub_140292DE0: 参数 = tag 掩码, "none" = 清空, 0 参 = 全选记录], nlohmann/json 写 **相对 CWD 的 history_dump/** [勘误精化: 原记「logs/history_dump」, 簇内目录创建/写盘均无 "logs/" 前缀拼接], historylogger.cpp:594) / lambda_3 = **sub_1402168D0** GameTelemetry 占领快照 (tbb 逐国, 国数≥2 门直证); 另 5 处帧泵 + Short Task join 形态 (旧表漏行) |
 
 #### 4.2.11 yearly (CGameState 年边界, gs+784 国家数组)
 
@@ -456,6 +464,9 @@ on_yearly/on_anniversary/on_new_year)。年门 (定案): 新绝对年 ≠ 旧绝
 
 区域状态机核心 (sub_140F11820): 历史轮转 (+264/+272/+320 存上轮) → 特殊区域名单比对 → 类别修正表 → **确定性哈希噪声** h(seed+776, pass, region_id) `%100000-50000` 随机游走推进平滑值 (+352) → 强度计 (+64) 按周期条目增益/衰减并钳位。
 **翻面判定 sub_140F22420**: 平滑值 ≤ 下阈值 (+480) → 关; 否则概率 = 时长比 × 全局库系数 × 周期修正 × **滞回** (开→×+640 更易续开, 关→×+648) × 类别修正, 再按 (种子, 遍数, region_id) 确定性哈希 `%100000` 掷骰置 +304 active 位 — **同种子同局面可复现 (无墙钟随机)**。
+
+**DoUpdatePasses 内层第一步 = sub_140F18800** (主线程断言 + 禁场 enter → tbb): 日期/小时相位取值 + 天气全局目标值 (50000×qword_143333508/1e5 = 50% 门限) + 步长 qword_1430B1DC8 = 1e10/(目标−当前) (相等时 0xFFFFFFFF 哨兵) + mgr+848..+892 functor 捕获 tbb 全量省 pass。
+**天气省状态数组重建分发器 = sub_140F1CB90**: SWeatherPerProvince (384B) 主数组 + 352B 第二数组双轨重建 (经分配器虚槽 vt+8), 内联 CModifier 构造; 三相消费者 = 控制台命令 sub_14027B8E0 / 读档恢复 sub_1401E1580 / 初始化 sub_14022E040。
 
 > 备注: 384B 区域条目 (SWeatherPerProvince) 已定锚字段: +44 类别 / +64 强度计 /
 > +304 active 位 / +352 平滑值 / +368 噪声值; 其余字段未入册 (未决)。
@@ -538,3 +549,33 @@ CAirWing::HourlyUpdate 逐翼要点: other_combats 死引用压缩 / 无效任�
 | 数据填充 | 历史 effect + boot 模板解析值 (模板字面量) | 存档解析 (sub_142232930) + post-load (sub_1401DA490) |
 | 收尾 | 49.5–49.8 (情报知识 / CGraphicalMap ResetGame / stateDef 收尾); gs+2600 = 所选书签 | post-load 全局重挂波; gs+2600 重置默认书签 (sub_1401DBBB0) |
 | 汇合 | CStartGameCommand::Execute (FE+1590=1) → StartNewGame (门 FE+1591) → CInGameIdler ctor 开局补算 sub_140DD6A30 (Hourly/Daily/Weekly/Monthly 各一遍) → SetIdler → 首帧 | 同左 |
+
+historylogger.cpp 簇对账增补 (11 函数闭环; 月度史志导出器本体首次全量深读):
+
+**月度史志导出器 = sub_1402B6A00** (2109 行, §409 行 lambda_2 的实体; 6 件 0x1425A1xxx
+catch funclet 与主函 catch 块逐句同构配对): 门 = byte_14332F625 ∧ HasGameStarted
+(gs+2617); 双 PNG (`prov_<日期>.png` / `sea_<日期>.png`, 日期 = **gs+140** ToString) 写
+history_dump/; **JSON 顶层 schema** = {map_file, sea_map_file, map_width/map_height =
+地图尺寸宿主单例 qword_143339D28 +64/+68, t = ctx+104, num_days = ctx+88, date =
+**gs+1120** 日期串 [与 gs+140 双日期槽, 权威语义未分辨], logs = ctx+136 串数组,
+countries}; **per-country schema 约 20 键** = logs / name (字节 <32 替换 '_') / color
+(palette B2B1B0) / allies (阵营+656) / enemies (+152) / potential_enemies (+248) /
+fully_controlled_states 与 controlled_provinces (判别三态缓存自动机: state+420==1 ∧
+sub_1401C4FE0 → fully, 旗数组 0/1/2) / resistance_data (cc+1120 占领州; 子键 = resistance
+state+632 / compliance +680 / resistance_target +656 / law / garrison_ratio / eq_ratio
+[infantry_equipment token 一次性缓存 qword_14332F718] / manpower_ratio) / factories 八键
+(宿主 cc+3944) / armies / navies (任务数组三元组, ship+884 旗) / air_missions /
+province_data 与 order_data (ctx+8/+32 槽表每国 96B RH 条目全字段: pos/num_units
+[PE .rdata 实证 0x142738508]/num_attacking/num_defending/num_in_combat/dig_in_ratios/
+move_data + type/num_days/num_units_at_front/path_data 等) / ai_theaters
+(`{"name": 州名, "states": [id]}` 构造器 sub_1402C1080, 键 "states" PE 实证
+0x1427202C8)。ctx (idler+2576) 布局 12 项消费点定案 (+1 首日旗 / +88 num_days / +104 t /
++112 tag 掩码 / +136 logs 行数组等); logger 开启后首日自动导出 invariants.json 一次
+(**sub_1402B9A30 新定案**: 5 键 = provinces_center_point / state_id_to_provinces /
+state_id_to_central_province / max_supply_value = 100 / attrition_supply = 钳位 [0,100],
+公式 PE 验算待做); 月度任务挂接链 = .rdata 任务类 vtable 0x142723D50 族 (ctor
+sub_1401B7EE0 / 注册 sub_1424D4DD0)。
+
+未决: 每国 logs 组装器 sub_1402BE1D0 内部; 日更采集端 (sub_1402C09B0 驱动器 / OnDailyUpdate
+体 / SProvinceData 布局); PNG 编码器; attrition_supply 公式 PE 验算 (核心纪律 8);
+invariants 三填充函数; gs+140/gs+1120 双日期槽语义; sub_14029EED0 与书定案驱动器关系。

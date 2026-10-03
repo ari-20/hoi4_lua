@@ -12,8 +12,9 @@
 //   POST /game/pause   body: state int or {"state": n}               (main-thread, toggle semantics)
 //   GET  /events       SSE stream: session_start/session_end + heartbeat
 // Sampling profiler (thin wrappers; params as query args):
-//   POST /profile/start?ms=1&stacks=1    POST /profile/stop
+//   POST /profile/start?ms=1&stacks=1&scope=all&busy=1   POST /profile/stop
 //   POST /profile/top?n=40               POST /profile/folded[?path=...]
+//   GET  /profile/tidtop[?tid=N&n=40]    per-tid leaf attribution (busy mode)
 //   GET  /profile/status
 //
 // Switch: -http[=port] on the game command line (explicit opt-in, same
@@ -41,6 +42,7 @@ enum ReqKind {
     RK_CONSOLE = 1, RK_LUA = 2, RK_PAUSE = 3,
     RK_PROF_START = 4, RK_PROF_STOP = 5, RK_PROF_TOP = 6,
     RK_PROF_FOLDED = 7, RK_PROF_STATUS = 8, RK_PROF_THREADS = 9,
+    RK_PROF_TIDTOP = 10,
 };
 
 struct HttpReq {
@@ -144,9 +146,11 @@ static void exec_one(HttpReq *r) {
     }
     case RK_PROF_START: {
         // sampler target = this main thread (frame-top execution guarantees it)
+        // b: bit0 stacks, bit1 all, bit2 busy
         const char *err = samp_api_start((unsigned)(r->a > 0 ? r->a : 1),
                                          (int)(r->b & 1), GetCurrentThreadId(),
                                          (int)((r->b >> 1) & 1),
+                                         (int)((r->b >> 2) & 1),
                                          out, sizeof(out));
         r->status = err ? 0 : 1;
         r->result = err ? err : out;
@@ -180,6 +184,16 @@ static void exec_one(HttpReq *r) {
         static char big[65536];                  // exec_one is main-thread-only
         r->status = samp_api_threads(big, sizeof(big));
         r->result = big;
+        break;
+    }
+    case RK_PROF_TIDTOP: {
+        // tid=0 (empty payload) -> per-tid top-3 overview; tid=N -> its leaf top-n
+        static char big[65536];                  // exec_one is main-thread-only
+        int n = (int)(r->a > 0 ? r->a : 30);
+        DWORD tid = (DWORD)strtoul(r->payload.c_str(), nullptr, 10);
+        r->status = samp_api_tidtop(tid, n, big, sizeof(big));
+        r->result = r->status ? big
+                              : "per-tid table never allocated (no scope=all start)";
         break;
     }
     }
@@ -367,6 +381,7 @@ static DWORD WINAPI http_server_thread(LPVOID arg) {
         if (req.has_param("ms"))     ms = strtol(req.get_param_value("ms").c_str(), nullptr, 10);
         if (req.has_param("stacks")) flags |= strtol(req.get_param_value("stacks").c_str(), nullptr, 10) ? 1 : 0;
         if (req.has_param("scope") && req.get_param_value("scope") == "all") flags |= 2;
+        if (req.has_param("busy"))   flags |= strtol(req.get_param_value("busy").c_str(), nullptr, 10) ? 4 : 0;
         run_main_thread_req(req, res, RK_PROF_START, "", ms, flags);
     });
     svr.Post("/profile/stop", [](const httplib::Request &req, httplib::Response &res) {
@@ -388,6 +403,15 @@ static DWORD WINAPI http_server_thread(LPVOID arg) {
     });
     svr.Get("/profile/threads", [](const httplib::Request &req, httplib::Response &res) {
         run_main_thread_req(req, res, RK_PROF_THREADS, "");
+    });
+    // GET /profile/tidtop            per-tid top-3 leaves overview
+    // GET /profile/tidtop?tid=N&n=40 one tid's leaf top-n (samp_api_top format)
+    svr.Get("/profile/tidtop", [](const httplib::Request &req, httplib::Response &res) {
+        long n = 30;
+        if (req.has_param("n")) n = strtol(req.get_param_value("n").c_str(), nullptr, 10);
+        std::string tid;
+        if (req.has_param("tid")) tid = req.get_param_value("tid");
+        run_main_thread_req(req, res, RK_PROF_TIDTOP, "", n, 0, tid.c_str());
     });
 
     svr.Get("/events", [](const httplib::Request &, httplib::Response &res) {

@@ -266,7 +266,7 @@ CBrowserType 同族)。
 
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +8 | uint32 | 元素计数 | ctor 置 0 |
+| +8 | uint32 / 16B 输入描述符 | **输入描述符** `{type, payload}` (正典解析器 sub_140A1EC00, `input = <ns:value>` 冒号语法: game:/collection:/constant: → type 1-6, 全表与协议见 §4.32.19) — 原「元素计数」读法废 | sub_140A1EC00 直证 |
 | +16 | uint64 | 预留 (清零) | ctor |
 | +24 | CPdxInlineBufArray\<NCollection::COperator,16\> {data@24, cap@32, count@36, alloc@40} | **算子/元素数组** (内联 16 项) | ctor 置 `*(a1+24) = a1+56` (内联路径, 当分配器 vt[4] == sub_140161270 时) |
 | +48 | 分配器对象 (264B) | `CPdxHybridInlineBufferAllocator<COperator,16,int>` vt 0x142719840; 尾 +312 = &off_143085170 | 48 + 264 = 312 ✓ |
@@ -313,3 +313,20 @@ RH 表 {buckets@+56, mask@+68, 哨兵@+72}, 命中取 `entry+16` = CNamedCollect
 > 再递归 `sub_1423A6200`。`v6 = sub_1424C4FE0(a2+48)` = 权重 (整数),
 > `sub_141594360(v10+1, 0, 100000*v6)` = CScriptableValue(seed=0, base=权重×100000)。
 > ⚠ 与 §4.31 已载的 `CRandomLocList` (0x1429423D0) 同族 — 该族此前只登记容器件, 成员件为本节补。
+
+#### 4.19.8 脚本可引用 formatter 注册系统 (formatted_localization / character_formatter)
+
+本地化文本中可被脚本引用的 formatter 子域: 注册表 = `unk_143086A50` (FNV-1a 32 位键哈希表; 注册仅限**静态初始化期**, 断言 formatted_localization.cpp:24 "It's not allowed to register a formatter after static initialization." / :30 "Duplicated formatter entry"; 注册原语 sub_14052ED00)。运行期 wrapper 统一入口 sub_14052FDA0: ctx 类型校验 (type_info vs qword_1430CC270) 失败 → 输出 "NULL" (formatted_localization.h:96); 参数数组按 104B 元素 (CParamsVariant) 传实现体。
+
+**country_leader_desc** (列出角色在某意识形态下作为领袖的全部特质; 注册 sub_1405303D0; 求值本体 sub_140530800): 使用协议 = `custom_effect_tooltip = country_leader_desc|hjalmar_schacht` (管道后 = 角色 id); 块形态参数 `IDEOLOGY = token:fascism` (必填, 意识形态**组** token; 缺省 19479 = undefined) 与 `INDENT` (可选, loc 键格式化成缩进串)。无 scope — 直接按角色 id 查库。求值链:
+
+| 步 | 操作 | 函数/依赖 |
+|---|---|---|
+| 1 | 解析参数 (INDENT/IDEOLOGY 按 stricmp 匹配键; token 取元素+96) | 参数元素 104B {type u32@+0, 键 SSO@+16, 值 SSO@+48, token u32@+96} |
+| 2 | 角色 = CCharacterTemplateDatabase (qword_14332EE58) 按 id 两级查找 (+64 表 → +104 RH 24B 桶) | sub_1406BD460 |
+| 3 | 领袖角色 = 遍历角色+528 std::map, 逐节点键查 CIdeologyDatabase (qword_14332F528) 56B 桶表, 验 `*(ideology+288 指针 +8) == 组token` → 返回该意识形态领袖角色 | sub_1413F1B90 |
+| 4 | 遍历角色 SRW 保护特质向量 {begin@+0, count@+12}, 元素 40B {名 SSO 32B, id u32@+32} | get_srw_lock 族 |
+| 5 | 逐特质查 CCountryLeaderDatabase (qword_14332EE68) idb 标准查找 (40B 元素 id@+32 相等且 stricmp 名相等双匹配; [0] = Null Object) | sub_14071F950 → sub_14071CE30 |
+| 6 | 每特质 NAME = def+24 串作 loc 键 / DESC = def+168 描述域 ("\n  - " 前缀) → `sub_142245E60(out, "COUNTRY_LEADER_FORMATTER_TRAIT", {NAME,DESC}, 2)` 累计 append | sub_142245E60 = localize.cpp 格式化原语 (键+参数数组+count → 串; 6144B 栈缓冲, 断言 localize.cpp:641) — 本子域公共出口 |
+
+查不到角色/意识形态 → 空串 (断言 character_formatter.cpp:140 "The validate function should have caught this")。

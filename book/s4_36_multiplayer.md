@@ -83,8 +83,8 @@ pdx_net_steam.cpp (内嵌路径串直证)。
 | +72 | CSteamNetContext* | 连接/传输上下文 (工厂 0x1423E6100, malloc 520) | ctor + 工厂体 (定案) |
 | +80 | CSession* | 会话反指 (Init 写; ⚠ +84 无独立字段 = 本指针高 4 字节, 见 §4.36.4 勘误) | 直证 (定案) |
 | +88 | uint32 | 初值 15; CProxyServer ctor 改写 35; **全族零读者** (负证) | ctor 直写 (值定案/语义待裁) |
-| +96 | 链表头 (20B) | 定向命令表 (节点 0x20 = {cmd@0, prev@8, next@16, 旗 u8@24}) | ctor unwind + 槽函数 (定案) |
-| +120 | 链表头 (20B) | 链表 #2 (同构) | 同上 (定案) |
+| +96 | 链表头 (20B) | 链表 #1: 客户端 (CProxyServer) PackageCallback 的 before-sync 命令暂存链 (getter 槽[19]); 主机 PackageCallback 不消费此链 (零引用) | ctor unwind + 槽函数 + 两型收包泵直读 (定案) |
+| +120 | 链表头 (20B) | 链表 #2 = **主机定向命令表** (first@+120/last@+128/count@+136; 节点 0x20 = {cmd@0, prev@8, next@16, 旗 u8@24}, 尾插不重盖序号; getter 槽[20]) | 同上 + PackageCallback 直读 (定案) |
 | +144 | 链表头 (20B) | **待处理命令收集链** (槽[6] 入链 / 槽[8] getter / 槽[13] 清链) | 三槽互证 (定案) |
 | +168 | RH 哈希表头 (32B) | **机器表** {引用槽@168, 桶@176=静态空 unk_1430BE0F0, count@184, mask@188, extra u8@192, lf f32@196=0.9}; 哈希 = machine id ×73244475 双轮雪崩; 插入 sub_142364470 | ctor/dtor/查表槽直读 (定案) |
 | +200 | uint8 | 「Update 已跑」旗 (ctor: Dummy/Network 置 1、Proxy 置 0; Proxy 每轮 Update 尾置 1) | ctor + Update 直读 (定案) |
@@ -178,7 +178,7 @@ CNetworkServer 虚表 (31 槽, 关键槽; [1][9][10][28] = 空桩/常量):
 |---|---|---|---|
 | +216 | pdx vector (20B) | 已发现服务器描述数组 A (元素含 40B 描述; 槽[25]/[26] 读元素+36 端口) | ctor + dtor + 槽直读 (定案) |
 | +240 | pdx vector (20B) | 局域网游戏列表 B (元素 40B = {std::string 32B@0, u64@32}) | sub_140B17340 步进直读 (定案) |
-| +264 | 链表头 (20B) | 已知服务器大节点链 (节点 320B; 键域 = 节点+296 u32 / +300 u16 / +312 u64) | ctor + dtor + 槽[26] (定案) |
+| +264 | 链表头 (20B) | 已知服务器大节点链 (**节点 336B = 0x150**; 体 = 308B SServerInfo 拷贝 + **+312 prev / +320 next 链指针** + **+328 延迟删除旗** [链头 +284 字节置位时只打标不摘]; 键域 = SServerInfo 内 {+296 u32, +300 u16} — 勘误: 原「320B / 键域 +312 u64」系布局推断, 行为代码三重证 [双向摘链 + 尾插 ctor + 清理器沿 +320 步进]) | ctor + dtor + 槽[26] (定案) |
 | +296 | std::string (32B) | 串#1 (语义待裁, 推定加入请求参数域) | ctor + unwind (形态定案) |
 | +328 | uint8 | Update 反门 (槽[6] `if(!+328)` 才跑; 置 1 者族内未见 = 残余待裁) | ctor + 两槽 (定案写读点) |
 | +336 | 停表对象* | 全局停表冻结件 (与基 +208 同源) | ctor 直读 (定案) |
@@ -330,7 +330,7 @@ SInternalData 字段子表 (writer 直证):
 | 值 | 名称 | 语义 |
 |---|---|---|
 | 0 | MACHINE_ID | 分配的机 id (主机侧处理 = 新机器接入链 sub_142368240; 客户端置 session+164 + SetState(5)) |
-| 1 | SERVER_ADDRESS | 主机机 id (客户端写 session+100) |
+| 1 | SERVER_ADDRESS | 继任者连接描述+32 地址标识 (server+220==0 时 = 新客 desc+32; 客户端写 session+100 镜像) |
 | 2 | ADD_PEER_ADDRESS | 已在场机 id (双向名册交换; 客户端仅登 session+136/+144/+152) |
 | 3 | REMOVE_PEER_ADDRESS | 机 id |
 | 4 | SERVER_TICK_VALUE | 当前批号 (客户端硬重置 session+128, "Tick reset to N") |
@@ -358,9 +358,9 @@ SInternalData 字段子表 (writer 直证):
 | 1 | channel 0: sub_142269960 反序列化 (CMemoryFile → lexer → reader → 读 type_id → 工厂 → Load wrapper 填对象) |
 | 2 | 防伪造: 连接实际机 id ≠ cmd+12 → "REJECTED SPOOFED COMMAND!" 丢弃 |
 | 3 | !IsValid → "COMMAND LOST! Sent: <cmd+22> Received: <session+128>" |
-| 4 | 机器表登记/查找发送者 |
-| 5 | cmd+24 → 定向表 (+96); 否则重盖本地序号 cmd+28 = InterlockedAdd(server+264) (+32 origin 不动) → 就绪表 (+144) → 下一泵执行+广播 |
-| 6 | channel 1: 控制消息 switch (上表); MACHINE_ID → 新机器接入链 (对既有机器逐台发 ADD_PEER_ADDRESS → 新机登机器表 → 广播 → NAMED_SUCCESSOR → SERVER_TICK_VALUE 定向新客 → 置连接机 id → ++server+224) |
+| 4 | 机器表**只查找**发送者 (登记仅发生在接入链; 未登记发送者的命令静默丢弃无日志) |
+| 5 | cmd+24 → 定向表 (**+120 链**); 否则重盖本地序号 cmd+28 = InterlockedAdd(server+264) (+32 origin 不动) → 就绪表 (+144) → 下一泵执行+广播 |
+| 6 | channel 1: 控制消息 switch (上表); **主机消费集仅 {8, 9, 14, 25}**, 其余 0-35 全记 "Unknown message received"; 8/9 → 新机器接入链 (对既有机器逐台发 ADD_PEER_ADDRESS → 新机登机器表 → 广播 → NAMED_SUCCESSOR → SERVER_TICK_VALUE 定向新客 → 置连接机 id → ++server+224; **9 RECONNECTED 与 8 同走 +268 门但绕过准入五闸** = 重连免检; MACHINE_ID(0) 是链的**输出**非输入) |
 | 7 | 反序列化失败 → "COMMAND UNKNOWN!" |
 
 工厂 sub_142269AD0 (order.cpp:273): **id ≥ 10000 先减 9000**; 表 = funcs_142269B19
@@ -450,8 +450,7 @@ Update 状态路由 (§4.28.21b 位集 {2,4,13,14} 才走命令派发主循环);
 → 记机 id → SetState(5 WAITING_FOR_GAMESTATE) → 主机 SendGameState (槽[29]: session+328
 门 → GAME_STATE(18) + 协议号 203 + session+312 命令日志逐条序列化) → 客户端收 18 →
 session+400 = 载荷 → SetState(6) → RequestSynch 反序列化重放追进度 (§4.36.6)。
-重连专用消费: SERVER_TICK(4 值域) 且 state==2 → SetState(4) (重连被接受的实际信号);
-SERVER_TICK_VALUE(5) / RECONNECT_REFUSED(11) 且 state==2 → SetState(7 REFUSED)。
+重连专用消费: **SERVER_TICK_VALUE(4)** 值域且 state==2 → SetState(4) (重连被接受的实际信号); **SERVER_TICK(5)** / RECONNECT_REFUSED(11) 且 state==2 → SetState(7 REFUSED) — 勘误: 原句 4/5 名称对调 (与 §4.36.3 类型表冲突, 编目性勘误; 值域行为本身无误, proxy 批 switch 直证)。
 state 2 (RECONNECTING) 的置位者未在语料命中 (待裁)。
 
 **主机迁移存在 (高置信, 引擎层全自动无 UI 参与)** —— 五环证据链:
@@ -777,3 +776,144 @@ Steam id = CPdxSocialPlayerId 平台表键 374 (§4.28 布局引用), 随 10723/
 联机专属门 = ChatSettingsProviderImpl 仅 `MP && 聊天单例空` 时构造 (§4.36.1 表);
 PdxSocialPermissions 权限簇 (social_* 键) 归 §4.28; "oos" 聊天通告 = OOS 链尾
 (§4.36.10); "LAG_DECREASE_SPEED"/"LAG_PAUSE" 通告 = 掉队链 (§4.36.4)。
+
+proxy_server.cpp 簇对账增补 (CProxyServer 运行期行为层; 11 函数闭环):
+
+**类实名 CProxyServer 定案** (ctor vtable 符号 + RTTI 81 站 + 三条 [NET_DEBUG] 串); 552B
+布局表全部既有行互证一致, **增补六行**: +288 u64 = SESSION_TYPE(17) 值缓存 (LAN 泵清 0) /
++352 u16 = ctor 清零 (语义待裁) / **+356 u32 = SERVER_TICK 锁步缓存** / **+400 u32 = 最近
+发送批号** (slot[21] 流控门读数) / +520 u64 = RTT 均值窗锚点 (ns) / +528 u32 = 平均 RTT
+(ms, 5 秒窗)。三个 catch funclet (0x1426F24C0/2820/26E0) = SendOrders / vt[5] /
+PackageCallback 主路的 CFileException 处理器 (零静态引用 EH 表独占; 闩组 = **byte_1435B9D10
+..B9D1F 连续 16B 块** — network_server.cpp 侧占 D12/D13/D14, proxy_server.cpp 侧占 D16..D1C,
+§4.28.25 COMDAT 合并定式的完整边界)。
+
+**Connect 全链** (vt[2] 定案): 预连双写 (**session+360 ← 连接描述+32** — §4.28.25「+360
+待裁」第二写点, 推定 = 当前连接目标主机标识; matchmaking ctx vt+304 登记) → +426 = a2
+(探测旗: 链上即 Disconnect(3000), 只测可达性不入握手) → REQUEST_ID 帧 = 8B {8,0} 头 +
+CWriter 键 27 玩家名 / 222 密码 / 377 版本串 → 30s 自驱态泵 (sub_142252D00, 态 {1,5}) →
+终态 +427 = state ∈ {4,6,9,16}; 成功即 **session+1968 = 0** (撤销重连诉求)。
+
+**命令中继上行双函数** (定案): slot[5] 入队 — cmd+24≠0 定向命令**直发连接 0 不入队**;
+普通命令 = +456 序号 → cmd+28/cmd+32 同值 → SRW(+536) 锁内回声待答表 (hash 73244475) →
+tbb 微批 (页 0x2C0, 8 槽 × 40B, (3·idx)&7) → 尾 +404 = 0。SendOrders (vt[30]) —
+**cmd+22 发送时二次盖批号** / +400 = 最近发送批号快照 / +404 = 1 / 逐条 delete。
+**自回声 RTT 管线**: cmd+12 == 本机 → +472 回声表按 cmd+32 查 → RTT → +496 ns 样本向量 →
+5 秒窗 → +528 ms 均值 (读者未决)。
+
+**PackageCallback 接收半边** (vt[27], channel 1 控制面 35 值全互证): 增补 = 0 MACHINE_ID
+与 2 ADD_PEER 均写 **session+160 = 值+1** (「下一 machine id」客户端镜像写点, §4.28.25
+待裁补全) / 1 SERVER_ADDRESS = session+100 直写 / **33 DECLINED_JOIN_DISABLED →
+session+1942 = 1 / +1944 = 值** (新字段) / 22 APPLICATION_MESSAGE → session+376 链头插
+(新链, 消费者待裁) / 15/16 → 广播码 14 + +1856 处置。**channel 0 分流实为四分流** (勘误
+增补: 原三分流): 态 ∈ {4,2,12,13,14} → 就绪表 +144 链 / 态 5 → +96 链 (before-sync 暂存)
+/ **态 6 定向 → +120 链** (EARLY 定向命令链) / 态 6 普通 → +96 链; +120 链双型消费 =
+主机 PackageCallback 定向表 + proxy 态 6 定向 EARLY 链 (主机 PackageCallback 对 +96
+零引用 — 原「+96 主机定向表」说废弃, 定向表定案见 §4.36.2 表)。
+
+**LAN 浏览三件套** (vt[11]/[25]/[26] 定案): 泵返回 **&+264** = 浏览器枚举链头; B 表
+(+240) 元素 +32 u64 状态机 (<0 未探/失联 → 0 探活成功 → 1-2 GAME_STATUS → 3 已入链);
+SServerInfo = 308B 定长 (sizeof 名直印); 单轮 255 探针上限 + 5s Retry 清扫; CHECK_LOCAL
+路 REQUEST_GAME_INFO(25) + B+32 = 0。Update 精化: 踢/禁处置前置全局门 = appmgr (+56 子
+对象) vt+112 bool (CGameApplication 单例直证); SetState 全量互证 + 增补「态 8/9/10/11
+广播后 session+72 = 0 回写」。日志类别码观测补样: 769 (常规) / 771 (就绪表收包, 单站)。
+
+未决: +328 置 1 写者 (族内零写点负证加强); +528/+352 读者; appmgr+56 身份; session+376
+消费者; 自旋阈值 35 计量; 日志码枚举名。
+
+#### 4.36.12 network_server.cpp 主机侧收发链定案 (CNetworkServer 运行期行为层)
+
+清册 (10 函数全含 network_server.cpp 锚; 框架槽归属与 §4.36.2 互证一致):
+
+| VA | 行数 | 身份 |
+|---|---|---|
+| 0x1423663F0 | 1233 | vt[27] PackageCallback 收包主泵 (全链精读; §4.36.3 接收半边勘误本源) |
+| 0x1423686D0 | 280 | vt[7] 成员同步泵 (精化见下) |
+| 0x142367E70 | 268 | vt[5] 入队+定向发送 |
+| 0x1423652B0 | 188 | vt[26] DisconnectCallback |
+| 0x142366030 | 171 | 接入执行体 ("New Client Connected" :138) |
+| 0x142365680 | 135 | 执行期广播 (唯一调用点 = CSession::Update 主派发 Execute 前) |
+| 0x142365140 | 72 | vt[25] ConnectionCallback (= 日志 + 连接机 id 清 0) |
+| 0x1426F2160 | 45 | 广播函数 catch funclet (CFileException, :751/:752, 闩 B9D13) |
+| 0x1426F2290 | 45 | vt[5] catch funclet (:330/:331, 闩 B9D12) |
+| 0x142365770 | 21 | vt[30] 废弃槽断言 (:770) |
+
+vt[27] channel 0 精读 (定案):
+
+| 步 | 动作 |
+|---|---|
+| 1 | 反序列化 → 收包日志 (类别码 771, 消息 = `<type_id>, ID: <cmd+28>`) |
+| 2 | 防伪造: cmd+12 ≠ 连接实际机 id (connmgr vt[18] 查) → "REJECTED SPOOFED COMMAND! Actual sender: `<实际>`" (类别 775) → delete |
+| 3 | !IsValid (槽[9] 双参) → "COMMAND LOST! Sent: <cmd+22> Received: <session+128>" (类别 775) → delete |
+| 4 | 机器表只查找 (哈希内联 = 73244475 双轮, 探测步进 64B, 未命中探测位 = 桶末哨兵 (mask+extra+1)×64B); **未登记发送者 = 静默丢弃无日志** |
+| 5 | cmd+24≠0 → 0x20 节点尾插 +120 定向链 (不重盖序号); ==0 → 重盖 cmd+28 = InterlockedAdd(server+264) (+32 origin 不动) → 尾插就绪链 (+144); 两路所有权转移不再 delete |
+| 6 | 反序列化失败 → "COMMAND UNKNOWN! Received: <session+128>" (769) |
+
+channel 1 消费集与准入 (定案): 消费集仅 {8 REQUEST_ID, 9 RECONNECTED, 14 REQUEST_HOTJOIN,
+25 REQUEST_GAME_INFO}, 其余 0-35 全记 "Unknown message received" (:664); len<8 丢包日志;
+0-35 名称 switch 与 §4.36.3 类型表逐值一致。REQUEST_ID 准入五闸逐闸直证 (顺序 §4.36.7 ✓):
+ban 闸 (输入 = 连接描述+24 句柄 u64, 命中回 BANNED(21)) / 名无效 (NAME_INVALID(34)) /
+名重 (session 槽[6], NAME_TAKEN(28)) / 密码 (gamesetup 密码串非空才 memcmp 比对 —
+**主机密码为空 = 整闸跳过**; INCORRECT_PASSWORD(27)) / 版本 (构建串 vs 客户端串,
+VERSION_MISMATCH(35)); 拒绝一律 8B 值 0 形态 channel 1 定向回发。**9 RECONNECTED 与 8
+同走 +268 接入窗门但绕过全部五闸** = 重连免检通道。载荷 reader 内含首字节 `!= '@'` (0x40)
+跳读分支 (语义待裁)。
+
+REQUEST_HOTJOIN(14) 主机处置 (定案):
+
+| 项 | 值 |
+|---|---|
+| 使能门 | gamesetup+645 = 热加入使能旗 |
+| 使能路 | 写 session+1864 / +1896 (载荷两串) + +1928 (conn) + +1936 = 1 → 观察者广播 14 |
+| 未使能路 | sub_142250180(session, conn, 3) 拒绝 (码 3 = DECLINED_DISABLED 域) |
+
+REQUEST_GAME_INFO(25) 应答 (定案): SESSION_TYPE(17) 值 = session+80 → GAME_STATUS(24) 值 =
+gamesetup info 首 dword → **308B SServerInfo 直发 channel 1** (与 proxy LAN 浏览同构,
+§4.36.11)。字段表 (构造点直读):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| 0 / 64 / 128 / 192 | char 64B ×4 | 名 / 描述 / mod / tags |
+| 256 | char 32B | 版本串 (= appmgr+352) |
+| 288 / 290 | uint16 | 大厅数据两读 (sub_1423DF930 / sub_1423DF910) |
+| 292 | uint8 | 密码存在旗 (= gamesetup 密码串+16 != 0) |
+| 296 | uint8 | join_phase (= 大厅 sub_1423DF950) |
+| 300 | int32 | 会话态 (= sub_140CE9520) |
+
+接入执行体 sub_142366030 十步 (定案; 触发 = 8 准入全过 / 9 免检): 分配机 id
+(sub_1422502C0, session+160 自增) → MACHINE_ID(0) 定向新客 → 快照成员链逐台
+ADD_PEER_ADDRESS(2) 定向新客 → 机器表插入 (48B 记录 = {机 id u32, pad, 40B 连接描述};
+值域低 u64 = 机 id) → 会话侧入成员链 → ADD_PEER(2) 对其余全员广播 → 继任判定
+(server+220≠0: NAMED_SUCCESSOR(7) 值 = +220 + SERVER_ADDRESS(1) 值 = session+100 镜像;
+==0: **继任 = 新客** + SERVER_ADDRESS 值 = 新客描述+32) → SERVER_TICK_VALUE(4) 定向新客 →
+连接置机 id → SendGameState (槽[29]) → **session+392 = 新客机 id** → 观察者广播 6 →
+"New Client Connected" (:138)。
+
+vt[26] DisconnectCallback (定案): 早退支 = 连接机 id == 0 (未指派连接) 仅重置机 id 即返,
+不动会话/机器表; 主路 = 会话成员两遍式摘除 (sub_142250F50, **返回值 = 继任候选** = 首个
+非移除成员) → 掉线 id 尾插 +168 链 → 机器表桶+56/+60 取 addrport 入 +192 数组 → conn 入
++216 数组 → 掉线者 == server+220 且候选非 0 → 继任重指 (sub_142366390) →
+REMOVE_PEER_ADDRESS(3) 广播 → 机器表按键擦除 → 观察者广播 5 → 三暂存区齐清
+(sub_1422500C0: +184/+204/+228 计数清零, 数据保留)。
+
+vt[5] 定向路与执行期广播 (定案): vt[5] 定向支序列化后按槽[18] machine / 槽[19] aux 解析
+连接 (sub_1423E5E50), 发送即 delete 命令 (入队路所有权转移不 delete); catch (CFileException)
+段 :330/:331。执行期广播 sub_142365680: 先调 cmd vt[+112] (槽[14], 语义待裁 — 本簇唯一
+消费点) → 序列化 → target 0 广播 (channel 0); 唯一调用点 = CSession::Update 主派发
+Execute 之前, 门 session+80 ∈ {2,4,5}。
+
+vt[7] 成员同步泵精化 (定案): 总门 = byte_143085001 (与 P2PSessionRequest 回调共用);
+名册源 = appmgr 单例 (qword_143452450) +856 → +16 大厅上下文; 逐成员登记 connmgr 后与
++272 快照逐元素全比对, 全等静默 / 有差重建 + "lobby roster changed" (:292); 尾调
+connmgr 收包泵。
+
+tbb 队列页 704B 布局精化 (定案): u64 原子序号 @页+128 (InterlockedExchangeAdd64),
+槽区 @页+384 (8 槽 × 40B), 槽位 = 页 + 40×((3·idx)&7) + 384; 入队 helper = sub_142364310
+(proxy 同构); 主机入队时 cmd+28 与 cmd+32 同值。
+
+日志类别码 (观测): 775 = 命令拒收警告级 (SPOOFED/LOST 两站) / 771 = channel-0 命令收包
+(与 proxy 侧单站同码) / 769 = 常规。
+
+未决: cmd 槽[14] 广播前调用语义; session+392 读者; ban 名册键域 (sub_1422509C0 与
+session+336 名册是否同域); '@' 跳读分支; 序列化缓冲对象 (malloc 0x58) 类实名;
+vt[3]/[6]/[13..15] 等同 cpp 邻接件归属簇。

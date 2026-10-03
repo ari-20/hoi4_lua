@@ -1070,8 +1070,8 @@ CShipArchetypeItem ctor sub_1417F2740; CShipArchetypeHeaderItem ctor sub_141D42A
 | 类 | target 形态 | 锚点 |
 |---|---|---|
 | CTechnologyInfoWindow | ctor 签名 demangle 铁证 (CCountryTechTreeView&, CString, CTechnology → +5248/+32/+5272) | 主 vt [9] 0X141BDDF10 = 头部刷新 (tech_info_title/research_progressbar/HEADER_ENABLED); **变体分发 0X141BDDD10 六指针结构**: +0 科技 (tech+352/+360 ✓ + **template+1036 = `show_equipment_icon`** reader case 13950 直证) / +8 装备 (读集对象 = **CEquipmentModule 模块 def (定案; 三锚比对 §4.23.7a)**: +116 allow_mission_type 键 11057 (`|0x20` = DROP_NUKE 位喂任务网格 sub_141F00E00) / +432 build_cost_resources 键 15216 (16B {资源 token, fixed64}) / +344+376 = 内嵌 CEquipmentStatsGroup (+296 起 104B) stats pairs 16B {statId, i64}, 78 = EEquipmentStats 枚举上界; 读出经 statId helper 建 technology_unit_stat_item — 原「形态与 CSubUnitDefinition 不符」正解 = 类名认领错位) / +16 / +24 / +40 修正网格 / +56; 无 CCommand, 出口 = 8 个填充器 (loc 键直证: sub_141F02880 海军统治/技术树 · sub_141F06610 · sub_141F02440 · sub_141F05FE0 战术攻防 · sub_141F04A80 战宽 · sub_141F037B0 · sub_141F05680 · sub_141F03E00 设计商人力/训练) |
-| CTechnologyTreeTechItem | **item+200 = CTechnology\*** (listener 注销互证) / item+48 = CCountryTechTreeView\* | populate 0X141BD6770 消费 **tech+352 模板 ✓ / tech+176 后继表 (count@188) ✓ 双册锚**; 子槽名 `sub_technology_slot_<template+1040>` — **template+1040 = 子槽位索引 (template 侧新锚)**; tooltip 巨函含 template+836/+1336 与 RESEARCH_DONE/TECH_SHARNG_* loc |
-| CTechnologyTreeXorItem | **item+32 = 格坐标对** (池键互证) / item+56 = 树层索引 (格对象+380) | 朝向 setter 0X141BD0D80 按 dir 0..3 给 First/Second 子窗上 GFX_techtree_xor_* (vt+728 SetGfx ✓); tooltip = MUTUALLY_EXCLUSIVE_TREE — 互斥对连接标, **非 def 互斥对直读** |
+| CTechnologyTreeTechItem | **216B, 构造器 0X141BD0070**; **item+200 = CTechnology\*** (listener 注销互证) / item+48 = CCountryTechTreeView\* | populate 0X141BD6770 第 5 参 = **view+2784 (本文件夹项容器) / view+4072 (他文件夹项容器)** 按 folder 匹配旗分流; 消费 **tech+352 模板 ✓ / tech+176 后继表 (count@188) ✓ 双册锚**; 子槽名 `sub_technology_slot_<template+1040>` — **template+1040 = 子槽位索引 (template 侧新锚)**; tooltip 巨函含 template+836/+1336 与 RESEARCH_DONE/TECH_SHARNG_* loc |
+| CTechnologyTreeXorItem | **64B, 构造器 0X141BD0540 (a2 = 树根), GetOrCreate = 0X1413D4DD0 (view+6696/+6708 待绑表按盒+件坐标查重)**; **item+32 = 格坐标对** (池键互证) / item+56 = 树层索引 (格对象+380) | 朝向 setter 0X141BD0D80 按 dir 0..3 给 First/Second 子窗上 GFX_techtree_xor_* (vt+728 SetGfx ✓); tooltip = MUTUALLY_EXCLUSIVE_TREE — 互斥对连接标, **非 def 互斥对直读** |
 | CTechnologyTreeLineSegmentItem | item+128 = view | 格坐标键池化连线段; 子窗 Up/Down/Left/Right/Center + **13 根静态线型 LUT (+136..+232)**; populate 0X141BD5E80 / update 0X141BD5780 |
 | CTechnologyGroupEntry (technology_idea_entry) | **item+32 = 理念槽目标对象** (+56 byte 占用旗 / +2684 可见门 / +2720 槽型→+56 槽名) | 科技页底部国策理念槽行; GFX_idea_slot_* 兜底 GFX_add_pol_idea_button; Update 0X1415F9C70 |
 | CTechnologySharingGroupEntry | **item+32 = CTechnologySharingGroup\*** | **命中册锚: 国家上下文+3936 → +280 共享组 vector ✓**; Update 0X1415FA010 设组图标/帧; tooltip 三段 (组名 KEY/HEADER + 成员 + item+40 门控附加段) |
@@ -2382,10 +2382,10 @@ CArmiesView 本体 (1640B) 全布局 + CDivisionsSummaryItemView 行件 (1432B; 
 |---|---|---:|---|---|
 | COccupiedTerritoryStateEntry | occupied_territory_state_entry | 4000 | 占领州行（3 胶水组） | 定案 |
 | COccupationPolicySelectLawEntry | select_law_entry_container | 1384 | 占领法选择行 | 定案 |
-| COccupationGarrisonTemplateSelectEntry | select_garrison_entry_container | 1408 | 驻军模板选择行 | 定案 |
-| COccupationSettingSelectionView | select_occupation_setting_container | 2688 | 占领设置视图基（CLegacyButtonObserverGlue 块 ×2 @+48/+1336 开关两态；+2624 宿主窗/+2632 选项子窗/+2664 容器 {ptr, count@+2672}；槽 [3] 0x14155D9C0 = Clear、[4] 0x141567E20 = Populate 三视图共用；Populate 经 \*(宿主+1272) 查子件并 facet+552 注册 tooltip） | 高置信 |
-| COccupationPolicySelectionView | —（: Setting） | 2720 | 法选择视图（+2688 {data, cap@+2696, count@+2700} 法条目向量 + +2712 byte 旗；首条 a3=0 占位） | 定案 |
-| COccupationGarrisonTemplateSelectionView | —（: Setting） | 2688 | 驻军模板视图（ctor 内联于宿主 Setup；槽 [2] 0x14156C940 = Refresh，malloc 1408 建条目，"OCCUPATION_PRIMARY_GARRISON_TITLE" 断言点） | 定案 |
+| COccupationGarrisonTemplateSelectEntry | select_garrison_entry_container | 1408 | 驻军模板选择行（GetTooltip = CTooltipHandler 次基 vt[0] 三分支: IC 占比 / 人力占比 / 全量模板装备构成+缺陷警告; tpl+296 装备表 {data@+296, count@+308} 步长 16, tpl+400 人力需求; +1304..+1400 十二项布局补全; 选中态 = 按钮 frame a2+1/3 + DEFAULT_LAW_ENTRY 占位名, 紧凑模式字形替代名） | 定案 |
+| COccupationSettingSelectionView | select_occupation_setting_container | 2688 | 占领设置视图基（CLegacyButtonObserverGlue 块 ×2 @+48/+1336 开关两态；+2624 宿主窗/+2632 选项子窗/**+2664 修正 id 向量 {data@+2664, cap@+2672, count@+2676}** 40B 元 {std::string, u32} — Populate 收割 `modifier_` 9 字节前缀子件名 → FNV token → 节点+20 修正 id 入向量 (勘误: 原 count@+2672 系 cap); 槽 [3] 0x14155D9C0 = Clear、[4] 0x141567E20 = Populate 三视图共用 (绑定 7 命名子件; 经 \*(宿主+1272) 查子件并 facet+552 注册 tooltip)） | 定案 |
+| COccupationPolicySelectionView | —（: Setting） | 2720 | 法选择视图（+2688 {data, cap@+2696, count@+2700} 法条目向量 + +2712 byte 旗；首条 a3=0 占位; vt[2] 0x14156D6B0 法列表重建 = tag/州/无上下文三路定现行法与默认法, lawdb+72 兜底, 过滤+配置法条目 :2675） | 定案 |
+| COccupationGarrisonTemplateSelectionView | —（: Setting） | 2688 | 驻军模板视图（ctor 内联于宿主 Setup；槽 [2] 0x14156C940 = Refresh，malloc 1408 建条目，"OCCUPATION_PRIMARY_GARRISON_TITLE" 断言点; **rec+200 = 记录级当前驻军模板**, 回退链 rec+200 → occ+120 → occ+128) | 定案 |
 | CStateBuildingItem | state_building_entry | 1344 | 州建筑行（CBuildingItemBase 挂接） | 定案 |
 | CStateSharedSlotBuildingItem | state_shared_slot_building_entry | 2816 | 州共享槽建筑行（2×CButtonWrapper） | 定案 |
 | CStateDynamicModifierItem | state_view_dynamic_modifier_entry | 136 | 州动态修正行（双构造路径） | 定案 |
@@ -3079,7 +3079,7 @@ ctor sub_1414991A0。
 
 CButton 槽语义 (定案): **+568 IsNullObject 判定** / **+176 SetFrame (帧 1 常态 / 2 选中)** — 页点/单选钮选中态实现; **显隐槽方向定案 (df87 三证收敛, 原推定升档)**: **vt[+120] = Show / vt[+128] = Hide** (对偶分支 sub_14202A1B0 同函数内双语境 + teardown/应用语义对偶 + 隐藏扫描全 +128 三证) / **vt[+648] = Show / vt[+656] = Hide** (badge 显隐条件二选一 sub_141BBF940 + 布尔直选 sub_141D1F7D0); **wrapper+117 bit0x10 = hidden 态旗** (+120 路径清 `&= ~0x10` / +128 路径置 `|= 0x10`, 与页点 +165 位 0x10 同律)。
 
-**wrapper 布局与回调形态增补 (定案/高置信批)**: +16 (glue 首槽) 存**按钮指针副本** (FillTooltip hovered 比对基准); **+1368/+1376 尾块双对象成对** (+1368 对象 A = 文案提供者 / +1376 处理件; 访问器**第三形态** = 内联展开时 this = wrapper+1376 尾块件, 断言反取 `*(this−1376)`; BW34 断言 15 处内联 / BW40 30 处)。**CTooltipHandler FillTooltip 形态学 (定案)**: 簇内 15+ 个 `char f(this, hovered, out)` 无调用者函数 = 各 GUI 件次虚表 FillTooltip 覆写, 通用前置 = hovered 与 `_pButton` 指针比对, 不等即返 0; 文案 SSO 串经 sub_140129C10 转出 out。**过滤面板三兄弟模式应用核心** = sub_141FFB030 / sub_14200B8E0 / sub_142058A30 (体同构: 脏旗 host+4088 → 三 widget teardown → radio4/radio5 帧扫 → 按 mode 内联显扫); **widget 物理顺序** host+2656 = infantry / +2664 = tank / +2672 = plane (行数 4/5/4 双写直证); **行数组 = N 数据行 + 1 尾随行** (teardown 拆 N+1 / radio 扫 N; 尾随行 = add-filter 行推定待裁)。**NDoctrines::CEntryButton::Setup sub_141D23290** = 深建模式实例 (sub_1422DC710 栈 1376B wrapper 深建 "button" 子件挂 this+40, context 存 +1432)。
+**wrapper 布局与回调形态增补 (定案/高置信批)**: +16 (glue 首槽) 存**按钮指针副本** (FillTooltip hovered 比对基准); **+1368/+1376 尾块双对象成对** (+1368 对象 A = 文案提供者 / +1376 处理件; 访问器**第三形态** = 内联展开时 this = wrapper+1376 尾块件, 断言反取 `*(this−1376)`; BW34 断言 15 处内联 / BW40 30 处)。**CTooltipHandler FillTooltip 形态学 (定案)**: 簇内 15+ 个 `char f(this, hovered, out)` 无调用者函数 = 各 GUI 件次虚表 FillTooltip 覆写, 通用前置 = hovered 与 `_pButton` 指针比对, 不等即返 0; 文案 SSO 串经 sub_140129C10 转出 out。**过滤面板四兄弟模式应用核心** = sub_141FFB030 / sub_14200B8E0 / sub_142058A30 / sub_141FFFD40 (第四件 = "equipments_grid_container" 装备格过滤, 含 no_market_access_no_equipment_to_buy_text 无货三态文案; 体同构: 脏旗 host+4088 → 各 widget teardown → radio4/radio5 帧扫 → 按 mode 内联显扫); **radio4 帧扫 = sub_142001D30 (钮槽 a1[5]/[184]/[363]/[542]) / radio5 = sub_142001F80 (+[721])**, 每钮 SetFrame((mode==k)+1), 步长 179 qword = 1432B (与行跨定案互证; gridbox 侧 CBranchUpgradeResearchedIcon 整行 1432B 第四证); **widget 物理顺序** host+2656 = infantry / +2664 = tank / +2672 = plane (行数 4/5/4 双写直证); **行数组 = N 数据行 + 1 尾随行** (teardown 拆 N+1 / radio 扫 N); **尾随行 OnClick = sub_142002DF0: `win->mode(+584)==本行 mode` 时置 mode=N(=行数) + radio5 帧全回落常态 = mode==N 即清空过滤** (尾随行语义定案)。**NDoctrines::CEntryButton::Setup sub_141D23290** = 深建模式实例 (sub_1422DC710 栈 1376B wrapper 深建 "button" 子件挂 this+40, context 存 +1432)。
 
 按钮包装宿主新件 (RTTI 直证):
 
@@ -3090,6 +3090,9 @@ CButton 槽语义 (定案): **+568 IsNullObject 判定** / **+176 SetFrame (帧 
 | NCareerProfile::CCareerProfilePageDot | 页点条目 (条目+80 wrapper / +165 位 0x10 选中旗 / SetFrame 选中?2:1); 刷新器 sub_141FEEC30 (池 +2752/+2764, 选中 +2776) |
 | NAirSelectionUI::NQuickWingDeployment::CWingQuickDeployWidget | quick_wing_deployment_item; 行构造/绑定 sub_14205C3B0 — NAirSelectionUI 8 派生表外新件 |
 | CShipStatsViewAirWingEntry | 行内容刷新器 = sub_141BF0C60 (写其 vftable; §4.31.42 类本体 80B 零覆写) |
+| NInternationalMarket::CMarketEquipmentItem | 行 ctor sub_142041050 (selection_button/general_name/stockpile_amount/price_level_icon/convoys_icon/creator_flag/has_subsidies_icon 七件; 四过滤窗各一调用方) |
+| CPoliticalSelectableIdeaItem / CIntelLedgerDoctrineEntry / CSelectArmyLeaderPreferredTacticsEntry | 行 ctor 实名 (RTTI; 后者双 lambda 过滤 sub_1416D25A0, 前者 "ledger_tech_entry" 模板复用) |
+| NProject::NUi 域 (0x14147 段) | §4.31.96 池挂两大宿主 +12608/+6880 的 0x14147 段类名待裁解决 = **NProject::NUi** (special_projects 列表/过滤 UI, §4.31.98); 建筑受损 FillTooltip = sub_141DC02B0 / 阵营成员升级 = sub_141F0A140 / 国际市场过滤钮对 = sub_141FFD8C0 (BW34 形态学 +3 落名) |
 
 df87 簇新定案大件 (buttonwrapper 消费侧, 域归属靠元素名串链):
 
@@ -3097,10 +3100,72 @@ df87 簇新定案大件 (buttonwrapper 消费侧, 域归属靠元素名串链):
 |---|---|---|
 | sub_14157F870 (1,564) | **政治视图按钮全路由/tooltip** | leader/party/ideology/elections/pol_faction_icon/pie_chart/add_national_goal (CLICK_OPEN_FOCUS)/drop_focus (FOCUS_CANCEL_BUTTON_DESC)/remove_goal (POLITICS_RESELECT_GOAL)/dismantle_faction (DIPLOMACY_DISMANTLE_FACTION_TITLE)/manage_occupied_territories 全路由表 |
 | sub_1416DFC80 (948) | **驻防命令 + 战计执行速度刷新** | garrison_order_headline / BATTLE_PLANS_X_WILL_BE_ASSIGNED / GFX_BPT_execute_mid/fast/slow; 调用者双域 = 战计工具窗 sub_1416DDAB0 + orders 域 sub_140B68600 (§4.24.14 驻防链直连边) |
-| sub_141F1D850 / 141F21D30 / 142024B30 / 1420261F0 / 141FBAFE0 | **MIO tooltip 五件** | 政策条目 / 任务容量 (断言 "pOrg" industrial_org_list_item.cpp:212, wrapper@this+15888) / 解锁特质弹窗两变体 / 详情窗历史升级行; INDUSTRIAL_ORG_* loc 族 |
+| sub_141F1D850 / 141F21D30 / 142024B30 / 1420261F0 / 141FBAFE0 | **MIO tooltip 五件** | 政策条目 / 任务容量 (断言 "pOrg" industrial_org_list_item.cpp:212, wrapper@this+15888) / 解锁特质弹窗装配 (sub_1420261F0 断言行 40 = BW40 setup 语境, INDUSTRIAL_ORG_UNLOCK_TRAIT_POPUP_* 装配, 非纯 FillTooltip) / 详情窗历史升级行; INDUSTRIAL_ORG_* loc 族 |
 | sub_140F2A5F0 (606) | 阵营情报窗 FillTooltip | FACTION_INTEL_HEAD_OF_SPYMASTER / AGENCY_DEFENSE_LEVEL_* / CREATE_AGENCY_* 等 |
 | sub_141DD53B0 (202) | **学说窗口 folder tab 刷新** | tab 名数组 @+88 步进 72B / 选中名 SSO @+1552 / 副本区 +1584、+3088 (门 +4592); 子窗 "button" 两级查找 vt[+104] 直取 ∨ vt[+536] 深查; SetFrame((idx==选中)+1) — 帧号 ±1 双分支待裁 |
 | sub_141B350E0 (435) / 141B34F70 | 袭击反馈弹窗行构造 + dismiss tooltip | raid_feedback_view 窗族 (§4.33 raid 命令同窗) |
 | sub_141C27A20 (430) | 1456B 池化 gridbox 条目刷新 | gridbox.h:654 断言; 池装配 sub_141476030 (条目 ctor 141C26510 malloc 1456 / 绑定 141C27950 +48 目标 id); 池挂两大宿主 +12608 / +6880 (0x14147 段, 类名待裁) |
 | sub_141BB7910 / 141BBF940 | profile badge 条目 + tooltip 显隐 | "pictur" 子件 SetTexture ← idpair 解引; 会话 tag 比对分叉; +648/656 方向关键证据 |
 | 其余 FillTooltip/行构造 20 件 | 间谍首脑条目 / grand doctrine 槽 / raid 过滤器 / 建筑受损 / naval_headquarter / 采购合同取消 / 特遣母港 / 科学家招募钮 / 阵营目标 glow 帧刷 / 阵营规则组行 / 阵营成员升级条目 / 国际市场过滤钮对 | 各 GUI 域元素名可检索, 详细见 archive findings |
+
+#### 4.31.96 CEmptyEntryListBase\<T\> 行项回收池 (emptylists.h 定案)
+
+GUI 行项回收池模板 (73 实例; T = 行项类: CIntelLedgerTechnologyEntry ×10 / CNegotiatorFlagEntry ×8 / CEquipmentModelListItem / CTinyUnitCounter / COperationViewEntry 族等)。持 T* 指针数组, 池内 = 未用/已回收列表行项; 销毁时逐项校验已从 gridbox 摘除。**无实例级全局单例槽** — 全部实例为宿主 GUI 视图内嵌成员 (CNavalCombatView +472/+6840 / CCountryNavalRegionView +855 等); 全局件仅 per-instantiation 断言旗 byte_14338xxxx 族。
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | vtable | CEmptyEntryListBase\<T\> |
+| +8 | T** | data (指针数组) |
+| +16 | int32 | cap |
+| +20 | int32 | count |
+| +24 | allocator* | (vt+8 alloc(bytes,align) / vt+16 free) |
+| +32 | int32 | 第二计数 (clear 时清 0) |
+
+宿主内嵌另有**池管理器双向量形态** (无自有 vftable): A 活动表 {data@0, cap@8, count@12} + B 空池 {data@24, cap@32, count@36, allocator@40}; 排空 = A 逐项倒出推入 B 再销毁 B 全部 (drain+destroy = sub_141734CD0)。
+
+销毁协议 (逐项): [debug 总门 ∧ per-instantiation 旗] → 引用校验 → deleting dtor `item->vt[0](item,1)` → count 清 0 → allocator free(data)。
+
+校验断言两式 (同尾句 "GUI object managed by empty list is still referenced when deleted! … use after free later on."):
+
+| 断言行 | 条件 | 链语义 |
+|---|---|---|
+| 44 | `!obj->HasAnyObserver()` | obj+24 dword 非零 = 仍被观察 |
+| 60 | `pItem->GetWindow()==null ∥ GetWindow()->GetOrigo()==null ∥ GetOrigo()->GetParent()==null` | item+16 window → window vt[+208] (槽 26) GetOrigo → origo+280 parent |
+
+> 与 gridbox 的引用关系 = **单向收养-摘除契约**: 池项曾被 gridbox/listbox 收养为行, 回池/销毁前必须已 RemoveChild (parent==null); 断言文本点名 "gridbox or alike"。window vt[+208]=GetOrigo / origo+280=parent 槽语义同供 §4.30/§4.31 虚表读法复用。
+
+#### 4.31.97 CSkillTreeBase\<T\> 布局机制 (skill_tree.h; 将领版 CUnitLeaderTraitTree)
+
+特质树 UI 布局系统通用层 (MIO 版 CTraitTree 见 §4.31.40 同构; .gui 模板 = interface/traittreewindow_common.gui, 要素 = skill_tree_empty_window_for_line 连线占位容器 / skill_tree_exclusive_vertical|horizontal 互斥分支角标 / skill_tree_line_mid 连线段)。将领版特化: CUnitLeaderTraitTree (vt 0x1429ED7C0; 条目 CUnitLeaderTraitTreeItem vt 0x142A69D8/0x142A69820; 基 CSkillTreeBaseItem vt 0x142A69728/0x142A69770)。
+
+| 偏移 (树宿主) | 类型 | 名称/语义 |
+|---|---|---|
+| +24 | 容器* | 连线占位窗父容器 (a1[3]) |
+| +40 | 节点* 数组 data | 节点数组 (a1[5]) |
+| +52 | int32 | 节点 count |
+| +176 | {i32,i32} | 内容包围盒 (布局后写, a1[22]) |
+| +184 | uint16 | 状态字 |
+| +185 | uint8 | 布局脏旗 (置 1 → 刷新) |
+
+| 偏移 (节点元素) | 类型 | 语义 |
+|---|---|---|
+| +24 | uint8 | hidden 门 (布局遍历跳过) |
+| vt+16 (槽[2]) | — | 返回该节点树格列表 {data, count@+24}, 元素 12B {格 x i32@0, 格 y i32@4, 辅@+8} |
+
+布局主算法 sub_1416C9BE0 (将领版; MIO 版 = sub_141FBFF80): 宿主虚槽 [10] (vt+80) = orientation (0 水平/1 垂直, 其他断言 skill_tree.h:791 "unknown orientation in skill tree"); 每格取相对父节点位移 (dx,dy) → 方向位 = (dx>0?4:8) 与 (dy>0?1:2) 组合 (位掩码 1/2/4/8 四向); 线段发射经线型规格 32B {步进 dx@0, dy@4, 尺寸@+8/+12, 段数@+24} (sub_141D12C10) 沿步进逐段放贴图 (sub_1416C9470); **布局不变量**: 子格与父格同位置 → 断言 skill_tree.h:358 "cell and its parent have the same position"。连线占位窗生成 (sub_1416C8F60 将领 / sub_141FBED80 MIO): 全局递增计数 dword_14338CD60 → 名 "connection_line_N" → UI 模板实例化工厂 sub_1422B8BC0 (容器, "skill_tree_empty_window_for_line", 名); 位置经子窗虚槽 [91] (vt+728) 设置。连线模板名 getter (sub_1416CB630 将领 / sub_141FC0C20 MIO): direction∈{1,2,4,8} 分派 → **树节点虚表槽 [13]-[16]** (vt+104/+112/+120/+128) 四模板名 (trait_tree_line_{left,right,top,bottom}[_dotted]); 非法方向断言 :590 "unknown skill tree direction"。宿主窗持**双树实例** (a1[36]=+288 / a1[38]=+304 指针槽; +296 = 名 "tree" 子窗查找), 重建 sub_1416C4160 灌两树 + 置 +185=1 → sub_1416CD520 刷新 (门 = 脏旗 ∥ 状态字)。节点数组稳定重排基建 = std::rotate/inplace_merge 链 (sub_1424287D0 → sub_142428130, 40B 元素 {int@+0, qword@+8, shared_ptr 16B@+16}, sub_142429890 = _Reverse)。
+
+#### 4.31.98 NProject::NUi::CProjectListFilterWindow\<TItem\> (special_projects 列表过滤窗; project_list_filter_window.h)
+
+特殊项目列表过滤窗模板 (三实例化 TItem = CResearchFacilityItem / CProjectHistoryItem / CProjectSimpleItem, lambda 名直证; Setup 断言 `_pWindow == nullptr && "Window already created."` :150):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | vtable | CProjectListFilterWindow\<T\> |
+| +40..+136 | SSO 串 ×4 (步 32: +40 窗/+72 格/+104 列/+136 容器) | 模板名 |
+| +168 | CWindow* | _pWindow (Create = 模板 db `**(qword_14332F698+1272) vt+96` 以 +40 名实例化) |
+| +176 | CGridBox* | 格 (sub_1422BA420(window, this+72, 1, 1)) |
+| +184 | CButtonWrapper | **内嵌 1368B** ("close_button" 深建 sub_1422DC8A0 + 胶水 sub_1422DD480) |
+| +1576 | — | 列/子格 |
+| +1584 | — | 行容器 |
+
+Setup 流: 建窗 → 双 lambda (tooltip + click) → close_button 挂 wrapper → 建 gridbox/列/容器 → 取库 (sub_140496D20 + sub_140ABAB90 得 tag 数组) → 逐 tag 查条目 (全局 RH 表 qword_14332F068, 0x45D9F3B 双轮雪崩 lo^hi 索引, 桶 56B {链长 u8@+4, 键 u32@+8, 值 qword@+16}, miss 落 0; tag = idpair {lo,hi}) → 建行挂格 → 刷新 sub_141473D60。**行件 1456B** (ctor sub_141CADF10, 四回调) — 与 §4.31.95 sub_141C27A20「1456B 池化条目」同域同尺寸, 0x14147 段池化体系同源。**NCountryFilterUI::CCountryItem** (市场可购装备窗国家过滤列表行, 双 vtable @+0/+24, 128B 基 + wrapper 内嵌@+48 ctor sub_140B77E10 + tag_id@+1416 + 旗@+1420; "country_flag"/"country_name" 子件)。

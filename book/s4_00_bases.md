@@ -460,12 +460,14 @@ default_confirmation_popup 专用确认窗族 (基座主虚表 0x14294C358 18 �
 | +136 | 8B id 对 | raid_instance (键 19183) | 定案 |
 | +144 | 8B id 对 | project (键 10022) | 定案 |
 | +152 | 8B id 对 | **faction (键 10877)** — 书缺行 | 定案 |
-| +160 | 块 | saved_event_target (键 13217; 112B 元 CSavedEventTarget; 0x30B 堆节点双容器) | 定案 |
+| +160 | 块 | saved_event_target (键 13217; 112B 元 CSavedEventTarget; 0x30B 堆节点双容器: @+0 常规 target 按名 u16 排序有序向量 / @+24 tooltip 向量; **仅 @+0 持久化**; 实现面全链见 §4.12.6) | 定案 |
 | +168 | uint32 | 州 id (键 439) | 定案 |
 | +172 | uint8 | 作用域存在旗 (scope_exists 极性锚定) | 定案 (活体 = 1) |
 
 - 附注: 除 +72/+96 两裸指针外, 句柄槽全部为 8B id 对 {表选择子, 键} (sub_14221F310 注册表解析);
   空槽判定 = 全零判定 (哨兵 qword_14333D528 在 1.19.3 活体 = 0, 书记 0x02DF8CA0_0005EA66 系 1.19.2 值)。
+- **类型判别 u32 键** = sub_1405367F0 (scope → 乘数键, 逐型 {combatant 3, country 31, strategic_region 37, state 59, MIO 82, purchase_contract 113, faction 727, raid_instance 1949})。
+- 帧重置原语 = sub_140534CA0 (集合求值器首匹配访客的追加原语与之同函数): 重置 = {+8=0, +12=1, +16=1587985054, +24/+32 FROM 链拷, +72..+152 十三型元素槽清哨兵} — 求值帧复用入口 (§4.00.12 求值器引)。
 - 附注: 源键位场 (+36 u32 作用域键位图 + event_target tag u16@+40) **属 effect/trigger 对象**
   (§4.00.3 [6]/[4] 行), 不在 CEventScope 上 (176B 内 +32/+40 被指针占满)。⚠ CEffect[6]
   parse (sub_14053D4C0) 与 CTrigger[4] parse (sub_14054AE70) 在 controller (0x020 vs 0x440)/
@@ -527,6 +529,23 @@ setter 全家对照 (定案, 函数→槽一一对应; 消费端构造临时 sco
   (CPersistent / CPersistentWithToken / CTriggerDataMembers / CPdxAllocator / CObjectType …)。
 
 #### 4.00.6 控件层 (按钮管线 / 网格列表 / 选项)
+
+**CGridBox 运行时布局** (gridbox.h; 断言 `Index < _Elements.GetSize()` :654 = +428 计数; 6 消费者互证):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +368 | int32 | max_slots 横 (type 侧 max_slots_horizontal(617)→type+440 运行时对应) |
+| +372 | int32 | max_slots 纵 (max_slots_vertical(616)→type+444 对应) |
+| +384 | uint8 | 流向字节 (add_horizontal(614)→type+456 对应): 1 → d1 先增 / 0 → d2 先增 |
+| +392 | CCoordPair* | 格坐标数组 data (8B 元 {u32 d1, u32 d2}) |
+| +400 | int32 | 坐标数组 cap |
+| +404 | int32 | 坐标数组 count (= 活动行数; 填充循环先复用已有行, 越界才 malloc 新行) |
+| +416 | CGuiObject** | _Elements 条目指针数组 data |
+| +424 | int32 | _Elements cap |
+| +428 | int32 | _Elements count = GetSize() (:654 断言对象; 下标界) |
+| +504 | CButtonEventDispatcher | 内嵌 (见下) |
+
+五原语: AddItem@格 sub_1402DE9B0 (gridbox, item, &cell, 旗, 1) / 追加(自动格) sub_1402DEC80 / 重排 sub_1422C7E50 (填充完统一调) / 显窗 sub_1422C4970 / 滚动范围 sub_1422CAA00。下一格算法 (三处同构): 读坐标数组末元素, +384=1 → d1+1 (≥+368 → d1=0,d2+1, 界 +372); +384=0 → 对称; 任一界 ≤0 = 不设界直落 AddItem。回收池喂入 (消费侧) = 宿主+32 池 data / 宿主+44 池 idx (`data[8×(idx−1)]` 后 idx−1) — §4.31.96 池 B 的宿主内嵌无 vftable 形态; pdx_view §3.12 迭代器 + 96B 条目直接喂格 (sub_1420572B0)。
 
 按钮管线 (定案): widget 侧 CButtonStandard (vt 0x142B472E8 = CGuiObject 链@0 +
 CButtonObservable@128 订阅表) 经 Broadcast sub_1422AFA70 逐个调 observer->vt[1];
@@ -782,7 +801,7 @@ CSettings+896 内嵌 56B; SAudioContext/SSDLAudioContext = 音频后端运行时
 
 **CSong** (曲目 def 项, 104B; vt 0x14294C030 44 槽; CPersistent 但 writer = CFG 空桩 = 解析件不入档; reader 0x140B74DD0): +8 song 名串 (token 11418) / +40 CMeanTimeToHappen 内嵌 (token 446 chance 块) / +96 u32=0; def 去向 = boot 枚举 `music/*.txt`, 顶层 music(573) 块逐条 new CSong, playlist 键另由 sub_140B91500 处理。**语音族** (SAPI 无障碍, 全排除): PdxSpeechToTextInterface (0x142B5D220 抽象) → PdxSpeechToTextWinSAPI (0x142B5D260, 次 vt@+32 = SAPI COM 事件基); PdxTextToSpeechInterface (0x142B5D150 抽象) → PdxTextToSpeechWinSAPI (0x142B5D1B0); SpeechInput (0x142B3FDE0, 基 SpeechRecognitionListener 0x142B3FDB8) = 语音输入单例, Activate/Deactivate 即开关。**输入实现族** (pdx 引擎层, 全排除): CPdxEvents (0x142B3E948) / CPdxEventHandler (0x1427361E0) / CPdxSystem (0x142B51678, 基 CSystem) / CPdxKeyBoard (0x142B594D8, 多基 CKeyBoard + 键按/抬 Observable) / CPdxMouse (0x142B59550, 多基 CMouse + 5 Observable) / CPdxTouchDevice (0x142B51578)。**CTrack** (0x142B57FA8, 多基 CButton + CButtonObservable@+128) = GUI 滑轨元素, 与音频曲目无关; **CRomeBitmap** (0x1429D61E8, 基 CBitmap) = 位图实现; **CPostEffectVolumeReloader** (0x1429A7228, 基 CReloadDispatcher) = 16B 回调壳挂 owner+352, 仅 posteffectvolumes 热重载。
 
-**网格渲染族**: **CPdxMeshObject** (渲染实例; vt 0x142B409F0 22 槽; 基 CPdx3DObjectHelper\<CPdxMeshType\> ← CPdx3DObject): +88 CPdxMeshType* / +112 渲染句柄 / +140..+160 包围盒 f32×6 / +184/+192 列表 / +200 分配器 (= off_143085170); ctor 0x142275B60 经 0x142309CC0 向 type 注册, dtor 0x14230E280 解注册。**CPdxMeshType** (网格类型 = 资产 lexer; vt 0x142B4D7A0 14 槽; 基 CPdx3DTypeHelper\<CPdxMeshType,CPdxMeshObject\> ← CPdx3DType ← CPersistentWithToken; **writer = CFG 空桩 = 入资产库不入存档**): reader 0x14230D680 键 file(26)→+184 串 / animation(64)→+216 SAnimationLookup vec / meshsettings(677)→+96 SMeshData vec (stride 216, 6×CString+CColor 元) / variant(793)→+120 串集 / preload_textures(673)→+370 u8; 基 reader 0x1422D7A60 键 name(27)→+16 / scale(93)→+48 f32 / cull_distance(368)→+52 f32 **读入即平方**; ctor 0x142308F20 置 +160..+180 包围盒 FLT_MAX/-FLT_MAX 哨兵对。
+**网格渲染族**: **CPdxMeshObject** (渲染实例; vt 0x142B409F0 22 槽; 基 CPdx3DObjectHelper\<CPdxMeshType\> ← CPdx3DObject): +88 CPdxMeshType* / +112 渲染句柄 / +140..+160 包围盒 f32×6 / +184/+192 列表 / +200 分配器 (= off_143085170); ctor 0x142275B60 经 0x142309CC0 向 type 注册, dtor 0x14230E280 解注册。**CPdxMeshType** (网格类型 = 资产 lexer; vt 0x142B4D7A0 15 槽; 基 CPdx3DTypeHelper\<CPdxMeshType,CPdxMeshObject\> ← CPdx3DType ← CPersistentWithToken; **writer = CFG 空桩 = 入资产库不入存档**; 槽语义: [4] reader / [9] .mesh 装载 0x14230A510 / [13] 对象工厂 — 三槽模式全族一致, 装载全机制 §4.35.16a): reader 0x14230D680 键 file(26)→+184 串 (读入 `\`→`/` 归一; "dlc/" 前缀 assert) / animation(64)→+216 SAnimationLookup vec (+8 FNV 去重, 重复 terminate) / meshsettings(677)→+96 SMeshData vec (stride 216; 216B = vt + 6×32B 串 @+8 步进 40 + i32@+212 init −1, 颜色语义待裁) / variant(793)→+120 串集 / preload_textures(673)→+370 u8; 嵌套 **SAnimationLookup** (56B; vt 0x142B4D750; reader 0x14230DAE0 键 id(11)→+8 FNV 键 / type(225)→+24 串 + +16 动画资源, 查无 terminate); 基 reader 0x1422D7A60 键 name(27)→+16 / scale(93)→+48 f32 / cull_distance(368)→+52 f32 **读入即平方**; ctor 0x142308F20 置 +160..+180 包围盒 FLT_MAX/-FLT_MAX 哨兵对。
 
 **3D/2d 双系总图** (渲染对象整族 writer 空桩 = 不写存档): 3D 双系 = **CPdx3DObject** (vt 0x142B40960, 实例基元, 非 CPersistent) ↔ **CPdx3DType** (0x142B41580, CPersistentWithToken, reader = 全族公共 0x1422D7A60 三键表见上), 业务类经 CPdx3D*Helper 模板桥接 (RTTI `?$CPdx3DObjectHelper`); 2d 双系 = **CGraphicalObject** (0x142B44120 基元) → C2dObject (0x142B3D060) → C2dVisibleObject → 实例链, Type 侧 C2dObjectType ← CObjectType ← CPersistentWithToken (其解析件并入 §4.30.31 精灵/GUI 模板族)。占位对 CPdxDummy3DObject (0x142B57DC8) / CPdxDummy3DType (0x142B57E58, reader 直通基 0x1422D7A60)。
 
@@ -816,10 +835,10 @@ CSettings+896 内嵌 56B; SAudioContext/SSDLAudioContext = 音频后端运行时
 
 | 类 | 定性 | 一句话 |
 |---|---|---|
-| CLexer | 简卡 | **pdx parser lexer 本体** ≥104B: {+8 缓冲/reader, +24 状态, +32 token 缓冲, +96/+100 配置}; 文件版经 CVirtualFile 开读 + 1MB 缓冲; 懒构 token 表 sub_1424BD740 = boot 表已载 e4c3a 同件 (token_name 消费的引擎 token 空间读取端) |
-| CBinLexer / CTextLexer | 负定案 | CLexer 零覆写换表派生 (二进制/文本 lex 变体) |
+| CLexer | 简卡 | **pdx parser lexer 本体** ≥104B: {+8 源对象 (其 +8 = 当前行号 u32, 取行号原语 sub_1424BDB80), +16 GetToken 返值缓存, +24 当前 token 槽 (72B 同 CReader 槽形; 取失败 id 置 19), +32 文件名指针 (+44 有效旗), +96 配置, +100 已缓存旗, +101 模式旗}; 文件版经 CVirtualFile 开读 + 1MB 缓冲; 懒构 token 表 sub_1424BD740 = boot 表已载 e4c3a 同件 (token_name 消费的引擎 token 空间读取端); 取槽地址原语 sub_1401AD740 |
+| CBinLexer / CTextLexer | 负定案 | CLexer 零覆写换表派生 (二进制/文本 lex 变体; CTextLexer ctor sub_1424BB330) |
 | CWriter | 简卡 | pdx 序列化 writer 抽象基 ≥32B: 持写出口接口@+16 (+25 持有旗) |
-| CReader | 简卡 | pdx parser reader 核心 ≥336B: +40 持有接口 (+288 旗) / +24 错误计数 (断言 parser.cpp:891) / +8 解析节点链表 |
+| CReader | 全字段表 | pdx parser reader 核心 ≥336B, 详 **§4.00.17** (错误节点链表 + 三 token 槽 + '@' 注解表 + 标量 reader 族) |
 | CException | 简卡 | 异常基类 ≥80B: {+8 dword 错误码, +16/+48 双 SSO 串}; 构造被派生内联 |
 | CFileException | 简卡 | 引擎主文件异常 (throw 站点 179 处遍布 VFS/解析/加载域); 与基类共址 = **构造链内联非 ICF** (拷贝 ctor 先写基表后覆写派生表) |
 | CChoiceException | 负定案 | 同构派生仅换表; 全 dump 3 处, 几乎未用 |
@@ -967,13 +986,16 @@ NLoc::SScopeLocalizer scope 本地化 desc (虚槽[25] 取基文案 + 按深度�
 
 **script_collection_evaluator.h 集合算子链游走器** (双批互证定案; 与 §4.32 count_in_collection
 所引 triggers 侧同体系两侧): 模板 `CCollectionEvaluator<元素类型>` = 脚本集合「算子链运行期
-游走器」, **195 实例 = 12 元素类型 (country/state/faction/unit/character/combatant/project/
-operation_instance/industrial_organisation/purchase_contract/raid_instance/strategic_region;
-无 ace 无 province) × 每型恰 15 + 15 族内分发/无字面量变体**。链视图 = `{begin,end}` 指向
+游走器」, **195 实例 = 13 元素类型 (country/state/faction/unit/character/combatant/**ace**/
+project/operation_instance/industrial_organisation/purchase_contract/raid_instance/
+strategic_region; 无 province) × 每型恰 15 族内分发/无字面量变体**。链视图 = `{begin,end}` 指向
 **16B/条 {kind u32@+0, payload@+8}** 数组 (无独立 RTTI 类); 游走器统一五参 `(求值帧, &链视图,
 当前元素, 访客, 游标)`, 逐元素 ctor(sub_140535110)/bind/dtor 固定成本 + :193 FROM 环守卫;
-bind helper 按型分件 (country = sub_14053B470 / state = sub_14053B4B0 / combatant =
-sub_14053A590 三件直证, 余推定同族)。kind 七类骨架: 0-3 = 四内建集合源 (faction_members
+bind helper 按型分件 (13 型全直证): country sub_14053B470 / state sub_14053B4B0 /
+combatant sub_14053A590 / character sub_14053B330 / unit sub_14053B6B0 / ace sub_14053A250 /
+strategic_region sub_14053B670 / industrial_organisation sub_14053B030 / purchase_contract
+sub_14053B1B0 / raid_instance sub_14053B270 / project sub_14053B4F0 / operation_instance
+sub_14053B0F0 / faction sub_14053A690。kind 七类骨架: 0-3 = 四内建集合源 (faction_members
 19584 = dip+656→成员{+88,+100} / owned_states 12321 = cc+1144 / controlled_states 12320 =
 cc+1120 / country_and_all_subjects 10237 = dip+368 附属 tag); **kind 4 = 通用算子节点**
 (payload 对象指针, 空返 0, 非空新 scope 上 vt[3] 判定真才递归 — 勘误: 原凭 unit 型实例猜
@@ -982,7 +1004,15 @@ cc+1120 / country_and_all_subjects 10237 = dip+368 附属 tag); **kind 4 = 通�
 报错, 名经 sub_1403C4FE0/C50A0 以 token 13178/17404 运行时取) — **kind 值非全局统一枚举**。
 内建源可迭代性 = 元素类型静态决定 (country 型全四源; faction 仅 kind0; 其余 9 型全报错)。
 三种失败通道: GetSize 不支持 (evaluator.h:130) / [Parallel]ForEach 不支持 (:230) / 链尾非叶
-断言 `"Target and leaf node in operator doesn't match"` (:171, 96/195 断言形; 99/195 叶派发形)。
+断言 `"Target and leaf node in operator doesn't match"` (:171)。**走查三形**: A 断言形克隆
+(93: 越端断言+返 0, 无叶动作 — count 族引擎/输入分发器的模板全组实例化, country 型真计数叶
+sub_1404E8570 在簇外); B 叶派发单例 (52: 越端 = 访客派发, 返 1 = 全链短路信号; all 计数 293 形含 operation_instance 型 sub_1404EE4C0); C GetSize 形
+(0x140A1 域: **叶 = 末链节 cursor==count−1 而非越端** — 源 kind 直读计数, 算子 `**a4 += vt[3]
+判定`, 中段源 = 导航跳型迭代后跨型递归 state walker sub_140A1A5D0)。**访客族目录 (B 形叶动作)**:
+any 计数 (295 形, `--计数 ≤0 → ok=1 返 1` 短路) / all 计数 (293 形, 同减无 ok 旗) / 首匹配收集
+(296/291/260 形, 旗@+176 已置返 0, 否则 sub_140534CA0 追加+置旗+返 1) / 末元素比较 (0x14140 域
+283/280/313/253/249 形 ×20, sub_14141C5A0 后 `(容器末元素==NULL)==期望旗@+32` —
+collection_contains/条件收集消费侧)。
 
 短路语义逐消费族不同 (定案): **all 族** (all_collection_elements 引擎 sub_1404C9E00) 叶访客
 失败置 `*ok=0` 返 1 逐层上抛中止, 空集恒真; **any 族** (sub_1404CA360) `--count` ≤0 置 ok=1
@@ -992,7 +1022,14 @@ GetSize 双模式合一)。消费面另含 collection 输入解析 type-4/6 (sub
 与两套同形世界根分发器 (sub_14140EA50 / sub_1404BA300: case1 = gs+784 国家表过滤
 cc+1156>0 有拥有州 / case2 = 全部国家)。**经典 every_owned_state / any_country 等卡不经本簇**
 (§4.3 直遍历 own 容器, 独立实现)。与 CTrigger 槽关系: 不占 [22] Evaluate 槽, 是上述触发器
-引擎下层共用迭代核心; 逐元素子触发器求值 = sub_14054AB30。叶层双实现: 串行与 tbb 并行
+引擎下层共用迭代核心; 逐元素子触发器求值 = sub_14054AB30。**求值帧 = CEventScope** (类型化元素槽 +72..+152 见 §4.00.4 帧
+槽表; scope 分发器 sub_140A1CDA0: 帧+8>0 → country, 否则按 +72..+152 槽序试 11 getter 经
+sub_14221F310 ref 解析命中投对应类型 walker; state 分支 = gs+712 州表界检查, 越界
+"Failed to find state with id: %d" input_impl.h:184); 14 个分发器骨架逐一锚定: 8 count 族变体
+(sub_1405028D0/2E0/34F0/3B00/4720/220/4110 → §4.32 count 五模式) + any/all 引擎
+(sub_140504D30/sub_140505340) + 4 世界根 (sub_1404C63F0/6A00/sub_14141B4B0/1BAC0) +
+input type-4 (sub_1403C5160) + GetSz (sub_140A1CDA0); tbb 并行叶与串行叶共享调 state walker
+sub_1404EAE90 (12 调用点)。叶层双实现: 串行与 tbb 并行
 (198 行同构族 ×31: 8 层区间栈二分分裂 + continuation/child task + 取消支持)。容器锚负定案:
 成员/州/国家表全部书已收, 本簇新原语 = 链视图形态 + kind 表 + 访客协议四款。同族同型同
 行数多实例 = **逐字节同码克隆** (仅自递归名/断言守卫字节异, 链接器未做 ICF)。断言通道 =
@@ -1078,3 +1115,64 @@ trait 条件修正表 (§4.4.23)、战术权重 (§4.22.7) 共用同一 40B 布�
 **只读解析件 10 件** (PERS 但 writer 空桩 = 只载不存, 解析域入住零存档面): **CDynamicEquipmentGroup (216B; CEquipmentGroup 派生双 COL 子对象@+104; writer CFG 空桩 = def 只读解析件; reader 0x140A0B160 三键 icon (181) →+16 串 / description (15906) →+48 串 / equipment_type (16217) →+80 块; ctor 0x141915650)** / CNationalFocusStyleDatabase (PERS 壳全惰 — reader = 错误桩 0x1424BEC40, 无实读) / SNationalFocusStyle (国策风格, §4.3.15 邻) / SCriticalPart (关键部件) / SModifierStat / SNamesPool / SInitialScientistSkillLevel (科学家初始技能) / SAce (ace 读入件, §4.3.12 已载域) / CBuildingTemplate::SCountryModifier (建筑模板内嵌) / SMeshVariant (渲染解析) / CCitySettings::{SDistanceMesh, SGroup} (零独立 vftable 写点内嵌件)。**CHighlightStates** 维持负定案 (决议 highlight 块内嵌, writer 空桩; ctor 事实 {CAndTrigger@+8, CPersistentScriptTargets@+96})。
 
 **语音三件** (无障碍域, 运行时件): SpeechInputHandler / PdxTextToSpeechState / PdxSpeechToTextState — 锚 CPlayerLobby+9856/+9880 内嵌与 pdx 懒单例; 简卡免布局。
+
+#### 4.00.17 pdx 解析协议 (CReader 全布局 / token 槽 / 标量 reader 族 / unordered_map 读件)
+
+> 定性 (负定案): pdx_parser.h 簇 = **CReader 流式解析协议 + `Load(CReader&, T&)` 模板重载族, 无 DOM 节点树** — "节点"仅存在于 CReader 的三个 72B token 槽与 96B 错误节点链表。三层分工: **CLexer** (token 生产, §4.00.9 简卡) → **CReader** (协议 + 标量转换 + 错误) → **Load 模板** (逐类型块读取循环, 49 个实例化, 断言 pdx_parser.h:2222 ×44 / :1203 ×4)。
+
+CReader 主表 (≥336B; ctor sub_1424BEC90 逐字段直证; dtor sub_1424BEF30):
+
+| 偏移 | 类型 | 名称/语义 | 备注 |
+|---|---|---|---|
+| +0 | vtable | CReader 主虚表 | |
+| +8 | 错误节点* | 错误链表首 (最早错误) | append 时 count==0 才写 |
+| +16 | 错误节点* | 错误链表尾 (最新错误) | 每次报错更新 |
+| +24 | uint32 | 错误计数 | 无错误判据 = `reader+24 == 0` (sub_1424C0050); 断言 parser.cpp:891 |
+| +32 | uint8 | 错误态旗 | 报错置 1 |
+| +40 | CLexer* | 持有的 lexer (唯一 token 源) | |
+| +48 | token 槽 72B | **键 token** | GetKeyEqualsValue 填 |
+| +120 | token 槽 72B | **算子 token** | {1 "=", 467 ">", 468 "<", 792 "?="} |
+| +192 | token 槽 72B | **当前/值 token** | 块入口预读判据; 标量 reader 全吃此槽 |
+| +264 | CPdxArray | 数组一 {data@+264, 计数@+272, 分配器@+280} | 用途未定 |
+| +288 | uint8 | 持有旗 | |
+| +296 | 指针 | id 解析门对象 (字节 +8/+9 双门) | CID 读 sub_14221F970 非门即跳过赋值 |
+| +304 | CPdxArray | **'@' 注解表** {data@+304, 计数 int@+316, 分配器@+320} | ≤0 = 空 |
+| +328 | uint8 | 毒化字节 0xAA (ctor 直写) | 布尔/完整性哨兵 (推定) |
+| +332 | uint8 | 旗 | ctor 0 |
+
+| 槽内偏移 (token 槽) | 类型 | 语义 |
+|---|---|---|
+| +0 | uint32 | token id (lexer id 空间; 3 "{" / 4 "}" / 19 坏) |
+| +4 | uint8 | 旗 (已解析/替换标记; '@' 注解路径用) |
+| +8..+72 | CPdxHybridInlineBuffer 串 | token 文本 (21B 内联) |
+
+| 偏移 (错误节点 96B) | 类型 | 语义 |
+|---|---|---|
+| +0 | MSVC string 32B | 错误消息 |
+| +32 | uint32 | 行号 (报错时 lexer 现取) |
+| +40 | MSVC string 32B | 文件名 (空则全局空串) |
+| +72 | 错误节点* | prev |
+| +80 | 错误节点* | next (链 append-only) |
+| +88 | uint8 | 旗 |
+
+协议机制:
+
+| 机制 | 函数 | 语义 |
+|---|---|---|
+| 键-算子-值步 | sub_1424C1540 | GetKeyEqualsValue: 消费键→reader+48 → 校验算子→+120 → 预读值→+192; 值 token 为 "}" 时向 +192 写空串 id 0 |
+| '@' 注解 | sub_1424C04A0 | token 文本 '@' 开头 = 注解引用: 剥 '@' 后 FNV-1a 32 位查 reader+304 注解表代换, 结果回写 token 缓冲当普通 token 消费 (脚本文件头 `@名 = 值` 局部变量代换); 第二字符 '(' = 未实现断言 |
+| i64 读 | sub_1424C08D0 | `sscanf(token, "%i")` |
+| **fixed×1e-5 读** | sub_1424C0A70 | `sscanf("%lli")` 整部 + '.' 后 ≤5 位小数 (不足补 '0') 拼成 int64 — 小数→定点协议解析侧落点 |
+| bool 读 | sub_1424C4E30 | `strncmp("yes", 4) == 0` |
+| CID 读 | sub_14221F970 | `{ family id }` 两元素; 受 reader+296 门 |
+| tag 读 | sub_140BB5560 | tag id (与 country 索引间接表 sub_140BB5490 配套) |
+| 多态容器读 | sub_1424C0AA0 | `容器->vt[3](容器, reader)` |
+| 跳块 | sub_1424C2170 | GetToken 循环数 '{'/'}' 平衡至配对 '}' |
+| yes\|id 联合标量 | sub_1402F0990 | "yes" → bool 域 / 整数 → id 域两支 |
+| CircularBuffer 读 | sub_140E993A0 | 先读 u32 向量再逐元素按写位环形推入; 断言 "The capacity of the buffer should be set before reading it" (:1622) |
+| 错误节点 append | sub_1424C1EF0 | 建节点接链表 (+8/+16/+24/+32 更新) |
+| ParseAssert 日志 | sub_1424C0060 | `Error: "<源文本上下文>" in file: "<名>" near line: N` (上下文 = 当前+前行源文本 '\n' 连接) |
+
+错误消息族 (串直证): "Expected opening brace" / "Expected start of list" / "Expected start of list for pair of element" / "Encountered a third element while reading pair" / "Encountered less than two elements while reading pair" / "Malformed token" / "Unexpected token" / "not yet implemented"。
+
+**pdx_unordered_map_parser.h (6 实例, 断言 :43 全同)**: 骨架 = clear 目标表 → '{' 门 → 循环 pair 解析 (`{ 键 值 }` 二元子表, 键值皆裸 token 无 '='; 第三元素/不足两元素各报错) → 键哈希 → CPdxRobinHoodTable find-or-insert (32B 内嵌表头 + 24B 桶 {hash u32@+0, dist u8@+4, key u32@+8, value qword@+16}; 一实例 64B 桶串键)。键哈希三型: **tag → country 索引** (sub_140BB5490 = `*(gs+832 间接表)[tag]` — §3.2「tag id → country index 间接表」的函数级落点) / **CID 雪崩** (sub_14221EF50, §3.2b 同式) / 串键内联。六实例 = sub_1411FE9B0 (f32 值) / sub_1411FE5A0 (块结构值) / sub_141005BA0 (向量值) / sub_1401E5150 (对象指针值; token 357 "undefined" = null) / sub_1411FE190 (CID 键) / sub_1414DED70 (SBookmarkPlaythroughData + 计数, 64B 桶)。

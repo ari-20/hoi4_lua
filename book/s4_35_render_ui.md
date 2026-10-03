@@ -405,7 +405,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 | S2 | 帧管线/2D 树 | graphics.cpp 778 | sub_14223D3F0 Render2dTree; sub_14223DB60 Draw 派发 |
 | S3 | 地图图形 (map_graphics) | map.cpp 2,053 / pdxmap.cpp 1,310 / mapbuildings 1,466 / provincegraphics 981 | sub_141244070 地图箭头; sub_141B204A0 省界生成 |
 | S4 | 渐变边框/边界 | gradientborder 三件 1,010 | sub_14159BBE0 tbb 任务体; sub_140F36C50 claim 管理 |
-| S5 | 地图模式 | mapmodemanager 946 / defines_mapmode 1,588 / custom_map_mode 603 | sub_140E14680 = 模式 2 (STRATEGIC_NAVY) 每帧 updater (勘误正名: 原「OnMapModeChange」系误记 — 真 OnMapModeChange = sub_140A66DE0 CMapModeDispatcher::OnMapModeChange, mapmodedispatcher.cpp:238 实名, ~80 处切换统一点); sub_140E1B280 逐省着色 (§4.2 链): 政治混合 = byte/255 → 0.9f/0.65f/0.25f 三色构造 (14224BEB0 + 14224BFF0 lerp); 未认领哨兵色 0xAA00FFFF (PE ×4); 动画帧 = fmod(Δt, 帧数×qword_1430B1648)/周期×帧数 钳 [0,帧数−1]; gs+700 计数门语义 = 国数 (同 dword175) 非省数; 淡入淡出三通道 +1728/+1732/+316 步进 dt 后各 clamp [0,1], 方向门 = DRAW_COUNTRY_NAMES_CUTOFF (dword_14333645C) ≤ 缩放(a2+1668); +312 = +1732 镜像 |
+| S5 | 地图模式 | mapmodemanager 946 / defines_mapmode 1,588 / custom_map_mode 603 | sub_140E14680 = 模式 2 (STRATEGIC_NAVY) 每帧 updater (勘误正名: 原「OnMapModeChange」系误记 — 真 OnMapModeChange = sub_140A66DE0 CMapModeDispatcher::OnMapModeChange, mapmodedispatcher.cpp:238 实名, ~80 处切换统一点); sub_140E1B280 逐省着色 (§4.2 链): 政治混合 = byte/255 → 0.9f/0.65f/0.25f 三色构造 (14224BEB0 + 14224BFF0 lerp); 未认领哨兵色 0xAA00FFFF (PE ×4); 动画帧 = fmod(Δt, 帧数×qword_1430B1648)/周期×帧数 钳 [0,帧数−1]; gs+700 计数门语义 = **省数 (省表界)** (勘误: 原「国数 (同 dword175) 非省数」系误读 — 同函数 sub_140E1B280 逐省着色按省数消费 (§4.2 链) + mapbuildings 两处独立直证 (省 id 有效门 + 等级表按省一行), §4.14/§4.13 主流定案); 淡入淡出三通道 +1728/+1732/+316 步进 dt 后各 clamp [0,1], 方向门 = DRAW_COUNTRY_NAMES_CUTOFF (dword_14333645C) ≤ 缩放(a2+1668); +312 = +1732 镜像 |
 | S6 | 地图图标 | mapicon.h 1,358 / mapiconmanagerimpl 691 | §4.30.26-28 类族 |
 | S7 | 地图箭头/前线几何 | maparrow 481+370 / raid_arrow 824 | sub_141244070; sub_1423F4C90 点集切分; sub_141039F80 寻路 manager ctor sub_14126E990 / LoadDefinitions sub_141272920 (gfx/maparrows/maparrows.txt, lua 解析器 sub_141272F00) / 订单箭头装配 sub_141254FB0 (三静态色源 + 地图模式 39 分支) / per-frame sub_14124F710 / 三池析构 sub_141662150 |
 | S8 | 相机/交互输入 | (0x140DB-DC / 0x14126 区) | CEU3Camera; sub_1412627C0 热键+位移 |
@@ -436,7 +436,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 
 **切换段** (~80 处统一点): sub_140A66DE0 = CMapModeDispatcher::OnMapModeChange (mapmodedispatcher.cpp:238 实名) → 旧模式退出清理 (overlay 隐藏/hover 清/层停用) → 新模式入场预着色 → **sub_140E17F30 SetMapMode 状态机**: 同 id 非 force 早退 / 释放旧实例 / vt+184 通知 / switch(id) 写 bank 槽对 (sub_140F31D20) + 层子模式 (sub_140F3B090) + 行选脏闩 (+129/+130) / ≥40 查自定义库 qword_14332F040 → 每路尾调 sub_140E18DF0 SelectModeInstances 向 hub (mgr+64) 灌 tag 色 → 尾取 24B 槽可见性掩码。
 
-**每帧段**: 三 idler (ingame/frontend/nudge) 全部驱动 sub_140E1A890 UpdateDispatch — 日历追赶门 (dword_1430B15C0 三日游标逐日追赶扫) / 图例旗 → hub 全量重建 / switch(模式 id) 逐模式 updater / mgr+4 副模式支 (gs+700 国数门互证); 随后 sub_140E1DAA0 ApplyTweens 应用闩 (脏时写 mapview+1696/+1700 行选并触发行重建)。
+**每帧段**: 三 idler (ingame/frontend/nudge) 全部驱动 sub_140E1A890 UpdateDispatch — 日历追赶门 (dword_1430B15C0 三日游标逐日追赶扫) / 图例旗 → hub 全量重建 / switch(模式 id) 逐模式 updater / mgr+4 副模式支 (gs+700 省数门; 勘误: 原「国数门」系误读); 随后 sub_140E1DAA0 ApplyTweens 应用闩 (脏时写 mapview+1696/+1700 行选并触发行重建)。
 
 **输出段双通道**: A. 省色贴图通道 — bank 23 槽脏位 → RefreshSlot (分派断言属 gradientbordermanager.cpp, 与 S4 渐变边框 18 件同库互证) → CRect 合并 → 省色纹理脏矩形提交; B. 国色通道 — hub 树暂存 tag→色 → flush 逐 tag/全量刷 (pdxmap 省色通道)。
 
@@ -664,7 +664,9 @@ sub_142267700 = "LookupTaskMutex" SRW 独占下排序 (≤32 插排/32 归并, �
 挂起批 shared_ptr qword_1434532E8。**热重载复入 = sub_14209E610 重跑 InitTextureLookup**
 (清表重建, §4.35 热重载 assets 对, 高置信)。条目布局 = {+0 next, +8 prev, +16 键串, +48 值全路径串}。
 
-**② 网格装载管线 (mesh → GPU)**: sub_142264F50 装载入口 (键 object/skeleton/mesh/skin;
+**② 网格装载管线 (mesh → GPU)**: 装载入口 = **CPdxMeshType vt[9] 0x14230A510** (.mesh
+装载巨函, pdxmeshtype.cpp; 管线上游全貌 §4.35.16a), sub_142264F50 = 其骨架提取子步
+(pdxassetutil.cpp 系; 键 object/skeleton/mesh/skin;
 骨骼矩阵 SSE; "Didn't find skeleton in mesh file") → sub_142263D10 缓冲构建 (流键
 p/n/ta/u0-3/tri(必选)/skin; **流对象 +20 = 元素计数按各自单位**; 皮肤校验
 "Bones/Weights doesn't match coordinates!" :994/:998; 返回 1 = 仅网格 / 2 = 网格+皮肤) →
@@ -682,6 +684,56 @@ dword_1430BDF7C/80)。动画装载 sub_1422625E0 (.anim info{fps,samples} + 逐�
 **CreateVertexBuffer** (本簇 3 消费点全为顶点数据: 交错顶点 + 皮肤缓冲, stride 4×浮点数 / 16) /
 槽 41 off_1430BF8F8 = **CreateIndexBuffer** (u16 降频产物 stride 2) — 原「CreateBuffer /
 CreateBuffer v2」实质 = 顶点/索引双通道; **两槽第 6 参 = 调试源串** ("pdxassetutil.cpp:861/898")。
+
+#### 4.35.16a CPdxMeshType .mesh 装载域 (pdxmeshtype.cpp 3 函; vt 槽模式横向定案)
+
+清册 (3/3 函体内含 pdxmeshtype.cpp 全路径锚):
+
+| VA | 行数 | 身份 |
+|---|---|---|
+| 0x14230A510 | 2142 | vt[9] .mesh 装载巨函 (Load/Reload; §4.35.16 ② 管线的宿主, 详见下) |
+| 0x14230D680 | 250 | vt[4] token reader (§4.00 键表全复核 ✓ + 新增两门, 见下) |
+| 0x14230DAE0 | 99 | SAnimationLookup vt[4] token reader (新定案) |
+
+**CPdxMeshType vt (0x142B4D7A0) 15 槽语义实测**: [-1] COL / [1][3] = Save/Load wrapper
+全族共享桩 (0x1424BEC50/0x1424BE690, [3] = 共享 token 循环逐 token 调 [4]) / [2] writer =
+CFG 空桩 (= 不入存档直证) / [4] reader / **[9] .mesh 装载** / **[13] 对象工厂**
+(malloc 208 + ctor 0x142275B60 = CPdxMeshObject)。横向互证: 基 CPdx3DType / 兄弟类
+CPdxParticleType 同槽位对比, **[4] reader / [9] 装载 / [13] 工厂三槽模式全族一致 (定案)**;
+子对象 SAnimationLookup 亦套 [3] 同值 wrapper + [4] reader 的 5 槽前缀。
+
+**vt[9] 装载全机制** (定案, 签名 (this, gfx_mgr)): ① 开档失败 → assert + **永久回退**:
+错误日志后把 `gfx/models/test_object.mesh` 写回 +184 重开。② 结构校验双循环: object 数组
+(112B/条) 仅取名 == "object" 条目 → mesh 数组仅取名 == "mesh" 条目 (字面量 PE 实锤);
+流表按名查 p/n/ta/u0..u3, 计数对账 = vertex = p/3、n = 3·vertex、ta = 4·vertex、UV 各
+2·vertex, 违者累积 "vertex <-> … count mismatch" 串 → 汇总错误日志。③ 四步管线
+(骨架 142264F50 / 顶点 142264190 / 皮肤 1422637D0 / 索引 142262F00, 四步全为本函专属调用方)
+→ §4.35.16 ② 设备 ABI。④ 关节上限: 骨架关节数 > 50 → "too many joints" 错误日志。⑤
+动画相容性: 逐 +216 条目以骨架验, 不相容 → 错误日志 + **原地 erase 条目**。⑥ 材质槽表
++72/+84 (24B/槽) 分组: 264B 记录 {+72 材质索引 (−1 = 无), +76..+88 中心半径, +92..+112
+包围盒, +125 旗}; 索引 −1 的记录第二遍归表尾新追加槽; 记录 +125 旗 → 置 +368/+369 双旗。
+⑦ 包围盒 +160..+180 重置哨兵并入全记录; 中心 = (min+max)×0.5 → +144..+152; **包围球半径
++156** = max(各记录 |中心−类型中心| + 记录半径)。⑧ +336/+340 = 两次 sub_142409E20 渲染
+资源 id 对。⑨ +312 f32 数组 (count@+324) 逐元素平方 (语义待裁)。⑩ 双尾锚: 皮肤错误汇总
+(:397) / +84 == 0 → "Pdx mesh type with no meshes … won't render." (:404)。
+
+**vt[4] reader 增补两门** (键表 §4.00 全复核 ✓): file 键读入后 `\`→`/` 归一, 以 "dlc/"
+开头 → assert (资产不得显式引 DLC 路径, debugbreak); animation 键整块解析后按 +8 FNV 键
+线性去重, 重复且已解析 → 错误日志 + **terminate**。
+
+**SAnimationLookup** (56B; vt 0x142B4D750):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | vptr | vtable 0x142B4D750 |
+| +8 | u64 | FNV-1a32 零扩展 (键 = token 11 "id" 串值) |
+| +16 | 指针 | 已解析动画资源 (token 225 "type" 串经动画库查得; 查无 → 错误日志 + terminate) |
+| +24 | CString (32B) | type 串本体 |
+
+> 备注: 同键多 stub 允许多条共存 (去重只拦 +16 非空者), 后续覆盖路径未查。
+> 未决: vt[9] 的 .asset 侧分发点 (纯间接调用, 语料不可见, 归 pdxasset.cpp 簇) / +312 平方
+> 数组语义 / SMeshData 六串键名 / +264/+288 出参数组字段级布局 / +336/+340 渲染 id 类型 /
+> 热重载下材质槽只增不清的依赖条件。
 
 #### 4.35.17 实体系统 (pdx_entity.cpp 14 函数; 场景图/状态机层, §4.35.16 资产层消费侧)
 
@@ -718,3 +770,7 @@ TTL 子件销毁/特效表处理/动态子实体生成/双子表递归/播完销
 sub_14228A4E0 (+72 换装 + 速度装订 + 选项随机起点) / 挂接迁移 sub_1422833D0
 ("has no attach point named" :874)。未决: 事件 +528/+792 名串语义 / 实例 +104/+112 双时钟分工 /
 mode 1/2 具体差别 / 剔除门节点表是否即「四叉树」/ 状态 +600 音效容器内部形态。
+
+#### 4.35.24 FX 粒子系统定义 writer (gfx/FX/particle.lua 导出半边)
+
+FX 粒子系统定义 writer = sub_142344F20 (2739 行; 与粒子定义解析件 sub_142296A40 成对): 键 = name(27) / max_amount(409) / sort(426, 枚举串 depth|distance|age) / emitter_type(481 "sphere") / sphere_emitter_radius(482, 块) / slave_particles(608); 发射原语计数 279× 串 sub_1424C2AD0 + 76× sub_1424C3900 + 4× 块 sub_1424C4220。

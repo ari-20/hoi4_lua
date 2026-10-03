@@ -348,3 +348,18 @@ GetFullDescription 符号定名; +96 CProgress 指针 / +120 CModifier / +296 CR
 **负定案: 1.19.3 无 on_faction_created** (全语料 0 命中); on_action 三派发点 =
 on_become_faction_member / on_leave_faction / on_assume_faction_leadership。
 DLC50 = "Deeper Factions" (faction_goal_status.cpp:184 断言串)。
+
+#### 4.5.10 NFactions::CFactionRule (def 侧规则对象; ctor sub_140147950, ≥872B)
+
+faction_rule 库 (qword_14332EF00, §4.26.4) 的条目类; rules 向量 (CFactionRuleStatus+88, 键 12667) 持其指针。
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | vtable | NFactions::CFactionRule |
+| +24 | uint8 | 0 初值 |
+| +32 | uint32 | 357 (none 哨兵 token) |
+| +40..+568 | 6× 88B 块 (步 88, ctor sub_140549F40) | 六联子结构 (规则六槽; 同 CScriptedTriggerTemplate 88B ctor 族) |
+| +568 | 24B | 零填静态串形 (unwind 引 locale dtor) |
+| +592 | CModifier 192B 内嵌 | §4.3.8 通用布局 |
+| +784 | 容器 (预留 4 元) | dtor sub_140153590 |
+| +840 | 末块 (sub_14053CFD0) | 类尾 |

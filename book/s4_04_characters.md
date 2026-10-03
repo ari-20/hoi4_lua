@@ -288,12 +288,12 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 | 偏移 | 类型 | 名称 | 语义 |
 |---|---|---|---|
 | +0 | vtable | CCharacterManager (vt 0x1427e5d30; sizeof 160B; writer vt[2] 0x1406BACB0 / loader vt[4] 0x1406BA1C0 / Load 壳 vt[3] 0x1406B9BB0 载入前清两容器与三图) | 旧「+0 恒空容器」系 vtable+next_id 误读 (负定案) |
-| +8 | uint32 | next_id (键 19495 next_character_id; 写者 = 新局批产 sub_1406B97D0 + generate_character 效果 Execute 0x140357BE0 → sub_1406B7510) | 角色 id 分配器 (ctor 初值 = 1) |
+| +8 | uint32 | next_id (键 19495 next_character_id; 写者 = 新局批产 sub_1406B97D0 + generate_character 效果 Execute 0x140357BE0 → sub_1406B7510 + **随机创建双路 sub_1406B8060/sub_1406B82A0** [CID 派发点各 ++ 一次, character_manager 批补录]) | 角色 id 分配器 (ctor 初值 = 1) |
 | +16 | CCharacter* | historical 容器数据指针 (键 12322; 元素键 19478 character, null assert) |  |
 | +17..+27 | 匿名结构 (11B 形状) | = historical 容器 data 尾 (+17..+23) + cap u32@+24 (pdx 24B) | ctor 0X1406B4B20 |
 | +28 | uint32 | historical 容器计数 |  |
 | +29..+39 | 匿名结构 (11B 形状) | = count 尾 (+29..+31) + alloc@+32 (哨兵初值) |  |
-| +40 | CCharacter* | dynamic 容器数据指针 (键 13075; 历史/动态分野 = 模板判定 sub_1413F1E80 生成期决定) |  |
+| +40 | CCharacter* | dynamic 容器数据指针 (键 13075; **分野三律**: 批产按模板 +577 u8 旗判定 / generate_character 效果路恒 +16 historical / 随机生成路 [8060/82A0] 恒 +40 dynamic — 勘误: 原「分野 = 模板判定」仅对批产路径成立) |  |
 | +41..+51 | 匿名结构 (11B 形状) | = dynamic 容器 data 尾 (+41..+47) + cap u32@+48 |  |
 | +52 | uint32 | dynamic 容器计数 |  |
 | +56 | allocator 槽 | dynamic 容器 alloc 指针 (ctor 置 &off_143085170 哨兵; dtor 经其虚槽 deallocate) | 旧「未初始化空洞」勘误 |
@@ -355,7 +355,7 @@ char 对象 304B (ctor 直证), 终于 flags 块尾 +303; +320..+328 为对象�
 
 #### 4.4.12 CSubUnitDefinitionAssociatedModifiers (navy_leader.sub_unit_modifiers)
 
-内嵌@leader+296 (vt 0x142955af0, 288B; 归并 writer 0X141016D10; IsEmpty 0X140643140 = 两容器 count 全 0 则整块不写)。
+内嵌@leader+296 (vt 0x142955af0, 288B; 归并 writer 0X141016D10; IsEmpty 0X140643140 = 两容器 count 全 0 则整块不写)。描述侧归并 = **MergeAdjustersWith\<CSubUnitDefinitionAssociatedModifiers\> sub_140AE2780** (断言 subunitdefinition.h:455; 消费于 CTraitDefinition tooltip 构建器 sub_140AE8120 — 特质→兵种修正的 tooltip 合成链)。
 
 | 偏移 (leader 绝对) | 类型 | 名称/语义 |
 |---|---|---|
@@ -541,6 +541,7 @@ ctor 内联于 CCharacter loader tok 16389 分支。
 | +544 | std::map 节点 0x50 | advisor 映射 (10454) |
 | +560 | CUnitLeaderTemplate* 192B | 角色槽: navy_leader (12471) 追加 / corps_commander (13511) 与 field_marshal (13538) 替换 (ctor 型参 1/2) |
 | +568 | CScientistTemplate* 184B | scientist 槽 (16389) |
+| +577 | uint8 | **历史/动态旗** (批产分野判据: 1 → dynamic 容器 mgr+40 / 0 → historical mgr+16; RegisterCharacter 国家登记同门 — sub_1413F1E80 = `*(u8*)(tpl+577)` 直读, character_manager 批双证补行) |
 
 **CScientistTemplate** (科学家子模板, 184B; vt 0x142765DA0; writer 桩; reader 0x14140D610): +8 bool 有效旗 / +16 traits 容器 (12278) / +40 desc 串 (10644) / +72 skills 子对象 (16431, CPersistent: +80 map) / +96 CTrigger visible 88B (11562)。
 
@@ -788,3 +789,37 @@ on_disband / 3→14668 on_mission / 4→19024 on_operation / 5→13164 killed; �
 14668) 独立函数 sub_140C201B0 与 writer 内联同款。未决: 两个枚举映射器 (sub_140C27FC0
 →{1,1,2,4} / sub_140C19100 leader_type→{army 1, navy 2, operative 4}) 消费方; +584 索引域
 探针取证; scale_flag=0 触发路径。
+
+character_manager.cpp 簇对账增补 (15 函数闭环; 单元 = 随机角色生成装配线, 簇 = 含锚子集):
+
+**三入口 × 五生成器 × 两创建路** (定案): 入口 A sub_1406B7AE0 (通用) / B sub_1406B75A0
+(文官, 内联女性掷点修正 565) / C sub_1406B84E0 (文官·ideology, §4.32 已实名); 每生成步间
+sub_142234110(seed, file, line, 0) **RNG 审计埋点** (行号 = 源码行, 高置信 = 确定性回放/
+联机同歧校验, 落盘去向未决)。**种子方案**: seed = tag 序号 + next_id (或 CID.id) + 引擎
+RNG; 配对 {seed, 1587985055 − seed}; PRNG 常数族 1255572915/1759714724/458671337/
+−1831433054, 消费 &0x7FFFFFFF %100000 (引擎级通用小 RNG, 选举域独立复现)。
+
+**性别掷点 sub_1406B5000** (定案): 返回 1 = male / 2 = female; 阈值 = 基值表
+qword_1433386D8[ptype] + 国修正 @cc+1464 (ptype 0→565 / 1→563 / 2→564 / 4→561 / 5→562,
+3 无修正); **门字节 cc+1729 (ptype 0) / cc+1728 (ptype 1-3)** = 0 时直接 male (语义推定
+女性头像开关; define 名未决); "invalid portrait type" :107。
+
+**头像族** (定案): 姓名库 qword_14332EF68 / 头像库 qword_14332EFD8 (+书技能库
+qword_14332F0D0) = 三个独立 CGameItemDatabase 实例; 文官生成器失败 terminate :207 (通用
+版仅日志 :190); **小头像换算 sub_1406B64E0** = 模板查无 → 大路径+"_small" / 查有 → 4 段
+路径重组 `gfx/interface/ideas/idea_<名段>` + 文件存在校验, 三级 fatal :283/:307/:319;
+师长/舰长对 sub_1406B5C70/5D60 (bool 性别映射 (male^1)+1); 缺省补挂 sub_1406B8790
+(leader_unknown.dds 回退判定门, 消费者 = 选举/党魁域 [宿主类未决])。
+
+**注册链** (定案): RegisterCharacter sub_1406BA240 — RH#1 (mgr+64, token→CCharacter*)
+门 token ≠ −1, RH#3 (mgr+128, legacy_id→char) 门 legacy_id > 0, 哈希 = 73244475 二轮乘混
+(非 FNV); 唯一调用者 = 批产 (书互证); 国家侧 sub_1410E9650 = SetCountry (书实名互证) +
+**空名回退** (token 空名先本地化, 否则以 {CID.id, 1587985055−id} 再生成姓名 SetName) +
+槽位登记。**随机角色 token 派生** = 名首词去 `-`/`'` + `_` + TAG 名 → tokenize 写
+char+24 (工厂 sub_1406B7260 内; malloc(0x130) = 304B 书第三证)。
+
+消费者全景 (招募生命周期): 军/海军领袖空池补员 (ptype 2/1) / 科学家招募池 (ptype 5) /
+文官池 (入口 B) / create_country_leader 效果链 (§4.32) / 新局批产 (RegisterCharacter
+唯一调用者)。未决: cc+1728/1729 与修正 561-565 define 名; 基值表来源; cc+1640 载体;
+EPortraitType 3/4 (推定 air/operative); RNG 审计去向; 0x1411A4620 宿主类 (其 +112 元素 =
+CCharacter* 与 CCountryCharacters +112 = CUnitLeader* 属不同对象)。

@@ -1118,7 +1118,9 @@ qword_14332F6A0 vt+136 命令队列。
 (顶 key scripted_gui → 每子键 new CScriptedWindowTemplate, ReadKey 0X14159ECB0);
 common/map_modes → CScriptedMapModeDatabase::LoadFile 0X140AAF740 (顶 key
 scripted_map_modes → db 槽位原位构造 CScriptedMapMode)。**template def 文法
-21 key 全落偏移** (ReadKey 逐 case + token 反查): context_type+40 (8 值白名单:
+21 key 全落偏移** (ReadKey 逐 case + token 反查; **key 表外: template+8 = scripted_gui
+自身名串** {buf@8, size@24, cap@32} — parent_scripted_gui 名扫的匹配目标与三处错误
+消息 %s): context_type+40 (8 值白名单:
 national_focus/player/selected_state/selected_country/decision_category/
 diplomacy_target/state_mapicon/country_mapicon) / parent_window_token+44 /
 window_name+48 / parent_window_name+80 / parent_scripted_gui+112 /
@@ -1132,21 +1134,44 @@ mapmode+1544 ("MAPMODE_"+值)。**slot8 PostLoad 0X14159DEF0**: 对 _click/_shif
 _alt/_control/_right 尾缀派生查 `<名>_click_enabled`/`_visible` 绑入触发表 —
 按钮 effect 自动可见性 trigger 的绑定点。
 **运行层**: CScriptedWindowManager (ctor 0X140B85530, "common/scripted_guis"
-watcher 热重载回调 0X140B87EA0): **slot7 Update 0X140B88DC0** (revision 侦脏 →
-逐窗 sub_140B88950); +32 窗口数组 / +1272 CGuiSystem。CScriptedWindow (0xB90B):
+watcher 热重载回调 0X140B87EA0 = std::function 装配, 槽[1]; 孪生直接调用入口
+0X140B88ED0 三调用点全经 *(宿主+712)): **slot7 Update 0X140B88DC0** (profiler 域名
+"scripted_gui.window"; 门 byte_14332F635; +104 = root revision 快照
+sub_140DCCEA0, 变化即逐窗 sub_140B88950, 尾 sub_140B8D980 — 推定 AI 评估半段,
+待裁)。布局 (0xB0 = 176B 自洽): +24 root 对象 (UI 前端单例, updater 独立形态 =
+qword_14332F6A0; **+1272 CGuiSystem 在 root 对象上** — 按名找窗/顶层建窗/动态条目
+注册全经它, 非 manager 偏移) / +32..+48 窗口数组 / +56/+68 每国数组 (24B 元) /
++80/+92 有序模板数组 (context_type 19794/19795 专用, 二分插入) / +104 revision /
++112 _ParentWindows 表 (断言串实名; 记录+24 = 窗口对象槽) / +120/+136/+160 4 字节
+FNV 名字查重 map。CScriptedWindow (0xB90 = 2960B):
 +48 root scope 恒 player country / +232 template / +248 实例窗 / +264 父
-CScriptedWindow / **+272 内嵌 CScriptedWindowGUIUpdater (0xA68B)** / +1232 主
+CScriptedWindow / **+272 内嵌 CScriptedWindowGUIUpdater (0xA68 = 2664B)** / +1232 主
 scope (=updater+960) / **+2936 父可见缓存 / +2937 计算可见 (= 父可见 ∧ ai 门
 sub_140B883C0 ∧ 视图检查 ∧ template+164 门→template+144 trigger vt+24 @scope a1+1232) /
 +2938 强制 dirty** (Update sub_140B88950: +2938 先清, +2936 比对置位或置 1; dirty 比
 +2944/+2952)。Reload 父窗三级解析
 (token hash → parent_scripted_gui 名扫 → parent_window_name 按名 RTDynamicCast;
 scriptedwindowmanager.cpp:429/435/448 实名); 实例化名 = `<window_name>_instance`。
+**Reload 全链** (watcher 或直接入口 → 清 → +104 = −1 → 0X140B8A1C0): ①硬编码 token
+绑定 (root vt+184 取子系统 → 按槽号直取/嵌套 vt+440 按名下钻; 15023←"tree"→
+"grid_window"→"focus_tree_scripted_window_container" 三级下钻; 15027←"country_list";
+19667..19670←army/navy/economy/air_panel 四面板; 15025 记录复制到 14996/14997 别名槽)
+②28 条 ParentWindowPaths 静态表 @0x1430B0A90 (步长 40B: token@+0, name[10]@+8) FNV
+去重 → CGuiSystem 按名找窗 → RTDynamicCast CContainerWindow → 绑 +112 表
+(cpp:212 全绑断言) ③0X140B88F00 全窗重建: 遍历 CScriptedWindowDatabase 单例
+qword_14332F060 逐模板项 (item+40 = context_type: 11839/15410 跳过不建窗 /
+19794/19795 入 +80 有序数组), malloc(0xB90) new CScriptedWindow (基 ctor
+sub_142255FA0; 双 vtable +0/+40; +224 root/+232 模板/+240 manager; WORD+2936 = 1)
+→ B86320 父解析+实例创建 → 压 +32 数组。B86320 AI 白名单门 = template+1052 置位 ∧
+有父 gui ∧ context_type ∈ {10130, 14962, 14963, 19373, 19794, 19795} → "ai for
+scripted windows that has parent guis with scopes is not enabled" (cpp:429)。
+单窗重建 = 0X140B88EB0 (0X140B87D80 DestroyInstance: 实例按名自父容器摘除销毁 +
+窗+2938 强制 dirty = 1 副作用 → B86320, 返 1)。
 **BuildScope sub_140B8D1E0 = 游戏对象真实消费点**: player_context→gs+1312/
 1316; selected_state→选择集 (manager+1336 type==4→+184); diplomacy_target→
 ledger 四窗 view+17664 / occupation 视图 +5352→+5456 二级; 种子 = CCountry
 +544/+548 FNV 混合写 scope+16(random1) 后 +12(random2) (**写序反, 与 §4.3
-§CEventScope 逐位互证**)。decision_category/mapicon 三 token = BuildScope (sub_140B8D1E0) token 分派穷尽落玩家国兜底 (定案); 「父窗继承」实为可见性链。
+§CEventScope 逐位互证**)。decision_category/mapicon 三 token = BuildScope (sub_140B8D1E0) token 分派穷尽落玩家国兜底 (定案); 「父窗继承」实为可见性链。Update 逐窗 scope 变更检测消费 sub_140BB52F0 同原初国谓词 (§4.30.21 谓词新消费点) + 14996/14997 父窗 token 走国家视图态特判 (高置信)。
 **地图模式层**: CScriptedMapMode 内嵌双 layer (+8 top/+120 bottom) +
 far/near_text+264/+268 五值枚举 (none/country/state/faction/player);
 CScriptedMapModeLayer: color+24 / type+8 **十值枚举全回收** (none/country/
@@ -1161,10 +1186,24 @@ diplomacy_scripted_popup_window): slot11 Init 0x141754d60 建独立 updater
 @+4264 并绑 template (行动 vt+408); slot1 Update 双 country scope (+4064/4068
 FROM/TO → v7+24/+32) + 种子哈希; 显隐 = +4072 vt+648/656; 五 widget 名定案
 (bottom_container/accept_button/decline_button/title/scripted_gui_container)。
-**辅助 CScriptedWindowGUIUpdater** (无 RTTI 项, vftable 串定案, ctor
-0X140B851A0): +32 template / +960 scope / +972/976 random2/random1 / +984 root;
-窗口+272 内嵌与弹窗+4264 独立两形态经 ±272 换算逐位互证。应用器
-sub_140B8AD20 已定性 = properties 应用器; 明细未录 7 项 (计数行无底稿)。
+**辅助 CScriptedWindowGUIUpdater** (0xA68 = 2664B; 无 RTTI 项, vftable 串定案, ctor
+0X140B851A0; 三形态调用: 窗内嵌 (window+272, args=[root, window, 0]) / 子 updater
+(malloc 0xA68, args=[manager, 容器 widget, 父 updater]) / 独立形态 (args=
+[qword_14332F6A0, 0, 0])): +8 root 回链 / +24 父 updater (AI 递归门判据) / +32
+template / +960 scope / +972/976 random2/random1 / +984 root (事件 scope) / +992
+父 scope / +1136 变量数组 (40B 元, 子 updater 自父全拷) / **+2616 动态列表运行时表**
+(176B 槽: +0 所有者 / +8 目标容器 widget / +16 SDynamicListInfo* / +24 用中条目记录
+map (16B 元 {条目对象, 子 updater}) / +32 空闲条目侵入链 / +88 条目池 map / +152/+164
+缓存名串向量); 子 updater 随机种子分叉 = +972/+976 自父+972 两条独立整数雪崩混合
+(条目级随机流与父分流)。窗口+272 内嵌与弹窗+4264 独立两形态经 ±272 换算逐位互证。
+应用器 sub_140B8AD20 = properties 应用器, 尾调 **sub_140B8BE40 动态列表刷新引擎**
+(1089 行; 遍历 +2616 表: 表达式求值 sub_140544C90 (scope = updater+960), 排序键 =
+100000×索引写 def+632/+424 数组; 双路刷新 — 不变 = used 计数复用 + 记录表尾 LIFO 弹出
+(cpp:1390 断言) / 变 = 清容器 + 池回灌 + 逐名查 CGuiSystem 缺则 malloc 0x18 建 GUI
+条目 (sub_1422C6040) + grid 列/行界回绕定位插入 (容器 +368/+372 界, x≥界→x=0,y+1);
+条目变量对 = def+744 名→100000×索引 / def+536 名→条目值; cpp:1376 "window not
+found")。余项未决: B8AD20 本体逐行 / B8D980 / root 实名 / token 值对名 (须运行时
+lexer) / 28 条表全名单离线 dump / SDynamicListInfo 名串槽对语义。
 
 
 > **CScriptedWindowTemplate +944** = 指针容器 {data@944, cap@952, count@956, 分配器@960} (8B 元), 元素 = **CScriptedWindowTemplate::SAIEffectInfo\*** (解析键 14977 ai_weights; ≥384B: {+0 vt, +8 token 块 56B 默认 16382, +64 SSO 效果名, +96 权重主体 208B (sub_140541C10), +304 token 块 B, +360 u8, +368/+376 qword}; 真 ctor sub_140AB91D0 复制型; 字段语义待裁)。同解析器邻键: 15270 array / 15303 entry_container / 15304 country_scope_entry_container。
@@ -1257,7 +1296,7 @@ CProgramItem (0x2C78B) 行; roster 行引 P+16 链 (§4.31.6)。
 | 项 | 布局 | 备注 |
 |---|---|---|
 | 地图模式对象 +232 | MSVC 串 | 地图模式名串; 模式库访问器 sub_14039E240() {数组 @+40, 计 @+52} |
-| 接口处理器历史容器 | {data@+1192, cap@+1200, count@+1204, alloc@+1208} | 元素 216B {tag@+0, 类别 u8@+208}; 宿主对象未名 |
+| 接口处理器历史容器 | {data@+1192, cap@+1200, count@+1204, alloc@+1208} | 元素 216B {tag@+0, 类别 u8@+208}; 宿主 = idler vt+184 会话对象 (eventmanager 批直证 — 原「未名」补全) |
 | 合同交付状态对象 | 分子 +472/+512; 分母 +24/+232; 惰性旗 +504/+216 | 国际市场合同交付状态; 宿主待归 (候选并 §4.23.3) |
 
 #### 4.30.25 游戏内屏面三件 (时钟 / 设置屏 / 小地图)
@@ -2268,3 +2307,93 @@ navies view 态 (+257 海军旗) / +768 选中省 refid 表 {计数@+780} / +100
 sub_140BC2EB0 (遍历 +48 链, 元素 +8==a2 者: +68 延迟旗置位时 node+24 标记, 否则
 即摘 — 双向链摘; 实参 = 省类型); 关界面视图包装对 = sub_140B65430(handler,0,0) /
 sub_140B65360 → 65430(handler,1,0) (关视图 0/1, 视图 id 族 = §4.30.29 顶栏视图编号)。
+
+#### 4.30.49 科技树视图运行期 (CCountryTechTreeView 重建/网格盒/连线/页签链; countrytechtreeview.cpp; 8 函数闭环)
+
+簇清册 (8/8 函体内含全路径 assert 锚; §4.30.47 表 +248/+256 视图槽的运行期行为层;
+互证 = §4.31.35 项件锚):
+
+| VA | 行数 | 身份 |
+|---|---|---|
+| 0x1413D6490 | 1034 | 单文件夹科技项重建主函 (事务内建 CTechnologyTreeTechItem 双容器 + 连线 + 40B 记录 + xor 待绑表 flush) |
+| 0x1413D9990 | 387 | 全文件夹网格盒/连线重建 (按模式 × folder+204 过滤; 不构造 tech item) |
+| 0x1413D8480 | 346 | 文件夹页签 header/tooltip 文本构建 (this = view+40 内层基) |
+| 0x1413DBEF0 | 275 | 文件夹页签切换处理 (学说 remap 双全局表; 默认切换路径) |
+| 0x1413D5E30 | 160 | 互斥线路径递归绘制 (拐角放 xor 件) |
+| 0x1413D61A0 | 138 | 普通依赖线路径绘制 (与上同构、无 xor 角件) |
+| 0x1413DE110 | 132 | 初始/允许文件夹选择解析 (四级回退 → 派发页签切换) |
+| 0x1413D8140 | 92 | 科技网格盒查找 (tech+920 描述表 × folder 名/id 匹配) |
+
+**模式与视图偏移面** (定案): view+6820 = 当前模式 id (6 = 科技树 / 7 = 学说树,
+学说视图 countrydoctrineview 复用同类), 全簇按 `mode==6 → folder+204 须清` /
+`mode==7 → 须置` 过滤 = **idb 文件夹对象 +204 = 学说文件夹旗** (三消费点同语义)。
+idb 文件夹对象 (sub_140ACBE80 按库内小整数索引取) 消费形态: +8 名字串 / +40 int id /
++56 启用旗 / +64 tech 指针数组 +76 计数 / +88 qword 数组 (推定 = 每科技摆位坐标,
+与 +64 同下标) / +204 学说旗。视图增补偏移:
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +1456 | 工厂槽 | 线段单元工厂 (sub_1413D2E80) |
+| +2784 | 40B 项容器 | 本文件夹项容器 (populate 第 5 参选择式之一) |
+| +4072 | 40B 项容器 | 他文件夹项容器 (按 folder 匹配旗分流, 与 +2784 成对) |
+| +6648 | 页数组 | 页索引基 (存 idx−1) |
+| +6672 | 页签数组 | 页签文本 (页签切换 remap 查询输入) |
+| +6684 | 计数 | 页计数 (选择解析界检) |
+| +6696 | 16B 待绑表 {xor件, 盒} | xor 拐角件 GetOrCreate 查重表 (键 = 盒 + 件+32 坐标) |
+| +6720 | 列表 | 可弃项列表 (旧项清理倒序 swap-remove) |
+| +6732 | 计数 | 可弃项列表计数 |
+| +6744..+6756 / +6768..+6780 | 40B 记录向量 ×2 | 元素 {tech, 盒句柄, item, folder+88[i], folder}, 按 sub_140AD1E90 分流 |
+| +6792 | 国家上次文件夹存储 | 文件夹选择回退第一级 |
+| +6800 | int | 当前页 |
+| +6816 | int | tag 覆盖 (>0 时优先于 gs+1312/1316 作当前国) |
+| +6820 | int | 当前模式 id (6/7) |
+
+**网格盒体系** (定案): CTechnology 模板 +920 数组 / +932 计数 = **每科技网格盒描述表**
+(元素 80B: +40 名字串 / +72 文件夹 id; 重复双盒命中 = :746 断言)。盒句柄 (8B) FNV-1a
+全 8 字节 → sub_1413D2510 哈希表查节点; 节点 +16 起内嵌 CPdxRobinHoodTable (+8 数据 /
++16 计数 / +20 mask / +24 extra; 24B 槽 {+4 占用 / +8 key u32 / +16 value qword}),
+节点 +28 = float 缩放, +380 = 树层索引。细分深度 = `ceil(log2(max(1.9, 512.0/zoom)+1))`,
+`1 << depth > mask+1` 时 sub_1413DA1B0 扩容 — **该 helper = CPdxRobinHoodTable::Rehash**
+(pdx_robin_hood_table.h:579 断言直证, 合法域 2..30)。
+
+**连线体系** (定案): 双入口 sub_1413D61A0 (普通, :945) / sub_1413D5E30 (互斥, :1018);
+sub_140AD0440 取路径坐标对 → sub_140AC7CD0 二叉查 48B 子条目 (+40 = 子路径 map) 递归,
+先横走到转折 x (条目+48) 再竖走到转折 y (条目+52)。四向段填充 helper = sub_1413D5AF0
+(x+) / sub_1413D57B0 (x−) / sub_1413D5460 (y+) / sub_1413D7780 (y−) (方向由增减循环位
+判定, 高置信)。段单元以 packed 键 `y + (x<<16)` (乘子 73244475) 存盒内嵌 RH 表; 未命中
+经 view+1456 工厂建单元 → sub_141BD5E80 配置 → sub_1402DE9B0(盒, 单元, &坐标, 0, 1)
+摆位 (统一摆位原语, 项/xor 件共用)。互斥拐角件 GetOrCreate = sub_1413D4DD0 (64B,
+构造 sub_141BD0540, 定向 sub_141BD0D80 dir 0..3 — §4.31.35 xor 件锚全链互证)。
+
+**项重建主函 sub_1413D6490** (单文件夹全流程, 定案): ① 事务 begin (sub_1422BDC60 取
+科技状态对象列表, 逐个清 +404/+428/+352; 尾 sub_1422C4970 提交 + sub_1422C7E50 收尾);
+② 逐 tech 构造 216B CTechnologyTreeTechItem (sub_141BD0070) → populate
+(sub_141BD6770, 容器 = view+2784/+4072 按匹配旗分流) → 摆位 sub_1402DE9B0; ③ 40B
+记录向量双条 (见视图偏移面); ④ 可见门 = tech+1035 置位时须 sub_140ED8F00 为真;
+⑤ 进度实参 = sub_141433B30(tag 指针, 国家, tech, folder, 0) 返回 int。科技状态对象
+(sub_140ED5080 由国家科技状态取) = +352 名串 / +404 int / +416 子表数组 +428 计数
+(高置信)。
+
+**页签切换与文件夹选择** (定案/高置信): 选择解析 sub_1413DE110 四级回退 = ① view+6792
+国家上次文件夹 (+48 上次 idx + +56 旗) → ② 实参携带 idx (国别可达门) → ③ view+6800
+现值 +1 → ④ 全量扫描 (启用 + 可达 + 模式学说旗过滤) → ⑤ 全败 = 现值 + :1474 错误
+(原文拼写 "techonolgy" 即错)。页签切换 sub_1413DBEF0: 页签文本命中**学说 remap 表 1**
+(qword_14338A310 基址 / qword_14338A318 计数) 二次命中**表 2** (off_1430B32E0 /
+dword_1430B32EC) → token → qword_14332EEA0 token RH 表 (mask@+68/table@+56/extra@+72)
+→ qword_14332F698 窗口管理 vt+184 取**窗口 8** → 设文件夹 (sub_14163AE60) + 刷新;
+未命中 remap = 默认切换 (旧页 +165 |= 0x10 → 清项 sub_1413D9580 → 新页复位 + vt+176
+设页 → view+6800 = max(vt+440(a3), 0))。页签文本 sub_1413D8480: 窗名 − "_tab" 后缀查
+folder, 出参两串 = "HEADER"+{KEY} loc 组合 / 名 + 两枚 2 字节字符 0x5411 / 0x2111
+(语义未决)。
+
+**跨域原语**: sub_1413D8350(view) = 取当前国 tag 指针 (view+6816 覆盖优先, gs+1312
+int > 0 → &gs+1312, else &gs+1316); 同单元不在本簇的近邻 helper (供后续引用) =
+sub_1413D2510 (哈希查表) / sub_1413D2790 (哈希插表) / sub_1413D2E80 (线单元工厂) /
+sub_1413D9580 (清项) / sub_1413DA1B0 (RH rehash) / sub_1413DD420 (tech 处理);
+sub_1413DA920 / sub_1413DD5A0 同编译单元但归命令簇 (科技替换研究/解锁命令的玩家 UI
+通道, s4_33 命令域 CSetResearchCommand 系)。
+
+未决: 文件夹网格上下文 (vt+432 查询) 与树根 (`*(*(view+1392)+1272)`) 的类归属;
+行条目 +48 == 100000 (fixed 1e-5 制 1.0) 旗喂线段配置的语义; 全文件夹重建每文件夹
+begin 事务但体内无 commit (调用方承担待裁); 0x5411/0x2111 两字符含义; 双 40B 容器
+出参完整布局。

@@ -12,6 +12,14 @@
 //                          deltas via GetThreadTimes. Answers "what are the
 //                          tbb workers actually running". Access:
 //                          hoi4.profile_threads() / GET /profile/threads.
+//                          With busy=1 (needs stacks=1), tids whose cpu delta
+//                          exceeded SAMP_BUSY_CPU_MS get a FULL-STACK walk
+//                          instead of leaf-only; their stacks land in a
+//                          separate folded histogram (written next to the
+//                          main folded file as *_tids.txt) and their in-image
+//                          leaves into a per-tid table:
+//                          hoi4.profile_tidtop([tid[, n]]) / GET
+//                          /profile/tidtop?tid=&n=.
 //   scope "main" (default) - only the calling thread (the game main thread).
 //
 //   Sweep economics: ~90 threads x (suspend+ctx+resume) costs ~1-3 ms per
@@ -67,6 +75,10 @@
 #define SAMP_TID_MAX         256
 #define SAMP_TID_REFRESH     2000                         // ms between thread-table rebuilds
 #define SAMP_TID_DEADRUNS    16                           // sweeps failing before tid is dropped
+#define SAMP_TIDTAB_BITS     16
+#define SAMP_TIDTAB_SIZE     (1u << SAMP_TIDTAB_BITS)    // per-tid leaf table, same 1 MB budget
+#define SAMP_BUSY_CPU_MS     100                          // tid cpu delta (per refresh window) that
+                                                          // upgrades a worker to full-stack capture
 
 typedef struct {
     uint64_t key;    // 0 = empty slot; bit0 set = raw RIP (unresolved); else func-start RVA
@@ -104,6 +116,7 @@ typedef struct {
 } SampTid;
 static struct {
     int    all;                        // scope flag
+    int    busy;                       // busy-worker full-stack capture (needs all+stacks)
     SampTid tids[SAMP_TID_MAX];
     int    count;
     DWORD  selfTid;                    // sampler worker's own tid (excluded)
@@ -112,9 +125,22 @@ static struct {
     unsigned long long lastRefreshMs;
 } g_scope;
 
+// per-tid leaf histogram: key = (tid << 40) | func-start RVA. In-image leaves
+// only (external wait addresses carry no per-tid signal worth 1 MB of slots).
+// Worker-owned under g_smp.cs like the main table; survives stop for readers.
+static struct {
+    SampSlot          *tab;
+    unsigned long long dropped;
+} g_tidtab;
+
 // folded-stack histogram (stack mode; key = "ripA;ripB;ripC" root->leaf)
 static std::unordered_map<std::string, uint64_t> g_folded;
 static unsigned long long g_foldedTotal;
+// busy-worker stacks (scope all + stacks + busy): merged across busy tids —
+// tbb workers run the same parallel sections, so the merge is the histogram
+// you want; single-tid detail lives in the per-tid leaf table.
+static std::unordered_map<std::string, uint64_t> g_folded_busy;
+static unsigned long long g_foldedBusyTotal;
 
 // ---- ntdll unwind exports (resolved lazily; no import-lib change) ----
 typedef struct _SampRunFn { DWORD BeginAddress, EndAddress, UnwindData; } SampRunFn;
@@ -137,6 +163,11 @@ static void sampler_resolve_unwind(void)
 
 // ---- scope "all" thread table ----
 static void samp_add_locked(uint64_t rip);       // defined with the commit helpers below
+static void samp_tid_add_locked(DWORD tid, uint64_t rip);
+static void samp_fold_into_locked(std::unordered_map<std::string, uint64_t> &m,
+                                  unsigned long long &tot,
+                                  const uint64_t *frames, int n);
+static int  samp_walk_stack(PCONTEXT ctx, uint64_t *out, int maxf);
 
 // Close handles only — rows/stats survive stop (readers need them post-stop,
 // same contract as the leaf histogram; next start's refresh rebuilds handles).
@@ -223,21 +254,35 @@ static void tids_cpu_refresh(void)
 // briefly suspended. The sampler's own tid and the main tid are skipped (the
 // main tid is captured by the primary path with optional stacks). hits/total
 // move under CS so samp_api_threads never races the counters.
+//
+// Busy upgrade: a tid whose last cpu delta exceeded SAMP_BUSY_CPU_MS gets a
+// full-stack walk instead of the leaf-only CONTEXT_CONTROL read — same
+// capture-window rules as the main thread (no locks, no allocs, SEH-wrapped
+// walk). Idle workers keep the cheap path; in practice ~16 of ~90 qualify.
 static void samp_sweep_all(void)
 {
     CONTEXT ctx;
+    uint64_t walk[SAMP_MAX_FRAMES];
     for (int i = 0; i < g_scope.count; i++) {
         SampTid *t = &g_scope.tids[i];
         if (t->tid == g_scope.mainTid) continue;
+        int busy = g_scope.busy && g_smp.stacks &&
+                   t->cpuDelta >= (unsigned long long)SAMP_BUSY_CPU_MS * 10000ull;
         DWORD prev = SuspendThread(t->h);
         if (prev == (DWORD)-1) { if (++t->deadRuns > SAMP_TID_DEADRUNS) t->tid = 0; continue; }
         memset(&ctx, 0, sizeof(ctx));
-        ctx.ContextFlags = CONTEXT_CONTROL;
+        ctx.ContextFlags = busy ? CONTEXT_FULL : CONTEXT_CONTROL;
         int got = GetThreadContext(t->h, &ctx);
+        int nframes = 0;
+        if (got && busy)
+            nframes = samp_walk_stack(&ctx, walk, SAMP_MAX_FRAMES);
         ResumeThread(t->h);
         if (!got) continue;
         EnterCriticalSection(&g_smp.cs);
         samp_add_locked(ctx.Rip);
+        samp_tid_add_locked(t->tid, ctx.Rip);
+        if (busy && nframes > 0)
+            samp_fold_into_locked(g_folded_busy, g_foldedBusyTotal, walk, nframes);
         t->hits++;
         g_smp.total++;
         LeaveCriticalSection(&g_smp.cs);
@@ -325,7 +370,9 @@ static void samp_add_locked(uint64_t rip)
 }
 
 // frames[] is leaf-first; folded format wants root first ("a;b;c" + count)
-static void samp_fold_locked(const uint64_t *frames, int n)
+static void samp_fold_into_locked(std::unordered_map<std::string, uint64_t> &m,
+                                  unsigned long long &tot,
+                                  const uint64_t *frames, int n)
 {
     std::string key;
     key.reserve((size_t)n * 13);
@@ -335,8 +382,34 @@ static void samp_fold_locked(const uint64_t *frames, int n)
                     (unsigned long long)frames[i], i ? ';' : '\0');
         key += tmp;
     }
-    g_folded[key]++;
-    g_foldedTotal++;
+    m[key]++;
+    tot++;
+}
+
+static void samp_fold_locked(const uint64_t *frames, int n)
+{
+    samp_fold_into_locked(g_folded, g_foldedTotal, frames, n);
+}
+
+// per-tid leaf key: (tid << 40) | funcRVA. func starts are 16-aligned and
+// .pdata-bounded (< 48 MB image), so 40 bits hold the RVA with room to spare;
+// tids are kept under 2^23 to stay inside 63 bits (never seen, but free).
+static void samp_tid_add_locked(DWORD tid, uint64_t rip)
+{
+    if (!g_tidtab.tab || (tid >> 23)) return;
+    if (rip < pdata_img_lo() || rip >= pdata_img_hi()) return;
+    uint32_t fr = pdata_func((uint32_t)(rip - pdata_img_lo()));
+    if (!fr) return;
+    uint64_t key = ((uint64_t)tid << 40) | fr;
+    uint32_t i = (uint32_t)((key * 0x9E3779B97F4A7C15ull) >> 48)
+               & (SAMP_TIDTAB_SIZE - 1);
+    for (int probe = 0; probe < 64; probe++) {
+        SampSlot *s = &g_tidtab.tab[i];
+        if (s->key == 0) { s->key = key; s->count = 1; return; }
+        if (s->key == key) { s->count++; return; }
+        i = (i + 1) & (SAMP_TIDTAB_SIZE - 1);
+    }
+    g_tidtab.dropped++;                       // 64-slot probe bound
 }
 
 static int samp_slot_cmp_count(const void *a, const void *b)
@@ -421,8 +494,12 @@ static void samp_counters_str(char *out, size_t cap, const char *head)
 static void samp_reset_data(void)
 {
     if (g_smp.tab) memset(g_smp.tab, 0, (size_t)SAMP_TABLE_SIZE * sizeof(SampSlot));
+    if (g_tidtab.tab) memset(g_tidtab.tab, 0, (size_t)SAMP_TIDTAB_SIZE * sizeof(SampSlot));
+    g_tidtab.dropped = 0;
     g_folded.clear();
     g_foldedTotal = 0;
+    g_folded_busy.clear();
+    g_foldedBusyTotal = 0;
     g_smp.total = g_smp.ext = g_smp.suspendFail = g_smp.ctxFail = g_smp.dropped = 0;
 }
 
@@ -446,7 +523,7 @@ static void samp_teardown(void)
 
 // Returns NULL on success (out = info line), else a static error string.
 const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
-                           int all, char *out, size_t cap)
+                           int all, int busy, char *out, size_t cap)
 {
     if (InterlockedCompareExchange(&g_smp.running, 1, 0) != 0)
         return "profile already running (profile_stop first)";
@@ -454,6 +531,8 @@ const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
         interval_ms = SAMP_ALL_MIN_MS;         // sweeping ~90 threads per tick is not free
     if (interval_ms < SAMP_INTERVAL_MIN_MS || interval_ms > SAMP_INTERVAL_MAX_MS)
         return "interval_ms out of range (1..1000)";
+    if (busy && (!stacks || !all))
+        return "busy=1 needs stacks=1 and scope=all";
     sampler_resolve_unwind();          // stack mode needs the ntdll exports
     if (!pdata_build()) { InterlockedExchange(&g_smp.running, 0);
                           return "pdata parse failed"; }
@@ -468,7 +547,8 @@ const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
 
     if (!g_smp.tab) {
         g_smp.tab = (SampSlot *)calloc(SAMP_TABLE_SIZE, sizeof(SampSlot));
-        if (!g_smp.tab) { CloseHandle(h); InterlockedExchange(&g_smp.running, 0);
+        g_tidtab.tab = (SampSlot *)calloc(SAMP_TIDTAB_SIZE, sizeof(SampSlot));
+        if (!g_smp.tab || !g_tidtab.tab) { CloseHandle(h); InterlockedExchange(&g_smp.running, 0);
                           return "histogram alloc failed"; }
         InitializeCriticalSection(&g_smp.cs);
         g_smp.hStop = CreateEventA(nullptr, TRUE, FALSE, nullptr);
@@ -487,6 +567,7 @@ const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
     g_smp.stacks     = stacks;
     g_smp.hThread    = h;
     g_scope.all      = all;
+    g_scope.busy     = busy;
     g_scope.mainTid  = target_tid;
     g_scope.lastRefreshMs = 0;                    // worker builds the table on its first sweep
     ResetEvent(g_smp.hStop);
@@ -507,11 +588,11 @@ const char *samp_api_start(unsigned interval_ms, int stacks, DWORD target_tid,
         InterlockedExchange(&g_smp.running, 0);
         return "sampler thread create failed";
     }
-    _snprintf_s(out, cap, _TRUNCATE, "ok tid=%lu interval_ms=%lu stacks=%d all=%d pdata=%d",
+    _snprintf_s(out, cap, _TRUNCATE, "ok tid=%lu interval_ms=%lu stacks=%d all=%d busy=%d pdata=%d",
                 (unsigned long)target_tid, (unsigned long)interval_ms,
-                stacks, all, pdata_count());
-    L("[sampler] start tid=%lu interval=%lums stacks=%d all=%d pdata=%d",
-      (unsigned long)target_tid, (unsigned long)interval_ms, stacks, all,
+                stacks, all, busy, pdata_count());
+    L("[sampler] start tid=%lu interval=%lums stacks=%d all=%d busy=%d pdata=%d",
+      (unsigned long)target_tid, (unsigned long)interval_ms, stacks, all, busy,
       pdata_count());
     return nullptr;
 }
@@ -605,6 +686,39 @@ int samp_api_folded(const char *argPath, char *out, size_t cap)
       path, stacks, (unsigned long long)rows.size());
     _snprintf_s(out, cap, _TRUNCATE, "written %s stacks=%llu unique=%llu",
                 path, stacks, (unsigned long long)rows.size());
+
+    // busy-worker stacks ride along when present (separate file: the main
+    // folded capture stays a pure main-thread view for the annotate tool)
+    char busyPath[1024];
+    std::vector<std::pair<std::string, uint64_t>> busyRows;
+    EnterCriticalSection(&g_smp.cs);
+    busyRows.assign(g_folded_busy.begin(), g_folded_busy.end());
+    unsigned long long busyStacks = g_foldedBusyTotal;
+    LeaveCriticalSection(&g_smp.cs);
+    if (!busyRows.empty()) {
+        const char *dot = strrchr(path, '.');
+        if (dot && strlen(path) < sizeof(busyPath) - 16)
+            _snprintf_s(busyPath, sizeof(busyPath), _TRUNCATE, "%.*s_tids%s",
+                        (int)(dot - path), path, dot);
+        else
+            _snprintf_s(busyPath, sizeof(busyPath), _TRUNCATE, "%s_tids.txt", path);
+        std::sort(busyRows.begin(), busyRows.end(),
+                  [](const auto &a, const auto &b) { return a.second > b.second; });
+        wchar_t wbpath[1024];
+        if (MultiByteToWideChar(CP_UTF8, 0, busyPath, -1, wbpath, 1024) > 0 &&
+            _wfopen_s(&f, wbpath, L"wb") == 0 && f) {
+            fprintf(f, "# busy-worker stacks=%llu stacks_unique=%llu base=%llx\n",
+                    busyStacks, (unsigned long long)busyRows.size(),
+                    (unsigned long long)pdata_img_lo());
+            for (const auto &r : busyRows)
+                fprintf(f, "%s %llu\n", r.first.c_str(), (unsigned long long)r.second);
+            fclose(f);
+            size_t l = strlen(out);
+            _snprintf_s(out + l, cap - l, _TRUNCATE, "; busy=%s", busyPath);
+            L("[sampler] busy folded written: %s (%llu stacks, %llu unique)",
+              busyPath, busyStacks, (unsigned long long)busyRows.size());
+        }
+    }
     return 1;
 }
 
@@ -614,8 +728,9 @@ void samp_api_status(char *out, size_t cap)
                       InterlockedCompareExchange(&g_smp.running, 0, 0)
                           ? "running:" : "idle:");
     size_t l = strlen(out);
-    _snprintf_s(out + l, cap - l, _TRUNCATE, " scope=%s tids=%d",
-                g_scope.all ? "all" : "main", g_scope.count);
+    _snprintf_s(out + l, cap - l, _TRUNCATE, " scope=%s tids=%d busy=%d busy_stacks=%llu",
+                g_scope.all ? "all" : "main", g_scope.count, g_scope.busy,
+                g_foldedBusyTotal);
 }
 
 // Per-thread table (scope "all"): lines "tid hits hits% cpu_ms(last window)".
@@ -657,6 +772,91 @@ int samp_api_threads(char *out, size_t cap)
     return 1;
 }
 
+// Per-tid leaf attribution (scope "all" + per-tid table). tid==0 renders the
+// overview: one line per tid with its top-3 in-image leaves — pairs with
+// samp_api_threads to answer "what is THIS busy worker running". A specific
+// tid renders that tid's leaf top-n in the samp_api_top line format.
+int samp_api_tidtop(DWORD tidSel, int n, char *out, size_t cap)
+{
+    if (!g_tidtab.tab) return 0;
+    if (n < 1) n = 1;
+    if (n > SAMP_TOP_MAX) n = SAMP_TOP_MAX;
+
+    static SampSlot snap[SAMP_TIDTAB_SIZE];     // static: main-thread only
+    int used = 0;
+    EnterCriticalSection(&g_smp.cs);
+    for (uint32_t i = 0; i < SAMP_TIDTAB_SIZE; i++)
+        if (g_tidtab.tab[i].key) snap[used++] = g_tidtab.tab[i];
+    unsigned long long dropped = g_tidtab.dropped;
+    LeaveCriticalSection(&g_smp.cs);
+
+    qsort(snap, (size_t)used, sizeof(SampSlot), samp_slot_cmp_count);
+
+    auto fmt_leaf = [&](char *dst, size_t dcap, uint64_t key) {
+        return (key >> 63)                       // never set (tid < 2^23) — keep for safety
+            ? _snprintf_s(dst, dcap, _TRUNCATE, "rip %llx", (unsigned long long)key)
+            : _snprintf_s(dst, dcap, _TRUNCATE, "rva %llx",
+                          (unsigned long long)(key & (((uint64_t)1 << 40) - 1)));
+    };
+
+    if (tidSel) {
+        size_t pos = (size_t)_snprintf_s(out, cap, _TRUNCATE,
+            "tid=%lu functions=%d dropped=%llu", (unsigned long)tidSel, used, dropped);
+        int shown = 0;
+        for (int i = 0; i < used && shown < n && pos < cap - 48; i++) {
+            if ((DWORD)(snap[i].key >> 40) != tidSel) continue;
+            char leaf[32];
+            fmt_leaf(leaf, sizeof(leaf), snap[i].key);
+            int w = _snprintf_s(out + pos, cap - pos, _TRUNCATE,
+                                "\n%llu %s", snap[i].count, leaf);
+            if (w < 0) break;
+            pos += (size_t)w;
+            shown++;
+        }
+        return 1;
+    }
+
+    // overview: snap is count-descending, so the first three hits per tid are
+    // its hottest leaves. Two passes — totals must be complete before rows
+    // can be ordered by them.
+    struct TidAgg { DWORD tid; unsigned long long total; int tops; uint64_t top[3]; };
+    static TidAgg aggs[SAMP_TID_MAX];
+    int naggs = 0;
+    for (int i = 0; i < used; i++) {
+        DWORD t = (DWORD)(snap[i].key >> 40);
+        int ai = -1;
+        for (int k = 0; k < naggs; k++) if (aggs[k].tid == t) { ai = k; break; }
+        if (ai < 0) {
+            if (naggs >= SAMP_TID_MAX) continue;
+            ai = naggs++;
+            aggs[ai].tid = t; aggs[ai].total = 0; aggs[ai].tops = 0;
+        }
+        aggs[ai].total += snap[i].count;
+        if (aggs[ai].tops < 3) aggs[ai].top[aggs[ai].tops++] = snap[i].key;
+    }
+    std::sort(aggs, aggs + naggs, [](const TidAgg &a, const TidAgg &b) {
+                  return a.total != b.total ? a.total > b.total : a.tid < b.tid;
+              });
+
+    size_t pos = (size_t)_snprintf_s(out, cap, _TRUNCATE,
+        "%6s %10s  functions=%d dropped=%llu\n%6s %10s  top leaves (rva)",
+        "tid", "samples", used, dropped, "", "");
+    for (int a = 0; a < naggs && pos < cap - 64; a++) {
+        int w = _snprintf_s(out + pos, cap - pos, _TRUNCATE, "\n%6lu %10llu",
+                            (unsigned long)aggs[a].tid, aggs[a].total);
+        if (w < 0) break;
+        pos += (size_t)w;
+        for (int k = 0; k < aggs[a].tops && pos < cap - 40; k++) {
+            char leaf[32];
+            fmt_leaf(leaf, sizeof(leaf), aggs[a].top[k]);
+            w = _snprintf_s(out + pos, cap - pos, _TRUNCATE, "  %s", leaf);
+            if (w < 0) { pos = cap; break; }
+            pos += (size_t)w;
+        }
+    }
+    return 1;
+}
+
 // ---- Lua surface ----
 int hoi4_profile_start(lua_State *Ls)
 {
@@ -665,11 +865,12 @@ int hoi4_profile_start(lua_State *Ls)
         luaL_argerror(Ls, 1, "interval_ms out of range (1..1000)");
     int stacks = lua_toboolean(Ls, 2);
     int all    = lua_toboolean(Ls, 3);
+    int busy   = lua_toboolean(Ls, 4);
     // Target = whoever called us. /lua and console `lua` both run at frame
     // top on the game's main thread; async workers never see the hoi4 table.
-    char out[112];
+    char out[128];
     const char *err = samp_api_start((unsigned)ms, stacks, GetCurrentThreadId(),
-                                     all, out, sizeof(out));
+                                     all, busy, out, sizeof(out));
     if (err) return luaL_error(Ls, "%s", err);
     lua_pushstring(Ls, out);
     return 1;
@@ -718,6 +919,20 @@ int hoi4_profile_threads(lua_State *Ls)
 {
     static char out[64 * 1024];                // main-thread readers only
     samp_api_threads(out, sizeof(out));
+    lua_pushstring(Ls, out);
+    return 1;
+}
+
+// hoi4.profile_tidtop([tid[, n]]) — tid omitted/0 = per-tid top-3 overview;
+// tid set = that tid's leaf top-n. Needs a scope=all run with the per-tid
+// table (data survives stop, like the main histogram).
+int hoi4_profile_tidtop(lua_State *Ls)
+{
+    lua_Integer tid = luaL_optinteger(Ls, 1, 0);
+    lua_Integer n   = luaL_optinteger(Ls, 2, 30);
+    static char out[64 * 1024];                // main-thread readers only
+    if (!samp_api_tidtop((DWORD)tid, (int)n, out, sizeof(out)))
+        return luaL_error(Ls, "per-tid table never allocated (no scope=all start)");
     lua_pushstring(Ls, out);
     return 1;
 }

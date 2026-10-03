@@ -217,8 +217,8 @@ mission 块 (units; 存档块名, 非 RTTI 类名) 补录:
 | ctor / dtor | 0x140C2FEA0 / 0x140C30380 |
 | 挂载点 | CTaskForce ship 容器 (tf+840/tf+852) |
 
-**+128..+1783 = 内嵌 CSubUnitDefinition 克隆 1656B** (copy ctor 自 null def; reader 键 12259 经 sub_140B961B0 重克隆) — 原空白 +236..+839 与 +864..+1575 全部是克隆体内部, **按 §4.18.19 布局 −128 映射即全解** (活体 1524 艘 vt 全中: sprite "heavy_cruiser"@sh+232 (def+104+128)、主统计数组 statId=(off−288−128)/8? 否 — statId=(off−416)/8 式即 def 偏移 −128、reliability = statId65 = 0.8、critical_parts cap4、map_icon=3(ship)@sh+1544 (def+1416)、DB 母本索引=72@sh+1548 (def+1420)); 克隆体后 +1784 = strength。
-⚠ 原「舰统计重算 sub_140C21570」误挂 — 该函数触 +4168, 2360B 对象物理不可能, 系他类函数; 原「+856 CModifier 树」活体全零且 getter 不读 (待裁); GUI「+1576 旗」定名 = 克隆 type 位域 capital_ship 0x40 位。
+**+128..+1783 = 内嵌 CSubUnitDefinition 克隆 1656B** (copy ctor 自 null def; reader 键 12259 经 sub_140B961B0 重克隆) — 原空白 +236..+839 与 +864..+1575 全部是克隆体内部, **按 §4.18.19 布局 −128 映射即全解** (活体 1524 艘 vt 全中: sprite "heavy_cruiser"@sh+232 (def+104+128)、主统计数组 **statId=(off−288)/8** (ship 基址; def 克隆体映射 = off−288−128; 勘误: 原「(off−416)/8 式即 def 偏移 −128」系换算误推 — 统计重算真身 0x140C3D090 惩罚直写 sh+288+8×statId + 内部自洽 (org/strength 钳位读 sh+768/+776 = statId 60/61 MAX_ORG/MAX_STRENGTH 仅 288 基址自洽, 416 基址映 44/45 语义不通); 观测数据本身不受影响)、reliability = statId65 = 0.8、critical_parts cap4、map_icon=3(ship)@sh+1544 (def+1416)、DB 母本索引=72@sh+1548 (def+1420)); 克隆体后 +1784 = strength。
+⚠ 原「舰统计重算 sub_140C21570」误挂 — 该函数触 +4168, 2360B 对象物理不可能, 系他类函数; **真身 = 0x140C3D090** (281 行, ship.cpp; 全机制见 §4.16.21); 原「+856 CModifier 树」活体全零且 getter 不读 (待裁); GUI「+1576 旗」定名 = 克隆 type 位域 capital_ship 0x40 位。
 
 loader 兼容读入键 (writer 均不发射, 8 个新增): air_wings (12213) → +1840 航母机库注册 (strategicair.cpp:5946 断言) / start_experience_factor (13548) → +1824 / pride_of_the_fleet (15002) → +2068 / ordered_name (15501) → +2112 / unordered_name (15502) → +2116 / name (27) → +2080 旧名缓冲 / division_name (14596) 旧 ship_name 键 / refitting (15228) 容忍跳过。held_officer 键名 = 10660 定案; 另有 case 19176 → sub_1413EAA60(a1+2120) (officer 对象操作, 不落值域)。
 
@@ -247,7 +247,7 @@ CShip 键表 (writer 0X140C3E6C0 直证清单; **行序 = writer 发射序落盘
 | raid_instance (19183) | +2352 | 行内 idpair — type | 任一≠0 | |
 | raid_instance (19183) | +2356 | 行内 idpair — id | 任一≠0 | |
 
-CShip 运行时燃料行: **+840 = i64 fix5 每小时燃料用量** (不序列化; getter sub_140C36F60; 谓词 sub_140C3AF90 < SHIP_FUEL_EFFICIENCY_WARNING_THRESHOLD → TASK_FORCE_HAS_FUEL_INEFFICIENT_SHIP_FOR_MISSION tooltip); 与 +856 构成 {标量, CModifier 树@+16} 修改值对 (舰统计重算 sub_140C21570 聚合, 基值 = 舰体/装备定义); 逐舰 UI 现算 sub_140C39BF0 = 用量×(1+MODIFIER_NAVY_FUEL_CONSUMPTION_FACTOR id413)×FUEL_COST_MULT×MISSION_COST (TF 级 sub_140C35280 不带该修正项, 走 statId 69 缓存)。
+CShip 运行时燃料行: **+840 = i64 fix5 每小时燃料用量** (不序列化; getter sub_140C36F60; 谓词 sub_140C3AF90 < SHIP_FUEL_EFFICIENCY_WARNING_THRESHOLD → TASK_FORCE_HAS_FUEL_INEFFICIENT_SHIP_FOR_MISSION tooltip); 与 +856 构成 {标量, CModifier 树@+16} 修改值对 (舰统计重算 = 0x140C3D090 — 勘误: 原「sub_140C21570」系误挂他类函数; 基值 = 舰体/装备定义); 逐舰 UI 现算 sub_140C39BF0 = 用量×(1+MODIFIER_NAVY_FUEL_CONSUMPTION_FACTOR id413)×FUEL_COST_MULT×MISSION_COST (TF 级 sub_140C35280 不带该修正项, 走 statId 69 缓存)。
 
 CShip/CTaskForce GUI 消费表:
 
@@ -920,4 +920,114 @@ tf+1292 直证; SetDefaultColor = fleet_id 取模色表 (dword_143338D3C/qword_1
 
 未决: repair_parent resolve != 16 哨兵判读; vt[14]/vt[18] 槽 RVA; qword_14332F698 身份
 三说并存; sub_140D539A0 分组键; desc+210 bit1 位域; CStrategicRegion 邻接块归属 s4_25 域待收。
+
+#### 4.16.20 navalcommands.cpp 簇对账增补 (海军命令执行与预备舰队体系; 11 函闭环)
+
+清册 (11/11 函体内含 navalcommands.cpp 路径锚; 命令行对号勘误见 §4.33.11/12):
+A\* 寻路核心 0x14134FCC0 (384) / 舰数组→预备/新建特混 helper 0x14134DD50 (250, 15158
+与 15172 Execute 共用) / CAutomateHomebaseForFleetCommand::Execute 0x1413508D0 (28) /
+CNavalMissionSetTypeCommand::Execute 0x141351C50 (184) / CNavyDetachShipsAndMerge
+Command::Execute 0x141352E90 (212) / CReorganizeShipsCommand::Execute 0x141353AE0 (713) /
+CSetFleetCommand::Execute 0x141355060 (525) / CSetFleetHomeBaseCommand::Execute
+0x1413559E0 (247) / CSetNavalRegionAccessCommand::Execute 0x1413560B0 (356) / 特混→预备
+舰队落位 helper 0x141357840 (127, 15172 专属) / 预备舰队合法性+清任务 helper 0x141359EE0 (48)。
+
+**CFleet::IsReserveFleet 定名** (sub_140D57C70; :1237 断言文点名直证): 判据 = 舰队有特混
+(舰队+196 ≠ 0) ∧ 首特混任务类型 tf+884 == 8 — **预备舰队 = 运行时任务态, 非持久标志位**
+(15165 :2865 拒绝门 / 0x141359EE0 合法性门 / 15174 预备舰队路由 / 15179 预备簿记
+sub_140D54430 四函交叉复用)。伴生谓词 sub_140D5A430 = 预备化一致性 (全队按 repair_parent
+解析体归组须同 key; 空队恒真)。
+
+**枚举补值** (定案): CTaskForce::EActivity — Mission = 0 (:1270 断言文) / Reinforcing = 4
+(:1253) / 训练活动 = 3 (高置信, 停训门 sub_140D67380 配对) / 5 = 未名待裁 (与 1 同组在
+16738 move 门排除); 任务类型 (tf+884) — **7 = MISSION_TRAINING** (:1270) / **8 = 预备任务**
+(四函交叉), 与 IsValid 上界 ≤9 相容。
+
+**CTaskForceIdentity (128B) Execute 消费点布局** (定案): +32 CColor 16B 带 vftable (旗@+48)
+/ +64 u8 (旗@+65) / +68 u32 (旗@+72) / +76 任务类型 (旗@+80; ==8 走预备舰队) / +84
+stop_training (旗@+85) / +88 舰 idpair 向量 {data@+88, cap@+96, count@+100} / +112 目标舰队
+CRef {type@+112, id@+116} (空 → throw :3567); +0/+16/+120 Execute 未消费待裁。
+
+**15174 CReorganizeShips 全机制** (定案): 舰按所在特混省索引 (tf+496+164) 稳定排序
+(≤32 插入 sub_141345C10 / >32 归并 sub_141345D20) → 按省切组, 每组 CreateTaskForce
+(组首舰旧 tf+496 省, related = 并入目标) → optional 逐项施用 (色/旗/+68/+76 任务类型+
+stop_training) → 旧 tf 腾空 (tf+840 容器 count@+852) 即删 → 本地玩家 UI+1336 选中
+先清后加 (仅首组清)。
+
+**16738 move 旗机制** (定案): 对舰队每个可动特混 (activity ∉ {1,4,5} ∧ 非战 ∧ 不在新省)
+**栈构 CNavalMissionMoveCommand → IsValid (sub_14134B970) → 直调 Execute
+(sub_141351260)**, 不经 post — 「Execute 无自调 IsValid」横断不破, 反增栈构子命令样板
+(与 12664 引擎级联同款)。
+
+**14858 clear 旗语义** (定案): clear=1 = 先生成全海区默认表 (access=0, 1..gs+748−1) 再对
+载荷区写值; 元素 = {region_id u32, access u8} 8B; 施用门 = 区域对象+160 > 0; gs+368 = 海区
+对象表, **gs+748 = 海区总数** (§4.11.19 未决项闭合)。
+
+**海军 A\* 寻路核心** (0x14134FCC0, 384 行; 两调用点均在 12664 链 sub_141359780 内,
+第 4 参 = gs+700 节点总数): 节点描述符 = **省+184 对象** — 边表 {data@+112, count@+124},
+48B/边 {邻接节点索引@+8, 边成本@+24}; 节点位置 x@+184/y@+188; 每跳附加成本@+192
+(desc+210 陆/湖旗同对象, §4.14 互证)。节点索引 = 省+164; 节点记录 24B {省*, 父记录*,
+f@+16, g@+20}; 优先队列 = pdx heappriorityqueue (8B 项 {优先级, 节点索引})。g = ceil1e5
+(边成本)/1e5 + 节点+192 附加 + 1; h = 目标与邻省位置的**地图环绕欧氏距离** (环绕半宽 =
+qword_143339D28+64); 命中沿父链回溯 (sub_14134B6F0)。边成本量纲未追源, 系数入书需
+PE 侧验算 (核心纪律 8)。
+
+**CFleet/CTaskForce 字段消费点增补** (定案): CFleet — +8 舰队自引用 idpair / +72/+84 任务栈
+(sub_140D59520 清空) / +168 属国 / +184/+196 特混指针数组 (sub_140D230E0 直返) / +208
+战区组 / **+260 自动母港旗** (10417 翻转 + sub_140D59410 重估: 首特混省或任务栈定基准省 →
+sub_140EA0000 找基地 → sub_140D59E00 落母港); CTaskForce — +24 自引用 idpair / +248 位置
+省 id / +840/+852 舰船容器 (sub_140D6EEB0 直返; 整队判定 = 选中数 == count) / +1176/+1188
+停泊子特混表 (换队随迁) / +1208 detached_activity (EActivity)。
+
+**错误机制三组辨析** (本簇实证, 勿混): assert 组 = sub_1424C8080 (latch + debugbreak);
+**throw 组 = sub_1424C9240 → sub_1424C9AE0 (buf, file, line, 65540) → sub_1424C8E30
+(组消息, 可内插) → sub_1424C89E0 (抛 ios_base 异常), terminate 仅兜底** — 15179 :701 带
+舰队 id 内插、15158 路 :134 异省串均此组; 日志组 = sub_1424C8950+8E60 (无中断)。与
+CLogStream 行式日志 (§4.12.9b) 共四形态。
+
+未决: CTaskForceIdentity +0/+16/+120 语义 / EActivity=5 / CreateTaskForce 第 3 参精确
+语义 / sub_140D51B80 巨函 (~1200 行) 骨架级 / gs+2613 旗 (0 = 才做母港迁移跟随) /
+边成本量纲。
+
+#### 4.16.21 ship.cpp 簇对账增补 (舰船运行期; 12 函闭环)
+
+清册 (12/12 函体内含 ship.cpp 全路径锚): CShip reader vt[4] 0x140C3C5A0 (467) / 海战统计
+查询 0x140C34A50 (389) / **统计重算真身 0x140C3D090 (281)** / 关键部件损伤施加
+0x140C34500 (267) / 逐舰小时 tick 0x140C3C060 (217) / CShip writer vt[2] 0x140C3E6C0
+(150) / SetPrideOfTheFleet 0x140C34280 (120) / 装载后舰名解析 0x140C3B840 (98) / 调试
+join helper 0x140C2F160 (98) / attrition tick 0x140C32EB0 (45) / SetShipName (deprecated)
+0x140C3D7E0 (28) / GetSubAttack 包装 0x140C3A890 (26)。
+
+**统计重算真身** (0x140C3D090; 解 §4.16.3「sub_140C21570 待裁」): 装备×(1e10/池值) 累加 +
+定义本体 + 损件惩罚直写 **sh+288+8×statId** + 强度重标 + org cap (mod 71/638 +
+TRAINING_ORG 门) + 等级槽 +2064。主统计数组基址勘误与内部自洽见 §4.16.3 勘误注。
+
+**海战统计查询** (0x140C34A50; 定案): 签名 (out, sel 0..4, tf, ship, def, combat|0),
+sel = 轻炮攻/重炮攻/潜攻/鱼雷/装甲; 型别位 0x80 潜/0x40 主力/0x100 屏卫分支 × 对国修正
+(modifier 194..199/456..461/439..440/263/464..465); PotF 参战加成; OUT_OF_FUEL_* 燃料罚;
+终式 = base×(1e5+Σmod)/1e5。
+
+**critical_damage 全链** (定案): 施加 0x140C34500 = 候选 (sh+1360 critical_parts + sh+96
+树) 按权重 random_fixed(:1935) 加权选件 → {条目*, 次数} 入账 (元素 +8 = 受损次数) → 重算
+→ tf vt[22] 通知; writer :1159 断言 = 发射循环 (「名」计数格式); reader 键 15357 按名经
+game item DB 回填。
+
+**逐舰 tick 三件** (定案): ① 训练经验 (UNIT_EXP_LEVELS/TRAINING_MAX_LEVEL 停训门;
++69 stop_training_at_max_xp 仅 type==7 互证) + 训练回补 TRAINING_MIN_STRENGTH; ② 海难/
+水雷判定 (mod 425/426, NAVAL_MINES_ACCIDENT_* 四 define, PotF 双减免, random_fixed
+:2770/:2786) → 真海难沉没归因链 + 事故报告; ③ **attrition tick: sh+1816 = attrition
+累积** (任务中 ×ATTRITION_WHILE_MOVING_FACTOR 衰减, 停泊不衰减) → org 流失 + 概率强度损
+(ATTRITION 四 define)。
+
+**杂项定案**: SetPrideOfTheFleet = 舰 refid **type=51** 水位分配 + 资格位 (0x40/0x400000/
+0x2000000000 型别或池模块, 业务名待裁) + 流亡排除 (throw) + cc+592 登记; 舰名延迟求名链 =
+自定义名(+2080) → 有序(+2112) → 无序(+2116) → 兜底生成, cc+120 注册, 占名 throw;
+SetShipName deprecated assert 仍执行写名 (非删除); reader 补三点 = 键 14596≡15500 共用
+分支 (占名 throw)、键 11930 负值钳 0、15357 DB 回填。
+
+**工具防复发**: sub_142233DB0 = clausewitz random_fixed(file, line) (确定性 RNG,
+rand()%100000), 非 define 代理 — 形态与 define 读取相似勿混。
+
+未决: sh+96 容器身份 / 候选条目 RTTI 名 (§4.18.19 B 项) / sel=3 wrapper 推定 / PotF
+资格位业务名 / sh+288 L1 探针复验 (读 sh+808 期待 reliability 0.8)。
 

@@ -342,6 +342,8 @@ data 结构 (语义推定):
 | random.h:150 RandomElement | 均匀随机取元素模板 `(Get & 0x7FFFFFFF) % n`, 三消费者: sub_1412ABD80 陆战/岸轰附带伤害受击目标 (crit 门 = SHORE_BOMBARDMENT_COLLATERAL_DAMAGE_CRIT_CHANCE_FACTOR) / sub_14144CC20 勋章随机授勋 (概率门 unit_medals.cpp:1038, 修正值 + qword_143337718) / sub_140FDC3A0 反谍捕获执行 (**加权变体**: 同国/同原初国双权 dword_1433342B8/143334448 — 非 define loader 槽, 名未取) |
 | 天气守卫入口 | sub_140147D20 = 守卫 enter 非内联提取版, 唯一调用者 = CWeatherManager::HourlyUpdate — 天气先 mgr+776 += random_int 再禁场跑内部模拟 (§4.20 互证) |
 
+random.h 断言面全量 = 29 函数 34 处, 仅两行号: :74 (ThreadIsMainThread 主线程断言, latch byte_14332EDF8) 与 :150 (RandomElement 模板, 三消费者 = 岸轰/勋章/反谍); 无新分发函数/新流挂载点/新种子路径。**禁场收紧方向惯用式** = `:74 主线程断言 → sub_142234100 读禁场 → sub_1422345B0(1) enter → tbb parallel_for → unwind 恢复` (29 个 :74 函数中 16 个为该骨架直接载体; 4 处带调试名直证: "CFaction::ParallelPreHourlyUpdate" sub_140D928C0 / "hourly_parallel"+"countryHourlyUpdateOnlyChangeSafePrivateAndCache" sub_1401D85A0 相位 11 / "DoUpdatePasses" sub_140F18AD0 / "Short Task" sub_1401D7E40 相位 14) — 与 §4.28.13 解禁子区惯用式 (sub_1422345B0(0)→子区→restore) 互补, 共用同一 save/restore 通道。
+
 random.h 簇增补 (定案/高置信批): **byte_143452529 双语义** = ① 每抽日志门 (random.cpp:258/329) ② **StartAllAI 串行回退开关** (sub_1401EF500: 门开 → 逐国串行启动; 关 → tbb parallel_for CStartAIThreaded — 保证日志序 = 抽取序; ingameidler.cpp:4941 日志亦挂此门, 按串锚定域排查时命中 ≠ 业务常开日志)。**CEventScope 随机对 = +12 count / +16 seed** (与 gs 全局对同链同构异位; 效果文档导出 sub_14053F460 出口对 scope 种子对**无条件重哈希**: 链A→+16 seed / 链B→+12 count, 常数与 §4.28.13 链A/B 逐位同源; 嵌套计数 dword_143330008 = 效果文档库深度计数)。**空军基地共享实例流** = ProcessAirBasesHourly 尾相 (strategicair.cpp:7144 全局抽 r) → 栈上对 {count=r, seed=1587985055−r} 全体基地顺序共享 → sub_140C60290: 10% 门 (draw%100000<10000) + 均匀索引 (次抽 % 基地+196 计数, 取 +184 数组元素 — 数组语义待裁)。**"All theatres rebuilt" 调试命令执行器 = sub_1402792C0** (sub_140CF59A0 + sub_140EF9150 全局重置连跑; 重置复位清单全落 NTheatreManager 三组静态范围)。并行作业域开闭对 sub_1402200E0(槽,type)/sub_1402203F0(槽) (daily=2/hourly=0/ai_update=5, type 语义待裁)。
 
 #### 4.28.14 CInGameIdler (会话 idler; 暂停域 / 驱动契约 / 实例布局)
@@ -594,13 +596,22 @@ CSession = clausewitzlib session.cpp 会话对象 (单机实例 = CDummyServer �
 | +88 | CServer* | server 对象挂载点 (工厂三型分配; server+80 反指回 session) | 定案 |
 | +96 | uint8 | **继承者旗** (收 NAMED_SUCCESSOR(7) 且值==本地 tag 置 1; 重连机主机重建路门; Init 清 0) | 定案 |
 | +128 | uint32 | **命令流批号 (lockstep 计数器, 非游戏小时)** — 发送侧 `min(session+128, 0x7FFF)` 盖命令 cmd+22; 主机每批自增 + SERVER_TICK(5) 脉冲广播, 客户端锁步 ++/硬追 (§4.36.3) | 定案 |
+| +156 | uint8 | 成员链摘除进行门 (sub_142250F50 两遍式摘除置 1 → 首遍节点+24 打延迟删旗 → 复位 → 二遍物理摘) | 定案 |
 | +164 | uint32 | 本机 machine id — 发送侧写命令 cmd+12 ("Machine id %d assigned") | 定案 |
+| +168 | 链表头 (20B: first@168, last@176, count@184) | **离开/掉线成员机 id 暂存链** (成员摘除尾插; 消费 = 重连机与观察者; 事件尾 sub_1422500C0 节点 free + 计数清零 — append→广播→齐清的事件内载荷暂存, 非跨事件持久名单) | 定案 |
+| +192..+208 | 数组 (元素 12B {id u32, addrport u64}; data@192/cap@200/count@204/分配器@208) | 掉线成员地址暂存 (DisconnectCallback 机器表桶+56/+60 取 addrport 追加; 同上暂存模式) | 定案 |
+| +216..+232 | 数组 (元素 16B {id u32, conn u64}; data@216/cap@224/count@228/分配器@232) | 掉线成员连接句柄暂存 (同上暂存模式) | 定案 |
+| +392 | uint32 | 最新接入机 id (接入执行体尾写; Init 无初始化 = 首客接入前未初始化; 读者未决) | 写点定案/语义待裁 |
 | +400 | uint64 | GAME_STATE(18) 载荷流指针 (热加入/重连收到的 gamestate+命令日志流, 空 = 无; RequestSynch 反序列化消费) | 定案 |
 | +1056 | uint8 | 重连机总门 (==0 只广播无动作; **全语料无置 1 写者**——Init 与 sub_142252660 均清 0, 负发现) | 定案写读点/语义待裁 |
 | +1852 | uint8 | 命令派发重入门 ("Update within execution. Skipping." session.cpp:600/629) | 定案 |
 | +1854 | uint8 | 热加入当前态旗 (与 +1855 同地址 WORD 写 257 双置 1; 独立 setter = SetHotjoin sub_142252520) | 定案 |
 | +1855 | uint8 | 粘滞「曾开热加入」旗 (SetHotjoin a2 真时置 1) | 定案 |
 | +1856 | uint8 | 热加入拒绝码 (0=declined/1=busy/2=nameconflict/3=disabled; 仅客户端写) | 定案 |
+| +1864 | SSO 串 (32B) | 热加入请求串 1 (主机收 REQUEST_HOTJOIN(14) 载荷直写) | 定案 |
+| +1896 | SSO 串 (32B) | 热加入请求串 2 (同上) | 定案 |
+| +1928 | uint64 | 热加入请求连接句柄 (conn 直存) | 定案 |
+| +1936 | uint8 | 热加入请求待处理旗 (置 1 + 观察者广播 14) | 定案 |
 | +1940 | uint8 | 热加入等待旗 (态 13 置 1 / 拒绝置 0) | 定案 |
 | +1941 | uint8 | 入队即时/本地门之一 (sub_142250B00 四条件) | 定案 |
 | +1968 | uint8 | 派发循环状态辅助旗 (置 0 触发观察者广播 3; 另一写者 = "Server lost!" 断线链与玩家加入处理器) | 定案 |
@@ -1172,8 +1183,9 @@ qword_14332F698+1272 队列。分派包装 sub_140DA3530: 描述符 +85==0 (新�
 
 **CSession 布局增补** (高置信): ConnectToGame join 收下路 (三态门 "lobby" 分支) 把
 lobby+304 / +336 两 SSO 串拷入 **session+1864 / +1896**, 并 `session+1936 (u32) =
-sub_140B54190(session)`, 后才 SetState(12); 三槽 §4.28.16 表此前未载, 串内容待裁
-(推定玩家名/密码)。ConnectToGame 日志家族全录: "Net: ConnectToGame …" 六串 + 状态名串
+sub_140B54190(session)`, 后才 SetState(12); 三槽已入 §4.28.16 表 — 主机侧对称写点 =
+收 REQUEST_HOTJOIN(14) 直写载荷两串 + +1928 = conn 句柄 + +1936 = 1 + 观察者广播 14
+(§4.36.12), 串内容 = 热加入请求者名/user 串。ConnectToGame 日志家族全录: "Net: ConnectToGame …" 六串 + 状态名串
 19 个 (SetState 广播码映射就地嵌入); 三态门 = memcmp 长度校验 starting(8)/running(7)/lobby(5)。
 
 **EH funclet 配对法** (定案, 可复用): 簇内 11 个 catch funclet 经行号指纹法全配对 —
@@ -1242,8 +1254,10 @@ SetState(4) 带广播码 0。
 (+1864/+1896/+1936), 否则 → RequestSynch, 与 §4.28.24 三槽互证)。RequestHotjoin 尾 = 内联
 SetState(12) (态 12 本无广播 case, 语义等价) + 立即 Update 泵一帧。观察者协议: 链表头
 session+8 (32B 节点), 观察者 slot[1] 收单码; 码域与状态域不同构 (全映射: 0=connected 类 /
-1=connecting / 2=refused / 3=reconnect-pending / 7=disconnected / 8=async / 9=KICKED /
-10=BANNED / 11=NAME_TAKEN / 12=NAME_INVALID / 15=HOTJOIN_REFUSED / 16=BAD_PASSWORD /
+1=connecting / 2=refused / 3=reconnect-pending / **5=成员离开** (DisconnectCallback 尾) /
+**6=成员加入** (接入链尾) / 7=disconnected / 8=async / 9=KICKED /
+10=BANNED / 11=NAME_TAKEN / 12=NAME_INVALID / **14=热加入请求** (主机收 REQUEST_HOTJOIN
+置 +1936 后广播) / 15=HOTJOIN_REFUSED / 16=BAD_PASSWORD /
 17=JOIN_DISABLED / 18=BAD_VERSION)。
 
 未决: +80 全枚举值域 (0/1/3 语义); +160/+360 消费者; +1848 读者; +1952/+1960 装填者;
@@ -1296,7 +1310,16 @@ qword_14332F698 = 引擎管理器单例 (+1264 → +368 纹理库, +1744 战略�
 输入/order 管理器单例 (vt+200 = 鼠标悬停 order, order+464 = 链头); qword_14332F5A8+F5B4 =
 已发射事件史 {data, count@+12}; qword_14332F5C0+F5CC = 外交行动史同构。
 
-未决: 注册器 383 条完整表抽取 (全名+别名+描述+dev 旗) 留后续任务 (方法已验证, 脚本
-archive/m14_decomp/df135_namemap.py / df135_registrar.py); 1425A0010 间接调用通道;
+未决: 注册器 383 条完整表抽取 (全名+别名+描述+dev 旗) 留后续任务 (方法已验证); 1425A0010 间接调用通道;
 damage_units 第二单位容器军种分工; 140232CD0 七调用命令注册名; 命令条目栈临时 (288B) 与
 运行时条目 (456B 跨距) 拷贝通路。
+
+#### 4.28.27 遥测事件发射器层 (gametelemetry.cpp / peacetelemetry.cpp)
+
+Paradox 后台遥测单事件发射器族 (书内原仅散点: cheatcode_used §4.28.22 / 勋章遥测 §4.28.8 / 批量件 sub_140207890 §4.2)。发射链三件套 = {sub_14207E7B0, sub_14207E9C0, sub_14207ECC0} + 上下文构建 sub_140533830 + in_game_date 求值; 串签名 = `<topic> | in_game_date | nation`。单事件发射器 (STR/调用族直证): playsession_start sub_14021BA20 / game_crash sub_14020B810 / advisor_created sub_140203810 / captain_promoted sub_140205270 / cryptocracking sub_1402083D0 / motorize_supply_set sub_14020F750 / occupation_fallback_law_set sub_140207DE0 / view_special_project_history sub_14021B710; 同构族 (调用族): air_missions / research_facility / advisor_law / deployed_hq / mastery_snapshot / player_country_status / construction / doctrine_unlocked / peace_conference / playsession_over。非 gameplay 操作面。
+
+#### 4.28.28 控制台命令处理器增补 (实现侧 14 件)
+
+ConsoleCmdImpl 实现侧新处理器 (gamestate.h:1116 侧 + "Invalid arguments count."/"Usage:" 串 + §4.28.26 handler ABI): bop_set sub_1402856A0 (取 gs+1104 CPowerBalanceSystem → 激活 sub_140E58100) / bop_deactivate sub_14027C4B0 (sub_140EF4140 → 原语 sub_140E57E90) / pause_on_trigger sub_14026F8E0 ("Will pause on:") / 内联 effect 运行器 sub_140263690 ("Running:" + CEffect::Parse+ExecuteChecked, eval_effect 族) / add_equipment 型 sub_1402385B0 / 全装备授予 sub_140239D80 (与装备 item_grid 视图复用授予原语 sub_141D3ADB0) / 学说 mastery 授予 sub_14117B280 / unlock faction research sub_140259C60 (包装 sub_142466120) / research 全部特殊项目 sub_1411A97C0 / manpower sub_14026A360 / 天气水位 sub_14023BDB0 / 天气开关 sub_14022E040 / 补给节点选择 sub_14023D8A0 ("select a province for node", CHEAT) / center region sub_140260B00。州空军基地型 sub_140C5EB60 ("has no air base") 待名验证。续批: 删全部军队 sub_14022E870 / timer_dump sub_14022F0E0 (计时器转储, boost uuid 文件名) / bloom sub_14022F5B0 / 情报池清理 sub_14022FB60 / spawn actor sub_1402300E0 / srgb sub_140230310 / script_documentation sub_1402305F0 (ConsoleCmdImpl.cpp:8899 断言直证) / tweaker·reload·time 命令注册 sub_14022F4A0 / imgui UI 开关 ("Availabe Uis:")。
+
+**版本对象装配点 = sub_140121CC0** ("HOI4" / "hoi4_" / **"Operation Postern v1.19.3.0.c01a"** 三串直证 — #version 域取值源; 内部代号 Operation Postern)。

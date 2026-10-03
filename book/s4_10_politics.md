@@ -615,7 +615,7 @@ sub_1424BFBB0 对 token 16/17/18 直返不写; 原「元内副键 18 slot 名族
 | +2720 | CIdeaGroupType* | 所属组 (ctor = null-object 单例 sub_140A42A70, 装载后指真组; 组+92 槽序 / +96 CIdeaCategory* / +104 cost_factor) | — | 定案 |
 | +2728 | fixed×1e-5 | cost (实付 = cost × (100000+组/门类 cost_factor)/100000, sub_140FCF650) | 10323 | 定案 |
 | +2736 | fixed×1e-5 | removal_cost (换装退费/费用链读旧 idea) | 12269 | 定案 |
-| +2744 | uint32 | (ctor 0; 全语料零读写 — 疑废弃) | — | 未决 |
+| +2744 | uint32 | **组内下标** (SetIndex sub_140FD6650 写点直证: `*(idea+2744) = a2`, 入库/目录两路均经; ctor 0; 读侧消费待裁 — 勘误: 原「全语料零读写疑废弃」) | — | 写点定案/读侧待裁 |
 | +2748 | int32 | (ctor −1; 同上零读写) | — | 未决 |
 | +2752 | uint32 | level (ctor −1; 费用链按新旧 level 插值累加中间级 removal_cost) | 10348 | 定案 |
 | +2760 | CMeanTimeToHappen 56B | ai_will_do (+24 = 100000 基权重) | 10819 | 定案 |
@@ -1585,3 +1585,36 @@ politics.daily 七段定案: ① 选举推进 / ② PP 日增 (:1602 守卫版�
 CIdeaExpiredNotification, 门 = idea+124 旗 == 0) / ⑥ 无效理念日检 / ⑦ 过期收尾
 (CalcMod + sub_1406DD0C0 + sub_1406FF1F0(cc, 520 = bit3+bit9))。:1691/:1697 daily 版断言对
 与 tooltip 版 :1770/:1781 成对。CIdeologyGroup+175 u8 旗 = 新字段候选 (语义待裁)。
+
+#### 4.10.12b idea_database.cpp 装载域增补 (CIdeaDatabase 骨架与双加载器; 6 函闭环)
+
+清册 (6/6 函体内含 idea_database.cpp 路径锚): AddWithDupCheck 0x140A40D60 (67) / AddGroup
+0x140A40B50 (120) / AddCategory 0x140A41C40 (267) / PostLoad 0x140A43720 (116, **虚槽 [3]**
+PE vtable 直证; 组+112 ← slot_ledgers 槽+40 位旗; 逐理念 GetLedger 回退链 ==0xFFFF →
+"idea %s has no ledger assigned") / 目录版解析器 0x140A43C30 (740; idea_categories+ideas
+两键) / 全量版孪生解析器 0x140A40E90 (709; 三键含 slot_ledgers=19323; 外部 LoadAll 逐文件
+调它再逐类别 AddCategory)。
+
+**CIdeaDatabase 布局骨架** (定案): +80 名索引 / +104 主表 {data, cap@112, count@116,
+alloc@120} / +128 RH 表 (读侧待裁) / +160 **类别表** (CIdeaCategory, 键 = +16 名串 sso16,
+15 计 = idea_tags 类别数) / +184 类别名哈希表 (48B 槽) / +216 **组表** (CIdeaGroupType,
+元素 +8 token, 25 计 = 原版组数) / +240 slot_ledgers 表 — 三哈希表同族 48B 槽。
+
+**同名组合并律** (定案): AddGroup 按组 token 查 +216, 同名旧组存在 → 旧组收编理念
+(sub_140FCDE60) + 新壳 vt[1] 删除; 无旧组 → 查类别 (无 → "Idea group %s cannot be
+associated with a category (/idea_tags/)" :345) → SetCategory (sub_140FD6590: idea+96
+类别/+48 槽位) → push 组表; 类别无效 "It will be ignored" 不入库。AddWithDupCheck =
+**内联线性扫描** (自下标 1 线扫 +104 比元素+8 token, 命中有效理念才报 "Duplicate idea."
+:311; PE 无 G2 共享调用 — 勘误: 原「G2 复用」系同语义键误归)。四制造商类别
+(tank/naval/aircraft/materiel_manufacturer) 特判注册 `<名>_MIO` 槽 id (id 源 =
+qword_14333D6E8 管理器, advisor.cpp 同源)。
+
+**伴生类布局** (RTTI 直名 ctor): CIdeaGroupType 120B / CIdeaCategory 136B。ledger 位旗链
+(idea+3332 → 组+112 → 类别+132) 与 §4.6 doctrine 位旗全表完全互证 (hidden=1/civilian=2/
+army=4/navy=8/air=0x10/military=0x1C/全集=0x1E/invalid=0xFFFF) — 升定案。
+
+⚠ ref/token_table_1193.txt 9635/10065/10396 三 id 与 PE 立即数链语义不符 (局部漂移,
+疑 mod 填充重排同源); 位旗语义以本节 + §4.6 为准, token 名以运行时 lexer 复核为准。
+
+未决: CIdeaGroupType vt[3] 装载器本体 / +128 RH 读侧 / 全量版第二调用域 / +2744 读侧
+消费 / CIdeaCategory +80/+56 语义。

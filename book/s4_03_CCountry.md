@@ -232,7 +232,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4320 | uint32 | **refresh** | writer ADFE0 0x3495 (定案) |
 | +4324 | uint32 | **original_research_slots** | writer 键 0x361D, >0 才写 |
 | +4325..+4343 | — | = original_research_slots@4324 尾 3B + **CPlayerAiPrefs 16B@4328 (vt 0X27E72C0)**: {vt@4328, 4B 偏好@4336 = 0x01000001, i32@4340 = −1}; 同类见 CSetPlayerAiPrefsCommand (命令对象 +48 同布局拷贝) — 「玩家手动接管 AI 偏好」 | |
-| +4344 | CRadarsPool 内嵌 (双 vt @+4344/+4352) | radar 键 12237 走 +4352 facet; 成员: 容器群 @+16/+40/+96/+120/+144/+168, 子对象@+72, RH 桶×2 @+200/+232 (dtor 0X1410A31F0 双 vt; 内嵌定案) | Reset 清理 |
+| +4344 | CRadarsPool 内嵌 (双 vt @+4344/+4352) | radar 键 12237 走 +4352 facet; 成员: 容器群 @+16/+40/+96/+120/+144/+168, 子对象@+72 = **RADAR 静源引用 (池槽 3)**, +64 = owner tag, RH 桶×2 @+200/+232 (dtor 0X1410A31F0 双 vt; 内嵌定案); 运行期消费点语义 = §4.11.19 | Reset 清理 |
 | +4345..+4351 | — | = CRadarsPool vt@4344 尾 7B | |
 | +4352 | 内嵌块 | **radar** | writer ADEC0 0x2FCD; loader case 12237 同 |
 | +4353..+4415 | — | = **CRadarsPool 256B 全布局** 后半: 容器群 @+16/+40/+96/+120/+144/+168, tag u32@+4408, CStaticIntelSourceReference@+4416, RH×2@+4544/+4576 (内偏移 = CRadarsPool 相对) | |
@@ -565,7 +565,9 @@ reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccup
 > 归一补证: body ctor sub_140555FB0 全 dump 184 个调用点全部经它, `*(a1+168) = -1` (mod+184 = 0xFFFFFFFF) 无任何内嵌点写异值; 掩码读 sub_140557940 首行 (def+100 & a1[21]) 与 pair 合并门位型自洽 — 两假说 (内嵌点差异/误读) 皆否定。
 | +188 | uint32 | **data = 子级展开深度** (writer 键 240=data, ≠1 才写; merge 时 dst.data>0 → 每来源生一个命名 child (data=dst−1); 存档形态 `added_modifier.data=0` 吻合; ⚠ parser 对 data 读值即弃 — 加载后由宿主 recalc 重建) | ≠1 才写 |
 
-修饰定义表寻址 (BASE 相对; 供 +16 pair 的 def_idx → def 解引用):
+静态修正注册/查重器 = sub_14060D830 (modifier.cpp:127 "Duplicate modifier ID: %s"; 内联 ~70 静态修正名清单: weather 13 种 / war_support_good|bad|during_war / stability_good|bad / screening|capital_screening_bonus / pride_of_the_fleet×3 / resistance_effect|_base / compliance_effect|_base / {active,full,passive}_decryption_modifier / intel_network_state_level_{bonus,penalty} / lacking_consumer_goods / night / non_core{,_controller} / attache_sent / in_faction{,_original} / country_is_at_{peace,war} / naval_mines_effect / root_out_resistance_mission_modifier / operative_nationality_{mission,operation} / air|carrier|ship_experience_{bonus_max,malus_min} / created_intelligence_agency 等 — 静态修正枚举源)。
+
+修饰定义表寻址 (BASE 相对; 供 +16 pair 的 def_idx → def 解引用; 消费者对 = sub_14101CC90 sub_unit 定义装载校验 ("Sub unit definition X already specified" / "Invalid sub unit definition: ") 与 sub_140C35570 同族构造件):
 
 | 项 | 值 |
 |---|---|
@@ -587,6 +589,18 @@ reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccup
 | def 字段桥 (间接) | — | 海军 61 id 经 STAT 桥 sub_140BAAA20 (stat+1536 加值 id / stat+1544 因子 id → 查 cc+1464, §4.16); 装备 def+912 / 资源 def+240+244 / 特殊项目 def+1540 族 / 静态 def 按名查 sub_14055D480 (断言 "missing static modifier definition: %s") 各走宿主 def 字段 |
 
 叠加律 (定案): 多来源同 id 聚合 = **纯加法** (sub_140557940 `entry.value += value×scale/100000`); 乘法结构 (X_FACTOR 族) 由公式点自算 `base×(1+Σfactor)/100000`; 无 max 型合成; 防负防爆由读取钳位 (def+96 bit4) 承担。
+
+泛型壳层 CPdxModifier\<CModifier, ModifierType, ModifierCategory\> (clausewitzlib 模板; 与本 192B 布局**同物异视角** — 方法首参恒为 mod+16 pairs 描述符视角 (children=mod+40 / 计数=mod+52), 无独立 RTTI/存储/虚表, **不新增任何布局**):
+
+| 方法 | 函数 | 语义 |
+|---|---|---|
+| 乘法折叠 | sub_140E5B960 | (pairs 视角, mdef id, out i64, depth): id 过注册表门 (断言 "Invalid modifier call!" pdxmodifier.h:539) → 无子或 depth==0 且查值 ≠0 则 `out = out×(val+100000)/100000`; 沿 children (child+16) 递归; a1==0 时以 TNullObject 单例 pairs 视角兜底 |
+| 树展平快照 | sub_140559650 | GetAllEntries: 自身 pairs 有序并入 CSortedAssociativeArray\<ModifierType, CFixedPoint\> 出参, 子树递归合并 |
+| 逐条回调 | (全内联, `_Func_impl_no_alloc` mangle 直证) | ForEachEntry 式 lambda 入口 (GetPopularityTooltip 族消费) |
+
+乘法折叠唯一外部消费 = 消费品计算链 sub_140E630F0 (cc+1464 传 pairs 视角, id 102 = MODIFIER_CONSUMER_GOODS_FACTOR 折叠 → 乘 id 103 = …EXPECTED_VALUE → 对全局下限 qword_143331498 钳位)。
+
+资源三元组 writer = sub_140CBEFD0 (键 11842 resources / 15753 resources_unclapamed (引擎拼写如此) / 15756 resources_temporary ← 宿主 +136/+312/+488 三个 CPdxArray, 间距 176B = §4.13.6 CStrategicResourcePool 步长)。
 
 ⚠ 修饰值叶静默缺失排查: 定义表基址手抄掉位即全族缺叶 — 以符号名 qword_14332ED90 / dword_14332ED9C 为准 (十进制 BASE+ 值手抄亦会掉位)。
 ⚠ 全族闭合证据: ctor sub_140555FB0 / dtor sub_1405566B0 / writer sub_140612640 三方闭合; 与 state added_modifier 同 writer 互证。
@@ -1305,7 +1319,7 @@ CCountry 内嵌块 @cc+5000 (40B 本体; vt 名直读; 与 fp+88/fp+152 表族�
 
 #### 4.3.15c nationalfocus.cpp 簇对账增补 (22 函数闭环; reader/装载/校验侧)
 
-书 §4.3.14/§4.3.15a 收 writer/完成/daily 半边, 本簇补 reader/装载/校验侧 — 装载→运行管线:
+**树默认锚点** = sub_1402D41D0: 焦点 x≠0 者 (y 任意) 中取 x 最近均值者之名 → 写 tree+184。书 §4.3.14/§4.3.15a 收 writer/完成/daily 半边, 本簇补 reader/装载/校验侧 — 装载→运行管线:
 def/树解析 (vt[4] 成员解析, 树侧 = sub_1402D8CB0) → db 注册 (sub_1402CCB90 全局重名查,
 "Duplicate focus name …" :1366) → 树注册 (sub_1402CDC70: tree+48 查重 push + FNV + tree+72
 RH 插) → db finalize (sub_1402D4500: 逐 def sub_1402D4930 校验[互斥对称回查 :1426 族 +

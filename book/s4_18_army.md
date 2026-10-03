@@ -583,6 +583,7 @@ GUI 条目类:
 | +73..+83 | — | = conveyors 容器 {data@72, **cap@80**, count@84, alloc@88} 内部  |  |  |
 | +84 | uint32 | conveyors 容器计数 |  |  |
 | +85..+191 | — | = conveyors count@84 尾 + **alloc@88** + **训练行列表 容器#4 {d@96, cap@104, c@108, alloc@112} (CMilitaryDeployment\*, daily tick/分发主名单, push = sub_140D0E0C0)** + **容器#5 {d@120, cap@128, c@132, alloc@136} = 定时活动装备分发件** (CTimedActivityEquipmentDistributable 视口; push = sub_140D0E3A0) + **容器#6 {d@144, cap@152, c@156, alloc@160} = HQ 部署件** (CHqDeploymentDistributable 152B, 挂 og+392 / reader 键 16908, 元素 {池@+40, 池@+104, cur@+136, tgt@+140}; 人力配给首填 sub_14193E770) (均未序列化, dtor 逐个清) + **+168 = hq_next_deploy_order u32** (writer 键 16910, >0 门) + **+172/+176 = default_hq_template id 对** {type@172, id@176} (qword_14333D528 初值; writer B320 键 10667) + **+180 = INFIELD 在场师人力和** (Σ sub_140C691B0(师+976); cap 错误面板字段) + **+184 = 加权训练行数** (Σ行需求人力 含托管流亡国行; cap 现值) + **+188 = 部署行上限 (cap)** |  | §4.18.14 |
+| +280 | CCountry* | **owner 母国指针** | 供师上限 SF cap 修正读 (cc+1464) 与国师列表 (sub_1406EB770) 双证 | §4.18.22 |
 | +192..+239 | — | = **情报估计三元组 ×2** (sub_140D14010 每日重算: 遍历 cc+656 全师对 *(师+312)+664 / +672 两统计量各算 min/max/avg, 零值师半权; **A = armor (+664) / B = piercing (+672) 定案** — 齐射乘数守卫链直证: PIERCING 乘数档除数 = 目标装甲, 装甲=0 守卫 ×1.0 ⇒ +664=装甲/+672=穿甲): {+192 min, +200 max, +208 avg}ₐ {+216 min, +224 max, +232 avg}ᵦ, 空军 → 0xFFFFFFFF; **值为直读非指针** (sub_1414318B0 读 +200 max, sub_14142FD80 读 +208 avg) | 定案 | §4.32.2 |
 | +240 | CEquipmentArcheTypePool* 向量 | initial_carrier_air_wing_deployment | **CEquipmentArcheTypePool 32B (ctor sub_14100C630)** {vt@240, 容器@248 {d@248, cap@256, c@260, alloc@264}} (writer 键 13691); 消费 sub_141980140 = 同模板已排产行数 (add_limit 上限, >9 显 MORE_THAN_NINE) | |
 | +272 | 上下文指针 | 部署限制触发器上下文 | 启动上限检查 sub_141980310 / daily 停线复检 sub_14197FF50 / GUI 同模板计数 sub_141980140 三消费 (定案) | §4.18.14 |
@@ -1039,7 +1040,7 @@ XP_GAIN_PER_OVERRUN_UNIT; §4.4.22 行已同步订正）。
 | +56 | uint32 | CCountrySpecificNamedItem 附带 u32 (拷自源; 语义未决) | — | 推定 |
 | +64 | SSubUnitStats 内嵌 992B | 统计子对象 (子表见下) | — | 定案 |
 | +1056 | 176B 运行时对象 | sub_140555FB0 构造 {vec@1056, vec@1080, vec@1104, string@1128, 双 RH 形图@1168/1200, 尾 dword −1@1224 / 1@1228}; reader 零覆盖 | — | 形态定案 |
-| +1232 | CSubUnitDefinition* 向量 24B | critical_parts (元素 32B 串逐个解析为 CSubUnitDefinition*; 未知名报错) | 15358 | 定案 |
+| +1232 | vector 24B | critical_parts (元素 32B 串名 → 按名经 game item DB 查找 sub_140AC4D30 回填; 未知名报错; ⚠ 元素对象类型待裁 — 勘误候选: 原记 CSubUnitDefinition* 与 ship.cpp 消费点布局冲突 (候选条目消费 +360 权重 i64/+368 上限/+328..+352 修饰对, 若为 def 则与统计数组重叠), 倾向 game item DB 条目, RTTI 未取) | 15358 | 写读点定案/元素类待裁 |
 | +1256 | int64 fixed×1e-5 | critical_part_damage_chance_mult | 15428 | 定案 |
 | +1264 | 匿名结构 (NNB 形状) 向量 24B | reader 零覆盖, 不序列化 | — | 形态定案 |
 | +1288 | 匿名结构 (NNB 形状) 向量 24B | categories — CSubUnitCategory* 数组 (重名报 "Duplicate subunit category") | 11352 | 定案 |
@@ -1144,3 +1145,14 @@ not in exile"; exile 旗直加流亡池, 常态经 sub_140CFE290 从世界人力
 **演习 XP 尾链 (定案)**: XP → +1072 钳 100000×人力因子 → 国军经验份额 sub_140C73560 (>0 走国通道 sub_1412A64B0) → 尾构造 **SArmyUnitActivityData** (RTTI 名直证) 经 sub_1412A8E40 推送 (陆军活动记录通道, 消费侧未决)。
 
 **位置变更级联 sub_140C8E9E0 (定案)**: og+152 成员逐个运输成员登记 + +1424 跟随者八参广播; **与位置共享宿主 (+1416) 同省落位 → 构造 72B 命令 (sizeof 与 CMergeArmiesCommand 一致) 经 qword_14332F6A0 vt+136 → sub_142250B00 POST** (合并投递触发侧; 执行在命令层 tok 14344)。
+
+#### 4.18.22 师上限评估链 (SDivisionCap 32B; division_template_cap_type.h)
+
+SDivisionCap (pdx_optional\<32B\>, 旗@+32; §3.12): `{+0 cap u32, +4 类型枚举 {0 DivisionCap / 1 SpecialForces / 其他断言 "Name is not defined for CapType." :22 + "NA"}, +8 计数1 (现役), +12 计数2 (队列), +16 合计, +20 剩余可部署数 (两类统一语义), +24 源模板 data 指针}`。模板 data 基 = CReferencedDivisionTemplate+24 (registry 解析值 +24; cap@data+572 与 d+572 同位)。
+
+| 计算器 | 函数 | 语义 |
+|---|---|---|
+| A DivisionCap | sub_141980AF0 | set 门 = 模板 data+576 (division_cap 已设旗, §4.32 set_division_template_cap); cap = data+572; 计数1 = Σ sub_140C7E7C0(师)==data 逐师 (国师列表经 dep+280 母国 sub_1406EB770); 计数2 = 部署队列 (dep+96) 条目模板比对 (+24==data; 过滤旗剔除已部署态 u8@条目+196) |
+| B SpecialForcesCap | sub_141980DD0 | set 门 = 模板网格 (data+168 ×count data+180) 任一营 def+1463 特战; cap = **max(SPECIAL_FORCES_CAP_BASE qword_1433354E8 + mod 367, SPECIAL_FORCES_CAP_MIN dword_14333560C + mod 368) + mod 628/1e5** (mods 经 dep+280 母国 cc+1464); 余量 = `(cap − 队列 SF 权重 + 部署中权重)/本模板权重` 整除 (100000 定点防溢出 + 负向 floor) |
+
+模板 SF 权重 sub_140B9A240 = Σ 特战营 (def+1463) 每营权重 = 母国 cc+1464 修正 + 1.0 负值钳 0: {+1461 can_be_parachuted → mdef 608 PARATROOPERS_…_FACTOR / +1466 marines → 609 / +1468 mountaineers → 610 / +1467 rangers → 611 / 其他特战营默认 100000}; 合计**向上取整**。合并 = sub_14197FCC0 (两 optional set 者 append); 判限 sub_14197FDF0 = 取 +20 最小条目, `min余量 < 师数` → 受限。消费者 sub_14136A8B0 (部署请求校验, 虚槽形态): 师数组@+40 逐师 {null/远征+476/类型匹配 (data+480==2)/指挥力 (Σ sub_140C11450 − 4208 基线, 不足报 LEADER_DEPLOY_INSUFFICIENT_COMMAND_POWER)} → 判限 → 受限组装 `"#~ army is limited by division " + CapType名 + " ."`。

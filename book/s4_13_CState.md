@@ -20,7 +20,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +72 | uint32 | name size (写门字段) | | SSO 内部 |
 | +80 | uint32 | name cap | SSO 内部 (writer 不触) | |
 | +81..+87 | — | = name 串 cap 的高 4B (cap 实为 8B size_t; 串 {buf@56, size@72, cap@80}) | | |
-| +88 | uint32 | state id | 断言 "Strategic location already exist in state: %d" (sub_1409D18B0); CVariables 以 +88 重注册; SetOwner 通知构造 | |
+| +88 | uint32 | state id | 错误日志 (非断言, 措辞精化) "Strategic location already exist in state: %d" (sub_1409D18B0, 重复即拒绝插入); CVariables 以 +88 重注册; SetOwner 通知构造 | |
 | +89..+107 | — | = state id@88 尾垫 (+92..+95) + 监听对象数组 {data@96, cap@104, count@108, alloc@112} 头 (owner/controller 变更通知: SetOwner 逐元 vt[+24](elem, st, &tag); 元素类名定案 = **CProductionStatus**; ⚠ 元素指针 = CProductionStatus 的 **CStateListener 基子对象 (+16)** 而非对象首址 — 活体首 qword 0x2970788 = 该子虚表 (三虚表 0x142970708/0x142970758/0x142970788 之三; 基链详见 §4.8 头注); SetOwner 逐元 vt[+24] = 该子虚表槽的派生覆写; 归属未决 — 非任何 cc+3944, +656 反指=0; 消费全定案 (SetOwner sub_1409DE560 逐元 vt[+24](elem, st, &tag) / SetController sub_1409DDA40 整段复制 / Reset 清 count); 注册点未定位 (0x1409D 段内 `sub_1401205A0(...+96)` 0 命中, 推定内联在 province 侧 CProductionStatus 创建路径); **活体分布 = 1081/1082 州 count=1 (每州恰 1 个监听者; 元素 RTTI 直证 CProductionStatus; +656 反指=0 复现)**) | | |
 | +108 | uint32 | 监听数组计数 | +120 空时 Reset 置 0 (sub_1409D6BF0; 高置信) | |
 | +109..+119 | — | = 监听数组 {count@108, alloc@112} + CStateHistory* 外置指针@120 头 (非内嵌; 外置对象 {head, cap, count, alloc}, 条目 32B 见下子表) | | |
@@ -51,7 +51,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +436 | uint8 | 资源消耗/修正可见性旗 A | STATE_RESOURCE_COST 查找门; Reset 以 u16 连 +437 清 | |
 | +437 | uint8 | 同族旗 B | 谓词 sub_1409DA7B0 消费 | |
 | +438..+615 | — | = 内嵌 CStrategicResourcePool (176B; save 实名 resources, token 11842, `steel=8` 实拍) — 布局见 §4.13.6 | | |
-| +616 | 内嵌 CResistance | 抵抗力 | 全字段见 §4.13.1 | GUI: 州面板阻力/合规容器 (sub_14174E8E0, 激活门 sub_140F9B4B0) + 占领法州上下文 (法 id sub_1406F2F20 / 法 sub_140F99DB0) |
+| +616 | 内嵌 CResistance | 抵抗力 | 全字段见 §4.13.1 | GUI: 州面板阻力/合规容器 (sub_14174E8E0, 激活门 sub_140F9B4B0) + 占领法州上下文 (被占领国 tag 指针 sub_1406F2F20 = &cr+80 仅取址, deref = occupied_country_tag — 勘误: 原「法 id」标签 / 法 sub_140F99DB0) |
 | +617..+1343 | — | = CResistance 全长 728B (cr = st+616; §4.13.1); 尾 cr+720 = 100000 标度 | | |
 | +1344 | CFlagManager* | 脚本旗标 | 过期递减 = sub_140CBFA90 flag_manager.daily (调用点 = states.daily, 非 SetOwner); 见 §4.13.3 | |
 | +1352 | 内嵌块 | 州资源消耗块基 (真 CModifier 192B: vt@1352, pairs@1368, children@1392; 不序列化) | base pairs@+1368 16B 条 {token, value i64}; loc STATE_RESOURCE_COST "State Consumption" 按 token 查 | |
@@ -81,7 +81,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +2120 | uint32 | manpower available | 人力三元组 (写门 = **total ≠0** 整块判定; 三叶恒全 — ⚠ 旧"三值任一非零"经验门被活体证伪: 3103.11 档 76 州 available/locked 非零而 total=0 整块不写) | |
 | +2124 | uint32 | locked | 人力三元组 | |
 | +2128 | uint32 | total | 人力三元组 (**整块写门字段**) | |
-| +2136 | uint32 | extra_shared_slots | >0 才写 (13613); loc UNLOCKED_SLOTS_STATE_EXTRA "Additional Slots in this State" (loc 锚定; resistance 数值在 +616 内嵌块, 非 +2136) | GUI: 共享槽 NUM/MAX (sub_1409D4980 → shared_slot_count + UNLOCKED_SLOTS; category=="wasteland" → 基数归零, +2200 名 SSO 实证) |
+| +2136 | uint32 | extra_shared_slots | >0 才写 (13613); loc UNLOCKED_SLOTS_STATE_EXTRA "Additional Slots in this State" (loc 锚定; resistance 数值在 +616 内嵌块, 非 +2136) | GUI: 共享槽 NUM/MAX (sub_1409D4980 → shared_slot_count + UNLOCKED_SLOTS; category=="wasteland" → **数据归零** (wasteland.txt local_building_slots = 0 的脚本效果, 原版文件直证; 代码侧仅向 tooltip 拼错误前缀无归零特判 — 勘误: 原记「基数归零」代码效果; +2200 名 SSO 实证)) |
 | +2140 | int32 | best VP province index | -2=未算 / -1=无 / ≥0=+24 数组下标; 断言 "_BestVPIndex != -2" (sub_1409D8A80, state.cpp) | |
 | +2141..+2147 | — | = manpower 区尾 + extra_shared_slots@2136 / bestVP / u32@2144 (**写侧定案 = 州内各省地形修正旗字节 (省 desc+168→+140) 的按位或累积**: sub_1409DF710 先清 0 后逐省 `|=`; sub_1409DED70 同式。**读侧在 1.19.3 全 dump 不存在** (0 读点) → 只写累积位掩码) / demil@2148 区 | | |
 | +2148 | uint8 | demilitarized | 非军事化 (13281); +2148 与 +2149 为两个独立 u8 (Reset 以 word 一次双清) | 存档行序在 ibc 前 |
@@ -103,7 +103,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +2248 | 匿名结构 (208B 形状) RH 桶数组 | per-tag 值对 RH 表 A | 208B 桶 {used u8@+4, key tag u32@+8, CModifier 内嵌@+16 (pairs 容器 {data@+32, c@+44} 16B 条 {token, i64}, 与 +2256 行同构)}; Reset sub_1409D70F0, tag 查找 sub_1409D8B10 (定案形态) | |
 | +2256 | CModifier* RH 桶数组 | 每国州级 modifier 哈希表 | 桶 208B = {hash@0, dist u8@+4, tag@+8, **CModifier 内嵌@+16**}; 掩码@2268 / 空桶回退@2272; 命中谓词 = tag 相等 ‖ sub_140BB52F0 同原初国 | 定案: 桶载 CModifier 内嵌 (vt+357 签名 + pairs 四元组双证, 探针); 旧「值对数组」读法 = CModifier.pairs@+32 误位 |
 | +2280 | 匿名结构 (208B 形状) RH 桶数组 | active_targeted_modifier RH 表 (布局 = {data@+2288, count@+2296, mask@+2300}, §4.13.5) | 见 §4.13.5 | |
-| +2312 | 匿名结构 (208B 形状) RH 桶数组 | **pending_targeted_modifier** (键 19236, 同 +2248 形态) | 装载缓存 swap 对 = A(+2248)↔B(+2312) — 重建链 sub_1409D7760 把 data/count/mask/extra 四域成对换位; 旧「占领资源转移」语义注销 (占领折减公式实读 A 表, A 表键 = 州属主) | GUI: B14 占领资源折减 ((行值+100000)/100000; sub_14155D120) |
+| +2312 | 匿名结构 (208B 形状) RH 桶数组 | **pending_targeted_modifier** (键 19236, 同 +2248 形态) | 装载缓存 swap 对 = **active_targeted_modifier(+2280) ↔ 本表(+2312)** (勘误: 原记 A(+2248)↔B(+2312), 四域成对实为 2288↔2320 / 2296↔2328 / 2300↔2332 / 2304↔2336, +2248 表不在 swap 内) — 重建链 sub_1409D7760 换位; 旧「占领资源转移」语义注销 (占领折减公式实读 A 表, A 表键 = 州属主) | GUI: B14 占领资源折减 ((行值+100000)/100000; sub_14155D120) |
 
 三 RH 表 (+2248 / +2280 / +2312) 表头均按 +2237..+2247 行全形落位, 对象内绝对偏移
 = 表基 + 相对: A@2248 → data@2256 / count@2264 / mask@2268 / extra@2272 / lf@2276;
@@ -126,13 +126,13 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 | +176 | CStateHistory (72B) 内嵌 | history 块 (键 10293 → vt[3]; +240 宿主槽) | 10293 |
 | +248 | 向量 24B | 静态资源条数组 {d@248, cap@256, **count@260**, alloc@264}; 元 16B {量 i64@0, res_id u32@8} | 11842 resources |
 | +272 | u32 向量 24B | **邻接州 id 数组** {d@272, cap@280, count@284, alloc@288} — PostLoad 并行 sub_140ABCB30 建 (本州各省 prov+112/+124 经 provdb+40 省→州映射聚合去重排自身); 消费端 GetNeighborState sub_1409DB740 / owner 变更连锁 sub_1409DFC20 / §4.32 触发器链 | 非 parse 键 (定案) |
-| +296 | 向量 24B | impassable_ignored_links (省 id 列表; 非 impassable 州 PostParse 清零并警告 statetemplate.cpp:253) | 10749 |
+| +296 | 向量 24B | impassable_ignored_links (**邻接州 id 排除表** — 勘误: 原记「省 id 列表」, best-owner 计算 sub_1409D7BC0 实与邻州对象 +88 州 id 比对命中即跳过计分; 非 impassable 州 PostParse 清零并警告 statetemplate.cpp:253) | 10749 |
 | +320 | CContinent* | **大陆条目指针** (ctor = null 对象; PostParse 按首省 province+211 查容器 C 落位; 与 CStrategicRegion 无涉; 大陆 = map/continent.txt continents 块 7 条, 元 80B {名 SSO@8, 旗@40, id@44, 序号@48, 州表 vec@56}) | 非 parse 键 |
 | +328 | int32 | 州中心 X (省 bbox prov+136 聚合, 跨日界线归一 sub_140ABCE00) | 非 parse 键 |
 | +332 | int32 | 州中心 Y (同上) | 非 parse 键 |
 | +336 | int32 | 州外接尺寸 = max(宽, 高) (「州够不够大」门: > 全局阈值 dword_1433356D0) | 非 parse 键 |
 | +340 | int32 | manpower (0 报 "has no people living in it" :244; CState ctor 以之播种种群 st+2104) | 10300 |
-| +344 | int32 | force_link_ownership_to (非 impassable 州 PostParse 强制清零并警告 :248; 指向国 tag 推定) | 19611 |
+| +344 | int32 | force_link_ownership_to (非 impassable 州 PostParse 强制清零并警告 :248; **州 id** — 勘误: 原「指向国 tag 推定」, sub_1409DD810 实以该值索引 gs+712 州表取该州 owner 作归属候选, 高置信) | 19611 |
 | +348 | uint8 | **impassable 旗** (直读 sub_1409DB3F0) | 11267 |
 | +349 | uint8 | 海岸旗 (任一省 prov+210 & 8 则置 1, 两处重算) | 非 parse 键 (定案, 原推定升档) |
 | +350 | uint8 | 单州岛旗 (全省陆旗且陆上邻省全属本州, sub_140ABD150) | 非 parse 键 (定案, 原推定升档) |
@@ -152,7 +152,7 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 |---|---|---|---|
 | +296 | 匿名结构 (32B 形状) 向量 | 记录数组数据 {d@296, cap@304, c@308, alloc@312} | 32B 元/楼: level / partial_health / healthy_levels |
 | +320..+336 | 78×8B 槽序数组 | {u32 槽序, u32 值} (全 (i,−1) 初始; cap=count=78 与 +296 平行) | 形态定案 ; 角色推定 槽→实例映射 |
-| +344 | 匿名结构 (NB 形状)* 向量 | 自有槽实例数组数据 {cap@352, c@356, alloc@360} | = **CBuildingStatus+56 视角 (st+288 内嵌)**: 州建筑元素数组 — 元素 = **CBuilding** (496B; +66 healthy_levels / +72 partial_health / +472 status 回指 / +480 def 回指; 定案), 活体 elem1−elem0 实测 512B (分配器取整); 核弹破坏链 sub_1410DC060 逐元素拆级 (def 免损旗门 +868/+883 族) 并尾调 sub_140E5F8C0 = **AddConstruction(repair=1) 修理线** (§4.8.5a); **活体分布: 1035/1082 州非空, 总 2158 实例, 单州最大 8**; 虚析构逐个删 |
+| +344 | 匿名结构 (NB 形状)* 向量 | 自有槽实例数组数据 {cap@352, c@356, alloc@360} | = **CBuildingStatus+56 视角 (st+288 内嵌)**: 州建筑元素数组 — 元素 = **CBuilding** (496B; **+64 总级数** [血量分数分母, sub_1410DB320 直证 — 补名] / +66 healthy_levels / +72 partial_health / **+488 u16 累加槽** [建筑加级器 sub_1409E08B0 写, 语义待裁] / +472 status 回指 / +480 def 回指; 定案), 活体 elem1−elem0 实测 512B (分配器取整); 核弹破坏链 sub_1410DC060 逐元素拆级 (def 免损旗门 +868/+883 族) 并尾调 sub_140E5F8C0 = **AddConstruction(repair=1) 修理线** (§4.8.5a); **活体分布: 1035/1082 州非空, 总 2158 实例, 单州最大 8**; 虚析构逐个删 |
 | +356 | uint32 | 自有槽实例数组计数 | 高置信 |
 | +368 | 匿名结构 (NB 形状)* 向量 | 第二数组数据 {d@368, cap@376, c@380, alloc@384} | 借用/视图; 元素: 等级 i16@+66 (>0 门), 类型 token@+8, 修正 def@+88 (def+528 = 名 SSO), 资源块 ptr@+480; 可见性谓词 sub_1409DA7B0 + 修正重建消费 (高置信形状, 名推定); GUI: 建筑修正图标来源 (r3 sub_14174C6F0) + B14 占领资源双列 (资源块+480 的 +764/+768 ×等级 i16@+64 ×100000, 再按占领国折减; sub_14155D120; **+764 = 军工产线数 NUM_TOTAL_MIL_FACTORIES / +768 = 民用产线数 NUM_TOTAL_CIV_FACTORIES** — tooltip OCCUPIED_COUNTRY_INDUSTRIAL_CAPACITY_TOOLTIP 参数绑定直证) |
 | +380 | uint32 | 第二数组计数 | PEACE_COST 分解 sub_1409D2B20 亦读 |
@@ -447,3 +447,51 @@ CResistance::SAddedResistanceTarget (vt 0x14297e320, reader 0x140F9BEB0 键表
 旗 (与 §4.1「HasGameStarted」同槽); 消费面 = has_active_resistance 触发器
 (0x1427b3470, 被占领∧未平定 target<10) + 特工任务前置校验 + GUI 活动列表
 (sub_140F9A200, RESISTANCE_ACTIVITY_LIST_* loc)。
+
+state.cpp 簇对账增补 (16 函数闭环; 8 big 全读, 单编译单元确认):
+
+**州日更双链 (定案)**: 串行链 sub_1409D73E0 = BestVP 补算 (st+2140 == −2 → sub_1409DF4B0) →
+CFlagManager.daily 过期递减 → st+2000 事件队列 flush (进入/退出作用域包裹, 命中即
+sub_140A0F4F0 投递) → 抵抗力快照对比广播 (sub_140CFC3A0 → sub_1409E0820 镜像, 变则 idler
+vt+560 + sub_140A67720) → **省 owner/controller 一致性修复** (:2295 warn 级: 有 controller
+无 owner → 补 owner; owner≤0 且州 owner≤0 → SetOwner) → 不可通行州自动控制国 (:2205 lake
+断言 — **stateDef+348 impassable = lake 语义源码级直证**) → 空军基地准入检查尾段
+sub_1409D5930 (gs+1680 管理器 +1444 表, "air base without access" :1763/:1771)。并行链 =
+TBB **CStateDailyUpdateThreaded** (functor 符号直证) → sub_1409D7760: 门 gs+2617 → 掷骰相位
+(st+2032 == 年积日 % dword_143336F50, 双 murmur 种子) → sub_140A0D4E0 append 候选事件 →
+**temporary_resource_list (st+2224) 到期消费点** (elem+8 日递减 → sub_140BCB620 退回
+CStrategicResourcePool st+440 → swap-remove) → targeted_modifier pending→active 换位
+(四域成对 swap + 生效修正重建 + `*(cc+3944 对象 +1192) = 1` LOCAL_FACTORIES 脏旗)。
+
+**SetController/SetOwner 双通知槽定案**: SetController = 先快照拷贝监听数组再逐元
+vt[+16] (槽 [2]); SetOwner = 直接遍历 vt[+24] (槽 [3]); CStateListener 基子对象双事件。
+SetOwner 精化: 修正重建**无 gs+2613 门** (与 SetController 门控不对称); cc+3944 = 每国州
+集合对象, sub_140E70A90 = 州在两国集合间迁移 (定案); 槽缩水降级链 sub_1409DF520 =
+OWNER_CHANGE_EXTRA_SHARED_SLOTS_FACTOR 重缩 extra + 按比率降级共享槽建筑。事件双锦 =
+on_state_control_changed / on_state_owner_changed (scope 链皆 New → Old → State)。
+抵抗交接 = cr+80 > 0 → sub_140F9B6E0 转移 / 否则 SetOccupiedCountry (书具名互证)。
+
+**共享槽公式 sub_1409D4980 (定案)**: `clamp(extra(st+2136) + (l163@A表[owner] +
+g161@cc+1448) × (l164 + g162 + 1e5) / 1e5 / 1e5, 0, MAX_SHARED_SLOTS = 25)`; 魔法
+0x29F16B11C6D1E109 = /100000 (ceil(2^78/1e5), 全语料 ≥10 处同用); 下游三方互证返回值 =
+普通整数槽数 (空余槽 sub_1409D3940 / CONSTRUCTION_MAPMODE loc / 已用槽 sub_1409D5310)。
+
+**占领州破坏工厂 sub_1409E09B0 (定案)**: 门 = A 表 controller 键
+MODIFIER_LOCAL_FACTORY_SABOTAGE(76) > 0 → RNG 掷骰 ≤ 修正值 → 两轮候选 (血量分数
+sub_1410DB320 > 0) → 随机选中 → 伤害 = clamp(SABOTAGE_FACTORY_DAMAGE × (resistance/100 +
+1e5)/1e5, 0, 1e7) — **观察 (高置信, 待裁): [0,1e7] 钳位使 (1+抵抗力) 加成实际中和, 恒 100
+点 ≈1 建筑级**, define 注释 "up to 2x" 与代码钳位冲突并记 (建议活体探针复核)。
+
+**不可通行州归属双器 (定案)**: 计分器 sub_1409D7BC0 = 可通行邻州 +5 / 不可通行邻州 +1,
+controller 模式含本州 controller 匹配门, 平票偏同主/同原初国; ForceLinkOwnership
+sub_1409DD810 = stateDef+344 州 id 直查州表取 owner 候选 → 失效走计分器 → 变化则
+SetOwner+SetController 连发。**AssignProvinces sub_1409DED70 全身份**: stateDef+8 列表装省
+(省数组 cap@32 补全), st+2144 地形旗 `|=` 全链, prov+192 回指, BestVP 初算; 查重/跨州覆盖
+均为错误日志非断言。
+
+辅助身份: mdef 表 +96 旗 & 0x10 = 比例类钳 [0,1e5] (sub_14055E360 新机制); state per-tag
+A 表读值器 sub_1409D8F90 (桶 208B, miss 顺 extra 区再退 st+1368 基表); **CProvince+176 =
+边境冲突对象指针** (IsInBorderConflict = prov+176 != 0, :2555 断言原文钉名); 州间距离²
+sub_1409D3800 (stateDef+328/+332 中心); 建筑加级器 sub_1409E08B0 (8B 元 {token, u16 级} →
+CBuilding+488 累加)。未决: 破坏伤害钳位裁定; sub_14152A2B0 仲裁细节; CBuilding+488 语义;
+A 表 LOCAL_* 填充点 (疑 sub_1409D54A0 链); 首都链与国侧得失州四件套 (CCountry 域)。

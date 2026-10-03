@@ -36,7 +36,7 @@ writer 0x140D810B0 (块键 11593 countries) / reader 0x140D7FDA0 / PreLoad 0x140
 
 GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 scopedptr 子控制器 CFolderView 族; folder 库容器命中; folder 模板 token 12989 跳过门)。
 
-**CFolderStatus** (vtable 0X29653A8; 80B):
+**CFolderStatus** (vtable 0X29653A8; 80B; 整类 writer vt[2] sub_140FC99F0 — 落盘序 grand_doctrine 键 16775 (+16 ptr≠0 门) → folder 键 11873 (+8 ptr≠0 门) → tracks 块 16772 (+36≠0 门) → completed_subdoctrines 键 16791 (+68≠0 门, 逐 8B 指针发 token 名不带引号); reader vt[4] sub_140FC9020):
 
 | 偏移 | 类型 | 名称 |
 |---|---|---|
@@ -45,9 +45,11 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 | +24 | 匿名结构 (96B) | tracks 容器数据指针 — {data, count}; 元素内联 96B (count<64) |
 | +25..+35 | — | = tracks 容器 {d@24, **cap@32**, c@36, alloc@40} 的 data 尾 + cap@32 (元素内联 96B) |
 | +36 | uint32 | tracks 容器计数 |
-| +56 | CSubDoctrineTemplate* 向量 | completed_subdoctrines 容器 {d@56, cap@64, c@68} (键 16791, 8B 元素; writer/reader 双向) |
+| +48 | CCountryDoctrineStatus* | owner 回指针 (不序列化; 触发器上下文 *(+48)+8 = status+8 TAG 槽) |
+| +56 | CSubDoctrineTemplate* 向量 | completed_subdoctrines 容器 {d@56, cap@64, c@68} (8B 元素; writer/reader 双向) |
+| +72 | allocator* | completed 容器分配器 (CPdxHybridInlineBufferAllocator, vt 0x2965598; 扩容经其 vt+8/vt+16) |
 
-**CTrackStatus** (vtable 0X2965358; 96B):
+**CTrackStatus** (vtable 0X2965358; 96B; **整类 writer vt[2] = sub_14147CD00, reader vt[4] = sub_14147C2C0** — 全 serfam 共享 wrapper vt[1]/[3] 0x1424BEC50/0x1424BE690):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
@@ -56,9 +58,25 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 | +24 | fixed×1e-5 | mastery |
 | +32 | fixed×1e-5 | mastery_bank |
 | +40 | fixed×1e-5 | daily_mastery |
-| +48 | 匿名结构 (24B) | leaders_daily_mastery 容器数据 — {data@+48, count@+60} 24B 元 (writer 0X14147CD00) |
+| +48 | 匿名结构 (24B) | leaders_daily_mastery 容器数据 — {data@+48, count@+60} 24B 元 |
 | +49..+59 | — | = leaders_daily_mastery 容器 {d@48, **cap@56**, c@60, alloc@64} 的 data 尾 + cap@56 (24B 元) |
 | +60 | uint32 | leaders_daily_mastery 容器计数 |
+
+家族辅助函数 (folder_status.cpp; debug 门 byte_1435E1B51):
+
+| 函数 | 语义 |
+|---|---|
+| sub_140FC8730 | ValidTrackIndex (`0≤idx<+36`; 负 idx 断言 "Invalid track index" :281) |
+| sub_140FC81C0 | GetTrackTemplate: +16 grand def → def+792 tracks 名表 [idx] |
+| sub_140FC8670 | STrackFilter 五字段匹配判定 (filter+8 track→GetTrackTemplate / +16 folder→folder+8 / +24 grand→folder+16 / +32 sub_doctrine→tracks[idx]+8 / +40 track_index≠−1→==idx; 字段 0 = 通配) |
+| sub_140FC6D90 | AssignSubDoctrine (校验→sub_14147C8A0; 断言 :239) |
+| sub_140FC7D90 | RefreshTrackActiveDaily: 逐 track, active 触发器门 (sub_1409E6B80, 上下文 = owner+8) → track+72 = 增益否则 0 (**track+72 每日 mastery 产出的写入者**) |
+| sub_140FC87B0 | CompleteMilestone: 去重追加 completed → 注册 sub_1413CD240(owner, milestone+16, **type 6**, grand+40, grand+8, idx) (milestone 注册/注销 type=6, 与换 grand 的 type 3 并列; 注销对应 sub_140FC8CE0 → sub_1413CEE00 type 6) |
+| sub_140FC6EB0 | GetTrackMasteryDetails (见下式) |
+
+GetTrackMasteryDetails 增益合成式: `sum = track.daily_mastery(+40) + Σ active daily_mastery 条目(+88, STemporaryMasteryGain, filter 匹配 sub_140FC8670) + 3 项国家侧修正源 + Σ active bonus(+96)`; `factor = 100000 + 三修正源`; `gain = sum×factor/100000` (÷1e5 截断), `0<gain<qword_1433341F0 → 钳到下限`; `bank = gain×qword_143334480/100000` (MASTERY_BANK_CONVERSION_RATE); a4≠0 时发 5 组本地化行 (DOCTRINE_MONTHLY_MASTERY_GAIN_FROM_UNITS / …_BONUS / …_BONUS_FACTOR / MASTERY_BANK_CONVERSION_RATE / DOCTRINE_MONTHLY_MASTERY_BANK)。
+
+日更 tbb 两遍 pass (160B 元素 CCountryDoctrineStatus 数组并行遍历): pass A sub_140D7BEA0 → 逐 folder sub_140FC7D90 刷 active 产出; pass B sub_140D7C1A0 → 逐 folder sub_140FC8DC0 应用 cost_reduction (CCountryDoctrineStatus +136 容器 = cost_reduction 条目数组, 80B 元素步进, 元素 +8/+32/+56 三修正槽, 日步逐条 `基础值×缩减/1e5`, >0 才经 sub_14147C7B0 灌入 track)。CCountryDoctrineStatus reader (vt[4]) = 0x1413CED70 (与 writer 0x1413CF470 对)。
 
 **STemporaryCostReduction** (64B 内联):
 

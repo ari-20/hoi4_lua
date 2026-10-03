@@ -232,9 +232,12 @@ def parse_folded(text):
         if ln.startswith("#"):
             for kv in ln[1:].split():
                 k, _, v = kv.partition("=")
-                if k:
-                    try: hdr[k] = int(v)
-                    except ValueError: hdr[k] = int(v, 16)   # base= is hex
+                if k and v:
+                    try:
+                        hdr[k] = int(v)
+                    except ValueError:
+                        try: hdr[k] = int(v, 16)   # base= is hex
+                        except ValueError: pass     # free-form tag, ignore
             continue
         sp = ln.rsplit(" ", 1)
         if len(sp) == 2 and sp[1].isdigit():

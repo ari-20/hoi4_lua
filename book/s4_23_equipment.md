@@ -637,3 +637,8 @@ CEquipmentVariant 布局字段级互证。view+20240 = 类别位掩码镜像 (_C
 sub_140BB52F0 可比性语义; 10 型列表项逐型实名; EDesignerType 非法值 Create 行为;
 两组类别位段命名。断言闩 byte_14338B085-094 地址连续 = 编译单元顺序布局 (与空军剧场批
 同型规律)。
+
+
+#### 4.23.14 requests 块装载校验器 (parse 侧)
+
+requests 装载校验 = sub_140307930 (错误文案四条: "Target equipment archetype is not provided." / "CIC amount is not provided." / "Valid seller_tags or a valid seller_trigger should be provided." / "Should either provided seller_tags or seller_trigger and not both." — archetype/CIC 必填, seller_tags 与 seller_trigger 互斥)。

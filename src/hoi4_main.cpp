@@ -726,6 +726,7 @@ static const luaL_Reg hoi4_lib[] = {
     {"profile_top", hoi4_profile_top},
     {"profile_folded", hoi4_profile_folded},
     {"profile_threads", hoi4_profile_threads},
+    {"profile_tidtop", hoi4_profile_tidtop},
     {"profile_status", hoi4_profile_status},
     // vtable-slot hook facility (hoi4_hook.cpp / hoi4_hook.h): intercept an
     // existing engine virtual method by replacing ONE data qword (vt[slot]).

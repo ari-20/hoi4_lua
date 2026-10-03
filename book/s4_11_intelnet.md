@@ -928,7 +928,15 @@ cc+1448) + 特工项; tooltip 格式串 "#~ Factor * CIR + Offset = %s * %s + %s
 直证命名。特工项 = so+40 counter_intel 槽 (mission type==3) 过滤目标 ==
 so+8 → 逐特工 (OPERATIVE_BASE_INTEL_AGENCY_DEFENSE qword_1433313C0 +
 COperativeLeader+1032 修正块 ×511) × (1 + FOREIGN_AGENT_FACTOR
-qword_143337FE0/1e5); 聚合 = 身份排序去重 → **值升序最强者满额、其余 ×
+qword_143337FE0/1e5)。特工项取值器本体 = sub_140C16690 (断言 "_Result.IsSet() …
+tooltip has not been generated" modifier.h:1191): 值 = qword_1433313C0 + Σ
+{sub_140C187D0(特工, tag) → nationalities (特工+3944, count+3956) 二分命中条目 +304 修正;
+特工+1032}; tooltip 先决 "STAT_BASE_VALUE" 行 + 尾段 FOREIGN_AGENT_FACTOR ≠0 →
+"MODIFIER_OPERATING_IN_FOREIGN_COUNTRY" 行并乘 (factor+100000)/100000; 泛化版
+sub_140C27CB0 (mdef id 形参) = 三源 {国籍修正, 特工+1032, 母国 (特工+288) cc+1448} —
+两者皆 modifier.h:1191 **跟踪统计求值模板**消费 (栈上记录 ABI: 源槽数组 = CModifier 对象
+基址逐个, 惰性 get-or-compute sub_140C0D8A0/DA10 → 逐源累加步 sub_1409D1010 (走 §4.3.8
+取值原语 sub_14055E360 + 格式化 sub_140559C30) → pdx_optional 缓存); 聚合 = 身份排序去重 → **值升序最强者满额、其余 ×
 STACKING (qword_1433380E8)^k 递减**。消费链: ① 网强度目标 = sub_1411F3C80
 → **sub_1411F3A50 = clamp(Offset qword_143336300 + Factor qword_143336238 ×
 CIR/1e5, 0, 1e7)** (无 so 兜底 1e7) → sub_1411D1260 逐 subnet 直写
@@ -976,3 +984,106 @@ sub_14022FFF0; **vt RVA 0x2A77578 活体直证**): +80 工厂需求聚合 (定�
 (候选 = 副表形态/包装条目), 「COperation def 实例」的取数仍走 GUI 行 +2736
 或 instance+72, 勿直取本池条目当 def 本体。word_14332F623 = instant 旗
 (行为定案; 写者未定位)。
+
+#### 4.11.19 雷达情报日结 (CRadarsPool::UpdateIntel; radar.cpp 5 函闭环)
+
+清册 (5/5 函体内含 radar.cpp 路径锚; 与 §4.2.9 序 5④ 伴随日结 thunk sub_140716510
+对接闭合, §4.11.5 radar 挂载的消费侧本体):
+
+| VA | 行数 | 身份 |
+|---|---|---|
+| 0x1410A99A0 | 932 | CRadarsPool::UpdateIntel() 日结本体 (:812 日志串直证) |
+| 0x1410A5810 | 536 | CConvoyClient::CollectCoveredConvoyRoutes (radar.cpp 内定义; lambda mangled 名直出) |
+| 0x14109D110 | 339 | IntelForCountry 双有序源归并累计 (:839 断言名直证) |
+| 0x1410A5140 | 333 | 海省情报按目的 tag 分配步 (:202/:218 断言) |
+| 0x1410A83F0 | 184 | CRadarsPool::Init (:680 "already initialized", pool+52 计数为门) |
+
+**双通道模型** (定案): 陆份 = 有主省按控制国聚合 — 每条目 factor =
+RADAR_LEVEL_INTEL_FACTOR × 等级合计, share = 因子/最大级, cap = 控制省占比 × share,
+每覆盖省 per-prov = 1e7×cap/(1e5×覆盖省数), 省内多站以 RADAR_INTEL_STACKING_FACTOR
+归并; 国家级 share2 = val2/受控省数, 四象限 = COUNTRY_COVERAGE_PERCENTAGE[i]×share2/1e5
++ COVERED_LAND_PROVINCES[i]×(val1/100)/1e5。海份 = 无主海省 (desc+210 & 3 == 0 门)
+按战略区聚合 → CollectCoveredConvoyRoutes 拆到目的 tag: 区权重 = 区+36 × 区+160 (≤0 =
+:325 断言「非海区却有护航路」), 组 share × 区覆盖占比 × COVERED_SEA_PROVINCES[i] 累进 +
+NAVY_PER_SHIP_TYPE[i] 加权舰船计数归一累进; 自 tag 组 = :218 断言整组跳过。掷骰无 —
+纯累进。
+
+**静源登记** (定案): pool+72 = RADAR 静源引用, **池槽号 = 3** (sub_140D03550(…, 3)
+三站点直证 — §4.2.9 序 5② 的 4 槽列举系 define 表序非池槽序); 引用 {tag@+8, 槽@+12},
+失效经 sub_14197F040 检查惰性重建。归并 sub_14109D110 = 双数组按别名规范化 tag 序
+(sub_140BB5490) 归并, 同键四象限求和一次登记; 登记原语 sub_1411AEA40 对已存在键 =
+**覆写 32B 值非累加** → 尾部零值扫过 = 清触碰键旧值 (最终确认待运行时对拍)。
+
+CRadarsPool 布局消费点增补 (§4.3 256B 布局互证无冲突): +16 int 数组 (Init resize 到
+gs+748) / +40 条目指针 vector (+52 = 计数兼初始化门) / **+64 owner tag** (省+392 别名
+比对) / +96/+120 日结输出容器 / +144/+168 陆/海结果数组 (swap 换入)。112B 条目补行:
++24/+48 双 24B 数组 (Init 置空, 填充方未决) / **+80 雷达距离** (RADAR_RANGE_MIN/BASE/MAX
+按等级合计插值) / **+88 等级合计** (Σ 建筑 def i16@66) / **+104 本国控制省占比**
+(sub_1409D4190; 47F0 门 > 0)。defines 全对名: RADAR_LEVEL_INTEL_FACTOR 0x143336A30 /
+RADAR_INTEL_STACKING_FACTOR 0x143336B08 / 四组 BASE_INTEL_VALUES (COVERAGE_PERCENTAGE
+0x143336BE8 / COVERED_LAND 0x143336CA0 / COVERED_SEA 0x143336D68 / NAVY_PER_SHIP_TYPE
+0x1433390A0, 均 4×i64 数组对象) / RANGE 三槽 0x1433340C8/040/178 / 四槽
+STATIC_INTEL_SOURCE_*_MAXIMUMS 0x143339238/250/268/280 ({begin,end} 容器形, 载 0 或
+4×i64)。⚠ 文件像里 define 槽呈运行期改写前形态, 数值不可直读。
+
+未决: UpdateIntel 第二形参真身 (rdx, 海路全程依赖) / 区+36×+160 乘积业务名 / 区分组
+记录 40B 步进 vs +40 权重读矛盾 / 条目+24/+48 填充方 / 零值扫过最终语义 / 24B/区记录
+4×i64 含义 (待 CConvoyClient 域批次) / gs+748 业务名 / pool+96/+120 读者。
+
+#### 4.11.20 敌军规模估计器 (countryintelhelper.cpp; 陆军/空军孪生)
+
+UI「敌军规模区间」显示的引擎侧同源。`sub_141432940(out i64×2, observer_tag*, target_tag*)` = 陆军规模 {lo, hi}; `sub_14142F500(同形)` = 空军联队 {lo, hi}; 区间计算核 = sub_14142EB50 (断言 countryintelhelper.cpp:118/120 "MinValue <= Value"/"Value <= MaxValue")。
+
+| 步 | 机制 |
+|---|---|
+| 1 满情报捷径 | tag 相等 ∨ 同 idx ∨ 同源国深查 (sub_140700600/140700670), 或全局旗 byte_14332F63A (与 human_ai 旗相邻) → intel 比 = 1 |
+| 2 intel 比 | `1e5 × intel 值 / 上限`; 陆军 intel = intel 管理器 (sub_140D045C0) 返回+8 / 空军 +24; 上限 = COUNTRY_LEVEL_INTEL_MAXIMUMS (qword_1433390B8) [1]/[3] |
+| 3 区间 | 折减 `t = clamp(1e5×(intel比−MIN)/(MAX−MIN), 0, 1e5)`; 噪声幅 = `base×(1e5−t)/1e5` (base = RANGE_AT_LOWEST_INTEL) |
+| 4 确定性抖动 | 种子 = {1140 (陆) / 1280 (空)} + 月计数器 (sub_140177650 读 gs+1120, 0-based) + 12×年 + 实际值 + gs 计数器 (sub_1401DB340); CRandom 常数族 %1e5 → dither ×幅; 出参 = (Q15+0x4000)>>15 取整两 int |
+
+| 域 | defines (MIN/MAX/RANGE_AT_LOWEST_INTEL) |
+|---|---|
+| 陆军 | ARMY_ARMY_COUNT_RANGE_INTEL_{MIN,MAX,RANGE_AT_LOWEST_INTEL} = qword_143331DF8 / 143331EB8 / 143331F88 |
+| 空军 | AIR_AIRWING_COUNT_INTEL_{同三} = qword_143333B98 / 143333C30 / 143333CE8 |
+
+主消费 = AI 相对军力评估 sub_1406E9BF0 (geography\country.h 内联, §4.34): 分母 = Σ 交战国 (dip+152 缓存) 两估计器四累加; 分子陆军 = `1e5×(cc vt 槽 9 返回国)+668 师数` + Σ 同阵营邻国 (dip+176 战争同盟缓存 × 邻居位图 cc+4208/+4220 门) 同估计器; 分子空军 = 自身空军估计首输出 (同国满情报捷径 = 精确值); `OUT = 陆军 lo 比 + |hi 比 − lo 比|/2`, 空军 max 比 > 1e5 → +10000 (空优 +0.1); 分母 ≤0 → 默认 1e5, 加法溢出护栏 → −1。门 = `OUT ≥ RELATIVE_STRENGTH_TO_INVADE` (qword_1433326C8)。**CCountry vt 槽 9 (+72) = 国家对象解析器** (返回带 tag@+8/师计数@+668/邻居位图@+4208/diplo@+3976 的 CCountry, 常规国家返 self; 存在意义推定 = 内战/tag 换源时原初国解析, 与 cc+4876 original_tag 概念同族)。未初始化邻居位图断言 geography\country.h:1776 "Asking if %s is a neighbor of %s before the latter country is initialized" + :1778 一次性警告 (byte_14332FC62 门)。同阵营邻国可达谓词 sub_1412EFED0: 存在 X ∈ 己邻居列表#1 (cc+4232/4244) 使 X 阵营 == 己阵营 ∧ 目标 tag ∈ X 的邻居位图 — AI「可援助/驰援国」评估复合件 (与敌国判定/阵营成员判定/AI 策略求值 sub_1406CF0E0 vt+32 组合)。
+
+#### 4.11.21 intelligenceagency.cpp 簇对账增补 (机构运行期; 15 函闭环)
+
+清册 (15/15 函体内含 intelligenceagency.cpp 路径锚): CaptureOperative 0x140FDAAE0 (392) /
+reader 键分派 0x140FDDA00 (346) / AddUpgrade 0x140FD78D0 (251, def+540 上限 + 总级数断言) /
+captured 日结 0x140FDEC70 (213) / gfx 编译失败抛异常助手 0x140FDB3E0 (203) / Reset 全清
+0x140FDB6E0 (171) / on_operative_death 发射 0x140FDD7E0 (104) / AddOperative 槽位感知版
+0x140FD7480 (96, 满 → recruitment 池+析构 / 空 → +216 直挂) / ClearCapturedOperatives
+0x140FDE010 (91) / StartCreation 0x140FDE7C0 (89, 双旗互斥断言) / AddOperative 直挂变体
+0x140FD76A0 (87, 招募完成通道) / StartUpgrade 0x140FDE9C0 (86) / RemoveOperative
+0x140FDE3D0 (75, 任务反注册+被俘同步摘俘方) / ReleaseOperative 0x140FDE270 (65) /
+FakeOperativeDeath 0x140FDC700 (64, +252 计数++, 调用者 = turn_operative 效果)。
+
+**序列化面** (PE 直读 vt 0x142981F68, 9 槽; §4.00.1 槽位通则实测成立): [1] wrapper /
+[2] writer / [3] wrapper / **[4] reader = 0x140FDDA00 (书原缺, 本批钉死)** / [5] PostLoad 桩;
+紧邻 0x142981FB8 = CCapturedOperativeReference vt ([2] writer 0x141A34FF0 / [4] reader
+0x141A34F40)。**reader 16 键全表**: 27 name→+128 / 181 icon→+160 / 10319 building→+256 /
+10836 defense→+296 / 12393 upgrades→+96 {def*, count} 16B 元 (重复计数累加, 未知名错误
+日志; 支持 '@' 变量引用形) / 15356 在途升级→+208 (无效旗 def+16 清槽) / **15635 captured
+→+264 (reader 0x140FD6CB0, 56B 元)** / 15667 is_created→+192 / 15668 in_creation→+193 /
+15669 upgrade_progress→+200 / **19068 cryptology→+288 (CCryptology 整块)** / 19296
+own_operative_death→+252 / 19345 max_operative_count→+240 / **19464 recruitment→+8
+(COperativeRecruitment 块)** / 19488 usable_operative_slots→+244 / 19489
+elapsed_days_for_next_slot→+248。
+
+**捕获链** (定案): 收益 = define CAPTURED_OPERATIVE_INTEL_YIELD (四象限) × MIN/MAX_FACTOR
+受控随机因子 (random_fixed, %1e5) + on_operative_captured 事件 (56B 元入列)。被俘日结:
+关押剩余天数 = dword_14333347C + (op+4032 − 43800000)/24 − 今日; 每日四象限入情报源池
+(入账 sub_140D026F0, 源池 +184, 56B/kind, kind=6); 营救门 = def+66 清 ∧ def+88 目标=属主
+∧ *(def+72)+1129 置; 期满摘除。
+
+**调试开关钉名**: byte_14332F62D = **Agency.AutoComplete** (即时完成建局/升级分流) /
+byte_14332F62E = **Agency.KeepExcessOperatives** (槽满仍直挂)。命令 Execute 补钉: 建局 =
+0x141A27C00 (双旗 word 写 +192=1/+193=0)、升级 = 0x141A27CF0 (§4.33 补行)。
+
+**COperative 运行期锚束** (消费点定案): idpair@+8/+12 / 属主 tag@+36 / 名 SSO@+64 /
+tag@+288 / 关押日期@+4032 / 状态枚举@+4224 (5 = Killed)。op+288 与 +36 两 tag 分工待裁。
+
+未决: sub_140710B20 是否含入账 / captured reader 元素键表 / dword_14333347C 的 define 名 /
+sub_140C185E0 (+4016 统计, token 545/546) 语义。
