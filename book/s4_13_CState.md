@@ -169,7 +169,7 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 |---|---|---|---|---|
 | +16 | fixed×1e-5 | resistance | | 每日 += +24 速度 (sub_140F980D5), 钳 [0,1e7], 无条件 (cr+520 门只管活动链); GUI: StatusView 图标帧+百分比 (Update sub_14156E190, clamp 0..100) |
 | +24 | fixed×1e-5 | resistance_speed | 不序列化, 每日 sub_140F9BF90 重算 (速度公式 sub_140F94690) | |
-| +32 | fixed×1e-5 | base_resistance_target | 不序列化; 每日 sub_140F9BF40: 先清 cr+48/56, 再 (include_flow=0, clamp=1) 单调 sub_140F959F0 抵抗目标计算体 (14 项加法公式), **同一返回值双写 +32 与 +40** (+40 = 基值重播种, 邻流随后 +=); cr+520 未置则双清 0 | |
+| +32 | fixed×1e-5 | base_resistance_target | 不序列化; 每日 sub_140F9BF40: 先清 cr+48/56, 再 (include_flow=0, clamp=1) 单调 sub_140F959F0 抵抗目标计算体 (基值 + 12 增量项; VP 阶梯按档拆分计数可至 14, 口径依赖 — 全项分解见 §4.13.1a 尾增补段), **同一返回值双写 +32 与 +40** (+40 = 基值重播种, 邻流随后 +=); cr+520 未置则双清 0 | |
 | +40 | fixed×1e-5 | resistance_target | 邻州扩散落值 (sub_140F921A0: cr+40 += flow); 日更重播种 = 同上双写 | |
 | +48 | CState* | 邻流源州 (扩散写入时记源; 内存形态 = CState* — 断言 "pState", 州 id 系 writer 折算视角; 目标公式 a3 分支同槽) | | |
 | +56 | fixed×1e-5 | 邻流流量 (扩散写入值) | | |
@@ -427,7 +427,19 @@ sub_140F94490: allowed/weight/days/max_instances 四 def 访问器 + 现有实�
 def+184 内嵌 CEffect vt[12] 执行效果块 + days>0 入队 (按 def 查重复用);
 sub_140F92710/sub_140FF4D30 = 驻军人力/装备损耗结算 + resistance_attack_log。
 
-活动门补充 (定案): 门② 值 ≤0 → 直通 (可达条件 = MIN define ≤0); 门① 基率 ×(1+Σ MODIFIER_RESISTANCE_ACTIVITY_FACTOR(505) 三源)/1e5。活动修正器生效门 = def+408>0 或 def+324≠0 直通, 否则 def+288 修正器 id 列表 (计数@+300) 须有 id 过游戏规则检查 sub_14055F700 (规则表 qword_14332ED90+120×id, `!(e+104) ‖ flags&(e+104)`); 倍率 = ×(elem+28 实例数)。触发链 scope 链 = state→controller→occupied 三 scope FROM 链 (eventscope.h:193 断言 ×3); sub_140534F00(state_scope) 为执行体第三参。SetOccupiedCountry (sub_140F9B050) 起始值 = INITIAL_STATE_* + 协作政府 (COMPLIANCE_PER_COLLABORATION max 项) + Σmdef484(COMPLIANCE_STARTING_VALUE)×100 三源, 尾置 cr+520。
+活动门补充 (定案): 门② 值 ≤0 → 直通 (可达条件 = MIN define ≤0); 门① 基率 ×(1+Σ MODIFIER_RESISTANCE_ACTIVITY_FACTOR(505) 三源)/1e5。活动修正器生效门 = def+408>0 或 def+324≠0 直通, 否则 def+288 修正器 id 列表 (计数@+300) 须有 id 过游戏规则检查 sub_14055F700 (规则表 qword_14332ED90+120×id, `!(e+104) ‖ flags&(e+104)`); 倍率 = ×(elem+28 实例数); **挂载点 = a2+16 合成 CModifier (LOCAL_RESISTANCE/LOCAL_COMPLIANCE 同槽聚合, 倍率 1e5×元+28, sub_140F91850 尾段直证)**。触发链 scope 链 = state→controller→occupied 三 scope FROM 链 (eventscope.h:193 断言: 触发链 sub_140F97920 体内实见 ×2, 第三处应在执行体 sub_140F98340/sub_140534F00 内 — 合计口径 ×3 不矛盾, 表述精化); sub_140534F00(state_scope) 为执行体第三参。SetOccupiedCountry (sub_140F9B050) 起始值 = INITIAL_STATE_* + 协作政府 (COMPLIANCE_PER_COLLABORATION max 项) + Σmdef484(COMPLIANCE_STARTING_VALUE)×100 三源, 尾置 cr+520。
+
+resistance.cpp 簇对账增补 (13 函数闭环; 断言锚行号 103..2002 全员体内, 单编译单元确认):
+
+**抵抗目标公式 sub_140F959F0 全项分解** (签名 `(cr, out*, include_flow, clamp_flag, tooltip收集器*)`; 基值 → 12 增量项 → 非合规下钳 → compliance 折减 → 可选 [0,1e7] 终钳; tooltip 模式逐项发名值对): 基值 = RESISTANCE_TARGET_BASE (qword_1433370A8); 州 VP 阶梯 = {阈值,值} i64 对表倒序扫落首档 (表计数 dword_1433387A4, define RESISTANCE_TARGET_MODIFIER_STATE_VP); 宣称项 (HAS_CLAIM, 州 claims 含 controller 或其 dynamic root); 人口低项 (POP_LOW_CUTOFF/POP_VERY_LOW_CUTOFF 双档覆盖式, 值 POP_LOW/POP_VERY_LOW); 和平项 (IS_AT_PEACE); 稳定损失项 (PER_STABILITY_LOSS×(MAX_STABILITY−stability), ×100 换算); 已投降项 (OCCUPIED_CAPITULATED, cc+1156>0 ∧ cc+1132==0); 流亡项 (OCCUPIED_IS_EXILE_MIN/MAX 区间插值, occupied 国 +424 槽 >0 门 — 槽语义推定流亡度, 待裁); 法侧修正 (modifier **478 = RESISTANCE_TARGET / 479 = RESISTANCE_TARGET_ON_OUR_OCCUPIED_STATES**, sub_140F92230 owner/occupied 双侧求和); added_resistance_targets (cr+600 容器 72B 元: **消费门 = 元+28 controller ∧ 元+32 occupied 双 tag 匹配才计 元+16 amount; 元+24 days 不参与目标公式**, 到期消费点未决); 邻州流 (include_flow=1 才计 cr+56, 断言 cr+48 非空 — **cr+48 源码字段名 = `_pStateResistanceFlowFrom`** 1018 行断言直证); 下钳 = RESISTANCE_TARGET_MIN_CAP_FOR_NON_COMPLIANCE; 折减 = PER_COMPLIANCE (负值)。
+
+**两套 INITIAL 播种分工** (定案): SetOccupiedCountry 播 INITIAL_STATE_RESISTANCE (qword_143336C08) / INITIAL_STATE_COMPLIANCE (qword_143336D48); 读档重建 sub_140F9AE60 播 INITIAL_HISTORY_RESISTANCE/COMPLIANCE (qword_143331D30/DF0) + INITIAL_GARRISON_STRENGTH (qword_143331EB0) — 「新占领」与「读档重建」两套 define。SetOccupiedCountry 断言三连: :693 重设守卫 (旧 cr+80 须 ≤0) / :698 IsCore (含 dynamic-root 等价 sub_140BB5490) / :714 落定 tag 非 dynamic。
+
+**驻军需求 sub_140F94100 定名补**: SUPPRESSION_NEEDED_BY_RESISTANCE_POINT (qword_143331508, =0.75) / _LOWER_CAP (qword_1433315A8, =10) / _UPPER_CAP (qword_143331660, =50) 三 define 槽落址; **sub_1424EF6F0 = 取负 helper** (`*buf = −a2`) 非「读取器」— 「Σ499 > −1e5」主路门与「压制 0/模板缺失 → −100000 禁用哨兵」由它构造; a3 聚合列表 = 16B 对 {模板指针, 压制值} (命中复用, 扩容 max(n+1, 1.5n))。1850 精化: 内含第二处 GetOccupationLaw 逻辑 (609 断言 + lawdb+72 兜底) + 重启用门 `cr+16 ≠ 0 ∨ cr+40 ≥ RESISTANCE_TARGET_TO_REENABLE_RESISTANCE` (qword_143331080)。
+
+**add_resistance_target 效果执行尾 = sub_140F920B0** (新收, 定案): cr+600 容器 id 去重断言 :456 + 72B push; 调用点 5 参数槽 (gs+920/+712/+504/+88/+296) 经脚本数值读取器求值传入。伴生 helper: sub_140F9C4B0 = (controller, occupied) 对激活判定 (全局门 byte_14332F620 + cr+624 force_enable / cr+648 force_disable + trigger 链; 与书 gs+2617 抵抗启用旗地址不同, 关系未对表) / sub_140F986B0 = 目标国推断器 (state+200 owner 优先 → 州核心列表两轮扫)。
+
+未决: 流亡项 +424 槽语义与插值方向; 20B0 参数槽与条目字段逐一对应; 门③等号边界; added_resistance_targets 元+24 days 到期消费点 (疑日更清理链, 非本簇)。
 
 副产: cr+8 = CState* 回指 (定案); added_resistance_targets 72B 条目 =
 CResistance::SAddedResistanceTarget (vt 0x14297e320, reader 0x140F9BEB0 键表

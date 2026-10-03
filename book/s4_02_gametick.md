@@ -90,7 +90,7 @@ CHourlyTickCommand 本体布局归 §4.33 (id 12092); 此处记行为槽定案:
 |---|---|---|
 | [10] Execute | 0x140F06BF0 | 见下步骤 |
 | 构造通道一 | sub_140F057A0 | 就地构造 (本地生成, 唯一调用点 = sub_140F0590) |
-| 构造通道二 | sub_140F05A30 | 从网络包模板拷贝构造 (联机) |
+| 构造通道二 | sub_140F05A30 | **Clone (槽[13]) 实现** (调用者 = 泵内命令日志克隆 + CDummyServer 出队克隆; 联机侧客户端从广播流经工厂反序列化获得, 无专用包构造通道) |
 | 构造通道三 | sub_140F05C80 | 无参工厂, 注册于命令工厂表 (注册号 3092, 反序列化用) |
 
 Execute 步骤 (定案):
@@ -99,7 +99,7 @@ Execute 步骤 (定案):
 |---|---|
 | 1 | gamestate 断言 (gamestate.h:1116/1117) |
 | 2 | 读 `session+72` (sub_140CE9520), **≠ 13** 才调 `sub_1401DD370(gs, cmd+40 载荷)` |
-| 3 | session+84 为真时遍历玩家条目 (gs+260 计数, 160B/条), 对国家 id ≠ 本地且超时的发 0x50B 掉线命令 (两分支: gs+1212≤0 走 sub_140DE5F90 构造入队, 否则虚表+760 直发) |
+| 3 | session+84 为真时遍历玩家条目 (gs+248 数组 {计数@260}, 160B/条; **+152 = machine id ≠ 本机** (sub_140B54190 = session+164 getter) 才参与; +128 = u32 日期水位): 当前日期折天 − 水位 > LAG_DAYS_FOR_LOWER_SPEED (10 天, dword_1433361D0) 的掉队者 → **掉队降速/暂停链**: gs+1212>0 走虚表+760 (idler 槽[95], 每 13 次节流) 发 CDecreaseGameSpeedCommand(10456); gs+1212≤0 走 sub_140DE5F90 构造 CPauseGame(10732, 带玩家名条件 toggle) 入队; 命中一个即 return (每小时至多处理一个; 聊天通报与 25 天暂停档在 CClientPingCommand::Execute 侧, 见 §4.36.4) |
 
 > 备注: session+72 = **CSession 联机状态枚举**, 13 = HOTJOIN_WAITING_FOR_SAVE
 > —— `≠13` 门 = 「热加入等待存档的客户端不推进时间」, **不是暂停检查**
@@ -114,14 +114,14 @@ Execute 步骤 (定案):
 
 | # | 粒度 | 动作 |
 |---|---|---|
-| 1 | 每小时 | 构造 CClientPingCommand (0x48B, 含当前日期) 并入队 |
+| 1 | 每小时 | 构造 CClientPingCommand (id **11376**; 载荷 cmd+48 = 当前日期 / +64 = 本地国 tag / +68 = 本机连接信息) 并入队 (语义 §4.36.4) |
 | 2 | 每小时 | `gs+1216 = 1` (tick 进行中) |
 | 3 | 每小时 | 保存旧日期分量 (旧日/旧月/旧年积日/旧年) |
 | 4 | 每小时 | `CGameDate 虚表槽[1] (gs+1120, 参数 1)` = **Advance 1 小时** |
 | 5 | 每小时 | 重算日期分量缓存 gs+1144/+1148/+1152/+1156/+1160 (dword_143085210 = 闰年月首累计日表) |
 | 6 | 边界 | 计算四布尔: 换日 (日分量变) / 换周 (换日且总天数 %7==0) / 换月 (月索引变) / 换年 (年积日变) |
 | 7 | 边界 | profiler 日期粒度采样 sub_140BBBEA0 (gs+2008): 五槽打点 "Hour"/"Day"/"Week"/"Month"/"Year" (性能采样, 非游戏逻辑; 见 §4.2.5) |
-| 8 | 联机 | checksum 对比: sub_140DB1830 算本地 vs 载荷 → OUT_OF_SYNCH 判定与日志 (gamestate.cpp:4744-4795); CNetworkServer/CProxyServer 或 debug 旗才走; 本端 checksum 计算 = sub_140DB1740, 哈希核 = **MurmurHash3 x86_32** (sub_1424ED930 update / sub_1424EDA70 finalize — 勘误: 原「sub_14024ED930/24EDA70」系 0x14 前缀笔误, RVA 正确; 全常量直证)。**OOS checksum 全貌 (定案)**: 命名空间 NGameSynchronizationHelper; **91 槽定长校验和** (快照 = 91×u32 逐槽与主机对拍), MurmurHash 流式 (每逻辑校验项一个 12B 哈希状态); 双变体 = Logging 变体 (sub_140DA5C80/140DAB4C0, 仅 OOS 报告窗 sub_140DD8D60 用, 串行) 与 PdxHasher 静默变体 (sub_140DA8A40/140DAE720, hourly tick 生产路径, tbb 并行; 静默族 5 函数在簇外); 周期 = 每小时对拍一次 (CHourlyTickCommand 载荷携主机 91 槽 → sub_140DB1830 比较 → 差槽/OOS 标签上行 → sub_140DB1740 重算本地; **human_ai 旗置位也强制对拍**); 覆盖面 = 全局段 (槽 0/1 = multiplayer_random_seed/count 与 §4.28.13 随机流闭环; 槽 2/87 = 全持久态/playthrough 摘要 [后者 byte_143468B46 门控]) + 省/前线/州/区天气/战斗走访 + 逐国 21 具名分区; **与存档 #checksum 无关** (存档 = MD5(文件+盐), 本簇 = 活体 gamestate 结构化分槽 MurmurHash) |
+| 8 | 联机 | checksum 对比: sub_140DB1830 算本地 vs 载荷 → OUT_OF_SYNCH 判定与日志 (gamestate.cpp:4744-4795); CNetworkServer/CProxyServer 或 debug 旗才走; 本端 checksum 计算 = sub_140DB1740, 哈希核 = **MurmurHash3 x86_32** (sub_1424ED930 update / sub_1424EDA70 finalize — 勘误: 原「sub_14024ED930/24EDA70」系 0x14 前缀笔误, RVA 正确; 全常量直证)。**OOS checksum 全貌 (定案)**: 命名空间 NGameSynchronizationHelper; **91 槽定长校验和** (快照 = 91×u32 逐槽与主机对拍), MurmurHash 流式 (每逻辑校验项一个 12B 哈希状态); 双变体 = Logging 变体 (91×12B 槽数组建立者 = **sub_140DB1560** gamesynchronizationmanager.cpp:1129, 填充后逐槽打 "Checksum: <i> <hash>"; 核心填充器 sub_140DA5C80/140DAB4C0 — **a2 位掩码**: bit0 = CGameState::Save 主块 writer a3=1 整态进流 → 槽 2 + 日志 "Full Persisted Game State" / bit1 = playthrough writer sub_1401F2DD0 → 槽 87 + "Playthrough Stats" / 恒执行 "Global Game State" 文本段; 仅 OOS 报告窗 sub_140DD8D60 用, 串行) 与 PdxHasher 静默变体 (sub_140DA8A40/140DAE720, hourly tick 生产路径, tbb 并行; 静默族 5 函数在簇外); 周期 = 每小时对拍一次 (CHourlyTickCommand 载荷携主机 91 槽 → sub_140DB1830 比较 → 差槽/OOS 标签上行 → sub_140DB1740 重算本地; **human_ai 旗置位也强制对拍**); 覆盖面 = 全局段 (槽 0/1 = multiplayer_random_seed/count 与 §4.28.13 随机流闭环; 槽 2/87 = 全持久态/playthrough 摘要 [后者 byte_143468B46 门控] / 槽 55 = debug_current_ref_id dword_1434520E0) + 省/前线/州/区天气/战斗走访 + 逐国 21 具名分区; **与存档 #checksum 无关** (存档 = MD5(文件+盐), 本簇 = 活体 gamestate 结构化分槽 MurmurHash) |
 | 9 | 每小时 | 遍历 gs+2240 容器 (计数@+2252): 每 tag 查 _AllPlaythroughData (gs+2200, §4.1.8) → 条目 = **NCareerProfile::SPlaythroughCountryData** (2488B, vt 0x142721478), 在其 +2064 的 **SCareerProfileIntermediateStatistics** 上调三函数 = **9 条 CTimeSeries 滚动统计窗口推进** (2 月窗 24 / 6 时窗 48·12·48·48·48·96 / 1 日窗 30) — 生涯档案统计域, 非模拟逻辑 (月边界 sub_14069D160 / 日边界 sub_140694E60 / 每小时 sub_140699C10) |
 | 10 | 每小时 | **sub_1401DF400(gs)** = hourly 游戏逻辑主调度 (§4.2.6) |
 | 11 | 日 | **sub_1401D4810(gs)** = daily update |

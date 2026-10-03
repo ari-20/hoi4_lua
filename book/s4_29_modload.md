@@ -138,7 +138,7 @@ key token → 槽位 (对象基点 a1; token id 取运行时 lexer):
 |---|---|---|
 | 1 | sub_14207BCA0 | 对 mod 根目录 (`+48`) 执行 `FindFiles("*.mod")`, 逐个文件调 (2) |
 | 2 | sub_142076090 | 解析该 `.mod` 文件 → key 派发 (上表) → 校验路径/number 组合, 异常报 `"Incorrect MOD descriptor: \"%s\""` (:1829) |
-| 3 | sub_142074270 | 插入注册表 (`a1+176`): 有序 map, 节点 `malloc(0x2E0)` = 树头 32 + 键串 32 (`sub_1401FF2C0` 比较) + CDLCDescriptor 672 (sub_142074CF0 拷贝); 键 = registry id (与记录 +72 同串, 同比较器) |
+| 3 | sub_142074270 | 插入注册表 (`a1+176`): 有序 map, 节点 `malloc(0x2E0)` = 树头 32 + 键串 32 (`sub_1401FF2C0` 比较) + CDLCDescriptor 672 (sub_142074CF0 拷贝); **键 = descriptor name (+8)** (76090 插入键拷自 +8, 比较器同; +72 registry id = 扫描器解析前注入的文件相对路径, 独立字段非键 — dlc.cpp 勘误) |
 | 4 | sub_142075820 | 临时 descriptor 对象析构 |
 
 > 备注: 扫描阶段 `FindFiles` 不区分启用状态 — 目录下所有 `*.mod` 都被解析并注册; 启用筛选在 §4.29.3。
@@ -162,7 +162,7 @@ key token → 槽位 (对象基点 a1; token id 取运行时 lexer):
 | sub_142079C40 | 装载对象构造 | 先调 sub_14207BCA0 / sub_14207B540 扫描目录, 后调 sub_142075540 读清单 |
 | sub_14207B540 | `.dlc` 扫描 | 同 §4.29.2 模式 |
 | sub_14207BCA0 | `.mod` 扫描 | 同上 |
-| sub_142075540 | 读 `dlc_load.json` | 打开文件 → 解析 JSON → `disabled_dlcs` 填 +80 容器、`enabled_mods` 填 +104 容器; 读失败报 `"Failed to read '%s'."` (dlc.cpp:78), 超限报 `"'%s' is bigger than %llu, will not read."` (:68) |
+| sub_142075540 | 读 `dlc_load.json` | **两段式**: 填调用方栈上临时 {+0 disabled_dlcs, +24 enabled_mods} 两 24B NNB 向量, 装载 ctor 尾经 sub_140186170 区间合并进 mgr+104 / mgr+80; 打开文件 → 解析 JSON → 读失败报 `"Failed to read '%s'."` (dlc.cpp:78), 超限 (16MB) 报 `"'%s' is bigger than %llu, will not read."` (:68); **路径 = PHYSFS VFS 相对路径 (实读 `<userdir>/dlc_load.json`), 文件缺失 = 静默跳过** (存在门不过无告警); 引擎只读不写 (写方 = launcher) |
 | sub_14207AC20 | JSON 数组 → MSVC 串容器 | 逐元素取串, 非串元素报 `"Expect only strings in dlcs/mods arrays."` (:97), 数组读取失败报 `"Error reading dlcs/mods arrays."` (:102) |
 
 > 备注: enabled_mods 条目 = `mod/<文件名>.mod` 形态的 registry id (文件相对路径), 与记录 +72 处 registry id 串匹配 (`sub_14011D540`) — **不是** descriptor `name` 字段值; disabled_dlcs 同按记录 +72 匹配。
@@ -178,7 +178,7 @@ sub_142076450 对启用集合建 16 字节条目表 `{int 权重 @+0, CDLCDescri
 | 条目收集 (mod 侧) | sub_142076450 次循环 | 遍历 `a1+176` 有序 map (键序迭代); registry id 命中 enabled_mods (`+104` 容器, `sub_14011D540` 逐串比对) → 入表, 权重 10000 |
 | 依赖降权 | sub_142076450 降权循环 | 外层 do..while 至不动点 (链条多轮收敛): 每条目逐条 dependency (记录 +168 容器) 与全表条目的 **descriptor 名 (记录 +8 MSVC 串)** 全等比较; 命中且被依赖者权重 ≥ 依赖者 → 被依赖者权重 `--` |
 | 排序 | sub_142073EC0 / sub_142073FF0 | **权重升序**; 同权 tiebreak = `sub_1401FF2C0` 比较 **registry id (记录 +72)** 字典序; ≤32 条插入排序, >32 条临时缓冲归并 (std::stable_sort 形态, 同一比较关系, 推定) |
-| 挂载 | sub_14207AB80 | 正序逐条: 记录 +152 非零 = archive 形态 (+136 串, fopen 失败报 `"Could not find archive for mod"` dlc.cpp:647) 否则 folder 形态 (+104 串, 缺失报 `"Folder not found for Mod %s path: %s"` :665); 两形态均以记录 +280 挂载根前缀拼接 (sub_14207C000) → `PHYSFS_mount` 前插; 记录 +584 dword ≠ 1 时挂载循环 break |
+| 挂载 | sub_14207AB80 | 正序逐条: 记录 +584 type == 1 (steam DLC) 快路径 = archive (+136) 或 path (+104) 直接 `sub_14207AB80(+280, 串)` 前缀拼接挂载; **type ≠ 1 → 转通用挂载块 (非循环中止 — 全部 folder mod (type 8) 都走它)**: archive 形 (VFS 存在 → 前缀拼挂 / fopen 探测败报 `"Could not find archive for mod: %s"` dlc.cpp:647 / 成功裸 archive 直挂) 与 folder 形 (VFS 存在 → sub_14207C000 拼挂 / 绝对路径分支直挂 / 失败报 `"Folder not found for Mod %s path: %s: "` :665, %s1 = **+40 localizable_name**); 两路径汇合续下一条目; **+280 挂载前缀 = PHYSFS_getRealDir(路径)** (扫描期写入记录 +280) |
 
 > 备注: 挂载路径 = `sub_14207C000(记录 +280 挂载根, 记录 +104 路径, 输出)`: 两串以 `/` 拼接后反斜杠→正斜杠归一化; 其一为空则直取另一。该函数只做路径规范化。+280 前缀非 token 填充 (descriptor 解析后注入)。
 > 备注: 最终搜索路径 = 挂载序的**逆序** (正序挂载 + PHYSFS 前插): mod 组整体索引小于 DLC 与原版; 同权 mod 组内 **registry id 字典序靠后者索引越小** (优先级越高)。
@@ -255,4 +255,4 @@ GAME.layout.token_name, 但此目录的 token 在任何 mod 之前即占位。
 
 **DLC 归属校验链**: CDLCManager::VerifyAllDLCOwnership sub_14207C2A0 (tbb 符号直证类名; **dlc_signature 缓存**命中跳过逐项校验, 否则并行校验后回写); 签名 = sub_142078270 = **MD5(MachineGuid 注册表值 + Σ.dlc 文件字节 + 66B 盐 "DontStealMyGamePlz__WINNERS_DONT_USE_DRUGS__DONT_COPY_THAT_FLOPPY")**; 单件校验 sub_14207CC90 (校验和门→商店后端查询, 0=拥有/2=未拥有/3=校验和致命; type 表实际只走 1=steam); 单件校验和 sub_1420774D0 = MD5(name+itoa(len)+path+itoa(steam_id)+itoa(0)+pops_id+deps+replace_paths+"y"/"n"+archive 字节+**19B 盐 "h4rdc0r3Gam3r4lyfe"**); 串行兜底 sub_14207D4B0。
 
-**注册表与 UGC**: `.dlc` 扫描 sub_14207B540 (**键 = name 字段** — 勘误: §4.29.4 「键 = registry id」只对 mod 注册表成立; 插入前门按 type 校验 steam_id/pops_id/+648 非空, type 0 拒绝 "Incorrect DLC descriptor" :858); 过滤谓词 sub_14207AA60 (types 1/3/5/6/7 查 disabled_dlcs, 2/4/8 查启用 mod 名单); Workshop 安装器 sub_142079E00 (挂载 workshop 目录→找 zip→写 `ugc_<id>.mod` 描述件→按 ugc 键回查); 订阅增量安装 sub_142075200 (mtime < 安装时间才重装)。**CDLCManager 具名** (qword_14344A568 单例, 兼 §4.29.7a 挂载管理器)。CDLCDescriptor 增补: +592 pops_id (token 765) / +584 type (来源语义: 正常装机不触发 break 行) / +628/+648/+664 启用位 (ctor 默认 1) / +72 registry id (装载器注入非解析键); 764/767 rail_id/msgr_id 负定案。
+**注册表与 UGC**: `.dlc` 扫描 sub_14207B540 (**两注册表统一键 = descriptor name (+8)** — 76090/B540 插入键均拷自 +8, 插入比较器同; 原「.dlc 键 = name 仅 mod 键 = registry id」勘误注系方向画反, 已废; 插入前门按 type 校验 steam_id 低半 +624 / pops_id 串 size +608 / +648 pdx_id 非空, type 0 拒绝 "Incorrect DLC descriptor" :858); 过滤谓词 sub_14207AA60 (types 1/3/5/6/7 查 disabled_dlcs 按 +72 精确匹配, 2/4/8 经 sub_142079430 变换后按 **name +8** 比对 — 两条不同匹配路径, 变换 = '\' 切分 ≥2 段弃再 '/' 切分重组 (推定), type 0 = "Unknown source" 告警返 0); Workshop 安装器 sub_142079E00 (挂载 workshop 目录→找 zip→写 `ugc_<id>.mod` 描述件→按 ugc 键回查); 订阅增量安装 sub_142075200 (mtime < 安装时间才重装)。**CDLCManager 具名** (qword_14344A568 单例, 兼 §4.29.7a 挂载管理器)。**CDLCDescriptor 增补 (dlc.cpp 勘误)**: +592 pops_id (token 765) / +584 type (ctor 默认 0; 解析后推断仅当原值 0/6: path 非空∧archive 空 → **8** (mod folder) / 反之 → 2) / **+664 = 所有权验证旗** (ctor dword = 0x100 即 byte+665 affects_checksum = 1 而 +664 = 0; **写者 = VerifyAllDLCOwnership sub_14207C2A0** 置 1, 唯一读者 = 挂载收集门 — DLC 只收旗非零者) / +628 = steam_id 高半 (默认 0) / +648 = pdx_id 串 size (默认 0) / +72 registry id (装载器注入非解析键) / +280 = **PHYSFS_getRealDir** 挂载前缀 / **+368 supported_version = CVersionNumber 对象** (80B, token 611 经 sub_142222840 解析, 分量数组 +384/分量数 +396, 有效 = 分量 [2,4], 前缀相等判兼容如 "1.19"≡"1.19.3" — 非 MSVC 串); 764/767 rail_id/msgr_id 负定案。**boot 全链 (定案)**: main → 单例 → PHYSFS_freezeConfig(1) → 装载 ctor ("dlc","mod" 两前缀) → .dlc 扫描尾调 VerifyAllDLCOwnership → .mod 扫描 → dlc_load.json → -exclude_dlc (幂等追加 disabled_dlcs) → 版本不匹配弹窗 ("Unsupported Mods") → 挂载主函数; **feature gate 域 (gamedlc.cpp) 与本簇零调用关系** — 掩码 = 已安装 DLC feature 位, 所有权旗 = 商店后端验证, 两套正交。

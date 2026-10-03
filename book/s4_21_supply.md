@@ -143,7 +143,7 @@ sub_140EC8DB0 (强制第二参 = 1)。真名 = tbb 任务符号直读
 |---|---|---|
 | 前 | sub_14122B820 | calc+320 train 侧运输记录累加 (§4.21.2 +320 行写者) |
 | 1 | sub_14122B300 | css+56 订阅者 (16B 条 {对象指针@0, 旗@+8}, count@+68) 旗置位对象: vt[槽9] 刷新 + sub_141021F90 重建 CConvoySubscriber + vt[槽10] 错峰 tick (旗或 对象+12 %24==当前小时); vt[槽15] +108 旗非零 → 对象注册进属主 calc+184 网络条目 (232B×type) **内嵌容器@条+184** (Form P {data@+184, cap@+192, count@+196, alloc@+200}, **48B 条**: 未命中 push {tag@0, 16B 零@+8, {0,100000}@+24, 0@+40}, 条+16 = 订阅者对象指针); 旗零对象 `*(对象+288)=0` 复位; 第二环 = css+80 (28B 条) 驱动 css+208 (40B 条) 对齐 |
-| 2 | sub_14121C700 | 卡车分配结算: css+416/+424 起始缓冲 >0 → sub_14122F5F0/sub_14122F2F0 按消费者 asked 总量分摊; css+200 < css+312 缺口 → 遍历 css+328 变体条 (24B) 逐变体取 min(缺口, 条+8) 提 country+3944 装备池 (sub_14100CCE0); 尾段 calc+304 归整到 100000 倍数 (**定案: 向 +∞ 取整** = `100000×((v>0)+v/100000)`, 原「取整方向待 PE 验算」收口), 差额逐变体落 **calc+388 累计 += 量 / calc+392[i] = 量** |
+| 2 | sub_14121C700 | 卡车分配结算: css+416/+424 起始缓冲 >0 → sub_14122F5F0/sub_14122F2F0 **卡车侧起始缓冲兑现 (勘误: 非按消费者 asked 总量分摊)** — 乘数 = calc+304 整数化卡车数 (round-up-1e5), 入账 = 装备池内比较器最大者的**单变体条** count += n + css+312 _Allocated += n; **css+416 消费后清 0**; css+200 < css+312 缺口 → 遍历 css+328 变体条 (24B) 逐变体取 min(缺口, 条+8) 提 country+3944 装备池 (sub_14100CCE0); 尾段 calc+304 归整到 100000 倍数 (**定案: 向 +∞ 取整** = `100000×((v>0)+v/100000)`, 原「取整方向待 PE 验算」收口), 差额逐变体落 **calc+388 累计 += 量 / calc+392[i] = 量** |
 | 3 | sub_14122F110 | 读 calc+128 (800B calc) 遍历 calc+536 距离暂存 (24B 条, count@+548): **consumer+30 = 1 到达旗 / consumer+56 = min(距离)** (哨兵 100000, fixed 定点) — CSupplyConsumer 新字段两枚 |
 
 tbb lambda 族 (细粒度)。网络条目 (232B) 字段: +56 = `Node._TotalSupply` / +64 = `Node._RemainingSupply` (country_supply.cpp:1388 族断言串自证字段名)。
@@ -154,7 +154,7 @@ tbb lambda 族 (细粒度)。网络条目 (232B) 字段: +56 = `Node._TotalSuppl
 | lam 2 | EBB3D0→1412202B0 | CSupplyCalculationData 逐项重置 (30+ 字段清零, +352=100000 哨兵) |
 | lam 3 | EBA9C0→1412212C0 | 供应消费者记录重建, 注册序 = 逐军(army+16) → 逐舰队逐 TF(**tf+16**, country_supply.cpp:2179) → 铁路炮(gun+16, :2189) → 国家空军容器(容器+0, :2225/:2234) → cc+4008 项目消费者(元素+200); :2268 断言属共享注册函数 sub_14121B650 (先 sub_141230CA0 复位, sys+432 += asked, 插 sys+440 数组 + sys+64 键表); **CNavalBase 无 CSupplyConsumer (负定案)** — 基地是节点非消费者; 消费者类别字节 = ctor 0X140C482A0 a2 (2=空军基地容器 / 4=项目消费者) |
 | lam 4 | — | PerCountryIndex 重建 (:3138) |
-| lam 7 | EBAE10→141230D40 | 供应节点七步重算 (convoys.cpp:29 + 首都控制权门 :2844) |
+| lam 7 | EBAE10→141230D40 | 供应节点七步重算 (七步链内: 第 3 步 sub_141021F90 护航订户重建带 convoys.cpp:29 断言 / 第 7 步 sub_14121EF20 带首都控制权门 :2844 — 两断言宿主均为链下一级函数, 非编排体自身) |
 | lam 9 | sub_140EB55F0 | sys+312 行清零 (槽 0/+8/+20/+36/+60) + +16 填国 idx (⚠ +16 双语义待裁: calc 侧同型 216B 记录 +16 记「同州链 next」, 需实测区分勿直改) |
 | lam 10 | sub_140EB5C00 | 省级数据跨国家归并 (省自旋锁 +336): 逐国把 calc+88 216B 记录归并进 sys+312 全局行 |
 | lam 11 排序叶 | sub_140EC3FB0 | 行 216B 内嵌两向量排序 (+24 24B 条 / +48 16B 条; 栈≤32/堆 scratch) |
@@ -171,8 +171,8 @@ tbb lambda 族 (细粒度)。网络条目 (232B) 字段: +56 = `Node._TotalSuppl
 
 #### 4.21.1a-2 补给网络岛屿分区 (sub_141227400)
 
-1,032 行 (country_supply.cpp:4003/:4040 断言直证): 补给网络**岛屿分区归属 + 海军基地连接**
-计算步 (IslandIdsForRegions 族)。
+1,032 行 (country_supply.cpp:**4003/:4175** 断言直证): 补给网络**岛屿分区归属 + 海军基地连接**
+计算步 (IslandIdsForRegions 族; :4003 = "Naval base province without sea province" / :4175 = "IslandIdsForRegions[…]==-1 ∨ ==IslandId")。
 
 #### 4.21.1a-3 铁路/河流路径回溯步 (sub_141A0CB10)
 
@@ -336,7 +336,7 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 | +0 | 匿名结构 (32B 形状) (RH 表 §3.2) | **省→供应值缓存** (空补 Dijkstra 终值 qword@桶+16; 未算标记 100000, 不可达 92233720200000); 桶 24B {hash, dist@+4, key 省 id@+8, value@+16}; 写 sub_140325D20 (空补定稿回填) / 读 sub_14121E1B0 命中直返 | 定案 |
 | +28 | float | +8 表装载因子 lf = 0.9 | 定案 |
 | +32 | 匿名结构 (32B 形状) (RH 表 §3.2) | **省→距离+1 缓存** (空补 Dijkstra); 桶 12B {flag u8, key 省 id u32@+4, value u32@+8}; 插入器 sub_1401B04A0 (对象基 calc+32) | 定案 |
-| +64 | 匿名结构 (120B 形状) | **省/州/区聚合工作集**: 相对 +64: vec@0 = int×省数 (省→216B 记录 idx, init −1); vec@24 = **216B 聚合记录表** (USAggregatedProvinceSupplyData 同型: +0 word 省 id / +8 Σ(asked−received) / +16 同州链 next / +24 每消费者 24B 向量 {16B ref id, dword tag} / +48 16B 列表 {节点idx,国idx,权重} / +152 节点值); vec@48 int 数组; vec@72 (=calc+136) = int×州数 (州→已有节点 idx, 建重复节点门); vec@96 (=calc+160) = int×区数 (init −1); ctor 1414DFE80 / 清 1414E1860 / find-or-create sub_1414E0460 | 升级定案 (原「语义推定」) |
+| +64 | 匿名结构 (120B 形状) | **省/州/区聚合工作集**: 相对 +64: vec@0 = int×省数 (省→216B 记录 idx, init −1); vec@24 = **216B 聚合记录表** (USAggregatedProvinceSupplyData 同型: +0 word 省 id / +8 Σ(asked−received) / +16 同州链 next / +24 每消费者 24B 向量 **{8B ref id@+0, 节点条指针@+8 (232B 网络节点, 消费点解引用取 +40/+64/+152), 台账键 dword@+16}** — 原记「{16B ref id, dword tag}」系形状误读 / +48 16B 列表 {节点idx,国idx,权重} / +152 节点值); vec@48 int 数组; vec@72 (=calc+136) = int×州数 (州→已有节点 idx, 建重复节点门); vec@96 (=calc+160) = int×区数 (init −1); ctor 1414DFE80 / 清 1414E1860 / find-or-create sub_1414E0460 | 升级定案 (原「语义推定」) |
 | +184 | 匿名结构 (232B 形状) 向量 | **供应节点表**: +0 dword 节点 idx / +4 word 省 id / +8 dword type (0=州陆地 / 1=空补 / 2=建 (SupplyLevel 门) / 3=跨国非本地链接 / 3·5=海补) / +12 旗 byte / +56 `_TotalSupply` / +64 `_RemainingSupply` / +128 属主 tag / +152 节点值 / **+184 内嵌 Form P (48B 条订阅者挂接列表, count@+196; 阶段 10 pass1 sub_14122B300 写条+16 = 订阅者指针; 未命中 push {tag@0, 16B 零@+8, {0,100000}@+24, 0@+40})** / **+208 内嵌 Form P (40B 使用记录, count@+220)**; 建 type0 sub_1412229D0 / type1 sub_141222570 / type2 sub_141220690·141220E00 / type3 EA10 | 定案 (type 枚举本轮闭合; +184 订阅者列表新补) |
 | +192 | uint32 | vec184 cap | 定案 |
 | +196 | uint32 | vec184 count = **节点数** (EA10 读作新节点 idx) | 定案 |
@@ -352,7 +352,7 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 | +328 | uint32 向量 | **供应首都迁移候选省 id 列表** (剪枝 css+352 早退表) | 高置信 |
 | +340 | uint32 | vec328 count | 定案 |
 | +352 | u32 (qword 写) | **火车满足率** = min(100000, 100000×(100000×+384)÷(100000×+320)); 总量 0 或 ≤ MIN_TRAIN_REQUIREMENT → 100000; 唯一写者 sub_14122B820; **面值公式不消费它** (消费者在火车分配侧) | 定案 (原「效率/比例因子」落位) |
-| +360 | uint32 向量 | 火车按变体分配结果 int×N (N = css+300 数) | 定案 |
+| +360 | uint32 向量 | 火车按变体分配结果 int×N (容量口径 N = css+300 数; **搜索上界实为 \*(calc+384) 值** — sub_141226B10 二分直证, css+300 仅线性兜底界) | 定案 |
 | +384 | uint32 | **火车分配量累计** (consumer+760 因子进入每变体结果) | 定案 |
 | +388 | uint32 | **卡车分配量累计** (写 = 阶段 10 pass2 sub_14121C700 尾段) | 定案 |
 | +392 | uint32 向量 | 卡车按候选省分配结果 int×N (写 = sub_14121C700 尾段, 按 css+340 变体数扩容) | 定案 |
@@ -380,3 +380,13 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 | +728 | 匿名结构 (8B 形状) 向量 | (省 id, 节点 idx) 有序对表 — FindNodeIndex (sub_141229210) case4 目标; 变体读者 sub_141223990 / sub_1414E2AF0; **写者负定案 (恒空, case4 恒 −1)** | 读侧定案 / 写者定案 (负向) |
 | +752 | 匿名结构 (8B 形状) 向量 | (省 id, 节点 idx) 有序对表 — FindNodeIndex case5 目标; 变体读者 sub_14120F110/141210470/1412220B0/1414E2AF0; **写者负定案 (恒空, case5 恒 −1)** | 读侧定案 / 写者定案 (负向) |
 | +776 | 匿名结构 (16B 形状) 向量 | **消费者注册清单** {tag u32@0, CSupplyConsumer\*@8} (lam3 重建 → 注册阶段排水 = **sub_141229D70**: 逐 16B 条按 tag 定国调 sub_14121B650 注册); sizeof = 800 由本容器闭合 | 定案 |
+
+**country_supply.cpp 簇对账增补 (34 函数全读, 断言归属 34/34 直证)**: 本簇 = UpdateSupply 12 阶段的每国计算 worker 全集, 三层流水 (节点构建 → Dijkstra 五联传播 → 结算回填) 与 §4.21.1a-4 定案维持。**新定案**:
+
+- **lam4 执行体闭环 (补书 lam4 行「链 = —」空缺)**: 链 = sub_141224340 {sub_14121DF40(calc+64 清); **sub_14121BB70**}; 调用者两个 = tbb 任务注册体 sub_140ED10F0 (calc = sys+288 data + 800×idx / css = sys+264 data + 8×idx) + tbb 启动包装 sub_140EBDFB0 (与七 worker「各恰 2 调用者」同构)。本体 = 按国 owned state id 列 (120B 国家缓存条) 逐州扫 supply_cache_states 40B 条内嵌 **PerCountryIndex 24B 条向量 {tag, ?, 省 id, qword}**, 匹配国 tag → calc+64 工作集 find-or-create + **calc+512 24B 条追加** ({state id, pad, 省 id, qword}); 未命中断言 "PerCountryIndex >= 0" :3138。
+- **节点构建主编排 sub_141230E50 固定序七调用** (type1 空补 222570 → 泛洪编排 223990/2220B0/2231D0/220690/220E00 → **新收尾叶 sub_14122AB60** 语义待裁) + 尾扫 css+168 懒清 (跳过空桶; used==0 桶逐 32B 清 dist 并 --count / flow_cache count = 0 / 运行时向量 count = 0)。
+- **lam7 七步链与代码 7 调用恰合** (门 = country+1156 > 0): css+504 收集表清空 → 每国→省条目收集表重置 → 护航订户重建 (sub_141021F90, convoys.cpp:29 宿主) → **css+376 州属主查证 sub_141220400** → css+168 流缓存重建 → 新叶 sub_141231060 (待裁) → 首都门。
+- **首都枢纽 (定案)**: sub_14121EF20 = 首都省指针写者 (calc+416 ← 单例 vt 查 CProvince) + **控制权门**: 省空 ∨ prov+392 controller ≠ 国 tag → 断言 "_pCapital->GetController() != CountryTag" :2844 后**整国本轮供应计算跳过** (首都失守 = 整国供给冻结的引擎级机制); 过门 → 清 css+168 全桶 used 字节 → type0 节点建。
+- **容量三分支选择器 sub_141228D50 细化**: 分支序 = 省缓存条 +18 capital word 非零 → CAPITAL 三 define / +20 supply_node_level 非零 → NODE / 否则 NAVAL_BASE (+21 naval_base_level 也零时先发 "no node available" :3180 — **断言不短路仍落 NAVAL_BASE 值**)。
+- **发放叶两条**: 节点→消费者累计比例瀑布 sub_14121A790 (倒序迭代; share = 1e5×(累计avail × _TotalSupply/1e5)/Σavail, to_give = min(avail, 增量); **avail ≤ 0 条迭代中压实删除**); 本地供应发放叶 sub_141215BC0 (find-or-insert → received_local +104 += avail + +31 清零 → 省 _TotalNeed 扣减)。
+- 消费面互证: s4_22 kind17 与 s4_18 补给率均不在簇内 (簇内无战斗写点/零调用), 供给值经 232B 条 +56/+64 被战斗域消费, 无交集。

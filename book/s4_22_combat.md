@@ -139,7 +139,7 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
-| +16 | fixed×1e-5 | **岸轰总值** (每小时 [22] 重算写入 = Σ舰攻击/参战数×cap; 勘误: 原记 collateral 因子 — collateral 因子另在 modifier 652) | >0 |
+| +16 | fixed×1e-5 | **岸轰总值** (每小时 [22] 重算写入 = Σ舰攻击/参战数×cap) | >0 |
 | +24 | CCombat* | **宿主战斗回指** (ctor a2) | 不序列化 |
 | +32 | CUnit* | unit 容器数据指针 — {d, c} 8B 指针, id 对内联@elem+24 {type, id} | 恒写 |
 | +33..+43 | — | = unit 容器尾 {cap@+40}  |  |
@@ -867,7 +867,7 @@ CCombatManager (§4.22.1 gs+608) 每小时逐战斗调虚表槽[15] = 战斗步�
 | [14] | **结束标记** (byte+82=1, 通知两侧) / 领袖 XP (损失比×0.5) | 双用途: 步进域 [14]=标记, 基类槽[15] 四连内 [14]=XP |
 | [15] | **每小时战斗步进主入口** | 全链 = 战术重掷核 (12h) → 时长计数 → 参战国 tag 遍历 → 基类四连, 详 §4.22.9a |
 | [16] | 结束复核 bool(self, idx, count) | 基类 purecall |
-| [19] | **伤害执行步** (**0x1412B82E0**; 勘误: 原记 sub_1412B3300 系其单次齐射伤害应用内层件, 3 调用点) | 目标分配 (ENGAGEMENT_WIDTH_PER_WIDTH 预算 + DAMAGE_SPLIT_ON_FIRST_TARGET 聚焦钳 0.9 + 打弱评分) → 闪避 → STR/ORG 骰 → 穿甲偏转 → TakeDamage; 空军支援波次 (2×4h 冷却) + 侧翼检测 (≥3 省 → cb+219) + cb+220 敌空军旗; 尾推 progress |
+| [19] | **伤害执行步** (**0x1412B82E0**) | 目标分配 (ENGAGEMENT_WIDTH_PER_WIDTH 预算 + DAMAGE_SPLIT_ON_FIRST_TARGET 聚焦钳 0.9 + 打弱评分) → 闪避 → STR/ORG 骰 → 穿甲偏转 → TakeDamage; 空军支援波次 (2×4h 冷却) + 侧翼检测 (≥3 省 → cb+219) + cb+220 敌空军旗; 尾推 progress |
 | [22] | **修饰符全量重算** (stacking/over-width/补给/夜战/挖掩/岸轰/空优/情报/包围, 34 distinct define) | 每小时步进第 1 步 |
 | [23] | **战斗结束钩子** (结束通知 sub_1413E2CF0 内调) | 基类/CLandCombat = CFG 空桩; **仅 CNavalCombat 覆写 = sub_1415C4C90 海战结果生成** (§4.22.6 聚合链) |
 | [29] ⚠ combatant 层 | **当前主将 getter** (两行属 CCombatant 主表 34 槽, 非 CCombat 26 槽/CLandCombat 27 槽) | 基类 = 返回 0 桩; 海军覆写 sub_14161E5C0 = admiral 数组取军衔最大 |
@@ -876,8 +876,8 @@ CCombatManager (§4.22.1 gs+608) 每小时逐战斗调虚表槽[15] = 战斗步�
 **CArmy::TakeDamage = 0x140C8F510**: 实扣 +1056 strength / +1064 organisation
 (mod 660/661/662; war support 扣减)。伤害流水: 目标分配
 (DAMAGE_SPLIT_ON_FIRST_TARGET + 「打弱」评分 = 硬攻×硬度×1.2 + 软攻×(1−硬度)×1.0
-(权重 define; 目标穿甲>攻方装甲时评分 ×0.5 降权); 低 org 优先) →
-闪避 (sub_140BF9A70: **90/60 = 闪避率, 命中 10%/40%** — 原「60% 命中」极性写反, 数字同;
+(权重 define; **目标装甲 > 攻方穿甲时评分 ×0.5 降权**); 低 org 优先) →
+闪避 (sub_140BF9A70: **90/60 = 闪避率, 命中 10%/40%**;
 真值由调用方钉死 `if(判定) 掷伤害骰`) → STR 骰 1+rand(2) / ORG 骰
 1+rand(4) (装甲优势 2/6) → ×0.06/×0.053 × 穿甲偏转 (阈值表
 PIERCING_THRESHOLDS{1,0.75,0.5,0} 出索引 → 乘数表 **PIERCING_THRESHOLD_DAMAGE_VALUES
@@ -891,7 +891,15 @@ PIERCING_THRESHOLDS{1,0.75,0.5,0} 出索引 → 乘数表 **PIERCING_THRESHOLD_D
 **组织度分工**: 战时扣减唯一入口 = TakeDamage(+1064); 恢复
 (RELIABILITY_ORG_REGAIN, sub_140C82C10) 与移动耗减在师域小时更新。
 
-**伤害流水增补 (定案)**: STR/ORG 伤害修正真源 = LAND_COMBAT_STR/ORG_DAMAGE_MODIFIER 0.060/0.053; **穿甲双比值分工** (方向相反): 目标穿甲/射手装甲 → 骰面档 (装甲优势扩骰 STR 2/ORG 6); 射手穿甲/目标装甲 → 伤害乘数档 {1, 0.8, 0.65, 0.5} (穿甲不足减伤)。闪避 = **unit+596 闪避配额计数器** (防御覆盖序号 vs 计数比较切换 90/60 档并 ++; 输入 = eff_def×(防 stat/10)/1e5)。新定案字段: CLandCombat c+64 战宽门 / c+152 边界战旗 (3 消费点) / CCombatant cb+220 敌空军旗 (陆海同槽) / CArmy 槽 46 = GetCombatWidth (Σ subunit def+88×营数) / 槽 39 = org 比 / 槽 34 = 强度比; 战术六值 c+168/+176 = combat_tactics.txt attacker/defender **伤害权** (加进骰基数: 强度比 + 该值); 战宽 getter = CLandCombat 槽 26 (0x1412ADE10, 地形×战术宽度+方向附加); 增援链 = 权重² 随机 + 接受率门 + 超宽踢尾 (COMBAT_OVER_WIDTH_PENALTY −1/% 钳 −0.33); 附带建筑损伤 sub_1412ABD80 (要塞 FORT 0.005/命中率 5% + 基建 0.0022, 暴击支 CRITICAL_BOMBARDMENT_DAMAGE 弹窗 ×40 巨伤 0.25%); debug 门 "Debug.OldCombat" byte_14332F64F / byte_143389FD4 控制台全跳伤害步。
+**伤害流水增补 (定案)**: STR/ORG 伤害修正真源 = LAND_COMBAT_STR/ORG_DAMAGE_MODIFIER 0.060/0.053; **穿甲双比值分工** (方向相反): 目标穿甲/射手装甲 → 骰面档 (装甲优势扩骰 STR 2/ORG 6); 射手穿甲/目标装甲 → 伤害乘数档 {1, 0.8, 0.65, 0.5} (穿甲不足减伤); **stats+664 = 装甲 (stat 63) / +672 = 穿甲 (stat 64) 定案** (乘数档守卫除数 = 目标装甲, 与 §4.18.10 情报估计互证)。闪避 = **unit+596 闪避配额计数器** (防御覆盖序号 vs 计数比较切换 90/60 档并 ++; 输入 = eff_def×(防 stat/10)/1e5)。新定案字段: CLandCombat c+64 战宽门 / c+152 边界战旗 (3 消费点) / CCombatant cb+220 敌空军旗 (陆海同槽) / CArmy 槽 46 = GetCombatWidth (Σ subunit def+88×营数) / 槽 39 = org 比 / 槽 34 = 强度比; 战术六值 c+168/+176 = combat_tactics.txt attacker/defender **伤害权** (加进骰基数: 强度比 + 该值); 战宽 getter = CLandCombat 槽 26 (0x1412ADE10, 地形×战术宽度+方向附加); 增援链 = 权重² 随机 + 接受率门 + 超宽踢尾 (COMBAT_OVER_WIDTH_PENALTY −1/% 钳 −0.33); 附带建筑损伤 sub_1412ABD80 (要塞 FORT 0.005/命中率 5% + 基建 0.0022 — ⚠ 两数值↔define 名对应待裁: LAND_COMBAT_COLLATERAL_FORT_FACTOR 驱动同省建筑条支 / LAND_COMBAT_COLLATERAL_INFRA_FACTOR 驱动州内省支, 数值缺省未对表; 暴击支 CRITICAL_BOMBARDMENT_DAMAGE 弹窗 ×40 巨伤 0.25%); debug 门 "Debug.OldCombat" byte_14332F64F / byte_143389FD4 控制台全跳伤害步。
+
+**combatland.cpp 簇 (8 函数全读) 增补 (定案)**: **三联机制闭环** — **cb+8 = u64 每小时激活修正位图** (kind idx 0..29, 置位原语 sub_1413E1190) → 伤害步首调 sub_140CDA7E0 逐位折入 observer **lb+624 modifier_hours** 后复位 (combatlog.cpp:789 断言 !consolidated); CUnit+368 队列 + cb+8 位图 + modifier_hours 三账并行。
+- **kind 索引表 0..29 全落** (值式要点): 0 指挥官技能/特质 (sub_1412B6C00 营权重×特质聚合, 州归属条件件 mods 175-180) / 2 包围 (ENCIRCLED_PENALTY−mod265, 守方∧州+210&1) / 3 经验 / 4 计划 (攻) / 5 stacking (COMBAT_STACKING_ 三 define, 交战省去重广度) / 6 超宽 / 7 挖掩 (守, ×边界战 dig_in_factor cb+1376) / 8 两栖登陆罚 (攻, 随进度衰减) / 9 要塞防御 (守∧Σ要塞>0, ×terrain_factor cb+1384) / 11 岸轰 (min(cb+16, SHORE_BOMBARDMENT_CAP); **cb+16 写式 = Σ炮击单位值/(100×其参战炮击数)×(1+同省海战 mod358)**) / 12 空优→轰 / 13 多线战斗 / 14 敌空优 / 15 空支 (AIR_SUPPORT_BASE×空支比) / 16 空降罚 / 17 补给缺乏 (缺额×COMBAT_SUPPLY_LACK_ 四 define) / 18 陆军情报 / 19 高层六源混流 (mods 427-430/574-579/346/553/348, 业务归并名待裁) / 20 州 tag 条件 (mod347) / 21 边界战 modifier (cb+1272) / 22 GIE 特质组 / 23 将军地形特质标记 (仅置位图不推队列) / 24 将领特质聚合 (州+1968 州单位表 64B/条, 特质旗位→mod id 映射表) / 27 每师 vt[23]×terrain_factor / 28 天气 (mods 173/174/477) / 29 夜战 (昼光>0.8 才罚); kind 1/10/25/26+ 写点在簇外。
+- **cb 新字段/写点**: +376 (实扣 STR 累加) / +384 (实扣 ORG 累加, 齐射命中后 +=, 业务名推定); +219 侧翼写点 = 去重省数 ≥ FLANKED_PROVINCES_COUNT; +220 = 敌 cb'+332≠0; +304 战术写点 = 加权抽中 → 库条, 落空 → CNullCombatTactic 兜底 + "Couldnt select a tactic in phase" (:3827); +344 = 师均×1e5 (Σ师 stats+544); 边界战三槽 **+1272/+1376/+1384 vt[22] 运行时消费首次实证** (两类侧对象共用 vt[22])。
+- **两栖入侵基值**: accC/accD = lerp(AMPHIBIOUS_INVADE_{ATTACK,DEFEND}_LOW[+mod27]→HIGH, 进度 v), v = 修正和 + 1e5×移动进度/路径总长, clamp[0,1e5]; 消耗 = accA×accC / accB×accD。
+- **战术权重三偏好 define 实名** (§4.22.12 增补): 国家偏好 = cc+5584 战术实例 (tactic+372 权重修正 id) ×(1+COUNTRY_PREFERRED_TACTIC_WEIGHT_FACTOR) / 军长 = 将+4272 vt[10] ×(1+ARMY_GENERAL_…) / 军群长 = 军+440→军群将+4272 ×(1+FIELD_MARSHAL_…); 五门含国家解锁表 + tactic+224 条件触发器 (失败发 TACTIC_CONDITIONS_NOT_MET 中止)。
+- **空支波次 define 实名**: 再武装窗 = 条+40 + 2×HOURS_DELAY_AFTER_EACH_COMBAT (书「2×4h 冷却」define 直证); 空支底数分母 = max(10, 1e5×LAND_AIR_COMBAT_MAX_PLANES_PER_ENEMY_WIDTH×own_width/1e5)。
+- 簇清册: vt[22] 修饰符全量重算 sub_1412AF7C0 (2249B, 无参战者断言 :1067) / 战术权重 sub_1412BC860 / vt[19] 伤害步 sub_1412B82E0 / 指挥官聚合 sub_1412B6C00 (断言 :2141 营权重与特质表等长) / 齐射内层 sub_1412B3300 / 附带建筑 sub_1412ABD80 (暴击 RNG :3908, 常规 :3974, 州内要塞 :3996) / 战术掷骰 sub_1412BB330 / 增援拣选 sub_1412B3BB0 (权重² + rand%100<权重/1000)。
 
 #### 4.22.9a CCombatManager 小时更新链 (五阶段)
 

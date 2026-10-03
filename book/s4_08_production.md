@@ -78,7 +78,7 @@ sizeof 8; 州 owner/controller 变更监听接口基, CState SetOwner 逐元 vt[
 | [10] | sub_14193A460 日重算 (fe 扩容/钳制 → 成本重算 → 资源再预留 → 速度) | — |
 | [11] | GetMaxAllowedFactories | 同 (建筑线请求钳界) |
 | [14] | GetProductionRate (out 参) | — |
-| [17] | SetAmount | — |
+| [17] | SetAmount | 建线/改装链在直调 SetAmount (sub_141939BB0) 后另调本槽 (refit 侧传 1) — 军线族真实契约待裁 |
 | [19] | — (building: OnUnitCompleted — 单位建成回调) | — |
 | [24] | — | 日推进: building=sub_140F6A710 / railway=sub_141A02660 / repair=sub_140F70100 |
 | [25] | — | 删除谓词: building=sub_140F6E160 (无 relative ∧ 完建) / railway=sub_141A03A60 / repair=sub_140F70BE0 |
@@ -739,6 +739,8 @@ byte_14332F628 (toggle) = 产出速率 max 模式; byte_14332F62B = naval/铁炮
 #### 4.8.15 消费者与工厂分配拓扑 (事件驱动)
 
 池重算增补 (定案): 步 3 = sub_140E649A0 附属上缴吸收 (276/277 受入) + 递归池重算; 步 8 = 遍 B 外赠 (+960/+944、+768/+752); **军用 +68 (ps+756) = FROM_SUBJECTS 军侧桶** (书未记)。SetLineFactories sub_140E611B0 完好/受损拆分公式定案 (军源 ps+720 / 船源 ps+816; line+24 = 完好 / line+28 = 受损)。AddProductionLine sub_140E603B0 (初始 produced = cost×pct/1e5; refit amount 顶格 1e7; naval 上限 sub_140BD9EA0); AddRefitLine sub_140E60830; 新建筑线默认置顶 sub_140E710F0 (flag 0→顶 / 2→首个非修理线下方)。变体生命周期: 注册链五件套 (sub_140E5D570 → ps+160/184/208/市场 0x140E714F0/upgrades 0x140E5E410) + 过时标记 sub_140E5E510 (清扫域 = ps+184; 装载期 gs+2613 跳过; 尾联 license 重算); MIO/policy 装载器 0x140E59400/0x140E59720 (模板库 rh 56B 条 + FNV 73244475 查找; policy 实例 104B ctor 0x140A493E0; "MIO %s is in save but not in DB" :115 跳块不终止); available/foreign_lease 共用 reader 0x140E6B0A0 (按变体名==本国 tag 路由)。军线族虚槽: [28]=GetInputResources 0x141938370 / **[29]=SetEquipmentVariant 0x141939C20**; CMilitaryProductionLine 覆写 [30]=0x140F6E840/[32]=0x140F6EA30; building [18]=0x140F69E50 (行量 += num); priority+68 = 容器数组下标不变量 (六函数互证)。
+
+**production.cpp 簇全量对账增补 (46 函数, 39 已收互证零冲突)**: 建线三入口 (sub_140E603B0 军/海/铁炮分发 / sub_140E60830 refit / sub_140E5F8C0 建筑) 全部收束到「push 容器 → RegisterId [9] → 槽10 重算通知 → MIO 挂接 → SetFactories → 尾部两遍制分配 sub_140E6D4B0」骨架; 效果侧 (§4.32) / AI Mass 队列 (§4.34) / 命令侧 (§4.33) 落同一组原语, 无 AI 专属生产路径。**建线门全景** (603B0): :1115 可建旗 + **:1120 同串第二站** (国别可建 sub_140C93D60) + 类型分发四谓词 (军 248B / 海军族 280B / 铁路炮 272B 需 feature 35 — 败为 **terminate() 级硬错** :1153, 非断言 / 皆败 :1158 "Equipment has no matching line." 释放版返 0); **refit 五门** (60830 :1191/:1196/:1202/:1208 + 第 5 门船已在改装 = 静默返 0)。**魔数定案**: SetLineFactories 受损拆分 ÷1e5 = 128 位魔数 0x29F16B11C6D1E109 = **ceil(2^78/100000) 精确** (sar 14 + 符号修正, MSVC 规范除法序列非近似)。断言站点新补 11 个 (:1120/:1153/:1158/:1191/:1196/:1202/:1208/:1810/:3342/:3375/:3901-3909; 门两族 = byte_1435E1B51 直用 与 byte_1435E1B52+一次性缓存 byte_14333D1xx)。**新收三谓词** (Archetype 断言族): 原型在产 sub_140E64D80 (:3901; 扫 ps+184, 变体类型回指基原型 +1240 比对) / 最佳可产非空 sub_140E64E50 (= sub_140E684F0 非零, :3909) / 原型组全部可产 sub_140E64EE0 (ALL-of 短路遍列表容器 {d@+8, c@+20}, 宿主待裁)。**体级补充**: 全清军线 sub_140E6E220 (逐线 MIO 卸载 sub_141939EE0 + vt[0](this,1) 删除析构 + 计数清零; **清空域 = 仅 ps+88 军线**, 后段 = 6D4B0 内联副本跑空容器 — :2599 断言站两函数共享同枚缓存 = 编译期内联直证) / 收集排序 sub_140E68170 (:3342; flag 排除谓词 sub_140C97C90 待裁) / 按类型查 sub_140E68040 (**断言反向**: :3375 要求非原型, a3 = 扫描方向 0 首→尾/1 尾→首) / **池重算双包装** (sub_140E6D9A0 :2309 命令/装载侧 vs sub_140E6D830 :2322 修正重算侧 [mdef 104 dirty 传播], 三断言齐发含 gamestate.h:1125/1126, 本体同尾调 sub_140E6C810)。
 
 **池重算 sub_140E6C810** (production.cpp:2263) — 消费品比例与工厂分配不在
 daily serial 本体, 由事件驱动 (ps+1192 脏旗 / calc_modifier 传播 / hourly 脏分支):

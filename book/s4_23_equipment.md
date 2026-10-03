@@ -12,7 +12,7 @@
 | 定义名 | token@对象+8 | |
 | 字段族 | archetype / id / version / is_frame / creator / origin | 存档 equipments 块 |
 
-**CEquipmentVariant** (元素, sizeof 0x4B8 = 1208; CReferenceObject 头 {vt@0, type u32@+8 = 70, id u32@+12}; writer 0X140BE3C80; ctor 0X140BD06B0 / dtor 0X140BD1680 / loader 0X140BDE4C0; 方法群 0X140BCC520–0x140BD5000, equipmentvariant.cpp):
+**CEquipmentVariant** (元素, sizeof 0x4B8 = 1208; CReferenceObject 头 {vt@0, type u32@+8 = 70, id u32@+12}; writer 0X140BE3C80; ctor 0X140BD06B0 / dtor 0X140BD1680 / loader 0X140BDE4C0; 方法群 0X140BCD0D0–0x140BD8400, equipmentvariant.cpp):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
@@ -35,7 +35,7 @@
 | +256 | int64[78] | stats 数组 (+256..+872), 变体生效属性缓存; 下标 = EEquipmentStats 枚举 id (67 = weight@+792, 68 = thrust@+800, loc EQUIPMENT_DESIGNER_WEIGHT_EXCEEDS_THRUST 锚定); 不序列化 |
 | +880 | 匿名结构 (40B 形状) 向量 24B | per-mission stats {d@880, cap@888, c@892, alloc@896} — 40B 条 {mission_bits u32@0, pairs_data@16 → 16B {stat_enum u32, value i64}, pairs_count@28}; 不序列化 |
 | +904 | 匿名结构 (16B 形状) 向量 24B | stat 修正源缓存 {d@904, cap@912, c@916, alloc@920} — 16B 条 {key qword@0, flags u32@+8}; 形态定案 / 语义推定; 不序列化 |
-| +928 | CEquipmentModule* 向量 24B | 每槽已装模块指针缓存 (8B 条, 索引 = 模块槽号, 值 = 解析后 CEquipmentModule*; type+192 槽 def 数组经 sub_140BCD0D0 解析); 不序列化 |
+| +928 | i64 数组 (定长 = CTerrainDatabase 单例 +76 = 地形数) | **per-地形聚合数组**: 每地形 = type+192 基值[m] + ideas (var+208 → idea+88 数组) + named_bonus (var+232 句柄 → ps+376 对象 +96 数组) + Σ upgrade def (def+200 数组) ×level/1e5 (sub_140BE0260 纯数值累加, 无指针写); 业务名推定 per-地形 attrition (与 CEquipmentBonus attrition 通道同构), 引擎消费点未定位待裁; 不序列化 |
 | +952 | 匿名结构 (4B 形状) 向量 24B | 未名 {d@952, cap@960, c@964, alloc@968} — **元素 4B (u32 数组)**: dtor sub_14011DF40 / copy-assign memcpy(..., 4*count) (sub_141892C50); 形态定案 / 全 dump 无具名消费者; 元素 4B 复证 (copy `0x140156970` `lea r8,[r14*4]`); 不序列化 |
 | +976 | 内嵌块 | variant bonus 块: {value qword@976 ← type+944; 修正对容器@+984 (16B 条) ← type+64 拷贝}; upgrades/modules 叠加后尾以 named_equipment_bonus #77 百分比缩放 (语义推定: 造价/加成块); 形态定案 / 语义推定; 不序列化 |
 | +1008 | CEquipmentType* | _pType (ctor `*(a1+1008) = a2`; archetype token@+24 = *(*(a1+1008)+8); ~15 函数 "Expected/Invalid equipment type" 断言; _Category 由它算); 不序列化 |
@@ -213,7 +213,7 @@ contract_definition (def = c+24; 表行序 = 偏移升序, 括注 = 合同绝对
 | +136 (+160) | uint64 | 补贴 CIC 总额 (ctor = 0 从 draft 拷贝; 不序列化; IsComplete ⇔ factory_cic_progress == +208−+200) |
 | +144 (+168) | 匿名结构 (48B 形状) 向量 | contract_draft.subsidies {data@144, count@156}, stride 48 (元素布局见下表) |
 | +168 (+192) | uint32 | contract_draft.speed |
-| +176 (+200) | std::map | price_levels → levels: head@176, size@184; **节点 key = idpair 8B {type@+28, id@+32}** = **CEquipmentVariant 自身 CReferenceObject idpair** (L2 门 = 全局 CIdentifier 注册表可解析 sub_14221F310, 不可解析静默丢弃; 读侧 sub_1419D3FD0 / 写侧 sub_1419D40F0 双证), value 枚举 u32@+36 (**档因子映射 sub_1413B8CC0 链: 0→LOW_PRICE_LEVEL_FACTOR 0.75 (qword_143331BA8) / 1→标准 100000 / 2→HIGH_PRICE_LEVEL_FACTOR 1.25 (qword_143331CE8) / ≥3→断言后落标准**); 中序 = 写序 (map 形态定案: 收集 sub_1419D3E00 → 写 sub_140DF4390) |
+| +176 (+200) | std::map | price_levels → levels: head@176, size@184; **节点 key = idpair 8B {type@+28, id@+32}** = **CEquipmentVariant 自身 CReferenceObject idpair** (L2 门 = 全局 CIdentifier 注册表可解析 sub_14221F310, 不可解析静默丢弃; 读侧 sub_1419D3FD0 / 写侧 sub_1419D40F0 双证), value 枚举 u32@+36 (**档因子映射 sub_1413B8CC0 链: 0→LOW_PRICE_LEVEL_FACTOR 0.75 (qword_143331BA8) / 1→标准 100000 / 2→HIGH_PRICE_LEVEL_FACTOR 1.25 (qword_143331CE8) / ≥3→断言后落标准**); 中序 = 写序 (map 形态定案: 收集 sub_1419D3E00 → 写 sub_140DF4390); **文本装载链 = sub_140DF2C40 (std_map 装载器) → sub_140DF2600 pair** (first = CID 列表跳读 0x14221F970, second = 内联 token 开关 low/normal/high→0/1/2, 断言 international_market_serializer.cpp:378; 已存键覆写 value — §4.00 std_pair_parser 段) |
 | +192 (+216) | uint8 | 懒计算完成标志 (ctor = 0) |
 | +200 (+224) | int64×1e-5 | 补贴抵扣 = min(+136, 总价×F/(F+1e5)) (F = PURCHASE_CONTRACT_SUBSIDY_BONUS_SPEED_FACTOR; 不序列化) |
 | +208 (+232) | int64×1e-5 | 合同总 CIC 价 (Σ variant IC×价格档因子×IC_TO_CIC_FACTOR, market_core.cpp 断言锚; 不序列化) |
@@ -403,9 +403,42 @@ sub_14152E6F0 原位清空重 parse (保位覆盖)。
 > +1048 = Σ模块+112 (设计相等性指纹, sub_140BDC710 三键);
 > +1056 = type 基数 + Σ模块+704 (manpower)。
 > 模块 +112 = 母链继承深度 (设计相等性指纹); +116 = allow_mission_type 位掩码。
-> sub_140BCD0D0 = variant 侧聚合器 (origin 组织/ideas/named_equipment_bonus,
-> equipmentvariant.cpp:1779), 非模块查找器; variant+928 填充循环在 sub_140BE0260;
+> sub_140BCD0D0 = **GetStatByTerrainIndex(var, {i64\* cell}, terrain_idx)** — +928 单格聚合器,
+> 三通道 ideas/named_bonus/upgrades (upgrades = def+200 per-地形数组 ×level/1e5;
+> equipmentvariant.cpp:1779); variant+928 填充循环在 sub_140BE0260;
 > 78 槽统计合算内步 = sub_140BDFA70 (§4.23.5 头注)。
+
+**equipmentvariant.cpp 簇方法群清册 (全簇定案)**: RefreshStats 总入口 = **sub_140BE0260**:
+空军门 (全局掩码 sub_140F87A10 & +1032 & 0x1F0037FC00) → per-mission stats (+880, 40B/条)
+重建分支, 非空军走 78 槽合算 sub_140BDFA70; 共同尾 = +928 地形聚合 + +1044 (Σ升级条+8) +
++1056 (type 基+Σ模块+704) + +1048 (Σ模块+112) + +1040 missions 重算 (return sub_140BDF420)。
+
+| 函数 | 身份 |
+|---|---|
+| 0x140BCD2F0 / 0x140BCD610 / 0x140BCD930 | GetStat 三兄弟 (token 键 / 逐字节同体双编译 / 对象键变体): ideas → named_bonus → design_team_bonus (+1168) → upgrades multiply_stats×level → modules multiply_stats 五通道累加到出参 |
+| 0x140BD2D70 | AddIdea: +208 线性查重 push (dupe 断言 equipmentvariant.h:623) |
+| 0x140BD4BC0 | 设计器造价: (XP 分量 0x140BD60C0 + 第二分量 0x140BD5980) × (100000+token 471..474+archetype token)/1e5 (下限 100000) × (1e5−archetype 折扣)/1e5; token 471-474 实名待裁 |
+| 0x140BD5440 | IsProducedOrPossessed 五源: creator 国 ps+512 库存池 / 国+56 池 / ps+88 产线 (同 type+version+creator+origin) / gs+1008 表 sub_140E85750 / 海军型逐国师池 +840 |
+| 0x140BD70E0 | ChangeEquipmentType 核心: 栈构新型默认 upgrades; 旧 upgrades 新型无效且 !keep → 败; 逐 type+112 槽 (80B, 名@+8) 二分旧模块保留/取默认, 必需槽无解败; 成 → 盖 +1008/+112/+136/+160/+184/+1032 + 重算 |
+| 0x140BDD610 | SetModule(slot_token, module): type+112 槽合法性断言 :2462; +184 二分 (升序) 插入/替换/删, 计数 +196 |
+| 0x140BDD7F0 | ValidateAirWeightThrust: 总 thrust (stat 68) < weight (67) → "EQUIPMENT_DESIGNER_WEIGHT_EXCEEDS_THRUST"; 逐 +880 per-mission 条 (mission_bits ∧ +1040) 违者累计位集出 "…_FOR_MISSIONS" 文案 |
+| 0x140BD7EF0 | CreateLicensedVariant(base, receiver): **creator = 接收方 / origin = base creator / version 原样继承** (与 §4.8 lp 条目互证); 拷 name/sprite/override_model + ideas 迁移 |
+| 0x140BD81D0 | CreateUpgradedVariant: **version = 根 (沿 +1016 链按 +32 符号定向) +1053 max_version + 1**; 独占调用方 = **0x1401D2EE0 变体创建分发原语**; 0x1401D2D80 = 许可创建原语 (7EF0 独占) |
+| 0x140BDF680 | ReloadIdeasFromCountry: creator/origin 国 ps+352 表过滤 (sub_140631E70) 入 +208 去重 |
+| 0x140BDF910 / 0x140BE1960 | RecalculateCategory / SetCategory(显式): +1032 = sub_140BD3A50(类别源, type, +184) 合成; 类别源 = **sub_140C95710 = type+1344 非零 ?: 基原型 (+1240) →+1344** |
+| 0x140BE1550 | ApplyIdeasAndBonuses: 清 +220/+244, ideas 与句柄分别过滤入 (+2676/:2692/:2697 断言族) |
+| 0x140BE2270 | SetAllUpgrades: sub_140F8E250(+104, creator, list); 调用方含 AI 旧版升级路 0x1410BAE50 |
+| 0x140BE2980 / 0x140BE2A70 | MarkCanUpgradeType 单/批: newType archetype 数组 (+1168/+1180) 含旧型 ∨ 同基原型 (+1240) ∧ 谓词 → +1063 = 1 |
+| 0x140BE2EE0 | ApplyPendingModuleReplacements: creator 国 ps+280 清单找可替换件 → SetModule 换装; 失败拼 "Failed to replace slotted ancestor module" 错误串; 调用方 = builder 域 + 生产域 (设计创建后) |
+| 0x140BE0D10 | 装备→变体解析 (add_equipment_production/create_production_license 共用): CLicensedProductionStatus 查 (sub_14143A8B0/14143AA40) → 未命中建 licensed/normal (sub_140E67D10/140E67ED0) → 二次查 foreign_lease (sub_140E68A60/E68C10) |
+
+**CEquipmentType 新字段 (定案)**: **+192 = per-地形基值 qword 数组** (+928 聚合的 type 基值侧);
+**+1344 = 类别位掩码** (基原型回退, 见上表)。**CEquipmentVariantBuilder 重解** (equipmentvariantbuilder.cpp
+5 函数): **+4976 = 内嵌工作 CEquipmentVariant 本体 (1208B)**, +6184 = 第二工作块 (Reset 双块同构
+sub_140BD77D0) — 故 +5984/+5992/+6008 = 工作变体 +1008/+1016/+1032; +8600/+8604/+8712 旗 /
++5004 国 tag; Reset 0x141491500 (子单位 def 查败断言 :83) / 设计 spec 装配 0x1414919B0 /
+重算+造价 0x141492AC0 (造价 = 0x140BD4BC0, cost≤0 取父断言 :974) / 造价包装 0x14148F460 /
+NeedsTypeChange 0x1414910E0。
 
 #### 4.23.3a 市场撮合与执行链
 
@@ -536,18 +569,71 @@ ANTI_MONOPOLY_TRADE_FACTOR (全局 0x3335038), 否则 0; mdef274/mdef376 双向�
 
 | 偏移 | 类型 | 语义 |
 |---|---|---|
-| +32 | uint8 | 静默覆盖旗 (写者未定位) |
-| +40 | 名→下标链哈希 | 64B 节点 |
-| +104 | 快照源 | db+296 依赖序数组的数据源 |
-| +128 | archetype 数组 | 原型槽表 (重名覆盖时腾空) |
+| +32 | uint8 | 静默覆盖旗 (读者已定位 = 分发器重名覆盖分支**告警门**: ≤0 告警 :379 / >0 静默, 只门告警不门覆盖; 写者仍未定位) |
+| +40 | 名→下标链哈希 | 64B 节点 (桶数组@+64, 桶掩码@+88, 计数@+56, 16B 桶 {head, tail}; 节点+56 = type 下标) |
+| +104 | 主 type 指针数组 | vector 形 {data@+104, cap@+112, count@+116, 分配器@+120 (vt+8 alloc/vt+16 free)}, 增长 1.5x — db+296 依赖序数组的数据源 (快照 = 该数组整块 memcpy) |
+| +128 | archetype 数组 | 原型槽表 {data@+128, count@+140} (重名覆盖时腾空写 0x1409F8570 Null 原型单例) |
 | +152 | lookup 40B 线性表 | 升级 |
 | +200 | lookup 40B 线性表 | 模块 |
 | +224 | 匿名结构 (NNB 形状) 向量 | §4.23.7a 所指 |
-| +272 | archetype 子类型区间 | duplicate 克隆范围 |
-| +296 | 依赖序快照数组 | 排序后 (stable_sort 八件展开: 非 duplicate 在前 + type+1248 父链浅者在前 + 64 步环断言 "Cyclic equipment hierarchy" :1042) |
-| +320 | 模块类别注册表 | slot 允许类别 = 脚本 ∪ 模块声明 ∩ 实用类别 (0x1409F4940 回注 type 槽数组) |
-| +408 | 载具编成权重表 | duplicate_archetype 应用写入 |
-| +432 | limit 触发器向量 | (见 +688 勘误) |
-| +456 | search_filters 注册表 | CEquipmentFilter 40B |
+| +272 | archetype 子类型区间 | duplicate 克隆范围 — 16B/条 {begin, end} 指针对, 计数@+284, 按原型 +1336 下标索引 |
+| +296 | 依赖序快照数组 | {data@296, cap@304, count@308, alloc@312}; 生产点 = sub_1409F6DA0 尾 (db+104 数组整块 memcpy 后排序); 排序后 (stable_sort 八件展开: 非 duplicate 在前 + type+1248 父链浅者在前 + 64 步环断言 "Cyclic equipment hierarchy" :1042) |
+| +320 | 模块类别注册表 | slot 允许类别 = 脚本 ∪ 模块声明 ∩ 实用类别 (0x1409F4940 两阶段回注: 模块侧收集校验 → type 侧逐槽脚本声明 ∪ 注册表 ∩ 模块类别, 经 sub_140C935D0 回注; 48B/条, id@+40, 计数 db+332; 报错 :706/:767) |
+| +408 | 载具编成权重表 | duplicate_archetype 应用写入 — 16B/条 {CEquipmentType* @0, weight i64@8} + {cap@416, count@420, alloc@424}; 值源 = def+40 pdxoptional (isSet@+48); 同型指针已存在覆盖权重, 否则 append |
+| +432 | limit 触发器向量 | (见 +688 勘误); 写者定位 = 分发器 equipment_modules 块级 limit(10762): CAndTrigger(88B) shared_ptr → sub_1401AFF20 推入 |
+| +456 | search_filters 注册表 | 平铺分簇哈希 {桶数组@+8, 计数@+16, 掩码@+20, 深度上限@+24, 载荷因子@+28}; 节点 56B = 16B 哈希头 {链字节@+4, key@+8} + 内嵌 CEquipmentFilter 40B 本体 @+16 (书 40B 布局为对象本体相对, 成立) |
 
-装载链 (0x1409F1FC0 per-file 分发器): 五顶层块 equipments(12122)/upgrades(12393)/equipment_modules(15210)/search_filters(19320)/duplicate_archetypes(19503) 逐条建 def、查重覆盖 ("Overriding old")、注册; 重名覆盖处理器 sub_1409F6990 (注销旧 def 全部别名 type+1280、腾空 archetype 槽 db+128、0x140C93F80 原位 reset); db PostLoad (vt 槽[2] 0x1409F7DF0) = 逐 type 0x140C949D0 + convoy 唯一性 (:597/:605) + 逐模块 0x14152E8C0 + 类别聚合。**CEquipmentType 增补** (sizeof **1480B**; ctor 0x140C924B0): +1048 db 下标 / +1248 派生母指针 (self 哨兵; **+1240 初值 = 0x1409F8570 Null 原型单例**) / +1280 别名向量 / +1312 内嵌开地址表 / +1336 archetype 下标 / +1366 IsDuplicate。
+装载链 (0x1409F1FC0 per-file 分发器): 五顶层块 equipments(12122)/upgrades(12393)/equipment_modules(15210)/search_filters(19320)/duplicate_archetypes(19503) 逐条建 def、查重覆盖 ("Overriding old")、注册; 重名覆盖处理器 sub_1409F6990 (逐别名 token → 名哈希 → db+40 哈希开链摘除、腾空 archetype 槽 db+128、0x140C93F80 原位 reset; **a3 出参 = {腾出槽下标 u32, 有效旗 u8}** 由 sub_1409F9D80 消费实现腾槽复用); equipments 新建 = malloc(1480)+ctor → push db+104 → 哈希节点 → vt[3] Load → sub_1409F9D80 → archetype 且 interface category == 357(none) 警告; 尾部三连加载日志 :564/:570/:576 + gameitemdatabasehelper.h Null Object 断言族 (Array == Lookup+1)。db PostLoad (vt 槽[2] 0x1409F7DF0) = 逐 type 0x140C949D0 + convoy 唯一性 (:597/:605; 检查 = 类别位掩码聚合 getter sub_140C95730 的 **bit0 = convoy 旗**, type+1365 区分 archetype/type 两类) + 逐模块 0x14152E8C0 + +320 回注 0x1409F4940 + **尾部另有 sub_1409F45B0 / sub_1409F5780 两步 (语义未决)**。**CEquipmentType 增补** (sizeof **1480B**; ctor 0x140C924B0 双点复现): +1048 db 下标 / **+112 槽数组 80B/条 {+8 槽 token, +24 脚本类别向量, +36 计数}, +124 槽计数** / +992 interface category token (取值链 sub_140C95830: !=357 或自身 archetype 或无基原型则返回, 否则沿 +1240 递归) / **+1344/+1352 类别位掩码低/高半字** / +1248 派生母指针 (self 哨兵; **+1240 初值 = 0x1409F8570 Null 原型单例**) / +1280 别名向量 / +1312 内嵌开地址表 / +1336 archetype 下标 / **+1365 IsArchetype 旗** / +1366 IsDuplicate。**bonus 枚举双向校验报错桩** = sub_1409FB5B0 (:649 枚举有而类型/类别无) / sub_1409FB650 (:656 反向), 触发站未决 (语料零调用点)。
+
+#### 4.23.10 equipmentdesignerview.cpp 簇对账增补 (CEquipmentDesignerView; 13 函数闭环)
+
+视图类实名 **CEquipmentDesignerView** (调用方 lambda MSVC 符号直证), 同符号带出六实名:
+EDesignerType (enum, view+14224 u32 存) / EUpdateMask / CInGameIdler /
+CInGameInterfaceHandler / CInGameUpdateableInterface / NIndustrialOrganisation::
+COrganisation (设计团队经 lambda 传入)。三型同类 (tank/plane/country 共用一类, §4.23.1
+GUI 消费表 handler+600/608/616 三实例互证)。**EDesignerType → 窗名映射** (sub_14177FAA0
+整读定案): 0 = countryequipmentdesignerview / 1 = tank_designer_view / 2 =
+plane_designer_view; **海军设计无独立窗** (ship_designer_model_preview 等元素与 tank/plane
+预览同在 Create 挂接, 走 country 窗)。
+
+簇成员全清册 (13 函定案): Create 总装配 sub_141788E70 (2497 行; 窗创建 + 84 个窗元素名全录
++ 子元素句柄缓存 view+58216 起 + observer glue 绑定 ×10 [sub_14172D090, glue 槽 view+62272
+步进 8]; 断言 "Window already created" = 幂等门) / 升级·差异列表重建 sub_141786710 (1021;
+original parent 对比驱动, 10 型小对象 80B/56B 逐项插列表; 父变体 +32 计数 > 0 → 直发
+order_invalid_effect) / 3D 模型选择器 populate sub_141791F50 (551; 默认项 {排序键 −100000,
+"USE_DEFAULT_MODEL", GFX_default}; 变体查 SubUnitDefinition 失败断言 :4154) / 历史设计应用
+sub_141784A80 (489; historical_design_button 链; a2 = 历史设计行条目 +440 名/+576 图标,
+非 CEquipmentVariant; 失败断言 "Auto design failed…" :3115) / parent 逐字段比对置脏 ×2
+(sub_14178DC00 / sub_141791920 镜像组) / 当前设计 sub-unit 查找+图标刷新 sub_1417929E0
+(:3620) / 角色切换回调 sub_14177BD10 / 模块装卸回调 sub_141775290 / 模块等级步进
+sub_141793B30 (拒 → manager vt+160 查最大允许等级 clamp 重试) / role_icon 回退重导出
+sub_141790050 / 编辑模式开关 sub_1417846D0 (`*(WORD*)(view+31849) = 1` 双旗齐写 =
+状态机 1 态原子置位) / 编辑母本跳转 sub_1417864B0。
+
+**CEquipmentVariantBuilder 方法族** (断言串 "VariantBuilder refused…" 旁证实名; 实例 =
+view 内嵌 +14192 / +14232 / +23032): GetOriginalParent sub_141490A10 / HasOriginalParent
+sub_141490F10 / 应用历史设计 sub_1414900E0 / 设角色 sub_141491E10 / 装模块 sub_1414921F0 /
+卸模块 sub_14148F6D0 / 设模块等级 sub_1414926E0 / SetTarget sub_141788C50 (双 builder,
+书 +1016 行互证) / 载出 sub_1414919B0。全部出口走 builder 方法族 + 按名字符串触发钩,
+无 CCommand 族直接构造。
+
+**按名触发统一通道** (定案): manager 侧 vt+248 = 按名触发 (effect 名与 sfx 名
+`sfx_ui_sd_module_default` 同接口 — 一接口两资源型; 其余槽 vt+96 窗查找/vt+136 取容器/
+vt+160 取对象计数); 元素侧 vt+688(名, 参数数组, 0) = 按名效果钩。效果名全录:
+EQUIPMENT_DESIGNER_SAVE (带 {XPICON, 2, XP值} / {XPCOST, 9, XP成本} 双参数, XP 值 =
+sub_140F8A450(view+20240), 保存门 XP < 10000) / DIVISION_DESIGNER_RENAME /
+EQUIPMENT_DESIGNER_UPDATE_COSMETIC (书 +85 行互证) / order_invalid_effect。
+
+**镜像组 ×2 布局** (定案, 设计对比/升级脏查数据基座): 双 builder 各持一套 parent 字段镜像
+— view+31872/+31912 division_names_group (↔parent+1152) / +31880/+31920 与
++70600/+70640 override_model (↔+1072) / +31928/+31968 role_icon_index (↔+1068) /
++31933/+31973 auto_upgraded (↔+1061) / +31934/+31974 show_position (↔+36) — 与书
+CEquipmentVariant 布局字段级互证。view+20240 = 类别位掩码镜像 (_Category 类); 三组掩码
+0x1F0037FC00 (= 书 +1032 EQUIPMENT_AIR 族互证) / 0x408000003C / 0x80004003C1 (陆/海推定,
+待裁)。状态分类器 sub_14177E000 (同单元非簇): 3 = 无母本可比 / 1 = 编辑模式 (+31849) /
+2 = 同日期母本对照 / 0 默认。
+
+未决: view+20216 深链 +1256→+1240→+8 中间两跳实名; sub_14177E000 状态 2 的
+sub_140BB52F0 可比性语义; 10 型列表项逐型实名; EDesignerType 非法值 Create 行为;
+两组类别位段命名。断言闩 byte_14338B085-094 地址连续 = 编译单元顺序布局 (与空军剧场批
+同型规律)。

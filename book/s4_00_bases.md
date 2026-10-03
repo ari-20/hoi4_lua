@@ -511,7 +511,7 @@ setter 全家对照 (定案, 函数→槽一一对应; 消费端构造临时 sco
 
 配套: getter sub_140535C20 (+80 解析) / sub_140535DB0 (+88 解析); **第二构造变体 sub_140534FE0** (默认根 + 全槽哨兵 + **+16 写 RNG 种子初值魔数 1587985054**, 高置信 — 与 CVariables ctor 种子#2 常量同源); 全载荷拷贝 = sub_140535FD0 (copy ctor 内核)。scope RNG 进入/退出配对体 = sub_140542150 (TLS random_seed 重哈希, §4.32.16a)。
 
-- 附注 (定案, idpair 解析原语口径): **sub_14221F310(idpair) 返回 = 对象 raw+16** (本体 = 返回值−16; 全零/未注册 → 0; 三档表选择子 type>4712 / 100..4712 / <100)。三处独立互证: 判零式 `v==16` (armiesview tooltip) / 返回+456..+460 落 CUnit+472/+476 owner 域 (raw 坐标) / GetTheatre 调用前显式−16。**sub_1402AA280 = raw 直取糖** (函数体即前者−16)。凡消费解析返回值再按偏移读, 偏移一律属 raw 坐标系 — 勿按返回值基址记偏移。
+- 附注 (定案, idpair 解析原语口径): **sub_14221F310(idpair) 返回 = 该类 CReferenceObject 子对象地址** (全零/未注册 → 0; 三档表选择子 type>4712 / 100..4712 / <100)。子对象偏移随类而异: CUnit 系 = raw+16 (本体 = 返回值−16; 三处独立互证: 判零式 `v==16` / 返回+456..+460 落 CUnit+472/+476 owner 域 / GetTheatre 调用前显式−16); CAirGroup 等以 CReferenceObject 为首基的类 = raw+0 (解析值直接作 this, airtheatre.cpp 三消费点直证; CAirWing 注册值 = 本体 real+16 同 CUnit 系, −16 回本体三消费点一致)。**sub_1402AA280 = raw 直取糖** (函数体即 CUnit 系−16)。凡消费解析返回值再按偏移读, 偏移一律属 raw 坐标系, 帧原点按类先定 — 勿按返回值基址记偏移。
 
 #### 4.00.5 基类普查与工具法
 
@@ -660,10 +660,10 @@ CCommand 实例布局 (基类 0x28B):
 |---|---|---|---|---|
 | +8 | — | 重播门旗 | — | drain 侧重播防重入 |
 | +12 | — | 发送方 player id | — | ctor 写 −1; post 写入 |
-| +16 | uint32 | 暂存A | — | getter [18] / setter [19] |
-| +20 | uint16 | 暂存B | — | getter [20] / setter [21] |
+| +16 | uint32 | 定向命令目标 machine id | — | getter [18] / setter [19]; 槽[5] 定向发送按它查连接 (§4.36.3) |
+| +20 | uint16 | 定向命令目标辅 id | — | getter [20] / setter [21] |
 | +22 | — | tick 戳 | — | 0xFFFF=未投递; post 写入 |
-| +24..+32 | — | SInternalData 持久项 | — | 单字段跨字节范围 |
+| +24..+32 | — | SInternalData 持久项 | — | 单字段跨字节范围; +28 = **identity 序号** (u32, 主机侧分配, 命令日志顺序键, "ID:" 日志值) / +32 = **origin 序号** (u32, 发送侧分配, 客户端回声 RTT 配对键, 主机转发时保留) (§4.36.3) |
 | +40 起 | — | 派生载荷 | — | 各具体命令类布局另查 |
 
 > reader 双通道: token 65 = 文本逐 token 调 [23]; token 499 = 二进制整块。
@@ -676,17 +676,32 @@ CCommand 实例布局 (基类 0x28B):
 | 地址 | 语义 | 证据 |
 |---|---|---|
 | 0x1424C0AA0(parser, obj) | 嵌套 CPersistent 对象读: 调 obj→vt[3] (Load wrapper) | 单行虚调, 槽 24/8=3 |
-| 0x1424C08D0(parser, out) | 读 u32 (缓存未命中走 0x1424C1E40 兜底) | 体 = 0x1424C5220 探测 |
+| 0x1424C08D0(parser, out) | 读 u32 (缓存未命中走 0x1424C1E40 兜底; "%i" 探测 0x1424C5220) | 体 = 0x1424C5220 探测 |
+| 0x1424C0840(parser, out) | 读 int ("%d" 探测 0x1424C5130, 与 08D0 同构) | 体探测直证 |
 | 0x1424C0900(parser, out) | 读 u32 变体 (0x1424C5250 探测) | 体同构 |
-| 0x1424C0A70(parser, out) | 读 i64 (0x1424C53E0) | 体同构 |
+| 0x1424C0A70(parser, out) | **读 fixed×1e-5 (i64 承载)** — 内层 0x1424C53E0 = "%lli" 整部 + '.' 后至多 5 位小数 ("00000" pad) 定点十进制解析 (原「读 i64」与本表 :371 行 fixed×1e-5 归一) | 体直证 |
+| 0x1424C0BD0(parser, out) | 读 i64 — 内层 0x1424C55E0 = strtol(text,&end,10) (失败抛 "Malformed token") | 体直证 |
 | 0x1424C0C00(parser, out) | 读 u8/bool (0x1424C5640) | 体同构 |
 | 0x1424C0C30(parser, obj) | 读文本标量 → 40B 临时对象 (大小 u32@+12); 落 MSVC 串走 resize+data 对 | reader case 直证 |
 | 0x1424C0AB0(parser, &str, flag) | 读 MSVC 串 (失败回退 "Unreadable String") | 体含该串 |
-| 0x14221F970(parser, &id) | 读 CIdentifier/CID (8B idpair): 要求列表头 (type 3), 错误串 "Expected start of list reading CID" | 体直证 |
+| 0x14221F970(parser, &id) | **CID 列表跳读器**: 要求列表头 (type 3 '{'), 跳读至 '}'/EOF (11/225 数字型 "%u" 探测前进); **出参恒写 0** (单出口双清) — CID 语义仅存于错误串 "Expected start of list reading CID"; 值流是否经 parser ctx 提交未决 (price_levels 键 idpair 数据流矛盾待裁) | 体直证 (单出口) |
 | 0x140BB5560(parser, out) | tag 串解析→u32 (读 parser+200 当前串→0x140BB3EF0 查表) | 体直证 |
 | 0x1401F95D0(parser, c) | 读 u32 数组 (循环至哨兵 token 4/19; 元素 0x1424C08D0 push; 1.5 倍扩容) | 体直证 |
 | 0x1424C2060(parser) | 跳块/读弃助手 | 体直证 |
 | 0x1424BEC40 | 共享读弃空 reader (基座 [23] 默认) | 体 = 读弃 |
+
+**std_pair_parser.h 模板族 (20 件全量定性)**: `pair_parser<First,Second>` 模板 20 实例化 =
+pdx 容器解析族 (std_map/unordered_map/array parser) 的 **pair 值元素专用层** (文本 token 流域,
+与 defines 装载器族同形态学但域不同 — 不碰 lua/define 槽)。骨架: 门① type≠3 ('{') 抛
+"Expected start of list for pair of element" → 循环 {First@+0 / Second@槽 (+1/+4/+8/+32/+40
+由实例定) / ≥2 抛 "third element"} → n≠2 抛 "less than two" → 尾门 ctx+24 错误计数 →
+sub_1424C0060(ctx, "std_pair_parser.h", 71); **@变量解析内建于骨架**; 三个 throw 串全簇共享。
+消费域终端 8 个 (gamestate/itemdatabase/equipment find_and_replace/country_supply/eventscope/
+linechart/variablescripthelper/scopedptr), 24 调用点无未接件。**price_levels 文本装载链闭环
+(定案)**: sub_140DF2C40 (std_map 装载器, 节点 {key 8B@+28 双 u32 字典序, value@+36} 与 §4.23
+price_levels 布局精确吻合) → sub_140DF2600 pair (first = 0x14221F970 跳 CID 列表, second = 内联
+token 开关 low(19365)/normal(119)/high(19367)→0/1/2, default 报
+international_market_serializer.cpp:378) — 与 §4.23 档因子映射 0→LOW/1→标准/2→HIGH 全对上。
 
 **S\*Reader 解析描述子族 (机制定案, 全族 43 类批扫)**: 资源文件
 (gfx/sound/entity/weather/粒子/字体/posteffect) 的 `S*Reader` 命名类是**解析器
@@ -793,7 +808,7 @@ CSettings+896 内嵌 56B; SAudioContext/SSDLAudioContext = 音频后端运行时
 | CSystem | 0x142B3CE30 | 9 / 7 | CPdxSystem |
 | CPdxEvents | 0x142B3E948 | 26 / 9 | **CSdlEvents** (0x142B52948; [2] 0x142362CD0 do-PollEvent 循环抽干 / [3] 0x142362D10 注册 watch 回调对 / [4] 0x142362CF0 PushEvent 类型 256) |
 
-**网络服务器族**: **CServer** (抽象基, vt 0x142B52AC8 ≥30 槽, [5][6][7][30][35][36] 纯虚; [4] 0x142363E10 经 +72 连接对象转发发包) → 唯一 RTTI 实现 **CProxyServer** (0x142B53598, proxy_server.cpp; [6] Update 间隔 >1.0s 打 "Long update!"; [3] 清 +348/+392/+472 连接状态 (24B 条, count@+480)); CDummyServer (0x142B52C28 31 槽, 单机空实现)。**CSession** (会话信息可观察包装, vt 0x142B3E9D8; +8/+16 观察者双链表首尾 / +24 count / +28 挂起旗 / +40 全局计数门 dword_143453198; ctor 重载对 = sub_14224E3E0/sub_14224E870 (9 参全量重载; 函数体首段逐行同构 + CSession::vftable 直证, 创建会话对象本身)。**CPlayerLobby** (大厅玩家面板, vt 0x142A0EC58; RTTI lambda 证 KickPlayer/BanPlayer; [22] 0x14186F3A0 = server_id_button → SERVER_ID_COPY)。**CChat** (游戏内聊天控制器, vt 0x1429ADE98, 基 CReloadableInterface ← CReloadDispatcher ← HotkeyListener; slash 命令表 `/slap /whisper /invite /newchannel /ban /kick /roll /save` 硬编码; 创建点 sub_1419A9090) → **CGameChat** (0x142A24E48, chat_window/chat_inbox_window/chat_item)。**CFriendsHandler** (平台好友表处理器, vt 0x1429D5378 19 槽, 懒建单例存储 qword_143339C70, getter sub_140A31BB0) → **CFriendsHandlerSteam** (680B Steam 后端: ctor 内建基后原位换表; 内嵌 "CAREER_PROFILE_YOU" 自好友件 CFriendsHandlerFriendSteam + 5 个排行榜/文件共享 CCallResult)。**ChatSettingsProviderImpl** (vt 0x142969468; 6 薄 getter 全委托 CSettings 单例 (0x1401FA5E0) +904/+912 域 (§4.28.11))。**HotkeyManager** (vt 0x142B3EE88, 基 CPdxEventHandler; +14 子对象串表 / +80 注册表 count@+92; 单例旗 byte_1434531B1)。
+**网络服务器族**: **CServer** (抽象基, vt 0x142B52AC8 31 槽, [5][6] 纯虚; [4] 0x142363E10 经 +72 连接对象转发发包; [29] 0x142363AF0 SendGameState) → 三实现封闭集 **CDummyServer** (0x142B52C28, 248B, 单机本地环回非空桩——单机命令走完整序列化回路) / **CNetworkServer** (0x142B53020, 296B, 联机主机) / **CProxyServer** (0x142B53598, 552B, 客户端, proxy_server.cpp); **CSteamNetContext** (连接/传输上下文, CServer+72, Steam P2P)。全族字段表与 31 槽虚表归 **§4.36.2**。**CSession** (会话信息可观察包装, vt 0x142B3E9D8; +8/+16 观察者双链表首尾 / +24 count / +28 挂起旗 / +40 全局计数门 dword_143453198; ctor 重载对 = sub_14224E3E0/sub_14224E870 (9 参全量重载; 函数体首段逐行同构 + CSession::vftable 直证, 创建会话对象本身)。**CPlayerLobby** (大厅玩家面板, vt 0x142A0EC58; RTTI lambda 证 KickPlayer/BanPlayer; [22] 0x14186F3A0 = server_id_button → SERVER_ID_COPY)。**CChat** (游戏内聊天控制器, vt 0x1429ADE98, 基 CReloadableInterface ← CReloadDispatcher ← HotkeyListener; slash 命令表 `/slap /whisper /invite /newchannel /ban /kick /roll /save` 硬编码; 创建点 sub_1419A9090) → **CGameChat** (0x142A24E48, chat_window/chat_inbox_window/chat_item)。**CFriendsHandler** (平台好友表处理器, vt 0x1429D5378 19 槽, 懒建单例存储 qword_143339C70, getter sub_140A31BB0) → **CFriendsHandlerSteam** (680B Steam 后端: ctor 内建基后原位换表; 内嵌 "CAREER_PROFILE_YOU" 自好友件 CFriendsHandlerFriendSteam + 5 个排行榜/文件共享 CCallResult)。**ChatSettingsProviderImpl** (vt 0x142969468; 6 薄 getter 全委托 CSettings 单例 (0x1401FA5E0) +904/+912 域 (§4.28.11))。**HotkeyManager** (vt 0x142B3EE88, 基 CPdxEventHandler; +14 子对象串表 / +80 注册表 count@+92; 单例旗 byte_1434531B1)。
 
 **CApplication 应用族** (只载不存 + 单实例锁): **CApplication** (vt 0x142B3C288 + 次表@+8; 基 CPersistent + CApplicationObservable 多基) — 主表 [1] **无 Save wrapper (CFG 空桩)**、[2] writer 空桩、[3] Load wrapper + [4] reader 0x14222E600 (只读 name(27)→+72 窗类名) = **应用单例只载不存** (serfam 指纹需 [1]+[3] 故未命中); ctor 0x14222B420 内 `FindWindowExA(0,0,+72,0)` 单实例互斥 ("An instance of this game is already running on this computer! Exiting."), **实例指针落 qword_143452450 (主单例定案**: ctor 写入, 18 引用全在 CApplication 编译单元 0x14222B5F0..0x14222EDD0)。**CApplicationObservable** (应用事件广播壳, vt 0x142B3C260 主表 4 槽; CApplication/CGameApplication/CMapApplication 公共多基 mdisp 8)。**CMapApplication** (0x142AE6950, 主进程应用; ctor sub_1420A13C0 由 WinMain 体 sub_14209E610 内建) / **CGameApplication** (**1.19.3 主表 0x1427168E0 19 槽 — 0x1427182E0 = 1.19.2 旧址, 1.19.3 同址为字符串数据, 全表与热重载家族见 §4.28.21a**; 对象 1272B = malloc(0x4F8); **ctor = sub_140147EE0** (main.cpp:2136 直调, 对象 1272B; 预建 CSession "localhost" + ~28 对热重载注册 + 加载条组 65 回调, 详 §4.28.21); sub_140151EC0 = **析构函数** (恢复双 vtable 后 j_free 释放 20+ 成员对象); sub_14015FB30 = 标量删除析构包装。**CGameGraphics** (0x14294A338, 基 CGraphics + CLostDeviceInterface 虚继承@+206320; [1] SaveW/[3] LoadW 持久化图形设置到用户设置**非存档**; CGraphics 布局持双 2D 树 +496/+864 等槽 — 详 §4.35.3)。
 
@@ -983,6 +998,8 @@ cc+1156>0 有拥有州 / case2 = 全部国家)。**经典 every_owned_state / an
 行数多实例 = **逐字节同码克隆** (仅自递归名/断言守卫字节异, 链接器未做 ICF)。断言通道 =
 sub_1424C8080 (条件断言, debug 总门 byte_1435E1B52 + 每站点 once 门) / 错误收集
 sub_1424C8950 + 格式化 sub_1424C8E60 + 算子名 sub_1424BC260。
+
+**输入侧全套 (script_collection_input_impl.h 簇 43 函数, 定案)**: 描述符 16B `{int type, ptr payload}`; **type 表**: 1 = `game=all_countries` (国家表过滤 cc+1156>0) / 2 = `all_possible_countries` / 3 = 全州 (键 token 19578 离线名与语义不符, 待裁) / 4 = `scope` → **13 源联合分发** / 5 = `collection=` (运行期 :228 禁嵌套) / 6 = `constant=`。**分派器三形态**: 62 行 ×8 / 234 行 ×4 (无计数模式) / 454 行 ×1 (ForEach+GetSize 双模式, 判别 = a3 容器空非空 — 上段「双模式合一」的机制补全); **381 行组 ×15** = 同模板逐域实例 (各带 13 个域独占叶函数), 与 15 个消费者 1:1 闭合 (非 ICF 克隆)。**type-6 常量对象**: +24 值类型字节 {3=单 tag, 4=单 state, 8=tag 数组{begin, count@+12}, 9=state 数组}; 双实现 = 157 组回调版 (:296) / 216-213 组链游走版 (:328)。`constant:` 前缀解析 = sub_140A1C4A0 (前缀剥离 + `.` 分段 token 化 + CConstantDatabase 查表与 §4.19.5 布局互证 + sub_140AA5BE0 链解析); 比例计数 sub_14051C360 = 阈值脚本值 ÷100000 (定点 1.0); 世界根分发器每域两变体 (0x1404 域 0x1404BA300 书已收 + 0x1404BA860; 0x14140 域 0x14040EA50 + 0x14140EFB0)。
 
 #### 4.00.13 CSelectable (选择态基类; 16B 无基类多态根 — rtti bases 空, 不继承 CPersistent)
 

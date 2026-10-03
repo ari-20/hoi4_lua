@@ -387,8 +387,8 @@ captured + capture_date → codename → mission → state; 发射序 = 表序; 
 | +4016 | tag_id (uint32) | captured 俘虏国 tag — 与 +4024 capture_date 各自独立 (capture_date = 24B, 见 +4024 行) | 门 (i32)>0; writer 0X140BB59C0 → 提取形 `captured="TAG"`; tok 15636 (0x3D14) |
 | +4017..+4023 | — | pad (capture_date vt1@+4024 前置对齐) |  |
 | +4024 | CGameDate 24B {vt1@+4024, hours@+4032, vt2@+4040} | capture_date (ctor = 43808760 "1.1.1.1" 哨兵; 24B 占 +4024..+4047, 布局闭合) | 门 = captured>0 (**同一 if 块配对** — 无 captured 则 date 也不写); ADEC0 (ptr=vt2=+4040, hours=ptr−8=+4032); 提取形 `capture_date="Y.M.D.H"`; tok 19297 (0x4B61) |
-| +4048 | CNameGroupMember 内嵌 (184B, 4048..4231; vt 0x142935b18) | codename | **恒写** (ADEC0 委托 → writer 0X1409C9AC0); tok 15639 (0x3D17); 子表见下 |
-| +4049..+4223 | — | = CNameGroupMember 内嵌本体 (+4048..+4231; 内部布局见 §4.3 名字组表) |  |
+| +4048 | CNameGroupMember 内嵌 (176B = 0xB0, 4048..4223; vt 0x142935b18) | codename | **恒写** (ADEC0 委托 → writer 0X1409C9AC0); tok 15639 (0x3D17); 子表见下 |
+| +4049..+4223 | — | = CNameGroupMember 内嵌本体 (内部布局见 §4.3 名字组表) |  |
 | +4224 | uint32 枚举 | state — 枚举表见下 | 块键 439 (0x1B7), 0X1401F4F00 写枚举原子; 非法值 → assert("Invalid enum value", unitleader.cpp) 后仍写 14668 |
 | +4232 | COperativeMission 内嵌 (32B, 4232..4263 = sizeof 闭合) | mission | 门 0X140FC4080 = (type@+4256 ≠ 0) (⚠ 0X141FC3D70 非函数, 勿用); ADEC0 委托 (writer 0X140FC6240); 子表见下 |
 
@@ -433,7 +433,7 @@ leader 绝对, 括号内 = 对象内):
 | +4216 (+168) | uint8 | codename.is_name_ordered | **==0 才写恒值 no** (≠0 不写; 与 deployment division_name 同函数同规则 — CNameGroupMember 两处复用); tok 14562 (0x38E2) |
 | +4217 (+169) | uint8 | **override_set_programmatically** | 门 ≠0; tok 14646 |
 
-注: sizeof(CNameGroupMember) = 0xB8 (4048+184 = 4232 = mission 起点, 布局闭合)。
+注: sizeof(CNameGroupMember) = 0xB0 (176B; 4048+176 = 4224 = state 起点 — 勘误: 原 0xB8/184B 系把 +4224..+4231 对齐垫计入; 三重直证 = post_mortem 容器步长 176 / 登记入口栈上 _BYTE[176] / ctor 与拷贝算子最后触点 +169 对齐闭合)。
 
 **mission (COperativeMission@+4232) 分发表** (writer 0X140FC6240: assert
 impl 非空 → switch(type) 取 mission 名 token → ADEC0(token, impl) 委托

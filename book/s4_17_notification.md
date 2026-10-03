@@ -325,7 +325,7 @@ CAlertManager 布局 (偏移十进制):
 | 31 | alert_air_wings_unassigned | 0 | 内联: sub_140700520 + sub_1401E2A80(gs) + sub_140B02A30 |
 | 32 | alert_blocked_national_focus | 0 | 内联: sub_1406CF4C0(cc) +16/+24, 旗 +1466/+1465, vt+448 槽 +24 |
 | 33 | alert_naval_battle_results | 0 | sub_140B286C0(mgr, cc, 0) |
-| 34 | alert_is_observer | 0 | 内联: gs+1312 ≤ 0 → raise |
+| 34 | alert_is_observer | 0 | 内联: gs+1312 ≤ 0 → raise (gs+1312 = 观察者判据字段, 唯一连写者 = SetPlayerCountry 核 sub_1401EE7F0 写 0; 全链 §4.36.8) |
 | 35 | alert_can_play_observed | 0 | sub_140B1E420 |
 | 36 | alert_not_training_divisions | 0 | 内联: sub_140D11940(cc+3952 列表) 与 cc+440 数组 sub_140BA2440 |
 | 37 | alert_exiled_units | 0 | sub_140B20650 |

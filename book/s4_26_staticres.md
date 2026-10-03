@@ -276,6 +276,22 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 > 挂载槽存指针须先解引用。`idb_count` 对 rh/rh4/umap/chain4 形态按表头取真 count,
 > stdmap/vec3/slots/kind8 无单值 count 返 0 (按名 idb_find 取)。
 
+簇级增补 (gameitemdatabase.h 全量切片定案):
+
+- **断言行号 → 头文件方法布局** (源结构重建, 定案): 127 = Create (`!_pInstance && "Instance already created."`) / 134 = GetChecked / 142 = 内联 Get (`_pInstance && "Instance not created."`, 670 个消费函数 100% 内联此断言 = 全语料最大簇成因) / 149 = Get 独立实例 (182 个) / 160 = LoadDB-plain / 179 = InitFromDirectory / 198..231 = 文件向量装载两变体 / 281..336 = LoadFiles boot 驱动 / 349 = Reload (`"Cant reload when not loaded"`) / 759 = ReadContent 二阶段填充 (先登记名后逐名派发全量解析, `_AliveEntries.IsEmpty()` 断言)。
+- **Save writer 族 = 0 (负定案)**: 全簇无序列化写者 (静态库条目不入档三处互证); 逐键 reader 亦不在本簇。
+- **装载协议**: LoadDB-plain (56 实例) = +20 已载旗门 → 路径存 +8 → vt+16 清备 → vt+32 parse 主入口; **InitFromDirectory (25 实例, TReloadableGameItemDatabase\<T\>)** = 目录枚举 (元素 64B) → 逐文件 vt+48 解析 (书已收) → **计数 ≤0 时自注册 watcher 回调存 +40 (TRS 族热重载入路 = InitFromDirectory lambda 回调, 非 TRS 库走 watcher 总线头)**; lambda RTTI 名直证 14 TRS 库类名 (CCountryScorer/CCountryTagAlias/CEquipmentGroup/CIdeologyGroup/CMTTH/COperationPhases/COperationTokens/COperations/CScientistTrait/MIO 三库/NProject::CSpecialization/NRaids::CRaid)。
+- **⚠ 按名 RH 索引两族空槽判据分列**: 本簇 F13 FindOrInsert 形 (56 实例, 0x14012BC00 段聚集) 桶 stride 24 {hash@0, **探测步数@4**, token@8, 值@16}, **空槽判据 = 步数字节 0**; 而上表形态外族判据 = **hash 槽 == 0** — 两族勿混用 (wang 0x45D9F3B 双乘哈希同式互证; 表头 map@+56 {buckets, mask@+12}; 本族无可见 rehash 路径, 容量 ctor 期定, 待裁)。
+- **boot 链锚点**: sub_140180BC0 = boot 最上环 (唯一调用 InitGame sub_1401835A0) → LOADING_DATABASES 总控 sub_14018BB20 (80 个 loader 实例); **0x14332ED50/ED58 = 后台长任务 shared_ptr 句柄槽非库** (防按「master 内引用即库槽」误收); InitGame 内联创建 0x14332F260 (gs 单例) / 0x143330000/50 (effects/triggers 注册表) / 0x143339D28 (CMap 单例)。
+- **80 loader 目录映射要点**: `common/medals` 与 `common/unit_medals` 系两库; power_balance 装载目录名 = `common/bop`; 三名字库/gfx 三库分装; **scripted_guis 与 dynamic_modifiers 两库有 loader 未入书 103 key 表 (idb 扩容候选, 待裁)**。消费方普查 Top: equipment 49 / strategic_resource 39 / building 31 / sub_unit 30 / terrain 30 / technology 29 (消费函数数)。
+
+idb helper 子对象层 (gameitemdatabasehelper.h 簇全量切片定案):
+
+- **helper 子对象布局** = {data (元素指针数组)@0, cap i32@8, **count i32@12** (含 arr[0] Null), allocator 对象指针@16 (vt[+8] = alloc(bytes,align) / vt[+16] = free)} — **B 族 vector 就是 helper 子对象**, 嵌入偏移随库漂移 (40/48/52/64/72/76/80/88/96/104/112/120/136/160 等) = 上表「cnt 漂移」现象的模板层根源 (Clear 实例直证)。
+- **方法族五件**: G1 GetByIndex ×25 (`idx<1` 恒回退 arr[0] Null Object) / G2 GetByKeyInt ×25 (键偏移默认 +8, 变体 +44/+52/+60/+84/+116; **idea AddWithDupCheck = G2 复用作加载期查重**, "Duplicate idea." idea_database.cpp:311) / G3 GetByName ×24 (A 族 40B 名索引遍历 + hash 预过滤 + stricmp, 命中 = 表序+1) / G4 RH 查找 ×3 (56B entry {dist@4, 串@8, hash@40, idx@48}, 桶数 mask+1+extra; 反查形显式拒绝下标 0) / G5 Clear ×18 (deleting dtor 与 intrusive_ptr 两形态, count 复位 1)。簇内零互调, 实例被簇外 277 函数消费。
+- **assert 八行号语义**: 22/120/137 = Array 空检查三断言位 / 35 = Array==Lookup+1 同步校验 / 69/98 = RH 查得下标界检查 / 149/163 = 解析错误报告位 (非 assert)。
+- **加载器 35 实例公共骨架** (清表→逐文件 parse→Lookup 同步插): 覆盖 AI 系/bookmark/terrain/idea/career 系/unit_medal/opinion_modifier/strategic_resource/decision_category 等 (串锚定); category 分桶二次插入变体 (元素 +144 category id → db + 24×cat + {64,72,76,80} 每类一个 helper 子对象)。
+
 边界语义:
 
 | 项 | 结论 | 证据 |
@@ -341,7 +357,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 
 #### 4.26.5b define 装载器族与读者家族 (loader 侧定案)
 
-defines 全部 13 个头文件簇 3,823 个单键函数定性完毕 (ai/game/military/supply/intel/diplomacy/project/raid_defines/mapmode/industrial_organisation/faction/doctrines + defines.cpp 骨架另计 6 函数): **每函数 = 恰载 1 个 define 的装载器** (C++ 模板实例化), 非 getter、非业务函数 (多 define 组合/条件取值/误聚类均为 0, 负定案)。define 存储 = `.data/.bss` 散置独立全局 (RVA 0x330E18..0x33A9E0 + 日期槽 0x3089AD0/0x3089AF0), **无 CDefines 巨对象** — `this` 形参全程未用, 不存在 this+偏移访问器族。装载器骨架:
+defines 全部 13 个头文件簇 3,823 个单键函数定性完毕 (ai/game/military/supply/intel/diplomacy/project/raid_defines/mapmode/industrial_organisation/faction/doctrines + defines.cpp 骨架另计 6 函数): **每函数 = 恰载 1 个 define 的装载器** (C++ 模板实例化), 非 getter、非业务函数 (多 define 组合/条件取值/误聚类均为 0, 负定案)。define 存储 = `.data/.bss` 散置独立全局 (主区 **0x3330E10..0x3339AE0** (窗口 0x330E18..0x33A9E0 内 0 个 define 槽, 勿用); 全域极值 = 0x3089120 (MOD_STATISTICS_GROUP)..0x3339AE0; **0x308-0x309 离散区不止日期槽** — 含 19 个串/音效/图标/统计名等目标 + 0x3089AD0/AF0 两日期槽), **无 CDefines 巨对象** — `this` 形参全程未用, 不存在 this+偏移访问器族。defines_game 簇 (540 函数) 对账: 538/540 KEY↔槽双向零错配, 缺名仅 2 = NGame.START_DATE/END_DATE (§4.26.7 date 槽); 1 函数 = 1 源码行 = 1 define (源行 8..604, 可作 loader↔头文件对账锚); 特例 = GAME_SPEED_SECONDS 簇内唯一 vec\<f32\> define (5 元素双向钳) + 7 串槽 (MSVC string 本体) + 11 动态槽集中 0x1433386C0..B0; 补名 3 键 = NOperatives.INTEL_NETWORK_BASE_STRENGTH_TARGET_COUNTERINTELLIGENCE_FACTOR / NResistance.RESISTANCE_COOLDOWN_WHEN_DISABLED / max=0 组第三键 (均 max=0 直证)。装载器骨架:
 
 ```
 取命名空间表 → type==5 (LUA_TTABLE) 门      ← 取表 = pushstring("NS", sub_1421AC060)
@@ -384,7 +400,7 @@ else → 日志 "Error reading \"KEY\": no lua object named NS" (读者不调, �
 
 取整式汇编核验 (勿按伪码直抄): fx1e-5 (sub_142072500) = `comiss x,0 取符号 → mulss ×100000.0 (常量池 0x271FC68 实读) → ±0.5 (0x271FC54/0x2724298/0x27242B0) → cvttss2si`, 即 x≥0 取 `trunc(x·1e5+0.5)`、x<0 取 `trunc(x·1e5−0.5)` = **半值远离零** (0.35→35000 / −0.8→−80000; 非银行家舍入; vanilla 注释 0.9 ↔ MAX 常量 90000 闭环)。fx32k (sub_142072200) 同款 (×32768.0, 常量 0x27242A4; MAX_AIR_EXPERIENCE=500→16384000)。
 
-装载期钳位 (loader 尾一次性, 非每次读取): 13 簇合计 **832/3,823 函数带钳位** (ai/game 353 / military+supply+intel 321 / 其余 158; supply 簇高达 85.4%); 越界 → `Warning for define "NS.KEY": Value V is too (large|small); clamping to …` + 写回边界值 (i32 经 sub_14015AB70 / f32 经 sub_14015AF90 / fx1e-5 经 sub_1424ED3A0 格式化)。界限以**存储单位**表示: fx1e-5 槽 100000=1.0 / 1000=0.01 / 10000000=100.0; i32 槽字面; f32 槽**位型** 1065353216=0x3F800000=1.0f (比较与落值都是位型存取)。方向分布以仅下界为主, 仅上界为 0 — 上界总与下界成对。非常规界 (易错点, 全定案):
+装载期钳位 (loader 尾一次性, 非每次读取): 13 簇合计 **832/3,823 函数带钳位** (**ai 179 / game 175 含 veclen 1 例** — veclen 另计则 174+179=353 为原普查口径; military+supply+intel 321 / 其余 158; supply 簇高达 85.4%); 越界 → `Warning for define "NS.KEY": Value V is too (large|small); clamping to …` + 写回边界值 (i32 经 sub_14015AB70 / f32 经 sub_14015AF90 / fx1e-5 经 sub_1424ED3A0 格式化)。界限以**存储单位**表示: fx1e-5 槽 100000=1.0 / 1000=0.01 / 10000000=100.0; i32 槽字面; f32 槽**位型** 1065353216=0x3F800000=1.0f (比较与落值都是位型存取)。方向分布以仅下界为主 — **仅上界例外 2 例 (勘误: 原「仅上界为 0」不成立)**: NMilitary.DAMAGE_SPLIT_ON_FIRST_TARGET ≤0.9 (槽 qword_143332C50, 界走 f32 formatter 寄存器传参故脚本正则漏数) / COHESION_IMMOBILE_PLANNING_SPEED_MULTIPLIER ≤1.0 (qword_143333CC0)。非常规界 (易错点, 全定案):
 
 | define | 编码 | 界 | 备注 |
 |---|---|---|---|
@@ -392,8 +408,41 @@ else → 日志 "Error reading \"KEY\": no lua object named NS" (读者不调, �
 | NCountry.GIE_LIBERATED_NATION_DAILY_LEGITIMACY_CHANGE | fx1e-5 | [−100, +100] | 同上 |
 | NOperatives.INTEL_NETWORK_STRENGTH_DECAY_WHEN_ABOVE_TARGET 等 3 键 | fx1e-5 | max = 0 (衰减/冷却类必须 ≤0) | 全库仅有的 max-only 组 |
 | NAI.AIR_DESIGN_CUTOFF_AS_PERCENTAGE_OF_MAX / LAND_DESIGN_… | fx32k | [0, 0x8000] = [0%, 100%] | `cmp rax, 0x8000` 直证 |
+
+NIntel 簇细目 (defines_intel.h, 223 函数全量对账): 223/223 = 纯单键装载器 (NS 全 `NIntel`,
+错误串计数 = 簇计数互证), 全表 ↔ 00_defines.lua NIntel 块 223 键双向零差 / defines_map_1193.txt
+223/223 零错配; 槽 RVA 0x3330E18..0x33393A0 全落主区, **vector 尾块 0x33390A0..0x33393A0 =
+33 槽 ×24B 紧排零隙 (768B) 唯一成块段**, 标量区与其余簇交错混布; 读者直方图 = fx1e-5 标量
+184 / vector\<fx1e-5\> 33 / fx1e-5[4] 定长 5 (错误串 "expected an array of 4 intel values") /
+i32 1 (OLD_TECH_COUNT_NUM_DAYS = 180); 钳位 64/223 (61 仅下界 min=0 + 3 双侧 [0, 1.0] =
+RAID_MIN_INTEL_FOR_WARNING_ 三件, 本簇仅有的 max 钳)。⚠ 「1 函数 = 1 源行」口径细化:
+DYNAMIC_INTEL_SOURCE_ 六宏族 30 键共享 6 源行 (1 源行 ↔ ≤6 函数) 且簇内 RVA 序≠源行序 —
+源行对账锚仅适用无宏族簇。**define 槽默认值 = .bss 零初始化无编译期字面量** (槽区全在
+.data raw 覆盖 0x3085000..0x332EE00 之外; vector 33 槽动态 ctor/dtor 置零), vanilla 真值全部
+来自 defines.lua, 「默认值」仅缺键时可见。
+
+NDiplomacy 簇细目 (defines_diplomacy.h, 217 函数全量对账): 217/217 恰载 1 define (模式零违例);
+reader 六族 = fx1e-5 ×145 / i32 ×63 / fx2^15 ×3 / bool ×2 / vec ×3 / 串 ×1; 槽区主段
+0x3330E80..0x3338650 (216 件全落主区) + 1 离群串件 TENSION_TIME_SCALE_START_DATE 0x3089568
+(.data 有初值区, §4.26.5b 补名 7 键之一); 特型件 6 (bool 双槽相邻 0x143330F46/F47 / vec 三槽
+相邻各 24B / 串件 4 连 char\* 指空串初值, 容器语义待裁); 默认值同 NIntel 结论 = 二进制全零
+无启动期写初值, 真值唯一来源 = defines.lua NDiplomacy 块; s4_05/s4_10 互证零冲突
+(PEACE_SCORE 族 7 处 + NAVAL_BLOCKADE_BASE_COST 全符)。
+
+NRaids/NGraphics 簇细目 (raid_defines.h, 59 函数全量对账): 59/59 恰载 1 define 零违例;
+**命名空间双分 = NGraphics ×22 (RAID_ARROW_*/RAID_MAP_ICON_*/RAID_UNIT_ENTITY_*) + NRaids ×37**
+(又一「头文件 ≠ 命名空间」实例); 59 键 = 59 互异源行 (raid_defines.h:5..72, 无宏族共享 —
+非 NIntel DYNAMIC_INTEL_SOURCE_ 形态); 58 槽全落主区 .bss 零默认, 唯一离群 = 串槽
+NUCLEAR_RAID_CATEGORY_NAME 0x1430900F8 (.data 串区); 读者直方图 = fx1e-5 ×26 (全 NRaids) /
+f32 位型 ×15 (全 NGraphics) / i32 ×12 / bool ×4 / vec3f ×1 (RAID_UNIT_ENTITY_OFFSET) /
+串 ×1; defines_map 59/59 零错配; s4_27 raid 册六风险槽写入者与四键用法全符零冲突。
+⚠ RAIDS_ENABLE_AI / RAIDS_CREATE_FREQUENCY_DAYS 两键**不属本簇** (defines_ai.h NAI ns,
+见 §4.34 raid AI 段)。
 | NMarket.CONTRACT_ESTIMATE_*_ALPHA 两键 | fx32k | min=0 经域换算 sub_1424ED3F0 | `(v/100000)<<15 + ((v%100000)<<30)/3276800000` (fx1e-5→fx32k 整数分解) |
-| NAI.AIFC_ACTIVATE_AVG_ORG_RATIO_THRESHOLD 等 20 键 | fx1e-5 | [0.01, 1.0] | min=1000 组 (AIFC_PATH_COST_* 地形成本族) |
+| NAI.AIFC_PATH_COST_* 16 键 + CALL_ALLY_LOSING_WAR_THRESHOLD + THEORIST_SCALING_WEIGHT_FACTOR_PER_NON_POLITICAL_ADVISORS + AI_WANTED_{LAND,CARRIER}_BASED_PLANES_FACTOR 恰 20 键 | fx1e-5 | min = 1000 (0.01) | CALL_ALLY_LOSING_WAR_THRESHOLD 唯一双侧 [0.01,1.0], 其余 min-only; ⚠ AIFC_ACTIVATE_AVG_ORG_RATIO_THRESHOLD 不在本组 (全文复读 = 双侧 [0,100000] min=0, 与 AIFC_UNIT_RATIO_BASE 等 30 键同族) |
+| NMilitary.DAMAGE_SPLIT_ON_FIRST_TARGET / COHESION_IMMOBILE_PLANNING_SPEED_MULTIPLIER | fx1e-5 | 仅上界 ≤0.9 / ≤1.0 | 全库仅有的仅上界组 (槽 qword_143332C50 / 143333CC0); 前者界走 f32 formatter 寄存器传参, 扫描正则易漏 |
+
+defines_military 簇增补 (994 函数全量对账定案): 994/994 纯单键装载器结构性例外 0; NS 分布 NMilitary 382 / NNavy 414 / NAir 173 / NRailwayGun 24 / NDeployment 1; 读者集恰 6 种 (fx1e-5 729 / i32 176 / varlen 数组 48 / fx32k 27 / bool 7 / vec\<i32\> 7 — 无 f32/CColor/日期/vec2f/串读者); 994 (KEY,槽) 对全中零缺名; **全库 define 名 25 个多 NS 多义名 100% 源自本簇** (NS↔槽归属全表在 findings); **同名跨 NS 键值编码可不同** (UNIT_EXPERIENCE_PER_COMBAT_HOUR 等 3 键 fx32k↔fx1e-5 — define() 消费须按 NS 判编码); **数组 define 槽 = 24B 结构 {begin@0, ?@8 推定 cap, count dword@12}** (跨距 24, PostLoadValidate 三对计数直证 — 书「槽 = begin 指针」系装载器可见视图, 消费/对账时 count 读槽+12); bool 槽 7 枚聚低端; 994 函数语料内零文本调用点 (经 functor 注册表数据段调用, §4.26.13 相容)。
 | NDiplomacy.INFLUENCE_DISTANCE_DIVISOR / INFLUENCE_MAJOR_FACTOR | fx1e-5 | ≥ 1.0 / ≥ 0.01 | 六 INFLUENCE 槽与装载校验互证 (§4.26.13) |
 | NSupply.SUPPLY_FLOW_DIST_LOGISTICS_FALLOFF_SCALAR / FLOATING_HARBOR_MIN_DECAY | fx1e-5 | ≥ 0.05 / ≥ 0.1 | 补给参数下界 (§4.21 交叉) |
 
@@ -441,7 +490,7 @@ PostLoad 走 CPersistent 槽[8], §4.28.17)。COnActionDataBase 实测 [2]=sub_1
 | 项 | 挂载 | 要点 |
 |---|---|---|
 | CFactionIconsDatabase | qword_14332EEE8 | 阵营图标库 {data@+80, count@+92}; GUI 消费 = CFactionIconItem 图标行 (§4.31.31) |
-| CMap (省→州/海陆/描述符) | `rp(BASE+53714216)` (0x840B) | +40 省→州 **i16 数组指针** (0=海/无州); +568 省非海序 **u32 数组指针** (0xFFFFFFFF=海); +616 省静态描述符 **8B 指针数组** {data@+616, cap@+624, cnt@+628} (元素 = 描述符*; id@desc+196, bbox@desc+136..148 = **两角点制 {x0@136, y0@140, x1@144, y1@148}**); +560=省表界 (=gs+700=max 省 id+1), +564=陆省数 (kr2 13907/10771 三读互证); **装载链增补**: +8 = 逐像素权重表 _pPerPixelWeights (tbb CInitMapPerPixelWeightsThreaded, 归一上界 = max desc+192) / +64/+68/+72 = 宽高对角线 / +80/+112/+272 = 三地图文件名串 / +384 = 河流位图 (rivers.bmp, 断言名 _pRiverDefinition) / +392 = u16 河段洪泛标记 (4-连通, 河 id 从 2 起) / +416 = 河对象表 / +2096 = provinces+definition 聚合对象 120B / +2104 = 半分辨率网格 (推定战略层降采样); desc 增补: +0 有效旗 / +8 省名串 / +88 行程表 (RLE, 元 3×u16 {x,y,len}) / +152 required 规则挂接 / +160 icon 规则挂接 / +200 port (沿海无港校验 desc+210&9==9 且 +200==0 → 崩溃预警) / +208 陆块号 u16 / +211 大洲; 装载编排 = sub_140A653D0 ThreadedPostPostRead 五 pass; 访问器 `M.map_ptr`/`province_state`/`province_is_land`/`province_terrain_name` |
+| CMap (省→州/海陆/描述符) | `rp(BASE+53714216)` (0x840B) | +40 省→州 **i16 数组指针** (0=海/无州); +568 省非海序 **u32 数组指针** (0xFFFFFFFF=海); +616 省静态描述符 **8B 指针数组** {data@+616, cap@+624, cnt@+628} (元素 = 描述符*; id@desc+196, bbox@desc+136..148 = **{x0@136, y0@140, 宽@144, 高@148}** — 勘误: 原记「两角点制」系误读, bbox 更新语义 +144 = max(运行 x−x0) 宽 / +148 = max(运行 y−y0+1) 高 (GenerateBoundingBoxes 直证)); +560=省表界 (=gs+700=max 省 id+1), +564=陆省数 (kr2 13907/10771 三读互证); **装载链增补**: +8 = 逐像素权重表 _pPerPixelWeights (tbb CInitMapPerPixelWeightsThreaded, 归一上界 = max desc+192) / +64/+68/+72 = 宽高对角线 / +80 straits.txt / +112 adjacency_rules.txt / +240 位图#2 (→+376 对象) / +272 rivers.bmp / +336 文件 (经 +736 对象 Parse) — 五个文件名槽 (勘误: 原记三个欠全) / +384 = 河流位图 (rivers.bmp, 断言名 _pRiverDefinition) / +392 = u16 河段洪泛标记 (**8-连通** [3×3 邻域], 勘误: 原记 4-连通; 河 id 从 2 起; 颜色带 = RIVER_SMALL_START_INDEX < color ≤ RIVER_LARGE_STOP_INDEX) / +416 = 河对象表 / +2096 = provinces+definition 聚合对象 120B / +2104 = 半分辨率网格 (推定战略层降采样); desc 增补: +0 有效旗 / +8 省名串 / +88 行程表 (RLE, 元 3×u16 {x,y,len}) / +152 required 规则挂接 / +160 icon 规则挂接 / +200 port (沿海无港校验 desc+210&9==9 且 +200==0 → 崩溃预警) / +208 陆块号 u16 / +211 大洲; 装载编排 = sub_140A653D0 ThreadedPostPostRead 五 pass; 访问器 `M.map_ptr`/`province_state`/`province_is_land`/`province_terrain_name` |
 | 本地化运行时管理器 | `rp(BASE+56336440)` | **定案** (sub_14239ED90/sub_14239C290 + 活体双证): **mgr+0 = 当前语言 texts 对象** {+32 = 有序 16B 索引 {u64 fnv1_64(key)@0, i32 值偏移@+8} 二分查找, cnt u32@+44 (kr2 英 280,475)}; **mgr+32 = 全局串 blob 数据指针** (blob+0 直指串数据; cap u32@mgr+40 / used u32@mgr+44, 量级数十 MB), 内容 = "key\0value\0" 紧邻对, 索引值偏移指向值 (key 在值前 -#key-1 处, 冲突确认用); mgr+8 = 10 语言注册条目向量 (cnt@+20, 104B 元 {名 SSO@0, 三容器}) 为装载侧脚手架非运行时查询路径; FNV-1 64 (seed 0xCBF29CE484222325, 素数 0x100000001B3); 访问器 `M.loc_text(key)` (命中级; ⚠ 文本须 read_cstr — read_str 对 UTF-8 长串返 nil) |
 | CEventDatabase | 0x3339c20 (0xE0) | events/ 递归装载; namespace 无独立表（串字段+解析侧） |
 | CTerrainDatabase 扩展 | 0x332f0a8 | **第二数组 {arr@+112, cnt@+124} = 图形地形类别** (名 `terrain_N`/`desert_hills`/`forest_13`/`mountain_variation_*`, 与 A 族 arr@64/cnt@76 的**游戏性**地形 `mountain`/`forest`/`plains` 分属两套); **类别→DB LUT int[]@+136 / cnt@+148** (位图字节 → 第二数组下标; <1 或 ≥cnt@+124 → Null Object); 省地形位图 obj+368 {宽@+8, 高@+12, 步长@+16, 行距@+28, data@+40} byte=类别; 消费 sub_141652F90 (地图渲染/混合, a2=GAMESTATE, 位图宿主 = 渲染对象 `*(a1+40)`); 访问器 `M.terrain_lut(byte)`/`M.province_terrain_name(pid)` (desc+168 → def 名 SSO@+24, 游戏性名空间); **磁盘侧链路直证** (`common/terrain/*.txt` terrain 块每条 = `{ type = <游戏性名>, color = { <位图字节> }, texture = N }`): 位图字节 → LUT → 第二数组 idx → 条目 → type = 游戏性 terrain, 全链四段活体对拍 MATCH; ⚠ 同游戏性类型多色变体 = 同名多条目 (desert×3 / jungle_blend_18×2), 解析须保落盘序不折叠; **CTerrain def 侧**: def+16 = 有效旗 u8, def+140 = 位掩码位 u32 (has_terrain 载荷消费; 推定); **def+136 = A 族下标** (CEquipmentBonus attrition reader 实证, equipmentbonus.cpp:274); **def+8 = 存档 lexer token** (attrition 发射键, 与 +24 sso 名并行两通道) |
@@ -493,14 +542,16 @@ PostLoad 走 CPersistent 槽[8], §4.28.17)。COnActionDataBase 实测 [2]=sub_1
 
 #### 4.26.8a 数据库 TNullObject\<T\> 空对象族 (null_object.h 定案)
 
-与上 GUI `CNull\<X\>` 外壳族**同模式不同机制的平行族**: `TNullObject<T,T>` (RTTI 双参恒同) = **真类布局单层对象** (无外壳/内层双层、无 TNullGuiObjectTrait 尾基), 创建 = **覆写形四步 50/50 零例外**: `malloc(真类尺寸) → 真类 ctor 完整构造 → TNullObject vftable 覆写 +0[+8/+16] → 尾部有效旗清 0`。**虚表复制律 (定案)**: Null 虚表 = 真类虚表的**函数槽级复制, 仅 RTTI COL 换名** — 50 类中 38 类槽 100% 全同 / 11 类仅 [0] dtor 换轻量版 / 1 类 (CAIStrategyDatabaseEntry) 次虚表全覆写; CPersistent 系 9 函数槽对齐 §4.00.1 ([2] writer = CFG 空桩 = 不落盘, 静态库条目本就不存盘)。**方法桩三形态**: 全空桩全语料仅 CNullCombatTactic [10] 一例 (`return 1`→`return 0`, 空战术不可被选); 回默认值桩 = 轻量 dtor + 共享空桩槽; 其余全部有逻辑 — **本族「空」在状态不在方法** (有效旗 0 / id −1 / 空名 token, 消费端靠旗位短路); 「行为全空」表述仅适用 GUI 壳形族。断言: 全局门 byte_1435E1B52 + sub_1424C8080 四态; 行 133 = `Get()` 前置断言 / 行 140 = 创建后非空断言; 具名锚 = **`CNullDifficultySetting::Get()`** sub_1409B8900。规模: **50 模板实例落 51 全局单例** (CTechnologyTemplate 双例 0x590/0x58 同虚表不同内层), 126 函数角色矩阵 = P 工厂宿主 22 / G 纯 getter 48 / F 回退访问器 12 (含索引回退形 sub_14071F2B0: `idx∈[0,cnt)` 越界才走空对象) / C 消费者 44; 消费语义 = **各数据库 arr[0] 越界/缺省回退哨兵的实体** (§4.26.4 末同源)。
+与上 GUI `CNull\<X\>` 外壳族**同模式不同机制的平行族**: `TNullObject<T,T>` (RTTI 双参恒同) = **真类布局单层对象** (无外壳/内层双层、无 TNullGuiObjectTrait 尾基), 创建 = **覆写形四步 50/50 零例外**: `malloc(真类尺寸) → 真类 ctor 完整构造 → TNullObject vftable 覆写 +0[+8/+16] → 尾部有效旗清 0`。**虚表复制律 (定案)**: Null 虚表 = 真类虚表的**函数槽级复制, 仅 RTTI COL 换名** — 50 类中 38 类槽 100% 全同 / 11 类仅 [0] dtor 换轻量版 / **次虚表全覆写 ≥3 类** (CAIStrategyDatabaseEntry / CTechnologyTemplate +8 槽 / CIdea +16 槽 — 多继承双 vptr 布局, ctor 直证); CPersistent 系 9 函数槽对齐 §4.00.1 ([2] writer = CFG 空桩 = 不落盘, 静态库条目本就不存盘)。**方法桩三形态**: 全空桩全语料仅 CNullCombatTactic [10] 一例 (`return 1`→`return 0`, 空战术不可被选); 回默认值桩 = 轻量 dtor + 共享空桩槽; 其余全部有逻辑 — **本族「空」在状态不在方法** (有效旗 0 / id −1 / 空名 token, 消费端靠旗位短路); 「行为全空」表述仅适用 GUI 壳形族。断言: 全局门 byte_1435E1B52 + sub_1424C8080 四态; 行 133 = `Get()` 前置断言 / 行 140 = 创建后非空断言; 具名锚 = **`CNullDifficultySetting::Get()`** sub_1409B8900。规模: **50 模板实例落 51 全局单例** (CTechnologyTemplate 双例 0x590/0x58 同虚表不同内层), 126 函数角色矩阵 = P 工厂宿主 22 / G 纯 getter 48 / F 回退访问器 12 (含索引回退形 sub_14071F2B0: `idx∈[0,cnt)` 越界才走空对象) / C 消费者 44; 消费语义 = **各数据库 arr[0] 越界/缺省回退哨兵的实体** (§4.26.4 末同源)。
+
+**簇级新律 (全量切片定案)**: ① **工厂宿主律** — Null 单例创建点内联在各 `TGameItemDatabase<TDatabase>` ctor 内 (20 库映射, 懒建 `if (!qword)` 守卫); 同一 Null 可**多宿主懒建** (CTechnologyTemplate 主例由 CIdeaDatabase ctor sub_140A3F6E0 与 CTechnologyDatabase ctor sub_140ACA4A0 两处建, 先到先得)。② **全簇断言律** — 126/126 函数全内联 null_object.h 断言 (行 133 ×53 / 行 140 ×73, 无第三行号)。③ **多副本旗字节律** — 同一单例指针共享而断言旗字节 per-instantiation: 43 单例中 18 个可见 ≥2 旗字节 (近旗 0x14333xxxx 主副本 / 远旗 0x14338xxxx~Dxxxx 其他 TU 副本); **旗字节非布局字段, 禁当对象偏移消费**。④ **断言名参数化三态** — `_pInstance` ×136 / `_pTerrainType` ×1 (CTerrainType) / `_spirit` ×1 (country spirit 域)。⑤ **vtable 清零伴件第二例 = 0x14333A0C0** (336B, sub_140ABB910 内建: vptr 写 0 + MSVC 串 cap15 + int −1 + 旗 +40; 两例各配 G 形访问器 sub_140BD90B0 / sub_140ABD5A0)。⑥ sz 补齐六项: CStateCategory 336 / CTechnologyFolder 208 / CUnitLeaderSkill 456 / CCountryLeaderTrait 512 / CCareerProfileRibbon 328 / CCareerProfileMedal 560; **CTechnologyFolder 系 TNullObject 模板实例** (208B, 覆写 +0)。
 
 实例台账 (50 实例 + 伴随件; 槽/尺寸 hex; 访问器括注断言行):
 
 | 槽 | T (真类) | sz | 真类 ctor | 访问器 |
 |---|---|---|---|---|
 | 0x14332F350 | CBookmark | 0x190 | sub_14067BE30 | sub_1401DBBB0(140) |
-| 0x14332F990 | CTechnologyTemplate (小例) | 0x58 | sub_140ACACF0 | sub_1403202C0(133) |
+| 0x14332F990 | CTechnologyTemplate (小例) | 0x58 | sub_140ACACF0 | sub_1403202C0(133) — **非 TNullObject 模板实例 (定案)**: vptr 槽写 0 纯数据记录 (MSVC 串 +32/−1 双 int + 旗 +48) 推入 folder-entry 向量, 归 vtable 清零伴件形第三例 |
 | 0x14332FB10 | CIdea | 0xD10 | sub_140FCCEA0 | sub_1403697C0(133)/sub_140A429F0(140) |
 | 0x143330368 | CStaticModifier | 0x220 | sub_140556430 | sub_140559230(133) |
 | 0x143330440 | CAbility | 0x550 | sub_140612DC0 | — |
@@ -524,7 +575,7 @@ PostLoad 走 CPersistent 槽[8], §4.28.17)。COnActionDataBase 实测 [2]=sub_1
 | 0x143339B18 | CDifficultySetting (具名 CNullDifficultySetting) | 0x78 | sub_1409B7F30 | sub_1409B8900(133) |
 | 0x143339B40 | NDLC::CMetadata | — | sub_1409CA7E0 | — |
 | 0x143339BA0 | CStateTemplate | 0x1D0 | sub_140ABBEE0 | 内联消费 |
-| 0x143339BA8 | CStateCategory | — | sub_1405566B0 | sub_1409D9200(140) |
+| 0x143339BA8 | CStateCategory | 0x150 | sub_1424BE3C0 + 内联于 CStateCategoryDatabase ctor sub_1413C3EA0 | sub_1409D9200(140) |
 | 0x143339BE8 | CEquipmentType | 0x5C8 | sub_140C922A0 | sub_1409F8570(133)/sub_141490900(140) |
 | 0x143339BF0 | CEquipmentUpgrade | 0x160 | sub_1415373A0 | 内联消费 |
 | 0x143339BF8 | CEquipmentModule | 0x2D8 | sub_1409F00C0 | sub_140C95660(133) |
@@ -550,11 +601,11 @@ PostLoad 走 CPersistent 槽[8], §4.28.17)。COnActionDataBase 实测 [2]=sub_1
 | 0x14333A248 | CTerrainType | 0x200 | sub_14143BB90 | sub_140AD6B30(140) |
 | 0x14333A250 | CTerrainGraphics | 0x70 | sub_14143BA60 | 内联消费 |
 | 0x14333A278 | CUnitMedal | 0x430 | sub_141446280 | 内联消费 |
-| 0x14333A288 | CUnitLeaderSkill | — | sub_1405566B0 | sub_140AE9C50(140) |
+| 0x14333A288 | CUnitLeaderSkill | 0x1C8 | 内联于 CUnitLeaderDatabase ctor sub_140AE3250 | sub_140AE9C50(140) |
 | 0x14333A2A8 | CUnitLeaderTrait | 0xA90 | sub_140AE3980 | sub_140AE9CD0(140) |
 | 0x14333D528 | idpair 哨兵 (数据槽非对象, 2567 处读引用零写者) | — | — | — |
 
-> CTechnologyTemplate 双例语义区分未决 (0x14332F990 小件疑 folder-entry 形, 不影响机制定案)。消费域代表: 书签 UI (CBookmark) / 外交关系视图 (CIdeologyGroup/COpinionModifier) / 装备 MIO (CEquipmentType/Module) / 科技理念 (CTechnologyTemplate/CIdea 族) / 难度设置 (CDifficultySetting) / 州模板校验 (CStateTemplate 族) / 聊天设置 (CMessageType)。
+> CTechnologyTemplate 双例语义已定案: 主例 0x590 = 模板实例, 小例 0x14332F990 = vtable 清零伴件 (非模板实例, 见台账行注)。sub_1405566B0 = __unwind 析构位清理函数 (CModifier 系), 曾误记为两类 ctor — 已改。消费域代表: 书签 UI (CBookmark) / 外交关系视图 (CIdeologyGroup/COpinionModifier) / 装备 MIO (CEquipmentType/Module) / 科技理念 (CTechnologyTemplate/CIdea 族) / 难度设置 (CDifficultySetting) / 州模板校验 (CStateTemplate 族) / 聊天设置 (CMessageType)。
 
 #### 4.26.9 验证体系
 

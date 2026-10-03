@@ -59,7 +59,7 @@ army/navy/operative 三派生共用; 偏移 = leader 绝对字节; 引擎落盘�
 | +257..+295 | 匿名结构 (39B 形状) | = gfx SSO 体尾 (+257..+287) + **tag_id i32@+288** (ctor 参数3 落点, 门>0; ApplyModifiers 链经 sub_140BB48F0/sub_140C07580 对该国施策 — 推定「将领修正归属国/原籍国」缓存, 精确语义未名 [未决], writer 不触) + pad@+292..+295 | ctor a3; 0X140C20FA0 |
 | +296 | CSubUnitDefinitionAssociatedModifiers 内嵌块 (288B) | sub_unit_modifiers | 门 = u32@+316 与 u32@+340 不全 0 (IsEmpty sub_140643140); tok 15459; 全表见 §4.4.12 |
 | +297..+583 | 匿名结构 (287B 形状) | = sub_unit_modifiers 288B 块体 (见 §4.4.12) |  |
-| +584 | CUnitAdjuster 向量 | **per-skill 数组** (40B 元, 下标 = CUnitLeaderSkill 库内索引) | RecalcSkillBonuses sub_140C21280 重建 |
+| +584 | CUnitAdjuster 向量 | **per-skill 数组** (40B 元; 引擎名 **_TerrainAdjusters** assert 实名 — 勘误: 原记无名; 下标域待裁: 聚合器 sub_140C0FB70 键空间联动判 sub-unit 定义索引 (高置信) vs 原记 CUnitLeaderSkill 库内索引, 两说并陈) | RecalcSkillBonuses sub_140C21280 重建; getter sub_140C19C40 (越界回 0 号) |
 | +596 | uint32 | +584 数组 count | 定案 |
 | +600 | uint32 | +584 数组 alloc (= &off_143085170 静态哨兵初值) | pdx 24B {data@584, cap@592, count@596, alloc@600} (ctor 增长码) |
 | +608 | CUnitAdjuster | **CUnitAdjuster 总计器** (全 trait×skill 加成总和) {vt@608, q@624/632/640 ctor 清零}; 与 +648 阵列无缝 | sub_140C0FB70 聚合; ctor 0X140C0C2A0 |
@@ -113,7 +113,7 @@ army/navy/operative 三派生共用; 偏移 = leader 绝对字节; 引擎落盘�
 | +3916 | uint32 | owner CCharacter 回指 CID.id | 同上 |
 | +3920 | uint8 | character template 存在缓存 (= *(char+32)!=0) | sub_140C24C70 |
 | +3921..+3923 | 匿名结构 (3B 形状) | = +3920 u8 尾 pad (ctor 清零) |  |
-| +3924 | uint32 | script_id | 门 ≠0; tok 19349 |
+| +3924 | uint32 | script_id (**引擎名 _UnitLeaderIndexInGameState** — gs+1040 全局 unit-leader 注册表下标, 写入器 sub_140C275E0 debug 门 assert 直证) | 门 ≠0; tok 19349 |
 
 表后注① GUI 消费 (leader+64 显示名缓存): Badge 将领技能/名 + ListView 部署 tooltip — sub_140C15500 攻击技能; loc 键 LEADER_SKILL_DESC / UNIT_LEADER_NO_LEADER / LEADER_DEPLOY_* / LEADER_COMING / LEADER_WITHDRAWING; 部署三态字节 = **COrdersGroup+409 deployed / +410 deploy_queued / +411 withdrawing** (⚠ 本组字节曾按 leader 基址登记, 实为 COrdersGroup 基址 — 读取点对象为 COrdersGroup; 见 §4.4.8); vt[26] = 将领冷却剩余天数 `(23 − 今日 + enable_date)/24`。
 
@@ -739,6 +739,52 @@ CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创
 | +448 | uint32 | 分桶码 (梯内 4 桶键) | 定案 |
 
 **等级上限 = logistics 梯 count−1** (sub_140AE9520 读 db+724+24×t; 活证 t0/1/2 = 11、t3 = 0)。
-晋升链 (def+444)、技能上限 (sub_140AE9520)、skill_advantage 触发器 (+440) 三链落位。**技能上限四行族 (定案)**: db+364/484/604/724 四梯 + 24×leader_type (attack/defense/stat3/stat4 四技能各自; 升级掷点 vt[31] sub_140C1EC10 army / sub_140C1F330 navy: 权重 = max(1000,(基值+Σtrait因子)×等级), 命中 +1 并回填减益)。
+晋升链 (def+444)、技能上限 (sub_140AE9520)、skill_advantage 触发器 (+440) 三链落位。**技能上限六梯全景 (定案)**: db+364/484/604/724/**844/964** 六梯 + 24×leader_type (attack/defense/planning/logistics/maneuvering/coordination; getter 配对 sub_140AE94F0/9510/9540/9520/9530/9500 — 勘误: 原「四梯」只覆盖 army, 844/964 = navy 专用 maneuvering/coordination); 升级掷点 vt[31] sub_140C1EC10 army / sub_140C1F330 navy: 权重 = max(1000,(基值+Σtrait因子)×等级), 基值 = define COMMANDER_LEVEL_UP_STAT_WEIGHTS (army, qword_143339650) / NAVY_LEADER_LEVEL_UP_STAT_WEIGHTS (qword_143339668), 每级掷点数 = COMMANDER_LEVEL_UP_STAT_COUNT (dword_143331430), 命中 +1 并回填减益。**navy 掷点双错位怪癖 (定案, 引擎原样)**: ① maneuvering/coordination 桶到顶门误用 planning(+604)/logistics(+724) 梯 (setter 钳位在 844/964 梯, 多掷命中被钳吞不越界); ② 两桶权重错读特质因子 +2640/+2648 (logistics/planning), 真因子 +2656/+2664 被无视 — 海航特质因子对海军升级权重无效 (roll 体 + trait reader 偏移映射双证)。
 
 领袖工厂与状态机增补 (定案): 领袖对象工厂 sub_140C14160 = CCharacter+560 模板 → 按模板+32 类型造 CArmyLeader (**4280B = 0x10B8**) / CNavyLeader (**4040B = 0xFC8**); operative (3/4) 断言 "Not implemented" 不走本工厂 (走机构路径, 与四胞胎 AddUnitLeader 分工); tag 初值 0, 归属国由 vt[21] SetOwnerCountry 后置。CNavyLeader ctor 尾手工段: +3936/+4008 = null CID 哨兵 qword_14333D528、+3944..+4000 四技能 quad 清零、**+4032 penalty ctor 初值 = fixed 1.0** (sub_1424EF6F0 构造)。**COperativeLeader 正典状态机** (SetState sub_140C27350): EOperativeState 0..5 (0=captured / 1=cooldown / 2=disbanded / 3=on_mission / 4=operation / 5=killed) + 合法迁移矩阵; SetCooldown (vt[24] 覆写 sub_140C24DB0) 状态 3/4→1 + 任务 optional 复位/预载 (<OPERATIVE_MAX_DAYS_TO_AUTO_RESUME_MISSION 自动恢复); Release sub_140C26E20 清捕获对 + 回 on_mission(3) + 分配本国反谍; 随机特质授予引擎 sub_140C10600 (define chances 容器逐下标掷 + 16B {weight,trait*} 加权抽取 + swap-remove + scope 复评收缩)。
+
+unitleader.cpp 簇对账增补 (38 函数闭环; 断言锚行 156..7244 全员体内, 单编译单元确认):
+
+**冷却机制族全链** (新): 基类 SetCooldown vt[24] sub_140C25150 (days>0 → start=now/enable
+=AddDays/reason; 否则哨兵 43808760); **冷却设值包装 sub_140C1FD60** = `(leader, reason,
+days, scale_flag)` — scaled = scale_flag ? sub_140C0FDB0 : **2×days** (scale=0 分支语义待裁),
+先 vt[24] 再「只延长」补写 (now+24×scaled > 现 enable 才重写); **时长缩放 sub_140C0FDB0 =
+days + int(days×mod385)** 读自 leader b0 块 (+664 锚) — 「×(1+修正 385)」读数块落定;
+reason 1 (组变更) 天数 = define UNIT_LEADER_MODIFIER_COOLDOWN_ON_GROUP_CHANGE
+(dword_1433371D4)。**deploy/withdraw 冷却三叶族** (新): 发起 sub_140C1EA90 (部署,
+reason 4) / sub_140C20060 (撤收, reason 5) — 天数源 = sub_1415B0030/1415B01D0
+(u32@(HQ 派生+400)); 延长 sub_140C22B60 (锚既有 start, 不走 vt[24]); 查询 sub_140C11990。
+operative SetCooldown 覆写 (互证 + define 落址 OPERATIVE_MAX_DAYS_TO_AUTO_RESUME_MISSION
+= dword_143332E88; 落账核 = sub_140C25340)。
+
+**operative 状态机族实名补录**: SetMissionToNone = sub_140C263A0 (:6836 错误串实名);
+SetOnOperation = sub_140C26600 (operation idpair@+3968 = COperation+8 或 nullCID 哨兵
+qword_14333D528); SetMissionImpl 双包装 = sub_140C0B2E0 (bool) / sub_140C0B410 (void)
+(state3 门 + optional→容器恢复→销 optional 舞步后函数指针回调); state 字段 = operative
++4224; 任务 optional 舞步三件套 = sub_140C28050 (打包) / sub_140FC4C30 (恢复) /
+sub_140FC5A90 (清空)。
+
+**捕获特工 intel yield** (新定性): sub_140C27680 聚合器 + 变参/直参两壳 (sub_140C2A9D0 /
+sub_140C185E0) = `1.0 + mod545 + mod546` — 545 = MODIFIER_OWN_OPERATIVE_INTEL_EXTRACTION_
+RATE (本国侧: +3944 nationalities 有序 tag 容器**二分**查国籍修正 [消费侧新补] + 本国
+cc+1448 + leader b2 (+1032)); 546 = MODIFIER_ENEMY_… (捕获国 cc+1448); 门 = captured
+(+4016) > 0 (:7210)。
+
+**Capture 新链路**: 归属国 +288 改写有**玩家门** — 仅当玩家国 (gs+1312/1316 规范形比较)
+∈ {原属国, 捕获方} 才改写为捕获方 (非玩家参与的 AI 互俘不改归属; MP 对称性待裁);
+location +4192 填充链 (a4 优先, 否则 HQ+496 派生); 捕获方 = 玩家门内 sub_140CC2140 +
+sub_140CCE5B0 玩家侧挂钩; owner character 登记与通知入队。
+
+**部署指挥点重分配 sub_140C22CE0** (新): leader+4208 现额 ≠ 新需额 → 释放旧额 → 清
++4216 CCommandPowerAllocator → 国级重分配, 失败 :4736 assert。
+
+**实名补录**: CArmyLeader 参数化 ctor = sub_140C0B7D0; CNavyLeader 手工尾段 ctor =
+sub_140C0C200; RecalcSkillBonuses 基实现 = sub_140C21280 (工厂 vt[28] 指针直比后非虚调用);
+技能 DB getter = sub_14022FD90 (qword_14332F0D0 访问器); 梯内 def 查找六件 =
+sub_140AE7D60/AE7FB0/AE96A0/AE8090/AE80B0/AE7D80。**小函数批量**: 八 setter 同构模板
+(deficit@X = min(v−1,0) / skill@Y = max(v,1) / 梯钳位 / def 查写伴随槽 / rebuild 三连);
+EOperativeState→存档 token 映射 (0→19025 on_capture / 1→19026 on_cooldown / 2→19027
+on_disband / 3→14668 on_mission / 4→19024 on_operation / 5→13164 killed; 默认 assert 仍写
+14668) 独立函数 sub_140C201B0 与 writer 内联同款。未决: 两个枚举映射器 (sub_140C27FC0
+→{1,1,2,4} / sub_140C19100 leader_type→{army 1, navy 2, operative 4}) 消费方; +584 索引域
+探针取证; scale_flag=0 触发路径。

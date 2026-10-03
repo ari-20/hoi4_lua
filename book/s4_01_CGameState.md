@@ -125,7 +125,7 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 | sizeof | 0xA40 = 2624 (创建点 malloc 0xA40 + "Trying to initialize gamestate twice" assert, gamestate.cpp:0x6A0) |
 | vtable RVA | 双表: vt1@+0 / vt2@+8 (vt2 = 查询接口, provinces loader 经 vt2+8 取省) |
 | writer | — |
-| loader | sub_1401E59D0 (71 case 巨型 switch, 读档 token→槽直译; 主文件 §1.2 总表 = case→槽位直译 46 案 + ctor 直读 26 案) |
+| loader | sub_1401E59D0 (**58 case 标签** ×12 段链式 switch(a3), 键空间 10192..19935; case 计数与 §1.2 总表口径差待复核; 双 default: 主链 goto 公共尾非错误 / pending_events 嵌套 default 报 "Error when reading pending event"; writer vt[2] sub_1401F29A0 显式链式调用与 reader 不对称; 主文件 §1.2 总表 = case→槽位直译 46 案 + ctor 直读 26 案) |
 | 挂载点 | gs 单例 (§4.1 获取) |
 | ctor | 链 sub_1401BF930 (CCurrentGameState) → sub_1401BFD30 (基) |
 
@@ -160,7 +160,8 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 | +2608 | 键 13842 = **tutorial_chapter** | 置位写 gs+2615=1 + gs+192 bit3 = tutorial 旗 |
 | +2240 域 | **tag 工作列表** {d@2240, 计数@2252} (CPdxArray<CCountryTag,unsigned>) | hourly tick 步骤 9 遍历 (查 _AllPlaythroughData@2200, §4.1.8) + DoCareerProfile 族并行容器 (§4.2.6) |
 | +2416 域 | **军队状态小时统计累计器族** (hourly) | TOTAL_IN_COMBAT_MAN_HOUR 等 13 键 (名表 builder sub_140F0EF20: 5 TOTAL_* + 3 AVG_* + 5 IS_*); CGameState::HourlyUpdate 首步累加 (§4.2.6); 断言成员名 `_pUnitMetricsCollector` (gamestate.cpp:2314, 对象 0xB8 = 184B) |
-| pdx 空位群 已名 12 项 | +760 region 派生表 (region 邻接/共省对缓存, 推定) / +880 `_CountryControllersEnable` / +904 控制器计数 / +1352 fired_events 向量 (loader case 11003) / +1400 指针集 / +1472 海战主数组 / +1648 **`MP_locked_countries`** / +1752 scope→saved event target / +2384 指针向量 / +2440 **`_CountriesForOriginalTags`** / +2464 战略空军表 | 逐个 ctor/消费者实证 (+2240/+2416 已升独立行) |
+| pdx 空位群 已名 12 项 | +760 region 派生表 (region 邻接/共省对缓存, 推定) / +880 `_CountryControllersEnable` / +904 **i8 向量 `_HumanControllersCount`** (SetControllerEnabled 族维护: 接管 `++`/释放 `--`/清零/全清 memset; IsHumanControlled = +880[tag] && !+904[tag]) / +1352 fired_events 向量 (loader case 11003) / +1400 **已删 unit id 集合** {d@1400, cap@1408, c@1412, alloc@1416} (DeleteUnit sub_1401D6690 append / to_be_deleted 登记侧 sub_1401D7460 先查重) / +1472 海战主数组 / +1648 **`MP_locked_countries`** / +1752 scope→saved event target / +2384 指针向量 / +2440 **`_CountriesForOriginalTags`** / +2464 战略空军表 | 逐个 ctor/消费者实证 (+2240/+2416 已升独立行) |
+| +2440 域 | **_CountriesForOriginalTags** = 按原初 tag 分桶的国家名册 (桶基 = \*(gs+2440) + 24\*tag 下标, 桶元素 24B) | 读 = sub_1401DBD80 (original_tag 触发器族, §4.32 册); 维护 = **sub_1401EE540 original-tag 重登记** (cc+4876 m_OriginalTag 回写 + 旧桶摘除/新桶挂入, Contains/Remove/Insert = sub_1401B0250/B3440/B33B0, 断言 gamestate.cpp:7569, 调用者 = 国管理器域 sub_1407103F0); 定案 (体读) |
 | gs+2352 | **未名 pdx 容器数据指针** {d@2352, cap@2360, count@2368, alloc@2376} — 基类 ctor sub_1401BFD30 显式清零 2352/2360/2368 并 @2376 置分配器哨兵 &off_143085170; gs dtor 不触及; 消费者未名 | 基类 ctor L6045212-16 + gs dtor 全扫 |
 | CPersistent+216 (= gs+216) | 未决 — 仅基类 ctor 初始化, 无消费者 | — |
 | gs+1280 串 | runtime-only 定案 — CPeaceConferenceManager 内 SSO, 不序列化 (writer/reader 仅 13632 会议容器; 探针空串互证); 运行期临时名, 写点未定位 | 定案 (性质) / 未决 (语义) |
@@ -182,7 +183,7 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 |---|---|---|
 | sub_140BC2710 | 0X140BC2710 | 存档头元数据族 (键表见下) |
 | sub_1401F29A0 | 0X1401F29A0 | **顶格汇合 writer** (all_playthrough 块 + 15933 + logmgr + ships_built 汇合发射) |
-| sub_1401F2E40 | 0X1401F2E40 | 会话计数 / id / 静态计数族 (键表见下) |
+| sub_1401F2E40 | 0X1401F2E40 | **CGameState::Save 主块 writer** (头部标量族键表见下; a3=1 = OOS checksum 模式 — sub_140DA5C80 bit0 路径调本函数全身进流, "Start/End of gamestate checksum" 标记经 LightRandomLog 通道落账, value = 存档流 running hash) |
 | sub_1401F2DD0 | 0X1401F2DD0 | all_playthrough_data 块 + statistics_collection_enabled u8@gs+2232 |
 
 覆盖键 (偏移相对其 a1/a3):
@@ -598,3 +599,9 @@ RB-tree (std::map 形态): head = *(gs+2520), 规模 = *(gs+2528) (≠0 门); �
 | +32 | uint32 | value | 恒写 (0 值也写) |  |
 
 ⚠ gs+2520 与 session_meta #.id 同址撞车: gs+2520 实属本块, 见 §4.1.7。
+
+#### 4.1.17 gamestate.h 巨簇形态学与未收槽抽查 (定案)
+
+- **簇机理**: gamestate.h 簇 4538 函数 = 全游戏 gs 消费面并集 — 两访问器 debug 门 (断言 1125/1126 latch byte_14332ED00/ED01 + 1116/1117 latch EDF9/EDFA) 强制内联进消费函数, 4536/4538 (99.96%) 直引 gs 单例 qword_14332F260, 仅 2 例外 (引用计数独立助手 sub_1401AAA50/sub_140193F90)。分族: GA 3563 / GB 726 / MIX 239 / REF 守卫 7 / AI 禁入包装器 3; 实现本体 57 函数在 gamestate.cpp 簇 (重叠 17)。
+- **方法学警示 (定案)**: 门内联 ≠ a1 是 gs — 0x140DC-0x140DE 区函数 (sub_140DC53C0 等) 带门但 a1 = tutorial 管理器 (+2400/+2412 数组按 gs+2608 tutorial_chapter 索引), 这些偏移不是 gs 槽。
+- **未收槽抽查**: **gs+2528 = ships_built map 的 _Mysize** (16B map 形 {head@2520, size@2528}; 插入点 `0x666666666666666` 比对 = STL `_Xlength_error("map/set too long")` 通用守卫非业务语义; ships_built 节点 = {_Left/_Parent/_Right/NIL@25, key@28, value@32} 高置信); **gs+2504 未名 map = runtime-only** (无 loader case 无 writer, dtor sub_1401C2620 在基类 ctor unwind; 语义推定 trade route 相关, 待裁)。

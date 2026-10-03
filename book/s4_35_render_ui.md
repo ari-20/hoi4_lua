@@ -414,7 +414,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 | S11 | 文本引擎/本地化 | (0x1421E / 0x14224 / 0x1411B 区) | sub_1421EAA30 文本流格式化; sub_1411B4B10 浮点格式化 |
 | S12 | 纹理/像素搬运 | texturehandler 949 / gfx_texture_cache 392 / flagtextureatlas 1,002 | sub_142133600 上传核; sub_142171F50 blit |
 | S13 | 软件光栅 | SDL_render_gl 2,137 / SDL_render_gles2 1,612 | SDL_BlendLines 三核; 分派器 sub_1421A31A0 |
-| S14 | 3D 实体/动画/粒子 | pdx_anim 1,185 / pdx_particle 408 | sub_14228D730 挂点定位; sub_1423FE460 粒子更新 |
+| S14 | 3D 实体/动画/粒子 | pdx_anim 1,185 / pdx_particle 408 | sub_14228D730 实例初始化更新 (dt=0, 精灵创建路径 — 原「挂点定位」系误标, pdx_entity.cpp 簇定性); sub_1423FE460 粒子更新; 全簇 14 件见 §4.35.17 |
 | S15 | 调试/ImGui | pdx_dearimgui | sub_1421CBE30 Begin 原语; 观察窗族 |
 | S16 | 面板/视图 GUI 行件 | (0x1416-0x141F GUI 区) | ~120 件, §4.35.13 分组台账 |
 
@@ -461,7 +461,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 | S11 文本引擎/本地化 | 14 | ★sub_1421EAA30 2,087 文本流格式化; ★sub_1411B4B10 1,930 浮点格式化; ★sub_14252ACD4 1,214 money_get; ★sub_1418530F0 1,272 / ★sub_140E18DF0 = SelectModeInstances (更正: 原 S11 归文本域系误归 — 实为地图模式层选实例选择器, 向 hub 灌色) 1,079 / ★sub_1412517B0 1,002 定长缓冲三件; ★sub_140D20450 1,336 战争名键求值; sub_142245880 235 $展开; sub_14224B9F0 225; sub_140BD3530 388; sub_140BD2F80 279; sub_140FD2240 264; sub_1411C5D30 255; sub_14225CD50 102 |
 | S12 纹理/像素 | 8 | ★sub_142130DF0 1,617 搬运/填充; ★sub_142171F50 1,492 blit 巨函 (×24 分量表); ★sub_142133600 1,338 上传核; ★sub_14219BF40 1,401 / ★sub_14219D7D0 1,397 16 位变体; ★sub_14218FCE0 1,365 GUI blit; sub_14225FF10 106; sub_140D5BBC0 1,590 robin-hood 枚举 (通用基建) |
 | S13 软件光栅 | 4 | ★sub_1421A0670 1,830 自递归内核; ★sub_142197DD0 1,604 16bpp 混合; ★sub_142196690 1,429 32bpp RGBA; ★sub_14219F1E0 1,315 32bpp RGBX |
-| S14 3D 实体/动画/粒子 | 4 | ★sub_14228D730 1,400 挂点查找; ★sub_14228AF80 1,461 attachment 定位; ★sub_1423AE8F0 1,115 float4 流变换; sub_1423FE460 280 粒子更新 |
+| S14 3D 实体/动画/粒子 | 4+14 | ★sub_14228AF80 1,461 **实例逐帧动画/附件更新器 (递归)** (原「attachment 定位」系收窄误标 — 含时间归一/TTL 销毁/特效表/动态子实体生成/双子表递归/播完销毁); ★sub_14228D730 1,400 实例 dt=0 初始化更新 (精灵创建路径, 唯一调用方 entity_sprite.cpp); ★sub_1423AE8F0 1,115 float4 流变换; sub_1423FE460 280 粒子更新; pdx_entity.cpp 簇 12 盲区件补入 §4.35.17 |
 | S15 调试/ImGui | 9 | ★sub_1422095C0 2,394 profiler SIMD 内核; ★sub_1421CBE30 1,426 Begin 原语; ★sub_1421F4480 1,156 / ★sub_1421F9450 1,134 观察窗族; ★sub_141B0F6D0 1,066 Faction Member 窗; ★sub_1410652F0 1,128 AI 前线调试; sub_1421D9B40 213; sub_1422A2F90 114 DebugTexture; sub_140222300 105 采样三缓冲 |
 | S17 资产装载/压缩 | 6 | ★sub_142388030 2,950 bzip2 解码; ★sub_14250CD90 1,537 range 解码; ★sub_14123D920 1,087 旗帜图集装载; sub_140B406A0 248 国旗图集; sub_140B40BD0 202 装载屏轮换; sub_140FA30E0 470 库条目实例化 |
 | S18 基础库旁支 | 5 | sub_140E84150 192 批量释放; sub_14029E0F0 118 POD 拷贝; sub_140B6BC60 115 idpair 去重; sub_140210AF0 202 核爆遥测 (素材包误纳); sub_1406A40E0 101 生涯档案提交/上传总入口 (10 步: 本地/云载入合并→保存→云删除/上传路由; §4.28.22) |
@@ -646,3 +646,75 @@ S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 | sub_142232A90 | 118 | continue_game.json 装载 |
 | sub_142204E30 | 387 + sub_142205CF0 234 | 加载进度回调对 |
 | sub_1417B4A80 | 107 | 主菜单保存按钮 |
+
+#### 4.35.16 引擎库资产工具层 (pdxassetutil.cpp 8 函数 + 边界件 2; 书内盲区首批定案)
+
+定位 = clausewitzlib/graphics 引擎库层, 在 game 侧 texturehandler (§4.35.13 S12) /
+gfx_texture_cache 之下: 先经纹理名解析缓存把短名解析为全路径, 再交上层真装载; 网格管线
+= pdxmeshtype.cpp → 本簇 → 设备 ABI。**三子机制 (定案)**:
+
+**① 纹理名→全路径哈希表**: 装载 = InitTextureLookup sub_142266590 (§4.35.6 已锚;
+"Long Task" 并行任务经运行器 sub_14225FF10 以**函数指针**调回调 sub_142266E40 — 此即
+266E40 零直连调用方的原因), 逐文件仅收 .dds/.tga, 键 = 末 '/' 后子串, 命中已有条目 →
+组 {键, 新路径, 旧路径} 入 96B×3 串延迟数组; 消费 sub_142266170 = 扩展名归一 → FNV-1a
+查表 → 未命中原始名再查一遍 → 两空报 "Failed to find texture '%s'" (:1138); 重复警告冲刷
+sub_142267700 = "LookupTaskMutex" SRW 独占下排序 (≤32 插排/32 归并, 缓冲失败减半重试)
+逐条报 "Duplicate texture '%s' found (…)" (:1098)。全局状态: 哈希表桶基 qword_143453318 /
+桶掩码 +330 / 表非空旗 +310 / 查找使能门 byte_1434532F0 / 延迟数组 1434532C0 区 /
+挂起批 shared_ptr qword_1434532E8。**热重载复入 = sub_14209E610 重跑 InitTextureLookup**
+(清表重建, §4.35 热重载 assets 对, 高置信)。条目布局 = {+0 next, +8 prev, +16 键串, +48 值全路径串}。
+
+**② 网格装载管线 (mesh → GPU)**: sub_142264F50 装载入口 (键 object/skeleton/mesh/skin;
+骨骼矩阵 SSE; "Didn't find skeleton in mesh file") → sub_142263D10 缓冲构建 (流键
+p/n/ta/u0-3/tri(必选)/skin; **流对象 +20 = 元素计数按各自单位**; 皮肤校验
+"Bones/Weights doesn't match coordinates!" :994/:998; 返回 1 = 仅网格 / 2 = 网格+皮肤) →
+顶点交错器 sub_142265BB0 (全 f32: pos3×scale | n3 | ta4 | uv0-3 各 2; **零向量防退化**:
+零法线 ny = 0.01 / 零切线 ty = 0.01) + 皮肤缓冲 sub_1422659D0 (**16B/顶点 = 4×u8 骨骼索引 +
+3×f32 权重**, 源 4×i32 负值→0 截 u8) + 索引降频 sub_1422635D0 (u32→u16 SSE shuffle) →
+设备 ABI。材质排列创建 sub_142260A40 (变体后缀 Unlit/Skinned/Shadow/SkinnedShadow/
+SkinnedUnlit/%sAlpha, PDX_MESH_UV1 判据; 失败 throw 门 byte_1430BDF84 否则回退错误材质
+dword_1430BDF7C/80)。动画装载 sub_1422625E0 (.anim info{fps,samples} + 逐骨骼轨道位掩码,
+"Bad animation" 双串)。模板属性解析回调 sub_142266A20 (token 27 name→+8 / 15 texture_* 前缀
+三槽 +40/+72/+104 / 432 shader→+136 / 678 shader_file→+168 / 524 index→+212; token 15 触发名
+待裁; 对象 = 实体/材质模板推定)。
+
+**③ 设备 ABI 槽 35/41 细化 (§4.35.13 92 槽表增补, 高置信)**: 槽 35 off_1430BF8C8 = 
+**CreateVertexBuffer** (本簇 3 消费点全为顶点数据: 交错顶点 + 皮肤缓冲, stride 4×浮点数 / 16) /
+槽 41 off_1430BF8F8 = **CreateIndexBuffer** (u16 降频产物 stride 2) — 原「CreateBuffer /
+CreateBuffer v2」实质 = 顶点/索引双通道; **两槽第 6 参 = 调试源串** ("pdxassetutil.cpp:861/898")。
+
+#### 4.35.17 实体系统 (pdx_entity.cpp 14 函数; 场景图/状态机层, §4.35.16 资产层消费侧)
+
+本簇自身**零设备 ABI 调用** — 经 qword_143453090 资产对象库按名取用 (类型 id **384 = pdxmesh /
+385 = pdxparticle** 鉴型), 网格/音效/粒子/动画库均为邻接消费面。
+
+**三级数据形态 (构建期→运行期, 定案)**: 解析期 (.gfx entity 块) 宿主大对象 (+256 mesh 名 /
++1024 状态数组 600B/条 / +1040 附件数组 272B/条 / +1072 mesh 变体 48B/条 {+8 权重, +16 名} /
++1092 优先级) → 运行期定义 **448B** (+8 名 / +264 mesh 变体向量 / +288 累计权重向量 /
++312 状态向量 632B/条 / +344 附件向量 88B/条 / +392 meshsettings / +416 缩放缺省 1.0 /
++420 优先级 / +424 骨骼 FNV) → 状态记录 632B (+0/+8 状态名 FNV/串, +264/+272 动画名,
++548 循环旗, +552 时长, +576 事件向量 1096B/条, +600 音效容器) / 事件记录 1096B (+0 触发时戳 /
++4 附件点名 / +260 子实体名 →+520 回填 / +1064 音效 / +1072 粒子 / +1080 音效效果 /
++1090 = 播完触发旗) / 附件记录 88B (+32 子附件向量 72B/条 {+32 名, +64 定义指针})。
+名→定义 map 在系统对象 +96。
+
+**装载链 (定案)**: AddEntity 双路径 — merge 初载 sub_142291E30 (同名低优先旧件删匹配条目再追加;
+优先级门 +420 vs +1092; 重复警告 :2277) vs **热重载清空重建 sub_142292800** (置脏旗
+byte_1430BDF8C, +624 载荷经全局释放指针 qword_143468F50 释放); 网格绑定 sub_142287080
+五断言校验集 (:2070/:2071 类型 384 鉴型 / :2081 meshsettings×变体互斥 / :2101 权重 <1 /
+:2109 累计溢出基准 100000 / :2124 变体 mesh 与父一致); 状态构建 sub_142280940 (双 FNV +
+动画库查时长, "Could not find animation" :228) / 事件构建 sub_142280270 (1808B→1096B 逐槽迁移);
+装载后解析趟 sub_142291410 (附件 +64 与事件子实体 +520 按名回填, :167/:324); 热重载修复趟
+sub_1422917A0 (实例群状态重绑定 + 速度从 def+436 重装, "Setting animation failed" :681)。
+
+**运行期 (定案)**: Spawn = sub_14228D650 按名包装 (:2512) → sub_14228CD30 (实例分配 +
+mode 字段 [实例+164 = 1/2/3] 包围盒解析 — 1/2 = mesh 变体包围 / 3 = 附件节点相对 112B/条表)。
+**驱动双路径正交**: ① 地图 Idler 泵 (§4.28 泵链 sub_14222EB50 → sub_142291D40 批量提交 →
+逐实例 **sub_142283E70** [§4.28 定案互证全符: 4 平面 SSE 剔除 → 时钟推进 → 事件扫描 →
+音效/粒子/附挂生成 → 播完销毁] → 自递归 **sub_14228AF80 = 实例逐帧动画/附件更新器** [时间归一/
+TTL 子件销毁/特效表处理/动态子实体生成/双子表递归/播完销毁 — 原标「attachment 定位」系收窄误标]);
+② 精灵创建路径 (entity_sprite.cpp → **sub_14228D730 = dt=0 初始化更新**, 与 AF80 同构但速度项
+×0.0 不推进、子件改派 AF80 — 原标「挂点查找」系误标, 唯一调用方直证)。状态机 API: SetState
+sub_14228A4E0 (+72 换装 + 速度装订 + 选项随机起点) / 挂接迁移 sub_1422833D0
+("has no attach point named" :874)。未决: 事件 +528/+792 名串语义 / 实例 +104/+112 双时钟分工 /
+mode 1/2 具体差别 / 剔除门节点表是否即「四叉树」/ 状态 +600 音效容器内部形态。

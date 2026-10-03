@@ -58,7 +58,7 @@ sub_1418AFFC0 (页签/聚合头) + sub_1418ADFA0 (网格)。
 | 盟友行 | Setup sub_141E7B400 (+2616=国 tag) / Refresh sub_141E7B700 | dip+736 capitulated / cc+5210 major / **cc+4056 collaboration count@+52** / war rel token 14346+16+20 | 派系成员 24B 元 {tag@0, 旗@+16}; wargoal/collaboration 三图标选择 | war_ally_entry | 定案 |
 | 派系行 | populate | **CFaction\*@+2656 (0=无派系聚合行)** + 成员向量副本@+2664; 三聚合列 (divisions/ic/casualties) sub_141E79030 | §4.5 ✓; 组 48B 元形态 | DIPLOMACY_NO_FACTION / war_faction_entry | 定案 |
 | 关系条 | target 链 | +56 本国 tag (视图件自有) → dip+8 active_relations[对方idx] → **rs+744 _pWarRelation**; **+40 token 10637 / +44 侧模式 (1=initiator/2=receiver) 均属 CWarRelationStripView 自有字段** (基 ctor sub_141CA6730 写入; war 对象 writer sub_140D2DE80 无 10637) | relationstripview.cpp 铁证; instigator/defender 选择子 sub_140D230C0/D0D960 (war+344 复用) | relation_strip_view | 定案 |
-| war rel +72 / +73 双字节 | CRelation 基 | **+72 = 序列化 bool** (writer token 10469 / reader case 10469) / **+73 = 非序列化运行时抑制门** (8 读点语义统一: 非 0 → UI 视同关系不存在); CWarRelation 自身无写点。写点账目更正: sub_140D1E470 的 +72/+73 写 = **复位拷贝** (默认模板值 0, relation.cpp:2975 清链, dtor 调用) — 移列清点侧; sub_140E17F30 = ≥29 态通用状态机, case 9 `+73=1` 宿主类名未证 = CRelation, 归属降推定。**普通战争不置位 (活体直证)**: 两对战争 (rs+744 war 对象非空) 跑 6.5 个游戏月, +72/+73 读值恒 0 — 置位场景收窄为 relation.cpp assert 语境的 keep_war_relations 类保留旗 (断战保留关系类特殊场景), 需该场景会话方可定置位点 | sub_140D2DAA0 / sub_140D2B100 / sub_140D17AB0 (双字节清) / sub_140D1E470 (复位拷贝, 更正入清点) | — | 定案 (+72/+73 语义 + 普通战争恒 0) / 待裁 (保留旗置位点; 140E17F30 归属推定) |
+| war rel +72 / +73 双字节 | CRelation 基 | **+72 = 序列化 bool** (writer token 10469 / reader case 10469) / **+73 = 非序列化运行时抑制门** (8 读点语义统一: 非 0 → UI 视同关系不存在); CWarRelation 自身无写点。写点账目更正: sub_140D1E470 的 +72/+73 写 = **复位拷贝** (默认模板值 0, relation.cpp:2975 清链, dtor 调用) — 移列清点侧; sub_140E17F30 = ≥29 态通用状态机, case 9 `+73=1` 宿主类名未证 = CRelation, 归属降推定。**普通战争不置位 (活体直证)**: 两对战争 (rs+744 war 对象非空) 跑 6.5 个游戏月, +72/+73 读值恒 0 — **置位点定案 = CWarRelation::SetParticipants (0x140D24EB0) 同阵营腐局兜底** (sub_140D3F440 判真 → "Game corrupted" 日志 + rel+72 = 1, 对象照建永不生效; 业务名 = **IsCancelMarker**, relation.cpp:2533/:5481 断言实名, 全族 Add/Remove 以 !IsCancelMarker 前置; 普通战争恒 0 活体直证不冲突 — 该路径仅腐局触发) | sub_140D2DAA0 / sub_140D2B100 / sub_140D17AB0 (双字节清) / sub_140D1E470 (复位拷贝, 更正入清点) / sub_140D24EB0 (腐局置位, 唯一写点) | — | 定案 (+72/+73 语义 + 置位点 = 腐局兜底 IsCancelMarker + 普通战争恒 0) / 推定 (140E17F30 归属) |
 
 
 **战争总览族虚表普查**（1.19.3 直读；零覆写位全未变）：
@@ -1194,6 +1194,28 @@ CAirTheatre (sizeof 88 = 0x58; ctor sub_1414EB6A0; writer 0x1414EC5A0 / reader 0
 
 air_theatre idpair = {类型 77, serial = ++*(u32*)(*(gs+1680)+24)}。
 **宿主定案 = CCountry+384** {begin@384, cap@392, count@396, alloc@400}, 元素 8B CAirTheatre*; 块键 19949 由 CCountry 主 writer (sub_1407191B0) / reader (sub_140705CE0) 发射 — **空军剧场组织随国存盘**。
+
+**运行期所有权操作层** (airtheatre.cpp 3 函定案; 全纯运行期无序列化行为, 返回 char 1 成功/0 no-op):
+
+| VA | 实名 | 断言 | 语义 |
+|---|---|---|---|
+| 0x1414EC290 | CAirTheatre 过继组 | airtheatre.cpp:193 "Air group has to be connected to a theatre" | 组从旧属 theatre+64 保序摘除 → 挂目标 theatre+64 → group+112 = 新 theatre idpair; 组不在旧表返 0 |
+| 0x1414EBA00 | CAirGroup::StealWing | :78 "Air wing has a valid air group when another group tries to steal it" | 组+120 翼表查重 → 断言翼当前无组 → wing real+64 = 组 idpair → 翼句柄 push 组+120 |
+| 0x1414EBC80 | CAirTheatre::DeleteAirGroup | :216 "Trying to delete an air group from a theatre it does not belong to" | theatre+64 摘除 → group+112 清空句柄 qword_14333D528 → 解析组后 vt[0] deleting dtor 删除; **本身不摘翼**, 悬挂由调用方契约维护 |
+
+所有权树 = theatre → group → wing 三层 (翼不直接挂 theatre): 翼换组 = RemoveWing
+sub_1414EC080 (组+120 保序摘 + wing+64 清) + StealWing 两步, :78 断言守「两步间翼无组」
+契约; 组换 theatre = 过继组单步 (翼两级间接无感); 删组 = 调用方先逐翼 EC080 再 EBC80。
+调用拓扑: 删翼级联 sub_140F5D8C0 (airwing.cpp:84 断言 "Air wing was connected to an air
+group without theatre" — 守 EBC80 契约的运行期校验; 翼出账 → 摘组 → 组空则删组 → theatre
+空则移除 → 删翼) / 批量删组收口器 sub_14193F1B0 (首败即停 + 成功条目压实 + 返删除数) /
+剧场合并 sub_141945610 (strategicaircommands.cpp:1877 断言; 无目标 malloc(0x58) 经 EB6A0
+新建 → `while(源+76 > 0)` 全量过继 → 尾翼列表重挂) / CMoveAirWingToAirGroupCommand 执行体
+sub_141945DE0 经批量包装 sub_1414EBC30 调 StealWing。单元地图: 0x1414EB410-EC5A0 连续带
+8 函同域 (EB410 = CAirGroup 原位 ctor, `&CAirGroup::vftable'` 符号直证, 布局 +8 idpair/
++16 注册旗/+32 icon/+48 CColor vptr/+80 名 "NEW_THEATER_GROUP"/+112 theatre 句柄/+120 翼表;
+EB6A0 = CAirTheatre ctor; EC080 = RemoveWing; EBC30 = StealWings 批量包装)。
+断言门通式 = `byte_1435E1B52 && !闩字节` 二重门 (闩 0x14338A764-66 相邻, 每点一发即闩)。
 
 GUI 消费锚 (CTheatreSelector 族, vt 0x142A10E80):
 
@@ -3047,7 +3069,7 @@ ctor sub_1414991A0。
 | SSpriteFramePair (48B) | **非 Reader** — 运行时 sprite 选择值对象 | {vt@0, string GFX 名@8 (32B), int 旗@40 (ctor 恒 1, 待裁)}; 海军活动 GUI 状态机 switch (sub_141E28DA0 ×12) / 占领法图标 (COccupationLaw ctor 内嵌) 等 6+ 宿主按状态填不同 GFX 串 |
 | CEntitySprite +1392 内嵌 (≥104B) | SGfxSettingsReader 持久内嵌 (S*Reader 族唯一例外) | owner 回指 @+1456 = a1, 双 SSO 串 @+1424/+1464, sprite settings reload 通道形态 (高置信, 逐 token 语义待裁); CEntitySprite 本体未决 |
 | SAudioContext / SSDLAudioContext | 音频后端基类+SDL 派生 (≥2.5KB 运行时件) | 基 dtor 清 +2088/+2160 双 RH 表 (48B 元) + 释放 +2376; SDL deleting dtor free Block[309] @+2472; 存在账, 布局不展开 |
-| CEquipmentUpgradeDesignerView (≈2744B) | 装备「从既有变体升级」子设计窗本体 | 窗 equipment_upgrade_designer_window (宿主 0x141F729C0; 元素 upgrade_assigned_industrial_org / variant_name 等); ctor 0x141F6F120: 双 CLegacyButtonObserverGlue (+8/+1296) / +2640 = MIO 检索指针 (sub_140C94220(qword_143339BE8), 检索键待裁) / +2656 变体名 SSO / **+2704 NIndustrialOrganisation::CTraitBonus 内嵌** (§4.8.12b 同型); 三个调用域共用 (角色钮 / ship_refit / plane_designer_model_list); 装备设计器总装配锚 = 0x141788E70 (tank/ship/plane_designer_model_preview 全簇) |
+| CEquipmentUpgradeDesignerView (≈2744B) | 装备「从既有变体升级」子设计窗本体 | 窗 equipment_upgrade_designer_window (宿主 0x141F729C0; 元素 upgrade_assigned_industrial_org / variant_name 等); ctor 0x141F6F120: 双 CLegacyButtonObserverGlue (+8/+1296) / +2640 = MIO 检索指针 (sub_140C94220(qword_143339BE8), 检索键待裁) / +2656 变体名 SSO / **+2704 NIndustrialOrganisation::CTraitBonus 内嵌** (§4.8.12b 同型); 三个调用域共用 (角色钮 / ship_refit / plane_designer_model_list); 装备设计器总装配锚 = 0x141788E70 = CEquipmentDesignerView::Create (lambda 符号直证, §4.23.10) |
 | CEquipmentUpgradeView / CEquipmentModuleSlotView / CEquipmentRoleSelectionWindow | 设计器行件三件 (零序列化) | UpgradeView = 已获变体行步进子视图 (ctor 0x141DDE000: 双列表控制器 +224/+1512, btn_inc/btn_dec/level/name 四元素); ModuleSlotView 真 ctor 0x141DDC320; RoleSelectionWindow 真 ctor 0x141F6D910 |
 
 
@@ -3055,7 +3077,9 @@ ctor sub_1414991A0。
 
 簇定性: buttonwrapper.h = 单一非模板具体类 **CButtonWrapper (1368B)** + 两处内联按钮访问器 (头文件行 34/40); 簇 64 函数全是访问器内联展开落点 (2 个落出体副本 + 62 个消费者, 跨 ≥20 GUI 域) — 非模板实例族。布局 (定案, ctor 0x140B77E10 + 三内联构造点互锁): +0 vftable / +8 _pButton / +16..+1360 内嵌 CButtonObserverGlue 派生胶水 / +1360 尾字段 (语义未决)。访问器对 = sub_140F28770 (行 34, 23 函数全只读/tooltip 语境) / sub_140F28EA0 (行 40, 41 函数全变异语境) — 体全同仅断言行号异 (不被 ICF 合并), **const/非 const 双过载** (推定)。断言三件套: 门 byte_1435E1B52 + 按 (表达式, 文件, 行) 全局去重旗 byte_14333D404/405 + 处理器 sub_1424C8080。
 
-CButton 槽语义 (定案): **+568 IsNullObject 判定** / **+176 SetFrame (帧 1 常态 / 2 选中)** — 页点/单选钮选中态实现; +120/128 与 +648/656 两对显隐方向推定未决。
+CButton 槽语义 (定案): **+568 IsNullObject 判定** / **+176 SetFrame (帧 1 常态 / 2 选中)** — 页点/单选钮选中态实现; **显隐槽方向定案 (df87 三证收敛, 原推定升档)**: **vt[+120] = Show / vt[+128] = Hide** (对偶分支 sub_14202A1B0 同函数内双语境 + teardown/应用语义对偶 + 隐藏扫描全 +128 三证) / **vt[+648] = Show / vt[+656] = Hide** (badge 显隐条件二选一 sub_141BBF940 + 布尔直选 sub_141D1F7D0); **wrapper+117 bit0x10 = hidden 态旗** (+120 路径清 `&= ~0x10` / +128 路径置 `|= 0x10`, 与页点 +165 位 0x10 同律)。
+
+**wrapper 布局与回调形态增补 (定案/高置信批)**: +16 (glue 首槽) 存**按钮指针副本** (FillTooltip hovered 比对基准); **+1368/+1376 尾块双对象成对** (+1368 对象 A = 文案提供者 / +1376 处理件; 访问器**第三形态** = 内联展开时 this = wrapper+1376 尾块件, 断言反取 `*(this−1376)`; BW34 断言 15 处内联 / BW40 30 处)。**CTooltipHandler FillTooltip 形态学 (定案)**: 簇内 15+ 个 `char f(this, hovered, out)` 无调用者函数 = 各 GUI 件次虚表 FillTooltip 覆写, 通用前置 = hovered 与 `_pButton` 指针比对, 不等即返 0; 文案 SSO 串经 sub_140129C10 转出 out。**过滤面板三兄弟模式应用核心** = sub_141FFB030 / sub_14200B8E0 / sub_142058A30 (体同构: 脏旗 host+4088 → 三 widget teardown → radio4/radio5 帧扫 → 按 mode 内联显扫); **widget 物理顺序** host+2656 = infantry / +2664 = tank / +2672 = plane (行数 4/5/4 双写直证); **行数组 = N 数据行 + 1 尾随行** (teardown 拆 N+1 / radio 扫 N; 尾随行 = add-filter 行推定待裁)。**NDoctrines::CEntryButton::Setup sub_141D23290** = 深建模式实例 (sub_1422DC710 栈 1376B wrapper 深建 "button" 子件挂 this+40, context 存 +1432)。
 
 按钮包装宿主新件 (RTTI 直证):
 
@@ -3066,3 +3090,17 @@ CButton 槽语义 (定案): **+568 IsNullObject 判定** / **+176 SetFrame (帧 
 | NCareerProfile::CCareerProfilePageDot | 页点条目 (条目+80 wrapper / +165 位 0x10 选中旗 / SetFrame 选中?2:1); 刷新器 sub_141FEEC30 (池 +2752/+2764, 选中 +2776) |
 | NAirSelectionUI::NQuickWingDeployment::CWingQuickDeployWidget | quick_wing_deployment_item; 行构造/绑定 sub_14205C3B0 — NAirSelectionUI 8 派生表外新件 |
 | CShipStatsViewAirWingEntry | 行内容刷新器 = sub_141BF0C60 (写其 vftable; §4.31.42 类本体 80B 零覆写) |
+
+df87 簇新定案大件 (buttonwrapper 消费侧, 域归属靠元素名串链):
+
+| 函数 | 身份 | 要点 |
+|---|---|---|
+| sub_14157F870 (1,564) | **政治视图按钮全路由/tooltip** | leader/party/ideology/elections/pol_faction_icon/pie_chart/add_national_goal (CLICK_OPEN_FOCUS)/drop_focus (FOCUS_CANCEL_BUTTON_DESC)/remove_goal (POLITICS_RESELECT_GOAL)/dismantle_faction (DIPLOMACY_DISMANTLE_FACTION_TITLE)/manage_occupied_territories 全路由表 |
+| sub_1416DFC80 (948) | **驻防命令 + 战计执行速度刷新** | garrison_order_headline / BATTLE_PLANS_X_WILL_BE_ASSIGNED / GFX_BPT_execute_mid/fast/slow; 调用者双域 = 战计工具窗 sub_1416DDAB0 + orders 域 sub_140B68600 (§4.24.14 驻防链直连边) |
+| sub_141F1D850 / 141F21D30 / 142024B30 / 1420261F0 / 141FBAFE0 | **MIO tooltip 五件** | 政策条目 / 任务容量 (断言 "pOrg" industrial_org_list_item.cpp:212, wrapper@this+15888) / 解锁特质弹窗两变体 / 详情窗历史升级行; INDUSTRIAL_ORG_* loc 族 |
+| sub_140F2A5F0 (606) | 阵营情报窗 FillTooltip | FACTION_INTEL_HEAD_OF_SPYMASTER / AGENCY_DEFENSE_LEVEL_* / CREATE_AGENCY_* 等 |
+| sub_141DD53B0 (202) | **学说窗口 folder tab 刷新** | tab 名数组 @+88 步进 72B / 选中名 SSO @+1552 / 副本区 +1584、+3088 (门 +4592); 子窗 "button" 两级查找 vt[+104] 直取 ∨ vt[+536] 深查; SetFrame((idx==选中)+1) — 帧号 ±1 双分支待裁 |
+| sub_141B350E0 (435) / 141B34F70 | 袭击反馈弹窗行构造 + dismiss tooltip | raid_feedback_view 窗族 (§4.33 raid 命令同窗) |
+| sub_141C27A20 (430) | 1456B 池化 gridbox 条目刷新 | gridbox.h:654 断言; 池装配 sub_141476030 (条目 ctor 141C26510 malloc 1456 / 绑定 141C27950 +48 目标 id); 池挂两大宿主 +12608 / +6880 (0x14147 段, 类名待裁) |
+| sub_141BB7910 / 141BBF940 | profile badge 条目 + tooltip 显隐 | "pictur" 子件 SetTexture ← idpair 解引; 会话 tag 比对分叉; +648/656 方向关键证据 |
+| 其余 FillTooltip/行构造 20 件 | 间谍首脑条目 / grand doctrine 槽 / raid 过滤器 / 建筑受损 / naval_headquarter / 采购合同取消 / 特遣母港 / 科学家招募钮 / 阵营目标 glow 帧刷 / 阵营规则组行 / 阵营成员升级条目 / 国际市场过滤钮对 | 各 GUI 域元素名可检索, 详细见 archive findings |
