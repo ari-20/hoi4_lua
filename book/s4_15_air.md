@@ -509,3 +509,29 @@ active countries."; gs+2536 以 byte 指针入帧, 步 6 经 sub_140BB3800 消�
 (inline PRNG 10% 概率, 唯一调用者 = ProcessAirBasesHourly sub_140C5EFC0); 无断言函数 (HourlyUpdate
 并行解算 sub_140C58660 / lambda 簇 / 制空惩罚 sub_140C54230 / 容量访问链 sub_140C65490 族) 属本 cpp
 逻辑但体无断言串, 入书时按行注/调用者锚勿按 cpp 归属找。
+
+#### 4.15.15 aces.cpp 王牌域增补 (创建工厂与死亡 on_action 七槽; 8 函闭环)
+
+清册 (8/8 函体内含 aces.cpp 路径锚): 创建主工厂 0x140618860 (1091) / CAce::Load reader
+0x14061AFB0 (177, 11 键全表) / CAcesDatabase 根 Parse 0x140618080 (154, 根作用域只认
+modifiers(12774), `@` 前缀引用旁路) / AddItem 0x140618600 (103, §4.32 add_ace 互证全过) /
+HandleOnKilled 0x14061AA90 (69, 三断言 + 一次性 on_action 派发) / Kill 0x14061BBA0 (35,
++344=0/+348 kill_type/+352 killer_name/+360 killer_country) / EnsureId 0x14061AD90 (14,
+§4.28.17 勘误注) / EnsurePortrait 0x14061AF70 (10, +340 惰性全局流掷点)。
+
+**创建工厂五阶段** (定案): 私流双哈希 RNG → def 加权预选 (翼侧机型掩码门) → 名三重组优先
+(triple 自带 modifier 名可覆盖 def) → 池装配兜底 (性别比掷点 + 国规则门 + 同名占用衰减
+avail 99999/used 0) → malloc 0x178 建 CAce 入国容器+挂翼; 两消费点 (airmission.cpp
+:2111/:2898) 均尾随 on_ace_promoted。
+
+**CAce 布局 9 增补行** (定案): +16/+32 CModifier / +40 / +224 owner 国 / +240/+272/+304
+三名串 / +348 kill_type / +352/+360 killer / +364 handled。CNameDatabase 条目形状 = 男女
+三池 ×3 + 三重组表 +328 镜像。
+
+**王牌死亡 on_action 七槽全实名 + 触发分支表** (定案; 补全 §4.12.9b on_action 族王牌分支):
+on_aces_killed_each_other / on_ace_killed_by_ace / on_ace_killed_other_ace / on_ace_killed /
+on_ace_killed_on_accident / on_non_ace_killed_other_ace / on_ace_promoted; 派发链 = 三路 Kill
+记账 → sub_140C57D30 逐日清扫 (alive==0 && !handled) → HandleOnKilled。
+
+未决: def+64→ace+4B 语义 / 翼侧掩码链中间对象 (+56→+32→+1448) / kill_type 全枚举
+(观测 0/1/2) / 名组 lookup 键 a3 语义。

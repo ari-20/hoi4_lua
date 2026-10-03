@@ -99,6 +99,8 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +2224 | CPersistent* 向量 | temporary_resource_list 容器数据指针 (块键 15754) | 元素 **32B 多态 CPersistent 后代** (逐条 sub_1424C24F0 = `(*(elem vt[1]))(elem, writer)` 即元素自身 vt[1] 自序列化, 尾原子 16; 非 dynamic_modifiers/SDynamicModifierEntry — 后者 64B); reader sub_1409CF450; Reset 逐条虚析构后清 count; **元素具体类名待裁 (无 RTTI 直证)** | |
 | +2225..+2235 | — | = temporary_resource_list {d@2224, cap@2232, c@2236} (15754; 条目 32B 多态) 内部 | | |
 | +2236 | uint32 | temporary_resource_list 容器计数 | | |
+
+> temporary_resource_list 带锚: 0x14066/0x14067 区 = 州临时资源带 (sub_140670000 直调 **CState::STemporaryResourceData::Writer** — +2224 元素 32B 多态后代的具名候选; 同带 sub_140673350; 消费者 sub_1402891F0 = HIDDEN/VISIBLE GUI 可见性解析)。
 | +2237..+2247 | — | = temporary_resource_list {alloc@2240..2247} 尾 + 三 RH 表头全形 {qword@0 (ctor 未显式初始化), data@+8 = 空表哨兵 &unk_143090170, count@+16, mask@+20, extra u8@+24, lf f32@+28 = 0.9} (桶 208B); 对象尾 = +2344, 之后无字段 | | |
 | +2248 | 匿名结构 (208B 形状) RH 桶数组 | per-tag 值对 RH 表 A | 208B 桶 {used u8@+4, key tag u32@+8, CModifier 内嵌@+16 (pairs 容器 {data@+32, c@+44} 16B 条 {token, i64}, 与 +2256 行同构)}; Reset sub_1409D70F0, tag 查找 sub_1409D8B10 (定案形态) | |
 | +2256 | CModifier* RH 桶数组 | 每国州级 modifier 哈希表 | 桶 208B = {hash@0, dist u8@+4, tag@+8, **CModifier 内嵌@+16**}; 掩码@2268 / 空桶回退@2272; 命中谓词 = tag 相等 ‖ sub_140BB52F0 同原初国 | 定案: 桶载 CModifier 内嵌 (vt+357 签名 + pairs 四元组双证, 探针); 旧「值对数组」读法 = CModifier.pairs@+32 误位 |
@@ -112,7 +114,7 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 对象尾 = +2344。⚠ +2280 行旧互证读法 {count@2296, cap@2300} 与全形推导
 (mask@2296 / count@2300) 不合 — 定案: 表头全形成立, **mask@2296 / count@2300** 。
 
-**stateDef = CStateTemplate** (原「CStateDatabase 条目」正名; 464B = 0x1D0, Insert malloc(0x1D0) 直证; vt 0x1429434D0; ParseKey sub_140ABE640 12 token case; RTTI COL 0x1429434D0) — 锚定 = st+48 → 单例 qword_14332F070 (库本体 120B: 容器 A 州条目表 @40 按州 id 直接索引 {cap@48, count@52 含 null 槽, 活体 1082} / 容器 B 全局色表 @64 / 容器 C 大陆表 @88 / 有效条目计数@112, 活体 1081; null 对象 = qword_143339BA0):
+**stateDef = CStateTemplate** (原「CStateDatabase 条目」正名; 464B = 0x1D0, Insert malloc(0x1D0) 直证; vt 0x1429434D0; ParseKey sub_140ABE640 **14 case** (13 数据键 + color skip — 勘误: 原「12 token case」计数不全); RTTI COL 0x1429434D0) — 锚定 = st+48 → 单例 qword_14332F070 (库本体 120B: 容器 A 州条目表 @40 按州 id 直接索引 {cap@48, count@52 含 null 槽, 活体 1082} / 容器 B 全局色表 @64 / 容器 C 大陆表 @88 / 有效条目计数@112, 活体 1081; null 对象 = qword_143339BA0):
 
 | 偏移 | 类型 | 名称 | 键/备注 |
 |---|---|---|---|
@@ -126,7 +128,7 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 | +176 | CStateHistory (72B) 内嵌 | history 块 (键 10293 → vt[3]; +240 宿主槽) | 10293 |
 | +248 | 向量 24B | 静态资源条数组 {d@248, cap@256, **count@260**, alloc@264}; 元 16B {量 i64@0, res_id u32@8} | 11842 resources |
 | +272 | u32 向量 24B | **邻接州 id 数组** {d@272, cap@280, count@284, alloc@288} — PostLoad 并行 sub_140ABCB30 建 (本州各省 prov+112/+124 经 provdb+40 省→州映射聚合去重排自身); 消费端 GetNeighborState sub_1409DB740 / owner 变更连锁 sub_1409DFC20 / §4.32 触发器链 | 非 parse 键 (定案) |
-| +296 | 向量 24B | impassable_ignored_links (**邻接州 id 排除表** — 勘误: 原记「省 id 列表」, best-owner 计算 sub_1409D7BC0 实与邻州对象 +88 州 id 比对命中即跳过计分; 非 impassable 州 PostParse 清零并警告 statetemplate.cpp:253) | 10749 |
+| +296 | 向量 24B | impassable_ignored_links (**邻接州 id 排除表** — 勘误: 原记「省 id 列表」, best-owner 计算 sub_1409D7BC0 实与邻州对象 +88 州 id 比对命中即跳过计分; 非 impassable 州 PostParse 清零并警告 statetemplate.cpp:253 — 精化: 只清 count@+308, data@+296 保留) | 10749 |
 | +320 | CContinent* | **大陆条目指针** (ctor = null 对象; PostParse 按首省 province+211 查容器 C 落位; 与 CStrategicRegion 无涉; 大陆 = map/continent.txt continents 块 7 条, 元 80B {名 SSO@8, 旗@40, id@44, 序号@48, 州表 vec@56}) | 非 parse 键 |
 | +328 | int32 | 州中心 X (省 bbox prov+136 聚合, 跨日界线归一 sub_140ABCE00) | 非 parse 键 |
 | +332 | int32 | 州中心 Y (同上) | 非 parse 键 |
@@ -197,7 +199,7 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 | +648 | 匿名结构 (8B 对) | force_disable_resistance 容器数据指针 {data@+648, count@+660} | 容器非空即写 (独立于数值门, 全零阻力州也落) | 元素 8B {key tag_id@0, value tag_id@4}; tid 0 渲染 "---" (writer 块名走变量非字面量; 州 996/459/460 探针定案) |
 | +649..+659 | — | = force_disable_resistance {cap@656, c@660} 头 | | |
 | +660 | uint32 | force_disable_resistance 容器计数 | | |
-| +680 | int64 | 法侧 MODIFIER_RESISTANCE_TARGET(478) 求和缓存 (st+1296; 写者 sub_1409E02C0 州修正重算 a3 出参) | 不序列化 | 定案 |
+| +680 | int64 | **compliance 合规值** (三证: 和会代价合规折扣按本值对 PEACE_COST_FACTOR_COMPLIANCE_STEPS 阈值阶梯比较 peacecosthelper.cpp:520 / dp+64 平均顺从 = Σ st+680 / gs 日更 compliance 通道 — 勘误: 原「MODIFIER_RESISTANCE_TARGET 求和缓存」标签系混记; 写者 sub_1409E02C0 州修正重算 a3 出参记载为真, 478 修正求和与 compliance 的派生关系待裁) | 不序列化 | 语义定案/写者链待裁 |
 | +688 | int64 | 法侧 MODIFIER_REQUIRED_GARRISON_FACTOR(499) 求和缓存 (st+1304; 同上 a4 出参; sub_140F94100 驻军需求 a4=1 扣除项 = 驻军师自评口径) | 不序列化 | 定案 |
 | +696 | uint8 | 脏旗 (add/set_compliance 直写 1; SetOccupiedCountry/历史重置首行直写 1) | 不序列化 | 定案 |
 | +704 | int64 | 上次通知快照·抵抗 (变化检测: \|Δ\|≥1e5 或跨 0/满 → 快照更新 + cr+696 脏) | 不序列化 | 定案 |
@@ -495,3 +497,27 @@ A 表读值器 sub_1409D8F90 (桶 208B, miss 顺 extra 区再退 st+1368 基表)
 sub_1409D3800 (stateDef+328/+332 中心); 建筑加级器 sub_1409E08B0 (8B 元 {token, u16 级} →
 CBuilding+488 累加)。未决: 破坏伤害钳位裁定; sub_14152A2B0 仲裁细节; CBuilding+488 语义;
 A 表 LOCAL_* 填充点 (疑 sub_1409D54A0 链); 首都链与国侧得失州四件套 (CCountry 域)。
+
+#### 4.13.3a stateDef 装载与校验增补 (statetemplate.cpp 6 函闭环)
+
+清册 (6/6 函体内含 statetemplate.cpp 路径锚): ParseKey 0x140ABE640 (530, **vt[4] token 钩子**
+PE 直读) / LoadContinents 0x140ABDE10 (408, token 12382 门, 80B 大陆对象 {+40 旗/+44 名 hash
+id/+48 插入序/+56 州表}) / Insert 0x140ABC510 (290, "state" 块工厂) / PostParse 校验
+0x140ABD860 (219, **vt[8]**) / Load + 全表校验 0x140ABD660 (117) / SetId 双门 0x140ABF010 (60)。
+
+**装载链并行机制** (定案): 协调器 0x140AB5F4C0 → 0x140AB64AA0 → Load 0x140ABD660 (文件枚举)
+→ 0x140ABB220 逐文件 "Short Task" 异步解析 → **串行 Insert** (malloc 0x1D0 + Parse; id<1 报错;
+容器 A 空隙填 null 对象 qword_143339BA0; ID 冲突 = 编译期日志 + 运行期警告, 旧条目胜新对象弃置;
+a3 → +96 主串 / a4 → +128 次串 = 解析产物文件条目双串); 完成后 :657 **全表 Missing State ID
+校验** (1..count−1 逐槽 +168 门)。PostParse 四检查点: 类别缺失 :242 / 零人口 :244 / 非
+impassable 州 force_link_ownership_to :248 (清 +344) / impassable_ignored_links :253 (清
+count@+308, data 保留); 海岸旗 +349 重算 + 大陆 +320 按首省 prov+211 一次性解析。
+
+**'@' 宏前缀**: ParseKey 值解析支持 '@' 前缀宏形 (与 §4.28 命令域 '@' 源位置捕获同族形态)。
+
+**运行期新建州模板回调** (定案): 0x141B590C0 = 自由 id 栈分配 + "STATE_N" 命名 + 带名 ctor
+sub_140ABBDD0, delegate 注册于 sub_141B56FC0; Reload 路径 sub_141B5AF50 (:281 assert)。
+SetId 双门 = 未注册才可改 (:377) / 新 id 槽可顶替零省占位 (:383)。
+
+未决: vt[2]/vt[11] 语义 / :583 日志数值实参 / 0x141B590C0 宿主对象 / colors 装载 (容器 B) /
+海岸旗第二重算点。

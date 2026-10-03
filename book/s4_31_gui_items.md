@@ -2732,13 +2732,25 @@ getter 家族 17 型 (双轨: 直查 = 虚表槽 / 递归 = 辅助函数): GetIn
 | +7456 | CTernary 注册表 (64B) | CStandardlistbox* 型化子件表 |
 | +7520 | CTernary 注册表 (64B) | CSmoothListbox* 型化子件表 |
 | +7584 | CTernary 注册表 (64B) | CScrollbar* 型化子件表 |
-| +7616 | 空闲链 | {head, +7624, count@+7632} |
+| +7616 | 空闲链 | {head, +7624, count@+7632} — 归属精化: = CScrollbar CTernary 注册表内部空闲链, 非窗级独立成员 |
 | +7648 | 40B 元数组 | **子件名→widget 对象登记表** (元 {SSO 名串 32B, 对象指针@+32}; 销毁器 sub_1401756F0; 消费 sub_142327A30 逐元调 obj vt[9]; {cap@+7656, count@+7660, alloc@+7664}) |
-| +7672..+7816 | 七个 24B 链表头 | **按类型分组的控件名登记链** (+7672/+7696/+7720/+7744/+7768/+7792/+7816 步进 24; 节点 48B {SSO 控件名, next@+40}; 销毁器 sub_14061C4F0; 遍历按名查 CTernary 表 (+7264 CTextBox/+7392 CCheckBox/+7456 CStandardlistbox) 后调 vt+464) |
+| +7672..+7816 | 七个 24B 链表头 | **按类型分组的控件名登记链** (+7672/+7696/+7720/+7744/+7768/+7792/+7816 步进 24; 节点 **56B** {SSO 控件名 32B, prev@+32, next@+40, byte@+48} (malloc 0x38 直证 — 勘误: 原记 48B); 销毁器 sub_14061C4F0; 遍历按名查 CTernary 表 (+7264 CTextBox/+7392 CCheckBox/+7456 CStandardlistbox) 后调 vt+464) |
 | +7840 | 精灵/纹理引用 | 释放经 sub_142237FA0 |
 | +7888 | MSVC 串 | cap@+7912 |
 
 > 六张 CTernary 注册表 = GetChild\<类型\>(名) 型化查找底座（用途推定）；ctor sub_142321570（35 参，.gui 型 + 布局 + 约三十个子件绑定出参展平）；teardown 0x1423248E0，删除序 dtor 0x1423253C0；工厂 0x1422F7210 / 0x1422F81E0（查型委托 a1+68，失败 fallback sub_1422F7DD0 现建型）；主表 82 槽 [1][2][3] 窗族共享、[4][5] = ret1/guard_nop；次表 79 槽与容器窗差异 32 槽（0x14232xxxx 族自有实现），[0] 延迟删除标记同址。
+> **ctor 机制增补** (0x142321570, 2694 行; fixedwindow.cpp 6 函闭环): 36 形参含 this; 基 ctor →
+> 双 vtable → **5×1288B 绑定组** (12 回调槽, 逐槽语义待裁) → 9×48B 组 (对象向量+名字向量, 内嵌
+> 共享分配器单例 off_143085170) → 六张 CTernary → 7 链头 → 逐类型装配环 (14 个 typed 工厂 +
+> vt+232 设位 + 越界校验 main[81]: `x>w || y>h` 仅告警不裁剪) → 锚点枚举定位 (1..6 六档停靠
+> 全表) → a27 重定位环 (11 级查找瀑布; +7840 368B 对象兼任子件重定位位置源)。
+> **⚠ 次表 this 调整定式** (排雷): 次表基址 0x142B4F548 = B2 子对象@+48, **次表方法 this =
+> obj+48** — 反编译偏移需 +48 还原为对象视角, 否则得出「+7216 多态分发 vs 构造清零」假矛盾
+> (capstone 字节级定案)。**CTernary<T\*> = 三叉搜索树** (根@+8, 节点 40B, tolower 键;
+> Find/Insert/Clear 共享实现 0x14225C4B0/C4F0/A4B0/D9A0) + CScrollbar 表平铺条目双通道;
+> sub_142325400 = 查找**或插入** (先 contains 后 get 是必要次序)。子件名查找 resolver =
+> 次表 sec[60]: 组2 平行数组 → CTextBox 树 → CEditBox 树 → +7648 登记表 → 断言返 0;
+> NOT IMPLEMENTED 桩 main[24] 恒返 CGui+552 兜底空件。
 
 **CMultiSpriteButton (552B)**：
 

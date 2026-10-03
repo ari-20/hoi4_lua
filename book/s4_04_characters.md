@@ -288,12 +288,12 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 | 偏移 | 类型 | 名称 | 语义 |
 |---|---|---|---|
 | +0 | vtable | CCharacterManager (vt 0x1427e5d30; sizeof 160B; writer vt[2] 0x1406BACB0 / loader vt[4] 0x1406BA1C0 / Load 壳 vt[3] 0x1406B9BB0 载入前清两容器与三图) | 旧「+0 恒空容器」系 vtable+next_id 误读 (负定案) |
-| +8 | uint32 | next_id (键 19495 next_character_id; 写者 = 新局批产 sub_1406B97D0 + generate_character 效果 Execute 0x140357BE0 → sub_1406B7510 + **随机创建双路 sub_1406B8060/sub_1406B82A0** [CID 派发点各 ++ 一次, character_manager 批补录]) | 角色 id 分配器 (ctor 初值 = 1) |
+| +8 | uint32 | next_id (键 19495 next_character_id; 写者 = 新局批产 sub_1406B97D0 + generate_character 效果 Execute 0x140357BE0 → sub_1406B7510 + **随机创建双路 sub_1406B8060/sub_1406B82A0** [CID 派发点各 ++ 一次, character_manager 批补录] + **复制双路 sub_1406B7140/sub_1406B71D0** (两函体首 `v3=*(mgr+8); *(mgr+8)=v3+1`, 以 {73, v3} 组 CID — character.cpp 批补录]) | 角色 id 分配器 (ctor 初值 = 1) |
 | +16 | CCharacter* | historical 容器数据指针 (键 12322; 元素键 19478 character, null assert) |  |
 | +17..+27 | 匿名结构 (11B 形状) | = historical 容器 data 尾 (+17..+23) + cap u32@+24 (pdx 24B) | ctor 0X1406B4B20 |
 | +28 | uint32 | historical 容器计数 |  |
 | +29..+39 | 匿名结构 (11B 形状) | = count 尾 (+29..+31) + alloc@+32 (哨兵初值) |  |
-| +40 | CCharacter* | dynamic 容器数据指针 (键 13075; **分野三律**: 批产按模板 +577 u8 旗判定 / generate_character 效果路恒 +16 historical / 随机生成路 [8060/82A0] 恒 +40 dynamic — 勘误: 原「分野 = 模板判定」仅对批产路径成立) |  |
+| +40 | CCharacter* | dynamic 容器数据指针 (键 13075; **分野四族**: 批产按模板 +577 u8 旗判定 / generate_character 效果路恒 +16 historical / 随机生成路 [8060/82A0] 恒 +40 dynamic / **角色复制双路 [7140/71D0] 恒 +16 historical** (两函均 sub_1406B2A10(mgr+16, &Block), 71D0 以 mgr+28 计数回读末元素; 分野三律原批注扩四族 — 勘误: 原「分野 = 模板判定」仅对批产路径成立)) |  |
 | +41..+51 | 匿名结构 (11B 形状) | = dynamic 容器 data 尾 (+41..+47) + cap u32@+48 |  |
 | +52 | uint32 | dynamic 容器计数 |  |
 | +56 | allocator 槽 | dynamic 容器 alloc 指针 (ctor 置 &off_143085170 哨兵; dtor 经其虚槽 deallocate) | 旧「未初始化空洞」勘误 |
@@ -336,8 +336,8 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 | +176 | std::map 头指针 | advisors — 载荷 CAdvisor* @node+72 | 门 qword@+184≠0; 块键 tok 19484; 后继同上 |
 | +177..+191 | 匿名结构 (15B 形状) | = advisors std::map {head@176, size@184} 同款 |  |
 | +192 | CScientist* | scientist (堆) | 门 ptr≠0; 块键 tok 16389 |
-| +200 | uint32 | operative 对.type | 任一≠0 才写; `operative = { id type }` (0X142220260); tok 15635 |
-| +204 | uint32 | operative 对.id | 同上 |
+| +200 | uint32 | operative 对.type | 任一≠0 才写; `operative = { id type }` (0X142220260); tok 15635; 消费点 = CopyRoles/0860 以其作 unit-leader 角色在场判据与克隆源 (:1217 `+168 || sub_14221F310(char+200)`) |
+| +204 | uint32 | operative 对.id | 同上 (消费点同 +200) |
 | +208 | CUnitMedalStore* | unit_medals | 门 = **store≠0 且 (u32@store+12≠0 或 u32@store+608≠0)** (定案); 块键 tok 15870; store 布局见表后注② |
 | +216 | CVariables 内嵌 | variables — RH 桶布局见 §4.4.10 | 门 = 非 (u32@+224==1 且 u32@+248==0) (sub_140BC8D50); 块键 tok 10826 |
 | +217..+271 | 匿名结构 (55B 形状) | = **CVariables 56B 全形** {vt@216, u32@224 = random 种子#1 (ctor=1; §4.13.2 random 对写形反序 = 存档 `<+228> <+224>`), u32@228 = random 种子#2 ctor 常量 1587985054 (float 位型, 语义未名), pad, 静态空串指针@240, 桶数据指针@248 (ctor=0), u8@256, u32@260=常量 1063675494, 回指指针@264} — 空判 (u32@224==1 && u32@248==0) 与 ctor 初值完全互证 (0X140BC5BD0) |  |
@@ -474,7 +474,7 @@ country_leaders map 载荷 @node+40。
 | +8 | CCharacter* | owner 角色回指 | assert "country leader not attached to a character" |
 | +16 | SSO 串 | **desc 解析文本缓存** (writer 盲区; size@32, cap@40) | slot8 loc 解析 |
 | +48 | SSO 串 | desc loc 键 {size@64, cap@72; tok 10644, 文本模式门} | 定案 |
-| +80 | token 向量 | traits 指针数组 {data, cap@88, count@92, alloc@96} (8B 元; tok 12278, token@elem+8) | 定案 |
+| +80 | token 向量 | traits 指针数组 {data, cap@88, count@92, alloc@96} (8B 元; tok 12278, token@elem+8; 元素 = CTrait def: 另有 **+24 名串/+56 int 等级**, CopyRoles 复制路按名串搬运重建) | 定案 |
 | +104 | CModifier (192B) | **运行时生效修正块** (writer 盲区; traits(trait+152) 归并; name SSO@+192 ← char 名) | Rebuild sub_140FCC200 |
 | +296 | CGameDate vt | expire 日期数据对象 (hours@+304, 哨兵 43808760) | writer 门 +304 ≠ dword_143086B50 |
 | +304 | uint32 (hours) | expire (tok 12277) | factory ← 模板日期 |
@@ -823,3 +823,56 @@ char+24 (工厂 sub_1406B7260 内; malloc(0x130) = 304B 书第三证)。
 唯一调用者)。未决: cc+1728/1729 与修正 561-565 define 名; 基值表来源; cc+1640 载体;
 EPortraitType 3/4 (推定 air/operative); RNG 审计去向; 0x1411A4620 宿主类 (其 +112 元素 =
 CCharacter* 与 CCountryCharacters +112 = CUnitLeader* 属不同对象)。
+
+#### 4.4.25 character.cpp 复制域增补 (角色复制与三军领袖角色; 10 函闭环)
+
+清册 (10/10 函体内含完整路径锚 characters\character.cpp): **CopyRoles 0x140FA0FF0 (922)** /
+CopyCore 0x140FA0A20 (258, malloc 0x130 + ctor 140F9EC50(名, 性别); :97 断言限纯顾问角色) /
+AddArmyLeaderRole 0x140F9D360 (207, 0x10B8 CArmyLeader) / AddNavyLeaderRole 0x140F9D780
+(207, 0xFC8 CNavyLeader, 与上者逐行孪生) / CCharacter writer 0x140FA6520 (180, §4.4.11
+互证全吻合) / SetCountryLeader 0x140FA2DE0 (140, 工厂 140FCA190; 调用者 = gamestate 级
+1410EAD60, 缺省 id −86) / 角色复制壳·单位领袖变体 0x140FA22D0 (104, :146 源角色须隐藏) /
+AddCountryLeaderRole 0x140FA2C10 (84, 调用者 = create_country_leader 效果, §4.32 逐参互证) /
+AssertPortraitExists 0x140FA01E0 (79, :618 throw, 查 +120 肖像) / 角色复制壳·科学家变体
+0x140FA21D0 (49)。
+
+**CopyRoles 四阶段** (定案): ① 顾问 (+176) ② 国领袖 (+152) ③ 单位领袖 (+168 ∪ CID+200/204
+operative 对在场判据) ④ 科学家 (+192) 角色整体复制; 冲突各抛错 (:1181/:1203/:1217/:1230),
+错误槽 a3+16 门。**CID 注册双路**: 有效 id 走 CID {type=55} 注册表, 无效走 vt[9] 0x14221E990
+自增 CID (type 分量 = word+4712, 0x1268 恰为注册表分界, 待闭合)。**三薄包装**
+0x140FA3050/140FA2C00/140FA3060 = leader_type 0/1/2 重载 (非虚表槽)。肖像校验趟
+0x140FA0320 = "advisor"/"country_leader"/"unit_leader" 三角色肖像校验。CCharacterManager
+复制双路 = mgr+8 ++ + 恒入 +16 historical (§4.4.9 分野第四族)。
+
+未决: 140FC9F80 第三参两调用形态 (单串 vs 名串向量, 待汇编) / vt[9] type 分量闭合 /
+CopyCore a4=1 调用面。
+
+#### 4.4.26 country_characters.cpp 国家角色域增补 (状态同步/顾问聘任-解任闭环; 17 函闭环)
+
+清册 (17/17 函体内含 country_characters.cpp 路径锚): UpdateCharacterAdvisorStatus
+0x1410EF4C0 (431) / UpdateCharacterUnitLeaderStatus 0x1410F0040 (260) / AddAdvisorRole
+0x1410E91A0 (210, 五断言) / PromoteToCountryLeader 0x1410ED280 (201) / GenerateAdvisor
+0x1410EA930 (191, spec+8 来源枚举 0/1/2/3, 类型码 4/8/16/28) / UnassignAdvisor
+0x1410EB5A0 (154) / 领袖清理分派 0x1410EE1A0 (146, 尾清 fac+2552 CFactionTheaterManager
+168B 元+40/44 CID) / AddCountryLeader 0x1410EAD60 (140) / 政党成员批量登记 0x1410E99A0
+(122, char 全部国家领袖挂入各自意识形态政党 +120 向量) / GetOrCreateScientist
+0x1410EB030 (109, kind5 置名册 bit24) / AppointAdvisor 0x1410E9BE0 (106) /
+UpdateCharacterScientistStatus 0x1410EFCD0 (104) / DailyUpdate 0x1410EB430 (54) / 冷却扫描
+0x1410EB2F0 (54) / UpdateCharacterStatus 总入口 0x1410EFF10 (50, 三件套分派, 实参 = ch+16
+名册元素) / RemoveCountryLeader 0x1410ED1E0 (32) / HasCharacter 0x1410EA790 (26)。
+
+**状态同步三件套** (定案): 顾问 = ch+64 已创建 CAdvisor 登记表 ↔ char+176 advisors map 双向
+对账 (陈旧项解任 + 清 fac+2104 阵营情报槽 + 出列); 单位领袖 = army (leader_type 0,1)/navy (2)
+名册互斥同步, 无角色双侧摘除 (vt[29] 获释门); 科学家 = char+192 判空同步 ch+160。ch+16 名册
+元素 16B = {CCharacter*, flags} (四写点 bit0/8/16/24)。
+
+**聘任-解任对称闭环** (定案): AppointAdvisor (on_add vt[12]) ↔ UnassignAdvisor (槽位树空余
++1 — **ch+184 节点+84 空余数消费点首证** / 指挥权归还 / on_remove 载荷 vt[12] / ch+88 出列);
+**ch+64/ch+88 排序主键 = CAdvisor+48 idea_token 缓存 hash(+80)** (升定案; adv+632 修正索引
+消费点首证)。**IA 渲染定则**: `_except_get_jumpbuf_sp` = *(x+16)、`file_name` = *(x+8), 本簇
+全为 owner 回指 (非异常机制)。⚠「UpdateCharacter…Status」断言串源码复用 3 次 (:271/:342/:424),
+串名 ≠ 函数身份。
+
+未决: UnassignAdvisor 退费正负方向 (待汇编) / sub_1413F0E00 实参截断 / EAD60 的 a2 定义件
+类身份 / charman(+0) 登记表与 ch+96 表关系 / vt[29] 谓词语义 / leader+4168/+4008 双 ref
+目标类型。

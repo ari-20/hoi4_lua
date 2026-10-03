@@ -214,6 +214,8 @@ vt 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏�
 
 #### 4.24.5 COrderInstance (968B, writer 0X14104B570 / **reader 0x14103E110** / postload 0x141037300; vtable 0x142986718 — reader 三件套 serfam+内证双源)
 
+> root_front (oi+600) 解析访问器 = sub_141035650: CID → sub_14221F310 → RTDynamicCast → CFront → 返 CFront+112 = CControllerArea\* (§4.24.6 +112); root_front 空 (哨兵) 时按 type 兜底 — 3 (入侵)/4 (空降) 取 path[0], 1 (移动) 沿 path (+112/+124) 逐省 → gs vt2[1] 省查询 → 省+208 区域指针。29 调用点全上溯证实宿主 = COrderInstance (§1.2 gs+600 无涉)。
+
 > 归一化子步 = **sub_1410489E0** (child_front_ratios oi+896 SChildFrontData; 断言精确串 = "NumNonEmpty == 0 || WeightSoFar == 100_fixed" :7360, 末非空元收余量定标)。
 
 > **SChildFrontData 补全 (定案)**: 四界值实名 pair/path_section_start/path_section_end (token 15777-15780) + **+48..+71 control 块 = 6 锚省 id** (起/中/止三对; token 10896; 产自 sub_141049F40 尾段沿 sorted_pairs); reader = sub_14103F4E0 (token 63→+8 group / 47→+24 size / 15777-80→+32..44)。⚠ +56/+888 两字段系 **COrderInstance 本体字段** (原备注误挂本段): +56 = _pOrdersGroup (:558 断言, 5 消费点) / +888 = _pAttachedChildGroup (:1906 reader 键)。**GenerateOrderName sub_141029490** = 按战略区键哈希查国家名字池 + 确定性种子 (sorted_pairs 计数@+148 + instance_id@+580) 写 +288/+320/+352/+416/+448 (勘误: §4.33.15 12730 行原「准备流水线」实为名字生成)。小时 tick sub_141036640: route_is_ok + 空入侵/空降单**自动投删除令** + 入侵准备进度 +216 (MODIFIER_NAVAL_INVASION_PREPARATION_SPEED 386) + 空降执行; 前线重建巨核 sub_14103F710 (逐成员定槽 {省, 权重钳 [1,255]}); 前线推进箭头连接几何核 sub_141039F80 (删除/路径/配对三核共用)。
@@ -728,3 +730,32 @@ sub_140EF44D0 (section 后处理) 精确语义; sub_140CF43B0 返回对象 +8/+2
 sub_140EF64D0 / sub_140EF3B70 内部 (对位敌省查找与敌区键计算, 建议独立小批); 同 tsv 相邻
 单元 airtheatre.cpp 3 函数已定性 = 空军剧场族运行期所有权操作层, 非 theatre 族成员
 (§4.31.61 增补段)。
+
+#### 4.24.17 areas.cpp 双类运行期增补 (CControllerArea/COwnerArea 维护与面级寻路; 8 函闭环)
+
+清册 (8/8 函体内含 areas.cpp 路径锚): 控制器变更区域维护 0x140CF6FA0 (603) / **区域邻接图
+Dijkstra 面级寻路 0x140CF3B20 (490)** / CControllerArea::TrySplit 0x140CF87C0 (386, vt[6]) /
+COwnerArea 邻接链重建 0x140CF1ED0 (115, vt[2], 零直接调用点) / RemoveProvince 0x140CF84C0
+(92, 两类共用 vt[5]) / 区省表排序 0x140CF8640 (81, 调用者 = 国家级批量 sub_140713040(+1352)/
+sub_140713090(+1376)) / AddProvince 0x140CF1170 (78, 共用 vt[4]) / Merge 0x140CF67D0 (69)。
+
+**虚表全 16 槽 VA 补齐** (PE 直证): CControllerArea vt 0x14295E818 7 槽 [4]Add/[5]Remove/
+[6]TrySplit vs COwnerArea vt 0x14295E858 9 槽 ([2] = 邻接链重建 0x140CF1ED0 / [6] = owner
+分裂 0x140CF8F20 / [4][5] 共用实现)。
+
+**控制器变更维护链** (定案): 旧区摘省 (vt[5]+vt[6] TrySplit, 空区销毁含国注册摘除/链清理/
+delete) → 新控制器侧邻区同别名组 Join/新建 → AddProvince (锚省选择 = desc+210 bit0 陆省位,
+按省 id 二分有序插入, 幂等门) → 邻接链双向加 refcount; 唯一调用点 = SetController 级联
+(province.cpp:394 后)。**TrySplit** = 回指清零 → 首省洪泛保连 (owner tag 同别名组键, DFS 栈 =
+pdx scoped buffer 容量 gs+700) → 断离分量逐个成新区 + front 引用迁移 (sub_140CF7E10) + 国注册。
+
+**Dijkstra 面级寻路** (定案): 图边 = 区+144 观察链, 代价函子注入 (<0 不可通行, 目标区零代价),
+堆键 {代价, 锚省 id}, 双 TLS 工作池, visited 键 = 锚省 NonSeaIndex (**CMap+568 重映射表消费**,
+-1 = 海省; 池容量源 = gs+1720, 业务名待裁), 输出逆序路径链表或纯可达性 (11 调用点, 已归属 1 =
+sub_140663A20 国对可达性查询)。
+
+> 方法论注: sub_140BB52F0 IDA 单参显示 = 调用点参数截断伪影 (实 2 参, gs+832 别名表互证) —
+> 与 §4.19.9 失真清单并读, 实参级结论需汇编复核。
+
+未决: 区主重算 sub_140CF21D0 (632 行非本簇) 逐字段 / 0x140CF1ED0 运行期调用者 / gs+1720
+量纲 / front 侧广播落点 sub_140EFB9A0/BED0 与两虚表余下 7 槽语义。

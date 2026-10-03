@@ -436,7 +436,7 @@ CInGameIdler (0x140DD3A50) / CNudgeIdler (0x1412D49D0) 三者 vt[4]=Idle 共同�
 其 a1+1840 子系统 = **战略地图路线/箭头绘制总控 sub_14165FB20** (5 个 CPdxMap
 线对象池 → sub_140165D050 待绘条目物化 → sub_14012664D0 折线加点器 (1e-5 定点,
 缩放自适应重采样, 8192 点 flush) → sub_140126AE10 地形贴合缎带网格构建;
-高度采样原语 sub_140A60F10, u8 高度图双线性 ×0.1)。
+高度采样原语 sub_140A60F10, u8 高度图双线性 ×0.1)。铁路/路网线条绘制核心 = sub_14165BAB0 (1113 行: 读 CRailwayManager gs+992 逐省路径 + 地图单例 qword_143339D28+616 路径条; gfx_supply.cpp 管线精化 (§4.35.16f): BAB0 与发射器 DA50/B4D0 同为总控 sub_14165FB20 内兄弟调用 — 无 BAB0→发射器直连边 — 勘误: 原读感「BAB0 经 DA50/B4D0 出几何」; 类型名/断言字段系 river (SRiverPath/RiverId), 补给/铁路/河网共用路径条管线) + sub_14165D050 分档 §4.30 阈值消费; 线条视角过滤支线 sub_14162F880→sub_14162F4E0, CSupplySystem+264 视角对象) — 0x14165 区 = 战略地图图形域 (gfx_supply.cpp ~50 函 + cities.cpp ~24 + maparrow.h 6, 域册候选 §4.35)。
 
 **CFrontEndIdler 帧侧契约** (主表 0x142949D50; 菜单/载入屏帧循环):
 Idle = 槽[4] **sub_140B3CA20** (frontend.cpp:177 帧循环; 内嵌右键菜单路径与
@@ -687,7 +687,7 @@ CGameState::PostLoad; ② 驱动尾 humans 同步; ③ 装载 lambda 第 9 步�
 > (州→省链重建 + ledger 默认补) / CProvince 0x140E7E190 (ledger 默认补) /
 > CCharacter 0x140FA43C0 (随机流恢复 + 显示名重建 + 单位/角色重挂) /
 > CAirWing 0x140F62BC0 (随机流恢复 + 翼名惰性初始化 + ace 补链, 缺 ace 报
-> "Airwing %s has Ace that does not exist.") / CAce 0x14061AD90 (CRandom 流恢复)。
+> "Airwing %s has Ace that does not exist.") / CAce 0x14061AD90 (**EnsureId id 重登记** — id.cpp 家族: type=(u16)word_1434520E4+4712、id=全局 Interlocked 计数器; 勘误: 原「CRandom 流恢复」系语义注记错位, VA 归属保留)。
 
 #### 4.28.18 新局生成链 (CGameLobby / 两路世界构建 / HistoryDatabase / 就绪旗)
 
@@ -1314,12 +1314,204 @@ qword_14332F698 = 引擎管理器单例 (+1264 → +368 纹理库, +1744 战略�
 damage_units 第二单位容器军种分工; 140232CD0 七调用命令注册名; 命令条目栈临时 (288B) 与
 运行时条目 (456B 跨距) 拷贝通路。
 
-#### 4.28.27 遥测事件发射器层 (gametelemetry.cpp / peacetelemetry.cpp)
+#### 4.28.27 遥测事件发射器层 (gametelemetry.cpp / peacetelemetry.cpp / pdx_online_telemetry.cpp)
 
-Paradox 后台遥测单事件发射器族 (书内原仅散点: cheatcode_used §4.28.22 / 勋章遥测 §4.28.8 / 批量件 sub_140207890 §4.2)。发射链三件套 = {sub_14207E7B0, sub_14207E9C0, sub_14207ECC0} + 上下文构建 sub_140533830 + in_game_date 求值; 串签名 = `<topic> | in_game_date | nation`。单事件发射器 (STR/调用族直证): playsession_start sub_14021BA20 / game_crash sub_14020B810 / advisor_created sub_140203810 / captain_promoted sub_140205270 / cryptocracking sub_1402083D0 / motorize_supply_set sub_14020F750 / occupation_fallback_law_set sub_140207DE0 / view_special_project_history sub_14021B710; 同构族 (调用族): air_missions / research_facility / advisor_law / deployed_hq / mastery_snapshot / player_country_status / construction / doctrine_unlocked / peace_conference / playsession_over。非 gameplay 操作面。
+Paradox 后台遥测 (非 gameplay 操作面; 全量定案批: fire sub_14207E7B0 反查 120 宿主 − 14 个 sub_14259xxxx 形 SDK EndEvent 转发桩 = **106 个游戏侧发射器 / 约 80 个 topic**; 事件名/键名全部语料字面串直证)。
+
+发射链协议 (pdx_online_telemetry.cpp; 多事件批次制):
+
+| 函数 | 角色 |
+|---|---|
+| sub_14207ECC0 | BeginEvent(topic) — 批次对象上开新事件; 运行中再调 = 同批下一事件 |
+| sub_14207E9C0 | AddDataString(key, string\*) — 串属性 |
+| sub_14207EA50 | AddJsonData(key, 数值) — 数值/JSON 属性 (provinces_occupied 等数值键) |
+| sub_14207E7B0 | EndEvent(批次) = FinalizeEvent + flush (JSON 经 sub_1424C64A0 序列化; 每发射器现 2 次 = 正常 + __unwind 异常安全路径) |
+
+批次对象 (栈上, ctor sub_14014B3A0) = CPdxHybridInlineBufferAllocator\<pair\<string_view, TelemetryEvent\>,1,int\>: {+0 数组基址, +12 条数, +64 当前事件槽, +72 SDK 会话句柄 (sub_1424C5F10 惰性)}; **一次 EndEvent flush 批内全部事件** (playsession_start 一批含 difficulty_settings/custom_rule×N/historical_focus/load_game/settings×3 共 10+)。flush (sub_14207EE70): 遥测开关 = CApplication vt+856 → +80 Cache_GetData → GetTelemetryEnabled; **未启用仍入队**; 事件逐条 TelemetryPayload::AddEvent 打包, **20 事件/payload**, 满则新 payload 触发发送 (sub_14207F210)。
+
+**上下文原语**: sub_140533830 = gs+1120 日期 "%d-%d-%d" (日计数 = (gs+1128−43800000)/24; 月表 dword_143085210) / sub_1401FFC80 加 in_game_date 属性 / sub_140BB4E70 tag→国名 / **playthrough_id = gs+1832 串** (sub_140200760) / sub_1401FFB30 加 variant 构建变体串 / sub_1424CA600 数值格式化 / sub_1424CA660 生涯统计格式化 / sub_1424BC260 小整数 id→名。
+
+值得注意定案: profile_dlc_stats 挂 **Shutdown flush 槽[11]** (§4.28.23 互证) / award_unlocked 挂勋章·绶带授予原语 (§4.28.22 互证) / nation_surrender 投降判定用 **43808760 CGameDate 哨兵** / division_template_saved 的 also/more/extra_battalions 三键恒 "null" (兼容死键) / game_integrity 对照基准校验码 "92f2d45a861ba7599f5b05e849e05632"。
+
+值源缩写: const = 字面常量; ctx-date = sub_140533830 日期串; ptid = gs+1832;
+tag-name = sub_140BB4E70; fmt-num = 数值格式化 (sub_1424CA600 系); id-name =
+sub_1424BC260; join = `\|`/`,` 连接; variant = 构建变体串。
+发射时机列 = 上溯一层调用者 (调用关系定案, 语义注记高置信)。
+
+会话生命周期 (列: 事件 topic | 发射器 | 属性键 → 值源 | 发射时机):
+
+| 事件 (topic) | 发射器 | 属性键 → 值源 | 发射时机 |
+|---|---|---|---|
+| playsession_start | sub_14021BA20 | new_game → const "load"/"new" (gs 有 v6 判); game_type → const "multiplayer"/"ironman"/"normal" (服务器 RTTI / ironman 旗分支); nation → tag-name 或 const "observer" (国条目计数 ≤0); in_game_year → fmt-num; hot_join → const "0"/"1" (服务器 +1854 旗); checksum → fmt; playthrough_id/variant; ‖ 另发 difficulty_settings / custom_rule×N / historical_focus / load_game / settings×3 (见下) | sub_140B3E9A0 / sub_140DDA830 (进战局/载档完成路径); 尾部快照会话时钟 |
+| difficulty_settings (批内子事件) | sub_140218670 | game_difficulty → fmt (gs+1584 经 sub_1401FAC70); custom_diff_strong_{eng,fra,ger(GER),ita,jap,sov(SOV),usa,chi(CHI)} → sub_140201F30 求值 | 同上 (playsession_start 批内) |
+| custom_rule (批内子事件, 每规则一条) | sub_14020BBD0 | playthrough_id; rule_name → 规则对象 +48; (规则值) | 同上, 逐游戏规则循环 |
+| historical_focus (批内子事件) | sub_14021BA20 内联 | historical_focus_on → fmt (AI 历史国策开关) | 同上, 仅 !load 分支 |
+| load_game (批内子事件) | sub_1402032F0 | (load_game 串直证; 其余经 sub_1402028A0 状态机复位) | playsession_start 批内尾部 |
+| settings (批内子事件 ×3) | sub_140217D00 | option → 名串; setting → 值串; playthrough_id/variant | playsession_start 批内 (三组设置) |
+| game_crash | sub_14020B810 | checksum → fmt; function_call → 崩溃点函数串; in_game_date; playthrough_id/variant | sub_140125060 (崩溃处理链) |
+| oos | sub_140211C40 | hotjoin → const; error_codes → join; in_game_date → 实参 a3; playthrough_id/variant | sub_140DD8D60 (OOS 检测) |
+| country_count | sub_140207890 | nr_country → fmt-num; nr_dynamic_country → fmt-num; in_game_date; playthrough_id/variant | sub_1401DD370 (gs 周期更新内) |
+| playthrough_stats | sub_14240F470 | checksum → fmt; in_game_date; playthrough_id/variant | sub_14240EEE0 ×3 (生涯统计视图) |
+| playthrough_stats_closed | sub_1421254D0 | checksum; time_spent_viewing; in_game_date; playthrough_id/variant | 无直调 (函数指针/虚表槽调用) |
+| exit_game 批 = playsession_over | sub_14020A9C0 | 全部由三个子包发射 (见下); 先逐空军条目 sub_1402028A0(…,"exit_game") | sub_140DD3A50 (退出演算, 同处发 nation_surrender) / sub_140DA04F0 |
+| └ major_country_status | sub_14020DBB0 | playthrough_id; major_nation → tag-name; surrender_status; divisions/navy/airforce → fmt-num; in_game_year → fmt-num; at_war; war_with_player → const "0"/"1" | 逐主要国循环 |
+| └ player_country_status | sub_140213600 | playthrough_id; nation; surrender_status; divisions/navy/airforce; in_game_year; at_war; variant | 玩家国一条 |
+| └ playsession_over | sub_140213FC0 | destination → const "main_menu"/其他 (实参 switch) | 会话终点一条 |
+| nation_surrender | sub_14020A500 | nation → tag-name; surrender → const "0"/"1" (投降日期 == 43808760 哨兵); surrender_date → ctx-date 或空串; playthrough_id/variant | sub_140DD3A50 (逐已投降国循环; 43808760 = CGameDate "1.1.1.1" 哨兵, 书 §4.28 互证) |
+| multiplayer_status | sub_1417F2090 | players; session_time; n_player_factions; n_factionless_players; players_at_war; backend; in_game_date; playthrough_id/variant | sub_14170AF30 (多人周期上报) |
+| session_persisted | sub_140217780 | category; action; playthrough_id | sub_141C2FD30/sub_141FB90E0/sub_141FB8F40/sub_1414A91B0/sub_1417852A0/sub_141793EF0 等 8 处 (会话持久化动作) |
+| hardware | sub_1401A6980 (启动批) | os_version; ram; gfxmemory; cpucount; machinemodel; gfxdevice; renderer | sub_140126E50 (应用启动遥测) |
+| └ dlc (每 DLC 一条) | 同上 | dlc_name → 实例 +0; active → const "0"/"1"; variant | 同批 |
+| └ mod (每启用 mod 一条) | 同上 | mod_name → +8; mod_id → +520; checksum_changed; mod_service → const "steam"/"gog"/"user"/"none" | 同批 |
+| └ language | 同上 | game_language; os_language; variant | 同批 |
+| └ game_integrity | 同上 | file_integrity_verified; integrity_code (对照基准 "92f2d45a861ba7599f5b05e849e05632" 的校验码) | 同批 (完整性校验) |
+| profile_stats | sub_141C9F9F0 | 键值均为 join 串: longest_land_battle; hours\|playthroughs\|years; army\|navy\|airforce; max_tanks; max_mp_battle; max_war_casualties; max_enemy_war_casualties (值 = sub_1424CA660 统计格式化, 空给 "0\|0\|0\|0"/"0\|0") | sub_141C9B910 (生涯统计汇总; 函数头先取 equipments/equipments_grid 视图对象) |
+| profile_dlc_stats | sub_140214840 | dlc → const "dlc028"/"dlc023"/"dlc018"/"dlc020"/"dlc031"/"dlc022"/"dlc034" (按 DLC 分支); metric_1..metric_8 → 值或 const "null" | sub_140195110 ×2 (**Shutdown flush 槽[11]**, §4.28.23 互证) |
+
+国家政治/外交 (列: 事件 topic | 发射器 | 属性键 → 值源 | 发射时机):
+
+| 事件 | 发射器 | 属性键 → 值源 | 发射时机 |
+|---|---|---|---|
+| advisor_created | sub_140203810 | advisor_type → 实参 a1; trait → a2; in_game_date; playthrough_id | sub_141150C70 |
+| advisor_law_selection | sub_140203B50 | category → a1; type → a2; in_game_date; playthrough_id | sub_141151720 / sub_14154BA00 / sub_1411508A0 |
+| capitulation (topic = nation_capitulated) | sub_140207440 | nation → tag-name; capitulated_date → fmt; playthrough_id/variant | sub_140704380 |
+| goal_added | sub_14020AC70 | nation; faction_leader; goal_term; goal_name; old_goal ×2 (新旧目标分支); in_game_date; playthrough_id | sub_1401EF2B0 / sub_140A29530 |
+| goal_completed | sub_14020AEB0 | nation; faction_leader; goal_term; goal_name; in_game_date; playthrough_id | sub_140A27280 |
+| faction_rules | sub_14020B3B0 | nation; faction_leader; rule_type; rule; old_rule ×2; in_game_date; playthrough_id | sub_141BA9BD0 |
+| balance_of_power | sub_140204E10 | player_country; bop_rating → fmt-num; bop_key → 实参 a2; in_game_date; playthrough_id | sub_1401C7460 |
+| decision | sub_1402086E0 | decision_id → 实参 a1; (第二键 = rodata 串 qword_142722350, 长 11) → tag-name (a2); in_game_date; playthrough_id | sub_140727AE0 |
+| event_option | sub_14020AB80 | event_id → a1; option_id → a2; in_game_date; playthrough_id | sub_141239DC0 |
+| diplomatic_action | sub_140208D30 | action_type → "DIPLOMAC" 名表查找; behavior → const "offer"/"reject"/"accept"/"unknown" (实参 a2 = 0/1/2/其他); nation → tag-name (a3); action_date → ctx-date; relation_status → sub_140200990 (at_war/in_same_faction/different_faction/neutral); diplo_param_<名> → 参数值 (键名动态加前缀); variant; playthrough_id | sub_1415EC310/sub_142048DC0/sub_141757A40/sub_1417540C0/sub_141757870/sub_142004640 (6 处外交行动) |
+| occupation_law_set | sub_14021C410 | law\|country_fallback\|global_fallback → 分支值 join; occupied_country → tag-name; state_id → fmt; resistance_strength\|resistance_target → join; compliance\|compliance_gain → join; manual_change → const "0"/"1" (a3); variant; in_game_date; playthrough_id | sub_140FF6140 / sub_14115DDD0 |
+| occupation_fallback_law_set | sub_14020C6C0 | law; type; country; manual_change; in_game_date; playthrough_id | sub_140FFF110 / sub_14115C300 |
+| occupation_fallback_law_set (二号发射器) | sub_140207DE0 | 同上 + variant | sub_14115C7C0 / sub_140FFEE00 |
+| motorize_supply_set | sub_14020F750 | context; setting; in_game_date; playthrough_id | sub_14184B7F0 ×2 / sub_14115F340 |
+| player_war | sub_140213C40 | nation; enemy_nation; player_ideology → a3; in_game_date; playthrough_id | sub_1407050D0 |
+| general_captured | sub_14020C030 | nation; enemy_nation; general_captured → 捕获将领 (v37); in_game_date; playthrough_id | sub_141716EF0 |
+| new_leader | sub_140210860 | nation → tag-name; new_leader → 领导者名 (无则 const "no_leader"); in_game_date; playthrough_id | sub_1411A5A80 |
+| hq_division_designed | sub_14020CE40 | nation; hq_battalion; battalion_number; hq_support; in_game_date; playthrough_id | sub_14168D900 |
+| army_spirit | sub_14020F400 | nation; type; spirit; old_spirit; in_game_date; playthrough_id | sub_141151720 / sub_14154BA00 |
+| commander_ability_used | sub_140205E50 | nation; ability_name → 实参 +112; efficiency → fmt-num; proximity; in_game_date; playthrough_id | sub_14115E8C0 ×2 |
+
+军事行动 (列: 事件 topic | 发射器 | 属性键 → 值源 | 发射时机):
+
+| 事件 | 发射器 | 属性键 → 值源 | 发射时机 |
+|---|---|---|---|
+| nuke | sub_140210AF0 | target_tag; target_province; divisions_in_province; province_vp (均 fmt); in_game_date; playthrough_id | sub_1410986E0 |
+| air_missions_set | sub_140203E90 | air_wing; missions; airzone_id; in_game_date; playthrough_id | sub_1413E1760 / sub_141946EA0 |
+| mission_started | sub_1402117E0 | mission; target; context → 实参 (状态机 a5 串, 如 "exit_game"); in_game_date; playthrough_id | sub_1402028A0 (空军任务遥测状态机, 12 调用点) |
+| mission_ended | sub_1402112F0 | mission; target; context; duration; in_game_date; variant; playthrough_id | 同上 |
+| naval_mission_snapshot | sub_140A1A5D0 | nation; mission; region_id; composition; has_leader; naval_dominance; control_ratio; in_game_date; playthrough_id | sub_140A15950 ×2 / sub_140A12F10 / sub_140A1CDA0 / sub_140A128D0 / sub_140A12A50 (海军周期快照) |
+| deployed_hq | sub_140208A20 | nation; in_game_date; playthrough_id | sub_141B9EAE0 / sub_1413661E0 |
+| captain_promoted | sub_140205270 | nation; in_game_date; playthrough_id | sub_140A96FC0 ×2 |
+| division_template_saved | sub_140209830 | support_companies → join (sub_1402017C0); regimental_supports → join; battalions → join (断言 "BattalionsArgument.GetSize() < TELEMETRY_KEYVALUE_SIZE" gametelemetry.cpp:1821); also_battalions/more_battalions/extra_battalions → **const "null" (兼容占位死键)**; in_game_date; playthrough_id | sub_14168D900 |
+| vehicle_design_saved | sub_14021DAA0 | type; class; role; auto_build; modules; scaleable_upgrades; in_game_date; playthrough_id | sub_141786710 ×2 |
+| executed_raid | sub_141D38400 | raid_id; target_type; location_id; outcome; target_country; risk_taking; autolaunch; in_game_date; playthrough_id | sub_141D33080 |
+| construction | sub_1402068D0 | building_type → a1; state_id; current_level; levels_queued; state_infrastructure; allied_construction; in_game_date; playthrough_id | sub_141DF0210 / sub_141152AF0 |
+| create_international_market_contract | sub_140206EA0 | type; other_country; factory_count; infantry_equipment; armor_equipment; air_equipment; naval_equipment; in_game_date; playthrough_id | sub_140433DC0 |
+| assign_military_industrial_organization | sub_14020D380 | organization; type → a2; name; in_game_date; playthrough_id | sub_142477560 / sub_142417350 / sub_14245FF80 |
+
+科研/国策/学说 (列: 事件 topic | 发射器 | 属性键 → 值源 | 发射时机):
+
+| 事件 | 发射器 | 属性键 → 值源 | 发射时机 |
+|---|---|---|---|
+| tech_researched | sub_14021D3F0 | tech_id → a1; research_bonus; ahead_of_time_reduction; tech_tree; in_game_date; playthrough_id | sub_140EDFAD0 |
+| research_facility_built | sub_140217430 | nation; facility_id; in_game_date; playthrough_id | sub_140E6A690 |
+| special_project_researched | sub_14021B3C0 | project_id; specialization; in_game_date; playthrough_id | sub_140215940 (profile_picture_unlocked 同函数 — 混合调用点, 调用关系定案语义待裁) |
+| view_special_project_history | sub_14021B710 | project_id; in_game_date; playthrough_id | sub_141F33390 |
+| nf_unlock | sub_140210560 | nf_name → 实参 +24; nf_id → id-name; playthrough_id/variant | sub_1402D0260 |
+| r_focus | sub_140207B50 | r_focus_name → 实参 +24; focus_date → fmt; playthrough_id/variant | sub_1402CD590 |
+| c_focus | sub_140207690 | c_focus_name → 实参 +24; playthrough_id/variant | sub_140711430 |
+| doctrine_unlocked | sub_14020A0B0 | doctrine_id → a1; final_cost; doctrine_type; doctrine_tree; in_game_date; playthrough_id | sub_140ED9280 |
+| grand_doctrine_chosen | sub_14020CCF0 | nation; branch; doctrine; in_game_date; playthrough_id | sub_140FC6A20 |
+| subdoctrine_chosen | sub_14021D1A0 | nation; branch; doctrine; sub_branch; subdoctrine; in_game_date; playthrough_id | sub_14147C8A0 |
+| milestone_unlocked | sub_14020F250 | nation; branch; doctrine; sub_branch; subdoctrine; in_game_date; playthrough_id | sub_141DE9A10 |
+| cryptocracking | sub_1402083D0 | target; in_game_date; playthrough_id/variant | sub_1413F6310 |
+| agency_built | sub_14020D4C0 | (仅上下文: in_game_date/playthrough_id/variant) | sub_1423B2A50 |
+| agency_upgrade | sub_14020D7A0 | upgrade → a1; prior_upgrades; level; in_game_date; playthrough_id/variant | sub_140FD78D0 |
+| spy_master | sub_140204F90 | (仅上下文: in_game_date/playthrough_id/variant) | sub_1413FB9C0 / sub_1413FC040 |
+| operation | sub_140210F70 | operation → a1; target; in_game_date; playthrough_id/variant | sub_141400170 |
+| mastery_snapshot | sub_14020E490 | nation; 每 mastery 条目: 键 = id-name (特定类别跳过: 名长 3/4/5/14 的 skip 表, 含 "special_…" 前缀比对), 值 = 子项 join 或 const "0\|0\|0\|0"/"0\|0"; in_game_date; playthrough_id | sub_140D7F220 ×2 |
+
+生涯档案 / UI / 前端 (列: 事件 topic | 发射器 | 属性键 → 值源 | 发射时机):
+
+| 事件 | 发射器 | 属性键 → 值源 | 发射时机 |
+|---|---|---|---|
+| achievement | sub_1402036F0 | achievement_name; playthrough_id/variant | sub_14061CE50 (成就授予) |
+| award_collected | sub_1402046B0 | award_type; award_name; grade; career_points; context; in_game_date; playthrough_id | sub_141FDF050 / sub_141FDEEE0 |
+| award_unlocked | sub_140204BA0 | award_type; award_name; grade; in_game_date; playthrough_id | sub_1406932A0 / sub_1406935B0 (**勋章/绶带授予原语**, §4.28.22 互证) |
+| award_display | sub_140204A30 | new_award; previous_award; playthrough_id | sub_141EF9A70 / sub_141EF9B10 |
+| award_popup_click | sub_140156630 | (仅上下文: in_game_date/playthrough_id) | sub_1401A8E90 ×2 / sub_14014C410 / sub_14015A840 |
+| medal_awarded (带部队构成) | sub_14020ED90 | medal_id → 实参 +24; support_companies; battalions; regimental_support; in_game_date; playthrough_id | sub_141156BD0 |
+| medal_awarded (简版) | sub_14020EA50 | medal_id → 实参 +24; nation; in_game_date; playthrough_id | sub_141156BD0 |
+| career_profile | sub_140205580 | profile_status; owner; origin; variant | sub_141EF8100 |
+| career_profile_tab | sub_140205980 | new_tab; previous_tab; time_spent_viewing; owner; variant | sub_141FF2430 / sub_141FF23B0 / sub_141FEEDC0 |
+| career_profile_closed | sub_1402057E0 | time_spent_viewing; owner; variant | sub_141AC8FB0 |
+| profile_comparison | sub_140214710 | owner → a1; time_spent; playthrough_id | sub_141FAC2E0 |
+| profile_picture_changed | sub_140215730 | new_pic; previous_pic; type; variant | sub_141EF69C0 / sub_141EF6AF0 |
+| profile_picture_unlocked | sub_140215940 | pictures → id join (`,` 分隔); type → 串 join (`,`); in_game_date; playthrough_id | sub_141FDE3E0 |
+| profile_privacy_state_changed | sub_140215DD0 | state; variant | sub_141EF97C0 / sub_141EF9840 |
+| cheatcode_used | sub_140205C20 | command → 命令串; playthrough_id/variant (书 §4.28.22 先例, 字段表补全) | sub_140194FE0 (控制台执行器) |
+| radio | sub_140141720 | station; time; variant | sub_14019D550 / sub_140188950 |
+| tutorial_step_finish | sub_14021D890 | tutorial_step → fmt; last_step → const "1"/"0" (a2; 末步置 byte_14332F43A); playthrough_id/variant | sub_1419D23B0 ×2 |
+| focus_inlay_window | sub_14020B5F0 | player_country; inlay_window_name → a2; button_name → a3; in_game_date; playthrough_id | sub_141BBFCD0 / sub_141BBFF90 |
+| overlay_opened / overlay_closed | sub_1402120B0 / sub_140211F80 | overlay_id → a1; closed 另加 time_spent_viewing; variant | sub_141F595D0 / sub_141F59480 |
+| friend_view | sub_14230A2A0 | friends_count → fmt-num | sub_142276C70 |
+| main_menu_dlc_button_clicked | sub_140209ED0 | dlc_name_key → a1; did_user_own_this_already; was_there_a_sale_displayed_on_this_button; variant | sub_141CE2DC0 |
+| subscription_click | sub_14021D350 | context → a1; variant | sub_141C8FCE0 |
+| social_media_click | sub_14021B320 | social_media → a1; variant | sub_140B38740 ×5 |
+| initiative_spent | sub_14020B1A0 ( nation/faction_leader 版 ) / sub_14020B050 ( a3 perk 版 ) | nation; faction_leader; perk; in_game_date; playthrough_id | sub_141BAA210 / sub_1417AE7C0 / sub_141BA9F50 / sub_141BA90E0 |
+| hulls_built | sub_14021AF30 ("hulls_built", map, 容器) | topic 由调用方传入; 每船体键 → 元素串字段, 值 = join; in_game_date; playthrough_id | sub_140218EB0 ×2 (退出批海军统计; 两容器 qword_14332F460/14332F478) |
+| capital_ships_built / other_ships_built | sub_14021ACB0 (topic, 树, id 表) | topic 由调用方传入; 键 = id-name, 值 = fmt-num (树中无 → const "0"); in_game_date; playthrough_id | sub_140218EB0 ×2 |
+
+和会 (peacetelemetry.cpp 面) (列: 事件 topic | 发射器 | 属性键 → 值源 | 发射时机):
+
+| 事件 | 发射器 | 属性键 → 值源 | 发射时机 |
+|---|---|---|---|
+| peace_conference | sub_140212150 | player_lead; in_game_date; playthrough_id | sub_1419FE280 |
+| peace_conference_total_points | sub_140212B60 | (仅上下文: in_game_date/playthrough_id) | sub_1419FE280 |
+| peace_conference_size | sub_141D12090 | human_winners/human_losers/human_3rd_party/ai_winners/ai_losers (均 fmt-num); in_game_date; playthrough_id | sub_1419652D0 / sub_1410C7500 |
+| peace_conference_turns | sub_141B01040 | nr_turn; elapsed_time; nr_contest; contests_average_nr_turn; in_game_date; playthrough_id | sub_141B02850 |
+| peace_conference_winner_points | sub_140213030 | winner; in_game_date; playthrough_id | sub_1419FE280 |
+| peace_conference_winner_warscore | sub_1402132D0 | winner; occupation; land_combat; navy_combat; air_combat; economic; in_game_date; playthrough_id | sub_1419FE280 |
+| peace_conference_winner_actions | sub_140212E60 | winner; 每动作: 键 = id-name, 值 = fmt-num; in_game_date; playthrough_id | sub_1419FE280 |
+| peace_conference_winner_stackables | sub_140213100 | winner; 每可堆叠项: 键 = id-name, 值 = fmt-num; in_game_date; playthrough_id | sub_1419FE280 |
+| peace_conference_actions_against_loser | sub_1402124D0 | loser; 动态键同上; in_game_date; playthrough_id | sub_1419FE280 |
+| peace_conference_stackables_against_loser | sub_140212990 | loser; 动态键同上; in_game_date; playthrough_id | sub_1419FE280 |
+
+(和会族 8 事件共享调度点 sub_1419FE280 = 和会结算路径。)
+
+值序列化执行层 (0x14207 带补员): sub_1401211C0 = bool→"true"/"false" 发射 (启动路径消费) / sub_1420787E0 = 遥测值写 (int\* 返) / sub_140B532E0 = 遥测段 scoped_buffer 写 (直呼发射三件套)。
 
 #### 4.28.28 控制台命令处理器增补 (实现侧 14 件)
 
 ConsoleCmdImpl 实现侧新处理器 (gamestate.h:1116 侧 + "Invalid arguments count."/"Usage:" 串 + §4.28.26 handler ABI): bop_set sub_1402856A0 (取 gs+1104 CPowerBalanceSystem → 激活 sub_140E58100) / bop_deactivate sub_14027C4B0 (sub_140EF4140 → 原语 sub_140E57E90) / pause_on_trigger sub_14026F8E0 ("Will pause on:") / 内联 effect 运行器 sub_140263690 ("Running:" + CEffect::Parse+ExecuteChecked, eval_effect 族) / add_equipment 型 sub_1402385B0 / 全装备授予 sub_140239D80 (与装备 item_grid 视图复用授予原语 sub_141D3ADB0) / 学说 mastery 授予 sub_14117B280 / unlock faction research sub_140259C60 (包装 sub_142466120) / research 全部特殊项目 sub_1411A97C0 / manpower sub_14026A360 / 天气水位 sub_14023BDB0 / 天气开关 sub_14022E040 / 补给节点选择 sub_14023D8A0 ("select a province for node", CHEAT) / center region sub_140260B00。州空军基地型 sub_140C5EB60 ("has no air base") 待名验证。续批: 删全部军队 sub_14022E870 / timer_dump sub_14022F0E0 (计时器转储, boost uuid 文件名) / bloom sub_14022F5B0 / 情报池清理 sub_14022FB60 / spawn actor sub_1402300E0 / srgb sub_140230310 / script_documentation sub_1402305F0 (ConsoleCmdImpl.cpp:8899 断言直证) / tweaker·reload·time 命令注册 sub_14022F4A0 / imgui UI 开关 ("Availabe Uis:")。
 
 **版本对象装配点 = sub_140121CC0** ("HOI4" / "hoi4_" / **"Operation Postern v1.19.3.0.c01a"** 三串直证 — #version 域取值源; 内部代号 Operation Postern)。
+
+#### 4.28.29 main.cpp 进程主入口增补 (启动全序精化与断言子系统定案; 4 函闭环)
+
+清册 (4/4 函体内含 main.cpp 路径锚): **main 0x140126E50 (1271)** / SetSilhouettePortraits
+0x140124A70 (188, 剪影头像开关: 目录 .dds 枚举 + PHYSFS 挂/卸 + 纹理库逐名卸载; 设置单例
++608 = 权威选项字节, 全量调用点 3 处) / 构建版本信息日志器 0x140124720 (102, game/
+external_libs × hash_long/hash_short/timestamp/commit_count 八行 = game.log 头部版本行唯一
+产生点) / 断言报告回调 0x140120B50 (42, `%s failed: %s:%u (%s)` 格式器)。
+
+**main 全序精化** (定案; 与 §4.28.21① / §4.29 boot 链互证成立): `rd_dlc_chksum=<值>` =
+**正常 boot 总门** (非空则跳过 mod/Steam/DLC/控制台注册/图形检查/建应用/Init/Run 全部);
+`-editor`/`--editor` 提前分流 sub_14209E610 后 return; `-error_title` 早退; SDL_Init(0x20
+VIDEO) 失败 = 最早出口; VFS init sub_140128C10 调用两遍 (a3=0/1); 结尾序 = +72 Init 直调 →
+sub_1401A6980 → Run sub_14222E7E0 → -dump_script_doc 导出 script_documentation.json;
+热重载目录注册 7 项; 本地化初始化五实参 (含 "KMWBGRbgYTH!" 色字母表); 图形检查阈值 450/768 +
+弹窗 "Legacy hardware detected"; 命令行开关 → 门字节总表 (human_ai → byte_14332F639 直证,
+ai_testing 捆绑置位)。
+
+**断言子系统定案** (AGENTS「debug_assert 总开关」的引擎机制本体): 回调槽 **qword_1435E1B58**
+(main 开场经 sub_1424C8130 注册 0x140120B50) + crash 槽 **qword_1435E1B60** 双槽对称;
+asserts/assert_hard_fail/debug_asserts/assertsdialog/suppress_error_log/autotest 六开关 →
+六门字节 → 回调行为矩阵。§4.19.9 断言总门 byte_1435E1B51/52 与本表的关系 = 同一开关族的
+具体门位 (源同源, 门位分立)。
+
+未决: 后端分派表 0x1430BF7B0 (91 槽×3 变体, 安装器 sub_1424047C0, 模式值存设置对象+172)
+身份 / rd_dlc_chksum 模式导出执行点 / 54 个 dword_14332Fxxx=1 默认旗逐项语义 / 纹理单例
+qword_143453090 与设置单例 qword_14332F408 类名。

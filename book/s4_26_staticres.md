@@ -96,6 +96,28 @@
 | sub_142070000 | 错误上报: lua_isstring 门 (失败 = 断言串 "must be error message at top of stack") → 取消息 → traceback 组装 → "\nLUA Error: \<msg\>\n\<traceback\>" 日志流 (消息空则缀 " - no script source to reload"); debug 断言门下追加一次性 "…\n See error.log for details." |
 | sub_142072B90 | mod 脚本通道: "script/" 前缀 + ".lua" 后缀定位后经 sub_14206FEF0 执行 |
 
+#### 4.26.2c Lua 5.1 核心层完整面 (0x1421A-0x1421D 区; 621 函数)
+
+**Lua 5.1 原版静态链接 + luabind 0.9** (token 空间 257-287 与 stock 5.1 逐项吻合: 21 关键词 257..277, 287 = TK_EOS, 无 PDX 自定义 token; luaX_init sub_1421B8360, token2str 表 off_142B32F40)。
+
+**luaU_undump 整体剥除 (定案)**: f_parser sub_1421B0610 无签名分支直调 luaY_parser, 全 dump 无 lundump 报错串族 → **lua_load 只收源文本, mod 无法预编译字节码**。
+
+编译管线 (源文本 → Closure): lua_load = sub_1421ABBF0 (luaZ_init sub_1421B0350; chunkname NULL→"?") → luaD_protectedparser sub_1421B0E20 (rawrunprotected sub_1421B0F50) → f_parser sub_1421B0610 → luaY_parser sub_1421C3520 (嵌套 >200 报 "chunk has too many syntax levels"; 收尾须 TK_EOS) → luaX_setinput sub_1421B85A0 / llex sub_1421B7CB0 → statement sub_1421C3FF0 → luaF_newLclosure sub_1421B1950 / luaF_newupval sub_1421B1A50; reallocstack sub_1421B10C0 (16B 槽) / reallocCI sub_1421B1000 (40B/条) / luaC_step sub_1421B24C0 (增量 GC 0-4 态, step 预算 = 10×gcstepmul)。
+
+结构行: lua_State **616B** {+16 top, +24 base, +32 l_G, +40 ci, +48 savedpc, +56 stack_last, +64 stack, +72 end_ci, +80 base_ci, +88 stacksize, +92 size_ci, +96 nCcalls u16, +99 hookmask, +120 l_gt TValue, +152 openupval, +168 errorJmp}; global_State @L+184 {+16 frealloc, +24 ud, +112 GCthreshold, +120 totalbytes, +144 gcpause, +148 gcstepmul, +160 registry TValue, +208 rootgc, +368 GC 哨兵}; CallInfo 40B {+0 base, +8 func, +16 top, +24 savedpc, +32 nresults, +36 tailcalls}; **LUA_GLOBALSINDEX = −10002** (0xFFFFD8EE, 与 REGISTRY −10000 并存); lua_newstate sub_1421AE6C0; panic sub_1421AE2E0。
+
+库行: 6 库 open (base/coroutine/package/table/string/math/debug) + luaL_openlibs sub_1421AFB90 + luaL_register sub_1421AE090 (lib open 通用注册口); **io/os 库代码在场但未注册 = 死码**; lua_debug REPL sub_1421C0470 ("lua_debug> " stdin 行) **零调用方 = 悬空残留**。
+
+宿主通道 (luaL_loadbuffer sub_1421ADA90 全映像仅 3 调用方 / lua_pcall sub_1421ABDB0 仅 4):
+
+| 通道 | 链 |
+|---|---|
+| defines 系统 | 重载总入口 sub_14074A9E0 (defines.cpp:237, "common/defines" 目录, SRW stru_14344A520) → env 工厂 sub_14206F530 (close→newstate→openlibs→luabind::open) → 装载器 sub_14206FEF0 (1MB 上限; **首错整批放弃**) |
+| mod 脚本 script/*.lua | watcher ("*.lua" → sub_142072B90, 包装 sub_14206FEF0; "script/" 前缀 ".lua" 后缀) 挂 sub_1422566E0; **L 池 = qword_14344A530** |
+| luabind 层 | C++↔Lua 绑定 (经自家 call_function 封装, 不直打 loadbuffer/pcall 符号) |
+
+⚠ gfx/FX/*.lua (bloom.lua 等) 是渲染管线 shader 文本 (sub_1410066C0 经 sub_142409E20 文件读取), **不进内嵌 Lua VM**。
+
 #### 4.26.3 非 DB 静态注册表
 
 | 表 | 挂载 | 布局 | 访问器 |
@@ -933,7 +955,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vt[2]=空桩 = 只读 def 
 
 **库形态补注**: ① `mtth` (**库类 CMTTHDatabase**, 136B) **byte@128 = 内容解析开关**（定案）: boot 双通道装载 — ctor/boot 首遍置 1 并 sub_140188F30 只登记名（内容被 brace-skip 0x1424C2100）→ 次遍 sub_140192E80 首句清零后逐名全量解析（0x140552390 CMeanTimeToHappen reader）; 活体实证 byte=0 且 59 条目已含解析值（base≠ctor 默认）；CCountryTagAliasEntry reader 同机制; ② `ability` 名 MSVC@def+112 由「定案」改注**高置信** (resource.lua nm="none 暂计数" 对拍分歧); ③ `difficulty_settings` getter = **sub_140170630** (单例 creator, 槽 0x14332EE88, `_pInstance && "Instance already created."` gameitemdatabase.h:127 断言链); 并列的 sub_140170120 在 1.19.3 **不存在** (dump 无该函数头); ④ `message_handler` = 非内容库 (注册表+设置处理器, 未入 idb 规格表, 其值类 CMessageType/CMessageTypeSettings 见 §4.28.10); ⑤ `country_tag_alias` 单例 0x332EE78 ✓ / `mtth` 0x332EF58 ✓ / `technology_sharing_group` 0x332F098 (C 按名) / `script_enum` 0x332F028; 14 库分级切片: A 10 / C 2 / D 1 (aces) / 非内容库 1。
 
-**CAceModifier** (王牌修正 def; vt 0x1427DE3A0; writer = CFG 空桩 = 解析件; reader 0x14061B390): +40 type 枚举 / +48 chance f32 / +56 effect 嵌套子对象。⚠ 与 CContextLocalizationText 虚表相邻 (0x1427DE358 vs …3A0), 归属勿混。
+**CAceModifier** (王牌修正 def; vt 0x1427DE3A0; writer = CFG 空桩 = 解析件; reader 0x14061B390): +40 type 枚举 / **+48 chance 定点整数槽** (%lli 解析 + 5 位小数定点化; 8B 整数加权累计双证 — 勘误: 原「chance f32」) / +56 effect 嵌套子对象。⚠ 与 CContextLocalizationText 虚表相邻 (0x1427DE358 vs …3A0), 归属勿混。
 
 **CTechnologyPath** (科技树路径 def; idb 项, 基 THashedKeyValueTrait mdisp=8; writer = CFG 空桩 = 解析件): +8 leads_to_tech 串 (FNV-1a 入 +40) / +48 research_cost_coeff f32 / +144 ignore_for_layout u8。
 
@@ -1010,6 +1032,29 @@ dword_143334EB8 = MESH_POPUP_SCALE_UP_SPEED / def+801 = disable_grow_animation�
 
 未决: SaveBuildings 写回行列序 (asm 级) / 网格变体打分与 mgr+24/db+40 双句柄表关系 /
 E2 双容器活体对拍 / aEntity_0 串本体。
+
+#### 4.26.11b buildingdb.cpp 派生类别面 (CBuildingDatabase vt[2] 重建器; 3 巨函闭环)
+
+清册 (3/3 函体内含 buildingdb.cpp 路径锚): 派生类别表全量重建器 0x140684870 (1249,
+**CBuildingDatabase vt = 0x1427E4190 5 槽, 槽[2] = 本函**) / spawn point 生成与登记
+0x140686280 (328) / sp 链桶索引构建 0x140687110 (167, assert :394 "AllSpawnPoints.GetSize()
+>= AllBuildings.GetSize()")。
+
+**类别面全景** (定案): 25 张内联类别表 (谓词→偏移逐项成表, §4.34.21 AI 八表全在其内) +
+6 wrapper 表 (PE 机器码单谓词直证, 5 张与内联镜像) + +904 未裁 + +40 链桶。**六特名槽**:
++928 supply_node (token 0x4CBE) / +936 rail_way (0x4CC1) / +944 infrastructure (0x2FAB) /
++952 naval_base (0x31F6) 按 token; +960 arms_factory / +968 industrial_complex 按 stricmp。
+缺省告警 (:584-:609) + null 模板兜底 (null_object.h 单例 sub_140686BF0; dockyard/bunker/
+coastal_bunker/synthetic_refinery 串锚)。
+
+**spawn point 合成链** (定案): null sp 占 index 0 → 逐有效模板生成自动 sp (assert :294 钉死
+GetIndex 对位) → 命名 sp 撞 token 则销毁 (:312, 建筑赢) → CIBTD 回填模板+1200/+80 (具名覆盖
+自动) → 合成表回写 **db+112**; 链桶沿 +80/+84(357) 把 template[i] 推入桶[节点+88], 产物挂
+db+40。**GetIndex = 模板+736 (1 起顺序索引, 0 = null)** — §4.34 三处 +736 引用的值域勘误依此
+(「类别 token」→ def 顺序索引; 「主数组 +736/+748」→ 类别表, 主数组在 +64/+76)。
+
+未决: 五对镜像表消费方差异 / +904 谓词 / vt[1] 语义 / sp 工厂与回填助手内部 / 模板旗族
++865..+885 脚本键名 (需 reader 0x1414BB530 侧反查)。
 
 #### 4.26.12 GUI/渲染模板 Type 族 (指针)
 

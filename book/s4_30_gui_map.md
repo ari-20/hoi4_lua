@@ -2397,3 +2397,27 @@ sub_1413DA920 / sub_1413DD5A0 同编译单元但归命令簇 (科技替换研究
 行条目 +48 == 100000 (fixed 1e-5 制 1.0) 旗喂线段配置的语义; 全文件夹重建每文件夹
 begin 事务但体内无 commit (调用方承担待裁); 0x5411/0x2111 两字符含义; 双 40B 容器
 出参完整布局。
+
+#### 4.30.50 事件窗运行期 (CEventWindow 建窗/tick/遥测; eventwindow.cpp 4 函闭环)
+
+清册 (4/4 函体内含 eventwindow.cpp 路径锚): 建窗体 0x14123B0B0 (920) / ctor 0x1412381A0
+(438) / CUpdateable::Update 每帧 tick 0x14123C410 (345, +40 基 vt[1] PE 直证) / 选项遥测
+0x141239DC0 (176, tick 与关窗回调两处调用)。
+
+**CEventWindow 全布局 4752B** (定案): 四 CEventScope 槽 +120..+824 / 三
+CButtonEventDispatcher +832/+2120/+3408 / 双 CGameDate +4704/+4720 (+4728 值域复用 float
+时钟)。**建窗四分派模板** = 按 ev+1060/1054/1053 选 "EventWindow_News/_leader/_Operative/
+EventWindow"; Title/正文 ( 富文本转义族) / agency_insignia / options_grid 逐 option
+过滤建格, 空格断言 :270 + 兜底 BUTTON_OK (option=NULL); 尾按 settings popup_news(+601)/
+popup_events(+602)/popup_minor_events(+603) 决定带暂停显/仅显并根 vt+600 开窗通知 (vt+608
+关窗成对)。**超时链** (tick): 无效哨兵门 → country+5208 显隐分支 → 0.3s 选项渐次展开
+(vt+648) → gs+1128 ≥ **+4712** 超时自动选首个过 trigger option 构造 CSelectEventOptionCommand
+(vt[9] IsValid 门 → 遥测 → vt+136 入队; 无 option 则 :463 不投递)。**遥测五重门** = 人类
+玩家 ∨ human_ai、scope tag == 玩家 tag、ev+1052 族旗、非特工/军领/hidden/news; 类别
+"event_option" {in_game_date, event_id = ev+24 vt[1] 名串, option_id = opt+376 名串}。
+kind4 收件箱条目载荷精化: +0 fire_id / +8 CEvent* / +16 actor tag / +24 scope / +200
+immediate / +208 kind。第二断言门 byte_1435E1B51 (:270, 疑 warn 档); 控制台 event 命令
+sub_140257E70 = 第二 ctor 调用方。
+
+未决: country+5208 旗语义 / W+296/+472/+648 三空 scope 槽写者 / 主 vt[1] 身份 / +64 第 4
+基类名 / qword_14332F698+8 时钟对象身份。

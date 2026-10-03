@@ -23,10 +23,10 @@ L1 帧序 (槽[29] 帧内步序, 定案):
 | 5 | 每帧对象/动画分发泵 sub_1402A1950 |
 | 6 | ImGui 观察窗帧刷 (sub_1421D1C20 门 → sub_1420820D0 → sub_141198E70(idler+2608) → sub_142082120) |
 | 7 | 瞬态横幅 ×4 (AUTOSAVING / SCREENSHOT_TAKEN / MAP_SAVED / Running Test...) |
-| 8 | EndFrame sub_142238180 + 截图/横幅合成闩 sub_14223B030 (a1+1288 旗) |
+| 8 | EndFrame sub_142238180 + 截图/横幅合成闩 sub_14223B030 (a1+1288 旗 — 精化: 该字节 = **帧就绪/Present 复合锁存** 非截图专用, 设备 ok 时 sub_1422370E0 置 1 / B030 用槽 9 Present 返回值覆写, 截图横幅只是消费者之一) |
 
 截图合成件 sub_140B411B0 = BeginFrame + 装载屏轮换 sub_140B40BD0 + 横幅纹理盖印
-(懒载字体 "vic_36" 经 sub_142238A20) + 整帧 2D 树 + EndFrame — 横幅即此路盖章。
+(懒载字体 "vic_36" 经 sub_142238A20 = **GetFont 带回退** (缺名回退表中首字体 — 勘误: 原「解析共享」)) + 整帧 2D 树 + EndFrame — 横幅即此路盖章。
 
 #### 4.35.2 世界/地图渲染三段链
 
@@ -55,7 +55,7 @@ UpdateProvinces (sub_140B4E860, PdxParallelFor)。InGame 与 FE 菜单背景地�
 | CGraphics ctor | `sub_142235600(this, window_mgr, settings)` | L3026763 |
 | 设备初始化（Init 尾段） | `sub_142239540(this, window_mgr)`（ctor 尾调用；**此函数内 `qword_143453090 = this` 写单例**） | L3027159（ctor 内调用）、L7058727 |
 | CGraphics dtor | `sub_14223D220(this, vbase)`（由 CGameGraphics dtor 调） | L1510377（`sub_14223D220(Block, Block + 206320)`） |
-| 基类 dtor 壳 | `sub_142236330`（vtable 恢复 + 折叠） | L2089068 |
+| CGraphics 全量析构 | `sub_142236330` (5 重载器注销 particle/texture/mesh/anim/guianim + 9 状态对象销毁 + 双 2D 树拆除 + "Textures still loaded" :1231 — 升级: 原「dtor 壳」系折叠视图) | L2089068 |
 | CGameGraphics ctor / dtor | `sub_140B3FEB0` / `sub_140B3FFE0` | L7756003 / L1510347 |
 | DeInit 守卫 | 未初始化时 "Attempted to DeInitialize CGraphics without first initializing it."（graphics.cpp:1763） | L3479819 |
 | 单例 CGraphics::Get() | `qword_143453090`（GetSpriteType 断言串直证 "CGraphics::Get()->GetSpriteType( SpriteName )"） | L7058727、L7527205 |
@@ -114,7 +114,7 @@ UpdateProvinces (sub_140B4E860, PdxParallelFor)。InGame 与 FE 菜单背景地�
 | +1248 | CGraphicsSettings* | settings 引用（devinit 全程密集读取） | ctor L3027106 |
 | +1256 | uint8 | 影子贴图意愿门（devinit：`sub_142229D50(settings)`=硬件支持时若此位非 0 → 日志 "Hardware supports \"shadowmapping\", shadows enabled."；否则 `sub_142229D40(settings,0)` 关闭） | devinit L7059341-7059390 |
 | +1264 | CPdxArray (24B) | 容器（+1264/+1272 清零、+1280=alloc）；语义未决 | ctor L3027107-3027123 |
-| +1288 | uint16 = 1 | 初始 1（消费点未定） | ctor L3027124 |
+| +1288 | uint16 = 1 | 初始 1 = **帧就绪/Present 复合锁存** (+1289 = reset 旗; 精化: 原「消费点未定」) | ctor L3027124 |
 | +1308 | float = -1.0 | 三浮点初值组（语义未决） | ctor L3027125-3027127 |
 | +1312 | float = -1.0 | 同上 | ctor L3027126 |
 | +1316 | float = 0.5 | 同上 | ctor L3027127 |
@@ -249,11 +249,11 @@ byte_143453088 (控制台可注册): sub_14223D2C0 帧首/尾各一次设备调�
 | 2 ★ | ★ GetOwnBackendId | 32 |
 | 3 | 未认领 | — |
 | 4  | 能力查询（char(dev)，GL 10 行） | 4 |
-| 5  | 能力查询（int(dev)，GL 12 行） | 4 |
+| 5  | **OnResetDevice 通知** (与槽 6 OnLost 成对称释放/重建对 — sub_14223AF50 头部调槽 5 / AE60 尾部槽 6, 逐容器 restore 紧随; 勘误: 原「能力查询」系 GL 行两读误判, 4) | 4 |
 | 6 | 空桩；D3D9 = sub_14241CBF0 | — |
 | 7  | 无参全局查询 | 9 |
 | 8 ★ | ★ GetDeviceDataPtr | 82 |
-| 9  | 查询 char(dev) | 5 |
+| 9  | **EndFrame/Present** (dx9 = Present vt+136; dx11 = FinishCommandList×N → ExecuteCommandList → Present(vsync? (1,0):(0,tearing?0x200:0)) → 帧计数; GL = SDL 交换推定 — 勘误: 原「查询 char(dev)」系误读; 消费点把返回布尔当帧末成功旗缓存) | 5 |
 | 10 ★ | ★ BeginScene | 7 |
 | 11 ★ | ★ EndScene | 7 |
 | 12  | GetDeviceDataPtr v2 | 3 |
@@ -274,7 +274,7 @@ byte_143453088 (控制台可注册): sub_14223D2C0 帧首/尾各一次设备调�
 | 27  | shader 链辅助 | 5 |
 | 28  | CompileShader 变体 | 5 |
 | 29  | shader 链辅助 | 4 |
-| 30  | 查询 char(dev,ptr)；D3D9/D3D11 = ret1 桩 | 4 |
+| 30  | GL = **LinkProgram** (ret bool = 链接成败; attach + glBindAttribLocationARB + 23 uniform 位置预解析; D3D9/D3D11 = ret1 桩 — 勘误: 原「查询」系 GL 行误读, §4.35.16d) | 4 |
 | 31  | DestroyProgram | 7 |
 | 32  | BindProgram + SetUniform1i | 49 |
 | 33  | 查询 int(dev) | 3 |
@@ -292,7 +292,7 @@ byte_143453088 (控制台可注册): sub_14223D2C0 帧首/尾各一次设备调�
 | 45 ★ | ★ AllocConstantArray | 46 |
 | 46 ★ | ★ FreeConstantArray | 33 |
 | 47 ★ | ★ SetConstantEntry（登记 {ceil(n/4), vals} 入设备常量表 [dev + 16*(idx+13)]；置 dev+304=1 脏 | 85 |
-| 48 ★ | ★ FlushConstantEntry（memcpy(entry.buf, src, 4n) 冲刷常量） | 85 |
+| 48 ★ | ★ FlushConstantEntry（memcpy(entry.buf, src, 4n) 冲刷常量; GL 侧变体 = **绘制时 glUniform4fvARB 惰性冲刷** (六具名 uniform + 顶点声明懒重绑, §4.35.16d) — dx 侧 memcpy 形态未证伪) | 85 |
 | 49  | 查询/描述（GL 35 行 char*(dev,char*)） | 8 |
 | 50  | 析构小件 void(ptr) | 9 |
 | 51 ★ | ★ ApplyBlendState | 52 |
@@ -325,7 +325,7 @@ byte_143453088 (控制台可注册): sub_14223D2C0 帧首/尾各一次设备调�
 | 78  | 辅助 | 4 |
 | 79  | 辅助（GL 30 行 (dev,uint,ptr)） | 4 |
 | 80 | 空桩；D3D9 = sub_14241D3E0 | — |
-| 81  | 桩 ret 0 | 4 |
+| 81  | **GetUsedVideoMemory** (VRAM 前后对账消费 = 渲染就绪门 :2440/:2455; dx11 实装 0x14240FEA0 邻域 — 勘误: 原「桩 ret 0」或不完整) | 4 |
 | 82 | 空桩 | — |
 | 83 | 空桩 | — |
 | 84  | 桩 ret 0 | 4 |
@@ -732,8 +732,144 @@ CPdxParticleType 同槽位对比, **[4] reader / [9] 装载 / [13] 工厂三槽�
 
 > 备注: 同键多 stub 允许多条共存 (去重只拦 +16 非空者), 后续覆盖路径未查。
 > 未决: vt[9] 的 .asset 侧分发点 (纯间接调用, 语料不可见, 归 pdxasset.cpp 簇) / +312 平方
+
+#### 4.35.16b DX11 后端设备域 (gfx_dx11.cpp 15 函; 92 槽表 dx11 侧实装)
+
+清册 (15/15 函体内含 gfx_dx11.cpp 路径锚; 11/15 函经表安装器 sub_1424047C0 id==1 分支交叉
+归位): CreateDevice 0x142414270 (356, 槽 0) / LoadSettingsForAdapter 0x142413B90 (311, 槽 90) /
+CreateTexture2D 内核 0x142410450 (307, 非表槽, 被槽 61/62/63 直调) / HLSL 编译+磁盘缓存
+0x142410B70 (279) / Screenshot 0x142416500 (148, 槽 86) / HRESULT 错误格式化器 0x142416C70
+(116, FormatMessageA + DEVICE_REMOVED 特判追 GetDeviceRemovedReason) / UploadTexSub
+0x142415F40 (114, 槽 68) / EndFrame/Present 0x142414D10 (99, 槽 9) / GfxSetVertexBuffers
+0x142415700 (97, 槽 39) / UploadTexture 0x142415DA0 (90, 槽 67) / BuildVertexShader
+0x142411880 (49, 槽 26) / BuildPixelShader 0x142411770 (49, 槽 29) / DestroyDevice
+0x142415890 (41, 槽 1, 9 对象成对释放) / COM 释放 helper 0x14240FEA0 (22) / catch funclet
+0x1426F4710 (11)。
+
+**CreateDevice 全机制** (定案): DXGI Factory2 + D3D11CreateDevice (FL 4 级 / DEBUG 旗 /
+E_INVALIDARG 弃 11_1 回退; "dx11-old" 旗短路 Device1/Context1 QI) → 交换链 (三缓冲
+R8G8B8A8, 条件 FLIP_DISCARD/ALLOW_TEARING, NO_ALT_ENTER) → 深度 D24S8 → N 上下文记录 +
+默认资源。**槽 9 = EndFrame/Present 三后端定案** (dx11 = FinishCommandList×N →
+ExecuteCommandList → Present(vsync? (1,0):(0, tearing?0x200:0)) → 帧计数%3 → 记录重置;
+勘误入 §4.35.5 表)。槽 10/11 Begin/EndScene 对 dx11 = ret1 桩 (dx11 真实帧末在槽 9)。
+
+**设备对象 272B 全表 + 688B 记录全表** (含 flip/tearing 位、双三状态组成对释放; findings §2)。
+**shader 缓存机制**: `shadercache/dx11_win32/<target>.scache` (FNV-1a-32 源码哈希, 存源码 +
+字节码两段; ENABLE_STRICTNESS)。**槽 90 出参契约**: 适配器名/VRAM MB + MSAA 档表 (12B/档) +
+FL11.x → 阴影默认 1280 否则 1024。上传双函数 = dynamic 门 (+52) + 子矩形盒钳位
+UpdateSubresource。9 个 GUID PE 直读破译 (Factory2/4/5, Device1/Context1, Texture2D,
+UserDefinedAnnotation, Factory1, Adapter3) + FL 表 {11_1, 11_0, 10_1, 10_0}。
+
+未决: CreateTexture2D Usage 槽 (+28 纯 RT 路=1/其余=0) 与公开 D3D11_USAGE 枚举解读矛盾 /
+两处反编译 D3D 槽号与公开 vtable 出入 (一律按语义定案) / 记录准备段与槽 7/12/27 默认状态
+模板逐字段。
 > 数组语义 / SMeshData 六串键名 / +264/+288 出参数组字段级布局 / +336/+340 渲染 id 类型 /
 > 热重载下材质槽只增不清的依赖条件。
+
+#### 4.35.16c graphics.cpp 图形核心运行期 (CGraphics 三件套与资产工厂; 10 函闭环)
+
+清册 (10/10 函体内含 graphics.cpp 路径锚): InitDevice 0x142239540 (892) / CAnimationReloader
+reader 0x14223B400 (513, 图形资产族工厂+热置换; vtable 0x142B3D770 [9] 直证) / CGraphics
+全量析构 0x142236330 (276) / **DeInit 本体 0x142237CD0 (143**, 书原只有守卫串) / 渲染就绪门
+0x1422370E0 (169) / sprite 实例获取 0x142237A10 (131, 缺失 → GFX_default_fallback_texture
+递归, fallback 也缺则 Fatal) / GetFont 带回退 0x142238A20 (131) / 2D 实例释放双路
+0x142237FA0 (77, 双删断言; 延迟 = +325 压 +16 队列 / 即时 = swap-remove) /
+**ResetDevice 0x14223E300 (42**, "Reset occurred."; 消费端 = 控制台 fullscreen 切换命令) /
+ReloadShaders 0x142238190 (17, 零直接调用点)。
+
+**三件套定案**: InitDevice = 三数组前置扩容 (min 2048) → 34B 参数块槽 0 建设备 → fullscreen
+失败降级桌面分辨率重试 (:979/:981) → 9 状态对象 (槽 53×4/槽 57×5) → shadowmap 门; DeInit =
+sprite type 释放 + 设备对象卸载 + 六子系统 teardown + 清 +206316 (与 Init 六子系统配对);
+ResetDevice 尾 +1288 词写 0x0101。**+1288 = 帧就绪/Present 复合锁存** (+1289 reset 旗;
+§4.35.1/§4.35.3 勘误注)。渲染就绪门三态 = 槽 3 设备态 0 → 置 1; 首帧失败 QPC 精确睡 1000ms;
+态 2 → VRAM 前后对账 (槽 81) + AE60/AF50 恢复链。**ABI 补槽**: 槽 3 = GetDeviceState /
+槽 5 = OnResetDevice / 槽 6 = OnLost / 槽 81 = GetUsedVideoMemory / 槽 82/83 = 设备批 RAII
+guard (现役空桩)。**资产工厂 20 token 全表** (spriteType/bitmapfont/pdxmesh/pdxparticle 等;
+三容器族, 同名同型迁移链, 异型报错 :641/:655)。
+
+未决: "anim" 扩展名重载器却解析 .gfx 全族的触发链归属 / +1320/+1264 与 20 token 产品类
+RTTI / devinit 槽 14/82/83 实参汇编核 / shadowmap 分支无动作语义。
+
+#### 4.35.16d OpenGL 后端设备域 (gfx_opengl.cpp 11 函; 92 槽 GL 分支全图)
+
+清册 (11/11 函体内含 pdx_gfx\gfx_opengl.cpp 路径锚): CreateDevice 0x142422AF0 (333, 槽 0) /
+LoadSettingsForAdapter 0x142422530 (317, 槽 90) / 必需扩展校验 0x142424C20 (221, 8 项
+FBO/VBO/GLSL 族, 只警不拒恒返 1) / CompileShader(PS/VS) 0x142420600/0x142420B60 (185/158,
+槽 28/25; ARB 兼容剖面, 信息日志行号解析抽出错行 ±4 "SHADER CODE / ACTUAL FAULTY LINE") /
+DrawPrimitive/Indexed 0x142422190/0x142421F20 (153/153, 槽 18/19) / **LinkProgram
+0x142424990 (104, 槽 30 真身**, 表槽 sub_1424237F0 尾调) / SetVertexStream 0x142424060
+(97, 槽 39) / BuildVS/PS 0x142420F50/0x142420E40 (49/49, 槽 26/29; GLSL builder
+sub_142429CD0 = gfx_glsl_builder CU)。
+
+**GL 分支 92 槽全图** (安装器直证)。**GL 设备 424B 全布局** (dx11 272B 对照; 单例
+qword_1435DD178): CreateDevice = SDL_GL_CreateContext + glewInit + 能力旗 7 字节 + 三默认
+状态/纹理/三态快照 (上下文失败不中止)。**program 120B = uint[30]** (UNIFORM0-5/tex0-15/
+vertextex0, PE 名串直读) + buffer 12B {偏移, 顶点数, GL 名}。**双常量系统双脏旗**:
++208..+304 具名 uniform / +312..+376 顶点流 — 槽 39 SetVertexStream = 纯缓存置脏
+(dev+312/+344/+360, 脏旗 dev+376), 绘制时惰性冲刷 glUniform4fvARB + 顶点声明懒重绑 →
+glDrawArrays / glDrawElements(BaseVertex), 索引恒 ushort。LoadSettings 出参
+{+16=1, +20=MAX_ANISOTROPY, +24/+28=768, +32=1024}; MSAA 档按「倍增序列 ∧ ≤GL_MAX_SAMPLES」
+校验 (判据与 dx11 异构)。GL 函数指针 19 个全部按装载器 wglGetProcAddress 字面串定案。
+
+⚠ 断言总门歧义待裁: GL CU 内 Important 断言门 = byte_1435E1B51 而 dx11 实装记载 = E1B52 —
+总门字节按 CU 分治或 dx11 侧记载偏 1, 待三后端并裁 (GLSL builder CU 侧亦用 B51)。
+
+未决: SDL 包装三件浮点 get/set(32) 语义 / 绑定条目 +16..39 元数据 (归 glsl_builder 批) /
+GL 小查询槽 ~15 个 / LoadSettings 出参块跨后端异构的泛型消费方式。
+
+#### 4.35.16f gfx_supply.cpp 路径条管线域 (5 函闭环; 补给/铁路/河网共用)
+
+清册 (5/5 函体内含 gfx_supply.cpp 路径锚; 与 §4.28 BAB0 铁路线绘制核咬合): 连接-父边收集器
+0x141656F90 (183, SRiverPath 请求 {端点 A/B, 段 id} + 省对去重 + 待绘 PQ) / 路径求解器
+0x14165DA50 (658, **CMap+616 路径条图 +628 计数补录**, BFS 顶点链, 扩展门 = sys+16 偏移表 →
+calc+208 涉足位图, 回溯填请求 +16 found/+20 终点对/+40 途经对向量) / 旗标发射器 0x14165B4D0
+(368, 省对序列按去重集切 run, 写 48B 几何记录 +44 位域 bit0 命中/bit1 方向/bit2 高亮) /
+省份标记取色器 0x1416569F0 (128, 悬停/瓶颈红绿 = 省+32 vs max(MAX_RAILWAY_LEVEL, 首都节点
+_TotalSupply), 白-色渐变 lerp, 开闭五态) / 补给流箭头刷新 0x14165E8E0 (416, **css+168 节点流
+缓存第二读者** — country_supply.h:386 断言与 §4.21 已收 sub_141658020 同源; 按
+SUPPLY_FLOW_REDUCTION_THRESHOLD 三档取 NODE_FLOW_IN_{CURRENT,HALF,FULL}_RANGE_COLOR 发射;
+由渲染环 sub_140B572D0 经宿主+1840 每帧驱动)。
+
+**流水线总控** (定案): sub_14165FB20 串联 6F90 → BAB0 → DA50 → B4D0×2 → D050 (调 69F0) →
+D730 — BAB0 与发射器为兄弟调用 (§4.28 勘误注)。**define 三锚**: NSupply.MAX_RAILWAY_LEVEL
+(= dword_1433349D8, 钳 1) / SUPPLY_FLOW_REDUCTION_THRESHOLD (= qword_143335070) /
+CIVILIAN_MIN_INTEL_TO_SHOW_RAIL_STAUS (= qword_143331D40, 轨道状态情报门)。CColor 工具面 =
+14118F770 (ARGB 截断打包) / 14224BEE0 (白 ctor) / 14224BFB0 (钳位 lerp)。
+
+> 工具注: PE 直读颜色时 **.data raw<virtual 陷阱** — va2off 须加 raw_size 校验, 否则未校验段
+> 会读到 .pdata 文件字节。
+
+未决: DA50 边条 [1][2] vs [3][4] 顶点对语义 / 6F90 三处 MAX_RAILWAY_LEVEL 槽 / 69F0 渐变 t
+源 (xmm 不可见) 与 7 个色槽运行期值 (.data 未初始化尾部静态不可得) / FB20 的 v91/v96 宿主槽 /
+模式编号 5/34 对 §4.35.15 核对。
+
+#### 4.35.16e 国旗纹理图集域 (flagtextureatlas.cpp 3 巨函闭环; 全量构建/增量重绘/单旗装载)
+
+清册 (3/3 函体内含 flagtextureatlas.cpp 路径锚): 图集全量构建 0x14123D920 (1087) / 增量逐旗
+重绘 0x1412405C0 (397) / 单旗像素装载 0x14123F7E0 (234)。
+
+**图集对象 304B 全布局** (定案; 软重置函 0x14123D890 九 count 清零互证): 9 容器 + 基路径/
+overlay 双串 + 旗宽高/图集宽高/紧排模式五几何字段; **三实例内嵌宿主 +206328/206632/206936**
+(大/中/小旗, CGraphics 尾部)。**旗槽 24B UV 记录** = {u0/v0/du/dv 四 float + 有效位 + 纹理号 +
+纹理基序号} — GUI/地图旗渲染取数契约面。旗序号 1-based = 国家下标 (国家 0 无旗); +20 字段 =
+每纹理容量×纹理号+1。
+
+**全量构建** (定案): 几何布置 (紧排/缩边双模尺寸搜索) → 纹理新建 (sub_1424046D0, format 13) /
+整面上传 (槽表 off_1430BF9C8 → 0x142415DA0) + tbb parallel_for (functor = CGenerateThreaded)
+逐旗并行生成。**增量重绘** = 写国 → 元数据四数组 + 逐旗子矩形 blit (off_1430BF9D0 →
+0x142415F40) + 填 24B UV 旗槽; **调度 0x14123FE20**: 元数据现值比对, 变更 ≤ 国家数/4 走增量,
+否则全量重建; 装载谓词四探针 (!sub_140BB5440 ∨ owned_states+1156>0 ∨ 非人类控制 ∨
++5213 reserved_dynamic_country)。
+
+**单旗装载四组合序** (定案): cosmetic_tag×ideology → cosmetic_tag → tag名×ideology → tag名,
+各 + ".tga"; TGA 装载核 sub_14123FBB0 错误码 0..5 全文 (PE 直读 off_1430B2D20; **5 = 24 位慢
+格式警告仍判成功**) + 底左翻转 + 24 位 alpha 强制 0xFF。九尺寸全局 ↔
+NDefines::NGraphics::COUNTRY_FLAG_{,MEDIUM_,SMALL_}TEX_{WIDTH,HEIGHT,MAX_SIZE} 逐一对应;
+中/小图集单纹理门 (gamegraphics.cpp:128/:134 — S17 sub_140B406A0 = 三图集初建编排者直证)。
+
+未决: tbb 任务捕获块字段排布 (IDA OWORD 失真) / sub_140BB5440 阈值
+*(qword_143330D98+136) 语义 (推定动态国 tag 分界) /意识形态链 +208→+24 书内归属 (politics
+域) / 宿主类名 (可达式 *(qword_14332F698+1264)) / overlay 混合公式未汇编复核。
 
 #### 4.35.17 实体系统 (pdx_entity.cpp 14 函数; 场景图/状态机层, §4.35.16 资产层消费侧)
 
@@ -774,3 +910,8 @@ mode 1/2 具体差别 / 剔除门节点表是否即「四叉树」/ 状态 +600 
 #### 4.35.24 FX 粒子系统定义 writer (gfx/FX/particle.lua 导出半边)
 
 FX 粒子系统定义 writer = sub_142344F20 (2739 行; 与粒子定义解析件 sub_142296A40 成对): 键 = name(27) / max_amount(409) / sort(426, 枚举串 depth|distance|age) / emitter_type(481 "sphere") / sphere_emitter_radius(482, 块) / slave_particles(608); 发射原语计数 279× 串 sub_1424C2AD0 + 76× sub_1424C3900 + 4× 块 sub_1424C4220。
+
+#### 4.35.25 战略地图图形域带锚 (0x14165 区 / orderstools 带)
+
+- **0x14165 区 = 战略地图图形域** (负定案: 与焦点树无关 — CNationalFocusTree 运行期域在 0x1402C-0x1402D, GUI 在 0x14138, 均已入书): gfx_supply.cpp ~50 函 (补给图形发射器 sub_14165DA50 "Path._Found" / sub_14165B4D0; 分档 sub_14165D050 消费 §4.30 阈值) + cities.cpp ~24 函 + maparrow.h 6 函 + CCitySettings reader 族; 总控 = sub_14165FB20 (§4.28 延迟子系统表)。
+- **0x140F4 带 = orderstools.cpp 前线绘制/军令工具域** (105 函, 87 函未单独入名): 油漆工具 sub_140F4E9E0 / 军令 tooltip sub_140F454A0 (§4.35 S16a 军队表已名) / §4.33 十余命令的玩家 UI 通道; 邻带 0x140EF = theatre.cpp 战区运行期域 (§4.24 reader 所在), 0x14103 = orderinstance.cpp 域 (§4.24.5)。

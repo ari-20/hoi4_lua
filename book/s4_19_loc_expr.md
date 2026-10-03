@@ -327,6 +327,91 @@ RH 表 {buckets@+56, mask@+68, 哨兵@+72}, 命中取 `entry+16` = CNamedCollect
 | 3 | 领袖角色 = 遍历角色+528 std::map, 逐节点键查 CIdeologyDatabase (qword_14332F528) 56B 桶表, 验 `*(ideology+288 指针 +8) == 组token` → 返回该意识形态领袖角色 | sub_1413F1B90 |
 | 4 | 遍历角色 SRW 保护特质向量 {begin@+0, count@+12}, 元素 40B {名 SSO 32B, id u32@+32} | get_srw_lock 族 |
 | 5 | 逐特质查 CCountryLeaderDatabase (qword_14332EE68) idb 标准查找 (40B 元素 id@+32 相等且 stricmp 名相等双匹配; [0] = Null Object) | sub_14071F950 → sub_14071CE30 |
-| 6 | 每特质 NAME = def+24 串作 loc 键 / DESC = def+168 描述域 ("\n  - " 前缀) → `sub_142245E60(out, "COUNTRY_LEADER_FORMATTER_TRAIT", {NAME,DESC}, 2)` 累计 append | sub_142245E60 = localize.cpp 格式化原语 (键+参数数组+count → 串; 6144B 栈缓冲, 断言 localize.cpp:641) — 本子域公共出口 |
+| 6 | 每特质 NAME = def+24 串作 loc 键 / DESC = def+168 描述域 ("\n  - " 前缀) → `sub_142245E60(out, "COUNTRY_LEADER_FORMATTER_TRAIT", {NAME,DESC}, 2)` 累计 append | sub_142245E60 = localize.cpp 格式化原语 (键+参数数组+count → 串; 6144B 缓冲 = **tbb ETS 每线程 scratch** (vtable 符号实锤类型名 LocalizeAndReplaceBuffer — 精化: 原「栈缓冲」), 断言 localize.cpp:641) — 本子域公共出口 |
 
 查不到角色/意识形态 → 空串 (断言 character_formatter.cpp:140 "The validate function should have caught this")。
+
+#### 4.19.9 localize.cpp 运行期流水线 (10 函闭环; 格式规格语法全集)
+
+清册 (10/10 函体内含 clausewitzlib\localize.cpp 路径锚, 无 pdx_ 误命中): 公共入口
+sub_142245E60 (52, :641 "pStr" 断言; 空键→空串) / **LocalizeAndReplace 扫描引擎
+sub_142245880 (235)** / 变量解析步 sub_142248C20 (109) / **格式化值发射器 sub_1422479F0
+(694)** / 文件夹加载器 sub_142246E10 (491) / 单文件加载 sub_142246CC0 (47) / 主语言文件
+加载 sub_14224AF90 (91) / 溢出检测 sub_142244B30 (66) / 重复键告警 sub_142245D00 (77,
+**死代码** 零直接调用) / 多语言一致性校验器 sub_142244C50 (653, **死代码** 全镜像零引用)。
+
+**主链流水线** (定案): E60 → 880 (FNV-1 64 查表 → 分段拷贝 → `$var$` 两路 = 参数表命中/
+按 loc key 递归 depth+1, `$$` 转义, 深度 32 上限, 未闭合 `$` 告警) → 8C20 (`$NAME|spec$`
+名段对 104B 参数表 strncmp 精确匹配; 三一次性断言, :504 自证类型名 **CPdxLocalizeKeyValuePair**)
+→ 79F0 (spec 发射)。**104B 参数对布局**: +80 i64 / +88 2^15 定点 / +96 联合, _Type 1-11
+全枚举 (11 = token → lexer.cpp:381 串)。
+
+**格式规格语法全集** (79F0 定案): `%` ×100 / `%%` ×1 / `*` `^` 两拼写族 / `+` `−` 红绿 /
+数字小数位默认 2 / `=` 强制加号 / `U` `l` 大小写 / `_` 零隐藏 / 字母固定色; 色逃逸
+`0x11+字母`、复位 `0x11+'!'`、± 缺省 'Y'。
+
+**加载链** (定案): 文件夹加载器枚举 *.yml (a3=0 按语言名过滤), "/replace/" 路径延后最后载;
+主语言文件加载 = 语言全局态三写 (off_1430BDED8 / byte_1430BDEE0 / qword_1435BA038 换表);
+D980 真实签名 `(buf, size, 文件名, 0, a5, a6)` — **capstone 汇编核对** (伪码调用点 3 参形态
+系 IDA 失真, 后续引用以汇编为准)。
+
+**断言总门来源定案**: byte_1435E1B51/52 = 控制台开关 "Asserts(and smoothing)" + ai_testing
+置位 (四形态辨析的门来源, 全书各处引用此二门处同源)。
+
+**IDA 伪码四类失真** (后续批次防复发): ① 调用点参数截断 ② 浮点 xmm 不可见 ③ wchar_t 误标
+④ **64 位常量乘法压成低 32 位字面量** — 伪码 `435 * (c ^ h)` 实为 `movabs r8, 0x100000001B3;
+imul rcx, r8` 的 FNV-1a 64 (435 = 0x100000001B3 低 32 截断); 凡裸小常数乘 hash 先怀疑此形态
+(汇编复核曾险些据此产出「双 hash 混用同表」谬案)。
+
+未决: D980 a4/a5/a6 精确语义与 56B 解析上下文 / 文件读取器 0x100000 参数 / `~` 旗 (Type 9)
+与数值格式化助手族 / Type 10 打印缩放侧证。
+
+#### 4.19.10 textbase.cpp 求值引擎 (CTextBase 三巨函; [...] 与 (...) 与 ?Name 全语义)
+
+清册 (3/3 函体内含 localization_objects	extbase.cpp 路径锚, 均无中断格式化错误日志;
+§4.19.2 ①-⑥ 全互证, 无勘误): **ProcessString 0x1412CED60 (300)** / 条件形式
+0x1412CE980 (221) / 数值/属性形式 0x1412CF2B0 (1121)。
+
+**ProcessString = `[...]` 求值唯一入口** (27 个外部调用点, 定案): 深度帽 = NGame define
+**MAX_SCRIPTED_LOC_RECURSION (现值 30**; 日志里 4096 系严重级数值), 超帽原样透传; 组件数组
+住 pdx_scoped_buffer; slot[6] 保存现场仅 depth=0/reset, slot[7] 每个普通段前+收尾恢复;
+未闭合 `[` 丢弃余文; slot[0] 命令输出递归重过。
+
+**`(...)` 条件函数形式** (定案): `(PromotionChain?TRUE:FALSE)` — slot[2] IsEmpty 选支、
+单支惰性求值、`'…'` 字面量经 slot[3]、FALSE 支空 scope 报 textbase.cpp:455 并复位;
+纯 `(Chain)` 无 `?` = 仅 scope 提升零输出; 恒返回越 `)` 指针。
+
+**`?Name` 四层解析序** (定案): ① 属性 7 命令表 (C3/C4/C7/C8/C11/C12/C13, 按 scope 槽梯度
+取值; C[4] = State 4 条 GetName/GetID/GetCapitalVP/GetContinent 配 gs+712 州表; C[7] =
+UnitLeader 12; C[8] = Character 13) → ② **qword_14332F038 = CScriptableLocalizationDatabase**
+(`common/scripted_localisation`, FNV-1a) → 新造 CContextLocalizationText 绑 scope 递归 →
+③ 6 个 named provider lambda (GetDateString 系 4 + GetTokenKey + GetTokenLocalizedKey) →
+④ slot[4] 数值 + clausewitz 格式引擎。识别属性形式时 `|` 部整体忽略; `|` 后 =
+localize.cpp 格式说明符 (`%*.+0-9=`, §4.19.9), 空输出落 **fixed×1e5 定点默认渲染** (÷100000
+去尾零 = 脚本变量内部表示)。**打包 id bit28-31 空间判别** + sub_14221F310; slot[4] = 名字→
+打包 id/数值解析器 (快路径 `:days`/`:days_left`) — 书 vtable [3][4][5] 三槽空缺由此获消费
+语义 (精化)。
+
+未决: C[11]/C[12]/C[13] 属性名与 +120/+128/+144 槽类型 / CEventScope +8/+168 双 id 槽 /
+qword_143330D98 身份 / 畸形 `(A:B)` 前缀循环伪码疑死循环 (待汇编) / 运行期 .data 表
+(0x14338Bxxx) PE 直读无效须读注册器 strcpy 字面量 (工具注)。
+
+#### 4.19.11 pdx_localize.cpp yml 真解析层 (2 巨函; §4.19.9 加载链的下游终点)
+
+清册 (2/2 函体内含 pdx_localize.cpp 路径锚): yml 逐行解析器 0x1423A2620 (1015) / 语言表键值
+批量装载 0x14239D170 (524, 七参 = 语言名/键数组/值数组/数量/模式/fallback 语言/显式既有值;
+模式 0 = 重复丢弃 :884 / 1 = 覆盖 / 2-4 = 覆盖+旧值 FNV 复核)。
+
+**层界定案**: §4.19.9 localize.cpp 三加载函 (46E10/6CC0/AF90) 全是 IO 壳, 全部汇入
+sub_14239D980 → A2620 解析 → 写语言表 — 加载链自此有下游终点。**语言对象 104B 七字段**:
++0 名 string / +32 FNV 有序表 / +44 计数 / +56 键条目表 24B×5 字段 / +68 计数 / +80 值串池 /
++92 计数; **DB qword_1435BA038 六字段**: +0 当前语言 / +8 语言数组 / +32 全局串堆 / +40 容量 /
++44 水位 / +48 分配器 (PE + capstone 双证)。键 hash **全线 FNV-1a 64** (双索引同 hash);
+yml 行语法全集与空白集 (含 U+00A0/U+2007/U+202F/0x1C-1F)。错误分流: :1031/:1091/:1100/:1150 =
+日志+弃整文件; :1202 转义错误 = 容错收录继续; 两函体内零 _CxxThrowException (尾块 = CLogStream
+析构链)。州名程序化灌入路径实证: 141B5C0C0/141B64480 经 E1C0 当前语言 + 9D170 a5=3 写
+"state_names_" 键。
+
+未决: "1" 版本行悖论 (纯数字行按语法应触发 :1100 弃整文件与现实矛盾 — 候选 = 壳层剥头行或
+:1100 后非 return, 需汇编) / 行记录 72B 内 +8 写入点 / 键条目 +12 精义 / 9D170 a5=4 调用点
+实参截断 / qword_1435BA040 文件记录读取侧。

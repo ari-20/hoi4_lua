@@ -579,3 +579,29 @@ sub_1401B7EE0 / 注册 sub_1424D4DD0)。
 未决: 每国 logs 组装器 sub_1402BE1D0 内部; 日更采集端 (sub_1402C09B0 驱动器 / OnDailyUpdate
 体 / SProvinceData 布局); PNG 编码器; attrition_supply 公式 PE 验算 (核心纪律 8);
 invariants 三填充函数; gs+140/gs+1120 双日期槽语义; sub_14029EED0 与书定案驱动器关系。
+
+#### 4.2.10a frontend.cpp 前端 idler 域增补 (CFrontEndIdler 开局链; 6 函闭环)
+
+清册 (6/6 函体内含 frontend.cpp 路径锚): **StartNewGame 0x140B3E9A0 (875, 非虚)** /
+Idle 0x140B3CA20 (449, 槽[4]) / 槽[7] 图形初始化 0x140B3D9B0 (391) / OnSaveGameLoadBegin
+0x140B3D4B0 (96, 槽[111]) / 前端异步装载收尾 0x140B3FBC0 (49, 书内零覆盖新定案) /
+OnSaveGameLoaded 0x140B3D6C0 (26, 槽[112])。
+
+**StartNewGame 全时序** (定案): +1591 闩门 → 3 帧渲染 → LOAD_INIT → MP/SP 开局横幅 →
+玩家 tag 兜底 (gs+1312/1316 双槽自 **gs+248 容器元素+112** 取) → **gs+2384 = 起始日期
+u64** (整 qword 写, dump 唯一写点) → 游戏界面装载 → CApplication 待入槽交接 →
+playsession_start 遥测。**Idle 每帧无条件调 StartNewGame** — 实际分流在 +1591 闩 (未置 →
+启动控制器 sub_14163F2B0); 启动控制器 (idler+1560) API 八口 = 14163EF30..F2B0。主虚表
+PE 直读补槽: [7] 图形初始化 (LOAD_GFX → InitMap 计时/内存日志 → "Total loadtime" →
+gs+2617 总门清 0 sub_1401EDFF0(gs,0) → maintheme) / **[110] = getter idler+1568** (前端
+大厅状态对象: +72 状态号 / +1032 Server 位) / [111] OnSaveGameLoadBegin (MP 时遍历 gs+248
+容器 160B 元对非本机 tag 投 CSetReadyStatus 48B) / [112] OnSaveGameLoaded (tag→国→槽[58]
+相机定位)。0x140B3FBC0 = byte_14333C1B0×143085000×1430B0820 三旗联动收尾 (调用方 7 处)。
+
+**方法论补正** (错误形态辨析第五注): 判 throw 与否的判据 = 体内有无 **_CxxThrowException**,
+非只看 89E0+ios_base+terminate 尾块 — 本簇体内零 throw, 该尾块 = CLogStream 析构链
+(与 §4.12.9b 三家族、§4.16.20 throw 组并读; throw 组判据补强 = 89E0 前必有 CxxThrow)。
+gs 断言对存在两套 inline 实例 (gamestate.h:1116/1117 与 :1125/1126, 独立一次性旗)。
+
+未决: sub_1401A8B10 dump 无函数体 / idler+1568 类名 / byte_14332F6A9 与 +1580/+1584 键旗
+下游读者 / gs+248 容器 160B 元全布局与「同步校验对象」命名合并。

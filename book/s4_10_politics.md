@@ -1163,7 +1163,7 @@ conf+216..520 区字段巡礼:
 | +552 | RB-tree | — | — | 读法 sub_140E47D70 / 内战残余转让 0x140E48DF0 / pc_does_state_stack_demilitarized / _dismantled 二审 | **map<u32 州 id → CStatePeaceAction\* 数组>** (key = 州 id@节点+32; value count@节点+88, 元素@节点+96; 按州竞标叠层, 值按回合分层); **写方三组**: 载入重建 虚槽[8]→0x140E4C490 / EndTurn·终局前置 0x140E4D220 / GUI 0x141E571B0·0x141E48CF0→0x140E3B6B0, 插入原语 sub_140E2E9D0 | 定案 |
 | +568 | RB-tree | — | — | 0x140E46DA0 (SHIP_CLAIM tooltip 0x1419E2310) + EndTurn 门 0x140E524B0 | **map<ship refid qword → 行动指针数组容器>** (键 = take_navy 动作 +72 ship 引用之 +8 refid, capstone `mov rdx,[rax+0x48]` 直证 — 原「动作 refid 对」键说废; 值 = {count@节点+88, 元素@节点+96}, 元素 take_navy 系行动指针高置信; take_navy 有船分支按舰查) | 定案 |
 | +584 | RB-tree | — | — | sub_140E524B0 (EndTurn 门) + 0x140E47A00 | **map<u32 giver tag → 行动指针数组容器>** (键 = action+52 giver 直读; take_navy 无船分支按出让方挂层; 值形同 +568) | 定案 |
-| +600 | RB-tree {head@+600, size@+608} | — | — | ctor 建树 (节点 56B 分配); 无 unwind dtor | 树形定案; 语义待裁 | 待裁 |
+| +600 | RB-tree {head@+600, size@+608} | **InfluenceDataCache** = map<state_id, map<tag, InfluenceData>> (断言串 Conference.GetInfluenceDataCache() 直证; 外层节点 56B = 32B 头+4B 键+16B 内层 map; 内层值域 = 三距离 +40/+48/+56 + 邻接数 +128; 消费 = 和会影响力折扣 0x1419F9DA0, §4.10.37) | — | ctor 建树 (节点 56B 分配); 无 unwind dtor | 定案 | 待裁复核毕 |
 | +616 | int64 | — | — | — | 和会开始墙钟 FILETIME ticks (Xtime_get_ticks; 100ns, 1601 纪元) | 定案 |
 | +624 | uint32 | 0x2AAD (10925) | time_duration | — | time_duration 累计秒 = 写时墙钟叶 (EXEMPT, 见 §4.10.26) | 定案 |
 
@@ -1600,7 +1600,7 @@ alloc@120} / +128 RH 表 (读侧待裁) / +160 **类别表** (CIdeaCategory, 键
 15 计 = idea_tags 类别数) / +184 类别名哈希表 (48B 槽) / +216 **组表** (CIdeaGroupType,
 元素 +8 token, 25 计 = 原版组数) / +240 slot_ledgers 表 — 三哈希表同族 48B 槽。
 
-**同名组合并律** (定案): AddGroup 按组 token 查 +216, 同名旧组存在 → 旧组收编理念
+**同名组合并律** (定案): AddGroup 按组 token 查 +216, 同名旧组存在 → 旧组归并理念
 (sub_140FCDE60) + 新壳 vt[1] 删除; 无旧组 → 查类别 (无 → "Idea group %s cannot be
 associated with a category (/idea_tags/)" :345) → SetCategory (sub_140FD6590: idea+96
 类别/+48 槽位) → push 组表; 类别无效 "It will be ignored" 不入库。AddWithDupCheck =
@@ -1618,3 +1618,47 @@ army=4/navy=8/air=0x10/military=0x1C/全集=0x1E/invalid=0xFFFF) — 升定案�
 
 未决: CIdeaGroupType vt[3] 装载器本体 / +128 RH 读侧 / 全量版第二调用域 / +2744 读侧
 消费 / CIdeaCategory +80/+56 语义。
+
+#### 4.10.37 peacecosthelper.cpp 和会代价折扣族 (8 函闭环; conf+600 消费侧)
+
+清册 (8/8 函体内含 peacecosthelper.cpp 路径锚): GetCost 主体·state 流 0x1419F7600 (419) /
+无州流 A 0x1419F8660 (365) / 无州流 B 0x1419F7ED0 (365, 三主体同五断言链 :567-577) /
+影响力折扣 0x1419F9DA0 (246) / 合规折扣 0x1419F93C0 (172) / 退款因子表 0x1419FC1C0 (120) /
+距离曲线 0x1419F8DF0 (117) / 行动类专用修正分派 0x1419FA2E0 (103)。
+
+**三主体六因子乘法链** (定案; 起点 100000 fixed1e5, 每因子 cost×factor/100000 级联):
+① desc {tag,flag} 因子 (flag 位非 0 才套用, 疑 CONTESTED_BID 系待裁) → ② giver 因子 →
+③ 合规折扣 → ④ taker×giver×negotiator 因子 → ⑤ 仅州相关流: 专用修正扫描 (枚举列表逐项查
+FA2E0, 取首个非 1.0) + 影响力折扣 → ⑥ 末因子 (三流各配 conf+552/568/584 标量, 语义待裁)。
+尾 = breakdown 串发 PEACE_COST_BREAKDOWN_MODIFIER 日志 (通道标签 "PERC", debug 明细门)。
+**IsStateRelated = (type != 12526 take_navy)** — 对五型集 {take_states/liberate/puppet/
+force_government=12495-12498, take_navy=12526} 恰为州相关判定; 无州两流的 :577 断言退化
+= 只收非州相关行动。
+
+**影响力折扣公式** (定案, 全 fixed1e5): 标量 = cc+5210 major 旗 ? INFLUENCE_MAJOR_FACTOR :
+INFLUENCE_MINOR_FACTOR; 因子 = 标量 × (RATIO_CAPITAL×f_cap + RATIO_CORE×f_core +
+RATIO_CONTROLLED×f_ctrl − PER_ADJACENCY×邻接数) / 1e10; f_x = 距离曲线(距离_x,
+NEUTRAL_DIST_x, MAX_DIST_x, MIN/MAX_DIST_COST_MODIFIER)。**距离曲线** (0x1419F8DF0):
+两段线性 + 钳位 — 0 距 → MIN 因子, 半距 → 1.0, 全距 → MAX 因子; 除 1e5 用魔数
+0x29F16B11C6D1E109 >> 78 (PE 验算 = 2^78/1e5 向上取整变体)。
+
+**合规折扣** (定案): 门 = negotiator == st+204 controller (civil-war 等价 sub_140BB52F0);
+st+680 对 PEACE_COST_FACTOR_COMPLIANCE_STEPS (threshold, factor) 对数组从高往低找首个
+threshold ≤ 值取配对因子, 全不满足 = 100000; 断言项数偶数/首项 = 0。
+
+**专用修正四型分派** (0x1419FA2E0, 定案): 12495 take_states 门 = 附属对象+816 旗或
+state id ∈ a2+72 数组 / 12496 liberate / 12497 puppet / 12498 force_government 各配
+读取器与门; default = :727 断言 (take_navy 不应到达)。**退款因子** 0x1419FC1C0 =
+PEACE_CONTEST_REFUND_FACTOR 数组拷贝 (空表回退单元素 {100000})。
+
+**NDiplomacy define 全表锚定** (16 项): INFLUENCE_{NEUTRAL/MAX}_DIST_{CAPITAL/CORE/
+CONTROLLED} 六距离 (qword_143333220..730) / MIN/MAX_DIST_COST_MODIFIER (0x143333868/950) /
+RATIO_{CAPITAL/CORE/CONTROLLED} (0x143333A68/B58/C58) / PER_ADJACENCY (0x143333E20) /
+MINOR/MAJOR_FACTOR (0x143333FF0/F20) / COMPLIANCE_STEPS (0x143338620) / REFUND_FACTOR
+(0x143338650); 三对 half<max 启动校验 = defines.cpp:165/170/175 (错误日志形态)。
+
+未决: 因子①②④与三末函数 (其他 CU) / InfluenceDataCache 填充点 / FA2E0 的 a2 宿主类名 /
+四消费宿主 (出价/GUI 与 AI 评估两族推定) 定性。
+
+
+**战败州集合消费点** = sub_140E46390 (断言源 peaceconference.cpp; `_AllLoserStates.count(StateId)==0` 门 — 和会战败国州集合的州级查询)。

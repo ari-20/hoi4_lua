@@ -642,6 +642,8 @@ wrapper 带 **硬OOS闩锁 u8@+24 / 槽2首发闩锁 u8@+25**)。双变体: 静�
 sub_140DB1740, 每小时; tbb 并行) vs Logging 诊断 (sub_140DA5C80/sub_140DAB4C0, 只喂
 dump/日志不进比对)。
 
+**逐国哈希收集器 = sub_140DAE720** (1323 行; CalcChecksums 本体): 三参 (错峰相位指针 u32 = `(gs+1128 当前日期 − 43800000) % 24` 小时相 / CCountry\* / 该国 91 槽 × 12B MurmurHash3 流式状态行 {累加器 u32, 尾字节\|计数 u32, 总长 u32}, 行距 1092B); ~118 项恒采集, 错峰门 (`hard_oos` 旗 ∧ **original-tag identity (gs+832 恒等表, 非裸 tag)** %12 == 小时相) 只豁免槽 71 (逐师 8B) 与槽 62 (cc+4688 船队内嵌对) 两附加项 — 每国每天深挖恰一次。**token 双形态哈希门** (跨客户端确定性): token ≤ dword_1435E1ABC (静态 lexer 上界) 哈希 4B id / ≤ dword_1435E1AB4 (mod 注册扩容后运行时上界) 哈希 token **名串** / 超界 fatal — 作用于槽 18-20/61/73/88。调用链: DAE720 ← sub_140DB1B30 (串行) / sub_140DAAF00 (TBB CCalcAllCountryChecksumsThreaded, 分裂深度 ≤8) ← sub_140DA8A40 汇编器 (游戏级槽: 0/1 = multiplayer_random count/seed; 2 = CGameState::Save sub_1401F2E40 全 gs 摘要 (bit0 门); 87 = all_playthrough_data 序列化摘要 sub_1401F2DD0 (bit1 门 byte_143468B46); 80 = 本地玩家国 1B; 81 = 三调试旗) ← sub_140DB1740 每小时静默重算 / sub_140DB09F0 (dump/对比路径, "checksums/" 落盘 = oos_dump 命令族)。比较器 sub_140DB1830: hard_oos 模式 memcmp 全 91 槽; 普通模式只比槽 0/1 (差 → 硬闩锁+24) 与槽 2 (差 → 首发闩锁+25), 差槽下标收集进报告。game.log 逐槽行内槽名 = 空串 (sub_140DB1400 忽略下标恒返全局空串; "OOS_N" 取名路径属弹窗/差异码域)。
+
 对拍门 (全部满足才比较): idler vt+880 返回非空 ∧ (server 为 CNetworkServer/CProxyServer
 ∨ `-hard_oos`(word_143468B44 低字节) ∨ `-log_checksummed_member`(高字节) ∨
 `-playthrough_stats_oos_check`(byte_143468B46) ∨ `-randomlog`(byte_143452529, 控制台

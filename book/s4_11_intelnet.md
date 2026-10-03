@@ -158,7 +158,7 @@ subnet 对连通表 = **pdx_triangular_matrix 三角矩阵** (n(n−1)/2 u32): �
 | +64 | int64 | gain (4210 max 松弛 / C0A80 累加双写点; 清零铺底 = sub_1411C2960, 负流失率 = WRONG_CONTROLLER −10.0 / OUT_OF_RANGE −1.75) |
 | +72 | uint32 | state_id |
 
-拓扑重算链分工 (§4.11.18 细化): sub_1411C0780 = **总入口** (源排序 + sub_1411C03F0 装配 + sub_1411C5D30 编排); BFS 主体三件 = sub_1411B7D70 (拓扑) / sub_1411B81B0 (quiet) / sub_1411C4210 (增益波); "CGainPostProcessor" sub_1411C4080 独立存在不在链内。
+拓扑重算链分工 (§4.11.18 细化): sub_1411C0780 = **总入口** (源排序 + sub_1411C03F0 装配 + sub_1411C5D30 编排); BFS 主体三件 = sub_1411B7D70 (拓扑) / sub_1411B81B0 (quiet) / sub_1411C4210 (增益波); "CGainPostProcessor" sub_1411C4080 **在重算链内 (步⑥)** (勘误: 原「独立存在不在链内」— CacheSubNetworksStrength sub_1411D63A0 步⑥经 sub_1411C4080(g, 函子) 调用, operator() = 0x1411D7050 vtable RTTI 直读, §4.11.22)。
 
 #### 4.11.4 CSubIntelNetwork (216B)
 
@@ -193,7 +193,7 @@ subnet 对连通表 = **pdx_triangular_matrix 三角矩阵** (n(n−1)/2 u32): �
 | +100 | uint32 | coverage.owned | |
 | +104 | uint32 | total_coverable.core | |
 | +108 | uint32 | total_coverable.controlled | |
-| +112 | uint32 | total_coverable.owned | |
+| +112 | uint32 | total_coverable.owned (⚠ 命名张力待裁: 写源 = *(cc+4932) — 书 s4_03 占领度量第 4 槽 contested points 位, 与「owned」名不吻合; §4.11.22) | |
 | +120 | 匿名结构 (12B 形状) 向量 24B | **coverage_per_occupied** {data@120, cap@+128, count@+132} — 12B 元 {tag 关联, u32@+4, u32@+8} (0x4BFD) | loader 19453 |
 | +144 | 匿名结构 (16B, 内含 CState*) | states 容器数据指针 — {data, count}; 16B 条 {州指针, strength int64×1e-5}; **loader = sub_141206C60** (16B {i32,fixed} pair 数组解析 → id→CState* 经 sub_1412063F0 + sub_1411CFCB0 落 map) | 州 id = uint32@州对象+88; 无过滤全量写 |
 | +145..+155 | — | = states 容器尾 {cap@+152}  |  |
@@ -872,8 +872,8 @@ DURATION_MALUS_DEFENSE); ② **op+112 = gs+1128 当前总小时**; ③ 玩家国
 on_start 通知 (def+1232, sub_140210F70); ④ 特工绑定: +224 逐 56B 元 →
 leader+4224==3 (on_mission) 时经 mission 句柄 slot17 取
 COperativeMissionData 快照填元素+16..+48, **sub_140C26600(leader, op)
-(state→4 on_operation + 绑 op)**; 缺特工 assert "Starting an operation with a
-missing operative!" (operationinstance.cpp:408); ⑤ 资源扣除 (civ → 生产
+(state→4 on_operation + 绑 op)**; 缺特工 = **格式化错误日志** "Starting an operation with a
+missing operative!" (operationinstance.cpp:408, sub_1424C8950 族无中断 — 勘误: 原「assert」系形态误标); ⑤ 资源扣除 (civ → 生产
 sub_141374EF0; equipment → sub_14100EA70 入 +272) (定案)。
 
 daily 推进 **sub_14119E390** (CCountry::DailyUpdate operations 步, 逐 running
@@ -975,8 +975,7 @@ COperation def (idb qword_14332EFA0, 56B 桶) 新字段: +328 base_duration /
 判定触发器 / +856 allowed 触发器 (失效删 op) / +1232 on_start 通知 /
 +1264/+1272 资源系数/旗 / +1312 特工经验值 (定案)。COperationInstance 运行时
 字段: +48 civ 累计 / +56 总需求 / +192 失败旗 / +193 检测旗 / +208 prepared
-时刻; sizeof 408B (malloc 直证); +136..159 第二 CGameDate 域 (ctor 哨兵,
-运行时无写者, 推定展示日)。CCountryOperationManager (ops = *(cc+5544),
+时刻; sizeof 408B (malloc 直证); **三枚 24B date cell** (+104 开工时刻 tok 10314 / +136 / +200 prepared tok 19363; 每枚 = {CGameDate vt 0x1427183A8 值@+8 + 序列化次子对象 vt 0x1427183D8 8B 值域 this−8}; +136 cell② 无键无写者 — 精化: 原「+136..159 第二 CGameDate 域」系 cell 误读)。CCountryOperationManager (ops = *(cc+5544),
 sub_14022FFF0; **vt RVA 0x2A77578 活体直证**): +80 工厂需求聚合 (定案)。
 ⚠ idb 池 `qword_14332EFA0` (117 条目, arr@+64/cnt@+76 读法) **条目 vt
 0x2BCEAB0/0x2BCEC50 不在 vt_rtti、非 COperation 主表 0x293F2D8**, 条目头
@@ -984,6 +983,29 @@ sub_14022FFF0; **vt RVA 0x2A77578 活体直证**): +80 工厂需求聚合 (定�
 (候选 = 副表形态/包装条目), 「COperation def 实例」的取数仍走 GUI 行 +2736
 或 instance+72, 勿直取本池条目当 def 本体。word_14332F623 = instant 旗
 (行为定案; 写者未定位)。
+
+#### 4.11.23 operationinstance.cpp 簇对账增补 (行动实例运行期; 7 函闭环)
+
+清册 (7/7 函体内含 operationinstance.cpp 路径锚): Complete 0x141403780 (895, 到期判定 = 函数头
+返回 bool; 精化 = instant 观测 tag 后备槽 gs+1316 / 音效 operation_complete 经 qword_14332F698 槽31 /
+:540 on_action 未定义 = 错误日志) / 主 vt[4] reader 0x141402770 (526, **19 键分发表全定**; 含 15646
+特工快照循环 / 19472 列表解析 / "slot higher than room" 堆串) / StartOperation 0x141400170 (314,
+书五步互证; def+384 启动尾多态槽+96) / 全参 ctor 0x1413FE940 (236, def 查表走 qword_14332EFA8;
+:152 FATAL ERROR; def+472 槽扩容 1.5×) / AssignOperativeToSlot 0x1414032D0 (147, 「running op
+不夺特工」门 = sub_140C0EC00 绑定反查 + 工期≠0 短路) / ClearOperativeSlot 0x1413FFFB0 (40,
+哨兵重置 + optional 毒值 move-assign + 资源重算) / TryStart 0x141404880 (27, CanStart →
+StartOperation; 失败 "Failed to start an operation: %s" = 书 auto_commence 执行体)。
+
+**三库定性** (TGameItemDatabase 同布局三实例, 定案): **qword_14332EFA0 = 名字键 on_action 注册库**
+(本 CU 全部用法 = 名串查 on_action + 发射, on_operation_completed/on_operative_detected_during_operation
+— §4.11.18 池条目身份待裁项高置信闭合: 该池条目 = on_action 包装, 非 COperation def 本体, 原「勿直取」
+警示维持) / qword_14332EFA8 = **operation def 库** (RH: data@72/mask@84/extra@88, 条目 56B) /
+qword_14332EFB0 = **phase def 库**。第二子对象 vt = 0x1429BE628 (PE RTTI 同名 COperationInstance;
+主 vt 0x1429BE5D0 直证)。def 消费点新增: def+8 (键/名) / def+384 (启动尾多态槽+96) / 效果块槽
++80 出文本/+96 fire。
+
+未决: cell② 语义 / 次子对象确切类名 / qword_14333D528 哨兵运行期填装 (推定 {-1,-1}) / def+384
+脚本语义 / instant 旗写者 (维持未定位)。
 
 #### 4.11.19 雷达情报日结 (CRadarsPool::UpdateIntel; radar.cpp 5 函闭环)
 
@@ -1087,3 +1109,24 @@ tag@+288 / 关押日期@+4032 / 状态枚举@+4224 (5 = Killed)。op+288 与 +36
 
 未决: sub_140710B20 是否含入账 / captured reader 元素键表 / dword_14333347C 的 define 名 /
 sub_140C185E0 (+4016 统计, token 545/546) 语义。
+
+#### 4.11.22 countryintelnetwork.cpp 簇对账增补 (谍报网运行期缓存链; 8 函闭环)
+
+清册 (8/8 函体内含 countryintelnetwork.cpp 路径锚): PrepareSubNetworkCache 0x1411D1260
+(590, λ 名直出) / 单州强度增长 tooltip 构建器 0x1411D2EF0 (590, 唯一消费方 = §4.35 情报
+网络巨函 sub_140E10910) / **CacheSubNetworksStrength 0x1411D63A0 (207, §4.11.18「全量
+重算」实名; 九步链补全含两条书未载调用边)** / PrepareSubNetworkCache λ 体 0x1411D07A0
+(186) / subnet 三修正聚合器 0x1411D3EC0 (158, coverage_per_occupied 占领占比加权
+mdef532/535/538) / CGainPostProcessor::operator() 0x1411D7050 (77) / TopologyClient 槽[2]
+谓词 0x1411D4F00 (38, 州 controller == 网目标国) / 槽[1] 收省 0x1411D4720 (33)。
+
+**运行期缓存链定案**: net+144 覆盖 map 运行时写者 = PrepareSubNetworkCache (v92 swap);
+**+240 反查表装填者** = λ 体内 sub_1411CB620 (表基 net+232); **subnet+8/16/24 = 运行时
+重写槽** (聚合器 0x141208260 首次重算即覆盖 loader 值 — 存档 token 名 own_* 与运行时数据源
+mdef ENEMY_*_OVER_OCCUPIED_TAG 不同名同槽, 两侧语义关系未决)。CGainPostProcessor 机制 =
+增益钳到目标缺口 / 超目标按 DECAY define 回落。**谍报网静源池槽号 = 4** (与雷达 = 3 互证,
+§4.11.19); 海军象限独占「目标省在网内」门。拓扑五 define + 交付四 MAX_*_INTEL +
+OCCUPIED_TAG 双权重 define 全具名 (findings §2)。
+
+未决: mission 过滤门语义 / SetStrengthInAllStates 外层函数 / subnet+112 业务名活体对拍 /
+0x1411D2EF0 出参 136B 逐字段 GUI 复核 / subnet 修正槽读者侧全景。

@@ -193,10 +193,10 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4072 | 匿名结构* | **intel** | §4.11; writer ADEC0 0x30EC; loader case 12524 同 |
 | +4080 | CCountryCharacters* | **characters 宿主 (0x138 堆对象, ctor malloc 双调用点直证; vt 0X14298AE18, 活体探针 + ASLR 换算 + RTTI 名三证; ctor sub_1410E8A20 / dtor sub_1410E8C70); writer 块键 0x4C14; 断言 "Unit leader without a character" 互证; 8 张指针表; ⚠ sub_1411867E0 = 任命资格校验器 (技能门槛+理由串), 与本对象无代码关系 | §4.4; 内部表见下; **GUI: 阵营指挥官窗候选列表** (Repopulate sub_141BFA2A0; EFilterFactionCommanders 掩码 15 @win+4504) |
 | chars+8 | CCountry* | 属主回指 (chars+8 == cc == chars+256 三点互证, 活体 440 国) | 序列化仅 5 键 (19622/19968/19485/15702/17327, token 全直证); 全部容器 = 24B {data, cap u32, count u32, allocator vptr off_143085170} — 原「+128..+159/+216/+304 独立槽」系各容器第 4 格误拆 |
-| chars+16 | 容器 24B | **character_status** (16B 元 {status ref ptr@+0, flags u32@+8}: bit0 country_leader / bit8 advisor / bit16 unit_leader / bit24 scientist) | 键 19622 (s4_03 原锚 ✓) |
+| chars+16 | 容器 24B | **character_status** (16B 元 {**CCharacter\*** @+0, flags u32@+8}: bit0 country_leader / bit8 advisor / bit16 unit_leader / bit24 scientist) | 键 19622 (s4_03 原锚 ✓) |
 | chars+40 | 容器 24B | **retired_character_status** (元素同构) | 键 19968 |
 | chars+64 | 容器 24B | **已创建 CAdvisor 登记表** (8B 指针元) | 不序列化 |
-| chars+88 | 容器 24B | **appointed_advisors** {d@88, count@100}; advisor slot 串 @advisor+128; character id 对 = 打包 qword | 键 19485 (原「推定 advisor 角色名映射」定案) |
+| chars+88 | 容器 24B | **appointed_advisors** {d@88, count@100}; **advisor slot 主键 = idea_token @advisor+48 (hash 缓存 @+80** — 排序树键; 勘误: 原「slot 串@advisor+128」系槽位偏移非主键); character id 对 = 打包 qword | 键 19485 (原「推定 advisor 角色名映射」定案) |
 | chars+112 | CUnitLeader* 24B 容器 | **pArmyLeader** (cpp:220 断言铁证; 原「候选表#1」名废) | 不序列化 |
 | chars+136 | CUnitLeader* 24B 容器 | **pNavyLeader** (cpp:226 断言铁证; 原「候选表#2」名废) | 不序列化 |
 | chars+160 | 容器 24B | **在聘科学家花名册** (CScientistList roster 模式数据源) | 不序列化 |
@@ -567,7 +567,7 @@ reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccup
 
 静态修正注册/查重器 = sub_14060D830 (modifier.cpp:127 "Duplicate modifier ID: %s"; 内联 ~70 静态修正名清单: weather 13 种 / war_support_good|bad|during_war / stability_good|bad / screening|capital_screening_bonus / pride_of_the_fleet×3 / resistance_effect|_base / compliance_effect|_base / {active,full,passive}_decryption_modifier / intel_network_state_level_{bonus,penalty} / lacking_consumer_goods / night / non_core{,_controller} / attache_sent / in_faction{,_original} / country_is_at_{peace,war} / naval_mines_effect / root_out_resistance_mission_modifier / operative_nationality_{mission,operation} / air|carrier|ship_experience_{bonus_max,malus_min} / created_intelligence_agency 等 — 静态修正枚举源)。
 
-修饰定义表寻址 (BASE 相对; 供 +16 pair 的 def_idx → def 解引用; 消费者对 = sub_14101CC90 sub_unit 定义装载校验 ("Sub unit definition X already specified" / "Invalid sub unit definition: ") 与 sub_140C35570 同族构造件):
+修饰定义表寻址 (BASE 相对; 供 +16 pair 的 def_idx → def 解引用; 消费者 = sub_14101CC90 sub_unit 定义装载校验 ("Sub unit definition X already specified" / "Invalid sub unit definition: ") / sub_140C35570 同族构造件 / **sub_140225AF0 全名收集器** — 控制台 loc_check_modifiers 与 loc_check 总校验的 mdef 名源, 遍历 120B 条跳空白名查本地化键缺失):
 
 | 项 | 值 |
 |---|---|
@@ -600,7 +600,7 @@ reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccup
 
 乘法折叠唯一外部消费 = 消费品计算链 sub_140E630F0 (cc+1464 传 pairs 视角, id 102 = MODIFIER_CONSUMER_GOODS_FACTOR 折叠 → 乘 id 103 = …EXPECTED_VALUE → 对全局下限 qword_143331498 钳位)。
 
-资源三元组 writer = sub_140CBEFD0 (键 11842 resources / 15753 resources_unclapamed (引擎拼写如此) / 15756 resources_temporary ← 宿主 +136/+312/+488 三个 CPdxArray, 间距 176B = §4.13.6 CStrategicResourcePool 步长)。
+**CResourceOrigin 资源池四联 writer = sub_140CBEFD0** (宿主 = CResourceOrigin, §4.23.3a CConvoyClient 派生; 键 11842 resources →+136 / 15753 resources_unclapamed (引擎拼写如此) →+312 / 15756 resources_temporary →+488 / 12121 buildings →+664; 另 state(439)/efficiency(13799)/delivery_route(12479)/+992 逐国名表; a1+128 = CState\* 字段; §4.13.6 步长同型系复用非同物)。
 
 ⚠ 修饰值叶静默缺失排查: 定义表基址手抄掉位即全族缺叶 — 以符号名 qword_14332ED90 / dword_14332ED9C 为准 (十进制 BASE+ 值手抄亦会掉位)。
 ⚠ 全族闭合证据: ctor sub_140555FB0 / dtor sub_1405566B0 / writer sub_140612640 三方闭合; 与 state added_modifier 同 writer 互证。
