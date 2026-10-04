@@ -1,8 +1,8 @@
 # func_names_1193.tsv — hoi4.exe 1.19.3.0 VA -> 名字/模块标签
 # 列: va(dec) \t name \t module file.cpp:line \t tier \t asserts(备选行号)
-# tier: sym(PE 导出名/lambda 描述符) > slot(基类槽契约方法名) > rtti(vtable 槽 类::[槽号]) > line(断言行号)
+# tier: sym(PE 导出名/lambda 描述符) > slot(基类槽契约方法名) > rtti(vtable 槽 类::[槽号]) > line(断言行号) > stub(书 §4.00.9 通用桩)
 5369865056		pdx_scoped_singleton.h:13		
-5369877024	CTrigger::IsAssignTrigger		slot	
+5369877024	stub_ret0		stub	
 5369877040	CPdxNewDeleteAllocator::[1]		rtti	
 5369877072	CPdxNewDeleteAllocator::[2]		rtti	
 5369877088	CPersistedDb::[0]		rtti	
@@ -17,7 +17,7 @@
 5369890000	tbb::internal::task_scheduler_observer_v3::[2]		rtti	
 5369890080	CPdxHybridInlineBufferAllocator<H::H$0CA>::[4]		rtti	
 5369890096	CPdxHybridInlineBufferAllocator<H::D$0EAA>::[6]		rtti	
-5369890112	CUnit::CreateNewId		slot	
+5369890112	UserMathErrorFunction		stub	
 5369890144	CPdxHybridInlineBufferAllocator<H$09H>::[1]		rtti	
 5369891664		main.cpp:858		
 5369892016	CPdxHybridInlineBufferAllocator<H$09H>::[2]		rtti	
@@ -54,6 +54,7 @@
 5369930192	std::_Iostream_error_category2::[2]		rtti	
 5369930384	std::_Iostream_error_category2::[1]		rtti	
 5369930400	CTbbThreadObserver::[0]		rtti	
+5369930432	_guard_check_icall_nop		stub	
 5369931040	CSprite::[76]		rtti	
 5369931056	std::bad_cast::[1]		rtti	
 5369935360		gameitemdatabase.h:882		
@@ -553,7 +554,7 @@
 5370246864	CScriptedEffectTemplate::GetName		slot	
 5370246880	CGameApplication::[17]		rtti	
 5370246896	GetSupportedTargetMask		slot	
-5370246912	CEffect::[20]		rtti	
+5370246912	__acrt_select_exit_lock		stub	
 5370246928	CApplication::[15]		rtti	
 5370246960	CEffect::GetID		slot	
 5370246976	NFactions::CFactionMemberUpgrade::[14]		rtti	
@@ -592,7 +593,7 @@
 5370280688		pdx_robin_hood_table.h:561		pdx_robin_hood_table.h:561,pdx_robin_hood_table.h:568,pdx_robin_hood_table.h:579
 5370281776		pdx_robin_hood_table.h:561		pdx_robin_hood_table.h:561,pdx_robin_hood_table.h:568,pdx_robin_hood_table.h:579
 5370282864		pdx_robin_hood_table.h:561		pdx_robin_hood_table.h:561,pdx_robin_hood_table.h:568,pdx_robin_hood_table.h:579
-5370283952	IsValid		slot	
+5370283952	stub_ret1		stub	
 5370284992	CGameApplication::InitFriendsHandler	gameapplication.cpp:812	sym	gameapplication.cpp:812,gameapplication.cpp:825,gameapplication.cpp:832,gameapplication.cpp:840,gameapplication.cpp:849,gameapplication.cpp:853
 5370286352		gameapplication.cpp:1248		gameapplication.cpp:1248,gameapplication.cpp:1252,gameapplication.cpp:1254,gameapplication.cpp:1257,gameapplication.cpp:1379,gameapplication.cpp:1387
 5370295712		gameapplication.cpp:1541		gameapplication.cpp:1541,gameapplication.cpp:1559,gameitemdatabase.h:127,gameitemdatabase.h:160,pdx_scopedptr.h:119,gameapplication.cpp:1597
@@ -1589,7 +1590,7 @@
 5371498608		pdx_scopedptr.h:129		
 5371498768		ai_country.cpp:1232		
 5371498992		gamestate.h:1125		gamestate.h:1125,gamestate.h:1126,gamestate.h:1125,gamestate.h:1126,gamestate.h:1125,gamestate.h:1126
-5371503216	CAICore::[10]		rtti	
+5371503216	stub_getter_this8		stub	
 5371503280	CStrategicAI::[6]		rtti	
 5371503296	CCountryAI::[6]	ai_country.h:144	rtti	
 5371503488	CCountryAI::[4]	ai_country.h:135	rtti	
@@ -6803,13 +6804,13 @@
 5375213504	CAIAttitudeDatabase::[1]		rtti	
 5375213872	CNullAIAttitude::[0]		rtti	
 5375213936	CDiplomaticAction::GetCostText		slot	
-5375213952	CAlliedAttitude::[17]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
-5375215136	CFriendlyAttitude::[17]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
-5375216336	CHostileAttitude::[17]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
-5375217648	CNeutralAttitude::[17]		rtti	
-5375218144	COutragedAttitude::[17]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
-5375219328	CProtectiveAttitude::[17]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
-5375221104	CThreatenedAttitude::[17]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
+5375213952	CAlliedAttitude::GetScore	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
+5375215136	CFriendlyAttitude::GetScore	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
+5375216336	CHostileAttitude::GetScore	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
+5375217648	CNeutralAttitude::GetScore		slot	
+5375218144	COutragedAttitude::GetScore	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
+5375219328	CProtectiveAttitude::GetScore	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
+5375221104	CThreatenedAttitude::GetScore	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
 5375222464		gameitemdatabasehelper.h:22		
 5375228048		gameitemdatabasehelper.h:137		
 5375229440	TGameItemDatabase<CAIRoleDatabase>::[1]		rtti	
@@ -42633,10 +42634,10 @@
 5404793184		order.cpp:292		
 5404793552		order.cpp:273		order.cpp:273,order.cpp:274
 5404793920	CCommand::SetTmpA		slot	
-5404794464	CCommand::Reader		slot	
+5404794464	Reader		slot	
 5404794992	SInternalData::Reader		slot	
 5404795136	CCommand::GetTmpB		slot	
-5404795152	CCommand::Writer		slot	
+5404795152	Writer		slot	
 5404795312	SInternalData::Writer		slot	
 5404797712		oos_checks.cpp:146		
 5404827728		keyevent.cpp:198		
@@ -44938,9 +44939,9 @@
 5407236240		pdx_robin_hood_table.h:579		
 5407237344	CGui::[1]		rtti	
 5407237664	CDatabaseObject::[3]		rtti	
-5407237776	CCommand::Load	persistent.cpp:53	slot	persistent.cpp:53,persistent.cpp:67,persistent.cpp:79
+5407237776	CPersistent::Load	persistent.cpp:53	slot	persistent.cpp:53,persistent.cpp:67,persistent.cpp:79
 5407239232	Reader		slot	
-5407239248	CCommand::Save		slot	
+5407239248	CPersistent::Save		slot	
 5407239984		parser.cpp:891		
 5407240384	CReader::[0]		rtti	
 5407240448	CWriter::[0]		rtti	
@@ -45356,6 +45357,7 @@
 5407750324	std::money_put<std::D::DU?$char_traits::DV?$ostreambuf_iterator>::[3]		rtti	
 5407751200	std::money_put<std::D::DU?$char_traits::DV?$ostreambuf_iterator>::[4]		rtti	
 5407752108	_Mpunct<char,std>::[4]		rtti	
+5407753144	_purecall		stub	
 5407779764	DNameStatusNode::[2]		rtti	
 5407779776	charNode::[2]		rtti	
 5407779780	pDNameNode::[2]		rtti	

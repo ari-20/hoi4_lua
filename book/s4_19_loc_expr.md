@@ -65,7 +65,7 @@ CBrowserType 同族)。
 
 #### 4.19.2 CContextLocalizationText (912B) — `[A.B.C]` 求值
 
-主虚表 0x1427DE358 (8 槽):
+主vtable 0x1427DE358 (8 槽):
 
 | 槽 | 地址 | 语义 |
 |---|---|---|
@@ -124,7 +124,7 @@ CBrowserType 同族)。
 |---|---|
 | ① | `strchr '[' … strchr ']'` 切出 `[...]` 段 |
 | ② | 段内按 `.` 切分 → 16B 组件数组 {ptr, len} |
-| ③ | 组件 > 1 → 逐组件调 `(*(vtbl+8))(this, comp)` (slot [1] scope 提升解析), 再 `(**vtbl)(this, out, comp)` (slot [0] 命令分派) |
+| ③ | 组件 > 1 → 逐组件调 `(*(vtable+8))(this, comp)` (slot [1] scope 提升解析), 再 `(**vtable)(this, out, comp)` (slot [0] 命令分派) |
 | ④ | 段形如 `(xxx)` → sub_1412CE980 (函数/带参形式) |
 | ⑤ | 段形如 `?xxx` → sub_1412CF2B0 (条件/变量形式; 报 "invalid scope for var. Key %s") |
 | ⑥ | 递归 sub_1412CED60(this, out, tmp, depth+1, 0) — 嵌套 `[...]` |
@@ -151,17 +151,17 @@ CBrowserType 同族)。
 
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +8 | CPdxInlineBufArray\<SLocEntry,14\> {data@8, cap@16, count@20, alloc@24} | **SLocEntry 数组** (条目 72B, 内联缓冲 14 项) | sub_1423A5380 / sub_1423A5880 逐 72B 拷贝; 分配器 `CPdxHybridInlineBufferAllocator<SLocEntry,14,int>` vt 0x142B5CA38 |
+| +8 | CPdxInlineBufArray\<SLocEntry,14\> {data@8, cap@16, count@20, alloc@24} | **SLocEntry 数组** (条目 72B, 内联缓冲 14 项) | sub_1423A5380 / sub_1423A5880 逐 72B 拷贝; 分配器 `CPdxHybridInlineBufferAllocator<SLocEntry,14,int>` vtable 0x142B5CA38 |
 | +24 | 分配器对象* | &off_143085170 (全局默认分配器) | sub_140147000 尾部 |
 
 **SLocEntry (72B, 非独立 RTTI 类)** = 48B 内嵌 CFormattedLocalization + 24B 子容器:
 
 | 条目内偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +0 | CFormattedLocalization vt | 0x1427E4068 | sub_14067EF90 写 vftable |
+| +0 | CFormattedLocalization vtable | 0x1427E4068 | sub_14067EF90 写 vftable |
 | +8 | MSVC 串 (SSO 32B, cap@+24) | 字面量 / 格式串 / 值 | sub_14067EF90: `*(_OWORD *)(v7+8)=0` + cap=15 哨兵 |
 | +40 | uint8 | 变体 tag (0=串 / 1=二值 / 2=u32 / −1=空) | 同 CFormattedLocalization |
-| +48 | CPdxInlineBufArray\<SArgument,11\> {data@48, cap@56, count@60, alloc@64} | **SArgument 数组** (元素 88B, 内联 11 项) | sub_14067EF90 尾 `sub_14011DF40((void*)(v7+48))`; 分配器 vt 0x142B40B8 |
+| +48 | CPdxInlineBufArray\<SArgument,11\> {data@48, cap@56, count@60, alloc@64} | **SArgument 数组** (元素 88B, 内联 11 项) | sub_14067EF90 尾 `sub_14011DF40((void*)(v7+48))`; 分配器 vtable 0x142B40B8 |
 
 > 48 + 24 = 72 ✓。**"Missing localization key" 判据 (定案)**: `entry+40 == 0 && entry+24 == 0`
 > — 即 tag 为「串」变体且串 cap 为 0 (空串)。
@@ -171,7 +171,7 @@ CBrowserType 同族)。
 | 条目内偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
 | +0 | MSVC 串 (SSO 32B, cap@+16) | **参数名 / 键名** | sub_1423A51C0 从 a2 移入 |
-| +32 | CFormattedLocalization vt | 0x1427E4068 | `*(_QWORD *)(a1+32) = &…vftable'` |
+| +32 | CFormattedLocalization vtable | 0x1427E4068 | `*(_QWORD *)(a1+32) = &…vftable'` |
 | +40 | MSVC 串 (SSO 32B, cap@+56) | 值串 | sub_1423A51C0 |
 | +72 | uint8 | tag (同 §4.19.3 CFormattedLocalization) | — |
 | +80 | uint8 | 旗 | — |
@@ -202,7 +202,7 @@ CBrowserType 同族)。
 | +24 | 分配器对象* | &off_143085170 ×2 之一 | sub_140324DE0 |
 | +32 | 匿名结构 (NNB 形状) 向量 | 第二容器 {d@32, cap@40, count@44, alloc@48} — 第二段 (指令/常量池), 由 sub_14141C0D0 填 | sub_14141D1B0 读 a1+32 |
 | +48 | 分配器对象* | &off_143085170 ×2 之一 | sub_140324DE0 |
-| +208 | i8 | **表达式状态 tag** (−1 = 未初始化 / 1 = 已解析) | sub_14032BA40 三步: 旧 tag≠−1 → 调 vt[0]; 置 −1; 调 ctor; 置 1 |
+| +208 | i8 | **表达式状态 tag** (−1 = 未初始化 / 1 = 已解析) | sub_14032BA40 三步: 旧 tag≠−1 → 调 vtable[0]; 置 −1; 调 ctor; 置 1 |
 
 **SOperand 字段表** (216B, 非独立 RTTI 类):
 
@@ -223,25 +223,25 @@ CBrowserType 同族)。
 | ③ | `sub_14141F030(expr)`: 遍历操作数 (216B, +8 data / +20 count), 跳过 `byte@+208 != 2` 者, FNV(操作数+0) 查 `qword_14332EED8` (CNamedCollectionDatabase) RH (buckets@+56 / mask@+68 / 哨兵@+72) → 命中取 `entry+16` = CNamedCollection*, 写回操作数+8; 未命中 → 报 `"Failed to resolve named collection in math expression, defaulting to 0"` (script_math.cpp:383) + `sub_1403B80F0` + `sub_14140DDE0` + `+44 = 0` + `sub_14141C0D0(expr+32, 0, 0, −1)` 置空表达式 |
 | ④ | `sub_14141C0D0(a1, op, a, b)` = 指令发射 (math_instructions.h:54 断言 `OperandA >= numeric_limits<int8>::min() && …`) |
 
-**表达式 trigger 类**: `CCheckExpression` (vt 0x1427CF258) / `CDebugMathExpression` (vt 0x1427CF318),
+**表达式 trigger 类**: `CCheckExpression` (vtable 0x1427CF258) / `CDebugMathExpression` (vtable 0x1427CF318),
 均 CTrigger 后代 (5 基, 144B, 内联 CExpression@+88); 工厂 = `sub_1405271D0` / `sub_140527220`
-(malloc 0x90 → sub_14054A090 → 写 vt → sub_14032CBD0(v1+11)); 注册入口 =
+(malloc 0x90 → sub_14054A090 → 写 vtable → sub_14032CBD0(v1+11)); 注册入口 =
 `CTriggerEntry<CCheckExpression>` (sub_14002E470) / `CTriggerEntry<CDebugMathExpression>` (sub_14002E4D0)。
 
 | 键 | token | 落点 |
 |---|---|---|
 | tooltip | 146 | a1+512 串 |
-| value | 776 | **sub_14032BA40()** = 重置内嵌 CExpression 并置 tag=1 (或对象块 → `(*(expr vt[3]))(expr, node)` = CExpression reader) |
-| var | 14582 | 先 `(*(a1+88 vt[3]))` 再判 a1+97/98/99 三旗, 报 `"invalid left side variable"` |
+| value | 776 | **sub_14032BA40()** = 重置内嵌 CExpression 并置 tag=1 (或对象块 → `(*(expr vtable[3]))(expr, node)` = CExpression reader) |
+| var | 14582 | 先 `(*(a1+88 vtable[3]))` 再判 a1+97/98/99 三旗, 报 `"invalid left side variable"` |
 
-> **sub_14032BA40** = CExpression 重用入口 (定案): 旧 tag ≠ −1 → 调 vt[0] 清理; 置 tag = −1;
+> **sub_14032BA40** = CExpression 重用入口 (定案): 旧 tag ≠ −1 → 调 vtable[0] 清理; 置 tag = −1;
 > 调 ctor; 置 tag = 1。
 
 #### 4.19.5 NScript::CConstant (64B) / CConstantDatabase (128B)
 
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +8 | CPdxInlineBufArray\<SSchema::SEntry,25\> {data@8, cap@16, count@20, alloc@24} | schema 表 (元素 40B) | sub_140AA7EA0 逐 40B 拷贝; 分配器 vt 0x142942208 |
+| +8 | CPdxInlineBufArray\<SSchema::SEntry,25\> {data@8, cap@16, count@20, alloc@24} | schema 表 (元素 40B) | sub_140AA7EA0 逐 40B 拷贝; 分配器 vtable 0x142942208 |
 | +32 | MSVC 串 (SSO) | **常量名** (def 键名) | sub_14012CC60 |
 | +48 | uint32 | **值类型 tag / 序号** | sub_140AA76C0 = `*(uint32*)(a1+48) = a2` |
 | +56 | — | 预留 (ctor 清零, reader 未写) | — |
@@ -268,8 +268,8 @@ CBrowserType 同族)。
 |---|---|---|---|
 | +8 | uint32 / 16B 输入描述符 | **输入描述符** `{type, payload}` (正典解析器 sub_140A1EC00, `input = <ns:value>` 冒号语法: game:/collection:/constant: → type 1-6, 全表与协议见 §4.32.19) — 原「元素计数」读法废 | sub_140A1EC00 直证 |
 | +16 | uint64 | 预留 (清零) | ctor |
-| +24 | CPdxInlineBufArray\<NCollection::COperator,16\> {data@24, cap@32, count@36, alloc@40} | **算子/元素数组** (内联 16 项) | ctor 置 `*(a1+24) = a1+56` (内联路径, 当分配器 vt[4] == sub_140161270 时) |
-| +48 | 分配器对象 (264B) | `CPdxHybridInlineBufferAllocator<COperator,16,int>` vt 0x142719840; 尾 +312 = &off_143085170 | 48 + 264 = 312 ✓ |
+| +24 | CPdxInlineBufArray\<NCollection::COperator,16\> {data@24, cap@32, count@36, alloc@40} | **算子/元素数组** (内联 16 项) | ctor 置 `*(a1+24) = a1+56` (内联路径, 当分配器 vtable[4] == sub_140161270 时) |
+| +48 | 分配器对象 (264B) | `CPdxHybridInlineBufferAllocator<COperator,16,int>` vtable 0x142719840; 尾 +312 = &off_143085170 | 48 + 264 = 312 ✓ |
 | +320 | uint64 | 第二容器 data | ctor 置 0 |
 | +328 | uint64 | 第二容器 cap | ctor 置 0 |
 | +332 | uint32 | 第二容器 count (推定, ctor 未显式置) | 容器四字段惯例 |
@@ -305,7 +305,7 @@ RH 表 {buckets@+56, mask@+68, 哨兵@+72}, 命中取 `entry+16` = CNamedCollect
 
 | 类 | sizeof | 字段 |
 |---|---|---|
-| CRandomLocList | — (19 槽 vt, 含 CPersistent 槽 [1]/[3]) | 由 reader sub_140AAC5B0 建: +8 = 成员容器 (sub_14031ECD0 追加) / +32 = 另一对象 (键 10647 `seed` → `(*(a1+32) vt[3])()`) |
+| CRandomLocList | — (19 槽 vtable, 含 CPersistent 槽 [1]/[3]) | 由 reader sub_140AAC5B0 建: +8 = 成员容器 (sub_14031ECD0 追加) / +32 = 另一对象 (键 10647 `seed` → `(*(a1+32) vtable[3])()`) |
 | CRandomLocListMember | 288 | +8 = **CScriptableValue 内联体 248B** (经 `sub_141594360(v10+1, 0, 100000*v6)` 构) / +32+256 = CBoundLocalization 内联体 |
 
 > reader `sub_140AAC5B0`: 键 `localization_key` (799) → `sub_1424C0AA0(a2, v22)` 读串;
@@ -322,12 +322,12 @@ RH 表 {buckets@+56, mask@+68, 哨兵@+72}, 命中取 `entry+16` = CNamedCollect
 
 | 步 | 操作 | 函数/依赖 |
 |---|---|---|
-| 1 | 解析参数 (INDENT/IDEOLOGY 按 stricmp 匹配键; token 取元素+96) | 参数元素 104B {type u32@+0, 键 SSO@+16, 值 SSO@+48, token u32@+96} |
+| 1 | 解析参数 (INDENT/IDEOLOGY 按 strncmp 全长匹配键; token 取元素+96) | 参数元素 104B {type u32@+0 (1 = 串 / 11 = PDXLOCALIZE_TOKEN), 键串对象起点 +8 (堆指针@+8, SSO buf@+16, size@+32, cap@+40), 值串对象@+48, token u32@+96}; INDENT 值即缩进串 (本地化后整体替换结果缓冲, 非前缀拼接); 每轮特质 append 后缓冲非空且末字节 != 换行则补换行 |
 | 2 | 角色 = CCharacterTemplateDatabase (qword_14332EE58) 按 id 两级查找 (+64 表 → +104 RH 24B 桶) | sub_1406BD460 |
 | 3 | 领袖角色 = 遍历角色+528 std::map, 逐节点键查 CIdeologyDatabase (qword_14332F528) 56B 桶表, 验 `*(ideology+288 指针 +8) == 组token` → 返回该意识形态领袖角色 | sub_1413F1B90 |
 | 4 | 遍历角色 SRW 保护特质向量 {begin@+0, count@+12}, 元素 40B {名 SSO 32B, id u32@+32} | get_srw_lock 族 |
 | 5 | 逐特质查 CCountryLeaderDatabase (qword_14332EE68) idb 标准查找 (40B 元素 id@+32 相等且 stricmp 名相等双匹配; [0] = Null Object) | sub_14071F950 → sub_14071CE30 |
-| 6 | 每特质 NAME = def+24 串作 loc 键 / DESC = def+168 描述域 ("\n  - " 前缀) → `sub_142245E60(out, "COUNTRY_LEADER_FORMATTER_TRAIT", {NAME,DESC}, 2)` 累计 append | sub_142245E60 = localize.cpp 格式化原语 (键+参数数组+count → 串; 6144B 缓冲 = **tbb ETS 每线程 scratch** (vtable 符号实锤类型名 LocalizeAndReplaceBuffer — 精化: 原「栈缓冲」), 断言 localize.cpp:641) — 本子域公共出口 |
+| 6 | 每特质 NAME = def+24 串作 loc 键 / DESC = def+168 描述域 ("\n  - " 前缀) → `sub_142245E60(out, "COUNTRY_LEADER_FORMATTER_TRAIT", {NAME,DESC}, 2)` 累计 append | sub_142245E60 = localize.cpp 格式化原语 (键+参数数组+count → 串; 6144B 缓冲 = **tbb ETS 每线程 scratch** (vtable 符号直证类型名 LocalizeAndReplaceBuffer — 精化: 原「栈缓冲」), 断言 localize.cpp:641) — 本子域公共出口 |
 
 查不到角色/意识形态 → 空串 (断言 character_formatter.cpp:140 "The validate function should have caught this")。
 
@@ -369,7 +369,7 @@ imul rcx, r8` 的 FNV-1a 64 (435 = 0x100000001B3 低 32 截断); 凡裸小常数
 #### 4.19.10 textbase.cpp 求值引擎 (CTextBase 三巨函; [...] 与 (...) 与 ?Name 全语义)
 
 清册 (3/3 函体内含 localization_objects	extbase.cpp 路径锚, 均无中断格式化错误日志;
-§4.19.2 ①-⑥ 全互证, 无勘误): **ProcessString 0x1412CED60 (300)** / 条件形式
+§4.19.2 ①-⑥ 全互证): **ProcessString 0x1412CED60 (300)** / 条件形式
 0x1412CE980 (221) / 数值/属性形式 0x1412CF2B0 (1121)。
 
 **ProcessString = `[...]` 求值唯一入口** (27 个外部调用点, 定案): 深度帽 = NGame define

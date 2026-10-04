@@ -21,9 +21,9 @@ writer 绑定总表:
 |---|---|
 | CArmyGroup | 直继 COrdersGroup (mdisp 0; 双 vtable 形态承自基类) |
 | COrdersGroup | 基含 CRailwayGunAssignee@+24 (ctor 双 vptr +0/+24 来源) |
-| COrdersGroupMember | CUnit 谱系成员 @ unit+184 (vt 0x142953320 = 子对象视口, 本体 vt 0x142952268 — member 元素 = unit+184 视口的 RTTI 级实证) |
-| CHqDeploymentDistributable | 双 vtable: CEquipmentDistributable@0 (vt 0x142A1CE18) / CPersistent@+24 (vt 0x142A1CE50; writer 0X14193EED0 挂 +24 视口) |
-| CGameDate (内嵌) | 三层 {vt@0, hours@+8, vt@+16}; 与 oi 内嵌日期对象一致 (writer 转发 +16 视口) |
+| COrdersGroupMember | CUnit 谱系成员 @ unit+184 (vtable 0x142953320 = 子对象视口, 本体 vtable 0x142952268 — member 元素 = unit+184 视口的 RTTI 级实证) |
+| CHqDeploymentDistributable | 双 vtable: CEquipmentDistributable@0 (vtable 0x142A1CE18) / CPersistent@+24 (vtable 0x142A1CE50; writer 0X14193EED0 挂 +24 视口) |
+| CGameDate (内嵌) | 三层 {vtable@0, hours@+8, vtable@+16}; 与 oi 内嵌日期对象一致 (writer 转发 +16 视口) |
 
 挂载: CTheatre 挂于 CCountry writer 0X1407191B0 壳 — `if (*(cc+372))` 计数>0 才整块写 theatres; 容器 {d@cc+360, c@cc+372}, 元素 CTheatre*。
 
@@ -36,25 +36,25 @@ writer 绑定总表:
 | cap + count | 0 |
 | alloc | &off_143085170 (静态空分配器哨兵) |
 
-注: 释放走 alloc->vt[2] (CFront dtor 0X140EEA470 直证)。
+注: 释放走 alloc->vtable[2] (CFront dtor 0X140EEA470 直证)。
 
 #### 4.24.2 CTheatre (464B, writer 0X140F025C0)
 
-**CControllerArea / COwnerArea (area 块元素双类; 280B = 0x118 同布局; 原「vt 0x14295e818」实为两张相邻 vtable — CControllerArea 7 槽 0x14295E818 + COwnerArea 9 槽 0x14295E858, RTTI COL 直证; COwnerArea 无独立 ctor, 调用点内联 sub_140CF05C0 → 换 vptr; **序列化负定案: 本类零落盘** — reader case 11157 只把锚省 id 读入 theatre+48, post-load 链 sub_1401DA490 → sub_140704D20 → sub_140EFC6D0 (CTheatre::UpdateMainProvince, theatre.cpp:2557) 经 prov+208 重建 theatre+24, sub_140EFC390 重建 front+112):
+**CControllerArea / COwnerArea (area 块元素双类; 280B = 0x118 同布局; 原「vtable 0x14295e818」实为两张相邻 vtable — CControllerArea 7 槽 0x14295E818 + COwnerArea 9 槽 0x14295E858, RTTI COL 直证; COwnerArea 无独立 ctor, 调用点内联 sub_140CF05C0 → 换 vptr; **序列化负定案: 本类零落盘** — reader case 11157 只把锚省 id 读入 theatre+48, post-load 链 sub_1401DA490 → sub_140704D20 → sub_140EFC6D0 (CTheatre::UpdateMainProvince, theatre.cpp:2557) 经 prov+208 重建 theatre+24, sub_140EFC390 重建 front+112):
 
 | 类 | 洪水分组键 | 省侧回指槽 | 注册容器 |
 |---|---|---|---|
 | CControllerArea (前线区) | 省+392 controller (别名归一 sub_140BB52F0) + 同 region 组 | CProvince+208 | CCountry+1352 |
 | COwnerArea (所有者区) | 州+200 owner tag (sub_140E796B0) + 同 region 组 | CProvince+216 | CCountry+1376 |
 
-两类共用 vt[1] GetTag = +40 优先省的 controller tag。成员布局 (+0..+279 全覆盖):
+两类共用 vtable[1] GetTag = +40 优先省的 controller tag。成员布局 (+0..+279 全覆盖):
 
 | 偏移 | 类型 | 语义 | 备注 |
 |---|---|---|---|
 | +0 | vptr | CControllerArea 0x14295E818 (7 槽); COwnerArea 实例 ctor 后改写 0x14295E858 | 定案 |
 | +8 | 匿名结构 (NNB 形状) 向量 24B | {data@8, cap@16, count@+20, alloc@24}; 元 = 多态自有子对象 (dtor 虚调) | 定案 |
 | +32 | uint64 | 裸槽 ctor 清零 (区内无任何读写点) | 定案(负) |
-| +40 | CProvince* | **优先陆省锚** (晋升规则见 vt[4] AddProvince); 发射两跳 ru32(rp(+40)+164); GetTag 源 | 定案 (原锚吻合) |
+| +40 | CProvince* | **优先陆省锚** (晋升规则见 vtable[4] AddProvince); 发射两跳 ru32(rp(+40)+164); GetTag 源 | 定案 (原锚吻合) |
 | +48 | 匿名结构 (NNB 形状) 向量 24B | **本区省表** (有序, 按省 +164 id 二分插查); {data@48, cap@56, count@+60} — oi+168 门吻合 | 定案 (原锚吻合) |
 | +64 | — | +48 容器 alloc 槽 (共占) | 定案 |
 | +72 | uint32 向量 64B | **边界段记录表** {d@72, cap@80, count@+84, alloc@88}; 元 64B {外方 tag, 双侧边界省容器, 均值对@+56} | 定案 |
@@ -66,10 +66,10 @@ writer 绑定总表:
 | +176 | 匿名结构 (NNB 形状) 向量 24B | 位条件省表 (`(flags&8)≠0 ∨ (flags&2)==0 ∨ 无陆邻省(flags&3)==0` 的省; 位义待裁) {d@176, cap@184, count@+188, alloc@192} | 形定案 |
 | +200 | 匿名结构 (NNB 形状) 向量 24B | **国家×区域交互记录表** {d@200, cap@208, count@+212, alloc@216}; 仅前线区有数据 (活体 429/411/435) | 定案 |
 | +224 | 匿名结构 (NNB 形状) 向量 24B | **per-country 下标数组** {d@224, cap@232, count@+236, alloc@240}; count = 国家总数 (活体 440); 元 −1 哨兵 | 定案 |
-| +248 | 匿名结构 (NNB 形状) 向量 24B | **关联战略区表** {d@248, cap@256, count@+260, alloc@264}; 来源 = +176 条件省表; 活体元 vt 0x296D558 与 §4.25.2 同址 | 定案 |
+| +248 | 匿名结构 (NNB 形状) 向量 24B | **关联战略区表** {d@248, cap@256, count@+260, alloc@264}; 来源 = +176 条件省表; 活体元 vtable 0x296D558 与 §4.25.2 同址 | 定案 |
 | +272 | uint32 | 全局实例序号 (ctor 参 dword_14333CC38++) | 定案 |
 
-全链路: 载局三连 sub_140CF55F0/5D80/59A0 (sub_140DC1B30 三连调 + 效果分支 case 19687) → SetController 增量 sub_140CF6FA0/7AC0 (延迟冲洗 sub_140CF81C0) → 合并 sub_140CF67D0 / TrySplit sub_140CF87C0 (areas.cpp:594) / owner 分裂 sub_140CF8F20。加省/删省 = 两类共用 vt[4]/vt[5] ("Adding/Removing province %i to %i." areas.cpp:444/467; +48 容器按省 id 有序插)。
+全链路: 载局三连 sub_140CF55F0/5D80/59A0 (sub_140DC1B30 三连调 + 效果分支 case 19687) → SetController 增量 sub_140CF6FA0/7AC0 (延迟冲洗 sub_140CF81C0) → 合并 sub_140CF67D0 / TrySplit sub_140CF87C0 (areas.cpp:594) / owner 分裂 sub_140CF8F20。加省/删省 = 两类共用 vtable[4]/vtable[5] ("Adding/Removing province %i to %i." areas.cpp:444/467; +48 容器按省 id 有序插)。
 
 **全字段表** (发射序 = 表序; id 对锚 {id=1, type=67}):
 
@@ -79,7 +79,7 @@ writer 绑定总表:
 |---|---|---|---|
 | +8 | uint32 | id 对.type (B400 壳) | 恒写 |
 | +12 | uint32 | id 对.id | 恒写 |
-| +24 | CControllerArea* 向量 | area 数组数据 (vt 0x14295e818, areas.cpp; 发射值 = 锚点省份 id — area+40 为优先陆省的 CProvince* 锚点, 发射两跳 ru32(rp(rp(elem)+40)+164)); 块呈单行叶 `area.#1` (tok 11157) | 门 计数@+36>0 (cap@+32 推定); 逐值 ADAB0 |
+| +24 | CControllerArea* 向量 | area 数组数据 (vtable 0x14295e818, areas.cpp; 发射值 = 锚点省份 id — area+40 为优先陆省的 CProvince* 锚点, 发射两跳 ru32(rp(rp(elem)+40)+164)); 块呈单行叶 `area.#1` (tok 11157) | 门 计数@+36>0 (cap@+32 推定); 逐值 ADAB0 |
 | +36 | uint32 | area 容器计数 | |
 | +80 | CFront* | front — 逐元 ADEC0 整块 | 门 计数@+92>0; tok 10720/0x29E0 |
 | +92 | uint32 | front 容器计数 | |
@@ -104,7 +104,7 @@ writer 绑定总表:
 | +240..+271 | 内嵌 CColor | 默认白 | 不序列化 |
 | +280..+407 | 匿名结构 (128B 形状) | **互斥量保护的待处理条目队列** (ctor sub_140EEA130 / dtor sub_140E9E3D0: +16/+40 = 静态空分配器哨兵; +24 容器 {d@24, cap@32, c@36, alloc@40} 元素 stride 40; +48 = std::mutex (dtor 经 sub_14251DC00 加锁, 尾 Mtx_unlock(+48)); +120 = −1 哨兵; +124 = mutex 递归计数 (== 0x7FFFFFFF → _Throw_Cpp_error(6)); 条目 40B: +16 = 裸指针数组 d, +28 = count, 数组元素逐个 j_free) | 不序列化; **AI 海运转移规划缓存** (ai_strategy.cpp "The AI is attempting to naval transfer a unit"): 容器#1 (+280) 48B 条 {u32 键对 + 内嵌容器 + u32}; 容器#2 (+304) 40B 条 {qword 键对 + 24B 记录指针数组}; AI 工作线程写 (gamestate 断言直证), CTheatre::Update 每帧首步清空 (sub_140EA2340) — 故须 mutex; 查询/入队族 sub_140E9F9C0/140EA40A0/140E9FC80/140EA5320 |
 | +408 | AreaAndFrontProvinces 向量 (192B 元素) | **「Fronts per enemy area」字典** (theatre.cpp:416/435 断言直证) {d@408, cap@416, c@420, alloc@424}; 元素 = {己方区域 CControllerArea*@+0, 敌方区域@+8, CFront*@+16 (认领/新建的前线), 省份累积器容器@+24..+47}; 每帧 tbb 并行通道 (sub_140EF97A0→140EED730 清重建→140EECA10 旧前线认领→140EEB190 逐条目: 空则新建 CFront (type=66, area 存 front+112)); 段构建体 = **sub_140EEE090** (省对配对, "Failed to build a front against enemy…" 断言) | 不序列化 |
-| +432 | CArmyGroup* 向量 | pdx 容器 {d@432, cap@440, c@444, alloc@448} (dtor sub_1401A4F70 逐元 deleting + alloc 释放) — **本帧被移出/解散的 CArmyGroup 引用登记表 (keep-alive)**: CTheatre::Update sub_140EF8470 对 +152 中 ag->vt[12] (sub_140BF1F20 递归「子 og 全部可回收」) 真者 push → sub_140F00410 摘除 (+152/+176 双摘) → sub_140BF3D70 Disband | 不序列化 |
+| +432 | CArmyGroup* 向量 | pdx 容器 {d@432, cap@440, c@444, alloc@448} (dtor sub_1401A4F70 逐元 deleting + alloc 释放) — **本帧被移出/解散的 CArmyGroup 引用登记表 (keep-alive)**: CTheatre::Update sub_140EF8470 对 +152 中 ag->vtable[12] (sub_140BF1F20 递归「子 og 全部可回收」) 真者 push → sub_140F00410 摘除 (+152/+176 双摘) → sub_140BF3D70 Disband | 不序列化 |
 > **CTheatre::Update (sub_140EF8470) 运行侧** (定案): 唯二调用点 = sub_1401BB280
 > (DoCountryHourlyUpdates hourly_parallel 执行器, §4.2.6 相位 2) → **跑在 tbb worker
 > 线程** (两窗主线程仅 0.6%, 全线程 3.3%); 伴生 0xEE 区 = NTheatreManager 分发族
@@ -121,9 +121,9 @@ writer 绑定总表:
 | +12 | uint32 | id 对.id | 恒写 |
 | +56 | uint8 | motorization_level — **writer 按 u8 读** (零扩展打印) | 恒写; tok 19943/0x4DE7 |
 | +57 | uint8 | field_marshal_group bool | **恒写无门** (false 也写 no; 锚 no); tok 14337/0x3801 |
-| +80 | CUnit* 向量 | member 数组数据 — 元素 = CUnit+184 COrdersGroupMember 视口 (vt 0x142953320); 每元独立块 `member.#N.unit={id,type}` (ref = (elem-184)+24 {type@+24, id@+28}; thunk 定案见 §4.24.9); 空门触发断言 ordersgroup.cpp "Member doesn't have a unit..." | 门 计数@+92>0 **且逐元指针非零、vt[32](elem)=0X140BF95D0 (`return a1-184`) 真**; tok 11025/0x2B11 |
+| +80 | CUnit* 向量 | member 数组数据 — 元素 = CUnit+184 COrdersGroupMember 视口 (vtable 0x142953320); 每元独立块 `member.#N.unit={id,type}` (ref = (elem-184)+24 {type@+24, id@+28}; thunk 定案见 §4.24.9); 空门触发断言 ordersgroup.cpp "Member doesn't have a unit..." | 门 计数@+92>0 **且逐元指针非零、vtable[32](elem)=0X140BF95D0 (`return a1-184`) 真**; tok 11025/0x2B11 |
 | +92 | uint32 | member 容器计数 | |
-| +104 | 匿名结构 (NNB 形状)* | leader_unit 载体 — unit+184 视口 (reader 0X140BF30A0); 非零才写 B320(16831, vt[32](p)+24) → ref = (p-184)+24 | 门 指针≠0; tok 16831/0x41BF |
+| +104 | 匿名结构 (NNB 形状)* | leader_unit 载体 — unit+184 视口 (reader 0X140BF30A0); 非零才写 B320(16831, vtable[32](p)+24) → ref = (p-184)+24 | 门 指针≠0; tok 16831/0x41BF |
 | +136 | CArmyLeader* | leader 载体 — CArmyLeader 本体 (CUnit 派生); 非零才写 B320(10423, p+8) → `id=ru32(p+12) type=ru32(p+8)` (锚 `leader={ id=401 type=4713 }`) | 门 指针≠0; tok 10423/0x28B7 |
 | +144 | uint32 | pending_incoming_leader.type (0X142220180 块形 AF2C0+B240) | 门 双 dword 非零 **且 A3D0(+144) 校验过**; tok 10306/0x2842 |
 | +148 | uint32 | pending_incoming_leader.id | 同上 |
@@ -141,7 +141,7 @@ writer 绑定总表:
 | +312 | fixed×1e-5 (int64) | our_power (锚 1937.35→193735000) | 恒写; tok 13629/0x353D |
 | +320 | fixed×1e-5 (int64) | enemy_power | 恒写; tok 13630/0x353E |
 | +352 | SSO 串 | name {buf@+352, size/cap 区@+368} (锚 "第1集团军") | **双门**: !AAFD0 且 qword@+368≠0; tok 27 |
-| +392 | CHqDeploymentDistributable* | hq_deploy_distributable — 对象 +24 视口 (vt 0x142A1CE50); ADEC0(16908, p+24) | 门 指针≠0; tok 16908/0x420C; 子表见 §4.24.10 |
+| +392 | CHqDeploymentDistributable* | hq_deploy_distributable — 对象 +24 视口 (vtable 0x142A1CE50); ADEC0(16908, p+24) | 门 指针≠0; tok 16908/0x420C; 子表见 §4.24.10 |
 | +400 | uint32 | target_template.type | 门 双 dword 非零且 A3D0(+400) 校验; B320; tok 13959/0x3687 |
 | +404 | uint32 | target_template.id | 同上 |
 | +408 | uint8 | expeditionaries | 真才写 yes; tok 13730/0x35A2 |
@@ -175,14 +175,14 @@ writer 绑定总表:
 | +64 | CTheatre* | owner theatre (ctor 参数) | 不序列化 |
 | +72 | 匿名结构 (408B 形状) | **og 运行时索引器对象** (malloc 0x198; ctor 0x1414C1B10: +0 = og 回指 (**零 vftable 写, 无独立 RTTI 类 — 负定案**) / +8 = 0x50 子对象 (sub_140E29930: +16/+48 = 双静态空分配器哨兵, +36/+68 = 0.9f, +72 = 1, +76 = `*(qword_143339D28+64)`) / +24..+248 = 10 个 pdx 容器 / +320/+400 = alloc 哨兵 / +328 = pdx 容器 / +352 = 2×sub_140BB5490(og+60) / +356 = 256; dtor sub_1414C1EC0 逐项析构; 访问器 sub_140BEA830 (pdx_scopedptr 断言 "_pPtr")) — 不序列化 | 不序列化; 类名负定案 |
 | +112 | CAirWing* 向量 | attached wings — 元素 = CAirWing* 本体指针 (视口−16 口径, ref 对 @本体+24/+28); attach = sub_140BEB3C0(og, 翼) (断言 GetAttachWingStatus, ordersgroup.cpp:3410; og+57 旗跳过; 翼侧回写 sub_140F5DD60/sub_140F67100 后 push); 填充者 = CAirWing reader 键 army(10397) + assign 命令载入侧 sub_141944CD0 | 不序列化 |
-| +224 | COrderInstance* 向量 | 本 og 全部订单实例收集容器 {d@224, cap@232, c@236} — vt[8] sub_140BF1970 post-load 以此为名单跑子实例引用 resolve (sub_14102B680: +752/+776 暂存 id 按 elem+580 匹配 → sub_14102F010 双向 attach) | 不序列化 |
-| +328 | 匿名结构 (NNB 形状) 向量 | plan_value 重算 qword scratch (vt[10]→sub_140BEC940 消费; 输入来自 +528 B 区镜像经 sub_1401EFE30 提交) | 不序列化 |
+| +224 | COrderInstance* 向量 | 本 og 全部订单实例收集容器 {d@224, cap@232, c@236} — vtable[8] sub_140BF1970 post-load 以此为名单跑子实例引用 resolve (sub_14102B680: +752/+776 暂存 id 按 elem+580 匹配 → sub_14102F010 双向 attach) | 不序列化 |
+| +328 | 匿名结构 (NNB 形状) 向量 | plan_value 重算 qword scratch (vtable[10]→sub_140BEC940 消费; 输入来自 +528 B 区镜像经 sub_1401EFE30 提交) | 不序列化 |
 | +384 | 匿名结构 (NNB 形状)* | _pTheaterGroup 回指 (GUI 锚, assert 直证) | 不序列化 |
-| +415 | uint8 | **plan_value 重算脏旗** — 30+ 处 og mutator 置 1; 唯一消费者 COrdersGroup vt[10] sub_140BF1660 体 `if(og+415){ og+415=0; og+304 = sub_140BEC940(og, &v, og+312, og+320, og+328, 0); }` ⇒ 重算 plan_value (+304) 及伴随 +312/+320/+328 | 不序列化 |
+| +415 | uint8 | **plan_value 重算脏旗** — 30+ 处 og mutator 置 1; 唯一消费者 COrdersGroup vtable[10] sub_140BF1660 体 `if(og+415){ og+415=0; og+304 = sub_140BEC940(og, &v, og+312, og+320, og+328, 0); }` ⇒ 重算 plan_value (+304) 及伴随 +312/+320/+328 | 不序列化 |
 | +432 | CBorderWar* | **当前边境冲突 (border war) 对象** (单指针非容器; ctor 0X140BE9C10 清零; GUI 三消费: CArmyItem 边境冲突图标 `orders_group_item_border_conflict` 非零门 / CanChangeLeader sub_140BEBAA0 → CANNOT_CHANGE_LEADER_WAR / 进度百分比 sub_140BDC260 读 obj+40/+48 子对象选边 +1232 阈值) | 不序列化 |
 | +440 | CArmyGroup* | **所属 CArmyGroup 回指 (父军集团)** — CArmyGroup reader 键 12462: 旧 ag 摘除 (sub_140BF4370(og+440, og), 旧 ag +572 空 → 删除) 后置 og+440 = 本 ag; sub_140BF3C20 三档传播 = 本 leader → 父 ag leader → ag+560 兄弟群 | 不序列化 |
-| +472 | COrderInstance* 向量 | **leader 根 order 实例 path 数组缓存镜像** — vt[10] 与 leader 根 OI+112 (COrderInstance.path) 逐元素 memcmp, 不等则 sub_1401A8550 重容 + memcpy; count@+484 / cap@+488 | 不序列化 |
-| +496 | idpair (缓存 key) | **缓存 key 对 type@+496 / id@+500** — 与 +472 缓存体成对: vt[10] 以 sub_1410361A0(leader 根 OI, &v, og) 产出对比较, 不等才重拷 +472; 不适用时写 qword −1 (两 dword 全 0xFFFFFFFF) | 不序列化 |
+| +472 | COrderInstance* 向量 | **leader 根 order 实例 path 数组缓存镜像** — vtable[10] 与 leader 根 OI+112 (COrderInstance.path) 逐元素 memcmp, 不等则 sub_1401A8550 重容 + memcpy; count@+484 / cap@+488 | 不序列化 |
+| +496 | idpair (缓存 key) | **缓存 key 对 type@+496 / id@+500** — 与 +472 缓存体成对: vtable[10] 以 sub_1410361A0(leader 根 OI, &v, og) 产出对比较, 不等才重拷 +472; 不适用时写 qword −1 (两 dword 全 0xFFFFFFFF) | 不序列化 |
 | +528 | 匿名结构 (24B 形状) 向量 | B 区镜像容器 = +328 计算输入容器的暂存 (ctor 空态; tick 经 sub_1401EFE30(+528→+328) 提交; sub_140BEC940 消费 +312/+320 输出 / +328 输入); 前邻 +504..+527 = {qword×3} B 区镜像三元组 (+304 plan_value/+312/+320 暂存, ctor 清零; og 周期更新 sub_140BEC460 开头 B→A 拷贝) | 不序列化 |
 | +552..+559 | — | 尾 8B 不初始化 | 不序列化 |
 
@@ -190,15 +190,15 @@ writer 绑定总表:
 注: 铁路炮挂载条目上下文 = COrdersGroup 基视口 (非 CArmy=师; CArmyGroup 派生同布局; RTTI 链 + ctor 0X140BE9C10 + unitcontroller.cpp 断言 `!_pOrdersGroup->GetAssignedRailwayGuns.IsEmpty` 直名) — 定案。
 注: attached wings 过滤链 = 槽掩码 LUT qword_1430B3FC8[item+1352] ∧ 翼+56(_pPool) → pool+32(def) → def+1448 = _Category 镜像#2 三环对书全平 (§4.23 +1032 行互证)。
 注: +392 以外其余 qword 杂项 writer 零触, 语义未决。
-注: 每帧 `sub_1414D40E0` **不是** og+72 对象的虚槽 — 它由 COrdersGroup vt[10] = `sub_140BF1660` 经 `sub_140BEA830(og+72)` 取对象后调用; og+72 对象自身无虚表 (ctor 零 vftable 写)。
-> vt[10] 体三增量 (定案): 前导两列表 tick (sub_141036640) / 块A 变体对缓存 (+472 数组,
+注: 每帧 `sub_1414D40E0` **不是** og+72 对象的虚槽 — 它由 COrdersGroup vtable[10] = `sub_140BF1660` 经 `sub_140BEA830(og+72)` 取对象后调用; og+72 对象自身无vtable (ctor 零 vftable 写)。
+> vtable[10] 体三增量 (定案): 前导两列表 tick (sub_141036640) / 块A 变体对缓存 (+472 数组,
 > +484 计数, +496..+500 对, memcmp 全等跳过重算) / +417 门 + +448 倒计时到期重挂。
 > sub_140BF4760 = og+415 置脏实证位点 (caller 持 "sGroup()==_pOrdersGroup" 断言)。
-> 采样伪影: +BF1678/+BF18A8 = vt[10] 体后半 pdata 块 (非独立函数)。
+> 采样伪影: +BF1678/+BF18A8 = vtable[10] 体后半 pdata 块 (非独立函数)。
 
 #### 4.24.4 CArmyGroup (592B, writer 0X140BF75A0)
 
-vt 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏移 +0..+559 与 COrdersGroup 同布局:
+vtable 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏移 +0..+559 与 COrdersGroup 同布局:
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
@@ -214,22 +214,22 @@ vt 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏�
 
 #### 4.24.5 COrderInstance (968B, writer 0X14104B570 / **reader 0x14103E110** / postload 0x141037300; vtable 0x142986718 — reader 三件套 serfam+内证双源)
 
-> root_front (oi+600) 解析访问器 = sub_141035650: CID → sub_14221F310 → RTDynamicCast → CFront → 返 CFront+112 = CControllerArea\* (§4.24.6 +112); root_front 空 (哨兵) 时按 type 兜底 — 3 (入侵)/4 (空降) 取 path[0], 1 (移动) 沿 path (+112/+124) 逐省 → gs vt2[1] 省查询 → 省+208 区域指针。29 调用点全上溯证实宿主 = COrderInstance (§1.2 gs+600 无涉)。
+> root_front (oi+600) 解析访问器 = sub_141035650: CID → sub_14221F310 → RTDynamicCast → CFront → 返 CFront+112 = CControllerArea\* (§4.24.6 +112); root_front 空 (哨兵) 时按 type 兜底 — 3 (入侵)/4 (空降) 取 path[0], 1 (移动) 沿 path (+112/+124) 逐省 → gs vtable2[1] 省查询 → 省+208 区域指针。29 调用点全上溯证实宿主 = COrderInstance (§1.2 gs+600 无涉)。
 
 > 归一化子步 = **sub_1410489E0** (child_front_ratios oi+896 SChildFrontData; 断言精确串 = "NumNonEmpty == 0 || WeightSoFar == 100_fixed" :7360, 末非空元收余量定标)。
 
-> **SChildFrontData 补全 (定案)**: 四界值实名 pair/path_section_start/path_section_end (token 15777-15780) + **+48..+71 control 块 = 6 锚省 id** (起/中/止三对; token 10896; 产自 sub_141049F40 尾段沿 sorted_pairs); reader = sub_14103F4E0 (token 63→+8 group / 47→+24 size / 15777-80→+32..44)。⚠ +56/+888 两字段系 **COrderInstance 本体字段** (原备注误挂本段): +56 = _pOrdersGroup (:558 断言, 5 消费点) / +888 = _pAttachedChildGroup (:1906 reader 键)。**GenerateOrderName sub_141029490** = 按战略区键哈希查国家名字池 + 确定性种子 (sorted_pairs 计数@+148 + instance_id@+580) 写 +288/+320/+352/+416/+448 (勘误: §4.33.15 12730 行原「准备流水线」实为名字生成)。小时 tick sub_141036640: route_is_ok + 空入侵/空降单**自动投删除令** + 入侵准备进度 +216 (MODIFIER_NAVAL_INVASION_PREPARATION_SPEED 386) + 空降执行; 前线重建巨核 sub_14103F710 (逐成员定槽 {省, 权重钳 [1,255]}); 前线推进箭头连接几何核 sub_141039F80 (删除/路径/配对三核共用)。
+> **SChildFrontData 补全 (定案)**: 四界值实名 pair/path_section_start/path_section_end (token 15777-15780) + **+48..+71 control 块 = 6 锚省 id** (起/中/止三对; token 10896; 产自 sub_141049F40 尾段沿 sorted_pairs); reader = sub_14103F4E0 (token 63→+8 group / 47→+24 size / 15777-80→+32..44)。⚠ +56/+888 两字段系 **COrderInstance 本体字段** (原备注误挂本段): +56 = _pOrdersGroup (:558 断言, 5 消费点) / +888 = _pAttachedChildGroup (:1906 reader 键)。**GenerateOrderName sub_141029490** = 按战略区键哈希查国家名字池 + 确定性种子 (sorted_pairs 计数@+148 + instance_id@+580) 写 +288/+320/+352/+416/+448 (§4.33.15 12730 行 = 名字生成, 非准备流水线)。小时 tick sub_141036640: route_is_ok + 空入侵/空降单**自动投删除令** + 入侵准备进度 +216 (MODIFIER_NAVAL_INVASION_PREPARATION_SPEED 386) + 空降执行; 前线重建巨核 sub_14103F710 (逐成员定槽 {省, 权重钳 [1,255]}); 前线推进箭头连接几何核 sub_141039F80 (删除/路径/配对三核共用)。
 
-**orderinstance.cpp 簇对账增补 (33 函数全定名, 20 项此前未收)**: **新字段行** — oi+56 = COrdersGroup\* _pOrdersGroup 回指 (writer/reader 不序列化) / **oi+960 = u64 faction_theaters 总和缓存** (sub_14104B4D0 SIMD 求 +936..+948 写 +960) / +180 = 运行期 path 采信旗 (单消费点, 语义推定) / **+752{c@+764} 实边与 +776{c@+788} 虚边 = 载入侧树边 id 双暂存** (消费者 sub_14102B680: 按 +580 查 id → 实连 0x14102F010 / 内联虚连, 尾双清零; og 侧驱动 = og post-load 0x140BF1970); **oi post-load 0x141037300** (postload_classes 直证): type3 → 刷新 + convoys 块重挂 og+60 链 → faction 求和写 +960。**关系链闭合**: og tick 0x140BF1660 → oi tick 0x141036640 (尾递归子树); AddMember 全量版 sub_14103D720 (fallback 旗 → og+440 HQ + og+560..572 全军群通报; 正常沿父链自顶向下分发, :557/:558 断言直证); Connect 实边 sub_14102F010 第三效果 = **清子 +880 manage_child_sections**; dtor sub_141028340 (floating_harbor 清算: hp 满额 → 还港, 否则日期比较到期清零或扣减; "COrderInstance tree is deleted incorrectly! Use COrderDeleteCommand instead!" :188); 插值前线省序列重建 sub_141044480 (type2 取 path 区间 / type3 整 path / type4 path[0]) → 重建巨核; 订单类型 assert 锚: 1 = ORDER_MOVE / 3 = ORDER_INVASION / 4 = 空降 / 2 = 前线推进族 / 5 = 防区族 (后两者消费面反推待裁)。**+528 = scheduled_member 容器** (元素 COrdersGroupMember 视口, writer 键 12465 元素经 vt[32] thunk → unit — 与 §4.34 AI 域增补段的 CFront 误配同批裁定修正)。
+**orderinstance.cpp 簇对账增补 (33 函数全定名, 20 项此前未收)**: **新字段行** — oi+56 = COrdersGroup\* _pOrdersGroup 回指 (writer/reader 不序列化) / **oi+960 = u64 faction_theaters 总和缓存** (sub_14104B4D0 SIMD 求 +936..+948 写 +960) / +180 = 运行期 path 采信旗 (单消费点, 语义推定) / **+752{c@+764} 实边与 +776{c@+788} 虚边 = 载入侧树边 id 双暂存** (消费者 sub_14102B680: 按 +580 查 id → 实连 0x14102F010 / 内联虚连, 尾双清零; og 侧驱动 = og post-load 0x140BF1970); **oi post-load 0x141037300** (postload_classes 直证): type3 → 刷新 + convoys 块重挂 og+60 链 → faction 求和写 +960。**关系链闭合**: og tick 0x140BF1660 → oi tick 0x141036640 (尾递归子树); AddMember 全量版 sub_14103D720 (fallback 旗 → og+440 HQ + og+560..572 全军群通报; 正常沿父链自顶向下分发, :557/:558 断言直证); Connect 实边 sub_14102F010 第三效果 = **清子 +880 manage_child_sections**; dtor sub_141028340 (floating_harbor 清算: hp 满额 → 还港, 否则日期比较到期清零或扣减; "COrderInstance tree is deleted incorrectly! Use COrderDeleteCommand instead!" :188); 插值前线省序列重建 sub_141044480 (type2 取 path 区间 / type3 整 path / type4 path[0]) → 重建巨核; 订单类型 assert 锚: 1 = ORDER_MOVE / 3 = ORDER_INVASION / 4 = 空降 / 2 = 前线推进族 / 5 = 防区族 (后两者消费面反推待裁)。**+528 = scheduled_member 容器** (元素 COrdersGroupMember 视口, writer 键 12465 元素经 vtable[32] thunk → unit — 与 §4.34 AI 域增补段的 CFront 误配同批裁定修正)。
 
-**全字段表** (sizeof 0x3C8=968 reader malloc 定案; ⚠ 勘误: 「发射序 = 表序」不成立 — **writer 实际发射序** = 12386(型3)→225→372→11835→12463→13812→13813→14339→16018→13814→12059→12538→10462/10463→12536→19049→19713/19714→13121/14680/14681→13717→12466/12465→13138→16016→12467→13810→12662→14028/14036→14572/14770→13118 族(+13119/10639/10640/13156)→13222→13272→424(+216 time)→14073→14373→14647(+282)→15776→338→15783(+880)→19766; time/route_is_ok/manage_child_sections/attach/floating_harbor 位置均与偏移升序不符 — 表行仍按偏移升序排, 供字段查阅):
+**全字段表** (sizeof 0x3C8=968 reader malloc 定案; ⚠ **writer 实际发射序** = 12386(型3)→225→372→11835→12463→13812→13813→14339→16018→13814→12059→12538→10462/10463→12536→19049→19713/19714→13121/14680/14681→13717→12466/12465→13138→16016→12467→13810→12662→14028/14036→14572/14770→13118 族(+13119/10639/10640/13156)→13222→13272→424(+216 time)→14073→14373→14647(+282)→15776→338→15783(+880)→19766; time/route_is_ok/manage_child_sections/attach/floating_harbor 位置均与偏移升序不符 — 表行仍按偏移升序排, 供字段查阅):
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
 | +8 | CConvoySubscriber 内嵌视口 | convoys 块 (tok 12386/0x3062) | **type==3 (海军入侵) 才整块写**, 先于 type 键; ADEC0(0x3062, oi+8); 块说明见下 |
 | +48 | uint32 | type 订单类型枚举 | 恒写 (锚 5/2); tok 225/0xE1 |
-| +64 | 内嵌 CGameDate (24B {vt@+64, hours@+72, vt@+80}) | creation_date | 门 hours u32@+72≠0; ADEC0 转发 +16 视口 (oi+80); 引号 "Y.M.D.H" (锚 "1936.1.1.14"); tok 14339/0x3803 |
-| +88 | 内嵌 CGameDate ({vt@+88, hours@+96, vt@+104}) | starting_date | 门 hours@+96≠0 (锚 "1.1.1.1" 合法非哨兵语境); tok 16018/0x3E92 |
+| +64 | 内嵌 CGameDate (24B {vtable@+64, hours@+72, vtable@+80}) | creation_date | 门 hours u32@+72≠0; ADEC0 转发 +16 视口 (oi+80); 引号 "Y.M.D.H" (锚 "1936.1.1.14"); tok 14339/0x3803 |
+| +88 | 内嵌 CGameDate ({vtable@+88, hours@+96, vtable@+104}) | starting_date | 门 hours@+96≠0 (锚 "1.1.1.1" 合法非哨兵语境); tok 16018/0x3E92 |
 | +112 | uint32 向量 | path 数组数据 (_Path; 断言 orderinstance.cpp:1792) — 省份 id 直存 (发射器 4B stride 直读; reader 372 → sub_1401F95D0 直入, 无 resolve) | 门 计数@+124>0; tok 372 |
 | +124 | uint32 | path 容器计数 | |
 | +136 | 匿名结构 (16B 形状) 向量 | sorted_pairs 数组数据 — 16B 元 {ptr, ptr}, 值 = ru32(ptr+164) 平铺 (路径图边省对; 锚 32 对); AF2C0+AF520 单行叶 | 门 计数@+148≠0 (from/to 同门); tok 13121/0x3341 |
@@ -253,9 +253,9 @@ vt 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏�
 | +384 | SSO 串 | unique | **双门**: !AAFD0 且 qword@+400≠0; tok 12538/0x30FA |
 | +416 | SSO 串 | prefix | 门 qword@+432≠0; tok 12536/0x30F8 |
 | +448 | SSO 串 | postfix | 门 qword@+464≠0; tok 19049/0x4A69 |
-| +504 | COrderInstance* 向量 | order_children 数组数据 — 值 = 子实例 instance_id ru32(elem+580); 载入侧 id 暂存 +752 (c@764), og vt[8] post-load resolve (sub_14102F010 双向 attach: 父+504 ↔ 子+480) | 门 计数@+516>0; tok 12467/0x30B3 |
+| +504 | COrderInstance* 向量 | order_children 数组数据 — 值 = 子实例 instance_id ru32(elem+580); 载入侧 id 暂存 +752 (c@764), og vtable[8] post-load resolve (sub_14102F010 双向 attach: 父+504 ↔ 子+480) | 门 计数@+516>0; tok 12467/0x30B3 |
 | +516 | uint32 | order_children 容器计数 | |
-| +528 | 匿名结构 (元素待裁) 向量 | scheduled_member 数组数据 — 元素 = CUnit+184 视口 (COrdersGroupMember); 载入 resolve 链 = idpair→CReferenceObject(unit+16)→−16→+184; 断言 orderinstance.cpp:1825同 member; 逐元 vt[32] 门 → B320(12465, ret+24) 单行叶; 断言 "Invalid scheduled member" | 门 计数@+540>0; tok 12465 |
+| +528 | 匿名结构 (元素待裁) 向量 | scheduled_member 数组数据 — 元素 = CUnit+184 视口 (COrdersGroupMember); 载入 resolve 链 = idpair→CReferenceObject(unit+16)→−16→+184; 断言 orderinstance.cpp:1825同 member; 逐元 vtable[32] 门 → B320(12465, ret+24) 单行叶; 断言 "Invalid scheduled member" | 门 计数@+540>0; tok 12465 |
 | +540 | uint32 | scheduled_member 容器计数 | |
 | +552 | 匿名结构 (元素待裁) 向量 | transported_member 数组数据 — 同 scheduled 形态; 断言 orderinstance.cpp:1840; 断言串 | 门 计数@+564>0; tok 13138 |
 | +564 | uint32 | transported_member 容器计数 | |
@@ -282,18 +282,18 @@ vt 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; 偏�
 | +868 | uint32 | withdraw_lines 容器计数 | |
 | +880 | uint8 | manage_child_sections | **恒写无门** (yes/no 必现); tok 15783/0x3DA7 |
 | +888 | 匿名结构 (NNB 形状)* | attach 载体 — 附加子集团; ref 对在 p+8; 非零才写 B320(338, p+8) | 门 指针≠0; tok 338/0x152 |
-| +896 | COrderInstance::SChildFrontData** 向量 | child_front_ratios 数组数据 — 元素 = **`COrderInstance::SChildFrontData`** (RTTI 直读 `.?AUSChildFrontData@COrderInstance`; sizeof 72, vt 0x1429866C8, writer 0x14104C450 / reader 0x14103F4E0); 写点 sub_1424C24F0 = `arg2->vt[1](arg2, arg1)` (slot[1] = 0x1424BEC50 = CPersistent 家族共享 Save wrapper); 元素内 +8 = group / +16 ratio / +24 size / +32..+44 四 section 界值 | 门 计数@+908≠0 且 >0; tok 15776/0x3DA0 |
+| +896 | COrderInstance::SChildFrontData** 向量 | child_front_ratios 数组数据 — 元素 = **`COrderInstance::SChildFrontData`** (RTTI 直读 `.?AUSChildFrontData@COrderInstance`; sizeof 72, vtable 0x1429866C8, writer 0x14104C450 / reader 0x14103F4E0); 写点 sub_1424C24F0 = `arg2->vtable[1](arg2, arg1)` (slot[1] = 0x1424BEC50 = CPersistent 家族共享 Save wrapper); 元素内 +8 = group / +16 ratio / +24 size / +32..+44 四 section 界值 | 门 计数@+908≠0 且 >0; tok 15776/0x3DA0 |
 | +908 | uint32 | child_front_ratios 容器计数 | |
 | +920 | uint32 | floating_harbor.type — 块 = 0X142220180(+920) + floating_harbor_hp | 门 (type\|id) ≠0; tok 19713/0x4D01; 仅 type=3 两栖入侵实例实证 (ENG id=6284 hp=100) |
 | +924 | uint32 | floating_harbor.id | 同上 |
-| +928 | fixed×1e-5 (int64) | floating_harbor_hp | **入门即恒写 (无 ≠0 门)** — 块门 = idpair 双 dword 非零 ∧ ref 可解析 (SetFloatingHarbor 恒写 10000000; 勘误: 原记「≠0 才写」); tok 19714/0x4D02 |
+| +928 | fixed×1e-5 (int64) | floating_harbor_hp | **入门即恒写 (无 ≠0 门)** — 块门 = idpair 双 dword 非零 ∧ ref 可解析 (SetFloatingHarbor 恒写 10000000); tok 19714/0x4D02 |
 | +936 | fixed×1e-5 (i64) 向量 | faction_theaters 数组数据 — 阵营成员份额表 (每元素 = 该国单位数/总数 fixed×1e-5, 计数 0 → 0xFFFFFFFF); 填充 sub_14104AA40(oi, 国, faction+2552); 刷新 sub_14102FB30 (og tick 逐实例; 无阵营清空); 逐元 sub_1424C3900 单行叶 | 门 计数@+948≠0 且 >0; tok 19766/0x4D36 |
 | +948 | uint32 | faction_theaters 容器计数 | |
 
 注: 运行时容器 order_virtual_children {d@oi+720, c@oi+732} — 树展开消费 (writer 不发射独立键), 见 §4.24.9。
 注: 树边模型 = order_children(+504) ↔ 父引用容器(+480, 元素 COrderInstance*, c@+492, d[0] 主父, sub_141034010 按类型找父; 树删除判 +492≤1) 双向实边; order_virtual_children(+720, 键 13810) ↔ 虚父引用(+696, c@+708) 双向虚边 (取根 sub_1410317D0 按 +665 旗选边); 载入侧配 +752/+776 id 暂存; +824 = 省 id 区间对数组 {lo,hi} u32×2 (查询 sub_141037DB0)。
 注: oi+592 / +848 成对 — withdraw_lines (+856 外层 24B stride 数组) 由 +592 源对象拷贝生成, +848 为遍历游标 (sub_141036410 返回 `+856 + 24*+848`); 生成门 = +281 withdraw 旗 且 +584 can_execute。
-注 (convoys 块): CConvoySubscriber 内嵌@oi+8, 对象 vt 0x14295c0f0, writer 0X141022CB0; writer 首行 `if (*(oi+48)==3) ADEC0(12386, oi+8)` — convoys 块先于 type 键; `convoys = u32@(oi+16)` / `total = u32@(oi+20)` (⚠ 合同族语境下块仅在 total≠0 时写, 见 §4.23.2)。
+注 (convoys 块): CConvoySubscriber 内嵌@oi+8, 对象 vtable 0x14295c0f0, writer 0X141022CB0; writer 首行 `if (*(oi+48)==3) ADEC0(12386, oi+8)` — convoys 块先于 type 键; `convoys = u32@(oi+16)` / `total = u32@(oi+20)` (⚠ 合同族语境下块仅在 total≠0 时写, 见 §4.23.2)。
 
 #### 4.24.6 CFront (136B, writer 0X140F01A60)
 
@@ -303,7 +303,7 @@ reader 0X140EFCF10; front 块全字段落盘 (writer 键集 = {id 壳, 13444, 10
 |---|---|---|---|
 | +8 | uint32 | id 对.type — B400 壳 → `id={ id=N type=66 }` | 恒写 |
 | +12 | uint32 | id 对.id — B400 壳 | 恒写 |
-| +13..+31 | — | = id 尾 (+13..+15) + **u8@16 = CReferenceObject 基类 IsStored 旗** (ctor 置 0, 注册成功由 vt[9] 置 1) + 垫 + **owner CTheatre*@+24** (新建时回指所属战区)  | CFront ctor = CTheatre reader case 10720 内联块 |
+| +13..+31 | — | = id 尾 (+13..+15) + **u8@16 = CReferenceObject 基类 IsStored 旗** (ctor 置 0, 注册成功由 vtable[9] 置 1) + 垫 + **owner CTheatre*@+24** (新建时回指所属战区)  | CFront ctor = CTheatre reader case 10720 内联块 |
 | +32 | 匿名结构 (NNB 形状) | provinces 容器数据指针 — ptr 数组, 值 = ru32(elem+164) (一跳) | c>0 |
 | +33..+43 | — | = provinces 容器 data 尾 + cap@+40  |  |
 | +44 | uint32 | provinces 容器计数 | c>0 |
@@ -317,7 +317,7 @@ reader 0X140EFCF10; front 块全字段落盘 (writer 键集 = {id 壳, 13444, 10
 | +89..+99 | — | = section 容器 data 尾 + cap@+96  |  |
 | +100 | uint32 | section 容器计数 | c>0 |
 | +101..+111 | — | = count 尾 + alloc@+104 (哨兵) + 垫  |  |
-| +112 | CControllerArea\* | 区对象指针 (勘误: 原「CFrontSection\*」系类名误标 — 错误串 "Front refers to invalid controller area…" theatre.cpp:3685/3688 + EFBED0 以 prov+208 区指针直接赋值 + EEB190 建造存区对象三函数闭环; AI 口袋追击 sub_14108C290 经 vt[1] 取控制方 tag; area 标量 = ru32(rp(rp(fr+112)+40)+164); +124 u8 = 区锚省验证位) | 恒写 |
+| +112 | CControllerArea\* | 区对象指针 (错误串 "Front refers to invalid controller area…" theatre.cpp:3685/3688 + EFBED0 以 prov+208 区指针直接赋值 + EEB190 建造存区对象三函数闭环; AI 口袋追击 sub_14108C290 经 vtable[1] 取控制方 tag; area 标量 = ru32(rp(rp(fr+112)+40)+164); +124 u8 = 区锚省验证位) | 恒写 |
 | +113..+124 | — | 拆分见 +120/+124 两行 | case 10720 word 写 0x0100 (低半 = +124 配对标记, 高半 = 1) |
 | +125 | uint8 | dirty — ctor 初值 = 1 (新建 front 默认脏; reader 13444 经 sub_1424C0C00 双参形态**载入** +125) | 恒写 → yes/no |
 
@@ -332,7 +332,7 @@ reader 0X140EFCF10; front 块全字段落盘 (writer 键集 = {id 壳, 13444, 10
 
 注: +16 u8 = **CReferenceObject 基类 IsStored 旗** (定案, 非本族语义字段); +120 u32 / +128 qword 两槽 ctor 置 0、dtor 不触、writer 不触 ⇒ +120 = area 锚省 id (读写异位: writer 从 +112 两跳取值; post-load sub_140EFC6D0 → sub_140EFC390 以 +120 取省 → 省+208 = CArea → 回填 +112, 消费即清 +120 = 0; 失败两级: 省 id 无效 → 静默返回 (+112 保持 0, 调用方 swap-remove 删前线); 区空 (:3685) ∨ enemies 不含该省 controller tag (:3688, 校验 = sub_1401B0250 逐 u32 + 别名归一) → terminate 级 fatal, 不走删前线); +128 qword = ctor 清零后全库无访问者 (负定案: 保留槽)。
 
-theatre.cpp worker 补全 (定案): 未收 9 函数定性 — **sub_140EF5AE0** = CFront::FloodPath (:3043 无限循环日志) / **sub_140EFBED0** = CTheatre::FixFrontsAfterAreaReplaced (区替换时前线重定位/删除, :1415) / **sub_140EFD790** = CFrontSection reader vt[4] (元素类实名 **CFrontSection::SPerCountrySection**) / **sub_140F00F50** = CFrontSection::TakeProvincesAndPairs / **sub_140EEA6A0** = ~CTheatre (vt[0]) / **sub_140F00580** = RemoveOrdersGroupFromTheaterGroup (:1745 "come to me, Ilya") / **sub_140F018F0** = SetMainProvince (CTheatre+232 主省槽) / **sub_140EF8630** = CFront vt[8] RegisterWithNewId (type = 66, sections > 128 fatal)。结构性新定案: **NTheatreManager 三组静态** = g_OccupationBundleConquer/Relation (0x14333D2C0/330, 各 0x70B, _IsActive@+96, 断言串实名) + SInterpolatedFrontBundle 派发队列 (0x14333D398, 16B 条目 {og idpair, instance_id, u8}, <4 串行/≥4 tbb); **CFront/CTheatre vt[8] = RegisterWithNewId** (id 高水位 dword_143087264/268); **managerobj+1941 = 战区脏旗双写点** (sub_140EF1EE0 入 1 / 出 (gs+1312>0) — 主文件 CSession+1941 待裁条由此消解); CFront reader 补键 141(priority)/10288(丢弃); AddUnit 补 empty-og 清理链与重校验差异旗置位; 收口 "theatremanager.endbundle" profiler 域。调用主干: 读档完成 sub_140DD6A30 → sub_140EF9280; 前线重建 sub_140EE9560(tbb) → sub_140EF9710 (脏门 front+125) → sub_140EEE090 BuildSections → FloodPath/TakeProvincesAndPairs; 区替换 sub_140CF7E10 → sub_140EFBED0; bundle 窗 EED690 → EFCA60 入队 → EF2F30 → EF1EE0×2 → EF18B0。
+theatre.cpp worker 补全 (定案): 未收 9 函数定性 — **sub_140EF5AE0** = CFront::FloodPath (:3043 无限循环日志) / **sub_140EFBED0** = CTheatre::FixFrontsAfterAreaReplaced (区替换时前线重定位/删除, :1415) / **sub_140EFD790** = CFrontSection reader vtable[4] (元素类实名 **CFrontSection::SPerCountrySection**) / **sub_140F00F50** = CFrontSection::TakeProvincesAndPairs / **sub_140EEA6A0** = ~CTheatre (vtable[0]) / **sub_140F00580** = RemoveOrdersGroupFromTheaterGroup (:1745 "come to me, Ilya") / **sub_140F018F0** = SetMainProvince (CTheatre+232 主省槽) / **sub_140EF8630** = CFront vtable[8] RegisterWithNewId (type = 66, sections > 128 fatal)。结构性新定案: **NTheatreManager 三组静态** = g_OccupationBundleConquer/Relation (0x14333D2C0/330, 各 0x70B, _IsActive@+96, 断言串实名) + SInterpolatedFrontBundle 派发队列 (0x14333D398, 16B 条目 {og idpair, instance_id, u8}, <4 串行/≥4 tbb); **CFront/CTheatre vtable[8] = RegisterWithNewId** (id 高水位 dword_143087264/268); **managerobj+1941 = 战区脏旗双写点** (sub_140EF1EE0 入 1 / 出 (gs+1312>0) — 主文件 CSession+1941 待裁条由此消解); CFront reader 补键 141(priority)/10288(丢弃); AddUnit 补 empty-og 清理链与重校验差异旗置位; 收口 "theatremanager.endbundle" profiler 域。调用主干: 读档完成 sub_140DD6A30 → sub_140EF9280; 前线重建 sub_140EE9560(tbb) → sub_140EF9710 (脏门 front+125) → sub_140EEE090 BuildSections → FloodPath/TakeProvincesAndPairs; 区替换 sub_140CF7E10 → sub_140EFBED0; bundle 窗 EED690 → EFCA60 入队 → EF2F30 → EF1EE0×2 → EF18B0。
 
 #### 4.24.7 CFrontSection (96B, writer 0X140F01FD0)
 
@@ -354,13 +354,13 @@ theatre.cpp worker 补全 (定案): 未收 9 函数定性 — **sub_140EF5AE0** 
 
 #### 4.24.8 CTheaterGroup (96B, writer 0X14163AA40)
 
-ctor 0X141639B00; vt 0x1429E5C50。
+ctor 0X141639B00; vtable 0x1429E5C50。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
 | +8 | uint32 | id 对.type — B400 壳 → `id={ id=44 type=68 }` (ref 槽 = qword_14333D528 哨兵) | 恒写 |
 | +12 | uint32 | id 对.id — B400 壳 | 恒写 |
-| +13..+31 | — | = id 尾 (+13..+15) + **u8@16 = CReferenceObject 基类 IsStored 旗** (ctor 置 0, 注册成功由 vt[9] 置 1) + 垫 + **owner CTheatre*@+24** (ctor 第二参)  | ctor 0X141639B00 |
+| +13..+31 | — | = id 尾 (+13..+15) + **u8@16 = CReferenceObject 基类 IsStored 旗** (ctor 置 0, 注册成功由 vtable[9] 置 1) + 垫 + **owner CTheatre*@+24** (ctor 第二参)  | ctor 0X141639B00 |
 | +32 | uint32 | priority | 恒写; GUI: 剧场组行重编号 |
 | +40 | SSO | name (24B {buf@+40, size@+56, cap@+64}) | **恒写 (!readonly, 无空串守卫)**; GUI: 改名命令 |
 | +41..+71 | — | = name SSO 32B 内部 (buf 尾 + size@+56 + cap@+64=15; 标准 MSVC 空态)  |  |
@@ -372,13 +372,13 @@ ctor 0X141639B00; vt 0x1429E5C50。
 注 (GUI): +32 重编号 = CTheaterGroupItem populate sub_141E6F9A0 命中; SettingsView [4] Refresh 行重编号同键。
 注 (GUI): +40 改名命令 = CSetTheaterGroupNameCommand (RTTI 直证)。
 
-#### 4.24.9 member/scheduled_member vt[32] thunk 与 order_instance 树展开
+#### 4.24.9 member/scheduled_member vtable[32] thunk 与 order_instance 树展开
 
 **成员元素载体表** (og member / oi scheduled_member 同规则):
 
 | 载体 | 存储 | 读法 |
 |---|---|---|
-| og+80 member 元素 / oi+528 scheduled_member 元素 | CUnit+184 子对象视口 (非裸 unit 指针; vt 0x142953320 = CUnit 三 vtable 之一) | vt[32] = 0X140BF95D0 = `return a1-184` (标准 owner thunk) → unit 本体, ref 对在 unit+24; 读侧终式 `base = elem − 184; type = ru32(base+24); id = ru32(base+28)` |
+| og+80 member 元素 / oi+528 scheduled_member 元素 | CUnit+184 子对象视口 (非裸 unit 指针; vtable 0x142953320 = CUnit 三 vtable 之一) | vtable[32] = 0X140BF95D0 = `return a1-184` (标准 owner thunk) → unit 本体, ref 对在 unit+24; 读侧终式 `base = elem − 184; type = ru32(base+24); id = ru32(base+28)` |
 | og+104 leader_unit | unit+184 视口 (同 member) | 同上 |
 | og+136 leader | CArmyLeader 本体 | B320(p+8) → `id=ru32(p+12) type=ru32(p+8)` (标准 CReferenceObject 位) |
 
@@ -396,19 +396,19 @@ ctor 0X141639B00; vt 0x1429E5C50。
 
 #### 4.24.10 hq_deploy_distributable (og+392 对象; writer 0X14193EED0)
 
-对象 *(og+392), 记 0x98B; vt 0x142A1CE50 = CPersistent@+24 视口 (CEquipmentDistributable@0, §4.24.1); ctor 0X14193E610 (基 ctor 0X1415A7410); writer 收 obj+24。
+对象 *(og+392), 记 0x98B; vtable 0x142A1CE50 = CPersistent@+24 视口 (CEquipmentDistributable@0, §4.24.1); ctor 0X14193E610 (基 ctor 0X1415A7410); writer 收 obj+24。
 
 **全字段表** (obj 相对):
 
 | obj 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
 | +8 | uint32 | priority | **≠1 才写** (默认抑制) |
-| +9..+31 | — | = priority 尾 (+9..+15) + **qword@+16 (属 CEquipmentDistributable 基类域)** — 基 ctor 0X1415A7410 只做三事 (`*(a1+8)=1` priority 默认 / `*a1 = &CEquipmentDistributable::vftable` / `*(a1+16)=0`); vt 0x1429DC100 实为 6 槽 5 实 (RTTI 证 CEquipmentDistributable 无基类); CPersistent 视口住派生类主表 0x142A1CE18 [7..15] 与 0x142A1CE50; 该域及派生域逐扫均无 +16 消费 ⇒ 保留槽死字段 (负定案)  | 基 ctor 0X1415A7410 |
+| +9..+31 | — | = priority 尾 (+9..+15) + **qword@+16 (属 CEquipmentDistributable 基类域)** — 基 ctor 0X1415A7410 只做三事 (`*(a1+8)=1` priority 默认 / `*a1 = &CEquipmentDistributable::vftable` / `*(a1+16)=0`); vtable 0x1429DC100 实为 6 槽 5 实 (RTTI 证 CEquipmentDistributable 无基类); CPersistent 视口住派生类主表 0x142A1CE18 [7..15] 与 0x142A1CE50; 该域及派生域逐扫均无 +16 消费 ⇒ 保留槽死字段 (负定案)  | 基 ctor 0X1415A7410 |
 | +32 | uint32 | country tag_id → 引号串 | 门 tag>0 (sub_140BB59C0 体; ctor 清零) |
 | +40 | 内嵌 | hq_assembled_equipment = CEquipmentVariantPool (writer 0X141012DB0): 数组 {d@obj+72, c@obj+84} stride 16 {variant ptr, amount i64 fix5}; **元素写门 amount≠0 或零旗 u8@obj+96**; id 对 = {type@variant+8, id@variant+12}; allow_zero_entries = u8@obj+96 **恒写** | 恒写块 |
-| +41..+103 | — | = **池1 CEquipmentVariantPool 64B** (ctor 0X14100C710): vt@40 + 容器1@48 {d@48, cap@56, c@60, alloc@64} stride 24B 预扩容 max(1, defines/10) — **容量预置但恒空的保留容器** (writer 0x141012DB0 只遍历容器2 并写零旗 +56, 容器1 零触) + **容器2@72 = hq_assembled_equipment 数组本体** (stride 16) + 零旗 u8@96  | 0X14100C710 |
+| +41..+103 | — | = **池1 CEquipmentVariantPool 64B** (ctor 0X14100C710): vtable@40 + 容器1@48 {d@48, cap@56, c@60, alloc@64} stride 24B 预扩容 max(1, defines/10) — **容量预置但恒空的保留容器** (writer 0x141012DB0 只遍历容器2 并写零旗 +56, 容器1 零触) + **容器2@72 = hq_assembled_equipment 数组本体** (stride 16) + 零旗 u8@96  | 0X14100C710 |
 | +104 | 内嵌 | hq_requested_equipment = CEquipmentArcheTypePool (writer 0X141012D40): 数组 {d@obj+112, c@obj+124} stride 16 {archetype ptr, amount i64 fix5}; **键名动态** = token_name(ru32(archetype+8)) | amount≠0 |
-| +105..+135 | — | = **池2 CEquipmentArcheTypePool 32B** (ctor 0X14100C630): vt@104 + 垫@108..111 + 容器@112 = **hq_requested_equipment 数组本体** (stride 16, 预扩容同式)  | 0X14100C630 |
+| +105..+135 | — | = **池2 CEquipmentArcheTypePool 32B** (ctor 0X14100C630): vtable@104 + 垫@108..111 + 容器@112 = **hq_requested_equipment 数组本体** (stride 16, 预扩容同式)  | 0X14100C630 |
 | +136 | uint32 | hq_assembled_manpower | 恒写 |
 | +140 | uint32 | hq_requested_manpower | 恒写 |
 | +144 | uint32 | hq_deploy_order | 恒写 |
@@ -423,9 +423,9 @@ ctor 0X141639B00; vt 0x1429E5C50。
 | RTTI 名 | CNavyTheater |
 | sizeof | 0x28 = 40 |
 | vtable RVA | 0x1429D2B88 (RTTI 仅继 CPersistent) |
-| writer (vt slot2) | 0X141518C70 — 逐元 ADEC0 token 13777 theater_group |
-| ctor / dtor | 0x1415182D0 / vt[0]=0x1415183E0 deleting (vt[1]=0x1424BEC50 系家族共享 Save wrapper, §4.00.1) |
-| loader (vt slot4) | 0X1415189D0 — 收 13777 建 CNavyTheaterGroup |
+| writer (vtable slot2) | 0X141518C70 — 逐元 ADEC0 token 13777 theater_group |
+| ctor / dtor | 0x1415182D0 / vtable[0]=0x1415183E0 deleting (vtable[1]=0x1424BEC50 系家族共享 Save wrapper, §4.00.1) |
+| loader (vtable slot4) | 0X1415189D0 — 收 13777 建 CNavyTheaterGroup |
 | 挂载点 | CCountry writer 0X1407191B0 以 token 15159 navy_theater 整块发射 cc+352 (段侧已实现) |
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
@@ -454,7 +454,7 @@ ctor 0X1415B9390; sizeof 0x60 = 96; owner CNavyTheater 回指@+24。
 - CTheatre +432/+280/+408 三项已定案 (+432 = CArmyGroup* 回收登记向量 / +280 = AI 海运规划缓存 / +408 = Fronts per enemy area 字典 — 见 §4.24.2 表)。
 - COrdersGroup +72 内嵌 0x198 对象类名 = **负定案 (无独立 RTTI 类)**; +415/+496 槽语义已定案 (§4.24.3 表)。
 - hq_deploy 池1 容器1@48 = **预扩容零填充保留容器 (定案)** — ctor sub_14100C710 按 24B stride 预扩容 `max(1, sub_14022FA10()+140)/10`, writer sub_141012DB0 只遍历容器2 (obj+72) 并恒写零旗 (obj+96, 键 10208), 容器1 全生命周期零触。
-- +16 u8 家族旗 (CTheatre / COrdersGroup / CFront / CTheaterGroup / CNavyTheaterGroup 同位) = **CReferenceObject 基类「ID 已注册」旗 (IsStored)**: ctor 一律置 0; 注册成功由 CReferenceObject vt[9] sub_14221E990→sub_14221E700 尾 `*(a1+16)=1` (id.cpp:130); 反注册 sub_14221EA60 首行 `if(!*(a1+16)) return 0` (id.cpp:210, 失败路径 "Failed to delete ref object … double free") 据此短路 — **非本族语义字段** (定案)。
+- +16 u8 家族旗 (CTheatre / COrdersGroup / CFront / CTheaterGroup / CNavyTheaterGroup 同位) = **CReferenceObject 基类「ID 已注册」旗 (IsStored)**: ctor 一律置 0; 注册成功由 CReferenceObject vtable[9] sub_14221E990→sub_14221E700 尾 `*(a1+16)=1` (id.cpp:130); 反注册 sub_14221EA60 首行 `if(!*(a1+16)) return 0` (id.cpp:210, 失败路径 "Failed to delete ref object … double free") 据此短路 — **非本族语义字段** (定案)。
 
 #### 4.24.13 CFrontControlStrategyData (前线控制策略数据)
 
@@ -465,7 +465,7 @@ ctor 0X1415B9390; sizeof 0x60 = 96; owner CNavyTheater 回指@+24。
 | 继承 | CStrategySpecificData 派生 (RTDynamicCast 双证) |
 | 基 ctor / 工厂 | sub_140645740 / sub_140647750 case 'O' (策略槽 id = 79) |
 | 宿主 | AI 策略库 qword_14332EE00 (CAIStrategyDatabase) 的 `_StrategySpecificData` 容器 {data@+112, count@+124} — 独立堆对象, **非** CAIFront+536 内嵌块 |
-| 取法 | 遍历国家策略项 (`(cai+104)->vt[48](79)`) → 项 +4 得 index → 容器[index] → RTTI cast; 有效性门 sub_14065E860(pData) ∧ !pData+310 |
+| 取法 | 遍历国家策略项 (`(cai+104)->vtable[48](79)`) → 项 +4 得 index → 容器[index] → RTTI cast; 有效性门 sub_14065E860(pData) ∧ !pData+310 |
 | 消费点 | sub_1410863B0 (ai_general) / sub_1414AEF30 (ai_front_helper) / sub_141A4BB40 (ai_operation); 微操并行入口 sub_141088820 第 5 参 = `CPdxArray<CFrontControlStrategyData const*>` |
 
 - ctor 初始化: +288 dword=0 / +292 u8=0xAA / +296 / +300 u8=0xAA / +304 / +308 word=0xAA / +310 u8=1。
@@ -491,15 +491,15 @@ ctor 0X1415B9390; sizeof 0x60 = 96; owner CNavyTheater 回指@+24。
   sub_140BB60F0 / 分裂体 sub_140BB6260 — 战斗经验入账的并行三件套。
 - **COrdersGroup 小时执行步** (定案): 驱动 = hourly 相位 2 tbb parallel_for →
   每国 sub_1406FDBA0 → CTheatre::Update sub_140EF8470 (首步清 AI 海运缓存
-  +280) → 逐 og/ag 虚调 **og vt[10] Update sub_140BF1660** → 索引器主执行
-  sub_14014D40E0 (详 §4.24.14) — 非每帧 (高速档多 tick 叠加的采样表象);
+  +280) → 逐 og/ag 虚调 **og vtable[10] Update sub_140BF1660** → 索引器主执行
+  sub_1414D40E0 (详 §4.24.14) — 非每帧 (高速档多 tick 叠加的采样表象);
   worker 侧采样 7.5%。
 
 #### 4.24.14 COrdersGroup 小时执行链 (unitcontroller)
 
 驱动 = hourly 相位 2 tbb → 每国 sub_1406FDBA0 → CTheatre::Update
-sub_140EF8470 (①清 AI 海运缓存 +280 ②逐 og (theatre+128/140) 调 vt[10] ③逐 ag
-(theatre+152/164): ag vt[12]() 真者回收解散, 否则同调 vt[10])。og vt[10] =
+sub_140EF8470 (①清 AI 海运缓存 +280 ②逐 og (theatre+128/140) 调 vtable[10] ③逐 ag
+(theatre+152/164): ag vtable[12]() 真者回收解散, 否则同调 vtable[10])。og vtable[10] =
 **sub_140BF1660 八步序**: ① og+152 order_instance + og+176 fallback 逐实例
 sub_141036640 route_is_ok tick ② leader 根 OI 路径镜像缓存 (+472/+484/+496)
 ③ type3 时 oi+184 invasion_source 变化 → sub_140BEB640 重算 og+460/+464 ④
@@ -512,7 +512,7 @@ og+448 倒计时递减, 到 0 → sub_1414C55D0 重挂 + 重置 (定案)。
 
 索引器主执行 **sub_1414D40E0** (og+72 对象, 408B): ①gamestate TLS 门 ②国别门
 (gs+2408) ③begin sub_140E2CC00(*(indexer+8),1) 置旗清两脏数组 ④--indexer+352
-包围圈倒计时 ⑤逐根 OI: 先逐 scheduled_member (oi+528/540) `member->vt[5]()` →
+包围圈倒计时 ⑤逐根 OI: 先逐 scheduled_member (oi+528/540) `member->vtable[5]()` →
 sub_1414DA4E0 补位航点维护 (unit+524 ≤0 清 unit+736; 航点数≠1 ∨ 末条 +12 省
 id 失效 ∨ 与当前目的地不符 → 清重灌), 再按 oi+48 switch:
 
@@ -536,12 +536,35 @@ sub_1415B0320 重定位) → AI 钩 sub_1410ABCA0 + sub_1410AC860 逐位发 toke
 "province_weight" 消息 (定案)。
 
 unitcontroller 层补全 (定案): **sub_1414D75F0 前线槽 wanted 规划** — DPP
-(PLAN_PROVINCE_PRIO_DISTRIBUTION_*) 四点插值分支在 1.19.3 现态**死亡** (权重和恒 0 →
-每槽 wanted 恒 1, 高置信体读; 四 define 名经 loader 反查定名)。**前线槽记录字段**
-(sub_1414C2740 访问, 双函数交叉 = metrics 转储 sub_1414C7700 "AI FRONT DUMP" 门
-indexer+356 打印 + 评分消费 sub_1414C87B0): +8 wanted / +28 AtLoc / +52 OnWay /
-+88 前线数; C87B0 消费 define 反查全录 (DISTANCE_FACTOR / COHESION_WEIGHTS /
-TERRAIN_DEFENSE / ATTACK / STICKINESS), 插入排序阈值 170。**CPendingStratNavyTransfer
+(PLAN_PROVINCE_PRIO_DISTRIBUTION_*) 四点插值**存活** (待裁): 密度 = 1e10 × 单位数 /
+(1e5 × 槽数) (除零由被除数非零门护, 溢出护 `1e5×v81 > (int64)0x8000000000000001` 对任意非负
+v81 恒真 → 必落真分支); 三段映射 = 密度 ≤ DPP_LOW (2.0) → MAX (1.0) / (DPP_LOW, DPP_HIGH]
+(2.0,3.0] → MIN + (MAX−MIN)×(d−LOW)/(HIGH−LOW) = 0.7 + 0.3×(d−2) / > DPP_HIGH (3.0) → MIN (0.7);
+分配比 × 单位数 后按槽优先级份额 floor(槽优先级 / 总优先级 (indexer+16) × 该值), min 1 且
+wanted==1 时槽优先级 ×2 促其下次能分到; 总数超单位数时逐槽 wanted>1 减 1 收敛。⚠
+若探针观察到「每槽 wanted 恒 1」, 根因应为**槽优先级总额 indexer+16 == 0** (此时短路 wanted=1)
+而非插值分支死亡 — 两因需运行时分别探针定案 (未决)。四 define 默认值 = 00_defines.lua:1073-1076 实证。**前线槽记录** (句柄表 = indexer+24, 16B 步长, +8 为记录句柄; sub_1414C2740(句柄)
+只读 / sub_1414C26C0(句柄, x, y) 按省坐标取可写记录; 记录体 ≥168B, CCF10 / D75F0 / C87B0
+三函数交叉定案):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +8 | int32 | wanted 目标单位数 (D75F0 写, CCF10/C87B0 读) |
+| +16 | CUnit 嵌入式容器 | AtLoc 单位列表 (data@+16, count@+28); D75F0 裁撤第三优先 |
+| +28 | int32 | AtLoc 计数 (C7700 打印 "Divs at location") |
+| +40 | CUnit 嵌入式容器 | OnWay 单位列表 (data@+40, count@+52) |
+| +52 | int32 | OnWay 计数 (C7700 打印 "Divs on the way") |
+| +64 | CUnit 嵌入式容器 | 第三单位列表 (data@+64, count@+76); 语义命名未决 (推定「待命/保留中」, 写者未定位) |
+| +76 | int32 | 第三容器计数 (CCF10 槽满判定项 ×2 / D75F0 ×2) |
+| +88 | int32 | **已分配计数** (C87B0 分配++ / 移出−−; D75F0 转入++; ⚠ 非「前线数」) |
+| +164 | uint32 | 槽位省 id (CCF10 :3025 日志 + 路径匹配; D75F0 省匹配 ×5) |
+
+槽满判定 (CCF10) = `+28 + +52 + +76 >= +8 − 1`; 裁撤判定 (D75F0) = `+28 + +52 + +76 >
+round(+8 × 0.5)`; 裁撤顺序 = 先 OnWay 容器 (全量摘入 indexer+80 后清 +52) → +64 容器 →
++16 容器。C87B0 排序分段阈 = **32** (≤32 插入 sub_1414C0910 / >32 并行归并 sub_1414C14C0);
+⚠ **170 (0xAA) 非排序阈值** = 24B 候选数组小分配 EH 追踪阈 (≤170 元素免入 EH wind 的快道)。
+C87B0 消费 define 反查全录 (DISTANCE_FACTOR / COHESION_WEIGHTS / TERRAIN_DEFENSE /
+ATTACK / STICKINESS)。**CPendingStratNavyTransfer
 补全**: 56B 布局 +8/+40/+48 语义定案 (分组工厂 sub_1414D5A70, :393 断言), 32B 派单条目
 布局, 新读点 oi+580。**case 3 海军入侵批量补位** (sub_1414D02C0): 槽位轮转 = 成员序号 %
 槽数; **每轮批量上限 = dword_1430B3860 = 3** (exe .data 静态实读, 非 define); 与 s4_34
@@ -551,14 +574,14 @@ indexer+368 进口清零。**sub_1414D9280** = AI「把师送到前线」移动�
 表 4270/4397/4410/4446/4499/4526/4555), 海军登岸拆分 = sub_1419690B0 → TransportUnit/再寻路,
 FRONT_MIN_PATH_TO_REDEPLOY 路径长门; **sub_1414D5030** = 海军入侵单单位目标省选择
 (1.1 容差兵力比; PLAN_MAX_PROGRESS_TO_JOIN / RESERVE_TO_COMMITTED_BALANCE 双 define 门;
-CCommand 直执行路径 sub_141361B30 vt[9]/[10], :4140 断言; 调用者 = 战斗推进 sub_1414D3120);
+CCommand 直执行路径 sub_141361B30 vtable[9]/[10], :4140 断言; 调用者 = 战斗推进 sub_1414D3120);
 **sub_1414CC9C0** 靠拢拒因 6 写法 = +590=1 / +680=6 / +592=0, 下发统一走退避门 sub_1414C9D10。
 **sub_1414C55D0** 铁路炮分配重挂: ProvincesInRange 半径 = 2×聚集宽度; AI 日志通道键 =
 NAVAL_TRANSFER_PRIORITY; 炮跨海也走 TransportUnit 工厂。单位类型判据 = **unit+8 非 0 =
 IsNavalInvasionUnit (:1939) ∧ ≠ 13 = IsNavalTransferUnit (:236)**。
 
 unitcontroller 层补全二 (定案/高置信): **sub_1414CC540 = 战斗推进 (D3120) 的移动下发底座**
-(231 行, 调用者 = D3120 选定目标省后): 路径非空且末省 == 目标 (+164) → 逐省调 unit vt 槽[14]
+(231 行, 调用者 = D3120 选定目标省后): 路径非空且末省 == 目标 (+164) → 逐省调 unit vtable 槽[14]
 (+112) 通行性校验, 全可达免发返 0; 否则按日期旗二选一重寻路 (真 → sub_140E2A320 10 参变体 /
 假 → sub_140E2ADE0 9 参变体) → 写 unit+736 航点容器 → CPendingAddMovement 工厂 sub_1414C38F0
 入队; 成功后调用方做**拒动三清** +590=0/+680=0/+592=−1 (与 CCF10 放行三清同款); 返 1 = 已尝试重发
@@ -570,10 +593,48 @@ unitcontroller 层补全二 (定案/高置信): **sub_1414CC540 = 战斗推进 (
 find unit to unassign from orderslocation"); 包围点必须非海省 (:5271)。**文本 dump 家族单旗门控**:
 indexer+356 一旗同控三处 ofstream 写盘 — CCF10 (:3025 "Find best unit for: " 逐省+槽明细,
 CFileException 处理 = EH funclet sub_1426409C0 :3125) / C87B0 (:3970 逐员定分单行) / D75F0
-逐轮调 C7700 (调用者补边: 书原仅记 C7700 单处); C7700 正文消费槽记录 +28 AtLoc/+52 OnWay。
+逐轮调 C7700 (调用者补边: 书原仅记 C7700 单处); C7700 正文逐槽打印 +8 wanted / +28 AtLoc / +52 OnWay (格式明细见下)。
 **退避门 sub_1414C9D10 = D9280 的直接包装调用者** (书调用带补边, dump :7829621 实证):
 +696≤0 → 调 D9280, 成功清 +696=0; 失败步长 +700 按 (≥3 ? min(×2,24) : 3) 回写双槽; 冷却中
 +696 = min(−1, 24) 递减。
+
+unitcontroller 层补全三 (定案): **D75F0 省优先级公式** (写入槽记录句柄 +0, qword, 1e5 定点) =
+`round( (neighborBonus + vpTier) × PLAN_SHARED_FRONT_PROV_IMPORTANCE_FACTOR / 1e5 )`, 其中
+neighborBonus = oi+664 旗真 ? PLAN_NEIGHBORING_ENEMY_PROVINCE_FACTOR + 1e5 :
+round(PLAN_NEIGHBORING_ENEMY_PROVINCE_FACTOR × 1e5 × 敌省计数 / 1e5) + 1e5 (旗真时邻居项取固定
+上限而非按敌省数缩放); vpTier = 省 VP (sub_140E7CDC0, 1e5 定点) 三档阈值表:
+
+| VP (定点) | VP 值 | 档位 define | 默认 |
+|---|---|---|---|
+| < 1e6 | < 10 | PLAN_PROVINCE_BASE_IMPORTANCE | 2.0 |
+| < 3e6 | < 30 | PLAN_PROVINCE_LOW_VP_IMPORTANCE_FRONT | 2.0 |
+| < 5e6 | < 50 | PLAN_PROVINCE_MEDIUM_VP_IMPORTANCE_FRONT | 2.25 |
+| ≥ 5e6 | ≥ 50 | PLAN_PROVINCE_HIGH_VP_IMPORTANCE_FRONT | 2.75 |
+
+六 define (PLAN_NEIGHBORING_ENEMY_PROVINCE_FACTOR 0.7 / BASE_IMPORTANCE 2.0 /
+SHARED_FRONT_PROV_IMPORTANCE_FACTOR 0.8 / LOW 2.0 / MEDIUM 2.25 / HIGH 2.75) 默认值出自
+00_defines.lua:1035-1051, 全局槽 = qword_143332F50 / 143332FF8 / 1433330B8 / 143333700 /
+1433337B8 / 143333890; 除/1e5 一律走 `(x × 0x29F16B11C6D1E109) >> 64 >> 14` 魔法 (2^78/魔数 = 1e5
+实算) = 引擎 1e5 定点除法统一平替。**CPendingTransportUnit 工厂 sub_1414C3AE0** (32B, 书 §4.00
+原仅记 32B + +8 智能对): +0 vtable / +8 CReferenceObject 智能对 (sub_1402A6FD0 构造, 断言侧经
+sub_14221F310 三档 id 解析) / +16 dword = *(*(unit+496)+164) 单位当前省 id (unit+496 = CProvince*) /
++20 dword = 第三参 (推定目标省 id, 未决) / +24 word = 0; 调用者仅 D9280 (海军登岸拆分) 与 C55D0
+(铁路炮跨海); 入队 = sub_1414D4B50 (IsValid 预检 + 收集 + indexer+272 去重) +
+sub_1401205A0(indexer+272, &pending); :236 断言门 = unit+8 非 0 ∧ ≠ 13 (入侵单元 ∧ 海运单元)。
+**C55D0 格式化错误日志** (错误形态②, 书未收): 串 "Province without state (e.g. sea province) has
+a railway. This shouldn't be possible. (CurrentProvID: " (102B 定长前缀) 经 sub_1424CA600 取省 →
+state 容器 (+16/+24) 为空时触发, 尾追加 CurrentProvID; 语义 = 铁路炮重挂扫到「无 state 的省却有铁路」
+的不可达态。C55D0 另 3 处数据完整性断言 (:987/:999 PromisingLocations.GetTailData() != 0、
+:993 !ProvincesInRange.Contains(0), 均带串 "Province 0 in railway gun distribution.") +
+寻路状态机断言 (:1119 LocalDataIndex != -1 / :1256 OpenList.IsEmpty() / :1262
+RailClusters[CurrentProvID] == 0) = 铁路炮 BFS/聚集宽度算法内联自检。**C7700 "AI FRONT DUMP"
+转储格式** (定案): :5870 头 "============ AI FRONT DUMP FOR <tag> : <num> ================="
+(tag = get_srw_lock(sub_140BB48F0(*(indexer+0)+60)), num = *(*(indexer+0)+352); *(indexer+0) =
+og 回指, og+60/og+352 语义推定未决) / :5875 逐槽 "Province #<i> has priority: <prio>" /
+:5877 "    Divs wanted: <+8>, Divs at location: <+28>, Divs on the way: <+52>" /
+:5882 尾 "Total priority: <total>"。**CCF10 满位/空派表布局**: 引擎 vector<int> 嵌入式 —
+data@+176 / cap@+184 / count@+188 / alloc@+192 (⚠ 计数在 +12 偏移位置即 +188, 非 +16); 「空派」入
+indexer+200 同族布局。
 
 谓词链 (逐单位, 定案):
 
@@ -588,8 +649,8 @@ CFileException 处理 = EH funclet sub_1426409C0 :3125) / C87B0 (:3970 逐员定
 入列判定: `(¬P1 ∨ (P2 ∧ ¬unit+589) ∨ unit+584<1) ∧ (¬P2 ∨ 撤退模式) ∧ P5` →
 ++indexer+72, 插 indexer+104 候选列 (槽数 indexer+116 非零 → sub_1401B14F0
 (i×成员数 + oi+124 路径数) % N 轮转插位摊匀先后); 循环尾 unit+488 目的地省
-失效 (省 +368 容器无 vt[11]==1 元素) → sub_140C04C60(unit,0,0,0) 清目的地
-(清 unit+687 战略部署旗经 vt[53]、写 unit+488、单省路径 sub_14012B520)。
+失效 (省 +368 容器无 vtable[11]==1 元素) → sub_140C04C60(unit,0,0,0) 清目的地
+(清 unit+687 战略部署旗经 vtable[53]、写 unit+488、单省路径 sub_14012B520)。
 
 **双层节流 (定案)**: ① 四拍 = `(og+12 id + 流逝小时) & 3 == 0` (流逝小时 =
 sub_1405339D0(gs+1120) = *(gs+1128)−43800000, 与 §4.2.6 相位 11 错峰同式);
@@ -620,7 +681,7 @@ Front Count | Order | Priority | Min.W | Wanted | At Loc | On Way | Leave
 +312 军段缓存。
 
 叶点入队 = **sub_1414C3A50**: malloc 32B CPendingAddStrategicRedeploy →
-sub_1414D4B50 即时校验 (vt[1] IsValid → vt[3]) + 追加 indexer+272 待办容器
+sub_1414D4B50 即时校验 (vtable[1] IsValid → vtable[3]) + 追加 indexer+272 待办容器
 (worker 安全延迟命令, §4.00 待命指令族); Execute 走 CUnit 移动校验与拒动协议
 (unit+590/+680 写者即此族, §4.18)。
 
@@ -645,8 +706,7 @@ orders_group (+128) + field_marshal_group (+152) 逐 og **sub_140BEC460 = og
 sub_1409C9680 (divisionnamesdatabase.cpp:447 断言): 每国**四个命名库
 (cc+112/120/128/136)** × 两步 (步 1 = 可用性降级扫描 [自 tracker+64 恒可用前缀之后
 正扫 available_groups, 求值假者 swap-remove 出 _AllAvailableGroups 批量回不可用表,
-前缀豁免]; 步 2 = 可用性升级扫描 [不可用表求值真者搬回] — 勘误: 原「回收步」措辞
-易误读, 实为双向可用性搬迁) (定案)。按命名库种类分派件 = sub_1409C62C0
+前缀豁免]; 步 2 = 可用性升级扫描 [不可用表求值真者搬回]) (定案)。按命名库种类分派件 = sub_1409C62C0
 (a1+96 ∈ 0..3): mode 2 分支内联单位遍历赋名 + +169 已赋名旗, mode 3 走
 sub_1409BCF50 外包铁路炮族。
 
@@ -656,13 +716,13 @@ sub_1409BCF50 外包铁路炮族。
 → CPdxArray; ② parallel_for → sub_140EED730 (簇外, +408 字典清重建); ③ 串行逐战区
 `sub_140EECA10(theatre+80, &key, theatre+408)` 认领旧前线, key = theatre+272
 (volunteers_theatre tag) > 0 ?: theatre+72 (owner tag); 逐 +408 条目 (192B) →
-**sub_140EEB190**; 清扫 theatre+80: front+44 (enemies count) == 0 → vt[0] 删 +
+**sub_140EEB190**; 清扫 theatre+80: front+44 (enemies count) == 0 → vtable[0] 删 +
 swap-remove。条目 192B = {己区 CControllerArea* @+0, 敌区 @+8, CFront* @+16, 省累积器
 {d @+24, c @+36}}; 三断言 :92/:98/:416, 己区空以敌区 +32 容器首控制区代替。front 空 →
 malloc 136 内联构造 (type = 66, id = InterlockedExchangeAdd(dword_143087264, 1),
 +24 = theatre, +112 = 区, +124/+125 = 0x0100 即 dirty) 后 **push 进 theatre+80
 (序列化 fronts 容器, 定案)**; enemies 重建 = 敌区 controller tag (sub_140CF43B0 优先,
-否则区 vt[1] GetTag; 容器 +56, alloc = +72); 尾 front+124 == 0 ∧
+否则区 vtable[1] GetTag; 容器 +56, alloc = +72); 尾 front+124 == 0 ∧
 sub_140E7E0E0(己区+40 锚省, theatre) 真 → +124 = 1 (:435 门 = 敌区空)。
 
 **BuildSections = sub_140EEE090, 宿主 CFront** (tbb lambda 符号
@@ -685,7 +745,7 @@ sub_140E7E0E0(己区+40 锚省, theatre) 真 → +124 = 1 (:435 门 = 敌区空)
   匹配, 标记字节数组防本轮重用) 或新建 → **TakeProvincesAndPairs sub_140F00F50**
   (reversed = 段首末省路径先后, sub_140EF44D0 后处理 ×2) → 覆盖对账 :3419
   "nWantedPairs == nCoveredPairs", 超 wanted 省打回工作列重处理 → 清扫未触及/空段
-  (+60 省数 == 0 ∨ +84 对数 == 0) vt[0] 删 + swap-remove。
+  (+60 省数 == 0 ∨ +84 对数 == 0) vtable[0] 删 + swap-remove。
 
 **载入修复对全流程**: sub_140EFC6D0 = CTheatre::UpdateMainProvince 五步 (debug 门
 byte_143452529, log :2557): ① +36 area 计数清 0, +60 锚省数 > +32 cap → 1.5 倍增 +24;
@@ -697,7 +757,7 @@ byte_143452529, log :2557): ① +36 area 计数清 0, +60 锚省数 > +32 cap �
 敌区缓存 resolve, 与 §4.24.5 +168 载入链闭合)。
 
 **读档修复入口 sub_140EF9280 四步** (§4.24.6 主干补内幕): ① 重置两占领 bundle 静态 +
-byte_14333D398 = 1; ② managerobj+1854 (经 qword_14332F698 vt[+136]) 为 0 才跑重校验
+byte_14333D398 = 1; ② managerobj+1854 (经 qword_14332F698 vtable[+136]) 为 0 才跑重校验
 五件套 (byte_14333D2B0 = 1 → sub_140EFAC10(0,1) → sub_140EF9F40 → sub_140EF88B0(0,0) →
 sub_140F000E0 → sub_140EED100 → 旗清 0), 差异旗 byte_14333D2B1 置位 → log "Theaters or
 fronts has been fixed…" :4833 后**继续执行 (非 fatal)**; ③ 逐国逐战区逐 og (theatre+176
@@ -723,7 +783,7 @@ data / +84 = count (收口按 count memset)。bundle+100 (活动模式) / +101 (
 (:5532/:5533) → terminate; 否则 +101 = 1 → +100 真 ∧ +12 非零 → sub_140EFAB20(0,1) →
 sub_140EF97A0 (链 A) → sub_140EF88B0 (分桶重建) → sub_140F00040; 否则 +36 ∧ +12 →
 sub_140EF2180; 尾 +101 = 0 解锁 + 战区脏旗 (managerobj+1941, 经 qword_14332F698
-vt[+136] 槽 17 取对象) = (gs+1312 > 0)。
+vtable[+136] 槽 17 取对象) = (gs+1312 > 0)。
 
 未决: 重校验五件套中 sub_140EF9F40 / sub_140F000E0 / sub_140EED100 分工 (簇外无特征串);
 sub_140EF44D0 (section 后处理) 精确语义; sub_140CF43B0 返回对象 +8/+20 字段; 路径一步的
@@ -734,16 +794,16 @@ sub_140EF64D0 / sub_140EF3B70 内部 (对位敌省查找与敌区键计算, 建�
 #### 4.24.17 areas.cpp 双类运行期增补 (CControllerArea/COwnerArea 维护与面级寻路; 8 函闭环)
 
 清册 (8/8 函体内含 areas.cpp 路径锚): 控制器变更区域维护 0x140CF6FA0 (603) / **区域邻接图
-Dijkstra 面级寻路 0x140CF3B20 (490)** / CControllerArea::TrySplit 0x140CF87C0 (386, vt[6]) /
-COwnerArea 邻接链重建 0x140CF1ED0 (115, vt[2], 零直接调用点) / RemoveProvince 0x140CF84C0
-(92, 两类共用 vt[5]) / 区省表排序 0x140CF8640 (81, 调用者 = 国家级批量 sub_140713040(+1352)/
-sub_140713090(+1376)) / AddProvince 0x140CF1170 (78, 共用 vt[4]) / Merge 0x140CF67D0 (69)。
+Dijkstra 面级寻路 0x140CF3B20 (490)** / CControllerArea::TrySplit 0x140CF87C0 (386, vtable[6]) /
+COwnerArea 邻接链重建 0x140CF1ED0 (115, vtable[2], 零直接调用点) / RemoveProvince 0x140CF84C0
+(92, 两类共用 vtable[5]) / 区省表排序 0x140CF8640 (81, 调用者 = 国家级批量 sub_140713040(+1352)/
+sub_140713090(+1376)) / AddProvince 0x140CF1170 (78, 共用 vtable[4]) / Merge 0x140CF67D0 (69)。
 
-**虚表全 16 槽 VA 补齐** (PE 直证): CControllerArea vt 0x14295E818 7 槽 [4]Add/[5]Remove/
-[6]TrySplit vs COwnerArea vt 0x14295E858 9 槽 ([2] = 邻接链重建 0x140CF1ED0 / [6] = owner
+**vtable全 16 槽 VA 补齐** (PE 直证): CControllerArea vtable 0x14295E818 7 槽 [4]Add/[5]Remove/
+[6]TrySplit vs COwnerArea vtable 0x14295E858 9 槽 ([2] = 邻接链重建 0x140CF1ED0 / [6] = owner
 分裂 0x140CF8F20 / [4][5] 共用实现)。
 
-**控制器变更维护链** (定案): 旧区摘省 (vt[5]+vt[6] TrySplit, 空区销毁含国注册摘除/链清理/
+**控制器变更维护链** (定案): 旧区摘省 (vtable[5]+vtable[6] TrySplit, 空区销毁含国注册摘除/链清理/
 delete) → 新控制器侧邻区同别名组 Join/新建 → AddProvince (锚省选择 = desc+210 bit0 陆省位,
 按省 id 二分有序插入, 幂等门) → 邻接链双向加 refcount; 唯一调用点 = SetController 级联
 (province.cpp:394 后)。**TrySplit** = 回指清零 → 首省洪泛保连 (owner tag 同别名组键, DFS 栈 =
@@ -758,4 +818,28 @@ sub_140663A20 国对可达性查询)。
 > 与 §4.19.9 失真清单并读, 实参级结论需汇编复核。
 
 未决: 区主重算 sub_140CF21D0 (632 行非本簇) 逐字段 / 0x140CF1ED0 运行期调用者 / gs+1720
-量纲 / front 侧广播落点 sub_140EFB9A0/BED0 与两虚表余下 7 槽语义。
+量纲 / front 侧广播落点 sub_140EFB9A0/BED0 与两vtable余下 7 槽语义。
+
+#### 4.24.18 将领行政域五件套 (army_hq\deployable_general_utils.cpp; 5 函闭环 — HQ 师生成 / 监狱州挑选 / 邻接距离 define)
+
+> 体内锚路径带 source\army_hq\ 目录前缀。
+
+簇清册 (体内 cpp 锚 5/5):
+
+| 函数 | 行数 | 锚 | 定性 | 状态 |
+|---|---|---|---|---|
+| sub_1415B10B0 | 288 | :90 RNG + loc 锚 ARMY_HQ_DIVISION_NAME | 生成将领率领的 army HQ 师 | 新 |
+| sub_1415B0320 | 210 | :248 断言 "Could not find any follow province" (B51, 闩 byte_14338A966) | 递归 follow 省搜索 (最小距离择取) | 已收一句, 本批补机制 |
+| sub_1415B0B40 | 158 | :39/:47 双断言 (B51, 闩 byte_14338A964/65) | 国默认 HQ 模板获取 (两级回退) | 新 |
+| sub_1415AFEE0 | 60 | :343 断言 "Couldn't find an adequate prison province" (B51, 闩 byte_14338A968) | 监狱州挑选 | 新 |
+| sub_1415B0EB0 | 38 | :284 断言 "Unhandled proximity type" (B51, 闩 byte_14338A967) | proximity_type → 期望距离 define getter | 已收, 本批补 define 名 |
+
+**HQ 师生成** (sub_1415B10B0): 候选省收集 (hq+80 单位表逐单位 vtable[4] 门) → 随机落省 → malloc 1672 建师 (ctor sub_140C6D470, 国 tag = hq+60) → 套模板 + 人力 → **将领 XP = UNIT_EXP_LEVELS[min(GENERAL_RANK_TO_ARMY_HQ_EXP_LEVEL_FACTOR × 技能换算, n−1)] × 参数 / 1e5, 钳 ≤ 100000 × 人力** (army+1072 = §4.4.27 陆军 XP 同址互证; 表 qword_143339500 / 计数 dword_14333950C) → 登记 + ARMY_HQ_DIVISION_NAME 命名 {LEADER_NAME} → 挂国 (sub_1406D2CA0; create_unit 同款 owner 变更三连)。调用方 = HQ 日更 sub_140BF67C0。
+
+**follow 省搜索** (sub_1415B0320): depth ≠ 0 → BFS 搜索核 sub_1415AED80 (预算 = depth, SSearchNode 16B 元); depth == 0 → 直采国对象; 择取 = 距离最小者; 候选空 → 递归 depth−1; 耗尽 → :248 断言返 0。
+
+**国默认 HQ 模板** (sub_1415B0B40): feature gate sub_1401AEB50(57) 假 → 返 0 (id 57→DLC 位映射未深读); cc+3952 部署管理器默认模板 → 直返; 回退 = 遍历 cc+440/+452 师模板表返首个 *(模板+460) != 0 (一次性断言 :39); 无 → :47 断言返 0。
+
+**监狱州挑选** (sub_1415AFEE0; 调用方 = CArmyLeader::Capture sub_140C11D60, §4.4 捕获链): 遍历 controlled_states (cc+1120) → **主键 = min(州 VP (州+56), PREFERRED_PRISON_VP dword_143333BE8) 取最大, 次键 = 路距/1e5 取最小**; 空 → :343 断言返原省兜底。
+
+**邻接距离 getter** (sub_1415B0EB0): 0 → 0 / 1 → **GENERAL_PROXIMITY_CLOSE** (dword_143333628) / 2 → **GENERAL_PROXIMITY_MEDIUM** (dword_143333708) / 3 → **GENERAL_PROXIMITY_FAR** (dword_1433337F8) / 其他断言; §4.24 消费点 type 4 = 第四种邻接形态不经此 getter。

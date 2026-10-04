@@ -39,8 +39,8 @@ army/navy/operative 三派生共用; 偏移 = leader 绝对字节; 引擎落盘�
 |---|---|---|---|
 | +8 | uint32 | CID.type (type=4713 引用类) | 恒写; `id = { id type }` 块 (0X142220340) |
 | +12 | uint32 | CID.id | 恒写 (同上) |
-| +13..+31 | 匿名结构 (19B 形状) | = CID.id 尾 (+13..+15) + CReferenceObject 簿记 (+16..+23, ctor 清首字节) + **CUnitLeaderTemplate\* 模板回指 (+24..+31)** | ⚠ 勘误定案: +24 非 vptr — 基 ctor 清 0 / 领袖工厂 sub_140C14160 步3 写模板指针 / army 单 vftable@+0、navy 双 vftable@+0,+3928 三证; CUnitLeaderBase 子对象基 ctor 0X140C0C2A0 的 a1 = leader+24, 其内偏移须 +24 才是 leader 绝对值; dtor 链 0X140C0D340(a1+24); ctor 0X140C0C200 |
-| +16 | uint64 | CReferenceObject 基类簿记 (引用计数/池链接族) | char dtor 收尾链实锤 |
+| +13..+31 | 匿名结构 (19B 形状) | = CID.id 尾 (+13..+15) + CReferenceObject 簿记 (+16..+23, ctor 清首字节) + **CUnitLeaderTemplate\* 模板回指 (+24..+31)** | ⚠ 定案: +24 非 vptr — 基 ctor 清 0 / 领袖工厂 sub_140C14160 步3 写模板指针 / army 单 vftable@+0、navy 双 vftable@+0,+3928 三证; CUnitLeaderBase 子对象基 ctor 0X140C0C2A0 的 a1 = leader+24, 其内偏移须 +24 才是 leader 绝对值; dtor 链 0X140C0D340(a1+24); ctor 0X140C0C200 |
+| +16 | uint64 | CReferenceObject 基类簿记 (引用计数/池链接族) | char dtor 收尾链直证 |
 | +32 | SSO 串 | name | 门 qword@+48≠0 且文本模式; 引号串; tok 27 |
 | +33..+63 | SSO 串本体 (31B) | = name SSO 32B 本体 (+32..+63; ctor 8 连 SSO 初始化 / dtor 8 连 free) |  |
 | +64 | SSO 串 (32B) | **本地化显示名缓存** (定案: 实读「乔治·卡特利特·马歇尔」与 name token 严格对应; RebuildModifiers 复制进全部 15 个修正块的 name@+72 — sub_140C21FC0 链式 assign) | GUI 消费见表后注① |
@@ -59,10 +59,10 @@ army/navy/operative 三派生共用; 偏移 = leader 绝对字节; 引擎落盘�
 | +257..+295 | 匿名结构 (39B 形状) | = gfx SSO 体尾 (+257..+287) + **tag_id i32@+288** (ctor 参数3 落点, 门>0; ApplyModifiers 链经 sub_140BB48F0/sub_140C07580 对该国施策 — 推定「将领修正归属国/原籍国」缓存, 精确语义未名 [未决], writer 不触) + pad@+292..+295 | ctor a3; 0X140C20FA0 |
 | +296 | CSubUnitDefinitionAssociatedModifiers 内嵌块 (288B) | sub_unit_modifiers | 门 = u32@+316 与 u32@+340 不全 0 (IsEmpty sub_140643140); tok 15459; 全表见 §4.4.12 |
 | +297..+583 | 匿名结构 (287B 形状) | = sub_unit_modifiers 288B 块体 (见 §4.4.12) |  |
-| +584 | CUnitAdjuster 向量 | **per-skill 数组** (40B 元; 引擎名 **_TerrainAdjusters** assert 实名 — 勘误: 原记无名; 下标域待裁: 聚合器 sub_140C0FB70 键空间联动判 sub-unit 定义索引 (高置信) vs 原记 CUnitLeaderSkill 库内索引, 两说并陈) | RecalcSkillBonuses sub_140C21280 重建; getter sub_140C19C40 (越界回 0 号) |
+| +584 | CUnitAdjuster 向量 | **per-skill 数组** (40B 元; 引擎名 **_TerrainAdjusters** assert 实名; 下标域待裁: 聚合器 sub_140C0FB70 键空间联动判 sub-unit 定义索引 (高置信) vs CUnitLeaderSkill 库内索引, 两说并陈) | RecalcSkillBonuses sub_140C21280 重建; getter sub_140C19C40 (越界回 0 号) |
 | +596 | uint32 | +584 数组 count | 定案 |
 | +600 | uint32 | +584 数组 alloc (= &off_143085170 静态哨兵初值) | pdx 24B {data@584, cap@592, count@596, alloc@600} (ctor 增长码) |
-| +608 | CUnitAdjuster | **CUnitAdjuster 总计器** (全 trait×skill 加成总和) {vt@608, q@624/632/640 ctor 清零}; 与 +648 阵列无缝 | sub_140C0FB70 聚合; ctor 0X140C0C2A0 |
+| +608 | CUnitAdjuster | **CUnitAdjuster 总计器** (全 trait×skill 加成总和) {vtable@608, q@624/632/640 ctor 清零}; 与 +648 阵列无缝 | sub_140C0FB70 聚合; ctor 0X140C0C2A0 |
 | +648..+3527 | CModifier* | **命名修正块阵 b0..b14** — 物理基址 = leader+648 (ctor 0X140C0C2A0 直写 CModifier vtable×15 @subobj+624+192i; dtor 对成员@+640+192i 清理 15 次; RebuildModifiers 0X140C21FC0 名 assign 目标 928/1120/…/3424 = 648+192i+88 全命中); 块内 name SSO = CModifier+88; 阵列终于 +3527 与 traits@+3528 无缝; 块分工见 §4.4.3, 通用布局见 §4.3.8 | ctor + dtor + RebuildModifiers 三证 |
 | +3528 | CUnitLeaderTrait* | traits — 元素 8B 指针, 叶名 = token u32@(trait+8); 裸列表 (无花括号, 分隔 token 18 空格); trait 对象内: +56 有效门 (replace 显式旧特质分支读) / +1740 事件门 / +2680 修正引用清单 {data, count@+2692, 16B 元, add/remove 聚合扣账} (均推定) | 门 计数@+3540≠0; tok 12278 |
 | +3529..+3539 | 匿名结构 (11B 形状) | 所在 pdx 24B 容器内部 (data 尾/cap@+8 或 count 尾/alloc@+16 = &off_143085170 哨兵初值; ctor 5 连 sub_14011DF40 + dtor 5 连关闭) |  |
@@ -92,7 +92,7 @@ army/navy/operative 三派生共用; 偏移 = leader 绝对字节; 引擎落盘�
 | +3696 | int32 | **max_traits 缓存①** (corps/FM define 基值 + 修正 0x15F) | sub_140C21D30 写, getter sub_140C18790 |
 | +3700 | int32 | **max_traits 缓存②** (基值 + 修正 0x160; HQ 条件下再缩放) | getter sub_140C186D0 |
 | +3704 | uint32 | **将领进行中海战计数** (定案: CNavalCombatant 参战将领数组选拔链读取) |  |
-| +3708..+3767 | 匿名结构 (60B 形状) | = **leader_type u32@+3708** (ctor 参数2; dtor 置 4 哨兵) + **female 0xAA 哨兵对** {u8@3712 = 0xAA, 写门 u8@3713} (ctor WORD@3712=0x00AA; 门开才落盘; dtor 门@3713≠0 复位 0x00AA) + cooldown 组总门@3716 + 冷却起始日期对 {vt@3720, hours@3728, 视图@3736} + 修正启用日期对 {vt@3744, hours@3752, 视图@3760}; 与 +3712/+3713/+3716 单列行重叠 | ctor/dtor 复位闭环 |
+| +3708..+3767 | 匿名结构 (60B 形状) | = **leader_type u32@+3708** (ctor 参数2; dtor 置 4 哨兵) + **female 0xAA 哨兵对** {u8@3712 = 0xAA, 写门 u8@3713} (ctor WORD@3712=0x00AA; 门开才落盘; dtor 门@3713≠0 复位 0x00AA) + cooldown 组总门@3716 + 冷却起始日期对 {vtable@3720, hours@3728, 视图@3736} + 修正启用日期对 {vtable@3744, hours@3752, 视图@3760}; 与 +3712/+3713/+3716 单列行重叠 | ctor/dtor 复位闭环 |
 | +3712 | uint8 | female 值 | 门 byte@+3713≠0 → yes/no; 文本模式门; tok 10773 |
 | +3713 | uint8 | female 写门 |  |
 | +3716 | uint32 | cooldown 组总门 — ① cooldown_reason = 枚举→引号串 sub_140C12910 (0=no_cooldown / 1=reassigned / 2=harmed / 3=forced_into_hiding / 4=deployed / 5=withdrawing; tok 19226); ② leader_modifier_enable_date (tok 14723, 日期对@+3744/+3752, 视图 vptr@+3760); ③ leader_cooldown_start_date (tok 19458, 日期对@+3720/+3728, 视图 vptr@+3736) | 门 u32@+3716≠0; 日期对布局见 §4.4.4 |
@@ -115,7 +115,7 @@ army/navy/operative 三派生共用; 偏移 = leader 绝对字节; 引擎落盘�
 | +3921..+3923 | 匿名结构 (3B 形状) | = +3920 u8 尾 pad (ctor 清零) |  |
 | +3924 | uint32 | script_id (**引擎名 _UnitLeaderIndexInGameState** — gs+1040 全局 unit-leader 注册表下标, 写入器 sub_140C275E0 debug 门 assert 直证) | 门 ≠0; tok 19349 |
 
-表后注① GUI 消费 (leader+64 显示名缓存): Badge 将领技能/名 + ListView 部署 tooltip — sub_140C15500 攻击技能; loc 键 LEADER_SKILL_DESC / UNIT_LEADER_NO_LEADER / LEADER_DEPLOY_* / LEADER_COMING / LEADER_WITHDRAWING; 部署三态字节 = **COrdersGroup+409 deployed / +410 deploy_queued / +411 withdrawing** (⚠ 本组字节曾按 leader 基址登记, 实为 COrdersGroup 基址 — 读取点对象为 COrdersGroup; 见 §4.4.8); vt[26] = 将领冷却剩余天数 `(23 − 今日 + enable_date)/24`。
+表后注① GUI 消费 (leader+64 显示名缓存): Badge 将领技能/名 + ListView 部署 tooltip — sub_140C15500 攻击技能; loc 键 LEADER_SKILL_DESC / UNIT_LEADER_NO_LEADER / LEADER_DEPLOY_* / LEADER_COMING / LEADER_WITHDRAWING; 部署三态字节 = **COrdersGroup+409 deployed / +410 deploy_queued / +411 withdrawing** (⚠ 本组字节曾按 leader 基址登记, 实为 COrdersGroup 基址 — 读取点对象为 COrdersGroup; 见 §4.4.8); vtable[26] = 将领冷却剩余天数 `(23 − 今日 + enable_date)/24`。
 
 dynamic_modifier 块体展开 (+3840..+3911, CDynamicModifierContainer 72B; 定案):
 
@@ -189,7 +189,7 @@ trait 四类修正源 = modifier (trait+864) / non_shared_modifier (trait+1056) 
 
 ctor 0X140C0C2A0 写哨兵 43808760 入 +3728/+3752。
 
-#### 4.4.5 CArmyLeader 尾段全字段表 (writer 0X140C28200, vt 0X2955CA8 slot2; vt[18] = 0x140C10A10 FM 分享权重计算 / vt[15] = sub_140C16C90 FM HQ 下辖 general 数 getter u32@HQ+572)
+#### 4.4.5 CArmyLeader 尾段全字段表 (writer 0X140C28200, vtable 0X2955CA8 slot2; vtable[18] = 0x140C10A10 FM 分享权重计算 / vtable[15] = sub_140C16C90 FM HQ 下辖 general 数 getter u32@HQ+572)
 
 首行调基 writer, 以下为派生尾段。
 
@@ -208,7 +208,7 @@ ctor 0X140C0C2A0 写哨兵 43808760 入 +3728/+3752。
 | +4000 | int32 | planning_skill_temp_deficit | 门 ≠0; tok 10560 |
 | +4004 | int32 | logistics_skill_temp_deficit | 门 ≠0; tok 10561 |
 | +4005..+4007 | uint8[3] | (**覆盖行**) = +4004 logistics_skill_temp_deficit i32 的 3 个尾字节, 非独立字段 |  |
-| +4008 | CUnitAdjuster 内嵌 (40B) | **attack_skill 修正缓存** (vt 0x142789CD0) | clone 摆 vt |
+| +4008 | CUnitAdjuster 内嵌 (40B) | **attack_skill 修正缓存** (vtable 0x142789CD0) | clone 摆 vtable |
 | +4048 | CUnitAdjuster 内嵌 (40B) | defense_skill 修正缓存 | 同上 |
 | +4088 | CUnitAdjuster 内嵌 (40B) | planning_skill 修正缓存 | 同上 |
 | +4128 | CUnitAdjuster 内嵌 (40B) | logistics_skill 修正缓存 | 同上 |
@@ -223,10 +223,10 @@ ctor 0X140C0C2A0 写哨兵 43808760 入 +3728/+3752。
 | +4200 | uint8 | deployed | 门 byte@+4200≠0 → yes/no (tok 16839) + deployment_cost 同门 |
 | +4208 | fixed×1e-5 (int64) | deployment_cost | 门 = +4200 组门; tok 16840 |
 | +4209..+4215 | uint8[7] | (**覆盖行**) = +4208 deployment_cost i64 的 7 个尾字节 |  |
-| +4216 | CCommandPowerAllocator 内嵌 (56B) | 指挥点分配器 {vt@4216, qword@4224/+4232, 容器@4240..+4271} | clone 实锤 (形态定案) |
+| +4216 | CCommandPowerAllocator 内嵌 (56B) | 指挥点分配器 {vtable@4216, qword@4224/+4232, 容器@4240..+4271} | clone 直证 (形态定案) |
 | +4272 | 匿名结构 (NNB 形状)* | preferred_tactic 载体 — 值 = u32@(*ptr+152) (getter sub_1406C00D0) | 门仅指针 ≠0 (**0 值也写**); tok 19912 |
 
-#### 4.4.6 CNavyLeader 尾段全字段表 (writer 0X140C283F0, vt 0X2955DC0 slot2)
+#### 4.4.6 CNavyLeader 尾段全字段表 (writer 0X140C283F0, vtable 0X2955DC0 slot2)
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
@@ -252,7 +252,7 @@ army/navy 互斥由 character.cpp 分派保证 (leader_type 0/1→army writer, 2
 
 | 机制 | 地址 | 说明 |
 |---|---|---|
-| 共享壳 (vt slot1) | 0X1424BEC50 | 写 `{` → slot2 字段 writer → 写 `}` |
+| 共享壳 (vtable slot1) | 0X1424BEC50 | 写 `{` → slot2 字段 writer → 写 `}` |
 | 多态内嵌块 | 0X1424C2E20 | 加载对偶 0X1424C0AA0 |
 | id 对块 (`id = { id type }`) | 0X142220340 | CID 双字段 |
 | id 对块 (无键) | 0X142220180 | 写序先 id 后 type |
@@ -263,7 +263,7 @@ army/navy 互斥由 character.cpp 分派保证 (leader_type 0/1→army writer, 2
 
 | 项 | 值 |
 |---|---|
-| CUnitLeaderBase 子对象 | leader+24; 默认 ctor 0X140C0C2A0; dtor 链 0X140C0D2A0 → 0X140C0D340(a1+24); ctor 形参 = leader_type 初值落 +3708; **首 8B (+24..+31) = CUnitLeaderTemplate\* 模板回指 (非 vptr, 领袖工厂写入 — 见 +24 行勘误)** |
+| CUnitLeaderBase 子对象 | leader+24; 默认 ctor 0X140C0C2A0; dtor 链 0X140C0D2A0 → 0X140C0D340(a1+24); ctor 形参 = leader_type 初值落 +3708; **首 8B (+24..+31) = CUnitLeaderTemplate\* 模板回指 (非 vptr, 领袖工厂写入 — 见 +24 行定案)** |
 | 文本模式门 | sub_1424BFF30 (CChecksumFile 检查) 支配 name + 五枚条件 SSO + female + portraits 整块; 二进制/checksum 档这些叶不落盘 (文本档不受影响) |
 
 #### 4.4.8 未决项
@@ -272,12 +272,12 @@ army/navy 互斥由 character.cpp 分派保证 (leader_type 0/1→army writer, 2
 |---|---|---|
 | pending_reassign_target / naval_headquarter 段侧门 | 定案 (不等价) | writer 门 = 非零 ∧ 三层注册表可解析 (type>4712 / 100..4712 / <100, sub_14221F310; 悬空 id 反例成立); 段仅判非零 → 悬空 id 时段侧多发射; 现档 0-diff 未触发, 遇 MISS_MEM 先查此二处 |
 | leader+96 指挥官角色串 | 定案 | **desc 键 (+128) 的本地化解析缓存** — 写点 sub_140C257E0: 效果载荷串先拷 leader+128 (desc 键, tok 10644) → 过 loc 键校验则本地化结果写 +96, 不过则清空; 见 §4.4.2 +96 行 |
-| leader+288 tag_id (ctor 参数3) | 定案 | **归属国 tag**; vt[21] = SetOwnerCountry 虚槽 — army/navy 版 0x140C25570 纯 setter / **operative 版 0x140C254E0 换国即清 operation 对 (+3968) 与 mission optional (+3976/+4008) + GUI 通知** (特工换国 = 行动/任务全弃); 上游 = CCharacter::SetCountry sub_140FA6170 (char+104 同步传播); 读者链全部按该国取修正 (0x140C15140 任命成本 / 0x140C14BD0 XP 计速 / 0x140C21FC0 RebuildModifiers 等) |
+| leader+288 tag_id (ctor 参数3) | 定案 | **归属国 tag**; vtable[21] = SetOwnerCountry 虚槽 — army/navy 版 0x140C25570 纯 setter / **operative 版 0x140C254E0 换国即清 operation 对 (+3968) 与 mission optional (+3976/+4008) + GUI 通知** (特工换国 = 行动/任务全弃); 上游 = CCharacter::SetCountry sub_140FA6170 (char+104 同步传播); 读者链全部按该国取修正 (0x140C15140 任命成本 / 0x140C14BD0 XP 计速 / 0x140C21FC0 RebuildModifiers 等) |
 | leader+3624 隐藏引擎容器 | 定案 (负) | **触发条件不存在** — 全 dump 穷举零追加点 (生命周期仅 ctor/copy/dtor; loader/writer 不触) = 恒空死容器 |
 | leader+3784 u8 | 定案 | **loader trait 追加排序开关** (真 → 追加去重 / 假 → 二分有序插入 sub_1401B14F0; 参与对象校验和权重 1); 全 dump 无置位点 (唯一写 = ctor 清零), copy 会拷 — 恒 0, loader 恒走二分分支 |
 | leader+3808 TNamespacedTrait | 定案 (负) | mixin 全域废置 — 仅 CUnitLeader 族 + CEvent@+32 持有, 双证零赋值 (copy ctor 不拷, 拷贝终于 base+3780); 填充时机不存在, 与 §4.4.2 负定案注一致 |
-| leader+409/+410/+411 部署三态字节 | 定案 (基址勘误) | 实为 **COrdersGroup** 的 deployed / deploy_queued / withdrawing — GUI 读取点 sub_14169F350 的对象 v38 = resolve(a1+228) 其 +80/+92/+136/+392 全中 §4.24.3 COrdersGroup; COrdersGroup writer case 16839/10751/16843 三键对偶; vt[26] = 将领冷却天数 |
-| char+40 隐藏 SSO #2 | 定案 | 本地化显示名缓存 — 填充点 CCharacter vt[8] sub_140FA43C0 (char+72 name → sub_142245E60 本地化 → char+40); name setter sub_140FA61E0 同步刷新; 与 leader+32→+64 完全同构 (见 §4.4.8 +40 行) |
+| leader+409/+410/+411 部署三态字节 | 定案 | 实为 **COrdersGroup** 的 deployed / deploy_queued / withdrawing — GUI 读取点 sub_14169F350 的对象 v38 = resolve(a1+228) 其 +80/+92/+136/+392 全中 §4.24.3 COrdersGroup; COrdersGroup writer case 16839/10751/16843 三键对偶; vtable[26] = 将领冷却天数 |
+| char+40 隐藏 SSO #2 | 定案 | 本地化显示名缓存 — 填充点 CCharacter vtable[8] sub_140FA43C0 (char+72 name → sub_142245E60 本地化 → char+40); name setter sub_140FA61E0 同步刷新; 与 leader+32→+64 完全同构 (见 §4.4.8 +40 行) |
 
 writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_factor alloc + 隐藏引擎容器 / +3696..+3715 = max_traits 双缓存 (+3704..+3707 pad) / +3780..+3807 = +3788 遗留 qword + padding (负定案)。
 
@@ -287,16 +287,16 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 
 | 偏移 | 类型 | 名称 | 语义 |
 |---|---|---|---|
-| +0 | vtable | CCharacterManager (vt 0x1427e5d30; sizeof 160B; writer vt[2] 0x1406BACB0 / loader vt[4] 0x1406BA1C0 / Load 壳 vt[3] 0x1406B9BB0 载入前清两容器与三图) | 旧「+0 恒空容器」系 vtable+next_id 误读 (负定案) |
+| +0 | vtable | CCharacterManager (vtable 0x1427e5d30; sizeof 160B; writer vtable[2] 0x1406BACB0 / loader vtable[4] 0x1406BA1C0 / Load 壳 vtable[3] 0x1406B9BB0 载入前清两容器与三图) | 旧「+0 恒空容器」系 vtable+next_id 误读 (负定案) |
 | +8 | uint32 | next_id (键 19495 next_character_id; 写者 = 新局批产 sub_1406B97D0 + generate_character 效果 Execute 0x140357BE0 → sub_1406B7510 + **随机创建双路 sub_1406B8060/sub_1406B82A0** [CID 派发点各 ++ 一次, character_manager 批补录] + **复制双路 sub_1406B7140/sub_1406B71D0** (两函体首 `v3=*(mgr+8); *(mgr+8)=v3+1`, 以 {73, v3} 组 CID — character.cpp 批补录]) | 角色 id 分配器 (ctor 初值 = 1) |
 | +16 | CCharacter* | historical 容器数据指针 (键 12322; 元素键 19478 character, null assert) |  |
 | +17..+27 | 匿名结构 (11B 形状) | = historical 容器 data 尾 (+17..+23) + cap u32@+24 (pdx 24B) | ctor 0X1406B4B20 |
 | +28 | uint32 | historical 容器计数 |  |
 | +29..+39 | 匿名结构 (11B 形状) | = count 尾 (+29..+31) + alloc@+32 (哨兵初值) |  |
-| +40 | CCharacter* | dynamic 容器数据指针 (键 13075; **分野四族**: 批产按模板 +577 u8 旗判定 / generate_character 效果路恒 +16 historical / 随机生成路 [8060/82A0] 恒 +40 dynamic / **角色复制双路 [7140/71D0] 恒 +16 historical** (两函均 sub_1406B2A10(mgr+16, &Block), 71D0 以 mgr+28 计数回读末元素; 分野三律原批注扩四族 — 勘误: 原「分野 = 模板判定」仅对批产路径成立)) |  |
+| +40 | CCharacter* | dynamic 容器数据指针 (键 13075; **分野四族**: 批产按模板 +577 u8 旗判定 / generate_character 效果路恒 +16 historical / 随机生成路 [8060/82A0] 恒 +40 dynamic / **角色复制双路 [7140/71D0] 恒 +16 historical** (两函均 sub_1406B2A10(mgr+16, &Block), 71D0 以 mgr+28 计数回读末元素)) |  |
 | +41..+51 | 匿名结构 (11B 形状) | = dynamic 容器 data 尾 (+41..+47) + cap u32@+48 |  |
 | +52 | uint32 | dynamic 容器计数 |  |
-| +56 | allocator 槽 | dynamic 容器 alloc 指针 (ctor 置 &off_143085170 哨兵; dtor 经其虚槽 deallocate) | 旧「未初始化空洞」勘误 |
+| +56 | allocator 槽 | dynamic 容器 alloc 指针 (ctor 置 &off_143085170 哨兵; dtor 经其虚槽 deallocate) | 定案 |
 | +64 | RH 反查表 #1 | **角色 token (char+24) → CCharacter\*** {data@+72, count@+80, mask@+84, extra@+88, mlf@+92=0.9}; 桶 24B {hash, dist, key u32, CCharacter*}; 哨兵 &unk_1430871C8; 注册 sub_1406BA240 (重复 → "Several characters have the name %s %s"); **插入原语唯一业务调用者 = 新局批产 → 读档后恒空** (token 反查仅新局会话内有效) | 不序列化 |
 | +96 | RH 反查表 #2 | **已用角色名登记表** {data@+104, count@+112, mask@+116, extra@+120, mlf@+124}; 桶 48B 含 std::string@+8 与 aux u32@+40, 墓碑 0xFF; 哨兵 &unk_143085240; 插入 sub_1406B2FA0 / 批量 sub_1406BAAC0; **载入期经 CCountryCharacters case 19622 持续维护, 读档后仍可用** | 不序列化 |
 | +128 | RH 反查表 #3 | **leader+3800 legacy_id → CCharacter\*** {data@+136, count@+144, mask@+148, extra@+152, mlf@+156}; 桶 24B; 哨兵 &unk_1430871F8; 注册同 #1 (重复 → "Several characters have the legacy unit leader id %i"); 读档后恒空 (同 #1) | 不序列化 |
@@ -310,7 +310,7 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 | portraits | 内嵌@char+120; 容器 {d@char+128, c@char+140} | 元素 56B: ptype u32@0 (0-5 = civilian/army/navy/air/operative/scientist), size u32@4 (0=small 1=large), 路径 MSVC@+16 | **path 空串也写 `""`** (锚件 1,464 叶实证; SL.Q 滤空会整族蒸发) |
 | variables | **内嵌@char+216** (CVariables) | 空判 = BB9830 同构 (`u32@+224==1 && u32@+248==0` → 空); RH 桶 0x30 {dist@+4, 名 MSVC@+8, value i64×1e-5@+40} | ⚠ 与 char_extras 同源; 内嵌对象非指针 — 误按 +216 指针解引用且无判空门 = 海量假叶; `^num` 非纯数字后缀键 → `.#N` 序号叶 (与 country.variables 同款) |
 
-#### 4.4.11 CCharacter 全字段表 (304B, vt 0X297EA60, writer 0X140FA6520)
+#### 4.4.11 CCharacter 全字段表 (304B, vtable 0X297EA60, writer 0X140FA6520)
 
 偏移绝对; 引擎落盘序 ≠ 偏移序。
 
@@ -322,14 +322,14 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 | +24 | uint32 | token 角色唯一名 (如 GER_albert_kesselring) | 恒写, 引号 token 名 (sub_1424BC260 + ADF40); tok 19015 |
 | +32 | 匿名结构 (NNB 形状) | template — 名 = token u32@(*ptr+8) | 门 ptr≠0; 引号串; tok 19482 |
 | +33..+71 | 匿名结构 (39B 形状) | = template 指针尾 (+33..+39) + 显示名缓存 SSO#2 本体 (+40..+71) (ctor 0X140F9EEA0 / writer 0X140FA6520 尺寸直证 **304B**) |  |
-| +40 | SSO 串 (32B) | **本地化显示名缓存 #2** (定案: 与 leader+64 同族, 实读显示名与 name token 对应; writer 不序列化) | dtor 完整析构实锤 (存在性定案) |
+| +40 | SSO 串 (32B) | **本地化显示名缓存 #2** (定案: 与 leader+64 同族, 实读显示名与 name token 对应; writer 不序列化) | dtor 完整析构直证 (存在性定案) |
 | +72 | SSO 串 | name | 门 qword@+88≠0 且文本模式; tok 27 |
 | +73..+103 | SSO 串本体 (31B) | = name SSO 本体 (+72..+103) |  |
 | +104 | tag_id (int32) | country 所属国 | 门 >0 引号 tag (sub_140BB59C0); tok 10394 |
 | +108 | tag_id (int32) | nationality 国籍 | 门 >0; tok 19480 (现档零叶) |
 | +112 | uint32 枚举 | gender — 0=undefined (tok 19479) / 1=male (tok 12775) / 2=female (tok 10773) | **恒写**; 枚举→串 sub_1413F04A0 (其它值 assert "Invalid enum value"); 块键 tok 19481 |
 | +120 | CCharacterPortraits 内嵌 | portraits — 容器/元素表见 §4.4.10 | **仅文本模式**整块 (0X1424C2E20); 块键 tok 19497 |
-| +121..+151 | 匿名结构 (31B 形状) | = portraits {vt@120 尾 + pdx 24B 容器@128 {d@128, cap@136, c@140, alloc@144}} — 元素 56B 同 §4.4.10 (0X14139DE90 ctor 直证) |  |
+| +121..+151 | 匿名结构 (31B 形状) | = portraits {vtable@120 尾 + pdx 24B 容器@128 {d@128, cap@136, c@140, alloc@144}} — 元素 56B 同 §4.4.10 (0X14139DE90 ctor 直证) |  |
 | +152 | std::map 头指针 | country_leaders — 节点 {_Left@0, _Parent@8, _Right@16, isnil@+25}, 载荷 CCountryLeader* @node+40; 空载荷写常量 357 (none) | 门 qword@+160≠0; 块键 tok 19973; 后继 sub_1401FF1F0 (中序) |
 | +153..+167 | 匿名结构 (15B 形状) | = country_leaders std::map {head@152 尾 + size u64@+160} — ctor malloc 0x30 头哨兵; writer 门 = qword@+160 |  |
 | +168 | CUnitLeader* | leader — CArmyLeader/CNavyLeader/COperativeLeader 三选一 (leader_type 判别) | 门 ptr≠0 且 u32@(leader+3708)∈{0,1,2}; 块键 = field_marshal (13538) / corps_commander (13511) / navy_leader (12471); 块体 = 对应派生 writer (§4.4.5 / §4.4.6) |
@@ -340,8 +340,8 @@ writer 不触盲区已清 (详见 §4.4.2 对应行): +3616..+3647 = trait_xp_fa
 | +204 | uint32 | operative 对.id | 同上 (消费点同 +200) |
 | +208 | CUnitMedalStore* | unit_medals | 门 = **store≠0 且 (u32@store+12≠0 或 u32@store+608≠0)** (定案); 块键 tok 15870; store 布局见表后注② |
 | +216 | CVariables 内嵌 | variables — RH 桶布局见 §4.4.10 | 门 = 非 (u32@+224==1 且 u32@+248==0) (sub_140BC8D50); 块键 tok 10826 |
-| +217..+271 | 匿名结构 (55B 形状) | = **CVariables 56B 全形** {vt@216, u32@224 = random 种子#1 (ctor=1; §4.13.2 random 对写形反序 = 存档 `<+228> <+224>`), u32@228 = random 种子#2 ctor 常量 1587985054 (float 位型, 语义未名), pad, 静态空串指针@240, 桶数据指针@248 (ctor=0), u8@256, u32@260=常量 1063675494, 回指指针@264} — 空判 (u32@224==1 && u32@248==0) 与 ctor 初值完全互证 (0X140BC5BD0) |  |
-| +272 | CFlagManager | flags — {vt@272, data@280, {cap u32@288, count u32@292}, 静态指针@296}; 元素 48B {key token@+8, date hours u32@+24, value i16@+40, days i16@+42}; 叶 = flags.<名>.value/.date/.days | 门 = i32 计数@+292 >0; 块键 tok 10697 |
+| +217..+271 | 匿名结构 (55B 形状) | = **CVariables 56B 全形** {vtable@216, u32@224 = random 种子#1 (ctor=1; §4.13.2 random 对写形反序 = 存档 `<+228> <+224>`), u32@228 = random 种子#2 ctor 常量 1587985054 (float 位型, 语义未名), pad, 静态空串指针@240, 桶数据指针@248 (ctor=0), u8@256, u32@260=常量 1063675494, 回指指针@264} — 空判 (u32@224==1 && u32@248==0) 与 ctor 初值完全互证 (0X140BC5BD0) |  |
+| +272 | CFlagManager | flags — {vtable@272, data@280, {cap u32@288, count u32@292}, 静态指针@296}; 元素 48B {key token@+8, date hours u32@+24, value i16@+40, days i16@+42}; 叶 = flags.<名>.value/.date/.days | 门 = i32 计数@+292 >0; 块键 tok 10697 |
 
 表后注② CUnitMedalStore 布局 (616B = 0x268 malloc 直证): history 容器 {data@+8, count@+20}, **元 = CUnitHistoryEntry\* (328B; 两处 reader 均 malloc(0x148) 直证; 勋章 def 只以名驻条目 +104, 不入队)**, 叶 `history = { history_queue = <medal ref> }` (tok 10293/12340); +32 勋章修正块 (并入将领 b1, §4.4.3); amount u32@+608, 叶 `amount = N` (tok 417)。
 
@@ -355,11 +355,11 @@ char 对象 304B (ctor 直证), 终于 flags 块尾 +303; +320..+328 为对象�
 
 #### 4.4.12 CSubUnitDefinitionAssociatedModifiers (navy_leader.sub_unit_modifiers)
 
-内嵌@leader+296 (vt 0x142955af0, 288B; 归并 writer 0X141016D10; IsEmpty 0X140643140 = 两容器 count 全 0 则整块不写)。描述侧归并 = **MergeAdjustersWith\<CSubUnitDefinitionAssociatedModifiers\> sub_140AE2780** (断言 subunitdefinition.h:455; 消费于 CTraitDefinition tooltip 构建器 sub_140AE8120 — 特质→兵种修正的 tooltip 合成链)。
+内嵌@leader+296 (vtable 0x142955af0, 288B; 归并 writer 0X141016D10; IsEmpty 0X140643140 = 两容器 count 全 0 则整块不写)。描述侧归并 = **MergeAdjustersWith\<CSubUnitDefinitionAssociatedModifiers\> sub_140AE2780** (断言 subunitdefinition.h:455; 消费于 CTraitDefinition tooltip 构建器 sub_140AE8120 — 特质→兵种修正的 tooltip 合成链)。
 
 | 偏移 (leader 绝对) | 类型 | 名称/语义 |
 |---|---|---|
-| +304 | 匿名结构 (56B) | 容器 A data — stride 56 "units" 数组: {vt(CSubUnitDefinitionId)@0, **key u32@8**, CUnitAdjuster vt@16, dword@24, qword@32/40/48} |
+| +304 | 匿名结构 (56B) | 容器 A data — stride 56 "units" 数组: {vtable(CSubUnitDefinitionId)@0, **key u32@8**, CUnitAdjuster vtable@16, dword@24, qword@32/40/48} |
 | +305..+315 | 匿名结构 (11B 形状) | = 容器 A {data@304, **cap@312**, count@316, alloc@320} 内部 (pdx 24B; ctor sub_141019140) |
 | +316 | uint32 | 容器 A count |
 | +317..+327 | 匿名结构 (11B 形状) | = 容器 A count 尾 + **alloc@320** |
@@ -405,13 +405,13 @@ key 解析:
 | +208 | uint8 | can_be_fired → yes/no (恒写正逻辑) | write-only 镜像; factory `*(tpl+208)` → advisor+184 直证 |
 | +216 | fixed×1e-5 | command_power (ctor=define qword_143338298) | write-only 镜像 |
 | +224 | 匿名结构 (40B) | traits 名串数组 {data, cap@232, count@236, alloc@240}, stride 40, 名 SSO@elem+0 | loader tok 12278 增长码 40B 步进直读 |
-| +248 | CModifier (192B) | **modifier** (vt@248 内嵌@264) | ctor 实锤; loader tok 10597 → ABB40(+248) |
-| +440 | CAndTrigger (88B) | **allowed** | ctor 装 CAndTrigger vt + loader tok 12263 |
+| +248 | CModifier (192B) | **modifier** (vtable@248 内嵌@264) | ctor 直证; loader tok 10597 → ABB40(+248) |
+| +440 | CAndTrigger (88B) | **allowed** | ctor 装 CAndTrigger vtable + loader tok 12263 |
 | +528 | CAndTrigger (88B) | **available** | tok 12264 |
 | +616 | CAndTrigger (88B) | **visible** | tok 11562 |
 | +704 | 匿名结构 (64B 形状) | research_bonus 多态元数组 {data@704, count@716} (64B 元工厂 sub_1413DE990; 本档 0 叶) | loader tok 12641 |
 | +728 | CMeanTimeToHappen (56B) | **ai_will_do** (ctor 基值 4 天/100000@+24) | tok 10819 |
-| +784 | CEffect (88B) | **on_add** | ctor 装 CEffect vt + loader tok 12356 |
+| +784 | CEffect (88B) | **on_add** | ctor 装 CEffect vtable + loader tok 12356 |
 | +872 | CEffect (88B) | **on_remove** | tok 14710 |
 | +960 | CAndTrigger (88B) | **do_effect** (loader 参 4) | tok 13321 |
 | +1048 | SSO | desc | **恒写, 空串也写 `""`** (tok 10644) |
@@ -422,7 +422,7 @@ script-only 键 (loader 有案不入存档; dynamic_template 存档叶仅上表�
 
 #### 4.4.14 CAdvisor 修正块 (+224 块门三选一与 +416 孪生块)
 
-CModifier 内嵌@**adv+224** (vt 0x1427185f0); 块门 writer 三选一:
+CModifier 内嵌@**adv+224** (vtable 0x1427185f0); 块门 writer 三选一:
 
 | 门分支 | 判别 | 读法 |
 |---|---|---|
@@ -430,11 +430,11 @@ CModifier 内嵌@**adv+224** (vt 0x1427185f0); 块门 writer 三选一:
 | ② | i32[adv+276] ≠ 0 (= CModifier+52 = 数组B count) | 块写 |
 | ③ | 数组A {data@adv+240, count@adv+252, stride 16} 任一条目 def 过类属检查 sub_14055F700 | **引擎精确谓词**: cat = u32[def+104]; 过 = cat==0 或 `(类属掩码 & cat)≠0`; 掩码 = u32@BASE+53571192 = 回调 fnptr@0x33300a0 恒返值 = `M.modifier_category_mask`; 访问器 `M.modifier_category(idx)` |
 
-孪生块注: advisor+416 = **运行时生效修正** (CModifier 192B, writer 盲区; ctor vt@+416 内嵌@+432); 存档序列化块 = +224, 运行时生效 = +416。
+孪生块注: advisor+416 = **运行时生效修正** (CModifier 192B, writer 盲区; ctor vtable@+416 内嵌@+432); 存档序列化块 = +224, 运行时生效 = +416。
 
 RebuildModifiers sub_1412A5030 清 +432 归并 traits (trait+152 修正块), slot8 尾 +432 += +224。
 
-#### 4.4.15 CAdvisor 全字段表 (792B=0x318, vt 0x1429A7D60, writer 0X1412A5390, loader sub_1412A3C70, factory sub_14129ED90)
+#### 4.4.15 CAdvisor 全字段表 (792B=0x318, vtable 0x1429A7D60, writer 0X1412A5390, loader sub_1412A3C70, factory sub_14129ED90)
 
 writer 0X1412A5390 (vtable slot2 直证)。⚠ can_be_fired (14487) 仅 ==0 时发射 (模板侧恒写, 段侧复刻 advisor 块须按条件发射)。
 
@@ -456,16 +456,16 @@ writer 0X1412A5390 (vtable slot2 直证)。⚠ can_be_fired (14487) 仅 ==0 时�
 | +184 | uint8 | can_be_fired (默认 1) | write-only 镜像; SetCanBeFired sub_1412A4CD0 |
 | +192 | fixed×1e-5 | command_power | write-only 镜像 |
 | +200 | 匿名结构 (元素待裁) 向量 | traits 指针数组 {data, cap@208, count@212, alloc@216} (8B 元) | loader tok 12278 去重插入 |
-| +224 | CModifier (192B) | **modifier#1 = 脚本/模板修正** (存档序列化块 = 此块) | ctor vt@224 内嵌@240; loader tok 10597 |
-| +416 | CModifier (192B) | **modifier#2 = 运行时生效修正** (writer 盲区) | ctor vt@416 内嵌@432; Rebuild sub_1412A5030 归并 traits(trait+152) |
+| +224 | CModifier (192B) | **modifier#1 = 脚本/模板修正** (存档序列化块 = 此块) | ctor vtable@224 内嵌@240; loader tok 10597 |
+| +416 | CModifier (192B) | **modifier#2 = 运行时生效修正** (writer 盲区) | ctor vtable@416 内嵌@432; Rebuild sub_1412A5030 归并 traits(trait+152) |
 | +608 | 匿名结构 (元素待裁) 向量 | **trait 子对象指针收集器** {data, cap@616, count@620, alloc@624} (8B 元 ← trait+344 的 544B 元数组) | 形态定案, 语义推定 |
-| +632 | uint32 | **slot 成本修正 def 索引** (db qword_14333D6E8) | assert "has not generated cost modifier." |
+| +632 | uint32 | **slot 成本修正 def 索引** (db qword_14333D6E8) | assert "has not generated cost modifier." (真断言直证; 写者 = sub_14129F190, §4.4.27) |
 | +640 | SSO 串 | portrait {size@656, cap@664; 仅动态角色序列化} | loader tok 12773 |
-| +672 | CCommandPowerAllocator (56B) | 指挥权分配器 {vt@672, 占用标@680, amount@688, name SSO@696} | sub_1412A4E70 写 amount=Σ(trait+424−trait+432); vt 与 CArmyLeader+4216 同型 |
+| +672 | CCommandPowerAllocator (56B) | 指挥权分配器 {vtable@672, 占用标@680, amount@688, name SSO@696} | sub_1412A4E70 写 amount=Σ(trait+424−trait+432); vtable 与 CArmyLeader+4216 同型 |
 | +728 | SSO 串 | desc loc 键 {size@744, cap@752} | loader tok 10644 |
 | +760 | SSO 串 | **desc 解析文本缓存** (writer 盲区) | +728 经 loc 校验解析入 |
 
-#### 4.4.16 CCountryLeader 全字段表 (336B=0x150, vt 0x142981350, writer 0X140FCC690, loader sub_140FCBDA0, factory sub_140FCAF30)
+#### 4.4.16 CCountryLeader 全字段表 (336B=0x150, vtable 0x142981350, writer 0X140FCC690, loader sub_140FCBDA0, factory sub_140FCAF30)
 
 country_leaders map 载荷 @node+40。
 
@@ -476,13 +476,13 @@ country_leaders map 载荷 @node+40。
 | +48 | SSO 串 | desc loc 键 {size@64, cap@72; tok 10644, 文本模式门} | 定案 |
 | +80 | token 向量 | traits 指针数组 {data, cap@88, count@92, alloc@96} (8B 元; tok 12278, token@elem+8; 元素 = CTrait def: 另有 **+24 名串/+56 int 等级**, CopyRoles 复制路按名串搬运重建) | 定案 |
 | +104 | CModifier (192B) | **运行时生效修正块** (writer 盲区; traits(trait+152) 归并; name SSO@+192 ← char 名) | Rebuild sub_140FCC200 |
-| +296 | CGameDate vt | expire 日期数据对象 (hours@+304, 哨兵 43808760) | writer 门 +304 ≠ dword_143086B50 |
+| +296 | CGameDate vtable | expire 日期数据对象 (hours@+304, 哨兵 43808760) | writer 门 +304 ≠ dword_143086B50 |
 | +304 | uint32 (hours) | expire (tok 12277) | factory ← 模板日期 |
-| +312 | CGameDate vt | expire 保存视图 (writer/loader 官方寻址, hours = 视图−8) | §3.7a 视图规则互证 |
+| +312 | CGameDate vtable | expire 保存视图 (writer/loader 官方寻址, hours = 视图−8) | §3.7a 视图规则互证 |
 | +320 | CIdeology* | ideology def obj (tok 11838 写 idx@obj+8) | loader 校验 *(obj+56); **GUI: ideology_ico 有领袖分支** (party+112/+124 门 → CCountryLeader+320 → +16 SSO 名拼 `GFX_ideology_<名>[_<TAG>]`; sub_140B48C70 复核闭合) |
 | +328 | int32 | id (tok 11, ≠-1 门) | **write-only 镜像** (loader sub_1424C08D0 读弃); **有符号域** — 存档实证负值 -2 (黄粱 historical.character[1804]), 读取须 i32 还原 (旧按 u32 直读印 4294967294) |
 
-#### 4.4.17 CScientist 全字段表 (312B=0x138, vt 0x14297EAB8, writer 0X14140CF50, loader sub_14140C3D0)
+#### 4.4.17 CScientist 全字段表 (312B=0x138, vtable 0x14297EAB8, writer 0X14140CF50, loader sub_14140C3D0)
 
 ctor 内联于 CCharacter loader tok 16389 分支。
 
@@ -492,7 +492,7 @@ ctor 内联于 CCharacter loader tok 16389 分支。
 | +16 | SSO 串 | desc loc 键 {size@32, cap@40; tok 10644} | 定案 |
 | +48 | token 向量 | traits 指针数组 {data, cap@56, count@60, alloc@64} (8B 元; tok 12278, token@elem+8; 不在库报错 scientist.cpp:86) | 定案 |
 | +72 | CModifier (192B) | **运行时生效修正块** (writer 盲区; traits(trait+72) 归并) | Rebuild sub_14140CA30 |
-| +264 | 内嵌块 | **skills** {vt@264, data@272, cap@280, count@284, alloc@288}; 32B 元 {spec tok@0, exp i64×1e-5@+16, level i32@+24} | tok 16431 ADEC0 块; AddRole sub_14140CDD0 |
+| +264 | 内嵌块 | **skills** {vtable@264, data@272, cap@280, count@284, alloc@288}; 32B 元 {spec tok@0, exp i64×1e-5@+16, level i32@+24} | tok 16431 ADEC0 块; AddRole sub_14140CDD0 |
 | +296 | 匿名结构 (NNB 形状)* | **模板派生指针** (slot8: 按 char+24 token 查 character template db, *(tpl+16)≠0 则 +296 = *(tpl+568)) | 形态定案, 语义推定 (推定默认 GFX/数据) |
 | +304 | uint8 | is_assigned (tok 14427, 仅真才写) | **write-only 镜像** |
 | +308 | uint32 | is_scientist_injured (tok 10124, >0 门) | write-only 镜像 |
@@ -518,7 +518,7 @@ ctor 内联于 CCharacter loader tok 16389 分支。
 
 #### 4.4.20 角色模板族 (CCharacterTemplate / CScientistTemplate / CUnitLeaderTemplate / CUnitLeaderData)
 
-**CCharacterTemplate** (common/characters/*.txt 角色模板, ~584B; vt 0x1429BC9A0; TNullObject vt 0x1427E6258; [2]=CFG 空桩 不入档, [3]=0x1413F1E90 非标准 Load wrapper 变体, [4]=0x1413F1EF0 键值 reader; ctor 0x1413F06A0):
+**CCharacterTemplate** (common/characters/*.txt 角色模板, ~584B; vtable 0x1429BC9A0; TNullObject vtable 0x1427E6258; [2]=CFG 空桩 不入档, [3]=0x1413F1E90 非标准 Load wrapper 变体, [4]=0x1413F1EF0 键值 reader; ctor 0x1413F06A0):
 
 | 偏移 | 类型 | 键/语义 |
 |---|---|---|
@@ -543,21 +543,21 @@ ctor 内联于 CCharacter loader tok 16389 分支。
 | +568 | CScientistTemplate* 184B | scientist 槽 (16389) |
 | +577 | uint8 | **历史/动态旗** (批产分野判据: 1 → dynamic 容器 mgr+40 / 0 → historical mgr+16; RegisterCharacter 国家登记同门 — sub_1413F1E80 = `*(u8*)(tpl+577)` 直读, character_manager 批双证补行) |
 
-**CScientistTemplate** (科学家子模板, 184B; vt 0x142765DA0; writer 桩; reader 0x14140D610): +8 bool 有效旗 / +16 traits 容器 (12278) / +40 desc 串 (10644) / +72 skills 子对象 (16431, CPersistent: +80 map) / +96 CTrigger visible 88B (11562)。
+**CScientistTemplate** (科学家子模板, 184B; vtable 0x142765DA0; writer 桩; reader 0x14140D610): +8 bool 有效旗 / +16 traits 容器 (12278) / +40 desc 串 (10644) / +72 skills 子对象 (16431, CPersistent: +80 map) / +96 CTrigger visible 88B (11562)。
 
-**CUnitLeaderTemplate** (将领角色模板, 192B; vt 0x1429C0138; writer 桩; reader 0x141427DC0; ctor 0x141427B90, 断言 ≤2): +8 traits 容器 (12278) / **+32 u32 EUnitLeaderType (0=CorpsCommander/1=FieldMarshal/2=Navy)** / **+36 skill (10453) / +40 attack_skill (14537) / +44 defense_skill (14538) / +48 planning_skill (14539) / +52 logistics_skill (14540) / +56 maneuvering_skill (15150) / +60 coordination_skill (15151)** / +64 legacy_id (19498) / +72 CTrigger visible 88B (11562) / +160 desc 串 (10644)。
+**CUnitLeaderTemplate** (将领角色模板, 192B; vtable 0x1429C0138; writer 桩; reader 0x141427DC0; ctor 0x141427B90, 断言 ≤2): +8 traits 容器 (12278) / **+32 u32 EUnitLeaderType (0=CorpsCommander/1=FieldMarshal/2=Navy)** / **+36 skill (10453) / +40 attack_skill (14537) / +44 defense_skill (14538) / +48 planning_skill (14539) / +52 logistics_skill (14540) / +56 maneuvering_skill (15150) / +60 coordination_skill (15151)** / +64 legacy_id (19498) / +72 CTrigger visible 88B (11562) / +160 desc 串 (10644)。
 
-**CUnitLeaderData** (内嵌领袖定义块, ~376B; vt 0x14276A620; writer 桩; reader 0x1403B6C70; ctor 0x14032D180; 宿主 = legacy create_*_leader 效果实例 5 工厂 0x14033B910 系, 第二实参 0/1/2 转发): +8 CUnitLeaderTemplate 内嵌 192B / +200 picture (464) / +232 portrait_path (13051) / +264 gfx (12472) / +296 name (27) / +328 desc (10644) / +360 token (19015) / +364 bool female (10773) / +368 i32 id (11)。
+**CUnitLeaderData** (内嵌领袖定义块, ~376B; vtable 0x14276A620; writer 桩; reader 0x1403B6C70; ctor 0x14032D180; 宿主 = legacy create_*_leader 效果实例 5 工厂 0x14033B910 系, 第二实参 0/1/2 转发): +8 CUnitLeaderTemplate 内嵌 192B / +200 picture (464) / +232 portrait_path (13051) / +264 gfx (12472) / +296 name (27) / +328 desc (10644) / +360 token (19015) / +364 bool female (10773) / +368 i32 id (11)。
 
 > 与运行时 CUnitLeader (§4.4.2, 巨型存档对象) 是不同类: 本族 = 效果定义侧模板数据; 运行时领袖由 CArmyLeader/CNavyLeader/COperativeLeader 承载 (leader_type u32@char+3708 判别)。
 
 #### 4.4.21 特质与科学家等级 (CScientistTrait / CCountryLeaderTrait / CScientistLevel)
 
-**CScientistTrait** (common/scientist_traits 特质条目, ~448B; vt 0x14271B480; writer 桩; reader 0x140AA19F0): +8 id / +32 库键名串 (推定) / +64 i32 (-1) / **+72 CModifier 内嵌 192B (10597)** / +264 name (27) / +296 icon (181) / +328 specialization 集合 (10012) / +352 CTrigger available 88B (12264)。
+**CScientistTrait** (common/scientist_traits 特质条目, ~448B; vtable 0x14271B480; writer 桩; reader 0x140AA19F0): +8 id / +32 库键名串 (推定) / +64 i32 (-1) / **+72 CModifier 内嵌 192B (10597)** / +264 name (27) / +296 icon (181) / +328 specialization 集合 (10012) / +352 CTrigger available 88B (12264)。
 
-**CCountryLeaderTrait** (顾问/高指挥特质定义, ~472B; vt 0x1427EA648; writer 桩; reader 0x14071FC50 巨 reader): +8 id / +24 特质名串 / +64 CTrigger available / +168 未名容器 / **+344 targeted_modifier 向量 (14623, 544B 元)** / **+368 equipment_bonus 指针向量 (12647, 元素 CTraitEquipmentBonus 0xA0)** / **+392 ai_strategy 指针向量 (12544, 元素 CAIStrategyReader 0x20)** / +420 sprite token (61) / +424 command_cap_cost (16408) / +432 command_cap_increase (16375) / +440 command_power (14467) / +448 bool random (10171) / +456 ai_will_do 子对象 (10819)。GUI 消费 = §4.31 CCountryLeaderTraitItem 数据源。
+**CCountryLeaderTrait** (顾问/高指挥特质定义, ~472B; vtable 0x1427EA648; writer 桩; reader 0x14071FC50 巨 reader): +8 id / +24 特质名串 / +64 CTrigger available / +168 未名容器 / **+344 targeted_modifier 向量 (14623, 544B 元)** / **+368 equipment_bonus 指针向量 (12647, 元素 CTraitEquipmentBonus 0xA0)** / **+392 ai_strategy 指针向量 (12544, 元素 CAIStrategyReader 0x20)** / +420 sprite token (61) / +424 command_cap_cost (16408) / +432 command_cap_increase (16375) / +440 command_power (14467) / +448 bool random (10171) / +456 ai_will_do 子对象 (10819)。GUI 消费 = §4.31 CCountryLeaderTraitItem 数据源。
 
-**CScientistLevel** (科学家按专长技能等级容器, 32B; vt 0x1429BF088; **唯一实现写槽的类**: writer 0x1414606F0 / reader 0x1414603E0, 入档): 容器 {d@8, cap@16, count@20, alloc@24}, 元素 32B = {spec id u32@0 (= specialization idb def+8), 内嵌 SSkillLevel 24B {vt@+8, i64×1e-5@+16 (键 11930), u32@+24 (键 10348)} (SSkillLevel writer 0x141460750)}; ctor 按 specialization 库 (0x332F068) 全量预填; reader 按 id find-or-append, id 不在库抛 "specialization %s in save file does not match any in DB." (scientist_skill_levels.cpp:120)。
+**CScientistLevel** (科学家按专长技能等级容器, 32B; vtable 0x1429BF088; **唯一实现写槽的类**: writer 0x1414606F0 / reader 0x1414603E0, 入档): 容器 {d@8, cap@16, count@20, alloc@24}, 元素 32B = {spec id u32@0 (= specialization idb def+8), 内嵌 SSkillLevel 24B {vtable@+8, i64×1e-5@+16 (键 11930), u32@+24 (键 10348)} (SSkillLevel writer 0x141460750)}; ctor 按 specialization 库 (0x332F068) 全量预填; reader 按 id find-or-append, id 不在库抛 "specialization %s in save file does not match any in DB." (scientist_skill_levels.cpp:120)。
 
 > **本域 GUI 类布局**: 见 4.31.21 / 4.31.36 / 4.31.52 / 4.31.57。
 
@@ -568,26 +568,26 @@ COperativeLeader 覆写 0x140C12DD0)。遍历宿主 = **CCountryCharacters::Dail
 sub_1410EB430** (army 数组 ch+112 / navy 数组 ch+136, country_characters.cpp:220/226
 断言), 挂 CCountry::DailyUpdate 串行段 (cc+4032 机构日更 → cc+4088 → cc+4080
 本步)。现役特工不走此处 — 走 CIntelligenceAgency::DailyUpdate sub_140FDBD60
-(agency+216 数组逐个 vt[23])。
+(agency+216 数组逐个 vtable[23])。
 
 CUnitLeader::DailyUpdate 五段 (定案): ① traits_to_remove (+3552) 倒计时收割
 (--days <0 → RemoveTrait + swap-remove); ② 建 leader scope; ③ 门 = leader_type
 ≤1 ∧ HQ 可解析 ∧ !HQ+57 → 派发 **on_army_leader_daily** on_action; ④ 逐特质
-**trait+1808 daily_effect** (门 trait+1828; CEffect vt[12] ExecuteChecked
+**trait+1808 daily_effect** (门 trait+1828; CEffect vtable[12] ExecuteChecked
 0x14053D9E0, effect.cpp:530); ⑤ 动态修正 tick 有变化 ∨ 需重评估 ∨ 脏旗 +3768
-→ (reason∉{4,5} → vt[25] EndCooldown) + RebuildModifiers sub_140C21FC0 + vt[28]
+→ (reason∉{4,5} → vtable[25] EndCooldown) + RebuildModifiers sub_140C21FC0 + vtable[28]
 RecalcSkillBonuses + 清脏。COperativeLeader 版前插冷却到期检查、后挂 mission
 日更 sub_140FC2830 + 行动悬空修复 (assert AR-21634, unitleader.cpp:6372)。
 
-冷却全链 (定案): **SetCooldown = vt[24] sub_140C25150** (days>0 → start(+3728)
+冷却全链 (定案): **SetCooldown = vtable[24] sub_140C25150** (days>0 → start(+3728)
 =now / enable(+3752) = AddDays / reason(+3716); 时长 ×(1+修正 385
 MODIFIER_REASSIGNMENT_DURATION_FACTOR)); **army/navy 自动到期不在日更体** —
 country.daily_parallel 波 sub_1406E8210 (§4.2.7 序10 事件检查波) 函数尾调
 **CCountryCharacters 冷却扫描 sub_1410EB2F0** → 逐 leader sub_140C280C0
-(reason≠0 ∧ enable_date ≤ gs+1128 → vt[25]); EndCooldown 基类 sub_140C12470 /
+(reason≠0 ∧ enable_date ≤ gs+1128 → vtable[25]); EndCooldown 基类 sub_140C12470 /
 operative 版 sub_140C12340 (状态机: state 0 → 清 captured(+4016)/capture_date
 (+4032) + "released" 日志; 3 → 取消 mission; 4 → "operation"; 尾接基类复位);
-剩余天数 = vt[26] (基类 0x140C19680; army 0x140C19490 另加 HQ 部署行军天数);
+剩余天数 = vtable[26] (基类 0x140C19680; army 0x140C19490 另加 HQ 部署行军天数);
 冷却期 RebuildModifiers 走 penalty=0 分支 + RecalcSkillBonuses 跳特质聚合。
 
 特质 XP 引擎 = **GainXpForTraits sub_140C14BD0** (zone "Gain XP for Traits"):
@@ -613,9 +613,9 @@ on_remove +1720 (门 +1740, token 14710) / daily_effect +1808 (门 +1828, token
 14518: 0=personality/1=status/2=basic/3=assignable/4=basic_terrain/
 5=assignable_terrain/6=exile; {2,3}=可学, {4,5}=terrain 加成 594) / XP 增益
 modifier id +2672 / trait_xp_factor 引用清单 +2680 (16B 元, Add/Remove 双向
-扣账)。AddTrait: 有序插入 → 战时 terrain 类国级效果 → vt[32] 通知 → on_add →
+扣账)。AddTrait: 有序插入 → 战时 terrain 类国级效果 → vtable[32] 通知 → on_add →
 terrain 类 +3788 已见数递减 → Rebuild; 第 3 参 ≥0 → 入 traits_to_remove
-(timed trait)。RemoveTrait sub_140C23100: 压缩 + vt[33] + on_remove + 扣账。
+(timed trait)。RemoveTrait sub_140C23100: 压缩 + vtable[33] + on_remove + 扣账。
 
 晋升 (定案): 军衔全自动 — AddExperience sub_140C14950 (leader+3688 += xp;
 **严格 >** 100000×下级 def+444 → LevelUp sub_140C1D950 可连升, 升后
@@ -645,12 +645,12 @@ on_capture (captured+4016 / capture_date+4032) + 56B CCapturedOperativeReference
 入捕获方 agency+264 + **on_operative_captured**; 获释 = EndCooldown state-0
 分支 (enable_date 到点自动获释回 on_mission)。
 
-CCountryCharacters (ch = cc+4080 解引用; vt 0x14298AE18) — 权威骨架已统一至
+CCountryCharacters (ch = cc+4080 解引用; vtable 0x14298AE18) — 权威骨架已统一至
 s4_03 §4.3.1 chars 表 (H 批 writer/reader 全键反编译归一; 序列化仅 5 键
 19622/19968/19485/15702/17327)。本册侧要点复核: +112 = pArmyLeader /
-+136 = pNavyLeader (cpp:220/226 断言铁证, 原「army/navy 领袖数组」名保留);
++136 = pNavyLeader (cpp:220/226 断言直证, 原「army/navy 领袖数组」名保留);
 +200 = retired 特工池 (探针定案 ✓); +224 = recruit_scientist 招募池 =
-**CScientistRecruitmentPool** (88B 推定; vt 0x14298AD78; writer 0x1414ED250 /
+**CScientistRecruitmentPool** (88B 推定; vtable 0x14298AD78; writer 0x1414ED250 /
 reader 0x1414ED0E0; 键 16389 scientist = 科学家指针向量 {data@M+8, cap@+16,
 count@+20}; 元素名串发射, reader 按名解析取 `*(obj+192)` 入池; 回指 CCountry*@+32;
 第二向量@+40 与惰性静态指针@+80 不序列化; CCountryCharacters ctor 内联装配,
@@ -662,7 +662,7 @@ CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创
 (56B 元) (定案)。
 
 
-#### 4.4.23 CUnitLeaderTrait 全字段表 (2704B=0xA90, vt 0x1429457A0; writer = 槽[2] CFG 空桩 → def 不序列化; reader sub_140AEBC20 47 键; ctor sub_140AE3C60 带名 / sub_140AE3980 无名; finalize sub_140AE5620 = unitleadertraits.cpp 父特质校验三错误串; 单件已存在时 sub_140AE6E10 原地重载)
+#### 4.4.23 CUnitLeaderTrait 全字段表 (2704B=0xA90, vtable 0x1429457A0; writer = 槽[2] CFG 空桩 → def 不序列化; reader sub_140AEBC20 47 键; ctor sub_140AE3C60 带名 / sub_140AE3980 无名; finalize sub_140AE5620 = unitleadertraits.cpp 父特质校验三错误串; 单件已存在时 sub_140AE6E10 原地重载)
 
 | 偏移 | 类型 | 语义 (脚本键) | 备注 | 置信 |
 |---|---|---|---|---|
@@ -719,7 +719,7 @@ CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创
 | +2676 | uint8 | show_in_combat (ctor 默认 1) | 14788 | 定案 |
 | +2680 | 匿名结构 (NNB 形状) 向量 24B | trait_xp_factor 引用清单 (元素[0] 须过该 trait +56 有效门; Add/Remove 双向扣账) | 14791 | 定案 |
 
-> 装载: traits 库 (per-file malloc(0xA90) + 带名 ctor → vt[3] 直调 Load → finalize);
+> 装载: traits 库 (per-file malloc(0xA90) + 带名 ctor → vtable[3] 直调 Load → finalize);
 > 键 12263/12355/19413/10317/12374/19328 六触发器块 XP 门 = 块内子计数
 > (+236/+324); +56 有效门四证 (ctor 1 / TNullObject 0 / resolve :1317 / trait_xp_factor
 > 元素门)。原「+152 修正块」碎片属 CAdvisor 域 (s4_04:435), 本类 +152 为 allowed 块
@@ -730,7 +730,7 @@ CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创
 
 | 偏移 | 类型 | 语义 | 备注 |
 |---|---|---|---|
-| +0 | vt | CUnitLeaderSkill | |
+| +0 | vtable | CUnitLeaderSkill | |
 | +8 | uint8 | 非 null 旗 | 定案 |
 | +16 | CModifier 内嵌 | skill 修正块 (b7 消费, §4.4.3) | 定案 |
 | +208 | CModifier 内嵌 | 第二 CModifier | 定案 |
@@ -740,21 +740,21 @@ CIntelligenceAgency 增补: +120 属主 CCountry* / +192 已建成门 / +193 创
 | +448 | uint32 | 分桶码 (梯内 4 桶键) | 定案 |
 
 **等级上限 = logistics 梯 count−1** (sub_140AE9520 读 db+724+24×t; 活证 t0/1/2 = 11、t3 = 0)。
-晋升链 (def+444)、技能上限 (sub_140AE9520)、skill_advantage 触发器 (+440) 三链落位。**技能上限六梯全景 (定案)**: db+364/484/604/724/**844/964** 六梯 + 24×leader_type (attack/defense/planning/logistics/maneuvering/coordination; getter 配对 sub_140AE94F0/9510/9540/9520/9530/9500 — 勘误: 原「四梯」只覆盖 army, 844/964 = navy 专用 maneuvering/coordination); 升级掷点 vt[31] sub_140C1EC10 army / sub_140C1F330 navy: 权重 = max(1000,(基值+Σtrait因子)×等级), 基值 = define COMMANDER_LEVEL_UP_STAT_WEIGHTS (army, qword_143339650) / NAVY_LEADER_LEVEL_UP_STAT_WEIGHTS (qword_143339668), 每级掷点数 = COMMANDER_LEVEL_UP_STAT_COUNT (dword_143331430), 命中 +1 并回填减益。**navy 掷点双错位怪癖 (定案, 引擎原样)**: ① maneuvering/coordination 桶到顶门误用 planning(+604)/logistics(+724) 梯 (setter 钳位在 844/964 梯, 多掷命中被钳吞不越界); ② 两桶权重错读特质因子 +2640/+2648 (logistics/planning), 真因子 +2656/+2664 被无视 — 海航特质因子对海军升级权重无效 (roll 体 + trait reader 偏移映射双证)。
+晋升链 (def+444)、技能上限 (sub_140AE9520)、skill_advantage 触发器 (+440) 三链落位。**技能上限六梯全景 (定案)**: db+364/484/604/724/**844/964** 六梯 + 24×leader_type (attack/defense/planning/logistics/maneuvering/coordination; getter 配对 sub_140AE94F0/9510/9540/9520/9530/9500; 844/964 = navy 专用 maneuvering/coordination); 升级掷点 vtable[31] sub_140C1EC10 army / sub_140C1F330 navy: 权重 = max(1000,(基值+Σtrait因子)×等级), 基值 = define COMMANDER_LEVEL_UP_STAT_WEIGHTS (army, qword_143339650) / NAVY_LEADER_LEVEL_UP_STAT_WEIGHTS (qword_143339668), 每级掷点数 = COMMANDER_LEVEL_UP_STAT_COUNT (dword_143331430), 命中 +1 并回填减益。**navy 掷点双错位怪癖 (定案, 引擎原样)**: ① maneuvering/coordination 桶到顶门误用 planning(+604)/logistics(+724) 梯 (setter 钳位在 844/964 梯, 多掷命中被钳吞不越界); ② 两桶权重错读特质因子 +2640/+2648 (logistics/planning), 真因子 +2656/+2664 被无视 — 海航特质因子对海军升级权重无效 (roll 体 + trait reader 偏移映射双证)。
 
-领袖工厂与状态机增补 (定案): 领袖对象工厂 sub_140C14160 = CCharacter+560 模板 → 按模板+32 类型造 CArmyLeader (**4280B = 0x10B8**) / CNavyLeader (**4040B = 0xFC8**); operative (3/4) 断言 "Not implemented" 不走本工厂 (走机构路径, 与四胞胎 AddUnitLeader 分工); tag 初值 0, 归属国由 vt[21] SetOwnerCountry 后置。CNavyLeader ctor 尾手工段: +3936/+4008 = null CID 哨兵 qword_14333D528、+3944..+4000 四技能 quad 清零、**+4032 penalty ctor 初值 = fixed 1.0** (sub_1424EF6F0 构造)。**COperativeLeader 正典状态机** (SetState sub_140C27350): EOperativeState 0..5 (0=captured / 1=cooldown / 2=disbanded / 3=on_mission / 4=operation / 5=killed) + 合法迁移矩阵; SetCooldown (vt[24] 覆写 sub_140C24DB0) 状态 3/4→1 + 任务 optional 复位/预载 (<OPERATIVE_MAX_DAYS_TO_AUTO_RESUME_MISSION 自动恢复); Release sub_140C26E20 清捕获对 + 回 on_mission(3) + 分配本国反谍; 随机特质授予引擎 sub_140C10600 (define chances 容器逐下标掷 + 16B {weight,trait*} 加权抽取 + swap-remove + scope 复评收缩)。
+领袖工厂与状态机增补 (定案): 领袖对象工厂 sub_140C14160 = CCharacter+560 模板 → 按模板+32 类型造 CArmyLeader (**4280B = 0x10B8**) / CNavyLeader (**4040B = 0xFC8**); operative (3/4) 断言 "Not implemented" 不走本工厂 (走机构路径, 与四胞胎 AddUnitLeader 分工); tag 初值 0, 归属国由 vtable[21] SetOwnerCountry 后置。CNavyLeader ctor 尾手工段: +3936/+4008 = null CID 哨兵 qword_14333D528、+3944..+4000 四技能 quad 清零、**+4032 penalty ctor 初值 = fixed 1.0** (sub_1424EF6F0 构造)。**COperativeLeader 正典状态机** (SetState sub_140C27350): EOperativeState 0..5 (0=captured / 1=cooldown / 2=disbanded / 3=on_mission / 4=operation / 5=killed) + 合法迁移矩阵; SetCooldown (vtable[24] 覆写 sub_140C24DB0) 状态 3/4→1 + 任务 optional 复位/预载 (<OPERATIVE_MAX_DAYS_TO_AUTO_RESUME_MISSION 自动恢复); Release sub_140C26E20 清捕获对 + 回 on_mission(3) + 分配本国反谍; 随机特质授予引擎 sub_140C10600 (define chances 容器逐下标掷 + 16B {weight,trait*} 加权抽取 + swap-remove + scope 复评收缩)。
 
 unitleader.cpp 簇对账增补 (38 函数闭环; 断言锚行 156..7244 全员体内, 单编译单元确认):
 
-**冷却机制族全链** (新): 基类 SetCooldown vt[24] sub_140C25150 (days>0 → start=now/enable
+**冷却机制族全链** (新): 基类 SetCooldown vtable[24] sub_140C25150 (days>0 → start=now/enable
 =AddDays/reason; 否则哨兵 43808760); **冷却设值包装 sub_140C1FD60** = `(leader, reason,
 days, scale_flag)` — scaled = scale_flag ? sub_140C0FDB0 : **2×days** (scale=0 分支语义待裁),
-先 vt[24] 再「只延长」补写 (now+24×scaled > 现 enable 才重写); **时长缩放 sub_140C0FDB0 =
+先 vtable[24] 再「只延长」补写 (now+24×scaled > 现 enable 才重写); **时长缩放 sub_140C0FDB0 =
 days + int(days×mod385)** 读自 leader b0 块 (+664 锚) — 「×(1+修正 385)」读数块落定;
 reason 1 (组变更) 天数 = define UNIT_LEADER_MODIFIER_COOLDOWN_ON_GROUP_CHANGE
 (dword_1433371D4)。**deploy/withdraw 冷却三叶族** (新): 发起 sub_140C1EA90 (部署,
 reason 4) / sub_140C20060 (撤收, reason 5) — 天数源 = sub_1415B0030/1415B01D0
-(u32@(HQ 派生+400)); 延长 sub_140C22B60 (锚既有 start, 不走 vt[24]); 查询 sub_140C11990。
+(u32@(HQ 派生+400)); 延长 sub_140C22B60 (锚既有 start, 不走 vtable[24]); 查询 sub_140C11990。
 operative SetCooldown 覆写 (互证 + define 落址 OPERATIVE_MAX_DAYS_TO_AUTO_RESUME_MISSION
 = dword_143332E88; 落账核 = sub_140C25340)。
 
@@ -780,7 +780,7 @@ sub_140CCE5B0 玩家侧挂钩; owner character 登记与通知入队。
 +4216 CCommandPowerAllocator → 国级重分配, 失败 :4736 assert。
 
 **实名补录**: CArmyLeader 参数化 ctor = sub_140C0B7D0; CNavyLeader 手工尾段 ctor =
-sub_140C0C200; RecalcSkillBonuses 基实现 = sub_140C21280 (工厂 vt[28] 指针直比后非虚调用);
+sub_140C0C200; RecalcSkillBonuses 基实现 = sub_140C21280 (工厂 vtable[28] 指针直比后非虚调用);
 技能 DB getter = sub_14022FD90 (qword_14332F0D0 访问器); 梯内 def 查找六件 =
 sub_140AE7D60/AE7FB0/AE96A0/AE8090/AE80B0/AE7D80。**小函数批量**: 八 setter 同构模板
 (deficit@X = min(v−1,0) / skill@Y = max(v,1) / 梯钳位 / def 查写伴随槽 / rebuild 三连);
@@ -838,13 +838,13 @@ AssertPortraitExists 0x140FA01E0 (79, :618 throw, 查 +120 肖像) / 角色复�
 
 **CopyRoles 四阶段** (定案): ① 顾问 (+176) ② 国领袖 (+152) ③ 单位领袖 (+168 ∪ CID+200/204
 operative 对在场判据) ④ 科学家 (+192) 角色整体复制; 冲突各抛错 (:1181/:1203/:1217/:1230),
-错误槽 a3+16 门。**CID 注册双路**: 有效 id 走 CID {type=55} 注册表, 无效走 vt[9] 0x14221E990
+错误槽 a3+16 门。**CID 注册双路**: 有效 id 走 CID {type=55} 注册表, 无效走 vtable[9] 0x14221E990
 自增 CID (type 分量 = word+4712, 0x1268 恰为注册表分界, 待闭合)。**三薄包装**
-0x140FA3050/140FA2C00/140FA3060 = leader_type 0/1/2 重载 (非虚表槽)。肖像校验趟
+0x140FA3050/140FA2C00/140FA3060 = leader_type 0/1/2 重载 (非vtable槽)。肖像校验趟
 0x140FA0320 = "advisor"/"country_leader"/"unit_leader" 三角色肖像校验。CCharacterManager
 复制双路 = mgr+8 ++ + 恒入 +16 historical (§4.4.9 分野第四族)。
 
-未决: 140FC9F80 第三参两调用形态 (单串 vs 名串向量, 待汇编) / vt[9] type 分量闭合 /
+未决: 140FC9F80 第三参两调用形态 (单串 vs 名串向量, 待汇编) / vtable[9] type 分量闭合 /
 CopyCore a4=1 调用面。
 
 #### 4.4.26 country_characters.cpp 国家角色域增补 (状态同步/顾问聘任-解任闭环; 17 函闭环)
@@ -863,16 +863,80 @@ UpdateCharacterScientistStatus 0x1410EFCD0 (104) / DailyUpdate 0x1410EB430 (54) 
 
 **状态同步三件套** (定案): 顾问 = ch+64 已创建 CAdvisor 登记表 ↔ char+176 advisors map 双向
 对账 (陈旧项解任 + 清 fac+2104 阵营情报槽 + 出列); 单位领袖 = army (leader_type 0,1)/navy (2)
-名册互斥同步, 无角色双侧摘除 (vt[29] 获释门); 科学家 = char+192 判空同步 ch+160。ch+16 名册
+名册互斥同步, 无角色双侧摘除 (vtable[29] 获释门); 科学家 = char+192 判空同步 ch+160。ch+16 名册
 元素 16B = {CCharacter*, flags} (四写点 bit0/8/16/24)。
 
-**聘任-解任对称闭环** (定案): AppointAdvisor (on_add vt[12]) ↔ UnassignAdvisor (槽位树空余
-+1 — **ch+184 节点+84 空余数消费点首证** / 指挥权归还 / on_remove 载荷 vt[12] / ch+88 出列);
+**聘任-解任对称闭环** (定案): AppointAdvisor (on_add vtable[12]) ↔ UnassignAdvisor (槽位树空余
++1 — **ch+184 节点+84 空余数消费点首证** / 指挥权归还 / on_remove 载荷 vtable[12] / ch+88 出列);
 **ch+64/ch+88 排序主键 = CAdvisor+48 idea_token 缓存 hash(+80)** (升定案; adv+632 修正索引
 消费点首证)。**IA 渲染定则**: `_except_get_jumpbuf_sp` = *(x+16)、`file_name` = *(x+8), 本簇
 全为 owner 回指 (非异常机制)。⚠「UpdateCharacter…Status」断言串源码复用 3 次 (:271/:342/:424),
 串名 ≠ 函数身份。
 
 未决: UnassignAdvisor 退费正负方向 (待汇编) / sub_1413F0E00 实参截断 / EAD60 的 a2 定义件
-类身份 / charman(+0) 登记表与 ch+96 表关系 / vt[29] 谓词语义 / leader+4168/+4008 双 ref
+类身份 / charman(+0) 登记表与 ch+96 表关系 / vtable[29] 谓词语义 / leader+4168/+4008 双 ref
 目标类型。
+
+#### 4.4.27 晋升链与 promote-from-ranks 域 (unit_util.cpp 3 函 + advisor.cpp 写者; 闭环)
+
+簇清册 (体内 cpp 锚 5/5):
+
+| 函数 | 行数 | 锚 | 定性 | 状态 |
+|---|---|---|---|---|
+| sub_141451AB0 | 147 | Random :202/:204/:214 | **promote-from-ranks on_action 发射器** (随机老兵 trait + 双 on_action) | 新 |
+| sub_141451020 | 204 | 断言 :271 | 陆军军官晋升实现 (army, type ≤ 1) | 已收 (§4.32 实现行), 本批大幅精化 |
+| sub_141451580 | 197 | 断言 :338 | 海军军官 (舰长) 晋升实现 (ship, type == 2) | 已收 (§4.4 舰长晋升), 本批大幅精化 |
+| sub_1412A3C70 | 578 | 断言 advisor.cpp:155 + gameitemdatabase.h:142 | CAdvisor 成员分派 (loader) | 已收 §4.4.15, 本批全表互证 (13 token case 逐一吻合) |
+| sub_14129F190 | 172 | 断言 advisor.cpp:255 | **CAdvisor+632 写者** (slot 成本修正 def 索引解析器) | 新 |
+
+**CAdvisor+632 写者** (sub_14129F190): hash = sub_1424BB460(a2 串视图) → +632 = sub_141484090(qword_14333D6E8, hash) 查 def 索引; miss → 断言 "<名> has not generated cost modifier." :255 (真断言直证) + 慢路 sub_141483B40(管理器, hash, &s1, &s2, &s3) get-or-generate (3 个栈上空 SSO 出参, 返回后析构弃置)。闭环 §4.10 四制造商类别特判注册的「同源」注。
+
+**loader 互证补细节** (sub_1412A3C70): 19482 双错误串 = "Character template <名> does not exist anymore" / "…does not have an advisor definition anymore" (sub_1424C1CA0 解析期抛出); 查库 = 名串 FNV → qword_14332EE58 (TGameItemDatabase 实例) sub_1406BD460; 模板有效性门 = tpl+16 字节, advisor 定义门 = sub_1413F0DA0(tpl)。12278 traits 循环: 元素名空 → 断言 :155 (一次性闩 byte_143389FCD); 列表块类型 ≠ 3 → "Expected start of list" 抛出; 元素名 '@' 前缀 → sub_1424C04A0 变量间接解析。19596 dynamic_template: malloc 1080 + ctor sub_1413DECC0 + sub_1401C49A0 注入 + vtable[0](obj, 1) 持有计数 + 子对象 vtable+24 解析。+16 dword 亦 ctor 清 0。
+
+**promote-from-ranks 发射器** (sub_141451AB0; 唯二调用方 = 两条晋升链 :164/:158 = 公共收尾): Random 播种 → 双 scope (国 sub_14053B8E0 / 宿主 sub_14053B6B0), eventscope.h:193 无限循环守卫断言 → sub_14144FED0 取候选表 + sub_141450910 资格判定 → 真: Random 从候选表随机取 1 → sub_140C0EC40(国, leader, −1) (= AddTrait) + fire **"on_unit_leader_promote_from_ranks_veteran"** (scope = 国); 假: fire **"on_unit_leader_promote_from_ranks_green"** (两 on_action 名为本批新发现)。
+
+**两条晋升链精化** (公共骨架 army/ship 平行): 国 id 取法 (army+476>0 ? +476 : +472 / ship 走 sub_140C3ACC0()+8) → sub_140BB4390 得国 → 取/建 leader (sub_1406E63B0 陆 / sub_1406E6B80 海) → **四维起始技能加成** (sub_14055E360(国+1464, &out, 键)/1e5 加到对应技能):
+
+| 域 | modifier id (键) | 技能 | getter | setter |
+|---|---|---|---|---|
+| 141451020 陆 | 338 ARMY_LEADER_START_ATTACK_LEVEL | 攻击 | sub_140C15500 | sub_140C24740 |
+| (同上) | 339 ARMY_LEADER_START_DEFENSE_LEVEL | 防御 | sub_140C15510 | sub_140C25580 |
+| (同上) | 340 ARMY_LEADER_START_LOGISTICS_LEVEL | 后勤 | sub_140C186C0 | sub_140C260D0 |
+| (同上) | 341 ARMY_LEADER_START_PLANNING_LEVEL | 计划 | sub_140C16DA0 | sub_140C26C50 |
+| 141451580 海 | 342 NAVY_LEADER_START_ATTACK_LEVEL | 攻击 | sub_140C15510 | sub_140C24870 |
+| (同上) | 343 NAVY_LEADER_START_DEFENSE_LEVEL | 防御 | sub_140C16DA0 | sub_140C256B0 |
+| (同上) | 344 NAVY_LEADER_START_MANEUVERING_LEVEL | 机动 | sub_140C186C0 | sub_140C26200 |
+| (同上) | 345 NAVY_LEADER_START_COORDINATION_LEVEL | 协同 | sub_140C165C0 | sub_140C253B0 |
+
+(getter 家族按槽位跨域复用: sub_140C15510 = 槽1 / sub_140C186C0 = 槽2 / sub_140C16DA0 = 槽3; sub_140C15500 = 槽0 陆独用 / sub_140C165C0 = 槽4 海独用。)
+
+- 起始等级: 键 124 ARMY_LEADER_START_LEVEL (陆) / 125 NAVY_LEADER_START_LEVEL (海) 为 0 时 → sub_141450440 随机 + 权重表拾取 (qword_1433396B0/dword_1433396BC 陆; qword_143339980/dword_14333998C 海); 海版消费 = sub_140C271B0(leader, pick+1) LevelUpTo (✓ 书); 陆版拾取结果在伪码中无可见消费者 (sub_140C1D950 只单参 LevelUp) — 待裁 (疑反编译器丢参)。
+- 军史/船史双条目: sub_140C6F1E0(army, 名, &tag, 2/3) / sub_140C328E0(ship, 名, &tag, 18/19)。
+- AddExperience sub_140C14950 两函同款 (经验源 = 官slot块 vtable+8 取物 +136); UI: 陆 "PROMOTED_FROM_TOOLTIP_DESC" / 海 "PROMOTED_FROM_SHIP_TOOLTIP_DESC" → sub_141451E10 (末参 1 = 陆 2 = 海)。
+- **leader+3804 = 1 两函同写 = promoted_from_unit 旗** (§4.32:128 trigger is_promoted_from_unit 直读此字节 — 写者至此钉死)。
+- 收尾: sub_1414507D0(leader, army+1592 / ship+2264) → sub_141451AB0 (上) → MODIFIER_FIELD_OFFICER_PROMOTION_PENALTY (606) 折扣 (qword_143337E08 × (mod+100000)/1e5, 钳 [0, 1e5]; 陆乘 army+1072、海乘 ship XP sub_140C36370/sub_140C3D780) → sub_1413EACB0 → (陆) sub_140CC6980/sub_140CD0F60 国领袖刷新 → sub_141452330(官slot, tag, type, a3) 终通知。
+- 断言: :271 "Promoted an army officer to an invalid type" (a2 > 1, 闩 byte_14338A4D3) / :338 "Promoted a ship officer to an invalid type" (a2 ≠ 2, byte_14338A4D4); 门 = byte_1435E1B51。
+
+未决: 陆版起始等级权重拾取消费者 (疑反编译器损形) / leader+3804 以外晋升旗位 / advisor 模板 1080B 全布局。
+
+#### 4.4.28 师级指挥官持有件 (unit_officer_holder.cpp; 5 函闭环 — SUnitOfficerData 88B / 女指挥官 roll / 晋升门)
+
+簇清册 (体内 cpp 锚 5/5):
+
+| 函数 | 行数 | 锚 | 定性 | 状态 |
+|---|---|---|---|---|
+| sub_1413E9D20 | 471 | :82 断言 "Invalid officer holder" (B51, 闩 byte_14338A3C2) | 晋升门 + tooltip 构建器 (师指挥官/舰长双型) | 新 |
+| sub_1413E8EA0 | 120 | :260/:275 断言 (B52) | 存档 blob 恢复指挥官 | 引用互证 (§4.32 create_unit) |
+| sub_1413E9160 | 84 | :234 RNG + :242 断言 (B52, 闩 byte_14338A3C4) | 指挥官随机生成 (含性别 roll) | 新 |
+| sub_1413EA7D0 | 75 | :242 同上 (闩共享) | 重摇 (去种子, 与随机生成尾半同体) | 引用互证 (§4.32 reseed) |
+| sub_1413EA720 | 42 | :160 断言 "Division commander with negative seed!" (B52, 闩 byte_14338A3C3) | SUnitOfficerData 终化 (种子钳 + 名哈希) | 新 |
+
+**宿主内嵌点**: 1672B 师对象 (ctor sub_140C6D470) **+1272** (ctor 尾即摇); 另一宿主 +2120 (门 = gs+2617 战役活跃总门); **army+824 带 vtable 子对象 vtable[2] 返回 holder 指针** (§4.32 reseed/create_unit 通路互证闭合)。
+
+**holder 布局**: +8 宿主回指 (vtable[4] → 属主国) / +32 指挥官种子 (RNG & 0x7FFFFFFF) / +40 名串 / +72 32B 子对象 (类型未定名) / **+104 性别旗 (1 = 男)** / +108 名 FNV / +112 vector\<SUnitOfficerData\> 存档 blob (恢复 = 弹出 [0])。**SUnitOfficerData 88B** (RTTI 实名): {+0 vtable, +8 种子, +16 名串, +48 32B 子对象, +80 性别旗, +84 名哈希}。
+
+**随机生成 roll (定案)**: `女% = (BASE_FEMALE_DIVISIONAL_COMMANDER_CHANCE qword_143336DD8 + mod 607)/1e5` (mod 607 = MODIFIER_FEMALE_DIVISIONAL_COMMANDER_CHANCE); **+104 = (种子%100 >= 女%) = 男旗**。恢复: blob 弹出五字段拷入; 种子 0 时非世界构建期 (gs+2613 == 0) 重摇兜底 / 读档期断言 :275 (存档必须带种子)。惰性分派 (簇外邻件): blob 有 → 恢复; gs+2613 → 恢复; 否则随机。
+
+**晋升门 + tooltip** (sub_1413E9D20; type < 2 = 师指挥官 / == 2 = 舰长): 额外经验 = 官slot块 +136 (§4.4.27 同址); 志愿军门 (+472 ≠ +480 ∧ 非同原初国) / 远征军门 (+476 > 0) 各拒; **惩罚比 = sub_141450210(国) = FIELD_OFFICER_PROMOTION_PENALTY × (1 + mod 606/1e5) 钳 [0, 1e5] — §4.4.27 同式的函数级钉死**; CP 成本 = sub_1406F1950 (§4.3 领袖招募成本同函) 对 cc+496 command_power, 不足拒。
+
+未决: BFS 搜索核展开规则 (§4.24.18) / 1672B 师对象全布局 / 备用宿主身份 (推定舰长 ship 侧) / holder +72 子对象类型 / feature id 57 DLC 位。

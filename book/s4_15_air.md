@@ -2,7 +2,7 @@
 
 ### 4.15 战略空军族 (CStrategicAirManager → CStrategicAir → CAirWingPool → CAirWing)
 
-> 坐标注: 本册表内偏移一律 = 裸对象坐标; 仅 0x2958918 虚表方法 this = R+8 (调整桩 sub_140C4AD58 `a1−8` 直证; ⚠ 0x140C5B7C0 回调体内亦见 `sub_140C4BB60(a1−8, …)`, 「仅」字待裁 — 需 .rdata 槽位证), 其余族 writer (CStrategicAir sub_140C66970 / CAirWing sub_140F68B30 / CAirWingPool sub_140F68FF0) this 与书表 1:1。
+> 坐标注: 本册表内偏移一律 = 裸对象坐标; 仅 0x2958918 vtable方法 this = R+8 (调整桩 sub_140C4AD58 `a1−8` 直证; ⚠ 0x140C5B7C0 回调体内亦见 `sub_140C4BB60(a1−8, …)`, 「仅」字待裁 — 需 .rdata 槽位证), 其余族 writer (CStrategicAir sub_140C66970 / CAirWing sub_140F68B30 / CAirWingPool sub_140F68FF0) this 与书表 1:1。
 > 换算仅在此注, 正文只用书基坐标。
 
 mgr = *(gs+1680); 两级结构 pool → wing (定案)。
@@ -11,21 +11,21 @@ mgr = *(gs+1680); 两级结构 pool → wing (定案)。
 
 | 偏移 (mgr) | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +16 | CNonstaticIdGenerator\<77\> 内联 16B | air_theatre_index 生成器 {vt@+16, id@+24} (ctor 目击+探针互证) | id 恒写 (0 也写) |
-| +32 | CNonstaticIdGenerator\<78\> 内联 16B | air_group_index 生成器 {vt@+32, id@+40} (同证) | id 恒写 |
-| +48 | 匿名结构 (NNB 形状) 向量 24B | 国条容器 {data@+48, cap@+56, count@+60, alloc@+64} | 非空元素 = CStrategicAir* (每国一个, vt 0X29587D8; writer 以 elem+144 tag 分键) |
+| +16 | CNonstaticIdGenerator\<77\> 内联 16B | air_theatre_index 生成器 {vtable@+16, id@+24} (ctor 目击+探针互证) | id 恒写 (0 也写) |
+| +32 | CNonstaticIdGenerator\<78\> 内联 16B | air_group_index 生成器 {vtable@+32, id@+40} (同证) | id 恒写 |
+| +48 | 匿名结构 (NNB 形状) 向量 24B | 国条容器 {data@+48, cap@+56, count@+60, alloc@+64} | 非空元素 = CStrategicAir* (每国一个, vtable 0X29587D8; writer 以 elem+144 tag 分键) |
 | +72 | 匿名结构 (24B 形状) 向量 24B | per-state 映射 **X = air_base** {data@+72, cap@+80, count@+84, alloc@+88} (按 state_count 扩容; per-state 24B 条 {省 id 数组@+0, 计数@+12}; 定位函数 sub_140C53910: base+124==1→Y / ==2→Z / else→X, state+88 = state id; MAP_ERROR 断言族) | 不序列化 |
 | +96 | 匿名结构 (NNB 形状) 向量 24B | per-state 映射 **Y = rocket_site** {data@+96, cap@+104, count@+108, alloc@+112} (同 X 条形; 构建链 sub_140C59E30 地图初始化: 州建筑三字段 +784/+883/+867, 省 +5976/+5977/+5978 标志, MAP_ERROR 校验; gs 入口 sub_1401E13E0) | 不序列化 |
 | +120 | 匿名结构 (NNB 形状) 向量 24B | per-state 映射 **Z = gun_emplacement** {data@+120, cap@+128, count@+132, alloc@+136} (同上) | 不序列化 |
-| +144 | CAirBase* | 州基地容器 容器数据指针 — {data, count} | 指针元, vt 0X2958780 过滤; **GUI: 空军基地地图图标解析尾** (CAirBaseMapIcon: sub_140C4AF30 = 本容器[state+88], 与 +192 炮位/+168 火箭同形 per-state 稀疏索引第三址) |
+| +144 | CAirBase* | 州基地容器 容器数据指针 — {data, count} | 指针元, vtable 0X2958780 过滤; **GUI: 空军基地地图图标解析尾** (CAirBaseMapIcon: sub_140C4AF30 = 本容器[state+88], 与 +192 炮位/+168 火箭同形 per-state 稀疏索引第三址) |
 | +145..+155 | — | = 州基地容器尾 {cap@+152} | |
 | +156 | uint32 | 州基地容器 容器计数 | |
 | +157..+167 | — | = 州基地容器尾 {alloc@+160} | |
-| +168 | 匿名结构 (火箭基地) | 火箭基地并列阵列 容器数据指针 — {data, count} (定案) | 指针元, 同 CAirBase 类 (vt 0X2958780), 与 +144 州基地 948 槽平行; 元素 base u32@+124 == 1 → 块键 rocket_site (13303), 否则 air_base (12214) — manager writer 0X140C66C60 尾段分支 (GER id=575 state=62 cap=100 lvl=1 实证); 同 per-state 稀疏索引 (CRocketSiteMapIcon resolve 尾调用 sub_140C4B040; tooltip 落 site+120 等级 / site+104 州 + ROCKET_SITE_LEVEL/CAPACITY) |
+| +168 | 匿名结构 (火箭基地) | 火箭基地并列阵列 容器数据指针 — {data, count} (定案) | 指针元, 同 CAirBase 类 (vtable 0X2958780), 与 +144 州基地 948 槽平行; 元素 base u32@+124 == 1 → 块键 rocket_site (13303), 否则 air_base (12214) — manager writer 0X140C66C60 尾段分支 (GER id=575 state=62 cap=100 lvl=1 实证); 同 per-state 稀疏索引 (CRocketSiteMapIcon resolve 尾调用 sub_140C4B040; tooltip 落 site+120 等级 / site+104 州 + ROCKET_SITE_LEVEL/CAPACITY) |
 | +169..+179 | — | = 火箭基地容器尾 {cap@+176, count@+180, alloc@+184} | |
 | +180 | uint32 | 火箭基地并列阵列 容器计数 | |
 | +192 | CAirBase* 向量 24B | gun_emplacement {data@+192, cap@+200, count@+204, alloc@+208} (指针元; writer token 10086=gun_emplacement 逐元写; loader "Invalid gun emplacement" 断言) | per-state 稀疏索引 (CGunEmplacementMapIcon 消费; emplacement+48/+72/+104 容器形态) |
-| +216 | CAirBase* | 载具 (carrier) 基地容器 容器数据指针 — {data, count} | 指针元, 无 vt 过滤 (定案) |
+| +216 | CAirBase* | 载具 (carrier) 基地容器 容器数据指针 — {data, count} | 指针元, 无 vtable 过滤 (定案) |
 | +217..+227 | — | = 载具容器尾 {cap@+224, count@+228, alloc@+232} | |
 | +228 | uint32 | 载具 容器计数 | |
 | +240 | 匿名结构 (NNB 形状) 向量 24B | 遗留未用容器 {data@+240, cap@+248, count@+252, alloc@+256} (无任何写入 — 定案) | 不序列化 |
@@ -49,7 +49,7 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +40 | CAirBase* | **载具基地表** 数据 {data@+40, cap@+48, count@+52} | 同上 |
 | +64 | CAirBase* | **火箭基地表** 数据 {data@+64, cap@+72, count@+76} | 同上 |
 | +88 | CAirWingPool* 向量 24B | air_wing_pool {data@88, cap@96, count@100, alloc@104} | 元素 = CAirWingPool* (vtable 0X297AE38); [N] = 池序 |
-| +112 | 匿名结构 (NNB 形状) 向量 24B | **待除名翼队列** {data@+112, cap@+120, count@+124} | 翼 hourly 尾段推入 (无有效位置且无机 / 转移仓库 / 未部署完成 / 转移中); 管理器 hourly 首段清空 (sub_140F62AF0 逐翼处理三件套: 装备退还 sub_141011250 100% + ace 回收 sub_14061BC70 + 删翼 sub_140F66A40; 空池 pool+52==0 → vt[0] 销毁) |
+| +112 | 匿名结构 (NNB 形状) 向量 24B | **待除名翼队列** {data@+112, cap@+120, count@+124} | 翼 hourly 尾段推入 (无有效位置且无机 / 转移仓库 / 未部署完成 / 转移中); 管理器 hourly 首段清空 (sub_140F62AF0 逐翼处理三件套: 装备退还 sub_141011250 100% + ace 回收 sub_14061BC70 + 删翼 sub_140F66A40; 空池 pool+52==0 → vtable[0] 销毁) |
 | +136 | CStrategicAirManager* | manager 回指 | ctor 实参 a3 |
 | +144 | uint32 | country_num_id | 国家 id; 翼燃料系数合成器 sub_140F5F880 的 GetCountry 兜底路径 (翼无 tag 时经 pool+64 → sa+144) |
 | +152 | 匿名结构 (24B 形状) 向量 24B | _ActiveMissions {data@152, cap@160, count@164} — 按 region id 索引稀疏数组, 24B 条 = 内嵌任务指针向量 {data@0, count@+12} | 断言 `_ActiveMissions[RegionID].Contains(pMission)` |
@@ -66,7 +66,7 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +345..+355 | — | = history 容器尾 {cap@+352, alloc@+360} | |
 | +356 | uint32 | history 容器计数 | |
 | +357..+367 | — | = history/combat_history 容器尾 | |
-| +368 | SAirWingCombatData* | combat_history 容器数据指针 | CAirRegionCombatData 数组 (vt 0X2958968); 元非空才写; N = 原槽位 0 起 |
+| +368 | SAirWingCombatData* | combat_history 容器数据指针 | CAirRegionCombatData 数组 (vtable 0X2958968); 元非空才写; N = 原槽位 0 起 |
 | +369..+379 | — | = combat_history 容器尾 {cap@+376, alloc@+384} | |
 | +380 | uint32 | combat_history 容器计数 | |
 | +392 | uint32 | 增援人力账合计 | 自国+附庸; 0x140C44C960 刷新 / 0x140C440120 扣减 |
@@ -92,7 +92,7 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 
 #### 4.15.4 CAirWing (writer 0X140F68B30; 0xA38=2616B; 本表偏移 = 真基址帧 real)
 
-主虚表 0X14297ADA8 (CSelectable 6 槽, real+0) / **副虚表 0X14297ADE0 = real+16** (CReferenceObject 子对象 —
+主vtable 0X14297ADA8 (CSelectable 6 槽, real+0) / **副vtable 0X14297ADE0 = real+16** (CReferenceObject 子对象 —
 对象层 wing 校验并查副表)。**帧机制定案**: writer/loader/PostLoad 经副表派发, C++ 传入 this = 真基址+16,
 体内偏移 = real−16; 本表原版当初以 writer 为锚建表即整体 −16 — 现全表 36 行已按 ctor 0X140F59760
 (真基址帧) + writer 0X140F68B30 + loader 0X140F651B0 三方互证逐行修正为 real 帧, **无一行例外**;
@@ -103,10 +103,10 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 
 | real 偏移 | 书表值 | 类型 | 名称 | 语义 | 备注 | 证据 |
 |---|---|---|---|---|---|---|
-| +0 | (未列) | vtable* | 主虚表 | CAirWing 主表 0X14297ADA8(CSelectable,6 槽) | 补列 | c7344503 |
+| +0 | (未列) | vtable* | 主vtable | CAirWing 主表 0X14297ADA8(CSelectable,6 槽) | 补列 | c7344503 |
 | +8 | (未列) | uint32 | CSelectable 基字段 | ctor 实参 = 2(语义待裁) | 不序列化;补列 | c7344495,3814875 |
 | +12 | (未列) | uint8 | CSelectable 标志 | 默认 0 | 不序列化;补列 | 3814878 |
-| +16 | (未列) | vtable* | 副虚表 | CReferenceObject 子对象 0X14297ADE0 = **书表帧原点** | 对象层 wing 校验可并查副表(原注保留);补列 | c7344500/7344504 |
+| +16 | (未列) | vtable* | 副vtable | CReferenceObject 子对象 0X14297ADE0 = **书表帧原点** | 对象层 wing 校验可并查副表(原注保留);补列 | c7344500/7344504 |
 | +24 | +8 | uint32 | id.type | = 69 | 「校验法 uint32==69」判据随移至此 | c7344621,472061,2340097 |
 | +28 | +12 | uint32 | id.id | 引擎翼计数器 dword_14333D590 递增 | | 2340098 |
 | +32 | +16 | uint8 | CReferenceObject id 注册旗 | ctor 清 0,sub_14221E700 尾置 1(**ctor 返回后恒 1,非默认 0**) | 不序列化;语义升级 | c7344502,472108 |
@@ -131,7 +131,7 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +128 | +112 | uint32 | manpower | | GUI: 联队人力数字窗(sub_140F622A0 → current_manpower / MANPOWER_AIRWING) | c7344543(qword 清含);w1183947(10300 ← 帧+112) |
 | +132 | +116 | uint32 | air_accidents | >0 才写(12857);+= 空难数(sub_140F5DD80) | | c7344544(qword 清 132..139);w1183974 |
 | +133..+135 | +117..+119 | — | mission 前置 pad | | ctor 只显式清 132..139 | c7344544 |
-| +136 | +120 | uint32 | 累计接收机数 | 加机原语 sub_140F64190 `+=` | 不序列化(原记 pad;加机两型 sub_140F5ADD0/sub_140F64190 之一) | 140F64190 |
+| +136 | +120 | uint32 | 累计接收机数 | 加机原语 sub_140F64190 `+=` | 不序列化(加机两型 sub_140F5ADD0/sub_140F64190 之一) | 140F64190 |
 | +140..+143 | +124..+127 | — | pad 尾 | | ctor 未显式清 | c7344544 |
 | +144 | +128 | CAirMission(内联) | mission | 296B(+144..+439 全封闭);见 §4.15.5 | ⚠ §4.15.5 锚「wing+128」应改「wing+144」,该节内部(mission 基帧)不动 | c7344545(sub_140F75380(翼+18));w1183948(11450 ← 帧+128);l981582 |
 | +440 | +424 | uint32 | suspended_missions | 位掩码(2048 与存档 suspended 集一致);≠0 才写(13780) | | c7344548(dword110);w1183982;l981167 |
@@ -157,7 +157,7 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +2536 | +2520 | uint32 | 空投目标省 | 0x40 任务门:`count@+2524==0 && 省@+2536 > 0`;清零 qword 覆盖 +2536..+2543 | 不序列化;原行「qword 空投目标省」的 qword 形态 = 清零/判零读法,本体 u32 | c7344619(a1[317]);6450796(`*(int*)(a1+2536)>0`),6450807 |
 | +2540 | +2524 | uint32 | 任务类型快照 | 传 sub_140F856B0(翼+144, …) | 不序列化 | c7344619(qword 清含);6450801 |
 | +2544 | +2528 | uint64 | region 快照(idpair 形态) | 传 sub_140F859D0(翼+144, …) | 不序列化;原表「u32 region 快照」按实读改 qword | c7344620(a1[318]);6450802 |
-| +2552 | +2536 | uint32 | carrier_air_wing_kills 容器数据指针 | 24B 容器 {data@+2552, cap@+2560, count@+2564, alloc@+2568};**扁平 16B 元 {key u64 装备类别 bitmask@+0, value u32@+8}**(非 RH map);键经 equipment_category 表 sub_140F8A750 转 token(0x400→fighter / 0x8000→naval_bomber …;多位键取首位置,equipment_category.cpp:52 断言) | c>0 才写(19901) | c7344586(sub_14011DF40(翼+319));dtor c7344697;w1184010-1184018(data 帧+2536/count 帧+2548/元读法) |
+| +2552 | +2536 | uint32 | carrier_air_wing_kills 容器数据指针 | 24B 容器 {data@+2552, cap@+2560, count@+2564, alloc@+2568};**扁平 16B 元 {key u64 装备类别 bitmask@+0, value u32@+8}**(非 RH map);键经 equipment_category 表 sub_140F8A750 转 token(0x400→fighter / 0x8000→naval_bomber …;**多位键返 token 0** — :52 断言只拦低 32 位内多位 (bitset\<32\>), 高位组合直落复合键分支; 0/未列位 → 19530 unknown) | c>0 才写(19901) | c7344586(sub_14011DF40(翼+319));dtor c7344697;w1184010-1184018(data 帧+2536/count 帧+2548/元读法) |
 | +2564 | +2548 | uint32 | kills 容器计数 | c>0 | | w1184010 |
 | +2576 | +2560 | fixed×1e-5 | air_untrained_pilots_penalty_factor | xp 步 sub_140F65F20 写「修正值 + 12500」;**本体不序列化** —— writer 仅在门旗置位时发 19863 **无值旗键**(原 writer 链「+2560 值」列不成立) | ctor 低字节 0xAA(其余 7B 未显式清;ctor 尾即调 xp 步算出,语义待裁);块 dtor sub_14014D1D0 挂 +2576 | c7344597;dtor c7344692(翼+322);w1184023 |
 | +2584 | +2568 | uint8 | penalty 已算门旗 | sub_140F65F20 置 1;writer 19863 发射门 | ctor = 0 | c7344598;w1184023 |
@@ -167,11 +167,11 @@ air_base[339..352].carrier)。manager writer 0X140C66C60 尾段发射序:
 | +2608 | +2592 | uint32 | raid_instance.id | | | 同上 |
 | +2612..+2615 | — | — | 尾 pad | 总尺寸 **0xA38=2616B 不变**(malloc 直证;末字段止于 +2611) | | 2340090 |
 
-双虚表槽表(主表 6 槽/副表 10 槽)为函数地址表,不涉偏移,**原样保留**,无需改动。
+双vtable槽表(主表 6 槽/副表 10 槽)为函数地址表,不涉偏移,**原样保留**,无需改动。
 
-**−16 错位根因 (定案)**: CAirWing = 多继承双虚表对象 — CSelectable 主基 @W+0 (主虚表 0X14297ADA8; W+12 = **IsSelected 旗**, dtor 断言 356 "AR-17034" 直证) + CReferenceObject←CPersistent 副基 @W+16 (副虚表 0X14297ADE0; **序列化槽 [1]Save/[2]writer/[3]Load/[4]loader/[8]PostLoad 全挂此基**)。书表原按 reader/writer 的 this (= W+16) 建表 → 书偏移 = 规范偏移 − 16; 本表已改双坐标 (规范 W | 旧书帧)。三路实锤: ① 翼 loader sub_140F651B0 (vt[4]) this = W+16 全程 a1+书偏移落字段; ② 池 loader sub_140F65C70 尾直调翼 vt[3] 传 v13+2 (= W+16) 且先 `v13[7]=池` (_pPool 在内容加载前就位); ③ ctor/HourlyUpdate/KillAirplanes/转移推进/dtor 30+ 字段全按规范偏移零反例。
+**−16 错位根因 (定案)**: CAirWing = 多继承双vtable对象 — CSelectable 主基 @W+0 (主vtable 0X14297ADA8; W+12 = **IsSelected 旗**, dtor 断言 356 "AR-17034" 直证) + CReferenceObject←CPersistent 副基 @W+16 (副vtable 0X14297ADE0; **序列化槽 [1]Save/[2]writer/[3]Load/[4]loader/[8]PostLoad 全挂此基**)。书表原按 reader/writer 的 this (= W+16) 建表 → 书偏移 = 规范偏移 − 16; 本表已改双坐标 (规范 W | 旧书帧)。三路直证: ① 翼 loader sub_140F651B0 (vtable[4]) this = W+16 全程 a1+书偏移落字段; ② 池 loader sub_140F65C70 尾直调翼 vtable[3] 传 v13+2 (= W+16) 且先 `v13[7]=池` (_pPool 在内容加载前就位); ③ ctor/HourlyUpdate/KillAirplanes/转移推进/dtor 30+ 字段全按规范偏移零反例。
 
-**holder 术语废除 (定案)**: CAirWingPool wings 容器 (P+40, 计数 P+52) 元素 = **CAirWing 规范对象指针 W 本体**, 无 holder 间接层 (池 loader push 的 v15 = ctor 返回值 W + RemoveWing sub_140F66A40 精确指针比对双实锤)。旧「wing = holder+16」即 W+16 = CPersistent 子对象 = −16 错位的另一表述, 全书统一「规范基址 W」。§4.15.3 池为单虚表对象无错位 (本批池 loader 逐 token 复核)。
+**holder 术语废除 (定案)**: CAirWingPool wings 容器 (P+40, 计数 P+52) 元素 = **CAirWing 规范对象指针 W 本体**, 无 holder 间接层 (池 loader push 的 v15 = ctor 返回值 W + RemoveWing sub_140F66A40 精确指针比对双直证)。旧「wing = holder+16」即 W+16 = CPersistent 子对象 = −16 错位的另一表述, 全书统一「规范基址 W」。§4.15.3 池为单vtable对象无错位 (本批池 loader 逐 token 复核)。
 
 **运行时机制增补** (实现层定案, 摘要):
 
@@ -268,7 +268,7 @@ m = CAirMission 本体 (wing+128 起); 下一 wing 字段 +424 = m+296, 全封�
 | +216 | fixed×1e-5 | effectiveness (真值); **序列化 token 14144** (bool 形落盘); 运行时写者 sub_140F79A00 (表 A 执行门) | |
 | +224 | uint32 | effective_planes_count; **序列化 token 14145** (u32 保真); 运行时写者 sub_140F79A00 / 紧急出击门 sub_140F79C10 | |
 | +232 | fixed×1e-5 | effective_air_superiority; **序列化 token 14149** (bool 形); 写者 sub_140F775D0 | |
-| +240 | CCommandPowerAllocator 内嵌 | 指挥点数分配器对象 (vt 直读; m+248/+256 = 其成员) | 不序列化 | |
+| +240 | CCommandPowerAllocator 内嵌 | 指挥点数分配器对象 (vtable 直读; m+248/+256 = 其成员) | 不序列化 | |
 | +264 | MSVC 串 | CP tooltip 描述串 {buf@264..279, size@280, cap@288=15} (0X140F79E40 生成, loc 键 COMMAND_POWER_TOOLTIP_AIR_MISSION; 定名) | 不序列化 | |
 
 #### 4.15.6 CAirRegionCombatData (combat_history 元素; writer 0X141964630)
@@ -303,9 +303,9 @@ m = CAirMission 本体 (wing+128 起); 下一 wing 字段 +424 = m+296, 全封�
 ctor 0X140C47B00; 载具构造 0X140C4B5A0 (载具 id={65, ++dword_14333CA00} 全局序;
 *(ship+1840)=base 回挂)。
 
-虚表槽表: [0] dtor 0x140C4AD70 / [2] writer 0x140C667B0 / [4] loader 0x140C60DF0 / [8] postload 0x140C59380 / [9] id 生成 / **[24] (+192) = 0x140C5B7C0 建筑等级变化回调 (capacity/level 唯一运行时写者)** / [25] (+200) = 0x140C5B720 部署入口。
+vtable槽表: [0] dtor 0x140C4AD70 / [2] writer 0x140C667B0 / [4] loader 0x140C60DF0 / [8] postload 0x140C59380 / [9] id 生成 / **[24] (+192) = 0x140C5B7C0 建筑等级变化回调 (capacity/level 唯一运行时写者)** / [25] (+200) = 0x140C5B720 部署入口。
 
-生命周期: 运行时创建走三个惰性函数 sub_140C4B110/4BEE0/4BBE0 (air/rocket/gun 各一, mgr 稀疏索引 miss 才建, 统一 id = {65, ++dword_14333CA00}); 销毁: rocket 建筑归零走拆除链 (逐翼解散+稀疏槽销毁); 载具 = RemoveCarrierBase sub_140C51080 (byte_14333CA04 门 + vt[0] delete), dtor 断言"池必须已空" (strategicair.cpp:737)。载具回挂三写点 = 创建 sub_140C4B5A0 / loader 尾 / dtor 清 0; 舰沉级联 = 舰船 dtor sub_140C30380 → RemoveCarrierBase (mgr+216 二分 + sub_140C63100 按 +124 分派逐国除名); 另两路 = 装备丧失 sub_140C33BA0 / 转籍 sub_140D67800→sub_140C4EB40 (删旧建新)。
+生命周期: 运行时创建走三个惰性函数 sub_140C4B110/4BEE0/4BBE0 (air/rocket/gun 各一, mgr 稀疏索引 miss 才建, 统一 id = {65, ++dword_14333CA00}); 销毁: rocket 建筑归零走拆除链 (逐翼解散+稀疏槽销毁); 载具 = RemoveCarrierBase sub_140C51080 (byte_14333CA04 门 + vtable[0] delete), dtor 断言"池必须已空" (strategicair.cpp:737)。载具回挂三写点 = 创建 sub_140C4B5A0 / loader 尾 / dtor 清 0; 舰沉级联 = 舰船 dtor sub_140C30380 → RemoveCarrierBase (mgr+216 二分 + sub_140C63100 按 +124 分派逐国除名); 另两路 = 装备丧失 sub_140C33BA0 / 转籍 sub_140D67800→sub_140C4EB40 (删旧建新)。
 
 容量链 (sub_140C65490, 唯一写者): 陆基 = AIRBASE_CAPACITY_MULT×Σ建筑等级 / rocket = ROCKETSITE_CAPACITY_MULT×Σ / gun 恒 1 / 载具 = 舰统计 (+864/+872)/1e5×CARRIER/SUBMARINE_CARRIER_SIZE_STAT_INCREMENT / 导弹舰 = MISSILE_LAUNCHER_CAPACITY (钳 ≥10)。翼容量四档 = def+1536/1540/1544/1548 ("Missing case for AirbaseType" 断言直证; def+1448 带 0x200000000 位则直接用 base+120; 类别合成 sub_140F5F000)。
 
@@ -330,12 +330,12 @@ ctor 0X140C47B00; 载具构造 0X140C4B5A0 (载具 id={65, ++dword_14333CA00} �
 | +120 | uint32 | capacity | 恒写 |
 | +124 | uint32 | base 类别枚举 **{0=air_base, 1=rocket_site, 2=gun_emplacement}** (manager loader 断言直证); ctor = sub_140C3AD00(ship) (导弹舰旗 = ship+1032 & **0x200000000** (位 33; 两处建翼判定一致 — 原 0x2000000000 疑笔误, 全写者定案待裁)); 真值 = u32@+124 (byte@+128 = 下行 has_manpower 的门/值, 勿混) | 恒写 |
 | +128 | uint8 | has_manpower_for_recruit_change_to | ≠0 才写 |
-| +132 | uint32 | level (默认 1); **唯一运行时写者 = sub_140C5B7C0** (CAirBase vt[24] 建筑等级变化回调, air 分支 = 建筑 i16@+64 当前等级) | 恒写 |
+| +132 | uint32 | level (默认 1); **唯一运行时写者 = sub_140C5B7C0** (CAirBase vtable[24] 建筑等级变化回调, air 分支 = 建筑 i16@+64 当前等级) | 恒写 |
 | +136 | uint64 | allow_equipment_type | 位掩码 (>32bit), 恒写; 初值三来源: 陆基惰性创建 0x10036FC00 / rocket 0x1C00010000 / 载具 = 舰 unit 装备位并集 & 0x1F0037FC00 (+124==0 再或 0x10036FC00); GUI: Reorg 可部署装备池过滤 (× cc+3944(+512) 库存 → win+4024 池; sub_14100CFC0) |
 
 #### 4.15.9 CCountryAirContainer (CAirBase countries 元素 0xF8; **CSupplyConsumer 派生, 基类宿主 +0**)
 
-身份: 基类 ctor 0X140C482A0 (类别字节 a2 存 +28: **2 = 空军基地容器**, 4 = 项目消费者); 容器 ctor 0X140C4B9F0 (malloc 0xF8, 换主虚表 0x142958710, 双注册 = base+48[tag] 槽 + base+72 密集容器)。vtable 槽: [2] writer 0X140C668B0 (先调基 writer 0X140ED0400) / [4] loader 0X140C61360 (default → 基 loader 0X140ECA2E0) / [8] postload·重挂 0X140C59380 / [9] id 生成 0X14221E990 ({type=4713, id=全局自增}) / [10] GetNeededSupply 0X140C4D770 / [11] GetSupplyLocation 0X140C4D490 / [12] SetMotorization 0X140C047D0。
+身份: 基类 ctor 0X140C482A0 (类别字节 a2 存 +28: **2 = 空军基地容器**, 4 = 项目消费者); 容器 ctor 0X140C4B9F0 (malloc 0xF8, 换主vtable 0x142958710, 双注册 = base+48[tag] 槽 + base+72 密集容器)。vtable 槽: [2] writer 0X140C668B0 (先调基 writer 0X140ED0400) / [4] loader 0X140C61360 (default → 基 loader 0X140ECA2E0) / [8] postload·重挂 0X140C59380 / [9] id 生成 0X14221E990 ({type=4713, id=全局自增}) / [10] GetNeededSupply 0X140C4D770 / [11] GetSupplyLocation 0X140C4D490 / [12] SetMotorization 0X140C047D0。
 
 CSupplyConsumer 基类域 (cp+0..+160; 不序列化段):
 
@@ -343,7 +343,7 @@ CSupplyConsumer 基类域 (cp+0..+160; 不序列化段):
 |---|---|---|---|
 | +24 | uint32 | 保留 | 0 |
 | +28 | uint8 | 消费者类别 (2=空军基地容器 / 4=项目消费者) | ctor a2 |
-| +29 | uint8 | motorization_level (恒写 token 19943; vt[12] setter) | 0 |
+| +29 | uint8 | motorization_level (恒写 token 19943; vtable[12] setter) | 0 |
 | +30 | uint8 | 未名 (ctor `WORD@29=256` 高半) | 1 |
 | +32 | fixed×1e-5 | 总需求侧缓存标量 | 100000 |
 | +40 | fixed×1e-5 | _AskedSupply (供网回填; 断言 supply_consumer) | 100000 |
@@ -357,14 +357,14 @@ CSupplyConsumer 基类域 (cp+0..+160; 不序列化段):
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
 | +160 | fixed×1e-5 | disrupted_supply (基 writer) | >0 才写 |
-| +168 | idpair | 所属 air_base 引用 (+168/+172; postload vt[8] 逐容器回写; GetSupplyLocation vt[11] 解析: 陆基 → 省 id, 载具 → ship+1832 → taskforce vt[11]; 断言 `Country air container without airbase when calculating supply location`) | |
+| +168 | idpair | 所属 air_base 引用 (+168/+172; postload vtable[8] 逐容器回写; GetSupplyLocation vtable[11] 解析: 陆基 → 省 id, 载具 → ship+1832 → taskforce vtable[11]; 断言 `Country air container without airbase when calculating supply location`) | |
 | +176 | tag_id | country (loader 串 10394 → tag 反查; 失败报 "Air base country container refers to invalid tag: ") | 恒写 |
 | +184 | CAirWingPool* 向量 | 该基地该国**翼池**指针数组 {data@+184, cap@+188, count@+196} — 元素 = CAirWingPool* 非裸翼 (§4.15.3) | |
 | +208 | fixed×1e-5 | operational_status = **可运转州占比 (战争控制面, 与燃料无关)**: 写者链 sub_140C65D40 (100000 × sub_140C4FB60 逐州 sub_140D45270 控制/交战判定 / 基地省列表省数) → sub_140C63FA0 (≤0 且旧值 >0 时逐翼取消任务/换序后落值); 载具/海上基地恒 100000; 读者 = 消耗结算门 / sub_140C4CA10 (>0 门) / sub_140C4C150 (daily, ≤0 断言并除名基地) | ≠100000 (≠1.0) 才写 |
 | +216 | fixed×1e-5 | capacity_penalty = clamp(1e5 − 超容比×CAPACITY_PENALTY, 0, 1e5) (sub_140C579F0 计算; 超容比 >0.9 直接 0; 载具基地再乘国家修正 268; 未超容恒 100000 — 输入纯基地超容, 与燃料无关); 基地不可运营 (cp+208 ≤0) 或州沦陷谓词真时整段清零 (sub_140C57B70) | ≠0 才写 |
 | +224 | fixed×1e-5 | fuel_consumption = 每小时清 0 后**逐池累加** sub_140F5BA20 (任务/训练消耗现算; executing 分支机数 = m+224 无门直过) — sub_140C57B70 (ProcessAirBasesHourly 并行段: sub_140C5EFC0 → tbb 分裂 sub_140C45D50/叶 sub_140C67630 → sub_140C579F0 capacity_penalty 后逐容器调用) | ≠0 才写 |
 | +232 | fixed×1e-5 | base_fuel_consumption = 同循环逐池累加 sub_140F5B720 (基础 = 翼系数×机数, 无论任务; executing 无门直过) | ≠0 才写 |
-| +240 | fixed×1e-5 | received = 该国在该基地实获燃料: 每小时结算扇出清 0 (sub_140C4F920, 唯一调用者 sub_1410F71B0; 只扫 sa+16 与 sa+40, 火箭表不在) → 分配直写 = grant (sub_140C4BB10, 唯一调用者 sub_140F3080, 按需求优先级 2/1/0 三轮); 上游 = sub_1407164E0 (cc+5504 燃料结构) ← sub_1401D85A0 hourlyUpdateUnits ← DoCountryHourlyUpdates; 基地燃料满足比 getter sub_140C543E0 = clamp(1e5×received/consumption, 0, 1e5) (consumption=0 → 1e5) | ≠0 才写 |
+| +240 | fixed×1e-5 | received = 该国在该基地实获燃料: 每小时结算扇出清 0 (sub_140C4F920, 唯一调用者 sub_1410F71B0; 只扫 sa+16 与 sa+40, 火箭表不在) → 分配直写 = grant (sub_140C4BB10, 唯一调用者 sub_1410F3080, 按需求优先级 2/1/0 三轮); 上游 = sub_1407164E0 (cc+5504 燃料结构) ← sub_1401D85A0 hourlyUpdateUnits ← DoCountryHourlyUpdates; 基地燃料满足比 getter sub_140C543E0 = clamp(1e5×received/consumption, 0, 1e5) (consumption=0 → 1e5) | ≠0 才写 |
 
 loader 0X140C61360: 12434→+208 / 12435→+216 / 15130→+240 / 15289→+232 / 11955→+224 — **五字段全落字段**; 不序列化 = 基类供网侧 (+32/+40/+48/+64) 与 +128/+136 (载入后首个供网 tick 重建); 零态即满态 (满足比 1e5 无封锁门, 翼照常出动)。
 
@@ -389,7 +389,7 @@ XP 两链同乘满足比: field-XP sub_140F5DFA0 (×修正键 437 AIR_MISSION_XP
 
 **空军无海军式 OUT_OF_FUEL 战斗修正 (负定案)**: 海军 FEX 空侧解算 sub_141978E30 体内无燃料三字段引用 (该函数定性见 §4.15.12 — 非对空战通用解析器)。
 
-翼装备增援链 (与 CSupplyConsumer 无关 — 负定案: CSupplyConsumer 只管基地补给/燃料): 库存分配 = sub_140C54850 桶 / Σ需求 sub_140C4E8A0 / sub_140F5C370 权重 = 执行中?500 + 缺额 + 1000×priority (资格门含任务掩码 variant+1040); 损失链入口 (**§4.15.9 五入口 taxonomy**: 区域空战 sub_140F862A0 / 对地-AA 与陆战 AA sub_140F86A40·sub_1412AADD0 / 空难 sub_140F5DD80 / 部署超容 / 轰炸还击; 旧「三入口」行已重排) → sub_140C5C5C0 双方记账 → sub_140F63580 "KillAirplanes" 装备/人力扣减 + sub_140F64770 统计/租借原产国/事件; **装备损失不回库存, 唯一回库通道 = 翼除名 100% 退还** (sa+112 消费 sub_140F62AF0 三件套: 退还 sub_141011250 + ace 回收 sub_14061BC70 + 删翼 sub_140F66A40; 空池 pool+52==0 → vt[0] 销毁)。
+翼装备增援链 (与 CSupplyConsumer 无关 — 负定案: CSupplyConsumer 只管基地补给/燃料): 库存分配 = sub_140C54850 桶 / Σ需求 sub_140C4E8A0 / sub_140F5C370 权重 = 执行中?500 + 缺额 + 1000×priority (资格门含任务掩码 variant+1040); 损失链入口 (**§4.15.9 五入口 taxonomy**: 区域空战 sub_140F862A0 / 对地-AA 与陆战 AA sub_140F86A40·sub_1412AADD0 / 空难 sub_140F5DD80 / 部署超容 / 轰炸还击; 旧「三入口」行已重排) → sub_140C5C5C0 双方记账 → sub_140F63580 "KillAirplanes" 装备/人力扣减 + sub_140F64770 统计/租借原产国/事件; **装备损失不回库存, 唯一回库通道 = 翼除名 100% 退还** (sa+112 消费 sub_140F62AF0 三件套: 退还 sub_141011250 + ace 回收 sub_14061BC70 + 删翼 sub_140F66A40; 空池 pool+52==0 → vtable[0] 销毁)。
 
 #### 4.15.10 地勤 (ground crew) — 花人力买一次性任务效率加成
 
@@ -431,7 +431,7 @@ populate 链 sub_141F5E740 → sub_141F5E9E0 按基地 +124 base 类型建四类
 步6 逐 SA 串行段 **sub_140C5F4C0**。损失五入口 taxonomy 重排（定案）:
 区域空战 cat1（sub_140F862A0 狗斗）/ 对地-AA cat2（sub_140F86A40）/ 陆战 AA
 cat2（sub_1412AADD0）/ 空难 cat3（sub_140F5DD80）/ 部署超容 cat4
-（sub_140C5B380）/ 战略轰炸还击 cat5（sub_140F75A00）/ 海军 FEX（旧
+（sub_140C5B380）/ 物流打击 cat5（sub_140F75A00）/ 海军 FEX（旧
 sub_141978E30）。
 
 | 段 | 函数 | 语义 | 置信 |
@@ -439,7 +439,7 @@ sub_141978E30）。
 | 接战判定 | sub_140C591C0 | 区域活跃 byte 网格 + 敌 SA 交战判定 → 收集己方 air_superiority\|interception 任务（m+20 & 5）与敌执行中任务, 按 air_defence×air_agility 排序（sub_140C43580/C43B80 归并）— **没有纯空优 vs 空优自由空战, 只打正在执行对地/对海任务的敌任务** | 定案 |
 | 狗斗解析 | sub_140F81A20（拦截份额掷骰+空战XP）→ sub_140F7BE70（逐敌任务对）→ **sub_140F862A0** | 速度加成 = 0.65×base×(min(攻速/守速, 3.5)−1); 敏捷减伤 = 0.45×base×(min(守敏/攻敏, 4.0)−1) 仅守优生效, 归一除数 800/100; **顶速伤害加成项 (TSDBF 0.025) 原版恒 0** — 内层 trunc((spd/100)×2500/1e5) 在 spd<4000 截断为零 (双重定标瑕疵); 击坠 = AIR_COMBAT_DAMAGE_SCALE(载具档, vanilla 1/5)×总攻值×0.01÷守方 air_defence, base = 0.2×分配机数, 随机取整; 损失钳 ≥100 量纲 = **0.001 架** (100 fixed5, 非 1 架), 多机钳分配双钳 ≥100 同值实参; 防守条目 count 消耗 = −round(分配/3); cat1 归因 + m+152/164 损失账（m+152 = 小时累计被击坠数, 非已飞里程; m+156/160 = 击杀方王牌 id 对 / m+164 = 击杀方 tag; m+208 = 拦截因子缓存）, 步9 sub_140F87550 统一 KillAirplanes | 定案 |
 | 拦截/扰断 | 步6 sub_140F7BE70 → 步7 sub_140F77360 → 步8 sub_140C4C570 | 三段全小时活管道: 写敌任务 m+176 taken（DISRUPTION_* defines）→ 写己方空优 m+184（ESCORT_*, 修正键 12; **ESCORT 侦查因子复用 DISRUPTION_DETECTION_FACTOR 槽, 无独立 define**）→ 折 m+168 → 对地结算 sub_140F78160 出拦截因子（存 m+208; **= clamp(1−sqrt(taken/防御骰)/3.162, 0.001, 1), PE 除数 316200 = 手写 sqrt(10) 精确**; 防御骰 = 出动×(1+速)×(1+0.5攻)×(1+0.5防)）, 损失 = 出动数×(1−因子), 归因 m+200 扰断方 tag | 定案 |
-| 对地 | **sub_140F82110 ProcessGroundMission** → sub_140F82CA0 | 任务位→目标收集器全表; 多态目标分发（建筑/CAS 入陆战 sub_140BB8380/港击/战略轰炸 sub_140F75A00/师直伤 sub_140C01B70/陆战 vt[240]）+ 州-AA+SAM 掷骰 sub_140F86A40（÷air_defence）; paradrop/布雷扫雷分叉 | 定案 |
+| 对地 | **sub_140F82110 ProcessGroundMission** → sub_140F82CA0 | 任务位→目标收集器全表; 多态目标分发（建筑/CAS 入陆战 sub_140BB8380/港击/物流打击 sub_140F75A00/师直伤 sub_140C01B70/陆战 vtable[240]）+ 州-AA+SAM 掷骰 sub_140F86A40（÷air_defence）; paradrop/布雷扫雷分叉 | 定案 |
 | 空优聚合 | sa+224 160B 行 | pass25-29 产出 + sub_140C66170 友敌聚合 (+0/+8/+16/+24); 消费 = sub_140C54230 制空惩罚公式与国家级均值 sub_140C655F0 | 定案 |
 
 defines 新钉 30+（DISRUPTION_*/ESCORT_*/COMBAT_DAMAGE_SCALE/ACE_*/SAM_MISSION_
@@ -465,7 +465,7 @@ DAMAGE_{SCALE,PLANES,PLANES_FACTOR} **三件套全零读者（负定案）**。m
 
 打击任务掩码 0x1F7FA = 位 {1, 3..10, 12..16} (拦截链「正在执行对地/对海任务」判定集)。
 
-实现层定案 (摘要): SetMission (训练特例/独占组合并/active 十门重算); ProcessGroundMission 主调度 (任务位→收集器全表 + 加权随机); 逐目标结算中枢 (州 AA 门槛 + KillAirplanes 收尾); **attack_logistics 四件套** (列车铁路主结算 + 伤害落地 inline-PRNG 选列车 + 铁路炮 type13 + 卡车节点打击; 勘误: 书 cat5 原「战略轰炸还击 sub_140F75A00」实为物流打击); 协同打击顶层 (港击/战略轰炸派发); 侦察四路情报分摊 (ProcessAirRecon, lambda 符号实名; 公式 = RECON_PLANE_INTEL_BASE + LAND/SEA_DISTRIBUTION 四象限分摊, 份额 = (100000−占比)×强度/1e5, CConvoyClient 过滤); 布雷/扫雷 (DLC 门); 狗斗/拦截/扰断公式 §4.15.12 对账全过 (速度 0.65/3.5 / 敏捷 0.45/4.0 / 击坠 = ACS×攻值×0.01÷air_defence); **防守方加权聚合 sub_140F80540** (cas×2 / port_strike×100 / strat_bomber×修正键4); **王牌 on_action 全局族 qword_14333D5F8..628** (PostLoad 扇出填充, §4.12.9b; 获得/创建派发 = on_ace_promoted); 空袭伤害 (命中数→AA 防减→暴击→入账类型 3); 王牌死亡/获得/收割与 on_action 派发七名全局表。region 侧锚 (recon 消费): region+24 省指针数组 / +104/+116/+128 = 基地/计数/权重三平行表 / **+160 = 侦察覆盖比 fixed5** / +152 = 区内地面存在量 (推定); state+392 = 州 owner tag; CProvince+164 = 省 id。sub_1424ED730 = fixed5 round(x/1e5) (书内多处「round」语义的 PE 实体)。
+实现层定案 (摘要): SetMission (训练特例/独占组合并/active 十门重算); ProcessGroundMission 主调度 (任务位→收集器全表 + 加权随机); 逐目标结算中枢 (州 AA 门槛 + KillAirplanes 收尾); **attack_logistics 四件套** (列车铁路主结算 + 伤害落地 inline-PRNG 选列车 + 铁路炮 type13 + 卡车节点打击; cat5 sub_140F75A00 = 物流打击, 非战略轰炸还击); 协同打击顶层 (港击/战略轰炸派发); 侦察四路情报分摊 (ProcessAirRecon, lambda 符号实名; 公式 = RECON_PLANE_INTEL_BASE + LAND/SEA_DISTRIBUTION 四象限分摊, 份额 = (100000−占比)×强度/1e5, CConvoyClient 过滤); 布雷/扫雷 (DLC 门); 狗斗/拦截/扰断公式 §4.15.12 对账全过 (速度 0.65/3.5 / 敏捷 0.45/4.0 / 击坠 = ACS×攻值×0.01÷air_defence); **防守方加权聚合 sub_140F80540** (cas×2 / port_strike×100 / strat_bomber×修正键4); **王牌 on_action 全局族 qword_14333D5F8..628** (PostLoad 扇出填充, §4.12.9b; 获得/创建派发 = on_ace_promoted); 空袭伤害 (命中数→AA 防减→暴击→入账类型 3); 王牌死亡/获得/收割与 on_action 派发七名全局表。region 侧锚 (recon 消费): region+24 省指针数组 / +104/+116/+128 = 基地/计数/权重三平行表 / **+160 = 侦察覆盖比 fixed5** / +152 = 区内地面存在量 (推定); state+392 = 州 owner tag; CProvince+164 = 省 id。sub_1424ED730 = fixed5 round(x/1e5) (书内多处「round」语义的 PE 实体)。
 
 #### 4.15.14 战略空军实现层 (strategicair 三单元 61 函数; 非序列化)
 
@@ -489,10 +489,10 @@ region id **排序插入** _ActiveMissionRegions (SA+200, 二分定位); Remove 
 → 逐表摘除, 区域任务清空时 region id 前移删除; **尾段 = 地勤加成按区域消费** (cc+1240 条 +56 旗 →
 sub_1406E92B0 施加修正键 17, §4.15.10)。
 
-**导弹舰自动建翼链 (定案)**: 两处独立实现同逻辑 (建筑等级回调 sub_140C5B7C0 vt[24] / 基地激活
+**导弹舰自动建翼链 (定案)**: 两处独立实现同逻辑 (建筑等级回调 sub_140C5B7C0 vtable[24] / 基地激活
 sub_140C5E4E0) — gun_emplacement 就绪州 → 扫国舰表判 `ship+1032 & 0x200000000` → sub_140C508F0 建舰载翼
 → sub_140F852A0(翼+144, **0x10000 = 任务位 16 barrage_mission**, 1, 0, 170) (第 5 参语义未决); 失败断言
-:6756。**CAirBase 生命周期四件补全**: dtor 本体 sub_140C48740 (vt[0] 壳 0x140C4AD70 → 断言 "carrier
+:6756。**CAirBase 生命周期四件补全**: dtor 本体 sub_140C48740 (vtable[0] 壳 0x140C4AD70 → 断言 "carrier
 deleted not in delete function" 门 byte_14333CA04 + 解链 ship+1840) / token 工厂 sub_140C61B60 (12214
 air_base → malloc 0x90 + ctor sub_140C47B00; state-or-carrier 校验败即销毁) / 转籍重建 sub_140C64400
 (按 base+124 分派 + 逐翼用 sub_140C505F0 按新主重建) / OOB air_wings 历史装载器 sub_140C61F80 (713 行,
@@ -517,7 +517,7 @@ active countries."; gs+2536 以 byte 指针入帧, 步 6 经 sub_140BB3800 消�
 modifiers(12774), `@` 前缀引用旁路) / AddItem 0x140618600 (103, §4.32 add_ace 互证全过) /
 HandleOnKilled 0x14061AA90 (69, 三断言 + 一次性 on_action 派发) / Kill 0x14061BBA0 (35,
 +344=0/+348 kill_type/+352 killer_name/+360 killer_country) / EnsureId 0x14061AD90 (14,
-§4.28.17 勘误注) / EnsurePortrait 0x14061AF70 (10, +340 惰性全局流掷点)。
+§4.28.17 注) / EnsurePortrait 0x14061AF70 (10, +340 惰性全局流掷点)。
 
 **创建工厂五阶段** (定案): 私流双哈希 RNG → def 加权预选 (翼侧机型掩码门) → 名三重组优先
 (triple 自带 modifier 名可覆盖 def) → 池装配兜底 (性别比掷点 + 国规则门 + 同名占用衰减

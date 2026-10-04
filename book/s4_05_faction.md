@@ -37,7 +37,7 @@ ctor/Reset sub_14118D1A0; 日重置 sub_14118EC80; el = data+208×slot。
 | +56 | int64 fixed | **阵营 influence 占比** (sub_140D8F610 = 100000×成员Σinfluence÷fac+2080, clamp≤1.0; 写点 = 重算批一处 + 日重置清 0) — **GUI: 成员国列表行数值** (100×*(+56) 百分比化; 访问器 sub_140BB4AC0 = facsys+8+208×tag) | 定案 |
 | +64 | int64 fixed | **+56 占比的镜像/前值副本** — 日重置 sub_14118EC80 同函数连续两次 `sub_1424EF6F0(&v, 100000)` 分别写 +64 与 +56 (均钳 ≥0); ctor sub_14118D1A0 同式成对写; 重算批 sub_140D8F610 只写 +56 | 高置信 |
 | +72 | int64 fixed | initiative (键 13573; 日重置 0) | ≠0 才写; 领袖无此字段 = 0 |
-| +80 | uint32 | **阵营 influence 排名** (sub_140D8F740 降序排名, 1=最高; def 铁证 = token 19617 `faction_influence_rank` = 成员列表 sort_influence 排序键; 写点同 +56) — **GUI: 成员国列表行计数** | 定案 |
+| +80 | uint32 | **阵营 influence 排名** (sub_140D8F740 降序排名, 1=最高; def 直证 = token 19617 `faction_influence_rank` = 成员列表 sort_influence 排序键; 写点同 +56) — **GUI: 成员国列表行计数** | 定案 |
 | +96 | 匿名结构 (24B 形状) RH 桶数组 | **member_upgrades** {buckets@96, count@104, mask u32@108, extra u8@112, lf f32@116=0.9} — 24B 桶 {dist+1 u8@4, key u32 token@8, value def 指针@16}; 键 10473 | 门 = 表非空 (20 档实测恒空) |
 | +120 | int64 fixed | contribution (键 10477) | ≠0 才写; **GUI: 人力窗上限成分** (sub_14118A620 = 本值与 defines 基数求上限) |
 | +128 | i64 fixed ×2 **内联** | **contribution_gain 定点对** (键 10504, 定长数组恒写 2 元, 内联 2×i64 — writer `for(v7=+128; v7!=+144; ++v7)` + loader case 10504 区间读双证) | 恒写 |
@@ -54,11 +54,11 @@ sub_140D8D880 (全键表见 4.5.6)。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
-| +0 | CReferenceObject 基 24B | {vt@0, id 对 {type@+8=88, id@+12}, **u8 flag@+16 = CReferenceObject 基类 IsStored 旗** (ctor 置 0; 注册成功由 vt[9] sub_14221E990→sub_14221E700 尾 `*(a1+16)=1` (id.cpp:130); 反注册 sub_14221EA60 首行 `if(!*(a1+16)) return 0` (id.cpp:210) 据此短路) | id 对恒写 |
+| +0 | CReferenceObject 基 24B | {vtable@0, id 对 {type@+8=88, id@+12}, **u8 flag@+16 = CReferenceObject 基类 IsStored 旗** (ctor 置 0; 注册成功由 vtable[9] sub_14221E990→sub_14221E700 尾 `*(a1+16)=1` (id.cpp:130); 反注册 sub_14221EA60 首行 `if(!*(a1+16)) return 0` (id.cpp:210) 据此短路) | id 对恒写 |
 | +24 | MSVC SSO 32B (size@+40) | **name** 引号 ("孟买条约" 等; SetFactionName 效果写 +24; GetName sub_140D8BB80 读 +24/+40) | **门 size≠0** (定案); **GUI: 阵营名行** (sub_140D8BB80; 外交 header faction_name 同链) |
 | +56 | MSVC SSO 32B | **cached display name** (GetName 结果缓存: +24 非空→+24, 否则 template+208 名; 写入点 sub_140B59200; 不序列化) | |
 | +88 | CCountry* 向量 24B | **members** {data@88, cap@96, count@100, alloc@104} — 8B CCountry* 元, tag=ru32(cc+8) 引号; AddMember sub_140D89A30 1.5x 增长 | c>0; **GUI: 成员国列表行** (sub_141474550: 色 = cc+848 沿宗主链取色 sub_1406ECF80 / 值 = facsys 条目+56 占比/+80 排名; 首元 = 领袖旗; faction_countries_window) |
-| +112 | CGameDate 24B {vt1@+112, hours@+120, vt2@+128} | **faction_leader_change_date** (SetLeader sub_140D8ED20 `*(a1+120)=*(gs+1128)`; ADEC0 arg=a1+128=&vt2) | **≠43817520** (双哨兵 §3.7) |
+| +112 | CGameDate 24B {vtable1@+112, hours@+120, vtable2@+128} | **faction_leader_change_date** (SetLeader sub_140D8ED20 `*(a1+120)=*(gs+1128)`; ADEC0 arg=a1+128=&vtable2) | **≠43817520** (双哨兵 §3.7) |
 | +136 | CIdeologyGroup* | ideology def obj → token idx@def+8 → 裸名 | 恒写; def 对象 |
 | +144 | **CRule 内嵌 1016B** (+144..+1159) | 阵营规则缓存 (运行时态; 拷贝源 = ideology def+96; 布局见下子表; 消费侧 sub_140D8A2A0 → sub_140638DB0(a2, a1+144)) | 不序列化 |
 | +1160 | **CModifier 内嵌 192B** (+1160..+1351) | faction modifier (运行时合成; 源自 ideology def: +1168=*(ideology+1352), pairs 自 ideology+1360 经 sub_1405570F0 拷入 +1176; 全布局见 §4.3.8 CModifier 通用表) | 不序列化 |
@@ -66,13 +66,13 @@ sub_140D8D880 (全键表见 4.5.6)。
 | +1384 | NFactions::CFactionTemplate* | template def obj → token 名 (sub_1424BE600) 引号; 默认 = token 10355 **original_generic_faction_template**; loader 成功后 rule_status+goal_status 双重建 | ptr≠0; def 对象 |
 | +1392 | **CFactionRuleStatus 内嵌 176B** (+1392..+1567) | rule_status 块 (布局见下子表) | |
 | +1568 | CFactionGoalStatus 内嵌 **424B** (+1568..+1991 恰满) | goal_status (见 4.5.3) | 恒写块 |
-| +1992 | **CFactionProgramStatus 内嵌 ~64B** = faction_programs | {vt@0, **CRef\<NProject::CProgram\> 向量 {data@8, cap@16, count@20, hybrid 内联 allocator@+24→inline@+32 (容 4)}**}; 元素 **8B CRef 双 u32 对** (writer sub_142220180 每元恰写两 u32 + u32 指针 +2 步进铁证; 内联@+32 容 4 = 4×8B), 键 10482, 逐个 sub_142220180 写 GUID | **门 = count@+20≠0** (20 档实测恒空) |
+| +1992 | **CFactionProgramStatus 内嵌 ~64B** = faction_programs | {vtable@0, **CRef\<NProject::CProgram\> 向量 {data@8, cap@16, count@20, hybrid 内联 allocator@+24→inline@+32 (容 4)}**}; 元素 **8B CRef 双 u32 对** (writer sub_142220180 每元恰写两 u32 + u32 指针 +2 步进直证; 内联@+32 容 4 = 4×8B), 键 10482, 逐个 sub_142220180 写 GUID | **门 = count@+20≠0** (20 档实测恒空) |
 | +2072 | int64 fixed×1e-5 | **total_power_projection** (阵营力量投射总值缓存, 累加钳 ≥0; AddPowerProjection sub_140D89E00; tooltip sub_140D8BC20 + loc TOTAL_POWER_PROJECTION "Total Power Projection: $VAL\|0H$"; 重算 sub_140D8FC30 从成员表 +88 汇总) | |
 | +2080 | int64 fixed | **阵营级 influence 累计 (占比分母)** — sub_140D8F610 体: `v13 = *(fac+2080); v14 = Σ成员 influence(+8 容器 8B 元); v15 = 100000*v14/v13` (钳 ≤100000) 写成员 +56; 重算批 sub_140D8FC30 内 _InterlockedExchange64 归零 | 定案; **GUI: influence 占比分母** |
 | +2088 | fixed×1e-5 | power_projection_from_effects (AddPowerProjection 同点互证; loc POWER_PROJECTION_FROM_EFFECTS) | ≠0 才写 |
 | +2096 | CFactionSystem* | facsys 回指 (ctor `*(a1+2096)=*(gs+1016)`) | |
 | +2104 | **CFactionUpgradeStatus 内嵌 184B** | upgrades 块 — 管理器本体 (见 4.5.4; 424B 是其 slots 向量条目步长) | 恒写块 |
-| +2288 | CArmyManpowerValues 内嵌 32B | manpower_pool {vt@2288, 容器@2296}; writer 双写 ADEC0(+2288) + sub_140C6AD50(+2288, out, 13877=manpower_pool) | 空块不发射 (20 档恒空); **GUI: CRequestManpowerWindow 消费链** (池合计 sub_140D8BAD0→sub_140C69830 + 成员 contribution(+120) + defines 基数 → REQUEST_FACTION_MANPOWER_VALUES; 提交 NFactions::CUseFactionMemberManpower {+40 amount/+44 tag}; 校验 "not enough manpower in pool"; 见 4.5.11) |
+| +2288 | CArmyManpowerValues 内嵌 32B | manpower_pool {vtable@2288, 容器@2296}; writer 双写 ADEC0(+2288) + sub_140C6AD50(+2288, out, 13877=manpower_pool) | 空块不发射 (20 档恒空); **GUI: CRequestManpowerWindow 消费链** (池合计 sub_140D8BAD0→sub_140C69830 + 成员 contribution(+120) + defines 基数 → REQUEST_FACTION_MANPOWER_VALUES; 提交 NFactions::CUseFactionMemberManpower {+40 amount/+44 tag}; 校验 "not enough manpower in pool"; 见 4.5.11) |
 | +2320 | CStrategicResourcePool 内嵌 | extracted 资源池 (键 16085; facsys hourly 把成员国资源 sub_140BCB530(fac+2320, country+40) 汇入; 内部 176B 细分未做; 元素表见 4.5.8) | 恒写块 |
 | +2496 | uint8 | is_color_overridden → yes/no (键 16901; 同族 13500/10300 = yes/no 读弃、12817 = 定点数读弃) | 恒写 |
 | +2512 | CColor 内嵌 | color (布局见下子表) | 恒写; **GUI: 阵营色写入链** (CFactionColorPickerWindow btn_ok 写 picker+2992 CColor → CCreateFactionCommand+128 → sub_140D91E00 → 本字段; 初始色 = CFactionTemplate rgba@+384 (旗@+400) ∥ 玩家国 cc+880; 见 4.5.10); **CSetFactionIconAndColor Execute 写 rgba = CColor+16** (cmd+80 CColor 拷入, 与 picker 链同字段无冲突) |
@@ -85,7 +85,7 @@ CRule 内嵌布局 (fac+N 相对):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +0 | vt | 0x142718B48 (基 CPersistent) |
+| +0 | vtable | 0x142718B48 (基 CPersistent) |
 | +8 | MSVC 串 | name |
 | +40 | 覆盖链表 | {head@+40, +48, count@+56} |
 | +60 | uint8 | **覆盖清理墓碑保留旗** (唯一读者 sub_14063C170 RemoveExpiredOverrides: 覆盖值与基线全等即失效时, =1 仅标链表节点 flag@+24 保留 / =0 物理摘除并 free; 拷贝 ctor sub_14014AC90 显式清 0 = 运行时旗非内容; 置位写点待裁) |
@@ -99,20 +99,20 @@ CSetFactionRuleEffect → sub_140D8EC80 → sub_141995D40(fac+1392, rule,…)
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +0 | vt | — |
+| +0 | vtable | — |
 | +8 | CFaction* | faction 回指 |
-| +16 | — | 0 |
-| +32 | 哈希A | {sentinel@+32, count@+40, extra@+48, lf@+52 = 0.9f} |
+| +16 | NFactions::CFactionTemplate* | **模板回指** (三函一致消费: 规则库查 sub_1404AC0F0 / 模板名取 sub_1424BE600 入错误串 — §4.5.11; ctor 观察到的 0 系装载前态) |
+| +32 | 哈希A | {sentinel@+32, count@+40, extra@+48, lf@+52 = 0.9f} — ⚠ 槽名义待重验: 读者 sub_1404AC0F0 实读 data@+32 / mask&@+44 (count 槽推定为 data / lf 槽推定为 mask; §4.5.11) |
 | +64 | 哈希B | 同哈希A 形 |
 | +88 | CFactionRule* 向量 24B | **rules 向量** {data@+88, cap@+96, count@+100, alloc@+104} — CFactionRule def 指针; 键 12667=rules, 写 token@def+8 |
-| +120 | 哈希C | — |
+| +112 | 哈希C (容器基) | {data@+120, mask&@+132} — 读者 sub_140A2F180(rs+112,…) 直证容器基 = +112 (书旧记 +120 系 data 槽误当基, 已改); 键 = def 指针 8 字节 FNV-1a, 值 = def (§4.5.11) |
 | +152 | 哈希D | — **GUI: change_rule_window populate sub_141C0D680 消费** (cpp:83 "show_filter_offset" 断言; RH 8B 元 {distance@0, rule token@+4}; 见 4.5.12) |
 
 CColor 内嵌布局 (fac+2512 相对):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +0 | vt | — |
+| +0 | vtable | — |
 | +16 | rgba float×4 | 颜色值 (`int(f*255)` **截断**; alpha ≠1.0 才第 4 值, writer 0X14224CA10) |
 | +32 | uint16 | 0xFFFF 哨兵 (ctor −1; CreateFaction 写槽序−1, 重排 sub_140D922F0 写槽 idx — **阵营色索引/槽号** 高置信) |
 
@@ -120,7 +120,7 @@ CFactionTheaterManager 布局 (fac+2552 相对; ctor sub_14194F550 64B 直证):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +0 | vt | — |
+| +0 | vtable | — |
 | +8 | CFaction* | faction 回指 |
 | +16 | uint32 向量 24B | theaters {data@+16, cap@+24, count@+28, alloc@+32}; **条目 stride = 168B** (运行时条目; commander 元素 = 8B 内联 CRef id-pair, sub_141950A80 判非零后 sub_14221F310 解引用; GUI 视 +0 name / +32 tag / +36 commander / **+48 flags 向量 {count@+60}** / **+72 regions 向量 {count@+84}**, 见 §4.31.31) |
 | +40 | 匿名结构 (1B 形状) 向量 24B | **第二向量** {data@+40, cap@+48, count@+52, alloc@+56} — per-theater 分组字节表 (元素 1B; 与 member_status+172 同 idx 域比对, sub_14118B9C0) |
@@ -141,7 +141,7 @@ CVariables 内嵌布局 (fac+2624 相对):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +0 | vt | — |
+| +0 | vtable | — |
 | +8 | uint32 | 1 (random 门 ru32(vo+8)!=1 读此) |
 | +12 | — | 种子 1587985054 |
 | +24 | — | &unk_1430851A0 |
@@ -158,14 +158,14 @@ ctor sub_140A25C70 / writer 0X140A299E0 / loader 0X140A28300。
 |---|---|---|---|
 | +8 | CFaction* | faction 回指 | |
 | +16 | 匿名结构 (faction manifest 定义)* | manifest def = **NFactions::CFactionGoal** (H 批类名落定 — 库模板参数直证, goal/manifest 同类; sizeof 3408B; +896 内嵌 CRatioProgress ≥2416B (CProgress 基 1120B + 派生扩展至 +2408; 后继 def 字段 +3336 钉上界 ≤2440B)) → token idx@def+8 裸名 (键 19587; CSetFactionManifestEffect::Execute 0X1404ABBE0 → sub_140A28B90, DLC50 门) | ptr≠0; **双半缩放偏移基准 = CProgress 相对 (def+928/def+1472)**; +3336 优先级类 (manifest 恒 4, 活证五阵营); entry 1344B 布局定案 (entry+96 = def+896 活证地址和; entry+1312 = initiative 分摊源); def+2664 u8 / def+2872 u32 = 描述需实例状态门对 — 任一非零则 tooltip 结合 faction+1592 goals 容器内当前实例进度渲染 (sub_140A222D0) |
-| +24 | uint32 向量 24B | **goals** {data@24, cap@32, count@36, alloc@40} — 1344B 步长: goal def@+0 (idx@def+8 裸名), status u32@+8 (0=active 11390 / 1=completed 12583 / 2=canceled 19620, 断言 "Invalid goal status" faction_goal_status.cpp:0x2F), date 24B {hours@1328, vt1@1320, vt2@1336} 键 508=game_data (无门恒写; 默认 43808760 → "1.1.1.1"); 块外键 19593 (goals) / 条目内键 19592 (goal) / status 键 208; AddGoal sub_140A26840 (DLC50 断言实在内层 sub_140A26A70 首行) 去重插入; 条目构造器 sub_140A261E0 (写 vt1@1320/hours@1328=43808760/vt2@1336) | c>0; **GUI: 目标列表** (sub_140A27930 → FOREIGN_GOAL_ITEM_ENTRY) |
+| +24 | uint32 向量 24B | **goals** {data@24, cap@32, count@36, alloc@40} — 1344B 步长: goal def@+0 (idx@def+8 裸名), status u32@+8 (0=active 11390 / 1=completed 12583 / 2=canceled 19620, 断言 "Invalid goal status" faction_goal_status.cpp:0x2F), date 24B {hours@1328, vtable1@1320, vtable2@1336} 键 508=game_data (无门恒写; 默认 43808760 → "1.1.1.1"); 块外键 19593 (goals) / 条目内键 19592 (goal) / status 键 208; AddGoal sub_140A26840 (DLC50 断言实在内层 sub_140A26A70 首行) 去重插入; 条目构造器 sub_140A261E0 (写 vtable1@1320/hours@1328=43808760/vtable2@1336) | c>0; **GUI: 目标列表** (sub_140A27930 → FOREIGN_GOAL_ITEM_ENTRY) |
 | +48 | 匿名结构 (8B 形状) 向量 24B | **available_goals 平铺 def 指针数组** {data@48, cap@56, count@60, alloc@64} — 8B 元按槽分段拼接 (区间切分器 sub_140A278C0: `begin=data+8*off[slot]`, off=+168 表) | 不序列化 (运行时重建 sub_140A28FD0) |
 | +72 | 匿名结构 (NNB 形状) 向量 24B | **completed_goals** {data@72, cap@80, **count@84**, alloc@88} — 8B def 指针元; 键 12787 | 门 count≠0 |
 | +96 | 匿名结构 (NNB 形状) 向量 24B | **canceled_goals** {data@96, cap@104, **count@108**, alloc@112}; 键 12788 | 门 count≠0 |
 | +120 | 匿名结构 (NNB 形状) 向量 | **extra_goal_slots** (i32×3 内联 {data@120→inline@152, cap@128=3, count@132, allocator CPdxStaticInlineBufferAllocator\<int,3\>@144}; 引擎按有符号打印, −1 在档); 槽名 0=short_term 1=medium_term 2=long_term (sub_140A233B0); AddFactionGoalSlot 效果 → sub_140A26820 `*(data+4*slot)+=n` | 值≠0 |
 | +168 | 匿名结构 (NNB 形状) 向量 | **per-slot available goal 计数/前缀偏移表** (i32×4 内联 {data@168→inline@200, cap@176=4, count@180, allocator\<int,4\>@192}; 切分器 sub_140A278C0 以之为 +48 数组段界) | 不序列化 |
 | +216 | 匿名结构 (24B 形状) 向量 | **per-slot 可用 goal token 表** (CPdxArray\<LexerToken\>×3 内联 {data@216→inline@248, cap@224=3, count@228, allocator\<CPdxArray,3\>@240}; 元素 24B 子数组存 goal def+3400 lexer token; 重建按 def+3336 槽 idx 推; UI CChangeGoalItem 族); **GUI: CChangeGoalWindow populate sub_141C08C40 逐槽建 CFilterGoalItem** (槽 idx = window+1664 = 0/1/2 short/medium/long_term; 元素 = goal def+3400 token 互证; 见 4.5.12) | 不序列化 |
-| +320 | 匿名结构 (24B 形状) 向量 | **game_data** (CGameDate×3 内联 {data@320→inline@352, cap@328=3, count@332, allocator\<CGameDate,3\>@344}; 24B 元 {vt1@0, hours@8, vt2@16}; 按槽 idx 最近变更日期; AddGoal 写 `*(data+24*slot+8)=*(gs+1128)`) | 键 508=game_data |
+| +320 | 匿名结构 (24B 形状) 向量 | **game_data** (CGameDate×3 内联 {data@320→inline@352, cap@328=3, count@332, allocator\<CGameDate,3\>@344}; 24B 元 {vtable1@0, hours@8, vtable2@16}; 按槽 idx 最近变更日期; AddGoal 写 `*(data+24*slot+8)=*(gs+1128)`) | 键 508=game_data |
 
 #### 4.5.4 CFactionUpgradeStatus (upgrades, faction+2104, 184B)
 
@@ -173,7 +173,7 @@ ctor sub_1413F9DF0 / writer 0X1413FC350 / loader 0X1413FB750。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
-| +0 | vt | CFactionUpgradeStatus | |
+| +0 | vtable | CFactionUpgradeStatus | |
 | +16 | 匿名结构 (24B 形状) RH 桶数组 | **member_upgrades** {buckets@16, **count@24**, mask@28, extra u8@32, lf@36=0.9} — 24B 桶 {dist+1@4, key token@8, value def 指针@16}; 键 10473 排序发射; loader case 10473→sub_1413F9490; ctor sub_1413F9DF0 直证 count@24 | |
 | +40 | CTechnologySharing 内嵌 80B | tech_sharing_group (键 14100) | |
 | +120 | CDoctrineSharingStatus 内嵌 32B | doctrine (键 13817) | |
@@ -186,7 +186,7 @@ slots 424B 条目 (writer 键互证):
 |---|---|---|---|
 | +0 | CAdvisorTemplate* | advisor def obj (idx@def+24 token 裸名) | ptr≠0; def 对象; 键 10454 |
 | +8 | int32 | owner 国 idx → 引号 tag | >0; 键 10302 |
-| +16 | CGameDate 24B {vt1@+16, hours@+24, vt2@+32} | spymaster_change_date | 键 19142; **≠43817520** |
+| +16 | CGameDate 24B {vtable1@+16, hours@+24, vtable2@+32} | spymaster_change_date | 键 19142; **≠43817520** |
 | +40 | CModifier (192B) | spymaster (布局见 §4.4 CModifier 通用表) | 键 19140 = ADEC0(0x4AC4) |
 | +232 | CModifier (192B) | modifier | 键 10597 = ADEC0(0x2965) |
 
@@ -202,7 +202,7 @@ slots 424B 条目 (writer 键互证):
 | set_faction_name | 0X1404ABCE0 | → 写 fac+24 name 串 (经外交 +656 取阵营) |
 | set_faction_leader | 0X1404ABB50 | → CFaction::SetLeader sub_140D8ED20 (写 +120=当前日期) |
 | set_faction_spy_master | 0X1404AC040 | → sub_1413FC040(fac+2104, 0, tag, 0) |
-| set_faction_upgrade | 0X1404AC090 | 载荷对象(a1+88) 取升级 def (vt[13]/+104 getter) → **花费 = *(def+248)** → 载荷 vt[12](scope tag, &花费) 执行购买; 货币 = initiative (loc FACTION_UPGRADE_NOT_ENOUGH_INITIATIVE; 命令 NFactions::CSetFactionUpgradeCommand ctor sub_141BA8EB0) |
+| set_faction_upgrade | 0X1404AC090 | 载荷对象(a1+88) 取升级 def (vtable[13]/+104 getter) → **花费 = *(def+248)** → 载荷 vtable[12](scope tag, &花费) 执行购买; 货币 = initiative (loc FACTION_UPGRADE_NOT_ENOUGH_INITIATIVE; 命令 NFactions::CSetFactionUpgradeCommand ctor sub_141BA8EB0) |
 | dismantle_faction | 0X1404AB8B0 | 门 = 有阵营 ∧ **发起者是领袖** (members[0] tag 比对) → 直接 RemoveFaction sub_140D922F0 + 名字刷新; 非领袖无操作 (§4.5.9) |
 | set_faction_rule | 0X1404ABE50 | → sub_140D8EC80 → sub_141995D40(fac+1392, rule) + 逐成员通知 |
 | set_faction_upgrade | 0X1404AC090 | → a1+88 upgrade ref 虚调用 (CSetFactionUpgradeCommand 族) |
@@ -265,7 +265,7 @@ on_assume_faction_leadership。
 
 #### 4.5.8 CStrategicResourcePool (阵营侧宿主: faction+2320 / facsys+56)
 
-阵营侧宿主 (faction+2320 / facsys+56 同类); vt 0X29515A0, 元素 writer 0X140BCCAF0;
+阵营侧宿主 (faction+2320 / facsys+56 同类); vtable 0X29515A0, 元素 writer 0X140BCCAF0;
 写门 = 条目 value ≠ 0 才写; 写序 = 向量序 = 资源定义序。
 **类布局 (176B; 双级写门; 元素 16B {value i64×1e-5@0, name_id u32@+8}) = §4.13.6 (权威, 勿重述)**。
 
@@ -294,7 +294,7 @@ theater 版 sub_140D935A0 → sub_140D8D850 在前, 五步 sub_140D93560 在后)
 | 步 | 函数 | 语义 | 置信 |
 |---|---|---|---|
 | ① goal 进度 | sub_140A29690 → sub_140A29920 | 门 = status==0 ∧ (def+2664 ∨ def+2872); 领袖 scope 求值 def+896 CProgress (sub_140A1FFE0) → **sub_14153B770 更新 entry+16 CProgressStatus**: 缓存进度 entry+1312 不变返 0; 变则重算阶段列表 (阶段库 = def+904 指针, 1808B 条目 {+24 CModifier, +40 u8 门, +568 CRule}) + 全量并入修正 + CRule 合并 + **双半缩放** (entry+120 修正: def+32 半 × progress + def+576 半 × (1e5−progress)); 返回脏旗 (bit2 修正/bit4 规则) | 定案 |
-| ② 升级巡检 | sub_1413669E0 | 仅虚调 (fac+2104)+40 CTechnologySharing **vt[9]** = 研究共享成员资格巡检 (§4.2.7 序9 同槽); 成员级升级进度在成员状态日重置 sub_14118EC80 尾 (逐升级 def: obj=*(def+240) 调 vt[12](成员状态, &def+248 阈值)); **升级货币 = initiative** (FACTION_UPGRADE_NOT_ENOUGH_INITIATIVE) | 定案 |
+| ② 升级巡检 | sub_1413669E0 | 仅虚调 (fac+2104)+40 CTechnologySharing **vtable[9]** = 研究共享成员资格巡检 (§4.2.7 序9 同槽); 成员级升级进度在成员状态日重置 sub_14118EC80 尾 (逐升级 def: obj=*(def+240) 调 vtable[12](成员状态, &def+248 阈值)); **升级货币 = initiative** (FACTION_UPGRADE_NOT_ENOUGH_INITIATIVE) | 定案 |
 | ③ 项目贡献 | sub_141993400 | 逐 program (fac+1992) 逐成员: 贡献 = FACTION_INFLUENCE_SCIENTIST_CONTRIBUTION_VALUE qword_143333D20 × (mdef648+1e5)/1e5 → sub_14118D870 入账 | 定案 |
 | ④ 影响力矩阵 | sub_140D8F420 | N×N 矩阵 → **CFaction::UpdateInfluence** (tbb 符号 sub_140D84E00) → 归约 fac+2080 (InterlockedExchange) → 成员占比 +56 (sub_140D8F610) + 排名 +80 (sub_140D8F740) | 定案 |
 | ⑤ initiative 分摊 | sub_140D84FF0 | **PassiveInitiativeGeneration** (lambda 符号): 池 = PASSIVE_INITIATIVE_GENERATION qword_1433351D0 × manifest 条目进度 (entry+1312)/1e5 → 逐成员 initiative(+72) += 池×占比(+56)/1e5 | 定案 |
@@ -324,7 +324,7 @@ sub_140D8D590 (升级/共享重建 → 逐成员 on_action → goal daily 重跑
 领袖 → 给合规成员发跟随通知 + 全员踢 sub_140D8DF30; 非领袖 → RemoveMember
 sub_140D8E2F0 递归附属) 后成员数归 0 → 自动同函数。RemoveFaction = 向量内
 swap-delete (尾元补位) + 色槽重排 (维持 槽==向量位 不变量) + 全员踢 + GUI 刷
-+ **vt[0] 删除析构**; 不在向量 → 断言 "Removing factions that is not supposed
++ **vtable[0] 删除析构**; 不在向量 → 断言 "Removing factions that is not supposed
 to exist" (faction_system.cpp:333)。吞并路径: CCountry::Annex 尾被吞并者离队
 → 队空即解散。
 
@@ -363,3 +363,21 @@ faction_rule 库 (qword_14332EF00, §4.26.4) 的条目类; rules 向量 (CFactio
 | +592 | CModifier 192B 内嵌 | §4.3.8 通用布局 |
 | +784 | 容器 (预留 4 元) | dtor sub_140153590 |
 | +840 | 末块 (sub_14053CFD0) | 类尾 |
+
+#### 4.5.11 CFactionRuleStatus 生命周期三段 (faction_rule_status.cpp; 3 函闭环 — 三写口共享 set 核心)
+
+簇清册 (体内 cpp 锚 3/3; 同族入口 sub_141995D40 书已收, 三函本体未收):
+
+| 函数 | 行数 | 锚 | 定性 |
+|---|---|---|---|
+| sub_141995A60 | 144 | 断言 "Trying to set faction manifest without Deeper Factions DLC" :118 (a4=1→B52, 闩 byte_14338B45A) | set 单条规则核心 |
+| sub_141994260 | 235 | 格式化错误日志 :89 "failed to set rule … while loading a save file" (4096) | loader (存档 rules 块解析 → set 核心) |
+| sub_141996190 | 287 | 格式化错误日志 :48 "failed to set default rule … while creating a faction from template" (4096) | 模板建局默认规则批量装填 |
+
+**set 核心** (sub_141995A60; set_rule(rs, def, out_flags, need_dlc_check, notify)): DLC 门 = need_dlc_check ∧ !sub_1401AEB50(50) ("Deeper Factions DLC") → 断言 :118 返 0; rules 向量 (+88) 线性查重已在 → 返 1; 哈希B 反查 → crule+144 缓存关联对象谓词假 → *out |= 2 + sub_141994E90 级联; def+608 谓词假 → *out |= 2; notify ∧ *(def+860) → 领袖国 scope 构造 → def+840 vtable+96 派发; **FNV(def) 插哈希C (基 +112)**; rules 向量 push (×1.5)。**三写口闭环**: 模板建局 (996190) → 存档回放 (994260, 读档期不查 DLC 不派通知) → 运行期 set_faction_rule 效果链 (书已收) — 共享本核心。
+
+**loader** (sub_141994260): pdx 解析协议形态; '@' 前缀 → sub_1424C04A0 变量间接 (§4.4.27 同款); 每条解出 {rule_id→rs+192, 旗→rs+196, 串→rs+200/+212} → sub_1404AC0F0 查哈希A 得 def (miss 或 set 失败 → :89)。**模板装填** (sub_141996190): 全局默认规则名表逐名 FNV 查模板 +272 规则哈希 → def; 失败 → :48 (模板名 = sub_1424BE600(*(rs+16)) — +16 模板回指第二证)。
+
+哈希形通用观察 (双证): {基+8 data, 基+20 mask&, 基+24 extra u8}, 桶 24B {+4 占用, +8 键, +16 值} 线性探测; 模板侧表 {data@+272, mask&@+284, extra@+288} 同构。
+
+未决: 哈希A/B/D 四行槽名义重验 (§4.5 表 ⚠ 注) / def+608/+840/+860 三槽语义 / 排序模式键 UI 名 (§4.30.55)。

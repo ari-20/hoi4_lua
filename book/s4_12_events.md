@@ -8,24 +8,24 @@
 > 事件 effect (country_event/news_event 族) 见 §4.32.11。
 > 国家侧挂载点 (cc+4000 ds) 见 §4.3 (批5 后为 §4.3.10)。
 
-#### 4.12.1 CEventOption (事件 option 定义体, 504B; vt 0x142999B48)
+#### 4.12.1 CEventOption (事件 option 定义体, 504B; vtable 0x142999B48)
 
 不入档 (writer = CFG 空桩; reader 0x141539CE0 = 事件文件脚本解析; ctor 0x14117F370)。宿主 = CEvent+280 内嵌一份 (至 +784), 另 CEvent+872 = option 指针向量 (Parse 逐块 new+push, +884 序号)。
 
 | 偏移 | 类型 | 语义 (键 token) |
 |---|---|---|
 | +8 | uint32 | 宿主 event id token (作子对象 parse 的 scope token) |
-| +16 | CAIMTTHChance 内嵌 272B | ai_chance (10599, 子 vt[3] 读) |
-| +288 | CEffect 内嵌 88B | option 效果体 (匿名效果 token 全走 default → 子 vt[4]) |
+| +16 | CAIMTTHChance 内嵌 272B | ai_chance (10599, 子 vtable[3] 读) |
+| +288 | CEffect 内嵌 88B | option 效果体 (匿名效果 token 全走 default → 子 vtable[4]) |
 | +376 | std::string 32B | name (27) |
-| +408 | CAndTrigger 内嵌 92B | trigger (10595, 子 vt[5] 带宿主 token; +32 = 10600) |
+| +408 | CAndTrigger 内嵌 92B | trigger (10595, 子 vtable[5] 带宿主 token; +32 = 10600) |
 | +496 | uint32 | option 序号 (内嵌默认 -1) |
 | +500 | uint8 | original_recipient_only (11705) |
 | +501 | uint8 | 11705 已给旗 |
 
 #### 4.12.2 决策状态族 (CDecisionStatus / 冷却 / 定时·定向决策)
 
-**CDecisionStatus** (国家决策状态聚合, 456B; CPersistent@0, vt 0x1427EB5C0; writer 0x140738AA0 / reader 0x140733A20 / ctor 0x140723C70; 挂 cc+4000, 见 §4.3)。内部容器统一 24B 元 {data@0, cap@8, count@12, alloc@16}:
+**CDecisionStatus** (国家决策状态聚合, 456B; CPersistent@0, vtable 0x1427EB5C0; writer 0x140738AA0 / reader 0x140733A20 / ctor 0x140723C70; 挂 cc+4000, 见 §4.3)。内部容器统一 24B 元 {data@0, cap@8, count@12, alloc@16}:
 
 | 偏移 | 容器/语义 (存档键) | 备注 |
 |---|---|---|
@@ -49,13 +49,13 @@
 | +424 | 匿名结构 (NNB 形状) 向量 | 不序列化 |
 | +448 | uint16 ctor=1 | **决策脏/待更新旗** (+448 u8; +449 = 独立第二旗)。ctor sub_140723C70 写 `*(WORD*)(a1+448)=1` (= +448 置 1 / +449 置 0); 多处更新点写 `*(BYTE*)(a1+448)=1`; 消费/清除点 = `sub_1407378E0(ds, flag)`: `if (*(BYTE*)(ds+448) || flag) {…重算…}; *(BYTE*)(ds+448)=0`; **+449 = decision_to_remove 处理重入锁字节 (定案)**: sub_140737480 入口 `if(!*(ds+449)){*(ds+449)=1;…处理 ds+112 到期/移除…; *(ds+449)=0;}` 防 remove 效果级联重入, 稳态恒 0; ds 取得链 = sub_1406CF4D0 单行 `return *(QWORD*)(a1+4000)` |
 
-**CDecisionCooldown** (冷却记录, 24B; vt 0x1427EB450; writer 0x140738A50 / reader 0x1407337F0): +8 CDecision* (写名 = *(dec+288); 读按名走决策库 RH 反查 sub_140722CC0 + 280 有效门) / +16 i32 days (10605)。垃圾键抛 "Unexpected token when reading decision on cooldown"。
+**CDecisionCooldown** (冷却记录, 24B; vtable 0x1427EB450; writer 0x140738A50 / reader 0x1407337F0): +8 CDecision* (写名 = *(dec+288); 读按名走决策库 RH 反查 sub_140722CC0 + 280 有效门) / +16 i32 days (10605)。垃圾键抛 "Unexpected token when reading decision on cooldown"。
 
-**CTimedDecision** (定时决策实例, 32B; IDecision@0 + CPersistent@8 双基, 主 vt 0x1427EB4A0 / 次 0x1427EB4B8; writer 0x140738E20 / reader 0x1407349C0): +16 CDecision* decision (11142 名串) / +24 u32 days (10605) / **+28 u32 state (439 块)**。
+**CTimedDecision** (定时决策实例, 32B; IDecision@0 + CPersistent@8 双基, 主 vtable 0x1427EB4A0 / 次 0x1427EB4B8; writer 0x140738E20 / reader 0x1407349C0): +16 CDecision* decision (11142 名串) / +24 u32 days (10605) / **+28 u32 state (439 块)**。
 
 state 枚举 (CTimedDecision): 0 active (11390) / 1 completed (12583) / 2 failed (14349) / 3 aborted (14811) / 4 re_enable_cooldown (14816); 非法值抛 "Unknown state for timed decision"。
 
-**CTargetedDecision** (定向决策实例, 96B; 同双基, 主 vt 0x1427EB508 / 次 0x1427EB520; writer 0x140738D50 / reader 0x1407346A0): +16 decision (11142) / +24 STargetedDecisionTarget 内嵌 target (107, 通用递归读; **布局定案 = 16B, 仅 8B idpair {tag_id u32@+8, idx u32@+12}**: vt 0x142765CF8, writer sub_140738A10 (tag>0 发引号 tag 名, 否则发 idx 数字) / reader sub_140732670) / **+40 u32 state** (439; 单槽定案 — reader 0x1407346A0 写体+32 = obj+40 / writer 读同槽 / ctor 清 / 采纳写 1 四证; 勘误: 原「+32 反序列化落点 + +40 存档发射源」双槽系 reader 体视角 [obj+8] 漏加 8 的产物; state=2 reader 兼接受旧别名 10376 enable, writer 只发射 14816) / **+44 u8 ignore** (11736; 勘误: 原「+36 非 +44」系同根漏加 8) / +48 u32 days (10605) / **+56 32B 串 (键 19935 power_balance, 有存档键 — 勘误: 原记纯运行时串)** / +88 i32 ctor=-1 运行时。
+**CTargetedDecision** (定向决策实例, 96B; 同双基, 主 vtable 0x1427EB508 / 次 0x1427EB520; writer 0x140738D50 / reader 0x1407346A0): +16 decision (11142) / +24 STargetedDecisionTarget 内嵌 target (107, 通用递归读; **布局定案 = 16B, 仅 8B idpair {tag_id u32@+8, idx u32@+12}**: vtable 0x142765CF8, writer sub_140738A10 (tag>0 发引号 tag 名, 否则发 idx 数字) / reader sub_140732670) / **+40 u32 state** (439; 单槽定案 — reader 0x1407346A0 写体+32 = obj+40 / writer 读同槽 / ctor 清 / 采纳写 1 四证; state=2 reader 兼接受旧别名 10376 enable, writer 只发射 14816) / **+44 u8 ignore** (11736) / +48 u32 days (10605) / **+56 32B 串 (键 19935 power_balance, 有存档键)** / +88 i32 ctor=-1 运行时。
 
 state 枚举 (CTargetedDecision): 0 available (12264) / 1 completed (12583) / 2 re_enable_cooldown (14816) / 3 failed (14349) / 4 aborted (14811)。
 
@@ -86,7 +86,7 @@ ds 容器总表:
 | ds+304 | 容器 24B {c@ds+316} | 类别态表 | 类别可见门 +568 ∧ available ∧ should_show ∧ power-balance (+976/+992, 经 gs+1104); 类别行分组键 = *(def+368) = CDecisionCategory* |
 | cc+5360 | 名集合 (定案) | ignored 决议名集合 = player_settings (存档 token 14423) 内 ignored 集 | 写侧: CIgnoreDecisionCommand::Execute 0X141157240 (byte+72=1 插入 / =0 删除); CIgnoreAllAvailableDecisionCommand::Execute 0X141156FD0 全量插入 |
 
-决议命令族 (CSelect/Ignore 四枚, id 经 vt[11] GetId 实证): 载荷布局与
+决议命令族 (CSelect/Ignore 四枚, id 经 vtable[11] GetId 实证): 载荷布局与
 GUI 绑定全表见 §4.33 (id 14345 / 14383 / 14768 / 14769)。
 
 注: CategoryItem cb sub_141D74190 = 折叠切换 (win+1680 表), 非命令。
@@ -96,7 +96,7 @@ GUI 绑定全表见 §4.33 (id 14345 / 14383 / 14768 / 14769)。
 | 偏移 | 名称/语义 |
 |---|---|
 | +288 | 名 (行名/图标; ignored 集 cc+5360 名键查询 → 状态元 1/2) |
-| +368 | CDecisionCategory* (定案; 类别对象 1016B = 0x3F8: 双 vt 0x1427eb330/0x1427eb380, ctor 0X140723750, 装载器 sub_140726190 "Duplicate category" 断言, key 派发器 0X1407332B0 全 key 落名 available/allowed/visible/icon/picture/priority/scripted_gui/custom_icon/on_map_area/visibility_type/highlight_states; def ctor 初值 = TNullObject 单例 qword_143330DD8) |
+| +368 | CDecisionCategory* (定案; 类别对象 1016B = 0x3F8: 双 vtable 0x1427eb330/0x1427eb380, ctor 0X140723750, 装载器 sub_140726190 "Duplicate category" 断言, key 派发器 0X1407332B0 全 key 落名 available/allowed/visible/icon/picture/priority/scripted_gui/custom_icon/on_map_area/visibility_type/highlight_states; def ctor 初值 = TNullObject 单例 qword_143330DD8) |
 | +376 | **available trigger 体** (存在旗 u32@+396; 求值 sub_1407313C0: bypass byte_14332F632 → 1, 否则类别门 ∧ (!旗 ∥ Eval(体))) |
 | +464 | **allowed trigger 体** (旗@+484; 求值点 = 采纳命令路径 CSelectDecisionCommand, 点击时) |
 | +552 | **visible trigger 体** (旗@+572; 求值 sub_1407367D0→sub_140736830 = 类别 visible ∧ def visible; profiler "should_show") |
@@ -148,21 +148,21 @@ targeted / timed entry:
 
 #### 4.12.4 定时活动族 (CBaseTimedActivity 系 + 活动库)
 
-**CBaseTimedActivity** (抽象基, 104B; vt 0x142944A10 19 槽含 5 _purecall; writer 0x140ADCC60 / reader 0x140ADC130): +8 u32 类 token (CPersistentWithToken, 例 timed_wargoal=13319) / +16 owner (10302) / +20 target (107) / +24 i64 total_cost (13317, >0 写) / +32 i64 daily_cost (13318, >0 写) / +40 i64 points (12766, >0 写) / +48 CGameDate start_date (10464) / +72 CGameDate end_date (10465) / +96 u8 pay_upfront (13899)。派生各自的 writer 继承调用; 效果类 ctor 直证 start_date.hours = *(gs+1128) 当前日期。
+**CBaseTimedActivity** (抽象基, 104B; vtable 0x142944A10 19 槽含 5 _purecall; writer 0x140ADCC60 / reader 0x140ADC130): +8 u32 类 token (CPersistentWithToken, 例 timed_wargoal=13319) / +16 owner (10302) / +20 target (107) / +24 i64 total_cost (13317, >0 写) / +32 i64 daily_cost (13318, >0 写) / +40 i64 points (12766, >0 写) / +48 CGameDate start_date (10464) / +72 CGameDate end_date (10465) / +96 u8 pay_upfront (13899)。派生各自的 writer 继承调用; 效果类 ctor 直证 start_date.hours = *(gs+1128) 当前日期。
 
-| 派生 (载体 = 存档 timed 块) | vt/writer | 追加字段 |
+| 派生 (载体 = 存档 timed 块) | vtable/writer | 追加字段 |
 |---|---|---|
-| CTimedEffectActivity | vt 0x142944B50; writer 0x140ADCDC0 (dump 缺件, 推定 = 调基 writer, reader 0x140ADC430 零自有键互证) | 无自有存档键 |
+| CTimedEffectActivity | vtable 0x142944B50; writer 0x140ADCDC0 (dump 缺件, 推定 = 调基 writer, reader 0x140ADC430 零自有键互证) | 无自有存档键 |
 | CTimedWargoalActivity | ctor 0x140AD7390 | (timed_wargoal=13319) |
-| CDemilitarizedZoneTimedEffect (demilitarized_zone=12531) | vt 0x1429DC140; writer 0x1415A8E90 / reader 0x1415A8BB0 | **+104 州 id 容器** (states=11835; ctor 自 a5 州 id 数组拷贝) |
-| CWarReparationTimedEffect (war_reparation=12532) | vt 0x1429DC1E0; writer 0x1415A8ED0 / reader 0x1415A8BD0 | **+104 u32 civilian_factories (19421) / +108 u32 num_of_civilian_factories_available_for_projects (14729)** |
-| CResourceRightsTimedEffect (resource_rights=12533) | vt 0x1429DC280; writer/reader 与 demilitarized 同 (12531/12533 双 token 复用同 writer) | **+104 州 id 容器** (states=11835; 买权州清单) |
+| CDemilitarizedZoneTimedEffect (demilitarized_zone=12531) | vtable 0x1429DC140; writer 0x1415A8E90 / reader 0x1415A8BB0 | **+104 州 id 容器** (states=11835; ctor 自 a5 州 id 数组拷贝) |
+| CWarReparationTimedEffect (war_reparation=12532) | vtable 0x1429DC1E0; writer 0x1415A8ED0 / reader 0x1415A8BD0 | **+104 u32 civilian_factories (19421) / +108 u32 num_of_civilian_factories_available_for_projects (14729)** |
+| CResourceRightsTimedEffect (resource_rights=12533) | vtable 0x1429DC280; writer/reader 与 demilitarized 同 (12531/12533 双 token 复用同 writer) | **+104 州 id 容器** (states=11835; 买权州清单) |
 | CTimedStageCoupActivity | writer 0x140ADCDD0 | +104 location(10349)/+112 equipment(12110)/+144 ideology(11838) |
 | 专项活动 (civilian) | writer 0x1415A8ED0 / 0x1415A8E90 | civilian_factories(19421)@+104 / num_of_civilian_factories_available_for_projects(14729)@+108 / states(11835)@+104 |
 
-**CTimedActivityDatabase** (活动类型库, 72B; TGameItemDatabase 单基, vt 0x142944D48; ctor 0x140AD6F00; **idb timed_activity 已挂** 0x332F0B8): +40 CEquipmentArcheTypePool vt 复用名 / +48 条目数组 (idb arr) / +56 cap / +60 count (idb cnt); 条目 = 16B 内联元。
+**CTimedActivityDatabase** (活动类型库, 72B; TGameItemDatabase 单基, vtable 0x142944D48; ctor 0x140AD6F00; **idb timed_activity 已挂** 0x332F0B8): +40 CEquipmentArcheTypePool vtable 复用名 / +48 条目数组 (idb arr) / +56 cap / +60 count (idb cnt); 条目 = 16B 内联元。
 
-活动库行为链: 库单例 getter sub_140164030/sub_140173520; AddTimedActivity sub_140ADA270 (绑 owner cc+3944 生产状态, 每日进度初值 = IC_TO_EQUIPMENT_COUP_RATIO × sub_140E69340(生产)); 进度公式 sub_140AD9ED0 (timedactivity.cpp:143 断言 "UsePoliticalPowerCost() || UseEndDate()": 有 total_cost → `points×1e5/total_cost`, 否则日期区间比); IsFinished = 基表槽[15] sub_140ADA4E0 (进度 ≥100000); IsActive = 槽[12] sub_140ADA500 (target cc+1156 >0); GetDesc = 槽[11] sub_140AD9980 (loc "POLITICS_TIMEDACTIVITY_PROGRESS")。工厂 sub_140AD7DD0 (effect 侧): 12531 demilitarized_zone → sub_1415A7840 / 12532 war_reparation → sub_1415A7800 / 13319 timed_wargoal / 13424 stage_coup (256B)。**timed_wargoal = justify 主逻辑 sub_141106980 每次 justify tick 栈上构造 (ctor sub_140AD7390) 即时发射** — 调槽[13] sub_140ADA7D0 完成 (=宣战 sub_1406D1A60) / [17] sub_140ADBEF0 (on_action "on_justifying_wargoal_pulse") / [18] sub_140ADB480, 不持久化。DMZ 创建 sub_141454710 (end_date = now + 24×dword_143332BB8); DMZ 槽[18] sub_1415A8800 到期恢复 (遍历 +104 州 id 逐州恢复)。**持久活动日推进链 (定案)**: 日推进写者 = **sub_140ADCBD0 DailyTick**
+活动库行为链: 库单例 getter sub_140164030/sub_140173520; AddTimedActivity sub_140ADA270 (绑 owner cc+3944 生产状态, 每日进度初值 = IC_TO_EQUIPMENT_COUP_RATIO × sub_140E69340(生产)); 进度公式 sub_140AD9ED0 (timedactivity.cpp:143 断言 "UsePoliticalPowerCost() || UseEndDate()": 有 total_cost → `points×1e5/total_cost`, 否则日期区间比); IsFinished = 基表槽[15] sub_140ADA4E0 (进度 ≥100000); IsActive = 槽[12] sub_140ADA500 (target cc+1156 >0); GetDesc = 槽[11] sub_140AD9980 (loc "POLITICS_TIMEDACTIVITY_PROGRESS")。工厂 sub_140AD7DD0 (effect 侧): 12531 demilitarized_zone → sub_1415A7760 / 12532 war_reparation → sub_1415A7840 (变体 ctor sub_1415A7800) / 13319 timed_wargoal / 13424 stage_coup (256B)。**timed_wargoal = justify 主逻辑 sub_141106980 每次 justify tick 栈上构造 (ctor sub_140AD7390) 即时发射** — 调槽[13] sub_140ADA7D0 完成 (=宣战 sub_1406D1A60) / [17] sub_140ADBEF0 (on_action "on_justifying_wargoal_pulse") / [18] sub_140ADB480, 不持久化。DMZ 创建 sub_141454710 (end_date = now + 24×dword_143332BB8); DMZ 槽[18] sub_1415A8800 到期恢复 (遍历 +104 州 id 逐州恢复)。**持久活动日推进链 (定案)**: 日推进写者 = **sub_140ADCBD0 DailyTick**
 (`points@+40 += daily_cost@+32`, 门 = pay_upfront@+96 ∨ daily_cost ≤ 当前 PP;
 非 upfront 返回消耗由上游扣 PP → sub_140BA7470 AddPoliticalPower); 驱动宿主 =
 **politics.daily sub_140BA8300** (CPolitics::DailyUpdate, politics.cpp:491;
@@ -175,7 +175,7 @@ timed_ideas 递减。三持久活动 (DMZ/赔款/资源权) **daily_cost 恒 0**
 进度 = max(PP 分支, 1e5×(now−start)/(end−start)); 到期槽[18] OnFinished 还原
 效果 + 完结段销毁)。三模式穷举失败根因 = 调用方全部虚调用 (槽 [12]/[15]/
 [17]/[18]), 文本 grep 天然落空。
-虚表 19 槽定名 (exe 直读): [9]=GetName (loc 键) / [10]=GetDesc (GUI tooltip) —
+vtable 19 槽定名 (exe 直读): [9]=GetName (loc 键) / [10]=GetDesc (GUI tooltip) —
 两槽基表 _purecall 纯虚; [12]=IsActive / [13]=OnAdd 即时效果 (append
 sub_140BA7570 后立即调 — 创建即生效: DMZ 逐州置非军事化 / 赔款给 target 加
 offmap 民工 sub_1410DC4E0 (断言 peacetimedeffect.cpp:180) / 资源权逐州授开采
@@ -184,8 +184,8 @@ sub_1415A8330: owner 亡国直接完成; 赔款/资源权 sub_1415A8370: 和约�
 [17]=OnDailyPulse / [18]=OnFinished 还原 (DMZ sub_1415A8800 解除非军事化 /
 赔款 sub_1415A8B50 按 +108 实加数移除 offmap 工厂 / 资源权 sub_1415A89A0
 撤销开采权)。
-工厂勘误: 12531 → sub_1415A7760 (DMZ ctor, 128B) / 12532 → sub_1415A7840
-(赔款 ctor, 112B) — 两 ctor 旧标注错位; 工厂唯一文本调用者 = CPolitics reader
+工厂 ctor 映射 (定案): 12531 → sub_1415A7760 (DMZ ctor, 128B) / 12532 → sub_1415A7840
+(赔款 ctor, 112B); 工厂唯一文本调用者 = CPolitics reader
 sub_140BAD850 (存档多态重建), effect 侧运行时创建走直接 malloc+ctor (DMZ
 sub_141454710 / 赔款 sub_141455B80 / 资源权 sub_141454CE0; 天数 define =
 PEACE_TIMED_EFFECT_LENGTH_{DEMILITARIZED_ZONE dword_143332BB8 / WAR_REPARATION
@@ -195,7 +195,7 @@ dword_143332CA0 / RESOURCE_RIGHTS dword_143332D80})。⚠ **12533 读档缺口
 静默丢失 → 到期还权失效 (开采权永久化; 后果推定)。和约条目 12534
 dismantle_industry = 即时条目非定时活动。
 
-定时活动五类虚表槽全景 (exe .rdata 直读; 槽 | 基表 CBaseTimedActivity 0x142944A10 |
+定时活动五类vtable槽全景 (exe .rdata 直读; 槽 | 基表 CBaseTimedActivity 0x142944A10 |
 CTimedEffectActivity 0x142944B50 | DMZ 0x1429DC140 | 赔款 0x1429DC1E0 | 资源权
 0x1429DC280):
 
@@ -221,33 +221,39 @@ sub_140AD7DD0 分支: 12531→sub_1415A7760 / 12532→sub_1415A7840 / 13319→
 timed_wargoal (0x90) / 13424→stage_coup (0x100)。sub_140ADA270 = stage_coup
 装备需求清单采集 (非 append — 真正 append = sub_140BA7570)。
 
-**CTimedActivityEquipmentDistributable** (设备分发活动, ≈136B; CEquipmentDistributable@0 + CPersistent@24 多基, 主 vt 0x142944BF0 / 次 0x142944C28; writer 0x140ADCD50 / reader 0x140ADC3A0): 基 = priority@+8 (141, ≠1 写) / +32 produced 池 (12204, 非空写) / +64 运行时池 / +96 need 池 (12111)。
+**CTimedActivityEquipmentDistributable** (设备分发活动, ≈136B; CEquipmentDistributable@0 + CPersistent@24 多基, 主 vtable 0x142944BF0 / 次 0x142944C28; writer 0x140ADCD50 / reader 0x140ADC3A0): 基 = priority@+8 (141, ≠1 写) / +32 produced 池 (12204, 非空写) / +64 运行时池 / +96 need 池 (12111)。
+
+**GetDaysRemaining sub_140AD80C0** (86 行; 断言 :172 "UsePoliticalPowerCost() ‖ UseEndDate() && timed activated was not set with any way to determined the duration"): 门 = daily_cost@+32 ≤ 0 ∧ end_date@+80 == dword_143086B08 (**CGameDate::EndOfTime 哨兵, :156 断言文本直证命名 — §4.00.11 哨兵族第三成员, 数值待 PE 复核**)。PP 分支: daily_cost > 0 → days = round_fixed5(1e5 × (total_cost@+24 − points@+40) / daily_cost) (sub_1424ED730; 溢出守卫 / total_cost==0 → 0xFFFFFFFF); 日期分支: end_date ≠ EndOfTime → days = (end_date − gs+1128 当前日期) (同扣 43800000 纪元 ÷24); 返回 **min(日期分支, PP 分支)** (INT_MAX 参与比较故单分支即取该分支)。唯一调用方 = sub_140AD7C40 (GetDesc/文案族推定)。
+
+**stage_coup 完成执行器 sub_140ADA910** (617 行全展开; a1 = CTimedStageCoupActivity: +16 owner cc / +20 target tag / +104 location state / +152 内嵌结构)。三因子规模公式 (全部 1e5 定点): ① 意识形态人气占比 = 1e5 × Σ(target 国意识形态表中该活动 ideology@+24 匹配项 +136 权重) / Σ(全部 +136 权重), 总权重 0 → 0xFFFFFFFF; ② 稳定度因子 = 稳定度 ≤ qword_143331260 阈值时 = qword_143331128 + (1e5 − 稳定度)×(qword_1433311D0 − qword_143331128)/1e5 (不稳定度线性放大, 区间 define 三枚), 稳定度够高 → 0; ③ 军力基准 = sub_141010160(a1+152, …) (revolution target 强度提取)。政变规模 = ③ × (② × ① / 1e5) / 1e5, >1e5 时断言 :831 "vCoupSizeModifier <= 1_fixed" (一次性闩) 后钳 1e5。指定州门: +104 非空 且 (state+204 controller == target 或同 tag 伴随 sub_140BB52F0) → CCivilWarSetup +80 = mode 4 / +84 army_size = *(state+88) (§4.10 指定州引用互证)。规模 > 0 → 栈构 CCivilWarSetup (ctor sub_1410DCD10, 256B) → 执行 sub_1410DDFE0 → 逐字段析构。:871 起公告文案: 目标国名 + 三因子 argmax 选 loc 键 (三两比较树) → 本地化发射 (loc 键字面值数据段不可读, 未决) + 引擎日志。尾段: gs+1312/1316 (玩家 tag 槽, 按 gs+1312 计数选偏移) ≠ owner 且非同 tag 伴随 → 通知/清理路径。
+
+timed_wargoal OnDailyPulse (sub_140ADBEF0) 补门细节: 发射门 = 意识形态 def (target 国意识形态表取 party 对象) +744 槽对象为空 **或** +73 旗已置; 不满足则 :430/:433 双日志 (owner 名 + target 名) 后**仍不发射**; scope 组装 owner(this)+FROM(target), eventscope.h:193 无限循环守卫断言。
 
 #### 4.12.5 定时条目与理念/国策 def 周边
 
-**CTimedIdea** (定时理念条, 24B; vt 0x14294FD58; writer 0x140BB07D0 / reader 0x140BAE240): +8 CIdea* idea (10491, 写名 = *(idea+64)) / +16 u32 days (10605)。挂 ps+104 timed_ideas (§4.10)。
+**CTimedIdea** (定时理念条, 24B; vtable 0x14294FD58; writer 0x140BB07D0 / reader 0x140BAE240): +8 CIdea* idea (10491, 写名 = *(idea+64)) / +16 u32 days (10605)。挂 ps+104 timed_ideas (§4.10)。
 
-**CTimedModifier** (定时修饰条, 48B; vt 0x1427D61C8; writer 0x140612730 / reader 0x140610770 / ctor 0x140556560): +8 CModifier* modifier (10597, 写名 = *(mod+424)) / +16 CGameDate date (10314) / +40 u8 ruler_modifier (11487) / +41 u8 permanent (11017) / +42 u8 hidden (11404)。
+**CTimedModifier** (定时修饰条, 48B; vtable 0x1427D61C8; writer 0x140612730 / reader 0x140610770 / ctor 0x140556560): +8 CModifier* modifier (10597, 写名 = *(mod+424)) / +16 CGameDate date (10314) / +40 u8 ruler_modifier (11487) / +41 u8 permanent (11017) / +42 u8 hidden (11404)。
 
-**CIdeaResearchBonus** (idea def 侧 research_bonus trait, 72B; CPersistentWithToken@0 + THashedKeyValueTrait@16 多基, vt 0x142981590; Load wrapper 0x140FD4B40): +8 类 token (拷自 owner idea) / +16 32B trait key (+48 FNV-1a u32, Load 现算) / +56 CFixedPoint value / +64 CIdea* owner。writer = CFG 桩 = 不落盘 (def 侧重载重建; 工厂嵌 CIdea loader 0x140FD4C70, 容器 = CIdea+2672)。
+**CIdeaResearchBonus** (idea def 侧 research_bonus trait, 72B; CPersistentWithToken@0 + THashedKeyValueTrait@16 多基, vtable 0x142981590; Load wrapper 0x140FD4B40): +8 类 token (拷自 owner idea) / +16 32B trait key (+48 FNV-1a u32, Load 现算) / +56 CFixedPoint value / +64 CIdea* owner。writer = CFG 桩 = 不落盘 (def 侧重载重建; 工厂嵌 CIdea loader 0x140FD4C70, 容器 = CIdea+2672)。
 
-**CNationalFocusDependency** (国策依赖条, 72B; vt 0x142739AC8; reader 0x1402D8690 / ctor 0x1402CB990): +8 32B 备用枚举串 / +32 32B 依赖名 (键 10601 `or` / 13239 `focus` 均写入)。writer = CFG 桩 (focus def 静态成分, 不落盘)。
+**CNationalFocusDependency** (国策依赖条, 72B; vtable 0x142739AC8; reader 0x1402D8690 / ctor 0x1402CB990): +8 32B 备用枚举串 / +32 32B 依赖名 (键 10601 `or` / 13239 `focus` 均写入)。writer = CFG 桩 (focus def 静态成分, 不落盘)。
 
-**CNationalFocusStyleDatabase** (focus style 双 RH 名表; vt 0x142739A78; 非 TGameItemDatabase): 实体 = 内嵌 **CNationalFocusDatabase+48 起 160B** {+48 vt, +56 i32=-1, 双 RH map (0x1430868C0 / 0x143086920, load factor 0.90)}; 不与 idb 规格相合, 不可挂 resource.lua key。
+**CNationalFocusStyleDatabase** (focus style 双 RH 名表; vtable 0x142739A78; 非 TGameItemDatabase): 实体 = 内嵌 **CNationalFocusDatabase+48 起 160B** {+48 vtable, +56 i32=-1, 双 RH map (0x1430868C0 / 0x143086920, load factor 0.90)}; 不与 idb 规格相合, 不可挂 resource.lua key。
 
 #### 4.12.6 CSavedEventTarget (112B, saved_event_target)
 
 内联向量 {data@gs+1728, count@gs+1740}; 元素 112B = CSavedEventTarget;
 writer 0X14053C090; eventscope.cpp 断言 "CSavedEventTarget cannot persist
 CCombatant" (:0x58E); +106..+111 = 112B 对齐尾 pad。⚠ 该 writer/reader 指纹的 RTTI
-持有者实为 **CNullSavedEventTarget** (vt 0x1427D4438, TNullObject 变体) — 空对象承担
+持有者实为 **CNullSavedEventTarget** (vtable 0x1427D4438, TNullObject 变体) — 空对象承担
 整组读写; 懒单例 sub_140536660 (qword_14332FFC0, malloc 0x70, 先写 CSavedEventTarget vftable
-再覆写 CNull 表) — get 按名 miss 时的回退。**键→槽 parse 分派器 = sub_140539530** (虚表槽形态;
-14 键: name 27→+104 (串注册 u16) / state 439→+8 / country 10394→+12 (名→tag 管理器 qword_143330D98; **country/state 写入 = 复位全槽语义**, name u16 保留) / character 19478→+16 / operation 12059→+24 (sub_140538BA0 解析; 失败 :1492) / strategic_region 12014→+32 (id → gs+736 区域表界 gs+748 回填裸指针) / unit 10403→+56 / ace 12770→+48 / industrial_organisation 14501→+64 / purchase_contract 19773→+72 / raid_instance 19183→+80 / project 10022→+88 / faction 10877→+96; 三处 "Invalid id for X in saved event target" (:1482 character/:1492 operation/:1517 unit) = load 校验错误收集非断言)。**operator= sub_1405388D0**: name-flag 对齐断言 :49 + 拷后 vt[9]=IsValid 虚调断言 :51。**scope 侧 per-scope 存储 (§4.00.4 +160) 双容器**: @+0 = 常规 target **按名 u16 排序的有序向量** (lower_bound sub_140534150 / 有序插入 sub_140538170), @+24 = tooltip 同构向量 (节点 = malloc 0x30 双 24B 向量头); **仅外层 scope 的 @+0 容器持久化** (writer sub_14053BDA0 尾段发 13217; tooltip 容器不落盘); Save/Get 函数对 = save_event_target 本体 sub_140539C80→sub_140539B50 (FROM 链 +32 到外层) / **SaveEventTargetTooltip sub_140539E00 (走 +24 ROOT 链, 与常规对唯一链差异)** / get = sub_140537CC0 (常规) / sub_140537D20 (tooltip); GetCharacter sub_140535E00 = +80 idpair → sub_14221F310 → sub_140F9F9C0 二段解析。
+再覆写 CNull 表) — get 按名 miss 时的回退。**键→槽 parse 分派器 = sub_140539530** (vtable槽形态;
+14 键: name 27→+104 (串注册 u16) / state 439→+8 / country 10394→+12 (名→tag 管理器 qword_143330D98; **country/state 写入 = 复位全槽语义**, name u16 保留) / character 19478→+16 / operation 12059→+24 (sub_140538BA0 解析; 失败 :1492) / strategic_region 12014→+32 (id → gs+736 区域表界 gs+748 回填裸指针) / unit 10403→+56 / ace 12770→+48 / industrial_organisation 14501→+64 / purchase_contract 19773→+72 / raid_instance 19183→+80 / project 10022→+88 / faction 10877→+96; 三处 "Invalid id for X in saved event target" (:1482 character/:1492 operation/:1517 unit) = load 校验错误收集非断言)。**operator= sub_1405388D0**: name-flag 对齐断言 :49 + 拷后 vtable[9]=IsValid 虚调断言 :51。**scope 侧 per-scope 存储 (§4.00.4 +160) 双容器**: @+0 = 常规 target **按名 u16 排序的有序向量** (lower_bound sub_140534150 / 有序插入 sub_140538170), @+24 = tooltip 同构向量 (节点 = malloc 0x30 双 24B 向量头); **仅外层 scope 的 @+0 容器持久化** (writer sub_14053BDA0 尾段发 13217; tooltip 容器不落盘); Save/Get 函数对 = save_event_target 本体 sub_140539C80→sub_140539B50 (FROM 链 +32 到外层) / **SaveEventTargetTooltip sub_140539E00 (走 +24 ROOT 链, 与常规对唯一链差异)** / get = sub_140537CC0 (常规) / sub_140537D20 (tooltip); GetCharacter sub_140535E00 = +80 idpair → sub_14221F310 → sub_140F9F9C0 二段解析。
 
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|
-| +0 | vt | CSavedEventTarget | 不序列化 | |
+| +0 | vtable | CSavedEventTarget | 不序列化 | |
 | +8 | uint32 | state | ≠0 | |
 | +12 | uint32 | country 国 idx | >0 | → 引号 |
 | +16 | uint32 | character id 对.type | 双非零 (对) | id@+20 |
@@ -310,7 +316,7 @@ CCombatant" (:0x58E); +106..+111 = 112B 对齐尾 pad。⚠ 该 writer/reader �
 
 发射链: 掷中候选 → **cc+4776 容器** ({data@+4776, count@+4788}; 与 cc+4752 delayed_events 相邻勿混) → CCountry::DailyUpdate 串行段 "country.queued_events" 逐条再复核 trigger → sub_140A0F4F0 (断言 "Scope.GetRandom() != CCrudeRandom()") → **sub_140A0F6F0 真发射体**: fire_only_once 复核 → timeout_days (ev+1032) 到期时刻 = now+24×days → sub_1401CAFF0 pending_events (gs+1376) 入队 (56B 元 {fire_id/CEvent*/scope*/tag/date×2}; scope = CEventScope 176B 深克隆, §4.00.4a) → AI/hidden (IsAI ∥ ev+1059) 路径逐 option 掷 (sub_141539CB0 trigger + sub_141539B80 CAIMTTHChance 权重) 构造 CSelectEventOptionCommand (sub_141539E40, 240B) 入命令队列; 玩家路径 = idler 虚槽 +240 挂事件收件箱; fire_only_once 落账 sub_1401CA1D0 (§4.12.7); major (ev+1056) → 广播分支 (遍历 gs+784 各国)。
 
-**CEvent** (1064B = 0x428; vt 0x142999BE8 11 槽 + 第二表 0x142999C40 @+24 名串基视图; ctor sub_14117F1A0; ReadKey = sub_141180B10; 活体抽验 5 实例全对上):
+**CEvent** (1064B = 0x428; vtable 0x142999BE8 11 槽 + 第二表 0x142999C40 @+24 名串基视图; ctor sub_14117F1A0; ReadKey = sub_141180B10; 活体抽验 5 实例全对上):
 
 | 偏移 | 类型 | 键/语义 | 置信 |
 |---|---|---|---|
@@ -321,9 +327,9 @@ CCombatant" (:0x58E); +106..+111 = 112B 对齐尾 pad。⚠ 该 writer/reader �
 | +32 | SSO 32B | 事件规范名 (id 键反查成功回填; 活体 "denmark_political_events.1"; 原 +32 数组/串两说 — **串说胜结案**) | 定案 |
 | +64 | SSO 32B | id 键原文串 (finalize 缺 option 报错打印此串) | 定案 |
 | +96 | uint32 | **事件族类型码** (ctor 第二参; 作 +104/+280/+896 子解析 scope): country/news/unit_leader = 4 / state = 2 / operative = 8 (装载器五分支 + 活体双证) | 定案 |
-| +104 | CAndTrigger 88B | trigger (10595; vt[5] Parse 带 +96; 发射门 = +1048 位掩码) | 定案 |
+| +104 | CAndTrigger 88B | trigger (10595; vtable[5] Parse 带 +96; 发射门 = +1048 位掩码) | 定案 |
 | +192 | CAndTrigger 88B | **show_major** (13801; Parse scope 字面 4) — 原「第二 trigger」键名定案 | 定案 |
-| +280 | CEventOption 504B | 内嵌默认 option (序号 −1; immediate 键 10837 → 其 vt[3]) | 定案 |
+| +280 | CEventOption 504B | 内嵌默认 option (序号 −1; immediate 键 10837 → 其 vtable[3]) | 定案 |
 | +784 | CEffect 88B | **after 块** (17136) | 定案 |
 | +872 | 向量 24B | option 指针向量 {data@872, cap@880, **count@884**, alloc@888}; 元 = malloc(0x1F8) CEventOption (ctor 第三参 = push 前计数 = option 序号) | 10598 |
 | +896 | CMeanTimeToHappen 56B | **mean_time_to_happen 块** {类型码@+912, MTTH 基值@+920 (默认 1 天), CMTTHModifier* 向量@+928} | 10596 |
@@ -351,7 +357,7 @@ CCombatant" (:0x58E); +106..+111 = 112B 对齐尾 pad。⚠ 该 writer/reader �
 > (初值 1.0/0), 与 §4.34 MTTH 行完全吻合; CAIMTTHChance 272B 实为 CMeanTimeToHappen 派生类。
 > ⚠ 延时事件 writer 路 (sub_141181300 键 440) 读 +32 为串名的旧疑案按串说结案 (见 +32 行)。
 
-option 执行链: 三入口 (玩家点击/超时自动/AI 选择) 同归 **CSelectEventOptionCommand::Execute → sub_14117FA30** (event.cpp:271 "Executing event: %i with option #%i"; idx<0 → 内嵌默认 option, 0≤idx<count → ev+872 元素) → sub_141539B70 = option+288 CEffect 槽[12] ExecuteChecked (vt+96; §4.00.3 同口径, 内部转调 [13])。option trigger 过滤 sub_141539CB0 (`!opt+501 ∥ opt+500 == immediate` 门 → opt+408 CAndTrigger 槽[3] Evaluate)。玩家事件窗口: sub_14123B0B0 建 "options_grid" 时逐 option 过滤 (窗口+4732 immediate 旗) — **窗口构建时一次性求值, 非每帧**; 超时自动选 sub_14123C410 (gs+1128 ≥ **窗口+4712** 门 → 第一个 trigger 过的 option — 勘误: 原「+4672」系 tick 读点 this=窗+40 的坐标系混记, ctor 写点 = 窗基址 +4712 CGameDate 值域, 同函数两读)。
+option 执行链: 三入口 (玩家点击/超时自动/AI 选择) 同归 **CSelectEventOptionCommand::Execute → sub_14117FA30** (event.cpp:271 "Executing event: %i with option #%i"; idx<0 → 内嵌默认 option, 0≤idx<count → ev+872 元素) → sub_141539B70 = option+288 CEffect 槽[12] ExecuteChecked (vtable+96; §4.00.3 同口径, 内部转调 [13])。option trigger 过滤 sub_141539CB0 (`!opt+501 ∥ opt+500 == immediate` 门 → opt+408 CAndTrigger 槽[3] Evaluate)。玩家事件窗口: sub_14123B0B0 建 "options_grid" 时逐 option 过滤 (窗口+4732 immediate 旗) — **窗口构建时一次性求值, 非每帧**; 超时自动选 sub_14123C410 (gs+1128 ≥ **窗口+4712** 门 → 第一个 trigger 过的 option — ctor 写点 = 窗基址 +4712 CGameDate 值域, 同函数两读)。
 
 **eventmanager.cpp 簇对账增补 (7 函数闭环)** — **CEvent finalize 六检查 sub_140A0DF40**
 (新收): ① !hidden 且 title (+964 计数) 空 ": Event is missing a title." :555 / ② !hidden 且
@@ -362,7 +368,7 @@ CEvent+64 id 键原文; MTTH 存储单位 = 1e-5 天。**五事件键分派表**
 全部 malloc 1064): country_event(10127)/unit_leader_event(14817)/news_event(12776) → 类型码
 4 / state_event(10128) → 2 / operative_leader_event(19265) → 8; 旗写点 +1052/+1053/+1054
 /+1060 全在语料对上; add_namespace (12373) = 全局命名空间登记表 {qword_14332F368 组, 40B 元
-{名 SSO 32B, hash u32@+32}, stricmp+hash 双查重, 1.5× 扩容}。**命名空间 id 公式 (定案): id = 100000 × (登记槽序 + 10) + key 数字部分**; 裸整数字面量 id 域 < 1000000 (0xF4240 上限), 与命名空间域 ≥ 1000000 不相交; id 解析器两实例 = 类型 50 event id sub_1411804E0 (CEvent 装载 case 11; 串分支查表 A + sub_14221E700 全局 id 登记与唯一性反查, 失败日志 namespacemanager.h:209 "Reverse id lookup") 与类型 72 operation id sub_140538BA0 (eventscope.cpp:1492 存档事件目标 operation 域; 查**静态表 B** qword_14332FFD8 — 运行期零写点恒空 = 负定案, 串形态解析必失败); 表 A 读者主路 = sub_1401F0720 (脚本 id 解析海量调用), 表 B 读者 = sub_14053B9D0。**mgr+12 = 事件 id 映射** (值对象+48 = 该 id 当前事件指针);
+{名 SSO 32B, hash u32@+32}, stricmp+hash 双查重, 1.5× 扩容}。**命名空间 id 公式 (定案): id = 100000 × (登记槽序 + 10) + key 数字部分**; 裸整数字面量 id 域 < 1000000 (0xF4240 上限), 与命名空间域 ≥ 1000000 不相交; id 解析器同模板家族三实例 = 类型 50 event id 装载侧 sub_1411804E0 (CEvent 装载 case 11; 串分支查表 A + sub_14221E700 全局 id 登记与唯一性反查, 失败日志 namespacemanager.h:209 "Reverse id lookup") + **类型 50 脚本侧 sub_1401E5630 (第三实例, 不登记变体; 整数字面量 ≥ 1000000 即标错返 0, 标识符串 sub_1401F0720(串, 0) 查表 A; 其他类型兜底断言 :259 "Unexpected Type" + 日志 :260; 调用链 = on_action 随机事件 id 解析 sub_140A7A1C0 / 装载伴生 sub_141180910 / 事件容器装载域 sub_1401E59D0)** 与类型 72 operation id sub_140538BA0 (eventscope.cpp:1492 存档事件目标 operation 域; 查**静态表 B** qword_14332FFD8 — 运行期零写点恒空 = 负定案, 串形态解析必失败; 脚本值 type 12 = 整数字面量 / type 15 = 标识符串 三函一致局部定案; sub_1401F0720 第二参模式位 = 装载路 1 / 脚本路 0, 语义待裁); 表 A 读者主路 = sub_1401F0720 (脚本 id 解析海量调用), 表 B 读者 = sub_14053B9D0。**mgr+12 = 事件 id 映射** (值对象+48 = 该 id 当前事件指针);
 热重载旧事件经此取出 → mgr+48 staging + 消费数组摘除 + sub_1401DA380 gs 注销 (装载侧补全);
 boot 并行 sub_140A0C190 (tbb "Short Task", 描述符 +472 待载旗/+136 游标, 循环后串行尾调
 "Events loaded" 包装 sub_140A0D340 一次); 单文件热重载 sub_140A0D9A0 (惰性构造 CEventManager
@@ -381,14 +387,14 @@ gs+1376 线性扫 (计数 gs+1388), 匹配 (CEvent*, scope 相等) 返 fire_id�
 
 #### 4.12.9 CDelayedEvent 生命周期 (延时事件通道; 布局 = §4.3.11 delayed_event 表)
 
-类布局、容器 (cc+4752 data / cc+4764 count) 与元素存档键 = §4.3.11 (元素 0xC8; vt 0x1427E7488 / writer sub_141181300 / reader 0x141180910 / ctor 0x14117F120; +16..+191 内嵌 CEventScope 递归表同节)。与定时决策 CTimedDecision (§4.12.2) 无亲缘。运行链 (定案):
+类布局、容器 (cc+4752 data / cc+4764 count) 与元素存档键 = §4.3.11 (元素 0xC8; vtable 0x1427E7488 / writer sub_141181300 / reader 0x141180910 / ctor 0x14117F120; +16..+191 内嵌 CEventScope 递归表同节)。与定时决策 CTimedDecision (§4.12.2) 无亲缘。运行链 (定案):
 
 | 阶段 | 链 | 语义 |
 |---|---|---|
 | 创建 (入队) | 事件 effect 族共用 Execute **sub_141393950** (country_event = CCountryEventEffect token 10127 / news_event = CNewsEventEffect 12776 / state·unit_leader·operative_leader_event 系同构) | 定位 CEvent ({type=50, id} idpair RTDynamicCast 或名) → 延时小时 = eval(+1232) + 24×eval(+1440 days) + 720×eval(+1648 months) + random [0, eval(+2064)) (门 +1856; 载荷槽族 = §4.32.1.1 事件族骨架行) → **延时 >0: sub_1406D0880(接收国, event, &originator, scope, hours) 入接收国 cc+4752**; 延时 =0: 当场 sub_140A0F6F0 直发 (不入队) |
 | 等待 | **sub_1406FC980** (profiler "country.delayed_events"; hourly pass⑥ 复合体 sub_1406FD800 首调, §4.2.6) | 逐元素 `--(elem+196)` 每小时递减; bypass = byte_14332F61A ∧ !sub_1406FFDB0(cc) (human_ai 旗参与 AI 判定); 元素+8 空 → "Corrupt event." (country.cpp:13436) |
 | 到点 | trigger 复核 → 发射 | 造 scope (country = cc+8 属主) → CEvent+104 trigger 复核 (sub_141180350 槽[3]) → 过 = **sub_140A0F6F0(CEventManager 单例, ev, &elem+192, &cc+8, scope, 1)** = §4.12.8 真发射体 — **到点后与掷骰命中事件走同一条发射链, 无独立链**; 复核失败 → 静默删除; 哨兵门: CEvent+8 == qword_14333D528 (多处用作「无事件」填充; 推定无效事件标记, 待裁) → 不发射仅移除 |
-| 移除 | swap-remove | 尾元补位 + cc+4764-- + vt[0] 析构 |
+| 移除 | swap-remove | 尾元补位 + cc+4764-- + vtable[0] 析构 |
 | 读档 | delayed_event 块 (键 11463) 逐元素重建 | 事件解析失败 ("Invalid event id") → 元素静默丢弃 (元素+8 空不 push) |
 
 > ⚠ cc+4752 (本通道 = 显式延时 hours/days/months, 纯 hourly) 与 cc+4776 (queued_events = MTTH 掷骰命中, 每日检查调度 §4.12.8) 相邻两通道勿混。
@@ -415,11 +421,11 @@ gs+1376 线性扫 (计数 gs+1388), 匹配 (CEvent*, scope 相等) 返 fire_id�
 | +64 | uint32 | 名 token (空对象 = −1) |
 | +72 | 引擎数组 | **random_events 表** {count@+84}; 元素 8B {事件引用 u32@0, 权重 u32@+4}; 分配器 +88 |
 | +96 | 引擎数组 | **events 直挂表** {count@+108}; 元素 4B 事件引用; 分配器 +112 |
-| +120 | CEffect 88B 内嵌 | `effect = {...}` 效果块 (Parse 键 89 转发其槽[3]; 执行 = **槽[12] ExecuteChecked vt+96**) |
+| +120 | CEffect 88B 内嵌 | `effect = {...}` 效果块 (Parse 键 89 转发其槽[3]; 执行 = **槽[12] ExecuteChecked vtable+96**) |
 | +208 | uint32 | random_events 权重累加和 (读侧消费点未决) |
 | +212 | uint32 | 建立时 Array 索引 (ctor 读 DB+76 计数; 精化: 原「装载批次号」) |
 
-查名原语 = sub_140A792B0 → sub_140A75940 (纯线性扫 Lookup: **token u32 相等预筛** (元素+32) + stricmp 确认, 无桶无哈希表; **未命中返 Array[0] Null Object 非 nil** — 查名即执行永远安全)。F3 Parse (vt[3] sub_140A7A1C0, VA 钉定): 键 11353 random_events (校验门 byte_14332EC69 开时查无效事件报 :58) / 键 11354 events / 键 89 effect。PostLoad (vt[2] sub_140A774B0) 28 槽缓存表: +88 on_army_leader_daily / +96 on_army_leader_won_combat / +104 on_army_leader_lost_combat / +112 on_navy_leader_won_combat / +120 on_navy_leader_lost_combat / +128 on_army_leader_promoted / +136 on_deployed_leader_defeated / **+144 on_daily / +152 on_weekly / +160 on_monthly (书既载三槽即 8-10 号)** / +168 on_generate_wargoal / +176 on_send_volunteers / +184 on_market_access_rights / +192 on_non_aggression_pact / +200 on_lend_lease / +208 on_guarantee / +216 on_improve_relation / +224 on_cancel_foreign_manpower / +232 on_boost_party_popularity / +240 on_stage_coup / +248 on_embargo / +256 on_request_licensed_production / +264 on_transfert_spymaster (引擎拼写非 transfer) / +272 on_request_foreign_manpower / +280 on_docking_rights / +288 on_military_access / +296 on_offer_military_access / +304 on_offer_air_base_access。尾链: 空军王牌/政治/timedactivity 三域缓存 PostLoad 扇出 (sub_140F85C30/0x140E4FED0/0x140ADCAC0 — 王牌 on_action 全局族 qword_14333D5F8..628 即此路填充) + "on_ruling_party_change_immediate" 弃用警告 (:390; 门 = +24 存活 ∧ 列表+140 — 内联 CEffect+20, 推定 effect 非空旗, 待裁)。
+查名原语 = sub_140A792B0 → sub_140A75940 (纯线性扫 Lookup: **token u32 相等预筛** (元素+32) + stricmp 确认, 无桶无哈希表; **未命中返 Array[0] Null Object 非 nil** — 查名即执行永远安全)。F3 Parse (vtable[3] sub_140A7A1C0, VA 钉定): 键 11353 random_events (校验门 byte_14332EC69 开时查无效事件报 :58) / 键 11354 events / 键 89 effect。PostLoad (vtable[2] sub_140A774B0) 28 槽缓存表: +88 on_army_leader_daily / +96 on_army_leader_won_combat / +104 on_army_leader_lost_combat / +112 on_navy_leader_won_combat / +120 on_navy_leader_lost_combat / +128 on_army_leader_promoted / +136 on_deployed_leader_defeated / **+144 on_daily / +152 on_weekly / +160 on_monthly (书既载三槽即 8-10 号)** / +168 on_generate_wargoal / +176 on_send_volunteers / +184 on_market_access_rights / +192 on_non_aggression_pact / +200 on_lend_lease / +208 on_guarantee / +216 on_improve_relation / +224 on_cancel_foreign_manpower / +232 on_boost_party_popularity / +240 on_stage_coup / +248 on_embargo / +256 on_request_licensed_production / +264 on_transfert_spymaster (引擎拼写非 transfer) / +272 on_request_foreign_manpower / +280 on_docking_rights / +288 on_military_access / +296 on_offer_military_access / +304 on_offer_air_base_access。尾链: 空军王牌/政治/timedactivity 三域缓存 PostLoad 扇出 (sub_140F85C30/0x140E4FED0/0x140ADCAC0 — 王牌 on_action 全局族 qword_14333D5F8..628 即此路填充) + "on_ruling_party_change_immediate" 弃用警告 (:390; 门 = +24 存活 ∧ 列表+140 — 内联 CEffect+20, 推定 effect 非空旗, 待裁)。
 
 装载语义增补 (体读定案): ① **跨文件重名 = 首载者胜** — 查名命中且 +24 存活 → 整块静默跳过不重解析; mod 覆盖 vanilla on_action 必须替换同名文件, 追加同名定义无效。② 装载器外层键 13527 = "on_actions"; 装载总入口开头重扩 +312 按国表 (×1.5 保底) 并清零新行。③ **掷骰体 sub_140A79410** (分派壳内联第二步, VA 钉定): 有效权重 = weight × CEvent+896 MTTH 块合成因子 (sub_1405520E0: 基值 +920 × ∏匹配 factor@项+88 / 1e5) / 1e5; 掷骰 = Random::Get("onaction.cpp", 196) & 0x7FFFFFFF % 总权重 → 累计权重线性扫描; **id=0 条目 = 「无事发生」概率质量** (占权重不发射; Parse 侧允许 push 不报错)。④ PostLoad 后 18 槽名串 = "on_" 前缀 (dword_14293EE74) + sub_1424BC260(token) 拼名, token id 按槽序 +200..+304 = 12618/10458/11479/19136/12525/13423/12916/14271/19141/19135/15098/10548/12232/10325 (前 14) 与 +168..+192 = 13339/13333/13696/12220 (抽验对 s4_10 全一致)。⑤ 错误报告三家族辨析: :492/:274/:175/:58/:85 = CLogStream 一行式错误日志 (sub_1424C9240 + sub_1424C9AE0 160B 栈对象 + 追加族 + sub_14011DD90 冲行), 非 throw 非 assert — 体内 ios/terminate EH 胶水系 ostream 构造噪音, 勿当 throw 判据。
 
@@ -427,10 +433,10 @@ decision.cpp 簇对账增补 (10 函数闭环; 决议装载/采纳/序列化侧)
 
 **CPersistent 次基 this 调整定式** (方法论级定案): 决议族双基类 (CDecision /
 CTimedDecision / CTargetedDecision) 的 writer/reader/ReadKey/Finalize 经**次基 CPersistent
-vt (vt@8) 槽位派发, this = obj+8** — 三重铁证 = 状态 writer 传 elem+8 (0x140738AA0) /
-reader 内联构造双 vt 后 `(vt2[3])(obj+8)` (0x140733A20) / ReadKey 自证 `a1-8`
+vtable (vtable@8) 槽位派发, this = obj+8** — 三重直证 = 状态 writer 传 elem+8 (0x140738AA0) /
+reader 内联构造双 vtable 后 `(vtable2[3])(obj+8)` (0x140733A20) / ReadKey 自证 `a1-8`
 (0x140732770)。此类函数体内偏移一律 +8 才是对象视角。CDecisionStatus (主基@0) 与
-CDecisionCategory (parse 走主基) 不调整。**次基 vt slot[8] = 读后定稿钩** (新观测:
+CDecisionCategory (parse 走主基) 不调整。**次基 vtable slot[8] = 读后定稿钩** (新观测:
 装载器对每新 CDecision 依次调 slot[3] parse 再 slot[8] 定稿; 家族泛化待更多样本, 推定)。
 
 **装载链** (定案): 类别装载器 sub_140726190 (malloc 1016B CDecisionCategory, ctor
@@ -441,7 +447,7 @@ sub_1407264D0 (malloc 0xD38 = **3384B CDecision** ✓书; 逐件 slot[3] + slot[
 决策名索引 @mgr+40/64}。
 
 **CDecision 新字段落位约 25 行** (ReadKey 键表全录, 定案): obj+1032 = **complete_effect
-效果体** (采纳以 vt[13] Execute 发射 — 书表缺行) / obj+1120 remove_effect (14549) /
+效果体** (采纳以 vtable[13] Execute 发射 — 书表缺行) / obj+1120 remove_effect (14549) /
 obj+640 remove_trigger (14818) / obj+728 cancel_trigger (14819) / obj+1568
 custom_cost_text / obj+1728/1752/3208 war_with_on_{complete,remove,timeout} +
 obj+3232..3234 war_with_target_on_* bool / obj+2401 is_good + obj+2402 fixed_random_seed +
@@ -456,7 +462,7 @@ highlight_color_before/while_active (Finalize 对 BORDER_COLOR_CUSTOM_HIGHLIGHTS
 
 **采纳执行双通道** (定案): 非目标化 sub_140727AE0 — bypass 全局旗 byte_14332F632 直通 ✓书;
 成本纪律 = (obj+1620 非零 ∨ 普通使命对) → 成本强制 0, 否则 obj+1296 宿主求值扣除
-(与 :493 警告互洽); complete_effect vt[13] 发射; 状态入账 sub_140737E00。目标化
+(与 :493 警告互洽); complete_effect vtable[13] 发射; 状态入账 sub_140737E00。目标化
 sub_140735910 — 双使命旗选 ds+256/:232 槽 → find-or-create → **targeted available 求值器
 独立 = sub_140731670** (非目标化 = sub_1407313C0) → days 求值 0 压 1。**键 14541
 decisions_taken_fire_once = 读后丢弃不恢复** (reader 只吞块)。

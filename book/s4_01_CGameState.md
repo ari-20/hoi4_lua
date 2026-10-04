@@ -4,11 +4,11 @@
 
 **获取**: `gs = *(BASE + 0X332F260)` (单例指针, 无 vtable 校验必要)。派生类 CCurrentGameState 见 §4.1.3。
 
-#### 4.1.1 管理器字段 (+152..+2232; gs+0..+15 = vt1 (CPersistent@0 主虚表) + vt2@8 (CProvinceProvider 查询接口), +16..+239 = 存档头元数据对象 224B (ctor sub_140BC0880, 详 §4.1.2)
+#### 4.1.1 管理器字段 (+152..+2232; gs+0..+15 = vtable1 (CPersistent@0 主vtable) + vtable2@8 (CProvinceProvider 查询接口), +16..+239 = 存档头元数据对象 224B (ctor sub_140BC0880, 详 §4.1.2)
 
 | 偏移 | 类型 | 名称 | 语义 | 参见 |
 |---|---|---|---|---|
-| +152 | hours | 日期#0 **载入快照** | CGameDate 尾 {hours@152, vt2@160}; CPersistent 基类成员。**只有读档路径写, 之后不随时钟推进** (新建局停在 ctor 哨兵 43808760; 当前日期在 +1128) | §4.1.2 |
+| +152 | hours | 日期#0 **载入快照** | CGameDate 尾 {hours@152, vtable2@160}; CPersistent 基类成员。**只有读档路径写, 之后不随时钟推进** (新建局停在 ctor 哨兵 43808760; 当前日期在 +1128) | §4.1.2 |
 | +168 | 匿名结构 (NNB 形状) 向量 24B | player_countries | {d@168, cap@176, c@180, alloc@184}; 元素 160B, tag@元素+112 | writer 头块 13671 |
 | +192 | — | 位域旗 (u32) | bit0 = ironman/成就门 (存档名比对, 非 checksum) / bit1 = 多人局 / bit2 = cooperative_game / bit3 = tutorial | §4.1.2 |
 | +200 | 匿名结构 (NNB 形状)* | null-object 句柄 | | |
@@ -21,12 +21,12 @@
 | +468 | — | 名串指针高 dword | ⚠ 勿当独立字段读 (ASLR 假阳性源) | |
 | +469..+599 | — | pad | → gs+600 | |
 | +600 | CFlagManager* | 旗管理（堆 32B 对象; gs ctor sub_1401BFD30 malloc(0x20) 写） | 布局 §4.13.3 | |
-| +608 | CCombatManager (内嵌) | 战斗管理 | | §4.22; vt 0X2950688 存于槽自身 (非指针; 探针) |
-| +616 | CCombat* | 战斗明细宿主 | 容器数据 {count@+628}; 元素主 vt 分流: CLandCombat 0X29A83D8 / CNavalCombat 0X29DDB08 / CLandBorderWarCombat 0X29BC5F0 | §4.22 |
+| +608 | CCombatManager (内嵌) | 战斗管理 | | §4.22; vtable 0X2950688 存于槽自身 (非指针; 探针) |
+| +616 | CCombat* | 战斗明细宿主 | 容器数据 {count@+628}; 元素主 vtable 分流: CLandCombat 0X29A83D8 / CNavalCombat 0X29DDB08 / CLandBorderWarCombat 0X29BC5F0 | §4.22 |
 | +617..+627 | — | 战斗明细容器尾 | = pdx 容器@616 {d@616, cap@624, c@628 高位} 内部 | |
-| +628 | uint32 | 战斗明细容器计数 | 战斗日志管理 (logmgr) = +2176/+2188 容器, 元素 NCombatLog::CManager (vt 0X295D8D8) | §4.22 |
+| +628 | uint32 | 战斗明细容器计数 | 战斗日志管理 (logmgr) = +2176/+2188 容器, 元素 NCombatLog::CManager (vtable 0X295D8D8) | §4.22 |
 | +629..+647 | — | 容器尾 | = {alloc@632 = 哨兵} + CCombatHistory 内嵌头@648 | |
-| +648 | CCombatHistory (内嵌) | 战斗历史 | | §4.22; vt 0X2950638 (= CCombatManager+40) |
+| +648 | CCombatHistory (内嵌) | 战斗历史 | | §4.22; vtable 0X2950638 (= CCombatManager+40) |
 | +649..+687 | — | CCombatHistory 体 | = {q@656, q@664, u32@672, u8@676, u8@680, pad→683} + pad@684..687 — CCombatManager 全长 76B (+608..+683) | ctor sub_140BB66F0 |
 | +688 | CProvince** | 省指针数组 | 省数 = uint32@+700 | §4.14 |
 | +689..+711 | — | 省数组尾 | = {cap@696, count@700 已知, alloc@704} | |
@@ -37,19 +37,19 @@
 | +832 | uint32 平铺数组 (24B 描述符) | **original-tag 恒等表** (与「country index→link index」同容器双向读) | identity[tag] = 归一化 tag, 元素 uint32 按 tag 直下标 (4×tag); sub_140BB52F0 同原初国判定与 sub_140BB5490 索引向底表 = 同容器两侧消费 | 定案 |
 | +856 | char** | 国家标签串表 | 每项 32 字节 cstr; `tag = 表[tag_id]`。**count@+868 = 合法 tag_id 上界** (≠ 国家数见下注) | |
 | +857..+983 | — | tag 串表尾 | = {cap@864, c@868, alloc@872} (探针 474/339; **count@868 是 tag_id 上界, 比 country_count 大** — 实测 339 vs 333) + 按国家数组 pdx@880 = `_CountryControllersEnable` / @904 = 控制器计数 (探针均 333/333=country_count) + tech_sharing 尾 {cap@936, c@940, alloc@944} + **RH map@952..983 = 联合国策焦点 (joint national focus) × 国家 连接表** (键 = focus+88, 值 = CCountry\* 数组; 双向断言 gamestate.cpp:5057/5072) {残渣@0..7, buckets@8, 计数 u32@+16=62, mask@20=127, distmax@24=9, lf@28=0.9 (RH load factor)} | |
-| +984 | CSupplySystem* | 补给系统 | vt0@+0 = 0X2973CC8 (RTTI); 序列化基 = obj+8 (vt1 0X2973CF0) | §4.21 |
+| +984 | CSupplySystem* | 补给系统 | vt0@+0 = 0X2973CC8 (RTTI); 序列化基 = obj+8 (vtable1 0X2973CF0) | §4.21 |
 | +992 | CRailwayManager* | 铁路管理 | | §4.23 rail_way |
 | +1000 | NInternationalMarket::CEquipmentMarketSystem* | 全局装备市场系统 | 全局装备市场挂载 (定案); 国家侧建筑宿主 = cc+4944 CBuildingStatus (非本指针) | §4.13 |
-| +1008 | CRaidSystem* | 突袭系统 | | §4.23 raid |
+| +1008 | CRaidSystem* | 突袭系统 | 持海/陆 raid 寻路表 (海军 sub_140E86040 / 陆 sub_140E86000, §4.27.7) | §4.27 |
 | +1016 | CFactionSystem* | 阵营系统 | | §4.5 |
 | +1024 | CDoctrineSystem* | 学说系统 | | §4.6 |
 | +1025..+1103 | — | 管理器间区 | = **@1032 区域→(国家link×省) 二维字节查询表** (无独立 RTTI 类 — 负定案, 对象首 qword 为内部数组指针非 vtable; InitGameState 尾 sub_1401E0610 就地构造; 访问器 sub_140E254B0 按 link 下标取 64B 元; 消费者 sub_140F35D80 gradientbordermanager.cpp / sub_140D73E30 taskforce.cpp; 前 6 管理器 = CSupplySystem/CRailwayManager/CEquipmentMarketSystem/CRaidSystem/CFactionSystem/CDoctrineSystem @+984..+1024) + u32 对列表 {d@1040, cap@1048, c@1052, alloc@1056} (块 12354, B240 元; 探针 2135) + difficulty_setting 数组 {d@1064, cap@1072, c@1076, alloc@1080} (块 13999 + assert "difficulty_setting"; ⚠ 与难度枚举 gs+1584 分家) + game_rules@1088 + entity@1096 + power_balance@1104 | |
 | +1104 | CPowerBalanceSystem* | 力量平衡/国家角色 | power_balance 系统 vtable 0X296FCA0, 条目 vtable 0X296FC50 | §4.3 |
 | +1105..+1191 | — | 力量平衡尾 | = i32 −1@1112 + CGameDate 存档 date@1120..1143 (头 writer 键 10314 经 a3+1136 代理) + **日期分量缓存@1144..1183** (gs hourly tick sub_1401DD370 每次填入: +1144 年 / +1148 月首累计日 / +1152 日 / +1156 年积日 / +1160 月索引) + CGameDate#2@1184..1207 = **start_date** (writer 键 10464 直名经 +1200 代理) | |
-| +1192 | hours | **start_date** (日期#2 hours) | CGameDate#2@1184..1207: vt1@1184, hours@1192, vt2@1200; writer 键 10464 直名 + token 表 1241 行 + has_start_date 注册串 ("Compare the initial start date of current game.") | 定案 |
-| +1193..+1247 | — | 日期#2 尾 | = CGameDate#2 vt2@1200 + **小时进度累积器 f32@1208** (时间推进调度器每帧 `+= 帧耗时/(速率×加成)`, 攒满 1.0 生成 CHourlyTickCommand 后重置; 详 §4.2.2) + speed u32@1212 (键 110; 探针=4) + u8@1216 (**hourly tick 进行中标志**: tick 首置 1 尾清 0, 兼一帧至多一小时的生成门, 详 §4.2.2) + to_be_deleted {d@1224, cap@1232, c@1236, alloc@1240} (块 19332 + assert; 元素 8B 双 u32; hourly tick 尾 sub_1401D6290 清扫, §4.2.6) + CPeaceConferenceManager 头@1248 (每 hourly tick 末被驱动, §4.2.4) | |
-| +1248 | CPeaceConferenceManager (内嵌) | 和会管理器 | | §4.10.26; vt 0X2720E48 (RTTI+探针); 谍报网在国家侧 (§4.11) |
-| +1249..+1311 | — | 和会管理器体 | = {vt@1248, q@1256, q@1264, off@1272} (块 12499) + MSVC 串@1280..1311 (SSO; **runtime-only 不序列化** — writer/reader 仅 13632 会议容器, 本机 9 档 peace_conference 块全空互证; 运行期临时名, 写点未定位) | |
+| +1192 | hours | **start_date** (日期#2 hours) | CGameDate#2@1184..1207: vtable1@1184, hours@1192, vtable2@1200; writer 键 10464 直名 + token 表 1241 行 + has_start_date 注册串 ("Compare the initial start date of current game.") | 定案 |
+| +1193..+1247 | — | 日期#2 尾 | = CGameDate#2 vtable2@1200 + **小时进度累积器 f32@1208** (时间推进调度器每帧 `+= 帧耗时/(速率×加成)`, 攒满 1.0 生成 CHourlyTickCommand 后重置; 详 §4.2.2) + speed u32@1212 (键 110; 探针=4) + u8@1216 (**hourly tick 进行中标志**: tick 首置 1 尾清 0, 兼一帧至多一小时的生成门, 详 §4.2.2) + to_be_deleted {d@1224, cap@1232, c@1236, alloc@1240} (块 19332 + assert; 元素 8B 双 u32; hourly tick 尾 sub_1401D6290 清扫, §4.2.6) + CPeaceConferenceManager 头@1248 (每 hourly tick 末被驱动, §4.2.4) | |
+| +1248 | CPeaceConferenceManager (内嵌) | 和会管理器 | | §4.10.26; vtable 0X2720E48 (RTTI+探针); 谍报网在国家侧 (§4.11) |
+| +1249..+1311 | — | 和会管理器体 | = {vtable@1248, q@1256, q@1264, off@1272} (块 12499) + MSVC 串@1280..1311 (SSO; **runtime-only 不序列化** — writer/reader 仅 13632 会议容器, 本机 9 档 peace_conference 块全空互证; 运行期临时名, 写点未定位) | |
 | +1312 | uint32 | **玩家国 id** (int>0 = 动态国 id, 否则 4 字符 tag 在 +1316) — 键 10805 = token "player" (旧标 "playthrough id" 系误读); 运行时十余处按玩家 tag 消费 (通知门∧!human_ai / AI 玩家国策略解析 / 焦点历史只写该国 / Focus.AutoComplete ×10) | 探针 121 | §4.1.2; §4.3.15a |
 | +1316 | uint32 | 玩家国 tag 半 (4 字符; +1312 ≤0 时有效) | | |
 | +1320 | uint32 | **tension_scaling_base_country** (键 13913 = token 同名; 紧张度缩放基国) | 探针 9 | §4.1.2 |
@@ -65,22 +65,22 @@
 | +1560 | — | 未决区 | q@1560 + u32@1568 + u8@1572; 无消费者、不序列化 (负定案) | |
 | +1576 | 内嵌 | gameplaysettings | ctor sub_140BBB0D0; 块 11102; 区内 +1584 = 难度枚举 | |
 | +1584 | uint32 | 难度枚举 | 键 10655 转串; 探针=2 | |
-| +1585..+1623 | — | 枚举尾 | = CArmy* 向量 {d@1600, cap@1608, c@1612, alloc@1616} (探针 37 项, 元素 vt=CArmy) | |
+| +1585..+1623 | — | 枚举尾 | = CArmy* 向量 {d@1600, cap@1608, c@1612, alloc@1616} (探针 37 项, 元素 vtable=CArmy) | |
 | +1624 | CSelectionGroup** | 选择组 | 10 组 × 240B, 组内 10 槽 × 24B {data@+0, cap@+8, count@+12, alloc@+16}; loader case 10286 | §4.23 |
 | +1625..+1671 | — | 选择组容器 | = selection-groups 容器 {d@1624, cap@1632, c@1636, alloc@1640} (探针 cap474/cnt333 — 每国一组 240B, 块 10286) + pdx@1648..1671 (空) | |
-| +1672 | CWeatherManager* | 天气管理 | | §4.20; vt 0X2977810; loader case 12040 定案 |
+| +1672 | CWeatherManager* | 天气管理 | | §4.20; vtable 0X2977810; loader case 12040 定案 |
 | +1680 | CStrategicAirManager* | 战略空军管理 | | §4.15 |
-| +1688 | CNavyManager* | 海军/生产项目/部署 HQ | | §4.16 / §4.8 / §4.18; 别名定名 (vt 0X29732E0, RTTI 无名); 元素 CStrategicNavy (vt 0X2973260, RTTI) |
+| +1688 | CNavyManager* | 海军/生产项目/部署 HQ | | §4.16 / §4.8 / §4.18; 别名定名 (vtable 0X29732E0, RTTI 无名); 元素 CStrategicNavy (vtable 0X2973260, RTTI) |
 | +1696 | CStrategicOperativeManager* | 谍报机构管理 | | §4.11 |
 | +1704 | CCharacterManager* | 角色管理 | | §4.4 |
-| +1705..+1775 | — | 管理器间区 | = CWorldThreat*@1712 (malloc 0x40; 键 0x2BBD=11261 + assert "threat"; 探针 vt RVA 0X2976738) + u32@1720 + saved_event_target {d@1728, cap@1736, c@1740, alloc@1744} (块 13217, 元素 112B 步进) + pdx@1752..1775 (空) | |
-| +1776 | CReferencedDivisionTemplate** | 编制模板 | 编制模板容器数据 (元素 vt 0X294F5B0, RTTI); count@+1788 | §4.18 |
+| +1705..+1775 | — | 管理器间区 | = CWorldThreat*@1712 (malloc 0x40; 键 0x2BBD=11261 + assert "threat"; 探针 vtable RVA 0X2976738) + u32@1720 + saved_event_target {d@1728, cap@1736, c@1740, alloc@1744} (块 13217, 元素 112B 步进) + pdx@1752..1775 (空) | |
+| +1776 | CReferencedDivisionTemplate** | 编制模板 | 编制模板容器数据 (元素 vtable 0X294F5B0, RTTI); count@+1788 | §4.18 |
 | +1777..+1787 | — | 编制模板容器尾 | = division_templates 容器 {d@1776, cap@1784, c@1788, alloc@1792} 内部 (块 13369, 元素键 12112) | |
 | +1788 | uint32 | division_templates 容器计数 | stockpile 共用区语义见 §4.23.2 | §4.23 |
 | +1789..+1799 | — | 容器尾 | = division_templates alloc@1792 尾 + equipment 变体容器头 {d@1800} (块 12122) | |
 | +1801..+1811 | — | equipment 容器内部 | = {cap@1808, c@1812, alloc@1816} | |
 | +1813..+1831 | — | equipment 尾 | = alloc@1816 尾 + game_unique_seed u32@1824 (键 13737) + game_unique_id 串头@1832 前 pad | |
-| +1833..+2167 | — | 唯一 id 区 | = game_unique_id 串体 {size@1848, cap@1856=15} + land_combat_id@1864 / navy_id@1868 + CNonstaticIdGenerator<74/79/86/83/87> 16B×5 @1872..1951 + CIdCounterStore@1952..2007 {vt, pdx 子容器@1960, pdx 子容器@1984; dtor sub_1401C37B0 = dtor(+8)+dtor(+32); 探针 4/4 与 2/0} + **CGameStateTimer@2008..2159** (源码锚 profiling/gamestatetimer.cpp; 写 `logs/gametimer_%Y%m%d_%H%M%S.tsv`, 不进存档; 使能门 = byte@+2016; 五档 hour/day/week/month/year 均值在 +2104..+2159; ctor sub_140BBB6D0) + 残渣@2160..2167 (探针非零) | |
+| +1833..+2167 | — | 唯一 id 区 | = game_unique_id 串体 {size@1848, cap@1856=15} + land_combat_id@1864 / navy_id@1868 + CNonstaticIdGenerator<74/79/86/83/87> 16B×5 @1872..1951 + CIdCounterStore@1952..2007 {vtable, pdx 子容器@1960, pdx 子容器@1984; dtor sub_1401C37B0 = dtor(+8)+dtor(+32); 探针 4/4 与 2/0} + **CGameStateTimer@2008..2159** (源码锚 profiling/gamestatetimer.cpp; 写 `logs/gametimer_%Y%m%d_%H%M%S.tsv`, 不进存档; 使能门 = byte@+2016; 五档 hour/day/week/month/year 均值在 +2104..+2159; ctor sub_140BBB6D0) + 残渣@2160..2167 (探针非零) | |
 | +2168 | u64 | average_major_ic | 键 13885; writer AE590 u64 通道 | |
 | +2169..+2231 | — | 日志区 | = logmgr 容器 {d@2176, cap@2184, c@2188, alloc@2192} + _AllPlaythroughData RH map@2200..2231 {gate u32@2216=1, mask@2220=7, distmax@2224=5, lf@2228=0.9} | |
 | +2232 | uint8 | **statistics_collection_enabled** (loader case 15933 → sub_1424C0C00) — 读即清的一次性请求旗 (4 处消费点读后置 0) | | |
@@ -94,7 +94,7 @@
 | 偏移 | 类型 | 名称 | 语义 | 备注 |
 |---|---|---|---|---|
 | +152 | — | = 顶格 # 元数据叶区界 + 日期#0 载入快照 | checksum/version/dlcs/save_version 等元数据叶 (键表 §4.1.6); 本偏移本身 = CGameDate hours (逐字段 §4.1.1) | 元数据叶不做值级对拍 (用户裁定) |
-| +153..+191 | — | = 元数据对象中段: 日期#0 24B {vt1@144, hours@152, vt2@160} 尾 + **player_countries {d@168, cap@176, c@180, alloc@184}** (块 13671, 元素 160B) |  | |
+| +153..+191 | — | = 元数据对象中段: 日期#0 24B {vtable1@144, hours@152, vtable2@160} 尾 + **player_countries {d@168, cap@176, c@180, alloc@184}** (块 13671, 元素 160B) |  | |
 | +192 | — | = 位域旗 (u32) | bit0 = ironman/成就门 / bit1 = 多人 / bit2 = coop / bit3 = tutorial (逐字段 §4.1.1) |  |
 | +193..+467 | — | = CPersistent 尾段 {位域@192 (bit0=checksum 门 / bit3=tutorial), null-object 句柄@200, 容器B@216, 标志@240, scoped@248} + **CHuman@272 (160B)** + **CDedicatedServer@432 (156B, 名串 "Dedicated server")** |  | |
 | +468 | — | = CDedicatedServer 名串 (gs+464, "Dedicated server") 堆指针的高 dword (随 ASLR 变); 存档真值 multiplayer_random_count 来自静态 dword_143452520 (键 11459) |  | |
@@ -121,11 +121,11 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 
 | 项 | 值 |
 |---|---|
-| RTTI 名 | CCurrentGameState (探针 vt RVA 0X2721158) |
+| RTTI 名 | CCurrentGameState (探针 vtable RVA 0X2721158) |
 | sizeof | 0xA40 = 2624 (创建点 malloc 0xA40 + "Trying to initialize gamestate twice" assert, gamestate.cpp:0x6A0) |
-| vtable RVA | 双表: vt1@+0 / vt2@+8 (vt2 = 查询接口, provinces loader 经 vt2+8 取省) |
+| vtable RVA | 双表: vtable1@+0 / vtable2@+8 (vtable2 = 查询接口, provinces loader 经 vtable2+8 取省) |
 | writer | — |
-| loader | sub_1401E59D0 (**58 case 标签** ×12 段链式 switch(a3), 键空间 10192..19935; case 计数与 §1.2 总表口径差待复核; 双 default: 主链 goto 公共尾非错误 / pending_events 嵌套 default 报 "Error when reading pending event"; writer vt[2] sub_1401F29A0 显式链式调用与 reader 不对称; 主文件 §1.2 总表 = case→槽位直译 46 案 + ctor 直读 26 案) |
+| loader | sub_1401E59D0 (**58 case 标签** ×12 段链式 switch(a3), 键空间 10192..19935; case 计数与 §1.2 总表口径差待复核; 双 default: 主链 goto 公共尾非错误 / pending_events 嵌套 default 报 "Error when reading pending event"; writer vtable[2] sub_1401F29A0 显式链式调用与 reader 不对称; 主文件 §1.2 总表 = case→槽位直译 46 案 + ctor 直读 26 案) |
 | 挂载点 | gs 单例 (§4.1 获取) |
 | ctor | 链 sub_1401BF930 (CCurrentGameState) → sub_1401BFD30 (基) |
 
@@ -160,9 +160,9 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 | +2608 | 键 13842 = **tutorial_chapter** | 置位写 gs+2615=1 + gs+192 bit3 = tutorial 旗 |
 | +2240 域 | **tag 工作列表** {d@2240, 计数@2252} (CPdxArray<CCountryTag,unsigned>) | hourly tick 步骤 9 遍历 (查 _AllPlaythroughData@2200, §4.1.8) + DoCareerProfile 族并行容器 (§4.2.6) |
 | +2416 域 | **军队状态小时统计累计器族** (hourly) | TOTAL_IN_COMBAT_MAN_HOUR 等 13 键 (名表 builder sub_140F0EF20: 5 TOTAL_* + 3 AVG_* + 5 IS_*); CGameState::HourlyUpdate 首步累加 (§4.2.6); 断言成员名 `_pUnitMetricsCollector` (gamestate.cpp:2314, 对象 0xB8 = 184B) |
-| pdx 空位群 已名 12 项 | +760 region 派生表 (region 邻接/共省对缓存, 推定) / +880 `_CountryControllersEnable` / +904 **i8 向量 `_HumanControllersCount`** (SetControllerEnabled 族维护: 接管 `++`/释放 `--`/清零/全清 memset; IsHumanControlled = +880[tag] && !+904[tag]) / +1352 fired_events 向量 (loader case 11003) / +1400 **已删 unit id 集合** {d@1400, cap@1408, c@1412, alloc@1416} (DeleteUnit sub_1401D6690 append / to_be_deleted 登记侧 sub_1401D7460 先查重) / +1472 海战主数组 / +1648 **`MP_locked_countries`** / +1752 scope→saved event target / +2384 **起始日期 u64** (整 qword 写 — 勘误: 原「指针向量」待裁, dump 唯一写点 = CFrontEndIdler::StartNewGame, gs ctor 不触 2376..2399 区, §4.2.10a) / +2440 **`_CountriesForOriginalTags`** / +2464 战略空军表 | 逐个 ctor/消费者实证 (+2240/+2416 已升独立行) |
+| pdx 空位群 已名 12 项 | +760 region 派生表 (region 邻接/共省对缓存, 推定) / +880 `_CountryControllersEnable` / +904 **i8 向量 `_HumanControllersCount`** (SetControllerEnabled 族维护: 接管 `++`/释放 `--`/清零/全清 memset; IsHumanControlled = +880[tag] && !+904[tag]) / +1352 fired_events 向量 (loader case 11003) / +1400 **已删 unit id 集合** {d@1400, cap@1408, c@1412, alloc@1416} (DeleteUnit sub_1401D6690 append / to_be_deleted 登记侧 sub_1401D7460 先查重) / +1472 海战主数组 / +1648 **`MP_locked_countries`** / +1752 scope→saved event target / +2384 **起始日期 u64** (整 qword 写 — dump 唯一写点 = CFrontEndIdler::StartNewGame, gs ctor 不触 2376..2399 区, §4.2.10a) / +2440 **`_CountriesForOriginalTags`** / +2464 战略空军表 | 逐个 ctor/消费者实证 (+2240/+2416 已升独立行) |
 | +2440 域 | **_CountriesForOriginalTags** = 按原初 tag 分桶的国家名册 (桶基 = \*(gs+2440) + 24\*tag 下标, 桶元素 24B) | 读 = sub_1401DBD80 (original_tag 触发器族, §4.32 册); 维护 = **sub_1401EE540 original-tag 重登记** (cc+4876 m_OriginalTag 回写 + 旧桶摘除/新桶挂入, Contains/Remove/Insert = sub_1401B0250/B3440/B33B0, 断言 gamestate.cpp:7569, 调用者 = 国管理器域 sub_1407103F0); 定案 (体读) |
-| gs+2352 | **未名 pdx 容器数据指针** {d@2352, cap@2360, count@2368, alloc@2376} — 基类 ctor sub_1401BFD30 显式清零 2352/2360/2368 并 @2376 置分配器哨兵 &off_143085170; gs dtor 不触及; 消费者未名 | 基类 ctor L6045212-16 + gs dtor 全扫 |
+| gs+2352 | **未名 pdx 容器数据指针** {d@2352, cap@2360, count@2368, alloc@2376} — 基类 ctor sub_1401BFD30 显式清零 2352/2360/2368 并 @2376 置分配器哨兵 &off_143085170; gs dtor 不触及; 消费者未名 | 基类 ctor + gs dtor 全扫 |
 | CPersistent+216 (= gs+216) | 未决 — 仅基类 ctor 初始化, 无消费者 | — |
 | gs+1280 串 | runtime-only 定案 — CPeaceConferenceManager 内 SSO, 不序列化 (writer/reader 仅 13632 会议容器; 探针空串互证); 运行期临时名, 写点未定位 | 定案 (性质) / 未决 (语义) |
 | 串1 (+16) / "version" 串 (+96) | 串1 = 存档路径串 (sub_140BC07B0 ← 路径 join, 文件名组装消费); "version" 串实为 cosmetic_tag (scanner 键 14127) | 定案 |
@@ -192,7 +192,7 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 |---|---|---|
 | sub_140BC2710 | player | — |
 | sub_140BC2710 | ideology | 裸串 |
-| sub_140BC2710 | date | a3+1136 (24B 对象基 = a3+1120 {vt1@+1120, hours@+1128, vt2@+1136 = 序列化指针}) |
+| sub_140BC2710 | date | a3+1136 (24B 对象基 = a3+1120 {vtable1@+1120, hours@+1128, vtable2@+1136 = 序列化指针}) |
 | sub_140BC2710 | difficulty (enum) | a3+1584 |
 | sub_140BC2710 | version | — |
 | sub_140BC2710 | tutorial | bit3@a1+176 |
@@ -302,7 +302,7 @@ sort; key 写门 tid>0 → 引号三字串)。
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +8 | SProfileData (2056B) | data = {vt@+8, first SCareerProfileCountryData@+16 (1008B), second@+1024, tag MSVC-SSO@+2032} | tag **空串也写 `""`** (恒引号) |
+| +8 | SProfileData (2056B) | data = {vtable@+8, first SCareerProfileCountryData@+16 (1008B), second@+1024, tag MSVC-SSO@+2032} | tag **空串也写 `""`** (恒引号) |
 | +9..+2063 | — | （覆盖行， 无独立残留） |  |
 | +2064 | 384B | intermediate_statistics (writer 0X1406AA260) | §4.1.10 |
 | +2065..+2447 | — | （覆盖行， 无独立残留） |  |
@@ -321,7 +321,7 @@ SCareerProfileCountryData 军事统计 max 记录 (偏移相对 SCareerProfileCo
 
 #### 4.1.10 intermediate_statistics (wrapper+2064)
 
-**9 个 CTimeSeries** (vt 0x1429ccb20) 连续内嵌 stride 40 (基址 interm =
+**9 个 CTimeSeries** (vtable 0x1429ccb20) 连续内嵌 stride 40 (基址 interm =
 wrapper+2064):
 
 | 偏移 (interm) | 名称 |
@@ -341,10 +341,10 @@ CTimeSeries 布局 (ctor sub_1414E5230, cap 24/24/48/12/48/48/48/96/30 —
 
 | 偏移 | 类型 | 内容 |
 |---|---|---|
-| +0 | 8B | vt |
+| +0 | 8B | vtable |
 | +8 | uint32 | cap |
 | +16 | 元素指针数组* | elem-ptr 数组 ptr |
-| +17..+27 | — | = elem-ptr 数组指针 (+16..+23, 8B) 后 7B + pad 4B, 无独立字段 (通用形 {vt, cap@8, ptr@16, count@28}) |
+| +17..+27 | — | = elem-ptr 数组指针 (+16..+23, 8B) 后 7B + pad 4B, 无独立字段 (通用形 {vtable, cap@8, ptr@16, count@28}) |
 | +28 | uint32 | count |
 
 元素 = **u32 堆指针** (池化 int, kptr 校验后 deref; writer slot2
@@ -360,7 +360,7 @@ sub_1414E5840 逐 count 写)。尾部两标量 (各 malloc 4B 堆 int):
 | 项 | 值 |
 |---|---|
 | 类名 | SCareerProfileCountryData |
-| sizeof | 1008B {vt@0, 字段@+8..} |
+| sizeof | 1008B {vtable@0, 字段@+8..} |
 | writer | sub_1406A8DC0 — 硬编码 164 键序逐字段 (u32 = sub_1424C2A70 / i64 = sub_1424C3960) |
 | parse | sub_14069F630 (144 对 token→偏移交叉一致) |
 | 挂载 | wrapper data.first / data.second (blob) |
@@ -604,6 +604,6 @@ RB-tree (std::map 形态): head = *(gs+2520), 规模 = *(gs+2528) (≠0 门); �
 
 - **簇机理**: gamestate.h 簇 4538 函数 = 全游戏 gs 消费面并集 — 两访问器 debug 门 (断言 1125/1126 latch byte_14332ED00/ED01 + 1116/1117 latch EDF9/EDFA) 强制内联进消费函数, 4536/4538 (99.96%) 直引 gs 单例 qword_14332F260, 仅 2 例外 (引用计数独立助手 sub_1401AAA50/sub_140193F90)。分族: GA 3563 / GB 726 / MIX 239 / REF 守卫 7 / AI 禁入包装器 3; 实现本体 57 函数在 gamestate.cpp 簇 (重叠 17)。
 - **方法学警示 (定案)**: 门内联 ≠ a1 是 gs — 0x140DC-0x140DE 区函数 (sub_140DC53C0 等) 带门但 a1 = tutorial 管理器 (+2400/+2412 数组按 gs+2608 tutorial_chapter 索引), 这些偏移不是 gs 槽。
-- **簇内新增形态定案 (浅扫批次)**: ① 访问器**半开第三形态** — sub_1402CF070/sub_140A70820 仅剩 :1126 ForbidCount 门 (GA/GB 之外编译器裁剪形); ② gs+8 vt2 (CProvinceProvider) **接口槽调用形态** = 巨簇第二高频消费面 (`(*(vt***)(gs+8)+N)()` 内联省查询, 反编译呈现为 `qword_14332F260 + 8` 易误读为数据偏移); ③ **CGameState vt1 槽[9] (+72) = 高频 count/查询方法** (全语料 97 调用点; 无参形作循环上界, 带参形返 count 供 scoped_buffer 分配 `4×count` / `(count+7)&~7` memset 0xFF 两形态 — 候选国家数/省数族 getter, 运行时经 vtable 槽[9] 函数指针 RVA 定名); ④ 高频 gs 偏移惯用式全部对上 §1.2 零未录 (玩家 tag 对 1312/1316 fallback / 州 712/724 / 省数 700 / 区域 736/748 / CArmy 计数 1612 / 日期 1128 / 补给 984); ⑤ gs 访问器 out-of-line 三件套 sub_140BB48F0 (tag→国) / sub_140BB5490 (tag→索引) / sub_140BB52F0 (同原初国) 200+ 调用点无第四种克隆; ⑥ gs+260 = 同步校验对象 (+248 对象+12) 运行时读者群 = peacetelemetry / CFrontEndGameSetupView / CHumanItem / sub_140CDFA60。
-- **反编译偏移伪影与下标形 (方法学)**: ① `(int*)gs+328` = 字节偏移 1312 (类型化指针步进缩放, 读侧必须归一); ② `*(_QWORD*)gs + 72LL` 是 **vt1 槽[9] 调用形** (+72 作用于解引用后的虚表指针), 裸读假报 gs+576; `**(gs+1)` 假报 gs+1 — 剥伪前扫描器必错; ③ gs 槽消费另一主形态 = **下标形** (`*(gs_dword+328)`=+1312 / `+181`=+724 / `+89q`=+712 / `+175`=+700 / `+123q`=+984 / `+126q`=+1008 / `+213q`=+1704 / `+127q`=+1016, 全部对上 §1.2); 残量片 gs 直引密度锐减, 主通道 = out-of-line 访问器三件套。
+- **簇内新增形态定案 (浅扫批次)**: ① 访问器**半开第三形态** — sub_1402CF070/sub_140A70820 仅剩 :1126 ForbidCount 门 (GA/GB 之外编译器裁剪形); ② gs+8 vtable2 (CProvinceProvider) **接口槽调用形态** = 巨簇第二高频消费面 (`(*(vtable***)(gs+8)+N)()` 内联省查询, 反编译呈现为 `qword_14332F260 + 8` 易误读为数据偏移); ③ **CGameState vtable1 槽[9] (+72) = 高频 count/查询方法** (全语料 97 调用点; 无参形作循环上界, 带参形返 count 供 scoped_buffer 分配 `4×count` / `(count+7)&~7` memset 0xFF 两形态 — 候选国家数/省数族 getter, 运行时经 vtable 槽[9] 函数指针 RVA 定名); ④ 高频 gs 偏移惯用式全部对上 §1.2 零未录 (玩家 tag 对 1312/1316 fallback / 州 712/724 / 省数 700 / 区域 736/748 / CArmy 计数 1612 / 日期 1128 / 补给 984); ⑤ gs 访问器 out-of-line 三件套 sub_140BB48F0 (tag→国) / sub_140BB5490 (tag→索引) / sub_140BB52F0 (同原初国) 200+ 调用点无第四种克隆; ⑥ gs+260 = 同步校验对象 (+248 对象+12) 运行时读者群 = peacetelemetry / CFrontEndGameSetupView / CHumanItem / sub_140CDFA60。
+- **反编译偏移伪影与下标形 (方法学)**: ① `(int*)gs+328` = 字节偏移 1312 (类型化指针步进缩放, 读侧必须归一); ② `*(_QWORD*)gs + 72LL` 是 **vtable1 槽[9] 调用形** (+72 作用于解引用后的vtable指针), 裸读假报 gs+576; `**(gs+1)` 假报 gs+1 — 剥伪前扫描器必错; ③ gs 槽消费另一主形态 = **下标形** (`*(gs_dword+328)`=+1312 / `+181`=+724 / `+89q`=+712 / `+175`=+700 / `+123q`=+984 / `+126q`=+1008 / `+213q`=+1704 / `+127q`=+1016, 全部对上 §1.2); 残量片 gs 直引密度锐减, 主通道 = out-of-line 访问器三件套。
 - **未收槽抽查**: **gs+2528 = ships_built map 的 _Mysize** (16B map 形 {head@2520, size@2528}; 插入点 `0x666666666666666` 比对 = STL `_Xlength_error("map/set too long")` 通用守卫非业务语义; ships_built 节点 = {_Left/_Parent/_Right/NIL@25, key@28, value@32} 高置信); **gs+2504 未名 map = runtime-only** (无 loader case 无 writer, dtor sub_1401C2620 在基类 ctor unwind; 语义推定 trade route 相关, 待裁)。

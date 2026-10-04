@@ -6,7 +6,7 @@
 `STemporary*` / GUI 件, 见 §4.6 正文) 与 **def 侧** (静态定义库, 见 §4.6.1–4.6.12)。
 def 侧八类全部不入存档 (writer = CFG 空桩)。
 
-**CDoctrineSystem**: `doc = *(gs + 1024)` — **32B 容器对象定案** {vt 0x142965448 (RTTI NDoctrines::CDoctrineSystem; 0x1427C5020 系 NProject::CComplexity 虚表勿混) 族 9 槽
+**CDoctrineSystem**: `doc = *(gs + 1024)` — **32B 容器对象定案** {vtable 0x142965448 (RTTI NDoctrines::CDoctrineSystem; 0x1427C5020 系 NProject::CComplexity vtable勿混) 族 9 槽
 (serfam 记 32 系断言串字节误计), data@doc+8, cap@doc+16, count@doc+20, alloc@doc+24};
 writer 0x140D810B0 (块键 11593 countries) / reader 0x140D7FDA0 / PreLoad 0x140D7F080;
 国家条目 stride 0xA0, 元素按国家 idx 排列; 活体 cap==count==440 全中。
@@ -32,11 +32,11 @@ writer 0x140D810B0 (块键 11593 countries) / reader 0x140D7FDA0 / PreLoad 0x140
 | +89..+99 | — | = daily_mastery 容器 {d@88, **cap@96**, c@100, alloc@104} 的 data 尾 + cap@96  |  |  |
 | +100 | uint32 | daily_mastery 容器计数 |  | <64 |
 | +101..+111 | — | = daily_mastery 计数尾 + 容器头 |  |  |
-| +112 | 匿名结构 (24B) | **equipment_bonus 容器** {data@112, cap@120, **count@124**, alloc@128} | writer 0X1413CF470 块尾第五段; 条目 24B **SDoctrineEquipmentBonusHandle** (vt 0X2965210): {vt@0, id lexer token u32@+8 (装备原型名, token 串发射不带引号), index u32@+12 (调用方 ordinal: 选中路径 0/track 跨档序号/milestone 序号), equipment_bonus u32@+16 (国家 named_equipment_bonus 库槽位号, sub_140E60110 经 last_named_equipment_bonus 递增分配, 非加成数值), pad@20}; 块门 = count≠0 (零容器连键带体不写), 条目无逐条门 0 值照写 (MD towed_gun_equipment index=0 bonus=0 实证); +136..+159 第六个 24B 容器 = 运行时不序列化 | count≠0 |
+| +112 | 匿名结构 (24B) | **equipment_bonus 容器** {data@112, cap@120, **count@124**, alloc@128} | writer 0X1413CF470 块尾第五段; 条目 24B **SDoctrineEquipmentBonusHandle** (vtable 0X2965210): {vtable@0, id lexer token u32@+8 (装备原型名, token 串发射不带引号), index u32@+12 (调用方 ordinal: 选中路径 0/track 跨档序号/milestone 序号), equipment_bonus u32@+16 (国家 named_equipment_bonus 库槽位号, sub_140E60110 经 last_named_equipment_bonus 递增分配, 非加成数值), pad@20}; 块门 = count≠0 (零容器连键带体不写), 条目无逐条门 0 值照写 (MD towed_gun_equipment index=0 bonus=0 实证); +136..+159 第六个 24B 容器 = 运行时不序列化 | count≠0 |
 
 GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 scopedptr 子控制器 CFolderView 族; folder 库容器命中; folder 模板 token 12989 跳过门)。
 
-**CFolderStatus** (vtable 0X29653A8; 80B; 整类 writer vt[2] sub_140FC99F0 — 落盘序 grand_doctrine 键 16775 (+16 ptr≠0 门) → folder 键 11873 (+8 ptr≠0 门) → tracks 块 16772 (+36≠0 门) → completed_subdoctrines 键 16791 (+68≠0 门, 逐 8B 指针发 token 名不带引号); reader vt[4] sub_140FC9020):
+**CFolderStatus** (vtable 0X29653A8; 80B; 整类 writer vtable[2] sub_140FC99F0 — 落盘序 grand_doctrine 键 16775 (+16 ptr≠0 门) → folder 键 11873 (+8 ptr≠0 门) → tracks 块 16772 (+36≠0 门) → completed_subdoctrines 键 16791 (+68≠0 门, 逐 8B 指针发 token 名不带引号); reader vtable[4] sub_140FC9020):
 
 | 偏移 | 类型 | 名称 |
 |---|---|---|
@@ -47,9 +47,9 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 | +36 | uint32 | tracks 容器计数 |
 | +48 | CCountryDoctrineStatus* | owner 回指针 (不序列化; 触发器上下文 *(+48)+8 = status+8 TAG 槽) |
 | +56 | CSubDoctrineTemplate* 向量 | completed_subdoctrines 容器 {d@56, cap@64, c@68} (8B 元素; writer/reader 双向) |
-| +72 | allocator* | completed 容器分配器 (CPdxHybridInlineBufferAllocator, vt 0x2965598; 扩容经其 vt+8/vt+16) |
+| +72 | allocator* | completed 容器分配器 (CPdxHybridInlineBufferAllocator, vtable 0x2965598; 扩容经其 vtable+8/vtable+16) |
 
-**CTrackStatus** (vtable 0X2965358; 96B; **整类 writer vt[2] = sub_14147CD00, reader vt[4] = sub_14147C2C0** — 全 serfam 共享 wrapper vt[1]/[3] 0x1424BEC50/0x1424BE690):
+**CTrackStatus** (vtable 0X2965358; 96B; **整类 writer vtable[2] = sub_14147CD00, reader vtable[4] = sub_14147C2C0** — 全 serfam 共享 wrapper vtable[1]/[3] 0x1424BEC50/0x1424BE690):
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
@@ -76,7 +76,7 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 
 GetTrackMasteryDetails 增益合成式: `sum = track.daily_mastery(+40) + Σ active daily_mastery 条目(+88, STemporaryMasteryGain, filter 匹配 sub_140FC8670) + 3 项国家侧修正源 + Σ active bonus(+96)`; `factor = 100000 + 三修正源`; `gain = sum×factor/100000` (÷1e5 截断), `0<gain<qword_1433341F0 → 钳到下限`; `bank = gain×qword_143334480/100000` (MASTERY_BANK_CONVERSION_RATE); a4≠0 时发 5 组本地化行 (DOCTRINE_MONTHLY_MASTERY_GAIN_FROM_UNITS / …_BONUS / …_BONUS_FACTOR / MASTERY_BANK_CONVERSION_RATE / DOCTRINE_MONTHLY_MASTERY_BANK)。
 
-日更 tbb 两遍 pass (160B 元素 CCountryDoctrineStatus 数组并行遍历): pass A sub_140D7BEA0 → 逐 folder sub_140FC7D90 刷 active 产出; pass B sub_140D7C1A0 → 逐 folder sub_140FC8DC0 应用 cost_reduction (CCountryDoctrineStatus +136 容器 = cost_reduction 条目数组, 80B 元素步进, 元素 +8/+32/+56 三修正槽, 日步逐条 `基础值×缩减/1e5`, >0 才经 sub_14147C7B0 灌入 track)。CCountryDoctrineStatus reader (vt[4]) = 0x1413CED70 (与 writer 0x1413CF470 对)。
+日更 tbb 两遍 pass (160B 元素 CCountryDoctrineStatus 数组并行遍历): pass A sub_140D7BEA0 → 逐 folder sub_140FC7D90 刷 active 产出; pass B sub_140D7C1A0 → 逐 folder sub_140FC8DC0 应用 cost_reduction (CCountryDoctrineStatus +136 容器 = cost_reduction 条目数组, 80B 元素步进, 元素 +8/+32/+56 三修正槽, 日步逐条 `基础值×缩减/1e5`, >0 才经 sub_14147C7B0 灌入 track)。CCountryDoctrineStatus reader (vtable[4]) = 0x1413CED70 (与 writer 0x1413CF470 对)。
 
 **STemporaryCostReduction** (64B 内联):
 
@@ -94,7 +94,7 @@ GetTrackMasteryDetails 增益合成式: `sum = track.daily_mastery(+40) + Σ act
 |---|---|---|
 | +8 | string | name |
 | +9..+39 | — | = name SSO 32B 本体 (buf@8 尾 + size@+24 + cap@+32=15) |
-| +40 | **内嵌 NDoctrines::STrackFilter (48B, vt 0x1427D1130)** | filter 对象 vtable — ⚠ dm+40 非 {data,count} 容器; dm+48/52 是定义指针, 按容器 data/count 读即错; 布局见下表 |
+| +40 | **内嵌 NDoctrines::STrackFilter (48B, vtable 0x1427D1130)** | filter 对象 vtable — ⚠ dm+40 非 {data,count} 容器; dm+48/52 是定义指针, 按容器 data/count 读即错; 布局见下表 |
 | +41..+87 | — | = STrackFilter 内嵌体本体 (+40..+87) + 尾 pad |
 | +88 | fixed×1e-5 | daily_mastery |
 | +96 | fixed×1e-5 | bonus |
@@ -120,7 +120,7 @@ GetTrackMasteryDetails 增益合成式: `sum = track.daily_mastery(+40) + Σ act
 |---|---|---|---|
 | +16 | 元素 (80B) 数组数据 | 学说状态条目表; 计数 @+28; 条目+16 → 级数 @子对象+804; 状态对象+24 = 已选 doctrine 槽 | 推定 |
 
-**CDoctrineListItem / CDoctrineSharingFolderItem (学说行件, GUI)**: CDoctrineListItem = CDoctrineSelectionList 学说行: **def 本体 @+1440** (assert 铁证); **def 侧三偏移定案: def+40 = name / def+104 = gfx / def+36 = XP 类别**; 选中帧由宿主 0X141F3AC50 管理 (dynamic_cast 钉死共享基 = CStandardGridBoxItem)。CDoctrineSharingFolderItem = 学说共享文件夹行: **folder def @+2776 (def+96 = icon gfx)**; 共享态 @+2784 驱动 lock_icon/unlock_button 显隐 + 成本着色 (FACTION_UNLOCK_BUTTON); 命令出口 = **CUnlockFolderDoctrineSharingCommand {+40 / +48}**。
+**CDoctrineListItem / CDoctrineSharingFolderItem (学说行件, GUI)**: CDoctrineListItem = CDoctrineSelectionList 学说行: **def 本体 @+1440** (assert 直证); **def 侧三偏移定案: def+40 = name / def+104 = gfx / def+36 = XP 类别**; 选中帧由宿主 0X141F3AC50 管理 (dynamic_cast 钉死共享基 = CStandardGridBoxItem)。CDoctrineSharingFolderItem = 学说共享文件夹行: **folder def @+2776 (def+96 = icon gfx)**; 共享态 @+2784 驱动 lock_icon/unlock_button 显隐 + 成本着色 (FACTION_UNLOCK_BUTTON); 命令出口 = **CUnlockFolderDoctrineSharingCommand {+40 / +48}**。
 
 #### 4.6.1 NDoctrines def 侧族总览
 
@@ -176,7 +176,7 @@ vtable RVA 0x142719078, sizeof 776, ctor `sub_140147250`; 基类 CDatabaseObject
 | +32 | uint32/int | **xp_cost 数值** | 键 xp_cost (19741), 整数读 sub_1424C08D0; XP 成本结算器 sub_1413CB2D0 读此槽 |
 | +36 | uint32 | xp_type | 键 xp_type (16769) |
 | +40 | CString (32B) | name 本地化键 | 键 name (27) |
-| +72 | NPdxLoc::CBoundLocalization (64B) | **description 绑定本地化** | 键 description (15906) → sub_1424C0AA0 |
+| +72 | NPdxLoc::CBoundLocalization (32B) | **description 绑定本地化** | 键 description (15906) → sub_1424C0AA0 |
 | +104 | CString (32B) | icon | 键 icon (181) |
 | +136 | CEffect 内嵌效果块 | **学说效果载体** (25 槽, [12] = Execute; 块内 +88 起内嵌 CModifier = def+224 / +104 mdef 查表区 = def+240 / +280 CSubUnitStatBonus 56B = def+416 / +336 战术解锁名表 = def+472 计数@def+484 / +360 equipment_bonus 源表 = def+496 门@def+508); available (12264) 亦写 +608 | |
 | +224 | CModifier | 内联修正块 (扁平效果键) — CEffect+88 | ctor + reader |
@@ -201,7 +201,7 @@ vtable RVA 0x142718f88, sizeof 272, ctor `sub_140147C60`; 基类同 CDoctrineBas
 |---|---|---|---|
 | +8 | uint32 | name token | 基 |
 | +24 | uint8 | 已解析标志 | ctor |
-| +32 | NPdxLoc::CBoundLocalization (64B) | name 本地化键 | 键 name (27) |
+| +32 | NPdxLoc::CBoundLocalization (32B) | name 本地化键 | 键 name (27) |
 | +64 | CString (32B) | tab_gfx | 键 tab_gfx (16785) |
 | +96 | CString (32B) | ledger_gfx | 键 ledger_gfx (16748) |
 | +128 | uint32 | color_frame | 键 color_frame (16797) |
@@ -246,7 +246,7 @@ vtable RVA 0x1427192f8, sizeof 968, ctor `sub_14014B2B0`; 基类 = CDoctrineBase
 | track (139) | — | track 定义指针值形态门 | `*(ctx+192)==3` (裸标识符) 才解析 |
 
 终结/校验 `sub_1409E6560`: 断言 `+772 != 0` ("Subdoctrine %s has no track assigned") 与 `+796 != 0`
-("Subdoctrine %s has no scripted rewards"); 逐 rewards 元素调 `sub_1409E4DC0`; 调 vt[8] 槽以计算
+("Subdoctrine %s has no scripted rewards"); 逐 rewards 元素调 `sub_1409E4DC0`; 调 vtable[8] 槽以计算
 CMasteryConditions; 最后 `+752 = sub_141528800`。独有虚槽: [8] `sub_1409E6560` (终结/校验) /
 [11] `sub_1409CBF20` / [12] `sub_1409E5B30` / [13] `sub_1409E60F0` / [14] `sub_1409E6530`。
 
@@ -260,7 +260,7 @@ vtable RVA 0x142719408, sizeof 360, ctor `sub_14014B620`; 基类同 CFolderTempl
 | +24 | uint8 | 标志 | ctor |
 | +32 | 匿名结构 (88B) | active 触发块数据 | 键 active (11390) |
 | +120 | NDoctrines::CMasteryConditions (96B) | 内嵌 mastery 条件块 | 键 mastery (16780) → sub_1409E5560 |
-| +216 | NPdxLoc::CBoundLocalization (64B) | name 绑定本地化 | 键 name (27) → sub_1424C0AA0 |
+| +216 | NPdxLoc::CBoundLocalization (32B) | name 绑定本地化 | 键 name (27) → sub_1424C0AA0 |
 | +248 | uint32 | progress_type | 键 progress_type (16773), **裸 token 直存** (子 token 原样, 默认 357 none) |
 | +252 | uint32 | background_offset | 键 background_offset (16798) |
 | +256 | CString (32B) | background | 键 background (156) |
@@ -328,7 +328,7 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 共享骨架: 循环读块内未具名标量 → 取 token 条目 → `malloc(0x20)` 产 32B 条件条目入向量。
 
 求值链 (定案): 装载期三键各建 token 集合向量; 终结期由 CSubDoctrineTemplate 终结函数
-`sub_1409E6560` 经 vt[8] 槽调 evaluator `sub_1409E4870`; 三遍扫描各持一个**领域位掩码**
+`sub_1409E6560` 经 vtable[8] 槽调 evaluator `sub_1409E4870`; 三遍扫描各持一个**领域位掩码**
 测试元素对象的标志字段 (一律读 `obj+1448`; categories 组对象双层 `*(vec)+68` 计数 →
 `*(vec+56)` 子向量): 第 1 遍陆掩码 `0x408000003C` 写 +89 / 第 2 遍海军掩码 `0x80004003C1`
 写 +88 / 第 3 遍空掩码 `0x1F0037FC00` 写 +90 并返回。掩码位词表 = §4.34.9 category 位表。
@@ -425,7 +425,7 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 | 环节 | 函数 | 要点 |
 |---|---|---|
 | XP 成本门 | sub_1413CB2D0 | `def+32 xp_cost × (1 − cost_reduction 折扣)` (折扣源 CCountryDoctrineStatus+64 容器, sub_1413CB6D0 读); 玩家/AI 共用 (AI 评分 sub_1413CBB60 = 三参糖) |
-| Execute 入口 | 0x141A7BF90 (CUnlockGrandDoctrineCommand::IsValid) → sub_1413CCBA0 / 0x141A7C1B0 (CUnlockSubDoctrineCommand::IsValid) → sub_1413CBDB0 + sub_1413CCD80 独立链 | 已选查重 (任一 folder+16 == 该 grand → 拒) → available 求值 (def+608 块 vt+24) → Set 链 |
+| Execute 入口 | 0x141A7BF90 (CUnlockGrandDoctrineCommand::IsValid) → sub_1413CCBA0 / 0x141A7C1B0 (CUnlockSubDoctrineCommand::IsValid) → sub_1413CBDB0 + sub_1413CCD80 独立链 | 已选查重 (任一 folder+16 == 该 grand → 拒) → available 求值 (def+608 块 vtable+24) → Set 链 |
 | 换 grand | sub_140FC6A20 SetGrandDoctrine | 逐 track Clear → 按新 grand def+804 槽数补建 CTrackStatus (track+80 = 父回指 / +88 = folder 回指) → folder+16 = 新 def → 旧注销 sub_1413CEE00(type3) / 新注册 sub_1413CD240(type3) → UI 通知 |
 | 换 sub | sub_14147C8A0 SetSubDoctrine | mastery_bank (track+32) 存量保存 → Clear → track+8 = 新 def → 注销/注册 type4 → sub_14147C000 存量重结算 (换学说保留已攒掌握度) |
 | 清空 | sub_14147C650 Clear | +16 rewards / +24 mastery / +32 mastery_bank 清零; 逐奖励档注销 type5 |
@@ -433,3 +433,28 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 | mastery 汇入 effect | sub_1413CDA80 (STrackFilter 匹配: 逐 track sub_140FC8670 读 filter 五字段测试) + sub_1413CD100 (单 track def 或全量汇入) | 逐命中 track AddMastery; 无命中报 "Failed to add mastery to any tracks" |
 
 调度: 日边界 CDoctrineSystem::DailyUpdate sub_140D7ED90 (tbb 两遍遍国家条目) + 串行收尾逐国 sub_1413CCF90: ① 逐 folder sub_140FC7EB0 folder 日步 — track def active 触发器门 (sub_1409E6B80) → track+72 每日 mastery 产出值 >0 灌入 (完成/无 def 走 sub_14147BFD0 衰减支路); ② daily_mastery 容器 (+88, 112B 元) 逐条 `--days` + 到期紧凑删除。月边界 sub_140D7F220 (仅玩家国)。
+
+#### 4.6.14 学说选择列表行件族 (doctrine_selection_items.cpp; 6 函闭环 — info policy 策略对象 / CDoctrineListItem 全布局 / tooltip 详略开关)
+
+簇清册 (体内 cpp 锚 6/6; 书内原仅 def 五锚零 VA 覆盖 — 本簇 6 锚即书 def 锚的出处函):
+
+| 函数 | 行数 | 体内锚 | 定性 |
+|---|---|---|---|
+| sub_141F381E0 | 34 | :50 断言 "Invalid track index" (B51, 闩 byte_14338CA1B) | track 进度查询包装 |
+| sub_141F39550 | 48 | :413 断言 "No doctrine info policy set…" (闩 byte_14338CA20) | info policy vtable[0] 文本查询包装 (出串可空 = 干跑判定) |
+| sub_141F3A1B0 | 46 | :427 同文案断言 (闩 byte_14338CA21) | info policy vtable[1] 五参查询 (返 int = XP 成本) |
+| sub_141F3B220 | 39 | :398 断言 "Failed to access settings" (闩 byte_14338CA1F) | tooltip 详略开关切换 (ctx+4176 取反 → settings+624 同步写回) |
+| sub_141F39660 | 460 | :97 断言 "Invalid doctrine in selection list" (闩 byte_14338CA1C) | tooltip 组装器 (键分派双路; 宿主类未定名, def 在 +1416 异于行件 +1440) |
+| sub_141F3A6C0 | 316 | :179 断言 "Invalid doctrine assigned to doctrine list item" (闩 byte_14338CA1D) | CDoctrineListItem::Update 行刷新器 |
+
+**info policy 策略对象 (新定案)**: 学说选择列表持 +4160 当前学说 def / **+4184 info policy 对象指针** (未设 = 两查询断言返 0 非致命)。接口至少两槽: vtable[0] = (policy, 国解析件, def, *(列表+1416), char, out 串*, *(列表+1476)) → bool — 学说可用性/文本查询, **出串传 0 = 干跑** (仅判可用); vtable[1] = (policy, 国解析件, def, *(列表+1416), int) → int — XP 成本查询。国取数链 = 列表+8 对象取 tag → sub_140BB5490 → idpair → sub_1413C6600。
+
+**CDoctrineListItem 全布局** (ctor sub_141F383E0, RTTI 名 `NDoctrines::CDoctrineListItem` 直出; 书 def 五锚全部在本簇直证 — +1440 def 本体直证即 :179 断言): +0/+24 双 vtable / +32 CDoctrineSelectionList* / +40 基子对象 / +1408 名称文本件 / +1416 成本按钮件 / +1424 gfx 处理器 (vtable 槽 91 传 def+104 帧, 槽 81/82 可用双态) / **+1440 学说 def 指针** / +1448 可用旗字节 (强制不可用门) / +1456/+1464 顾问槽 0/1 容器件 / +1472..+1488 文本三件 (ctor 清零)。点击 lambda 全名直出 (回带 def 与 bool)。
+
+**Update 七步** (sub_141F3A6C0): def 空 → :179; 可用判定 = +1448 门 ‖ policy vtable[0] 干跑 (不可用加前缀 TRIGGER_UNFULLFILLED_PREFIX); 名称 = def+40 (书互证) → 写 +1408; gfx = def+104 (书互证) + 槽 81/82 双态; 成本 = policy vtable[1], ≤0 或强制不可用 → +1416 钮隐藏; 顾问槽 = **SAdvisorDoctrineBonus 16B 元 {顾问 id, 活性旗}** 向量 (sub_1413C61D0 填充) → 槽 0/1 按计数显隐 + GUI 上下文工厂 (qword_14332F698+1272, §4.11.25 同款) 绑行; 成本文本 = xp 类别 **def+36** (书互证), **可负担门 = 国 XP ≥ 100000 × 成本 (fixed×1e5)**。
+
+**tooltip 双路** (sub_141F39660): 键 +1392 → XP 刷 + 主文本 (干跑) + 104B 元数组构造 + def vtable 槽 12 成本文本 + policy **vtable 槽 13 (带统计数组, 详略开关开) / 14 (简版)** 二分支 + 尾注 DOCTRINE_DETAILS_BUTTON_PROMPT + CSubDoctrineTemplate 子条令附加文本; 键 +1448 → 顾问掌握 tooltip (ADVISOR_DOCTRINE_FAVOR/NAME + ADVISOR_MASTERY_GAIN_POTENTIAL/ACTIVE 二选一)。
+
+**track 包装** (sub_141F381E0): track_idx == −1 → :50 断言; 否则状态链查询 — **学说状态对象 +16 = 80B/条元素数组, 计数 +28, 条目+8 = track def 指针** (线性扫匹配; §4.6 状态对象补行互证)。
+
+未决: tooltip 宿主类定名 / policy 对象装填者 / settings+624 设置项名 / 顾问行绑定第 4 参语义。

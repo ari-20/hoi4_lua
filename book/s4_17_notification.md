@@ -8,7 +8,7 @@
 > `notification_handler.cpp`; GUI 定义 `interface/notifications/notification.gui`
 > (含 `notification_center` / `notification_entry` 两容器窗)。
 >
-> **全族零存档面 (定案)**: 6 类基链无 `CPersistent` 任一层 (CHD 直读; 且 6 张主虚表全部
+> **全族零存档面 (定案)**: 6 类基链无 `CPersistent` 任一层 (CHD 直读; 且 6 张主vtable全部
 > 不匹配 CPersistent 家族指纹 [1] = 0x1424BEC50 & [3] = 0x1424BE690); `ref/serfam_1193.txt`
 > 内 `notification` 零命中; 运行时全量内存导出 (129 MB) 内 `notification` / `notif` / `alert` /
 > `popup` / `toast` 全部零命中 (对照 `idea|focus` 14,830 命中)。⇒ 通知是**纯会话内瞬态 UI 状态**,
@@ -16,7 +16,7 @@
 
 #### 4.17.1 通知族类清单
 
-| 类 (RTTI 实名) | sizeof | 主虚表 | 次虚表 (mdisp) | ctor | 基类链 |
+| 类 (RTTI 实名) | sizeof | 主vtable | 次vtable (mdisp) | ctor | 基类链 |
 |---|---|---|---|---|---|
 | NNotification::CNotification | 1440 | 0x142A4B708 | 0x142A4B758 (+40) | sub_141BBE880 | CReloadableInterface → CReloadDispatcher; CTooltipHandler (+40) |
 | NNotification::CNotificationHandler | 96 | 0x1429B59A8 | 0x1429B59E0 (+16) | sub_1413911A0 | CUpdateable; CReloadableInterface (+16) → CReloadDispatcher (+16) |
@@ -37,23 +37,23 @@ ctor = `sub_141BBE880(this, &window_name)`; 三具体类均先调本 ctor 再写
 | 偏移 | 类型 | 名称/语义 | 写门/证据 |
 |---|---|---|---|
 | +8 | 匿名结构 (32B, std::string 形) | 窗口名串 | sub_142255FA0 从 .gui 描述子解析写入 |
-| +40 | CTooltipHandler vt | tooltip 面虚表 (2 槽) | ctor |
+| +40 | CTooltipHandler vtable | tooltip 面vtable (2 槽) | ctor |
 | +48 | 匿名结构 (32B, std::string 形) | 通知窗口名串 (调用方传入, 如 `message_popup_window`) | ctor 从 a2 拷入 |
 | +80 | CClass* | tooltip 目标元素 | sub_141BBEF90: `sub_1422B8BC0(root, 名+"_instance")`; 高置信 |
 | +88 | CClass* | tooltip 根窗元素 | sub_141BBEF90 直写 a2; 高置信 |
 | +96 | CButtonEventDispatcher + 回调束 (1288B) | 束头 = CButtonEventDispatcher 子对象 (dtor 回写其 vftable); 束内 **12 个 GUI 事件回调槽** (安装器 sub_141BBE0A0, 逐槽 `CLegacyButtonObserverGlue<CNotification>` + sub_1402A69E0 挂 std::function); 基 ctor 仅装 2 个非空 (sub_1402A08F0 / sub_141BBF120, 二者均操作 +1432 过期旗), 余 10 空; 束跨度 = +96 → +1384 = 1288B | 结构/尺寸定案; 逐槽元素名待裁 (需 .gui 侧 `notification_entry` 元素名对齐) |
-| +1384 | CGameDate 内嵌 24B | **创建时刻** {vt@1384, hours@1392, 视图 vt@1400} | ctor: +1392 = `*(gs+1128)` 当前小时 |
-| +1408 | CGameDate 内嵌 24B | **超时基线** {vt@1408, hours@1416, 视图 vt@1424} | ctor: +1416 = 43808760 (CGameDate ctor 哨兵 "1.1.1.1") |
+| +1384 | CGameDate 内嵌 24B | **创建时刻** {vtable@1384, hours@1392, 视图 vtable@1400} | ctor: +1392 = `*(gs+1128)` 当前小时 |
+| +1408 | CGameDate 内嵌 24B | **超时基线** {vtable@1408, hours@1416, 视图 vtable@1424} | ctor: +1416 = 43808760 (CGameDate ctor 哨兵 "1.1.1.1") |
 | +1432 | uint8 | **已过期/待移除旗** (置 1 → 下一帧自毁) | sub_1402A08F0 置 1; sub_141BBF1B0 收尾判 |
 | +1436 | int32 | **超时天数** (ctor 初值 −1; 0 触发 notification.h:39 断言) | setter sub_141378090 (断言门 `Days > 0`); 默认值源 = define `INFO_MESSAGE_TIMEOUT_DAYS` (sub_14083FD20 读, 兜底 1) |
 
-**CNotification 主虚表 9 槽** (0x142A4B708):
+**CNotification 主vtable 9 槽** (0x142A4B708):
 
 | 槽 | 地址 | 语义 |
 |---|---|---|
 | [0] | 0x141BBED30 | 完整 dtor (拆 glue → CGregorianDate → 串 → CButtonEventDispatcher → CTooltipHandler → 基) |
 | [1] | 0x14011D220 | ret 0 |
-| [2] | 0x141BBF140 | Reload (CReloadableInterface 面覆写; 重建 tooltip 面 + 自调 vt[5]) |
+| [2] | 0x141BBF140 | Reload (CReloadableInterface 面覆写; 重建 tooltip 面 + 自调 vtable[5]) |
 | [3] | 0x14012A2C0 | CFG 空桩 |
 | [4] | 0x14012A2C0 | CFG 空桩 |
 | [5] | 0x14012A2C0 | CFG 空桩 (派生覆写 = Populate) |
@@ -67,7 +67,7 @@ ctor = `sub_141BBE880(this, &window_name)`; 三具体类均先调本 ctor 再写
 |---|---|---|---|---|
 | [5] | Populate (灌窗口元素) | 0x141378150 (`FOCUS_MESSAGE_UNLOCKED_TITLE` / `FOCUS_SIDE_MESSAGE_UNLOCKED_DESC` / `ORIGINATOR` / `FOCUS` / `originator`) | 0x14192F850 (`IDEA_EXPIRED_DESC` / `IDEA` / `owner` / `"messag"`) | 0x1417C9850 (`title` / `"messag"` / `sender_flag` / `receiver_flag` / `diplo_war_large_icon[2]`) |
 | [7] | Tooltip/正文拼装 | 0x141377C40 (`FOCUS_SIDE_MESSAGE_UNLOCKED_TOOLTIP` / `FOCUS_SIDE_MESSAGE_CLICK_ACTION` / `REWARD` / `ORIGINATOR`) | 0x14192F430 (`IDEA_EXPIRED_TT` / `IDEA` / `EFFECTS`) | 0x1417C9730 (追加换行, 门 = +1600 非空) |
-| [8] | 点击动作 | 0x141378120 → `sub_140B68FB0(iface, *(this+1440))` | 0x14011D220 (ret 0) | 0x1417C97D0 → `*(this+1576)` 对象 vt[2] |
+| [8] | 点击动作 | 0x141378120 → `sub_140B68FB0(iface, *(this+1440))` | 0x14011D220 (ret 0) | 0x1417C97D0 → `*(this+1576)` 对象 vtable[2] |
 
 > 三具体类的 [5]/[7] 各持独立 loc key 族 ⇒ 通知文案**完全数据驱动**, 引擎侧无硬编码文本。
 
@@ -78,32 +78,32 @@ ctor = `sub_141BBE880(this, &window_name)`; 三具体类均先调本 ctor 再写
 
 ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `malloc(0x60)` +
 存入 **iface+1240**。全局定位链: `CInGameIdler + 1720 = iface` (ctor sub_140DC1B30 内
-`*(a1+1720) = sub_140B614C0(...)`) → iface 主虚槽 **[23] (vt+184) = 取回 iface 自身** →
+`*(a1+1720) = sub_140B614C0(...)`) → iface 主虚槽 **[23] (vtable+184) = 取回 iface 自身** →
 `+1240` 取 handler。
 
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +16 | CReloadableInterface vt | 次虚表 (5 槽) | ctor `*(a1+16) = vftable` |
-| +40 | CClass* | **`notification_center` 窗** (GUI 顶层容器) | sub_1413916B0: `vt+96(guimgr, "notification_center")` → `a1[5]` |
+| +16 | CReloadableInterface vtable | 次vtable (5 槽) | ctor `*(a1+16) = vftable` |
+| +40 | CClass* | **`notification_center` 窗** (GUI 顶层容器) | sub_1413916B0: `vtable+96(guimgr, "notification_center")` → `a1[5]` |
 | +48 | CClass* | **`notification_list`** (OverlappingElementsBox, 通知条目列表) | sub_1413916B0: `sub_1422BCBA0(a1[5], "notification_list", 1)` → `a1[6]` |
 | +56 | int32 对 | GUI positionType **`maximum_offset`** {x@56, y@60} | 来源定案 (`sub_1422BD000(...,"maximum_offset",1)+240` → `a1[7]`); 轴角色待裁 |
 | +64 | int32 对 | GUI positionType **`maximum_size`** {x@64, y@68} | 来源定案 (同上 `"maximum_size"` → `a1[8]`); 轴角色待裁 |
-| +72 | uint8 | **本帧有条目被摘除门** (Update 收集到 `*(条目+72)+1432 == 1` 的通知 → 从列表 `vt[82](+656)` 摘除 → 置 1 → 触发布局重算) | 触发条件定案; 清除点推定 (每帧开头不清, 残留到下次置位) |
+| +72 | uint8 | **本帧有条目被摘除门** (Update 收集到 `*(条目+72)+1432 == 1` 的通知 → 从列表 `vtable[82](+656)` 摘除 → 置 1 → 触发布局重算) | 触发条件定案; 清除点推定 (每帧开头不清, 残留到下次置位) |
 
-**主虚表 6 槽 (0x1429B59A8)**: [0] 0x141391390 dtor (回写 CUpdateable vftable; 调
-`*(Block[8] vt+664)` 释窗; sub_1422560A0(Block+2)) / [1] 0x141391B30 **Update** (CUpdateable[1] 覆写) /
+**主vtable 6 槽 (0x1429B59A8)**: [0] 0x141391390 dtor (回写 CUpdateable vftable; 调
+`*(Block[8] vtable+664)` 释窗; sub_1422560A0(Block+2)) / [1] 0x141391B30 **Update** (CUpdateable[1] 覆写) /
 [2] 0x1413916B0 **Reload** (重建 notification_center/notification_list + 重挂既有条目) /
 [3] 0x14012A2C0 CFG / [4] 0x14011D220 ret 0 / [5] 0x14012A2C0 CFG。
 
-**次虚表 5 槽 (0x1429B59E0)**: [0] 0x1413912E8 (thunk → 0x141391390, this−16) / [1] ret0 /
+**次vtable 5 槽 (0x1429B59E0)**: [0] 0x1413912E8 (thunk → 0x141391390, this−16) / [1] ret0 /
 [2] 0x1413916B0 Reload / [3] CFG / [4] 0x14011D220。
 
 > ⚠ 本类为 **CUpdateable + CReloadableInterface 多继承宿主**: CUpdateable 的 [2] 位被
 > CReloadableInterface 的 Reload 占据 (MI 重排), 与单继承宿主的槽序不同 — 读槽须按 MI 处理。
 
 **帧驱动链**: `CInGameInterfaceHandler` 每帧更新 sub_140B67570 →
-`(*(*(iface+1240)+8))(iface+1240)` = handler vt[1] Update → 紧接 `sub_141391660(iface+1240)`
-对 notification_center 与 notification_list 各调 vt+128 并置 +165 / +117 的 0x10 位
+`(*(*(iface+1240)+8))(iface+1240)` = handler vtable[1] Update → 紧接 `sub_141391660(iface+1240)`
+对 notification_center 与 notification_list 各调 vtable+128 并置 +165 / +117 的 0x10 位
 (与 container dtor / Reload 同款形态, 语义待裁)。
 
 #### 4.17.4 三具体通知类字段表
@@ -120,7 +120,7 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 
 > **推送点 (唯一)**: `sub_1402CF380` (焦点完成事件处理) → `sub_141391400(iface+1240, obj)`。
 > 门: 目标国 ∈ {gs+1312 当前国 / gs+1316 观察国} (`sub_140BB52F0` 同原初国容错) 且
-> `iface vt+184` (玩家国 tag) 有效 且 `byte_14332F639 == 0` (非 AI 托管) 且
+> `iface vtable+184` (玩家国 tag) 有效 且 `byte_14332F639 == 0` (非 AI 托管) 且
 > `byte_14332F62C == 0` 且 `*a4 == 1` (通知类型枚举 = 1)。
 
 **CIdeaExpiredNotification** (1448B; ctor `sub_14192F2E0(this, idea)`;
@@ -146,8 +146,8 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 | +1504 | int32 | **发送方 tag** (consumed `sub_140B44AC0(..., a1+1504, ...)` 挂 `sender_flag`) | ctor 六参版 |
 | +1508 | int32 | **接收方 tag** (`receiver_flag`) | ctor 六参版 |
 | +1512 | uint8 | **图标变体旗** (`diplo_war_large_icon` vs `diplo_war_large_icon2`) | ctor 六参版 a6 |
-| +1520 | 内嵌对象 (56B) | 引用/观察者对象 (析构 = `*(+56)` 对象 vt[4](.., flag)) | ctor unwind 链; 类名待裁 |
-| +1576 | CClass* | **点击动作对象** (vt[2] 被调) | sub_1417C97D0 |
+| +1520 | 内嵌对象 (56B) | 引用/观察者对象 (析构 = `*(+56)` 对象 vtable[4](.., flag)) | ctor unwind 链; 类名待裁 |
+| +1576 | CClass* | **点击动作对象** (vtable[2] 被调) | sub_1417C97D0 |
 | +1584 | 匿名结构 (32B, std::string 形) | 附加串 (ctor 置空) | ctor |
 
 **CLegacyMessagePopUpNotification 推送点** (13 处, 全部经 `sub_141391400(handler, obj)`):
@@ -174,7 +174,7 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 |---|---|---|
 | ① 业务侧 | 构造具体派生对象 (malloc + ctor) — 焦点完成 1 处 / 理念过期 1 处 / 弹窗 13 处 | 各推送点 |
 | ② 入队 | `sub_141391400(handler, obj)` — **全族唯一入队入口** (14 个不同调用函数); 建 CNotificationContainer (malloc 0x50) 包 obj 挂 `notification_entry`, `_RTDynamicCast` 校验宿主为 CContainerWindow, `notification_list.vt[81](+648)` 插入列表; 置 handler+72 = 1 | 二进制文件 |
-| ③ 帧驱动 | handler vt[1] Update (sub_141391B30): 遍历 notification_list 全部条目 → 逐条判 `*(item+72)+1432` (过期旗) → 未过期者收集 → 逐条 `notification_list.vt[82](+656)(item, 0)` 重排 → `+72` 门 → 按 maximum_offset / maximum_size 钳制重算列表位置写 list+136 | 二进制文件 |
+| ③ 帧驱动 | handler vtable[1] Update (sub_141391B30): 遍历 notification_list 全部条目 → 逐条判 `*(item+72)+1432` (过期旗) → 未过期者收集 → 逐条 `notification_list.vt[82](+656)(item, 0)` 重排 → `+72` 门 → 按 maximum_offset / maximum_size 钳制重算列表位置写 list+136 | 二进制文件 |
 | ④ 自毁 | CNotification 自身超时计时 `sub_141BBF1B0`: 进度条 `timeout_progressbar` + `+1436`(天) × 24 vs 当前小时 − +1392 比较 → 达阈置 +1432 = 1 → 下一帧自毁 | 二进制文件 |
 
 > **无 `Add` / `Queue` 命名函数** — 入队原语即 `sub_141391400` (未具名, 证据 = 14 处唯一调用形态);
@@ -196,7 +196,7 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 
 | 项 | 值 |
 |---|---|
-| 类 | CAlertManager (源文件 alertmanager.cpp; **无独立 RTTI 虚表** — 纯聚合结构, 非 CPersistent) |
+| 类 | CAlertManager (源文件 alertmanager.cpp; **无独立 RTTI vtable** — 纯聚合结构, 非 CPersistent) |
 | sizeof | 100776B (malloc 0x189A8); ctor sub_140AFDB60 (ctor 内完成 81 项警报注册 + common/alerts.txt 加载) |
 | 挂载 | idler+1944 (CInGameIdler+243×8; 装配 = idler 构造期 sub_140DDE8A0); 紧随 idler+1952 = 72B 条状管理器 (ctor sub_141756990) |
 | 驱动 | CInGameIdler::Idle **暂停门分支内**、iface 帧更新之前 (§4.2.1) 每帧调 sub_140B188A0 (profiler 域 "alert_manager_update"); 四层门: 暂停位 +1729/+1732 全零 ∧ 玩家 tag (gs+1312/1316 >0) ∧ 无全屏窗 (sub_140B67DD0) ∧ renderhide 旗 byte_14332F61F = 0 (toggle 点 = sub_140252D70, 回显 "Rendering is now SHOWN/HIDDEN") |
@@ -224,7 +224,7 @@ CAlertManager 布局 (偏移十进制):
 | +100464 | 匿名结构 (NNB 形状) 向量 24B | **crypto 已解除 id 列表** (int32/项); id 61 检查器 sub_140B1ECE0 查重 |
 | +100488 | uint8 | crypto 点击确认一次性门 (点击 61/62 置 1; sub_140B1ECE0 消费后自清; sub_140B17450 亦清) |
 | +100496 | 匿名结构 (NNB 形状) 向量 24B | 有效州集合 (逐帧重建; 源 = cc+360 数组 / cc+372 计数) |
-| +100512 | allocator vt | off_143085170 (与 notification handler 同款分配器桩) |
+| +100512 | allocator vtable | off_143085170 (与 notification handler 同款分配器桩) |
 | +100520 | int32 | 时间戳钳制 (id 52 用) |
 | +100680 | 有序映射 (16B 头) | int 键 std::map 形 (自链哨兵 32B, 节点键@+28) = **id 71 上一轮项目 id 集** (边沿检测); 消费 = sub_140B2F4B0 |
 | +100696 | 有序映射 (16B 头) | 同形 = **id 70 上一轮项目 id 集**; 消费 = sub_140B2FF30 |
@@ -244,9 +244,9 @@ CAlertManager 布局 (偏移十进制):
 | +1072 | int32 | **severity**: category 映射 sub_140B026F0 — high→2 / medium→1 / low→0 (未知名报 "Unexpected alert category" 后落 0) |
 | +1080 | 16B 键对 | 清除/判重键 (键0+键1; 全零 = 空闲槽) |
 | +1088 | 同上第二槽 | 常为对象指针 (如州 ptr; 合法性清扫 sub_140B37B40 查此槽) |
-| +1096 | int32 | 动作码 (RegisterAlert 第 4 参; **有活读点 — 勘误: 原「休眠遗留字段」失实**: 点击主入口 sub_140B13C90 命中条目后喂 sub_140A66DE0 消费; 值分布: 多数 0 / 3-6 补给=5 / 7·67=1 / 22·60=2) |
+| +1096 | int32 | 动作码 (RegisterAlert 第 4 参; **有活读点**: 点击主入口 sub_140B13C90 命中条目后喂 sub_140A66DE0 消费; 值分布: 多数 0 / 3-6 补给=5 / 7·67=1 / 22·60=2) |
 | +1104 | uint64 | 条目锚 (非 0 = 可清除门) |
-| +1112 | CGlobalAlertIcon* | widget (仅条目; ctor sub_140AFF650, 1376B, 主 vt 命名 RTTI + 次 vt@+40, +48 = mgr 回指 / +72 = 警报 id; 窗名 `global_alerticon_window`) |
+| +1112 | CGlobalAlertIcon* | widget (仅条目; ctor sub_140AFF650, 1376B, 主 vtable 命名 RTTI + 次 vtable@+40, +48 = mgr 回指 / +72 = 警报 id; 窗名 `global_alerticon_window`) |
 | +1120 | int32 | 网格序号 (同格堆叠序, 仅条目) |
 
 红/黄两态 (定案): 条目 +1072 == 2 (category HIGH: 战争/登陆/补给枯竭/海战等) → 显 `red_alert_glow` 隐黄; MEDIUM/LOW → 显 `yellow_alert_glow`。⚠ `theatre_alert_red/yellow/green_glow` = 剧场 UI 自有辉光, 不属本管理器。
@@ -284,7 +284,7 @@ CAlertManager 布局 (偏移十进制):
 | sub_141897AB0 | CTopBar BuildTooltip 宿主 (dismissed_alerts_button tooltip 拼接发生地) |
 | sub_140B67F10 | iface 每帧更新调用点 (警报更新先于 iface 帧更新, 同层其后) |
 | sub_1424CFA60 | profiler 作用域 begin/end 对之 end (域 "alert_manager_update" 覆盖整个 update: 分拍检查 + 82 容器 sweep) |
-| sub_140B13C90 | 点击→界面主入口 (widget 副链 / sub_141E6C3D0 转发): 相机跳转 (a3+48 对象 +224/+228 坐标 → vt+304 → sub_141262730) → 按键定位条目 → sub_140B11C30 大 switch 按 id 开视图 (视图号族 = §4.30.29 顶栏视图编号) |
+| sub_140B13C90 | 点击→界面主入口 (widget 副链 / sub_141E6C3D0 转发): 相机跳转 (a3+48 对象 +224/+228 坐标 → vtable+304 → sub_141262730) → 按键定位条目 → sub_140B11C30 大 switch 按 id 开视图 (视图号族 = §4.30.29 顶栏视图编号) |
 | sub_140B15E10 / sub_140B15B80 / sub_140B145F0 / sub_140B11840 | id 1/2/45/46 / id 5/6 / id 22 / id 60 的专用开界面分支 (id 7 = sub_140B68DE0 经 iface; id 58 特判 = sub_140B699F0(2)) |
 
 警报 id 全表 (0..81 共 82 值; "Invalid enum" = default 支, alertmanager.cpp:1096; 注册表 = ctor 内 sub_140B0E640 连续调用 81 项, **无 id 68**; 行序 = id 序即契约序; 分派 = update 内第二 switch 按 +96432, raise = sub_140B01B00 / clear = sub_140B17240; 偏移均已折十进制, 锚对象 cc+360/cc+3944/cc+3952/cc+3976/cc+4008/cc+4016/cc+5504 = 国家对象槽族):
@@ -301,13 +301,13 @@ CAlertManager 布局 (偏移十进制):
 | 7 | alert_enemy_air_superiority | 1 | 直跳; sub_140B33A70 → sub_140B36100 (键控 raise) |
 | 8 | alert_no_research | 0 | sub_140B2B0A0 |
 | 9 | alert_deployment_ready | 0 | sub_140B1EFE0 |
-| 10 | alert_production_no_template | 0 | sub_140702890(cc,0)≠0 → raise: +88 产线数组中存在「非五类豁免 (sub_140C97430/97B90/97C00/97C40/97C80, 业务名未决) ∧ 产出占比>0 ∧ vt+248 未过」线 (a2 非 0 = tooltip 逐条拼行模式) |
+| 10 | alert_production_no_template | 0 | sub_140702890(cc,0)≠0 → raise: +88 产线数组中存在「非五类豁免 (sub_140C97430/97B90/97C00/97C40/97C80, 业务名未决) ∧ 产出占比>0 ∧ vtable+248 未过」线 (a2 非 0 = tooltip 逐条拼行模式) |
 | 11 | alert_free_civilian_factories | 0 | sub_140E6A540 ==0 → raise (反向): (+888/1e5 − +944 − +920) 逐 +112 行加 (行+24 − MAX_CIV_FACTORIES_PER_LINE) 不中途归零 ⇔ 有富余民用工厂 (行+24 业务名推定) |
 | 12 | alert_free_military_factories | 0 | 内联: (+696/1e5) − +752 − +728 > 0 → raise (军事工厂富余) |
 | 13 | alert_free_naval_dockyards | 0 | sub_140E69130 >0 → raise: (+792/1e5) − +848 − +824 − 阵营共享扣减 (sub_140EA60A0; 扣减项精确语义推定) |
 | 14 | alert_no_equipment_production | 0 | sub_1407008C0(cc,0)≠0 → raise: 全局装备原型表 (country.cpp:12654 niche 位图) 存在未被产线/生产/建设覆盖的原型; DLC 门 29/38 (逐原型豁免函数业务名未决) |
 | 15 | alert_pick_new_idea | 0 | sub_140B27690 |
-| 16 | alert_select_focus | 0 | 内联: 遍历 cc+4976 评估器表 vt+72 全 false → raise |
+| 16 | alert_select_focus | 0 | 内联: 遍历 cc+4976 评估器表 vtable+72 全 false → raise |
 | 17 | alert_volunteer_transfer | 0 | sub_140B36FC0 |
 | 18 | alert_trade_import_unfullfilled | 0 | 内联: cc+4600 对象 +1856 数组, 需求 sub_140CA81F0 vs 供给 sub_140CAD5A0 取整比较 |
 | 19 | alert_expeditionary_force | 0 | 无 raise 点 (负定案, 同 id 0: 60 个 raise 调用点 `, 19)` 零命中, 两 switch 均无支路) |
@@ -323,7 +323,7 @@ CAlertManager 布局 (偏移十进制):
 | 29 | alert_timed_activity_low_equipment | 0 | 内联: cc+3952 列表, sub_140AD9ED0(…) > 50000 ∧ sub_140AD9950(…) < 50000 |
 | 30 | alert_air_reserve_unused | 0 | sub_140B1AEF0 |
 | 31 | alert_air_wings_unassigned | 0 | 内联: sub_140700520 + sub_1401E2A80(gs) + sub_140B02A30 |
-| 32 | alert_blocked_national_focus | 0 | 内联: sub_1406CF4C0(cc) +16/+24, 旗 +1466/+1465, vt+448 槽 +24 |
+| 32 | alert_blocked_national_focus | 0 | 内联: sub_1406CF4C0(cc) +16/+24, 旗 +1466/+1465, vtable+448 槽 +24 |
 | 33 | alert_naval_battle_results | 0 | sub_140B286C0(mgr, cc, 0) |
 | 34 | alert_is_observer | 0 | 内联: gs+1312 ≤ 0 → raise (gs+1312 = 观察者判据字段, 唯一连写者 = SetPlayerCountry 核 sub_1401EE7F0 写 0; 全链 §4.36.8) |
 | 35 | alert_can_play_observed | 0 | sub_140B1E420 |
@@ -333,7 +333,7 @@ CAlertManager 布局 (偏移十进制):
 | 39 | alert_lack_of_resources | 0 | sub_140B0A8E0 |
 | 40 | alert_resistance | 0 | sub_140B31B80 (severity 动态 0/1/2 写 +1072) |
 | 41 | alert_naval_convoy_raiding_results | 0 | sub_140B286C0(mgr, cc, 1) |
-| 42 | alert_paused_diplomatic_actions | 0 | 内联: sub_1406CF890(cc)+224 ≤ 0 且 gs vt+72 国家数 >1 → sub_140B0E1F0 |
+| 42 | alert_paused_diplomatic_actions | 0 | 内联: sub_1406CF890(cc)+224 ≤ 0 且 gs vtable+72 国家数 >1 → sub_140B0E1F0 |
 | 43 | alert_battleplans_with_no_divs | 0 | 直跳; 前置块逐州 sub_140B1C320 (带键) |
 | 44 | alert_port_strike_results | 0 | sub_140B2E330 |
 | 45 | alert_dangerous_naval_invasion | 0 | 直跳; 第一 switch case 批量 sub_140B183F0 (同 id 1) |
@@ -364,7 +364,7 @@ CAlertManager 布局 (偏移十进制):
 | 70 | ui_alert_special_project_available | 0 | sub_140B2FF30 → 内部 sub_140B177B0(mgr, id) 复用 |
 | 71 | ui_alert_special_project_available | 0 | sub_140B2F4B0 → 同 id 70 复用 |
 | 72 | ui_alert_program_unassigned_scientist | 0 | 内联: cc+4008 对象 +32 数组 sub_141442B30 + 位 160 |
-| 73 | alert_raid_available | 0 | 内联: gs+1008 (CRaidSystem*) **+532** 非零即 raise (勘误: 原五 raid 行偏移整体错位一行 — 双 switch 互证重排) |
+| 73 | alert_raid_available | 0 | 内联: gs+1008 (CRaidSystem*) **+532** 非零即 raise (双 switch 互证) |
 | 74 | alert_raid_launchable | 0 | 同上 **+508** |
 | 75 | alert_raid_detected | 0 | 同上 **+436** |
 | 76 | alert_raid_completed | 0 | 同上 **+460** |
@@ -378,7 +378,7 @@ CAlertManager 布局 (偏移十进制):
 
 worker 层补全 (定案): 簇实为 7 函数 (清单 6 + **sub_140B188A0 = 每帧 update 驱动本体**, 内核四层门/82 容器 sweep/glow 公式与书逐段一致); **sub_140B026F0** = category→severity 映射 (high→2/medium→1/low→0, exe 三串尺寸 4/6/3 直证; 唯一调用者 = alerts.txt loader sub_140B169A0); **sub_140B13FD0** = 条状图标转发器 sub_141E6C3F0 的点击处理 (id 3/4 缺补给选师跳转: 动作码 5 + 三级解引用取最小 id 单位; id 43 游标 +100416; 其余 "Not implemented" :5865); **sub_140B0E290** = 海军入侵威胁评估 (直袭玩家/盟友时威胁档出参写 4 — id 1/2「4 档威胁值」来源点, 与条目 +1072 severity 值域无关); **sub_140B0AB70** = BuildTooltip (按键三元组 +1080/+1088/**+1104** 定位活跃条目, 按 id 委托组 40 函数重建 +8/+40 文案; default "invalid enum" :2072); **sub_140B11C30** 点击大 switch 补 id 68 开视图支 (视图 12) 与 **id 73-77 五个 raid 点击游标 +100756..+100772** (+100776 恰 = sizeof, 布局尾界闭合)。
 
-消费面 (GUI): ① `global_alerticon_window` 网格 — 每条目一窗, 定位公式 `X = +96436 + step_x×(格序 % 列数)`, `Y = +96440 + step_y×(格序 / 列数)`, 窗 vt+416 SetPosition; red/yellow glow 按 severity 显隐。② 顶栏 `dismissed_alerts_button` — sub_140B0D980 (任一容器有条目 ∨ +100452) 显隐; tooltip = DISMISSED_ALERTS_MENU + sub_140B08E80 拼接全部条目名; 点击 → sub_140B175B0 全量重建。③ 条状管理器 (idler+1952, 72B) — 每帧 sub_1417582C0 与警报更新成对调用; 条目排活跃网格之后 (+96456+1 起); 条目类 = **CDiplomacyRequestIcon** (1384B, malloc 0x568; 主 vt + 次 vt@+40; +48 条状管理器回指; 窗名 global_alerticon_window; +1368 CReference 目标 + +1376 ref 内嵌件 — 与外交请求条共用类)。④ 点击链 — 相机跳转 + sub_140B11C30 大 switch 按警报 id 开对应视图 (视图号族 = §4.30.29 顶栏视图编号)。⑤ 音效 = sub_140B166A0 (冷却戳 +94464[id], define `NGame.ALERT_SFX_COOLDOWN_DAYS` 读入 dword_143336E00; 唯一调用者 = sub_140B01D40 尾)。
+消费面 (GUI): ① `global_alerticon_window` 网格 — 每条目一窗, 定位公式 `X = +96436 + step_x×(格序 % 列数)`, `Y = +96440 + step_y×(格序 / 列数)`, 窗 vtable+416 SetPosition; red/yellow glow 按 severity 显隐。② 顶栏 `dismissed_alerts_button` — sub_140B0D980 (任一容器有条目 ∨ +100452) 显隐; tooltip = DISMISSED_ALERTS_MENU + sub_140B08E80 拼接全部条目名; 点击 → sub_140B175B0 全量重建。③ 条状管理器 (idler+1952, 72B) — 每帧 sub_1417582C0 与警报更新成对调用; 条目排活跃网格之后 (+96456+1 起); 条目类 = **CDiplomacyRequestIcon** (1384B, malloc 0x568; 主 vtable + 次 vtable@+40; +48 条状管理器回指; 窗名 global_alerticon_window; +1368 CReference 目标 + +1376 ref 内嵌件 — 与外交请求条共用类)。④ 点击链 — 相机跳转 + sub_140B11C30 大 switch 按警报 id 开对应视图 (视图号族 = §4.30.29 顶栏视图编号)。⑤ 音效 = sub_140B166A0 (冷却戳 +94464[id], define `NGame.ALERT_SFX_COOLDOWN_DAYS` 读入 dword_143336E00; 唯一调用者 = sub_140B01D40 尾)。
 
 与 NNotification (§4.17.1-6) 边界: alert = **条件轮询** (82 类逐帧 round-robin 重评估, 条件消失即消, common/alerts.txt 配色, 点击跳转, 挂 idler+1944); notification = **事件推送** (业务侧建对象入队, 一次性消息, 超时天数, 挂 iface+1240)。两系统零函数交叠; 海战战果类 (33/41/44) 虽名含 results 仍走 alert 通道。
 
