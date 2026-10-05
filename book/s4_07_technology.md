@@ -70,11 +70,13 @@ loader 0X140EE16F0):
 | +432 | std::map 根 {count@+440} | **research_points_per_mio** (key=token, value=fixed; 键 19181, RB-tree 遍历) | writer+loader 双证 |
 | +448 | fixed×1e-5 | ahead_reduction (键 13284) | ≠0 才写; loader 实写 |
 | +456 | fixed×1e-5 | bonus (键 10931) | ≠0 才写 (**叶门**, 不参与块存在门); loader 实写 |
-| +464 | vector\<uint32\> 24B | limited_use_bonus.uses {cap@472, count@476, alloc@480} uint32 数组 (count<64) | |
+| +464 | vector\<uint32\> 24B | limited_use_bonus.uses {cap@472, count@476, alloc@480} uint32 数组 (count<64); **元素 = 待兑现有限用途加成 id** (lub+48 键匹配 ts+232 / cr+80 键匹配 ts+256; 兑现链 0x140EE3680 摘除元素, 释放链 0x140ED9A20 — 详见 §4.7.3) | |
 | +488 | uint8 | **use_experience = _BoostedByXP** (键 15370) | ≠0 才写; assert "_BoostedByXP == false" (technology.cpp:0x82A) 双锚; **GUI: ETA 门** (tech+488 → 剩余天数 ETA_SHORT_D/DAYS; sub_140EDA1B0; 门 = 在研且窗可见) |
 | +492 | uint32 | design_team 对.type (id 对 {type@492, id@496}) | 任一非零才写; loader case 19159 "双双有效才落"; **GUI: 设计商图标/名** (GFX_research_line_mio_bg; sub_14221F310 + sub_140DB8C20) |
 | +496 | uint32 | design_team 对.id | |
 | +500 | uint32 token | **locked_design_team** (键 19182; lexer token 直存, 写出转串) | ≠"undefined"(19479) 才写 |
+
+> **_ResearchedTechs 增删对** (technology.h:637/642; 共用二分下界模板, 键 = tech+8 名 token): **AddResearchedTech 0x140ED5930** (断言 "_ResearchedTechs.Contains( pTechnology ) == false" :637) → sub_140EE0FF0(ts+64, scratch, &tech) 有序插入; **RemoveResearchedTech 0x140EE2BD0** (断言 "_ResearchedTechs.Contains( pTechnology )" :642) → 二分定位 → memcpy 尾部前移覆盖 → --count@+76 (无 cap 回缩)。两函均被 **SetLevel 0x140EE34F0** (jmp 形) 及 0x140EDFFB0 / 0x140EE2D30 (call 形) 调用 ⇒ **等级 ≥ max 入册 / 否则出册**, 与过滤门①②及 loader case 11869 三向闭合。
 
 #### 4.7.2 CResearchSlot (72B)
 
@@ -107,6 +109,10 @@ loader 0X140EE16F0):
 | +112 | fixed×1e-5 | bonus (键 10931) | |
 | +120 | uint32 | **死字段 (负定案)**: 无写者 (ctor 置 0; id 分配器只写 +48; uses 消耗链不触) | 保留槽 |
 
+> reader = 0x1413CF8C0 (vtable 0x1429750A0 [4]): 键 13285→+8 / 11310→+12 / 27→+16 串 / 11→+48 / 10335→+56 (模板+64 有效门, 失败 → "No tech named %s at: %s" :41) / 702→+80 (类别 def+48 有效门) / 13284→+104 / 10931→+112; 默认分支落 CPersistent 基 sub_1424BEC40。
+> **claim/uses 双计账** (断言串 `_ClaimsActive` 定名): +12 = 在用认领, +8 = 已兑现。**兑现** 0x1413CF730 (`--+12; ++ +8`, :95 断言) ← 调用者 sub_140EE3680 (研究完成链): 遍历 **tech+464** 待兑现 id 数组 (count@+476) 按 **lub+48 id** 在 ts+232 容器线性匹配 → 兑现 → memmove 摘除元素; **释放** 0x1413CFB00 (`--+12`, :107 断言) ← 调用者 sub_140ED9A20 (研究停止清理器): 段① tech+464 逐 id 在 ts+232 按 lub+48 匹配释放; 段② 同 id 在 **ts+256** cost_reduction 容器按 **cr+80 id** 匹配 (pdx_scopedptr.h:124 `_pPtr` 断言护空) → sub_1413D0090; 段③ 尾部清零 tech+448 (ahead_reduction) / +456 (bonus) / +476 (uses 计数) — 三项均为**研究期瞬时值**, 停止研究即重置 (writer 0x140EE5180 键 13284/10931/13283 三证)。
+> ⇒ **tech+464 元素 = 待兑现有限用途加成 id**, 与 ts+232 (lub, +48 键) **与** ts+256 (cr, +80 键) 两容器构成主键关系。
+
 #### 4.7.4 CLimitedUseTechCostReduction (112B)
 
 **CLimitedUseTechCostReduction** (112B; ctor 0X140ED2C90):
@@ -119,6 +125,9 @@ loader 0X140EE16F0):
 | +48 | MSVC SSO 32B (size@+64, cap@+72) | name | |
 | +80 | uint32 | id (ctor 初值 **−1**) | |
 | +88 | vector\<类别 def*\> 24B | **category 适用列表**  {cap@96, count@100, alloc@104} | 键 702 |
+
+> reader = 0x1413CFE50 (vtable 0x1429750F0 [4]): 键 19537→+8 / 10335→+16 (同 lub 模板+64 有效门, 失败 → "No tech named %s at: %s" :38) / 13285→+40 / 27→+48 串 / 11→+80 / 702→+88; 默认分支落 sub_1424BEC40。
+> **+88 category 容器增长码 (定案)**: count==cap 时 newcap = max(count+1, (int)(float)(cap×1.5)); 分配/释放经 alloc@+104 指向的分配器对象 vtable+8/+16; memcpy 旧数据 → dealloc 旧 data → 写回 data/cap/count。与 lub 的 702 分支 (直接调通用 push sub_1401205A0) **形态异构** — 两类 category 容器增长实现不同。
 
 #### 4.7.5 writer/loader 键速查 (本族全部存档键)
 
@@ -191,7 +200,7 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 | +984 | uint32 | start_year (token 11874; 「科技可用年」系语义释义) | >0 门 |
 | +988 | uint32 | max_level | |
 | +992 | — | 基础成本 | 进度条分母: ×qword_143332BA0/1e5 ∨ 空槽 qword_143332A38 |
-| +1033 | uint8 | **双语义同字节**: 科技共享加成豁免 (sub_140ED6C10 首门, 命中即返 0) + AI 落后年份加权豁免 (0x140ED5B50); 脚本键名待裁 | 双语义定案, 键名待裁 |
+| +1033 | uint8 | **三语义同字节**: 科技共享加成豁免 (sub_140ED6C10 首门, 命中即返 0) + AI 落后年份加权豁免 (0x140ED5B50) + **情报可见性门豁免** (科技树件状态计算 sub_141433870, 命中走自定门 sub_141434600 而非阈值比较); 脚本键名待裁 | 三语义定案, 键名待裁 |
 | +1034 | bool | **force_use_small_tech_layout** (reader case 19623) | 科技图标门第二键 ∨ tech+116==0; 邻 +1036 = **show_equipment_icon** (reader case 13950) |
 | +1035 | uint8 | **绕过研究资格检查旗** (消费者 0x2060254 所属 GUI/AI 函数) | — |
 | +1104 | CAIResearchNeed 32B | **research 需求聚合** (need 条目 16B {token u32, need i64}; 向量 data@+1112; ctor 内联 sub_1413C4F10) | §4.34.6 |
@@ -201,6 +210,7 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 | +1312 | uint32 | XP 类型 (0=不可 XP 解锁) / **+1320 = 解锁 XP 量 / +1328 = 加速 XP 量** | IsBoostableByXP = +1312≠0 且 +1328>0; SetBoostedByXP 扣模板+1328 量 XP 置 +488 (0x140EE4ED0); UnlockByXP 门 = +1312≠0∧+1320>0 (0x140EE5010) |
 | +1320 | — | XP boost 配置 | |
 | +1328 | — | XP boost 配置 | >0 门 |
+| +1344 | uint8 | **special_project 旗** (科技树件 GFX 后缀门: 非 0 → 后缀追加 "_special_project") | 新锚 |
 
 CFolderPosition (folder 关联条目; 56B; vtable 0x1429440B8; def 侧件 — writer 槽 [2] =
 CFG 空桩不落档; reader 0x140AD2A80 键 27 name / 76 position):
@@ -523,3 +533,42 @@ view 布局: +96 容器窗 (查 unit_stat_bonus_rewards 子窗; 空区块隐 hea
 重建循环: 头 = 子窗 vtable 槽 6 设位置 + header 文本 SPECIAL_PROJECT_REWARD_UNIT_BONUS; 每奖励/对组 (空 → :385/:402 断言): 建 statlist 行 (malloc 5952 → sub_141EFC5E0, 模板名 technology_unit_statlist_item_upgrade); **统计键名 = "unit_" + token_name(token)** (串前插 "unit_" 5 字节常量; 计数 ≤0 → :61 断言); 行入缓存 → 104B 填充块 {+16 def, +32 哨兵 qword_14333D528, units 向量} → sub_141BDDD10 灌行 → 显示 → y += 行高 + 6 行距。尾: 显示 header + 逐条清 units 引用释放。
 
 未决: 该簇他函 (project_output_view.cpp 全簇除本函外未在本批) / 对组数组业务语义。
+
+#### 4.7.12a 特设项目 explainable checks 族 (project_explainable_checks.cpp; 1 函 + 3 同族调用方 — 书未收域)
+
+explainable check = UI 失败原因解释器 (签名 `(check, explainer, 未用) → bool`; explainer 非空才产解释)。**科学家技能检查 = 0x141BF3700** (定案):
+
+- `*check` = 检查数据对象, 其 **+88 = optional\<科学家 idpair\>** (两 dword 皆 0 → 返 0); `check+8` = 技能/修正 id (经 sub_140FE32B0 读 = §4.7 主修正 id 读)。
+- 科学家 = sub_14221F310(idpair); `pScientist = *(科学家+192)` (**CCharacter+192 = CScientist\***, §4.4 科学家角色槽, 块键 16389) — null → assert `"pScientist && \"Scientist does not have scientist role\""` (:66)。
+- 计数 = sub_141460080(pScientist+264, 技能 id) (§4.4 CScientist skills 容器 +264 取级)。
+- 失败 && explainer 非空 → 本地化 "SCIENTIST_LACKING_SKILL" + 技能名 → 写 explainer。
+
+同族互证: sub_141BF3530 = 「已指派科学家」检查 (loc PROGRAM_VIEW_REQUIRE_SCIENTIST); 调用方两路 = sub_141BF39D0 (逐科学家筛选循环) + sub_141BF3AD0 (特设项目「可开工」组合校验器, 串 SPECIAL_PROJECT_UNABLE_TO_START / SPECIAL_PROJECT_BREAKTHROUGH_COST_ENOUGH / SPECIAL_PROJECT_BREAKTHROUGH_COST_NOT_ENOUGH / SPECIALIZATION / AMOUNT)。未决: check 数据对象类名 / explainer 类名。
+
+#### 4.7.13 CTechnologySharingGroupTemplate 类目表排序 (technology_sharing_template.cpp; 7 函 = 同一 40B 元素上的 std::sort 算法族实例化 — 非业务新机制)
+
+簇本质: 模板类目表的排序机器。元素 40B = {MSVC SSO 串 (类目名) @+0..+31, uint32 类目 token @+32, pad @+36}; 比较序 = token 升序, 同 token 按 stricmp(名)。
+
+模板 160B 类目区读点 (§4.26 库条目 technology_sharing_group +80 = 默认模板指针; §4.7.10 实例 +72 模板回指不变):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +16 | SSO 串 | 模板名 (cap @+40) |
+| +128 | 指针 | 类目向量 data |
+| +140 | uint32 | 类目向量 count |
+
+7 函逐函算法定性:
+
+| VA | 行数 | 身份 (MSVC 算法名) |
+|---|---|---|
+| 0x1413D0B70 | 789 | introsort 分区核 `_Sort_unchecked` 主体 (枢轴取中, 返回枢轴界 {first,last} 出参) |
+| 0x1413D05C0 | 273 | make_heap 实例化 (`(末−首)×0x6666666666666667>>64>>4` = ÷40 元素计数; 自 count/2−1 逐位下滤) |
+| 0x1413D01A0 | 268 | insertion sort 实例化 (小于首元整段右移, 否则逐位回退) |
+| 0x1413D17B0 | 106 | `_Adjust_heap` (下滤 + 尾上滤委派) |
+| 0x1413D19B0 | 87 | `_Push_heap` 上滤 (洞位回填 sub_1401599D0 move-assign) |
+| 0x1413D1E40 | 48 | 比较器本体 (token 不等 → token 比较; 相等 → stricmp(名); 相等且同名 → 断言) |
+| 0x1413D2080 | 34 | 排序入口 (模板方法 SortCategories) |
+
+排序驱动链 (定案): 入口 0x1413D2080: 模板 +16 名 SSO → sub_142244840 本地化键存在校验失败 → technology_sharing_template.cpp:48 格式化日志 "There is no localization for the technology sharing group name: %s" (不中断) → 类目向量排序。introsort 参数 (驱动 0x1413D1D00, 簇外伴生): 区间 <1320 字节 (=32 元素, MSVC _ISORT_MAX) → 插入排序; 递归深度限制每层 ×3/4; 深度耗尽 → make_heap + sort_heap 堆回退 (0x1413D1B50 = sort_heap)。
+
+"Duplicate category" 断言 (:55, 7 函中 6 函引用): 比较器内两元素 token 相等且 stricmp(名)==0 → 格式化器 sub_1424C8950 + 消息 "Duplicate category" (xmmword_142944240, PE .rdata 字节直证) = 严格弱序违例自检, 非 STL 通用断言。同排 .rdata 的 "Duplicate technology" (0x142944258) 全语料零引用 = 死串 (待裁: ICF 折叠 vs 未实例化模板残片); "Duplicate technology category %s scripted at: %s" 属 effects 侧他 TU (书已邻接), 勿混。断言行号 :55 = 比较器, :48 = 排序入口, 一文件两站点。

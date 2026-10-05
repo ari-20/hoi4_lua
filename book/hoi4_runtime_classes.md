@@ -704,7 +704,7 @@ CCountry (cc)
 
 | 形态 | count 相对 data 的位移 | 规模 | 说明 |
 |---|---|---|---|
-| 主流 | 12 | 452 处 | `{data, cap, count}` — data 与 count 之间隔一个 cap 字段; **真身 = CPdxArray\<T\> (RTTI lambda 符号定名)**: 24B `{T* data@+0, uint32 cap@+8, uint32 count@+12, allocator*@+16}`, 增长 1.5× (`(int)(cap*1.5f)`), 分配走 allocator 对象vtable (+8 allocate(bytes,align=8) / +16 deallocate); 默认 allocator = CPdxNewDeleteAllocator (vtable 0x142716590) |
+| 主流 | 12 | 452 处 | `{data, cap, count}` — data 与 count 之间隔一个 cap 字段; **真身 = CPdxArray\<T\> (RTTI lambda 符号定名)**: 24B `{T* data@+0, uint32 cap@+8, uint32 count@+12, allocator*@+16}`, 增长 1.5× (`(int)(cap*1.5f)`), 分配走 allocator 对象vtable (+8 allocate(bytes, **align 实参随元素对齐, 4/8 两证**) / +16 deallocate); 默认 allocator = CPdxNewDeleteAllocator (vtable 0x142716590) |
 | 变体 | 8 | 13 处 | `{data, count}` — 无 cap 间隔 |
 
 > 两形态**不可合并为单一常量**: 差 4 字节会读到相邻字段当计数, 量级可能仍
@@ -714,7 +714,7 @@ CCountry (cc)
 ### 3.2 robin-hood 哈希表
 
 桶 24 字节: `{值或指针 uint64@+0, dist uint8@+4, 键 uint32@+8}` (**dist = u8**, `_DistancePlus1` 行 58 断言原文直证; 原「uint32」类型误标 — M.rh read_u32+&0xFF 实操等价)。
-- dist = 0: 空桶。**pdx RH 无墓碑 (定案)**: erase = backward shift deletion (sub_141201B60 全代码实证), 0xFF = 迭代哨兵 `nIteratorSentinelDistance` 非墓碑; 0xFE 墓碑系 apd RH map 分型特有 (本簇 0 实证) — 防御扫描仍跳 dist∈{0, 0xFE, 0xFF} (双分型取并集)
+- dist = 0: 空桶。**pdx RH 无墓碑 (定案)**: erase = backward shift deletion (sub_141201B60 全代码实证), 0xFF = 迭代哨兵; **erase 终态 (定案)** = 找到桶后 `while (next.dist > 1)` 逐桶整搬 (dist@+4 形含 +0 缓存哈希, 24B 形整 20B 载荷 _OWORD 拷, dist−1) + 终桶清 0 + count−−, 未命中门 = 落点 dist==0xFF 哨兵天然跳过; **insert 返回 16B 对 {桶指针, inserted u8@+8} — 重复键返既有桶 + false, 不覆盖不计数** `nIteratorSentinelDistance` 非墓碑; 0xFE 墓碑系 apd RH map 分型特有 (本簇 0 实证) — 防御扫描仍跳 dist∈{0, 0xFE, 0xFF} (双分型取并集)
 - 裸表头 24B = `{data@+0, count@+8, mask@+12, extra u8@+16, lf f32@+20=0.9}` (CVariables/occlusion 四实例互证)
 - 遍历: 扫描全部桶, 跳过 dist∈{0, 0xFE, 0xFF}; 上界 = mask+1+extra
   (mask = 表对象内 uint32 字段, extra = 表对象内 uint8 字段, 位置见类条目;
@@ -724,12 +724,12 @@ CCountry (cc)
 - **RH 表通用尾**: {…, extra u8, **max_load_factor f32 = 0.9** (0x3F666666 = 1063675494)} — CVariables+44 / CNavalRegionDominance+60 / CModifier+148/+180 四处 ctor 常数同构互证
 - 哈希 (pdx RH, 定案): 字符串键 = **FNV-1a 32 位** (`h = 0x01000193·(h ^ byte)` 先异或后乘; sub_14055B220 两处循环直证); u32 键 = **×0x045D9F3B 双轮雪崩** (精确形状 `x = k^(k>>16); x = P·x; x ^= x>>16; x = P·x; x ^= x>>16`); 非 Arithmetic 键哈希子可为**查表函子** (tag id → country index 间接表实例存在, gs 空时退化 identity)。⚠ 64 位 FNV-1a (0xCBF29CE484222325) 与 0xE9846AF9B1A6159D 雪崩属他容器 (QWORD 掩码指针桶开放寻址表), 勿记 RH 头上
 - **rehash 触发 (定案, 原推定升)**: 双触发 = ① 探测距离 > extra ② `(float)(_Size+1)/(float)_TableMod > lf` — **除数是 mask (桶数−1) 非桶数** (引擎原文 quirk, 按 lf×容量心算时按 mask 除); 默认 1 桶表首插靠浮点除零 = +inf 必扩容, 无需特判
-- **rehash ladder (定案)**: 增长恒倍增 — 输入 mask 仅接受 2^k−1, 映射 **exp = max(k+1, 3)** (exp 判表函数本体 = sub_1403A3460 / sub_1423A80C0 两 TU 克隆) (k<3 全部钳到 3, 最小扩容 8 桶); exp 合法域 1..30 越界 abort (断言 "can't grow from from %d buckets" 原文双 from); `extra = log2(桶数) + 2` (派生公式定案); **分配容量 = 桶数 + extra + 1** (哨兵单列于 index 桶数+extra, dist=0xFF); reserve 公式 = `exp = ceil(log2(n×1.9f + 1.0f))` (1.9f 定案, 语义解释推定)
-- **类名 CPdxRobinHoodTable** (断言 561/568/579 行原文); 成员名 `_Size`/`_TableMod`/`_DistancePlus1`/`nIteratorSentinelDistance`; **32B 对象内嵌形与 24B 裸形差一个 +0 首槽** (表机制从不读写该槽, 语义未决); 默认构造 = 1 桶 (mask 0); 迭代器 = 裸桶指针, end = 哨兵桶 (advance 落哨兵合法); 插入探测形 RH 早退 (`++probe > 下桶dist` 判缺失) + 途中 dist 超 extra 当场 rehash 递归重插
-- **桶跨距 20 档全表 (grow malloc 字节直读)**: {8, 12, 16, 24, 32, 36, 40, 48, 56, 64, 72, 80, 88, 96, 104, **136**, 200, 224, 376, 456} (136B 档 = dist@+4, 迁移逐桶释放持有对象); **dist 偏移按实例双形混居, 跨距不能唯一决定形态** — 16B 档 +0×4/+4×11 混居, 24B 档 1 例 dist@+0 (sub_1412B7340), 36B 恒 +0; 判别法 = 看清桶循环写 `v[4]=0` (dist@+4) 还是 `*v=0` (dist@+0) / 探针读点字节偏移
+- **rehash ladder (定案)**: 增长恒倍增 — 输入 mask 仅接受 2^k−1, 映射 **exp = max(k+1, 3)** (exp 判表函数本体 = sub_1403A3460 / sub_1423A80C0 两 TU 克隆) (k<3 全部钳到 3, 最小扩容 8 桶); exp 合法域 1..30 — **行 579 域拒绝 = 断言框 + return 软拒 (表保持旧态, 非 abort); abort() 仅在行 561 "can't grow from from %d buckets" (原文双 from) 路径**; `extra = log2(桶数) + 2` (派生公式定案); **分配容量 = 桶数 + extra + 1** (哨兵单列于 index 桶数+extra, dist=0xFF); reserve 公式 = `exp = ceil(log2(n×1.9f + 1.0f))` (1.9f 定案, 语义解释推定)
+- **类名 CPdxRobinHoodTable** (断言 561/568/579 行原文); 成员名 `_Size`/`_TableMod`/`_DistancePlus1`/`nIteratorSentinelDistance`; **32B 对象内嵌形与 24B 裸形差一个 +0 首槽** (表机制从不读写该槽, 语义未决); 默认构造 = 1 桶 (mask 0), **未分配态 data = 静态哨兵页** (12B 档 = unk_1430B0060; 家族按桶跨距分档 unk_1430851A0/unk_143087270/unk_1430B12D8/unk_1430B31F8 (16B 档, pdx_pinned_array 校验实例)/unk_143085390 (48B 桶档, CResistanceActivityDatabase); BSS 零填充推定 → dist 读 0 迭代空转), 一切释放路径 `data == 哨兵` 免 free; find miss 返回哨兵桶 (= end = `data + stride×(extra+1+mask)`); 迭代器 = 裸桶指针, end = 哨兵桶 (advance 落哨兵合法); 插入探测形 RH 早退 (`++probe > 下桶dist` 判缺失) + 途中 dist 超 extra 当场 rehash 递归重插 (mid-shift 细节 = **先把被逐出项按当前 dist 落桶, 再 rehash, 后按其键现算哈希递归重插**); rehash 双触发 = 同门或形 `probe > extra ∥ (float)(count+1)/mask > lf`
+- **桶跨距 20 档全表 (grow malloc 字节直读)**: {8, 12, 16, 24, 32, 36, 40, 48, 56, 64, 72, 80, 88, 96, 104, **136**, 200, 224, 376, 456} (136B 档 = dist@+4, 迁移逐桶释放持有对象); **dist 偏移按实例双形混居, 跨距不能唯一决定形态** — 16B 档 +0×4/+4×11 混居, 24B 档 1 例 dist@+0 (sub_1412B7340), 36B 恒 +0; **已定形小档两枚**: 12B = {dist u8@+0, key u64@+4} (集合型无值槽; grow 跨距 `saturated_mul(桶数+extra+1, 0xC)` + 逐桶首字节清零), 8B = {dist u8@+0, key u32@+4} — 两档恒 dist@+0; 判别法 = 看清桶循环写 `v[4]=0` (dist@+4) 还是 `*v=0` (dist@+0) / 探针读点字节偏移。⚠ **M.rh 排雷**: 默认 dist=4 只适用 dist@+4 形, 消费 8B/12B 桶表必须 shape 覆盖 `dist=0` — 否则键低位被当 dist, 静默错值不报错
 - **两形 rehash 哈希来源不同 (定案)**: dist@+4 形桶+0 是**缓存 32 位哈希** (插入时写 `*(u32)bucket = hash`, 迁移直传重插不重算); dist@+0 形无缓存槽, **迁移时从桶内键重算哈希** (雪崩/FNV-1a 内联在 grow 里)。正形描述应为「u32 哈希/低半值槽@+0」— 「桶+0 = 值」读法只适用特定实例化
 - 断言站点全表: 行 58 迭代器解引用哨兵检查 (`_DistancePlus1 != nIteratorSentinelDistance`, latch) / 行 561 grow abort (双 from 原文) / 行 568 grow 后稀疏度告警 (`_Size / (float)_TableMod > 0.1f && "Warning: Probably _very_ bad hash function used."` — 除数同样是 mask quirk) / 行 579 exp 域拒绝
-- 键型四族 (比较语义): u32 键雪崩+`==` / u64 键 FNV-1a 32 位 (8B 块展开)+`==` / 串键 FNV-1a 32 位+长度预比+**stricmp** / u16 键调用方预算哈希 (桶+0 缓存)。容器内**零原子操作、零序列化钩子** (负定案: 无线程安全包装, 重建驱动全部在 boot/装载期)
+- 键型四族 (比较语义): u32 键雪崩+`==` / u64 键**按实例化分型**: FNV-1a 32 位 (8B 块展开) 与 **MurmurHash3 x86_32 + fmix32** (sub_1424ED930 + sub_1424EDA70; 12B 桶 dist@+0 形直证) 两实例化均实证 — **哈希子为模板参数, 勿按键宽选哈希** / 串键 FNV-1a 32 位+长度预比+**stricmp** (指针相等短路) / u16 键调用方预算哈希 (桶+0 缓存); **null 键哈希 = 0**。容器内**零原子操作、零序列化钩子** (负定案: 无线程安全包装, 重建驱动全部在 boot/装载期)
 
 ### 3.2a clausewitz 模板容器三件 (scoped_ptr / scoped_buffer / CRef)
 
@@ -737,7 +737,11 @@ CCountry (cc)
 |---|---|---|
 | pdx_scoped_ptr\<T\> | **独占持有裸指针** {_pPtr@+0, sizeof 8B 定案} | 全头唯一断言串 `_pPtr` 四站点 **119/124/129/134 全部 = 读侧空守卫** (0/1265 实例伴随写槽); 断言实例行分布 **124×645 / 134×379 / 119×129 / 129×112** (共 1265; hex 行参 0x77/0x7C/0x81/0x86 为同值形态), 唯一 (宿主,行) 站点 812; **簇本质 = 读侧内联面** (编译器把四读访问器内联进宿主, 写侧 ctor/dtor/reset 零断言全不在读簇); latch 旗粒度 = (T 实例化, 站点行) 级 static 同 T 跨宿主共享 (**latch↔行号一一对应**, 跨宿主共享最高 48 副本 byte_14333DA1E); **同宿主多站点组合实测 {119,124}×24 / {129,134}×17 / {124,134}×5** ({119,129} 组合全语料 0 例 — 两对各自等距 5 行, 推定 = 同访问器对两半如 Get+-> 连用); 释放 = deleting-dtor 形单参 vtable+8 弃返回 (**仅 14 处/9 函数** — 338 处 vtable+8 调用绝大多数是持有对象的普通虚方法, 勿一概当释放; 读簇内 vtable[0] 双参释放形 0 处); vector\<scoped_ptr\> 实存且迭代逐元断言 (**23 个多站点宿主**循环内逐元断言直证); **宿主+40 惰性求值协议族** 13 函数同构 (`obj=*(host+40); if(!obj[100]){r=T.vt[1](obj); obj+16=r; if(!r) obj+24=19; obj[100]=1}` — T 侧 {vtable[1]=ensure 惰性求值, +16 结果缓存, 错误码 19 写 +24, +24 起 CPdxHybridInlineBufferAllocator\<char,21,int\> 内嵌串, +100 已算旗}; 域线索 = character_template_database.cpp, 高置信); 与 CRef 边界: scoped 独占零计数 vs CRef 共享侵入式双计数 (obj+8/+12) — 另有 **std::shared_ptr 非侵入控制块第三形态**实存 (sub_1413B6C30: {+0 vftable, +8 Uses, +12 Weaks}, 减 0 分别派 vtable[1] _Destroy / vtable[2] _Delete_this) |
 | pdx_scoped_buffer | **线程本地 scratch bump 分配器** (非元素容器) | **PerBufferSize = 0x400000 (4 MiB) 定案** (唯一 init 点 = boot sub_140126E50 调 sub_1424E4240, 一次性 cpp:26 + max_align 断言 cpp:30) + 每线程 malloc 挂 TLS {_pStart@+2120, _Position i32@+2128, 旗@+2136}; **协议三件套**: acquire sub_1424E40D0 (懒初始化: 旗 bit0 未置则 malloc + _Position=0 + 线程 dtor 注册; 内含 cpp:10 `_BufferSize>0` / cpp:11 `_pStart!=0` 两道前置断言; 恒调用形全语料零内联; malloc 失败无回退) → bump 分配 (`NeededSize = count×stride`; **两路并存**: 对齐路 `(N×stride+7)&~7` ×37 站点 (源码级无条件, stride 8 倍数仍套用) 与裸路 `N×stride` 直加 (player_supply 站点 stride 4 无对齐, 分配后 _Position 可离开 8 对齐)) → release sub_1401C3820 (**快照回卷非 free**, 调用形×70 + 内联形×2 双表示互证); 句柄双重间接 = 栈上作用域对象 {hdr=&TLS+2120, 快照@+8}; **溢出 = 断言是唯一防线且断言块后 bump 无条件执行** (release 版溢出 = 静默越界写, 无钳位无回退; 簇内零 malloc/free = 无堆回退直证); **线程退出 dtor sub_1426F5FA0 只清旗不 free** — 全语料无 scratch free 路径, 每线程 4 MiB 存活到进程退出; span 出参 {begin, &begin[count]}; **分配后初始化 5 形态** (memset0 / 逐元素 0 / 逐元素 −1 / 16B 模板值 splat+parallel_for 并行填 / 不初始化直接索引写 — 分配器不保证清零); latch 旗粒度 = (T 实例化, 行 54) 级跨宿主共享 (84 站点 48 实例化); 每函数恰 1 次 acquire (簇内 0 嵌套 scope), 多分配 = 单 scope 内 2-4 次 bump; acquire..use 常包 SEH wind 块; 消费主力 = **图形/地图渲染每帧着色派发族 (0x14250xxxx 函数指针表 16 槽按顶点批索引选择)**、网络组包 pdx_net_steam、GUI 视图/tooltip、本地化 (stride 400)、音乐/补给 UI、AI/军事模拟 scratch (CTaskForce `8×count` / 陆战 `(4n+7)&~7` 对齐形 / 战略海军补给计算)、数据库 gather — 域远超 AI/军事; 断言站 dword_1435E3ECC = `_Position + NeededSize ≤ _BufferSize` 溢出位; 与 CPdxHybridInlineBufferAllocator **非同族** (字节级/元素级、无/有 fallback、无/有 vtable 三重区分, 勿混) |
-| CRef\<T\> | **非拥有观察引用** | 全头唯一断言站点 = 行 83 GetPtr (§4.00.4 setter 表已收); **簇内 0 处引用计数增减**; **CRef 槽 = 8B CID `{family u32@0, id u32@4}` 非解出裸指针** (五点互证: 断言通道即以槽值作查表键 / IsValid 双 dword 判空后解析 / R 族解引用解析值 / 族 gather 比较槽 dword / CID 存档件); 解析显式经 sub_14221F310 在消费点进行 (阈值 0x64/0x1268, **零内联** — 254 处调用全走 call), 机制层 = **§3.2b id.cpp 全局引用注册表**; GetPtr 断言 B 形 `p==0x10` = 多继承族外层空判 (CReferenceObject 子对象在 outer+16, 注册值 = 子对象指针, 消费端 −16 回 outer) — **`解析结果==16` 空外层判是消费端一等公民守卫** (断言内与裸控制流两种形, 把 {解析失败, 外层空} 同等视为无效引用; CID 数组算法中 W 族搬运走裸 qword 拷贝、解析只发生在比较点); "generation" 旧称实为**不复用的全局唯一 id 序号**, family 码才是分桶键; CID 相等只比 id 半 (sub_14221E5E0); CRef 默认构造 = 哨兵 CID 物化 (qword_14333D528 拷贝) |
+| CRef\<T\> | **非拥有观察引用** | 全头唯一断言站点 = 行 83 GetPtr (§4.00.4 setter 表已收; ×910 站点全同串; 头路径 = `clausewitz\clausewitzlib\ref.h` 非 pdx_core); **簇内 0 处引用计数增减**; **CRef 槽 = 8B CID `{family u32@0, id u32@4}` 非解出裸指针** (五点互证: 断言通道即以槽值作查表键 / IsValid 双 dword 判空后解析 / R 族解引用解析值 / 族 gather 比较槽 dword / CID 存档件); 解析显式经 sub_14221F310 在消费点进行 (阈值 0x64/0x1268, **零内联** — 254 处调用全走 call), 机制层 = **§3.2b id.cpp 全局引用注册表**; GetPtr 断言 B 形 `p==0x10` = 多继承族外层空判 (CReferenceObject 子对象在 outer+16, 注册值 = 子对象指针, 消费端 −16 回 outer) — **`解析结果==16` 空外层判是消费端一等公民守卫** (断言内与裸控制流两种形, 把 {解析失败, 外层空} 同等视为无效引用; CID 数组算法中 W 族搬运走裸 qword 拷贝、解析只发生在比较点); "generation" 旧称实为**不复用的全局唯一 id 序号**, family 码才是分桶键; CID 相等只比 id 半 (sub_14221E5E0); CRef 默认构造 = 哨兵 CID 物化 (qword_14333D528 拷贝) |
+
+**CPdxHybridInlineBufferAllocator\<T,N,int\> (定案, 声明同住 pdx_scoped_buffer.h — 与 TLS scratch 同头不同族, 「勿混」维持)**: 对象布局 = {vptr (派生 vftable)@+0, T inline_buf[N]@+8, vptr2 (基接口 vftable = off_143085170)@+8+align4(N·sizeof(T))}, 第三模板参 int 不占存储; allocator 虚接口三槽 = [1](+8) allocate / [2](+16) deallocate (**内联缓冲免 free 守卫在每实例化克隆内**) / [4](+32) query_inline_buffer(&ptr,&cap) — **query 克隆每实例化恰一函数, 函数指针身份可当类型标签** (调用点 `vtable[4]==sub_XXXX` 判等直取内联缓冲, 绕虚调用); 基接口 off_143085170 同时是**全局纯堆单例** (以 `&off_143085170` 充 this 直调, deallocate(0) 常态空放), align 实参随元素 (4/8 两证); 接 CPdxArray 工作方式 = 宿主内嵌 {data, {cap,count}, alloc*} 指向内嵌分配器对象, 构造即 query → `data = alloc+8, cap = N`, 增长超 N 走 allocate 上堆; 实例化普查 = T ∈ {int/LexerToken/指针/PAIR/串/CProvince*/SNodeConnection…}, N ∈ {1,2,4,5,6,7,8,10,16,21,32,64} (vftable 符号 45+ 种去重)。
+
+**归并排序 scratch 170 阈机理 (定案, 战区批 E3 的机理层)**: run = count − count/2 (归并 scratch 步长); run ≤ 0xAA (170) → 栈缓冲不挂 EH wind (免追踪快道) / run > 0xAA → malloc(24×run) + `__wind/__unwind` EH 追踪; **malloc OOM 回退 = 请求量减半重试至成功或 0** (`while(!malloc(24×run)) run >>= 1`); 0xAAAAAAAAAAAAAAALL = 编译器乘法溢出守卫, 非业务常数。 scratch 容量档已知三实例 = 170 阈 (战区) / 256 元素 (airutil 装备分配排序, ≤32 元素插入排序同函) / 1024 元素 (CPeaceMapIcon 集合排序) — 同族不同档并存。
 
 ### 3.2b id.cpp 全局引用注册表 (CRef/CReferenceObject 机制层; 定案)
 
@@ -756,6 +760,38 @@ CCountry (cc)
 原语函数表 (id.cpp): 解析 sub_14221F310 (三档选择+查表, 失败返 0) / register sub_14221FD50 (查重→插→旗=1) / unregister sub_14221EA60 (主线程断言 id.cpp:214; 失败日志 "…might be a double free." :241) / **表级擦除 sub_14221D3D0** (注册表档 erase 实例化: 0x49631A45 哈希索引 + 哨兵槽 mask+extra+1 未命中门 + backward shift 后移 + count−−) / CreateID sub_14221E700 (已存在断言 :104; CID==哨兵 → 自动分配) / auto-CreateID sub_14221E990 ({4712+当前族码, InterlockedIncrement(dword_1434520E0)}) / init+复位 sub_14221FFD0 / 存档回填 sub_14221FFB0 (family−4712==当前族码时回填计数器) / 存档写出 sub_14221EF70 (4711 槽 {族码, 各族 max_id}; 逐槽 **token 11(id)+225(族码)** 对写) / move-ctor sub_14221E350 (偷 CID→源清旗→重注册)。
 
 哨兵与 debug 门: CID 哨兵 qword_14333D528 = **常量对 {0x5EA66, 0x2DF8CA0}** (.data 逐字节核, family > 4712 → 大档必 miss → 未创建对象拷其 CID 即触发 not-created 断言; CreateID 见哨兵转自动分配)。**断言门按宏族分门 (定案, 非单一总开关)**: byte_1435E1B52 = **Important 断言族站点门** (`assert(expr && 串)` 形, 汇参 a4=1, 22252 读点; 无独立写点 — 全部与 B51 成对同步) / byte_1435E1B51 = **消息形 debug_assert 族站点门** (debug_assert(串) 形, 汇参 a4=0, 788 读点); byte_14332EC6A = 断言汇 a4=0 报告开关真身; 启动串 asserts/ai_testing/hands_off 双开 B51+B52, **debug_asserts=yes/no 只写 EC6A+B51 不动 B52**; 控制台命令实名 = debug_assert (单数; handler sub_1402492D0: 翻 B51 后 B52/EC6A/debug_smooth 1430864E0 全部同步, 回显 "Asserts(and smoothing) are now turned on/off.") — 「debug_assert 慎发」的机理落点 (848 个 scoped_ptr 站点同时武装)。生命周期六边: ctor 链写 {vtable, CID=哨兵, 旗 0} → CreateID/auto → register → CRef 拷贝传播 (W 族) → F310 解析消费 (多继承族 −16 下转型) → unregister → 墓碑 → 删除; 回收/换局 teardown = 逐族 gather → 逐对象 unregister → 逐表清旗 free。
+
+### 3.2c pdx_pinned_array 分块钉住数组 (第 4 种引擎容器原语; 元素地址全生命周期稳定)
+
+「pinned」语义 = 元素一经分配永不迁移 (分块链表, 块与元素地址全生命周期稳定), 兼具 arena 性质 (自包含性校验要求对象引用闭包落在本数组元素集内)。宿主:
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | int32 | 总元素数 (跨块累计) |
+| +8 | 指针 | 内嵌链表头哨兵节点指针 (空链 = 自指) |
+| +16 | uint64 | 链长计数 (0 = 空链判据; 0xAAAAAAAAAAAAAAAA 上界守卫 → 抛 "list too long") |
+
+链表节点 (malloc 24B, std::list 节点同构, 尾插 sub_14139F660: 新节点 {next = 头哨兵, prev = 旧尾}, 旧尾.next 与哨兵.prev 同步改):
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | 节点指针 | next |
+| +8 | 节点指针 | prev |
+| +16 | pdx::scoped_ptr | 块持有 (解引断言 "_pPtr", pdx_scopedptr.h:129) |
+
+块:
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | uint32 | _Capacity |
+| +4 | uint32 | _Size (迭代上界; push 前提断言 "_Size < _Capacity") |
+| +8 | T 元素数组 | 元素 i 地址 = 块 + 8 + sizeof(T)×i |
+
+机制 (定案): push_back 空链 → 首块 malloc 4072, 块头一次 qword 写 {127, 0} (127 = 32B/元实例硬编码首块容量); 尾块满 → 新块 8 + 64×旧容量, 块头 {2×旧容量, 0} — **容量几何 ×2** (127→254→508…); 块尾插挂链, 所有权入节点 scoped_ptr; 元素构造后块 _Size++ / 宿主总数++, **返回新元素地址**。迭代器成员 _TopLevelIter/_TopLevelEnd = {当前节点, 哨兵}; 迭代序 = 链表序 × 块内下标。返回访问器带 "Index >= 0 && Index < _Size" 界检 (pdx_pinned_array.h:177)。
+
+自包含性递归校验 0x1413A00C0 (221 行, 176B 元素实例; 语义推定 Validate/CheckIntegrity): 栈上双 32B CPdxRobinHoodTable 内嵌形 (data@+8/count@+16/mask@+20/extra@+24/lf 0.9; 未分配 data = 静态哨兵 unk_1430B31F8 — §3.2 哨兵家族 16B 桶档新址); 循环 1 全元素地址 FNV-1a 32 位入表 A; 循环 2 逐元素递归 sub_14139F9E0 — 元素地址 ∈ 表 A 且沿元素 +24/+32/+40 三槽同型引用闭包全部可达 → 真, 否则假。
+
+> 块内元素构造 0x142508090 = MSVC std::string 赋值全套 (SSO 15 / 堆 max(size|15, 22) / size ≥ 4096 走 32 字节对齐分配) — MSVC 标准库路径非引擎机制。0x142508230 块头 `*v6 = 127` 系 qword 一次写双字段 {_Capacity, _Size=0}。
 
 ### 3.3 std::map (红黑树)
 
@@ -779,6 +815,8 @@ CCountry (cc)
 - 元素数 = tail - head; 为负则加 capacity
 - 第 i 个元素 = `buf + ELEM_SIZE × ((head + i) mod capacity)`
 - 序列化顺序 = head → tail
+- 遍历前断言 `_pBuffer != nullptr` (pdx_circular_buffer.h:124, latch byte_14333D1F1, Important 门)
+- **全哨兵环清扫语义** (CStrategicNavyManager 护航存在史清扫器 sub_140EA1B20 = navymanager.daily 尾步): 环内**任一 i32 ≥ 0 即保留**; **全 < 0 (−1 哨兵) 或空环 (head == tail) → 擦除宿主条目** (j_free(buf) + RH backward-shift + 宿主 count−−)。40B 桶带堆指针的搬法 = 整搬下桶六字段 (含 dist−1), **先 j_free 当前桶 buf 再搬下桶 buf**, 被搬空桶重置 {buf=0, capacity=1, head=0, tail=0} (§3.2 的 24B 桶通用形之外的本族形态)
 
 ### 3.5 MSVC std::string (SSO)
 
@@ -793,6 +831,9 @@ CCountry (cc)
 - size ≤ 15: 字符内联在对象本体偏移 +0 处
 - size > 15: +0 处是堆字符缓冲指针
 - 读取: 按 size 逐字节取 (小端读取时取每字节低 8 位)
+- **4 字节 char 变体 (std::basic_string\<uint32\>, UCS4 串) 同律**: 布局全同 (判定式仅元素宽 4), 内联阈 cap ≤ 3 (16B = 4 码点), **恒附 u32 终止符** (memcpy 4×size+4); 由 §4.00.27 拆词器使用
+- **2 字节 char 变体 (std::u16string / std::wstring, UTF-16) 同律**: 内联阈 **cap ≤ 7** (16B = 8 码点含终止符; SSO 初始化序列 = 缓冲清零 + cap@+24 置 7 + 首元置 0); 由 §4.00.36 UTF-8→UTF-16 转换族使用
+- **三变体内联阈规律 = 16B / sizeof(charT) − 1** (终止符占一元): char 15 / wchar_t 7 / uint32 3
 - 注意"自研变体串": 部分类 (如舰队名) 全量走堆指针形态, size 字段位置
   见类条目
 
@@ -1209,7 +1250,7 @@ pdx_core 头族模板件布局总表 (断言机制与 §3.2a scoped_ptr 同构: 
 | pdx_optional\<T\> | `{T 值内联@+0, bool _bIsSet@+sizeof(T)}` | 值形可选 | **旗在值后** (与 std::optional 旗在前相反); 读取访问器断言行 173/180; Reset = DestroyValue + 值首字节 0xAA 死写 + 清旗; 典型用法二形 = 惰性 get-or-compute 缓存与查询出参; 已观测 T 档 {u8, u32, 8B, CPdxArray 24B, 32B, 64B, 120B} |
 | pdx_span\<T\> | `{T* _pBegin@+0, T* _pEnd@+8}` 16B | 非拥有双指针视图 | count 现算 `(end−begin)/sizeof(T)` 不存储; 断言行 77/92 (Max 界检查, 编译器常折叠成恒假 `(int)v > v` 形 — **见恒假式 ≠ 死代码, 是内联断言残迹**); 构造来源 = 引擎向量 {data, cap@+8, count@+12} 或裸缓冲; 实例可叠在 scoped_buffer scratch 上; 主要消费 = 线性 membership 搜索与下标界检查 |
 | CArray2D\<T\> (array2d.h) | `{uint32 列数@+0, uint32 行数@+4, T* buffer@+8}` 16B | 行主序定宽网格 | 元素 `buffer[列 + 列数×行]` (列为快轴); Resize 断言 138 非负 + 145 乘法不回绕 + saturated_mul realloc; 行访问器 154/165 逐字节同体仅 latch 异, **越界断言只查行** (列界由调用方承担); 实例 T=u32, 宿主 = CAIFront 族 (战线分布/前沿均衡矩阵, 运行层数据不入档) |
-| pdx_view\<TDerived,TSource\> (pdx_view.h) | 32B `{uint32* 下标数组@+0, 容量 u32@+8, count u32@+12, allocator*@+16, TSource* 源@+24}` | **CRTP 零 vtable 列表视图基** | 元素 `*(源首 qword)[步长×下标[k]]` = 源容器有序过滤; 迭代器 {idx@+0, view*@+8} 16B, end={0,null}; 方法行 201/209 = CRTP 下转 `(char*)this−N`, 断言折叠式直接暴露基类嵌入偏移 N (实例 +32/+40/+136/+2424); 行 245 = GetSource; 消费 = list_widget/gridbox/managed_grid_box 与市场窗条目 (96B 步长条目, +88 谓词对象) |
+| pdx_view\<TDerived,TSource\> (pdx_view.h) | 32B `{uint32* 下标数组@+0, 容量 u32@+8, count u32@+12, allocator*@+16, TSource* 源@+24}` | **CRTP 零 vtable 列表视图基** | 元素 `*(源首 qword)[步长×下标[k]]` = 源容器有序过滤; 迭代器 {idx@+0, view*@+8} 16B, end={0,null}; 方法行 201/209 = CRTP 下转 `(char*)this−N`, 断言折叠式直接暴露基类嵌入偏移 N (实例 +32/+40/+136/+2424 +1632/+2128/+2192/+2936 及市场过滤银行宿主 +48/+544/+1136 与孪生 +8/+504/+1096); **行 245 = _pSource 判空断言** (operator[] 与迭代器解引用共用, 四处取证); 消费 = list_widget/gridbox/managed_grid_box 与市场窗; **源元素步长是模板参数** — 实证 40B (list_widget/gridbox 源) / 48B (已建行) / 72B (SMarketEquipmentData 市场条目) / 96B (过滤子视图对象自身, 谓词@+88); 市场多过滤银行 = N 子视图 96B 银行全量重建 + NDetails::MatchAll lambda 谓词 (vtable+16), 同模板按分类数实例化 5/6 两形 = 模板展开噪音非两套机制; 头文件无独立 .cpp — 簇函数全部为消费端 TU 内联展开体 |
 | 置位位迭代器 (pdx_bitmask_utils.h) | `{const T* _Mask@+0, uint32 _Index@+8}` 12B | 无符号整数 (enum class 位掩码) 置位位前向迭代 | **解引用返回单 bit 值 `mask & (1<<idx)` 非位序号** (消费方直接当枚举键查表); 升序跳零推进 `idx+1+CTZ(mask>>(idx+1))`; begin=CTZ(mask), end=位宽 (u32→32 / u64→64); 断言行 255/262; 本体非内联孤例 = sub_141F78160 (op\*) / sub_141F781E0 (op++); 消费侧可对单个位值短路 (跳过 0x800 先例) |
 | PdxParallelFor (pdx_parallel_for.h) | — (函数模板) | **tbb parallel_for 的 PDX 包装** (非任务池) | 双形态: 区间形 `PdxParallelFor<int>(first,last,EJobType,func,source_location)` / 容器形 `PdxParallelForContainer<CPdxArray/CPdxSpan>` (区间 [0, 容器+12)); EJobType grain 见 §3.11.2; 任务尺寸 0x30 (区间形) / 0x38 (容器形多一容器指针); 串行型 (3) = 调用线程纯 for 不进 tbb; 无重入防护; 派发实例 234 个 |
 

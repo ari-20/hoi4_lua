@@ -168,6 +168,7 @@ writer 绑定总表:
 
 | 偏移 | 形态 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
+| +16 | uint8 | IsCreated/IsStored 旗 (CReferenceObject 基类; vtable[9] 分配新 id 后置 1; 0x141639D20 :101 断言 "Group.IsCreated()" 直读) | 不序列化 |
 | +24 | vptr | 第二 vptr = CRailwayGunAssignee 基视口 | 不序列化 |
 | +32 | CRailwayGunAssignee* 向量 | RailwayGuns (CRailwayGunAssignee@+24 成员; GUI 双断言 "RailwayGuns.GetSize>0") | 不序列化 |
 | +48 | — | 哨兵直存单槽 (非容器) | 不序列化 |
@@ -334,6 +335,8 @@ reader 0X140EFCF10; front 块全字段落盘 (writer 键集 = {id 壳, 13444, 10
 
 theatre.cpp worker 补全 (定案): 未收 9 函数定性 — **sub_140EF5AE0** = CFront::FloodPath (:3043 无限循环日志) / **sub_140EFBED0** = CTheatre::FixFrontsAfterAreaReplaced (区替换时前线重定位/删除, :1415) / **sub_140EFD790** = CFrontSection reader vtable[4] (元素类实名 **CFrontSection::SPerCountrySection**) / **sub_140F00F50** = CFrontSection::TakeProvincesAndPairs / **sub_140EEA6A0** = ~CTheatre (vtable[0]) / **sub_140F00580** = RemoveOrdersGroupFromTheaterGroup (:1745 "come to me, Ilya") / **sub_140F018F0** = SetMainProvince (CTheatre+232 主省槽) / **sub_140EF8630** = CFront vtable[8] RegisterWithNewId (type = 66, sections > 128 fatal)。结构性新定案: **NTheatreManager 三组静态** = g_OccupationBundleConquer/Relation (0x14333D2C0/330, 各 0x70B, _IsActive@+96, 断言串实名) + SInterpolatedFrontBundle 派发队列 (0x14333D398, 16B 条目 {og idpair, instance_id, u8}, <4 串行/≥4 tbb); **CFront/CTheatre vtable[8] = RegisterWithNewId** (id 高水位 dword_143087264/268); **managerobj+1941 = 战区脏旗双写点** (sub_140EF1EE0 入 1 / 出 (gs+1312>0) — 主文件 CSession+1941 待裁条由此消解); CFront reader 补键 141(priority)/10288(丢弃); AddUnit 补 empty-og 清理链与重校验差异旗置位; 收口 "theatremanager.endbundle" profiler 域。调用主干: 读档完成 sub_140DD6A30 → sub_140EF9280; 前线重建 sub_140EE9560(tbb) → sub_140EF9710 (脏门 front+125) → sub_140EEE090 BuildSections → FloodPath/TakeProvincesAndPairs; 区替换 sub_140CF7E10 → sub_140EFBED0; bundle 窗 EED690 → EFCA60 入队 → EF2F30 → EF1EE0×2 → EF18B0。
 
+random.h 簇侧证补全 (NTheatreManager 并行作业件, 体内皆含 random.h:74 主线程断言故归簇): **sub_140EF88B0 = NTheatreManager::InitSectionsForCountries** (tbb 符号直证; 逐国 cc+360 战区按 +272 符号分双桶 + 两段禁场 tbb pass) / **sub_140EF18B0 = DispatchBundle** (SInterpolatedFrontBundle; COrdersGroup RTTI 过滤; <4 串行 / ≥4 禁场 tbb, **grain = n/(3×线程数)** 补全) / sub_140EFAC10 = 战区并行作业包装 (gamestate.h:1125/1126 断言组 → 禁场 → sub_140EE6970 分发) / sub_140EFAB20 = 禁场内**串行**逐国循环 (非 tbb 的守卫惯用式变体)。另域两件: **sub_140EAB300 = CStrategicNavyPostInitThreaded** (符号直证; 串行补链 + 禁场 tbb grain=max(1,n/8); 归 s4_16 战略海军域) / sub_140CF81C0+sub_140CF59A0 = 战略区域脏国冲刷调度器与全量双段冲刷 (byte_14333CC00 全量旗委派; <4 串行 / ≥4 tbb; **0 号国不在并行段**; "All theatres rebuilt" 连跑件)。
+
 #### 4.24.7 CFrontSection (96B, writer 0X140F01FD0)
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
@@ -367,10 +370,13 @@ ctor 0X141639B00; vtable 0x1429E5C50。
 | +72 | COrdersGroup* | orders_group 容器数据指针 — ptr 数组, B320 视角 elem+8: `id=ru32(e+12) type=ru32(e+8)` 单行叶 | c>0; GUI: 剧场组行命中 |
 | +73..+83 | — | = orders_group 容器 data 尾 + cap@+80 (sizeof 0x60 闭合) |  |
 | +84 | uint32 | orders_group 容器计数 | c>0 |
+| +88 | 匿名分配器 (8B) | 容器分配器对象 (vtable [1] = alloc(字节数, 对齐=8) / [2] = free(ptr)); sizeof 0x60 闭合于此 | 不序列化 |
 
 注 (GUI): 剧场组行消费四键 = CTheaterGroup +32 / +40 / +72 与 COrdersGroup +92 (定案)。
 注 (GUI): +32 重编号 = CTheaterGroupItem populate sub_141E6F9A0 命中; SettingsView [4] Refresh 行重编号同键。
 注 (GUI): +40 改名命令 = CSetTheaterGroupNameCommand (RTTI 直证)。
+
+**挂/摘编组两方法 (theatergroup.cpp)**: 0x141639D20 (挂编组, a2 = COrdersGroup) — 前置双断言 (:100 "Group.GetTheatre() == &GetTheatre()" 比 og+64 vs tg+24; :101 "Group.IsCreated()" 读 og+16); og+384 非空 (已有战区组) → 先 sub_140F00580 (§4.24.7 定名 RemoveOrdersGroupFromTheaterGroup) 再 sub_140BF62C0 置 og+384 = 本组; 尾 push 进 tg+72 数组 (增容 new_cap = max(count+1, (int)(float)(count×1.5)), 分配走 tg+88 分配器)。0x14163A910 (摘编组) — 先 sub_140BEC930 清 og+384, 线性定位 + 交换式压缩, 未删元素时 :121 断言 "Failed to unassign the orders group, from the theatre group."。COrdersGroup 侧三件套: getter sub_140BEFC20 (ordersgroup.cpp:533 断言 "_pTheaterGroup && \"If group doesn't have theater group something is totally wrong\"", 返 og+384) / setter sub_140BF62C0 / 清零 sub_140BEC930; 存在谓词 sub_140BF1540 = `og+384 != 0`。
 
 #### 4.24.9 member/scheduled_member vtable[32] thunk 与 order_instance 树展开
 
@@ -445,6 +451,8 @@ ctor 0X1415B9390; sizeof 0x60 = 96; owner CNavyTheater 回指@+24。
 | +56 | SSO | name — tok 27 (默认 "NEW_THEATER_GROUP"; ⚠ 与陆军 CTheaterGroup+40 异构) |  |
 | +72 | — | SSO size 字段 (非 idpair); GUI 链 = item+72 ← grp+8 refid (SetTarget sub_141E73010) |  |
 | +88 | uint8 | is_important (tok 15575) |  |
+
+> reader 0x1415B97E0 三键: name(27) → sub_1424C0AB0 串 / fleet(15156) → id 对解析 (sub_14221F970) + sub_14221F310 resolve → CFleet\* push +32 (resolve 失败 → :66 错误 "Invalid fleet reference \<id 对\> in theater group \<name\>", 取名于 +56) / is_important(15575) → sub_1424C0C00 bool。0x1415B9750 = id 注册/引用分派 (og id 对非空 → sub_14221E700 注册既有引用; 空 → vtable[9](a1, a1+8) 分配新 id; 尾 :87 断言 "IsCreated()" 读 +16)。
 
 注 (GUI): 命令族 RTTI 实名 = CSetNavyTheaterGroupForCommand / CSetNavyTheaterGroupImportantCommand / CSetNavyTheaterGroupNameCommand。
 注 (GUI): CNavyTheaterGroupItem (sizeof 0xB70) target = item+72 ← grp+8 refid; 基 CNavyTheaterGroupItemBase = CStandardGridBoxItem@0 + CTooltipHandler@24, 新添槽 [19] SetupDerived / [20] Reset。
@@ -745,7 +753,7 @@ sub_140E7E0E0(己区+40 锚省, theatre) 真 → +124 = 1 (:435 门 = 敌区空)
   匹配, 标记字节数组防本轮重用) 或新建 → **TakeProvincesAndPairs sub_140F00F50**
   (reversed = 段首末省路径先后, sub_140EF44D0 后处理 ×2) → 覆盖对账 :3419
   "nWantedPairs == nCoveredPairs", 超 wanted 省打回工作列重处理 → 清扫未触及/空段
-  (+60 省数 == 0 ∨ +84 对数 == 0) vtable[0] 删 + swap-remove。
+  (+60 省数 == 0 ∨ +84 对数 == 0) vtable[0] 删 + swap-remove。尾段逐 front+72/+84 sorted_pairs 16B 条目双 qword 非空校验 = 断言 theatre.cpp:3791 `!ProvincePairsContainsNull(_SortedPairs)` (byte_14333D3C3 缓存) — 断言站全集 = :3200/:3276/:3419/:3791。
 
 **载入修复对全流程**: sub_140EFC6D0 = CTheatre::UpdateMainProvince 五步 (debug 门
 byte_143452529, log :2557): ① +36 area 计数清 0, +60 锚省数 > +32 cap → 1.5 倍增 +24;

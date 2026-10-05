@@ -121,7 +121,7 @@ Execute 步骤 (定案):
 | 5 | 每小时 | 重算日期分量缓存 gs+1144/+1148/+1152/+1156/+1160 (dword_143085210 = 闰年月首累计日表) |
 | 6 | 边界 | 计算四布尔: 换日 (日分量变) / 换周 (换日且总天数 %7==0) / 换月 (月索引变) / 换年 (年积日变) |
 | 7 | 边界 | profiler 日期粒度采样 sub_140BBBEA0 (gs+2008): 五槽打点 "Hour"/"Day"/"Week"/"Month"/"Year" (性能采样, 非游戏逻辑; 见 §4.2.5) |
-| 8 | 联机 | checksum 对比: sub_140DB1830 算本地 vs 载荷 → OUT_OF_SYNCH 判定与日志 (gamestate.cpp:4744-4795); CNetworkServer/CProxyServer 或 debug 旗才走; 本端 checksum 计算 = sub_140DB1740, 哈希核 = **MurmurHash3 x86_32** (sub_1424ED930 update / sub_1424EDA70 finalize, 全常量直证)。**OOS checksum 全貌 (定案)**: 命名空间 NGameSynchronizationHelper; **91 槽定长校验和** (快照 = 91×u32 逐槽与主机对拍), MurmurHash 流式 (每逻辑校验项一个 12B 哈希状态); 双变体 = Logging 变体 (91×12B 槽数组建立者 = **sub_140DB1560** gamesynchronizationmanager.cpp:1129, 填充后逐槽打 "Checksum: <i> <hash>"; 核心填充器 sub_140DA5C80/140DAB4C0 — **a2 位掩码**: bit0 = CGameState::Save 主块 writer a3=1 整态进流 → 槽 2 + 日志 "Full Persisted Game State" / bit1 = playthrough writer sub_1401F2DD0 → 槽 87 + "Playthrough Stats" / 恒执行 "Global Game State" 文本段; 仅 OOS 报告窗 sub_140DD8D60 用, 串行) 与 PdxHasher 静默变体 (sub_140DA8A40/140DAE720, hourly tick 生产路径, tbb 并行; 静默族 5 函数在簇外); 周期 = 每小时对拍一次 (CHourlyTickCommand 载荷携主机 91 槽 → sub_140DB1830 比较 → 差槽/OOS 标签上行 → sub_140DB1740 重算本地; **human_ai 旗置位也强制对拍**); 覆盖面 = 全局段 (槽 0/1 = multiplayer_random_seed/count 与 §4.28.13 随机流闭环; 槽 2/87 = 全持久态/playthrough 摘要 [后者 byte_143468B46 门控] / 槽 55 = debug_current_ref_id dword_1434520E0) + 省/前线/州/区天气/战斗走访 + 逐国 21 具名分区; **与存档 #checksum 无关** (存档 = MD5(文件+盐), 本簇 = 活体 gamestate 结构化分槽 MurmurHash) |
+| 8 | 联机 | checksum 对比: sub_140DB1830 算本地 vs 载荷 → OUT_OF_SYNCH 判定与日志 (gamestate.cpp:4744-4795); CNetworkServer/CProxyServer 或 debug 旗才走; 本端 checksum 计算 = sub_140DB1740, 哈希核 = **MurmurHash3 x86_32** (sub_1424ED930 update / sub_1424EDA70 finalize, 全常量直证)。**OOS checksum 全貌 (定案)**: 命名空间 NGameSynchronizationHelper; **91 槽定长校验和** (快照 = 91×u32 逐槽与主机对拍), MurmurHash 流式 (每逻辑校验项一个 12B 哈希状态); 双变体 = Logging 变体 (91×12B 槽数组建立者 = **sub_140DB1560** gamesynchronizationmanager.cpp:1129, 填充后逐槽打 "Checksum: <i> <hash>"; 核心填充器 sub_140DA5C80/140DAB4C0 — **a2 位掩码**: bit0 = CGameState::Save 主块 writer a3=1 整态进流 → 槽 2 + 日志 "Full Persisted Game State" / bit1 = playthrough writer sub_1401F2DD0 → 槽 87 + "Playthrough Stats" / 恒执行 "Global Game State" 文本段; 仅 OOS 报告窗 sub_140DD8D60 用; **现役调用图恒串行** (DB1560 恒传并行旗 0), 但 DA5C80 体内含完整 TBB 并行支路 (a3 选路: 分裂器 sub_140DAAC10 + 叶 sub_140DB1AB0, lambda 符号直证) = 现役死码)) 与 PdxHasher 静默变体 (sub_140DA8A40/140DAE720, hourly tick 生产路径, tbb 并行; 静默族 5 函数在簇外); 周期 = 每小时对拍一次 (CHourlyTickCommand 载荷携主机 91 槽 → sub_140DB1830 比较 → 差槽/OOS 标签上行 → sub_140DB1740 重算本地; **human_ai 旗置位也强制对拍**); 覆盖面 = 全局段 (槽 0/1 = multiplayer_random_seed/count 与 §4.28.13 随机流闭环; 槽 2/87 = 全持久态/playthrough 摘要 [后者 byte_143468B46 门控] / 槽 55 = debug_current_ref_id dword_1434520E0) + 省/前线/州/区天气/战斗走访 + 逐国 21 具名分区; **与存档 #checksum 无关** (存档 = MD5(文件+盐), 本簇 = 活体 gamestate 结构化分槽 MurmurHash) |
 | 9 | 每小时 | 遍历 gs+2240 容器 (计数@+2252): 每 tag 查 _AllPlaythroughData (gs+2200, §4.1.8) → 条目 = **NCareerProfile::SPlaythroughCountryData** (2488B, vtable 0x142721478), 在其 +2064 的 **SCareerProfileIntermediateStatistics** 上调三函数 = **9 条 CTimeSeries 滚动统计窗口推进** (2 月窗 24 / 6 时窗 48·12·48·48·48·96 / 1 日窗 30) — 生涯档案统计域, 非模拟逻辑 (月边界 sub_14069D160 / 日边界 sub_140694E60 / 每小时 sub_140699C10) |
 | 10 | 每小时 | **sub_1401DF400(gs)** = hourly 游戏逻辑主调度 (§4.2.6) |
 | 11 | 日 | **sub_1401D4810(gs)** = daily update |
@@ -159,10 +159,32 @@ profiler 日期采样器 sub_140BBBEA0(a1=gs+2008, 日期, 日/周/月/年布尔
 
 > 备注: 每槽动作 = sub_140BBC400 累计耗时/计数并写 "%s\t%s\t%f\n" profile 行;
 > a1+8 为启用门。**这是日期粒度的性能采样, 不派发任何游戏逻辑**。
+> **gs+2008 对象职能二分 (df305 定案)**: 该对象同时是本表边界打点器 (sub_140BBBEA0) 与
+> **TSV 落盘记录器** — 启停 = sub_140BBC070 (gamestatetimer.cpp:96 SetEnabled, 201 行):
+> 开启 = 12 个统计槽清零 (+16..+48 五 qword / +96..+144 六 qword / +152 dword) → 文件名
+> `logs/gametimer_YYYYMMDD_HHMMSS.tsv` 存 +64 串 → malloc 0x38 建 1MB 缓冲写器 (sub_1424DF570)
+> 句柄存 +0 → 写表头 "Game Date \tTime Unit \tSeconds\n"; 失败 → gamestatetimer.cpp:96
+> "Failed to log timer info to file: " (旗 10) 且 +8 旗回 0 不留半态; 关闭 = 句柄 vtable[0](1)
+> 释放。**控制台 `gamestate_timer` handler = sub_14025D910 (定案)**: 参数 off/false/(推定 0) →
+> 关 (回显 "Game state timer disabled.\nDetails written to file: <名>", 数据文本化 sub_140BBBDF0) /
+> 其他 → 开 ("Game state timer enabled."); 会话使能钩 sub_140DDC350 (单机门 = 服务器非
+> CNetworkServer/CProxyServer) 也传 (gs+2008, 1)。
+> ⚠ **两套计时机制勿混**: gs+2008 TSV 记录器 (本节) 与 timing.cpp 计时单例
+> (qword_14332F498, §4.00.35) **互相独立** — `gamestate_timer` 只直接驱动 gs+2008 侧;
+> timing 单例 +396 旗由 `gstimer`/timing 域自行翻转 (两命令名相近但对象不同; gstimer 是否
+> 级联驱动 gs+2008 未决)。
 > 备注: 与 BBBEA0 并行的**阶段计时序列** (1DD370 自测量, 定案): sub_140222860 使能旗读
-> (gs+2008+396) / sub_140222CE0 每时清零+盖章 / sub_140222530 总账序列 (+16 槽,
-> HourlyUpdate 全程) / sub_140220EA0+221060+2210A0+2210E0 = Monthly/Weekly/第四/Daily
-> 段序列 (槽 +88/+64/+112/+40); 样本经 sub_14021EC40 入 32B 日期标记数组。
+> (**计时单例 qword_14332F498+396**; 单例 = sub_140221770 malloc 的 464B 独立堆对象,
+> 非 gs+2008 — 后者是 BBBEA0 的日期采样器, 槽位 +16/+24/+32/+40/+48 与计时对象
+> 的 CPdxArray 段序列 +16/+40/+64/+88 不符, 两者非同一对象; 4 处调用点
+> (sub_140DC50C0 / HourlyUpdate 链 / gamestate_timer GUI) 传入的 a1 均为
+> sub_140220E30() 返回该单例, 定案) / sub_140222CE0 每时清零+盖章 /
+> sub_140222530 总账序列 (**+136 槽**, 120B 元 = +216..+336 整窗快照 (14 域槽 + 残差);
+> **+16 是配对的 32B 日期标记数组**, 勿混 — HourlyUpdate 全程) /
+> sub_140220EA0+221060+2210A0+2210E0 = Monthly/Weekly/第四/Daily
+> 段序列 (槽 +88/+64/+112/+40); 样本经 sub_14021EC40 入日期标记数组; 秒窗阈值 =
+> 1000000000 tick (now − +8 ≤ 阈值同窗); 每秒双缓冲 (+160/+184) 窗口翻转时交换 (推定)。
+> 计时单例 464B 全布局 = §4.00.35。
 > 备注: **计时域作用域件** (timing.cpp, 定案): 开启 = sub_1402200E0 (16B 栈对象
 > {域id@+0, 起始tick@+8}, 使能旗 timing+396 开则记起始; timing.cpp:45 断言) /
 > 收尾 = sub_1402203F0 (elapsed 累计到 timing+216+8×域id; timing.cpp:36) — 二者成对
@@ -178,7 +200,7 @@ profiler 域 **"gamestate.hourly"**; gamestate.cpp:5918-5920 断言窗口 (定�
 
 | 序 | 子系统 | gs 槽 | 要点 |
 |---|---|---|---|
-| 1 | 军队状态小时统计 | +2416 | **CUnitMetricsCollector** (unitmetricscollector.cpp 定名): 收集开了 +413 IsCollectingMetrics 旗的作战计划编组, 14 键按小时窗口累计, 写 logs/metrics/*.log — **纯遥测, 默认关闭, 不进游戏逻辑**; 四件 = sub_140F08C50/F09DE0/F0A580/F0ED00 (AVG_DEFENDER_ENTRENCHMENT_WHILE_ATTACKING / TOTAL_IN_COMBAT_MAN_HOUR 等键直证) |
+| 1 | 军队状态小时统计 | +2416 | **CUnitMetricsCollector** (unitmetricscollector.cpp 定名): 收集开了 IsCollectingMetrics 旗的作战计划编组, 14 键按小时窗口累计, 写 logs/metrics/*.log — **纯遥测, 默认关闭, 不进游戏逻辑**; 四件 = sub_140F08C50/F09DE0/F0A580/F0ED00 (AVG_DEFENDER_ENTRENCHMENT_WHILE_ATTACKING / TOTAL_IN_COMBAT_MAN_HOUR 等键直证)。⚠ **旗偏移两说并存 (待裁)**: sub_140F0A130 断言 `pOrdersGroup->IsCollectingMetrics()` (:528) 读 **+418**, 而 **+413** 亦为 COrdersGroup 真实字段 (0x140BEAB30 克隆时 +413/+416 成对拷贝) — 或 +418 = 真身而 +413 系另一旗, 或计划侧/运行侧两旗; 仲裁需反编译访问器本体。收集器 **+64 = 军群→条目映射** (sub_140F08940 查/建); 键名清单落日志 = 0x140F0C9E0 (:570 日志 tag, ios flush) |
 | 2 | 三数组预收集 | +2464 族 | 全体国家数组 (门 = 有资州或收容流亡政府) → DoCountryHourlyUpdates / AI 策略数组 (就绪检查+预热) → ai_update / 国家下标数组 (gs+2464) → 战略空军 |
 | 3 | 补给 (计时域 4) | +984 | **CSupplySystem::UpdateSupply(bool)** 12 阶段 (§4.21.1a) |
 | 4 | **装备市场小时槽 (计时域 11)** | +1000 | sub_1401C67B0 → thunk 市场解引用断言, **返回值弃置 = 空转** (定案, §4.23.3a) — 全局市场唯一周期处理在 daily 序 16 |

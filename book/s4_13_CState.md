@@ -199,7 +199,7 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 | +648 | 匿名结构 (8B 对) | force_disable_resistance 容器数据指针 {data@+648, count@+660} | 容器非空即写 (独立于数值门, 全零阻力州也落) | 元素 8B {key tag_id@0, value tag_id@4}; tid 0 渲染 "---" (writer 块名走变量非字面量; 州 996/459/460 探针定案) |
 | +649..+659 | — | = force_disable_resistance {cap@656, c@660} 头 | | |
 | +660 | uint32 | force_disable_resistance 容器计数 | | |
-| +680 | int64 | **compliance 合规值** (三证: 和会代价合规折扣按本值对 PEACE_COST_FACTOR_COMPLIANCE_STEPS 阈值阶梯比较 peacecosthelper.cpp:520 / dp+64 平均顺从 = Σ st+680 / gs 日更 compliance 通道 — 写者 sub_1409E02C0 州修正重算 a3 出参记载为真, 478 修正求和与 compliance 的派生关系待裁) | 不序列化 | 语义定案/写者链待裁 |
+| +680 | int64 | **compliance 合规值** (三证: 和会代价合规折扣按本值对 PEACE_COST_FACTOR_COMPLIANCE_STEPS 阈值阶梯比较 (门 = state+204 **控制国**==negotiator 非 owner; 扫描自表尾向低; compliance 越高因子越低 — 公式已验算) peacecosthelper.cpp:520 / dp+64 平均顺从 = Σ st+680 / gs 日更 compliance 通道 — 写者 sub_1409E02C0 州修正重算 a3 出参记载为真, 478 修正求和与 compliance 的派生关系待裁) | 不序列化 | 语义定案/写者链待裁 |
 | +688 | int64 | 法侧 MODIFIER_REQUIRED_GARRISON_FACTOR(499) 求和缓存 (st+1304; 同上 a4 出参; sub_140F94100 驻军需求 a4=1 扣除项 = 驻军师自评口径) | 不序列化 | 定案 |
 | +696 | uint8 | 脏旗 (add/set_compliance 直写 1; SetOccupiedCountry/历史重置首行直写 1) | 不序列化 | 定案 |
 | +704 | int64 | 上次通知快照·抵抗 (变化检测: \|Δ\|≥1e5 或跨 0/满 → 快照更新 + cr+696 脏) | 不序列化 | 定案 |
@@ -407,6 +407,8 @@ CPersistent 真 writer/reader (0x141000640 / 0x140FFBF80); 宿主容器 = occmgr
 | +152 | CResistanceActivity* | resistance_activity (15757) | 读 = 名串查 idb resistance_activity (§4.26.4); 写 = def+8 名串 |
 
 > **本域 GUI 类布局**: 见 4.30.1。
+
+**CResistanceActivityDatabase** (96B; TGameItemDatabase<CResistanceActivityDatabase> 模板单例, 工厂 sub_1401733E0, pdx_scoped_singleton 门 qword_14332F008; resistanceactivitydatabase.cpp 定案): 布局 +8 装载目录串 / +40 32B RH 表 (data@+48 = 静态哨兵 **unk_143085390** / count@+56 / mask@+60 / extra u8@+64 / lf 0.9@+68; 桶 48B {名键区 40B, 对象指针@+40}; 键哈希 FNV-1a 32 位 + 长度预比) / +72 加载序向量 CPdxArray 24B (定义对象指针, 装载序)。Load 包装 sub_14018A950 (已载旗 +20 → `DB already loaded when loading <目录>` + throw); 多目录变体 sub_1401A17F0 (目录串表逐目录调装载 = mod 叠加)。**装载 0x140AA0BD0** (317 行): 清库 → 目录枚举 `*.txt` (64B/项) → 逐行 FNV-1a 32 哈希 → malloc 912B 构 **CResistanceActivity** (ctor sub_140AA01F0, RTTI 直证) → vtable[3] 吃行加载 → RH 插入; **重名 = 覆盖语义 (定案)**: 命中槽旧对象非零 → 格式化错误 `duplicate resistance action %s` (cpp:95, 非断言) → 旧对象从加载序向量线性查找并紧缩摘除 → 表槽写新对象 → 新对象尾插加载序 — **后载覆盖先载 (mod 替换) 且装载序位次重排**。
 
 #### 4.13.1a 抵抗活动执行体 (cr+576 active_actions 定名)
 

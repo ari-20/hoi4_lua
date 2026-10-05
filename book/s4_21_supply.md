@@ -218,7 +218,7 @@ mid = K × (1e5×d − MIDPOINT)/1e5
 
 | 全局 | define | 消费 |
 |---|---|---|
-| qword_143335D28 / dword_1433349D8 | NSupply.NODE_FLOW_BONUS_PER_RAIL_LEVEL / NBuildings.MAX_RAILWAY_LEVEL (i32) | 容量基数 |
+| qword_143335D28 / dword_1433349D8 | NSupply.NODE_FLOW_BONUS_PER_RAIL_LEVEL / NSupply.MAX_RAILWAY_LEVEL (i32) | 容量基数 (MAX_RAILWAY_LEVEL 全语料唯一装载器 0x1409AAA80 直证 NSupply; 32 消费函全簇最热点) |
 | qword_1433354A0/143335568/143335648 | CAPITAL_{INITIAL_SUPPLY_FLOW, STARTING_PENALTY_PER_PROVINCE, ADDED_PENALTY_PER_PROVINCE} | 首都分支 |
 | qword_143335728/1433357F0/1433358D8 | NODE_{同三后缀} | 节点分支 |
 | qword_1433359C0/143335A98/143335B68 | NAVAL_BASE_{同三后缀} | 海军基地分支 |
@@ -391,3 +391,7 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 - **容量三分支选择器 sub_141228D50 细化**: 分支序 = 省缓存条 +18 capital word 非零 → CAPITAL 三 define / +20 supply_node_level 非零 → NODE / 否则 NAVAL_BASE (+21 naval_base_level 也零时先发 "no node available" :3180 — **断言不短路仍落 NAVAL_BASE 值**)。
 - **发放叶两条**: 节点→消费者累计比例瀑布 sub_14121A790 (倒序迭代; share = 1e5×(累计avail × _TotalSupply/1e5)/Σavail, to_give = min(avail, 增量); **avail ≤ 0 条迭代中压实删除**); 本地供应发放叶 sub_141215BC0 (find-or-insert → received_local +104 += avail + +31 清零 → 省 _TotalNeed 扣减)。
 - 消费面互证: s4_22 kind17 与 s4_18 补给率均不在簇内 (簇内无战斗写点/零调用), 供给值经 232B 条 +56/+64 被战斗域消费, 无交集。
+
+#### 4.21.xa 补给 GUI 管理器忽略表回推 (supply_gui_manager.cpp; 1 函 = 0x1419AF480 — 书未收簇)
+
+**机制 (0x1419AF480, 124 行, 机械流程定案 / 业务语义待裁)** — 断言 source\supply\supply_gui_manager.cpp:812 `NumIgnores >= 0` (闩 byte_14338B48A)。选择栈 = manual vector {数据指针 +40 / 容量 +48 / 计数 +52 / 池分配器 +56 (vt+8 alloc(n,4) / vt+16 free)}。流程: 取栈顶为 key → sub_1419AF720(a1, &out, key, a2, 0) 取该节点忽略表 (int 向量) → do-while 弹栈至栈顶 ≠ 忽略表前缀, 计 k → v5 = k−1 < 0 断言 (至少弹 1 个) → **忽略表自下标 v5 起逐个压回** (容量增长 max(1.5×, +1)) → 释放临时向量。语义推定 = 节点选择栈回退 + 忽略链重放 (GUI 侧补给节点导航态, 待裁)。

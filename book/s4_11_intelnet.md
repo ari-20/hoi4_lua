@@ -298,12 +298,12 @@ ctor sub_1413F61D0; 24B 槽 {data@+40, count@+52}。其内 **CCountryDecryptionS
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +8 | uint32 | tag | 目标国 |
-| +12 | — | days — 激活加成剩余天数 | 激活时 = dword_1433331A0 = CRYPTO_CRYPTO_ACTIVE_BONUS_DURATION; −1 才不写 |
-| +16 | uint8 | 全解密旗 | |
+| +12 | — | days — 激活加成剩余天数 (ctor 初值 **−1**; GetOrCreateCountryDecryptionState 0x1413F6F70 构造序列直证) | 激活时 = dword_1433331A0 = CRYPTO_CRYPTO_ACTIVE_BONUS_DURATION; −1 才不写 |
+| +16 | uint8 | 全解密旗 (ctor 0) | |
 | +17 | uint8 | hide 旗 | |
-| +18 | uint8 | 解密中旗 | |
-| +24 | — | 进度分子 | 行进度条分子 |
-| +40 | — | 解密完成日 | sub_1413F6820 进度到阈才写当前日期 |
+| +18 | uint8 | 解密中旗 (ctor 0) | 天数公式分母: 置位时 TotalToDecrypt 不 +1 (语义推定 = +1 是自身占名额, 未证) |
+| +24 | — | 进度分子 (ctor 0) | 行进度条分子 |
+| +32 | CGameDate 内嵌一 | {vtable@+32, hours@+40 = **43808760 ctor 哨兵 "1.1.1.1"**} | GetOrCreate 构造序列直证 |
 | +40 | uint32 | date hours (CGameDate 域 {vtable1@+32, hours@+40, vtable2@+48}) | 键 10314 |
 | +48 | CGameDate 第二vtable指针 (8B) | date 序列化锚 (ADEC0(10314, a1+48) 代理, hours 在 vtable−8) | 恒写 |
 
@@ -313,8 +313,9 @@ CCryptology 哈希索引层 (RH; 适用「暂停态 RH 表仍会重建」纪律)
 |---|---|---|---|
 | +64 | RH 结构基 | 哈希索引层表基 (data@+72 = 基+8, count u32@+80, mask@+84, extra u8@+88, lf f32@+92 = 0.9 = 1063675494 ctor 直证; 静态空桶哨兵 &unk_143086250); 12B 槽 {占位旗@+0, tag@+4, 值@+8} | 定案 (insert/ctor 双向) |
 
-记录四旗/分子键名: active (11390) / hide (679) / decryption (13042) / amount (417) / days (10605) / target (107) / date (10314)。GUI 进度条 = fixed 域中间量再 ×100/1e5 取整 clamp 1..100 (数值等价)。天数 sub_1413F7960; 分母 (攻防分离) =
-define 组合 qword_143333030 = **CRYPTO_BASE_CRYPTO_LEVEL** +
+记录四旗/分子键名: active (11390) / hide (679) / decryption (13042) / amount (417) / days (10605) / target (107) / date (10314)。GUI 进度条 = fixed 域中间量再 ×100/1e5 取整 clamp 1..100 (数值等价)。**天数公式全常数定案 (sub_1413F7960, 97 行)**: ① v4 = sub_1413F7C60(a1, &out, 0) = 自方日解密产能总量 (书 §4.11 头部 STRENGTH 取数器; ≤0 → 返 −1); ② 目标国密码强度 = mdef 528 @ *(crypto+8)+1464 (经 sub_14055E360); ③ 所需总进度 v9 = qword_143333030 + qword_1433330F0 × 强度/1e5 (两 define 派生全局, 静态镜像非真值 — define 组合见下); ④ 剩余 = max(v9 − entry+24, 0); ⑤ 分母 v17 = sub_1413F6CA0(a1) (+1; entry+18 解密中旗置位则不 +1) — ≤0 → cryptology.cpp:399 "TotalToDecrypt > 0" 断言返 −1; ⑥ 份额 = 1e5×v4/(1e5×v17); **天数 = ceil(1e5×剩余/份额), 下限 1**。哈希索引插入 (GetOrCreateCountryDecryptionState 0x1413F6F70): sub_1401B04A0(crypto+64, &slot, hash, &key, &idx), key = sub_140BB5490(tag) 国下标, **hash = 32 位 avalanche finalizer 常数 73244475 (0x45D9F3B) 两轮 `(h^h>>16)×K` 末 `h^h>>16`** (与 §3.2b 同族直证)。前置断言 "GetCountryDecryptionState( Tag ) == nullptr" (cryptology.cpp:476) = 查无才建。目标国关系取数 (sub_1413F8D80, 43 行): relation 数组基 = *(对象+8), 返 `*(基 + 8×下标)`; 空指针断言 cryptology.cpp:207 "pRelationStatus && \"no relation status for crypto target\""。
+
+define 组合 (天数公式步骤③): qword_143333030 = **CRYPTO_BASE_CRYPTO_LEVEL** +
 qword_1433330F0 = **CRYPTO_CRYPTO_LEVEL_PER_CRYPTO_UPGRADE**×level/1e5
 (双 define 注册串直证), 再按目标国自身 mdef528 修正取值 (cc+1464 修正在表键)。
 
@@ -1250,7 +1251,7 @@ byte_14332F62E = **Agency.KeepExcessOperatives** (槽满仍直挂)。命令 Exec
 0x141A27C00 (双旗 word 写 +192=1/+193=0)、升级 = 0x141A27CF0 (§4.33 补行)。
 
 **COperative 运行期锚束** (消费点定案): idpair@+8/+12 / 属主 tag@+36 / 名 SSO@+64 /
-tag@+288 / 关押日期@+4032 / 状态枚举@+4224 (5 = Killed)。op+288 与 +36 两 tag 分工待裁 — 0x1411F99B0 以 op+288 作宣传漂移的分组键与应用键 (宣传作用对象为国家, 倾向 +288 = 任务目标/行动所在国 tag, 推定)。
+tag@+288 / 关押日期@+4032 / 状态枚举@+4224 (5 = Killed)。op+288 与 +36 两 tag 分工待裁 — 0x1411F99B0 以 op+288 作宣传漂移的分组键与应用键 (宣传作用对象为国家); **op+288 = tag_id u32 (0=空) 定案** (0x1411F81A0 `*(int*)(op+288)>0` 门 → GetCountry sub_140BB48F0(tag→CCountry*) 链直证, 对象指针读法排除; 「任务所在国 vs 归属国」语义仍待裁)。
 
 未决: sub_140710B20 是否含入账 / captured reader 元素键表 / dword_14333347C 的 define 名 /
 sub_140C185E0 (+4016 统计, token 545/546) 语义。

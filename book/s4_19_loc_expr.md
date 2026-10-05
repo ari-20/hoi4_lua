@@ -219,8 +219,10 @@ CBrowserType 同族)。
 | 步 | 动作 |
 |---|---|
 | ① | `CExpression::reader sub_14141D1B0` (trigger 的 value/var 键解析时调用): 解析操作数 + 指令段; 扫操作数 (216B/项), 若 `byte@+208 == 2` → `sub_140AAB2E0(CExpression*)` |
-| ② | `sub_140AAB2E0(a1)` = CNamedCollection 求值: `qword_14332F030` (RH 16B 桶) 存在 → `sub_140AAAB70(表, out, FNV(a1), &a1)`; 否则 → `sub_14141F030(a1)` 名字解析兜底 |
-| ③ | `sub_14141F030(expr)`: 遍历操作数 (216B, +8 data / +20 count), 跳过 `byte@+208 != 2` 者, FNV(操作数+0) 查 `qword_14332EED8` (CNamedCollectionDatabase) RH (buckets@+56 / mask@+68 / 哨兵@+72) → 命中取 `entry+16` = CNamedCollection*, 写回操作数+8; 未命中 → 报 `"Failed to resolve named collection in math expression, defaulting to 0"` (script_math.cpp:383) + `sub_1403B80F0` + `sub_14140DDE0` + `+44 = 0` + `sub_14141C0D0(expr+32, 0, 0, −1)` 置空表达式 |
+| ② | `sub_140AAB2E0(a1)` = CNamedCollection 求值: `qword_14332F030` (RH 16B 桶) 存在 → `sub_140AAAB70(表, out, 哈希(a1), &a1)`; 否则 → `sub_14141F030(a1)` 名字解析兜底 |
+| ③ | `sub_14141F030(expr)`: 遍历操作数 (216B, +8 data / +20 count), 跳过 `byte@+208 != 2` 者, **哈希(操作数+0) = 0x45d9f3b (73244475) 两轮乘加 xor-fold 雪崩终化, 非 FNV** (`x^=x>>16; x*=0x45d9f3b` ×2; 伪码 `v5 ^ HIWORD(*v4)` 形) 查 `qword_14332EED8` (CNamedCollectionDatabase) RH (**条目 24B = {+0 预留, +4 PSL 字节 0=空位, +8 key u32, +16 value 指针}; 线性探测 `++probe > *(entry+4)` 判失配; 哨兵界 = base + 24×(mask+1+哨兵字节)**) → 命中取 `entry+16` = CNamedCollection*, 写回操作数+8; 未命中 → 报 `"Failed to resolve named collection in math expression, defaulting to 0"` (script_math.cpp:383) + `sub_1403B80F0` + `sub_14140DDE0` + `+44 = 0` + `sub_14141C0D0(expr+32, 0, 0, −1)` 置空表达式 |
+
+**script_math VM (定案, 5 函闭环)**: 指令 = **3 字节定长 [opcode u8][operandA i8][operandB i8]** (扩容步距 3×count; 回填寻址 base+3×pos+1/+2; 与 math_instructions.h:54 operandA int8 断言互证; 操作数上限 127)。opcode 全表: 0=清零默认 [0][0][−1] / 2=every_collection 全链折叠 (体后首指令 ∈ {29,30} 且整条表达式被该短路链覆盖时 op32 重写) / 3=multiply (token 10499) / 21=root (11412) / 23=log (10676) / 24=单目 [24][−1] (语义未决) / 28=atan2 (11689) / 29=and (10600) / 30=or (10601) / 31=if 条件跳转 (**B1=TrueBranchSize / B2=TotalBodySize 双 i8 回填**, 断言 :250/:251) / 32=every_collection 迭代 (A=集合操作数 idx, B=体长; 断言 :306)。token 全表: 10179=if / 14573=else_if / 14035=else / 10762=limit / 11067=every_collection / 11556=named_collection; id 19 = 词法失败兜底值。**三编译器**: if 链 0x14141D850 (else_if 循环 + else 收尾; "if block must start with limit =" 错误) / and-or 短路链 0x14141E140 (双遍回填: B1=BodySize :193, B2=链内下一记录位越 i8 界顺延或总长) / every_collection 0x14141D2B0 (peek 须 named_collection; 追加 216B 操作数 {+0=*(u32*)(token+192) 集合名 token, +208=2 种类 tag}; "Too many constants and/or variables in math expression" 127 上界)。协函: 语句分发器 sub_14141E5A0 (token switch) / 块体解析 sub_14141EDF0 (and/or 挂点) / 首个 if 块 sub_14141D680 / 单表达式编译 sub_14141DCE0 / 3B 指令发射 sub_14141C0D0。解析器 ctx = {+0 = CExpression.operand_array*, +8 = instr_container*, +16 u8 错误旗}; reader 出错报 "Errors occurred while reading math expression defaulting to 0" (:350)。
 | ④ | `sub_14141C0D0(a1, op, a, b)` = 指令发射 (math_instructions.h:54 断言 `OperandA >= numeric_limits<int8>::min() && …`) |
 
 **表达式 trigger 类**: `CCheckExpression` (vtable 0x1427CF258) / `CDebugMathExpression` (vtable 0x1427CF318),
@@ -400,7 +402,7 @@ qword_143330D98 身份 / 畸形 `(A:B)` 前缀循环伪码疑死循环 (待汇�
 
 清册 (2/2 函体内含 pdx_localize.cpp 路径锚): yml 逐行解析器 0x1423A2620 (1015) / 语言表键值
 批量装载 0x14239D170 (524, 七参 = 语言名/键数组/值数组/数量/模式/fallback 语言/显式既有值;
-模式 0 = 重复丢弃 :884 / 1 = 覆盖 / 2-4 = 覆盖+旧值 FNV 复核)。
+模式分派精化 (定案): **0 = 丢弃** + :884 "Discarded duplicate key" 日志 (通道 4096) / **{1,2,3} 同走 CBD0 有序插入路** (goto 穿落共置 v79) — 1 = 原位处理无覆盖旗, 2 = 恒覆盖 (v80 初值 1), 3 = 旧值 FNV-1a64 + 逐字节比对门 (值同退插示 −1) / **4 = 独走 C290 原位替换路** (无日志静默替换)。函数内 FNV 伪码两处 `435*(x^v)` = FNV-1a 64 低 32 截断失真 (同函并存全形 0x100000001B3 + offset basis 0xCBF29CE484222325 直证), 键 hash 全线 FNV-1a 64; 脏旗双语义 (CBD0 路 |= / C290 路直置 1) 尾调 sub_1423A1A30 重整)。
 
 **层界定案**: §4.19.9 localize.cpp 三加载函 (46E10/6CC0/AF90) 全是 IO 壳, 全部汇入
 sub_14239D980 → A2620 解析 → 写语言表 — 加载链自此有下游终点。**语言对象 104B 七字段**:

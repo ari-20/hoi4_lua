@@ -204,7 +204,7 @@ CProxyServer vtable (31 槽, 关键槽; [14][15] = 空桩):
 |---|---|---|
 | [2] | 0x1423699F0 | **Connect** (proxy_server.cpp:111): SetState(1) → 停表绑定 → +348=2 → 拷 40B 描述 → sub_1423E5CA0 连主机 → +392 → a3 秒等待环 (每轮收包泵 + 查 +427) → 就绪后组包发加入请求 |
 | [3] | 0x14236A290 | Disconnect (+348=0 + 断开 + +392=0 + SetState(0) + 回声表清扫) |
-| [5] | 0x14236CAC0 | 入队·转发形态 (只处理 cmd+24≠0 已带序号命令序列化外发; 尾 +404=0) |
+| [5] | 0x14236CAC0 | 入队·转发双分支: cmd+24≠0 → 序列化直发 (catch :328/329, 失败 "Failed to post order!"); cmd+24==0 → +456 分配序号 (cmd+28 = cmd+32 同值) → 回声表登记 (SRWLock +536) → +432 tbb 入队; +404=0 为两分支共尾 |
 | [6] | 0x14236D250 | **Update** (+328 门 → "Long update!" → 槽[30] → 槽[7] 泵 → +424/+425 处置 → +200=1) |
 | [7] | 0x14236D3E0 | 收包泵壳 (= connmgr vtable[3]) |
 | [9] | 0x14236CD30 | 按 u16 通道发送 (大厅/浏览器广播域) |
@@ -213,7 +213,7 @@ CProxyServer vtable (31 槽, 关键槽; [14][15] = 空桩):
 | [21] | 0x14236AED0 | 准入/流控门 `+404 && +400 < a2` |
 | [25] | 0x142369FD0 | ConnectionCallback (_PS_* 状态串) |
 | [26] | 0x14236A330 | DisconnectCallback (+ 机 id 提取 + +264 链比对) |
-| [27] | 0x14236AFE0 | **PackageCallback 收包主泵** (gametype/gamestatus/ASYNCHRONOUSLY_CONNECTED(6)/Tick reset/Game State 等分类; 全链 §4.36.3) |
+| [27] | 0x14236AFE0 | **PackageCallback 收包主泵** (gametype/gamestatus/Tick reset/Game State 等分类; ASYNCHRONOUSLY_CONNECTED = 控制消息 0 MACHINE_ID 伴随日志 :749, 非「消息 6」— 客户端 switch 对 6 走 default 静默; 全链 §4.36.3) |
 | [30] | 0x14236A700 | **SendOrders** (排空 +432, 逐条盖 tick/序列化/发主机) |
 
 **CSteamNetContext** (520B, vtable 0x142B6E2A8 24 槽接口型, ctor sub_1423E6D90;
@@ -223,27 +223,27 @@ CServer+72; 注册控制台命令 "Print debug info about the networking layer")
 |---|---|---|---|
 | +8 | uint32 | 1 | ctor (定案) |
 | +16..+303 | CCallback ×9 (各 32B) | Steam 回调注册块 (CCallback = {vtable@0, 形态旗 u8@8, 0 u32@12, 属主@16, Run@24}; 注册链见下表) | ctor + SteamAPI_RegisterCallback (定案) |
-| +304 | 数组 {data@304, count@316} | 发送侧连接数组 (广播沿 count−1→0 倒序逐发, 读连接+4 状态字过滤) | ctor + Send 直读 (定案) |
-| +320 | RH 哈希表头 (32B: 分配器@320=CPdxNewDeleteAllocator, 桶@336=静态空 unk_1430BF668, count@344, mask@348, lf@356=0.9) | **连接表 (泵侧)**; 桶 24B {dist u8@4, **steamid 键 u64@8** (FNV-1 0x811C9DC5), 连接记录*@16}; 记录 = {地址 u32@12, 端口 u16@16, machine id u32@20} | ctor + 断连日志三字段 (定案) |
-| +360 | uint32 | 创建时刻 (epoch ms) | 直读 (定案) |
+| +304 | CPdxArray 24B {data@304, cap@312, count@316, alloc@320} | 活跃连接指针数组 (尾插/逆向扫描/memmove 移除; 广播沿倒序逐发, 过滤 = **CSteamID 有效性位域判定** sub_1423E1480 同式 — 连接+4 = steamid 高 32 位, 非业务状态字) | ctor + Send + 泵直读 (定案) |
+| +328 | RH 表 32B 内嵌形 {未用@328, 桶 data@336=静态空 unk_1430BF668, count@344, mask@348, extra u8@352, lf@356=0.9} | **连接表 (泵侧)** — 表对象基址 = +328 (insert/find API 实参直证; +320 = +304 数组的分配器槽, 原记表头含分配器系错位); 桶 24B {hash u32@0, dist u8@4, steamid 键 u64@8 (FNV-1a 32 展开 8 字节), 连接记录*@16}; insert 返 16B 对 {桶, inserted u8@+8} | ctor + insert/find + 泵直读 (定案) |
+| +360 | uint32 | **最近活动时刻 ms** (ctor 写创建值 + 泵每收一包刷新 = 连接记录 +24 last_seen 复制源; 原记「创建时刻」系单写点误读) | 双写点全查 (定案) |
 | +364 | uint32 | 上次泵时刻 ms | 泵刷新 (定案) |
 | +368 | CServer* | 所属 server 反指 | ctor (定案) |
 | +376 | 函数* | cb1 = server vtable[25] 尾跳 thunk | 字节直读 (定案) |
 | +384 | 函数* | cb2 = server vtable[26] 尾跳 thunk | 同上 (定案) |
 | +392 | 函数* | cb3 = server vtable[27] 尾跳 thunk | 同上 (定案) |
 | +400 | uint8 | **Steam 在线旗** (SteamAPI_IsSteamRunning && ContextInit; Send 先查) | ctor + Send (定案) |
-| +416 | RH 哈希表头 (24B) | 表 #1 (语义待裁, 推定大厅过滤侧) | ctor (形态定案) |
-| +448 | RH 哈希表头 (24B) | 表 #2 (同上待裁) | ctor (形态定案) |
+| +416 | RH 表 24B 裸形 {data@416, mask@428, extra u8@432} | **大厅成员表** (16B 桶 {hash, dist, steamid}; byte_143085001 过滤旗开时当白名单, sub_1423E8430 计数源) | 受理判定 + 计数直读 (定案) |
+| +440 | RH 表 32B 内嵌形 {未用@440, data@448, mask@460, extra u8@464} | **排除/黑名单表** (16B 桶; 受理判定命中 = 一票否决) | 受理判定直读 (定案; 原记 +448 表头系内联读 data@448 误作基址) |
 | +472 | pdx vector (20B) | **待处理 P2P 请求队列** (元素 16B = {steamid u64@0, 登记时刻 ms u32@8}) | 回调 1202 入队 + sub_1423E9F30 消费 (定案) |
-| +496 | pdx vector (20B) | 队列 #2 (16B 元素, 与 +472 同族, 消费点待裁) | ctor + 增长同构 (形态定案) |
+| +496 | CPdxArray 24B {data@496, cap@504, count@508, alloc@512} | **待关闭会话队列** (16B 元 {steamid, 到期 = 登记+15000 ms}; 入队 sub_1423EA270 / 消费 sub_1423E9CE0 — 断连后延迟 15 s 关 P2P 会话等缓冲排空) | 入队/消费双函直读 (定案) |
 
 九组 Steam 回调注册链 (定案; 形态旗 0=用户接口 / 2=GameServer 接口, GS 形态处理函数
 = 尾跳 thunk 共用用户形态处理体):
 
 | 回调 ID | Steam 事件 | 处理函数 | 引擎消费链 |
 |---|---|---|---|
-| 1202 | P2PSessionRequest (对端请求 P2P 会话) | 0x1423E99F0 (pdx_net_steam.cpp:1132) | steamid 入 +472 队列 (去重; byte_143085001 = 大厅过滤旗); 消费者 sub_1423E9F30 (:1155): 已在连接表 → Steam 接受 + cb1 (vtable[25]); 未列名且年龄 >5000ms → "Rejected deferred P2P session ... (lobby propagation grace exceeded)" 拒绝; 否则留队 |
-| 1203 | P2PSessionConnectFail | 0x1423E97A0 (:1181) | FNV 查 +336 表 → 读记录 {机 id/地址/端口} → connmgr vtable[7] 断连 → cb2 (vtable[26]) |
+| 1202 | P2PSessionRequest (对端请求 P2P 会话) | 0x1423E99F0 (pdx_net_steam.cpp:1132) | steamid 入 +472 队列 (去重; byte_143085001 = 大厅过滤旗); 消费者 sub_1423E9F30 (:1155): **受理判定 = 排除表 (+440) 不含 ∧ (过滤旗关 ∨ 大厅成员表 (+416) 含)** → Steam 接口 +24 原语接受 + :1149 (受理路体内未见 vtable[25] 直调 — 原记 cb1 (vtable[25]) 待裁); 未列名且年龄 >5000ms → "Rejected deferred P2P session ... (lobby propagation grace exceeded)" 拒绝; 否则留队 (memmove 压缩出队) |
+| 1203 | P2PSessionConnectFail | 0x1423E97A0 (:1181) | FNV 查 +328 表 → 读记录 {连接 ID@20/IP@12/端口@16} → connmgr vtable[7] (+56) 单参直调 → :1181 错误串 (错误码 = 事件字节+8); cb2 直调体内不可见 (疑在 vtable[7] 下游, 待裁) |
 | 101 | SteamServersConnected | 0x1423E9CB0 | 刷新 SteamInternal 上下文槽 + ContextInit 重建 |
 | 102/103/115/143 | 连接失败/断开/GS 策略/认证票 | 0x14012A2C0 (空桩) | 无操作 (注册占位) |
 
@@ -260,6 +260,11 @@ connmgr 关键槽: [3] = 收包主泵 (SteamGameServer_RunCallbacks + 轮询收�
 > PDX 哈希表 32B 头族 {引用@0, 桶@8, count@16, mask@20, extra u8@24, lf f32@28=0.9}
 > 为 §3.2 RH 表头的网络域变体 (max_load_factor 恒 0.9)。
 
+CSteamNetContext 收发域全案 (pdx_net_steam.cpp 真名 27 站直证, 定案) — 收包泵 = connmgr vtable[3] 0x1423EA960 (1504 行), 发包原语 = vtable[8] 0x1423EA470。
+
+**4B 消息头协议五型** (包帧 = [u32 消息号][载荷]; 双通道 0/1 轮询; 对端 steamid 由 Read 原语带出): 0 = _NET_CONNECT_ (ConnectToPeer 主动连出, 通道 1) / 1 = _NET_CONNECT_ACCEPTED_ (0 号应答) / 2 = _NET_DISCONNECT_ (主动断开应答前发) / 3 = _NET_DISCONNECT_ACCEPTED_ (2 号应答, 通道 0) / 4 = DATA; 收侧全部先按 steamid FNV-1a 32 查 +328 连接表分派 (0 号未命中建记录 + 发 1 号 + cb1; 2 号 = cb2 + 发 3 号 + RH backward-shift 删桶 + +304 数组 memmove 移除 + 待关闭入队; 4 号 = 洪泛记账 + cb3(+392)(ctx, 载荷, size−4, conn, 通道), 未命中丢弃)。
+
+**每 tick 收包预算 1024** (:544 超额留队下轮); **每连接洪泛控制窗** = 1000 ms 滚窗限 1000 包 / 4194304 字节, 滚窗时上窗洪泛则连续计数 +1, **连续 3 洪泛窗 → connmgr vtable[25] (+200) 踢出** (:517)。收包缓冲 = 函数局部静态 CPdxHybridInlineBufferAllocator<unsigned char, 8192, int> (query 判等直取内联缓冲, 超长 ×1.5 上堆)。发包 = pdx_scoped_buffer scratch bump (对齐路 (size+4+7)&~7, 溢出断言 :54 latch byte_14333051E); 大小双门 = >1 MiB 硬限告警仍发 / ≥128 KiB 告警; conn 空 = +304 数组广播 (逆向逐连接过 CSteamID 有效性过滤)。**sub_1423E1480 = CSteamID 有效性判定** (SteamID64 位域: 账户类型 bits 20-23 ∈ 1..10 ∧ universe bits 24-31 ∈ 1..4 + 各类型细分; 体内 0xF00000 系魔数 = 位域掩码非业务状态) — 广播过滤/断开门/入队门三消费。**会话延迟关闭队列** (+496, 元 {steamid, 到期 = 登记+15000 ms}): 断连后延迟 15 s 才关 P2P 会话等发送缓冲排空 — 消费器逐项查连接表 (仍在 → 直出队) / 排除表命中或 bytesQueued == 0 → 立即关 / 否则到期才关。**InitGameServer 0x1423E9590** = SteamInternal_GameServer_Init(0, 8766, 端口, 27016, 2, "1.0.0.0") + 属主全局 qword_1435DA838 + 三 latch byte_1435DA840/841/842。Steam 网络接口六槽: +0 Send (flag 3) / +8 IsP2PPacketAvailable / +16 ReadP2PPacket / +24 会话接受 / +32 会话关闭 / +48 GetP2PSessionState。**连接记录 48B 全表**: +0 steamid (+4 = 高 32 位位域) / +8 连接态 / +12 远端 IP (失败回退 steamid 低 32 位 "using account id as host") / +16 端口 / +20 连接 ID / +24 last_seen / +28..+44 洪泛窗五字段。ConnectToPeer 0x1423E7710 建记录后调 connmgr vtable[22] (+176, 语义待裁) 再发 0 号。
 #### 4.36.3 命令网络传输链 (拓扑 / 发送半边 / 包格式 / 接收半边)
 
 **拓扑 (定案)**: 主机权威 client-server 星型 (Steam P2P 传输)。命令执行权唯一归主机
@@ -341,7 +346,7 @@ SInternalData 字段子表 (writer 直证):
 | 9/10/11 | RECONNECTED / RECONNECT_DONE / RECONNECT_REFUSED | 重连握手 (客户端 11 → SetState(7)) |
 | 12/13 | REQUEST_TYPE / REQUEST_TYPE_VERSION | — |
 | 14/15/16 | REQUEST_HOTJOIN / HOTJOIN_ACCEPTED / HOTJOIN_DECLINED | 热加入协议 (15 → SetState(13)+1940=1; 16 → SetState(15)) |
-| 17 | SESSION_TYPE | session+80 网络角色枚举下发 |
+| 17 | SESSION_TYPE | session+80 网络角色枚举下发; 客户端 LAN 发现支另作 "Got gametype" 消费 (+288, 方向语义待裁) |
 | 18 | GAME_STATE | 大载荷 (gamestate+日志流; 客户端存 session+400 → SetState(6)) |
 | 19/20/21 | KICK_USER / BAN_USER / BANNED | 踢出协议 (客户端 +424/+425 → SetState(8/9) + 断开) |
 | 22 | APPLICATION_MESSAGE | 大载荷 |
@@ -369,8 +374,8 @@ SInternalData 字段子表 (writer 直证):
 
 客户端侧 CProxyServer 槽[27]: channel 1 按控制消息表处置 (SERVER_TICK(5) 锁步:
 `缓存(proxy+356)==值 → ++session+128; 否则硬追`); channel 0 命令按会话状态三分流:
-state==5 → "COMMAND BEFORE SYNC RECEIVED" 暂存 +96 链 / 其余非 {2,12,13,14} →
-"VERY EARLY COMMAND RECEIVED" 同表 / state∈{2,12,13,14} → 就绪表 +144 (与主机同构,
+state==5 → "COMMAND BEFORE SYNC RECEIVED" 暂存 +96 链 / state==6 独立 EARLY 支 →
+cmd+24 定向旗=1 入定向链 +120/+128/+136, 非定向入 +96 链, 日志 "EARLY COMMAND RECEIVED" :653 (与 VERY EARLY 不同支) / 其余非五值集 {2,4,12,13,14} → "VERY EARLY COMMAND RECEIVED" 同表 / state∈{2,4,12,13,14} → 就绪表 +144 (与主机同构,
 泵经共享槽[8] 消费)。自回声: cmd+12==本机 id → 按 cmd+32 摘 +472 待答表 →
 now−时间戳 入 +496 RTT 数组。
 
@@ -473,6 +478,7 @@ state 2 (RECONNECTING) 的置位者未在语料命中 (待裁)。
 | 步 | 环节 |
 |---|---|
 | 1 | CPlayerLobby KickPlayer/BanPlayer lambda (§4.00) 打开 CConfirmKickBanPlayerDialog (+4152 动作对象, 置 1 写者待裁) |
+| 1a | **弹窗设置 0x141E59B60 (confirmkickbanplayer.cpp:24, 高置信)**: (a1 弹窗, a2 玩家名串, a3 动作, a4 回调) — a3: 0 = kick / 1 = ban / 其他 → "Undefined ActionType" 断言且不加正文; 本地化四键 = MULTIPLAYER_LOBBY_PLAYER_{KICK,BAN}_CONFIRMATION (正文, NAME 占位 = 玩家名) / MULTIPLAYER_LOBBY_PLAYER_{KICK,BAN}_TITLE (标题); **回调存储 = a1+512 内联缓冲 (4096B) / a1+4152 大 functor 堆指针** (先虚 vt+32 释放旧值再赋新); 尾 sub_140B82510 + vtable[9] 刷新/显示; 纯 UI 层不触网络/会话 |
 | 2 | OnAccept 0x141E59B30: dialog+4152 非空 → 调其 vtable+16 (空则 fatal); 动作闭包触发 server 踢人槽 (高置信) |
 | 3 | CNetworkServer 槽[14]: 发 KICK_USER(19) + sub_142250F50 会话侧移除 |
 | 4 | CNetworkServer 槽[15]: 发 BAN_USER(20) → 机器表删 → 关连接 → 会话侧移除 |
@@ -658,9 +664,9 @@ rlog) ∨ `-lightrandomlog`(byte_14345252B) ∨ **human_ai**(byte_14332F639)) �
 | 0 | Random seed | 全局 | dword_143452524 = multiplayer_random_seed (§4.28.13) |
 | 1 | Random count | 全局 | dword_143452520 = multiplayer_random_count |
 | 2 | Gamestate checksum | 全局 (ExtraChecks 位 0 门) | sub_1401F2E40 全持久态 token 键控哈希; hourly 默认不跑, dump 路径恒跑 |
-| 3..10 | Army/Navy/Air Score·Exp·数量·领袖数 | 逐国 Country 头 | 陆军/海军/空军容器与经验对象计数 (sub_1406CF0F0 族) |
+| 3..10 | Army/Navy/Air Score·Exp·数量·领袖数 | 逐国 Country 头 | **逐槽拆定 (定案)**: 3=陆军数 (陆军容器计数 u32) / 4=领袖数 (**陆军+海军领袖容器计数双 feed 同槽**) / 5/6/7=陆/海/空 Score (u64 sub_1406EC030/6F30B0/6EB6A0) / 8/9/10=陆/海/空 Experience (经验对象 +16/+40/+64) |
 | 11 | Total ship strength | 逐国 Fleet 走访 | 每舰 *(舰+1784) 8B |
-| 12..17 | 民用/军用/船坞 Total·Available | 逐国 Factories | CProductionStatus (cc+3944) +888/+944/+920/+696/+752/+728/+792 折算 |
+| 12..17 | 民用/军用/船坞 Total·Available | 逐国 Factories | CProductionStatus (cc+3944) 折算; **族定案: 888=民用 / 696=军用 / 792=船坞** (OOS_12..17 名序直证), 槽序 = 民总/民可/军总/军可/坞总/坞可 (avail: 888 族 −944−920 / 696 族 −752−728 / **792 族走 sub_140E69130 非「总−两计数」**) |
 | 18..20 | 民用/军用/海军 生产进度 | 逐国 Production Lines | 生产线数组逐 CBuildingProductionLine (state id 或名字串 fallback + 进度) |
 | 21..24 | 省建筑数/前线数/前线省数/前线敌方 | 省走访 | 每省 *(省+468) / 每前线 *(+44)/(+68)+56 数组 |
 | 25/26/36/43 | 战区数/最优省/明细/省数 | 逐国 Theaters | cc+360 数组逐战区 |
@@ -689,11 +695,11 @@ rlog) ∨ `-lightrandomlog`(byte_14345252B) ∨ **human_ai**(byte_14332F639)) �
 | 75/76 | 陆战/海战 | 战斗走访 gs+608 | 每战斗 vtable[+88] 分流 1=陆/2=海 |
 | 77/78 | 补给/补给缓存 | 全局 | sub_140EC7E10 / sub_140EC5A80 (gs+984 CSupplySystem) |
 | 79 | 铁路炮数 | 逐国 Country 头 | sub_1401DBAF0 +12 |
-| 80 | 本地玩家国 | 全局 | 1B 布尔 (gs+1312 与选择组比对) |
+| 80 | 本地玩家国 | 全局 | 1B 布尔三支 (定案): 无人类国 → 恒 1; 有人类国 → 当前国==gs+1312 ∨ 双方非零且 sub_140BB52F0(gs+164) 同盟观察判真 |
 | 81 | Debug | 全局 | fow (byte_14332F63A) / allowtraits (byte_14332F618) / debug (byte_14332EC69) 三字节 |
 | 82 | 偏好战术 | 逐国 Country 头 | sub_1406C00D0 |
 | 83 | Country Controllers | 全局 (按省下标序) | 逐省控制器 tag (gs+880 字节数组) |
-| 84 | 特混舰队 | 逐国 Fleet 走访 | mission/+884/在战旗/sub_140C82C10 邻域; ⚠ 静默读 +1640 vs Logging 读 +205 偏移分歧 (待裁, Logging 不进比对) |
+| 84 | 特混舰队 | 逐国 Fleet 走访 | mission/+884/在战旗/sub_140C82C10 邻域; ⚠ **偏移分歧已结案 (定案)**: 两变体同读特混 **+1640** — Logging 伪码 +205 系 `_QWORD*` 算术 (205×8=1640); 特混四元组 = u32 (tf+1208≠0 ? sub_140D6CE90 : *(tf+884)) + u8 在战旗 (sub_140C00000) + u8 (*(tf+912)≠0) + u32 sub_140559750(+1640) |
 | 85/86 | 空军联队/王牌 | 逐国 Air Wings·Aces | sub_1406F9600 +88 数组 / cc+4824 数组 |
 | 87 | Playthrough Stats | 全局 (位 1 门) | sub_1401F2DD0 (_AllPlaythroughData gs+2200; byte_143468B46 门) |
 | 88 | 军工组织 | 逐国 MIO | (cc+3944)+304 数组 |
@@ -726,6 +732,35 @@ rehost / 带坏档继续)。dump 命令族 = `oos_dump` / `dump_checksum` /
 > 上报) = **单机确定性金丝雀** (动机推定, 高置信)。
 > 备注: 与存档 #checksum (MD5(文件+盐)) 无关; 本簇 = 活体 gamestate 结构化分槽
 > MurmurHash (§4.2.4 步骤 8 汇总仍有效, 本节为逐槽展开)。
+
+#### 4.36.10a Logging 变体逐槽填充映射精写 (feed 全形 + 未收函数闭环)
+
+Logging 装配链全貌: sub_140DD8D60 (OOS 弹窗域唯一入口) → sub_140DB1560(&qword_14333CEA8, 掩码) → sub_140DA5C80(rows, 掩码, 并行旗=0)。**sub_140DB1560 的 a1 形参函数体内零引用 (定案)** — 91 个 finalize 结果只进日志 ("Checksum: <i> <hash>", :1129) 不回写本端数组; qword_14333CEA8 真写者仍在静默族 sub_140DB1740 路径。**并行支路 = 现役死码 (定案)**: DA5C80 第三参 a3 选路, a3≠0 走 TBB parallel_for CCalcAllCountryChecksumsThreaded<LoggingHasher> (lambda 符号直证; 分裂器 sub_140DAAC10 + 叶 sub_140DB1AB0 区间逐国行距 1092B); 现役唯一调用 DB1560 恒传 0。
+
+逐槽 feed 精写 (主表锚点的喂入式; feed 原语 = DA5560 u32 / DA5900 u64 / DA53A0 u16 / DA5AC0 u8 / 1424ED930 原始字节):
+
+| 槽 | feed 精写 |
+|---|---|
+| 18 | 一般生产线: 仅 `_RTDynamicCast`→CBuildingProductionLine **动型成功者**; 每线 2 项 = token 门 *(*(line+112)+8) + u16 sub_1410DB9F0(*(line+112)) |
+| 19/20 | 装备生产线 (+88 数组): `vt[+192](line)` 真者 → 19 / 假者 → 20; 每线 4 项 = token 门 *(*(line+136)+24) + u32 *(line+24)+*(line+28) + u32 sub_141938D40(line) + u64 *(line+144) |
+| 28 | cc+1464 数组 (16B 条目): **每条目只哈希前 12B** = u32 id@+0 + u64 值@+8 (sub_140DA5720) |
+| 31..35 | 31=控制区数; 逐控制区 (*(area+60)>0 才喂): 32=州id *(*(area+40)+164) + 33=省数 *(area+60); **槽 35 先喂 original-tag 恒等 id (sub_140BB5490(cc+8))** 再逐拥有区 (34=州id + 35=省数) — 双语义槽 |
+| 36/25/26/43 | 25=战区数 *(cc+372); 36=同值再喂 + 逐战区 u32 *(th+8)+*(th+12); 26=逐战区 *(*(th+232)+164) 空则 0; 43=逐战区 sub_140EF8060 |
+| 37..42 | 逐资源 u64 ×6, **feed 序 = 37,38,39,40,42,41 (41/42 交换)** |
+| 44 | 逐政治定时活动 u64 sub_140AD9ED0 |
+| 47/69 | 逐订单组: 47=u64 *(og+8) + u8 *(og+57) + 成员三数组 (+152/+176/+200) 逐元 sub_140DAA240; 69=u32 *(*(og+72)+296) |
+| 48/60/70/71 | 48=u8 在战旗 sub_140C00000; 60=u64 vt[+288]; 70=u64 vt[+248]; 71=u64 sub_140C82C10 **仅错峰门内** (v334 = word_143468B44 ∧ tag%12==相位) |
+| 58/59/62 | 58=*(cc+4716); 59=sub_1402BC8A0(cc+4608); 62=逐船队条目 u32 e[0],e[1],e[2],*(e+28); **错峰门内追加** e+16 数组逐元 u32 *(se+8), *(se+12) |
+| 61 | 科技每项 **6 feed** = token 门 *(tech+8) + u32 +368/+372 + u64 +408/+492 + u64 max(0, sub_140EDA300−408) (剩余时间钳非负); 空项喂 0 保序 |
+| 63..68 | AI 门 = sub_1406FFC90 ∧ AI 对象 ∧ …: 46=1; 63=u32 sub_14065AB50; 64=u64 sub_14065A550; 65←ai_dword[2232](+8928) / 66←ai_dword[2190](+8760) / 67←ai_dword[2233](+8932) (⚠ 与本地化名 Fuel Usage/Irrationality/Num Divisions 的逐槽对应待静默族旁证) / 68=u64 sub_14065D520; 否则 46=0 |
+| 73 | 情报机构 +96 数组 (16B): 内联 token 门喂 *(*(entry)+8) + u32 *(entry+8) |
+| 74 | CountryIntel **SRW 锁内**: 32B 条目 4×u64 直哈希 |
+| 75 | 陆战 (vt[+88]==1): 省id + 每侧 {侧容器计数, u8 偏好战术, u64 *(*(sub_1412AAAE0(side))+616), side[45..50] 五对, u64 +392/+400} |
+| 76 | 海战 (vt[+88]==2): 省id + u32 再取 +68 + u64 vt[+200] + 每侧 {计数, u8 *(side+320), u8 sub_14161FCF0, u64 +344, u64 +384} |
+| 21/22/23/24 | 21=逐省 *(prov+468); 22=逐省 *(prov+108) 前线数; 23=每前线 *(front+44); 24=*(front+68) + 逐敌方 tag sub_140BB5490 |
+| 29/30/72 | 29=逐州 sub_1409D36F0; **30 = 省半 (逐省 3+ 项天气查询 sub_140F1A0C0/80/5E0) + 州天气区半 (同区 u64 *(region+312)) 两段拼接**; 72=逐州天气区 6×u8 (+264..+304 步 8) |
+
+未收函数闭环 (12 件全定案): feed 原语四件 = sub_140DA5560 (u32, " <hex2>" 日志 :246) / sub_140DA5900 (u64) / sub_140DA53A0 (u16) / sub_140DA5AC0 (u8); 日志标签四件 = sub_140DAB2C0 (分区开 "<名>:") / sub_140DAB1F0 (具名开 "<名> \"<串>\":", 用于 Country+tag/Fleet/Task Force/Orders Group/州名) / sub_140DAB370 (编号开 "<名> (<u32>):") / sub_140DAB440 (闭标签空行, 兼 DAB4C0 尾清理); **sub_140DA5720** = 修正条目 feed (16B 条目只哈希前 12B); **sub_140DAA240** = "Orders Instance" 递归哈希树 (u32 +580 + (+592 ? +592+12 : 0) + +124 + +48 kind + +540; kind==3 → +184/+124/+112 数组逐元; kind==4 → +184/+112 首元; **递归子表 +504/+720 两张**) — 槽 47 成员展开实为带标签实例树; 并行支路二件 = sub_140DAAC10 (分裂器) / sub_140DB1AB0 (叶)。
 
 #### 4.36.11 MP 玩家生命周期与聊天社交
 
@@ -928,3 +963,31 @@ sub_14231B4C0 (352 行; 锚 :927 "Matchmaking not connected when refreshing inte
 机制: 连接检查 (sub_1423DF5C0+sub_1423DF7C0) → 已连接: 清列表 → "no_servers" 元素 (禁用 + SEARCHING 文本 + 隐) → 游标清 0 → "servers" 容器清空 → 264B 查询参数初始化 → **四 checkbox** (filter_not_full / filter_has_players / filter_no_password / filter_mod) 读值 → **双路查询发起** (sub_1423DF810 带 mod 串 + 三 bool / sub_1423DF880 另路, 目标差异推定 Steam 互联网 vs 局域/好友); 未连接: 回调对非零 → :927 日志 → 尾函数指针调用。
 
 未决: 双查询目标差异 / +13432/+13488 回调身份。
+
+#### 4.36.14 CProxyServer 客户端半边全案 (proxy_server.cpp; 11 函闭环 — clausewitzlib 联机栈, 客户端中继服务器)
+
+CU = `clausewitz\clausewitzlib\proxy_server.cpp`; CProxyServer = 主机权威星型拓扑下客户端侧的命令上行/广播下行中继 (跑在 Steam P2P 传输上, connmgr = CSteamNetContext), 与任何 HTTP 代理语义零亲缘。信道 0 = 命令 / 信道 1 = 控制消息 (8B {u32 type, u32 value}); 另有 CHECK_LOCAL 态局域网发现支。
+
+**LAN 发现支全机制 (定案)**: state(+348)==1 且 channel 1 → 消息 17 ("Got gametype") → +288 = value (浏览器 GUI 消费, LAN 重试泵每轮清 0); 消息 24 ("Got gamestatus") → 由 conn 提取地址键 {u32, u16} (sub_1423E60A0) → 向量 A {data@216, count@228, 元素 40B, 键域元素+32/+36} 线性查 → 列表 B (40B 元) 对应条目 +32 写值 (未命中写首条目)。「Added game」门 (:543) = B 条目状态 ∈ (0,3) ∧ size ≥ 308 (**sizeof(SServerInfo) = 308 串直证** :548) → malloc 336B 节点拷 308B SServerInfo, **+264 链头 / +272 链尾 / +280 u32 节点计数**; 尾插后该连接机 id = 节点序号−1 (sub_1423E5CD0); 最后 B 条目 +32 = 3。DisconnectCallback: 断连节点键查列表 B 条目 +32 = −1 (gone); +284 门 → 置位仅打标 (+328 = 1 延迟删旗) 否则双向摘链 free; 非 1/2 态断连 = "Server lost!" + session+1968 = 1。ConnectionCallback state==1 → REQUEST_GAME_INFO(25) + B 条目状态复位 0。LAN 重试泵 [11]: 游标 +344 循环 B 表, >5.0s 停表 → "Local games: Retry..." 清死连接归零; 状态 <0 (gone) 才重连; 返回 +264 (服务器列表 getter)。
+
+**客户端控制消息消费集 (24 值)**: {0,1,2,3,4,5,7,11,15,16,18,19,20,21,22,27,28,29,30,32,33,34,35} + default 静默 return (无 Unknown message 日志 — 那是主机侧)。要点: 消息 0 MACHINE_ID → 置本机 id + **session+160 = value+1** (已知机器计数, 消息 2 ADD_PEER 同) + SetState(5); 消息 5 先行短路 = SERVER_TICK 锁步 (+356 比对, 会话类型==2 → SetState(7)); 消息 15/16 HOTJOIN → SetState(13)/(15) + +1940/+1856 清位; 消息 18 GAME_STATE → 载荷 [8:] 拷入 **session+400** 容器, 类型≠16 → SetState(6) 等 SYNCHCOMPLETE; 19/20 KICK/BAN → value==本机 id 置 +424/+425 (Update 处置 shutdown) 否则按 REMOVE_PEER; 29/30/32 HOTJOIN_DECLINED → **session+1856 = 拒绝原因码 {1,2,3}**; 33 DECLINED_JOIN_DISABLED → SetState(18) + 事件 17; 21 BANNED → SetState(9); 27/28/34/35 → 状态 17/10/11/16。
+
+**命令支五值分流**: 就绪集 {2,4,12,13,14} → 就绪链 +144/+152/+160 (日志 "[type_id], ID: N", ID = cmd+28); state==6 EARLY 支 (定向 +120 链 / 非定向 +96 链); state==5 → +96 链; 其余 VERY EARLY → +96 链; 链节点 = 32B {cmd, prev, next, u8}。反序列化 sub_142269960; **cmd vtable[11] = GetTypeId** (日志与序列化同槽直证); 反序列化失败四组 latch (byte_1435B9D17/19/1A/1B)。**自回声 RTT (就绪支独占)**: cmd+12 == 本机 id → SRWLock(+536) → hash = 0x045D9F3B 混淆 cmd+32 (origin 序号) → 回声表 (data@472/count@480/mask@484/extra@488) 查桶 (24B {hash, dist u8@4, key u32@8, 时间戳 u64@16}) → RTT = now − 桶时间戳 → 入 +496 样本数组 {8B/元, cap@504, count@508, 分配器@512} (backward-shift 摘桶); **每 5s 窗 (+520 上窗锚 ns) 汇 sum/count/1e6 → +528 平均 RTT (ms)**, 样本清零。
+
+**Connect [2] 加入流**: SetState(1) → 40B 连接描述全局登记 → +392 连主机 (失败 SetState(0)) → 等待环 (sub_1423C1E80 收包泵 + Sleep(1ms)) → 加入请求 = 控制消息 {8 REQUEST_ID, 0} + CMemoryFile (**88B = 0x58**) + CWriter **token {27 name, 222 password, 377 version}** → vtable[4] 裸发 → 等机 id 环 (状态 ∈ {1,5}, <30s, Sleep(30ms)) → +427 = 结果态 ∈ {4,6,9,16}; 成功态 3 / 失败 0 + connmgr shutdown。**+426 = 仅连接不加入探针旗** (Connect a2 直存; ConnectionCallback 置位 → vtable[3] Disconnect(3000) 连上即断 = 版本探测/浏览器 ping, 不走加入流)。SendOrders [30]: tbb CAS 取票 (InterlockedCompareExchange64 +440) → 微队列 &queue[48+40*((3*ticket)&7)] 出队 (步 40B) → **cmd+22 = min(session+128, 0x7FFF) 盖 tick (客户端发送侧盖点)** → +400 = session+128, +404 = 1 → 序列化发主机 (vtable[11] GetTypeId; 失败 :944; CFileException → catch 断言 :949/950) → cmd 即析构。Update [6]: +328 反门; +416 停表 >1.0s "Long update!" 日志; 依次 SendOrders → 收包泵壳; KICK/BAN 处置; 尾 +200 = 1。3 个 45 行函 = EH 清理 funclet (SendOrders catch / slot[5] catch / PackageCallback catch, latch byte_1435B9D1C/16/18, B51 门)。
+
+#### 4.36.15 friends_handler_steam_request.cpp 好友排行回调消费 (1 函 = 0x141C34BC0 — 书未收簇; friends_handler/leaderboard/ISteamUserStats 既有空白的首块填补)
+
+**机制 (定案)**: Steam 排行榜单条目下载回调处理器 —
+1. 接口获取 = `*(qword*)SteamInternal_ContextInit(&off_1430B3898)` (接口访问器宏形态); 由调用形态钉死 = **ISteamUserStats\***。
+2. 失败短路: 接口空 ∨ a3 旗真 ∨ 条目数 `*(int*)(a2+16) <= 0` → 构造**空结果记录**派发后返回 (无 Steam 调用)。
+3. 条目数 ≠ 1 → friends_handler_steam_request.cpp:74 (通道 4096) "Got more leaderboards entries than expected, got: " 告警后**照取条目 0** (warn-and-take-first 不中断)。
+4. 单条目读取 = `vtable[+240] = ISteamUserStats 槽 30 GetDownloadedLeaderboardEntry(entriesHandle, 0, &entry, &details, 11)`; a2 = 下载完成回调载荷 {entries 句柄@+8, 条目数@+16}; 出参 LeaderboardEntry_t 24B = {CSteamID@+0, rank@+8, score@+12, cDetails@+16, hUGC@+20} (CSteamID 位域清零掩码 0xFF0FFFFF/0xFFF00000 直证默认初始化); details = 11 × u32 (cDetailsMax = 11)。
+5. **结果记录** (~92B 栈对象, 字段序定案 / 尺寸推定): 首 32B std::string (名字/键, 失败态空串) / id 槽默认 −1 / **三 token 槽默认 19479 `undefined`** (token 表直证; 与 §4.7/§4.8 的 19479 哨兵用法同源), 成功态被条目 details 覆写; ok 旗首字节 1/0。
+6. 派发 = 宿主 `*(a1+72)` 对象 **vtable[2]** 消费 (失败/成功同槽); a1+72 空则 sub_14251BAFC 硬停形。
+
+> 语义 (推定): 下载请求按单条目对单个 steamid 发起 (大概率 DownloadLeaderboardEntriesForUsers 逐好友), 本函把每份回调转一行好友排行结果喂宿主 (+72 = 结果汇)。宿主类名 / 排行榜请求发起侧 (哪张榜/哪个用户集) 待裁; 语料内零直接调用点 (Steam 回调经注册分派表间接进入)。
+
+#### 4.36.16 DirectJoin 弹窗条目地址文本 (multiplayerviewitems.cpp; 1 函 = 0x141F5BB90 — df305 新簇)
+
+**机制 (101 行, multiplayerviewitems.cpp:252, 定案)**: 多人浏览器/DirectJoin 弹窗每条目的地址列来源选择 — 按 a2 连接类型三分支, 全部汇入 sub_141F5BD50(a1, 串, a3) 写入视图项 (SetText 语义): ① a2+24 非空 → sub_1424CB370(id→串) = **Steam ID 路线** (§4.00.36 同名转换函互证); ② a2+32 dword 非空 → sub_1424CA660 = **AppId 串路线**; ③ 否则 → :252 断言 `Address.IsValid() && "Invalid Address on DirectJoin Popup"` (闩 byte_14338CB0C) → sub_1423E5E80 = **IP 地址格式化路线**。**连接信息布局**: +24 = Steam id (8B) / +32 = dword AppId / 其余 = IP 地址结构。玩家数据取自连接对象自身字段, 不查国家或存档数据。

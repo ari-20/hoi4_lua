@@ -160,9 +160,9 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +1424 | 指针 (元素) 向量 24B | **未名 8B 指针元向量** — dtor 收尾 sub_1401A7E50 (memcpy 8*count 整体搬移 = 元素平凡); cc 侧无写点 | 形态定案; 语义待裁 |
 | +1448 | CModifier 内嵌 192B | **country_modifiers 块** (+1448..+1639; ctor a1[181]=&CModifier::vftable, 查表 ctor sub_140555FB0@1464; 全布局见 §4.3.8 通用表) | loader case 11577; **GUI: 共享槽基数输入** (sub_1409D4980: CState+2136 + owner 国(+1448)×类别 → shared_slot_count); **生产/密码修正族查表** (cc+1464 键: mdef 0xA9-0xD6 生产族/528-529 密码族/201-203 舰载族 — 各册消费链) |
 | +1464 | 匿名结构 (16B 键值对) RH 桶数组 | country_modifiers token→i64 值查找表 (形态同 CState +1352/+1368); = cc+1448 CModifier 的 mod+16 pairs vector 本体 (同一对象, 容器描述符 {d@+0, count@+12} 视角) | 修正查表总入口 (sub_14055E360); **"daily PP" 实为指挥力**: modifier id 330-333 + define BASE_COMMAND_POWER_GAIN/BASE_MAX_COMMAND_POWER → 写 cc+496 (上限扣 cc+504 分配池) |
-| +1640 | CRuleOverrides 内嵌 1016B | **第二规则覆盖对象** (+1640..+2655; 与 +2656 external_rules 同型同窗 ctor sub_140638A10, 1640+1016=2656 严丝合缝; 消费者 sub_140705AD0 全链: 清空 → 执政党 (+3984 → +208 → +24 → +96/+144 两处 sub_140638DB0) → 阵营 (dip+656 CFaction → sub_140D8A2A0) → 自治 (dip+848 → +40 → +528) → 理念表 (cc+3984+80, count@+92, 逐 `*(idea+1216)`) 四源聚合; 复位 sub_1406E2DE0 与 +2656 并列清空; **writer/loader 不序列化**) | 不序列化 (定案: **规则覆盖合成缓存** — 上述四源聚合的运行时合成版, 与 +2656 存档装载的外部规则成对非重复) |
-| +2656 | CRuleOverrides (内嵌) | external_rules 宿主: 28 规则槽 i∈[0,28), 写门 = u8@cc+2656+92+i ≠ 0 (门开才写, yes/no 皆落盘), 值 = u8@cc+2656+64+i, 键名 = token_name(u32@defs+56*i+40), defs = *(BASE+53575920); **override = 28×32B MSVC 串槽 @cc+2656+120+32k** (SSO cap=15), size u64@cc+2656+136+32k≠0 才写, 键 = 槽序号裸数字 (writer sub_14063C490 AD7A0 裸串), 值 = 裸规则名 | §4.3.8 起 |
-| +2657..+3671 | — | = external_rules CRuleOverrides 1016B 本体细分 (+2657..+2719 对象头 {串@+8 尾/容器@+40/u8@60}, **值槽 u8×28@+2720..+2747, 门槽 u8×28@+2748..+2775, override 串槽 28×32B@+2776..+3671**) | |
+| +1640 | CRule 内嵌 1016B | **第二规则覆盖对象** (RTTI 真名 = CRule, 书旧名 CRuleOverrides 已并; 全域机制 §4.3.7a) (+1640..+2655; 与 +2656 external_rules 同型同窗 ctor sub_140638A10, 1640+1016=2656 严丝合缝; 消费者 sub_140705AD0 全链: 清空 → 执政党 (+3984 → +208 → +24 → +96/+144 两处 sub_140638DB0) → 阵营 (dip+656 CFaction → sub_140D8A2A0) → 自治 (dip+848 → +40 → +528) → 理念表 (cc+3984+80, count@+92, 逐 `*(idea+1216)`) 四源聚合; 复位 sub_1406E2DE0 与 +2656 并列清空; **writer/loader 不序列化**) | 不序列化 (定案: **规则覆盖合成缓存** — 上述四源聚合的运行时合成版, 与 +2656 存档装载的外部规则成对非重复) |
+| +2656 | CRule (内嵌) | external_rules 宿主: 28 规则槽 i∈[0,28), 写门 = u8@cc+2656+92+i ≠ 0 (门开才写, yes/no 皆落盘), 值 = u8@cc+2656+64+i, 键名 = token_name(u32@defs+56*i+40), defs = *(BASE+53575920) (⚠ defs 基址待裁: 规则定义表全局直读 = qword_1433304C0, 与该址 0x1433180F0 差 0x183D0, 疑旧算/旧版残留); **override = 28×32B MSVC 串槽 @cc+2656+120+32k** (SSO cap=15), size u64@cc+2656+136+32k≠0 才写, 键 = 槽序号裸数字 (writer sub_14063C490 AD7A0 裸串), 值 = 裸规则名 | §4.3.8 起 |
+| +2657..+3671 | — | = external_rules CRule 1016B 本体细分 (+2657..+2719 对象头 {串@+8 尾/容器@+40/u8@60}, **值槽 u8×28@+2720..+2747, 门槽 u8×28@+2748..+2775, override 串槽 28×32B@+2776..+3671**) | |
 | +3672 | CDynamicModifierContainer (内嵌) | 动态修正 字段 1 (块键 15361 `dynamic_modifier`, 门 = 容器非空 sub_14060D020) | §4.3.8 起; 条目数组 {data@cc+3672+40, count@+52}, 元素 64B SDynamicModifierEntry |
 | +3673..+3711 | — | = CDynamicModifierContainer 本体尾 | |
 | +3712 | SDynamicModifierEntry* | 动态修正 字段 2 | §4.3.8 起; vtable 探针+RTTI |
@@ -579,8 +579,59 @@ reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccup
 
 | 偏移 | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|
-| +64 | uint8 数组 | 规则字节表 (按 rule def 索引寻址; has_rule 读取) | 推定 |
+| +64 | uint8 数组 | 规则字节表 = CRule 值区 (ctor 默认 = CRuleDefinition+50 逐槽拷入; has_rule 读取; +84 = 值[20] = CAN_CREATE_COLLABORATION_GOVERNMENT — collaboration 门即此规则) | 定案 |
 | +84 | uint8 | collaboration 可用门 (错误串 ":21458" 锚定) | 推定 |
+
+#### 4.3.7a CRule 固定规则域 (rule.cpp; RTTI 真名 CRule — 书旧名 CRuleOverrides 已并; 外交/意识形态固定规则系, 与 gamerules.cpp 自定义规则系两域勿混)
+
+类 = **CRule** (1016B; vtable 0x142718B48, RTTI `.?AVCRule@@` exe 直证; ctor sub_140638A10 / copy ctor sub_14014AC90; writer sub_14063C490 书已载); 宿主 = cc+1640 (合成缓存) / cc+2656 (external_rules) / idea+1216 / **CProgressSection+568 (新记)**:
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +8 | MSVC 串 (32) | desc (token 10644; writer 仅在规则定义表空 (count==0) 时写 — 兜底怪癖) |
+| +40 | 链表头 (24) | {first@+40, last@+48, count@+56, u8@+60}; 32B 节点; 载荷未决 |
+| +64 | byte×28 | 规则值表 (ctor 默认 = CRuleDefinition+50 逐槽拷入) |
+| +92 | byte×28 | 显式设定旗 (ctor 清 0; writer 只写旗≠0 槽, yes/no 皆落盘) |
+| +120 | MSVC 串 (32) ×28 | override 名串槽 (token 14561; writer 键 = 槽序号裸数字, 仅文本模式门写) |
+
+**CRuleDefinition** (56B; ctor sub_140638B20, vtable 符号直证): +8 规则名串 (32B) / +40 规则名 token / +44 装入序号 (NONE = 0, 余 1..27) / +48 旗A (25/28 条 = 1; 唯 CAN_ONLY_JUSTIFY_WAR_ON_THREAT_COUNTRY 与 UNITS_DEPLOYED_TO_OVERLORD = 0; 语义推定 = UI 可选择性) / +49 旗B = 反转规则门 (仅 CAN_NOT_BUILD_BUILDINGS / CAN_NOT_DECLARE_WAR; 求值器按它换早退方向与组合子) / +50 默认值。全局定义表 = **qword_1433304C0 族** {基址 qword_1433304C0 / cap dword_1433304C8 / count dword_1433304CC / 分配器 qword_1433304D0 = off_143085170}; 默认 28 条 builder sub_14063A700 (表空才建), 全表:
+
+| 序 | 名 | token | 旗A | 旗B | 默认 |
+|---|---|---|---|---|---|
+| 0 | NONE | 357 | 1 | 0 | 0 |
+| 1 | CAN_NOT_BUILD_BUILDINGS | 10872 | 0 | 1 | 0 |
+| 2 | CAN_NOT_DECLARE_WAR | 10874 | 0 | 1 | 0 |
+| 3 | CAN_DECLARE_WAR_WITHOUT_WARGOAL_WHEN_IN_WAR | 12665 | 1 | 0 | 0 |
+| 4 | CAN_DECLARE_WAR_ON_SAME_IDEOLOGY | 12666 | 1 | 0 | 1 (内联读取有变量复用歧义, 待裁) |
+| 5 | CAN_FORCE_GOVERNMENT | 13087 | 1 | 0 | 1 |
+| 6 | CAN_GUARANTEE_OTHER_IDEOLOGIES | 13766 | 1 | 0 | 0 |
+| 7 | CAN_SEND_VOLUNTEERS | 13315 | 1 | 0 | 0 |
+| 8 | CAN_GENERATE_FAMALE_ACES | 13332 | 1 | 0 | 0 |
+| 9 | CAN_USE_KAMIKAZE_PILOTS | 13344 | 1 | 0 | 0 |
+| 10 | CAN_LOWER_TENSION | 13495 | 1 | 0 | 0 |
+| 11 | CAN_JOIN_OPPOSITE_FACTIONS | 13537 | 1 | 0 | 1 |
+| 12 | CAN_CREATE_FACTIONS | 13692 | 1 | 0 | 0 |
+| 13 | CAN_PUPPET | 21573 | 1 | 0 | 1 |
+| 14 | CAN_ONLY_JUSTIFY_WAR_ON_THREAT_COUNTRY | 13697 | 0 | 0 | 0 |
+| 15 | CAN_BOOST_OTHER_IDEOLOGIES | 13893 | 1 | 0 | 0 |
+| 16 | CAN_OCCUPY_NON_WAR | 13932 | 1 | 0 | 1 |
+| 17 | CAN_DECLINE_CALL_TO_WAR | 14115 | 1 | 0 | 1 |
+| 18 | UNITS_DEPLOYED_TO_OVERLORD | 14104 | 0 | 0 | 0 |
+| 19 | CAN_JOIN_FACTIONS | 14220 | 1 | 0 | 1 |
+| 20 | CAN_CREATE_COLLABORATION_GOVERNMENT | 14672 | 1 | 0 | 1 |
+| 21 | CAN_BE_SPYMASTER | 19131 | 1 | 0 | 1 |
+| 22 | CONTRIBUTES_OPERATIVES | 19130 | 1 | 0 | 1 |
+| 23 | CAN_BOOST_OWN_IDEOLOGY | 19559 | 1 | 0 | 1 |
+| 24 | CAN_GENERATE_FEMALE_UNIT_LEADERS | 12686 | 1 | 0 | 0 |
+| 25 | CAN_GENERATE_FEMALE_COUNTRY_LEADERS | 12683 | 1 | 0 | 0 |
+| 26 | CAN_ACCESS_MARKET | 16292 | 1 | 0 | 1 |
+| 27 | CAN_USE_UNDERWAY_REPLENISHMENT | 16490 | 1 | 0 | 0 |
+
+**reader = 0x14063B900** (CRule::ReadMember 槽[4]; [2] writer 0x14063C490 / [3] Load wrapper 0x1424BE690): 10644 desc → +8 读串 / 14561 override 块循环 (惰性协议模板, 惰性值首字节 `@` 触发三元重读回写 — 与 character_portraits.cpp 循环逐指令同构, 同一内联模板跨 TU 复用) 逐串写 +120+32×下标 / 181 icon 仅拒绝块形态 (串值接受即弃, 推定图标由调用方统一读) / 28 规则名 token → 查表 sub_14063C120 (返 {序号, 值 byte}; 未中 = 28 哨兵) → 值入 +64+序号 + 设定旗 = 1 / 其他 → **throw** rule.cpp:172 `unknown rule '<名>' in file <文件>`。
+
+**USOverrideSerializer** (≥56B; vtable 0x1427E0E98; 匿名命名空间 struct; writer sub_14063C6B0 = 写 `<规则名> = <值>` + desc + trigger 名): +8 规则序号 (28 条线性查表, token 比对 +40; 未中 rule.cpp:428 throw) / +12 值 (yes/no) / +16 desc 串 (10644) / +48 trigger 条目 (token 10595, 按名查 **qword_14332F058 = TGameItemDatabase<CScriptedTriggerTemplateDatabase>** 单例); 按键面推定 = 规则带条件覆盖条目 (宿主容器未决)。
+
+**求值器 sub_14063A620** (定案): 实参 (运行期块基址, 规则序号, scope, 基线 CRule); 运行期块 = {tri-state u32×28 @块+8, 条件修正向量 28×24B @块+1016 (元 {值 u32@0, 条件对象@8}, 计数@+12)} = §4.3.1 cc+808 块 (+816 旗步进 4 / +1824 向量 与此吻合); 逐修正条件 (条件对象 vt[3]) 过后按旗B 分组合子 (旗B = 1 → sub_1403A61D0 且 tri-state==1 早退真; 否则 sub_140334950 且 ==2 早退假); tri-state 终态 {1 = yes, 2 = no}, 0 (未定) 回落基线 CRule+64+序号。**has_rule 触发器**: 解析 sub_140435880 (触发器 +88 存规则名 token, 查表拷序号 → +92) / 求值 sub_140416B80 (旗B 规则失败产 loc TRIGGER_HAS_NOT_RULE, 参数名 "RULE") / 事件域 sub_1406EA240 (scope 国 +808 块进求值器, 基线 = 宿主 +1640)。
 
 #### 4.3.8 CModifier 通用布局 (192B; 内嵌@cc+3672 等五处) 与动态修正容器
 
@@ -838,7 +889,7 @@ CEventScope 递归布局 (sc = 作用域首址):
 | +773..+795 | — | = expeditionaries_sent 容器 {d@760, cap@768, c@772, alloc@776} 内部 (pdx 24B) |  |
 | +784 | idpair | volunteers_sent 容器数据指针 — {d, c} 8B 内联对 {type@+0, id@+4} | c>0; `id=N type=T` |
 | +796 | uint32 | volunteers_sent 容器计数 |  |
-| +797..+4107 | — | = volunteers_sent@784 + **CCountryManpower@808** + CCountryColors ×2 (含 +8 间隙) + owned/controlled/contested/cores/claims 五容器 + strategic_region_data RH 头 + 六容器@1304..1440 + 二 CRuleOverrides/CModifier#2 内嵌 — 定案, 本行不再记账 |  |
+| +797..+4107 | — | = volunteers_sent@784 + **CCountryManpower@808** + CCountryColors ×2 (含 +8 间隙) + owned/controlled/contested/cores/claims 五容器 + strategic_region_data RH 头 + 六容器@1304..1440 + 二 CRule/CModifier#2 内嵌 — 定案, 本行不再记账 |  |
 | +820 | uint32 | manpower.current (CCountryManpower@+808 内 +12) | CTX 段 |
 | +824 | uint32 | manpower_ratio | writer 0X140CFE9D0 AE670(694, [blk+16]); qword≠0 才写 (门 = ≠0 非 >0); GER 250000/ENG 105000/SOV 154500 |
 | +832 | uint32 | exile (CCountryManpower@+808 内 +24) | exile >0 才写 |
@@ -927,6 +978,9 @@ country.ace (CAce 元素; writer 0X14061BD30; 段侧实现 sv2_sec_c_country_sca
 | 资源元素 | 16B | {amount i64×1e-5@+0, 资源 token u32@+8}; 键 = lexer 资源名 (**aluminium=19999**, ≠ aluminum=15876 — 存档拼写为准) | 元素 writer 0X140BCCAF0 (CStrategicResourcePool slot2, vtable 0X29515A0) 发裸 `token=i64` 叶; ⚠ amount==0 整条不写; 元素门 = 指针≠0 (sub_140BCCAF0 实证) |
 | 池元素 program id 对 | 元+96 (type) / 元+100 (id) | 元素 448B 内嵌 program 回填对 | ⚠ 同名 project 可重复 (每国两条实测) — 按容器下标对齐取对, 按名索引互覆 |
 
+**CProjectPool reader/Setup (定案)**: reader = **0x141482CB0** (与 writer 0X141483890 对) — 键 10022 (project) → 主循环: 项目库全局单例 **qword_14332EFE8** (TGameItemDatabase 族, gameitemdatabase.h:142 断言) RH 查表 (data@+56 / mask@+68 / extra@+72, 24B 桶 {链长 u8@+4, 键 u32@+8, 值 qword@+16}, 哈希 = 0x45D9F3B 双轮雪崩, 键 = u32 lo^HIWORD) → 未命中错误 "Special Project \<名\> is in save but not in DB" (project_pool.cpp:93) / 命中 → sub_141480E60(P+16, def, P+8) 建池元 (池项目容器 = P+16 {data@+16, count@P+28}, 448B 元); 键 11842 (resources) → sub_1424C0AA0(ctx, P+72) (与 writer 尾部 ADEC0 对称); 其他 → sub_1424C2060 跳块。
+> **Setup = 0x141483700**: 池空断言 (计数 a1+28==0, 否则 :54); **gs+2613 门** (世界构建进行中 → 跳过 clear+填充, 直接返 gs; 非构建期 → sub_141482A70 清池 + sub_141483010 自 DB 全量填充)。
+
 CProgramStatus (S) 布局:
 
 | 偏移 (S) | 类型 | 名称/语义 |
@@ -949,7 +1003,7 @@ CProgramItemBase target = NProject::CProgram (+56 CRef 柄):
 | +160 | 拆除中 |
 | +176 | 支援科学家 |
 | +248 | 进度 fix5 |
-| +376 | uint32 未读原型奖励计数器 — ctor 0; Execute 0x141EF3F20 清零 + 项目 id 通知; ⚠「+368 旗容器」说与 ctor 无 +368 vtable 写相抵, 整行待裁 (推定) |
+| +376 | uint32 未读原型奖励计数器 — ctor 0; Execute 0x141EF3F20 清零 + 项目 id 通知; **GUI 消费 = CProgramItemBase::Update 未读奖励窗柄 (+288) 显隐门** (`*(int*)(program+376) <= 0` → 隐, §4.31.32); ⚠「+368 旗容器」说与 ctor 无 +368 vtable 写相抵 (推定) |
 
 facility def 布局补行 (def = CProgram+72 所指):
 
@@ -1196,7 +1250,7 @@ CNationalFocus def (size 0x620, ctor 0X1402CB440):
 
 旗簇 ctor 默认值 (def+1464..+1473): {0,1,0,0, 0,1,0,0, 1,0}。
 
-⚠ 死门机制 (机器码级定案): dynamic / historical / available_if_capitulated / continue_if_invalid / internal / cancel_if_invalid / enable_automatic_bypass / cancelable **八 token** 被解析器尾跳 `jmp sub_1424C0C00` 空吞 (第二实参弃置), 无写回 — def+1464 historical 徽标门 (token 12322) / +1465 cancel_if_invalid (13669) / +1466 continue_if_invalid (13895) / +1468 available_if_capitulated (14011) / +1469 cancelable (14256) / +1470 dynamic 重算名旗 (13075) / +1471 bypass_if_unavailable (19780) / +1472 enable_automatic_bypass (17903) / CFocusInlayWindow def+208 internal (11380) / CJoint+1656 内部旗 均死。⚠ 行为性结论: mods 依赖 historical= / available_if_capitulated= / dynamic= / cancelable= / bypass_if_unavailable= 的效果在解析层不生效; cancel_if_invalid 恒 1 (available 失败即取消焦点)、enable_automatic_bypass 恒 1 (自动旁路恒开)、bypass_if_unavailable 恒 0 (自动旁路须显式 bypass_conditions)。
+⚠ 死门机制 (机器码级定案): dynamic / historical / available_if_capitulated / continue_if_invalid / internal / cancel_if_invalid / enable_automatic_bypass / cancelable **八 token** 被解析器尾跳 `jmp sub_1424C0C00` 空吞 (第二实参弃置), 无写回 — def+1464 historical 徽标门 (token 12322) / +1465 cancel_if_invalid (13669) / +1466 continue_if_invalid (13895) / +1468 available_if_capitulated (14011) / +1469 cancelable (14256) / +1470 dynamic 重算名旗 (13075) / +1471 bypass_if_unavailable (19780) / +1472 enable_automatic_bypass (17903) / CFocusInlayWindow def+208 internal (11380; ⚠ +208 运行时身份 = visible= 已解析旗 — Update 可见门实判 def+120 CAndTrigger Evaluate ∧ 查看国一致, 死的仅是 internal= token 的解析写回) / CJoint+1656 内部旗 均死。⚠ 行为性结论: mods 依赖 historical= / available_if_capitulated= / dynamic= / cancelable= / bypass_if_unavailable= 的效果在解析层不生效; cancel_if_invalid 恒 1 (available 失败即取消焦点)、enable_automatic_bypass 恒 1 (自动旁路恒开)、bypass_if_unavailable 恒 0 (自动旁路须显式 bypass_conditions)。
 
 CNationalFocus def vtable (15 槽全图, 已点名槽):
 

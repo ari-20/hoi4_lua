@@ -511,7 +511,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +148 | uint32 | airs_to_delete 容器计数 (alloc@+152) | |
 | +160 | uint64 ×4 | 运行时 (+160/+168/+176/+184; ctor 0, 未名) + +192 u32 (sizeof 200 尾部) | 不序列化  |
 
-**member 条目 = CFEXMember** (m = 条目基; sizeof 456; vtable 0X142A1F1C8; ctor sub_14196F350; writer 0X1419760B0; loader 0X1419748F0):
+**member 条目 = CFEXMember** (m = 条目基; sizeof 456; vtable 0X142A1F1C8; ctor sub_14196F350; writer 0X1419760B0; loader 0X1419748F0; **舰/运输 idpair 取值器 0x140CE3010** = ship 对非空取 ship 对 @+8, 否则取 convoy 对 @+16, 两者皆空 → 断言 "Invalid FexMember: neither a ship nor a convoy"; 返回原始 8B idpair 非已解析对象; 两取值器均为一行函数 — ship 侧 sub_1411D7040 = `*out = *(qword*)(a1+8)`, convoy 侧 IDA 误名 `std::fpos<_Mbstatet>::state` = `*out = *(qword*)(a1+16)`):
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
@@ -853,7 +853,7 @@ define 落名 (defines_map_1193.txt 直证):
 | +64 | fixed×1e-5 | strength | 恒写; tok 0x28A6 |
 | +72 | uint8 | last_hit | 恒写 yn; tok 0x30AC |
 
-**SAirHit** (vtable 0X1429DC138; sizeof 0x18=24; writer 0X1415C7C60; ctor 0X1415C5D80; reader malloc(24))。全字段表:
+**SAirHit** (vtable 0X1429DC138; sizeof 0x18=24; writer 0X1415C7C60; ctor 0X1415C5D80; reader malloc(24); **读取分派器 0x1415C79A0** = 4 token 全吻合: count(10730)→+16 / tag(10754)→+20 / equipment(12110) 块 / equipment_variant_index(13891)→+8; 12110 = reader-only 键, writer 不发)。全字段表:
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
@@ -861,7 +861,7 @@ define 落名 (defines_map_1193.txt 直证):
 | +16 | uint32 | count | 恒写; tok 0x29EA count |
 | +20 | tag_id (int32) | tag (国家 id, BA5C20 串化) | 恒写 — **发射序首字段**, 先于 equipment_variant_index; tok 0x2A02 tag |
 
-**CNavalCombatAirEntry** (条目; vtable 0X14295C440; writer 0X140CE6630; ctor 0X140CE1450; sizeof 0x88 = 136, 分配点 sub_140CE21B0 malloc 直证)。原生发射序 = max → alive → killed → tag → equipment_variant_index → air_base → naval_hit×N → air_hit×N; 段 evi 前置与原生序不同 — 叶键互异, 多重集无序配对无害 (20 档实证)。全字段表:
+**CNavalCombatAirEntry** (条目; vtable 0X14295C440; writer 0X140CE6630; ctor 0X140CE1450; sizeof 0x88 = 136, 分配点 sub_140CE21B0 malloc 直证; **读取分派器 0x140CE53F0** = 9 token 与字段表 8/9 项完全吻合: max(676)→+16 / tag(10754)→+28 / equipment(12110) 块 / air_base(12214)→+32 / alive(12451)→+20 / naval_hit(12456) 入 +64 容器 (malloc 80 → SNavalHit ctor) / air_hit(12457) 入 +88 容器 (malloc 24 → SAirHit ctor) / killed(13164)→+24 / equipment_variant_index(13891)→+8; **12110 = equipment 块 = reader-only 键** — sub_140BDF080 = CEquipmentVariantReference 解析, 同写 tag@+28 与装备变体指针@+8, writer 不发此键)。原生发射序 = max → alive → killed → tag → equipment_variant_index → air_base → naval_hit×N → air_hit×N; 段 evi 前置与原生序不同 — 叶键互异, 多重集无序配对无害 (20 档实证)。全字段表:
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|

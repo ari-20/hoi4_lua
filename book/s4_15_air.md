@@ -535,3 +535,28 @@ on_ace_killed_on_accident / on_non_ace_killed_other_ace / on_ace_promoted; 派�
 
 未决: def+64→ace+4B 语义 / 翼侧掩码链中间对象 (+56→+32→+1448) / kill_type 全枚举
 (观测 0/1/2) / 名组 lookup 键 a3 语义。
+
+#### 4.15.16 空军 UI 工具域 (airutil.cpp; 8 函闭环 — 区域右键/堆叠图标 tooltip/装备库存分配/SelectionList 校验)
+
+CU = `hoi4\source\airutil.cpp`。八函身份表:
+
+| VA | 行数 | 身份 |
+|---|---|---|
+| 0x1415B5320 | 474 | 空军区域右键 tooltip 文本构建 (类别枚举: 0 → "ROCKET_" 前缀 / 1 → "GUN_EMPLACEMENT_" / 其他 :1113 断言 latch byte_14338A96E) |
+| 0x1415B33B0 | 343 | 机群堆叠 tooltip 按装备类型分桶构建 |
+| 0x1415B3A70 | 246 | 空军装备库存分配器 |
+| 0x1415B61D0 | 89 | 单向量堆叠图标行构建 (33B0 单桶变体) |
+| 0x1415B7560 | 60 | 选中列表全量校验 |
+| 0x1415B7480 | 45 | 选中列表单元素校验 |
+| 0x1415B4E50 | 29 | 机群堆叠地图图标帧 getter |
+| 0x1415B7230 | 25 | 子单位定义 +792 键取值 (`return *(def+792)`) |
+
+**区域右键键族三态**: AIR_REGION_RIGHT_CLICK (全选) / _NOT_ALL (部分选中) / _NONE (无选中); 输出 = 本地化 + "\n" + 计数串 (sub_1415B6390 逐单位区域匹配收集) + "\n"。
+
+**空军类别位掩码 = 0x1F0037FC00 (定案)**: CSubUnitDefinition+1448 category 位域 (s4_34_ai 已名) 的空军子集; 三处断言直证 (`(*(u64)(def+1448) & 0x1F0037FC00) == 0` → SubUnitDef.IsAir() 断言 :1316/:1340) + 消费方字面量直证 (0x14169D860 堆叠图标 tooltip 传参)。
+
+**堆叠图标 tooltip 分桶**: 桶键 = wing+472 → sub_14100FF30 查 CEquipmentType; 帧公式 **ICONFRAME = 2×(原型+960) − (X+684 != 1 ? 1 : 0)** (参数名 "ICONFRAME"; 原型沿 CEquipmentType+1008 接口槽 → +1240 派生母链解析, :1199 EquipmentType.IsAir() 断言 latch byte_14338A96F); 键 AIRWING_STACK_INFO_MAP_ICON。
+
+**空军装备库存分配器**: 需求量 = 100000 × AirbaseType 四档 getter sub_14101B080 (枚举 0..3 ↔ CSubUnitDefinition+1536/+1540/+1544/+1548; else 断言 subunitdefinition.cpp:1045 "Missing case for AirbaseType" 兜底返 +1536 — 与 s4_18 基地容量四档互证并补枚举映射); 候选 = sub_14100FC70(宿主+512, *(def+792)) → 16B/条 {装备对象*, 数量} 向量; 排序 = ≤32 元素插入 / >32 归并 (scratch 栈缓冲 ≤256 元素, malloc 失败减半重试 — §3.2a 归并族 scratch 第三档实例); 分配 = 候选 +1040 (CEquipmentType db 下标) 匹配者 min(剩余需求, 候选数量) 累进。
+
+**SelectionList 校验对** (定案): 选中列表 = 全局 qword_14332F6A0 (interface 管理器) **+1336 = SelectionList** — 链节点 {+0 对象指针, +8 u32 类型 (==2 单位条目), +16 next}; 两校验器断言 :143/:168 `Selectable.IsValid() && "Invalid selectable in SelectionList"` (latch byte_14338A96C/96D); 空列表语义: 全量校验返 1 / 单元素校验返 0。⚠ 指针槽差: 本批全局 = qword_14332F6A0, s4_18 书记 qword_14332F698 (相邻槽) — 同 iface 对象两入口或两对象未核, 双注保留。

@@ -76,7 +76,7 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 
 GetTrackMasteryDetails 增益合成式: `sum = track.daily_mastery(+40) + Σ active daily_mastery 条目(+88, STemporaryMasteryGain, filter 匹配 sub_140FC8670) + 3 项国家侧修正源 + Σ active bonus(+96)`; `factor = 100000 + 三修正源`; `gain = sum×factor/100000` (÷1e5 截断), `0<gain<qword_1433341F0 → 钳到下限`; `bank = gain×qword_143334480/100000` (MASTERY_BANK_CONVERSION_RATE); a4≠0 时发 5 组本地化行 (DOCTRINE_MONTHLY_MASTERY_GAIN_FROM_UNITS / …_BONUS / …_BONUS_FACTOR / MASTERY_BANK_CONVERSION_RATE / DOCTRINE_MONTHLY_MASTERY_BANK)。
 
-日更 tbb 两遍 pass (160B 元素 CCountryDoctrineStatus 数组并行遍历): pass A sub_140D7BEA0 → 逐 folder sub_140FC7D90 刷 active 产出; pass B sub_140D7C1A0 → 逐 folder sub_140FC8DC0 应用 cost_reduction (CCountryDoctrineStatus +136 容器 = cost_reduction 条目数组, 80B 元素步进, 元素 +8/+32/+56 三修正槽, 日步逐条 `基础值×缩减/1e5`, >0 才经 sub_14147C7B0 灌入 track)。CCountryDoctrineStatus reader (vtable[4]) = 0x1413CED70 (与 writer 0x1413CF470 对)。
+日更 tbb 两遍 pass (160B 元素 CCountryDoctrineStatus 数组并行遍历): pass A sub_140D7BEA0 → 逐 folder sub_140FC7D90 刷 active 产出; pass B sub_140D7C1A0 → 逐 folder **sub_140FC8DC0** (folder_status.cpp:281) — **前半段**: 逐 track 算单位掌握度 (CMasteryConditions (子学说+832 / 模板+120) 域旗 +88/+89/+90 门控三军 xp 条目聚合 sub_141A32E90 → track+40 daily_mastery); **后半段**: 应用 cost_reduction (CCountryDoctrineStatus +136 容器 = cost_reduction 条目数组, 80B 元素步进, 元素 +8/+32/+56 三修正槽, 日步逐条 `基础值×缩减/1e5`, >0 才经 sub_14147C7B0 灌入 track)。CCountryDoctrineStatus reader (vtable[4]) = 0x1413CED70 (与 writer 0x1413CF470 对)。
 
 **STemporaryCostReduction** (64B 内联):
 
@@ -174,7 +174,7 @@ vtable RVA 0x142719078, sizeof 776, ctor `sub_140147250`; 基类 CDatabaseObject
 | +16 | uint64 | CDatabaseObject 持久化 id 槽 | Load wrapper sub_1424BE620 从流读 qword 直写; def 不入存档 → 运行时无写者 = **死字段** (活体读到堆残留小整数对, 不承载学说语义) |
 | +24 | uint8 | 已解析标志 | Load wrapper sub_1424BE620 置 1 |
 | +32 | uint32/int | **xp_cost 数值** | 键 xp_cost (19741), 整数读 sub_1424C08D0; XP 成本结算器 sub_1413CB2D0 读此槽 |
-| +36 | uint32 | xp_type | 键 xp_type (16769) |
+| +36 | uint32 | xp_type | 键 xp_type (16769); 枚举 {1=army, 2=navy, 3=air} (文案三键 DOCTRINE_{ARMY,NAVY,AIR}_XP_INSUFFICIENT / 槽位映射 / CCountryExperienceStatus 三槽序三方一致) |
 | +40 | CString (32B) | name 本地化键 | 键 name (27) |
 | +72 | NPdxLoc::CBoundLocalization (32B) | **description 绑定本地化** | 键 description (15906) → sub_1424C0AA0 |
 | +104 | CString (32B) | icon | 键 icon (181) |
@@ -185,7 +185,7 @@ vtable RVA 0x142719078, sizeof 776, ctor `sub_140147250`; 基类 CDatabaseObject
 | +520 | 匿名结构 (88B) | visible 块表数据 | 键 visible (11562) |
 | +608 | 匿名结构 (88B) | available 块表数据 | 键 available (12264) |
 | +696 | NDoctrines::CMeanTimeToHappen (56B) | ai_will_do | 键 ai_will_do (10819) |
-| +752 | uint32 | 计算值 | SubDoctrine 校验后写 (sub_141528800) |
+| +752 | uint32 | **mastery gain factor 修正量** | Grand 写 sub_141528630 (查 mod_grand_doctrine_mastery_gain_factor) / Sub 写 sub_141528800 (查 mod_subdoctrine_mastery_gain_factor) |
 
 ⚠ `+16` 非 folder 指针 (死字段, 见表注)。folder 归属一律读 Grand 的 `+760`。
 效果注册/注销 (五通道: 即时 Execute / RebuildModifiers / enable_tactic / cc+3952 子单位 / cc+3944 named_equipment_bonus 前缀 MODIFIER_DOCTRINE_PREFIX) = sub_1413CD240 / sub_1413CEE00, type 参数 3 = grand / 4 = sub / 5 = reward 档。
@@ -221,12 +221,15 @@ vtable RVA 0x142719148, sizeof 824, ctor `sub_1401497F0`; 基类 = CDoctrineBase
 | +760 | NDoctrines::CFolderTemplate* | folder 定义指针 | 键 folder (11873), 查 CFolderDatabase 按名解析 |
 | +768 | 匿名结构 (400B) | milestones 数组数据 | 键 milestones (16771) → sub_1409CD530; cap@+776, 计数@+780 |
 | +784 | void* | allocator (off_143085170) | ctor |
-| +792 | NDoctrines::CTrackTemplate** | tracks 数组数据 | 键 tracks (16772), 经 SUniformDatabaseReader<CTrackDatabase> |
+| +792 | NDoctrines::CTrackTemplate** | tracks 数组数据 | 键 tracks (16772), 经 SUniformDatabaseReader<CTrackDatabase>; 容器头 {d@792, cap@800, 计数@804, alloc@808} |
 | +816 | uint32 | max_track_rows | 键 max_track_rows (16804) |
 | +820 | uint32 | max_track_columns | 键 max_track_columns (16805) |
 
 ⚠ Grand 的 `+760` = folder 指针; Sub 的 `+760` = track 指针 (**同偏移不同语义, 两族必须分别记表**)。
+⚠ **milestone 数须 == track 数** (终结函数 sub_1409CDF20 断言 :47; 门 2 读 tracks 计数@+804, 门 4 要求 +780 == +804)。
 ctor 只显式初始化到 +816 (`a1[95..99]` / `a1[102]`); +820 由 reader 写。
+
+**终结函数 (vtable [8])**: Grand = **sub_1409CDF20** (func_names rtti `NDoctrines::CGrandDoctrineTemplate::[8]` 直证) — 四校验门 (断言 :34/:38/:42/:47, 含 milestone 数 == track 数) + 逐里程碑 sub_1409CCAB0 (变量键 "DOCTRINE") + +752 写入 (mastery gain factor 修正量, Grand 查 mod_grand_doctrine_mastery_gain_factor); Sub = sub_1409E6560。
 
 #### 4.6.5 CSubDoctrineTemplate (子条令 def)
 
@@ -326,6 +329,16 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 
 三键子解析器 (`sub_1409E2CF0` sub_units / `sub_1409E3110` categories / `sub_1409E3530` equipment)
 共享骨架: 循环读块内未具名标量 → 取 token 条目 → `malloc(0x20)` 产 32B 条件条目入向量。
+
+**单位/条件匹配谓词 sub_1409E4070** (定案) = 三表或匹配: sub_units 按 def+8 名 token / categories 按 def+1288 类指针 / equipment 按 def+1448 位域 AND 条件掩码 (三偏移与 §4.18 定案吻合)。
+
+**单位侧掌握度链 (定案)**: 域旗 (+88海/+89陆/+90空) 门控三军 xp 条目聚合 → 每 track daily_mastery (驱动点 sub_140FC8DC0 前半段 → sub_141A32E90 → track+40):
+- **陆 (sub_1409E3C20)**: 师掌握度 = `100000 × Σ(权重[i]×manpower_i) / (100000 × Σ(manpower_i × 计数_i))`; 权重向量在**师宿主 +928** (平行模板营表, 计数门 vs 模板+180; 断言 mastery_conditions.cpp:118/:126/:140); 模板取值**优先 old_template (+960) 回退 template (+952)**; 营表 = 模板 d+168 平铺表 (16B 元)。⚠ 分子缺 ×计数_i — 两读法 (权重向量已含计数聚合 vs 引擎漏乘) 待同型多营师探针区分 (U1); :140 "Matching manpower exceeds total" 断言为该不变量的护栏。
+- **海 (sub_1409E3F50)**: 遍舰队船列, 价值 = 100000×ship+2056, 匹配 `cond, ship+128`。
+- **空 (sub_1409E3A30)**: 遍航空队装机表, 价值 = 数量×装备因子, 匹配 `cond 装备位掩码 & 装备+1032` (跳过前导 count==0 空槽)。
+- **日聚合归一化 (sub_141A32AD0 尾部)**: 有效日增益 = `(MAX_MONTHLY_MASTERY_GAIN/30) × cur/(cur + BASE_MASTERY_GAIN_TARGET_MANPOWER)`, cur = v4/24; 常量 3000000 = 30×1e5 / 2400000 = 24×1e5 量纲已核; 乘 TRAINING_MASTERY_GAIN_FACTOR。
+- **define 全局真名** (均 sub_142072500 注册落名): qword_143334028 = TRAINING_MASTERY_GAIN_FACTOR / qword_143334110 = MAX_MONTHLY_MASTERY_GAIN / qword_143333F48 = BASE_MASTERY_GAIN_TARGET_MANPOWER / qword_143333060 = DOCTRINE_SHARING_BASE_MASTERY_GAIN_MONTHLY / qword_143333110 = DOCTRINE_SHARING_MONTHLY_MASTERY_GAIN_PER_COMMANDER。
+- **XP 不足消费门 sub_1413CC990** (a2=0 干跑): `es` 换算 Q15→1e5 后 `*es < 100000×xp_cost`。
 
 求值链 (定案): 装载期三键各建 token 集合向量; 终结期由 CSubDoctrineTemplate 终结函数
 `sub_1409E6560` 经 vtable[8] 槽调 evaluator `sub_1409E4870`; 三遍扫描各持一个**领域位掩码**
@@ -450,6 +463,11 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 **info policy 策略对象 (新定案)**: 学说选择列表持 +4160 当前学说 def / **+4184 info policy 对象指针** (未设 = 两查询断言返 0 非致命)。接口至少两槽: vtable[0] = (policy, 国解析件, def, *(列表+1416), char, out 串*, *(列表+1476)) → bool — 学说可用性/文本查询, **出串传 0 = 干跑** (仅判可用); vtable[1] = (policy, 国解析件, def, *(列表+1416), int) → int — XP 成本查询。国取数链 = 列表+8 对象取 tag → sub_140BB5490 → idpair → sub_1413C6600。
 
 **CDoctrineListItem 全布局** (ctor sub_141F383E0, RTTI 名 `NDoctrines::CDoctrineListItem` 直出; 书 def 五锚全部在本簇直证 — +1440 def 本体直证即 :179 断言): +0/+24 双 vtable / +32 CDoctrineSelectionList* / +40 基子对象 / +1408 名称文本件 / +1416 成本按钮件 / +1424 gfx 处理器 (vtable 槽 91 传 def+104 帧, 槽 81/82 可用双态) / **+1440 学说 def 指针** / +1448 可用旗字节 (强制不可用门) / +1456/+1464 顾问槽 0/1 容器件 / +1472..+1488 文本三件 (ctor 清零)。点击 lambda 全名直出 (回带 def 与 bool)。
+**NDoctrines::CDoctrineSelectionList 构造器 = 0x141F38BC0** (387 行, sizeof 4192B = 0x1060 malloc 直证; 簇名甄别: lection_items.cpp = **doctrine_selection_items.cpp 断行伪影**, :248 拼合直证; 定案): 构造点 = 学说 UI 窗 SetupContent (查 "doctrine_selection_list" 容器 → 构造 → 存窗 +744 → sub_141F3A2B0 初始化; 旧值非空先经 vtable+8 释放)。布局: +8 上下文 (ctor a3) / +16 title_text / +24 description_text / +32 宿主窗 (其 vtable+552 槽以自身注册回调通道) / +40 list_container / +48 doctrines_grid / +56 close / +1424 unlock / +2792 details 三 CButtonWrapper (三 lambda 统一签名 `(CContainerWindow*, NDoctrines::CFolderView*)`) / +4176 byte = settings 单例 (sub_1401FA5E0) +624 设置旗拷贝 (details 初始态; 取不到 → :248 `Failed to get settings instance` 断言, latch byte_14338CA1E, B51 门) / +4160/+4168/+4184 零初始化槽。
+
+**NDoctrines 阵营学说共享窗 (faction_doctrine_sharing_window.cpp — 簇名 octrine_ 系 `faction_d|octrine_sharing_window.cpp` 断行伪影第 4 例, 首例断在字符串字面量拼接处; diplomacy/factions/ui/; 4 函闭环, 定案)**: 窗对象 +8/+1376 tooltip 双目标 / +16 FACTION_UPGRADE_DOCTRINE_BONUS 文本 / +24 FACTION_TOTAL_SUBDOCTRINES 文本 / +32 gridbox / +40/+44 阵营 CID / +2752 CFaction* / +2760 共享激活旗 / +2764/+2768 主门 CID / +2776 选中条目 / +2784 条目激活旗 / +2788/+2792 条目阵营 CID。**tooltip 主构建器 0x141BFBB60** (920 行): CID 门 :50 断言 (latch byte_14338C411) → folder 标题/激活态双文案 (色参 3932160/13369344) → 共享明细 = sub_141BFB400 收集 **NDoctrines::NUtils::SMaxSubdoctrineMastery 24B 条目**向量 (CPdxHybridInlineBufferAllocator<型, 20, int> RTTI 直证; 归并 170 阈 §3.2a 同款) × doctrine 加成库单例 qword_14332EEB8 (+80/+92) 双层循环 → 逐加成四参 FACTION_DOCTRINE_SHARING_ACTIVE_BONUS {COUNTRY_FLAG/SUBDOCTRINE_NAME/TRACK_NAME/MASTERY (值 9 = 定点格式码)}; 解锁按钮分支 = sub_141BFBA20 判定 (gs+1312/1316 initiative 双槽主非正取备 → 对象 +72 ≥ 需求 qword_143332FB0) → FACTION_UNLOCK_DOCTRINE_SHARING(_CANNOT) + FACTION_UPGRADE_NOT_ENOUGH_INITIATIVE {VALUE = qword_143332FB0}。**三目标分派 0x141BFCBA0**: folder 汇总 (静态 folder 表 × 阵营成员 +88/+100 逐国计完成数) / 升级加成 (**qword_143333110 = DOCTRINE_SHARING_MONTHLY_MASTERY_GAIN_PER_COMMANDER** 定点 > 0 时附 INCREASE_PROMPT; 旧俗称 BONUS_PER_COMMANDER) / 默认标题。**条目装配回调 0x141BFD7E0**: 选中 vtable+128 + 条目 +117 |= 0x10 (取消 &= ~0x10 + vtable+120 双写); 解锁按钮 VALUE = 'H'(可解锁)/'R'(不可) 单字符热键提示; 控制器 vtable+648/+656 启禁用。**列表填充 0x141BFDD70**: 阵营 +2224 = doctrine sharing 运行时区 (+2232 data/+2244 count = 已解锁 folder 指针数组, 线性查命中 = 已解锁旗); gridbox 池不足 malloc 2800 + sub_141BFB500 构造 (条目类 NDoctrines::CRewardItem RTTI 旁证), 越池断言 gridbox.h:654 (byte_14338A4FF); 多余条目 memmove 紧缩 + vtable[0](1) 释放; 尾 FACTION_TOTAL_SUBDOCTRINES 汇总 + 刷新。**gridbox 控件布局 (定案)**: +368 列 / +372 行 / +384 纵排旗 / +392 位置对数组 {8B = row+col 双 dword} / +416 元素指针数组 — 与 §4.31.112 stations_grid 同构互证。TU latch 块 = byte_14338C411..C414。
+
+**阵营共享增益逻辑层 (faction_doctrine_sharing.cpp — diplomacy/factions/ 下逻辑层, 与上述 UI 窗 CU 不同编译单元)**: 增益 = `DOCTRINE_SHARING_BASE_MASTERY_GAIN_MONTHLY (qword_143333060) + DOCTRINE_SHARING_MONTHLY_MASTERY_GAIN_PER_COMMANDER (qword_143333110) × 有指挥官的阵营战区数` (sub_141BE5A90)。⚠ 局部键名 NUM_COMMANDERS / 全局名 ..._PER_COMMANDER 指**阵营战区已指派指挥官的数量** — 计数源 = CFactionTheaterManager 战区列表里指挥官 CRef 非零且可解析的条目 (§4.5 CFactionTheaterManager commander 元素 = 8B 内联 CRef id-pair, sub_141950A80 判非零后 sub_14221F310 解引用), 非阵营成员国数、非指挥官总数。消费侧 = 上述 GUI 窗 (a3=0 干算路径) + 阵营逻辑层月更。
 
 **Update 七步** (sub_141F3A6C0): def 空 → :179; 可用判定 = +1448 门 ‖ policy vtable[0] 干跑 (不可用加前缀 TRIGGER_UNFULLFILLED_PREFIX); 名称 = def+40 (书互证) → 写 +1408; gfx = def+104 (书互证) + 槽 81/82 双态; 成本 = policy vtable[1], ≤0 或强制不可用 → +1416 钮隐藏; 顾问槽 = **SAdvisorDoctrineBonus 16B 元 {顾问 id, 活性旗}** 向量 (sub_1413C61D0 填充) → 槽 0/1 按计数显隐 + GUI 上下文工厂 (qword_14332F698+1272, §4.11.25 同款) 绑行; 成本文本 = xp 类别 **def+36** (书互证), **可负担门 = 国 XP ≥ 100000 × 成本 (fixed×1e5)**。
 
@@ -458,3 +476,21 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 **track 包装** (sub_141F381E0): track_idx == −1 → :50 断言; 否则状态链查询 — **学说状态对象 +16 = 80B/条元素数组, 计数 +28, 条目+8 = track def 指针** (线性扫匹配; §4.6 状态对象补行互证)。
 
 未决: tooltip 宿主类定名 / policy 对象装填者 / settings+624 设置项名 / 顾问行绑定第 4 参语义。
+
+#### 4.6.15 大型学说 UI 轨道条目 (doctrines\ui\track_item.cpp; 5 函闭环 — NDoctrines::CTrackItem 运行期)
+
+CU = `hoi4\source\doctrines\ui\track_item.cpp` (5/5 函断言串一致); RTTI 直证 `NDoctrines::CTrackItem` (继承 CStandardGridBoxItem, _RTDynamicCast 判型直证)。同命名空间家族 RTTI: CDoctrineListItem / CFolderTabItem / CFolderStatus / CCountryDoctrineStatus / **CGrandDoctrineDatabase (TGameItemDatabase 族)** / CTrackTemplate / **CRewardItem** / CDoctrineSelectionList / CDoctrineBaseTemplate / STemporaryCostReduction。周边 define = NDoctrines.BASE_MASTERY_GAIN_TARGET_MANPOWER / MIN_MASTERY_GAIN_PER_DAY。
+
+五函身份表:
+
+| VA | 行数 | 身份 |
+|---|---|---|
+| 0x141F35370 | 644 | 精通 (mastery) tooltip 构建器 (头两段文本 a2/a2+32) |
+| 0x141F36330 | 581 | 子学说槽 tooltip 构建器 (未分配/未激活/里程碑/收益; 尾调 0x141F35370) |
+| 0x141F37980 | 433 | 轨道 → GUI 绑定刷新 (列表数据 + 逐控件 vtable[91] 写值槽) |
+| 0x141F370A0 | 414 | 奖励网格刷新 (网格元逐个 _RTDynamicCast → CRewardItem 按状态刷新) |
+| 0x141F36F50 | 31 | GetTrack: 索引(+32) → 轨道对象 (容器 +72 → data@792/count@804 指针向量; 越界 :614 断言返 0) |
+
+精通 tooltip 键流 (定案, 函数体串直证): 情报不足 (folder 状态 ∈ {0,3}) → 单段 DOCTRINE_MASTERY_INSUFFICIENT_INTEL; 轨道未激活 → DOCTRINE_TRACK_NOT_ACTIVATED; 正文分流 = 有储备银行 (+1552) 或预览旗 (+1560) → MASTERY_INITIAL_FROM_RESERVE {VALUE} / 银行有值 → DOCTRINE_CURRENT_BANKED_MASTERY {VALUE} / 否则 DOCTRINE_CURRENT_MASTERY {VALUE} (现值 sub_141F36060); 激活 → MASTERY_GAIN_EXPLANATION {TRAINING_RATE = qword_143334028}; 未激活无旗 → MASTERY_BANK_EXPLANATION_EMPTY/_FULL {PERCENT ×2 = qword_143334480 / unk_1427CBDE8(9) / qword_143334558} (判满 sub_14147C2A0); 兜底 TRACK_INACTIVE_EXPLANATION。子学说槽键 = NO_SUBDOCTRINE_ASSIGNED / ASSIGN_SUBDOCTRINE_AFTER_GRAND_DOCTRINE / SELECT_SUB_DOCTRINE_PROMPT / SUBDOCTRINE_BENEFIT_DESCRIPTION / DOCTRINE_MILESTONE_TITLE / DOCTRINE_REWARD_ACTIVE / MILESTONE_UNLOCK_EXPLANATION 等。绑定刷新: "DOCTRINE_COST_REDUCTION_VALUE" 变量块; 轨道字段 +256/+272 → 控件@+1504 / +288/+304 → @+1488 / +320/+336 → @+1480 (vtable[91] = 通用写值槽); 奖励网格 = +1464 对象 {count@404, 元素@416, size@428} (gridbox.h:654 断言)。
+
+本地化变量元素 = 104B {i32 类型@0 (9 = 浮点), const char* 名@8, 值…}, 经 eh vector constructor iterator 构表 → sub_142245E60(&out, 键, 表, n) → sub_140129C10 追加 + sub_1424CB5C0 换行; 状态位 |= 值为 EH 簿记位图非业务旗。条目对象部分布局 (消费点实测, 形态级): +32 轨道索引 / +48 学说上下文主 (+1416 当前国家钩) / +56 列表数据控件 / +64 按钮包装 (buttonwrapper.h vtable[71] IsNullObject) / +80 附加控件 (vtable[81]) / +1464 奖励网格 / +1480/+1488/+1504 三值控件 / +1552 储备银行对象 (推定待裁) / +1560 预览旁路旗。a1−24 互调形态 = 两 tooltip 函收条目内层视图 (内层 +48/+72 ↔ 外层 +24/+48, 偏移差 24)。

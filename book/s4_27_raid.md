@@ -14,7 +14,7 @@
 | countries 容器 | {data@+216, count@+228}, 元素 0xB0 stride | |
 | CCountryRaidStatus | vtable 0X29CCD88, writer 0X1414EACF0, ctor 0X1414E9000 | 下表 |
 | CRaidInstance | vtable 0X2983A78 (+24 第二 vtable = CEquipmentDistributable 0X2983AD0), writer 0X140FEF9C0, ctor 0X140FE9980, dtor 0X140FE9F90, 尺寸 0x1D8=472 | 下表 |
-| CRaidSystem | vtable 0X2971F98, ctor 0X140E83B80 (+8 = 目标管理器内联) | 目标管理器见下 |
+| CRaidSystem | vtable 0X2971F98, ctor 0X140E83B80 (+8 = 目标管理器内联) | 目标管理器见下; **+352 = 56B 条目数组** (u16 向量 data@+0/cap@+8/count@+12, 元旗 0x2000/0x4000 + 低 13 位下标; 袭击目标图标三函消费 §4.27.9, 语义名待运行时) |
 
 **CCountryRaidStatus** (元素 0xB0 stride; countries.#N = 槽位 idx+1, 440 全槽恒写):
 
@@ -41,7 +41,7 @@
 | +16 | uint8 | 基类标志 (=0) | 高置信 |
 | +24 | CEquipmentDistributable 内嵌 24B | 第二基类 {vtable@+24, u32=1@+32, ptr=0@+40} (RTTI 直证) | 不序列化 |
 | +48 | uint8 | auto_launch (键 10155) | ≠0 |
-| +52 | uint32 | auto_launch_option 枚举 (0=VERY_LOW 1=LOW 2=MEDIUM 3=HIGH(默认) 4=VERY_HIGH) | ≠3 才写 |
+| +52 | uint32 | auto_launch_option 枚举 (**实名 ERaidSuccessChanceLevel**, lambda 签名直证 §4.27.10; 0=VERY_LOW 1=LOW 2=MEDIUM 3=HIGH(默认) 4=VERY_HIGH; UI 名 auto-complete) | ≠3 才写 |
 | +56 | uint32 | phase: 0=NONE 1=ASSEMBLING 2=PREPARING 3=PREPARED 4=IN_PROGRESS 5=ENDED (断言 "Saving invalid raid phase!" raid_instance.cpp:0xDB) | ≠0 |
 | +60 | uint32 | outcome: 0=NONE 1=FAILURE 2=LIMITED_SUCCESS 3=SUCCESS 4=CRITICAL_SUCCESS 5=CANCELED | ≠0 |
 | +64 | uint32 | risk_level (0=LOW 1=MEDIUM(默认) 2=HIGH) | ≠1 才写 |
@@ -120,9 +120,10 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | +9..+47 | — | = SRaidTarget 40B 本体 (内层表见下) |  |
 | +48 | uint8 | dynamic (键 0x3313=13075) | 恒写 yes/no |
 | +49 | uint8 | valid (键 0x4AF6=19190) | 恒写 yes/no |
-| +56 | uint8 | detected 容器数据指针 — u8 数组 {d, c} | c>0 |
+| +56 | uint8 | detected 位图数据指针 — **按国家数组下标索引的位图** (每国 1 bit; 下标 = sub_140BB5490(tag), gs+832 id→下标映射表) | c>0 |
 | +57..+67 | — | = detected 容器尾 {cap@+64, c@+68} (键 0x4B06=19206) |  |
-| +68 | uint32 | detected 容器计数 | c>0 |
+| +68 | uint32 | detected 容器计数 (有效字节数) | c>0 |
+| +72 | 分配器* | 位图分配器对象 (vtable[1] alloc / [2] free; 扩容 ×1.5) | 扩容时 |
 
 内层 SRaidTarget (@t+8):
 
@@ -134,6 +135,11 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | +24 | uint32 | leader.type — id 对之 type (id 对) |
 | +28 | uint32 | leader.id — id 对之 id |
 | +32 | CProvince* | leader_prov ptr → +164 |
+
+**目标检测机制 (raid_target_status.cpp 两函, 定案)**: detected 位图 + 读门构成「目标侦查」状态机 —
+- **写门 SetDetection (0x141A3AF80)**: 前置门 sub_140FE78E0(a1+8) = **`CRaidTarget::NeedsDetection()`** (实名由读门断言条件文本 `"_RaidTarget.NeedsDetection()"` 直证; 假 → raid_target_status.cpp:99 断言 "Trying to set detection on a target that does not need detection" 拒绝); bit = tag→国家数组下标 (sub_140BB5490); 原地 `data[bit/8] |= / &= ~mask` 支持清除; 超界置位走 +72 分配器扩容 (×1.5, 新增段 memset 清零); 超界清除 = no-op。
+- **读门 (0x141A3ABE0)**: 真 = **「该国未检测到此目标 ∧ 该国对此目标的情报值 ≥ define TARGET_DETECTION_INTEL_TRESHOLD」** — `未置位 && 情报值 (sub_140FE6110) >= qword_143331470`。
+- **define TARGET_DETECTION_INTEL_TRESHOLD = qword_143331470** (sub_140994390 注册点直证; 定义名原样拼写 TRESHOLD 非 THRESHOLD; 负值钳 0)。另一消费 = sub_1416277D0 (raid ui tooltip, "TOOLTIP_TARGET_FACILITY_PROJECT_UNKNOWN_DESC" CURRENT/REQUIRED 参数对 = 当前情报 vs 阈值)。
 
 
 #### 4.27.2 突袭 def 侧 (CRaidDatabase / CRaidType / CRaidCategory)
@@ -191,7 +197,7 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 | +512 | CTrigger (88B) | 16587 launchable | 可发动条件 |
 | +600 | CTrigger (88B) | 19724 launchable_from | 发动来源条件 |
 | +688 | CTrigger (88B) | 14819 cancel_trigger | 取消条件 |
-| +776 | 88B trigger 形块 | target type 块 (键名未反查) | isEmpty = +12/+36 双计数全零 + 伴生 +848/+850/+868/+892/+924/+73 旗 (§4.27.5 校验器直证); 伴生 dword 归属待裁 |
+| +776 | 88B trigger 形块 | target type 块 (键名 = 12300 types / 19644 building_types / 19697 allow_faction_buildings, reader 0x141591150 直证 §4.27.9; ⚠ 报错文案 "raid source" 命名两可待裁) | isEmpty = +12/+36 双计数全零 + 伴生 +848/+850/+868/+892/+924/+73 旗 (§4.27.5 校验器直证); 伴生 dword 归属待裁 |
 | +992 | CRaidSuccessLevels (1480B) | 19185 success_levels | 结果档位 (见下) |
 | +2472 | CRaidSuccessFactors (104B) | 16591 success_factors | 成功率因子 (见下) |
 | +2576 | 匿名结构 (88B 元素) 向量 | 19189 unit_requirements | 元素 88B {d@2576, cap@2584, c@2588, alloc@2592} |
@@ -305,7 +311,11 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 > [9]/[10] 取输入值 → 区间映射; owner = CRaidInstance+88 对象 +8 tag, target = inst+160。
 > 工具函数 RTTI 直证: `NRaids::NUtils::BuildRaidSuccessFactorsTooltip(CRaidInstance const&, CToolTip&)`
 > 与 `BuildRaidWarningTooltip(...)` 的 lambda 参数类型 = `CRaidSuccessChanceModifier const&`
-> ⇒ 修正器对象被 tooltip 逐条遍历 (高置信)。
+> ⇒ 修正器对象被 tooltip 逐条遍历 (高置信); 每条描述串来源 = **0x14162B610 成功率修正器描述 loc 键构造器**
+> (raid_tooltip_utils.cpp): 键 = `success_modifier_<token>_improvement` (修正描述) /
+> `success_modifier_<token>_counterplay` (反制描述, counterplay 旗分派); token = 修正器 +8 槽
+> 经 0x1424BC260 取名; 缺键 → raid_tooltip_utils.cpp:636 (通道 4096) "Missing loc key for
+> success chance modifier improvement description. Add a loc key for: %s" + 兜底 = 裸 token 名。
 
 **Std 输入值取值表** ([9] 无单位 / [10] 带单位两变体; token 分派全表):
 
@@ -464,7 +474,7 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 
 主vtable 0x142983A78 17 槽: [2]=writer 0x140FEF9C0 / [4]=**reader 0x140FEE810** (19 键全表, 10 键新定名: 225 type/107 target/10403 unit/10383 raid_source/10465 end_date/10519 phase/19011 outcome/19196 risk_level/19197 auto_launch_option/19206 detected) / [8]=**读档重挂 0x140FEDEB0** / [11..16] = 第二vtable 0x142983AD0 同块排放 (0x142983AD0 − 0x142983A78 = 88)。**CEquipmentDistributable 六槽契约** (第二基): [1]=UsesEquipment 0x140FEE450 (两 map contains → 定点 1e5/0) / [2]=Distribute 0x140FEE540 (this = inst+24 → −24 调整 thunk; 按两 map 需求缺口装填 inst+272 池, 返未满足量) / [3]=GetPriority = status+96×1e5 / [4]=GetId {0, inst id, kind=14} — 纯虚槽唯一覆写。
 
-实现层增补: 剩余小时估算 sub_140FEA4A0 (phase2 = 24×days−prep_time; phase4 = ceil(剩余距/时距), GUI 进度消费); SetPreparationProgress sub_140FEF570 (消息串直证方法名); StartRaid 成功失败两路尾都**无条件挂 system+240 预警池** (sub_1419ABC80); status+16 dummy = 占位 CRaidInstance。
+实现层增补: 剩余小时估算 sub_140FEA4A0 (phase2 = 24×days−prep_time; phase4 = ceil(剩余距/时距), GUI 进度消费); SetPreparationProgress sub_140FEF570 (消息串直证方法名); StartRaid 成功失败两路尾都**无条件挂 system+240 预警池** (sub_1419ABC80); status+16 dummy = 占位 CRaidInstance (**GUI 消费直证定案**: 视图 IsDummy 双模式全链 + dummy 字段被建单发射体 sub_141299A50 组装 CCreateRaidCommand, §4.27.10)。
 
 #### 4.27.3 相位机执行链与目标选择
 
@@ -624,7 +634,7 @@ id 73-77 族)。方向定案 = `[A][B]` = A 关于 B 的情报 (CAddIntelEffect:
 
 **ERaidCreationStep 枚举 (断言串三名直证)**: 0 = WaitingForTarget (:366/:379) / 1 = SelectingUnit (:423) / 2 = SelectingSource (:454) / 3 = (名未取; SelectSource 完成态, 行件反馈段跳过条件 step != 3, 推定)。
 
-**状态机全链**: SelectTarget: step 0→1, 写 mgr+80 数据宿主 + mgr+88 40B SRaidTarget 快照 + 地图模式切换 (sub_140E139B0+sub_140E16B80) + 输入态 + 选择集服务 → 刷新执行体。SelectUnit: step 1→2, 写 mgr+128 16B 单位引用 {师 idpair, 翼 idpair} → 刷新 (16B 单位候选排序灌 CRaidSetupView) → **唯一源时自动级联 SelectSource**。SelectSource: step 2→3, 暂存源行件关键字段 mgr+144..+195 → mgr+280 非 0 时按 gs 选国组装请求 (+152 = 48B 目标块; sub_140FEF660 写 64B CRaidSourceItem; sub_140FEF6B0 写单位引用) → sub_141B2D0D0 派发。刷新执行体 (sub_14129D580): step 1 = 16B 单位候选 (sub_1411612D0 从 mgr+200/+212 生成; 排序键 ctx = {*(mgr+80)+2480, …}; ≤32 插入排序 / >32 归并) → sub_141B31240 灌视图; step 2 = 56B 源元素 (mgr+224 数组 n@+236) → sub_1415934A0 变换 → 64B CRaidSourceItem 内联 (+32 覆 CBuildingReference vtable / +56 距离 — §4.27.1「64B 扩展版」直证) → sub_141B31210 灌视图。ActivateNukeCategory: 全局类目名 qword_1430900F8 → 查 CRaidCategory (失败 :981 / **cat+36 = 可目标省旗**, 0 → :987) → sub_141B29740 写 mgr+4648 过滤器。
+**状态机全链**: SelectTarget: step 0→1, 写 mgr+80 数据宿主 + mgr+88 40B SRaidTarget 快照 + 地图模式切换 (sub_140E139B0+sub_140E16B80) + 输入态 + 选择集服务 → 刷新执行体。SelectUnit: step 1→2, 写 mgr+128 16B 单位引用 {师 idpair, 翼 idpair} → 刷新 (16B 单位候选排序灌 CRaidSetupView) → **唯一源时自动级联 SelectSource**。SelectSource: step 2→3, 暂存源行件关键字段 mgr+144..+195 → mgr+280 (**= CRaidInstanceView* 懒构造缓存**, §4.27.10) 非 0 时按 gs 选国组装请求 (+152 = 48B 目标块; sub_140FEF660 写 64B CRaidSourceItem; sub_140FEF6B0 写单位引用) → sub_141B2D0D0 派发。刷新执行体 (sub_14129D580): step 1 = 16B 单位候选 (sub_1411612D0 从 mgr+200/+212 生成; 排序键 ctx = {*(mgr+80)+2480, …}; ≤32 插入排序 / >32 归并) → sub_141B31240 灌视图; step 2 = 56B 源元素 (mgr+224 数组 n@+236) → sub_1415934A0 变换 → 64B CRaidSourceItem 内联 (+32 覆 CBuildingReference vtable / +56 距离 — §4.27.1「64B 扩展版」直证) → sub_141B31210 灌视图。ActivateNukeCategory: 全局类目名 qword_1430900F8 → 查 CRaidCategory (失败 :981 / **cat+36 = 可目标省旗**, 0 → :987) → sub_141B29740 写 mgr+4648 过滤器。
 
 **mgr 布局补充** (ctor 互证外 9 项): +80 数据宿主 / +88..+127 SRaidTarget 当前目标快照 (空判 sub_140FE78B0 = §4.27.1 raid+160 同函数; SelectSource 时 48B 整体拷入请求 +152) / +128 16B 参战单位引用 (读写两侧闭环) / +144..+195 52B 源行件暂存 / +224/+236 56B 源元素数组 {data, count} / +280 发射/反馈宿主 (+88 byte 门控制反馈) / +4648 CRaidFilter (核类目写入点) / +6176 挂起句柄 / +6192..+6231 第二 SRaidTarget 快照 (地图选点缓存, +6216 写哨兵 qword_14333D528)。
 
@@ -848,3 +858,59 @@ UpdateUnitMovement (0x141CEC4D0) 七步:
 > **CRaidInstance 相关偏移补证**: +56 = phase (观测 3 PREPARED/4 IN_PROGRESS/5 ENDED, 与 §4.27.1 六值枚举一致) / +60 = outcome (移动态判据 ≠5 = CANCELED) / +88 属主 / +96 CVariables / +152 CRaidType* / +160 CRaidTarget / +184 空句柄 / +200 图标创建第 3 参 / +216 CRaidSource / +272 CEquipmentVariantPool / +344 CCommandPowerAllocator / +2896 自定义名 SSO (data@+2896 / ptr@+2912 / len@+2920)。
 
 **未决**: CRaidArrow+16 图标对象类名 (创建经 sub_14228CD30(obj,7,6,0), 语料无 vftable 符号) / CRaidArrow 路径向量直线分支元素序 (须读 sub_141CEA910) / sub_140E7C150 距离语义与 ÷3 系数 / CalculateDistance 哨兵源级谓词 (IDA 常量失真) / CRaidSource +24/+32/+40/+44 与存档侧表的命名冲突 / CRaidType+32 双语义 / 可见性集合持有者 (qword_14332F6A0 vtable+184 → +4648/+1488 集合, 未入书) / GetProvinceName 空串分支兜底。
+
+#### 4.27.8 袭击地图图标运行期 (raid_unit_map_icon.cpp; 3 函 + 宿主四槽)
+
+**CRaidUnitMapIconData** (类壳 §4.31.87 已载; vftable 0x142A180A0 全槽 PE 直证: [3]=0x141E8B800 GFX 名 / [5]=0x141E8B020 点击): **vftable[5] 点击** = 单位计数 (+2828)==1 → 直走 CRaidGuiManager::SelectUnit sub_14129B670 不开窗; 多单位 → 懒建窗 **"raid_map_unit_details_window"** (工厂 = *(qword_14332F6A0+1272) vtable[12], 缓存 +2784) 三元素 {raid_units_text / raid_unit_details / raid_unit_entries}; 行 = **NRaids::NUi::CRaidUnitItem (1552B, ctor 0x141B37040 符号直证; 三 vtable @+0/+56/+104)** — §4.31.28 raid_unit_entry 同类复用于地图详情窗定案; 计数 0 → 断言 :185 + 兜底 "ERROR no units"。**CRaidGuiManager+6176 = 详情窗锚定图标上下文槽** (旧值非空先 sub_1418EB720 清, sub_1402A0110(*(mgr+32)) 失效)。**vftable[3] GFX 名** = "GFX_raid_unit_icon_" + 类型 token (token = *(u32*)(*(CRaidType def+32)+8) — **def+32→+8 新读点**, 与 §4.27.1 +152→+8 两 token 槽并存), null 选择态 → 断言 :114 + "_unknown" 兜底。**UpdateUnits 0x141E8BA90** (非虚; 相对 +3040 槽基): +8 位置 xyz (16B 存) / +2768 GFX 刷新对尾 / **+2816 16B 单位元向量 (×1.5)** / +2840 有合格单位旗; 遍历谓词 = 16B 全等比对 gs vtable[23]→sub_1401613D0() **+128** 参照 (当前选中/过滤单位); 首单位解析省 (断言 :26 "CRaidUnit does not have a province"); **位置 = 省地图对象 +4568(8B)+4576(4B) 12B xyz** (与 §4.30 战斗图标 +4568 出发省边点数组同锚新读法); 状态 4/5 落位 (sub_141E86F10; 状态 1/2/3 亦走同函数 — §4.27.9 点击处理尾直证, 全域 1..5)。
+
+**宿主图标四数据槽 (新定案)**: 同一宿主图标内嵌 §4.31.87 四派生 Data 各一份, **+136 = 活动数据指针 / +144 = 变体号 (1..4)**, 选择器 sub_1418EB970: state 1 → +152 (步距 2888, **CRaidTargetMapIconData 定案** — vtable 0x142A18050 RTTI + 宿主 wrapper sub_1418EBF60/FB0 以 +152 为 this 直调方法族双证, §4.27.9) / **state 2 → +3040 (步距 2848, CRaidUnitMapIconData 定案)** / state 3 → +5888 (2800, CEnemyRaidMapIconData 推定) / state 4 → +8688 (CActiveRaidMapIconData 推定); 外层更新入口 sub_1418EBFF0 (去重置 2 → 选槽 → UpdateUnits); 宿主获取 = **sub_140B73080(qword_14333C5A8, key, 2)** 地图图标工厂 (type 2 = raid 系), **owner+5936 = 图标缓存槽**。槽[3] 本体 (CRaidMapIcon 0x1418EBAD0, §4.30.57) 宿主级读点 = **+2968** (变体 1: state1 槽 +152 基 +2816 单位向量 data) / **+8672** (变体 3: state3 槽 +5888 基 +2784, 内嵌 +152 二级门); 宿主 +136 = 目标对象, 内嵌 Data 族 +136 才是变体指针 — 同偏移按类区分。
+
+#### 4.27.9 CRaidTargetMapIconData 全方法族 (raid_target_map_icon.cpp; 4 函 + 宿主 wrapper 三元组 — 袭击目标集合图标数据件)
+
+vtable 0x142A18050 全槽 PE 直证 (基 = NRaids::NUi::CRaidMapIconVariant 0x142A17FB0): [0] 0x141E88170 析构 / **[1] 0x141E88240 (513 行) tooltip 生成** / [2] 0x141E88BD0 / [3] 0x141E89DA0 GFX 名 / [4] 0x141E89EB0 / **[5] 0x141E88C00 (346 行) 点击处理** / [6] CFG 空桩 / [7] 0x141E88210 / [8] 0x141E88BB0。同族槽序与 §4.27.8 CRaidUnitMapIconData 同构 ([6] nop / [7] 共享); CActiveRaidMapIconData [3] = CEnemyRaidMapIconData [3] = 0x141E878B0 同址, CActive [0] dtor = CEnemy [0] = 0x141E87310 同址。簇函另两枚非虚: 0x141E8A0A0 (258 行 populate) / 0x141E8A980 (196 行 PrepareTargetEntries)。
+
+全字段 (定案, 步距 2888 与 §4.27.8 state1 槽吻合):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +8 | 16B | 位置 xyz (sub_141F5D7D0(SRaidTarget) 产出, §4.27.7 同函数直证) |
+| +24 | GUI 件 | 文本件 (vtable[+728] 写拼接文本) |
+| +1392 | GUI 件 | 显隐件 (vtable[+648]/[+656] 对) |
+| +2760 | 精灵 ptr | vtable[+128]/[+120] Hide/Show; **+117 bit4 = 隐藏态镜像旗** (§4.30.57 直证) |
+| +2776 | ptr | 父/宿主引用 |
+| +2784 | ptr | 详情窗缓存 (懒建 "raid_map_target_details_window") |
+| +2792 | ptr | 子件 raid_target_details |
+| +2800 | ptr | 子件 raid_targets_text |
+| +2808 | ptr | 子件 raid_target_entries |
+| +2816 | u32 向量 {data, count@+2828} | 目标下标向量 (元旗 0x10000000 → 低 27 位下标) |
+| +2832..+2871 | SRaidTarget 40B | 首目标快照 (写点 = 0x141E8A980 直证) |
+| +2872 | u8 | 旗 (tooltip 分支门 / 行填充变体门) |
+| +2873 | u8 | 状态旗一 (点击尾 state 2 判定) |
+| +2874 | u8 | 状态旗二 (点击尾 state 3 判定) |
+| +2880 | CRaidGuiManager* | 回指 (非空时图标隐藏 + SelectTarget 分流) |
+
+**PrepareTargetEntries (0x141E8A980)**: 空判 :237 "No location data for raid target map icon can be found." (latch byte_14338C91F) → 首个带旗元下标 → mgr target 容器 (*(*(gs+1008)+8) 平铺 8B 指针数组) 第 idx 项 (80B CRaidTargetStatus) → +8 起 40B SRaidTarget 拷入 +2832 → 重置 +2880 → 重建条目向量: 条目 A = mgr target SRaidTarget, 条目 B = **CRaidSystem+352 + 56×下标** (56B 条目 {u16 向量 data@+0, cap@+8, count@+12}; u16 元旗 0x2000 ∧ 0x4000 → sub_140E86080()+176 数组 8B 元[元 & 0x1FFF] 单位对象) → 16B 条目 {单位对象 ptr, SRaidTarget ptr} push; 恰 1 条 → +2880 直挂窗; 尾调 populate。
+
+**populate (0x141E8A0A0)**: +2760 精灵按 +2880 显隐 (+117 bit4 同步); 条目向量逐元素 sub_141EF11C0 产显示串去重拼接 (分隔串 xmmword_142A89C38) 写 +24 件; sub_140FE78B0(+2832) 真 → :88 "CRaidTarget reference is invalid!!!" (latch byte_14338C91D) + 位置清零, 否则取目标位置写 +8。
+
+**tooltip [1] (0x141E88240) 三分支**: +2872 旗 → 管理器 64B 栈块 (含 +2832 拷贝) 查询; 否则 +2816 向量 → 同 Prepare 双容器读取; 否则 :137 "Unexpected case when generating tooltip" (latch byte_14338C91E)。尾 = sub_141628230 灌 tooltip; raid 实例非空 ∧ 合格性二分 sub_1412996A0 (§4.31.28 第三参直证) → 加 "RAID_SHIFT_CLICK_QUICK_START" 提示。
+
+**点击 [5] (0x141E88C00)**: 管理器 +72 > 0 → 早退; +2880 非空 → 查询旗分 sub_14129C2D0 / **sub_14129B4A0 = CRaidGuiManager::SelectTarget (§4.27.4 状态机入口调用点直证)**; 懒建详情窗 (工厂 = *(qword_14332F6A0+159) 对象 vtable+96 — 与 CRaidUnitMapIconData 版 *(+1272) 工厂同形异槽) + 三子件; 空兜底 :413 "Raid map icon has no targets" (latch byte_14338C920) + "ERROR no targets" / 非空 "MAP_ICON_RAID_TARGET_HEADER"; 行填充两变体 sub_141E89A50 / sub_141E89390 (未读); 尾 state = 3 / 2 / 1 → **sub_141E86F10 (状态 1/2/3 亦走, 补 §4.27.8 「4/5 落位」为 1..5)**。
+
+**宿主 wrapper 三元组同构分派 (定案, §4.27.8 state1 推定转定案)**: sub_1418EBF60 (+144 != 1 → 置 1 → sub_1418EB970 选槽 → sub_141E8A500(宿主+152, a2)) / sub_1418EBFB0 (同门 → sub_141E8A780(宿主+152, a2) → 0x141E8A980 Prepare) / sub_1418EBFF0 (已收, state2 → +3040 UpdateUnits) — 置变体号 → 选择器 → **以变体槽基为 this 直调** (state1 = +152 / state2 = +3040 双直证)。sub_141E8A780/A500 = 本文件第 5/6 函 (簇清单外, 仅被 wrapper 尾跳)。
+
+**raid_database_extras 补三函** (§4.27.2 增量): 0x141591150 (288 行) = **+776 块 reader 键分派器** — 键名补齐 = 12300 types (u32 列表 → 块+0 容器, 谓词 sub_141593CC0 过滤) / 19644 building_types (州建筑库单例 qword_14332EE28 逐条目匹配 [+8 id ∨ +40..+52 数组], 命中且 +700 > 0 → 块+24 指针容器; 无命中 :774 "State building '<名>' cannot be used as a raid source") / 19697 allow_faction_buildings (u8 → 块+48) — 块 +12/+36 双计数与 §4.27.5 isEmpty 判定布局直证 (⚠ 报错文案 "raid source" 与块定名 target 命名两可待裁); 0x141591E40 (124 行) = unit_model 推定块 reader (93 scale → +80 / 438 entity → +8 / 12110 equipment 类别门 0x1F0037FC00 air 族 [:1727/:1731 双报错] / 19751 default_entity → +40 / 19752 start_offset → +72); 0x141590750 (44 行) = 校验日志发射器 "%s [%s] in raid type %s" (:1086, 通道 4096)。已收五函复核全符 (vtable 槽 [7]/[10] PE 直证零勘误)。
+
+#### 4.27.10 CRaidInstanceView 袭击实例视图 (raid_instance_view.cpp; 14 函 — 创建/详情双模式 + 命令五件套)
+
+CU = `hoi4\source\raids\ui\raid_instance_view.cpp`。**NRaids::NUi::CRaidInstanceView** (RTTI 直证; 11296B = 0x2C20; ctor 0x141B2B1E0 簇外, **mgr+280 懒构造缓存** — §4.27.4 原「发射/反馈宿主」行实为本类指针, 该节已同步落卡)。三 vtable: +0 主基 4 槽 ([2] = Reload 壳 0x141B2CF20, 置 view+89 重入门闩 → Reload 体 0x141B2D210 → 清闩, 与 §4.31.34 CRaidSetupView 同形) / +40 第二基 10 槽 (**[9] = 0x141B2EE50 刷新总入口**; [8] = 0x1414D4CD0 共享 reload 通知桩与 §4.27.7 CRaidArrow 同 VA) / +64 CTooltipHandler ([0] = **BuildTooltip 0x141B2B7F0** 868 行, 14 widget 分支全案)。另挂 CCheckBoxObserverGlue (@+9704) 与 CButtonObserverGlue (@+10008)。
+
+**视图双模式机制 (定案)**: `_pRaidInstance` (view+104) = 占位 dummy (§4.27.2b status+16, **GUI 消费直证升定案**) 时整窗 = 创建向导态 (create 钮 + 严格门失败原因 tooltip; dummy+64 被 SetRiskLevel 直写; dummy +152/+160/+216..+264 被 CRaidGuiManager 建单发射体 sub_141299A50 读去组装 176B CCreateRaidCommand — §4.27.4 五函外第 6 函); 真实例 = 详情态。
+
+**BuildTooltip 要点** (14 分支, 键流全直证): create 钮 = 严格门 sub_140A9C430(def, owner, target, **out 串** — 第 4 参 = 可选诊断出串新证据) 真 → raid_details_view_title_create / 假 → 失败原因直出; launch 钮三相位文案链 (tooltip_raid_launch_button_assembling/_preparing/_enabled/_disabled/_right_click); 距离/速度五参公式 = **TOTAL_DISTANCE = MAP_SCALE_PIXEL_TO_KM (qword_143335F50 = 0x3335F50 defines_map 直证) × 3 × dist/1e5** (×3 还原 §4.27.3 的 ÷3 路径距, 与书 AI 公式侧证定案) / **SPEED = 1e5 × 每小时行程 / LAND_SPEED_MODIFIER (qword_143336258 = 0x3336258)**; 情报四源分解 raid_target_intel_from_{civilian,army,navy,airforce}_intel; outcome 六键 RAID_INST_OUTCOME_{NONE,FAILURE,LIMITED_SUCCESS,SUCCESS,CRITICAL_SUCCESS,CANCELED}; phase 六标题 raid_details_view_title_{create,assembling,preparing,prepared,in_progress,ended}。
+
+**刷新总入口 (0x141B2EE50, 第二基 [9])**: 门 = view+88 面板可见旗 ∧ raid 存在 → 五 populate 链 (F9D0 双模式 / F1A0 标题 / EBD0 按钮态 / F3B0 状态进度时间 / F840 三风险钮) + 单位行绑定 sub_141EF0B50 + 行件刷 + raid_intel_level (情报矩阵读 sub_140FE6110); **进度 = 100 × sub_140FEA340 / 100000** (§4.27.7 getter 互证)。
+
+**命令五件套** (全 NRaids::NNet::CRaidInstanceCommand\<T\> 壳族, 命令头 +40 = raid 引用哨兵 qword_14333D528): CExecuteRaidCommand 48B (ctor 0x141B31A90; 发射后 def+2864 非零播 **launch_sound — CRaidType+2864 消费点补全**) / CCancelRaidCommand 48B (0x141B318D0; OnCancel 0x141B2CAE0 → CGenericDefaultConfirmationPopUpWindow 确认弹窗 cancel_raid_popup_title/_desc) / CSetRaidAutoComplete 56B (0x141B31C60; UI 名 auto-complete) / CSetRaidAutoLaunchOption 56B (0x141B31D50) / CSetRaidRiskLevelCommand 56B (0x141B31E40; dummy 态直写 raid+64 数据层)。**枚举实名 = ERaidSuccessChanceLevel** (lambda 签名直证; §4.27.1 +52 auto_launch_option 枚举实名补全)。
+
+**CRaidInstance 读侧方法名群** (新定名): IsDummy = sub_140FEE290 / phase≤3 = sub_140FEB7F0 (体一行) / CanCancel (推定) = sub_140FEB7E0 / 进度 = sub_140FEA340 / 剩余小时 = sub_140FEA4A0 / 单位名 = sub_1414659A0 / 每小时行程 = sub_141465B50 / owner tag = sub_140FECFA0。按钮壳 wrapper 虚接口槽语义: +120 显 / +128 隐 / +176 SetFrame-SetProgress / +648 使能 / +656 禁用 / +664 置禁用态 / +688 SetText / +117 bit4 隐旗。

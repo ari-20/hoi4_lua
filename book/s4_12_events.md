@@ -239,7 +239,7 @@ timed_wargoal OnDailyPulse (sub_140ADBEF0) 补门细节: 发射门 = 意识形�
 
 **CNationalFocusDependency** (国策依赖条, 72B; vtable 0x142739AC8; reader 0x1402D8690 / ctor 0x1402CB990): +8 32B 备用枚举串 / +32 32B 依赖名 (键 10601 `or` / 13239 `focus` 均写入)。writer = CFG 桩 (focus def 静态成分, 不落盘)。
 
-**CNationalFocusStyleDatabase** (focus style 双 RH 名表; vtable 0x142739A78; 非 TGameItemDatabase): 实体 = 内嵌 **CNationalFocusDatabase+48 起 160B** {+48 vtable, +56 i32=-1, 双 RH map (0x1430868C0 / 0x143086920, load factor 0.90)}; 不与 idb 规格相合, 不可挂 resource.lua key。
+**CNationalFocusStyleDatabase** (focus style 双 RH 名表; vtable 0x142739A78; 非 TGameItemDatabase): 实体 = 内嵌 **CNationalFocusDatabase+48 起 160B** {+48 vtable, +56 i32=-1, 双 RH map (0x1430868C0 / 0x143086920, load factor 0.90)}; 不与 idb 规格相合, 不可挂 resource.lua key。**finalize 校验器 (sub_141377710, nationalfocusstyle.cpp, 166 行, df305 定案)**: 逐样式插名字集合 — 重名 → :50 "Multiple styles scripted with the name %s, script will only find the first" (**首个赢**); isDefault 旗 (样式对象 +40 u8) 首个定默认 (+56 下标 = −1 初值), 重复默认 → :63 "Multiple default styles scripted, will use %s" (**首个默认赢**); 无默认有样式 → 默认 = 下标 0 + :86 "No default style scripted, will apply first one (%s) instead."; 全空 → :73 "No styles scripted, will create one in code and use that as default." → 代码生成兜底样式入表。**SNationalFocusStyle 176B (RTTI `SNationalFocusStyle::vftable` 直证)**: +8 样式名串 (兜底 "Code Generated Style") / +40 isDefault u8 (兜底 1) / +48 不可用态 GFX 键 (兜底 **GFX_focus_unavailable**) / +80 完成态 (**GFX_focus_completed**) / +112 可开始态 (**GFX_focus_can_start**) / +144 进行中 (**GFX_focus_current**) — 国策图标四态样式表。
 
 #### 4.12.6 CSavedEventTarget (112B, saved_event_target)
 

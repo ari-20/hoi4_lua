@@ -175,6 +175,8 @@ requested 公式 = MISSION_COST × (FUEL_COST_MULT(0.10) × Σ舰用量缓存/1e
 is_sea_locked (tf+1270) 与燃料**无关联**: 唯一写点 = sub_140D705F0 海锁恢复块 `tf+1270 = (tf+524 ≤ 0)`, 纯海路可达性; auto_reinforcement (tf+1271) 同无燃料联动。
 detached_activity 状态设置器 = sub_140D731A0 (taskforce.cpp:6079 断言): 联写 tf+1208/1216/1224/1240; 迁移写点 = 1 repairing = 分舰链 sub_140D72580(activity=1) (调用者 sub_140D77FF0 沉船总入口/sub_140D77900; sub_140DA0E40 属铁路炮域非 TF) / 2 moving_to_refit sub_140D72F10 / 3 refitting sub_140D78F10 (分裂) + sub_140D705F0 在港完成块 (上改装线 sub_140C3D720, repair_parent 有效则 sub_140D76B00 转回队 (FinishRepair: SetDetachedActivity(4) + 即跑状态机 sub_140D79900)) / 4 reinforcing sub_140FB6C70 + taskforce 侧写点 sub_140D76B00 直写 / sub_140D79DE0 经分舰链 (…,4,…) 拆队 / sub_140D72000 链内挂父 / 0 完结多处。**状态迁移无燃料门** (唯一交集 = 修理/改装期在港自然落 ON_BASE_FUEL_COST 0.0)。
 
+**detached_activity 的 GUI 消费 (CNavyTheaterFleetRowItem, navytheaterfleetrowitem.cpp 0x141E15E20)**: 分舰队汇总入容器 = 逐 CTaskForce 按 `tf+1200 || tf+1204` (repair_parent 非空) ∧ resolve 有效 → 以修理父 tf 为值、父自 idpair 为键二分有序插入 **320B 行容器** (行 = 父 CTaskForce\*@+0 + 三个 104B 槽 @+8/+112/+216); 子 tf 按其 detached_activity 落列承载 tf+1440 fulfillment 编成 (CTaskForceComposition 拷贝, sub_14198A9E0): **1 repairing → +8 / 2 moving_to_refit 与 3 refitting → +112 / 4 reinforcing → +216 / 0 → 不落槽并触发断言 "A task force is reporting status NotDetached while having a RepairParent"**; 汇总船数 += tf+852 容器计数 (sub_140D6EEB0 = tf+840 一行直证)。
+
 **CTaskForceComposition** (RTTI 实名; vtable 0x142973300; sizeof 104B; CPersistent 族; writer 0x14198B970 / reader 0x14198B630; ctor 0x14198A7A0):
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
@@ -196,7 +198,8 @@ A 容器元素 (16B; 有序键 = {sub_unit, role}):
 
 > 收尾钩子 = 虚槽 [8] 0x14198B1A0 (load wrapper 读完后调): 三组长度不齐时按 taskforcecomposition.cpp:56 断言截到三者最小值, 逐 B[i] 取 {C[i] sub_unit, D[i] role} 在 A 二分查/插后**释放 B/C/D** — 故运行态常态 A 有值、B/C/D 已空, 读档读键期间三组才并存。
 > 命令链: CSetTaskForceCompositionRequirementsCommand (vtable 0x1429AFF20; Execute 0x1413569C0) 载荷 {task_force idpair@+40, requirements 编成@+48} — Execute 只把该编成四容器整体拷进 tf+1336 (sub_140D642E0), 不触 +112/+216。
-> 满足度缺口 = requirements − fulfillment 逐元扣减 (0x14198AD20; 断言 taskforcecompositionrequirements.cpp:102): 需求元 role2==-1 时 fulfillment 的 role==0 泛型舰计入 (宽松), role2!=-1 时须恰等 (严格); fulfillment 元 role2 全程无人读。需求侧双 builder: 需求表条目带旗 → {role=0, role2=X} (0x14198B790), 无旗 → {role=X, role2=-1} (0x14198B750); 条目源 = 编成编辑器需求模型 robin-hood 表 (24B 条 {amount@+8, role@+12, role2@+16 带旗}, 命令路径 0x141354720)。
+> 满足度缺口 = requirements − fulfillment 逐元扣减 (**0x14198AD20**, 纯扣减循环无断言): 需求元 role2==-1 时 fulfillment 的 role==0 泛型舰计入 (宽松), role2!=-1 时须恰等 (严格); fulfillment 元 role2 全程无人读。需求侧双 builder: 需求表条目带旗 → {role=0, role2=X} (0x14198B790), 无旗 → {role=X, role2=-1} (0x14198B750); 条目源 = 编成编辑器需求模型 robin-hood 表 (24B 条 {amount@+8, role@+12, role2@+16 带旗}, 命令路径 0x141354720)。
+> **缺口×可用交集 = 0x14198BC80** (taskforcecompositionrequirements.cpp; 断言 :102 "AvailableIter->first == DeficitIter->first" 实属本函, 旧挂 0x14198AD20 修正): 先 0x14198AD20 算缺口表 (tf+1328 对象 +8 需求 / +112 满足), 再与可用编成**有序键并归** (键序 = {sub_unit, role}, 匹配另校 role2) → 结果 = min(可用.amount, 缺口.amount) 逐键入 a2; **可用侧 role==0 (any 通配) 条目不入匹配, 改入通配池** 在可用不足/同 sub_unit 缺口上回补 (回补量 = min(池余, 缺口.amount))。两调用点: GUI 侧 0x141E67BF0 簇 (sub_140FB3380 从舰船构造可用编成, 逐选中 TF 调本函) / navalmission 侧逐 TF 以首 TF fulfillment 为可用, 门 = tf+884 != 8 (非 reserve)。
 
 mission 块 (units; 存档块名, 非 RTTI 类名) 补录:
 
@@ -312,7 +315,7 @@ CFleet/舰队视图 GUI 消费表:
 | tf+832 | MilitaryOverviewItem | **父舰队 CFleet\* (定案 — CTaskForce::GetFleet = sub_140D64500 一行直返 + fleet.cpp:548 断言 "Task force in the wrong fleet" 消费双证); 配对 setter SetFleet = sub_140D77B90 (旧队移除/新队挂/mission 重置/use_fleet_color 时颜色继承)** |
 | tf+496 | MilitaryOverviewItem | 当前省份 CProvince* (prov+200 → 战略区; prov+184 → 静态描述符, desc+210 bit0 = is_land 在港判定) |
 | tf+436 | MilitaryOverviewItem | 战斗中谓词 |
-| tf+472 | MilitaryOverviewItem | owner |
+| tf+472 (tag_id u32) | MilitaryOverviewItem | owner — **u32 tag_id 非 CCountry\*** (与 CCountry+8 同源, 直读数值比; 定案) |
 | CFleet+1584 idpair | CNavyTheaterFleetItem target | 剧场视图舰队项 |
 | CFleet+2696 idpair (+2704 内嵌 FleetItem, +40 TaskForceItem 列表, RTTI 定名) | CNavyTheaterFleetRowItem target | 舰队行项 |
 | fl+184 tf 容器 / fl+224 name / fl+256 icon / fl+272 color / fl+84 region 计数 | CNavyTheaterFleetRowItem (FleetRowItem) | 行填充 |
@@ -597,6 +600,8 @@ cc → 水雷管理器 → 元 {+176/+188} → 子 {+184} → 表 {data@+112, co
 | +8 | uint32 | region | |
 | +16 | 匿名结构 (NNB 形状) (环形缓冲 §3.4) | value 内嵌 {buf@+16, capacity@+24, head@+28, tail@+32} | 元素 i32 三态 {−1 无数据哨兵, 0 无护航, N 活跃护航 TF 计数} (生产端 sub_140EB0970 Σ+−1 push / 消费端 sub_140EA58B0 按 ≥0 分母 >0 分子, 720 窗口); 每条目发射门 = 环非空 (tail != head); 落盘 = head..tail 环形展开 (count = tail<head ? capacity+tail−head : tail−head; 满载 capacity−1; 运行时新建条目即 cap=721 (malloc 0xB44); ⚠ 线性读法读出槽外垃圾) |
 
+**运行时清扫器 = sub_140EA1B20** (215 行; = CStrategicNavyManager::DailyUpdate 体 sub_140EA2FD0 六步之尾, §4.2 计时域 9 navymanager.daily): 遍历 RH 表 (桶跨距 40, 跳 dist@+4 == 0), 每桶走环 — **任一元素 `*(i32*)(buf+4×idx) >= 0` 即保留**; **全 < 0 (−1 哨兵) 或空环 (head == tail) → 收集 region u32@+8**。对每个待删键重算哈希定位 (u32 键双轮雪崩, P = 73244475 = 0x045D9F3B, `idx = mask & h`) → 线性探测比对键@+8 → **40B 桶 RH backward-shift 擦除** (先 j_free 当前桶 buf, 整搬下桶六字段含 dist−1, 被搬空桶重置 {buf=0, capacity=1, head=0, tail=0}, 终桶 j_free + dist=0 + 宿主 count@+368 −−)。遍历前断言 `_pBuffer != nullptr` (pdx_circular_buffer.h:124, latch byte_14333D1F1) + 桶推进断言 (pdx_robin_hood_table.h:58, latch byte_14333D1F2)。
+
 #### 4.16.12 NNavalMission::EMissionType 枚举与 AI 侧任务写点 (A6 锚)
 
 **任务调度与状态机** (定案): 调度 = master update 阶段 9 → sub_140EA79F0
@@ -827,7 +832,7 @@ CUnit 域 sub_1406D2FC0 / sub_1406D2CB0 (单位删除/脱离路径)。
 - **特混三分区排序器 sub_141806420**: [无活动 | 有活动无修理父 | 修理父已设] (naviesview.cpp:92/93/94 断言即此), 喂 SetType/SetTarget/CancelNavyActivity 三路; 泛型收集 helper sub_1417FF1C0 (OutTaskForces/OutFleets 双出参, 返「是否舰队展开」)。
 - **符号实名升级**: 0x141819200 = **CNaviesView::Setup** / 0x14181D070 = **CNaviesView::UpdateButtons** (lambda 符号串直证, 全签名含三组 CPdxArray); 17 胶水块由 ctor sub_1418029A0 接线。
 - **新 RTTI 确认弹窗族 3 件**: CConfirmCancelNavyActivityDialog (0x1048) / CConfirmDeleteUnits (0x1048) / CConfirmRemoveAllRegions (0x1008) — 同型族, 布局见 findings。
-- 选区表双基址口径 *(view+8)+1336 ≡ *(view+48)+1336 (推定); CNaviesView+22232 子件槽 (推定)。
+- 选区表基址 = *(view+48)+1336 (簇内 20+ 处唯一直证形态, *(view+8) 侧未见); CNaviesView+22232 = 舰船选择子件槽 (Setup 直证: sub_141E19760 构造写入, 三函消费)。0x14181BB10 实为选区刷新主链 (快照数组/哨兵/置脏/三连刷新 12 步, §4.16.23)。
 
 #### 4.16.18 CTaskForce 运行时操作面 (taskforce.cpp 簇 33 函数; 非序列化)
 
@@ -890,7 +895,28 @@ CUnit 域 sub_1406D2FC0 / sub_1406D2CB0 (单位删除/脱离路径)。
 
 **CFleetRegionRange 实名** (定案, 新源文件锚 fleetregionrange.cpp): 范围表元素 =
 `{_pFleet CFleet* @+0, _Range.first u32 @+8, _Range.second u32 @+12}` (断言 :7/:12/:18/:23
-直证); 助手 0x141987EA0 = 段首区域槽地址 / 0x141987CA0 = 段内成员判定。
+直证); 助手 0x141987EA0 = begin() = `GetRegions().data() + 8×_Range.first` (:7/:12 双断言门) /
+0x141987F90 = end() = `GetRegions().data() + 8×_Range.second` (:18/:23 双断言门) /
+0x141987CA0 = 段内成员判定 (在 [first, second) 下标段内线性扫 region 指针, 命中返 1)。
+CFleet::GetRegions() 侧证: 数据 @ CFleet+72 (8B 元 = CStrategicRegion\*), 计数 u32 @ CFleet+84 —
+与 CFleet 表「+72 strategic_region {d@72, cap@80, count@84, alloc@88}」吻合; 断言边界语义 = first/second 允许 == size (空段在尾合法)。
+
+#### 4.16.19a 海军剧场选择集合法性谓词 (navytheater.cpp 0x141518490)
+
+**调用链**: GUI 谓词 0x141E67BF0 (读 UI 单例 qword_14332F6A0+1336 选择集) → sub_140DC7320(ui_session+1336, &fleets, &taskforces) **按 CSelectable type id 分拣选择集** (type 11 = CFleet, 基址 = 链节点对象指针 −24; type 1 = CTaskForce, 基址 = 节点对象指针) → 0x141518490(fleets, taskforces)。选择集链表形态与 §4.15「SelectionList = qword_14332F6A0+1336, 链节点 {+0 对象指针, +16 next}」互证; **对象侧 type id 落在 selectable+8** (CFleet selectable@+24 → +32 = 11, 与 CFleet 表「+32 CSelectable type id = 11」吻合; CTaskForce selectable@+0 → +8 = 1)。
+
+0x141518490 六判据 (全部定案):
+
+| # | 判据 | 字段锚 |
+|---|---|---|
+| 1 | 全部选中舰队 owner 同国 (tag_id) | CFleet+168 = CCountry\* → cc+8 = tag_id; 或 CTaskForce+472 = owner tag_id u32 直读 |
+| 2 | 全部选中特混 owner tag 匹配 (或 sub_140BB52F0 同国等价, 含流亡) | tf+472 |
+| 3 | 选中舰队集恰为某战区组完整成员集 (全队 fleet+208 同组 且 组 count@+44 == 选中数) → 必须同时选中特混, 否则非法 | CFleet+208 → 组+32 容器 count@+44 |
+| 4 | 选中特混须同属一父舰队 (tf+832 全等) 且父舰队 tf 计数 == 选中数 (= 父舰队完整特混集) | CTaskForce+832 = 父 CFleet\*; 父舰队 +184 容器 count@+196 |
+| 5 | 父舰队须有战区组 (fleet+208) 或为预备舰队 | :95 断言 "( pTheaterGroup \|\| pFleet->IsReserveFleet() ) && A fleet should either belong to a theater group or be a reserve fleet."; IsReserveFleet = sub_140D57C70 (§4.16.20 定名) |
+| 6 | 判据 4 成立且父舰队战区组成员数 == 1 → 非法 | 组+44 == 1 |
+
+> **CTaskForce+472 = owner tag_id (u32, 非 CCountry\*)** — 判据 1/2 直接以 u32 比 tag 且空值/同国分支均按数值处理 (定案; 与 CCountry+8 同源)。
 
 **RebuildRegionRanges sub_140D530E0 算法定案**: gs+2618 真 → 抑制直返; 自引用节点复位
 (fl+120 = fl / +128 = 0 / +132 = 区域数) → 范围表 count@+108 清 0 → 无区域分支 =
@@ -915,11 +941,13 @@ tf+1292 直证; SetDefaultColor = fleet_id 取模色表 (dword_143338D3C/qword_1
 **CTaskForce 虚槽新证据**: vtable[13] = GetName (trace 消费) / vtable[22] 第二消费点 = AddTaskForce
 挂队尾 / vtable[14] = 7 参谓词 (待裁)。**qword_14332F698 补证** (定性改「持 vtable 全局管理器:
 选中对象注册+注销 [dtor sub_1402A00F0] + 命令工厂投递 [SetHomeBase 通道]」, 具体身份仍
-待裁)。**分桶网络补全**: sub_140D51B80 全部 8 调用点名单; 10 桶 = 10×24B 栈容器
+待裁；**CCompactShipEntry ctor 0x141E10F30 第二实参 = qword_14332F698+1272** (该全局持 vtable, vt+128/+184/+200 有调用点, 含 +1264/+1272 子表 — §4.30 落卡)。**分桶网络补全**: sub_140D51B80 全部 8 调用点名单; 10 桶 = 10×24B 栈容器
 (0xAu×0x18u 直证), 键 = tf+884 mission type。**gs+2618 = 重建抑制旗** (3 消费门) /
 **gs+2617 = 分桶重算门** (推定, 运行时-only)。
 
-未决: repair_parent resolve != 16 哨兵判读; vtable[14]/vtable[18] 槽 RVA; qword_14332F698 身份
+**sub_14221F310 空哨兵判读收口 (定案)**: 两处独立调用 (CNavyTheaterFleetRowItem 0x141E15E20 / naval_utility 0x1415C6F30) 同形用法 = `v = sub_14221F310(idpair); base = v − 16; if (v != 16)` → **返回 16 = 空哨兵, 有效对象 = 返回值−16** (另有 v==0 先判分支; 与本表 tf+1024 行「不可解析返 16 哨兵」一致, 原未决项关闭)。
+
+未决: vtable[14]/vtable[18] 槽 RVA; qword_14332F698 身份
 三说并存; sub_140D539A0 分组键; desc+210 bit1 位域; CStrategicRegion 邻接块归属 s4_25 域待收。
 
 #### 4.16.20 navalcommands.cpp 簇对账增补 (海军命令执行与预备舰队体系; 11 函闭环)
@@ -1076,3 +1104,87 @@ define 落名 (defines_map_1193 直证):
 | dword_143336138 | INTEL_LEVEL_MEDIUM_STRENGTH_ESTIMATE_HALF_RANGE_PERCENTAGE |
 
 未决: a3 敌方上下文类属 (idpair@+24/+28 + 舰队容器消费双证, 无 RTTI 直查) / sub_14198D790 双输出语义 (推定 敌强度估计区间上下限) / 行件宿主类名 (上游 sub_14198E690 未整读)。
+
+#### 4.16.23 CNaviesView 海军总览视图全案 (naviesview.cpp; 30 函 — 选区驱动的按钮回调域)
+
+断言路径串 `source\interfaces\naviesview\naviesview.cpp` 40 处直证零伪影。主类 CNaviesView (37048B, vtable §4.30.17 已载), 符号实名两枚 = Setup 0x141819200 / UpdateButtons 0x14181D070; 三大件 = tt[0] BuildTooltip 0x141809190 (2366 行) + 选区刷新主链 0x14181BB10 (971 行) + UpdateButtons (733 行); 余 22 函几乎全为「收集选区 → 过滤 → 构造命令 → IsValid → 投递」按钮回调骨架 (16 函共享 :162 混编断言 `OutTaskForces.IsEmpty() && "We have a mix of task forces and fleet in the selection!"`, latch byte_14338B16C/_16D/常态三枚同文共享)。
+
+选区收集标准四步骨架 (16 函复用): ① sub_140BC30C0(*(view+48)+1336, &iter) 选区链遍历 → ② 元素+8==1 舰队条目 sub_140D64500 (CTaskForce::GetFleet) 收集去重 / +8==11 特混条目元素-24 直收 CTaskForce* → ③ 两类并存 :162 混编断言 → ④ 舰队展开 sub_140D230E0 (GetTaskForces), 过滤 repair_parent (tf+1200/+1204 双零或 resolve 失败) 并入 tf 清单。
+
+**BuildTooltip (0x141809190) 分发槽表** (按 `a1[槽]==a2` 按钮指针分发; 键流定案, 函数体串直证; ⚠ 与 Setup 绑定槽存在语义错位 — Setup 把 btn_merge 绑到 +36912 而本表 +36912 为 AUTO_REINFORCE 分支, 候选解释 = 绑定 helper sub_14172D090 首参非按钮存储槽或存在平行按钮区, 待活体对拍, 两表暂并列):
+
+| 槽偏移 | tooltip 键 |
+|---|---|
+| +36640 | NAVAL_BTN_REMOVE_REGIONS (+_NO_REGIONS) |
+| +36648 | ALL_TASK_FORCES_REPAIR_NOW / _CANCEL / _DISABLED (三态 = sub_141808040 返 0/1/2) |
+| +36848 | SHIP_REFIT_TOOLTIP (+_NO_SHIPS_TOOLTIP / _NO_COMPATIBLE_DESIGNS_TOOLTIP; 经 +22232 子件链取舰/设计计数) |
+| +36856 | SELECTED_TASK_FORCES_ARE_ALREADY_RESERVE_FLEET / SET_SHIPS_AS_RESERVE_FLEET / SET_TASK_FORCES_AS_RESERVE_FLEET (分支门 = view+204) |
+| +36864 | NAVY_SELECT_HALF / _NEED_MORE_THAN_ONE_SHIP |
+| +36872 | NAVAL_GUI_BTN_MERGE (disabled → 选区计数 + 合并预览 sub_1406DEDF0) |
+| +36880 | NAVY_SPLIT_TASKFORCE_IN_HALF / _TOO_SMALL |
+| +36896 | AUTO_BALANCE_SHIPS_IN_TASK_FORCES (disabled → 详情 sub_1418085F0) |
+| +36904 | NAVAL_BTN_SET_TARGET / _NO_TASKFORCE (+_DELAYED_DESCRIPTION) |
+| +36912 | ENABLE/DISABLE_TASK_FORCE_AUTO_REINFORCEMENT (+_DISABLED_FOR_DETACHED + _DESC) |
+| +36928 | 修理拆分开关 ENABLED/DISABLED + NAVY_REPAIR_POLICY_SPLIT(_MIXED) + _DESC (伴生 +36936) |
+| +36944 | NAVY_REPAIR_PRIORITY (+NAVY_REPAIR_POLICY_MIXED / _BLOCK_BECAUSE_DETACHED) |
+| +36960 | ENABLE/DISABLE_TASK_FORCE_UNDERWAY_REPLENISHMENT (+_DISABLED_FOR_DETACHED) |
+| +36976 | NAVY_AGGRESSIVENESS (SHIP_MIXED/_CURRENT_AGGRESSIVENESS_LEVEL + _N) |
+| +36992 | NAVY_CARRIER_DEFENSIVE_STANCE (+_SELECTION_CURRENT/_CONFLICT) |
+
+非按钮分支: 任务按钮循环 0..9 查 `btn_mission<id>` 件 (缺件 → "Missing button for naval mission id <id>"); 匹配过滤 = tf+884 任务类型, 任务数据 sub_140FB3600(tf+864, id, out); 任务 id 5/6 走 define 门特判。任务目标按钮行 (view+36752 容器 48B 元: +8 串 / +40 按钮) → NAVAL_MISSION_TARGET_IS_SELECTED/_DESELECTED。舰队条目尾 = navalmission 文案族 (任务名/效率/描述) + raid_ship_source_move_warning。
+
+**Setup (0x141819200) 全窗构建**: 旧观察器/下拉析构 (+36392/+36408/+36416) → 按名查件 (navy_box_background 绑观察 this+40 / navy_box → +36776 / slider → +36400 内部指针 → this+92) → 任务按钮循环接线 (胶水块+2880) → 按钮绑定 helper **sub_14172D090(槽地址, 父件, 名串, 胶水块, 观察器)** 五参形态:
+
+| 件名 | 写入槽 | 胶水块 |
+|---|---|---|
+| btn_remove_regions | +36680 | +4168 |
+| btn_exclude | +36896 | +9320 |
+| btn_select_half | +36904 | +10608 |
+| btn_merge | +36912 | +11896 |
+| btn_split_in_half | +36920 | +13184 |
+| btn_create_new_from_selected | +36928 | +14472 |
+| btn_taskforce_o_matic | +36936 | +15760 |
+| btn_upgrade | +36888 | +6744 |
+| btn_repair_now | +36688 | +19624 |
+| btn_reinforce | +36952 (+36960 观察器) | 直连 +8032 |
+| btn_toggle_split_for_repair | +36968 (+36976 观察器) | 直连 +18336 |
+| btn_underway_replenishment | +37000 (+37008 观察器) | 直连 +17048 |
+
+三下拉: defensive_stance → +36696 (观察器 +37032, 图标 +37040) / aggressiveness → +36704 (+37016, 按钮 +37024) / repair_priority → +36712 (+36984, 图标 +36992); 选项网格 = define 门 54 → dword_1433398E4 项 / 5 项 / 4 项逐项入 button_grid。子件构造: +22248 CMoveShipsWindow / +22240 CNavyLeaderWindow / +22216 CTaskForceCompositionEditor / +22200 detailed_fleet_list / +22208 名件 / **+22232 舰船选择子件 (sub_141E19760 构造)**。任务按钮缓存数组 (+36792 data / +36800 count, 48B 元, 元+4 占用旗) 重建 + FNV-32 (素数 16777619) → +36784 RH 表; 尾 handler 空断言 :1696。
+
+**选区刷新主链 (0x14181BB10, 书旧定性「Reload 辅助」细化为选区刷新主链)** 12 步要点: 空选区早退清理名册态; 标准四步收集; **view+232..+244 = 选区 idpair 数组 {data@232, cap@236, count@244}** (逐条 resolve 失效即移除); view+224/+228 上次选区哨兵变化广播; **view+257 = 海军旗** (多选清 0 / 单选按 fleet+84 区域计数置值, 书「handler+480 态 +257」精确化 = 本类字段); view+256 舰船详情 pending 旗 (置位时修船资格过滤 sub_141807860 → 喂 +22232 件, 用后清 0); **view+36840..+36852 = 选区 TF 快照数组** (新旧 memcmp 变化 → sub_141818360 批量置脏 + 覆写); 三连刷新尾链 sub_14181DE80 → UpdateButtons → sub_14181E480; a2 弹窗树遍历有摘除 → CNavyCancelActivityCommand; 单 tf 任务类型 8 (reserve) 时 navy_box 显示所属编组名/色带 (经 view+36728 scoped ptr); 选择计数文案 = fleet+36 旗 → ALL_TASKFORCES_SELECTED / 单选 ONE_TASKFORCE_SELECTED / 多选 MULTIPLE_TASKFORCES_SELECTED。
+
+**UpdateButtons (0x14181D070) 驱动逻辑要点**: tf 数空断言 :2177; 任务按钮缓存 RH 表遍历 (pdx_robin_hood_table 迭代哨兵断言 latch byte_14338B165); btn_exclude 单选 hide / 首个非 reserve tf → 显; define 门 54 可自动补员过滤 → 防御姿态观察器同步; 合并预览 (多选 sub_1406DEDF0 与 BuildTooltip 同源); btn_reinforce 按 Σ无修理父舰数与谓词二选一; gs 玩家国 (+328 槽) → 补员观察器; strike force (tf+884==2) 存在 → aggressiveness 网格显隐。
+
+**22 回调定性表** (命令 ctor 全部直证新钉):
+
+| VA | 行数 | 定性 | 命令 ctor |
+|---|---:|---|---|
+| 0x141812770 | 524 | 取消活动回调 (弹窗树联动) | sub_141347BD0 = CNavyCancelActivityCommand (15181) |
+| 0x141811950 | 434 | 任务目标设定回调 (materiel_grid 刷新) | sub_1413473D0 = CNavalMissionSetTargetCommand (10261) |
+| 0x1418151C0 | 426 | 全选舰移出三路回调 (选区首舰同源判定 = tf+1832 舦→队回指; 合并/拆分/重指派三路) | sub_141349950 (REASSIGN_ALL_TASKFORCES) / sub_141349BD0 (合并族) / sub_141349840 (拆分族) 三 ctor 新钉; 命令 id 对号未决 |
+| 0x141807860 | 406 | 修船资格过滤器 (CReferenceObject 校验断言双份; 喂 +22232) | — |
+| 0x141810B90 | 390 | 修理模式下拉回调 | sub_141349160 = CNavyRepairModeCommand (13581) |
+| 0x141813080 | 378 | 交战规则下拉回调 (读 14198 偏好簇) | sub_1413616D0 = CSetNavyEngagementCommand (13357) |
+| 0x14180DB60 | 377 | 改装入口 (胶水 +6744) | — |
+| 0x14180D4C0 | 375 | 特混重组回调 (胶水 +15760; sub_141360AE0 族) | §4.33 13092 已载 |
+| 0x14180F050 | 372 | 自动补员开关回调 (胶水 +9320) | sub_14134A630 = CSetTaskForceAutoReinforcementCommand (15170) |
+| 0x14180E250 | 365 | 多选合并回调 | sub_141360420 = CMergeNaviesCommand (13176) |
+| 0x14180F6B0 | 339 | 移除区域回调 (:2129 断言; 确认弹窗带 DAILYCOST/MISSING_PP/PROGRESS 表格键) | — |
+| 0x141812160 | 333 | 海上补给开关回调 | sub_141349370 = CNavySetUnderwayReplenishmentCommand (16467) |
+| 0x141816E80 | 328 | 地图右键海军分流 (view+257 海军旗; industrial_organisation_list_window 互斥判定) | — |
+| 0x141813750 | 314 | 航母防御姿态下拉回调 (舰载机状态文案收集) | sub_141349D70 = CSetCarrierDefensiveStance (10227) |
+| 0x14180E970 | 312 | 移动令排序壳 (三分区 :92/93/94 第二份全拷贝 + "All checked range are empty…" 断言) | sub_141347720 = CNavalMissionMoveCommand (13092) |
+| 0x141813D80 | 295 | 修理拆分开关回调 (第二 RepairMode 入口) | sub_141348E70 = CNavyRepairModeCommand (13581 变体) |
+| 0x141818360 | 282 | 选区特混批量置脏 (逐 tf sub_140D77B60 = `*(tf+1881)=1` 一行写点; 调用方 = 选区刷新主链 + 修理路) | — |
+| 0x141808040 | 281 | 修理三态分类器 (0/1/2; 唯一消费者 BuildTooltip REPAIR_NOW 族) | — |
+| 0x1417FF1C0 | 218 | 泛型收集 helper (双出参; 尾 :162 断言 = 「返是否舰队展开」注实现侧) | — |
+| 0x141807540 | 162 | 拖放移动回调 (:4182 SubUnitID 断言) | sub_1413485C0 = CMoveShipsCommand (13092) |
+| 0x141806420 | 128 | 三分区排序器 (:92/93/94 断言本体; 出参 = 分区后数组) | — |
+| 0x14180C570 | 62 | 移动令玩家UI 小函 (:4090 断言 + order_fleet_effect/order_invalid_effect 双音效) | sub_141346B30 = CNavalMissionMoveCommand (12284) |
+
+**0x141818920 (615 行) = REASSIGN_ALL_TASKFORCES 确认弹窗入口前置 (新定案, 补 §4.33 13092 调用链)**: UI 单例 qword_14332F6A0 vtable+184 → +480 = CNaviesView → view+244 选区数非空短路直调 0x1418151C0; 主体 = 收集 → 混编断言 (直通非弹窗) → sub_141806930 + sub_141349950 ctor → default_confirmation_popup (TASK_FORCE_IS_RESERVE_FLEET / REASSIGN_ALL_TASKFORCES_TEXT / _HEADER 三键) → 确认回调投递。
+
+**本批新定案字段 (与 §4.30.17 类壳互补)**: +88 布局高度缓存 / +92 slider 内部指针 / +128..+140 选中对象跟踪三件套 (idpair+dword+u8 旗, 复位路径已见宿主语义未决) / +144 合并预览 40B 缓冲 / +204 舰队级选中旗 / +232..+244 选区 idpair 数组 / +256 详情 pending 旗 / +257 海军旗 / +264 弹窗树比对键 / +36720 选择计数件 / +36728 reserve 组 scoped ptr (latch byte_14338B16A) / +36752 任务目标按钮表 48B 元 / +36784..+36810 任务按钮 RH 表区 / +36816/+36828 串数组 {data, count} / +36840..+36852 TF 快照数组 (BuildTooltip idx4605 同址) / Setup 绑定槽区 +36680..+36936 步 8 与观察器对 +36952..+37040。音效 = order_fleet_effect (下令) / order_invalid_effect (无效)。
+
+17 胶水块语义落定 9 块: +4168 移除区域 / +6744 改装 / +9320 自动补员 / +10608 半选 / +11896 btn_merge 接线 / +13184 btn_split_in_half 接线 / +14472 btn_create_new_from_selected 接线 / +15760 特混重组 / +19624 修理模式 / +20912 修理回调 (0x14180FCD0, 523 行: 三态分类 sub_141806380 → 需修路 CNavyRepairNowCommand / 弹窗路分舰送修; 尾驱动 +36688 槽状态)。

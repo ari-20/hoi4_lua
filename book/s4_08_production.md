@@ -64,6 +64,7 @@ sizeof 8; 州 owner/controller 变更监听接口基, CState SetOwner 逐元 vta
 | CEquipmentProductionLine (装备基; 次表 @+80 = TListenerTrait 0x142A1C680) | — | 248 | 0x142A1C570 | 0x141939760 / 0x141939330 |
 | CMilitaryProductionLine | 56 | 248 | 0x14297BC80 | thunk → 装备基 (零增量) |
 | CNavalProductionLine | 57 | 280 | 0x14297BE68 | 0x140F6F590 / 0x140F6F4F0 |
+| CShipRefitProductionLine (基 CEquipmentProductionLine; 次表 @+80 = 0x142965968 TListenerTrait) | 71 | 344 (推定 = 248 装备基 + refit 区至 +336+8) | 0x142965858 | 0x140F71FF0 / 0x140F71D40 (rtti_hierarchy 定案; vt_rtti 另录 0x14297C488/0x14297C598 同名 ctor/dtor 闭包表) |
 | CBuildingProductionLine | 59 | 176 | 0x14297B958 | 0x140F6E660 / 0x140F6E1C0 (经 CGeneralProductionLine 层 0x141A2F7C0) |
 | CRailwayGunProductionLine | 75 | 272 | 0x14297BFC8 | 0x140F70E10 / 0x140F70C60 |
 | CRailwayGunRepairLine | 76 | 120 | 0x14297C100 | 0x140F70E60 / 0x140F70C80 |
@@ -147,6 +148,8 @@ deployment 对象布局 (naval: dep = 元素+272 解引用; refit 形态同构�
 
 **CShipRefitProductionLine** (refit 生产线类名绑定; writer 0x140F71FF0 = 军线基 writer + 双键增量 **12181 deployment@+248 / 14666 original_eq_cost@+336**; reader 0x140F71D40; 1.19.3 writer 未见 ≠0 门, 旧门注待活体复核) — §4.8 军线字段表 (+265..+336 区) 全在其账, 本行补类名锚。
 
+**改装成本初始化 (ctor 尾链 sub_140F71DB0, 定案)**: line+248 = CShipRefitDeployment 内联 → sub_140D0D950 取 ship (空 → 断言 "Ship refit production line does not have a valid reference to a ship.") → sub_14100FF30(ship+64) 取装备变体 (空 → 断言 "...references a ship without an equipment variant.") → sub_140BD41D0(*(line+136), 0) 取 16B 值对 → line+304 ← 首 qword / line+312 ← 次 qword (sub_140158500); **成本 = \*(\*(variant+1008)+944)** (i64×1e-5) → **line+336 = 成本** (双侧互证) 且 **line+304 += 成本**; a2 真 → **line+56 = 成本** (通用 produced 槽)。⚠ line+304 += 成本 的用途 (总价/改装费差) 待裁。
+
 **类名/基链 (1.19.3 实证)**: 部署对象 = **CNavalDeployment** (80B, vtable 0x14295FB48, ctor 0x140D0D2F0, writer 0x140D14860 / reader 0x140D124E0), 基 = **CNavalDeploymentTarget** (vtable 0x14295FAF8; 基 writer 0x140D148B0 = tf 对 / theatre 对@+20 / base 三分支); refit 侧派生 = **CShipRefitDeployment** (vtable 0x14295FB98, +32 = ship 对, 键 10400 增量)。+40 = 有效位单例指针 (ctor sub_140AC4DD0, ICAW 写门之一); +48 ICAW 池 vtable = CEquipmentArcheTypePool (写门 = 非全空 sub_141010B70 ∧ +40 非空)。
 
 #### 4.8.3 names 容器 (176B 元素)
@@ -198,7 +201,7 @@ names 容器 (元素内 {data@+248, count@+260}, 176B 元素; writer
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
-| +112 | CString 32B | building (tok 10319): 建筑定义名 (写前小写化 sub_1410DB880); GUI 侧经 CBuilding 块取 template = token@(*(bld+480)+8), location = uint32@(*(bld+472)+108)。⚠ general_lines 装载器兼容双键: case 10319 (building) 与 12211 (building 全键循环同体) |
+| +112 | CBuilding* | building 指针 (落盘键 10319 = 其 def 名: writer 0x140F6E660 经 sub_1410DB880 取名, reader 0x140F6E1C0 case 10319 经 sub_1413C0980 名解回指针 — 单 qword 赋值); 指向对象: +64 = u16 当前等级 / +472 = 州 / +480 = def (成本核 sub_140F6C770/sub_140F69E60 与 [10] 同读法)。⚠ general_lines 装载器兼容双键: case 10319 (building) 与 12211 (building 全键循环同体) |
 | +120 | uint32 | to_repair (tok 12570): >0 才写 |
 | +121..+139 | uint8@128 / uint32@132 / uint32@136 | relative 对@144 前: **u8@128 (ctor 0) / u32@132 (ctor 0) / u32@136 = sub_140689030(*(owner+656)+8, *(bld+480), 1) 计算值** — 三者未入档 |
 | +140 | uint8 | conversion (tok 13609) |
@@ -226,8 +229,8 @@ conversion 参 (CAddConstructionCommand 走此族, §4.33.18)。
 
 daily 线日更 **sub_140F6A710** (vtable[24], building_production_line.cpp:529 "_pBuilding"
 断言) 八步: ① +136 重算可建上限; ② cost 重算 (+40 = 1e5 × cost, 公式见下);
-③ relative 线校验 (有效∧非 is_subject → 早退进度由对方线推进; is_subject →
-进度同步写相对线 +56 + 贡献记账 mod291 MASTER_BUILD_AUTONOMY_FACTOR);
+③ relative 线校验 (**槽 [10] sub_140F6E3E0**; 有效∧非 is_subject → 早退进度由对方线推进, +48 不刷; is_subject(+152) →
+速度 = 自身(+24 工厂)核 + **相对线(+24 工厂, 用相对线所属国 *(相对线+32)+656)** 核之和, 进度同步写相对线 +56 + 贡献记账 mod291 MASTER_BUILD_AUTONOMY_FACTOR);
 ④ speed = vtable[14] (读 +48 缓存); instant 门 → speed=max(speed,cost);
 ⑤ produced(+56) += speed; ⑥ 修理分支 (+120>0): sub_140F6A400 修理速度 →
 sub_1410DAFD0 恢复 (partial_health@+72 累积钳 1e7, 满 → healthy+1 +
@@ -332,6 +335,10 @@ names 容器 (§4.8.3); +96 内部名串 writer 不发。
 |---|---|---|
 | +112 | uint32 | 产出铁路炮.type — id 对之 type (id 对 {type@+112, id@+116} — 与 rail_way base/target 同槽异义 (GER el: 74/2 → `railway_gun id=2 type=74`; writer/reader 双侧无门恒写)) |
 | +116 | uint32 | 产出铁路炮.id — id 对之 id |
+
+> **修理线速度 (槽 [10] sub_140F70D50, RTTI 直证槽归属, 定案)** = `RAILWAY_GUN_REPAIR_SPEED (qword_1433361F0, i64 定点 define) × ((line+24) + (line+28))` (×1e5 后 ÷1e5 精确抵消 = 直接相乘; +24 完好 / +28 受损**双计**; 符号位经 128 位魔数序列取)。两处除法共用魔术常数 **0x29F16B11C6D1E109 = ceil(2^78/100000) 精确** (PE 验算 2^78//100000 = 0x...108, ceil = 0x...109; 勿按伪码字面改写)。
+
+> **CProductionLine::SetSpeed = 0x140F6E340** (production_line.h:224 断言 "vSpeed >= 0_fixed", 一次性缓存 byte_14333D5C6): `line+48 = a2`, 负值断言。槽 [10] sub_140F70D50 / sub_140F6E3E0 各自**内联同一 setter** (三函共享 :224 断言即此直证), 0x140F6E340 为唯一非内联副本; 调用点 = 资源释放遍清零 / 军线速度计算尾等四处。
 
 #### 4.8.8 生产面板 GUI 消费链
 
@@ -530,20 +537,20 @@ CResourceExchange 两 CGameDate: 24B 日期甲 {基+176, hours@+184, 序列化�
 #### 4.8.12 NIndustrialOrganisation::COrganisation (MIO 实例; sizeof 536)
 
 RTTI `NIndustrialOrganisation::COrganisation`; vtable 0x142967A28 (10 槽)。基链 `CReferenceObject@0 ← CPersistent@0` (CPersistent 抽象无实体vtable, §4.00.1) + `TListenableTrait<USOrganisationListener, USEnqueuedOperations>@24` (数据基)。序列化走 CPersistent 槽: writer = 槽 [2] 0X140DBCCC0 / reader = 槽 [4] 0X140DBB350。ctor = 0X140DB3C80(`def = COrganisationTemplate*`, `属主国 tag*`)。创建链 = `CProductionStatus` 遍历 mio_organisation 库 (0x332ef48; def 表 {d@+96, c@+108}) → 逐 def 过 `def+536` 条件块虚槽 [3] → ctor → 入 `PS+304` industrial_organisations 容器 (§4.8)。
-vtable 10 槽全表 (reader 侧定案): [8] = **PostLoad 0x140DBABE0** (idpair 重注册 + 已解锁特质 token 桶表校验 :337); 实现层: 特质解锁队列日更 #1 (0x140DBC4F0) 解锁成功后门 mio+312 (auto-designs) → sub_140DB53A0 收集受影响装备变体 → **sub_140DBC9C0 auto-design 变体重设计 pass**; 日更游标前推 sub_140DB7C60 (:1065) / wrapper sub_140DBC7D0 (:1018) / GetTraitName sub_140DB9960 (:1049); **库对象第二索引 trait token RH 桶表 {d@+168, mask@+180, extra@+184}**; **variant+1160 = 挂接 MIO 指针** (sub_1413AF930 :246 断言 + 0x140DBC9C0 门双证)。org_template 家族 7 函数: 0x140A51D60 总校验编排 + 五子校验 (parent/互斥 reciprocity/token 唯一/树位置唯一/remove_trait-vs-include) + 0x140A54AA0 模板级继承门; 模板新偏移 +20 (include isSet 旗) / +36 (+24 列表 count) / +476 / +500 / +556 / **+1384 = include 源模板条件块头指针**。槽契约族内定案: CTrigger [13] = 载荷引用校验槽 / CEffect [23] = 常量负值校验槽 / CTrigger [23] = 比较 trigger 现值 getter。UI 桥: list_window 0x141C3C7F0 / 0x141C3C6B0; ui_context mode 枚举 (1 研究槽/2 生产线/3 舰船改装/4 变体); tooltip_helper MIO 修饰符枚举 615..623 (精化: 原「token」系误标 — 全局 MODIFIER 枚举 MIO 段, ref/modifier_idmap + trait.cpp:290 白名单双证)。
+vtable 10 槽全表 (reader 侧定案): [8] = **PostLoad 0x140DBABE0** (idpair 重注册 + 已解锁特质 token 桶表校验 :337); 实现层: 特质解锁队列日更 #1 (0x140DBC4F0) 解锁成功后门 mio+312 (auto-designs) → sub_140DB53A0 收集受影响装备变体 → **sub_140DBC9C0 auto-design 变体重设计 pass**; 日更游标前推 sub_140DB7C60 (:1065) / wrapper sub_140DBC7D0 (:1018) / GetTraitName sub_140DB9960 (:1049); **库对象第二索引 trait token RH 桶表 {d@+168, mask@+180, extra@+184}**; **variant+1160 = 挂接 MIO 指针** (sub_1413AF930 :246 断言 + 0x140DBC9C0 门双证)。org_template 家族 7 函数: 0x140A51D60 总校验编排 + 五子校验全对号 (0x140A52D10 parent / 0x140A52880 互斥 reciprocity / 0x140A525C0 token 唯一 :378 / 0x140A52080 树位置唯一 — :454 trait+936 relative_position_id 全模板线性搜不到 / :464 `sub_140A4E2C0` 取 8B 打包位置 == −1 未设 / :473 std::set 8B 打包键 (x=低 dword, y=高 dword) 查重 "position [x,y] is used several times."; `sub_140A4FA80` 真 则跳过查重 (谓词语义未决) / 0x140A52F50 remove_trait-vs-include :408) + 编排前件 (sub_140A4E480 initial_trait 参数告警; include 门 +16 token 查库失败 :394; allowed 门 +556 未置 ∧ +1384 空 → +536 默认块其 +20 空 → :651 "allowed trigger is empty") + 编排后件 (override_trait 数组 +488/+500 循环校验) + 0x140A54AA0 模板级继承门 (本批未读); 校验错误前缀统一 `<file>:<line> : in MIO <模板名 token@+8>, …`, trait 打印经 NIndustrialOrganisation::STraitId (token@+0 → sub_140A4D4D0 取名); 模板新偏移 +20 (include isSet 旗) / +36 (+24 列表 count) / +476 / +500 / +556 / **+1384 = include 源模板条件块头指针**。槽契约族内定案: CTrigger [13] = 载荷引用校验槽 / CEffect [23] = 常量负值校验槽 / CTrigger [23] = 比较 trigger 现值 getter。UI 桥: list_window 0x141C3C7F0 / 0x141C3C6B0; ui_context mode 枚举 (1 研究槽/2 生产线/3 舰船改装/4 变体); tooltip_helper MIO 修饰符枚举 615..623 (精化: 原「token」系误标 — 全局 MODIFIER 枚举 MIO 段, ref/modifier_idmap + trait.cpp:290 白名单双证)。
 
 #### 4.8.18 MIO GUI 四簇增补 (tooltip_helper/list_window/detail_items/trait; 13 函闭环)
 
-**修饰符 tooltip 行发射族** (tooltip_helper 3 函): 按枚举 615..623 从 **6 个静态全局取基准值** (qword_143334630/143333D70/143333E18 + dword_143334248/14333476C/143334918 (×1e5 转 fixed), 加载源未追) → 按「百分比型/平值型」两格式化器分发 → 组装「已指派 MIO」升级提示。
+**修饰符 tooltip 行发射族** (tooltip_helper 3 函): 按枚举 615..623 从 **6 个静态全局取基准值** (qword_143334630/143333D70/143333E18 + dword_143334248/14333476C/143334918 (×1e5 转 fixed); **6 基准 = CDefines 槽全部落名 (定案)**: DESIGN_TEAM_RESEARCH_BONUS (615) / ASSIGN_DESIGN_TEAM_PP_COST_PER_DAY (616) / DESIGN_TEAM_CHANGE_XP_COST (617) / ASSIGN_INDUSTRIAL_MANUFACTURER_PP_COST_PER_DAY (618) / DEFAULT_INITIAL_TASK_CAPACITY (619) / DEFAULT_INITIAL_ATTACH_POLICY_COOLDOWN (623; 勘误: 原标 (620) 系编号错位 — 620 = FUNDS_SIZE_UP_REQUIREMENT 断言禁止项, 无 define, 函数级定案表本已正确); 三 dword 枚有钳位校验器告警串直证)。**格式化分派全表 (定案)**: 百分比型 {615, 621, 622, 623} = 值×100 (sub_14226C290 首行 `v7 = 100*a2` 定标直证) / 平值型 {616, 617, 618, 619, 620}; **等基准 → 黄标 0x11+\'Y\' 短路**; 616/618 走专用带色键 INDUSTRIAL_ORG_PP_COST_KEEP_COLOR; **621 FUNDS_GAIN 特例 = 显示相对 100% 基线的增量** (专用键 INDUSTRIAL_ORG_DETAIL_MIO_FUND_GAIN_MODIFIER_VALUE); 620 走通用路径显式断言禁止 (须 GetSizeUpRequirementBase 专属)。组装器尾链 **sub_14191BBE0 = UPGRADE_BONUS_DIFF 段发射器** (修剪 → 标题键 → sub_140DB7A10 差分 → 双空格连接); 升级提示键族 = …_UPGRADE_ALREADY_ASSIGNED_MIO{_DELAYED, _HEADER, _CREATE_VARIANT, NO_…} + …_UPGRADE_BONUS_DIFF; 修饰符值行 0x14191A260 与基准分发器 0x14191A840 传给格式化器/变量构造的值实参 = **16B variant 形 {i64 值@0, 判别字 1@8}** (tagged 值非裸 i64)。
 
 **list_window** (2 函): _Setup 全绑定图 (10 按钮 + 列表/下拉 + 3 套位置绑定 + 0x4450B 内容控制器, 槽距 1368B) + 「按行 idpair 匹配打开详情窗」桥。
 
 **detail_items** (3 函): 详情窗历史条目行双 Update 槽 (+112 org idpair/+120 类型/+124 变体 idpair; 三旗 + XP 成本文案 + flavor 行) + 加成类型图标行 (E2 精化见 §4.31)。**指派历史 rh 表 data 载荷**: 元素+24 CGameDate ($DATE$) / +48 _DesignTeamAssignDate.has_value (断言实名) / +56 产量。
 
 **CTrait def 增补** (trait 5 函; 定案): +932 = position.y (与 +928 同属键 76, sub_140A4C640 成对写) / **+936 token + +940 旗 = 键 14029 relative_position_id** (树位置递归解析, A4E2C0 消费端) / +336 CModifier 块内 stat token 数组 {d@+352, c@+364} 16B/条, 解析期白名单限定 615..623 (:290) / PostLoad2 双校验 + initial_trait 无关参数告警器 + 18 键 reader + delete_included_values 判定 (4 函书内定案全互证)。
-变体新字段: +1052/+1060/+1168 (加成表 32B 头 {d@+1176, cap@+1184, c@+1188}, 「重设计需否」判定, 高置信)。
+变体新字段: **+1052 = 设计团队指派旗 (定案**: flavor 键选 _FLAVOR_DESIGN_DATE/RESEARCH_DATE 直读**) / +1060 = 过时·需重设计旗 (定案: 直读过时旗) / +1168 (加成表 32B 头 {d@+1176, cap@+1184, c@+1188}, 高置信)。**XP 成本公式 (定案)** = sub_140DB5800(org,0) = `round(org+192 × MODIFIER_MIO_DESIGN_TEAM_CHANGE_COST(617))`; 库存侧 sub_140BB4AA0(tag) = cc+5512 求址 → army+16/naval+40/air+64 三军经验槽 (军种分派谓词 sub_140C97430/140C97B90); 成本取整 = 1e5 网格 floor (负数侧 `v/1e5 − (v>>63)`)。
 
-未决: sub_14191BBE0 (簇外相邻) / 变体 +1052/+1060 定名 / 列表行宿主类 (0x4450B 控制器内部) / 6 基准值全局加载源 / 百分比格式化器定标链需汇编。
+已闭合: sub_14191BBE0 = UPGRADE_BONUS_DIFF 段发射器 (见上) / 变体 +1052/+1060 已定名 (见下) / 6 基准值 = CDefines 槽 (见上) / 百分比格式化器 = 值×100 直证。仍未决: 列表行宿主类 (0x4450B 控制器内部) / qword 三基准 (615/616/618) 独立钳位校验器逐一定位 / 104B 变量条目 +16 起值域 union / policy_list 消费中间层 (0x141FB26D0/0x141FB1E50/0x140A4A7A0 簇外相邻)。
 
 | 偏移 | 类型 | 名称/语义 |
 |---|---|---|
@@ -723,7 +730,21 @@ memcpy, 无模拟逻辑。
 | 资源再预留 | vtable[28] 取单位输入资源表 → 逐资源需求 = 单位量 × active_factories(+24) × (1+线内槽4) → sub_140E5AAB0 扣留 → 条目 amount(+16)=实得 / need(+24)=缺口 | 定案 |
 | 短缺计算 | sub_141936210 累加同容器先序线同资源预留按可用量分配 → line+216 短缺惩罚 (§4.8.1) | 定案 |
 | 速度计算 | sub_1419364B0 = 基速 × (MIO 加成 + 100000)/1e5 × sub_141935810(修正乘子); 负值断言 "Negative production speed." → 0; SetSpeed(line+48); 换装态再算 → +224 non_conversion_speed | 定案 |
-| 加成集 | line+152 CTraitBonus; +184 脏旗时经 sub_140DB7A30(MIO, 原型) 重建; 槽契约 PRODUCTION_BONUS_COUNT=7 (production_bonus.h:53; 0=成本/2=效率帽/3=效率增长/4=资源/5=短缺), 匹配 token 表 dword_14338A560[10×槽] | 定案 |
+| 加成集 | line+152 CTraitBonus; +184 脏旗时经 sub_140DB7A30(MIO, 原型) 重建; 槽契约 PRODUCTION_BONUS_COUNT=7 (production_bonus.h:53; 0=成本/2=效率帽/3=效率增长/4=资源/5=短缺), 匹配 token 经 `dword_14338A560[10×槽]` | 定案 |
+
+**生产加成描述符表 (定案)**: 表基 **0x14338A540, 7 槽 × 40B**, 元素 = `{std::string 名@+0..+31 (SSO, 初值 "BONUS_" + define 名), u32 token@+32, u32 kind@+36}`, 静态初始化器 sub_14007A1B0 逐槽构造 (析构循环 `'eh vector destructor iterator'(&xmmword_14338A540, 0x28, 7, …)` 直证 7×40B):
+
+| 槽 | 基址 | 名 (define) | token | token 名 | kind |
+|---|---|---|---|---|---|
+| 0 | 0x14338A540 | PRODUCTION_COST_FACTOR | 19172 | production_cost_factor | 3 |
+| 1 | 0x14338A568 | PRODUCTION_CAPACITY_FACTOR | 19166 | production_capacity_factor | 2 |
+| 2 | 0x14338A590 | PRODUCTION_EFFICIENCY_CAP_FACTOR | 19167 | production_efficiency_cap_factor | 2 |
+| 3 | 0x14338A5B8 | PRODUCTION_EFFICIENCY_GAIN_FACTOR | 19168 | production_efficiency_gain_factor | 2 |
+| 4 | 0x14338A5E0 | PRODUCTION_RESOURCE_NEED_FACTOR | 19169 | production_resource_need_factor | 3 |
+| 5 | 0x14338A608 | PRODUCTION_RESOURCE_PENALTY_FACTOR | 19170 | production_resource_penalty_factor | 3 |
+| 6 | 0x14338A630 | PRODUCTION_CONVERSION_SPEED_FACTOR | 19171 | production_conversion_speed_factor | 2 |
+
+**0x14338A560 不是独立表** = 槽 0 描述符的 +32 token 字段; `dword_14338A560[10×槽]` 索引即 40B 步距 (10 dword) 的 dword 视图, 与 `0x14338A540 + 40×idx` 等价。配套: sub_140641590(token) = 描述符基址反查 (19172→0x14338A540 … 19171→基址+240, 其他→0); sub_14063F520(容器, out, 槽) = 槽取值 (容器 `{d@+8, c@+20}` 16B 元 `{token u32@+0, 值 qword@+8}`, 未命中 out=0); sub_140DB7800(MIO, out, 原型, kind) = CTraitBonus 收集器 (MIO 特质树 a1+320 + 契约 a1+272+40 + 国修正, 经 sub_14063F3C0 并入)。⚠ 描述符 +36 的 kind (2/3) 本批函数未消费, 推定 = 值类别/格式化选择器 (与槽语义编号不同体系), 待裁。
 
 #### 4.8.13b building 线日推进 sub_140F6A710
 
@@ -797,7 +818,7 @@ vs CCountryResources+1096..1100) → 变更则能量记账 (sub_140E5A100) + 军
 |---|---|---|---|
 | ps+944 | u32 累加 | 民用池消费侧合计 (消费者×5 各加 consumer+16) | 定案 |
 | ps+956/+960 | u32 | 民用池受赠所得 / 外赠目标 (军池对偶 +764/+768) | 定案 |
-| ps+1194 + ps+1198 | u32 + u16 (6B 快照) | 资源存量快照 (CCountryResources+1096.. 变更检测缓存; 原 u32×3 说废) | 定案 (F2 验算) |
+| ps+1194 + ps+1198 | u32 + u16 (6B 快照) | 资源存量快照 (CCountryResources+1096.. 变更检测缓存; 原 u32×3 说废; **清零点 = 池重算 sub_140E6C810 头部**, ps+1192 同清) | 定案 (F2 验算) |
 | ps+1200 | u32 | max_factories_for_repair (修复线预算) | 定案 |
 
 #### 4.8.16 CBuildingDatabase::CIntermediateBuildingTemplateData (建筑 def 解析期中间格, 48B; def 侧只读件不入存档)
@@ -822,7 +843,7 @@ vtable 0x1427E4130 单链继承 (CIBTD←CDatabaseObject←CPersistentWithToken�
 | foreign_lease 查找 ×2 | sub_140E68A60 (带变体名) / sub_140E68C10 (带旗); 条目 **+28 = id 对主字 / +1052 = 布尔旗** (条目类型 = CEquipmentVariant 系, 高置信) |
 | 换装族 | 批量 sub_140E64FB0 / 单线 sub_140E6FE60 (line+136 匹配旧变体 → 逐线 vtable[29] SetEquipmentVariant + vtable[11] 上限钳 + 重分配) |
 | 军线重排族 | MoveLine sub_140E65310 (priority 下标不变量校验 :1708) + 尾段级联 sub_140E71250 (:1678); **vtable[22] (+176) = 线型枚举分派** (0 = 军线走 MoveLine / 1..3 走插入; 枚举名待命令域批次); vtable[10] (+80) = 重排/换旗后级联通知槽; 调用者全在 14115 产线命令域 (重排/置顶/换型/is_converting 换旗五命令 Execute) |
-| 变体生命周期 | available 移除+最佳表失效 sub_140E6F6B0 (清 ps+208 槽 [archetype+1336] → 重扫重算; :3590); 装备变体全量初始化 sub_140E701E0 (:616/:632 断言, 过滤旗 archetype+1365 与 CEquipmentType+999; +999 语义未决); PostLoad 链 140712930 → 140E6FF30 → 701E0/70790/70E60/条件 6C810; 最佳变体 getter ×2 (68E40 扫 ps+184 / 68410 扫 ps+160) |
+| 变体生命周期 | available 移除+最佳表失效 sub_140E6F6B0 (清 ps+208 槽 [archetype+1336] → 重扫重算; :3590); 装备变体全量初始化 sub_140E701E0 (:616/:632 断言, 过滤旗 archetype+1365 与 CEquipmentType+999; +999 语义未决); PostLoad 链 140712930 → 140E6FF30 → 701E0/70790/70E60/条件 6C810; 最佳变体 getter ×2 — **两扫描域两比较器勿混** (68E40 扫 ps+184 配择优 sub_140BD2430 / 68410 扫 ps+160 配 sub_140BD7DC0); **68410 = FindBestRegisteredVariantByArchetype (定案)**: 断言 production.cpp:3777 "Expected an equipment archetype and not a type." (门 byte_1435E1B52 + 缓存 byte_14333D17B); 扫 ps+160 (available_equipments, count@+172); 匹配谓词 = 变体+1008 解引 +1240 == archetype; 三调用边 = 0x141B9A9B0 (vtable[6](obj,44) 12B 条目列表逐原型取最佳) / **0x141B9AB70 = 按原型键百分比修正施加器** (vtable[6](obj,25) 列表 → `(*a1)[变体+1336] ×= (100+v)/100` — _BestProducibleVariantPerArchetype 下标槽落账, 宿主域待裁) / 0x14100DF20 (按 archetype+1048 键插 24B 条目排序数组再归组, 域待裁) |
 | civil war 重建 | sub_140E662A0 (簇外; 生产状态从母国重建, 清 available 后重建); 唯一调用者 = civilwar.cpp 内战生成主函数 sub_1410DDFE0 |
 | 池重算/市场 | 池重算公共入口 sub_140E6D9A0 = sub_140E6C810 的 IsDeleting 断言包装 (:2309; 调用者 = license 命令 / resources.daily / license PostLoad); 市场扣库存 sub_140E6EBC0 (ps+512 池 min 钳; **护航装备在 market_core.cpp:519 分流走 gs+4608 CConvoys**) |
 | 原型产能占比聚合 | sub_140E61FA0 (vtable[14] (+112) = 逐线产出量读槽; 变体+872 = 占比分母; 除零兜底); 消费者 = GUI 统计面板 sub_141F2BE90 |
