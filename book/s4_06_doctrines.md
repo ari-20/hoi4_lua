@@ -62,7 +62,7 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 | +49..+59 | — | = leaders_daily_mastery 容器 {d@48, **cap@56**, c@60, alloc@64} 的 data 尾 + cap@56 (24B 元) |
 | +60 | uint32 | leaders_daily_mastery 容器计数 |
 
-家族辅助函数 (folder_status.cpp; debug 门 byte_1435E1B51):
+家族辅助函数 (folder_status.cpp; debug 门 byte_1435E1B51 — track_status.cpp 全 TU 与 doctrine_triggers.cpp:109 断言同用此门, 非全书惯用 byte_1435E1B52):
 
 | 函数 | 语义 |
 |---|---|
@@ -71,12 +71,12 @@ GUI: NDoctrines::CCountryDoctrineView — folders 容器消费 (target = +1408 s
 | sub_140FC8670 | STrackFilter 五字段匹配判定 (filter+8 track→GetTrackTemplate / +16 folder→folder+8 / +24 grand→folder+16 / +32 sub_doctrine→tracks[idx]+8 / +40 track_index≠−1→==idx; 字段 0 = 通配) |
 | sub_140FC6D90 | AssignSubDoctrine (校验→sub_14147C8A0; 断言 :239) |
 | sub_140FC7D90 | RefreshTrackActiveDaily: 逐 track, active 触发器门 (sub_1409E6B80, 上下文 = owner+8) → track+72 = 增益否则 0 (**track+72 每日 mastery 产出的写入者**) |
-| sub_140FC87B0 | CompleteMilestone: 去重追加 completed → 注册 sub_1413CD240(owner, milestone+16, **type 6**, grand+40, grand+8, idx) (milestone 注册/注销 type=6, 与换 grand 的 type 3 并列; 注销对应 sub_140FC8CE0 → sub_1413CEE00 type 6) |
+| sub_140FC87B0 | CompleteMilestone: 去重追加 completed → 注册 sub_1413CD240(owner, milestone+16, **type 6**, grand+40, grand+8, idx) (milestone 注册/注销 type=6, 与换 grand 的 type 3 并列; 注销对应 sub_140FC8CE0: 定位链 = folder+24 逐 track (96B 步) 元+8 匹配 *(a2+8) → sub_1409CDA20 在 folder+16 grand def 按 idx+id 查 milestone → sub_1413CEE00(folder+48 推定 owner, milestone+16, type 6, *(folder+16)+8, idx); 未中断言 "Could not find milestone to remove" :660, 闩 byte_14333D6CC) |
 | sub_140FC6EB0 | GetTrackMasteryDetails (见下式) |
 
 GetTrackMasteryDetails 增益合成式: `sum = track.daily_mastery(+40) + Σ active daily_mastery 条目(+88, STemporaryMasteryGain, filter 匹配 sub_140FC8670) + 3 项国家侧修正源 + Σ active bonus(+96)`; `factor = 100000 + 三修正源`; `gain = sum×factor/100000` (÷1e5 截断), `0<gain<qword_1433341F0 → 钳到下限`; `bank = gain×qword_143334480/100000` (MASTERY_BANK_CONVERSION_RATE); a4≠0 时发 5 组本地化行 (DOCTRINE_MONTHLY_MASTERY_GAIN_FROM_UNITS / …_BONUS / …_BONUS_FACTOR / MASTERY_BANK_CONVERSION_RATE / DOCTRINE_MONTHLY_MASTERY_BANK)。
 
-日更 tbb 两遍 pass (160B 元素 CCountryDoctrineStatus 数组并行遍历): pass A sub_140D7BEA0 → 逐 folder sub_140FC7D90 刷 active 产出; pass B sub_140D7C1A0 → 逐 folder **sub_140FC8DC0** (folder_status.cpp:281) — **前半段**: 逐 track 算单位掌握度 (CMasteryConditions (子学说+832 / 模板+120) 域旗 +88/+89/+90 门控三军 xp 条目聚合 sub_141A32E90 → track+40 daily_mastery); **后半段**: 应用 cost_reduction (CCountryDoctrineStatus +136 容器 = cost_reduction 条目数组, 80B 元素步进, 元素 +8/+32/+56 三修正槽, 日步逐条 `基础值×缩减/1e5`, >0 才经 sub_14147C7B0 灌入 track)。CCountryDoctrineStatus reader (vtable[4]) = 0x1413CED70 (与 writer 0x1413CF470 对)。
+日更 tbb 两遍 pass (160B 元素 CCountryDoctrineStatus 数组并行遍历): pass A sub_140D7BEA0 → 逐 folder sub_140FC7D90 刷 active 产出; pass B sub_140D7C1A0 → 逐 folder **sub_140FC8DC0** ("Invalid track index" :281 断言为 family 内联辅助 — 8DC0/7EB0/7D90 三站共享, 同 latch byte_14333D6C6) — **前半段**: 逐 track 算单位掌握度 (CMasteryConditions (子学说+832 / 模板+120) 域旗 +88/+89/+90 门控三军 xp 条目聚合 sub_141A32E90 → track+40 daily_mastery); **后半段**: 应用 cost_reduction (CCountryDoctrineStatus +136 容器 = cost_reduction 条目数组, 80B 元素步进, 元素 +8/+32/+56 三修正槽, 日步逐条 `基础值×缩减/1e5`, >0 才经 sub_14147C7B0 灌入 track)。CCountryDoctrineStatus reader (vtable[4]) = 0x1413CED70 (与 writer 0x1413CF470 对)。
 
 **STemporaryCostReduction** (64B 内联):
 
@@ -128,6 +128,8 @@ GetTrackMasteryDetails 增益合成式: `sum = track.daily_mastery(+40) + Σ act
 **PR 形态** (`CPersistentReloadableGameItemDatabase`), 单例槽存库对象指针 (`malloc(0x80)`, 128B)。
 装载器 = `sub_14018BB20` 内连续四段 (目录串 + `+40 = ".txt"` 后缀)。
 
+**set_grand_doctrine 令牌查表 = sub_140529020** (doctrine_effects.cpp:65; 定案): effect 对象 a1+88 = 大学说 def 指针槽; 查 CGrandDoctrineDatabase 单例 qword_14332EEA8 的 RH 表 (db+56 桶基 / stride 24, 桶 {hash@+0, dist u8@+4, token u32@+8, 值指针@+16}; mask db+68 / extra db+72; 哈希 0x45D9F3B 双轮雪崩 + xor-fold, 键 = v4 ^ HIWORD(*a2), 与 §4.26 同族同常数); 走法 = 首桶 dist==0 → miss, 线性探针 (>本桶 dist → miss); 命中另两道门 (非哨兵桶 ∧ 桶+16 值指针非空, 空值槽亦走未找到日志); 命中写 a1+88, 返 1; 未命中 → a1+88 = 0 + CLog 4096 "set_grand_doctrine - Grand doctrine not found: %s" (:65, 令牌名经 sub_1424BC260)。前置 gameitemdatabase.h:142 断言 (B52/闩 byte_14332FF6B)。a1 归属 set_grand_doctrine 效果类为推定 (文件域 + 令牌名直证)。
+
 | 库 | vtable (RVA) | 单例槽 | 目录 | sizeof |
 |---|---|---|---|---|
 | NDoctrines::CFolderDatabase | 0x142719048 | qword_14332EEA0 | common/doctrines/folders | 128 |
@@ -176,6 +178,8 @@ vtable RVA 0x142719078, sizeof 776, ctor `sub_140147250`; 基类 CDatabaseObject
 | +32 | uint32/int | **xp_cost 数值** | 键 xp_cost (19741), 整数读 sub_1424C08D0; XP 成本结算器 sub_1413CB2D0 读此槽 |
 | +36 | uint32 | xp_type | 键 xp_type (16769); 枚举 {1=army, 2=navy, 3=air} (文案三键 DOCTRINE_{ARMY,NAVY,AIR}_XP_INSUFFICIENT / 槽位映射 / CCountryExperienceStatus 三槽序三方一致) |
 | +40 | CString (32B) | name 本地化键 | 键 name (27) |
+
+> **doctrine_utils 两函 (新收)**: ① **XP 类型 → 开销 define 名取数器 sub_1413C6880** (doctrine_utils.cpp:102, sret 返 std::string): 枚举 1/2/3 → `DOCTRINE_ARMY_XP_COST` / `DOCTRINE_NAVY_XP_COST` / `DOCTRINE_AIR_XP_COST` (malloc 0x20, size 21/21/20, cap 31), 其余空串 + 断言 "Unknown XP type" (闩 byte_14338A2EB, 仅警告级) — 调用方据此名查 define 取 XP 开销基值 (§4.34.9 AI XP 开销规划链的 define 源)。② **GetRandomUnlockedTactics sub_1413C6760** (:73): 国 tag → cc+3936 科技状态 → 容器 A (sub_14072DC10) {data@+0, count@+12} + 容器 B (sub_1413C6600(tag) 返对象 +40, {data@+40, count@+52} — 与本表 +40 同址, 推定 = enable_tactic 侧); 总数 0 → 断言; 自定义哈希混合 RNG 状态对 (常量 1255572915/458671337/−1831433054/1759714724, FNV 变体) 后 `&0x7FFFFFFF % 总数`, `++*a2` 推进; 两段拼接取 8B CCombatTactic* 元 (v15 ≥ A 计数 → 取 B, 否则取 A)。容器分工语义推定。
 | +72 | NPdxLoc::CBoundLocalization (32B) | **description 绑定本地化** | 键 description (15906) → sub_1424C0AA0 |
 | +104 | CString (32B) | icon | 键 icon (181) |
 | +136 | CEffect 内嵌效果块 | **学说效果载体** (25 槽, [12] = Execute; 块内 +88 起内嵌 CModifier = def+224 / +104 mdef 查表区 = def+240 / +280 CSubUnitStatBonus 56B = def+416 / +336 战术解锁名表 = def+472 计数@def+484 / +360 equipment_bonus 源表 = def+496 门@def+508); available (12264) 亦写 +608 | |
@@ -238,7 +242,7 @@ vtable RVA 0x1427192f8, sizeof 968, ctor `sub_14014B2B0`; 基类 = CDoctrineBase
 | 偏移 | 类型 | 名称 | 备注 |
 |---|---|---|---|
 | +760 | NDoctrines::CTrackTemplate* 向量 | tracks 容器 {d@760, cap@768, c@772, alloc@776} | 键 track (139) 逐名查 CTrackDatabase push, 8B 元素; Sub 无 milestones 容器 (键 16771 读弃) |
-| +784 | NDoctrines::CRewardTemplate* | rewards 数组数据 | 键 rewards (16770) 块循环逐元素产 472B 元 |
+| +784 | NDoctrines::CRewardTemplate* | rewards 数组数据 | 键 rewards (16770) 块循环逐元素产 472B 元; **前缀和取值器 sub_1409E5A50** (out, index): index<0 ∨ ≥+796 → :111「Reward index out of bounds」B51 (闩 byte_143339BC9) + out=0; 否则 Σ sub_1409E4DA0(+784+472×i), i=0..index (累计奖励, 逐级/解锁进度展示用) |
 | +792 | uint32 | rewards cap | |
 | +796 | uint32 | rewards 计数 | |
 | +800 | void* | allocator (off_143085170) | ctor |
@@ -439,13 +443,13 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 |---|---|---|
 | XP 成本门 | sub_1413CB2D0 | `def+32 xp_cost × (1 − cost_reduction 折扣)` (折扣源 CCountryDoctrineStatus+64 容器, sub_1413CB6D0 读); 玩家/AI 共用 (AI 评分 sub_1413CBB60 = 三参糖) |
 | Execute 入口 | 0x141A7BF90 (CUnlockGrandDoctrineCommand::IsValid) → sub_1413CCBA0 / 0x141A7C1B0 (CUnlockSubDoctrineCommand::IsValid) → sub_1413CBDB0 + sub_1413CCD80 独立链 | 已选查重 (任一 folder+16 == 该 grand → 拒) → available 求值 (def+608 块 vtable+24) → Set 链 |
-| 换 grand | sub_140FC6A20 SetGrandDoctrine | 逐 track Clear → 按新 grand def+804 槽数补建 CTrackStatus (track+80 = 父回指 / +88 = folder 回指) → folder+16 = 新 def → 旧注销 sub_1413CEE00(type3) / 新注册 sub_1413CD240(type3) → UI 通知 |
+| 换 grand | sub_140FC6A20 SetGrandDoctrine | 逐 track Clear → 按新 grand def+804 槽数补建 CTrackStatus (track+80 = CCountryDoctrineStatus* 回指 / +88 = CFolderStatus* 回指 — 断言串 "Country/Folder status pointer is invalid" 两端直证, 闩 byte_14338A503..A507 五站) → folder+16 = 新 def → 旧注销 sub_1413CEE00(type3) / 新注册 sub_1413CD240(type3) → UI 通知 |
 | 换 sub | sub_14147C8A0 SetSubDoctrine | mastery_bank (track+32) 存量保存 → Clear → track+8 = 新 def → 注销/注册 type4 → sub_14147C000 存量重结算 (换学说保留已攒掌握度) |
 | 清空 | sub_14147C650 Clear | +16 rewards / +24 mastery / +32 mastery_bank 清零; 逐奖励档注销 type5 |
-| mastery 推进 | sub_14147C000 AddMastery | `track+24 += 增量`; 逐 reward 门槛消耗制 (累计 ≥ 门槛 → 档数++ 且累计 −= 门槛); 档数变化 → sub_14147CB00 发放 (type5 注册 + UI 消息); 全档完成 (track+16 == def+796) → sub_140FC87B0 完成通知 |
+| mastery 推进 | sub_14147C000 AddMastery | `track+24 += 增量`; 逐 reward 门槛消耗制 (门槛 = def 档条目+464, 零回退 define qword_143333E60, 经 sub_1409E4DA0; 累计 ≥ 门槛 → 档数++ 且累计 −= 门槛); 档数变化 → sub_14147CB00 发放 (type5 注册 + UI 消息); 全档完成 (track+16 == def+796) → sub_140FC87B0 完成通知 |
 | mastery 汇入 effect | sub_1413CDA80 (STrackFilter 匹配: 逐 track sub_140FC8670 读 filter 五字段测试) + sub_1413CD100 (单 track def 或全量汇入) | 逐命中 track AddMastery; 无命中报 "Failed to add mastery to any tracks" |
 
-调度: 日边界 CDoctrineSystem::DailyUpdate sub_140D7ED90 (tbb 两遍遍国家条目) + 串行收尾逐国 sub_1413CCF90: ① 逐 folder sub_140FC7EB0 folder 日步 — track def active 触发器门 (sub_1409E6B80) → track+72 每日 mastery 产出值 >0 灌入 (完成/无 def 走 sub_14147BFD0 衰减支路); ② daily_mastery 容器 (+88, 112B 元) 逐条 `--days` + 到期紧凑删除。月边界 sub_140D7F220 (仅玩家国)。
+调度: 日边界 CDoctrineSystem::DailyUpdate sub_140D7ED90 (tbb 两遍遍国家条目) + 串行收尾逐国 sub_1413CCF90: ① 逐 folder sub_140FC7EB0 folder 日步 — track def active 触发器门 (sub_1409E6B80) → track+72 每日 mastery 产出值 >0 灌入 (完成判定 = sub_14147C2A0; 完成或无 def → sub_14147BFD0 衰减支路, 未完成 → sub_14147C000 正常灌入); ② daily_mastery 容器 (+88, 112B 元) 逐条 `--days` + 到期紧凑删除。月边界 sub_140D7F220 (仅玩家国)。
 
 #### 4.6.14 学说选择列表行件族 (doctrine_selection_items.cpp; 6 函闭环 — info policy 策略对象 / CDoctrineListItem 全布局 / tooltip 详略开关)
 
@@ -478,6 +482,10 @@ vtable RVA 0x142719258, sizeof 96, ctor `sub_140149930`; **基类 = 裸 CPersist
 未决: tooltip 宿主类定名 / policy 对象装填者 / settings+624 设置项名 / 顾问行绑定第 4 参语义。
 
 #### 4.6.15 大型学说 UI 轨道条目 (doctrines\ui\track_item.cpp; 5 函闭环 — NDoctrines::CTrackItem 运行期)
+
+#### 4.6.16 教条文件夹视图刷新 (folder_view.cpp; 1 函 = sub_141CC5AF0, 高置信/谓词推定)
+
+sub_141CC5AF0: 门 = a1+1416 教条文件夹对象 (空 → :208 纯日志「Invalid doctrine folder in folder view」, 闩 byte_14338C4FE); 归属国判定链 = 文件夹 a1[1]+2800 tag → sub_140BB5490 归一 → sub_1413C60B0 取国 → sub_1413CBB70(国, &out_bool, 文件夹, 0) 谓词 (推定 = 「该文件夹对当前国有费用减免可显」)。**显隐元件 = a1+1448** (UI 对象 @+48; 谓词真 → Show = vtable+120 并清 byte+165 bit4 / 假 → Hide = vtable+128 并置 bit4); 谓词真额外取本地化 sub_1402E31F0(buf, "DOCTRINE_COST_REDUCTION_VALUE", "VALUE", &谓词) → sub_1422CA920 写 a1+1456 文本件; 尾三连 sub_141CC36C0 → sub_141CC5C40 → sub_141CC5E40。显隐对律与 §4.27 / §4.35.37 同族。
 
 CU = `hoi4\source\doctrines\ui\track_item.cpp` (5/5 函断言串一致); RTTI 直证 `NDoctrines::CTrackItem` (继承 CStandardGridBoxItem, _RTDynamicCast 判型直证)。同命名空间家族 RTTI: CDoctrineListItem / CFolderTabItem / CFolderStatus / CCountryDoctrineStatus / **CGrandDoctrineDatabase (TGameItemDatabase 族)** / CTrackTemplate / **CRewardItem** / CDoctrineSelectionList / CDoctrineBaseTemplate / STemporaryCostReduction。周边 define = NDoctrines.BASE_MASTERY_GAIN_TARGET_MANPOWER / MIN_MASTERY_GAIN_PER_DAY。
 

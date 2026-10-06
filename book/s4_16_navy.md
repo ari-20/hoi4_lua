@@ -123,7 +123,7 @@ CUnit::Serialize 0X140C06540; 运行时偏移 tf = writer+16; **行序 = writer
 | auto_reinforcement (15169) | tf+1271 | u8 | ≠0 | |
 | fuel (12003) | tf+1272 | i64 fixed5 | ≠0 | **本小时实收** (per-hour scratch): 每小时 tick sub_140D68B90 先清 0, 再由优先级分发 sub_140D64740 (tf+1272 += grant) 灌入; 载入值存活至首整点即被覆盖; loader ser+1256 **落字段** |
 | requested (15132) | tf+1280 | i64 fixed5 | ≠0 | 每小时 sub_140C35280 重算: MISSION_COST×(FUEL_COST_MULT×Σ舰用量缓存/1e5)/1e5 (分派表见下); 上游钳制 = tf+64 补给比 × MAX_FUEL_FLOW_MULT (无补给 ⇒ 少要燃料); 读取器 sub_140D6EAC0; loader ser+1264 **落字段** |
-| icon (181) | tf+1288 | u32 | 恒写 | ctor 默认 dword_1433366B4 |
+| icon (181) | tf+1288 | u32 | 恒写 | ctor 默认 dword_1433366B4; 亦为 GetInsigniaIndexForRole 角色表查表兜底默认 (§4.16.2a) |
 | use_fleet_color (15195) | tf+1292 | u8 | 恒写 | ctor 默认 1 (解释 color 键常态缺省) |
 | color (86) | tf+1296 | 对象 (CColor 族) | !use_fleet_color | |
 | ai_taskforce_composition (17899) | tf+1328 | **CTaskForceCompositionRequirements 内嵌 224B** (RTTI 实名; vtable 0x142A223C8; CPersistent 族; writer 0x14198C060 / reader 0x14198BF60): +8 = requirements 编成 (CTaskForceComposition@tf+1336, 键 15166) / +112 = fulfillment 编成 (@tf+1440, 键 15167) / +216 = ai_taskforce_composition token (@tf+1544, 19479=undefined 不写) | 恒写 (整个对象写在 17899 键下) | 定案 |
@@ -208,6 +208,10 @@ mission 块 (units; 存档块名, 非 RTTI 类名) 补录:
 | already_spotted (0x3BB3) | ms+104 (tf+968) | u8 | ≠0 写 yes | 0X140FBEA80 |
 | stop_training_at_max_xp (19076) | ms+69 (tf+933) | u8 | ≠0 写 | sub_140FB9B30; 仅 type==7 TRAINING 时 sub_140FBA460 从命令载荷写; 作用 = 训练任务燃料成本混合门 (0.15/0.6 经验加权) |
 
+#### 4.16.2a 海军特遣舰队徽记索引查表 (taskforcebuilder.cpp; 1 函 = sub_141233850, 定案)
+
+role < 0 → :277 断言 "!\"Unexpected role index less than zero\"" (B52/闩 byte_14333DE16) → 默认; 0 ≤ role < dword_1433398FC → *(u32*)(qword_1433398F0 + 4×role) (新全局 = 角色→徽记索引 u32 数组 / 表长); role ≥ 表长 → CLog 65540 "Role index %u has no insignia index defined\n" (:282) → 默认; 默认 = dword_1433366B4 (与 tf+1288 icon ctor 默认同源)。角色索引的脚本填充源未查。
+
 #### 4.16.3 CShip (writer 0X140C3E6C0 = vtable[2]; reader 0x140C3C5A0 = vtable[4])
 
 | 项 | 值 |
@@ -282,9 +286,9 @@ CShip/CTaskForce GUI 消费表:
 | +32 | uint32 | CSelectable type id = **11** | |
 | +36 | uint8 | selected 旗 (dtor 断言 false, fleet.cpp:163) | |
 | +40 | RH 结构基 | hours_without_patrol_missions_pairs RH 表 (死槽@+40; 桶数组@+48, **count@+56, mask@+60, extra@+64, lf 0.9@+68**; 24B 桶 {dist u8@+4, region ptr@+8 → id@+88, hours u32@+16}) | 键 15599 成对发射 |
-| +72 | 匿名结构 (NNB 形状) 向量 | **strategic_region** {d@72, cap@80, count@84, alloc@88} — 元 8B CRegion* (id@ptr+88) | 键 12014: 先收 u32 数组再发射, 门 count>0 |
+| +72 | 匿名结构 (NNB 形状) 向量 | **strategic_region** {d@72, cap@80, count@84, alloc@88} — 元 8B CRegion* (id@ptr+88) | 键 12014: 先收 u32 数组再发射, 门 count>0; 维护件 = **AddRegion sub_140D50F10** (去重线性查 + 追加 sub_1401205A0; a3 → RebuildRegionRanges sub_140D530E0 + sub_140D5E970; a4 → 自动母港重选 sub_140D59410; 重复断言 fleet.cpp:2649 latch byte_14333CE44) |
 | +96 | CFleet* 向量 | **区域范围表** {d@96, cap@104, count@108, alloc@112} — 元 16B {CFleet*, start u32, end u32}, 对排序后区域数组切段 (fleet.cpp:1788 断言) | 重建 sub_140D530E0 |
-| +120 | 16B 节点 | 自引用范围节点 {self@120, start@128=0, end@132=区域数镜像} (无区域时挂进每个 TF mission) | |
+| +120 | 16B 节点 | 自引用范围节点 {self@120, start@128=0, end@132=区域数镜像} (无区域时挂进每个 TF mission) | 构建者 = **创建收尾件 sub_140D57A60** (空 idpair → sub_1401E44C0 分配 + sub_14221E700 注册; leader idpair resolve 失败 → 写空哨兵 qword_14333D528 清引用; +300 alpha==0 → sub_140D51A60; 尾 RebuildRegionRanges + "IsCreated()" 断言 fleet.cpp:382 读 +16; 身份高置信 — 不排除 PostLoad/OnIdAssigned 变体) |
 | +136 | uint32 | **tick_to_check_naval_invasion_support** (键 15583, 门 >0; 书原表无此键) | |
 | +144 | 匿名结构 (16B 形状) 向量 | **bombardment_region** {d@144, cap@152, count@156, alloc@160} — 16B 元 {region ptr@+0 → id@ptr+88, val u32@+8}; 门 count≠0; 写序 = 容器序 | 提取器: 首对 region 进键名, 余对 " k=v" 拼进值 |
 | +168 | CCountry* | **owner 国家指针** (ctor sub_140BB4390) | |
@@ -425,9 +429,9 @@ token 全序表:
 | 函数 | 身份 | 定案要点 |
 |---|---|---|
 | sub_140EA62F0 | 海域访问级别本地化键生成器 | f(out 串, access_level): 三值枚举 → "NAVAL_REGION_ACCESS_{ALLOWED,AVOID,BLOCKED}\n…_DESC" 双键拼接 (本地化变量 LVL=1); 其它值断言 :3384 后返空串; 调用者 = GUI tooltip 族 3 处 |
-| sub_140EA9120 | CheckNavalPath (省对版) | a2 = ENavalPathing {0..4}; 两省各经 prov+184 描述符 (+210 bit0 is_land → GetProvince(+200 配对海省)) → 海省+200 战略区 → 区+88 数字 id → sub_1419ED790(S+384 缓存, …); 映射 0→(1,2) / 1→(2,2) / {2,3}→(2,2) / 4→(3,1) (二元组业务名推定); 未识别枚举断言 :2646; 调用者 5 处全为海军任务/移动判定族 |
+| sub_140EA9120 | CheckNavalPath (省对版) | a2 = ENavalPathing {0..4}; 两省各经 prov+184 描述符 (+210 bit0 is_land → GetProvince(+200 配对海省)) → 海省+200 战略区 → 区+88 数字 id → sub_1419ED790(S+384 缓存, …); 映射 0→(1,2) / 1→(2,2) / {2,3}→(0,2) / 4→(3,1) (二元组业务名推定; {2,3}→(0,2) = 双源逐行直证 — v11 在两函数入口均显式初始化为 0, 非 未初始化噪音); 未识别枚举断言 :2646 (闩 byte_14333D1EB, 两版共用); 调用者 5 处全为海军任务/移动判定族 |
 | sub_140EA9510 | CheckNavalPath (区对象直连版) | a3 直接持区 +88 字段 (免省→区换算); 同款断言与映射; 调用者 2 处; 与 EA9120 = 同一判定两接口层 |
-| sub_140EA6F20 | 权重随机选取 | 输入 24B/元 {权重 u64@0, 值 qword@+8, idpair@+16} 排序态前缀和游走; 随机 = random_fixed 全局计数器哈希流 (§4.28.13) 源行 4172 播种 (确定性重放, OOS 安全); **空表/零权缺省 = 100000 (fixed 1.0)**; 唯一消费者 = 船体统计 sub_140C309D0 |
+| sub_140EA6F20 | 权重随机选取 | 输入 24B/元 {权重 u64@0, 值 qword@+8, u32 tag@+16 (+20..+23 填充, 仅 +16..+19 被消费)} 排序态前缀和游走 (count==1 快路; 随机 ≥ 总权重取末元素); 出参 *a3 = qword {tag@0, 国家数组下标@4} (下标经 sub_140BB5490(elem+16), §4.27.1 tag→国家下标 helper); 容器 +24 = i64 总权重; 随机 = random_fixed 全局计数器哈希流 (§4.28.13) 源行 4172 播种 (确定性重放, OOS 安全); **空表/零权缺省 = 100000 (fixed 1.0, 不写 *a3)**; 唯一消费者 = 船体统计 sub_140C309D0 |
 | sub_140E9F4E0 | CNavalBase::AddTaskForceShipsToRepairQueue | 见 §4.16.8 修理链表 |
 | sub_140EAE9C0 / sub_140EAEB30 | 修理队列移舰对 | 见 §4.16.8 修理链表 |
 | sub_140EAA8C0 | CNavalBase::DetachProvinceTaskForceShips | 见 §4.16.8 修理链表 |
@@ -514,7 +518,7 @@ resources 叶名 `<building>.<level>`。
 
 订阅链: Init sub_141021F90 (convoys.cpp:29 断言; 旧国非空先退订, requested/allocated **保值重订阅**) → 订阅 sub_1410207D0 (按**优先级键**二分定位/建桶, 桶 40B {键, Σallocated, Σrequested, 订阅者数组, cap, count, allocator} 按键升序插入, 订阅者尾插 1.5× 扩容, 三面聚合同步); 退订 sub_1410227F0 (聚合反减; 桶仅剩 1 人整桶释放, 否则桶内 swap-remove; sub+8/+12 清零; 尾调 sub_1410215C0 全量再平衡)。优先级键 = define 值: NAVAL_INVASION/NAVAL_TRANSFER(1) / SUPPLY(2) / RESOURCE_LENDLEASE(3) / RESOURCE_EXPORT(4) / RESOURCE_ORIGIN(5) / RESOURCE_PURCHASE(6) / UNDERWAY_REPLENISHMENT(7) — **值大 = 优先级低** (桶升序, 缺口回剥从数组尾开始)。分配 = RequestConvoys 即时分派, 缺口时从最低优先级桶整段剥除后顺位重填; **沉船反应** = sub_1410225E0 扣池后按阈值触发同一回剥 (convoys.cpp:437/612/53 断言族)。
 
-管理器 (country+4608): {+16 池对容器头 {data@+48, cap@+56, count@+60, alloc@+64} 16B 元 {CResource*, amount i64 fixed5}, +80 桶指针数组 data / +92 count, +104 Σrequested, +108 Σallocated, +112 运输船变体资源缓存 (sub_141021920, 从 country+3944 资源数组取首个 flag&1 项), +120 池缓存有效旗, +128 池缓存 fixed5}。池读 = sub_14100DCB0 (Σ flag(resource+1032)&1 的 amount); 可用 = sub_1402BC910 (池/1e5); 空闲 = sub_1402BC8A0 (池/1e5 − Σallocated); 指定优先级以下已占 = sub_141021C20。css 日重建 = sub_141230D40; 贸易路线申请点 = lambda_2 sub_141225420。
+管理器 (country+4608): {+16 池对容器头 {data@+48, cap@+56, count@+60, alloc@+64} 16B 元 {CResource*, amount i64 fixed5}, +80 桶指针数组 data / +92 count, +104 Σrequested, +108 Σallocated, +112 运输船变体资源缓存 (sub_141021920, 从 country+3944 资源数组取首个 flag&1 项), +120 池缓存有效旗, +128 池缓存 fixed5}。池读 = sub_14100DCB0 (Σ flag(resource+1032)&1 的 amount); 可用 = sub_1402BC910 (池/1e5); 空闲 = sub_1402BC8A0 (池/1e5 − Σallocated); 指定优先级以下已占 = sub_141021C20。css 日重建 = sub_141230D40; 贸易路线申请点 = lambda_2 sub_141225420。**增减总入口 CConvoys::AddConvoys = sub_141020680** (a1 = mgr, a2 = i32 amount): 正数 → 1e5 缩放入 CEquipmentVariantPool@+16 (sub_14100CCE0) + 池缓存有效旗 (+120) 清 0 + sub_1410215C0 重算; 负数 → 取负 (sub_1424EF6F0 单指令 helper) → sub_1410225E0 移除; amount==0 空操作; 取负溢出 (INT_MIN) → :612 防御日志。
 
 #### 4.16.8 CNavalBase
 
@@ -801,7 +805,8 @@ transfer。
 | 段 | 函数 | 语义 |
 |---|---|---|
 | 配属 | ctor sub_140E256E0 | 即以 CConvoySubscriber 订阅 (优先级 define: 入侵 dword_143334024 / 转移 1433340B4, 静态标签 2/1), 需求恒 = 单位数 (sub_141022950, §4.16.7b 通道) |
-| 装船 | sub_140E286D0 / sub_140E25C60 | 给每师发海路省序移动令 (sub_140BF9A40) + 写 **CUnit+760 回指**; 类型门 = unit+8 ∈ {0,13}, 入侵只收 0 |
+| 装船 | sub_140E286D0 / sub_140E25C60 | 给每师发海路省序移动令 (sub_140BF9A40) + 写 **CUnit+760 回指**; 类型门 = unit+8 ∈ {0,13} (断言 navaltransfer.cpp:659 "Adding unsupported unit to naval transfer.", 闩 byte_14333CFFC), 入侵只收 0 (入侵门 :661, 闩 byte_14333CFFD); 挂接 sub_140E25AB0 的引用合法性门 = ref.h:83 (闩 byte_14332F70C) |
+| 取首单位位置 | sub_140E260A0 | 首个有效单位的 **location 对象指针** (CUnit+496, §4.18 location 域; 对象+164 = 省 idx); 无有效单位 → 断言 "no valid units huh?" (navaltransfer.cpp:637, **门 byte_1435E1B51 非 B52**, 闩 byte_14333CFFB) 返 0 |
 | 航渡 | phase9 → sub_140EA79F0 → sub_140EA76B0 逐国扫 S+304 | 谓词 sub_140E274C0 (战斗中/目标仍有效/有活单位) → **sub_140E263B0 每小时推进** — 单位沿路径省自走, 失路 sub_140E28950 重寻路, force_revalidate(+94) 每 tick 清 |
 | 卸载 | 到达目的地省 | 移出 (unit+760=0 + CancelMovement sub_140BFB4A0 + swap-remove + 退超额船); 师本就在目的省, 无额外落位 |
 | 落地 | （普通转移卸载即完成） | 入侵到达段触发**浮动港建造**（落到登岸省控制方名下）+ **on_naval_invasion** 事件 + AI 钩; 冷却 (+96) 由海战火交换设入, 无战斗时每小时递减 |
@@ -860,9 +865,9 @@ CUnit 域 sub_1406D2FC0 / sub_1406D2CB0 (单位删除/脱离路径)。
 | 0x140D744F0 | 147 | MoveToDetachedActivityTarget: activity 1 → 母港省 / 2 → 就近母港 / 其余抛异常; 重发 SetDetachedActivity 后栈构造 **CNavalMoveCommand (12664)** (clear=1, access=2) → IsValid → Execute |
 | 0x140D73E30 | 140 | 海区访问级别比对 (小时 tick 消费): fleet+216 舰队目标省区 vs 现处省区, 查 gs+1032 国家link×区 64B 行 (行基+24 数组, 索引 = 区+96), **列 = 全潜艇旗选 +32 (潜艇) 否则 +8** (列值待裁) |
 | 0x140D77940 | 86 | OrderToRepair(省): 有海军基地 → SetDetachedActivity(1) + **tf+913 = 1 唯一写点**; 无效警告 (:5043) 回退母港; 调用者 = 海军命令 sub_1413536B0 |
-| 0x140D79BA0 | 51 | 编成满足度重算: 沿 repair_parent 走根 (环断言 :3813) → 自根递归: 父满足度 = 本队舰 + Σ子队 (自算 sub_14198B7D0 + 子合并 sub_14198A9E0) |
+| 0x140D79BA0 | 51 | 编成满足度重算: 沿 repair_parent 走根 (环断言 :3813; idpair 解引 **−16 = 父队基址** — ref 指向父队 +16 处成员) → 自根递归: 父满足度 = 本队舰 + Σ子队 (自算 sub_14198B7D0 + 子合并 sub_14198A9E0) |
 | 0x140D64A60 | 91 | OrderRefit: 变体空断言/异常 (:4810/4811) → 国家+3944 生产线逐舰上线 → SetDetachedActivity(3); 调用者 = 小时驱动 + repairing 归队判定 |
-| 0x140D64860 / 0x140D645D0 / 0x140D76850 / 0x140D766E0 | 91/91/53/53 | spotter/strike 双列表增删四件: AddSpotter (+1552/+1564) / AddStrikeForceOnShip (+1576/+1588) / Remove×2 swap-remove; idpair 键 = 实参 +24/+28 (自 idpair 又证); 断言串两两同文 = 源码复制粘贴 (:4018/4087, :4026/4095) |
+| 0x140D64860 / 0x140D645D0 / 0x140D76850 / 0x140D766E0 | 91/91/53/53 | spotter/strike 双列表增删四件: AddSpotter (+1552/+1564) / AddStrikeForceOnShip (+1576/+1588) / Remove×2 swap-remove = **全匹配删除** (命中不提前退出, 同键多条全删, 计数域直接覆写); idpair 键 = 实参 +24/+28 (自 idpair 又证); 断言串两两同文 = 源码复制粘贴 (:4018/4087, :4026/4095) |
 | 0x140D6D0C0 / 0x140D64530 | 31/29 | GetNavalBattle 双变体 (const/非 const 两编译产物, 断言门 byte_1435E1B52 :3087 vs byte_1435E1B51 :3107): 首战斗 vtable[11] (+88) == 2 才返 |
 | 0x140D765C0 | 44 | 海战侧复位: 战斗 +152/+160 两侧各 sub_141621990 (侧+292 清 0 + 逐元 vtable+72); fleet.cpp 接战两路调用 |
 
@@ -897,7 +902,7 @@ CUnit 域 sub_1406D2FC0 / sub_1406D2CB0 (单位删除/脱离路径)。
 `{_pFleet CFleet* @+0, _Range.first u32 @+8, _Range.second u32 @+12}` (断言 :7/:12/:18/:23
 直证); 助手 0x141987EA0 = begin() = `GetRegions().data() + 8×_Range.first` (:7/:12 双断言门) /
 0x141987F90 = end() = `GetRegions().data() + 8×_Range.second` (:18/:23 双断言门) /
-0x141987CA0 = 段内成员判定 (在 [first, second) 下标段内线性扫 region 指针, 命中返 1)。
+0x141987CA0 = 段内成员判定 (在 [first, second) 下标段内线性扫 region 指针, 命中返 1)。**结构体布局 (本批补)**: 16B {CFleet* @+0; int first @+8; int second @+12}; CFleet::GetRegions() = {data @+72, count @+84}; 四断言 fleetregionrange.cpp:7/:12/:18/:23 = _pFleet ×2 + first/second 上界。
 CFleet::GetRegions() 侧证: 数据 @ CFleet+72 (8B 元 = CStrategicRegion\*), 计数 u32 @ CFleet+84 —
 与 CFleet 表「+72 strategic_region {d@72, cap@80, count@84, alloc@88}」吻合; 断言边界语义 = first/second 允许 == size (空段在尾合法)。
 
@@ -1050,7 +1055,13 @@ game item DB 回填。
 
 **杂项定案**: SetPrideOfTheFleet = 舰 refid **type=51** 水位分配 + 资格位 (0x40/0x400000/
 0x2000000000 型别或池模块, 业务名待裁) + 流亡排除 (throw) + cc+592 登记; 舰名延迟求名链 =
-自定义名(+2080) → 有序(+2112) → 无序(+2116) → 兜底生成, cc+120 注册, 占名 throw;
+自定义名(+2080) → 有序(+2112) → 无序(+2116) → 兜底生成, cc+120 注册, 占名 throw
+(0x140C3B840; 自定义名非空判 = 读其 32B 串的 size 字段 +2096 = +2080+16; 名管理器经
+*(a1+1832)+472 → +120 注册器, 占名 throw 串 "...The division name is occupied: ");
+
+调试 join helper 0x140C2F160 = std::string join ('\n' 分隔): 累加各元素串长 → 分配
+→ 尾追加 '\n' (size==cap 走 sub_1424C8E60, 否则直写 `*(WORD*)(buf+size)=10`) →
+两半拷出; 空范围 = latch 断言 (ship.cpp:692) + SSO 空串 (size=0 / cap=15)。
 SetShipName deprecated assert 仍执行写名 (非删除); reader 补三点 = 键 14596≡15500 共用
 分支 (占名 throw)、键 11930 负值钳 0、15357 DB 回填。
 
@@ -1188,3 +1199,17 @@ define 落名 (defines_map_1193 直证):
 **本批新定案字段 (与 §4.30.17 类壳互补)**: +88 布局高度缓存 / +92 slider 内部指针 / +128..+140 选中对象跟踪三件套 (idpair+dword+u8 旗, 复位路径已见宿主语义未决) / +144 合并预览 40B 缓冲 / +204 舰队级选中旗 / +232..+244 选区 idpair 数组 / +256 详情 pending 旗 / +257 海军旗 / +264 弹窗树比对键 / +36720 选择计数件 / +36728 reserve 组 scoped ptr (latch byte_14338B16A) / +36752 任务目标按钮表 48B 元 / +36784..+36810 任务按钮 RH 表区 / +36816/+36828 串数组 {data, count} / +36840..+36852 TF 快照数组 (BuildTooltip idx4605 同址) / Setup 绑定槽区 +36680..+36936 步 8 与观察器对 +36952..+37040。音效 = order_fleet_effect (下令) / order_invalid_effect (无效)。
 
 17 胶水块语义落定 9 块: +4168 移除区域 / +6744 改装 / +9320 自动补员 / +10608 半选 / +11896 btn_merge 接线 / +13184 btn_split_in_half 接线 / +14472 btn_create_new_from_selected 接线 / +15760 特混重组 / +19624 修理模式 / +20912 修理回调 (0x14180FCD0, 523 行: 三态分类 sub_141806380 → 需修路 CNavyRepairNowCommand / 弹窗路分舰送修; 尾驱动 +36688 槽状态)。
+
+
+**navalmission.cpp 50-99 行簇增补**: 新定性三函 — **单位所在海省谓词入口 0x140FB6E30** (desc+210 bit0 陆地 → GetProvince(desc+200) 换算 → 海省+200 QWORD 非 0 委派 sub_140FB7010 (全身未析); 无省一次性日志 "no province? /dan" :867) / **运输群截击可达判定 0x140FB7C40** (transfer 单位表 {d@+24, c@+36} 首个 desc 旗 &3==0 单位过 sub_140EA8F30 海距门 = 舰队目标省 fleet+216 距 ≤ 上限, a4 置位回退 +392 邻接表; TF 无海通路告警 "TaskForce in province id %i that has no sea access" :2143) / **水面侦测修正施加 0x140FB2E20** (×mod/1e5 基线 1e5; mod = sub_140D6F660 = (省+352×Σ舰值(tf+840 表)/1e5 + 省+312)×ctx+8/1e5 下限 0 — Σ舰值 getter = sub_140C334D0, 场项业务名待裁; 明细行 SURF_DET {type 9, delta=mod−1e5}, 族 A 增员)。helper 定案 = sub_140D6EAD0 (TF 所在省 getter, tf+496, 陆→配对海省换算) / sub_140EA8F30 (海距判定) / sub_140D6F040 (TF 路径进度换算, 溢出返 -1)。已载函微增 = 0x140FBE250 谓词对象 = CConvoyClient (std::function 包装 sub_140FB7700), 元素 40B {权重@+28 × 对象值@+40}; 任务类型名表 0x140FB65C0 越界断言 "Missing localization key for new mission!" :1145 返空串。省对象 +200 QWORD 字段语义未决 (两处消费)。
+
+
+**naval_fire_exchange_member.cpp 执行侧四函 (FEX 解析器 0x141978E30 近邻, 全新收)**: **命中结算入口 0x141973E20** — 侧累计 QWORD[2]@+240 (+1.0/次, ceil 钳上限, 满 return false) → 选目标 sub_141971CC0 → 内嵌 **CFEXMember::CLastTargetInfo@+312** {vtable@+312, 指针@+320, dword@+324, active@+328} (vtable 名直证) → 主结算 sub_1419740C0 → 暴击判定写 **+300 = dword_143331560** (乘数 qword_143331960, 两 define 槽名待裁); 布局新证 = 环境指针@+232 (+32 目标表/+56 单位集)。**炮槽三路读器 0x141972900** (gun∈{0,1,2} 双源切换 +8 对象 A 优先/+16 对象 B, "invalid gun" :2519; 炮种语义待裁)。**ECombatBox→档位映射 0x1419723B0** (值域 {1,2,4,8,0x10,0x20}; 4/0x10→7 / 0x20→6 / 1/2/8 舰种谓词四件套 sub_140C3AF20/B210/B220/B230 细分 (谓词第五件 sub_140C3AF10 = ship+1576 & 0x40 = capital_ship 位, FEX 五分类普查 0x141C6A370 首件单独判); "invalid ECombatBox" :2479)。**穿透→临界系数查表 0x14196FD60 (定案)**: NAVY_PIERCING_THRESHOLDS (data qword_143339998 / size dword_1433399A4) × CRITICAL_VALUES 同尺寸配对 (:1826 断言直证); 比率 = 1e5×穿透/护甲, **除零 → 10.0**; 档 = 最后一个 ≤ 比率阈值; 低于全部 → values[0]+1.0。
+
+#### 4.16.24 海空交火车载机投送强度计算 (naval_fire_exchange_air.cpp; 1 函 = sub_14197D770, 高置信)
+
+#### 4.16.25 海军领袖建筑模块四槽取值写门 (navy_leader_building_module.cpp; 1 函 = sub_141623450, 高置信/类型门推定)
+
+sub_141623450: a1+8 = idpair (双 dword 非零 ∧ sub_14221F310 解析 → 本体); 本体经 sub_140F9F9C0 取对象 v7, **门 = v7 非空 ∧ *(v7+3708) == 2** (推定 = 海军类建筑类型); a3 ∈ {0,1,2,3} 四槽分派 (switch 降级为减法链: 0 → sub_140C154F0 / 1 → sub_1406CFCD0 / 2 → sub_1406CF4D0 / 3 → sub_1406CF890, 各返槽持有者); **落点统一 sub_14055AB90(槽+224, a2, 2, 0, 0, −1, 0, 100000, 0, 0, 0)** — 固定值 **100000 (= fixed 1.0)** 写出参 a2; 非法 a3 → :145「Should never get here」纯日志 (闩 byte_14338A9C9); 任一前置失败 → sub_14011E130(a2, &空串) 空出参。
+
+sub_14197D770 (a1 = 交火成员侧对象): a1+8 = 父交火对象 / a1+28 = 载机 token 对 ({lo@+28, hi@+32}) → 非零经 sub_14221F310 解析为对象 v9 → 断言 :68 (v9+104 非零 = IsCarrier, 闩 byte_14338B40D); v6 = *(父+56); v9+96 或 v9+100 非零 → 取次级 token (v9+96) → `v4 = *sub_140C38760(&out, token, 463, *(v6+304), 0, 0)` (常量 463 语义未决); **ceil-1e5 取整** = `v4 != 100000*(v4/100000) → v4 = 100000*(v4/100000 + (v4>0))` (正数向上取整到 1e5 粒度, 非正不变); 结果 `*(dword*)(a1+248) = dword_143335D60 + (int)v4/100000` (全局基值 + 定点缩放; 基值与 463 语义未决); 返回值 = v4 符号位惯用语 (`v4*0x29F16B11C6D1E109>>64>>63` = v4≥0 的 bool, 非业务系数, PE 侧验算)。与 §4.16.23 交火执行侧四函同族 (成员侧字段消费面)。

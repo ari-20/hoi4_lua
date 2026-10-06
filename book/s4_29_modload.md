@@ -34,9 +34,12 @@ getter; `word_1435E4088` 已初始化旗):
 
 | 偏移 | 内容 |
 |---|---|
+| +0 | 第二 DirHandle 链表头 (deinit/单注销与 +8 链同查节点+40 挂载残留; 主链/写目录链语义待裁) |
 | +8 | 搜索路径 DirHandle 单链表头指针 |
 | +16 | 写目录 DirHandle 句柄 (空 → mkdir/写报错误码 13) |
-| +40 | archiver 列表头指针 (openDirectory 扩展名选型循环起点) |
+| +32 | archiver 对象数组 (DirHandle+40 元素同源) |
+| +40 | archiver 列表头指针 (openDirectory 扩展名选型循环起点) 四串描述符 {extension, description, author, url} (与上游 PHYSFS_Archiver 前四字段同构) |
+| +48 | numArchivers (双数组计数) |
 | +64 | 挂载前缀长度 (canonical 化缓冲预留) |
 | +88 | 全局互斥体 (std::mutex; 冻结位 =1 时全库跳锁) |
 | +248 | init 成功位 (archiver 注册完置 1) |
@@ -74,14 +77,14 @@ CDLCManager (+104 容器) 逐条 DLC 挂载 sub_142078210 → mod 向量逐条 s
 | ?PHYSFS_init | 库初始化 | baseDir/userDir 解析 (尾分隔符断言 :1271/:1272) + archiver 两轮注册 + state+248=1 |
 | ?PHYSFS_mkdir | 写目录下组件级建目录 | verifyPath + 逐段 stat/mkdir; 写目录空 → 错误码 13; 唯一引擎入口 = VFS「确保目录树」封装 sub_1424DBA40 (截图落盘/openWrite 前置) |
 | ?PHYSFS_getPrefDir | prefdir 计算+逐级建目录 | 静态缓存 0x1435E4098; 引擎死链 (见上) |
-| ?PHYSFS_readBytes | 缓冲读循环 | PHYSFS_File {+0 io, +24 buf, +32 bufsize, +40 datalen, +48 bufpos}; zip/7z 头部小读同走此路 |
+| ?PHYSFS_readBytes | 缓冲读循环 | PHYSFS_File {+0 io, +24 buf, +32 bufsize, +40 datalen, +48 bufpos}; zip/7z 头部小读同走此路 补 +8 forReading 旗 (0 → 错误码 15); |
 | sub_1424F8A60 | openDirectory (archiver 选型) | 扩展名 utf8stricmp 匹配循环 + 兜底循环 → archiver+48 openArchive; 无命中 → 错误码 6 |
 | sub_1424F70D0 | createDirHandle | openDirectory + 填 dirName/mountPoint (尾随 '/') |
 | sub_1424F9220 | verifyPath (路径越界/symlink 防线) | 挂点前缀校验 + 逐组件 stat; symlink 拒绝 = +249 旗=0 时 (错误码 12); stat/openRead/enumerate/mkdir/delete 五导出共用 |
-| sub_1424F6AE0 | createNativeIo | 'r'/'w'/'a' 三模式 + 80B io 对象 |
+| sub_1424F6AE0 | createNativeIo | 'r'/'w'/'a' 三模式 + 80B io 对象 24B 句柄 {io@+0, path 副本@+8, mode@+16}; 原生 Io 80B 10 槽分发表; 'r'/'w'/'a' 三打开原语 = sub_142514720/142514750/142514690 |
 | sub_1424F8410 | 枚举桥 (挂点影子条目) | 请求目录是 mountPoint 严格前缀时发射挂载点组件名, filetype 恒 4 (vendored 扩展标记「挂载点影子目录」, 值域外) |
-| sub_1424F2740 / 2610 / 24F0 | memoryIo destroy/dup/read 三件套 | 48B MemoryIoInfo {buf, len, pos, parent, refcount, destruct}; PHYSFS_mountMemory 后端; refcount 原子, 减 0 才 destruct |
-| sub_1424F68F0 / 6440 / 6D90 / 6590 | DirTree init/add/free | 64 哈希桶; add 两函数互递归建中间目录; zip (sub_1425189D0) 与 7z (sub_142512FA0) 条目装载共用 |
+| sub_1424F2740 / 2610 / 24F0 | memoryIo destroy/dup/read 三件套 | 48B MemoryIoInfo {buf, len, pos, parent, refcount, destruct}; PHYSFS_mountMemory 后端; refcount 原子, 减 0 才 destruct dup/destroy 尾调槽 = vtable+56/+72 (非上游 PHYSFS_Io 标准序, vendored 魔改, 勿按上游序读槽) |
+| sub_1424F68F0 / 6440 / 6D90 / 6590 | DirTree init/add/free | 64 哈希桶; add 两函数互递归建中间目录; zip (sub_1425189D0) 与 7z (sub_142512FA0) 条目装载共用 DirTree {+0 root, +8 哈希桶数组, +24 entrylen}; 条目 {+0 name, +8 哈希链, +16 子目录链头, +24 兄弟链, +32 isdir} (entrylen ≥ 40; addMkdir 中间目录恒 isdir=1, add 显式 isdir 参) |
 | sub_1424F8630 / 75F0 | archiver 注销两型 | deinit 全注销 (仍有挂载 → 错误码 8 + "nothing should be mounted during shutdown" 断言) / 单注销 |
 | sub_1424F2910 | lockConfig | 输出 {链表头, 互斥体, 冻结位} 三元组; 冻结位=0 才加锁; 九导出统一入口 |
 | sub_142515B30 / sub_14250AD70 | zip / 7z openArchive (相邻簇) | zip 局部头签名 "PK\x03\x04" / 7z 签名 0xAFBC7A37+0x1C27 |
@@ -98,6 +101,29 @@ insecure / 24 tried to modify a file the OS needs / 25 directory isn't empty /
 26 OS reported an error / 27 duplicate resource / 28 bad password /
 29 app callback reported error。每线程错误码槽 = tls[TlsIndex]+2140。
 
+#### 4.29.1b zip 归档元数据解析链 (physfs_archiver_zip.cpp; 4 函闭环 — 书未收簇)
+
+`clausewitz\pdx_core\physfs\` 第三方静态链入层 (§4.29.1a 只覆盖库本体与封装层, 不涉本簇); openArchive = sub_142515B30 (§4.29.1a 表末行)。归档句柄公共骨架: `a1+32` = seek 虚槽 / `a1+48` = filelength 虚槽 / sub_1424F6D00 = 顺序读 n 字节。三签名常量 (定案):
+
+| 签名 | 值 | 结构 |
+|---|---|---|
+| 0x06054B50 | 101010256 | EOCD (22B + 注释) |
+| 0x06064B50 | 101075792 | zip64 EOCD 记录 (≥56B) |
+| 0x07064B50 | 117853008 | zip64 EOCD 定位器 (20B) |
+
+| 函 | 角色 | 骨架要点 |
+|---|---|---|
+| sub_142518780 (helper) | EOCD 反扫 | 取 filelength; 尾部 256B 窗内自尾向头扫 4B 签名 0x06054B50; 出参 a2[0] = 文件尾偏移; 窗空 → sub_1424F9450(6) 返 −1 |
+| sub_142518160 (helper) | zip64 记录定位 | 候选位三探 (a3 传入偏移 / a2−56 / a2−84), 逐处读 4B 比签名 0x06064B50; 命中返该位, 否则线性回扫; wassert "_pos > 0" |
+| 0x1425183C0 | zip64 定位器解析 | seek 到 a5 (= EOCD 位 −20) → 签名须 0x07064B50, 否则返 0xFFFFFFFF; `*(a1+40) = 1` (zip64 标志); 读 4B 须 0 (disk number) / 8B = zip64 EOCD 记录偏移 / 4B 须 1 (total disks — 单盘约束) → 定位记录 → 跳 size/ver/disk → entries_on_disk(8) 须 == total_entries(8) (**单盘约束**) → `*a4` = total_entries → `*a3` = CD offset (8); `*a3 += *a2` (相对→绝对); wassert "((PHYSFS_uint64)pos) >= ui64" |
+| 0x1425190E0 | 总解析入口 | EOCD 反扫得位 → 签名须 0x06054B50 → 走 0x1425183C0 zip64 路; 返回 ≤1 即定案 (1 = zip64 成功 / 0 = IO 失败); 返 −1 (非 zip64) → 解析 22B 明式 EOCD: disk(2) 须 0 / diskWithCD(2) 须 0 (单盘约束) / entriesOnDisk(2) == totalEntries(2) → `*a4` = totalEntries / `*a3` = offsetOfCD(4); 完整性门 `EOCD 位 ≥ CD size + CD offset`; `*a2` = 数据起始 = EOCD 位 − CD size − CD offset; `*a3 += *a2`; 尾校验 `EOCD 位 + commentLen + 22 == filelength` (注释长度对账, 明式路径独有); 任一门败 → sub_1424F9450(18) 返 0; wassert "rc == -1" |
+
+> 出参契约 (两路径一致): `*a2` = 数据起始绝对偏移 / `*a3` = 中央目录绝对偏移 / `*a4` = 条目总数。IO 失败一律返 0 (静默), 结构不符经 sub_1424F9450 错误通道返 0, 签名不符返 0xFFFFFFFF。字段对应按 PKWARE APPNOTE 结构形状推得 (PHYSFS 源码未含于语料, 无独立佐证, 待裁)。
+
+
+#### 4.29.1c clausewitzlib ZIP 中央目录头解析 (zip.cpp; 1 函 = 0x1422E3C30, 定案)
+
+读取器原语 = `(*(*a1)+32)(a1, buf, len)` (vtable+32 = Read); 读 46 字节头后校验签名 `*(dword*)a2 == 0x02014B50` ("PK\x01\x02"), 不符 → :1202 纯日志 (flags=0, 闩 byte_14348138D; B51 域门) + 返 0; 三变长字段: a2+28 u16 文件名长 → malloc(n+1) 挂 **a2+48**; a2+30 u16 扩展长 → **a2+56**; a2+32 u16 注释长 → **a2+64**; 各读后补 null 终止。与 §4.29.1b 的 physfs_archiver_zip.cpp 族为不同 TU (本节 = clausewitzlib 自有 zip.cpp)。未决: 读取器所属类 (推定 CZipArchive 游标) 与三指针字段释放责任 (本函只分配+读入)。
 #### 4.29.2 descriptor 解析 (dlc.cpp)
 
 `.mod`/`.dlc` 文件为 PDX 脚本格式, 由 token 派发器 **sub_14207AE90** 按 key 落槽。
@@ -251,8 +277,15 @@ GAME.layout.token_name, 但此目录的 token 在任何 mod 之前即占位。
 
 #### 4.29.9 DLC feature gate 与归属校验链 (gamedlc.cpp / dlc.cpp)
 
+#### 4.29.10 PHYSFS 目录归档 open (physfs_archiver_dir.cpp; 1 函 = sub_142514C60, 定案/错误码待裁)
+
+sub_142514C60 (目录归档 open): 目录存在性/类型判定 sub_1425148B0 (出参 == 1 才继续, 否则 sub_1424F9450(6) 错误码 + 返 0; 错误码 6 按标准 PHYSFS 枚举 = FILES_STILL_OPEN 与语境不契, 疑魔改 fork 枚举改写, 待裁); 成功 → `*a4 = 1` 成功旗出参 + malloc(len+2) 逐字节拷贝目录串 → **末字符 != 0x5C (`\\`) 则追加单字节 `\\`** (强制尾随分隔符); 分配失败 → sub_1424F9450(2) (OOM, 与标准枚举位一致); 返回串 = DirHandle 的 dirName (§4.29 DirHandle 56B 形状 +8 的构造点)。wassert "io == NULL" :0x30 (无闩; IDA 条件反演 `if (a1)` 实为 `!a1`)。
+
 **feature gate** (sub_1401AEB50, gamedlc.cpp:230): feature id → **dword_14332F248 位测试** (未知 id 一次性告警 "Unrecognized DLC feature flag."); boot 掩码构建 sub_1401AEDA0 = 12 名查询置位 + 收尾强制 `|=0x1E` (四个 legacy 扩展恒开); 掩码 setter/getter = sub_1401AED90/0x1401AE6A0 (存档 11546 恢复环 sub_141998D60→sub_1401AED90); 超集判定 sub_1401AED80 `(mask & g) == mask`; 伴生全局 dword_14332F24C = 4608 (语义未定)。位→DLC 名 (代码字面串): 0x1 Poland / 0x20 La Resistance / 0x40 Battle for the Bosporu / 0x80 No Step Back / 0x100 By Blood Alone / 0x400 Arms Against Tyranny / 0x800 Trial of Allegiance / 0x2000 Gotterdammerung / 0x4000 Graveyard of Empires / 0x8000 No Compromise No Surrender / 0x10000 Peace For Our Time / 0x20000 Thunder at Our Gates; 位 0x2/0x4/0x8/0x10 ↔ TFV/DoD/WtT/MtG 四名对应为推定 (恒置无查询串)。431 个消费点 (效果/命令族大量消费, 最热 id 50/57/19/25)。
 
 **DLC 归属校验链**: CDLCManager::VerifyAllDLCOwnership sub_14207C2A0 (tbb 符号直证类名; **dlc_signature 缓存**命中跳过逐项校验, 否则并行校验后回写); 签名 = sub_142078270 = **MD5(MachineGuid 注册表值 + Σ.dlc 文件字节 + 66B 盐 "DontStealMyGamePlz__WINNERS_DONT_USE_DRUGS__DONT_COPY_THAT_FLOPPY")**; 单件校验 sub_14207CC90 (校验和门→商店后端查询, 0=拥有/2=未拥有/3=校验和致命; type 表实际只走 1=steam); 单件校验和 sub_1420774D0 = MD5(name+itoa(len)+path+itoa(steam_id)+itoa(0)+pops_id+deps+replace_paths+"y"/"n"+archive 字节+**19B 盐 "h4rdc0r3Gam3r4lyfe"**); 串行兜底 sub_14207D4B0。
 
 **注册表与 UGC**: `.dlc` 扫描 sub_14207B540 (**两注册表统一键 = descriptor name (+8)** — 76090/B540 插入键均拷自 +8, 插入比较器同; 插入前门按 type 校验 steam_id 低半 +624 / pops_id 串 size +608 / +648 pdx_id 非空, type 0 拒绝 "Incorrect DLC descriptor" :858); 过滤谓词 sub_14207AA60 (types 1/3/5/6/7 查 disabled_dlcs 按 +72 精确匹配, 2/4/8 经 sub_142079430 变换后按 **name +8** 比对 — 两条不同匹配路径, 变换 = '\' 切分 ≥2 段弃再 '/' 切分重组 (推定), type 0 = "Unknown source" 告警返 0); Workshop 安装器 sub_142079E00 (挂载 workshop 目录→找 zip→写 `ugc_<id>.mod` 描述件→按 ugc 键回查); 订阅增量安装 sub_142075200 (mtime < 安装时间才重装)。**CDLCManager 具名** (qword_14344A568 单例, 兼 §4.29.7a 挂载管理器)。**CDLCDescriptor 增补**: +592 pops_id (token 765) / +584 type (ctor 默认 0; 解析后推断仅当原值 0/6: path 非空∧archive 空 → **8** (mod folder) / 反之 → 2) / **+664 = 所有权验证旗** (ctor dword = 0x100 即 byte+665 affects_checksum = 1 而 +664 = 0; **写者 = VerifyAllDLCOwnership sub_14207C2A0** 置 1, 唯一读者 = 挂载收集门 — DLC 只收旗非零者) / +628 = steam_id 高半 (默认 0) / +648 = pdx_id 串 size (默认 0) / +72 registry id (装载器注入非解析键) / +280 = **PHYSFS_getRealDir** 挂载前缀 / **+368 supported_version = CVersionNumber 对象** (80B, token 611 经 sub_142222840 解析, 分量数组 +384/分量数 +396, 有效 = 分量 [2,4], 前缀相等判兼容如 "1.19"≡"1.19.3" — 非 MSVC 串); 764/767 rail_id/msgr_id 负定案。**boot 全链 (定案)**: main → 单例 → PHYSFS_freezeConfig(1) → 装载 ctor ("dlc","mod" 两前缀) → .dlc 扫描尾调 VerifyAllDLCOwnership → .mod 扫描 → dlc_load.json → -exclude_dlc (幂等追加 disabled_dlcs) → 版本不匹配弹窗 ("Unsupported Mods") → 挂载主函数; **feature gate 域 (gamedlc.cpp) 与本簇零调用关系** — 掩码 = 已安装 DLC feature 位, 所有权旗 = 商店后端验证, 两套正交。
+
+
+**largefile.cpp 联机大文件传输协议 (clausewitzlib 层, 书未收新域)**: 消息三件套 + ctor — **CStartFileTransfer 执行 0x1422E1000** (载荷 {+16 文件名, +40 size, +56 checksum, +44..+51 句柄槽}; 新建/复用 240B 句柄 sub_1422DFD20 → 按名+checksum+size 开档 sub_1422E19F0) / **CSendChunk 执行 0x1422E0E90** ({+40 块数据, +64 chunk 序号, +68 发送句柄}; 有句柄 sub_1422E0520 发出 / 无则 "CSendChunk Execute FAIL" :131) / **CChunkReceived ctor 0x1422DFBE0** (vtable 名直证; {+40 chunk, +44 id, +48 progress 定点 round(a4×1e5)}) / **执行 0x1422E0D00** (管理器缺位断言 "missing large file handle (chunk received)" :199)。管理器单例 = unk_1430B1DF8 (解引用经 sub_14221F310; **槽[10] = 收块/开档契约位**, ctor+apply 同槽互证; 槽[12] 取参), 日志类别码 769。类名 unk_1430B1DF8 挂载链未决。

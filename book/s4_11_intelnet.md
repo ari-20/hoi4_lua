@@ -720,7 +720,7 @@ GetDesc (0x14194D8B0) 执行流程:
 
 > 未决: 州路径分隔符 0x12 的语义 (分隔符/文本码) 未定, 需 PE 侧或 loc 系统对账; `sub_140BB4C30` (tag → 国名/显示串) 为本批唯一已知调用点, 书 §4.00 无条目, 待裁。
 
-#### 4.11.13b 特工视图管理态与行动列表排序族 (operativeview.cpp 1 函 + countryintelligenceagencyview.cpp 6 函)
+#### 4.11.13b 特工视图管理态与行动列表排序族 (operativeview.cpp 1 函 + countryintelligenceagencyview.cpp 9 函)
 
 **COperativeView 列表管理态** (populate 0x141834E70 137 行; 断言字段名直证):
 
@@ -743,7 +743,7 @@ populate (重建式) 流程:
 
 > 上游重建链 (sub_141834C90): 读旧窗 +165 字节 >>3 (旗) → 清理 → 调本 populate → `sub_141835130` 列表重建 (每特工建 COperativeViewEntry → 挂 operative_status_window, §4.11.26) → 旗真 → (+96)+48 子对象 vtable+120。
 
-**行动列表排序族** (countryintelligenceagencyview.cpp; 6 函 = std::stable_sort / std::inplace_merge 模板族实例化, 比较器 lambda 内联; 操作 8B CID 对元素连续数组):
+**行动列表排序族** (countryintelligenceagencyview.cpp; 9 函 = std::stable_sort / std::inplace_merge 模板族实例化, 比较器 lambda 内联; 操作 8B CID 对元素连续数组):
 
 | VA | 行数 | 标准库角色 |
 |---|---|---|
@@ -752,6 +752,9 @@ populate (重建式) 流程:
 | 0x140F243F0 | 146 | inplace_merge 核心归并: 双指针比较 + memcpy 段旋转; 左段足够小时递归 0x140F24970 |
 | 0x140F23F70 | 151 | inplace_merge 前段: 二分定位旋转点 → 尾调旋转+归并 |
 | 0x140F24970 | 99 | 暂存归并分派: 左段足够小 → 临时缓冲归并; 否则按量分发 0x140F23F70 (左) / 0x140F254A0 (右) |
+| 0x140F24E20 | — | **stable_sort 驱动体**: 插入分块 sub_140F25640 → (count>32) 首趟 sub_140F25E90 → 与临时缓冲 ping-pong 往返归并 sub_140F252B0, 每趟步长 ×4 (调用链直证) |
+| 0x140F252B0 | — | **缓冲归并叶**: 源 ↔ 临时缓冲往返归并; 判据 = 左存在 && prio(右) < prio(左) → 取右, 否则取左 ⇒ 等值取左 = 稳定升序; 断言 :479 同族闩 byte_14333D4D0 |
+| 0x140F25E90 | — | 首趟归并 (体未读, 模板角色待裁) |
 | 0x140F254A0 | 78 | 逆向归并 (merge_right): 自尾向前归并 + memcpy 段旋转 |
 
 比较键链 (6 函共用, 体直证):
@@ -996,7 +999,7 @@ op 栈拷贝): ① 目标国亡 → 释放+删 (无条件); ② duration==0 或 
 ③ **到期判定 sub_141403780: gs+1128 ≥ op+112 + 24×op+128** (instant 旗+玩家国
 跳过); ④ 到期 → finished 表记账 (ops+48 双层 RH, 目标 tag count+1); ⑤ 玩家
 可见: 通知 sub_140CD6440 / cryptology op 解密天数扣减 / def "operation_
-rescue_general" 特殊处理 (sub_1401ED990 + sub_140CD43A0 救出将军); ⑥
+rescue_general" 特殊处理 (sub_1401ED990 + sub_140CD43A0 救出将军; **sub_1401ED990 本体 = PlaythroughSetPlayerFlag (定案**: wrapper+2448 CFlagManager SetFlag value=1 ttl=-1 永久, 此处调用 = 行动完成置生涯旗)); ⑥
 auto_repeat (op+65): 可重启 (sub_141A29180) → 构造重启命令入事件队列; 否则
 玩家国弹 OPERATION_VIEW_AUTO_REPEAT_FAIL; ⑦ **sub_1406FFC90(cc) = 到期通知
 登记 (恒真, 写 tag 列表 + cc+136=1) → 所有到期 op 一律当场删除**; ⑧ 待删表
@@ -1057,7 +1060,7 @@ state==3 ∧ type==0 → 归位; ② **defense (ag+296) 重算 sub_140FDF110** =
 (网强度 × qword_143338240 + 强度/100000); ③ **特工槽重算 sub_140FDF210**:
 ag+240 max 重算 (sub_140FD7E30), **ag+244 usable = min(旧, 新 max)**; usable
 == max → ag+248 elapsed 清 0; 超编 → 现役−usable 逆序解雇 (在 op 上先
-RemoveOperativeFromOperation sub_1411A1550 → retired 池) (定案)。
+RemoveOperativeFromOperation sub_1411A1550 → retired 池) (定案)。**逐函骨架 (补)**: 实例表 {data@+16, count@+28} 线性查 instance — 未命中 :443 日志 "RemoveOperativeFromOperation: instance=%p not found in country=%s _RunningOperations" (国名 sub_140BB4E70, 通道 4096); 命中 → sub_141401490 查特工槽位 (特工名@op+64 SSO, id 对@op+8/+12), <0 → :453 "…operative %s (%i:%i) not bound to slot…"; **门 `!inst+128 ∥ inst+66`** 分流 — 命中 → sub_1413FFFB0 清槽召回 (保留实例, §4.11 optional mission data 清空), 否则 → sub_141403580 释放特工 + sub_140C63780(mgr+16, idx, idx+1) 向量区间删 (销毁实例); 双旗方向与 §4.33 CDeleteOperationCommand 互证。
 
 机构 daily (sub_140FDBD60): ① in_creation (ag+193) → upgrade_progress ag+200
 += 产能 → 阈 100000×dword_143335600 → 建成 sub_140FDBA00; ② 升级中 (ag+208)
@@ -1228,6 +1231,8 @@ captured 日结 0x140FDEC70 (213) / gfx 编译失败抛异常助手 0x140FDB3E0 
 0x140FDE3D0 (75, 任务反注册+被俘同步摘俘方) / ReleaseOperative 0x140FDE270 (65) /
 FakeOperativeDeath 0x140FDC700 (64, +252 计数++, 调用者 = turn_operative 效果)。
 
+**体读增补 (8 函深读, 与清册全符)**: AddOperative 槽位感知版容量门 = `ag+228 计数 ≥ ag+244 usable` (绕行旗 byte_14332F62E KeepExcessOperatives 无视门直挂; 满道入池 = sub_1415794A0(ag+8, …) + vtable[0] 带 1 析构原对象)。op+4224 状态枚举 **5 = killed** (死亡门断言 :1189); operative vtable 补钉 = **+168 (slot 21) 归属国绑定钩** (两 Add 变体共用, 实参 = `*(ag+120)+8` 本国 tag 槽) / **+232 (slot 29) IsCaptured 谓词**; operative CID 对 = {u32 @op+8, i32 @op+12} (ReleaseOperative 断言 `(%i:%i)` 格式直证; SSO 名 op+64/容量 op+88, 推定)。ClearCapturedOperatives = 被俘清册 {data@ag+264, 计数@ag+276, 56B 元} 逐元释放前后双断言 (:1121 GetCapturer==本国 / :1125 !=本国) + 只清计数不释放数组。RemoveOperative 未命中走**错误日志** (:1242) 非断言; 摘除五步 = 任务反注册 → vtable[+232] 真则跨机构递归摘俘 (调 ReleaseOperative) → 反绑 → usable-- 负值钳 0 → memmove 补位。**Agency.AutoComplete (byte_14332F62D) 只对当前玩家国生效** (StartCreation/StartUpgrade 双函同构: 玩家国规范形 `gs + (gs+1312 > 0 ? 1312 : 1316)` 门槛, 真则直调 sub_140FDBA00 建成 / sub_140FD78D0 升级; 假则 in_creation 旗 + def 暂存 ag+208 + 国通知); ag+200 = 建局/升级共用进度槽 (两 Start 入口清零)。FakeOperativeDeath 两道摘除 = 在册 RemoveOperative 全序列 / 不在册 sub_14157BA80 摘 recruitment 池 (ag+8), 双败 :1279 日志。
+
 **序列化面** (PE 直读 vtable 0x142981F68, 9 槽; §4.00.1 槽位通则实测成立): [1] wrapper /
 [2] writer / [3] wrapper / **[4] reader = 0x140FDDA00 (书原缺, 本批钉死)** / [5] PostLoad 桩;
 紧邻 0x142981FB8 = CCapturedOperativeReference vtable ([2] writer 0x141A34FF0 / [4] reader
@@ -1294,7 +1299,7 @@ OCCUPIED_TAG 双权重 define 全具名 (findings §2)。
 | sub_140D042A0 | 61 | :640 "_IntelFromAlliesOverOthers.IsEmpty()" | 盟友对他国情报矩阵读取器 | 新 |
 | sub_140D03D40 | 156 | :815 (经 04610/自身) | 引用 → 源覆盖国家 idx 列表收集器 | 新 |
 
-**上限表归一与快照** (sub_140D04430 / sub_140D05BE0 共享归一体): 全局 define 数组 {data qword_1433390B8, cap dword_1433390C0, count dword_1433390C4, alloc qword_1433390C8}; count != 4 → :302 错误日志 ("Expected INTEL_COUNTRY_LEVEL_MAXIMUMS to contain 4 values") → 懒扩容 (max(count×1.5, 4), 分配器 vtable[2]/vtable[4]) → 缺位 **memset 0x186A0 = 100000 (缺省定值直证)** → count 钉 4 → 刷新静态缓存 xmmword_14333CC58 / 14333CC68 (4×i64 快照)。04430 另拷快照入出参; 消费方 = sub_141420610 四象限比较器 (compare_intel_with / intel_level_over 的百分比归一基数) + sub_14023CB70 + sub_140FDBD60。
+**上限表归一与快照** (sub_140D04430 / sub_140D05BE0 共享归一体): 全局 define 数组 {data qword_1433390B8, cap dword_1433390C0, count dword_1433390C4, alloc qword_1433390C8}; count != 4 → :302 错误日志 ("Expected INTEL_COUNTRY_LEVEL_MAXIMUMS to contain 4 values") → 懒扩容 (max(count×1.5, 4), 分配器 vtable+8 分配 / vtable+16 释放 (体读勘定记法)) → 缺位 **memset 0x186A0 = 100000 (缺省定值直证)** → count 钉 4 → 刷新静态缓存 xmmword_14333CC58 / 14333CC68 (4×i64 快照)。04430 另拷快照入出参; 消费方 = sub_141420610 四象限比较器 (compare_intel_with / intel_level_over 的百分比归一基数) + sub_14023CB70 + sub_140FDBD60。
 
 **静态源引用解析器 sub_140D04610(ci, ref, strict) → CStaticIntelSourcePool***, 三重校验:
 
@@ -1373,3 +1378,6 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 **reader 补 2 点** (sub_140625780): ① hit 时**原地重跑 ctor sub_140622890 = 热重载语义**; ② gamestate.h:1125/1126 断言对 + gs+2617 战役活跃旗门 — 门过才报 :262 (读档外语境静默跳过)。
 
 未决: 名登记内部 / 两子块读取器 (§4.27.5 同款疑问不适用此处 — 本簇无)。
+
+
+**countryintel.cpp / countryintelnetwork.cpp 50-99 行簇增补**: **静态源引用解析器 sub_140D04610 三重校验** = 属主门 (ref+8 vs ci+8, "Reference applied to the wrong owner" :772) / 世代门 (ref+20 vs ci+208, strict 才报 :780) / 池界门 (:787); **静态源池 = {data@ci+160, count@ci+172}, 元素跨距 72B**; ref 字段图 = {owner tag@+8, 池 idx@+12, 源 idx@+16, 世代戳@+20}。引用→源→入账链 sub_140D066D0 双失败路径 = :567 "Invalid intel reference, intel values will be dropped" (情报值静默丢弃) / :815 "A reference somehow outlived the intel source"; 钳位累加原语 sub_140D05A00 = 逐象限 += min(入, 上限), 32B/行; 盟友矩阵 = 宿主+40 data / +52 count。断言闩字节补全 = :20 CC50 / :302 CC78 / :567 CC7A / :640 CC7B / :772 CC7C / :780 CC7D / :787 CC7E / :815 CC7F / countryintelnetwork.cpp:97 DD72。**CGainPostProcessor::operator() = 0x1411D7050 数值语义**: 缓存条目 216B (= CSubIntelNetwork); 贡献 = (权重 × 增益基值) 魔数定点积 0x29F16B11C6D1E109 >> 78 (= a×b/1e5 保标度); 现值钳上 10000000 (定点 100.0); 输出 = clamp(贡献, [this+16 负向下限, 剩余 = 现值 − 已入账(描述+16)]); 禁用旗 = 描述+24; idx < 0 原权重直通。

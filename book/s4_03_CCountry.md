@@ -112,6 +112,8 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +797..+807 | — | = volunteers_sent 容器 {data@784, cap@792, count@796, alloc@800..807} = count 尾 3B + alloc | |
 | +808 | CCountryManpower (内嵌 40B) | **人力块宿主** — 布局见下行; writer 0X140CFE9D0 ratio>0 才写 | §4.3.8 起; **GUI: Reorg confirm 人力门** (sub_14202C760) |
 | +809..+847 | — | = CCountryManpower (vtable 0X295EB90) 本体: {vtable@808, tag u32@816 (=cc+8), manpower.current u32@820 (键 11125), **ratio qword@824 (键 694**; GER 250000/ENG 105000/SOV 154500), exile u32@832 (键 15036; >0 才写), max u32@836 (键 15047), 尾 qword@840 (= 库块 sub_140CFA0F0 +32 拷贝, 与 +816/+820/+824/+832/+836 同批从库块拷入; writer 不写)} | |
+
+**CCountryManpower::Withdraw = sub_140CFE7E0** (manpower.cpp; 定案): a3 (use_exile) 真 → 断言 `_ExileManpower >= Amount` (:458, B52/闩 byte_14333CC3F) 后 exile(a1+24) −= amount, 返 0; 假 → current(a1+12) −= min(current, amount), 余量按 controlled_states 两轮摊销 (第一轮每州扣 余量/州数, 整除商>0 才进; 第二轮顺序补扣至余量 ≤0), 逐州经 sub_1413EAE50(state+2104, n) 扣减 (返回实扣量; §4.13 state+2104 人力基准锚, 重算入口 sub_1413EB4D0 / Reset sub_1413EAE90 之外的新第三入口), 返未扣尽余量。
 | +848 | CCountryColors (内嵌) | **颜色/外观对象 #1** (vtable+32 finalize; loader 键 **86 (color) / 12728 (color_ui)** 双键解析入 +848 — 11450 实为 mission 键零命中, country.cpp Load 巨 switch 直证; 快照对 +976←+880 / +1008←+912 / +1024←+928; 化妆 tag 解析 sub_1401DB180) | **GUI: 阵营成员行色源** (sub_1406ECF80(cc) = 沿 CDiplomacyStatus(+848 色 obj/+392 宗主 tag) 爬宗主链取色 getter — 返回+32 = cc+880 行色, 返回+16 同 rgba = 阵营默认色种子; 非新字段) |
 | +849..+879 | — | = CCountryColors#1 vtable@848 尾 + **间隙 8B@856** + CColor#1 vtable@864 尾 + **CColor +8 间隙@872** (rgba@880 已知) — 两间隙 ctor/dtor/writer/reader 全域不触, 推定 = MSVC 对齐填充 (CColor 16B 对齐使 rgba 落 +880 需 8B 垫) | |
 | +880 | 4×float | **color** (16B 色值) | 复制对 +976 |
@@ -137,7 +139,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +1120 | CState** | **controlled_states 数据** (vector<CState*>) | SetController sub_1409DDA40 推入/移除 |
 | +1132 | uint32 | controlled_states 计数 | 同上 |
 | +1133..+1143 | — | = controlled_states {data@1120, cap@1128, count@1132, alloc@1136..1143} = count 尾 + alloc | |
-| +1144 | CState** | **owned_states 数据** (vector<CState*>, 本国拥有州表) | SetOwner sub_1409DE560 对新主 sub_1406D1DF0 查重推入并重建 cc+1040 owned_provinces 缓存 + cc+4932 owned points, 对旧主 sub_14070FB90 移除并擦缓存 (双向配对); all/any_owned_state (GUI 串 TRIGGER_*_OWNED_STATE) 直遍历之; AddContestedState (sub_1406CFF30) 只推 +1168, 其 assert "not contested, use AddContestedOwner" 说的是州侧 contested-owner 属性门槛非容器名 (assert 曾被误作容器命名证据) |
+| +1144 | CState** | **owned_states 数据** (vector<CState*>, 本国拥有州表) | SetOwner sub_1409DE560 对新主 sub_1406D1DF0 查重推入并重建 cc+1040 owned_provinces 缓存 + cc+4932 (**contested points** — 双证: AddContestedState 对争议非己有州 `+= 州 VP` (sub_1409D47C0 = CState::GetVictoryPoints); 占领比回落式分母; owned points 在 +4928), 对旧主 sub_14070FB90 移除并擦缓存 (双向配对); all/any_owned_state (GUI 串 TRIGGER_*_OWNED_STATE) 直遍历之; AddContestedState (sub_1406CFF30) 只推 +1168, 其 assert "not contested, use AddContestedOwner" 说的是州侧 contested-owner 属性门槛非容器名 |
 | +1156 | uint32 | **owned_states 计数** | 同上; **GUI: 密码候选门** (≤0 排除; sub_141A228B0) **+ 国列表门** (与 capital cc+4120 / cc+5210 并列; 贸易过滤同键); trigger is_capital / owns_any_state_of / transfer_state 系「旧主失尽所有州」门同读此计数; **亦作 global_every_army_leader 收集器国侧门** (>0 才收集; 推定) |
 | +1157..+1167 | — | = owned_states {data@1144, cap@1152, count@1156, alloc@1160..1167} | |
 | +1168 | CState** | **contested_states_pending 暂存队列数据** (合入 +1144 前的暂存) | AddContestedState 先暂存, points 重算并入 |
@@ -188,7 +190,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4033..+4039 | — | = intelligence_agency@4032 指针尾 7B (ctor a1[504]=0) | |
 | +4040 | CLoopHistory* | **CLoopHistory** (0x38B, ctor sub_141516640(5,0)+sub_141516990(·,1); country.history 三队列族; writer L863 ADEC0(0x2835)) | §4.3.11 |
 | +4048 | CCountryOccupationStatus* | **CCountryOccupationStatus** (0x128 字节, 双vtable vtable1 0x142984978 @occ+0 / vtable2 0x1429849b0 @occ+24, RTTI 定名); 序列化 writer 0X141000120 = vtable2 槽[2] — ⚠ a1 = occ+24 基差 24 (division_template_id reader+120 ↔ writer+96 同证) | §4.3.8 起; **GUI: 占领面板数据源**; 布局/日志条目详 §4.3.2 |
-| +4056 | CCountryCollaborationStatus* (vtable 0x1429BCC68; 条目 24B = **CCountryCollaborationData**, vtable 0x1429BCC18, 槽[2] writer 0x1413F5C70 / [4] reader 0x1413F53A0) | **collaboration (0x4BB0)**: {data@+40, count@+52} 8B 指针数组, 条目 CCountryCollaborationData 24B {vtable@0, tag tid u32@+8, value i64×1e-5@+16} (ctor 0X1413F46E0 malloc 0x18; body writer 0X1413F5C70 AE590(776,+16)); 外层块嵌套同名两层 (国家 writer sub_1407191B0 ADEC0(0x4BB0, cc+4056); body 0X1413F5C90; reader 0X1413F53C0), 内层键 = occupier tag — ⚠ 挂载 cc+4056, 非 +4048 occupation | §4.3.8 起; **GUI: 战争盟友行 collaboration 图标** (CWarAllyItem: count@+52 消费) |
+| +4056 | CCountryCollaborationStatus* (vtable 0x1429BCC68; 条目 24B = **CCountryCollaborationData**, vtable 0x1429BCC18, 槽[2] writer 0x1413F5C70 / [4] reader 0x1413F53A0) | **collaboration (0x4BB0)**: {data@+40, count@+52} 8B 指针数组, 条目 CCountryCollaborationData 24B {vtable@0, tag tid u32@+8, value i64×1e-5@+16} (ctor 0X1413F46E0 malloc 0x18; body writer 0X1413F5C70 AE590(776,+16)); 外层块嵌套同名两层 (国家 writer sub_1407191B0 ADEC0(0x4BB0, cc+4056); body 0X1413F5C90; reader 0X1413F53C0), 内层键 = occupier tag — ⚠ 挂载 cc+4056, 非 +4048 occupation ; **+72 CPdxArray<tag u32> = 反向协作标签集** ("谁正和我协作": {data@+72, cap@+80, count@+84, alloc@+88}; 唯一插入 0x1413F49A0 (归属链 sub_1413F46E0 → GetCollaborationStatus(country_of(tag)) 直证反向语义) / 前移压缩删除 0x1413F57C0; tag 比较经 **sub_140BB52F0 = tag 等价谓词** — 读 gs+104 国家间接表 `table[*a1] == table[a2]`, gamestate.h:1125 (:1126 双断言 = CGameState 单例 + TLS 线程禁入); 另 +16 RH 表 {count@+24, mask@+28, extra@+32} 24B 条目 / +40 有序指针数组 (二分插入 sub_1401B14F0, 键 = sub_140BB5490(tag) 国家索引) / +64 持有者标签来源指针 (+8 = tag u32)) | §4.3.8 起; **GUI: 战争盟友行 collaboration 图标** (CWarAllyItem: count@+52 消费) |
 | +4064 | 匿名结构* | **country_reports** | §4.11.14; writer ADEC0 0x4BC3 |
 | +4072 | 匿名结构* | **intel** | §4.11; writer ADEC0 0x30EC; loader case 12524 同 |
 | +4080 | CCountryCharacters* | **characters 宿主 (0x138 堆对象, ctor malloc 双调用点直证; vtable 0X14298AE18, 活体探针 + ASLR 换算 + RTTI 名三证; ctor sub_1410E8A20 / dtor sub_1410E8C70); writer 块键 0x4C14; 断言 "Unit leader without a character" 互证; 8 张指针表; ⚠ sub_1411867E0 = 任命资格校验器 (技能门槛+理由串), 与本对象无代码关系 | §4.4; 内部表见下; **GUI: 阵营指挥官窗候选列表** (Repopulate sub_141BFA2A0; EFilterFactionCommanders 掩码 15 @win+4504) |
@@ -241,7 +243,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4600 | 匿名结构* | **资源/租借系统 rs** (vtable 0X295C4B0, writer sub_140CBE2D0); 内含每州资源因子缓存 — sub_140CAE3F0(*(cc+4600), state) 按州查条目 → infra factor sub_140CAD400 / supply factor sub_140CB48C0 (RESOURCE_INFRA/SUPPLY_FACTOR_TOOLTIP; 缺省各 1.0); CResourceOrigin 元素 spotter = 内联 id 对 {type@el+112, id@el+116} 任≠0 才写 (探针 PRU id=803 type=61); 元素内资源向量 {resources@136 / resources_unclapmed@312 / buildings@664} 落盘门两级 (同 CStrategicResourcePool 族): 块级 = 至少一个正值条目才整块写, 条目级 = 块写后 ≠0 全发含负值 (EoaNB origin[3].resources_unclapmed 仅 fabric=-1 → 整块无叶实证) | §4.3.8 起; GUI 消费表见 §4.3.3 |
 | +4601..+4607 | — | = 资源/租借 rs@4600 指针尾 7B | |
 | +4608 | CConvoys (内嵌 136B) | **convoys** — writer ADEC0 0x3062; **第二容器 {data@cc+4688, cap@4696, count@4700, alloc@4704}** — 8B 堆对象指针元, runtime-only (dtor 拆除); 消费 = sync manager "Convoys" desync dump (sub_140DAB4C0); sub_1402BC8A0 可用护航 = 缓存总量 (+4728/+4736, /1e5) − +4716 占用 — 护航分配明细, 业务名推定; 活体形态进展: 元素本体 ≥24B 无 vtable 结构 {u32@0, u32@4, u32@8 (与 +4 同值), u32/char4@12, 8B 堆指针@+16} (本档 103 国非空, 单国 ≤6 条) | §4.3.16 |
-| +4609..+4743 | — | = **CConvoys 136B (vtable 0X27E7130, ctor sub_1410203E0)**: {vtable@4608, tag u32@4616, **CEquipmentVariantPool 64B 内嵌@4624** (容器A 24B 元 + 容器B + u8), 容器@4688 {data@4688, cap@4696, c@4700, alloc@4704}, qword@4712, qword@4720, u8@4728, qword@4736} — 租借护航计算域 | |
+| +4609..+4743 | — | = **CConvoys 136B (vtable 0X27E7130, ctor sub_1410203E0)**: {vtable@4608, tag u32@4616, **CEquipmentVariantPool 64B 内嵌@4624** (容器A 24B 元 + 容器B + u8), 容器@4688 {data@4688, cap@4696, c@4700, alloc@4704}, qword@4712 (⚠ 实为 dword = **Σrequested 申请占用累计**, RequestConvoys 与 bucket+8 双写; qword 类型标记载待 PE 复核), qword@4720 = **_pConvoyVariant** (懒解析指针; country+3944 容器 {data@+160, count@+172} 取首个 variant+1032 bit0 置位者, convoys.cpp:543 断言), u8@4728 = **池缓存有效旗** (AddConvoys 正数入池后清 0 → sub_1410215C0 重算), qword@4736} — 租借护航计算域; 字段名对齐 §4.16.7b (cc+4716 = Σallocated 为另一字段, 勿混) | |
 | +4744 | uint32 | convoys 派生计算值 (sub_1402BC8A0(cc+4608); 0X140705630 消费) | 推定 |
 | +4749 | uint8 | dirty_controlled_states | §4.3.8 起 |
 | +4750 | uint8 | **tick 分片槽 = hash(tag) % dword_143336F50** (ctor 写入; 消费 0X1406E8210: `hour % N == +4750` 才跑 delayed_event 同步 (写 +4776 伴随表) — 错峰调度; 探针 GER=2) | 不序列化 |
@@ -333,7 +335,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +5520 | MSVC 串 向量 24B | **name_group** 容器 (32B 串条目) | writer 块键 0x3C87 |
 | +5532 | uint32 | name_group 计数 | 定案 |
 | +5533..+5543 | — | = name_group 容器尾: count@5532 高 3B + **alloc@5536 哨兵** | |
-| +5544 | scoped_ptr<CCountryOperationManager> | **operations** → **CCountryOperationManager** (0x60B; 内联 ctor: vtable + CCountryFinishedOperations vtable@+40, f32@+76=0.9) | writer ADEC0 0x4A38, 前置 scopedptr 断言 (定案) |
+| +5544 | scoped_ptr<CCountryOperationManager> | **operations** → **CCountryOperationManager** (0x60B; 内联 ctor: vtable + CCountryFinishedOperations vtable@+40, f32@+76=0.9; 容器 {data@+16, count@+28}; 按型净账 Σ = sub_141373BF0) | writer ADEC0 0x4A38, 前置 scopedptr 断言 (定案) |
 | +5552 | scoped_ptr<CCountryOperationTokenManager> | **tokens** → **CCountryOperationTokenManager** (0x48B; ctor sub_141405CF0(cc); 落键 intel_source/operation_assets, 旧键 tokens 兼容 — 布局 §4.11.17) | writer ADEC0 0x4A48 (定案) |
 | +5553..+5559 | — | = tokens scopedptr@5552 尾 7B | |
 | +5560 | 匿名结构 (88B 形状)* | **active_ability 数组数据** (88B 条目) | writer 块键 0x3891, 子键 id/start_date/country/leader/num_units/strategic_region/cost 全对位; 消费详 §4.3.5 |
@@ -680,6 +682,9 @@ reader 三件 (CPersistent 槽[4]): occ = **0x140FFB2D0** / 记录 CCountryOccup
 | def 字段桥 (间接) | — | 海军 61 id 经 STAT 桥 sub_140BAAA20 (stat+1536 加值 id / stat+1544 因子 id → 查 cc+1464, §4.16); 装备 def+912 / 资源 def+240+244 / 特殊项目 def+1540 族 / 静态 def 按名查 sub_14055D480 (断言 "missing static modifier definition: %s") 各走宿主 def 字段 |
 
 叠加律 (定案): 多来源同 id 聚合 = **纯加法** (sub_140557940 `entry.value += value×scale/100000`); 乘法结构 (X_FACTOR 族) 由公式点自算 `base×(1+Σfactor)/100000`; 无 max 型合成; 防负防爆由读取钳位 (def+96 bit4) 承担。
+取整语义 (定案): 逐来源并入 `value×scale/100000` 为**有符号整除向零截断** (编译器 /100000 魔数 0x29F16B11C6D1E109 特征); scale=100000 无损, 非整 scale 来源有逐步截断——**每步整除处取整, 无最终统一取整** (截断差数值级, 平台无关)。
+乘法折叠细则 (定案; 补上表 sub_140E5B960 行): ① pair 值 0 跳过乘; ② `out = out×(val+100000)/100000` 为逐步整除截断; ③ depth 语义 = children 递减计数, 0 = 不入子层; ④ 消费品链 (sub_140E630F0) 全式含**双下限钳** (百分比下限 define 槽 @3331498 / 数值下限槽 @33313C8) + 可用上限 + floor-1e5 取整——非仅"对全局下限钳位"。
+线性插值注入 (定案; calc_modifier 尾部, sub_1406D5C20 + sub_140558470): 稳定度/战争支持度的 good/bad 族修正 (war_support_good|bad|during_war / stability_good|bad 等) 非阶跃并表, 而是**按当前值偏离阈值全局 (qword_1433314F8 / qword_143330E98) 的比例连续缩放注入**——同一条 good 修正在不同稳定度水平下贡献不同, 全书其余修正均为纯加法, 此为唯一连续缩放特例。
 
 泛型壳层 CPdxModifier\<CModifier, ModifierType, ModifierCategory\> (clausewitzlib 模板; 与本 192B 布局**同物异视角** — 方法首参恒为 mod+16 pairs 描述符视角 (children=mod+40 / 计数=mod+52), 无独立 RTTI/存储/vtable, **不新增任何布局**):
 
@@ -765,11 +770,11 @@ divisionnamesdatabase.cpp 簇对账增补 (14 函数闭环; 断言锚行 316..21
 无序 = group+188) → 首空位 (有序取条目文件序号, 无序取下标), 全满 = 出借者 out+1。
 **组登记/注销对偶壳** sub_1409C5A80/5D90 (变参组列表 + 互链自动捎带; 桥 sub_1409C5940
 按 member+168 分向)。**铁路炮组约束** sub_1409C50C0: 每国 ≤2 组 (1 公共后备 + 1 国家专属),
-违规 throw :2099/:2105, >1 组保留专属弃公共。**post_mortem 日清 sub_1409C1780** (mode0
-专属, 其余静默跳): 逆向扫 post_mortem 容器, 无 override ∧ (+88 idpair 空 ∨ 解析失败) →
-swap-remove。**成员→组解析 sub_1409C40E0 四路**: type0 = +88 idpair → 对象+464; type1 =
+违规 throw :2099/:2105, >1 组保留专属弃公共。**post_mortem 日清 sub_1409C1780** (mode0 专属, mode 1/2/3 静默跳, >3 断言 "not supported" :718, 闩 byte_143339B28): 逆向扫 post_mortem 容器 (条目 176B: +8 E_NAME_GROUP_TYPE u32 — 非 ARMY 组类型待剪 → 断言 "_NameGroupType == E_NAME_GROUP_TYPE_ARMY" :1034, 闩 byte_143339B29 / +88 idpair {type,id} / +152 override 引用 qword), 无 override ∧ (+88 idpair 空 ∨ 解析失败) → swap-remove (sub_1409C04A0 搬运 + 末条目 vtable[0] 删除析构 + count--)。**成员→组解析 sub_1409C40E0 四路**: type0 = +88 idpair → 对象+464; type1 =
 `*(+80 _pShip + 1152)`; type2 = 串#1 查 codename 链; type3 = +72/+80 对象取 tag → 国铁路
 组容器首元素。
+**成员↔组单位类型匹配谓词 sub_1409C1610** (结构高置信/语义推定): a1 = CNameGroup (+344 单位类型 token 表 / +356 计数), a2 = 变体对象; 表空 → 返 1 (全兼容); 非空取三路候选 id (变体 +1008 域对象 +8 / 沿 +1240 两级链末端 +8 / 国引用 +28 → cc+3952 CDeployment +8), 线性扫表命中或元素出现在变体自身 id 列表 (+1008 对象 +1376 data/+1388 count) → 返 1, 扫尽 → 0; a2 空且表非空 → 断言 :1746 (闩 byte_143339B30)。
+**tracker mode 分派壳 sub_1409C5740** (语义推定按 mode 取/分配名字组): mode 0/1/2 → 单例 (sub_1409C4D60) +40/+56/+72 组容器槽经 sub_1409B9930 按名取组; mode 3 → sub_1409C50C0 (铁路炮约束, 上文); 收尾 sub_1409C9460; mode 非法断言 "unexpected tracker type" :437 (闩 byte_143339B26)。
 
 #### 4.3.10 经验 / 核弹 / 力量平衡 / 国策
 
@@ -1005,6 +1010,10 @@ CProgramItemBase target = NProject::CProgram (+56 CRef 柄):
 | +248 | 进度 fix5 |
 | +376 | uint32 未读原型奖励计数器 — ctor 0; Execute 0x141EF3F20 清零 + 项目 id 通知; **GUI 消费 = CProgramItemBase::Update 未读奖励窗柄 (+288) 显隐门** (`*(int*)(program+376) <= 0` → 隐, §4.31.32); ⚠「+368 旗容器」说与 ctor 无 +368 vtable 写相抵 (推定) |
 
+
+NProject::CProgram 初始化 sub_141442B60 (program.cpp:106; 高置信): ① a1+8/a1+12 idpair 双 dword 非全零 → sub_14221E700(a1, a1+8, 0) 引用解析/登记; ② 派生量 **a1+168 = a1+144 − a1+148** (两 i32 计算字段, 语义未决); ③ CBuildingDatabase 单例 qword_14332EE28 (gameitemdatabase.h:142 断言, 闩 byte_14332F970) → sub_140683650(db, a1+32 建筑模板键串) → 模板指针挂 **a1+72**; ④ 模板 +32 有效旗为 0 → CLog 4096 "Invalid building template key: " + 键。
+
+**特殊项目数据库输出件 sub_140A918A0** (project_database_output.cpp:185; 高置信): a1+8 = 项目 token u32; token == 357 (空哨兵) → CLog 4096 拼错 "\<a2\>:\<a3\>-\<a4\> : in option, the token is mandatory" (a2 = 名串, a3/a4 两 u32 转文本, 语义未决); 无论是否报错, sub_1424BC260(token) → 名串 → sub_14011FC50 追加进 **a1+528** (std::string 输出缓冲, 消费端未决)。
 facility def 布局补行 (def = CProgram+72 所指):
 
 | 偏移 (def) | 类型 | 名称/语义 | 置信 |
@@ -1036,6 +1045,8 @@ CAce 合并版全布局 (376B = 0x178; 类名 CAce 定案; writer 0X14061BD30 / 
 | +340 | uint32 | **portrait 整数** (ctor/reader/存档 portrait=78/活证 78 四证 — 原串说废) | 定案 |
 | +344 | uint8 | **alive** (两表归并 — KIA = 零值语义; 原「+344 KIA/alive 两说」结案) | 定案 |
 | +368 | CAceDef* | **ace def 指针** (ApplyAceDef sub_14061B7D0 写; writer 表只见 def+8 名串) | 定案 (原锚吻合) |
+
+**省控制权变更监听 (CProgramStatus::[2] = 0x140E775B0; 新收)**: (this, prov, newTag) — 门 = tag 相同 ∨ (双非空 ∧ 同原初国 sub_140BB52F0), 否则断言 program_status.cpp:269 "OldController == _Tag && Province controller changes to same tag…"。入内: 新控制者 program_status = *(sub_140BB4390(prov+392) + 4008) (cc+4008, §4.3); 附庸旗 = sub_140D25830(*(*(国+3976 表 +8) + 8×idx)) (宗主−附庸判定, §4.8.10 同款); 省上设施 = sub_140689480(prov) (null → 断言 :282 "province is listened by program status but has no facility"); sub_140E75D40(新 program_status, prov+164 省序号, 设施+480 载荷); 非附庸 → sub_140E77EB0 (§4.7 阵营支援科学家链件); 主重绑 sub_140E77A70(省序号, newTag, 附庸旗^1); 尾经 idler 单例 qword_14332F698 vt[+128] → sub_140B53EE0(idler, 省序号) → 结果 **+5979 = 1 UI 脏旗**。
 
 #### 4.3.13 CLoopHistory / 队列族 (country.history @cc+4040 / logistics @cc+3992 / strategic_air history — 三处同构, 唯一队列 writer 0X141517EC0, 全 dump 仅此一处写 max_elements token, 无类型分流)
 
@@ -1127,7 +1138,7 @@ B15 后勤面板消费 — 行数值 = sub_141D9BFE0 → sub_141371450 聚合桶
 
 | 项 | 值 |
 |---|---|
-| 布局 | +0 vtable 0x29B3B88 / +8 19 桶指针数组 {data@+8, cap@+16, count@+20} / +24 alloc / +32 属主 / +40 空向量（ctor 建, 全 dump 无写者）/ +64 子对象 / +96 次表 (0x1429B3B70) / +112..+120 40B 节点 + 侵入链表头; 合法字段止于 +120（对象 0x80）——**+232 系越界读邻接堆块, 非字段** |
+| 布局 | +0 vtable 0x29B3B88 / +8 19 桶指针数组 {data@+8, cap@+16, count@+20} / +24 alloc / +32 属主 / +40 flat 查量表 (24B 条 {CEquipmentType*@0, int 变体 id@8, i64 量@16}, 条数 +52; 查量 = sub_141373440 按 type / sub_141373540 按 (type, 变体), 前置谓词 sub_140C97430; 写者仍未位)/ +64 子对象 / +96 次表 (0x1429B3B70) / +112..+120 40B 节点 + 侵入链表头; 合法字段止于 +120（对象 0x80）——**+232 系越界读邻接堆块, 非字段** |
 | 身份 | CCountry ctor `sub_1406C9CC0` a1[499] 逐国建（malloc 0x80 + ctor 第二参注入属主; 上游 = ReadCountryFiles sub_14071C5C0; 活体 440 国 440/440 非空, +32 回指零差） |
 | 运行时写者① 每日推写 | sub_141375000（断言串 "logistics.postdailythreaded"）→ tbb `CCountryPostDailyUpdateThreaded` → 逐国 sub_140705580 → 全 19 桶推进 sub_141516980; ld[15] ← ps+520 生产条目（sub_141517DC0）; 人类国门 `!sub_1406FFC90` 内 ld[16] ← 库存−在用 |
 | 运行时写者② 日更聚合 | CCountry::DailyUpdate sub_1406E76A0 → sub_141371390(logi) + 燃料史 sub_1410F2B50(fs) → sub_141373E50 七列写 ld[17]（桶 +136; 7 列 = `EFuelHistoryData::FUEL_DATA_COUNT`, col0 = (fuel≪15)/32768000） |
@@ -1148,7 +1159,7 @@ kind 枚举（k 值 = sub_141371450 首参桶号）：
 | k7 | 增援交付完成 |  |
 | k8 | 增援交付完成 |  |
 | k14 | 窗口内交付部队装备合计 | status 条分子, LOGISTICS_STATUS "need covered by production"; 窗口 = define **LOGISTICS_PAST_WEEK = 7** (dword_143334C2C) |
-| k15 | 库存现值 |  |
+| k15 | 库存现值 | 特例径 = 本桶 ∨ scale==0: 四基类谓词 sub_140C95730(type)&1 真 → 国家级 memoize (cc+4728 valid byte 未置则 sub_14100DCB0(cc+4624, ·, 1) 算一次存 cc+4736; 结果 = 1e5×(缓存/1e5 − *(dword*)(cc+4716)); 四件业务语义待裁) |
 | k18 | 补给系统装备消耗 | country_supply.cpp:0x335 断言链 (卡车/火车) |
 
 行槽字段:
@@ -1161,7 +1172,7 @@ kind 枚举（k 值 = sub_141371450 首参桶号）：
 
 #### 4.3.14 CFocusStatus (= CNationalFocusProgress, RTTI 正名)
 
-fp = *(cc+4992); ctor 0X1402CB9C0 (malloc 0xB8); vtable BASE+0X2739D50, slot2 = writer 0X1402DC910。
+fp = *(cc+4992); ctor 0X1402CB9C0 (malloc 0xB8); vtable BASE+0X2739D50, slot2 = writer 0X1402DC910。 writer 全键序 = 16323 activate_shine_on_focus (fp+32, c≠0 开块, joint 占位 alloc(18) 待裁) → 12583 completed (fp+64, joint 判 def vtable slot14 ≠ 桩, originator tag 断言 "completed joint focus has been added…" :1755) → 11013 progress (fp+56, ≠0) → 11125 current (fp+16) → 14053 current_continuous (fp+24) → 13969 paused (fp+176 反向门 ==0 才写)。
 
 | 偏移 | 类型 | 名称/语义 | 写门 |
 |---|---|---|---|
@@ -1416,7 +1427,7 @@ CCountry 内嵌块 @cc+5000 (40B 本体; vtable 名直读; 与 fp+88/fp+152 表�
 
 **树默认锚点** = sub_1402D41D0: 焦点 x≠0 者 (y 任意) 中取 x 最近均值者之名 → 写 tree+184。书 §4.3.14/§4.3.15a 收 writer/完成/daily 半边, 本簇补 reader/装载/校验侧 — 装载→运行管线:
 def/树解析 (vtable[4] 成员解析, 树侧 = sub_1402D8CB0) → db 注册 (sub_1402CCB90 全局重名查,
-"Duplicate focus name …" :1366) → 树注册 (sub_1402CDC70: tree+48 查重 push + FNV + tree+72
+"Duplicate focus name …" :1366) → 树注册 (sub_1402CDC70: tree+48 查重 push + FNV + tree+72 级联精化: 注册器对 dependents (def+1440, 16B 元 {依赖方*, u8 旗}) 递归注册 = 注册一焦点整链连带注册其依赖方; FNV 冲突告警 ("Focus %s has a hash collision…" :308) 后**照插不中止**。
 RH 插) → db finalize (sub_1402D4500: 逐 def sub_1402D4930 校验[互斥对称回查 :1426 族 +
 逐前置组触发 sub_1402D4D90 写 def+1440 dependents] → 逐 def sub_1402DB4F0 (簇外, 未决) →
 逐树 sub_1402D5280 布局校验[+104 串表重解析 / initial_show_position :274 / shortcut 条目])
@@ -1449,7 +1460,7 @@ sub_1402CD590 **完整重放**, 连带 fp+88 RH / fp+144 / dependents 解锁; �
 
 **开局选树链** (定案): 逐树评分 sub_1405520E0(tree+296 country 值块) 取最高且 >0 → 无候选
 走默认树 getter sub_1402D1D90 (tree+288 旗, 多默认取最后 :1439) → 仍无取首棵树
-("No default tree scripted…" :1503) → sub_140711A60 装载。单国版 sub_1402CE220 (调用点
+("No default tree scripted…" :1503) → sub_140711A60 装载。单国版 sub_1402CE220 (调用点 树选择三级回退 = 逐树 sub_1405520E0(tree+296, &score, 国串) 评分取最高 >0 → 脚本默认树 → 首树+:1503 告警; tree+296 = 评分输入槽 (语义待裁)。
 sub_141425810 国家建立链, 直传统一库单例) / 全国家版 sub_1402CE350 (gs+784 数组 / gs+796
 计数; 另两调用点 sub_1401CC780 / sub_1401E0E30 = 启动 setup 区, 触发时机推定)。
 
@@ -1846,7 +1857,7 @@ CPowerBalance 主表:
 
 注 (写入点): +176 唯一写入点 = sub_140E58770 (Rebuild 尾调): min 含 / max 排他 /
 max==100000 哨兵; 区间切换时执行旧/新 range 的 on_deactivate/on_activate。
-注 (读点): sub_140E55EA0 模式 1 = 名比对直读 +176, 467 = 之上, 468 = 之下。
+注 (读点): sub_140E55EA0 — 模式 1 = 名比对直读 +176 (range+1848 FNV ci-hash 等 + range+1816 id SSO stricmp); 非 1 扫 +104 ranges 合并视图缓存, **未命中回落 CPowerBalanceRange null 单例** (sub_140A8D660 → qword_14333A078, null_object.h:133; 与 CPowerBalanceSide null 单例 qword_14333A070 相邻同族); **467 = value < min (严格小于); 468 = value >= max ∧ max ≠ 100000** (哨兵排除, 与 +176 写点同体系)。
 注: SetSides sub_140E58330 断言读侧对象 valid 与 +8 同位。
 
 映射表: +184 CModifier 内嵌块分区 (全布局见 §4.3.8):
@@ -1926,6 +1937,9 @@ CPowerBalanceSide 的 reader = sub_140A8ED10 (vtable 0x142940000 [4])。四者�
 | sub_1406FF1F0（国级按位更新派发器） | sub_1406FF1F0 | 双入口: ① postHourlyUpdate 阶段① 带本小时累积修改位, 算毕 cc+4320 清零 (§4.2.6); ② CSelectEventOptionCommand::Execute 尾部带掩码 0x0FFFFFEF (§4.33.18) | 二参 = 位掩码, 按位派发 (country.cpp:8857): bit0 sub_140716580 (无参) / **bit1 = CalcMod 修正重算 sub_1406DADE0** ("CalcMod for <tag>" + supply_factor 误用警告 :8863, cc+1464 容器 find token 566) + sub_140E70C80(\*(cc+3944)) / bit2 sub_1406DD0C0 / bit3 sub_140CFE770(cc+808) / bit4+5 同现门 sub_14070C890 / **bit6 sub_14070AF30** (InitData 新局路以掩码 65 = bit0+bit6 调用实证) / **bit7 sub_140D46650 = 外交状态 on_action 评估** (diplomacy.cpp, on_war / on_uncapitulation 串; §4.2.9) / bit8 sub_14070BDB0 / bit9 sub_140E6C810(\*(cc+3944)) |
 
 > 备注: hourly 主调度并行段的排序键 = `cc+5488 (double)` 升序 (插入/并行归并两套)。
+> 备注: **cc+4320 脏位置位者清单 (定案)**: sub_1410DC4E0 → sub_1407042D0 置 \|=2 (建筑/工厂
+> 计数链) / sub_140EE3E70 置 \|=0xA (科技) / sub_140D46650 置 \|=0xFFFFFFF (外交全位) /
+> sub_140E801A0 置 \|=0x40 (省控制权变更)——现役写者全表, 派发器本体见上表。
 > **cc+5488 定案 = 每国小时更新耗时 EWMA (α=0.02s)** — 纯自测量负载均衡键:
 > stamp 头 sub_140CFEAD0 / 尾 sub_140CFEAF0, 作用于 cc+5424 块 (5496 = 块内 +72 槽);
 > 双键排序每小时执行两轮: sub_1401DF400 出口前 (sub_1401B6AD0 归并 → sub_1401B6720 插入)
@@ -2060,8 +2074,8 @@ CPersistent（双序列化路径: 主表槽 [8..11] 与子表槽 [1..4] 同 writ
 | +1808 | CResourceOrigin* 向量 {d@+1808, cap@+1816, c@+1820, alloc@+1824} | 资源权利对象列表; 逐元素键 12473 origin 发多态子块（无包裹键, 重复键发射）; 元素 1016B（ctor 0x140CA5090, owner tag 抄 rs+32） | 是 | 定案 |
 | +1832 | CResourceExchange* 向量 24B | 按 资源 def+216 cat 索引的 24B 槽组, 头 {d@+1832, cap@+1840, c@+1844, alloc@+1848}（ctor 预扩至全局 cat 数槽, 槽 = sub_14011DF40 形 24B 容器）; 槽内元素逐个键 12486 export 发子块; 元素 = CResourceExchange（240B; vtable 0x14295C410 / writer 0x140CBEEC0 / reader 0x140CB8E10; +128 = rs 回链, §4.8） | 是 | 定案 |
 | +1856 | CResourceExchange* 向量 {d@+1856, cap@+1864, c@+1868, alloc@+1872} | **_ResourceImports 进口交换条目扁平表** (定案: 断言串 `_ResourceImports.Contains( pImport )` trade.cpp:3246 直证; 元素 = CResourceExchange\*, 其 +136 receiver = 本国; 写点 = 建交换 sub_140CA6370 双注册之进口侧 — seller 侧进 +1832 cat 桶、receiver 侧进本表; **runtime-only**, reader 12486 export 只建出口桶不触本表 = 读档后重建; 消费 = 进口民厂分配 sub_140CBAA10 遍历) | 否（runtime-only） | 定案 (原「语义未决」升) |
-| +1880 | CLendLeaseExchange* 向量 {d@+1880, cap@+1888, c@+1892, alloc@+1896} | lend_lease（12618）; 元素 896B（malloc 0x380）, ctor sub_14196A480: CConvoySubscriber@+136 / rs 回链@+176 / 10×64B 容器 @+216..+728 / CGameDate×4 @+792..+840 | 是 | 定案 |
-| +1904 | 匿名结构 (8B 形状) 向量 | 在途输入条目队列 (8B 元素指 0x14196 交换族 896B 对象; 求和 getter sub_140CA7C70 = Σ(元+880); 唯一消费 = 燃料日更 sub_1410F71B0 取和入 fuel+40 参与资源槽分配 — 机制定案, 业务名「inbound 租借/输送条目」高置信) | 否（runtime-only） | 定案 (机制) |
+| +1880 | CLendLeaseExchange* 向量 {d@+1880, cap@+1888, c@+1892, alloc@+1896} | lend_lease（12618）; 元素 896B（malloc 0x380）, ctor sub_14196A480: CConvoySubscriber@+136 / rs 回链@+176 / 10×64B 容器 @+216..+728 / CGameDate×4 @+792..+840; 元素级 getter +408/+472 差 = 按型出站租借净量 (sub_1413716B0, 饱和累加; 方向语义「承诺−已交付」待裁) | 是 | 定案 |
+| +1904 | 匿名结构 (8B 形状) 向量 | 在途输入条目队列 (8B 元素指 0x14196 交换族 896B 对象; 求和 getter sub_140CA7C70 = Σ(元+880), 另有 Σ getter(元+600) = sub_141372CF0 (按型在途量); 唯一消费 = 燃料日更 sub_1410F71B0 取和入 fuel+40 参与资源槽分配 — 机制定案, 业务名「inbound 租借/输送条目」高置信) | 否（runtime-only） | 定案 (机制) |
 | +1928 | CResourceDeliveryRoute* 数组 {d@+1928, cap@+1936, c@+1940, alloc@+1944} | delivery_routes（13476）; 按买方国 idx 索引（ctor 尾扩到国家容器规模并 null 填充）; writer 跳 idx 0, 逐非空元素以 route+52 tag 名（sub_140BB4E70）为键发命名子块; reader 按 tag 名回填原槽 vtable[3]（trade.cpp:3844 未知 tag 报错） | 是 | 定案 |
 | +1952 | modify_building_resources 表向量 {d@+1952, cap@+1960, c@+1964, alloc@+1968} | modify_building_resources（14547, 门 count≠0）; 外条 32B {建筑 token u32@+0, 内表 24B 向量@+8}, 内元 16B {u32 资源 idx, fixed×1e-5 → sub_1424ED730 转整落盘}; reader 外键走 TGameItemDatabase 查建筑 | 是 | 定案 |
 | +1976 | 16B 条向量 {d@+1976, cap@+1984, c@+1988, alloc@+1992} | extra_resource_origin（15049, 逐条重复发块）; 条 = {CResourceOrigin* @+0（键 12473 子块）, giver tag u32@+8（键 12500 giver; writer 转 tag 名串 / reader 存 tag id）}; reader 建新 CResourceOrigin（tag 抄 rs+32） | 是 | 定案 |
@@ -2111,11 +2125,11 @@ rs+1976 条解引用; 消费行 §4.3.3）:
 
 | 公式 | 定案式 |
 |---|---|
-| 交付量 (sub_140CA9EF0) | `delivered = clamp(量,0) × eff(+72) × eff_lost(+80) / 1e10`; 返回值魔数 = 进位修正合并渲染, 非独立语义 |
+| 交付量 (sub_140CA9EF0) | `delivered = clamp(量,0) × eff(+72) × eff_lost(+80) / 1e10`; 返回值魔数 = 进位修正合并渲染, 非独立语义; 虚槽槽15 (+120) = origin 获取器 / 槽16 (+128) = receiver 获取器 (receiver+8 kind ==2 才进主路径); request 链 = 路线键 sub_140CA7CD0 (含 mdef 275 TRADE_COST_FACTOR [DLC 门 sub_1401AEB50(5)] 与 mdef 377 TRADE_COST_TO_TARGET_FACTOR, 尾乘 Required) → sub_141020F40 (define qword_143333200, 下限钳 1e5) → 损失折减 + ceil 1e5 网格 → sub_141022950 提交 (语义未决) |
 | 护航申请量 (sub_140CA78F0) | `ceil((1e5 − coverage) × 期望(+120) / 1e5)` |
 | 海区安全覆盖率 (sub_140CA7700) | `1e5 × Σ(受控海区权重 region+224) / Σ(权重) × CONVOY_CONTROLLED_ROUTE_COST_REDUCTION_FACTOR / 1e5` (谓词 = sub_141003F50(region+232, tag)); define qword_1433334D0 定名 |
 | RequiredCic (sub_140CAAA20) | `ceil(1e5 × 量 / 单位成本)`, cost(1)==0 或量==INT64_MAX → 0xFFFFFFFF |
-| 属国资源转移 (sub_140CB4100) | produced 池快照 × mdef 641 `MODIFIER_RESOURCES_TO_OVERLORD_FACTOR`; 属国聚合器 sub_140CBDE80 遍历 **dip+368 数组/{count@+380} 属国 tag 表** |
+| 属国资源转移 (sub_140CB4100) | CountryResources = country+4600 (空 → 断言 "Failed to find CountryResources for subject country" :2803 → 空池构造 sub_140BCAFB0); produced 池 (= res+40) 快照 × mdef 641 `MODIFIER_RESOURCES_TO_OVERLORD_FACTOR`; 属国聚合器 sub_140CBDE80 遍历 **dip+368 数组/{count@+380} 属国 tag 表**; CStrategicResourcePool 三构造器 = sub_140BCAF00 拷贝 / sub_140BCAFB0 空 (按全局资源表 sub_1401DB5C0 扩容) / sub_140BCAF50 快照入局部 |
 
 CConvoyClient 基类补行: **+124 u8** (ctor 清 0; sub_140CAB520 消费门); dtor = sub_140CA5600 (+88 战斗 idpair 表逐元解绑 — 元素 −16 还原 CNavalCombat, sub_1415C5090 注销; +112 spotter 反清 sub_140FBA990(对象+848, 0) 后复位哨兵)。CConvoySubscriber init (sub_141021F90) 末两参 = kind (8 = 资源交换 / 0x10 = 资源 origin) + priority define (NMarket.RESOURCE_EXPORT_PRIORITY dword_143334208 / NMarket.RESOURCE_ORIGIN_PRIORITY dword_14333415C)。
 
@@ -2185,7 +2199,7 @@ UpdateExtraResourceOrigins sub_140CBA140 三环 (定案): ① 清除 — giver t
 - 工厂半边 (sub_1406C2E30, token 13239 "focus"): malloc 872 → 逐段 ctor → vtable[+24] (槽[3] Load wrapper) 子解析 → debug 门 byte_14332EC69 下重名查 (本 def 名 hash 对库 +48 已有条目, 命中 → CLogStream "Duplicate focus name will cause database problems" :51, **报后照常注册 — 重名检查仅 debug 态生效, 装载期默关, mod 重名连续焦点静默注册成立**) → 双 push: 库 +48 与 palette +48 (1.5× 增长)。
 - palette 选择链 (sub_1406C1640 全国家 / sub_1406C1520 单国, 同一算法): 逐 palette 评 sub_1405520E0(+80 值块, ctx) 取最高且 >0 → 无候选走默认 getter sub_1406C1FA0 → 仍无 → 格式化错误日志 "No default tree scripted, will apply first scripted instead." :494 取首 palette → **sub_140711A30(国, palette) = sub_1402DACA0(fp,0) 清当前连续焦点 + cc+4984 = palette** (✓ 书 cc+4984 行闭环)。全国家版迭代 gs+784/gs+796 国家表, 门 = tag > 0, 带 gamestate.h:1126 线程禁入断言。
 - 默认 getter (sub_1406C1FA0): 扫库 +72 取 +72 default 旗; 多默认 → "Only one continuous national focus palette should be default, switching from %s to %s" :436, 后者胜; 无默认返 0。
-- 查名 (sub_1406C2180): FNV → 线扫库 +48 (entry+16 hash 预筛 + entry+24 名 memcmp); hash 同名异 → "Hash collision for national focus: %s while looking for %s" :88 继续扫; 未命中返 0。调用方 sub_14138B9B0 (GUI 域)。
+- 查名 (sub_1406C2180): FNV-1a (init 0x811C9DC5 / mul 0x01000193) → 线扫库 {data@+48, count@+60} 8B 指针元; entry ≥ 88B = {+16 hash u32 预筛, +24 名 32B SSO {size@+40, cap@+48} (命中谓词 = size 等 ∧ (size==0 ‖ memcmp 等)), +56 第二串 32B SSO {size@+72, cap@+80} 仅碰撞日志用}; hash 同名异 → "Hash collision for national focus: %s while looking for %s" :88 继续扫 (非终止); 未命中返 0。调用方 sub_14138B9B0 (GUI 域)。
 - def 图标校验 (sub_1406C2550, 后装载): +88 空 → 抄 +24 名; +752 (def+752 = 内嵌 CModifier+88 域, 归属待裁) 空则缓存 +56 串; has_icons(+152) 时: selector 无默认 case → "Focus %s (%s) does not have a default icon case." :199; 逐 40B case 查纹理管理器 qword_143453090 sub_142238DF0, 缺 → "Missing icon for focus" :206; 拼 "_shine" 再查, 缺 → :211。
 - icon case 解析 (sub_1406C19E0): !+152 → 断言 "No icons defined for continuous focus!" :227; 求值 idx < 0 → 断言 "Icon evaluation failed to return a valid case!" :233; 返 +128 + 40×idx; 两失败路径均返静态默认条目 qword_143330CA8。调用方 = sub_140B41760 (效果/触发执行域); 断言总门 = byte_1435E1B51 (与 advisor/combatmanager 的 B52 异位)。
 
@@ -2211,7 +2225,7 @@ to_use 三池「负量记账」协议 (定案):
 | 释放方向 | 池[2] += 正量 (实扣+欠账之和, 向上取整 1e5); **产线每 tick 先全额返还再按新配方重扣** |
 | 条目形态 | 32B {消耗者对象*@8 (+16 有效 byte), 实扣 i64@+16, 欠账 i64@+24} (count@+100); 欠账 = 请求 − 实扣 |
 | 净额语义 | P2 = 当前被产线占用量 (负数记账) — §4.3.25 活体「P2 负值累计」自洽 |
-| 消费者 | 0x14193A460 (a5=1) / 0x140E6AE80 (a5=1, 特殊项目) / 0x1414830F0、0x141482020 (a5=0, 第三类池宿主) |
+| 消费者 | 0x14193A460 (a5=1, 产线) / 0x140E6AE80 (a5=1, **煤预留+电力覆盖率写者** — 语料全读: ps+1256 三元组 + coverage 写四工厂池, 旧记"特殊项目"系误标) / 0x1414830F0、0x141482020 (a5=0, 第三类池宿主; 0x1414830F0 = 特殊项目真身, 宿主链 cc+4008 → NProject::CProjectPool 直证) |
 | RTTI | 0x141933EA0/0x141934030 体内 `CEquipmentProductionLine::vftable'` 符号直证 |
 
 **主函数链** (sub_14193A460): gamestate 门 (TLS 禁入) → gs+2613 世界就绪门 → vtable[11] 规模取值 + a1+192 数组扩容逐元素钳 [带, 上界 = 1e5 × dword_143336790 + 100 × modifier(171, cc+1464)] (dword_143336790 不在 defines 表, 定名未决) → a1+40 = 基速 × (1 + modifier(0)/1e5) → rs = *(cc+4600) (:653 断言 pCountryResources) → **清算段** (遍历 a1+88 条目, (量A+量B) 取整返还池[2] + Releasing 日志 + bump 戳[2], 与 sub_141937BB0 逐指令同构) → **重扣段** (配方 = vtable[28] 容器 16B 元 {量, 资源 def id@+8}; 逐条库内索引 sub_140AC1F80 → 需求 = 配方量 × *(a1+24) × (1 + modifier(4)/1e5) → sub_140E5AAB0 消耗登记 → 条目 +16 = 实扣 / +24 = 欠账) → 缺口结算 (sub_141936210 逐条取 max; a1+216 = min(0, 缺口 − modifier(5)) 饱和负差) → 通知 + SetSpeed。
@@ -2255,6 +2269,6 @@ to_use 三池「负量记账」协议 (定案):
 
 **装载器** (sub_140A8E210): RH 表 stride 456 {hash@0, dist@4, 键串@8, 值 408B 内嵌@48} (§4.26 互证零冲突); 重复键 → 格式化错误日志不中断; reload 路径 = 逐条目析构清表再遍历目录。**range 索引重建** (sub_140A8E5D0): 两源收集 (模板 ranges + 逐 side 内 ranges) → 40B 条目表 {串, hash} 查重。**Template 全布局定案 (408B)**: +56 decision_category 串 / +96 initial_value / +104 left_side / +144 right_side / +184/+272 双 CEffect(88B) on_activate/on_deactivate / +360 ranges 向量 (1856B 元) / +384 sides 向量 (288B 内嵌)。键集与 Side reader 同 token 复用 (模板层与侧层共享键命名空间)。
 
-**CPowerBalance reader 8 键** (sub_140E57540; 与书 §4.3.21 主表逐项吻合 — reader 反向补全写门): 776 value→+48 / 10597 modifier→+80 指针向量 / 11593 countries→+56 / 15559 left_side→+24 / 15560 right_side→+32 / 15563 trending_side→+40 / 15565 sides→+376 (80B SideInfo 列表) / 19482 template→+16。**失效自愈**: side 键解析失败按模板默认侧名 (left_side/right_side 串) 重查 — 存档缺侧可自愈。set_power_balance_gfx (sub_140E57EF0) 展开证实 = 书「高置信对应」升格定案 (条目下标族 sub_140E564D0 与指针族 sub_140E56ED0 不同族; SideInfo gfx@+48 覆写; sub_140E53970 = SideInfo 追加 helper 登记)。
+**CPowerBalance reader 8 键** (sub_140E57540; 与书 §4.3.21 主表逐项吻合 — reader 反向补全写门): 776 value→+48 / 10597 modifier→+80 指针向量 / 11593 countries→+56 / 15559 left_side→+24 / 15560 right_side→+32 / 15563 trending_side→+40 / 15565 sides→+376 (80B SideInfo 列表) / 19482 template→+16。**失效自愈**: side 键解析失败按模板默认侧名 (left_side/right_side 串) 重查 — 存档缺侧可自愈。set_power_balance_gfx (sub_140E57EF0) 展开证实 = 书「高置信对应」升格定案 (条目下标族 sub_140E564D0 与指针族 sub_140E56ED0 不同族; SideInfo gfx@+48 覆写; sub_140E53970 = SideInfo 追加 helper 登记)。find-or-add 全链: entry = *(sys+8) + 400×idx + 376 (sides 向量头, count@entry+388); 侧匹配 = elem+40 FNV ci-hash 等 ∧ elem+8 id SSO stricmp; 未命中 → sub_140E53970 push (1.5× 扩容, ctor sub_140E55020, hash 由 a3+32 透传); 命中/新建后写 gfx@elem+48 (sub_140129CA0 SSO 串赋值)。
 
 未决: range 重建函数vtable槽位 / 工厂 case↔策略 id 映射 (§4.34.27) / trending 失效回退 sub_140E58B20 语义。

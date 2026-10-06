@@ -342,7 +342,7 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 | +192 | uint32 | vec184 cap | 定案 |
 | +196 | uint32 | vec184 count = **节点数** (EA10 读作新节点 idx) | 定案 |
 | +200 | uint64 | vec184 alloc | 定案 |
-| +208 | vector\<bool\> 24B | **涉足外国位图** (写者读者俱全): {data@+208, cap@+216, count@+220, alloc@+224}, 字节/国; 内容 = 120B 国家缓存条 +88 涉足 tag 数组展开; 写者 = lam3 sub_1412212C0 首段 (sub_140EC8500 构建位图 → sub_1404744B0 assign, CPdxHybridInlineBufferAllocator\<bool,1024\> vtable 直证); 读者 = 传播五联族泛洪门 (起省控制国 idx 不在位图 → 整个泛洪不启动) + lam3 自检。⚠ 同号异体: css+208 = CNavalBaseConvoyClient 挂接表, 节点条目内嵌 +208 = 每接收方发放台账, 勿混 | 定案 |
+| +208 | vector\<bool\> 24B | **涉足外国位图** (写者读者俱全): {data@+208, cap@+216, count@+220, alloc@+224}, 字节/国; 内容 = 120B 国家缓存条 +88 涉足 tag 数组展开; 写者 = lam3 sub_1412212C0 首段 (sub_140EC8500 构建位图 → sub_1404744B0 assign, CPdxHybridInlineBufferAllocator\<bool,1024\> vtable 直证); 读者 = 传播五联族泛洪门 (起省控制国 idx 不在位图 → 整个泛洪不启动) + lam3 自检 + 节点查询侧归属门 (sub_1414E0A70 / sub_1414E2AF0: 控制国不在位图 → 外交通行降级, §4.21.2a)。⚠ 同号异体: css+208 = CNavalBaseConvoyClient 挂接表, 节点条目内嵌 +208 = 每接收方发放台账, 勿混 | 定案 |
 | +232 | uint32 向量 | 本 tick 涉及的外国 tag 集 (从 sys+64 国家缓存条 +88 复制; 写 sub_14121DEA0 / 读 sub_14122C090 逐 tag→国 idx→该国 calc+440) | 定案 |
 | +256 | 匿名结构 (40B 形状) 向量 | **消费者供给发放账单** {CSupplyConsumer*@0, qword@8, qword@16, qword@24, dword 键@32}; 排水 = UpdateSupply 尾段 sub_14122AA00 逐条 CSupplyConsumer::AddReceivedSupply (sub_141A0ACF0; supply_consumer.cpp:167/181 断言); **写者 = lam21 计费叶 sub_141223E60** (type≥2 且台账 +220 非空的节点计费时推 40B 条, 1.5×扩容; ⚠ 活局「账本恒空」探针记录与此矛盾的待裁解释 = 探针局冻结或无 type≥2 订阅者, 实机复探后再终裁活性口径) (首参 = 消费者对象) | 形定案 / 写者代码层定案·活性待裁 |
 | +280 | 匿名结构 (16B 形状) 向量 | **跨国非本地链接源** {省 id@0, ?@4, 省/参数@8, 值@12}: EA10 逐他国记录读此表 → 本国 +184 插 type3 + +704 登记; **写者负定案 (休眠)**: 节点创建族与全域无推入点 → type3/+704 链路原版不可达 (高置信推论) | 读侧定案 / 写者定案 (负向) |
@@ -378,7 +378,7 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 | +656 | 匿名结构 (8B 形状) 向量 | **(state, node idx) 有序对表** (FindNodeIndex case0; 每轮 sub_1412229D0 尾排序重建 — 键收窄为 state) | 定案 |
 | +680 | 匿名结构 (32B 形状) 向量 | **state→空补节点 idx 列表** {state id@0, 内嵌 24B 向量@8}; 读者 1414E3980 求和的是**节点**条 +64 | 定案 |
 | +704 | 匿名结构 (8B 形状) 向量 | **_NonLocalNodes** {(省 id, 节点 idx)}; 断言 country_supply.cpp:2919 | 定案 |
-| +728 | 匿名结构 (8B 形状) 向量 | (省 id, 节点 idx) 有序对表 — FindNodeIndex (sub_141229210) case4 目标; 变体读者 sub_141223990 / sub_1414E2AF0; **写者负定案 (恒空, case4 恒 −1)** | 读侧定案 / 写者定案 (负向) |
+| +728 | 匿名结构 (8B 形状) 向量 | (省 id, 节点 idx) 有序对表 — FindNodeIndex (sub_141229210) case4 目标; 变体读者 sub_141223990 / sub_1414E2AF0; **写者负定案 (恒空, case4 恒 −1)**; sub_1414E2AF0 mode→表 (§4.21.2a): 2→+704 / 1→+728 / 0→+704 未命中回退 +728 / 外交通行分支→+752 — 与 FindNodeIndex case 编号为两套映射, 勿混 | 读侧定案 / 写者定案 (负向) |
 | +752 | 匿名结构 (8B 形状) 向量 | (省 id, 节点 idx) 有序对表 — FindNodeIndex case5 目标; 变体读者 sub_14120F110/141210470/1412220B0/1414E2AF0; **写者负定案 (恒空, case5 恒 −1)** | 读侧定案 / 写者定案 (负向) |
 | +776 | 匿名结构 (16B 形状) 向量 | **消费者注册清单** {tag u32@0, CSupplyConsumer\*@8} (lam3 重建 → 注册阶段排水 = **sub_141229D70**: 逐 16B 条按 tag 定国调 sub_14121B650 注册); sizeof = 800 由本容器闭合 | 定案 |
 
@@ -391,7 +391,35 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 - **容量三分支选择器 sub_141228D50 细化**: 分支序 = 省缓存条 +18 capital word 非零 → CAPITAL 三 define / +20 supply_node_level 非零 → NODE / 否则 NAVAL_BASE (+21 naval_base_level 也零时先发 "no node available" :3180 — **断言不短路仍落 NAVAL_BASE 值**)。
 - **发放叶两条**: 节点→消费者累计比例瀑布 sub_14121A790 (倒序迭代; share = 1e5×(累计avail × _TotalSupply/1e5)/Σavail, to_give = min(avail, 增量); **avail ≤ 0 条迭代中压实删除**); 本地供应发放叶 sub_141215BC0 (find-or-insert → received_local +104 += avail + +31 清零 → 省 _TotalNeed 扣减)。
 - 消费面互证: s4_22 kind17 与 s4_18 补给率均不在簇内 (簇内无战斗写点/零调用), 供给值经 232B 条 +56/+64 被战斗域消费, 无交集。
+#### 4.21.2a 节点供给查询 (supply_system_utils.cpp; 3 函 = 主 0x1414E0A70 + helper sub_1414E2AF0 / sub_1414E2EB0 — 新收)
+
+| 函数 | 行数 | 体内锚 | 定性 |
+|---|---|---|---|
+| sub_1414E0A70 | 85 | supply_system_utils.cpp:1179 "Found no valid supply node data!" | 节点可用量/已耗查询 (供给国 tag, 消费国 tag, 省 → out 可用量, out 已耗) |
+| sub_1414E2AF0 | — | gamestate 双断言 | 节点 idx 查找 (mode 选表, 二分 {省 id, 节点 idx} 8B 对) |
+| sub_1414E2EB0 | — | gamestate 双断言 | 他国该省供给最大值 (遍历 120B 国家缓存条 +88 涉足 tag 数组) |
+
+主流程 (定案: 结构 / 推定: 语义名): ① record = CCountrySupplySystem(a1)+128 的 800B calcdata; ② **归属门** — 省控制国 (a3+392) idx 不在 record+208 涉足外国位图 (§4.21.2) → 降级: 查控制国 CDiplomacyStatus+3976 每国数组, sub_140D23030 判 (控制国, a1) 军事通行类关系, 失败返空, 成功以 a1 为供给源继续; ③ idx = sub_1414E2AF0(0, a3+164 省 id, &a1); ④ 越界 (idx<0 ∨ idx ≥ record+196 节点数) → :1179 断言 + 双 out 清 0; ⑤ node = record+184 表 + 232×idx: 可用量 = node+56 (_TotalSupply), 已耗 = node+56 − node+64 (_TotalSupply − _RemainingSupply); ⑥ sub_1414E2EB0 取他国该省最大值 → 可用量 = max(本国节点总量, 他国最大) (多国重叠省取最大显示值, 推定)。
+
+helper A (sub_1414E2AF0) mode→表 (定案):
+
+| mode | 搜索表 |
+|---|---|
+| 2 | calcdata+704 _NonLocalNodes (count@+716) |
+| 1 | calcdata+728 (count@+740) |
+| 0 | 先 +704, 未命中回退 +728 |
+| 其他 | 返回 −1 |
+
+控制国不在涉足位图 → sub_140D23030 判 (控制国, tag) 关系, 通过则搜 calcdata+752 (count@+764), 否则 −1。
+
+helper B (sub_1414E2EB0, 书原完全未收): sys = *(gs+984) CSupplySystem → 每国 120B 国家缓存条 = *(sys+64)+120×国 idx → 遍历条 +88 涉足 tag 数组 {data@+88, count@+100}: 对每个 tag (≠ 省控制国 ∧ 非同原初国 sub_140BB52F0) → sub_141229150(他国 calcdata, out, 省 id) 取正最大值 + 胜出 tag; 省 id=0 → out=0。
+
+**消费侧** (唯一调用点, 定案): GUI sub_141292B60 (书未收) — a1 = UI 单例选中国 tag (qword_14332F698 → vtable+208 → +112 → +272), a2 = gs+1312>0 ? gs+1312 : gs+1316 (会话国, §4.30 顶栏取法同型); 已耗按 100000 (fixed×1e5) 取整, 已耗 > 可用量判补给短缺 (指示灯/tooltip 路径)。
+
 
 #### 4.21.xa 补给 GUI 管理器忽略表回推 (supply_gui_manager.cpp; 1 函 = 0x1419AF480 — 书未收簇)
 
 **机制 (0x1419AF480, 124 行, 机械流程定案 / 业务语义待裁)** — 断言 source\supply\supply_gui_manager.cpp:812 `NumIgnores >= 0` (闩 byte_14338B48A)。选择栈 = manual vector {数据指针 +40 / 容量 +48 / 计数 +52 / 池分配器 +56 (vt+8 alloc(n,4) / vt+16 free)}。流程: 取栈顶为 key → sub_1419AF720(a1, &out, key, a2, 0) 取该节点忽略表 (int 向量) → do-while 弹栈至栈顶 ≠ 忽略表前缀, 计 k → v5 = k−1 < 0 断言 (至少弹 1 个) → **忽略表自下标 v5 起逐个压回** (容量增长 max(1.5×, +1)) → 释放临时向量。语义推定 = 节点选择栈回退 + 忽略链重放 (GUI 侧补给节点导航态, 待裁)。
+
+
+**country_supply.cpp 50-99 行簇增补 (互证批)**: 容量三分支选择器 sub_141228D50 全互证 (define 组 + :3180 "no node available" 断言不短路仍落 NAVAL_BASE 值)。节点构建主编排 sub_141230E50: 门断言 "You're calling this function incorrectly" (:444, 国+1156 > 0 — 与 CCountryAI::Update/特工命令同字段第三消费点); 尾扫 css+168 RH 表懒清 + 空槽步进断言 pdx_robin_hood_table.h:58 哨兵 (_DistancePlus1)。逐州工作叶 sub_14121D810: **id 三级映射 = +112 表 → +64 表 → 省 id → 记录 = *(a1+88) + 216×id**; 目标块 = *a3 间接基址 + 216×省id (**216B 跨距第二容器**)。本地供应发放叶 sub_141215BC0: 省 24B 源条目 {+8 消费者, +16 键}, **+36 计数处理完每省尾置 0** (for-update 藏写); avail = 消费者+40 − +64; 所有者+104 (received_local) += avail; 扣减 = max(0, avail − 消费者+152) → 省 _TotalNeed -=, 负断言 :3331; 断言锚 supply_system_utils.h:74 (内联助手)。

@@ -13,7 +13,7 @@ writer 0X140EE5430。
 | +112 | vector\<指针\> 24B | **国家可用战斗战术 (combat tactics) 累积表** (元素=tactic 对象, id@elem+148 去重) {cap@120, count@124, alloc@128} | 完成科技时把 tech+80 元素按 +148 去重 push; fallback 构造串 "nullCombatTactic" |
 | +136 | vector\<CTechnology*\> 24B | technologies {cap@144, count@148, alloc@152} — **元素 8B 指针** (count<4096) | 导出须过滤门 (下) |
 | +160 | vector\<CResearchSlot*\> 24B | slots {cap@168, count@172, alloc@176} — **元素 8B 指针** (writer 双重解引用直证; 对象 72B) | loader case 11879 逐槽 malloc(0x48); **GUI: 研究槽行** (research_slots_grid; Repopulate@48[9] 0X1415FA1A0 → 0X1415FA300 建行 CResearchSlotItem(0x580), item+1336=slot; 可见门 sub_1415FB5D0 非本人槽不画) |
-| +184 | vector\<指针\> 24B | **_EquipmentBonuses** (国家侧生效装备加成列表) {cap@192, count@196, alloc@200} | assert "!_EquipmentBonuses.Contains( &Bonus )" (technology.cpp:0x5D7) |
+| +184 | vector\<指针\> 24B | **_EquipmentBonuses** (国家侧生效装备加成列表) {cap@192, count@196, alloc@200} | 国家侧去重 = 0x140ED5340 线性查 (无断言); assert "!_EquipmentBonuses.Contains( &Bonus )" (technology.cpp:1495) 载体同函但校验对象 = per-tech tech+272/+284 表 |
 | +208 | vector\<40B 条 {def ptr@0, name 串@+8..}\> 24B | **_AdvisorBonuses** (国家侧顾问/加成列表) {cap@216, count@220, alloc@224} | assert "!_AdvisorBonuses.Contains( Bonus )" (technology.cpp:0x5E5) |
 | +232 | vector\<CLimitedUseTechBonus*\> 24B | limited_use_bonus {cap@240, count@244, alloc@248} — **元素 8B 指针** (对象 128B); **per-tech lub 块 BlackICE 实测峰值 115 (GER/bi8), 防御界须 ≥256** | loader case 13283 malloc(0x80)+push |
 | +256 | vector\<CLimitedUseTechCostReduction*\> 24B | cost_reduction {cap@264, count@268, alloc@272} — **元素 8B 指针** (对象 112B) | loader case 19531 增长码全四元组 |
@@ -54,7 +54,7 @@ loader 0X140EE16F0):
 | +200 | vector\<CTechnology*\> 24B | **前置/关联科技表** (源自模板+776; GetTechState 读其 +368 参与本科技状态计算) {cap@208, count@212, alloc@216} | 高置信 |
 | +224 | vector 24B | **互斥科技 (mutually_exclusive) 表** (源自模板+824; CompleteResearch sub_140EE1270 互斥门: 任一 +368==4 已研究 → 断言拒绝) {cap@232, count@236, alloc@240} | 定案 |
 | +248 | vector 24B | **path 族引用** (研究路径树, 源自模板+800; 含听众互注册) {cap@256, count@260, alloc@264} | 定案 |
-| +272 | vector\<指针\> 24B | **_EquipmentBonuses (per-tech)** {cap@280, count@284, alloc@288} | assert 内层循环址互证 |
+| +272 | vector\<指针\> 24B | **_EquipmentBonuses (per-tech)** {cap@280, count@284, alloc@288} | assert 内层循环址互证 路由写点 = 0x140ED5340 (AddEquipmentBonus 国家侧入口: ts+184 去重 → etype+56 科技 token 表逐 tech push + tech+400 += bonus+56); per-tech 摘除 = 0x140EE27D0 (断言 :1516 Contains, erase + tech+400 -= entry+48); 国家侧全清 = 0x140EE2610 (pop-back + def+56 受影响科技表 1 基下标 → ts+136 数组级联, :3245 越界兜底) |
 | +296 | vector\<40B 条 {def@0, name 串@+8}\> 24B | **_AdvisorBonuses (per-tech)** {cap@304, count@308, alloc@312} | assert 40B 步进名串比较互证 |
 | +320 | vector 24B | **特殊项目 (program) 引用表** {data@320, cap@328, count@332, alloc@336} — 元素 u32 = `cc+4008 program_status` 表的键 (program id); 唯一消费点 = 研究成本计算 0X140ED6E30 (`sub_140E76C20(*(*(ts+304)+4008), &v74, tech+320)` 逐 id 查表求和, 并以 loc `BASIC_RESEARCH_TECHNOLOGY_BONUS` / `AMOUNT` 展示) | 定案 (ctor 空 / writer 不发射) |
 | +344 | CTechnologyStatus* | 回指 (SetLevel/GetTechState 经它回 ts) | |
@@ -79,6 +79,20 @@ loader 0X140EE16F0):
 > **_ResearchedTechs 增删对** (technology.h:637/642; 共用二分下界模板, 键 = tech+8 名 token): **AddResearchedTech 0x140ED5930** (断言 "_ResearchedTechs.Contains( pTechnology ) == false" :637) → sub_140EE0FF0(ts+64, scratch, &tech) 有序插入; **RemoveResearchedTech 0x140EE2BD0** (断言 "_ResearchedTechs.Contains( pTechnology )" :642) → 二分定位 → memcpy 尾部前移覆盖 → --count@+76 (无 cap 回缩)。两函均被 **SetLevel 0x140EE34F0** (jmp 形) 及 0x140EDFFB0 / 0x140EE2D30 (call 形) 调用 ⇒ **等级 ≥ max 入册 / 否则出册**, 与过滤门①②及 loader case 11869 三向闭合。
 
 #### 4.7.2 CResearchSlot (72B)
+#### 4.7.1a 子单位加成来源持久化 (subunit_stat_bonus_persistent.cpp; 1 函 = 0x14197F890 — 新收)
+
+来源持久化对象读取器 (类名推定 CSubUnitStatBonusPersistent, 无 RTTI 直证): a1+8 内嵌 CSubUnitStatBonus (56B, 本节 CTechnology+8 同体) 负责未派发 token; 自身字段 = +64 来源类型枚举 u32 / +68 来源名 token id / +72 数量 / +80 本地化键 std::string。token 派发:
+
+| token id | 名 | 处理 |
+|---|---|---|
+| 11 | id | sub_1424C0960 → a1+68 (读 token id u32) |
+| 225 | type | 读 token id → a1+64 枚举 (下表); 未命中 → :33 "Unkown subunit bonus source type" (原文拼写) |
+| 19053 | number | sub_1424C08D0 读整数 (是否写 +72 待裁: §4.00 reader 单参定义 vs 本处双参调用) |
+| 799 | localization_key | sub_1424C0AB0 → a1+80 读串 (a3=0 拒绝含换行符的串) |
+| 其他 | — | 委派 a1+8 内嵌对象 vtable 槽 [4] (CPersistent reader, §4.00.1) |
+
+type → 来源类型枚举 (token id → 枚举值): 10022 project → 1 / 89 effect → 2 / 16775 grand_doctrine → 3 / 16778 sub_doctrine → 4 / 16770 rewards → 5 / 16771 milestones → 6。
+
 
 **CResearchSlot** (72B; ctor 0X140ED2CF0 + loader 内联构造互证):
 
@@ -207,7 +221,7 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 | +1136 | 匿名结构 (NNB 形状) | **on_research_complete_limit** 触发器 (ctor sub_140549F40) | reader case 13738 limit 分支 (vtable+40) / case 19672 |
 | +1224 | 匿名结构 (NNB 形状) | **on_research_complete** 效果 (ctor sub_14053CFD0) | reader case 13738 (vtable+24) |
 | +1244 | uint8 | **on_research_complete 效果存在门** (聚合器 0x140EE3E70: 门真且 gs+2617 真 → 模板+1136 触发器求值 (vtable+24 槽) 真 → 执行模板+1224 效果 (vtable+96 槽)) | — |
-| +1312 | uint32 | XP 类型 (0=不可 XP 解锁) / **+1320 = 解锁 XP 量 / +1328 = 加速 XP 量** | IsBoostableByXP = +1312≠0 且 +1328>0; SetBoostedByXP 扣模板+1328 量 XP 置 +488 (0x140EE4ED0); UnlockByXP 门 = +1312≠0∧+1320>0 (0x140EE5010) |
+| +1312 | uint32 | XP 类型 (0=不可 XP 解锁) / **+1320 = 解锁 XP 量 / +1328 = 加速 XP 量** | IsBoostableByXP = +1312≠0 且 +1328>0; SetBoostedByXP 扣模板+1328 量 XP 置 +488 (0x140EE4ED0); UnlockByXP 门 = +1312≠0∧+1320>0 (0x140EE5010) SetBoostedByXP a2=0 = 免费置位分支 (+488=1 不扣 XP); 真扣原语 = sub_140EE4D40(cc, +1328 量, +1312 类型) 返 bool |
 | +1320 | — | XP boost 配置 | |
 | +1328 | — | XP boost 配置 | >0 门 |
 | +1344 | uint8 | **special_project 旗** (科技树件 GFX 后缀门: 非 0 → 后缀追加 "_special_project") | 新锚 |
@@ -277,7 +291,7 @@ ctor 0x141A35060) = **内联三元状态容器** (非常规派生族):
 | 1 | a1+232 (RESEARCH_COMPLETED / Simple) |
 | 2 | a1+360 (STOPPING_STATE / Simple) |
 | 3 | a1+488 (STOPPED_STATE / Simple) |
-| default | 断言 `"bad state for project state machine"` (project_state.cpp:629), 回落 = tag 1 (PROTOTYPE) |
+| default | 断言 `"bad state for project state machine"` (project_state.cpp:629), 回落 = tag 1 (PROTOTYPE); 另有姊妹函 **sub_141A36EE0** (同文件 :607 同断言, 闩 byte_14338B5F0) = 槽号 → 槽对象 (映射同 +24/+232/+360/+488), 返 **u32@slot+80** (字段语义未决) |
 
 **writer 0x141A37CD0 发射键表** (只三键):
 
@@ -547,6 +561,10 @@ explainable check = UI 失败原因解释器 (签名 `(check, explainer, 未用)
 
 #### 4.7.13 CTechnologySharingGroupTemplate 类目表排序 (technology_sharing_template.cpp; 7 函 = 同一 40B 元素上的 std::sort 算法族实例化 — 非业务新机制)
 
+#### 4.7.14 country_culture 本地化键校验器 (cultural_formatter.cpp; 1 函 = sub_140531F10, 高置信)
+
+sub_140531F10 (localization/formatter/ 族第三员, 前两员 tech_formatter sub_140533050 / tech_effect 校验 sub_140533250 同 §4.7 已收): a1 token 经 sub_1424BC260 取名视图 (24B std::string → 16B strview {ptr, len}) → 谓词 sub_142244840 (本地化键存在性) 假 → CLogStream 4096 :26「Invalid localize key for country_culture」(常量串无格式参); 返谓词值。本件为**校验器形** (无 sret 显示名输出, 返 bool), 非格式化器。
+
 簇本质: 模板类目表的排序机器。元素 40B = {MSVC SSO 串 (类目名) @+0..+31, uint32 类目 token @+32, pad @+36}; 比较序 = token 升序, 同 token 按 stricmp(名)。
 
 模板 160B 类目区读点 (§4.26 库条目 technology_sharing_group +80 = 默认模板指针; §4.7.10 实例 +72 模板回指不变):
@@ -571,4 +589,9 @@ explainable check = UI 失败原因解释器 (签名 `(check, explainer, 未用)
 
 排序驱动链 (定案): 入口 0x1413D2080: 模板 +16 名 SSO → sub_142244840 本地化键存在校验失败 → technology_sharing_template.cpp:48 格式化日志 "There is no localization for the technology sharing group name: %s" (不中断) → 类目向量排序。introsort 参数 (驱动 0x1413D1D00, 簇外伴生): 区间 <1320 字节 (=32 元素, MSVC _ISORT_MAX) → 插入排序; 递归深度限制每层 ×3/4; 深度耗尽 → make_heap + sort_heap 堆回退 (0x1413D1B50 = sort_heap)。
 
-"Duplicate category" 断言 (:55, 7 函中 6 函引用): 比较器内两元素 token 相等且 stricmp(名)==0 → 格式化器 sub_1424C8950 + 消息 "Duplicate category" (xmmword_142944240, PE .rdata 字节直证) = 严格弱序违例自检, 非 STL 通用断言。同排 .rdata 的 "Duplicate technology" (0x142944258) 全语料零引用 = 死串 (待裁: ICF 折叠 vs 未实例化模板残片); "Duplicate technology category %s scripted at: %s" 属 effects 侧他 TU (书已邻接), 勿混。断言行号 :55 = 比较器, :48 = 排序入口, 一文件两站点。
+"Duplicate category" 断言 (:55, 7 函中 6 函引用): 比较器内两元素 token 相等且 stricmp(名)==0 → 格式化器 sub_1424C8950 + 消息 "Duplicate category" (xmmword_142944240, PE .rdata 字节直证) = 严格弱序违例自检, 非 STL 通用断言。同排 .rdata 的 "Duplicate technology" (0x142944258) 全语料零引用 = 死串 (待裁: ICF 折叠 vs 未实例化模板残片); "Duplicate technology category %s scripted at: %s" 属 effects 侧他 TU (书已邻接), 勿混。断言行号 :55 = 比较器, :48 = 排序入口, 一文件两站点。**_Push_heap (0x1413D19B0) 洞位下移实现**: 先 free 目标串 (堆分支含 len+1≥0x1000 容器溢出哨兵 → invalid_parameter_noinfo_noreturn) → 两条 16B OWORD move → 源串头复位 {cap=15, len=0}; 比较器**内联**在本函 (非调 0x1413D1E40); 签名 (数组基, 根边界 idx, 新元素 idx, 待插入 40B 元)。
+
+
+**technology.cpp 50-99 行簇补录**: **InitPostRead = 0x140EE0400** (自报串 :2554): 遍历 ts+136 {c@+148} 逐科技 GetTechState 重算写 tech+368; 状态变化双路通知 = tech+24 {c@+36} 听众表逐元虚槽[2] (传旧态) + tech+176 {c@+188} 门控后继逐个 sub_140ED6B50; **满级补跑** = tech+372(level) ≥ 模板+988(max_level) → sub_140EE3E70 完成聚合器 + 尾链 sub_1413C5260(v18, 模板+1112, 100000) (语义待裁)。**GetTechnology 按名 = 0x140ED4F30** (名→token sub_140ACBF30 → sub_140ED5080; 未命中 "Technology … doesnt exist" :3230 + debug 警告 "will crash prolly" :3231 返 0)。
+
+**tech_formatter 两函 (新收, 定案)**: ① **科技名本地化格式化器 sub_140533050** (tech_formatter.cpp:34, sret 返显示名) — token → sub_1424BC260 取名视图 → 串规整 sub_140BC96D0 → GetTechnology 按名 (cc+3936 科技状态) → sub_140EDB120(tech, out, 0, 1, 1) 取显示名 (该函语义推定); 未命中日志 "Unable to find technology %s for country %s"。② **tech_effect token 校验器 sub_140533250** (:43) — qword_14332F0A0 CTechnologyDatabase 单例 (gameitemdatabase.h:142 断言) → sub_140AD0B40 线性查 `*(e+60)==id` → 模板+64 有效旗为 0 → 警告 "Invalid token for tech_effect" (与 §4.32 can_research 同门)。

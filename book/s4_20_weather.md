@@ -124,6 +124,8 @@ vtable 0X29777C0 (RTTI 真名); stride 352 = 0x160 内联; writer 0X140F22F50;
 load handler 0X140F20640 六现象旗实载 + temperature 弃读; 区 post-load 对
 id≠0 调 sub_140F220D0 重建 +72 修正块。
 
+> **CWeatherNudger::SetValue sub_141B88310 (定案)**: 宿主 = *(gs+1672) 管理器; 序表 1 基遍历 (getter sub_1401DB540 无参, count@+52, 取件器 sub_140ABC450), 以序表元素+160 的 int 为下标索引 **mgr+64 数组 (352B 步距)** 每项, 清 +264/+272/+280/+288/+296 五 u8 = rain_light/rain_heavy/snow/blizzard/sandstorm (本表五旗逐一吻合); debug 门 byte_14345252A 下日志 "Calling SetValue" weathernudger.cpp:2345。⚠ **序表身份未决 (待裁)**: 若序表为 region 表则元素+160 = region 索引, 与本表 region_id 读法一致; 若为 season 表则 +160 = 季节序号 0..3 (§4.20.5), 与按 region 索引的用法冲突 — 该点决定是否在 §4.20.2 补注「nudger 侧按序表元素+160 索引本数组」, 未定前不改。
+
 | 偏移 | 类型 | 名称 | 写门 | 备注 |
 |---|---|---|---|---|
 | +8 | uint32 | region_id | | writer 10827; loader 弃读 |
@@ -253,7 +255,7 @@ water_gain_max 直传 mud 作除数。
 
 **DayNight 与 feather 三全局落址** (定案): FeatherMin = qword_14333D3F8 / FeatherMax =
 qword_14333D3F0 / FeatherDiff = qword_1430B1DC8; DayNight = Diff × (槽三分量点积 − Min)/1e5
-钳 [0,1e5]; 值 >0 时并入静态表 +88 day_night 定义 ×值。**省温度 OOS getter 0x140F1A0C0**
+钳 [0,1e5]; 值 >0 时并入静态表 +88 day_night 定义 ×值。三全局名由 0x140F20C50 尾 debug 打印门 (byte_14345252A → weathermanager.cpp:3018 八字段串 "DayNight:: Id: %i, Hour: %i, GmtOffset: %lli, vHourDelta: %lli, DayNight: %lli, FeatherMin: %lli, FeatherMax: %lli, FeatherDiff: %lli") 直证。**省温度 OOS getter 0x140F1A0C0**
 (槽 30): 门 0 ≤ id < mgr+28 → out = *(mgr+16 + 384×id + 280), 越界写 0; 调用者 5 处 (区侧
 槽 72 getter 未单独钉死维持)。
 

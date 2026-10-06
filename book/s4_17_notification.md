@@ -301,7 +301,7 @@ CAlertManager 布局 (偏移十进制):
 | 7 | alert_enemy_air_superiority | 1 | 直跳; sub_140B33A70 → sub_140B36100 (键控 raise) |
 | 8 | alert_no_research | 0 | sub_140B2B0A0 |
 | 9 | alert_deployment_ready | 0 | sub_140B1EFE0 |
-| 10 | alert_production_no_template | 0 | sub_140702890(cc,0)≠0 → raise: +88 产线数组中存在「非五类豁免 (sub_140C97430/97B90/97C00/97C40/97C80, 业务名未决) ∧ 产出占比>0 ∧ vtable+248 未过」线 (a2 非 0 = tooltip 逐条拼行模式) |
+| 10 | alert_production_no_template | 0 | sub_140702890(cc,0)≠0 → raise: +88 产线数组中存在「非五类豁免 (sub_140C97430/97B90/97C00/97C40/97C80, 业务名未决; ⚠ 97430 与 s4_18:764「指挥链权限位谓词」定名异读 — 本处及装备查量门语境均为 CEquipmentType 实参, 与 +1240 上级链读法冲突, ICF 汇点或对象误判待裁) ∧ 产出占比>0 ∧ vtable+248 未过」线 (a2 非 0 = tooltip 逐条拼行模式) |
 | 11 | alert_free_civilian_factories | 0 | sub_140E6A540 ==0 → raise (反向): (+888/1e5 − +944 − +920) 逐 +112 行加 (行+24 − MAX_CIV_FACTORIES_PER_LINE) 不中途归零 ⇔ 有富余民用工厂 (行+24 业务名推定) |
 | 12 | alert_free_military_factories | 0 | 内联: (+696/1e5) − +752 − +728 > 0 → raise (军事工厂富余) |
 | 13 | alert_free_naval_dockyards | 0 | sub_140E69130 >0 → raise: (+792/1e5) − +848 − +824 − 阵营共享扣减 (sub_140EA60A0; 扣减项精确语义推定) |

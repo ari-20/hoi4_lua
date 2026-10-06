@@ -180,11 +180,13 @@ CBrowserType 同族)。
 > SArgument (88B) = {键名, 值}** — 两个内联分配器名 (`SLocEntry,14` / `SArgument,11`)
 > 与两个 stride 精确对应。
 
+**ctor sub_1423A7EA0 两门 (定案)**: 前置 pdx_loc_formatter.cpp:36 CApplication::HasFinishedStaticInitialization() (闩 byte_1435BA06C) / 后置 :38 "Error when parsing code specified format specification" (闩 byte_1435BA06D, 读栈串错误旗位)。
+
 **CFormattedLocalization 字段表** (48B):
 
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
-| +8 | 联合体 (tag@+40) | 载荷: tag=0 → MSVC 串 (SSO 32B, cap@+32) / tag=1 → 16B 值对 / tag=2 → u32 | 拷贝 ctor sub_1423A50D0 按 `*(a2+32)` 分三档 |
+| +8 | std::variant (index = tag@+40) | 载荷: tag=0 → MSVC 串 (SSO 32B, cap@+32) / tag=1 → {callable obj ptr@+8 (其+16 = fn ptr), u32 参数 id@+16} / tag=2 → u32 formatter id | 拷贝 ctor sub_1423A50D0 按 `*(a2+32)` 分三档; 访问器 0x1423A92C0 (出参 33B = MSVC 串 32B + u8 旗@+32): tag∉{0,1,2} 抛 std::bad_variant_access (sub_1403BAAF0, §4.32 定案 = std::get<I> 桩); tag=1 且 obj 空 → :136 "Invalid formatter" (level 4096); tag=2 → 旗=1 (= 是 id) |
 | +40 | uint8 | **变体 tag**: 0=串 / 1=二值 / 2=u32 / −1=空 | sub_1423A50D0 / sub_1423A37A0 |
 | +8 (tag=0) | MSVC 串 (SSO, cap@+32) | 字面量 / 格式串 | sub_1423A7EA0 → sub_1423A8920 |
 | +8 (tag=2) | uint32 | **formatter id** (见 §4.19.2 loc formatter 注册表) | sub_1423A8920 写 `*(u32*)(a1+8) = v49` |
@@ -333,6 +335,8 @@ RH 表 {buckets@+56, mask@+68, 哨兵@+72}, 命中取 `entry+16` = CNamedCollect
 
 查不到角色/意识形态 → 空串 (断言 character_formatter.cpp:140 "The validate function should have caught this")。
 
+**character_formatter 角色解析三函** (均经 gs+1704 角色管理器槽 + sub_1406B8A50 按 token 查角色; gamestate.h:1125/1126 守卫组): character_name **容错版** sub_14052FBE0 — 命中取名赋出参串, 查无 → 空串回落不报错 (mgr 空 → 断言 :24 "No character manager available", 闩 byte_14332FF98); character_name **严格版** sub_140531210 — 查无 → "Invalid token for character_name" :39 抛异常, 命中返角色指针; **advisor_desc 解析步** sub_140531070 — 查无 → "Invalid character token for advisor_desc" :77 抛异常, 返角色指针。同名双版分工 = 严格版供 formatter 求值 / 容错版供显示路径 (注册名对应关系待裁)。
+
 #### 4.19.9 localize.cpp 运行期流水线 (10 函闭环; 格式规格语法全集)
 
 清册 (10/10 函体内含 clausewitzlib\localize.cpp 路径锚, 无 pdx_ 误命中): 公共入口
@@ -340,7 +344,7 @@ sub_142245E60 (52, :641 "pStr" 断言; 空键→空串) / **LocalizeAndReplace �
 sub_142245880 (235)** / 变量解析步 sub_142248C20 (109) / **格式化值发射器 sub_1422479F0
 (694)** / 文件夹加载器 sub_142246E10 (491) / 单文件加载 sub_142246CC0 (47) / 主语言文件
 加载 sub_14224AF90 (91) / 溢出检测 sub_142244B30 (66) / 重复键告警 sub_142245D00 (77,
-**死代码** 零直接调用) / 多语言一致性校验器 sub_142244C50 (653, **死代码** 全镜像零引用)。
+零直接调用; **非死代码** — sub_14224B1F0 尾有函数指针回调注册 sub_14239E880(sub_142245D00, 0), 真则 sub_14239EBB0() + byte_1434530F0 = 1; 三平行数组形态 keys/values/files, 消息 "Duplicate localization found" :658) / 多语言一致性校验器 sub_142244C50 (653, **死代码** 全镜像零引用)。
 
 **主链流水线** (定案): E60 → 880 (FNV-1 64 查表 → 分段拷贝 → `$var$` 两路 = 参数表命中/
 按 loc key 递归 depth+1, `$$` 转义, 深度 32 上限, 未闭合 `$` 告警) → 8C20 (`$NAME|spec$`
@@ -400,6 +404,10 @@ qword_143330D98 身份 / 畸形 `(A:B)` 前缀循环伪码疑死循环 (待汇�
 
 #### 4.19.11 pdx_localize.cpp yml 真解析层 (2 巨函; §4.19.9 加载链的下游终点)
 
+#### 4.19.12 可绑定本地化值设置器 (pdx_bindable_loc.cpp; 1 函 = sub_1423A3EE0, 定案)
+
+sub_1423A3EE0 (pdx_localize 可绑定值容器填充): 描述符 type 字节 @a3+32 — 0 → 串支 (容器头 type 标签 = 1 @+0, 绑定源指针 @+8, std::string 24B @+48 由 sub_14011E010 从 a3 拷入); 1 → 数支 (头 type = 11, i32 @+96 = *a3); 其他 → B52 :25「Unhandled type returned from localize function」(闩 byte_1435BA05A)。type 枚举 = **1 = 串 / 11 = 数**。
+
 清册 (2/2 函体内含 pdx_localize.cpp 路径锚): yml 逐行解析器 0x1423A2620 (1015) / 语言表键值
 批量装载 0x14239D170 (524, 七参 = 语言名/键数组/值数组/数量/模式/fallback 语言/显式既有值;
 模式分派精化 (定案): **0 = 丢弃** + :884 "Discarded duplicate key" 日志 (通道 4096) / **{1,2,3} 同走 CBD0 有序插入路** (goto 穿落共置 v79) — 1 = 原位处理无覆盖旗, 2 = 恒覆盖 (v80 初值 1), 3 = 旧值 FNV-1a64 + 逐字节比对门 (值同退插示 −1) / **4 = 独走 C290 原位替换路** (无日志静默替换)。函数内 FNV 伪码两处 `435*(x^v)` = FNV-1a 64 低 32 截断失真 (同函并存全形 0x100000001B3 + offset basis 0xCBF29CE484222325 直证), 键 hash 全线 FNV-1a 64; 脏旗双语义 (CBD0 路 |= / C290 路直置 1) 尾调 sub_1423A1A30 重整)。
@@ -417,3 +425,6 @@ yml 行语法全集与空白集 (含 U+00A0/U+2007/U+202F/0x1C-1F)。错误分�
 未决: "1" 版本行悖论 (纯数字行按语法应触发 :1100 弃整文件与现实矛盾 — 候选 = 壳层剥头行或
 :1100 后非 return, 需汇编) / 行记录 72B 内 +8 写入点 / 键条目 +12 精义 / 9D170 a5=4 调用点
 实参截断 / qword_1435BA040 文件记录读取侧。
+
+
+**localize.cpp 50-99 行簇增补**: 主语言/单文件加载 sub_14224AF90 — 存在检查 → 整读 → **BOM 校验** (非 EF BB BF 告警 "Localization file '%s' should be in in utf-8-bom encoding" :1639, "in in" 源串原样) → 解析落点 sub_14239D980; 双全局槽 = byte_1430BDEE0 模式旗 / off_1430BDED8 路径槽。溢出检测 sub_142244B30 — "Reached max localization string length" (:524, 闩 byte_14345313F), **返回值 0=正常 / 1=溢出 (告警不拦)**。公共入口 sub_142245E60 (全语料 9458 处, 最热点) — 6144 tbb ETS 缓冲容量以 buf+6144 上界实参显式传扫描引擎 sub_142245880。

@@ -258,6 +258,8 @@ CUnitHistoryEntry (328B = 0x148; writer 0x14144F560 / ParseKey 0x14144ED30; 活�
 | +1069..+1087 | — | = combat 容器尾 + army 前置 | |
 | +1088 | CArmyGroup/COrdersGroup 族子对象视口指针 | army (键 10397): vtable[0]=0x140BEF7C0 (= CArmyGroup::[0]) 返 *(p−16) 组 id 对; 断言名 _pAssignee railway_gun.cpp:1333; 存储值 = 组 id 解析结果+24 (sub_140E8F1F0); +1080 = army id 对 fallback (loader 落点) | |
 
+**CRailwayGun::TakeDamage (0x140E8D510; 新收)**: strength@+1008 扣减伤害量 (damage<0 → 断言 railway_gun.cpp:704 "Strength >= 0_fixed"); 上限 = vtable 槽 **[33]** (vt+264) 取上限强度; 钳位 [0, max]; 归零 → gamestate 双门 (gamestate.h:1116/1117) → sub_1401D7460(CGameState, this) **延迟删除登记** (与 §4.18 CArmy 小时链死亡阈值同落点; §4.1 gs+1400 已删 id 集合查重侧)。
+
 CRailwayGun GUI 消费:
 
 | 类 | 锚 | 内容 |
@@ -323,8 +325,8 @@ request 行的发射主体 = **CArmyUpgradesRequests::CUpgradeRequestPersister**
 变体 DB ctx@+16 = `*(*(U+16)+56)`}, 一元素一枚、永不独立存在 (写读两侧装配均恰
 3 qword, sizeof 24 定案)。适配器发/收三键: 12613 request → 元+8 / 10770 total →
 元+16 / 13891 equipment_variant_index → 元+0 variant 的 id 对 (非 0 才写; reader
-侧 assert `_Request._pVariant` reinforcement.cpp:1259, 无效请求报
-"Invalid equipment request on line " :1316)。
+侧 assert `_Request._pVariant` reinforcement.cpp:1259 与 :1251 ("Equipment variant was not found//Ilya"); "Invalid equipment request on line " :1316 本函无该串, 归属同族他函 (writer 0x141510700 / delivery reader 0x14150F100, 待裁)。13891 变体解析 = sub_14221F970 读名 → parser+296 门非空且 +8/+9 双门置位 → 用全局 qword_14333D528 (默认/空名占位) 替代所读串 → sub_14221F310 查变体写元+0; 查不到 → :1251 + 跳块 sub_1424C1E40
+
 
 #### 4.18.4 CDivisionTemplate
 
@@ -410,7 +412,7 @@ request 行的发射主体 = **CArmyUpgradesRequests::CUpgradeRequestPersister**
 | +556 | uint32 | full_path 容器计数 | count≠0 才读 |
 | +568 | uint32 | **死字段 (负定案)** (键 12290 真才写; 无运行时写者) | |
 | +576 | 0x28A4 | movement_progress (int64×1e-5; token 10404) | ≠0 (实测样本 7.7022); **loader 解析即弃** |
-| +584 | 14268 | move_priority 枚举 {0=front_order, 2=player_order, 3=ai_player_order, 余 normal} | ≠1 (ctor 置 1); loader legacy override_move → 映射 0/1 |
+| +584 | 14268 | move_priority 枚举 {0=front_order (14269), 1=normal (119), 2=player_order (14270), 3=ai_player_order (19601), ≥4 = 断言「Unexpected MovePriority enum」后默认 front_order (映射函 0x14194B4D0, move_priority.cpp:21, 闩 byte_14338B3B0)} | ≠1 (ctor 置 1); loader legacy override_move → 映射 0/1 |
 | +588 | — | retreat (uint8) | ≠0 写 yes; **loader 解析即弃** |
 | +589 | — | withdraw (uint8) | ≠0 写 yes; loader 解析即弃 |
 | +592 | uint64 | 拒动时目标省 id (dword; 拒动协议: AI unitcontroller 落 −1=清/省 id=拒) | 定案 (ctor 置 0) |
@@ -489,13 +491,13 @@ writer 0X140BA6A40; vtable 0x14294F560 (RTTI: CPersistent 直接派生); ctor 0X
 | +9..+39 | — | = name MSVC SSO 32B 本体 (+8..+39) | |
 | +40 | MSVC SSO (size@+56) | localization_key | 门 size≠0; tok 799 |
 | +41..+71 | — | = localization_key MSVC SSO 32B 本体 (+40..+71) | |
-| +72 | uint32 向量 | regiments {列数 u16@+0, 列高 u16@+2, data@+8, 计数@+20; 元 8B ptr: token@+8, 有效 u8@+16; x=v5/列高, y=v5%列高} | 块 **12195** (0x2FA3); 门 = 空判 !0X140FBF580(+136); 逐格 0X140B93410, `x=N y=M` 重复键; **GUI: 三网格摆格/拆格** (sub_14168E150/BF90/B600/B520 + sub_140FBF5F0 → regiments_grid 等) |
+| +72 | uint32 向量 | regiments {列数 u16@+0, 列高 u16@+2, data@+8, 计数@+20; 元 8B ptr: token@+8, 有效 u8@+16; x=v5/列高, y=v5%列高} | 块 **12195** (0x2FA3); 门 = 空判 !0X140FBF580(+136); 逐格 0X140B93410, `x=N y=M` 重复键; **GUI: 三网格摆格/拆格** (sub_14168E150/BF90/B600/B520 + sub_140FBF5F0 → regiments_grid 等) 空判注: 该行门 !sub_140FBF580(+136) 的 +136 指涉 regimental_support 格非本格 (体读定案) |
 | +73..+103 | — | = regiments 格容器 32B 本体 (+72..+103) | |
 | +104 | 匿名结构 (NNB 形状) | support | 块 12188 (0x2F9C); 门 = 空判 (!…(+104)); **GUI: 摆格/拆格** (同 regiments 链) |
 | +105..+135 | — | = support 格容器 32B 本体 (+104..+135) | |
 | +136 | 匿名结构 (NNB 形状) | regimental_support | 块 **16871** (0x41E7); 门 = 独立同谓词 `!sub_140FBF580` (至少一格占用+旗标); **GUI: 摆格/拆格** (同 regiments 链) |
-| +137..+295 | — | = regimental_support 格容器@136 体 (32B 至 +167) + **容器 @168/{d@168,cap@176,c@180,alloc@184} / @192 / @216 / @240** (各 24B) + **CEquipmentArcheTypePool (ctor sub_14100C630) @264** 体 (至 +295) (ctor sub_140B95480) **— GUI: 装备原型池输入** (D+264 × cc+3944; sub_14168B9E0→sub_14100E140) | |
-| +296 | 匿名结构 (16B 形状) | not_allowed_equipment (变体引用) | 块 13657 (0x3559), 门 计数≠0; AF4B0 数组, 元素 = 0X142220260(13891, obj+8) |
+| +137..+295 | — | = regimental_support 格容器@136 体 (32B 至 +167) + **容器 @168/{d@168,cap@176,c@180,alloc@184} / @192 / @216 / @240** (各 24B; 元素 16B = {子单位定义指针@+0, 引用计数 u32@+8}, 定义有效字节在其 +16; 追加器 sub_140B97CD0 = 线性查重 ++计数 / 尾插, 增容 max(cap×1.5, count+1), 调用点 +168 与 @192/@216/@240 之一成对双写; 载入期洞校验 sub_140BA1BE0 — 定义 +16 == 0 抛 "contains holes in regiment and/or support structure(s)" :955) + **CEquipmentArcheTypePool (ctor sub_14100C630) @264** 体 (至 +295) (ctor sub_140B95480) **— GUI: 装备原型池输入** (D+264 × cc+3944; sub_14168B9E0→sub_14100E140) | |
+| +296 | 匿名结构 (16B 形状) | not_allowed_equipment (变体引用) | 块 13657 (0x3559), 门 计数≠0; AF4B0 数组, 元素 = 0X142220260(13891, obj+8); 移除器 sub_140BA6230 = swap-with-last (未中 erase 兜底; 断言 "_Country.GetCountry().IsHumanControlled()" :1860 仅 AI 拥有模板触发 — 条件反转形, 闩 byte_14333C788) |
 | +297..+319 | — | = not_allowed_equipment 16B 容器本体 + 至 +320 对齐 pad | |
 | +320 | 匿名结构 (16B 形状) | forbidden_equipment_types | 块 19946 (0x4DCA), 门 计数≠0, 元素 ADFE0(19015, u32@obj+8); **GUI: 装备类别过滤** (reset_equipment_categories_filter_button 群 × D+180 可用性校验 cc+3952 → EQUIPMENT_CATEGORIES_DESC) |
 | +321..+367 | — | = 容器 {d@320, cap@328, c@332, alloc@336} + 容器 {d@344, cap@352, c@356, alloc@360} 两个 24B 容器全体 | |
@@ -719,7 +721,7 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
 | CArmy [7]/[8] | AsArmy = return this (0x1401F8A60; 陆军实体自识别) | exe 直读; AI 分兵缓存归类/AIFC 评分 vtable[8] 读点 |
 | CUnit [13] | GetName (返 +600 名称串首址; CArmy 覆写转向 *(+832)+96) | writer token 27 写该串 |
 | CUnit [21] | IsValid (基 `return 1`; CArmy 覆写 sub_140C77BE0 = vtable[31] 当前兵力 < 10000 → NO_STRENGTH_TO_FIGHT, org 半段对称 NO_ORG) | 覆写错误键直证 |
-| CUnit [24] | TakeDamage (基 = stub; CArmy 覆写 sub_140C8F510: **函数首读模板(+952)+564 = is_fake_intel_division 假情报师旗** (CDivisionTemplate d+540, 键 19403) 非零 → 整个伤害短路跳过 — 短路面 = attrition + 战斗伤害两面, 是假情报师不可磨损不受伤的效果非独立豁免开关; 之后伤害 ×(mod661+100000)/100000 乘 a2 str 参 / ×(mod660+100000)/100000 乘 a3 org 参) 后 `+1064 −= org伤害 / +1056 −= str伤害` 双钳非负, 累计 +1088(a4 时)/+1096/+1104; 尾项伤亡 × WAR_SUPPORT_FROM_CASUALTIES(qword_143336A18, 负系数; **mod662 裸值并入此系数**) × (1−statId9 CASUALTY_TRICKLEBACK) → sub_1406D1950 → sub_141516940 **加法累积**入国家 +4040 块槽 2 战争支持下调) | 断言 "TakeDamage is not implemented for this unit type" unit.h:182 |
+| CUnit [24] | TakeDamage (基 = stub; CArmy 覆写 sub_140C8F510: **函数首读模板(+952)+564 = is_fake_intel_division 假情报师旗** (CDivisionTemplate d+540, 键 19403) 非零 → 整个伤害短路跳过 — 短路面 = attrition + 战斗伤害两面, 是假情报师不可磨损不受伤的效果非独立豁免开关; 之后伤害 ×(mod661+100000)/100000 乘 a2 str 参 / ×(*sub_140C82A90(army) + (mod660+100000))/100000 乘 a3 org 参 (org 基值含一次 sub_140C82A90 解引读 — 该函书定名「低 org 加速」核, 此处复用作值源, 两用待裁)) 后 `+1064 −= org伤害 / +1056 −= str伤害` 双钳非负, 累计 +1088(a4 时)/+1096/+1104; 尾项伤亡 × WAR_SUPPORT_FROM_CASUALTIES(qword_143336A18, 负系数; **mod662 裸值并入此系数**) × (1−statId9 CASUALTY_TRICKLEBACK) → sub_1406D1950 → sub_141516940 **加法累积**入国家 +4040 块槽 2 战争支持下调) | 断言 "TakeDamage is not implemented for this unit type" unit.h:182 |
 | CUnit [25] | TakeDamageImmediate (基 = stub) | 断言 unit.h:187 |
 | CUnit [40] | SetName (a2 拷入 +600; CArmy::[40] 覆写 = 禁用断言体 **0x140C8EE90**, RVA 直读钉) | 断言 "CArmy::SetName( CString ) is forbidden to use!" army.cpp:3887 |
 | CUnit [43] | HasLowSupply (基 = stub) | 断言 "Unit type has not implemented HasLowSupply" unit.h |
@@ -761,7 +763,7 @@ ICF 桩身份: 0x140120540 = `return 0` / 0x1401F8A60 = `mov rax,rcx;ret` (retur
   非零 = 海军转移中; [19] 消耗门与 [43] HasLowSupply 读此判空)。定案。
 - sub_140BFD700 = **unit.cpp 海域加权选址** ("IsNavy()" / "pProvince->GetTemplate().IsSea()"
   断言串直证; caller 0xBBA690 夺省链; 采样帧 +BFD763 归此)。定案。
-- sub_140C97430 = **指挥链权限位谓词** (定案): +1240 上级链遍历 + +1344/+1352 旗,
+- sub_140C97430 = **指挥链权限位谓词** (定案): +1240 上级链遍历 + +1344/+1352 旗 (⚠ 与 s4_17:304 产线豁免谓词及装备查量门同引本 VA — 彼方语境为 CEquipmentType 实参, 异读待裁),
   掩码 0x1F0037FC00; 75 调用者。
 - sub_141547440 = **邻接规则主评估核** (adjacencyrule.cpp, 定案; 全布局与谓词门见 §4.14.8): 海峡/运河 (苏伊士/
   巴拿马/直布罗陀等) 通行判定; 四位掩码 = 陆军/海军/潜艇/贸易可通行 (&1/&2/&4/&8);
@@ -851,6 +853,16 @@ HasLowSupply 140E8B710, 移速 140E8AE40 (仅认镜像储备比, 不读 CUnit+64
 | 地图徽标三档 | sub_1416B89C0 | 裸比 (不带 START_RATIO): ≥0.99 → 1 档, ≥0.25 → 2 档, 否则 3 档 |
 | 组织度恢复 | — | **负定案**: OUT_OF_FUEL 族无 morale 键, org 恢复核 sub_140C6F960 不读燃料比, 警报条目无 org 项 (三证) |
 
+**移动域增补 (定案; unit.cpp/pathfind.cpp 簇)**:
+
+| 项 | 定案 |
+|---|---|
+| CalculateSpeed 四分支短路序 | 海运 (+760) → 两栖 → 战略部署 (RAIL/INFRA) → 常规; **战略部署** = RAIL 分支 STRATEGIC_SPEED_RAIL_BASE+RAIL_MAX×CalcRailwayPercentage / INFRA 分支 INFRA_BASE+INFRA_MAX×州基建 (§4.14.10 CalcRailwayPercentage 第二消费点; sub_141968640); **常规修正栈组成** = 战斗中基替换 0.33 (COMBAT_MOVEMENT_MODIFIER) / 目标省地形 TERRAIN / 要塞 FORT / 雪 SNOW / 补给 −0.8×惩罚比 / 州基建 −0.05 / 国家修正; 尾**下限钳 100000** (1 当量/h); **地形 movement_cost 不进速度** (装载期烘进边代价, §4.14.11); 零组织/缺燃料两闸独立 |
+| CArmy vtable 槽定名 | [27] = sub_140C82620 = CalculateSpeed 薄包装 (每小时进度增量入口) / [29] = 0x140C8E9E0 SetLocation / [53] = 0x140C8F1C0 到达/路径复位回调 (exe vtable 0x295A2B0 直读) |
+| 每小时推进驱动 | sub_140BFF830: 一次 advance=1 + drain 循环 advance=0; 推进核 sub_140C01DC0 完整门序 = 战斗中 progress 钳在边界「顶着打」/ 海峡封锁取消移动 (unit.cpp:2710) / `progress += CalculateSpeed`; 到达判定 = progress ≥ 边总代价, 余量结转循环 drain; **1.0 进度单位 = 20 km** (LAND_SPEED_MODIFIER=0.05, UI 公式反推) |
+| 边总距离 | sub_140BFD530/sub_140BFD140: 海→陆 = AMPHIBIOUS_INVADE_MOVEMENT_COST (24.0); 查不到边 = 100000 (defines_map 33361B8) |
+| A* 倍率 | 主 A* 对边 cost==0 的边不展开 (陆-海自然边在主陆路 A* 不可用 — 陆图 0=不可用 / 海军图 0=默认价, 两图两义, §4.14.3 收口); 外邦省 ×2 / 敌对过境 (型5) ×4 (dword_1430B1654=4); 启发式 = 欧氏像素距 ×1.25 (h 系统性高估 → 偏贪心) |
+| 到达链 | SetLocation → sub_140BB9220{夺省 sub_140BBAB90 / 建战斗 sub_140BBAC40} (§4.22.13 生命周期间歇闭环); 多师移动**无碰撞无队列** (限制全在战斗宽度域) |
 
 #### 4.18.15 组织度/兵力维护链 (org 写者全集 + 补充交付 + 维修负定案)
 
@@ -867,7 +879,7 @@ org (+1064) 写者全集 (五种形态穷举; 同帧序位 = 相位 7 恢复 →
 | 伞降完成 | sub_140C89F10 | `+1064 = PARACHUTE_COMPLETE_ORG × (1+mod370) × max_org/100000`; 并写 +1160 时间戳 (旧「战斗/到达事件时间戳」实为伞降) |
 | 夺省惩罚 | sub_140C8B080 | `+1064 −= ORG_LOSS_FACTOR_ON_CONQUER × max_org/100000` 钳非负 |
 | 赋值入口 | SetOrganisation sub_140C8F170 | 赋值 → 钳 [0, [38]]; 7 直调者 |
-| 赋值入口 (str) | **SetStrength = sub_140C8F1D0** (army.cpp:738, 定案) | gs+2613 载入旗门 (载入中直写不钳) → +1056 = v → 钳 [0, [33]] (负值钳 0); "_Strength: %s, %i" 日志门 byte_14345252A; 与 SetOrganisation 完全对称; 调用者 = 伞降扰乱缩编 / CalculateActiveUnitStats 非战斗回满 / 读档·转移链 (sub_140247F00, 高置信) |
+| 赋值入口 (str) | **SetStrength = sub_140C8F1D0** (army.cpp:738, 定案) | gs+2613 载入旗门 (载入中**整体短路连写不发生** — 载入期 +1056 写者 = loader sub_140C8C7E0, 不经本函) → +1056 = v → 钳 [0, [33]] (负值钳 0); "_Strength: %s, %i" 日志门 byte_14345252A; 与 SetOrganisation 完全对称; 调用者 = 伞降扰乱缩编 / CalculateActiveUnitStats 非战斗回满 / 读档·转移链 (sub_140247F00, 高置信) |
 
 补充链 (相位 11 错峰日步):
 
@@ -918,7 +930,7 @@ mod223 + SF占比×mod381) / 100000`, T = tpl+416 training_time (天); SF占比 
 ③ 模板套用 sub_140C8E550; ④ **装备过继 sub_140C6DF60(div+840, L+32)**;
 ⑤ **人力过继 sub_140C6A730(div+976, L+112)**; ⑥ 出生 XP = XP表值 ×
 sub_140C69780(div+976 和) × L+96/100000 (XP 表 qword_143339500 +8×(idx−1); 钳 ≤100000×人力和);
-⑦ 流亡分支 (dip+392>0 (dip = *(cc+3976), §4.10) ∧ 托管在册 → sub_140C044A0 + 编入流亡国军队);
+⑦ 流亡分支 (dip+392>0 (dip = *(cc+3976), §4.10) ∧ 托管在册 → sub_140C044A0 (= CUnit::SetExpeditionarySender, +476 u32 派遣国 tag; 旧 tag 反注册 sub_140BB52F0; :3367 只允许空↔非欢单向切换 (闩 byte_14333C96C); 新 tag 注册 sub_140BB4390 + sub_1406D21D0, 门 = +8==0) + 编入流亡国军队);
 ⑧ 常规: sub_1406D2CA0(本国cc, div, 1) 编入军队; 订单组存活 → 匹配单位取
 最少数者军团挂起 (sub_141837A50 + sub_14184D810); ⑨ 清偿 sub_140CE87C0
 (库存池收尾 + 人力池全额退还 + 注销装备需求) + 续列判定 sub_140CEA540
@@ -958,7 +970,7 @@ tpl+480 (= 对象基+504 origin_type: 0=无 1=subject 路由宿主 2=流亡) 流
 | 分配·主循环 | sub_140D10310 | deployment.daily (§4.18.16 步①) 首段: 收 ps+512 国家库存 → 收集消费者 (cc+3960 R 表 / cc+3968 U 表 / 部署三队列 / 装备市场国别表等) → sub_140D0BDD0 排序 (**优先级 = base@+16 + vtable[3]×priority@+8**, 平局 vtable[4] 身份) → 逐变体依序 `vtable[2](variant, remaining)` 分完; 消费量 sub_140E6EB90 扣 ps+512 | 定案 |
 | 分配·请求叶 | sub_14150E070 | `produced += min(need−produced, remaining)` (archetype 档位对齐; **status≠0 不消费门**); 齐套 (readiness = 1e5×Σproduced/Σneed **聚合比**, 非逐变体 min) → status=1 | 定案 |
 | 分配·升级叶 | sub_14150DA70 | chunk = min(1e5×EQUIPMENT_UPGRADE_CHUNK_MAX_SIZE, 元.request, remaining) (元.request −= chunk) → 新建 **CUpgradeDelivery** (96B: status@+8 / progress@+16 / total@+24 / produced 池@+32; ctor status=1 直接起步) 压 q+184 | 定案 |
-| 交付·每小时 | sub_14150E460 | CArmy::HourlyUpdate 无条件调用 (前置门 sub_140DF6D30 被封锁不补); **三态状态机**: 0→1 = 日期 e+160 ≤ now (等待超时 = 请求日 + 24×REINFORCEMENT_REQUEST_MAX_WAITING_DAYS dword_143337CCC 14 天, 未齐套也发运) ∧ readiness>0; 1→2 = progress += 1e5×0.3/h (REINFORCEMENT_EQUIPMENT_DELIVERY_SPEED qword_143337770), total = clamp(army+72, [1e5, **1.5e6 = 1e5×SUPPLY_PATH_MAX_DISTANCE** (0x143331208)]), total_progress 每小时重写; 2 = 台账 kind7 + **sub_140C78F60 并入 army+840 池** ("Reinforcing %lli equipment(s) to army with id %i:" army.cpp:3127) + 齐套毁请求/未齐套复位 (need←produced 拷贝 / produced 清 / date+336h); upgrades deliveries 同型内联 (→ sub_140C78E90 army.cpp:3148) | 定案 |
+| 交付·每小时 | sub_14150E460 | CArmy::HourlyUpdate 无条件调用 (前置门 sub_140DF6D30 被封锁不补); 交付执行叶 = 0x140C78F60 (sub_14100CAE0 入 army+840 池 + "RefreshAbilities" 名标记串 army.cpp:3131 + a3 门虚调槽[22]); **三态状态机**: 0→1 = 日期 e+160 ≤ now (等待超时 = 请求日 + 24×REINFORCEMENT_REQUEST_MAX_WAITING_DAYS dword_143337CCC 14 天, 未齐套也发运) ∧ readiness>0; 1→2 = progress += 1e5×0.3/h (REINFORCEMENT_EQUIPMENT_DELIVERY_SPEED qword_143337770), total = clamp(army+72, [1e5, **1.5e6 = 1e5×SUPPLY_PATH_MAX_DISTANCE** (0x143331208)]), total_progress 每小时重写; 2 = 台账 kind7 + **sub_140C78F60 并入 army+840 池** ("Reinforcing %lli equipment(s) to army with id %i:" army.cpp:3127) + 齐套毁请求/未齐套复位 (need←produced 拷贝 / produced 清 / date+336h); upgrades deliveries 同型内联 (→ sub_140C78E90 army.cpp:3148) | 定案 |
 | 交付·人力通道 | sub_14150E730 | 逐 tag (CArmyManpower+976 m+48 标签表): 转入 = min(**0.1×Σneed_tag**, cc+808/832 可用, 缺口) **∧ 进度门** (manpower_pool q+88 进度 += 1e5×rate/h, > 1e5×转入量才发); rate = REINFORCEMENT_MANPOWER_DELIVERY_SPEED(1e6)×army+64/1e10; 扣国库 sub_140CFE7E0 | 定案 |
 | 清理·R 摘除 | sub_14150F3A0 | 请求计数==0 ∧ CArmyManpower 缺口≤0 → 从 cc+3960 移除 | 定案 |
 | 清理·U 摘除 | sub_14150F740 尾 | 计数 (q+172)==0 ∧ U+96 注册旗 → 从 cc+3968 移除, 清旗 | 定案 |
@@ -1021,7 +1033,9 @@ StopAtMax）**，由 COrderSetTrainingCommand（ctor 0x14183B160 / IsValid
 sub_1416DD7B0 写入并沿军群树传播（ordersgroup.cpp:2760 SetTraining）。
 **XP 入口定案**: 真演习 XP = **sub_140C8FF80**（CArmy::[19] 日 tick 尾,
 army.cpp:4906）; sub_140C895B0 实为**碾过/强推（overrun）结算**（体用
-XP_GAIN_PER_OVERRUN_UNIT; §4.4.22 行已同步订正）。
+XP_GAIN_PER_OVERRUN_UNIT; §4.4.22 行已同步订正）。链增补: +1072 经验钳 = 1e5×人力因子
+(sub_140C69780); 国军经验份额 sub_140C73560 非零才走 leader 通道 = **sub_1412A64B0(leader,
+&份额, 1, 1, 0)** (AddExperience 三参新锚); 尾构 SArmyUnitActivityData 推送。
 
 | 段 | 函数 | 语义 | 置信 |
 |---|---|---|---|
@@ -1110,6 +1124,8 @@ mega/submarine 四个 air_wing_size (上表定案)。
 
 清册 (8/8 函): 0x14142AAA0 (384, :185..:216 断言串 20 枚 = 源在 20 个「不应贡献」statId 上须为 0) **统计数组级部分累加器** / 0x141429D30 (286, :321 断言) **AddWithMultiplier 加权累加主函** / 0x14142B270 (168, :377 断言) **AddWithMultiplierAndSupport 支援连变体** / 0x14142BE20 (183, :892 `TotalSubUnits > 0` 断言) **统计平均器** / 0x14142A580 (100, :401 `EquipmentMultiplier > 0_fixed` 断言) **装备乘子施加器 (空军)** / 0x14142D490 (70, :118 CLogStream `SSupportCategoryStatMultiplier::WriteMembers called without a valid category.`) **SSupportCategoryStatMultiplier::WriteMembers** / 0x14142C660 (55, :882 `Should not ever happen!` 断言) **CUnitAdjuster 查找器** / 0x141429020 (64, :377 断言) **MergeTerrainAdjusters**。
 
+**域诊断消息构造器 sub_1410194F0 (未收新函, 推定)**: CLogStream 一行式 (subunitdefinition.cpp:413, 类别码 65540), 终串形 = "<F0>:<u8>-<u16> '<名>': <消息>" — 九步追加 = a1+0 串 → ":" → a1+8 u32 → "-" → a1+16 u32 → " '" → *(a1+24)+24 MSVC 名串 → "': " → 调用方消息串; a1 = {+0 串/串指针, +8 u32, +16 u32, +24 对象指针} — **非 CSubUnitDefinition** (def 名串 = +24 内嵌 SSO 非指针, 形态不符; a1 类型与三段定位语义未决)。
+
 **统一 thunk 层** — 八裸函数均不经vtable, 由 subunitdefinition 域一层 thunk 转接 (thunk 一律 `+64` 取 SSubUnitStats, 与「内嵌 @def+64」互证):
 
 | thunk | 目标 | 实参固定值 | 业务名 (日志/断言实证) |
@@ -1128,6 +1144,7 @@ mega/submarine 四个 air_wing_size (上表定案)。
 > AddWithMultiplierAndSupport (B270) = D30 的支援连变体: 624B 整拷源数组 → 套加成向量 (引擎向量 {data@+0, cap@+8, count@+12}, 24B 元 {statId, 值, 启用旗}; 仅启用项 `buf[statId] += 值`) → sub_14142BA70 按 w 缩放 (SSE 展开, 同 /100000 魔数) → 下游同 D30。聚合核 0x140B9AD70 (§4.31.27) 内: 战斗营走 141019EA0, **支援连 (v224 旗) 走 141019F40** (a5 = 旗取反 → 跳修正器合并, 由 141019AD0 单独合) + 0x141019C30/0x141019C60 把支援统计折算进加成向量。
 > **平均器 (BE20)**: a2 = 总子单位数, a3 = 支援连数 (推定); 按总数平均 = statId 0 (default_morale) / 19..22 (探测/可见性) / 34 (navy_range) / 43..45 (三协同) / 60 (max_org) / 63 (armor) / 64 (piercing) / 65 (reliability); 按 a2−a3 (战斗营数) 平均 = statId 3 (hardness) / 74 (hot_gain) / 75 (cold_gain) + 五固定 CUnitAdjuster + 动态地形数组每项 (sub_141014830 缩放); 每项前哨兵检查 `(x + 0x7FFFFFFFFFFFFFFE) > 0xFFFFFFFFFFFFFFFC` → int64 极值视为无效保留原值, a2=0 时全部置 0xFFFFFFFF。
 > **装备乘子 (A580, airwing 消费链)**: `dest[i] += mod[i] × trunc(a4 × (base[i] + 100000) / 100000) / 100000` (i = 0..77; dest = a1+96, base = a2+96, **mod = a3 装备对象 +256 数组** — 装备对象内嵌统计数组于 +256, 与 CSubUnitDefinition 的 +160 不同基); a4 = EquipmentMultiplier。调用方 sub_140F661E0 (airwing.cpp:1444): 逐装备条目 {对象@+0, 数量@+8} 按率 `100000×count/total` 施加, 经 sub_141019F00 取装备 +256 数组逐 statId 求差累入 a1+2408 显示数组。
+> **装备乘子合算 (sub_14142B5F0, 陆军师聚合消费链; thunk 表补收)** — 链 = sub_141019E00/E50 → sub_141429C40/CB0 → sub_14142B5F0: `dest[i] += equipStat[i] × w × (1 + defMod[i]) / 100000` 逐 statId i∈0..77; equipStat = 装备对象 +256 数组, defMod = def 侧同名 stat 键。**定案: def 侧 stat 键双语义** — 与装备 stat 重叠的键 (soft/hard attack、defense、breakthrough、armor_value、ap_attack、air_attack) 是**乘法修正** (支援连 −0.5 → ×0.5; mechanized hard_attack 4.0 → ×5); 装备没有的键 (max_strength/max_organisation/supply_consumption/weight/suppression/recon/entrenchment 等) 走**绝对值加法**通道 (D30 主循环 `dest[i] += trunc(defStat[i]×w/100000)`)。特例分支: statId 3 (hardness) 门 a7 跳过 / 61/62 (strength/speed) 门 !a8 跳过 / 69 (fuel_cons) ×(stats+16 因子) / 65 (reliability) ÷a9 / 16 直加; rate (≈1e5) = 装备 +808 旗 + a10 define 插值; a6=1 时取 max。数值锚: 9 步兵营师 HP = 9×max_strength 25 = 225 ✓。
 > **查找器 (C660)**: 依上下文 token (elem+8) 顺序查 s+792 → s+752 → s+832 → s+872 → s+912 五固定块, 再线性扫 +952 动态数组 (跨距 40); 未命中 → B51 断言 + **回退返回 s+792** (非空指针, 调用方必判)。
 > **部分累加器 (AAA0)**: 断言源在 20 个 statId (0/6..16/43/56/60/61/67/74/75 = 陆军战斗/补给/侦察/铁路炮/通用上限/重量/适应化类) 须为 0, 只允许贡献 35/36 (水雷) / 65/66 (可靠性) / 69/70 (油耗); 钳位 77 (build_cost_ic) ≥ 10000 (= 0.1 IC 下限) / 65 ≥ 0 / 11 ≥ 0。被 airwing 聚合链 (thunk 141019F30, 调用方 sub_140F661E0 / sub_140FA6320) 按「只加海空侧统计」语义消费。
 
@@ -1259,3 +1276,6 @@ SDivisionCap (pdx_optional\<32B\>, 旗@+32; §3.12): `{+0 cap u32, +4 类型枚�
 #### 4.18.26 军种精神视图装配 (country_army_spirit_view.cpp; 1 函 = 0x141D22090 — 书未收簇)
 
 **机制 (233 行, 定案)** — 断言 country_army_spirit_view.cpp:361 `TakenSpirits.GetSize() <= 9` (闩 byte_14338C674; 超出即 bug)。精神 id 构造 = 串拼接 `<名>_spirit` → sub_140FD6790 转 id (直证 §4.28 army_spirit 事件 type 键语义)。已取精神集合 = 国家精神管理器 (sub_140BB48F0 → sub_1406CF890) **+80 向量 / +92 计数**, 过滤 `sub_140FCF630(elem)+120 == id`。**军种精神 def 三点布局: +16 名串 / +48 精神 id / +120 类型 id**。GUI 行件 (a1+32 向量 / +44 计数): **+1424 精神名 std::string (缓冲+1424/容量+1448) / +1456 精神 id**; def 匹配 = def+48 == item+1456 ∧ stricmp(def+16, item+1424); 全不中 → 全局空对象 qword_14332FB10 (null_object.h:140 "_pInstance" 断言, 闩 byte_143339CF2); 装配 sub_141D21A70(item, 国, def, 0); 收尾 a1+24 子对象重刷 (sub_141C50580/sub_141C51E90, 推定图表/列表)。静态分配器 off_143085170 全局单例复用 ✓。
+
+
+**divisiontemplatemanager.cpp 摆格域增补**: 摆格四函 2×2 矩阵 (57 行级同构) = {+104 support 格 (Set 包装 sub_140BA53F0; 上限 dword_143333DB8×E58 = MAX_DIVISION_SUPPORT_WIDTH/HEIGHT) / +136 regimental_support 格 (sub_140BA6120; 上限 dword_143333EEC×F80 = MAX_REGIMENTAL_SUPPORT_WIDTH/HEIGHT)} × {管理器持针 (模板 = *(this+8), ctx = +2280) / 快照内联 (模板 = this+16, ctx = +600, 类待裁)} — 对号 0x14168DFA0/E150/E3B0/E570 (断言 "Position or subunit is invalid" :326/:342/:357/:373)。统一流程 = 元素有效旗 *(a3+16) + 坐标域门 → subunit_grid Set (sub_140FBFA50: idx = col×列高+row, 扩容 ×1.5, "Invalid grid coordinates" :136 / "out of grid bounds" :148; Get = sub_140FBF3F0 越界返哨兵) → 列同型化 → sub_140BA41F0 网格重建 → 0x14168B9E0 重算 stats。**CalculateActiveUnitStats 0x14168B9E0 细化** (自实名 :1269): 三网格空判 (+72/+104/+136, 空判原语 = sub_140FBF580, 恒等 = sub_14061F7E0) → 任一空走本地原型池 (cc+3944 × 模板+264) + 聚合核 sub_140B9AD70 (10 参, 100000×*(模板+376) 等); byte_14345252A 置位 = Error("CalculateActiveUnitStats") :1269 抛出门。

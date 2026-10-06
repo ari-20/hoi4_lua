@@ -45,7 +45,7 @@ sub_140BC2640(gs+16, human) 按 id@+152 有序插入); writer 0X140BBC970。
 | +12 | uint32 | ironman | | 写 int 0/1 非 yes/no |
 | +16 | uint32 | historical | | 写 int 0/1 非 yes/no |
 
-difficulty 枚举表 (sub_1401FAC70 → 引号串):
+difficulty 枚举表 (枚举→串 writer sub_1401FAC70, 无效值回退空串 Buf2 + 告警 settings.cpp:277; 反向解析器 **sub_1401FAAC0** 串→枚举, SSO 长度+memcmp 匹配, 未识别 → 告警 :296 + **默认 2 (normal)**):
 
 | 值 | 名称 | 语义 |
 |---|---|---|
@@ -167,7 +167,7 @@ data 结构 (语义推定):
 
 #### 4.28.8a 成就平台后端与好友处理器域 (pdx_achievements_steam.cpp / friends_handler_steam.cpp; Steam 会话运行期)
 
-平台工厂 sub_142397B60(platform) (pdx_achievements.cpp:25 断言 "No Valid Achievements Interface"): platform==2 → 280B **CSteamAchievementsContext**; platform==0 → 56B **CDummyAchievementsContext** (+24/+32 = magic-static 空表); 其他 → 断言; 创建后统一调主 vtable+16 槽 (Initialize)。
+平台工厂 sub_142397B60(platform) (pdx_achievements.cpp:25 断言 "No Valid Achievements Interface"): platform==2 → 280B **CSteamAchievementsContext**; platform==0 → 56B **CDummyAchievementsContext** (+24/+48 = magic-static 空表同表 off_143085170 双引; +32/+40 = 0); 其他 → 断言; 创建后统一调主 vtable+16 槽 (Initialize)。
 
 CSteamAchievementsContext 布局 (280B, 定案):
 
@@ -405,8 +405,8 @@ social.pr 上传闭环 (定案): 找自己 sub_14153E890 → DownloadLeaderboard
 |---|---|
 | 播种双链 | SetSeed sub_142234550 = 链A→seed + 链B→count; **SetSeedOnly sub_1422345D0** (只写 seed); 读档恢复 = gs 键分发器 sub_1401E59D0: token 11458 → SetSeedOnly / token 11459 → SetRandomCount (原值直写) |
 | OOS 调试域 | 入口三: 命令行 sub_14222F630 (-random_log / -light_random_log) / 控制 台 toggle sub_140279040 / 配置串 sub_140125090; 三门分工 = byte_143452529 每抽日志 / byte_14345252A weathermanager SetValue 日志 / byte_14345252B 入环 |
-| 记录环 | **72 槽 × 40B 槽 + 56B 条目滚动审计窗 (72 小时)** (OOS 对账域): 槽 = {+0 日期对象 16B (+8 日期值), +16 日期值镜像, +20 u32, +24 条目向量头}; **条目 56B = {+0 kind u32 (0=记账/1=random_fixed), +8 file 串指针, +16 line, +20 value, +24 tag 串 32B 外置 SSO}**; **推进协议 (定案)** = hourly tick sub_1401DD370 纯换槽 (sub_1422336C0, 无清场 → 72 小时滚动窗), **全清+换槽仅发生在 gs 日期写入点 sub_1401EDBA0 (SetDate 跳档/读档; gs+1128 ≠ 新值门) 与 ctor** (全清 sub_142233720 = 逐槽日期 ← 43800000 日期零 + 条目清); 入环 push = sub_142233490; 环→文本 = sub_142233780/2337A0 (从 (i+游标+1)%72 时间序遍历跳空槽) → **落盘 logs/cached_random.log** (sub_14024A1A0 拼路径回调注册; OOS dump zip 的 cached_random 条目即本环产物); random_state 双变体 (LightRandomLog) = **int 版 sub_142234110 (random.cpp:329) + 串值版 sub_142234270 (:345)**, 挂点普查 ~114 站/25+ 文件 (书载四域 = 具名子集; 另证 navaltransfer.cpp:685/702 与 supply_system.cpp:325-332 校验和哈希器 sub_140EC5A80 具名条目); 记账函数不自增 (环推进在槽切换处); sub_142233FA0 用同布局写环 (无 tag); CGameState::Save 的 "Start/End of gamestate checksum" 标记亦经记账函数入环 (value = 存档流 running hash, line=3319), 控制器重置族以 (0/1, "gamestate.cpp", line, 0) 打确定性变更追踪标记; **gs 日期写入点全貌 (定案)** = sub_1401EDBA0: gs+1120 日期对象 (**gs+1128 = 该对象 +8 值字段**) → 通知 → 全清+换槽 → **派生字段 gs+1144 年=(d−43800000)/8760 / gs+1148 dword_143085210 月表 / gs+1152 月 / gs+1156=(d/24)%365 / gs+1160 日** → qword_143339D28+736 通知。⚠ gs+1128 与随机流播种无关 (只是环槽日期戳); 播种原语见簇增补行 |
-| 禁场守卫 | 旗 byte_143452528 = **诊断绊线非阻塞门** (抽全局流只触发 random.cpp:181/187 OOS 断言不拒绝); 守卫可嵌套 (save/restore 旧值), 唯一实测嵌套 = 每帧一步 sub_14222EEB0 (全帧禁场 + app+64 条件子区解禁); 解禁子区惯用式 `sub_1422345B0(0)→子区→restore` (InitData 逐国 init 段实测); 禁区两大目的地 = tbb 并行相位 与 自持 RNG 子系统 (天气/CAce/脚本作用域)。⚠ **四条断言各自独立 latch 勿混**: random.h:74 主线程断言 latch = byte_14332EDF8 / random.cpp:181 禁场抽取断言 latch = **byte_143453078** / **random.cpp:187 random_fixed 禁场断言 latch = byte_143453079** / random.cpp:325 LightRandomLog 线程断言 latch = **byte_14345307A**; gamestate.h 访问断言 :1116/:1117 latch = byte_14332EDF9/EDFA, :1125/:1126 第二组 = byte_14332ED00/ED01 |
+| 记录环 | **72 槽 × 40B 槽 + 56B 条目滚动审计窗 (72 小时)** (OOS 对账域): 槽 = {+0 日期对象 16B (+8 日期值), +16 日期值镜像, +20 u32, +24 条目向量头}; **条目 56B = {+0 kind u32 (值呈现格式: 0=整数 %d / 1=定点串化 %s — 四写环站点直证: random_int/random_state int 版写 0, random_fixed/random_state 串值版写 1), +8 file 串指针, +16 line, +20 value, +24 tag 串 32B 外置 SSO}**; **推进协议 (定案)** = hourly tick sub_1401DD370 纯换槽 (sub_1422336C0, 无清场 → 72 小时滚动窗), **全清+换槽仅发生在 gs 日期写入点 sub_1401EDBA0 (SetDate 跳档/读档; gs+1128 ≠ 新值门) 与 ctor** (全清 sub_142233720 = 逐槽日期 ← 43800000 日期零 + 条目清); 入环 push = sub_142233490 (环基 = unk_143452548, 游标 = dword_143452530, 槽址 = 环基 + 40×游标); 环→文本 = sub_142233780/2337A0 (从 (i+游标+1)%72 时间序遍历跳空槽) → **落盘 logs/cached_random.log** (sub_14024A1A0 拼路径回调注册; OOS dump zip 的 cached_random 条目即本环产物); random_state 双变体 (LightRandomLog) = **int 版 sub_142234110 (random.cpp:329) + 串值版 sub_142234270 (:345; 线程上下文门 sub_1424D3F90() 假 → 断言 "LightRandomLog isn't allowed in threaded context" :325 int / :340 串版, 闩 byte_14345307A/B, 仅主调试门内)**, 挂点普查 ~114 站/25+ 文件 (书载四域 = 具名子集; 另证 navaltransfer.cpp:685/702 与 supply_system.cpp:325-332 校验和哈希器 sub_140EC5A80 具名条目); 记账函数不自增 (环推进在槽切换处); sub_142233FA0 用同布局写环 (无 tag); CGameState::Save 的 "Start/End of gamestate checksum" 标记亦经记账函数入环 (value = 存档流 running hash, line=3319), 控制器重置族以 (0/1, "gamestate.cpp", line, 0) 打确定性变更追踪标记; **gs 日期写入点全貌 (定案)** = sub_1401EDBA0: gs+1120 日期对象 (**gs+1128 = 该对象 +8 值字段**) → 通知 → 全清+换槽 → **派生字段 gs+1144 年=(d−43800000)/8760 / gs+1148 dword_143085210 月表 / gs+1152 月 / gs+1156=(d/24)%365 / gs+1160 日** → qword_143339D28+736 通知。⚠ gs+1128 与随机流播种无关 (只是环槽日期戳); 播种原语见簇增补行 |
+| 禁场守卫 | 旗 byte_143452528 = **诊断绊线非阻塞门** (抽全局流只触发 random.cpp:181/187 OOS 断言不拒绝, 闩 byte_143453078/79); 守卫可嵌套 (save/restore 旧值), 唯一实测嵌套 = 每帧一步 sub_14222EEB0 (全帧禁场 + app+64 条件子区解禁); 解禁子区惯用式 `sub_1422345B0(0)→子区→restore` (InitData 逐国 init 段实测); 禁区两大目的地 = tbb 并行相位 与 自持 RNG 子系统 (天气/CAce/脚本作用域)。⚠ **四条断言各自独立 latch 勿混**: random.h:74 主线程断言 latch = byte_14332EDF8 / random.cpp:181 禁场抽取断言 latch = **byte_143453078** / **random.cpp:187 random_fixed 禁场断言 latch = byte_143453079** / random.cpp:325 LightRandomLog 线程断言 latch = **byte_14345307A**; gamestate.h 访问断言 :1116/:1117 latch = byte_14332EDF9/EDFA, :1125/:1126 第二组 = byte_14332ED00/ED01 |
 | 并行相位种子注入 | **串行相抽一次 → 实参传入 tbb pass, 相位内禁场** (gamestate.cpp:6227/6310 日更、5216 小时更三点连线, 抽取值进 functor 实参逐字节直证); 战区带 tbb lambda 符号直证 = sub_140EF18B0 DispatchBundle(InterpolatedFrontBundle) / InitSectionsForCountries 与 InitializeTheatresForEveryone 两符号实在 sub_140EE8160 体内; **sub_140EFAC10 = TheatreManager 全员初始化分发包装 (InitializeTheatresForEveryone 形, (bool,bool) 签名 → sub_140EE6970(1, count, jobType=3))** — 旧「战区事件分发」名废; sub_140EF88B0 = 按国遍历 +360/+372 分桶重建 (名称归属待核); sub_140EFAB20 = DispatchConquer 内步 (按省增量派发) |
 | 实例版 CRandom | CAce 创建 sub_140618860 逐指令直证: 头部内联 SetSeed 双哈希链造局部 {seed,count} 私流抽取, 不耗全局流 |
 | random.h:150 RandomElement | 均匀随机取元素模板 `(Get & 0x7FFFFFFF) % n`, 三消费者: sub_1412ABD80 陆战/岸轰附带伤害受击目标 (crit 门 = SHORE_BOMBARDMENT_COLLATERAL_DAMAGE_CRIT_CHANCE_FACTOR) / sub_14144CC20 勋章随机授勋 (概率门 unit_medals.cpp:1038, 修正值 + qword_143337718) / sub_140FDC3A0 反谍捕获执行 (**加权变体**: 同国/同原初国双权 dword_1433342B8/143334448 — 非 define loader 槽, 名未取) |
@@ -610,7 +610,7 @@ ingameidler.cpp 簇对账增补 (19 函数闭环; 簇界定 = 函数体内含 in
 | 0x140DDE4A0 | 196 | **槽[104] ResetGamestate** ("Resetting gamestate" :6691 → "Gamestate successfully resetted" :6714) | ③:6691/:6714 |
 | 0x140DC9500 | 174 | 落盘 writer (返回码 0/1/2/4) | ①:6586/:6654 + ④ |
 | 0x140DC6B00 | 68 | **槽[54]** 选中省链头 (gs vtable[1] 查省 → 槽[55]) | ①"pProvince" :817 |
-| 0x140DC5610 | 57 | FindHintByWindowName (hint 向量 +2424/+2436) | ②:6784 |
+| 0x140DC5610 | 57 | FindHintByWindowName (hint 向量 +2424/+2436; hint 名串 32B SSO @+2648 {size@+2664, cap@+2672}; 命中谓词 = size 等 ∧ memcmp 等, **返匹配元素指针**非下标) | ②:6784 |
 | 0x1426182C0 | 36 | 本地 autosave 异步失败 lambda ("Failed to write save file " :4436) | ③:4436 |
 | 0x142618560 | 34 | 日期序列存档异步失败 lambda (:4255) | ③:4255 |
 | 0x140DC6CA0 | 30 | **槽[55]** 选中省链尾 (→ sub_140DC6A10 相机居中) | ①"pProvince" :827 |
@@ -776,7 +776,7 @@ CSession = clausewitzlib session.cpp 会话对象 (单机实例 = CDummyServer �
 | +400 | uint64 | GAME_STATE(18) 载荷流指针 (热加入/重连收到的 gamestate+命令日志流, 空 = 无; RequestSynch 反序列化消费) | 定案 |
 | +1056 | uint8 | 重连机总门 (==0 只广播无动作; **全语料无置 1 写者**——Init 与 sub_142252660 均清 0, 负发现) | 定案写读点/语义待裁 |
 | +1852 | uint8 | 命令派发重入门 ("Update within execution. Skipping." session.cpp:600/629) | 定案 |
-| +1854 | uint8 | 热加入当前态旗 (与 +1855 同地址 WORD 写 257 双置 1; 独立 setter = SetHotjoin sub_142252520) | 定案 |
+| +1854 | uint8 | 热加入当前态旗 (与 +1855 同地址 WORD 写 257 双置 1; 独立 setter = SetHotjoin sub_142252520; byte 写 a2 真 → +1855 = 1, +1855 仅置位不清零) | 定案 |
 | +1855 | uint8 | 粘滞「曾开热加入」旗 (SetHotjoin a2 真时置 1) | 定案 |
 | +1856 | uint8 | 热加入拒绝码 (0=declined/1=busy/2=nameconflict/3=disabled; 仅客户端写) | 定案 |
 | +1864 | SSO 串 (32B) | 热加入请求串 1 (主机收 REQUEST_HOTJOIN(14) 载荷直写) | 定案 |
@@ -1094,7 +1094,7 @@ NCareerProfile 生涯档案管理器堆目标 (约 2024B; 奖项 SCareerProfileA
 +920 = scoped singleton 槽 (CPersistedMioQueueDb) / **+936 = CDefinesReloader** / **+1184 = localisation watcher 看柄** /
 +1192 = 启动参数 40B 结构 / +1232 = SSO 串。伴生定案: HotkeyManager 单例 qword_1434531A8 首启
 于 Init 前置段; clausewitz clock.cpp 时钟启动; CSettings +952/+960 = hotkey 双 delay 默认 0.1 (§4.28.11 表)。
-加载条 start 回调 = sub_140A59850 (按 phase 0..3 填步骤 id); end 回调 = sub_140A59E80
+加载条 start 回调 = sub_140A59850 (按 phase 0..3 填步骤 id); end 回调 = sub_140A59E80 (门 = a1+48 组 id >= 0 有效, a2 = 块 id; 仅日志无状态改写)
 ("Loading bar group: N is missing chunk M", loadprogressimpl.cpp:117)。
 
 #### 4.28.21a CGameApplication 主表与热重载家族 (1.19.3 实测)
@@ -1332,7 +1332,7 @@ autosave 调度与轮换 (定案):
 
 **CSession 布局增补** (§4.28.16 姊妹): vtable 0x142B3E9D8 仅 8 槽 (本族全非虚直调); ctor = 0x14224E3E0 / Init = 0x142250890 (server 三型构造 + server+80 反指); 全局单例槽 **qword_143451DA8**; **命令日志链表 +312/+320/+328** (热加入重放源; RequestSynch 0x142251420 反序列化 session+400 命令日志流 → 重放, 每 5 条插帧保活, identity(+28) 严格递增校验); 批命令缓冲 +104 族; **断线重连机 sub_1422502F0** (+1968 路径; 三分岔 = 无动作 / 主机重建 / 客户端重连, 总门 +1056 无置 1 写者待裁; 全链 §4.36.5); SetState 0x142252680 (观察者广播码映射全表; **7 个终态**广播后状态回置 0 = {7 REFUSED, 8 KICKED, 9 IS_BANNED, 10 NAME_TAKEN, 11 NAME_INVALID, 16 BAD_VERSION, 17 BAD_PASSWORD} — switch 逐 case 直证); 命令发送门实为**四条件** (a3 ∨ +1941 ∨ cmd vtable[16] ∨ vtable[12]; ctor 默认 1); **+164 = machine id** ("Machine id %d assigned"); Update 命令派发主泵 0x142252D00 (状态路由主派发位集 {2,4,13,14}; 逐条 IsValid→Execute (+1852 包夹); 就绪命令 Clone 进 +312 日志); RequestHotjoin 0x142251120 (`*(WORD*)(+1854) = 257` 一次写 +1854/+1855 双旗, +1855 粘滞独立 setter = SetHotjoin sub_142252520; 消息 14 REQUEST_HOTJOIN 键 11/27/226)。
 
-**CGameLobby 增补** (§4.28.18 姊妹): ConnectToGame sub_140D99F10 (找局→版本核对→starting/lobby/running 三态门→CSession(1976B) 安装→热加入起步 SetState(12)); Update 六块状态机 sub_140DA3F20 (+1218 = **接入触发旗** — 后半跑 ConnectToGame); **+1214 = WORD 写 257** (连带 +1215); Update 驱动不止 FE Idle — **sub_140DD3A50 (InGame 回菜单 Idle) 也驱动 +1904 第二大厅**; +88 热加入名单 (32B 串元素, 匹配键 = CHuman+64 name); 云端存档/rules 预设四件套 (rules 固定临时名 "_temp.txt" 原子换名); 文件分块传输 Ack sub_140D9F2C0 (this = 第二基 lobby+8 视图 — 双基偏移规则); 热加入收尾 sub_140DA1020 ("HOTJOIN_ENDING!" + SetState(4) + net "running"); 11 个 EH catch funclet 负定案勿入书。
+**CGameLobby 增补** (§4.28.18 姊妹): ConnectToGame sub_140D99F10 (找局→版本核对→starting/lobby/running 三态门→CSession(1976B) 安装→热加入起步 SetState(12)); Update 六块状态机 sub_140DA3F20 (+1218 = **接入触发旗** — 后半跑 ConnectToGame); **+1214 = WORD 写 257** (连带 +1215); Update 驱动不止 FE Idle — **sub_140DD3A50 (InGame 回菜单 Idle) 也驱动 +1904 第二大厅**; +88 热加入名单 (32B 串元素, 匹配键 = CHuman+64 name); 云端存档/rules 预设四件套 (rules 固定临时名 "_temp.txt" 原子换名); 文件分块传输 Ack sub_140D9F2C0 (this = 第二基 lobby+8 视图 — 双基偏移规则); 热加入收尾 sub_140DA1020 ("HOTJOIN_ENDING!" + SetState(4) + net "running"; 另写 a1+1217 完成旗 = 1, a1+8 对象 vt[12] 两取值 + sub_142252520(v7, 0), 遍历 a1+32 数组 (count@a1+44) 逐元 vt[15] (+120) 回调; 日志旗 769); 11 个 EH catch funclet 负定案勿入书。
 
 **控制台命令条目 456B 布局增补** (§4.28 命令表 383 条姊妹): 条目 +0 = **available_in_release_build** (0 = dev-only, JSON 仅 0 时写 false 键); **+40 别名计数 / +48 别名 char\*\* 数组 (null 结尾) / +72 描述串 / +112 参数补全支持旗 / +128 参数说明计数 / +136 参数说明串数组 (32B 跨距)**; 注册双轨 = 4 张 .rdata 静态表 (取值器 sub_14119A840/0x141194820/0x1411A8820/0x14117B270) → 合并容器 qword_14332F4F8/count dword_14332F504 → 去重 bulk-register sub_1424B4920 注入管理器 (主注册点 = 启动序 sub_140126E50); 新式单命令走独立注册器 (crash 例 sub_1423927F0)。**控制台随机 = Random::Get(file,line) (sub_142233FA0) 独立流, 不动存档种子流 — 对拍安全**; random_seed 无参 = 状态×地址哈希重播种 (handler 0x14027D780); SetRandomCount = sub_1422345C0; `oos` 命令 = Random::Get(file,8657) 仅本端调用 → RNG 流单侧偏移失步机制直证; 新全局: qword_14332F540[3] 舰队行动区三色槽 / qword_143330000 效果文档库 / qword_143330050 触发器文档库 / qword_14332F5A8+F5C0 两组 fired 计数器 (debug_dumpevents/debug_dumpdiploactions)。
 
@@ -1353,7 +1353,7 @@ autosave 调度与轮换 (定案):
 
 SGameModeStatistics (144B) 宿主: +8 = 当前组 2056B 国条目容器 {arr@+16, count@+28} / +40 辅容器 / +52 计数旗 / **+64 = mod 统计组注册表 {arr@+64, count@+76} 96B/项** (项 = {+8 组名串, +40 容器挂 2056B 条目}; 组名 = MOD_STATISTICS_GROUP, 长度上限 30 超限告警 career_profile.cpp:650) / +88 回退组容器 {arr@+96, count@+108}。
 
-国条目 (2056B/项, 定案): +8..+1008 = 现跑统计镜像区 (u32 +8..+564 步 4 / u64 +568..+752 步 8 / +760 大槽) / **+1016..+2016 = best 记录区 (与 live 区同构同偏移)** / +2000..+2016 = best-in-career 位集镜像 / +2024 = 条目名串。live 统计区 = sub_1401C9FC0(gs, tag)+8 (运行时国对象内, 形状同构约 1008B)。条目查找失败哑接收器 = unk_143330780 (三 finder + 对账共用; 一次性断言行 1336/1356/1370/1384/1868)。
+国条目 (2056B/项, 定案): +8..+1008 = 现跑统计镜像区 (u32 +8..+564 步 4 / u64 +568..+752 步 8 / +760 大槽) / **+1016..+2016 = best 记录区 (与 live 区同构同偏移)** / +2000..+2016 = best-in-career 位集镜像 / +2024 = 条目名串。live 统计区 = sub_1401C9FC0(gs, tag)+8 (**生涯档案 wrapper 内** — _AllPlaythroughData 桶值 NCareerProfile::SPlaythroughCountryData +8 = SProfileData (非运行时国对象); 形状同构约 1008B)。条目查找失败哑接收器 = unk_143330780 (三 finder + 对账共用; 一次性断言行 1336/1356/1370/1384/1868)。
 
 奖项槽 24B (定案): {+0..+11 保留含成就名 key, +12 int tier (0 未获/1 铜/2 银/3 金, 只升不降), +16 u64 获得时刻 (Windows epoch 秒)}。槽表 = **33 勋章槽 +296..+1064 (token 15960..17334) + 36 绶带槽 +1088..+1928 (token 15961..17629)**; 授予 = sub_1406932A0 (AwardMedal: 按名查 **CMedalDatabase qword_14332EE30**, def+16 启用旗假 → "Missing medal metadata"; tier 判定三原语 sub_1406ABF50/C000/C0B0) / sub_1406935B0 (AwardRibbon: **CRibbonDatabase qword_14332EE48**, tier 恒 1); 遥测 + push {名, tier} 入弹窗向量。判定入口链: CGameState::HourlyUpdate sub_1401DF400 (gs+2617 门) → sub_140692B10 (门 = 可用 ∧ Steam context ∧ 非 CNetworkServer/CProxyServer ∧ 玩家 tag>0) → 逐槽授予 → **CInGameIdler+2560 弹窗队列** (§4.28.14, 勋章 vec@+0 / 绶带 vec@+24)。
 
@@ -1382,7 +1382,7 @@ GUI 取数族: 前端统计视图 141FACA40→sub_140695F50 (拷 1000B 记录) /
 
 **每帧一步 sub_14222EEB0(app, a2)** 全序 (§4.2.1 骨架互证 + 细化, 定案): 主线程断言 (random.h:74) → **帧号发布 dword_143481264 = app+816 / byte_143481268 = 1** → idler 指针解析: **SDL 事件泵的 idler 形参被 HotkeyManager 单例 qword_1434531A8 顶替** (热键优先吃事件; Idle 派发仍用 app+56 原值) → 事件泵 sub_142231680 → CSdlEvents vtable[+8] (泵尾对 idler 调 vtable[+120]/[+96]/[+104], 参 = settings 桶×0.01×4+1); 返真 → +776/+132 置位本帧余下全跳过 → 图形忙检 → dt = 首帧槽[15] (1/60s) 否则 now−+792 → **设置亮度/对比/伽马三通道** (settings 浮点 ×0.01, 48/49 平方合成/50/51) 变化检测 → 渲染器 sub_1423B5C10/20/30 下发 → **Idle 派发 app+56 vtable[+32] 槽[4]** → idler 切换段 (+64 请求旗: 旧 current → +120 (原住者 vtable[0] 删除), OnSuspend/OnLeave 族 → +112 待入 → +56, 新 current OnEnter 槽[11] → 槽[5] (线程名+jumpbuf) → 槽[7] → 槽[9]) → app+816++ → 限帧 (**帧率设置整型 @settings+220**, 目标 = 1.0/值, 欠额 sub_1401BA490 睡眠)。
 
-**Shutdown flush (槽[11] sub_140195110) 全序** (定案): gs 存活且 +2617 → 生涯档案收尾保存 sub_1406A4A30 (delete_cloud_career_profile_files 旗 → 云删除; 否则云开关 ∧ 保存成功 ∧ !+2017 → 上传, §4.28.22 同款路由) → 单例 qword_143339C70 (0x2A8) flush → career 中间统计落盘族 → **TGameItemDatabase 全库中序遍历逐项 +296 旗置位者 flush** → 管理器单例 flush 长队 (HotkeyManager 等 11 个「getter→flush」对, 类名未决) → **设置落盘** (settings 单例 +237 脏旗 → sub_14222B040 序列化; 失败 "Could not write settings file … (read-only?)" systemsettings.cpp:142)。
+**Shutdown flush (槽[11] sub_140195110) 全序** (定案): gs 存活且 +2617 → 生涯档案收尾保存 sub_1406A4A30 (delete_cloud_career_profile_files 旗 → 云删除; 否则云开关 ∧ 保存成功 ∧ !+2017 → 上传, §4.28.22 同款路由) → 单例 qword_143339C70 (0x2A8) flush → career 中间统计落盘族 → **TGameItemDatabase 全库中序遍历逐项 +296 旗置位者 flush** → 管理器单例 flush 长队 (HotkeyManager 等 11 个「getter→flush」对, 类名未决) → **设置落盘** (settings 单例 +237 脏旗 → sub_14222B040 序列化 (出口 = vtable[2], §4.00.1 CPersistent 槽契约的 PE 直证; 落盘前 sub_142274C80(a1+336) 预刷, 路径串 = a1+272); 失败 "Could not write settings file … (read-only?)" systemsettings.cpp:142)。
 
 **LoadDatabases (sub_14018BB20) 102 步骨架** (定案): 进度契约 = sub_14222E270(app, **组 37**, N, **总 102**, 0); 目录串在进度调用**之后**构造; 函数头断言 = random.h:74 "ThreadIsMainThread() && \"Should not be called in a thread\"" (门 byte_1435E1B52 + 一次性闩 byte_14332EDF8)。每步**形态统一但函数不同** = DB 单例守卫断言 (gameitemdatabase.h:127/142/149/179, **47 个断言站点**) → 失败 "DB already loaded when loading <名>" (:160) 告警 → **各自的模板实例化包装** (3-arg (db, path, ".txt") 共 **25 个不同函数** + 2-arg 单文件形态若干; ⚠ **sub_14018B0E0 全函数仅 1 次调用 = 步 8**, 非通用包装; DB +20 已载旗 / vtable[+48] 逐文件解析 + VFS 目录枚举) → 进度 +1。路径串构造计数 = sub_14011E130 ×91 + sub_14011D970 ×28 + strcpy ×3 = **122 次** (多目录步致 >102)。7 个内联构造 DB 的**真类名直证** (vtable 符号) = CCountryTagAliasDatabase / CFrontEndBackgroundDatabase / CMTTHDatabase / CScientistTraitDatabase / CScriptEnumDatabase / CScriptedEffectTemplateDatabase / CStrategicLocationDatabase。全步→目录绑定表 (定案, 逐体反解):
 
@@ -1395,7 +1395,7 @@ GUI 取数族: 前端统计视图 141FACA40→sub_140695F50 (拷 1000B 记录) /
 | 5 | common/idea_tags + scripted_effects + special_projects/projects (**project 库建槽 = 本步前内联块**: malloc → 基类 paths init → +96 = 总线头 → vtable ← CProjectDatabase → 存 qword_14332EFE8 (桶形 data@+56/mask@+68/extra@+72, 24B 桶 {dist u8@+4, 键 u32@+8, 值@+16}; 断言锚 gameitemdatabase.h:142), 内联块尾接 Get → +40=".txt" → LoadDB 内联) | 56 | **"operations" (裸名)** + common/unit_leader + combat_tactics.txt + ideas |
 | 6 | common/frontend/backgrounds | 57 | common/country_leader |
 | 7 | **纯进度针 (零工作)** | 58 | common/unit_medals |
-| 8 | **CSpecializationDatabase 建槽 (malloc 0x80, 单例槽 qword_14332F068; GetInstance = sub_140496D20; 桶形 data@+72/mask@+84/extra@+88, 56B 桶 {dist u8@+4, 键 u32@+8, 值@+16}) + common/special_projects/specialization** | 59 | common/unit_leader (二次) |
+| 8 | **CSpecializationDatabase 建槽 (malloc 0x80, 单例槽 qword_14332F068; GetInstance = sub_140496D20; 桶形 data@+72/mask@+84/extra@+88, 56B 桶 {dist u8@+4, 键 u32@+8, 值@+16}; 查表走法 = 首桶 dist==0 直 miss, 否则线性探针 (探针序号 > 本桶 dist → miss), 命中后两门 = 非哨兵桶 ∧ 桶+16 值指针非空 (专精名解析 sub_140FE32C0; miss → project.cpp:252 + 空串 out)) + common/special_projects/specialization** | 59 | common/unit_leader (二次) |
 | 9 | special_projects/{projects, project_tags, specialization} (**specialization 二次装载**) | 60 | common/intelligence_agency_upgrades |
 | 10 | common/units/unit_modifiers + common/terrain | 61 | common/factions/member_upgrades |
 | 11 | common/country_tag_aliases | 62 | factions/member_upgrades/member_groups |
@@ -1459,7 +1459,7 @@ sub_1423DC320 会话开 → sub_1423DC240 两遍枚举 (第一遍数量, 第二�
 **rules 预设写出双路** (定案): sub_140DA1FA0 = 本地写出 ("game rules" 拼 .txt → 5 字符
 临时名 (同域 "_temp" 直证推定) → 开流 → CGameRulesInstance ← gs 灌注 → 序列化 → 关流 →
 exists→delete → rename sub_1424E14B0 原子落盘; catch 2232/2248); sub_140DA2A90 = 写
-**lobby+232 内存缓冲**经云端流 sub_1422CD210 → 同款灌注序列化 → sub_1422CDBF0 取成功旗。
+**lobby+232 内存缓冲**经云端流 sub_1422CD210 → 同款灌注序列化 → sub_1422CDBF0 flush+close 取成功旗 (1 = 成功 / 0 = 写失败或已关闭; 远程文件 @a1+88; 数据旗 @a1+20; 增量缓冲 @a1+56 {ptr@+0, len@+12} 走 sub_1423DC330 / 全量缓冲 @a1+64 {ptr@+0, len@+72}; 写失败 B52 :258/:271 双站点 (闩 byte_143481199/14348119A); 脏判 sub_1413D96A0 → 关闭 sub_1423DC1F0)。
 
 **存档写出孪生对与选择门** (定案): sub_140DA25E0 (本地 _temp 原子落盘, §4.28.20 T3) 与
 sub_140DA2E80 (云端) 同构 — 目标名 = sub_140D9BEA0(a1, 远端名, a2, lobby+168 桶) 拼
@@ -1578,6 +1578,7 @@ ctor 本身不注册命令 (与 §1.4 互证)。
 **docs** 双模: text → game.log (拼 TRIGGER/EFFECT/DYNAMIC VARIABLE 三大节, 后者六子类);
 **触发器/效果注册表全局锚 = qword_143330050 / qword_143330000** (惰性 ctor sub_14054CEA0 /
 sub_14053D840); json → sub_140299AD0 写 script_documentation.json (11 节: script_concepts/
+**script concept 注册器 0x1424C58E0 (pdx_script_concepts.cpp; VA 新锚)** = key→value 双串入全局 map @ 0x1430C6E80 (推定 CPdxScriptConcepts 单例); 键哈希 = FNV-1a 32 (offset basis 0x811C9DC5 / 乘数 0x01000193, 与 §3.2 同族), 经插入器 sub_1410E1540 (出参迭代器+8 = DidInsert 旗); 重复键 → :15 一次性断言 "DidInsert && \"Duplicated script concept entry\"" (闩 byte_1435E1B45); 注册消费 key/value 两串 (析构 + 复位空 SSO)。该注册表是 §4.28 script_documentation.json 中 script_concepts/ 文档节的**写入端**。
 loc_formatter/script_collection_input/script_collection_operator/script_math_functions/
 loc_objects/effects/triggers/modifiers/dynamic_variables/console_commands), 同一写盘核心被
 启动旗 `-dump_script_doc` (主启动函数 0x140126E50) 复用。**event**: arg0 按 id 或名查 →
@@ -1613,7 +1614,7 @@ Paradox 后台遥测 (非 gameplay 操作面; 全量定案批: fire sub_14207E7B
 | sub_14207ECC0 | BeginEvent(topic) — 批次对象上开新事件; 运行中再调 = 同批下一事件 |
 | sub_14207E9C0 | AddDataString(key, string\*) — 串属性 |
 | sub_14207EA50 | AddJsonData(key, 数值) — 数值/JSON 属性 (provinces_occupied 等数值键) |
-| sub_14207E7B0 | EndEvent(批次) = FinalizeEvent + flush (JSON 经 sub_1424C64A0 序列化; 每发射器现 2 次 = 正常 + __unwind 异常安全路径) |
+| sub_14207E7B0 | EndEvent(批次) = FinalizeEvent + flush (JSON 经 sub_1424C64A0 序列化; 每发射器现 2 次 = 正常 + __unwind 异常安全路径) — **FinalizeEvent = 0x14207ED60**: 批对象 +64 当前事件槽 ∧ +72 串缓冲 → sub_1424C5FE0 建串 + SetJsonString + 双置 0; 未开事件 :234「Call BeginEvent before FinalizeEvent」B52 (闩 byte_14344A58A) |
 
 批次对象 (栈上, ctor sub_14014B3A0) = CPdxHybridInlineBufferAllocator\<pair\<string_view, TelemetryEvent\>,1,int\>: {+0 数组基址, +12 条数, +64 当前事件槽, +72 SDK 会话句柄 (sub_1424C5F10 惰性)}; **一次 EndEvent flush 批内全部事件** (playsession_start 一批含 difficulty_settings/custom_rule×N/historical_focus/load_game/settings×3 共 10+)。flush (sub_14207EE70): 遥测开关 = CApplication vtable+856 → +80 Cache_GetData → GetTelemetryEnabled; **未启用仍入队**; 事件逐条 TelemetryPayload::AddEvent 打包, **20 事件/payload**, 满则新 payload 触发发送 (sub_14207F210)。
 
@@ -1771,6 +1772,8 @@ sub_1424BC260; join = `\|`/`,` 连接; variant = 构建变体串。
 
 值序列化执行层 (0x14207 带补员): sub_1401211C0 = bool→"true"/"false" 发射 (启动路径消费) / sub_1420787E0 = 遥测值写 (int\* 返) / sub_140B532E0 = 遥测段 scoped_buffer 写 (直呼发射三件套)。
 
+**遥测合同类型名生成器 sub_140201D90** (gametelemetry.cpp:1063; 高置信): 合同 **a2+92 = 买方 tag u32 / a2+88 = 卖方 tag u32**; 目标 tag *a3 与买方相等 (或经 sub_140BB52F0 同原初国回退) → "buyer"; 与卖方相等 → "seller" / "seller_auto_accepted" (分流 = sub_1406F01F0(sub_140BB48F0(*a3) 国)+98 字节旗, 非零 → auto_accepted; 旗语义由串名推定); 都不中 → :1063 断言 "GetCreateContractType Invalid target." (闩 byte_14332F45A) + 空串。三态 SSO: buyer (size 5) / seller (size 6) 内联; seller_auto_accepted (20 字符) → 堆 malloc 0x20, cap 31。
+
 #### 4.28.28 控制台命令处理器增补 (实现侧 14 件)
 
 ConsoleCmdImpl 实现侧新处理器 (gamestate.h:1116 侧 + "Invalid arguments count."/"Usage:" 串 + §4.28.26 handler ABI): bop_set sub_1402856A0 (取 gs+1104 CPowerBalanceSystem → 激活 sub_140E58100) / bop_deactivate sub_14027C4B0 (sub_140EF4140 → 原语 sub_140E57E90) / pause_on_trigger sub_14026F8E0 ("Will pause on:") / 内联 effect 运行器 sub_140263690 ("Running:" + CEffect::Parse+ExecuteChecked, eval_effect 族) / add_equipment 型 sub_1402385B0 / 全装备授予 sub_140239D80 (与装备 item_grid 视图复用授予原语 sub_141D3ADB0) / 学说 mastery 授予 sub_14117B280 / unlock faction research sub_140259C60 (包装 sub_142466120) / research 全部特殊项目 sub_1411A97C0 / manpower sub_14026A360 / 天气水位 sub_14023BDB0 / 天气开关 sub_14022E040 / 补给节点选择 sub_14023D8A0 ("select a province for node", CHEAT) / center region sub_140260B00。州空军基地型 sub_140C5EB60 ("has no air base") 待名验证。续批: 删全部军队 sub_140250670 ("armies, fleets and railway guns in total") / timer_dump sub_140291820 ("Timing data dumped to ", boost uuid 文件名核心在帮手 sub_1402218C0) / bloom sub_14023FAB0 ("Bloom ON./OFF.") / 情报池清理 sub_140243250 ("Clearing dynamic/static intel pool") / spawn actor sub_14028A9F0 ("Spawned actor!") / srgb sub_1402943C0 ("sRGB ON./OFF.") / script_documentation sub_140276DF0 (ConsoleCmdImpl.cpp:8899 断言直证) / tweaker·reload·time 命令注册 = mega 注册函数 sub_1400026F0 (336+ 名→handler 配对唯一站点) / imgui UI 开关 ("Availabe Uis:")。
@@ -1805,6 +1808,14 @@ asserts/assert_hard_fail/debug_asserts/assertsdialog/suppress_error_log/autotest
 qword_143453090 与设置单例 qword_14332F408 类名。
 
 #### 4.28.30 战史库装载与执行 (history.cpp; 3 函闭环 — Load 三段结构 / ExecuteHistory 三执行源 / tag 解析器)
+
+#### 4.28.31 continue_game.json 删除器 (savegamehelper.cpp; 1 函 = sub_142231800, 定案/成功旗高置信)
+
+#### 4.28.32 遥测关停前排队 flush (pdx_online_telemetry.cpp; 1 函 = sub_14207F520, 定案)
+
+sub_14207F520 (PDX SDK; RTTI 符号直证 PDX::SDK::Model::CacheData / PDX::SDK::Api::Cache_GetData): app (sub_14222BDB0 单例) +856 → 子对象 +80 = cache handle → Cache_GetData → GetTelemetryEnabled 允许旗; 允许 → 互斥量 unk_14344A580 (lock sub_1424EDD60 / unlock sub_1424EDEB0) → 排队计数 dword_1430B660C 非零 → sub_14207F210 flush + 格式化日志 0x2000 :308「[telemetry] Waiting for queued telemetry.」; 两路 CacheData 析构 (EH 标志分次)。与 §4.2 另一遥测件 sub_140207890 不同件。
+
+sub_142231800: a1+129 = 操作成功旗 (前置清 0, 成功置 1); 存在门 sub_1424DC920 = PHYSFS_exists 包装 (`a1 && *a1 && PHYSFS_exists(a1)`); 删除 sub_1424DBFB0 = PHYSFS_delete 包装 (失败 → CLog 0x2000 virtualfilesystem_physfs.cpp:793「Failed to delete file '%s': %s」+ PHYSFS 错误码链); 删除或存在检查抛异常 → CLog 4096 :576「failed to write to disc: 」+ 异常对象 vtable+8 文案 → 返成功旗。同域已收: 保存引擎 sub_142232D10 (本节 T7) / continue_game.json 装载 sub_142232A90 (§4.35.15)。
 
 簇清册 (体内 cpp 锚 3/3; Load/ExecuteHistory 两函 §4.28.18/19 已收互证, 本批细化):
 

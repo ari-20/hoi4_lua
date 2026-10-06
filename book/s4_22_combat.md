@@ -460,7 +460,7 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +245..+255 | — | = group 容器尾 {alloc@+248}  |  |
 | +256 | 匿名结构 (NNB 形状) 向量 24B | **CFEXAir* 数组** {data@256, cap@264, count@268, alloc@272} (: ctor sub_141976630/sizeof 328 直证) | 不序列化 |
 | +280 | 匿名结构 (NNB 形状) 向量 24B | **参战将领 (admiral) 指针数组** {data@280, cap@288, count@292, alloc@296} (: leader+3680/+440 军衔等级反推直证) | 不序列化 |
-| +304 | 海=领袖指针 / 陆=CCombatTactic* | **海战侧 = 当前主将 (最高技能 admiral) 指针** — vtable[29] 择优 sub_14161E5C0 (admiral 数组取军衔最大), sub_141620940 每小时 `if(!cb+304) cb+304 = vtable[29](self); cb+312 = 同值` (cb+312 = last_leader 镜像; **另两写点 = AddUnit/RemoveUnit 海军包装尾无条件重选** (§4.22.5a)); 海战 writer sub_141622520 不发射本槽; 陆战侧同槽 = CCombatTactic* (sub_1412BD820 发 tok 11927 `tactic`, 入栈点 sub_1412BB330 见 §4.22.7) | 不序列化 |
+| +304 | 海=领袖指针 / 陆=CCombatTactic* | **海战侧 = 当前主将 (最高技能 admiral) 指针** — vtable[29] 择优 sub_14161E5C0 (admiral 数组取军衔最大), sub_141620940 每小时 `if(!cb+304) cb+304 = vtable[29](self); cb+312 = 同值` (cb+312 = last_leader 镜像; **另两写点 = AddUnit 尾 (+304 恒写 / +312 仅择优结果非空时写) 与 RemoveUnit 尾无条件重选** (§4.22.5a)); 海战 writer sub_141622520 不发射本槽; 陆战侧同槽 = CCombatTactic* (sub_1412BD820 发 tok 11927 `tactic`, 入栈点 sub_1412BB330 见 §4.22.7) | 不序列化 |
 | +312 | 匿名结构 (NNB 形状)* | last_leader → id 对@ptr+8 | |
 | +320 | uint8 | disengage | |
 | +328 | fixed ×2 | **screening_efficiency / carrier_screening_efficiency** (+328/+336) | 不序列化 |
@@ -506,12 +506,12 @@ reason 枚举 (equipment_lost 四桶分桶键):
 | +113..+123 | — | = members_to_delete 容器尾 {cap@+120} (loader case 13869 创建 member 推入) |  |
 | +124 | uint32 | members_to_delete 容器计数 | |
 | +125..+135 | — | = members_to_delete 容器尾 {alloc@+128}  |  |
-| +136 | CFEXAir* 向量 | airs_to_delete 容器数据 (零样本未接; 推定同 air 型) | |
+| +136 | CFEXAir* 向量 | airs_to_delete 容器数据 (推定同 air 型); **运行时写者 = 0x141C6CC50** (member 移除时自 air 数组 {d@+88, c@+100} swap-remove 摘除匹配 air+16==目标的条目推入; 断言 "!pAir->IsExternal()" :1069 → **CFEXAir+129 = IsExternal 旗字节**, 闩 byte_14338C4A5) | |
 | +137..+147 | — | = airs_to_delete 容器尾 {cap@+144} (loader case 13870 创建 air 推入) |  |
 | +148 | uint32 | airs_to_delete 容器计数 (alloc@+152) | |
 | +160 | uint64 ×4 | 运行时 (+160/+168/+176/+184; ctor 0, 未名) + +192 u32 (sizeof 200 尾部) | 不序列化  |
 
-**member 条目 = CFEXMember** (m = 条目基; sizeof 456; vtable 0X142A1F1C8; ctor sub_14196F350; writer 0X1419760B0; loader 0X1419748F0; **舰/运输 idpair 取值器 0x140CE3010** = ship 对非空取 ship 对 @+8, 否则取 convoy 对 @+16, 两者皆空 → 断言 "Invalid FexMember: neither a ship nor a convoy"; 返回原始 8B idpair 非已解析对象; 两取值器均为一行函数 — ship 侧 sub_1411D7040 = `*out = *(qword*)(a1+8)`, convoy 侧 IDA 误名 `std::fpos<_Mbstatet>::state` = `*out = *(qword*)(a1+16)`):
+**member 条目 = CFEXMember** (m = 条目基; sizeof 456; vtable 0X142A1F1C8; ctor sub_14196F350; writer 0X1419760B0; loader 0X1419748F0; **舰/运输 idpair 取值器 0x140CE3010** = ship 对非空取 ship 对 @+8, 否则取 convoy 对 @+16, 两者皆空 → 断言 "Invalid FexMember: neither a ship nor a convoy"; 返回原始 8B idpair 非已解析对象; 两取值器均为一行函数 — ship 侧 sub_1411D7040 = `*out = *(qword*)(a1+8)`, convoy 侧 IDA 误名 `std::fpos<_Mbstatet>::state` = `*out = *(qword*)(a1+16)`); 另有成对单侧解析器 (解出对象, 空对返 0): ship 侧 sub_141622D40 (读 member+8) / convoy 侧 sub_140535C40 (读 member+16), 五分类普查与外溢执行点消费):
 
 | 偏移 | 类型 | 名称/语义 | 写门/格式 |
 |---|---|---|---|
@@ -651,7 +651,7 @@ savefull 折叠成单叶, 同父重复保持裸名重复 (multiset, 同 focus.co
 | 0x14161E6D0 | 152 | **FindBestGroupForTaskForce** — 战力比匹配选组 + 回退 |
 | 0x14161FBC0 | 72 | **TrimGroups** — 组数 > COMBAT_MAX_GROUPS 守卫/裁剪 (:1247 CLogStream "invalid number of groups", 通道 65540) |
 | 0x14161B3C0 | 56 | **AddUnit** — 海军特化包装 (:1013 断言, 闩 byte_14338A9C5) |
-| 0x14161A9E0 | 50 | **AddMember** — 成员入组 + 强度累加 + 参与登记 |
+| 0x14161A9E0 | 50 | **AddMember** — 成员入组 (组桶 = sub_142233FA0(file, 989) 确定性 hash 取模选组, count==0 ∨ 桶空则建新组) + 强度累加 (源 = a2+32, 对象身份待裁) + 参与登记 |
 
 本簇新增写点/新事实 (cb = CNavalCombatant):
 
@@ -1380,3 +1380,9 @@ defender/attacker_movement_speed/双方 org damage modifier）（定案）。
 **RemoveUnit 流程** (sub_1413E3660): 敌对复查 v2 (链查 controller tag) → +32 压缩摘除 → **表空则 cb+224 = unit+480** → 释放两链按剩余单位重建 → v2 ∧ 可战斗 ∧ controller 已离 ∧ 非军队: **国家战斗统计五连** (战斗+68/24 天数 → 对象 +356 容器累加; 攻侧 ++ +532 / 守侧 ++ +536; cb+8 bit2 包围 → ++ +80; bit15 敌空优 → ++ +84 — 全 _InterlockedIncrement)。调用方 = combatland 域 / 海军 combatant 摘除。
 
 **TryJoinUnit** (sub_1413E3D90): 先 unit+424 进行中战斗向量线性查重 (命中返 0) → 双侧 cb **虚槽[21] (vtable+168) 敌对测试** → 恰一边为真才加入 (v12∧¬v11 → 攻侧 AA0; 反之 E10); test_only 只判不加; 返 1 = 属一侧。
+
+
+**combatlog.cpp 50-99 行簇增补**: **gCombatData 全局实名与静态布局** (断言 "gCombatData._Refs[ n ] > 0 && gCombatData._Used[ n ]" combatlog.cpp:129 直证): _Refs = qword_14333CB88 (u16/槽) / _Used = qword_14333CBA0 (u8/槽) / 在用槽计数 = dword_14333CBB8 / 释放侧 CAS 自旋锁 = dword_14333CBBC; 释放原语 = 0x140CDFEE0 (自旋 + RAII 解锁渲染)。**装备损失写原语对**: 带数量 = 0x140CDA010 (恒写总池 a1+112, reason 0..3 桶 a1+176/+240/+304/+368, sub_14100CCE0; reason≥4 "This should never happen" :725) / **无数量变体 = 0x140CDA160** (sub_14100CAE0 两参, :701 同断言) — 与书池表读数差恒 88 = 表基 S = 写原语 a1+88 (观察者内嵌子对象一层, 非冲突); 前置断言统一 = `*(observer+744) & 4` (_bFinalized 旗, :684/:708/:789 三站独立闩)。**修正位图折入 0x140CDA7E0** 复核一致 (bit0..29 → +624..+740 三十槽)。**装备伤害 idpair 分摊 0x140CD9BF0** (结构定案/业务名推定): 成员对象 {16B idpair 键表@+40 {key0,key1,i64 量}, 累计器@+64, 来源国 stamp@+132}; 份额 = 100000×量/总量 (溢出钳 0xFFFFFFFF), :1178 断言。
+
+
+**combatmanager.cpp 三创建函数同形骨架 (模式注, 互证补强)**: malloc → ctor (海战 sub_1415C2330 296B / 边界战 sub_1413EB800 248B) → refid 绑定 (sub_14221F390 + sub_14221E700(obj+16)) → profiler 标记 (:1049/:1152) → 活跃战斗表 (+8 d/+20 count) 线性查重登记 → vtable+48 槽[6] 设注册位 → vtable+136 **槽[17] 设 holder 引用 (三函共用; 海战传 a3, 边界战传 *(a3+16))** → init → vtable+144 槽[18] combatant 入战 → sub_140E797F0 反向登记 → 尾配置 (海战单侧版 0x140BB7660 **+277=1 = convoy_combat**; 双侧版 0x140BB77E0 无 +277, 尾段 sub_1415C3DE0; 边界战 0x140BB6B70 尾三写 +216/+228/+240)。入境加战 0x140BBAC40 补证: :584 断言前有**仅陆军 (type==0) 的单位自身 lead vetting 块** (sub_140C891E0 不过 → return 0, 对手侧之外); vtable+144 加入第 3 实参 = 1。

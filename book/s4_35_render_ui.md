@@ -308,7 +308,7 @@ byte_143453088 (控制台可注册): sub_14223D2C0 帧首/尾各一次设备调�
 | 61 ★ | **UploadTexture (像素上传)** — ReloadTexture (0x142408B20) 直证: 第 2 实参 = 记录 +0 既有句柄, 句柄不变内容被替换 (纯 Create 不应传旧句柄); 6 refs 新建场景推定设备内部 create-or-update (待活体); 旧记「CreateTexture」系调用场景误推 | 6 |
 | 62 ★ | ★ CreateRenderTarget 包装 | 25 |
 | 63 ★ | ★ CreateRenderTarget 内核 | 4 |
-| 64 ★ | ★ 按句柄销毁 (RT/纹理共用句柄空间; CTextureData::ClearData 双版纹理句柄单参释放直证 0x1424063A0/0x142406C40; 旧记「DestroyRenderTarget 包装」系归属偏窄) | 97 |
+| 64 ★ | ★ 按句柄销毁 (RT/纹理共用句柄空间; CTextureData 默认构造器 0x1424063A0 (入口全字段初始化 + 串 SSO cap 15@+32 + 串析构 unwind + 向量增长路 realloc 后 placement 调用 2 处; 其 if 紧跟置 0 之后 = 内联 ClearData 体的死分支残留) 与 ClearData(int) 0x142406C40 (+52 = 实参) 两版共用句柄单参释放; 旧记「DestroyRenderTarget 包装」系归属偏窄, 旧记「双版 ClearData」系把构造器误标为无参清除) | 97 |
 | 65 ★ | ★ ReleaseRenderTarget 后端释放 | 9 |
 | 66 ★ | ★ SetTexture + SetSamplerState | 60 |
 | 67 ★ | ★ UploadTexture | 14 |
@@ -347,8 +347,24 @@ dx9(0) / opengl(2) / opengl4(3)** — 选择串直证 (graphicssettings.cpp:172)
 共用函数域)。后端 2 = OpenGL 定案 (表槽函数引 pdx_gfx\gfx_opengl.cpp 断言; GL 上下文 =
 wglCreateContext/wglMakeCurrent)。GL 扩展装载双件 = sub_142438B50 (gl3w 形态 5,472 行) +
 sub_142441940 (WGL 枚举 3,665 行)。图形设置装载 = sub_14241A230 ("Loading settings for
-adapter")。shader filter 类型枚举: "2d"=0 / "shadow"=0 / "cube"=1 / "3d"=2
-(gfx_helper.cpp:142)。SDL2-2.0.20 静态链 = 窗口/软光栅底座。
+adapter")。纹理类型枚举 (载体 sub_14240CFD0): "2d"=0 / "shadow"=0 (别名, shadow map 按二维纹理处理) /
+"cube"=1 / "3d"=2 (gfx_helper.cpp:142)。SDL2-2.0.20 静态链 = 窗口/软光栅底座。
+
+**pdx_gfx 串→枚举查表器族 (gfx_helper.cpp, 9 函同构定案)**: 骨架 = `(const char* name, int* out) -> int` stricmp 查 16B 名值对表 {名指针, int 值}, 命中写 *out 并返值; 全未中组错误串抛异常 (terminate 兜底); 全部 0 基自定义枚举 — comparison/stencil/address 三表值序与 D3D11 同名枚举同序整体 −1 (fill/cull 同理, D3D9 CULL_NONE=1 → 此 0), **.gfx/材质脚本侧这些 token 的数值落点由此族唯一锁定**:
+
+| 函 | 源行 | 枚举表 (名=值) |
+|---|---|---|
+| sub_14240CE80 | :98 | 采样地址: wrap=0 / mirror=1 / clamp=2 / border=3 / mirror_once=4 |
+| sub_14240CBA0 | :120 | 纹理过滤: none=0 / point=1 / linear=2 / anisotropic=3 |
+| sub_14240CFD0 | :142 | 纹理类型: 2d=0 / shadow=0 (别名) / cube=1 / 3d=2 (见上行) |
+| sub_14240C520 | :197 | 混合操作: blend_op_add=0 / _subtract=1 / _rev_subtract=2 / _min=3 / _max=4 |
+| sub_14240C980 | :250 | 深度写: depth_write_zero=0 / depth_write_all=1 |
+| sub_14240CCE0 | :271 | 模板操作: stencil_op_keep=0 / _zero=1 / _replace=2 / _incr_sat=3 / _decr_sat=4 / _invert=5 / _incr=6 / _decr=7 |
+| sub_14240C670 | :296 | 比较函数: comparison_never=0 / _less=1 / _equal=2 / _less_equal=3 / _greater=4 / _not_equal=5 / _greater_equal=6 / _always=7 |
+| sub_14240CA90 | :315 | 填充模式: fill_wireframe=1 / fill_solid=2 (无 0 值条目) |
+| sub_14240C810 | :334 | 剔除模式: cull_none=0 / cull_front=1 / cull_back=2 + 短名 none/front/back 双别名表 |
+
+⚠ 多函错误串前缀错置 (CFD0/C520 用 "Invalid filter type: ", C980 用 depth stencil 串, C810 用 rasterizer fill mode 串) — 源码复制粘贴痕, 勿按错误串定函数语义; 9 函真名未决 (无 RTTI/名字符串锚, 工作名为拟名)。
 
 CGraphicsSettings 键→偏移映射 (Reader sub_142229630, 18 tag 全部落名) —
 
@@ -428,11 +444,30 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 - **装载 (启动)**: map 初始化巨函 sub_1413944D0 → malloc(0x180) ctor → 宿主 +1744 → sub_141272920 装载 `gfx/maparrows/maparrows.txt` (lua 解析器 sub_141272F00, LoadDefinitions 五参签名 RTTI 直证: path + arrows→+136 + symbols→+208 + textDef→+288 区 + colors→+80); 循环1 逐箭头 malloc(0x60) ctor sub_141265130 → +160; 循环2 逐符号 malloc(0x30) ctor sub_141B1F350 → +232; 热重载 sub_141587A90 ("Map arrows reloaded") + 重解析比对件 sub_1412739D0。字段名 TextureMaskList/TexturePatternList = maparrow.cpp:440/447 断言直证。
 - **创建 (订单→箭头)**: 三包装 sub_1412563A0/E0/480 → 订单解析 sub_141254CD0/D40 (order+96 引用槽 → COrdersGroup) → **装配总入口 sub_141254FB0**: 选色三分 (orderInst+665 旗 → 静态色 unk_143331BE0 / 同国 → scope 派生色 / 异国 → unk_143331B30, 地图模式==39 改 A70) → CColor lerp sub_14224BEB0 (1.0f/0.5f 两档) → SetColor 写 +96; 同国且有选中指令组 → GfxCommonArrowUpdateCallback 经 sub_140DFD540 注册延迟更新; 箭头指针集合 = CPdxHybridInlineBufferAllocator<CMapArrowObject*,128,int> (128 项内联)。
 - **每帧**: 泵 sub_140B58470 宿主 +1816 → **sub_14124F710 (箭头+弹道实体共享 per-frame)** → **gs+2617 会话门** (§4.1 该字段新消费点) → sub_141244070 (5,020 行重建主件; 时间节流门 qword_1430B2E18+上次时刻; 玩家国 gs+1680 视角); 动画时钟 = (gs+1212 速度级+1)×Δt, 暂停归零; 袭击箭头独立走宿主 +1792 → sub_141668C10。
-- **销毁**: sub_140B52130 = 突袭 GFX 清理+懒取复合 (含 :3732 断言); 其调用的 sub_141662150 三池析构 (实体句柄+SSO 串+双定长数组) **归属已改判 = CGfxNavalCombatManager 元素清理** (唯一调用点被 CGraphicalMap+1824 门守卫 — §4.35.31; 箭头管理器自身析构函另寻)。
+- **销毁**: sub_140B52130 = 突袭 GFX 清理+懒取复合 (含 :3732 断言); 三清理循环 = a1+104 数组 (计数 a1+116, 8B 步) 逐元省对象 (5992B/元) 清理 / a1+1848 数组 (计数 a1+1860, 16B 步取元 +8) 逐元 sub_14228D700 / a1+1824 非空 → sub_141662150; 清零 a1+1860 与 a1+304, 尾 a1+88 → sub_141278460 后懒建 56B 管理器 (ctor sub_14167D7F0(mgr, a1+1744 箭头管理器)); 其调用的 sub_141662150 三池析构 (实体句柄+SSO 串+双定长数组) **归属已改判 = CGfxNavalCombatManager 元素清理** (唯一调用点被 CGraphicalMap+1824 门守卫 — §4.35.31; 箭头管理器自身析构函另寻)。
 
 **defines 全族** (NGraphics): ARROW×5 / RAID_ARROW×14 / RAILWAY_MAP_ARROW×15 / RIVER_SUPPLY+SUPPLY_CONSUMER×3, 含数据槽 dword_1433363BC (ARROW_MOVEMENT_SPEED)。主要未决: qword_1430B2E18 初值 / mgr+184 辅助数组语义。
 
 **CMapArrowObject 布局直证补强** (maparrow.h:327 内联族, 高置信): **+88 = 纹理掩码列表宿主指针** (宿主 +40 数据 / +52 计数 = GetTextureMaskListSize() 来源) / **+516 = dword 纹理掩码索引 (0..5)**。箭头池 Acquire (sub_14165F290): 风格码映射 `1→1 / 3→2 / 其余 0`, a4 真再加 3 → 掩码索引; 池复用游标 @mgr+32 < 计数 @mgr+20 → 取 (+8 数组)[游标++] 直接复用, 否则经 sub_14126F380 新建后 1.5 倍增长推入; 写 +516 后 sub_14126C470 (起点=终点同置) / sub_14126C5C0 (位置) / sub_14126C510 (激活旗) 三 setter (逐字语义未决)。SetTextureMaskIndex (sub_1412576A0) = 断言 + 单写 +516。两函共享断言 "Index >= 0 && Index < GetTextureMaskListSize()" (闩 byte_14333DE3E)。
+
+> **纹理列表 GPU 重建对 (0x141269880 / 0x14126C120; 布局定案, 功能身份推定)** —
+> 两函同骨架 (推定 = CLostDeviceInterface::Restore / OnResetDevice 两版本): 共用管理器
+> `mgr = *(*(a1+16) + 368)`; 对 mask 列表与 pattern 列表各一遍, 逐元素 (源跨距 32B)
+> 经 sub_142406B40(mgr, elem, &{0,1,0}, 1) 建贴图句柄 → sub_1424071E0(mgr, handle) 取
+> GPU 资源指针 → 存入 a1+40 (mask) / a1+64 (pattern)。⚠ 与上表宿主字段同源: 宿主 =
+> *(a1+88), 其 +40 mask 数据 / +52 mask 计数 / +64 pattern 数据 / +76 pattern 计数;
+> 字段名 TextureMaskList / TexturePatternList 的第二处断言 (maparrow.cpp:472/:479) 出自
+> 0x14126C120, :440/:447 出自 0x141269880。差异:
+>
+> | 项 | 0x141269880 (insert 版) | 0x14126C120 (裸数组版) |
+> |---|---|---|
+> | 断言 (mask/pattern) | maparrow.cpp:440 / :447 (闩 byte_14333DE48 / DE49) | maparrow.cpp:472 / :479 (闩 byte_14333DE4A / DE4B) |
+> | 校验时机 | 每段遍历**之后** | 每段遍历**之前** |
+> | 目标写入 | sub_1401205A0(a1+40 / a1+64, &handle) 容器 insert (推定向量 push) | `*v9++ = ptr` 预分配裸数组直写 |
+>
+> 推定 insert 版 = 运行期懒重建 (先建设后自检, 容错), 裸数组版 = 确定性装载/设备恢复
+> 路径 (先校验后建设, 严格), 待裁。sub_142406B40 / sub_1424071E0 真名与 mgr+368 对象
+> 身份未决 (仅此两函共用, 未见第三消费点)。
 
 #### 4.35.15 地图模式管线 (CMapModeManager 三段)
 
@@ -685,7 +720,7 @@ p/n/ta/u0-3/tri(必选)/skin; **流对象 +20 = 元素计数按各自单位**; �
 SkinnedUnlit/%sAlpha, PDX_MESH_UV1 判据; 失败 throw 门 byte_1430BDF84 否则回退错误材质
 dword_1430BDF7C/80)。动画装载 sub_1422625E0 (.anim info{fps,samples} + 逐骨骼轨道位掩码,
 "Bad animation" 双串)。模板属性解析回调 sub_142266A20 (token 27 name→+8 / 15 texture_* 前缀
-三槽 +40/+72/+104 / 432 shader→+136 / 678 shader_file→+168 / 524 index→+212; token 15 触发名
+三槽 +40/+72/+104 / 432 shader→+136 / 678 shader_file→+168 / 524 index→+212 / default → 基类回落 sub_1424BEC40(a1); token 15 触发名
 待裁; 对象 = 实体/材质模板推定)。
 
 **③ 设备 ABI 槽 35/41 细化 (§4.35.13 92 槽表增补, 高置信)**: 槽 35 off_1430BF8C8 = 
@@ -737,7 +772,7 @@ CPdxParticleType 同槽位对比, **[4] reader / [9] 装载 / [13] 工厂三槽�
 |---|---|---|
 | +0 | vptr | vtable 0x142B4D750 |
 | +8 | u64 | FNV-1a32 零扩展 (键 = token 11 "id" 串值) |
-| +16 | 指针 | 已解析动画资源 (token 225 "type" 串经动画库查得; 查无 → 错误日志 + terminate) |
+| +16 | 指针 | 已解析动画资源 (token 225 "type" 串经动画库查得, 查表链 = sub_14222BDB0 → *(+856) → +8 → sub_1423AFC90(表, 名); 查无 → 错误日志 "Failed to find animation: \"<名>\"... Make sure it is declared in a .asset file." @pdxmeshtype.cpp:607 + throw) |
 | +24 | CString (32B) | type 串本体 |
 
 > 备注: 同键多 stub 允许多条共存 (去重只拦 +16 非空者), 后续覆盖路径未查。
@@ -783,7 +818,7 @@ reader 0x14223B400 (513, 图形资产族工厂+热置换; vtable 0x142B3D770 [9]
 全量析构 0x142236330 (276) / **DeInit 本体 0x142237CD0 (143**, 书原只有守卫串) / 渲染就绪门
 0x1422370E0 (169) / sprite 实例获取 0x142237A10 (131, 缺失 → GFX_default_fallback_texture
 递归, fallback 也缺则 Fatal) / GetFont 带回退 0x142238A20 (131) / 2D 实例释放双路
-0x142237FA0 (77, 双删断言; 延迟 = +325 压 +16 队列 / 即时 = swap-remove) /
+0x142237FA0 (77, 双删断言; TU 锚 = graphics.cpp:1291, 括内数含义待裁; 延迟 = +325 压 +16 队列 / 即时 = swap-remove; 公共尾 = vt[12] (+96) 预通知 + a1+80/a1+104 双容器移除 + 对象+328 反向指针清零, +325 兼双删标记) /
 **ResetDevice 0x14223E300 (42**, "Reset occurred."; 消费端 = 控制台 fullscreen 切换命令) /
 ReloadShaders 0x142238190 (17, 零直接调用点)。
 
@@ -809,7 +844,9 @@ FBO/VBO/GLSL 族, 只警不拒恒返 1) / CompileShader(PS/VS) 0x142420600/0x142
 DrawPrimitive/Indexed 0x142422190/0x142421F20 (153/153, 槽 18/19) / **LinkProgram
 0x142424990 (104, 槽 30 真身**, 表槽 sub_1424237F0 尾调) / SetVertexStream 0x142424060
 (97, 槽 39) / BuildVS/PS 0x142420F50/0x142420E40 (49/49, 槽 26/29; GLSL builder
-sub_142429CD0 = gfx_glsl_builder CU)。
+sub_142429CD0 = gfx_glsl_builder CU; **同 CU 返回结构名解析器 0x14242D050** = 末空白 token 截取 (右去空白 → 左找词界 → substr) → sub_14240C210 按名查 GLSL 结构; 全空白 → :326 / 空 token → :338 双同文错误 "Failed finding return struct name" → 返 0)。
+**GL buffer 12B 三 u32 用法 (SetVertexStream 直证)**: 描述符 [+8] 非零 = 有效门 (零则整槽跳过并触发 :2092 "Bad vertex buffer" 错误路径 + throw); [+4] = 元素计数 (仅首流 → dev+104); [+0] = 步长默认值 (仅当每流步长数组 a6 == 0 时采用, 写 dev+360/dev+112); a5 = 每流偏移 u32 数组 (a5==0 → 偏移 0), a6 = 每流步长 u32 数组 (a6==0 → 取描述符 [+0]); *(dev+120) 非空 → 先 sub_142420160() (推定解绑当前顶点缓冲); 空缓冲错误门 byte_1430BFDEA 反常 — 仅在该字节已非零时输出且输出后清零 (一次性闩且需外部先置位, 语义未决); 循环上界 = a2 (流数), 起始流号 = a4。
+⚠ buffer 12B [+0] 语义**待裁**: 若 [+0] 为「偏移」则写入 dev+360/dev+112 (步长槽) 矛盾 — 候选 A = [+0] 实为每流默认**步长** (12B 记改 {步长, 顶点数, GL 名}); 候选 B = dev+360 非步长而为偏移槽。两候选均需汇编/他函核。
 
 **GL 分支 92 槽全图** (安装器直证)。**GL 设备 424B 全布局** (dx11 272B 对照; 单例
 qword_1435DD178): CreateDevice = SDL_GL_CreateContext + glewInit + 能力旗 7 字节 + 三默认
@@ -883,7 +920,7 @@ NDefines::NGraphics::COUNTRY_FLAG_{,MEDIUM_,SMALL_}TEX_{WIDTH,HEIGHT,MAX_SIZE} �
 
 #### 4.35.16g .asset 装载链 (assetfactory.cpp / assetfactory_audio.cpp / assetfactory_common.h 11 函; 工厂 reader → 专用模板 reader → 管理器登记)
 
-清册 (11/11 函身份经 RTTI 名 + vtable 槽契约双直证): **CAssetFactory::Reader** 0x14234DB90 (501, .asset 顶层四键分派; :767 动画装载失败 / :876 clone 父实体缺失 两格式化错误日志) / SAnimationData::Reader 0x1423506F0 (51, :35 "dlc/" 断言) / **SEntityReader::Reader** 0x142350EA0 (543, :622 game_data 无注册 reader) / SEntityStateReader::Reader 0x142351B70 (422, :253 time_offset 参数数 / :335 game_data) / **CAssetFactoryAudio::Reader** 0x14234A010 (430, 六键分派; :499 music / :467 sound 缺失) / SSoundEffectReader::Reader 0x14234AB90 (187, :178 overflow 行为) / SSoundFalloffReader::Reader 0x14234B020 (97, :302 falloff 类型) / **CAssetFactoryAudio::[0] 装载后链接器** 0x142349D30 (174, :555 类别↔音效未匹配 / :577 音效无类别 + pdx_scoped_buffer.h:54 容量断言) / SAnimatedLightReader::Reader 0x14234E580 (1768, 8 键) / SVectorParamReader::Reader 0x14232CCB0 (1941, 九分量→4 槽位对) / SForceReader::Reader 0x142331D20 (1012, 8 键)。
+清册 (11/11 函身份经 RTTI 名 + vtable 槽契约双直证): **CAssetFactory::Reader** 0x14234DB90 (501, .asset 顶层四键分派; :767 动画装载失败 / :876 clone 父实体缺失 两格式化错误日志) / SAnimationData::Reader 0x1423506F0 (51, :35 "dlc/" 断言, 闩 byte_14348145D; 键 26/27 宿主槽 = 对象 +8/+40, 其他键 fallback sub_1424BEC40 默认分派) / **SEntityReader::Reader** 0x142350EA0 (543, :622 game_data 无注册 reader) / SEntityStateReader::Reader 0x142351B70 (422, :253 time_offset 参数数 / :335 game_data) / **CAssetFactoryAudio::Reader** 0x14234A010 (430, 六键分派; :499 music / :467 sound 缺失) / SSoundEffectReader::Reader 0x14234AB90 (187, :178 overflow 行为) / SSoundFalloffReader::Reader 0x14234B020 (97, :302 falloff 类型) / **CAssetFactoryAudio::[0] 装载后链接器** 0x142349D30 (174, :555 类别↔音效未匹配 / :577 音效无类别 + pdx_scoped_buffer.h:54 容量断言) / SAnimatedLightReader::Reader 0x14234E580 (1768, 8 键) / SVectorParamReader::Reader 0x14232CCB0 (1941, 九分量→4 槽位对) / SForceReader::Reader 0x142331D20 (1012, 8 键)。
 
 **CAssetFactory::Reader 四键分派 (定案)**: animation(64) → SAnimationData {file(26)@+8 / name(27)@+40 两 std::string}, 经 Load wrapper sub_1424BE690 解析 (非裸 reader), 以工厂 +16 名串拼 '/' + 动画 file → 动画库装载 sub_142262560(工厂+8) (失败 :767); light(84) → SAnimatedLightReader, 九参数容器各经 sub_14232C820 转串 (32B/块, 写入序 = pos xyz / col rgb / intensity / radius / falloff) → sub_1423DE650(灯管理器单例 **qword_1435DA0F0**, 名, 九串块, **第 4/5 参 = +224 动画曲线数组 {data, count}**, count==0 时 data 强制置 0) 登记; particle(407) → SParticleSystemReader (ctor 0x142330750, +8 ← 工厂+16), 置 +26=1 递归解析; entity(438) → SEntityReader, 收尾 sub_1423529A0 → **meshsettings 登记环** → clone 父实体解析; 其他键落基 reader sub_1424BEC40。
 
@@ -965,6 +1002,15 @@ SSoundEffectReader (152B) / SSoundFalloffReader:
 | +76 | i32 | polyphony (743) | |
 | +80 | f32 | volume (287) | |
 | +84 | 2×f32 | volume_random_offset (589) | sub_140ADDCA0 二元读 |
+**SSoundFalloffReader** (vtable[4] = 0x14234B020; 五键分派, 定案):
+| 偏移 | 类型 | 键 (token) | 语义 |
+|---|---|---|---|
+| +8 | std::string | name (27) | 衰减名 |
+| +40 | f32 (推定) | 590 | 数值参数甲 (语义未决, 须游戏内 lexer 取名) |
+| +44 | f32 (推定) | 591 | 数值参数乙 |
+| +48 | f32 (推定) | 592 | 数值参数丙 |
+| +52 | i32 | type (225) | falloff 枚举: stricmp "linear" → 0 / "logarithmic" → 1; 他 → assetfactory_audio.cpp:302 "Not a valid falloff type: %s" (通道 4096) |
+| 他键 | — | — | 落基 reader sub_1424BEC40 = **单行 thunk** → sub_1424C2060(a2); SAnimationLookup / SSoundFalloffReader / CAssetFactory::Reader 三簇他键共用 (推定 = 忽略未知键) |
 | +92 | 2×f32 | delay_random_offset (682) | |
 | +104 | 容器 | sounds (588) | SSoundsReader 子 reader 写入 a1+104 |
 | +128 | i32 | max_audible_behaviour (681) | "fail"→0 / "silent"→1, 否则 :178 |
@@ -1108,7 +1154,7 @@ bank 解析表示对象布局:
 
 **include 展平** (sub_14235A750; (bank, out 向量*, visited 向量*) 递归): bank+480 = include 名表 (32B 串数组, +492 计数), 逐条拼 "gfx/FX/" 前缀; visited 查重后**先递归后追加** = 后序展平 (被包含者先于包含者); 查名失败 :794 "Shader include file '%s' not loaded"。返回 = 处理条目数。
 
-**DDS 装载** (sub_142424F90; (out*, buf, size, params*, filename*)): 调用链 = 纹理装载分发器 sub_14240E9B0 (§4.35.7 S1 CU) → 魔数门 sub_142424F70 ("DDS ") → 本函; 失败且 .tga → sub_142425900 TGA 分支。头消费: +12/+16 高宽 → out+4/+0; +80 ddspf.flags (0x4 = FOURCC 门, 0x40 = RGB, 掩码族 0x20240); +84 fourCC 分派 (DXT1=1/DXT3=3/DXT5=5 内部格式; **DXT2/DXT4 不支持返 0**; DX10 → 像素数据起点 +148); +88 bpp 类 + +92..+104 位掩码细分 (565=7/4444=8/1555=9/24bpp=11/32bpp=13/其余=26); 不可识别 = 断言 :118 "Unknown texture format" (B52 门, 闩 byte_1435DD583); +112 dwCaps2 bit 0x200 = cubemap ×6 面。
+**DDS 装载** (sub_142424F90; (out*, buf, size, params*, filename*)): 调用链 = 纹理装载分发器 sub_14240E9B0 (§4.35.7 S1 CU) → 魔数门 sub_142424F70 ("DDS ") → 本函; 失败且 .tga → sub_142425900 TGA 分支 (失败 → :458 旗 4096 日志 "Failed to load image '<名>': <errmsg>"); TGA 亦失败或文件名非 .tga → **第三兜底解码 sub_14240E660(out, buf, size)** (书原未记此分支; 解码格式未决, 推定 BMP 或未压缩 TGA 变体), 再失败才返 0。后处理: *(params) ∨ sub_142405710() → sub_14240DF00(out) (推定 mipmap/上载); params[1] → out+12 = sub_14240F3E0(out+12) (纹理 +12 格式槽重映射, 推定 sRGB/格式转换)。头消费: +12/+16 高宽 → out+4/+0; +80 ddspf.flags (0x4 = FOURCC 门, 0x40 = RGB, 掩码族 0x20240); +84 fourCC 分派 (DXT1=1/DXT3=3/DXT5=5 内部格式; **DXT2/DXT4 不支持返 0**; DX10 → 像素数据起点 +148); +88 bpp 类 + +92..+104 位掩码细分 (565=7/4444=8/1555=9/24bpp=11/32bpp=13/其余=26); 不可识别 = 断言 :118 "Unknown texture format" (B52 门, 闩 byte_1435DD583); +112 dwCaps2 bit 0x200 = cubemap ×6 面。
 
 **base-mip 跳级机制 (核心新发现)**: v22 = min(头+28, params+4) = 跳过级数 (头 +28 字段语义待 PE 对真实 .dds 实证 — 标准 DDS 该位为保留) — 预循环按块压缩 (DXT 系 blockbytes×((w+3)/4)×((h+3)/4), 块字节 8/16) / 未压缩 bpp×w×h 累加被跳 mip 字节入偏移基准, 宽高逐级减半; **跳完后首级宽高才写 out+0/+4 (out 尺寸 ≠ 文件首 mip 尺寸)**, out+8 = 剩余级数。切片表条目 32B: {+0 mip 级 (重编后), +4 面号, +8 高, +12 宽, +16 字节大小, +24 数据偏移}; 越界门破防 = :325 CLogStream 一行式 + :328 断言同文案 (闩 byte_1435DD584)。
 
@@ -1169,7 +1215,7 @@ bank 解析表示对象布局:
 
 **装载链**: 0x142408280 (name, report_flag) → `\`→`/` 归一 → rfind('.') 无扩展名 → ①:166 "No file ending" (B51); 依次 stem.dds/stem.tga/原名 三路 malloc 56 文件对象 + sub_1424DF570; 全败且 report → ②:160 "Texture Handler encountered missing texture file"。0x142407F50 包装: 命中 → 装载执行 → 释放; 未中且 params+4 旗 → ③双连 :216/:217 → 返 0。0x142407CB0 执行件: 文件长 > 16MB → ①:232 + ②:233 "Failed to load texture larger than MAX_TEXTURE_SIZE" (B51, 闩 byte_1435DA8AE) → 返 0; 读入 TLS 守卫区 → params 折叠 → sub_14240E9B0 (§4.35.26 分发器) 解码 → GL 状态对包裹 → **槽 60** 建句柄; out_mask 非空且解码格式 == 13 (32bpp, §4.35.26 DDS 表互证) → 逐像素 alpha 掩码抽取 (w×h 字节)。
 
-**ReloadTexture** (sub_142408B20; (this, 记录下标, params)): 全局互斥锁 0x1430BFA90 (紧跟 ABI 表尾) → 记录门 = 引用计数 > 0 且句柄非空 → **槽 65 覆写前奏** (无可见实参) → 解析 → 文件长 ≥ 16MB **静默返 false** (与执行件有门对照) → 读入 +112 → 解码 → **槽 61 (设备, 既有句柄, 解码件, data, size) 像素上传** (§4.35.5 槽 61 语义改定直证) → 返句柄非空; 解析失败 → ③:656 "Missing texture file"。DumpTextureInfo (sub_142408810): 逐记录 (引用计数>0 且已装载) 输出句柄/名/refcount/宽高, 控制台回显包裹对; 调用方之一 = console 侧 dump 命令路径 (*(qword_14332F698+1264)+368)。
+**ReloadTexture** (sub_142408B20; (this, 记录下标, params)): 全局互斥锁 0x1430BFA90 (紧跟 ABI 表尾) → 记录门 = 引用计数 > 0 且句柄非空 → **槽 65 覆写前奏** (无可见实参) → 解析 → 文件长 ≥ 16MB **静默返 false** (与执行件有门对照) → 读入 +112 → 解码 → **槽 61 (设备, 既有句柄, 解码件, data, size) 像素上传** (§4.35.5 槽 61 语义改定直证) → 返句柄非空; 解析失败 → ③:656 "Missing texture file"。DumpTextureInfo (sub_142408810): 逐记录 (引用计数>0 且已装载) 输出句柄/名/refcount/宽高, 控制台回显包裹对; 调用方之一 = console 侧 dump 命令路径 (*(qword_14332F698+1264)+368) = **`debug_textures` handler 0x14024F020** (ConsoleCmdImpl.cpp:2380, 类别码 774: DumpTextureInfo → 流内追加纹理汇总串 sub_142238E00 → 回显 "Texture info has been written to the debug log.")。同族 **`error` handler 0x140257D70** (:7850, 类别码 65540: 日志头 \"======== show errors from console ========\" + 11×'\n' → sub_14222BDB0() 取引擎单例 → sub_140175840 转储错误日志到控制台, 回显空串仅置成功位)。两 handler 与 §4.28.26 定案 ABI 一致 (result 40B {+0 u8 状态, +8 std::string 回显}); 注册名归属高置信 (注册名表串域相配, 待 rip-rel 注册扫描二验)。
 
 **gfx_texture_cache 装载核** (sub_14241F900; (name, flag)): .tga 结尾 → 换 .dds 探测存在 (存在用 .dds, 否则回退 .tga, 高置信) → 打开 → 读全长 → sub_14240E9B0 解码 → **槽 7** 无参取设备 → **槽 60** 建句柄; 失败 → ③双连 :67 (4096) + :68 (0x2000) "Couldn't find texture"。相邻件 sub_14241F8A0 = 条目重载包装: 全局锁 0x1430BFCC8 → 槽 65 → 重载核 (条目形状 {GPU 句柄@+24, 名串@+32, u8 旗@+64} 推定) — 与 ReloadTexture 同构 (同一槽 65 前奏 + 全局锁 + 重载核)。
 
@@ -1264,7 +1310,7 @@ bank 解析表示对象布局:
 
 > 回退序: 组名 (sub_14192DC30(&out, 舰实体, a1+128, 舰实体+28)) → 对象名 (sub_140C39AC0(a1), 非空入注册表) → 组合件名 (舰实体+1008 且其 +296 非空 → sub_141662C00(…, 舰实体+1008+280, …)) → 兜底名 (a1+232)。全失败 → 日志 "Missing ship entity '\<名\>' deploying placeholder box!" (名 = sub_140C39160(a1)) 并返回 "test_object_entity"。实体注册表 = sub_142291330() (CGraphics 实体库), 查名登记 = sub_142293530。
 
-**命中特效实体表解析 (0x141661FC0)** — 源 = 32B std::string 记录向量 (data@+0 / count@+12; SSO 判容量@+24 > 0xF); 逐名 sub_142293530(注册表, 名) → 命中则指针入输出引擎向量 (几何扩容 max(n+1, (int)(cap×1.5))); 未命中 → 日志 "Failed to find hit effect entity '%s'"。
+**命中特效实体表解析 (0x141661FC0)** — 源 = 32B std::string 记录向量 (data@+0 / count@+12; SSO 判容量@+24 > 0xF); 逐名 sub_142293530(注册表, 名) → 命中则指针入输出引擎向量 (几何扩容 max(n+1, (int)(cap×1.5))); 未命中 → 日志 "Failed to find hit effect entity '%s'" (只日志不中断, 返回注册表句柄)。输出向量扩容 max(n+1, (int)(cap×1.5)) 走分配器虚槽 (*(a2+16) 对象 vtable+8 分配 8×cap → 拷旧 8×count → vtable+16 释放旧 → 更新 {data@+0, cap@+8, count@+12}); 注册表 getter = sub_142291330() 无参全局。
 
 **海军雷视觉件 ctor (0x141549F20, navalmines.cpp)** — sizeof 0xC0=192; 由 CRegionGraphics ctor sub_14167E190 于其 **+136** 创建, 门 = 区域 a2+160 > 0 (malloc(0xC0) 直证):
 
@@ -1287,7 +1333,7 @@ bank 解析表示对象布局:
 
 > 六个 24B 成员类型未定 (IDA 判其析构同 `std::locale::global` 静态析构; 公共 vtable 槽 off_143085170, CRegionGraphics ctor +88/+120 亦见同构件)。视觉件类名无 RTTI 直证。
 
-**idpair 数组选优 (sub_1415C6F30, naval_utility.cpp)** — a1 = idpair 数组 (data@+0 / count@+12 / 元 8B); 逐元非空且 sub_14221F310 有效 → 取**对象基址−16** 的 +124 dword, 否则 0; 写入定长对齐临时缓冲 ((4n+7)&~8, pdx_scoped_buffer.h:54 容量断言); sub_1424F0890(count, 键数组, file:line 哈希) 返单一下标按该下标取回对象返回 = 按对象 +124 键选一个代表 (选优方向推定 argmax, 待汇编核; +124 字段语义在 CTaskForce/CShip 表均未载)。
+**idpair 数组选优 (sub_1415C6F30, naval_utility.cpp)** — a1 = idpair 数组 (data@+0 / count@+12 / 元 8B); 逐元非空且 sub_14221F310 有效 → 取**对象基址−16** 的 +124 dword, 否则 0; 写入定长对齐临时缓冲 ((4n+7)&~8, pdx_scoped_buffer.h:54 容量断言); sub_1424F0890(count, 键数组, file:line 哈希) 返单一下标按该下标取回对象返回 = 按对象 +124 键选一个代表 (**加权随机**取代表, 非 argmax: sub_1424F0890 = sub_1424F02E0(count, 权重, rand, 0xFFFFFFFF) = 加权随机核 SIMD 版 — 与 weightedrandom.cpp:133 同核 (正权重求和 + 2^−31 尺度 + 2^63 回绕守卫), 失败/穷尽返 0xFFFFFFFF 静默哨兵; 随机源 = sub_142233FA0(naval_utility.cpp:457) & 0x7FFFFFFF (file:line 哈希作 RNG 种子); 全部权重 0 / 穷尽 → 返 NULL; +124 字段语义在 CTaskForce/CShip 表均未载)。
 
 #### 4.35.32 变值曲线层 (variedvalue.cpp; 求值核 0x142504C50 / 动画名解析器 0x142502FE0 两函闭环; pdx_core 通用数学层, 粒子/动画共用)
 
@@ -1332,20 +1378,53 @@ bank 解析表示对象布局:
 
 解析流程: 逐通道 — id==0 标量通道 → 写浮点回退 + 置返回位 0; id!=0 → 名在名表内 strlen+memcmp 匹配, 命中读记录方向键按方向旗筛选, 通过则记录地址追加进向量 + 置返回位 1; 未命中 → :504 一次性断言 + :505 CLogStream 错误日志「Couldn't find animation "<名>"」(通道 4096)。返回值 = 位掩码 (bit0 = 标量回退已写, bit1 = 动画记录已入向量)。
 
+#### 4.35.16h assetfactory_particle 粒子发射器一致性校验 (assetfactory_particle.cpp; 1 函)
+
+`sub_1423316F0` (参数互斥校验 + 类型枚举回取，返回 +1764 类型枚举；所属类 SParticleSystemReader / CParticleEmitter 未决):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +1764 | u32 | 发射器类型枚举（1 = sphere / 2 = box） |
+| +1832 | std::string | 名串（size@+1848, cap@+1856） |
+| +1864 | 旗 | 含盒体参数 |
+| +1865 | 旗 | 含球体参数 |
+| +1867 | 旗 | 已校验 |
+| +1868 | 旗 | 警告旗（有未报告问题且已校验 → 置 1） |
+| +1869 | 旗 | 已报告门（防重复刷屏） |
+
+告警：枚举 1 且 +1865 → :91 `Sphere emitter contains box emitter parameters and will probably be wrong: <名串>`；
+枚举 2 且 +1864 → :99 `Box emitter contains sphere emitter parameters and will probably be wrong: <名串>`。
+同族 CAssetFactoryParticle vtable 0x142B501A8 / Load wrapper 0x142331870 已收 §4.00 bases。
 
 #### 4.35.33 渐变边框构建管线 (gradientborder.cpp; 6 函全链 — S4 渐变边框族的下游实现侧)
 
 管线闭合 (高置信): S4 已收 tbb 任务体 0x14159BBE0 → **邻接边界边收集 0x14159B770** (168 行; 选择集字节表 = scratch 缓冲按省数切出; 逐省取省图形 +184 邻接数组 {数据@+112, 数@+124} 条目 48B, **只处理不在选择集的邻居** = 外沿; :828 `out of bounds - adjacencies` 断言 byte_14338A93B) → 0x141598160 → **省对边界构建派发 0x14159AAB0** (140 行; 省界门 1 ≤ id < 根+628; :209 区间同省断言 byte_14338A938; 请求条目按对侧 id 二分分组, sub_14140A320 定位边槽号; 失败 :233 log-and-continue) → **边界段贪心双端链 0x14159AED0** (466 行; 种子 = 曼哈顿邻居数最少段, 空 → :286 `Impossible just happened` 断言; 贪心最近邻双端生长 — 头侧更近整链 std::reverse 后追加; 段 swap-remove; 点 u32 {x|y<<16} 压出列) → 更新循环 0x1415963F0 / 0x141596150 → **梯度/平色双路径**。
 
-**距离掩码梯度构建 0x141597240** (607 行, 定案): 半径 = sqrt(inner² + 外延²) × 3.0; 核窗口逐格到 24B 边界格记录点列的最小距离² (提前退出 ≤0.5 命中即止 / > 当前最优 + 格对角² 剪枝); 命中格像素重算取最小距离 d → 梯度值 = d < inner ? 255 − (u8)d : 255 − (int)((d − inner) × slope × 255) − (int)inner, 统一 −8 后钳 [0,255]; 写图层缓冲 **Y 翻转** `数据 + pitch×(高−y−1) + x`; 层 +64 空 → :1337 断言 (文案互指 CGradientBorderManager::HasDistanceMask() / CGradientBorder::SetOverrideGradient(), byte_14338A93E)。**平色直写 0x14159D010** (88 行) = 同断言同 Y 翻转, 边界 run 逐像素直写 255 — HasDistanceMask 开关的梯度/平色双路径。**图层缓冲分配 0x141598970** (214 行): 层 +52 宽 / +56 高 (源 = a2+64/+68); 距离掩码旗 (+112) 开 → 宽高 (0, 65535) 双断言 (byte_14338A93C/93D) + **+64 = malloc(宽×高)** (1 字节/地图像素距离掩码); 内存报告三连 (日志旗 65541 = 0x10005 变体, 与 4096/65540 并存)。
+**距离掩码梯度构建 0x141597240** (607 行, 定案): 半径 = sqrt(inner² + 外延²) × 3.0; 核窗口逐格到 24B 边界格记录点列的最小距离² (提前退出 ≤0.5 命中即止 / > 当前最优 + 格对角² 剪枝); 命中格像素重算取最小距离 d → 梯度值 = d < inner ? 255 − (u8)d : 255 − (int)((d − inner) × slope × 255) − (int)inner, 统一 −8 后钳 [0,255]; 写图层缓冲 **Y 翻转** `数据 + pitch×(高−y−1) + x`; 层 +64 空 → :1337 断言 (文案互指 CGradientBorderManager::HasDistanceMask() / CGradientBorder::SetOverrideGradient(), byte_14338A93E)。**平色直写 0x14159D010** (88 行) = 同断言同 Y 翻转, 边界 run 逐像素直写 255 — HasDistanceMask 开关的梯度/平色双路径。run 记录 = **6B {x0 word@+0, y word@+2, 长度 word@+4}** (run 列表向量 {data@+0, count@+12}, 经 (ctx+32 提供者)+8 函子 → 宿主+184 指针 +88 偏移抵达); 逐 run 先查 ctx+24 掩码表 (layer+24 +8×idx 非空 = 该 run 有距离掩码 → **跳过平色**, 梯度路径 0x141597240 负责); layer+120 纹理句柄非空 → 每像素触发 sub_14166F070 失效回调。**图层缓冲分配 0x141598970** (214 行): 层 +52 宽 / +56 高 (源 = a2+64/+68); 距离掩码旗 (+112) 开 → 宽高 (0, 65535) 双断言 (byte_14338A93C/93D) + **+64 = malloc(宽×高)** (1 字节/地图像素距离掩码); 内存报告三连 (日志旗 65541 = 0x10005 变体, 与 4096/65540 并存)。
 
 **CGradientBorder 图层对象布局 (高置信, 读者面反推)**: +24/+32/+36/+40 省掩码向量 {data, cap, count, alloc} / +48 宽×高 / +52 宽 (= pitch) / +56 高 / +64 距离掩码缓冲 (空 = 平色层) / +72/+75 脏旗 / +112 距离掩码开关 (推定) / +120 纹理句柄 (非零反复触发 sub_14166F070 — 纹理失效回调推定)。**pdx 全局 scratch 缓冲原语直证** = sub_1424E40D0 获取 / sub_1401C3820 归还 / 游标@+8 / 容量 dword_1435E3ECC (pdx_scoped_buffer.h:54 断言) — 帧内零分配 scratch 通道第三消费域。构建 ctx 同型性 (0x141597240 读 {+8 提供者, +16 尺寸, +24 格数组, +32 图层} vs 0x14159D010 读 {+24 查表, +32 提供者, +40 图层}) 待裁。
 
 **GPU 纹理侧 (gradientbordertexture.cpp 两函, df304 定案)**: ① 分辨率计算 0x14166EC40 (112 行): `W = *(a1+64) / dword_1430B3C00`, `H = *(a1+68) / 除数`; 随后全局除数 dword_1430B3C00 **逐次 ×2 且跨调用持久** (数据段初值, 代码侧无复位点 — 设计意图待裁: 单次初始化 vs 质量棘轮), 退出条件 = 除数 ≥ max(W,H), 等价 2 的幂 d 使 d² ≥ 全宽 → **终态 ≈ 开方降采样** (4096×2048 → 64×32 量级); 循环体跑过即走 :414 "Unsupported texture resolution: %dx%d. Going to use lower quality: %dx%d" 日志 (伪码顺序落入收尾非条件失败); 收尾 dword_14338AB88 = H+1 / dword_14338AB8C = 2×(H+1)。② 双纹理创建 0x14166DB60 (148 行): 三重断言 (:427/:428/:429, 对象 +128 _Texture / +136 _TextureFx 须 NULL_GFXHANDLE) → +120 缓冲空则 malloc(16×W×AB88) 清零, 拆四平面指针 +144/+152/+160/+168 (步长 4×W×(H+1) 等大; ⚠ IDA 赋值序 18/20/19/21 交错 = 面2/面1 槽号互换, 按偏移记录) → 两次 sub_1424046D0(a2, +120 基址, W, AB8C, **格式 14**, 0, 1, 溯源串) 产出 _Texture/_TextureFx — **同数据同参双纹理**; 失败 → :462 "Failed to create a texture. Gradient borders will not be visible."。⚠ 字节账待裁: 缓冲 16W(H+1) B vs 单纹理 4B/px 计 8W(H+1) B = 半缓冲 — 格式枚举 14 = 8B/px 或四平面为 CPU 写入窗只消费前半, 未裁。对象布局 (高置信): +64 全图宽 / +68 全图高 / +120 像素缓冲 / +128/+136 双纹理 / +144..+168 四平面指针 (写入方 = 本节 0x141597240/0x14159D010 侧, 本两函不写平面)。全局参数: dword_14338AB80/84 = 当前宽/高; qword_14338AB78 = gfx 上下文管理器 (sub_1424D5400 校验活, 失活 sub_1424D5B70 重建)。
 
+#### 4.35.33a 渐变取色器 (gradientbordermanager.cpp; 1 函)
+
+`sub_140F32FB0` (resistance map color 梯度插值；输入值经 xmm1 传入，IDA 漏参，伪码签名缺一个 float):
+
+| 项 | 事实 |
+|---|---|
+| 描述符 | a1 = {float* 数据 @*a1, u32 计数 @a1+12} |
+| 站布局 | 每站 5 float：[0] = 阈值，[4] = 颜色分量；站数 = 计数/5 |
+| 校验门 | 计数 <10 → a2 = 计数/5；计数 % 5 != 0 → :2820 `invalid resistance map color define`（日志旗 4096）→ 回退插值 1.0 |
+| 查找 | 从站 1 起步，步长 5 扫到首个 站[0] >= 输入值 |
+| 插值 | 比例 = (输入 − 站[i−1][0]) / (站[i][0] − 站[i−1][0])；分母 <1e-2 → 比例 0；负数钳 0；fminf(1.0, 比例) |
+| 出口 | a4 = alpha 通道旗：真 → 两端取 站[i−1][4] / 站[i][4]；假 → 皆 1.0；结果 = (上端 − 下端) × 比例 + 下端，交 `sub_14224C7C0`（推定 CColor 构造，签名未决） |
+
+书内坐标：§4.30 resistance 百分比显示链的颜色源（本节定案该环节原「本地化」标签）。
 #### 4.35.34 pdx 动画注册/播放层 (pdx_anim.cpp; 3 函 — PlayAnimation 引擎核 + AddAnimation 注册件 + 关节数校验件; clausewitz 树)
 
-pdx 引擎动画层 (clausewitz\pdx_anim\pdx_anim.cpp, 非 hoi4\source 玩法层), 与 §4.35.17 pdx_entity.cpp (实体/状态机层) 为邻接编译单元: entity 事件播动画 → 本簇注册/播放; 同 CU 邻函 sub_1423AE8F0 (float4 流变换, 1115 行) 已名。PlayAnimation 引擎核 0x1423B01B0 (1162 行) 唯一调用方 = sub_14227C730 CPdxMeshObject 播放入口 (pdxmeshobject.cpp:678 日志 "PlayAnimation failed for mesh \"%s\""); AddAnimation 注册件 0x1423AE1F0 (191 行, 源记录 → 运行期 def 打包); 关节数校验件 0x1423AE0E0 (51 行)。
+pdx 引擎动画层 (clausewitz\pdx_anim\pdx_anim.cpp, 非 hoi4\source 玩法层), 与 §4.35.17 pdx_entity.cpp (实体/状态机层) 为邻接编译单元: entity 事件播动画 → 本簇注册/播放; 同 CU 邻函 sub_1423AE8F0 (float4 流变换, 1115 行) 已名。PlayAnimation 引擎核 0x1423B01B0 (1162 行) 唯一调用方 = sub_14227C730 CPdxMeshObject 播放入口 (pdxmeshobject.cpp:678 日志 "PlayAnimation failed for mesh \"%s\""); AddAnimation 注册件 0x1423AE1F0 (191 行, 源记录 → 运行期 def 打包); 关节数校验件 0x1423AE0E0 (51 行; a1 = 网格 / a2 = 动画, 关节数不等 → CLog 4096 pdx_anim.cpp:1124「Animation [<名@a2+60>]: ...joints does not match...」+ 返 0)。
+
+**CPdxMeshObject 播放入口 = sub_14227C730** (pdxmeshobject.cpp:678; 补本节 VA 空缺, 定案): a1+88 = mesh 持有者 (+64 = 动画集非空门, +16 = 名串供日志); a1+112 = 动画播放器; 动画查找 sub_14230A380(mesh, name, &idx) (失败 idx=−1 返 0); 播放 sub_1423B01B0(player, anim, &transform) (a3 空 → 默认变换 sub_1423AC400), 失败 → :678 "PlayAnimation failed for mesh …"; 选中态 = `(a1+96 & 1) && (a1+80 == dword_143481264)` 经 sub_1423B1780(player, &flag, 1) 传入。dword_143481264 语义未决 (推定当前选中 mesh 实例 id)。
 
 播放器实例布局 (0x1423B01B0 主语, 定案):
 
@@ -1422,7 +1501,7 @@ CU = `hoi4\source\graphics\posteffectvolumes.cpp`。宿主 CPdxPostEffectVolumeM
 
 **舰船 3D 查看器精灵 (entity_sprite.cpp 两函, 定案)**: 族身份由日志 :41 "Ship 3d viewer settings reloaded!" 钉死; 0x141DCC090 (12 行) = 设置热重载回调 (sub_141DCC5A0 + 日志)。**SetEntity (0x141DCCD70, 222 行)**: 门 = sub_14222BD90(sub_14222BDB0(a1, key, flag)) 返回对象 byte+161 == 0 (语义待裁, 推定重入/挂起旗); 缓存 key 串 a1+1464 (SSO) 比对, 相同只走尾部刷新; 变更 → 销毁旧实例 +16 (_CurrentEntityInstance, assert 直证) → sub_142291330+sub_142293530 按名查原型 (+8) → sub_14228CD30(原型, 0, 4, 0) 建实例 (+16; 第 3 参 4 待裁) → float4 常量 (x = min(3, 值−1)) 经 sub_142290350 下发常量槽 32; 未命中 → entity_sprite.cpp:318 "Unable to find entity for key '%s'"。就绪后播 **"idle"** 动画 (dword0 = 75 待裁; +1497 旗 0 则 dword2 = 1.0f, 推定倍速旗) → 恒等四元数复位 + xyz 取全局 dword_1430B6038/3C/40 (推定缩放) → **sub_14228D730(实例) = §4.35.17 dt=0 初始化更新, 其唯一调用点本函坐实 (互证零冲突)** → +24 写 16B 常量 (语义待裁) / +40 写两枚 −FLT_MAX (推定最小包围盒复位)。布局 (高置信): +8 原型 / +16 实例 / +24 16B 常量 / +40 最小值对 / +1464 缓存 key / +1497 倍速旗。
 
-**单位图标字形 (gamebitmapfont.cpp 两函, S10 消费侧新细目, 定案)**: 两函同构 = sub_141640E60(a1, 名, &下标) 按名查字形条目; **图标 = 图集帧横向切片** (U = {下标/帧数, min((下标+1)/帧数, 1.0), 0, 1}); **字形 +416 = 图集纹理 id; vtable[15] (+120) = 帧数 (GetFrameCount)**; sub_142407010 = 图集宽查询 / sub_1424071E0 = 句柄 / sub_14229FFB0 = 出 quad。断言: gamebitmapfont.cpp:218 "rendering a unit icon with no name" / :182 "getting width of invalid unit icon"。字体对象 +13872 一次性初始化旗 / +13864 = malloc(0x60) 工作块 / +72 → 子对象 +368 图集纹理表。
+**单位图标字形 (gamebitmapfont.cpp 两函, S10 消费侧新细目, 定案)**: 两函同构 = sub_141640E60(a1, 名, &下标) 按名查字形条目; **图标 = 图集帧横向切片** (U = {下标/帧数, min((下标+1)/帧数, 1.0), 0, 1}); **字形 +416 = 图集纹理 id; vtable[15] (+120) = 帧数 (GetFrameCount)**; sub_142407010 = 图集宽查询 (**读出后除以 vtable[15] 帧数得单帧像素宽**, 随 UV 一同入 sub_14229FFB0) / sub_1424071E0 = 句柄 / sub_14229FFB0 = 出 quad。断言: gamebitmapfont.cpp:218 "rendering a unit icon with no name" / :182 "getting width of invalid unit icon"。字体对象 +13872 一次性初始化旗 / +13864 = malloc(0x60) 工作块 / +72 → 子对象 +368 图集纹理表。
 
 **HLSL 着色器源码组装双后端 (gfx_dx9_hlsl_builder / gfx_dx11_hlsl_builder, clausewitz pdx_gfx, 定案)**: 同骨架 = 清输出串 → `#define VERTEX_SHADER`/`PIXEL_SHADER` (stage 分派) → 遍历 defines 数组 (a5+12 计数 = 引擎自定义容器形制, 元素 32B) 逐项 `#define <名>` → 公共 defines 头 (懒加载缓存) → stage 专属段 → sub_14240C110 找主码追加 (失败 dx9 :183 / dx11 :135 "Failed finding main code %s" 返 0)。**差异表**:
 
@@ -1435,4 +1514,45 @@ CU = `hoi4\source\graphics\posteffectvolumes.cpp`。宿主 CPdxPostEffectVolumeM
 | 主码前专属段 | 无 | sub_142426A10 |
 | 主码后段 | sub_142427970×2 + sub_142426D00×2 | sub_1424267A0×2 + sub_142426D00×2 (sub_142426D00 = 两后端公共尾段, 内容未析) |
 
+**DX9 着色器创建消费端 (gfx_dx9.cpp 两函, 新收)**: 0x142418580 像素 / 0x1424186D0 顶点 — 同骨架 = 源码组装 0x1424274B0 (上表双后端) → 24B 编译产物持有器初始化 (sub_140F90F00 = sub_14011DF40, +0 = shader code 指针槽) → 编译 sub_142417B40 (src, profile, flags, blob; .scache 读写者 §4.28) → 释放旧着色器 (obj vtable[2] = Release) → **设备 vtable 槽创建**: **+848 = CreatePixelShader** / **+728 = CreateVertexShader**。差异: profile "ps_3_0" / "vs_3_0"; 编译第 3 参 flags = 0 / 16; 旧对象槽位 a2+8 / a2; 失败日志 gfx_dx9.cpp:1644 "Failed building pixel shader %s" / :1599 "Failed building vertex shader %s" (CLogStream 一行式, 同 §4.12 events ⑤ EH 胶水形态)。设备对象取 `*(a1+8)`。
+
 **GUI 脏化收尾三连模式 (模式级发现, df304)**: `vfunc+128(elem+48); byte(elem+165) |= 0x10; vfunc+128(elem+48)` — 装备模块选择器 (+1424 元件) 与特殊项目视图 (+8 容器) 同款; **0x10 = 脏/关闭位** (与 §4.31 CWindow +117 bit4 显隐旗同址异类待裁)。
+
+
+**pdx_audio.cpp 音频管理器四张名字哈希表 (定案)**: 管理器 (= CAssetFactoryAudio+24 句柄) 四子表 — sound@+2088 (查表 0x1423B77A0, 缺名流式日志 :337) / soundeffect@+2128 (查表 0x1423B7110, a3 控缺名警告 "Missing sound effect: %s" :1033) / falloff@+2152 (注册 0x1423B66E0) / music@+2192 (查表 0x1423B6140, "Could not find music named %s" :1356)。条目统一 48B {+4 占用/探针字节, +8 名串 SSO (len@+24/cap@+32), +40 对象指针}, 表尾哨兵 = data+48×(pad+1+mask), FNV-1a 32 位。falloff 注册: 未命中建条目默认 {+36=100.0f, +40=1.0f, +44=1}; 已存在 = 覆盖通道 (旗 byte_1435BA0AB, 语义待裁) 或 "Falloff with name '%s' already added" :1085。
+
+
+**gfx_dx11.cpp 三槽机制增补**: EndFrame/Present = 槽 9 (0x142414D10): deferred 槽 688 跨距 {+664 单旗, +672 ctx, +680 command list}, FinishCommandList = ctx vt+912; **hr == 0x887A0005 (DXGI_ERROR_DEVICE_REMOVED) → GetDeviceRemovedReason (设备 vt+312)**; Present = swapchain vt+64, **0x200 = DXGI_PRESENT_ALLOW_TEARING (推定)**, 帧计数 %3 三缓冲轮转。GfxSetVertexBuffers = 槽 39 (0x142415700): IASetVertexBuffers 包装 (ctx vt+144), 缺省步长 = 内部对象+80, 断言 "invalid input buffers in GfxSetVertexBuffers" :1978。UploadTexture = 槽 67 (0x142415DA0): UpdateSubresource 包装 (vt+384), 参数块 {+8 数据, +32 宽, +36 高, +52 可更新旗}, 断言 :3027 "Trying to update texture with null resource" / :3033 "Textures does not support updates, declare as dynamic"。
+
+**pdx_cloudstorage_steam.cpp 云存储域 (整域新录)**: **CSteamCloudFile sizeof = 144B**, 布局 = +80 云内路径名 SSO / +112 当前大小 / +120 远端大小回读缓存 / +128 流句柄 (-1 = 未开) / +136 开旗。**OpenStream 0x1423DD8E0 / CloseStream 0x1423DCA50** 幂等对 (已开/未开各 WARNING :472/:520); **Write 0x1423DDFF0** = (ctx+24) vt 槽 0 写 + **ctx+40 云用量累计器** (±新旧差核算), "Failed to write file." :447 = **整文件写**; **WriteStream 0x1423DE120** = (ctx+24) vtable 槽 10 流写 (句柄 = file+128; ctx = file vtable 槽 15 + 槽 9 可用门同构); 未开流 (+128==−1) :498「WARNING! Stream to this file is not open.」/ 写失败 :507「ERROR! Failed to write to stream」(均 B51, 闩 byte_1435DA0E6/E7 落既有连号区间) — 与 Write 同族异槽配对; **CreateFile 路径 0x1423DCE30** = malloc 0x90 → ctor sub_1423DC380 → push 进 ctx+56 数组 (书 RTTI 行 CSteamCloudStorageContext 互证), "Could not create file, perhaps you should check how much space you have." :238。云可用门 = 上下文 vt 槽 9; 断言闩 byte_1435DA0E0..E9 连号。方法名全为推定 (无 RTTI 槽名)。
+
+#### 4.35.38 加权随机选型核 (weightedrandom.cpp; clausewitz pdx_core 通用层)
+
+#### 4.35.39 前端背景轮换计时器 (frontend_background_manager.cpp; 1 函 = sub_141CC9670, 定案/间隔全局语义推定)
+
+#### 4.35.40 位图字体逐字符颜色查找 (bitmapfont.cpp; 1 函 = sub_14229A7C0, 定案/表基待裁)
+
+#### 4.35.41 GL 图元枚举映射 (gfx_opengl_enums.cpp; 1 函 = sub_1424447E0, 定案/成员命名推定)
+
+#### 4.35.42 粒子修饰符记录打包簇 (pdx_particle.cpp 高置信; 5 函 = 打包 0x1423F1BE0 + 宿主重建 0x1423F3AC0 + 辅助三件, 高置信)
+
+**sub_1423F1BE0(ctx, record, slot)** — 修饰符记录 → 发射实例槽递归打包: record (顶层 2296B / 子代 2304B 同尾布局) 消费 +1872 采样数 / +2272 子修饰符向量 (2304B/条, count@+2284) / 72B 曲线槽 [0][1][2][3][12][13][14] (曲线对象 +0 = 求值函数指针, ABI `(curve*, ctx+32, ?, 0, 0, dest, 1, 4, 0, 0)` 尾参待裁)。**实例槽 (≥136B 头)**: +0 112B 行向量 / +24 48B 向量 / +48..+71 常量块 (曲线[12][13][14] 输出, vec3 双份复制 48..59→60..71) / +80..+88 曲线[0][1][2] 输出 (+80 **取负** = Y 翻转推定) / +96 曲线[3] / +72..+108 状态字 (收尾 +108=1/+92=0/+100=1/+104=0) / +112 136B 叶向量。网格展开: 叶数 = 采样数×子数, 行记录 112B 的 **+100 = cols×i (该行叶段起始号)**, 逐子递归打包 — 同一子集按采样行重复展开 (GPU 逐采样实例化布局推定)。**宿主 sub_1423F3AC0(holder, entry)**: holder = {+0 = 208B 注册表条目 (§4.35.26) / +8 136B 叶向量 / +32 上下文 / +40 10504B 块向量}; entry+160 修饰符向量 (2296B/条) 逐条打包; entry+184 发射源 A 向量 (120B/条) 逐条扫 **+0 型 dword ==4 才处理**: 栈暂存 10504B (清 256B 头 + 9216B 体) → 入块向量 (1.5× 增容) → 尾调 sub_1423FEA10(块, holder+32, *(记录+112)) 后初始化。辅助 = sub_1423F1B20 (叶向量收缩) / sub_1423F39E0 (叶区间拷贝) / sub_1423ED0C0 (136B 叶初始化)。
+
+#### 4.35.43 软件表面 blit/缩放域 (0x142107 带; 6 函 — 域定性高置信/TU 未决)
+
+**sub_142107F10** = RGBA8 软件双线性缩放核 (标量回退, 恒返 0): 签名 (srcPtr, srcW, srcH, srcPitch, dstPtr, dstW, dstH, dstPitch); 16.16 定点步进 (`(src<<16)/dst`), 7bit 权重 (`128−frac`, 乘积 `>>7`); 中段双线性 4 邻点加权, 边缘相位越界计钳位行列数退化单边加权 (源维 <2 全面钳); 行尾跳过 = dstPitch − 4×dstW。**域内六件**: sub_142107BD0 分派器 (表面锁 + 矩形换算 + dword_1430BA4F0 懒取缓存 (−1 哨兵 → sub_1420D73B0 现算) → SSE 快路径 sub_142108480 返 −1 时落本函标量回退; a5=0 支路 → sub_142107910 4 参 blit) / sub_142107B90·BB0 薄壳对 (缩放/1:1 双入口推定) / 0x142108480 SSE 快路径 (10 xmm, 返 −1 = 拒)。错误串 "Unable to lock source surface" (无 cpp 锚)。
+
+sub_1424447E0 (内部 PrimitiveType 枚举 {0..8} → GL 枚举, int→int 纯映射): {0→0, 1→1, 2→3, 3→4, 4→5, 5→10, 6→11, 7→12, 8→13} = {GL_POINTS, GL_LINES, GL_LINE_STRIP, GL_TRIANGLES, GL_TRIANGLE_STRIP, GL_LINES_ADJACENCY, GL_LINE_STRIP_ADJACENCY, GL_TRIANGLES_ADJACENCY, GL_TRIANGLE_STRIP_ADJACENCY} (OpenGL 3.2+ 规范常数直证; 无 LineLoop/TriangleFan/Quads 族 = GL3+ 核心剖面; 方向判定 = 内部紧凑 0..8 展开为稀疏 GL 码, 反向则 GL 的 2/6..9 落空不符); 落空 → :436「INVALID PRIMITIVE TYPE」B51 (闩 byte_1435E1A2C) + 默认 4 (GL_TRIANGLES)。内部枚举成员命名为按 GL 目标反推 (推定), 映射表定案。
+
+sub_14229A7C0 (出参 a3+16 = 16B 颜色 OWORD): a2 == 33 ('!') → 默认色 *(OWORD*)(a1+128) 返 1; 否则 entry = a1 + 48×a2 — 自定义色门字节 @entry+272 → 色 OWORD @entry+304; 无自定义 → 静态回退表 unk_1434690B0 (同 48B 步距: 门 @+0, 色 OWORD @+16); 皆无 → 格式化日志 4096: 可打印域 (a2−32 ≤ 0x5E, 即 32..126) 走「...character '%c'」(:2861), 否则「...character id '%u'」(:2857), 返 0。字符表步距 48 定案; 表基相对 a1 的定位待裁。
+
+sub_141CC9670: v5 = 当前时钟 (sub_1422333C0 单例 → sub_142233480, f64) − *(double*)(a1+1672) (上次切换时刻); 阈值 = dword_143335C5C (f32 秒) 经 1e-5 定点取整回读 — PE 验算 = `result = (int)((x≥0?1:0) + x×1e5) − 0.5`, x ≥ 0 时 result = x×1e5 (阈值向上取整到 1e-5 网格); `v5 ≥ 阈值` ∧ a1+72 窗口未隐藏 (`*(byte*)(*(a1+72)+165) & 8 == 0`) → CLog **772** :158「new one selected」+ sub_141CC7ED0() 选新背景。前端背景静态库已收 §4.26; 本件为运行期管理器。dword_143335C5C 推定 = 轮换间隔秒数, 写入方未查。
+
+选型核 0x1424F0700 (定案; `(TotalWeight i32, 权重容器 {data@+0, count@+12}, rand u32)` → 命中下标 int):
+
+| 项 | 定案 |
+|---|---|
+| 退化门 | count == 0 → 返 −1;TotalWeight == 0 → 断言 "TotalWeight != 0" (:133, 闩 byte_1435E3F28) 返 −1 (断言门关时静默返 −1);−1 = 双态哨兵 (零权重 / 扫尽, 后者在权重和 < TotalWeight 时可达) |
+| 阈值 | threshold = rand 绝对值 × 2^−31 (4.656612873077393e-10, double 域) × TotalWeight 绝对值;两输入均取绝对值 (符号位无符号右移技巧, IDA 位运算展开);含 2^63 回绕守卫 (≥ 9.223372036854776e18 时减 2^63, 保 i64 截断安全) |
+| 扫描 | 前缀和 cum 累加 (权重 ≤ 0 的项跳过不计),(int)threshold < cum → 返该下标;扫尽 → 断言 "Failed to get random index" (:158, 闩 byte_1435E3F29) → −1 |
+| 关联 | 邻函 sub_1424F0890 (§4.35 idpair 选优段已载, 带 file:line 哈希参) = 本核的 SIMD 非断言包装 (**定案**): 单行尾调 sub_1424F02E0(a1,a2,a3,0xFFFFFFFF); 总权重 0 / 穷尽返 a4 哨兵而非断言; 阈值公式与 sub_1424F0700 逐字同构 (d4054 收口) |

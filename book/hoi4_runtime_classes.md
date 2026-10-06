@@ -542,6 +542,7 @@ paused = *(u8*)(mgr + 1729)        -- 暂停标志; +1731 = 连按 pending 位
 | +2344..+2368 | 未名 | — |
 | +2376..+2400 | 匿名结构 (NNB 形状) 向量 | — |
 | +2408..+2424 | 未名 | — |
+| +2425 | uint8 | 前端启用状态字节 (frontendmainview.cpp:1233 探针读取; gamestate 守卫对后, gs 空返 1; 语义推定) |
 | +2432 | 全局 CVariables** (0x38, defines 全局入构; loader case 10826) | variables |
 | +2440 | 24B 元素数组 | **逐国家 24B 数据数组** {cap@+2448, count@+2452, alloc@+2456} (count = 国家库条数 451) (—) |
 | +2464 | scoped_ptr<匿名结构 (NNB 形状)> | — |
@@ -923,7 +924,7 @@ name_groups 同链写法: `hoi4.read_cstr(p) or hoi4.read_str(p)`)。
 - **÷1e5 换算存在多条舍入路径 (GUI/显示域横向台账)**: ① 裸 magic-mul
   `imul 0x29F16B11C6D1E109; sar rdx,0xE` = **截断向零** (计数文本族常用);
   ② 舍入器 sub_1424ED730 = 正支 (x+50000)/1e5 **round-half-up**, 负支
-  (x−50000)/1e5 **round-half-away-from-zero**; ③ Q15 分数支 sub_1424ED580
+  (x−50000)/1e5 **round-half-away-from-zero**; ③ Q15 分数支 sub_1424ED580 (|整部| ≤ 922337201; 溢出饱和上界 0x53E2D61FD320 = 92233720124192 / 下界 0xFFFFAC1D29E02CDF = ~(上界) int64 MIN 式非对称; 闩 byte_1435E3EE8/EE9, B51 debug_assert 形 :81/:86)
   加 0x4000 后 round-half-up 且带溢出饱和哨兵; ④ 阈值直比 (不换算, 比较在定点域);
   ⑤ float 域 `cvttss2si` (截断) 且无钳位 (如 CTinyUnitCounter spotting)。
   读显示值须按消费点所属路径定舍入方向, 勿统一按截断处理。

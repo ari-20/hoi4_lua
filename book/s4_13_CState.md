@@ -70,7 +70,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +2024 | CEventScope* | **CEventScope\*** (0xB0; Reset 释放旧对象后 malloc + ctor sub_140535110 写 `&CEventScope::vftable`, 再 sub_14053B5F0(scope, *(*(st+48)+160), 1) 以 stateDef+160 州 id 设作用域) | 投递时作为事件作用域实参传入 sub_140A0F4F0 | |
 | +2025..+2039 | — | = CEventScope*@2024 (176B, 州事件作用域 — ctor 即建, Reset 换新; SetOwner 配合发 on_state_owner_changed) 尾 + u32@2032 = id % dword_143336F50 (**州事件掷骰相位**: 每日州并行 worker 以 `id%N == gs+1156 年积日%N` 判定本州当日是否掷事件候选, N = dword_143336F50 低字节; §4.2.7) | | |
 | +2040 | CVariables* | 州脚本变量 | RH 表, 见 §4.13.2 | |
-| +2048 | 匿名结构 (8B 形状) 向量 | strategic locations 对数组数据 — 8B 条 {loc_id u32, value u32} | AddStrategicLocation sub_1409D18B0 实读 (重复断言含 +88 id; 1.5x 增长); 默认 value = 首省 +164 | GUI: 州侧 strategic locations 过滤 (条目 v4[1]==prov.id; r2 sub_1417507F0 — 第二 u32 = prov_id, tooltip 双名 getter 再证) |
+| +2048 | 匿名结构 (8B 形状) 向量 | strategic locations 对数组数据 — 8B 条 {loc_id u32, value u32} | AddStrategicLocation sub_1409D18B0 实读 (重复断言含 +88 id; 1.5x 增长); 默认 value = 首省 +164; mapdata 脏标记 PE 实体 = qword_14332F698 vtable[槽15] 门真 → vtable[槽16]() → sub_140B53EE0 解引本体 +5984 byte = 1 | GUI: 州侧 strategic locations 过滤 (条目 v4[1]==prov.id; r2 sub_1417507F0 — 第二 u32 = prov_id, tooltip 双名 getter 再证) |
 | +2056 | uint32 | 上述容量 cap (1.5x 增长) | 定案 | |
 | +2060 | uint32 | strategic locations 容器计数 | BUILDING/AMOUNT 消费者 sub_1409D96D0 互证 | |
 | +2061..+2063 | — | = CVariables@2040 (56B) 尾 + hybrid 容器@2048 {head@2048, cap@2056=2, c@2060} 头 (**token 14786 = strategic_region_data** — victory_points = 12156 且落别槽; 装载链 0x1409DBE00 case 14786 → 0x1409CF090 → 0x1409DB8A0 pair<CString,i32> 解析器 → 区名大小写不敏感 FNV-1a → 全局区名索引 off_1430C6DE0 → push {token, i32} 入 +2048) | | |
@@ -386,7 +386,7 @@ stateDef+248/+260 = 静态资源条 16B 数组 {量@0, res_id@8} (CState+48 = st
 |---|---|---|---|---|
 | COwnerChange | 0x1429DB660 | 10302 owner | 0x58: +72 tag id | sub_1409DE560(州, tag, 0) + sub_1409DDA40 同步 controller + sub_1409DFC20 收尾; 重存 vtable[1]=0x1415A2130 (owner = "TAG") |
 | CControllerChange | 0x1429DB708 | 10303 controller | 0x58: +72 tag id | sub_1409DDA40(州, tag, 1, 0); 重存 vtable[1]=0x1415A20F0 |
-| CSetStateBuildings | 0x1429DB7B0 | 12126 set_buildings | 0x70: +72 容器 {d@72,c@84} 136B 元 (**州历史建筑条目 = {省 id, 建筑 token/def 索引, u16 等级}** — 消费链 sub_1415A0D80 → sub_140687B90 → sub_141179050 → sub_141172EB0 → sub_1410DC4E0(cb, *(u16*)(elem+40), flag); **元素无独立 RTTI — 负定案**) + +96 rb-tree 省建筑组表 | 0x1415A0D80 两段循环落州 (statehistory.cpp:270/306/315 错误串); vtable[1]=空桩 **不重存** |
+| CSetStateBuildings | 0x1429DB7B0 | 12121 buildings | 0x70: +72 容器 {d@72,c@84} 136B 元 (**州历史建筑条目 = {省 id, 建筑 token/def 索引, u16 等级}** — 消费链 sub_1415A0D80 → sub_140687B90 → sub_141179050 → sub_141172EB0 → sub_1410DC4E0(cb, *(u16*)(elem+40), flag); **元素无独立 RTTI — 负定案**) + +96 rb-tree 省建筑组表 | 0x1415A0D80 两段循环落州 (statehistory.cpp:270/306/315 错误串); vtable[1]=空桩 **不重存**; token 定案 = 12121 (`sub_1415A17C0` 工厂 switch `case 0x2F59` + 1.19.2 token 表双证; 旧记 12126 set_buildings 系笔误——12126 是**运行时 effect 键**另一 token, 非州史装载键) |
 | CSetStateVictoryPoints | 0x1429DB858 | 12156 victory_points | 0x50: +72 省 id / +76 VP 数 (工厂 "takes 2 parameters" 直证) | 0x1415A1220 → sub_140E810F0(省, +76); vtable[1]=空桩 不重存 |
 | CHistoryAddEffectState | 0x1429DB9A8 | 89 effect | 0x150: +72 CEffect 列表 + +160 scope 子对象 (注入 *(state+160) 州 id) | 0x14153FF80 (与国变体共享) 重放效应; vtable[1]=空桩 不重存 |
 
@@ -438,6 +438,10 @@ resistance.cpp 簇对账增补 (13 函数闭环; 断言锚行号 103..2002 全�
 **抵抗目标公式 sub_140F959F0 全项分解** (签名 `(cr, out*, include_flow, clamp_flag, tooltip收集器*)`; 基值 → 12 增量项 → 非合规下钳 → compliance 折减 → 可选 [0,1e7] 终钳; tooltip 模式逐项发名值对): 基值 = RESISTANCE_TARGET_BASE (qword_1433370A8); 州 VP 阶梯 = {阈值,值} i64 对表倒序扫落首档 (表计数 dword_1433387A4, define RESISTANCE_TARGET_MODIFIER_STATE_VP); 宣称项 (HAS_CLAIM, 州 claims 含 controller 或其 dynamic root); 人口低项 (POP_LOW_CUTOFF/POP_VERY_LOW_CUTOFF 双档覆盖式, 值 POP_LOW/POP_VERY_LOW); 和平项 (IS_AT_PEACE); 稳定损失项 (PER_STABILITY_LOSS×(MAX_STABILITY−stability), ×100 换算); 已投降项 (OCCUPIED_CAPITULATED, cc+1156>0 ∧ cc+1132==0); 流亡项 (OCCUPIED_IS_EXILE_MIN/MAX 区间插值, occupied 国 +424 槽 >0 门 — 槽语义推定流亡度, 待裁); 法侧修正 (modifier **478 = RESISTANCE_TARGET / 479 = RESISTANCE_TARGET_ON_OUR_OCCUPIED_STATES**, sub_140F92230 owner/occupied 双侧求和); added_resistance_targets (cr+600 容器 72B 元: **消费门 = 元+28 controller ∧ 元+32 occupied 双 tag 匹配才计 元+16 amount; 元+24 days 不参与目标公式**, 到期消费点未决); 邻州流 (include_flow=1 才计 cr+56, 断言 cr+48 非空 — **cr+48 源码字段名 = `_pStateResistanceFlowFrom`** 1018 行断言直证); 下钳 = RESISTANCE_TARGET_MIN_CAP_FOR_NON_COMPLIANCE; 折减 = PER_COMPLIANCE (负值)。
 
 **两套 INITIAL 播种分工** (定案): SetOccupiedCountry 播 INITIAL_STATE_RESISTANCE (qword_143336C08) / INITIAL_STATE_COMPLIANCE (qword_143336D48); 读档重建 sub_140F9AE60 播 INITIAL_HISTORY_RESISTANCE/COMPLIANCE (qword_143331D30/DF0) + INITIAL_GARRISON_STRENGTH (qword_143331EB0) — 「新占领」与「读档重建」两套 define。SetOccupiedCountry 断言三连: :693 重设守卫 (旧 cr+80 须 ≤0) / :698 IsCore (含 dynamic-root 等价 sub_140BB5490) / :714 落定 tag 非 dynamic。
+**读档重建 sub_140F9AE60 细节** (resistance.cpp): 双层门 a1+80 ≤ 0 ∨ !sub_140F9C4B0(a1, *(a1+8)+204, a1+80) → 兜底目标国推断 sub_140F986B0; a1+520 有效占领门 (推定) → 播三 define: INITIAL_HISTORY_RESISTANCE → a1+16 / INITIAL_HISTORY_COMPLIANCE → a1+64, 均 **clamp [0, 10000000]** (= 100%×1e5 定点上界, 与上文目标公式终钳同界); INITIAL_GARRISON_STRENGTH 走查表 sub_140FF3BE0 + 写 sub_140FFE2F0, **查表失败仅 CLog :426 不致命**; 收尾 sub_140F97640。
+
+**抵抗速度公式 sub_140F94690 全项分解** (每日 sub_140F9BF90 重算 cr+24, 速度不落盘; 定案): 四态门——① 熄灭重启用门: 当前 == 0 ∧ 目标 < RESISTANCE_TARGET_TO_REENABLE_RESISTANCE (qword_143331080) → 速度 = 0; ② 增长支 (目标 > 当前): 速度 = RESISTANCE_GROWTH_BASE (0.2) × (1 + Σmdef481 RESISTANCE_GROWTH + Σmdef483 GROWTH_ON_OUR_OCCUPIED_STATES), 钳 [RESISTANCE_GROWTH_MIN (0.01), RESISTANCE_GROWTH_MAX (100)], 再钳 ≤ 目标−当前 (防过冲); ③ 衰减支 (目标 < 当前): 因子 = 1e5 + (controller 对州有 claim ? 0.25×1e5 : 0) [RESISTANCE_DECAY_MODIFIER_HAS_CLAIM] + 低抵抗档位修正 (DECAY_MODIFIER_FACTORS 表 {10→−50%, 20→−25%}: 当前 <10% → −50% / 10..20% → −25% / ≥20% → 0, 表 qword_1433387B0 倒序扫落档), 速度 = − RESISTANCE_DECAY_BASE (0.1) × 因子 × (1 + Σmdef480 RESISTANCE_DECAY + Σmdef482 DECAY_ON_OUR_OCCUPIED_STATES), 钳 [RESISTANCE_DECAY_MIN (0.01), RESISTANCE_DECAY_MAX (100)], 再钳 ≤ 当前−目标; ④ 非运营态 (cr+520 = 0): 速度 = −min(当前, RESISTANCE_COOLDOWN_WHEN_DISABLED (0.25)) (夺回冷却)。日推进 = cr+16 += cr+24, 钳 [0, 1e7]。mdef 480–483 定名 (ref/modifier_idmap.txt): 480 = RESISTANCE_DECAY / 481 = RESISTANCE_GROWTH / 482 = DECAY_ON_OUR_OCCUPIED_STATES / 483 = GROWTH_ON_OUR_OCCUPIED_STATES (占领法 state_modifier 的 resistance_decay 键 → mdef480 三源求和, via sub_140F92230 乘法聚合)。
+
 
 **驻军需求 sub_140F94100 定名补**: SUPPRESSION_NEEDED_BY_RESISTANCE_POINT (qword_143331508, =0.75) / _LOWER_CAP (qword_1433315A8, =10) / _UPPER_CAP (qword_143331660, =50) 三 define 槽落址; **sub_1424EF6F0 = 取负 helper** (`*buf = −a2`) 非「读取器」— 「Σ499 > −1e5」主路门与「压制 0/模板缺失 → −100000 禁用哨兵」由它构造; a3 聚合列表 = 16B 对 {模板指针, 压制值} (命中复用, 扩容 max(n+1, 1.5n))。1850 精化: 内含第二处 GetOccupationLaw 逻辑 (609 断言 + lawdb+72 兜底) + 重启用门 `cr+16 ≠ 0 ∨ cr+40 ≥ RESISTANCE_TARGET_TO_REENABLE_RESISTANCE` (qword_143331080)。
 
@@ -488,14 +492,14 @@ sub_1410DB320 > 0) → 随机选中 → 伤害 = clamp(SABOTAGE_FACTORY_DAMAGE �
 
 **不可通行州归属双器 (定案)**: 计分器 sub_1409D7BC0 = 可通行邻州 +5 / 不可通行邻州 +1,
 controller 模式含本州 controller 匹配门, 平票偏同主/同原初国; ForceLinkOwnership
-sub_1409DD810 = stateDef+344 州 id 直查州表取 owner 候选 → 失效走计分器 → 变化则
+sub_1409DD810 = stateDef+344 州 id 直查州表取 owner 候选 (直查门 = id ∈ [1, gs+724) 且州表项非空, 取州+200; 计分器仍 ≤0 → 断言 "Best Owner for impassible state is not valid" :2171, 闩 byte_143339BB8) → 失效走计分器 → 变化且 (新值空 ∨ 旧值空 ∨ 非同原初国 sub_140BB52F0) 则
 SetOwner+SetController 连发。**AssignProvinces sub_1409DED70 全身份**: stateDef+8 列表装省
 (省数组 cap@32 补全), st+2144 地形旗 `|=` 全链, prov+192 回指, BestVP 初算; 查重/跨州覆盖
 均为错误日志非断言。
 
 辅助身份: mdef 表 +96 旗 & 0x10 = 比例类钳 [0,1e5] (sub_14055E360 新机制); state per-tag
 A 表读值器 sub_1409D8F90 (桶 208B, miss 顺 extra 区再退 st+1368 基表); **CProvince+176 =
-边境冲突对象指针** (IsInBorderConflict = prov+176 != 0, :2555 断言原文钉名); 州间距离²
+边境冲突对象指针** (IsInBorderConflict = prov+176 != 0, :2555 断言原文钉名; ⚠ 该断言串写 _SubAreas 迭代而实现遍历省数组 — 串/形态错位, 仅备注); 州间距离²
 sub_1409D3800 (stateDef+328/+332 中心); 建筑加级器 sub_1409E08B0 (8B 元 {token, u16 级} →
 CBuilding+488 累加)。未决: 破坏伤害钳位裁定; sub_14152A2B0 仲裁细节; CBuilding+488 语义;
 A 表 LOCAL_* 填充点 (疑 sub_1409D54A0 链); 首都链与国侧得失州四件套 (CCountry 域)。
@@ -505,7 +509,7 @@ A 表 LOCAL_* 填充点 (疑 sub_1409D54A0 链); 首都链与国侧得失州四�
 清册 (6/6 函体内含 statetemplate.cpp 路径锚): ParseKey 0x140ABE640 (530, **vtable[4] token 钩子**
 PE 直读) / LoadContinents 0x140ABDE10 (408, token 12382 门, 80B 大陆对象 {+40 旗/+44 名 hash
 id/+48 插入序/+56 州表}) / Insert 0x140ABC510 (290, "state" 块工厂) / PostParse 校验
-0x140ABD860 (219, **vtable[8]**) / Load + 全表校验 0x140ABD660 (117) / SetId 双门 0x140ABF010 (60)。
+0x140ABD860 (219, **vtable[8]**) / Load + 全表校验 0x140ABD660 (117) / SetId 双门 0x140ABF010 (60) — 字段链: +160 id (DB 数组下标) / +168 锁定门 (与 :657 全表校验同字段); DB = sub_1401775C0() {data@+40, count@+52, 8B 指针元}; 门 1 = 未锁定 (+168==0) ∧ 目标 state +168 非零 → :377「Not allowed to change id on this state.」(闩 byte_14333A0C9) 拒绝; 门 2 = 新 id 合法且目标槽 state+20 ≤ 0 (空闲) → 写 +160, 否则 :383「Id already exists in DB or is invalid.」(闩 byte_14333A0CA)。
 
 **装载链并行机制** (定案): 协调器 0x140AB5F4C0 → 0x140AB64AA0 → Load 0x140ABD660 (文件枚举)
 → 0x140ABB220 逐文件 "Short Task" 异步解析 → **串行 Insert** (malloc 0x1D0 + Parse; id<1 报错;

@@ -42,7 +42,7 @@ gs+1864 = **region 数组计数** (BHU 3,789), 非省数 (定案)。
 | +272 | 匿名结构 (NNB 形状) 向量 24B | type==0 (陆军) 单位位置对象数组 {data@+272, cap@+280, count@+284, alloc@+288} (tooltip 在场单位显示消费); 删除摘除同 sub_140E7FA10 | | 不序列化 |
 | +296 | 匿名结构 (NNB 形状) 向量 24B | type==13 单位子对象数组 {data@+296, cap@+304, count@+308, alloc@+312} (**type13 = CRailwayGun 铁路炮** — sub_140E87E70 写 `&CRailwayGun::vftable` 且 sub_140BF8B50(a1,13,a2); 类型号分派 sub_141A949B0 case 13 → sub_1410E6290; 增删 sub_140E79B10 case 13 push 本数组; 删除摘除同 sub_140E7FA10) | | 不序列化 (定案) |
 
-**铁路炮分配者** (railway_gun_assignee.cpp 两函, 0x14193E130 Assign / 0x14193E380 Unassign; 真类名待裁 — RTTI 未证, 名取自源文件): 容器 {数据 (qword 元 = 铁路炮指针) +8 / 容量 +16 / 计数 +20 / 分配器 +24, 1.5 倍增长}。Assign 前置断言 railway_gun_assignee.cpp:13 "IsRailwayGunAssigned( pRailwayGun ) == false" → 追加 + 尾调**本类 vtable[1] 通知钩子**; Unassign 前置断言 :20 "IsRailwayGunAssigned( pRailwayGun )" → 线性查找前移压缩删除 + 尾调 vtable[2] 通知钩子。挂接契约 = **派生类覆写槽 [1]/[2]** (零引擎调用零存档面; 具体派生者未定位)。
+**铁路炮分配者** (railway_gun_assignee.cpp 两函, 0x14193E130 Assign / 0x14193E380 Unassign; 真类名待裁 — RTTI 未证, 名取自源文件): 容器 {数据 (qword 元 = 铁路炮指针) +8 / 容量 +16 / 计数 +20 / 分配器 +24, 1.5 倍增长}。Assign 前置断言 railway_gun_assignee.cpp:13 "IsRailwayGunAssigned( pRailwayGun ) == false" → 追加 + 尾调**本类 vtable[1] 通知钩子**; Unassign 前置断言 :20 "IsRailwayGunAssigned( pRailwayGun )" → 线性查找前移压缩删除 + 尾调 vtable[2] 通知钩子。挂接契约 = **派生类覆写槽 [1]/[2]** (零引擎调用零存档面)。**挂接拓扑**: 子对象**内嵌于 CArmyGroup/COrdersGroup 族宿主 +24**; 三调用点 (sub_140E8EE90 入组 Assign / sub_140E8EF60 解挂 + sub_140E8F1F0 = CUnassignRailwayGunFromOrdersGroup::Execute Unassign, §4.33) 均传「宿主+24」; §4.18.2 CRailwayGun+1088 即指向该子对象, 与 +1080 id 对 fallback 双路径互证。Unassign 压缩循环对尾部区间内**所有**匹配元素去重 (不只删首个), 且逐次重读 count@+20。vtable[1]/[2] 的派生类覆写仍未定位 (vtable 数据不在语料)。
 | +320 | uint32 向量 24B | strategic_province_location u32 token 数组 {data@+320, **cap@+328**, count@+332, **alloc@+336**} | **块键 = 10230 (定案)**; AddStrategicLocation 错误报告 (非断言, sub_1424C8950/C8E60 格式化 — 措辞精化) "…already exist in province: %d" + 置 mapdata+5984=1; 尾调 AddBuildings = 战略位置 token 与附带建筑组一体落地 (locdef buildings 数组直送) | **GUI: 省侧战略位置行** (sub_1417507F0 → strategic_locations_grid) |
 | +344..+367 | — | **保留区 (负定案)** — 24B 无写者无消费者: 1.19.3 province.cpp 方法群内零读写, ctor (sub_140E78EC0/sub_140E79050) 在 +336 与 +368 之间整段跳过 (非「填 0」) | | 定案 (负) |
 | +368 | CCombat* 向量 24B | **在场战斗数组** {data@+368, cap@+376, count@+380, alloc@+384} — 8B CCombat* 元 add-unique (combatmanager sub_140BB77E0 建战斗后 sub_140E797F0 插入) | | 不序列化 |
@@ -139,7 +139,7 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | +88 | uint32 | 所属战略区模板 id (IsPointInRegion sub_1415A5A90 尾 region_id == *(desc+88) 唯一语义消费; §4.25.9) | ⚠ 与上行同偏移读法冲突, 待裁 |
 | +100 | i32 | 行程表条目数 (几何回填 pass 循环界, 与 +88 配对) | 定案 |
 | +112 | 匿名结构 (48B 形状) 向量 | **邻接表** {data@+112, count@+124} — 48B 条 (元素布局见下表), 邻省 id u32@条+8 (断言 "…over 256 neighbors", 界 255; 湖泊自动控制者 sub_140E7FCA0 遍历; 省级寻路 A* sub_140E2BDF0 消费; 海峡封锁判定 sub_140E2B7D0) | 定案 |
-| +136..+148 | i32×4 | **bbox {min_x, min_y, w, h}** (x_max = +136 + +144; 中心计算 sub_1415A4770 与点测 sub_1415A6420 消费 — §4.25.9; 与邻接装载 bbox pass 呼应) | 高置信 |
+| +136..+148 | i32×4 | **bbox {min_x, min_y, w, h}** (x_max = +136 + +144; 中心计算 sub_1415A4770 与点测 sub_1415A6420 消费 — §4.25.9; 与邻接装载 bbox pass 呼应; 点测算式 = x≥+136 ∧ y≥+140 ∧ x≤(+136++144) ∧ y≤(+140++148); 省号 1 基直索引 CMap+616 数组, 越界/0 号回退元素 0, count@+628 为界) | 高置信 |
 | +152 | 匿名结构* | **必需规则对象** (≠0 → GUI province_required_rule 图标显示; 消费 sub_14174C500) | 高置信 |
 | +168 | CTerrainType* | **地形 def 指针** (§4.26.7; 唯一写点 = 装载期 map.cpp:1373 区描述符构造循环, definition.csv Terrain 列按名查 terrainDB; 运行期零写点 — 53 读点全量核验均为读形态, `reload terrain` 只重建位图不重指描述符; 换控制权不动地形) | 定案 |
 | +184 | i32×2 | **省位置 {x, y}** (寻路启发式欧氏距离消费点; x 环绕修整宽 = CMap+64) | 定案 (pathfind.h 访问器族) |
@@ -147,10 +147,10 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | +196 | uint32 | 省 id (prov+164 = *(desc+196) 互证) | |
 | +200 | uint32 | **陆海配对省 id** (贸易陆↔海上岸配对 + 边评估核对比; 沿海省才非 0) | 定案 |
 | +208 | uint16 | **陆块编号** (land mass BFS sub_140A5E3A0; 海省 0; impassable 边断开; "Calculated N land masses") | 定案 |
-| +210 | uint8 | **旗字节**: bit0 = 脚本 is_land (海军移动断言链; ⚠ 与 CMap+568 数组**语义不同**: 湖泊/内陆水域在此为 0, CMap 侧为 1 — 13,494 省全量双读 111 例差异全属此类, 非缺陷); **bit1 = 湖泊/内陆水域旗** (高置信; 海峡封锁仅 bit0∧bit1 双 0 的海省可被舰队封锁); **bit2 = 岛屿旗** (定案; setter sub_1414089A0: 陆省且邻接表无非-sea 型边通向陆邻 → 置位, 装载尾遍历); **bit3/bit4 = coastal 双面旗** (定案; 陆侧/海侧由 bit0/1 分派, bitmap 邻接与 definition.csv 海岸分歧时以 bitmap 为准) | bit0/2/3/4 定案 / bit1 高置信 |
-| +211 | uint8 | **AI area 匹配分类 id (推定 continent)** — 唯一消费点 = CAIAreaDatabase::BuildProvinceAreaLookup sub_140626B90: 归属规则 = 陆省 (desc+210 bit0) ∧ 有战略区回指 (prov+200→+88) → **desc+211 字节 ∈ 列表A ∨ 区 id ∈ 列表B** (函数名经 gameapplication.cpp:1637 计时日志直证, 原文 "Databasee" 拼写笔误) | 字段存在定案 / 语义推定 |
+| +210 | uint8 | **旗字节**: bit0 = 脚本 is_land (海军移动断言链; ⚠ 与 CMap+568 数组**语义不同**: 湖泊/内陆水域在此为 0, CMap 侧为 1 — 13,494 省全量双读 111 例差异全属此类, 非缺陷); **bit1 = 湖泊/内陆水域旗** (定案; 海峡封锁仅 bit0∧bit1 双 0 的海省可被舰队封锁); **bit2 = 岛屿旗** (定案; setter sub_1414089A0: 陆省且位图 4-邻接 (含 X 交叉补链) 无任何陆邻 → 置位, 纯拓扑判定无面积阈值; 装载尾遍历, `!=1` 边型判据装载时恒真属防御代码, impassable 陆-陆手工边因 straits 回填时序不参与); **bit3 = 沿海陆侧旗** (land 与 lake 共用) / **bit4 = 沿海海侧旗** (sea 专用) (定案; setter sub_14140A6A0 分派键 = `(u210 & 3)`, bitmap 邻接与 definition.csv 海岸分歧时以 bitmap 为准, 仅陆省调和; 湖/海省直采 csv); bit5..7 未用 | bit0/1/2/3/4 定案 |
+| +211 | uint8 | **大洲 id (定案)** = CStateDatabase (qword_14332F070) +88 条目数组下标 (1-based, 槽 0 Null; 条目 0x50B: 名串@+0 / 有效旗@+40 / token 主键@+44; continent.txt 7 大洲按文件序编 id 1–7, definition.csv continent 列直拷); 第一消费点 = CAIAreaDatabase::BuildProvinceAreaLookup sub_140626B90 (函数名经 gameapplication.cpp:1637 计时日志直证, 原文 "Databasee" 拼写笔误): 陆省 (desc+210 bit0) ∧ 有战略区回指 (prov+200→+88) → desc+211 ∈ 列表A ∨ 区 id ∈ 列表B; 第二消费点 = 州 category 推导 sub_140ABD860 (statetemplate.cpp:242, 同函数顺带定案州沿海旗 CStateTemplate+349) | 定案 |
 
-邻接表 48B 条目布局 (装载 = **位图邻接计算真体 sub_140A5DDC0** (4-邻接双向建边 + X 交叉检测 + 岛屿旗尾遍历; sub_140A653D0 = ThreadedPostPostRead **总编排器** — 五 pass: bbox→邻接→沿海调和(bitmap 优先, setter sub_14140A6A0)→像素重对齐→像素权重) → adjacencies.csv 增补进 CMap+16 12B 表 (仅非自然邻接对, 边型 sea=1/river=2/river_large=3/impassable=4) → 逐边 sub_14140A5D0 回填; 陆块编号 BFS sub_140A5E3A0 写 **desc+208 u16**; 运行期不可变, 唯一重建 = `reload straits`):
+邻接表 48B 条目布局 (装载 = **位图邻接计算真体 sub_140A5DDC0** (4-邻接双向建边 + X 交叉检测 + 岛屿旗尾遍历; sub_140A653D0 = ThreadedPostPostRead **总编排器** — 五 pass: bbox→邻接→沿海调和(bitmap 优先, setter sub_14140A6A0)→像素重对齐→像素权重) → adjacencies.csv 增补: **自然邻接对 = sub_14140A5D0 覆盖既有 48B 条四字段** (+12 through / +16 边型 / +40 坐标 / +0 rule, **不改 cost@+24**; vanilla 实测 101 条) / **非自然邻接对 = 双 push 新 48B 手工边 (第二坐标对 {0,0}) + CMap+16 12B 表登记** {from, to, through} (vanilla 实测 150 条) — 非自然对才登记 +16 表 (海/运河类边参与陆块连通) → 陆块编号 BFS sub_140A5E3A0 写 **desc+208 u16**; 运行期不可变, 唯一重建 = `reload straits`):
 
 | 条目+N | 类型 | 名称/语义 |
 |---|---|---|
@@ -171,7 +171,7 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | +536 | uint32 向量 24B | **CAdjacencyRule\* 注册表** {data@+536, cap@+544, count@+548, alloc@+552} — loader sub_140A61970 解析 adjacency_rules.txt (查重双处: **1130/1132 = required 省侧 → 挂 desc+152; 1148/1150 = icon 省侧 → 挂 desc+160**; icon 省 id 存于 CAdjacencyRule+40); 规则布局见 §4.14.8 | 定案 |
 | +560 | uint32 | 省表界 (= gs+700 互证) | |
 | +564 | uint32 | 非海省数 (land+lake+unknown; 类型旗 land=2/sea=4/lake=8/unknown=1) | |
-| +568 | u32 数组 | 省号→紧凑 id 重映射 (4B×省数, 初值 −1; 构建器 sub_140A5F1F0) | |
+| +568 | u32 数组 | 省号→紧凑 id 重映射 (4B×省数, 初值 −1; 构建器 sub_140A5F1F0 = **地图初始化复合**: 聚合对象构造链 sub_140A5F1F0 → sub_141543C00 → sub_1415446A0 + 装载编排 + 紧凑映射) | |
 | +592 | u32 向量 | 非海省省号列表 {d@592, cap@600, c@604, alloc@608} (+564 = 其计数) | |
 | +616 | 匿名结构 (NNB 形状) 向量 24B | **省静态描述符 8B 指针数组** {data@+616, **cap@+624, count@+628**, alloc@+632} — ⚠ 元素是指针 (增长码 `8LL*count` memcpy 直证) | 定案 |
 
@@ -182,7 +182,7 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | +676 | 设施旗 |
 | +700 | 省级等级上限 (≤0 → 双 status 规则走州 +288; >0 → 走省 +400) |
 | +740 | 图标帧 |
-| +808 | 自定义图标 GFX (与 +824 门槛分槽 — 点击 lambda → sub_14174AB30 开设施 program 窗; countrystateview.cpp:0x658 断言直证) |
+| +808 | 自定义图标 GFX (与 +824 门槛分槽 — 点击 lambda → sub_14174AB30 开设施 program 窗; countrystateview.cpp:1624 断言; 建筑容器 = view+1416 {d@+24, c@+36}; program 查找链 sub_140BB48F0(state)+4008 → sub_140E76AE0) |
 | +824 | 自定义图标门槛 (与 +808 GFX 分槽) |
 
 省 loc 装配 = CAPACITY{level,max} + BUILDING_DAMAGED{DAMAGED,CURRENT} + 满级特殊字形。
@@ -250,10 +250,10 @@ SetRailway 族 (定案; 断言串 :80/:94/:102/:109/:120 直证):
 | 顶格 cooldown | u32 数组 {d@M+32, c@M+44} | c>0 才写 (0X1401B3D80 单行) |
 | 省反查 | 省静态描述符指针@info+8 → 省 id = ru32(desc+196) (CProvince+164 才是 id; §4.14.6 +8 同判) | |
 | reader (vtable[4]) token 语义 | 14622 cooldown → M+32; 19649 rail_way → 逐省块循环 (读省 id, 断言 >0, 槽空 malloc(0x70)+ctor 后交 info vtable[3] Load wrapper); 其余 → 基类 0X1424BEC40 | 定案 |
-| 冷却日更 | gs 日更串行 sub_1401D4810 → thunk sub_1401C6AB0(M) → sub_140E942F0: 倒序扫冷却表, info+104 递减, 归零 → CSupplySystem vtable[+24](省 id) 刷节点 + swap-remove (**+104 即 IsOnCooldown 判据**, :544) | 定案 |
+| 冷却日更 | gs 日更串行 sub_1401D4810 → thunk sub_1401C6AB0(M) → sub_140E942F0: 倒序扫冷却表, info+104 递减, 归零 → CSupplySystem vtable[+24](省 id) 刷节点 + swap-remove (**+104 即 IsOnCooldown 判据**, :544; 表内条目保证 info 已建且在冷却中 — 违者即断言非静默跳过; swap-remove 拷贝用递减前计数) | 定案 |
 | 开局铁路网 | map/railways.txt 装载器 sub_140E90D50 → sub_140E95B70 SetRailwaysAlongPath (省序列逐相邻对双向 SetRailway + 逐省刷节点; PathLength>1 断言) | 定案 (路径串直证) |
 | 铁路网导出 | railway_persistence.h:33 (0x141B69B70, 158 行) = 装载器**对偶侧**: 逐 Railway 节点断言 "Railway._Provinces.GetSize() > 1" (闩 byte_14338C194) → 行 = `sprintf("%d %d ")` 头部两 int (实参经寄存器 IDA 不可见, 推定 type/level, 待装载侧消费比对) + 逐省 `"%d "` (节点 +8 = _Provinces dword 数组 / 计数 +20) + "\r\n" → 写 **map/railways.txt** (流 +64 byte 失败旗 = 0 跳过); Railway 节点侵入式单链 (next@+40) | 定案 (写侧; 行首对语义待裁) |
-| build_railway effect | Execute = sub_14034DE00 (invalid level 报错 + 寻路 sub_140E936F0) → sub_140E92AB0 AddRailwayLevelAlongPath (逐相邻对增量设级 + 刷节点); 其余 92AB0 调用者 = 两省段升级 sub_140E61760 (建造完成侧) + GUI 侧 3 处 (推定) | 定案/推定 |
+| build_railway effect | Execute = sub_14034DE00 (invalid level 报错 + 寻路 sub_140E936F0) → sub_140E92AB0 AddRailwayLevelAlongPath (逐相邻对增量设级 + 刷节点); 其余 92AB0 调用者 = 两省段升级 sub_140E61760 (建造完成侧) + GUI 侧 3 处 (推定); 签名 (M, 路径向量, delta u32, clearProgress u8) — 与全量版 0x140E95B70 同构 (:594 PathLength>1 断言, 全量版 :615; 尾同款 gamestate.h:1116/1117 守卫 + 逐省刷节点), 逐对经增量变体 sub_140E928E0; 返回值 = 寄存器残留勿消费 | 定案/推定 |
 
 > CRailwayManager ctor 0X140E92510 {slots cap@M+16, alloc@M+24}; 实例对象 = §4.14.6
 > CProvinceRailwayInfo; 轨道升级图标侧 (CRailwayMapIcon + 五 define) 见 §4.30.16。
@@ -262,7 +262,7 @@ SetRailway 族 (定案; 断言串 :80/:94/:102/:109/:120 直证):
 
 | 项 | 值 |
 |---|---|
-| 挂载 | 管理器对象 +1776 = 每省情报/可见度字节纹理 (0–100%); 访问链两说并陈待裁: 「vtable[120]」vs province.cpp 批实测 qword_14332F698 vtable 字节偏移 +128 (槽 16) |
+| 挂载 | 管理器对象 +1776 = 每省情报/可见度字节纹理 (0–100%); 访问链 = qword_14332F698 vtable 字节偏移 +120 (槽 15, 有效性门) 真 → +128 (槽 16) 取省地图对象, sub_140B53EE0(对象, 省 id) 按省 id 索引 (两槽并用, 双点同构) (槽 16) |
 | 隐藏门 | <50 = 自定义建筑图标隐藏 (def+874 豁免) |
 | 第二消费点 | pdxmaptexturegeneration.cpp:244/254 喂地图纹理 {+0 字节基址, +56 纹理对象} |
 | 战争迷雾总开关 | byte_14332F63A (**定案**: debug_fow 控制台命令 handler sub_1402589F0, 打印 "Fog of War is now ON/OFF"; §4.34.7) |
@@ -328,6 +328,22 @@ ctor sub_141546970; 源 adjacencyrule.cpp (断言串 :160/:219 直证); 规则�
 | sub_141A75000 | 省图 | AI 志愿军令 |
 | sub_141A076C0 / sub_141A07F70 | 省图 | AI 前线纯陆 / 陆→海目标 (登陆路径) |
 
+CPathFind 请求校验器 sub_140E2CC50 参数结构 (定案, pathfind.cpp:999/:1006 断言串):
+
+| a2 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | int32 | 路径类型枚举（2 = 海军路径，走 sub_140E2B830 分支） |
+| +8 | 对象指针 | 源对象（vt[14] 偏移 112 可通行性询问：`(src, 目标, +41, +42, 0, 1)`） |
+| +16 | 对象指针 | 起点（+184 → +208 word 与 +210 byte&1 作区域/通行判据） |
+| +24 | 对象指针 | 终点（同起点判据） |
+| +40 | bool | 附加通行旗（参与 vt[14] 询问前置门，命名推定） |
+| +41 | bool | `_bBlockTransfer` |
+| +42 | bool | `_bForceTransfer` |
+| +43 | bool | `_bForceTransferThroughNavalBase`（与 +41/+42 互斥） |
+| +46 | bool | 附加通行旗（同上，命名推定） |
+| +47 | bool | 附加通行旗（同上，命名推定） |
+校验序：非空三重门（+16/+24/+8）→ :999 → +43 与 (+42 ∨ +41) 互斥门 → :1006 → vt[14] 询问 + 区域一致性（+208 word 相等 ∨ +210&1 ∈ {端点}）→ 类型 2 另走 sub_140E2B830；返回 1 = 可建路。
+
 CStrategicRegion 增补: +176 邻区指针数组 / +188 计数 / +224 代价权重 / +240 位置 qword 对 (+88 区 id 见省 +200 行)。
 
 **pathfind.h 模板骨架契约 (16 实例全读, 新定案)**: 10 参签名 `(mgr, from_vec, to, out, nodeCount, maxHops, ctx, pred, cost, done)` (回调裁剪得 PC/P/N 变体); 入口 scoped buffer 一次分配 **visited 位图 (n 位) + 40B×n 节点表** {f@0, g@8, 节点指针@16, **父 = 节点表项地址@24**, hop 数@32}; **INF 哨兵 = 92233720200000 (0x53E2D620FB40)** (≠ int64max/1e5); 16B 堆元 {key, 节点下标} 最小堆无 decrease-key (惰性重推); **启发式 = basis (恒初值 100000, cost 回调按引用可改写 — 读侧定案/写侧推定) × 牛顿 isqrt(欧氏距离, x 环绕 CMap+64)**, h 缓存 = f−g 复用仅首触算 isqrt; maxHops ≤0 = 不限; pred = 边剪枝 / cost 负值 = 边弃。**双重建器分写**: 模板族重建器 sub_140CA7650 **输出含起点** vs 主 A* 重建序 sub_140E29990 不含起点 — 两序勿互并。CArmy::[52] 变体 (sub_140C6B530) = 32B 节点 + key = 纯 g (无启发式 Dijkstra) 确认。**海军寻路互证**: CheckNavalPath sub_140EA9120 与修理母港打分寻路 sub_140D67AA0 均不调用本簇 = 独立实现; 「省对距离表 qword_143339D28」与「CMap 单例」系同一对象不同字段域, 两锚不冲突 (本簇只读 +64 环绕宽)。raid_pathfind.cpp 2 函数 (sub_141A09E00 门包装 / sub_141A0A130 raid 令陆目的地 wrapper, 高置信) 书未收 — 轻扫留待。**raid 寻路运行时入口已定位** = CRaidSystem (gs+1008) 的 sub_140E86040 (海军) / sub_140E86000 (陆), 经 CRaidSource::CalculateDistance + CRaidArrow::UpdateArrow 双调用方互证 (§4.27.7); 与 sub_141A09E00/A0A130 的关系未决。⚠ raid 直接距离 (sub_140E7C150) 哨兵 = INT64_MAX, **≠ 本簇 INF 92233720200000**。
@@ -366,24 +382,33 @@ sub_14140A360 查重免复制; `reload terrain` = sub_140A644C0 (位图重建, �
 
 **位图邻接 sub_140A5DDC0 精化**: 4-邻横向环绕纵向钳位; 自然边 48B 模板全字段 = {rule=0,
 邻省@+8, through@+12=0, type@+16=0, 画线禁@+17=0, cost@+24=0, 第二坐标对@+32={−1,−1},
-第一坐标对@+40={0,0}} 双向追加; **X 交叉非致死** = 2×2 块四省两两相异 → sub_140A631C0
-对角强制双向补链 + :1932 报错 (y 翻转 = height−y); 尾遍历岛屿旗 sub_1414089A0。
+第一坐标对@+40={0,0}} 双向追加; **X 交叉非致死** = 2×2 块四像素四省两两相异 (六次比较) →
+sub_140A631C0 **只补主对角 (NW-SE)** 强制双向补链 (同款 48B 模板), 锚点 = 2×2 块左上像素,
+末行不检测, :1932 报错 (y 翻转 = height−y); 尾遍历岛屿旗 sub_1414089A0。
 **wrap 检查 sub_140A5EBA0**: tbb **CCheckWrappedProvincesThreaded** (符号直证) 填旗 →
-:587 告警列省清单 (作战计划错误分裂风险)。**陆块 BFS sub_140A5E3A0**: 邻接边 type ≠ 4
-才可通, 海省块号 0, :1319 "Calculated N land masses"。
+:587 告警列省清单 (作战计划错误分裂风险)。**陆块 BFS sub_140A5E3A0**: 显式栈 DFS, 种子循环
+自省 id 1 升序 (跳槽 0 null 对象), 块号自 1 起 = 种子发现序; 扩展三条件 = 邻接边 type ≠ 4
+(impassable) ∧ 对端陆省 (desc+210 bit0) ∧ 对端 +208 未分配——sea 型手工海峡边参与连通;
+海省块号 0, :1319 "Calculated N land masses" (vanilla 1.19.3 = 132)。尾验 :1208 = 双端陆省
+∧ **双侧邻接表都无** through 才报错 (单侧有即不报)。
 
 **definition.csv 装载 sub_140A64720**: 空槽填 null 对象指针 qword_143339E30 (216B,
 null_object.h 断言族, 非零); 描述符 ctor sub_1414084F0 置 +196 = id; 行 40B: +5 旗 bit1 =
 land → desc+210 bit0 / bit3 = lake → desc+210 bit1 (**湖旗定案: 直接源 = definition.csv
 lake 列**) / +6 大洲 → desc+211 (陆省零大洲 :1373) / +7 → 沿海调和 sub_14140A6A0(desc,1)
-/ +8 Terrain 串 → terrainDB 查 → desc+168 (唯一写点)。
+/ +8 Terrain 串 → terrainDB 查 → desc+168 (唯一写点)。**行表布局定案** (40B/行, 三处消费
+互证): id u16@+0 / R,G,B@+2,3,4 / 类型旗@+5 (bit1 land=2 / bit2 sea=4 / bit3 lake=8) /
+大洲@+6 / coastal@+7 / terrain 串@+8..39。
+**CMap+2096 聚合构建链定案** (收口旧未决「构建者」): sub_140A5F1F0 → sub_141543C00 →
+sub_1415446A0 — 终函数以 **32MB 直寻址 LUT** (`LUT[R<<16|G<<8|B] = 省 id u16`) 逐像素
+精确匹配 definition.csv 行 (无最近色近似), 未匹配像素装载期留 0 (无省); +2096 聚合对象
+120B 含 +24 像素表 (u16/像素, 行主序) / +48 宽 / +52 高。
 **InitPerPixelWeights**: 断言 _pPerPixelWeights == 0 (:2423) 后 malloc 宽×高 u8 存 CMap+8;
 归一上界 = max desc+192; **quickstart 旗 byte_14332EC5C** = 权重全 1 捷径跳过并行。
 **nudger 无港检查 sub_140A66750**: (desc+210 & 9)==9 ∧ +200==0 → :1679 崩溃预警。
 
-未决: CMap+2096 聚合对象 (120B) 构建者与全布局 (簇外 ThreadedPostRead 填充); bbox pass 尾
-两对 item-DB 消费语义; CMap+336/+240 两文件身份; CMap+76/+2104; 邻接边 cost@+24 消费端
-0 值语义 (待裁); 权重 functor 归一公式; 簇外近邻 sub_140A64AA0/140A64430/140A65010/140A644C0。
+未决: bbox pass 尾两对 item-DB 消费语义; CMap+336/+240 两文件身份; CMap+76/+2104;
+权重 functor 归一公式; 簇外近邻 sub_140A64AA0/140A64430/140A65010/140A644C0。
 
 #### 4.14.10 province.cpp 簇对账增补 (CProvince 运行期行为层; 9 函数闭环 — 与装载侧互斥)
 
