@@ -953,3 +953,7 @@ UpdateCharacterScientistStatus 0x1410EFCD0 (104) / DailyUpdate 0x1410EB430 (54) 
 
 
 **scientist_skill_levels.cpp 互证增补**: 升级结算 0x141460260 钳位上界读 dword_143339A1C (SPEED_MODIFIER 大小) 而断言边界读 dword_143339A04 (THRESHOLDS 大小) — 两静态同值依赖 :292 大小约束 (SPEED_MODIFIER = THRESHOLDS+1)。⚠ tooltip 0x14145F590 **无满级分支** (姊妹 0x14145EA40 有 _MAX 分支): 满级时 THRESHOLDS[level] 断言触发 / release 尾后读 — 是否上层保证不满级调用待裁 (运行时探针可定)。
+
+#### 4.4.29 CUnitLeaderTraitsDB 库装载器 (unitleadertraits.cpp; 1 函 = 0x140AE6950, 定案)
+
+0x140AE6950: token 门 **12276 = leader_traits** 主循环 + 14533-14536/15152 五技能桶 (全对 ref token 表); 条目 **'@' 写回**; ctor sub_140AE3C60 / 重载 sub_140AE6E10 书已收互证; 唯一调用方 sub_140AEA720 = §4.4 装载本体 (s4_04:734 邻域)。

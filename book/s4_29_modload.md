@@ -209,6 +209,7 @@ sub_142076450 对启用集合建 16 字节条目表 `{int 权重 @+0, CDLCDescri
 > 备注: 挂载路径 = `sub_14207C000(记录 +280 挂载根, 记录 +104 路径, 输出)`: 两串以 `/` 拼接后反斜杠→正斜杠归一化; 其一为空则直取另一。该函数只做路径规范化。+280 前缀非 token 填充 (descriptor 解析后注入)。
 > 备注: 最终搜索路径 = 挂载序的**逆序** (正序挂载 + PHYSFS 前插): mod 组整体索引小于 DLC 与原版; 同权 mod 组内 **registry id 字典序靠后者索引越小** (优先级越高)。
 > 备注 (**定案**): 同权 mod 间的优先级由 **registry id (即 userdir `mod/` 下 `.mod` 文件名)** 决定 — descriptor 的 `name` 字段、`dlc_load.json` 数组顺序、launcher playset 顺序均不参与排序比较 (后两者只决定启用集合成员); dependencies 是唯一能把条目改离 registry id 字典序位的机制 (被依赖者降权 → 挂载提前 → 优先级降低, 文件被依赖者覆盖)。
+> 备注 (高置信): 内容库同目录多文件的**装载序 = 文件名字典序** (ASCII: 数字 < 大写 < 小写) — 证据面 = defines 装载依赖反证 (00_graphics.lua 尾部 `for k,v in pairs(NDefines_Graphics)` 合并语句要求 00_defines.lua 先建 NDefines 外壳, 反序装载则 graphics 组被其后的整体赋值抹除) + 磁盘分层解析与运行时值级对账 0 差异佐证; 共享枚举器 sub_1424DC600 (§4.28.33 ReadContent 族), PHYSFS enumerate 内部稳定排序未逐层直证。后装载文件的同键内容覆盖先装载; 同名文件二选一整文件替换走挂载优先级 (本节判定), 异名文件按本装载序追加合并。
 
 #### 4.29.5 replace_path 语义 (定案)
 

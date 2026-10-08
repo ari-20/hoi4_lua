@@ -140,14 +140,14 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | +100 | i32 | 行程表条目数 (几何回填 pass 循环界, 与 +88 配对) | 定案 |
 | +112 | 匿名结构 (48B 形状) 向量 | **邻接表** {data@+112, count@+124} — 48B 条 (元素布局见下表), 邻省 id u32@条+8 (断言 "…over 256 neighbors", 界 255; 湖泊自动控制者 sub_140E7FCA0 遍历; 省级寻路 A* sub_140E2BDF0 消费; 海峡封锁判定 sub_140E2B7D0) | 定案 |
 | +136..+148 | i32×4 | **bbox {min_x, min_y, w, h}** (x_max = +136 + +144; 中心计算 sub_1415A4770 与点测 sub_1415A6420 消费 — §4.25.9; 与邻接装载 bbox pass 呼应; 点测算式 = x≥+136 ∧ y≥+140 ∧ x≤(+136++144) ∧ y≤(+140++148); 省号 1 基直索引 CMap+616 数组, 越界/0 号回退元素 0, count@+628 为界) | 高置信 |
-| +152 | 匿名结构* | **必需规则对象** (≠0 → GUI province_required_rule 图标显示; 消费 sub_14174C500) | 高置信 |
+| +152 | 匿名结构* | **必需规则对象** (≠0 → GUI province_required_rule 图标显示; 消费 sub_14174C500; 州面板 tooltip #16 支第二消费 = 名 (rule+56 SSO, cap@+80) + 双描述 sub_141546FA0 主 / sub_141546FC0 副, dg032) | 定案 |
 | +168 | CTerrainType* | **地形 def 指针** (§4.26.7; 唯一写点 = 装载期 map.cpp:1373 区描述符构造循环, definition.csv Terrain 列按名查 terrainDB; 运行期零写点 — 53 读点全量核验均为读形态, `reload terrain` 只重建位图不重指描述符; 换控制权不动地形) | 定案 |
-| +184 | i32×2 | **省位置 {x, y}** (寻路启发式欧氏距离消费点; x 环绕修整宽 = CMap+64) | 定案 (pathfind.h 访问器族) |
+| +184 | i32×2 | **省位置 {x, y}** (寻路启发式欧氏距离消费点; 邻省择优中心坐标源 (§4.34.36, ×1e5); x 环绕修整宽 = CMap+64) | 定案 (pathfind.h 访问器族) |
 | +192 | uint32 | **海军/贸易代价底价** (省级寻路 A* 代价 = 100000×(v+1); 海军寻路 sub_14134FCC0 以本值原样作每跳附加累加 — 两读侧形态并存; 海军运输与贸易省图两实例共用 — ⚠ 「海军运输」实例归属待复核 (§4.14.8a 表 140E8F890 行现判铁路建造), 两实例具体指向待裁; 像素权重归一上界亦取 max(+192)) | 定案 |
 | +196 | uint32 | 省 id (prov+164 = *(desc+196) 互证) | |
 | +200 | uint32 | **陆海配对省 id** (贸易陆↔海上岸配对 + 边评估核对比; 沿海省才非 0) | 定案 |
 | +208 | uint16 | **陆块编号** (land mass BFS sub_140A5E3A0; 海省 0; impassable 边断开; "Calculated N land masses") | 定案 |
-| +210 | uint8 | **旗字节**: bit0 = 脚本 is_land (海军移动断言链; ⚠ 与 CMap+568 数组**语义不同**: 湖泊/内陆水域在此为 0, CMap 侧为 1 — 13,494 省全量双读 111 例差异全属此类, 非缺陷); **bit1 = 湖泊/内陆水域旗** (定案; 海峡封锁仅 bit0∧bit1 双 0 的海省可被舰队封锁); **bit2 = 岛屿旗** (定案; setter sub_1414089A0: 陆省且位图 4-邻接 (含 X 交叉补链) 无任何陆邻 → 置位, 纯拓扑判定无面积阈值; 装载尾遍历, `!=1` 边型判据装载时恒真属防御代码, impassable 陆-陆手工边因 straits 回填时序不参与); **bit3 = 沿海陆侧旗** (land 与 lake 共用) / **bit4 = 沿海海侧旗** (sea 专用) (定案; setter sub_14140A6A0 分派键 = `(u210 & 3)`, bitmap 邻接与 definition.csv 海岸分歧时以 bitmap 为准, 仅陆省调和; 湖/海省直采 csv); bit5..7 未用 | bit0/1/2/3/4 定案 |
+| +210 | uint8 | **旗字节**: bit0 = 脚本 is_land (海军移动断言链; ⚠ 与 CMap+568 数组**语义不同**: 湖泊/内陆水域在此为 0, CMap 侧为 1 — 13,494 省全量双读 111 例差异全属此类, 非缺陷); **bit1 = 湖泊/内陆水域旗** (定案; 海峡封锁仅 bit0∧bit1 双 0 的海省可被舰队封锁); **bit2 = 岛屿旗** (定案; setter sub_1414089A0: 陆省且位图 4-邻接 (含 X 交叉补链) 无任何陆邻 → 置位, 纯拓扑判定无面积阈值; 装载尾遍历, `!=1` 边型判据装载时恒真属防御代码, impassable 陆-陆手工边因 straits 回填时序不参与); **bit3 = 沿海陆侧旗** (land 与 lake 共用) / **bit4 = 沿海海侧旗** (sea 专用) (定案; setter sub_14140A6A0 分派键 = `(u210 & 3)`, bitmap 邻接与 definition.csv 海岸分歧时以 bitmap 为准, 仅陆省调和; 湖/海省直采 csv); bit5..7 未用 | bit0/1/2/3/4 定案; 邻省择优罚则门 (§4.34.36: bit1 置位 ∨ bit0+bit1 全清 → 罚 −25000) |
 | +211 | uint8 | **大洲 id (定案)** = CStateDatabase (qword_14332F070) +88 条目数组下标 (1-based, 槽 0 Null; 条目 0x50B: 名串@+0 / 有效旗@+40 / token 主键@+44; continent.txt 7 大洲按文件序编 id 1–7, definition.csv continent 列直拷); 第一消费点 = CAIAreaDatabase::BuildProvinceAreaLookup sub_140626B90 (函数名经 gameapplication.cpp:1637 计时日志直证, 原文 "Databasee" 拼写笔误): 陆省 (desc+210 bit0) ∧ 有战略区回指 (prov+200→+88) → desc+211 ∈ 列表A ∨ 区 id ∈ 列表B; 第二消费点 = 州 category 推导 sub_140ABD860 (statetemplate.cpp:242, 同函数顺带定案州沿海旗 CStateTemplate+349) | 定案 |
 
 邻接表 48B 条目布局 (装载 = **位图邻接计算真体 sub_140A5DDC0** (4-邻接双向建边 + X 交叉检测 + 岛屿旗尾遍历; sub_140A653D0 = ThreadedPostPostRead **总编排器** — 五 pass: bbox→邻接→沿海调和(bitmap 优先, setter sub_14140A6A0)→像素重对齐→像素权重) → adjacencies.csv 增补: **自然邻接对 = sub_14140A5D0 覆盖既有 48B 条四字段** (+12 through / +16 边型 / +40 坐标 / +0 rule, **不改 cost@+24**; vanilla 实测 101 条) / **非自然邻接对 = 双 push 新 48B 手工边 (第二坐标对 {0,0}) + CMap+16 12B 表登记** {from, to, through} (vanilla 实测 150 条) — 非自然对才登记 +16 表 (海/运河类边参与陆块连通) → 陆块编号 BFS sub_140A5E3A0 写 **desc+208 u16**; 运行期不可变, 唯一重建 = `reload straits`):
@@ -306,6 +306,8 @@ ctor sub_141546970; 源 adjacencyrule.cpp (断言串 :160/:219 直证); 规则�
 
 **CPathFind 请求结构** (pathfind.cpp 主省图 A* sub_140E2BDF0 消费, 16 字段) 与**省图 A* 三件套数据结构**: 24B 节点 / 位图 / 16B 堆元; 无 decrease-key (惰性重推); 输出不含起点 (sub_140E29990 重建序)。启发式 = 欧氏 ×(0.5 战略部署 / 1.25 常规); 环绕宽 = CMap+64。**own 州跳过** = 请求国有效且当前省默认控制者 (州 owner)==请求国 → 不展开 (主移动链传中立 tag 故常关; 启用面未穷举)。战略部署代价 = 100000×边价/(LAND_SPEED_MODIFIER×两省速度/100000), 溢出钳 0xFFFFFFFF。型 5 过境倍率 dword_1430B1654 = 静态 4; 敌境 ×2。**边评估全局缓存**: 键 = 省 id 对异或散列 (sub_140E29540, 常数 73244475), 开关 byte_1430B1650 (setter sub_140E2CBF0)。**单位路径总分派器 sub_1412342D0**: type13→铁路 A* sub_140E89760; 令旗 81..85 → 型 1/3/2→0/2/缺省; 恒传中立 tag。
 
+**型 5 目标区簇收集器 sub_140E2A3A0 (df361 本体定案)**: 自目标省 prov+208 CControllerArea 起 **99 层上限 BFS** (seen 线性查重链 + 队列双 32B 哨兵链), 收集「现控制者对请求国军通放行」的连续区簇入引擎向量 {count@+12}; 起点无条件入选 / 同控不入选 (req.id ≠ 控制者.id 前置)。**军通判定 sub_140700570 本体** = req.id ≠ 控制者.id ∧ (一方 id==0 ∨ req.index ≠ sub_140BB5490(控制者+8)) ∧ 控制者 id>0 ∧ 控制者国+3976 → +8 表 [req.index] → **+744 关系对象非空 ∧ +73 旗 == 0** → 返 1 (+744/+73 旗持位直证; launch_nuke 候选过滤同判定, §4.3.10a)。CControllerArea: +40 = 主省对象指针 (省+392 = 控制者 idpair) / +144 = 邻接侵入单链 {邻区@+0, next@+16}; 省 +208 = 所属 CControllerArea 回指。
+
 **pathfind.h 模板族** (三图源 × 谓词-代价-完成三回调契约) 18 实例业务表 (⚠ **表内业务公式全部住在调用方注入的 pred/cost 回调, 实例函数体 = 纯骨架** — 体内判别 grep 仅见 100000 基准与 INF 哨兵, 按 VA 反查业务常数会扑空; 唯一可靠身份判据 = 调用者, 全簇调用面 1:1~2 已普查):
 
 | 函数 | 图源 | 业务 |
@@ -364,7 +366,7 @@ grain = count/16) ⑤ InitPerPixelWeights sub_140A61F80 (**CInitMapPerPixelWeigh
 ("Straits reloaded") — **不含位图邻接重建**, desc+112 底表不重建, 重复 reload 靠
 sub_14140A360 查重免复制; `reload terrain` = sub_140A644C0 (位图重建, 非簇)。
 
-**GenerateBoundingBoxes 要点**: 像素源 = CMap+2096 聚合 +24 (u16/像素, 行主序), 宽高
+**GenerateBoundingBoxes 要点**: 像素源 = CMap+2096 聚合 +24 (u16/像素, 行主序; ⚠ **值域待裁**: §4.35 军令线总入口 sub_141258D30 单省支直接把该表值与**省 id** 比较 (== a5 首省 id), 与本处「权重表 + 经 CMap+616 二次取省」两读法冲突 — 两读法兼容当且仅当表值即省 id; 若为紧凑权重下标则军令线读法需改述为先转省, 待裁), 宽高
 @+48/+52; 行程表 desc+88 6B 元 {x,y,len} u16×3 (1.5× 增长); X 环绕修正落 bbox。诊断三级
 (门 = byte_14332EC69 = 启动选项 debug/crash_data_log): :1820 无像素 / :1830 bbox 宽或高
 ≥ ⅛ 地图 (环绕疑似) / :1842 Σrun ≤ MINIMUM_PROVINCE_SIZE_IN_PIXELS (dword_143331798)
@@ -396,9 +398,16 @@ sub_140A631C0 **只补主对角 (NW-SE)** 强制双向补链 (同款 48B 模板)
 null_object.h 断言族, 非零); 描述符 ctor sub_1414084F0 置 +196 = id; 行 40B: +5 旗 bit1 =
 land → desc+210 bit0 / bit3 = lake → desc+210 bit1 (**湖旗定案: 直接源 = definition.csv
 lake 列**) / +6 大洲 → desc+211 (陆省零大洲 :1373) / +7 → 沿海调和 sub_14140A6A0(desc,1)
-/ +8 Terrain 串 → terrainDB 查 → desc+168 (唯一写点)。**行表布局定案** (40B/行, 三处消费
-互证): id u16@+0 / R,G,B@+2,3,4 / 类型旗@+5 (bit1 land=2 / bit2 sea=4 / bit3 lake=8) /
-大洲@+6 / coastal@+7 / terrain 串@+8..39。
+/ +8 Terrain 串 → terrainDB 查 → desc+168 (唯一写点)。**行表布局定案** (40B/行, 三处消费互证):
+
+| 行内偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | uint16 | 省 id |
+| +2..+4 | uint8×3 | 调色 RGB (LUT 键 = R<<16\|G<<8\|B) |
+| +5 | uint8 | 类型旗: bit1 = land (2) / bit2 = sea (4) / bit3 = lake (8) |
+| +6 | uint8 | 大洲 id |
+| +7 | uint8 | coastal |
+| +8..+39 | char[32] | terrain 串 |
 **CMap+2096 聚合构建链定案** (收口旧未决「构建者」): sub_140A5F1F0 → sub_141543C00 →
 sub_1415446A0 — 终函数以 **32MB 直寻址 LUT** (`LUT[R<<16|G<<8|B] = 省 id u16`) 逐像素
 精确匹配 definition.csv 行 (无最近色近似), 未匹配像素装载期留 0 (无省); +2096 聚合对象
@@ -524,3 +533,7 @@ CTerrainDatabase (单例 qword_14332F0A8, §4.26.8) 本 pass 读侧:
 | 11 | 条目 +32 = 质心, +17 = 边界有效旗; 四字段 (+16 / +17 / +24 / +32) 全部镜像到反向边 (在邻省 desc+112 表中按本省 id 查得条目) | 回写与镜像 |
 
 > 本 pass 是邻接条目 +16 / +17 / +24 / +32 的**第四处写点** (前三处 = 位图自然边 / straits 手工边 / 对角补链, §4.14.3 邻接装载链); 其中 +24 写的是计算值而非 0。
+
+#### 4.14.xb 友方控制省图 BFS 距离查询 (1 函 = 0x140BE4370, 高置信)
+
+0x140BE4370: gs+700 省数铺 visited; gs+8 vtable2 槽[1] 取省; 邻接 {data@+112, 48B/条: 邻 id@+8 (书已名)、类型 u8@+16 ≠4 过滤} (省静态描述符 §4.3:227 挂点); 通行谓词 = controller(+392) → sub_140700600 (tag/索引同源); 返回 {省id<<32 | 深度}, 未达 {−1, dword_143332E24 (= COMMS_MAX_DISTANCE 复用)}; 唯一调用者 sub_140BEB640 取距离写宿主 +460。

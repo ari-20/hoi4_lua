@@ -25,7 +25,7 @@ L1 帧序 (槽[29] 帧内步序, 定案):
 | 7 | 瞬态横幅 ×4 (AUTOSAVING / SCREENSHOT_TAKEN / MAP_SAVED / Running Test...) |
 | 8 | EndFrame sub_142238180 + 截图/横幅合成闩 sub_14223B030 (a1+1288 旗 — 精化: 该字节 = **帧就绪/Present 复合锁存** 非截图专用, 设备 ok 时 sub_1422370E0 置 1 / B030 用槽 9 Present 返回值覆写, 截图横幅只是消费者之一) |
 
-截图合成件 sub_140B411B0 = BeginFrame + 装载屏轮换 sub_140B40BD0 + 横幅纹理盖印
+截图合成件 sub_140B411B0 = BeginFrame + 装载屏轮换 sub_140B40BD0 + 横幅纹理盖印 (形参序 = (gfx, 文本串&, a3 合成门旗, a4 轮换门旗); a3 门控 BeginFrame 族操作, a4 门控装载屏轮换 sub_140B40BD0; 装载屏初始化期文本实参恒为空串临时量, §4.35.63)
 (懒载字体 "vic_36" 经 sub_142238A20 = **GetFont 带回退** (缺名回退表中首字体)) + 整帧 2D 树 + EndFrame — 横幅即此路盖章。
 
 #### 4.35.2 世界/地图渲染三段链
@@ -345,7 +345,7 @@ byte_143453088 (控制台可注册): sub_14223D2C0 帧首/尾各一次设备调�
 dx9(0) / opengl(2) / opengl4(3)** — 选择串直证 (graphicssettings.cpp:172): `opengl`/`ogl` → 2,
 `opengl4` → 3, `dx9`/`dx9_compat` → 0, `dx9legacy` → 旗 byte_1435DA930; id 1 无独立串 (与 3
 共用函数域)。后端 2 = OpenGL 定案 (表槽函数引 pdx_gfx\gfx_opengl.cpp 断言; GL 上下文 =
-wglCreateContext/wglMakeCurrent)。GL 扩展装载双件 = sub_142438B50 (gl3w 形态 5,472 行) +
+wglCreateContext/wglMakeCurrent)。GL 扩展装载双件 = sub_142438B50 (**= GLEW glewContextInit, 静态链**, 5,472 行; 返回码 {0 OK, 1 NO_GL_VERSION, 2 GL_VERSION_10_ONLY}; 顶旗 GL 4.2 -> GLEW 1.7.0/1.8.0 窗口, 见 4.35.44) +
 sub_142441940 (WGL 枚举 3,665 行)。图形设置装载 = sub_14241A230 ("Loading settings for
 adapter")。纹理类型枚举 (载体 sub_14240CFD0): "2d"=0 / "shadow"=0 (别名, shadow map 按二维纹理处理) /
 "cube"=1 / "3d"=2 (gfx_helper.cpp:142)。SDL2-2.0.20 静态链 = 窗口/软光栅底座。
@@ -423,11 +423,11 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 | S4 | 渐变边框/边界 | gradientborder 三件 1,010 | sub_14159BBE0 tbb 任务体; sub_140F36C50 claim 管理 |
 | S5 | 地图模式 | mapmodemanager 946 / defines_mapmode 1,588 / custom_map_mode 603 | sub_140E14680 = 模式 2 (STRATEGIC_NAVY) 每帧 updater (真 OnMapModeChange = sub_140A66DE0 CMapModeDispatcher::OnMapModeChange, mapmodedispatcher.cpp:238 实名, ~80 处切换统一点); sub_140E1B280 逐省着色 (§4.2 链): 政治混合 = byte/255 → 0.9f/0.65f/0.25f 三色构造 (14224BEB0 + 14224BFF0 lerp); 未认领哨兵色 0xAA00FFFF (PE ×4); 动画帧 = fmod(Δt, 帧数×qword_1430B1648)/周期×帧数 钳 [0,帧数−1]; gs+700 计数门语义 = **省数 (省表界)** (同函数 sub_140E1B280 逐省着色按省数消费 (§4.2 链) + mapbuildings 两处独立直证 (省 id 有效门 + 等级表按省一行), §4.14/§4.13 主流定案); 淡入淡出三通道 +1728/+1732/+316 步进 dt 后各 clamp [0,1], 方向门 = DRAW_COUNTRY_NAMES_CUTOFF (dword_14333645C) ≤ 缩放(a2+1668); +312 = +1732 镜像 |
 | S6 | 地图图标 | mapicon.h 1,358 / mapiconmanagerimpl 691 | §4.30.26-28 类族 |
-| S7 | 地图箭头/前线几何 | maparrow 481+370 / raid_arrow 824 | sub_141244070; sub_1423F4C90 点集切分; sub_141039F80 寻路 manager ctor sub_14126E990 / LoadDefinitions sub_141272920 (gfx/maparrows/maparrows.txt, lua 解析器 sub_141272F00) / 订单箭头装配 sub_141254FB0 (三静态色源 + 地图模式 39 分支) / per-frame sub_14124F710 / (⚠ 三池析构 sub_141662150 归属已改判 CGfxNavalCombatManager 清理 — §4.35.31, 非箭头管理器自身析构) |
+| S7 | 地图箭头/前线几何 | maparrow 481+370 / raid_arrow 824 | sub_141244070; sub_1423F4C90 点集切分; sub_141039F80 寻路 manager ctor sub_14126E990 / LoadDefinitions sub_141272920 (gfx/maparrows/maparrows.txt, lua 解析器 sub_141272F00) / 订单箭头装配 sub_141254FB0 (三静态色源 + 地图模式 39 分支) / per-frame sub_14124F710 / (⚠ 三池析构 sub_141662150 归属已改判 CGfxNavalCombatManager 清理 — §4.35.31, 非箭头管理器自身析构) / **军令线总入口 sub_141258D30 链 8 件**: 路径点追加 sub_1412664D0 (x 环绕钳位到 CMap+64 + 距离阈值细分插点 + 点数 ≥ 8192 清空重建) / 复位 sub_14126C390 / 提交 sub_14126C4E0 / 缎带重建 sub_14126C830 + sub_14126D680 / 地形贴合缎带 sub_14126AE10 / finalize sub_14126D480 / **省集合绑定器 sub_1412517B0** (把省集合绑到箭头/区域 — 军令线 ← 带状省数组 / df135 战略区 ← 省列表 / df33 fleet_area 同族; ⚠ 原 S11「定长缓冲三件」系误归, 已迁此) / 标签项查 sub_1412510F0 / 调试线 sub_1412542D0 |
 | S8 | 相机/交互输入 | (0x140DB-DC / 0x14126 区) | CEU3Camera; sub_1412627C0 热键+位移 |
 | S9 | GUI 框架核心 | containerwindow / buttonwrapper / gui.cpp | sub_1402A44A0 .gui 解析; sub_14225C690 事件分派 |
 | S10 | 字体/文本渲染 | bitmapfont 2,102 | sub_14229C770 装载; sub_1422A1810 布局 |
-| S11 | 文本引擎/本地化 | (0x1421E / 0x14224 / 0x1411B 区) | sub_1421EAA30 文本流格式化; sub_1411B4B10 浮点格式化 |
+| S11 | 文本引擎/本地化 | (0x14224 / 0x1411B 区; 0x1421E 区 = ImGui) | sub_1411B4B10 = STL num_get 浮点解析 (`_Parse_fp_with_locale` char 版, §4.35.62); ⚠ sub_1421EAA30 系 **ImGui::InputTextEx** (改判迁 §4.26, 原「文本流格式化」误归) |
 | S12 | 纹理/像素搬运 | texturehandler 949 (行数 = depth3 口径; 全 CU 7 函 989 行) / gfx_texture_cache 392 / flagtextureatlas 1,002 | sub_142133600 上传核; sub_142171F50 blit |
 | S13 | 软件光栅 | SDL_render_gl 2,137 / SDL_render_gles2 1,612 | SDL_BlendLines 三核; 分派器 sub_1421A31A0 |
 | S14 | 3D 实体/动画/粒子 | pdx_anim 1,185 / pdx_particle 408 (行数 = depth3 口径单函; 全 CU 2 函 931 行) | sub_14228D730 实例初始化更新 (dt=0, 精灵创建路径 — 原「挂点定位」系误标, pdx_entity.cpp 簇定性); sub_1423FE460 粒子更新; 全簇 14 件见 §4.35.17 |
@@ -443,7 +443,7 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 管线三链 —
 - **装载 (启动)**: map 初始化巨函 sub_1413944D0 → malloc(0x180) ctor → 宿主 +1744 → sub_141272920 装载 `gfx/maparrows/maparrows.txt` (lua 解析器 sub_141272F00, LoadDefinitions 五参签名 RTTI 直证: path + arrows→+136 + symbols→+208 + textDef→+288 区 + colors→+80); 循环1 逐箭头 malloc(0x60) ctor sub_141265130 → +160; 循环2 逐符号 malloc(0x30) ctor sub_141B1F350 → +232; 热重载 sub_141587A90 ("Map arrows reloaded") + 重解析比对件 sub_1412739D0。字段名 TextureMaskList/TexturePatternList = maparrow.cpp:440/447 断言直证。
 - **创建 (订单→箭头)**: 三包装 sub_1412563A0/E0/480 → 订单解析 sub_141254CD0/D40 (order+96 引用槽 → COrdersGroup) → **装配总入口 sub_141254FB0**: 选色三分 (orderInst+665 旗 → 静态色 unk_143331BE0 / 同国 → scope 派生色 / 异国 → unk_143331B30, 地图模式==39 改 A70) → CColor lerp sub_14224BEB0 (1.0f/0.5f 两档) → SetColor 写 +96; 同国且有选中指令组 → GfxCommonArrowUpdateCallback 经 sub_140DFD540 注册延迟更新; 箭头指针集合 = CPdxHybridInlineBufferAllocator<CMapArrowObject*,128,int> (128 项内联)。
-- **每帧**: 泵 sub_140B58470 宿主 +1816 → **sub_14124F710 (箭头+弹道实体共享 per-frame)** → **gs+2617 会话门** (§4.1 该字段新消费点) → sub_141244070 (5,020 行重建主件; 时间节流门 qword_1430B2E18+上次时刻; 玩家国 gs+1680 视角); 动画时钟 = (gs+1212 速度级+1)×Δt, 暂停归零; 袭击箭头独立走宿主 +1792 → sub_141668C10。
+- **每帧**: 泵 sub_140B58470 宿主 +1816 → **sub_14124F710 (箭头+弹道实体共享 per-frame)** → **gs+2617 会话门** (§4.1 该字段新消费点) → sub_141244070 (5,020 行重建主件; 时间节流门 qword_1430B2E18+上次时刻; 玩家国 gs+1680 视角); 动画时钟 = (gs+1212 速度级+1)×Δt, 暂停归零; 袭击箭头独立走宿主 +1792 → **sub_141668C10 = 地图单位覆盖层 per-frame 泵 (非箭头专属)**: 袭击箭头 + **deployed_general_base_plate 将领底板重建步 sub_14166ABC0** (LOD 门 = idler vtable+120→+32→f32@+1668 vs dword_1433333E0 超阈清空 + 情报门 sub_141618DC0 可见度 ≥250 最高档; 遍历链 = 国+360 theatres → theatre+128 orders_group → group+104 provider 两跳 vtable → 位置源 +496 → +184/+188) 等多步共享。
 - **销毁**: sub_140B52130 = 突袭 GFX 清理+懒取复合 (含 :3732 断言); 三清理循环 = a1+104 数组 (计数 a1+116, 8B 步) 逐元省对象 (5992B/元) 清理 / a1+1848 数组 (计数 a1+1860, 16B 步取元 +8) 逐元 sub_14228D700 / a1+1824 非空 → sub_141662150; 清零 a1+1860 与 a1+304, 尾 a1+88 → sub_141278460 后懒建 56B 管理器 (ctor sub_14167D7F0(mgr, a1+1744 箭头管理器)); 其调用的 sub_141662150 三池析构 (实体句柄+SSO 串+双定长数组) **归属已改判 = CGfxNavalCombatManager 元素清理** (唯一调用点被 CGraphicalMap+1824 门守卫 — §4.35.31; 箭头管理器自身析构函另寻)。
 
 **defines 全族** (NGraphics): ARROW×5 / RAID_ARROW×14 / RAILWAY_MAP_ARROW×15 / RIVER_SUPPLY+SUPPLY_CONSUMER×3, 含数据槽 dword_1433363BC (ARROW_MOVEMENT_SPEED)。主要未决: qword_1430B2E18 初值 / mgr+184 辅助数组语义。
@@ -486,21 +486,21 @@ equipment_graphic_database / train_gfx_database; "Map reloaded"/"Map arrows relo
 
 | 子系统 | 件数 | 件清单 (★=≥1000 行) |
 |---|---|---|
-| S1 设备/后端 | 3 | ★sub_142438B50 5,472 GL 扩展装载; ★sub_142441940 3,665 WGL/GL 扩展; ★sub_14241A230 1,729 适配器设置装载 |
-| S3 地图图形 | 9 | ★sub_141244070 5,020 地图箭头绘制; ★sub_1423F4C90 4,233 前线点集平面切分; ★sub_141B204A0 2,248 省界图形生成; ★sub_1423BA890 2,763 SSE 数学内核; ★sub_1420A8510 1,560 float3 几何; sub_1412761A0 1,257 断言域巨函; sub_1412615B0 146 视觉数学; sub_14124F710 319 **箭头重建+弹道实体共享 per-frame (身份收窄: 原「导弹/爆炸实体」系其中 type==15 分支以偏概全 — "missile_explosion_entity" 仅该分支)**; 弹道循环生成 missile_explosion_entity; 箭头部分/爆炸实体; sub_140B52C90 269 懒初始化/FX |
-| S4 渐变边框 | 18 | sub_140F34020 465 队列装配; sub_140F37330 388; sub_140F36C50 351 claim 管理; sub_14159BBE0 307 tbb 任务体; 家族件 14 (140F3A680/A0D0/38E60/39BF0/36710/38A30/34F90/37A40, 1417A1920/A2D490/27F4F0 1,122 LOD, 140A5CDC0/359D0, 140F3B370 431 池管理) |
+| S1 设备/后端 | 3 | ★sub_142438B50 5,472 GL 扩展装载 (= **glewContextInit**); ★sub_142441940 3,665 WGL/GL 扩展 (= **wglewInit**); ★sub_14241A230 1,729 适配器设置装载 |
+| S3 地图图形 | 9 | ★sub_141244070 5,020 地图箭头绘制; ★sub_1423F4C90 4,233 前线点集平面切分; ★sub_141B204A0 2,248 省界图形生成; ★sub_1420A8510 1,560 float3 几何; sub_1412761A0 1,257 断言域巨函; sub_1412615B0 146 视觉数学; sub_14124F710 319 **箭头重建+弹道实体共享 per-frame (身份收窄: 原「导弹/爆炸实体」系其中 type==15 分支以偏概全 — "missile_explosion_entity" 仅该分支)**; 弹道循环生成 missile_explosion_entity; 箭头部分/爆炸实体; sub_140B52C90 269 懒初始化/FX |
+| S4 渐变边框 | 18 | sub_140F34020 465 队列装配; sub_140F37330 388; sub_140F36C50 351 claim 管理; sub_14159BBE0 307 tbb 任务体; 家族件 14 (140F3A680 case-9 变体 = §4.35.49 / A0D0/38E60/39BF0/36710/38A30/34F90/37A40, 1417A1920/A2D490/27F4F0 1,122 LOD, 140A5CDC0/359D0, 140F3B370 431 池管理) |
 | S5 地图模式 | 11 | sub_140E15A40 476 特工任务着色; sub_140E14680 470 OnMapModeChange; sub_140E1D2E0 396; sub_140E13FE0 307; sub_140E1CD90 288; sub_140E13A80 271; sub_140E1A400 269; sub_140E152F0 253; sub_140E1DD10 163; sub_140E1E090 159; sub_140E157F0 120 国色图例 |
 | S6 地图图标 | 1 | ★sub_1418C99A0 1,141 建设图标 tooltip |
 | S7 箭头/前线几何 | 7 | ★sub_141039F80 1,746 advancement 寻路; ★sub_14126FD50 1,162 纹理校验; sub_141662150 102 三池析构 (归属已改判 CGfxNavalCombatManager, §4.35.31); 海战图形三件+选优 (sub_141663E50 150 舰船实体名三级回退 / sub_141661FC0 88 命中特效实体表 / sub_141549F20 170 海军雷视觉件 ctor / sub_1415C6F30 83 idpair 选优 — §4.35.31a) |
 | S8 相机/交互 | 4 | sub_1412627C0 392 热键+位移; sub_141261960 207 清场; sub_140DC0860 230 / sub_140DC0B20 181 递归数学 |
 | S9 GUI 框架核心 | 29 | ★sub_1402A44A0 1,621 .gui 解析; ★sub_14230FEE0 1,313 重复类型校验; ★sub_1422BE890 1,511 布局递归; ★sub_141CDC170 1,165 文本项元件; sub_1422A4110 100 锚点分派; sub_14225C690 279 事件分派; idler/tick 族 12 (14167DB20/1412DFDC0/141289980/140DDDA40/1419AD3E0/140B92B30/141688A60/1422DC530/1417A7310/141833DB0/140CBC200/1416408A0); clausewitzlib graphics 控件基件 11 (sub_1422AFB40 233 按钮事件共享 Dispatch §4.00 / sub_1422B0B50+sub_1422B0BB0 21+21 button.cpp 未实现桩 / sub_1422F7EA0 CWindowType 模板继承链解析 / sub_1422F99E0 105 CWindowType 属性拷贝器 / sub_142372360 241 CDropDownMenuType 继承链解析 / sub_142307FA0 147+sub_142308260 144 CLineChart::SetData\<i32\>/\<fixed\> 两实例 / sub_1422CB020 128 CInstantTextBox 文本解析 / sub_1422B3020 121 锚点权重表 — 全部机制见 §4.30.32c) |
 | S10 字体/文本渲染 | 4 | ★sub_14229C770 1,654 字体装载; ★sub_1422A1810 1,036 布局/图标; ★sub_1422A0230 1,049 缓冲构建; sub_142238A20 102 解析共享 |
-| S11 文本引擎/本地化 | 14 | ★sub_1421EAA30 2,087 文本流格式化; ★sub_1411B4B10 1,930 浮点格式化; ★sub_14252ACD4 1,214 money_get; ★sub_1418530F0 1,272 / ★sub_140E18DF0 = SelectModeInstances (更正: 原 S11 归文本域系误归 — 实为地图模式层选实例选择器, 向 hub 灌色) 1,079 / ★sub_1412517B0 1,002 定长缓冲三件; ★sub_140D20450 1,336 战争名键求值; sub_142245880 235 $展开; sub_14224B9F0 225; sub_140BD3530 388; sub_140BD2F80 279; sub_140FD2240 264; sub_1411C5D30 255; sub_14225CD50 102 |
+| S11 文本引擎/本地化 | 14 | sub_1421EAA30 2,087 = ImGui::InputTextEx 本体 (改判迁 §4.26); ★sub_1411B4B10 1,930 = STL num_get 浮点解析 (§4.35.62); ★sub_14252ACD4 1,214 money_get; ★sub_1418530F0 1,272 / ★sub_140E18DF0 = SelectModeInstances (更正: 原 S11 归文本域系误归 — 实为地图模式层选实例选择器, 向 hub 灌色) 1,079 / ★sub_140D20450 1,336 战争名键求值; sub_142245880 235 $展开; sub_14224B9F0 225; sub_140BD3530 388; sub_140BD2F80 279; sub_140FD2240 264; sub_1411C5D30 255; sub_14225CD50 102 |
 | S12 纹理/像素 | 8 | ★sub_142130DF0 1,617 搬运/填充; ★sub_142171F50 1,492 blit 巨函 (×24 分量表); ★sub_142133600 1,338 上传核; ★sub_14219BF40 1,401 / ★sub_14219D7D0 1,397 16 位变体; ★sub_14218FCE0 1,365 GUI blit; sub_14225FF10 106; sub_140D5BBC0 1,590 robin-hood 枚举 (通用基建) |
 | S13 软件光栅 | 4 | ★sub_1421A0670 1,830 自递归内核; ★sub_142197DD0 1,604 16bpp 混合; ★sub_142196690 1,429 32bpp RGBA; ★sub_14219F1E0 1,315 32bpp RGBX |
 | S14 3D 实体/动画/粒子 | 4+14 | ★sub_14228AF80 1,461 **实例逐帧动画/附件更新器 (递归)** (原「attachment 定位」系收窄误标 — 含时间归一/TTL 销毁/特效表/动态子实体生成/双子表递归/播完销毁); ★sub_14228D730 1,400 实例 dt=0 初始化更新 (精灵创建路径, 唯一调用方 entity_sprite.cpp); ★sub_1423AE8F0 1,115 float4 流变换; sub_1423FE460 280 粒子更新; pdx_entity.cpp 簇 12 盲区件补入 §4.35.17 |
 | S15 调试/ImGui | 9 | ★sub_1422095C0 2,394 profiler SIMD 内核; ★sub_1421CBE30 1,426 Begin 原语; ★sub_1421F4480 1,156 / ★sub_1421F9450 1,134 观察窗族; ★sub_141B0F6D0 1,066 Faction Member 窗; ★sub_1410652F0 1,128 AI 前线调试; sub_1421D9B40 213; sub_1422A2F90 114 DebugTexture; sub_140222300 105 采样三缓冲 |
-| S17 资产装载/压缩 | 6 | ★sub_142388030 2,950 bzip2 解码; ★sub_14250CD90 1,537 range 解码; ★sub_14123D920 1,087 旗帜图集装载; sub_140B406A0 248 国旗图集; sub_140B40BD0 202 装载屏轮换; sub_140FA30E0 470 库条目实例化 |
+| S17 资产装载/压缩 | 6 | ★sub_142388030 2,950 bzip2 压缩 (sendMTFValues, §4.35.52); ★sub_14250CD90 1,537 range 解码; ★sub_14123D920 1,087 旗帜图集装载; sub_140B406A0 248 国旗图集; sub_140B40BD0 202 装载屏轮换; sub_140FA30E0 470 库条目实例化 |
 | S18 基础库旁支 | 5 | sub_140E84150 192 批量释放; sub_14029E0F0 118 POD 拷贝; sub_140B6BC60 115 idpair 去重; sub_140210AF0 202 核爆遥测 (素材包误纳); sub_1406A40E0 101 生涯档案提交/上传总入口 (10 步: 本地/云载入合并→保存→云删除/上传路由; §4.28.22) |
 S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 
@@ -509,10 +509,10 @@ S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 | 函数 | 行数 | 身份 |
 |---|---|---|
 | ★sub_1418D35C0 | 3,103 | 单位领袖 tooltip |
-| ★sub_1416A3930 | 2,299 | 陆军视图 tooltip |
-| ★sub_1417C39E0 | 2,120 | 师数文本 |
+| ★sub_1416A3930 | 2,299 | 陆军视图 tooltip (师列表窗单位按钮回调, 全量精化 = §4.35.59) |
+| ★sub_1417C39E0 | 2,120 | 订单组行件逐帧刷新 (师数文本为其一节; §4.30.71) |
 | ★sub_140F454A0 | 1,694 | 军令 tooltip (orderstools.cpp) |
-| ★sub_141258D30 | 1,848 | 军令绘制文本 |
+| ★sub_141258D30 | 1,848 | **军令线几何+锚点生成总入口** (orderstools.cpp; a1 = pGfxFronts **死参** — 函内零引用, 改经全局 idler vt[16] 自取同一对象; **有父订单 (a3=2)** → 邻接叉积定侧 + 垂距阈值 qword_1430B2E20 展开单侧带状边界省集合 → 增量绑定 (变化 ≤ max(1, n/5) 走轻量重绑, 否则全量重建); **无父订单 (a3=1/默认)** → 省位 + 邻接边第二坐标对折点 → 中点细分平滑 (轮数 dword_1433374D4 / 143337620); 终段提交路径 sub_14126C4E0 → 地形贴合缎带 sub_14126AE10 → finalize sub_14126D480; 写 a2+512 侧面旗 ±1, 清 pGfxFronts 标签缓存 +36/+48 |
 | ★sub_1413EBD60 | 1,513 | 边境冲突窗 |
 | sub_1416DDD90 | 1,531 | 战斗计划工具窗 |
 | sub_141D198E0 | 1,493 | 指挥官能力 |
@@ -537,7 +537,7 @@ S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 
 | 函数 | 行数 | 身份 |
 |---|---|---|
-| ★sub_1415E5C60 | 2,850 | 国家列表面板 |
+| ★sub_1415E5C60 | 2,850 | 外交视图 BuildTooltip (元素名分发 tooltip 构造器, 主 vt[18]/@40[0] = §4.30.64; 面板 populate 侧 = §4.30.9 诸函) |
 | ★sub_141C55960 | 1,837 | 流亡政府视图 |
 | ★sub_14196C300 | 1,080 | 租借明细 |
 | sub_1415833C0 | 1,110 | 政治视图装配 (归 S16e 更准) |
@@ -583,7 +583,7 @@ S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 
 | 函数 | 行数 | 身份 |
 |---|---|---|
-| ★sub_141E29DE0 | 2,117 | 特混编成编辑器 |
+| ★sub_141E29DE0 | 2,117 | 特混编成编辑器窗 tooltip 构建器 (15 槽分发 + 荣誉舰兜底; §4.16.23 尾块) |
 | ★sub_14143D3E0 | 2,004 | 海军 tooltip |
 | ★sub_141BF0C60 | 1,242 | 舰船属性页 |
 | ★sub_141E27000 | 1,168 | 舰队视图条目 |
@@ -608,7 +608,7 @@ S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 |---|---|---|
 | ★sub_141788E70 | 2,497 | 模块选择窗 |
 | ★sub_14176B330 | 2,464 | stats 网格 |
-| ★sub_141780F80 | 2,077 | 装备设计器 tooltip |
+| ★sub_141780F80 | 2,077 | 装备设计器 tooltip = CEquipmentDesignerView BuildTooltip 全案 (§4.30.4a) |
 | sub_141F78DD0 | 1,049 | 海军模块图标 |
 | ★sub_141438470 | 1,008 | 许可证生产速度 |
 
@@ -616,7 +616,7 @@ S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 
 | 函数 | 行数 | 身份 |
 |---|---|---|
-| ★sub_1410F35E0 | 2,261 | 燃料 tooltip |
+| ★sub_1410F35E0 | 2,261 | 燃料 tooltip (mode=0 明细 / mode=1 摘要; 顶栏 BuildTooltip 明细 / 后勤统计页摘要; 详 §4.3.16 GUI 消费面) |
 | ★sub_141D97D50 | 1,598 | 补给效率 |
 | ★sub_141631E60 | 1,322 | 州补给 |
 | ★sub_141EC0450 | 1,289 | 预算图表 (ledgerview_civilian.cpp) |
@@ -635,7 +635,7 @@ S16 面板/视图 GUI 行件逐件表 (108 件, 按组):
 
 | 函数 | 行数 | 身份 |
 |---|---|---|
-| ★sub_140E10910 | 2,021 | 情报网络 |
+| ★sub_140E10910 | 2,021 | 情报网络 (mode 3 operatives 通道州情报网 tooltip; 唯一调用方 = 省点击 tooltip 巨函 sub_140E05340 case 3) |
 | ★sub_140FC1200 | 1,099 | 任务覆盖明细 |
 | ★sub_141EB42D0 | 1,000 | 谍报账本 |
 | sub_141835130 | 290 | 间谍视图 |
@@ -864,11 +864,14 @@ glDrawArrays / glDrawElements(BaseVertex), 索引恒 ushort。LoadSettings 出�
 未决: SDL 包装三件浮点 get/set(32) 语义 / 绑定条目 +16..39 元数据 (归 glsl_builder 批) /
 GL 小查询槽 ~15 个 / LoadSettings 出参块跨后端异构的泛型消费方式。
 
-#### 4.35.16f gfx_supply.cpp 路径条管线域 (5 函闭环; 补给/铁路/河网共用)
+#### 4.35.16f gfx_supply.cpp 路径条管线域 (9 函闭环; 补给/铁路/河网共用)
 
 清册 (5/5 函体内含 gfx_supply.cpp 路径锚; 与 §4.28 BAB0 铁路线绘制核咬合): 连接-父边收集器
 0x141656F90 (183, SRiverPath 请求 {端点 A/B, 段 id} + 省对去重 + 待绘 PQ) / 路径求解器
-0x14165DA50 (658, **CMap+616 路径条图 +628 计数补录**, BFS 顶点链, 扩展门 = sys+16 偏移表 →
+0x14165DA50 (658, **CMap+616 路径条图 +628 计数补录**, **堆式优先队列遍历** (df390 精化: 非 BFS — 工作队列 =
+CPdxArray<32B 元素> 最大堆, push sub_1416559E0 扩容+追加+sift-up / pop 搬末元素到根+count−−+
+sift-down sub_141657830 / 比较器 sub_141657320 五键复合序: +8↓ → +12↓ → +16 跳数 (0 = 最低优先,
+非零升序 = 跳数少优先) → (+0,+4) 端点对 lex↑; 严格比较器), 扩展门 = sys+16 偏移表 →
 calc+208 涉足位图, 回溯填请求 +16 found/+20 终点对/+40 途经对向量) / 旗标发射器 0x14165B4D0
 (368, 省对序列按去重集切 run, 写 48B 几何记录 +44 位域 bit0 命中/bit1 方向/bit2 高亮) /
 省份标记取色器 0x1416569F0 (128, 悬停/瓶颈红绿 = 省+32 vs max(MAX_RAILWAY_LEVEL, 首都节点
@@ -876,6 +879,18 @@ _TotalSupply), 白-色渐变 lerp, 开闭五态) / 补给流箭头刷新 0x14165
 缓存第二读者** — country_supply.h:386 断言与 §4.21 已收 sub_141658020 同源; 按
 SUPPLY_FLOW_REDUCTION_THRESHOLD 三档取 NODE_FLOW_IN_{CURRENT,HALF,FULL}_RANGE_COLOR 发射;
 由渲染环 sub_140B572D0 经宿主+1840 每帧驱动)。
+> df390 补录优先队列四件 (同域, 调用方 DA50 体内 gfx_supply.cpp 锚直证): **sift-down
+> sub_141657830** (285, 唯一调用点恒 sift 根 a2=0; 返回值 char 为寄存器残留 — 比较径持 bool /
+> 落叶径持 count 低字节, 调用方不取, 真身 void) / **比较器 sub_141657320** (五键复合序, 返
+> bool = A≻B; ⚠ `!(v5 ^ v6 | v4)` = **有符号 (a>b)**, 极易误读为 (a<b), 逐值代入已证伪) /
+> **sift-up sub_141657D50** (while (parent ≯ child) 交换上移, push 收尾) / **push 封装
+> sub_1416559E0** (count==cap 则 1.5× 扩容 align 4 → 追加 32B → sift-up 从旧 count 上浮)。
+> **32B 堆元素布局** (df390 定案, 比较器 + sift-up/sift-down + 调用方 5 见证互证): 边端点对
+> (min,max)@+0/+4 (末键 lex↑) / 锚节点 id@+8 (主键↓, 沿路径继承, 业务含义未决) / 路径常量@+12
+> (次键↓, 沿路径继承, 种子 0, 域语义未决) / 跳数@+16 (三键, 逐边 +1 — 松弛时 qword(+12) +=
+> 0x100000000 只增高 dword +16; 种子 0 = 最低优先) / byte@+20 (不参与比较) / **padding@+21..+23**
+> (XMM 交换显式跳过 = 编译器已知填充) / 继承对@+24/+28 (沿路径继承; 种子分支 A = 端点对 /
+> 分支 B = 0, 域语义未决, 呼应下文「途经对向量」未决项)。
 
 **流水线总控** (定案): sub_14165FB20 串联 6F90 → BAB0 → DA50 → B4D0×2 → D050 (调 69F0) →
 D730 — BAB0 与发射器为兄弟调用 (§4.28 注)。**define 三锚**: NSupply.MAX_RAILWAY_LEVEL
@@ -1115,7 +1130,7 @@ mode 1/2 具体差别 / 剔除门节点表是否即「四叉树」/ 状态 +600 
 
 #### 4.35.24 FX 粒子系统定义 writer (gfx/FX/particle.lua 导出半边)
 
-FX 粒子系统定义 writer = sub_142344F20 (2739 行; 与粒子定义解析件 sub_142296A40 成对): 键 = name(27) / max_amount(409) / sort(426, 枚举串 depth|distance|age) / emitter_type(481 "sphere") / sphere_emitter_radius(482, 块) / slave_particles(608); 发射原语计数 279× 串 sub_1424C2AD0 + 76× sub_1424C3900 + 4× 块 sub_1424C4220。
+FX 粒子系统定义 writer = sub_142344F20 (2739 行; 与粒子定义解析件 sub_142296A40 成对; 经 vtable 槽[1] 间接调用, 语料零显式调用方, 本体类名未决): **32 键全表落定** (原记 6 键) — 头部 name(27) / max_amount(409) / sort(426; **枚举数值 1=depth / 2=distance / 3=age, 0 不发射**) / emitter_type(481; **三态 0=point / 1=sphere / 2=box 推定**; sphere(482-484) 与 box(485-487) 参数键共享同一批向量存储) / slave_particles(608) 等; **19+1 曲线块双向量布局全表** (force 唯一单向量); 68B keyframe {模式位, +4 值}; float → ×1e5 round-half-away 定点整数字面量发射; **发射原语精化**: 279× 串 sub_1424C2AD0 + 76× **sub_1424C3900 = int→十进制文本** (原未定性) + bool 键原语 sub_1424C37B0 + **块委托 trampoline sub_1424C24F0 ×3 + 递归** (原「4× 块 sub_1424C4220」定性失真 — 4220 实为键名发射); texture/color/position 三代理委托块字段组; 主对象标量带 +1756..+1870; childsystem 1872B/条递归经元素 vtable[1]。
 
 #### 4.35.25 战略地图图形域带锚 (0x14165 区 / orderstools 带)
 
@@ -1240,16 +1255,16 @@ bank 解析表示对象布局:
 |---|---|
 | 河流 | sub_141B24A10(设备, +23376, +23368, +23424) → 顶点数 |
 | 地形 | sub_141278ED0 / sub_1412784E0 (§4.35.2 表行邻域) |
-| 省界 | sub_141B204A0(上下文, +18848, +18872, +18920, 256, +17 ? −1 : 0x10000) (§4.35.7 S3 互证) |
+| 省界 | sub_141B204A0(*(+8 上下文), +18848, +18872, +18920, 256, +17 ? −1 : 0x10000) — 256 = 分块边长 (像素), 0x10000 = 单顶点缓冲顶点上限 (u16 索引寻址上限), −1 = +17 自建门置位时合并单缓冲; 全量定案 §4.35.60 |
 | 树 | sub_141B26810(设备, +21296) (16B/条, +21308 条目数, +10 u8 类型序); 树类型名 = "mapobject_" 拼类型名 → sub_142238C00 → 存 +19256+8×类型序; 失败 → ③:2980 (flag 65543) |
 | 顶点缓冲 | +296 空则 **槽 35** CreateVertexBuffer (调试串 pdxmap.cpp:3373 — §4.35.16③ 第 6 参新实例互证); +304 空则 **槽 45** (产物存 +304) |
 | 索引缓冲 | +17 门: 旧 +23712 经 **槽 42** 释放 → u16 索引 6×(n−1) 条 (条带模式) → **槽 41** CreateIndexBuffer (调试串 :3274) → 存 +23712; else 支 sub_141278AD0 |
 
 尾 = sub_14125D530(上下文, +23448) → LOAD_GFX 收尾 → +16 清零 → CMapModeDispatcher 族收尾。唯一调用方 = sub_140B4F9C0 (传 mgr+88 的 CPdxMap)。
 
-**CPdxMap 装载域偏移群**: +8 渲染上下文 (后端设备 = *(ctx+128)) / +16 装载中旗 / +17 索引缓冲自建门 / +176/+200 物件层与箭头层 (推定) / +296 顶点缓冲 / +304 槽 45 产物 (待裁) / +18792..+18920 边界与省界三输出 / +19256 每树类型图形表 / +21296/+21308 树层容器与计数 / +23368/+23376 河流输出对 / +23424/+23436 河流点 data/count (24B/省) / +23448 输出层 (推定) / +23712 GB 索引缓冲 / +23744 分块级数 / +23752 GB 纹理指针。
+**CPdxMap 装载域偏移群**: +8 渲染上下文 (后端设备 = *(ctx+128)) / +16 装载中旗 / +17 索引缓冲自建门 / +176/+200 物件层与箭头层 (推定) / +296 顶点缓冲 / +304 槽 45 产物 (待裁) / +18792 边界/省描述符侧 (sub_141B27AC0 产物, 本函范围外) / +18848 省界顶点缓冲句柄 vector<u64> / +18872 省界边界记录 vector<20B> / +18920 分块剔除网格 48B/块 (§4.35.60) / +19256 每树类型图形表 / +21296/+21308 树层容器与计数 / +23368/+23376 河流输出对 / +23424/+23436 河流点 data/count (24B/省) / +23448 输出层 (推定) / +23712 GB 索引缓冲 / +23744 分块级数 / +23752 GB 纹理指针。
 
-未决: +17 位语义 / +304 槽 45 产物 / GB 纹理 192B 全形 / 单例 qword_143339D28 +64/+68 宽高 (推定) / 24B 省河流条目内部形状 / 槽 89 本调用形态。
+未决: +304 槽 45 产物 / GB 纹理 192B 全形 / 单例 qword_143339D28 +64/+68 宽高 (推定) / 24B 省河流条目内部形状 / 槽 89 本调用形态。
 
 #### 4.35.30 地图情报覆盖贴图 (map_graphics\intel.cpp; 2 函闭环 — 逐省 u8 六源填充 / 每帧失效驱动)
 
@@ -1556,3 +1571,300 @@ sub_141CC9670: v5 = 当前时钟 (sub_1422333C0 单例 → sub_142233480, f64) �
 | 阈值 | threshold = rand 绝对值 × 2^−31 (4.656612873077393e-10, double 域) × TotalWeight 绝对值;两输入均取绝对值 (符号位无符号右移技巧, IDA 位运算展开);含 2^63 回绕守卫 (≥ 9.223372036854776e18 时减 2^63, 保 i64 截断安全) |
 | 扫描 | 前缀和 cum 累加 (权重 ≤ 0 的项跳过不计),(int)threshold < cum → 返该下标;扫尽 → 断言 "Failed to get random index" (:158, 闩 byte_1435E3F29) → −1 |
 | 关联 | 邻函 sub_1424F0890 (§4.35 idpair 选优段已载, 带 file:line 哈希参) = 本核的 SIMD 非断言包装 (**定案**): 单行尾调 sub_1424F02E0(a1,a2,a3,0xFFFFFFFF); 总权重 0 / 穷尽返 a4 哨兵而非断言; 阈值公式与 sub_1424F0700 逐字同构 (d4054 收口) |
+
+#### 4.35.44 GLEW 初始化巨函 (glewContextInit 0x142438B50 + glewInit 包装 0x142441920 + wglewInit 0x142441940, 定案/精确小版本待裁)
+
+**0x142438B50 = glewContextInit()** (GLEW 静态链入 hoi4.exe; 5,472 行中前 794 行为局部声明表, 逻辑区无 EH 噪音): glGetString(0x1F02 GL_VERSION) 手工字符解析 (无 sscanf) -> 15 级版本旗阶梯 **byte_1435E1428..1436 = GLEW_VERSION_1_1..4_2** (阈值回落逐级清 0; 142A = 1.3 导出镜像零读方 / 142B = 1.3 装载门真消费); glGetString(0x1F03 GL_EXTENSIONS) -> 扩展串区间 [start, end] (NULL 兜底空串 — **core profile 下扩展旗全灭盲区**, 靠兼容 profile 或 experimental 强载)。**扩展旗库 = byte_1435E1437..15D8 共 418 个** (首旗 GL_3DFX_multisample, 尾旗 GL_WIN_swap_hint; 搜索 392 次经 helper **sub_142438A60 = _glewSearchExtension(name, start, end)**, 首批 ~10 个内联); 每扩展标准序 = 旗置位 -> `if (旗 ‖ byte_1435E15D9)` -> wglGetProcAddress 族 -> 旗改写 = 「函数指针全部实际可解析」(**byte_1435E15D9 = glewExperimental**, 跨函恰 2 消费者 = 本函 + wglewInit; experimental 置位时旗仅剩装载结果语义)。**338 个 GL 函数指针全局** (qword_1435DD598 首 = glCopyTexSubImage3D .. qword_1435E1420 末 = glAddSwapHintRectWIN)。**版本子装载器实名**: sub_1424368D0/36E80/37450/376B0/38210 = _glewInit_GL_VERSION_1_3/1_4/1_5/2_0/3_0; sub_1424363E0 = _glewInit_GL_SUN_vertex。无 KHR_debug、无 4.3+ core 探针 -> GLEW 版本窗口 1.7.0/1.8.0 (精确小版本待 wglewInit 批查 WGL_EXT_swap_control_tear 仲裁)。**家族三件套**: 0x142441920 = glewInit 三行包装 (contextInit → !r 则 wglewInit); 0x142441940 = wglewInit (3,665 行, 同 experimental 级联同构); 上游双调用点 sub_142422AF0 / sub_142422530 (S1 设备创建簇, GL2/GL3 变体分工未决)。
+
+#### 4.35.45 libpng 1.6.16 PNG 写出器与图像 I/O 函数表 (1 函 = sub_142454F20 + 表初始化器 sub_1424543C0, 定案/表属类名待裁)
+
+**sub_142454F20 = PNG 写出器** (libpng **1.6.16** 静态链, 版本串直证; 图像 I/O 函数表 sub_1424543C0 槽[9]; 16 槽表: 槽[8] = 装载器候选推定 / 槽[14]/[15] = charNode::raw_length 符号直证域属; dword_1435E1A5C = 表 init 第二参 = 错误输出模式旗, libpng 错误经 error_fn longjmp 抛串 catch 消费同旗)。**API 映射 22 件** (0x14246A890 = png_create_write_struct / 4681C0 = create_info_struct / 46C270 = set_longjmp_fn + setjmp 256B / 46A950 = destroy_write_struct / 471580 = set_write_fn (io = {a1,a3} 打包) / 471AB0 = set_IHDR / 46AB10 = set_compression_level (level 1..9 门) / 471DF0 = set_iCCP ("Embedded Profile" ICC 串, data = img+BC70 {len@+4, data@+8}) / 4726A0 = set_tRNS / 471CB0 = set_bKGD / 46AF00 = write_info / 4714E0 = set_swap (16bpp) / 471480 = set_interlace_handling / 46B440 = write_row / 471840 = png_malloc / 471BB0 = set_PLTE / 46AD20 = write_end / 471810 = png_free)。**入参开关**: a5 bit0-3 = zlib 压缩级 1..9 / bit8 = 无压缩 / bit9 = Adam7 interlace。**色型支**: 源枚举 B830 {0 灰度→color 0 / 1,3 调色板→color 3 + PLTE / 2 RGB→color 2 / 4 RGBA→color 6}; IHDR 位深 = 调色板 ? min(位深, 8) : 16 (**16bpp swap 真实使用**); **行写出倒序** (源位图底行先行/DIB 行序); 32bpp→24bpp 降深支 (malloc 3x宽 + sub_14244D1B0 转换); **PLTE BGRA→RGB 重排** (每 4B 源元取 [2],[1],[0])。
+
+#### 4.35.46 顶点缓冲填充簇 (接口工厂 sub_142111EF0 +96 槽; 1 函 = 0x142113710, ABI 定案/簇归属推定)
+
+**接口工厂 sub_142111EF0**: sub_1420FFE60(1, 624) 分配 624B 接口对象 + 680B 伴生 (+608..+664 拷入 sub_142121A70 构造 64B); +40/+48 = UserMathErrorFunction 占位; **+96 = 本填充函数**; +240 起从静态模板 off_1430BA598 拷默认槽 32B。**0x142113710 填充 ABI**: sub_1420F6A80(a1, 20×count, 0, a2+8) 分配 (失败返 **0xFFFFFFFF**, 成功 *(a2+16) = count 返 0); **顶点 20B** = {+0 f32 pos_x = a14×src_x, +4 f32 pos_y = a15×src_y (双轴缩放), +8/+12 f32 uv (a3==0 填 0), +16 dword 附加流 (语义未决)}; 位置/uv/附加流三源各带 stride; **索引三态** = a13: 4 = u32 / 2 = u16 / 其余顺序递增 (a11==0 时 a10 = a12)。簇归属推定 = 2D 矢量图形顶点 (USMapArrowVertex 族, §4.35 CMapArrow 簇仅类名级收录; 无 COL 直证待裁)。
+
+#### 4.35.47 24/32bpp BGR↔RGB 像素格式转换内核 (1 函 = 0x14216B410, 高置信形态/类归属未决)
+
+0x14216B410 (纯算法, 零 xref 零断言 — 引用走数据段函数指针): 上下文描述符 a1 = {源 ptr@+0, 源 stride@+20, 目标 ptr@+24, 宽@+32, 高@+36, 目标 stride@+44, 源格式对象@+48, 目标格式对象@+56, 填充 alpha@+83}; 格式对象 = {+8 第 4 通道存在旗, +17 像素字节宽 (3/4), +43 alpha 移位 (实测 24)}。**转换矩阵** = 目标字节序恒 [src[2], src[1], src[0], X]: 4B→4B dword 打包 (src[0]↔src[2] 交换, alpha 直通) / 3B→4B (预计算 fillAlpha 填充) / →3B 逐字节交换丢弃 A — 标准 **BGR(A)↔RGB(A) blit**。**Duff's device 8 路行展开** (`switch (宽&7)` 直落 + (宽+7)/8 主循环), 行尾双 stride 换行。
+
+#### 4.35.48 CGraphics sprite type 派发器 (1 函 = 0x14223A770 + 单件派发 sub_142355FA0, 高置信)
+
+0x14223A770 (CGraphics a1, 进度回调 a2, ctx a3): **表形状** = +256 总数 / +260 桶数 / +264 桶指针表 (桶 = 链式集合 {val@0, next@8}, 遍历确定性)。**双路按设备 ABI 槽 2 GetOwnBackendId (off_1430BF7C0)**: **ret==1 (dx11) → 异步路** = 桶表收集进 vector → std::function 打包 (40B 捕获块, functor vtable **off_142B3DD10** 新录) → `sub_1424D4D10(job, &fn, "Long Task")` (Long 池提交口) → 泵循环 `while (!sub_1424D5400(job)) { 回调(ctx, done, total); sub_1401BA490(&10ms) }` (到点等待器每轮睡 10ms) → 收尾引用计数释放; **其余 (D3D9/GL) → inline 路** = 逐节点 sub_142355FA0 + 进度回调。**dx11 才异步** (后端 id 决定并行化, 非设置驱动)。**sub_142355FA0 = sprite type 一次性惰性派发**: sprite type 对象 {+64 过滤类别 i32 (0 = 全部), +68 已处理闩 u8}; 过门 → +68 = 1 → vtable[9] 无参调用; 与 df186 DeInit 侧释放通知件同族对偶。**调用方两站** = CGraphics::Init 预 init (df186 已收) + **装载链图形步** (进度组 5 → 6, 进度回调 = **sub_1401ADA70** 加载屏回调新录; 与 §4.28 InitBase LOADING_MAP_SPRITES 链互证)。
+
+#### 4.35.49 S4 渐变边框 case-9 变体处理器 (1 函 = 0x140F3A680, 定案 (结构))
+
+0x140F3A680 (owner a2, a3): 调用者 = 家族分发器 sub_140F33D50 (2 参形 case 9) 与 sub_140F3AC50 (3 参形 case 9); a2 = 条目数组 owner {data@+0, cap@+8, size@+12, 分配器@+16}, a2+73 置 1, a2+76/+80 抄全局 dword_143333188 / dword_1433328B0 (样式参数, 推定)。断言三站 (前二与姊妹函共享闩): gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" (闩 byte_14332ED00, 引擎原文拼写错误照录) / :1126 "_ThreadForbidCount == 0" (闩 byte_14332ED01, _ThreadForbidCount = TLS+16) / gameitemdatabase.h:142 "_pInstance && \"Instance not created.\"" (闩 byte_14332F589, 库单例 qword_14332F0A8)。**重建段**: `*(gs+8)->vt[2]` 取引擎侧源表 {data@+0, count@+12}, a2 size ≠ count−1 → 全毁重建, i=1..count−1 逐条 malloc(0x88) = **136B 条目** (ctor sub_141596C00), **索引 0 跳过**; 尾 a3→1 = 全量刷新旗。**136B 条目布局 (ctor 定案)**: +16 = off_143085170 分配器 vtable / +24 与 +48 = 两个 24B 子块 (+24 = int 集合 {begin@+24, count@+36}, 主函 sub_140F33600 二分查找) / **+76 i16 = −1 哨兵** (后写 id) / **+80 qword = 1.0f** / +88..+120 零 / **+128 = a2 回指 owner**。**颜色源三态 (定案)**: ① 源条目 +184 非空且 +210 bit0 → 取缓存 item +168; ② 否则 +200 非空 → sub_1415A5560(+48 句柄) 间接解析; ③ 都无 → gameitemdatabase 兜底 (函数级 static 注册串 **"ocean"** → sub_1403BD130 名表查 item)。**着色**: item+80 起 16B = RGBA 浮点块拷入栈上 CColor → sub_14159C260 置色 → sub_14159C3D0(条目, 127) (0x7F, 推定半透上限, 待裁) → sub_141598430 写 id (占 +76 哨兵位) → sub_14159C350(0,0) 收尾。**CColor 布局 (高置信)**: {vtable@+0, r/g/b/a float @+16/+20/+24/+28}; ctor sub_14224BEE0 (默认 1.0f×4), alpha 写 = sub_14224C7E0 (+28)。gs 侧源表条目字段: +164 (u32 key) / +184 {+168 item 缓存, +210 bit0 有效旗} / +200 {+48 间接句柄}; 源表身份 (州/区域) 未决。
+
+#### 4.35.50 CGameGraphics::Init3DTypes 体形态 (1 函 = 0x142238FD0, 定案)
+
+0x142238FD0 (CGameGraphics* a1; 调用图位 §4.35.6 / s4_28 InitBase 步 840): **3D 类型注册表装载**。数据面: +1320 = 3D 类型计数 (进度分母, 高置信) / +1324 = 桶数 / +1328 = 桶数组 (**链式哈希集**, 桶元素 = 节点 {type\*, next})。执行: sub_14222BDB0() 进度上报器单例 → 门 `off_1430BF7C0() == 1` (async 模式查询, 数据槽被 IDA 渲染成带参调用失真): 同步路 = 直扫桶链逐类型 `(*(type vtable+72))(type, a1)` (**槽 [9] = 各类型初始装载槽**, 与 CPdxMeshType [9] .mesh 装载同位), 每件 sub_14222E270(v44, 3, ++进度, v41, 0); 异步路 = 类型指针收进局部向量 → 任务闭包 (malloc 0x28, **functor vtable off_142B3DD20**, 按引用捕获 {向量, 上报器, 进度写点, a1}) → sub_1424D4D10 以名 **"Long Task"** 发射 → 主线程 `while(!sub_1424D5400(任务))` { 进度泵 sub_14222E270(op=3) + sub_1401BA490(**10ms** 等待) }; 任务对象 InterlockedExchangeAdd 引用计数。尾: sub_1423FDAE0() 特效库单例非空 → sub_142294270 + sub_142293DF0 两步图形侧续 init。与 §4.35.48 sprite type 派发器同族双路形态 (functor vtable 相邻 B3DD10/B3DD20)。
+
+#### 4.35.51 省份堆叠优势单位选择与择配链 (1 函 = 0x14192BF60 + 调用链 2 函, 结构定案/对象字段待裁)
+
+0x14192BF60 (out {ptr,id} 对, 上下文 a2): 省份单位堆叠「**优势单位**选择器 + 优势方→目标择配」(单位图形名解析链顶层; 消费方 0x14128E9A0 = provincegraphics.cpp:210 "we shouldnt show air or navies like this. something is fishy" 断言, 闩 byte_143389FBC, 结果经 sub_142293790(结果, "naval_move") 名核查)。调用链 = 0x14192C590 (缓存薄壳: a1+8 已算旗 + vtable+64 getter; 名注册表直查 sub_142293530 未中落 B740) → 0x14192B740 (主实现: 复合名构造 sub_14192B2C0 = 基名 + `(u8)*(a2+1200)` 字节参 + 第二串; 无效对象走 +504 缺省件路) → 本函。执行序: 内嵌视图对象 (+968/:+952 二选一 +24 入视, sub_140C7E7E0) → 缺省件 (sub_140BA03A0: +416 优先, 否则全局缺省; +16 有效门) → 逐 a2+872 数组 (16B 元 {ptr,id}, count@+884) 过滤 (旗置位按 id `sub_140C95730==v46` / 否则按分组键 `*(v13+1240)==v7`) → 排序 (≤32 插排 sub_141929960 / 归并 sub_141929DA0, >256 malloc 缓冲否则 4KB 栈) → 逐有序元素命中即返: 扫 v4+168 容器 {候选, 权重} (count@+180, 排除表 = v4+296 已用对象数组), `sub_14100EA10(v31+784, &v48, *(对象+1008))>0` 门 → **打分 `10×(100×权重 + *(v13+968) + 10)`**, 候选 +1480 打包值 BYTE4 置位时整值直用覆盖公式 → 取最大为目标; 目标 +16 无效则下一元素, 耗尽返 {0,0}。callee 定形态: sub_140BA04B0 = `a1+504` 纯偏移 / sub_140BA04C0 = 拷 +488 起 16B {id, 旗}。a2+872 宿主类 / +968 / +1240 / +1480 打包域语义待裁。
+
+#### 4.35.52 bzip2 压缩端 sendMTFValues (compress.c 静态链接; 1 函 = 0x142388030, 定案)
+
+0x142388030 = **bzip2 压缩端 `sendMTFValues`** (上游 compress.c 1.0.x 指纹甄别; 原书索引行「解码」系方向误判, 已勘)。五重证据: compress.c 专属 debug 串 ("pass %d: size is %d, grp uses are" / "…after MTF & 1-2 coding…") / AssertH 错误码 3001/3003/3004/3005/3006/3007 六连 / nGroups 五档分界逐界吻合 / `BZ2_hbMakeCodeLengths(len, freq, alphaSize, 17)` 调用形态 / 唯一调用方 0x1423874F0 = BZ2_compressBlock (高置信)。**EState 偏移链 21 项 (六段数组首尾相接零缝自洽, 首次收录)**:
+
+| 偏移 | 字段 |
+|---|---|
+| +72 | mtfv |
+| +80 | zbits |
+| +108 | nblock |
+| +116 | numZ |
+| +124 | nInUse |
+| +128 | inUse |
+| +640 | bsBuff |
+| +644 | bsLive |
+| +656 | verbosity |
+| +668 | nMTF |
+| +672 | mtfFreq |
+| +1704 | selector |
+| +19706 | selectorMtf |
+| +37708 | len |
+| +39256 | code |
+| +45448 | rfreq |
+| +51640 | len_pack |
+
+**库族身份表**: hbAssignCodes = 0x142390DD0 (五参严丝合缝) / hbMakeCodeLengths = 0x142391140 / AssertH-fail = 0x1423820B0 / fprintf = 0x14012A5D0 / BZ2_compressBlock = 0x1423874F0 (高置信)。未决: bzip2 具体版本 (len_pack 特化与 rfreq 归一缺失两特征互斥) / AssertH 3002 缺席 / EState 前段字段 (+56/+64/+112/+384..+639, 留 BZ2_compressBlock 批)。
+
+#### 4.35.53 frontend 整帧 overlay 绘制 (1 函 = 0x1420ADC20, 高置信/具体屏面待裁)
+
+0x1420ADC20 (a1): frontend/渲染域整帧 overlay。门 = 渲染就绪 sub_1422370E0(a1+12064) (§4.35:10 设备簇); 尾 = sub_14223D2C0 / sub_14223D8B0 / **EndFrame sub_142238180** / 帧就绪+Present 复合锁存 sub_14223B030。选中元 = `*(a1 + 8×(a1+336) + 320)`: 元+36/44 → a1+12464/12472, 元+24/32 → a1+12476/12484 (每次 sub_1422D9380(a1+12080) 通知), 元+49 word 清 0。a1+12632 接口对象 vtable[5]/[6]/[7] 三连。**批元提交双原语 (新锚)**: sub_1422CBE50(batch@+12688, …) 两路 = ①count 8 + 12×float4 颜色表 + 主色 0xFFC8B8B8 (门 a1+318==0) ②count 3 + **RGB 轴色三元组 {青 0xFF00FFFF, 绿 0xFF00FF00, 红 0xFFFF0000}**; sub_1422CC260(batch@+12640, count=**42**, 数据表 63 float4 常量, 颜色表 = 前 6 黑 0xFF000000 + 后 36 灰 0xFF646464); a1+318≠0 互斥分支走 @12688 count=3。**字体**: sub_142082400(dev, …, **"garamond_12"**, …) (全书首录字体串) + byte_14344F179 门 → 栈拼 "standard_font" → sub_14225DA00。
+
+#### 4.35.54 PdxEntity 实例 spawn 工厂 (1 函 = 0x142288EF0, 高置信; df124 复核无冲突)
+
+0x142288EF0: **272B 实例布局** (+224 = FNV-1a(附件名) 等); 加权模板挑选 = 累和数组末元 = 模 + 二分; 全局兜底工厂 = qword_143468F10; 递归子种子链 = 7919×根; 宿主实体 +312 = 632B/元状态表 → sub_142290520。
+
+#### 4.35.55 bzip2 解码端 BZ2_decompress 与全族 (1 函 = 0x14238C060, 定案; 与 §4.35.52 压缩端成对)
+
+0x14238C060 (2,512 行三窗全析) = **bzip2 1.0.x `BZ2_decompress`** (八重证据: 状态机 switch 10..50 = `BZ_X_*` 41 态全枚举 + AssertH(False, 4001) / 魔数 `BZh` + blockSize '1'-'9' / 块魔数 `1AY&SY` / 流尾 `0x177245385090` + combinedCRC / `alloc(400000·b)` = tt 路 vs small 路 `200000·b`/`50000·b` = ll16/ll4 / GET_BITS 补位环 / selector MTF 双趟相距恰 18002 = BZ_MAX_SELECTORS / 5bit±1 len 表 / RUNA/RUNB 界 0x200000)。⚠ 在音频带下界 0x1423B1AD0 之外属 bzip2 TU (音频带毗邻 = 链接布位巧合)。**解码端 6 函身份**: 唯一调用方 0x142381D60 = `BZ2_bzDecompress` (返回码谱/verbosity 串逐字吻合) ← 0x1422E32C0 断言带出 **`clausewitzlib/zip.cpp:1269`** = 服务于 Clausewitz ZIP 容器读取; 助手 BZ2_indexIntoF = 0x142382120 / hbCreateDecodeTables = 0x142390E20 / unRLE FAST/SMALL = 0x142382640 / 0x142382BA0 (Init/End = 0x142381FB0/0x142381F20 推定); 书已录 AssertH = 0x1423820B0 / fprintf = 0x14012A5D0 互证一致。**DState 偏移链 ~45 项** (含 SAVE_STATE 27 槽, 恢复点 case 34/38-41 复读自洽互证) + BZ2_rNums 表; **版本证据** = 解码端 verbosity 插桩 (`huff+mtf`/`rt+rld` 串 + `return 1` 合并路径) → 非 vanilla 1.0.8 逐字节 (具体版本待裁, 延续 §4.35.52 未决)。
+
+#### 4.35.56 provincegraphics 堆叠槽位装载与距离校验 (1 函 = 0x14128F430, 定案; 与 §4.35.51 同 TU 异函)
+
+0x14128F430: 宿主 **+4568 起三阵列 (39 槽: 12B 浮点 / 2×dword)**; P+196 = ProvGfx; 阈值 100.0 (距离校验); **跳槽集 = {1-8, 11-18, 30-37}**; **移动镜像槽对 1..8 ↔ 22..29**。唯一调用点 = sub_14164F260 (勘误候选: mp_sp survey 将别函扫描段误挂本函, 档案级待裁)。
+
+#### 4.35.57 自动连拍截图管理器 (1 函 = 0x1420A7470, 高置信)
+
+0x1420A7470: 拼 "ScreenCapture/" 路径 → 调渲染后端**截屏槽 off_1430BFA60** (三后端实现由 sub_1424047C0 注册; **手动单张姊妹路 = sub_140B3C4C0 "Screenshots/"** 双通道); 拍毕 sub_1420A7C00 = getenv("FFMPEG_PREVIEWER") + SHELLEXECUTEINFOA **外链预览器**。连拍状态对象与文件名 4 段 append 细节待汇编取证。
+
+#### 4.35.58 内嵌 SDL2 渲染层窗口事件桥 (1 函 = 0x1420FC140, 定案; **新区带登记候选 0x1420C..0x1420FF = SDL2 渲染层, 非 gameplay**)
+
+0x1420FC140 = SDL2 窗口事件桥 handler: 消息码直证 512 = WINDOWEVENT / 1024 = MOUSEMOTION / 1025-1026 = BUTTON / 1792-1794 = FINGER\*; **letterbox 缩放 +448/+452 / 视口矩形 +360/+376 / 隐藏旗 +336**。注册方 sub_1420F6BF0 = SDL_CreateRenderer 形 / 注销方 sub_1420F7940 = DestroyRenderer 形。
+
+#### 4.35.59 师列表窗单位按钮 tooltip 构建回调 (armiesview.cpp; 1 函 = 0x1416A3930, 定案; df77 精化)
+
+sub_1416A3930 (this, hover_elem, **a3 = 3 个 std::string 输出数组** — 原记单串签名修正; 断言 armiesview.cpp:4878 直证 TU): **悬停槽 19 槽** (df77 漏 +224 假军/部署段)。**双委托**: +64 与 +72 双槽 `sub_140C7E930` = 陆军经验 tooltip; +192 委托 `sub_1416BAD10` (1,213 行) = **习服 tooltip** (消费 NAcclimatization::CData+20/+40/+48/+56 = 书 §4.18 CData 行 UI 消费侧首证; 两委托内部逐行未析, 待下钻)。**堑壕三常量 PE 精确匹配** = DIG_IN_FACTOR (0x3336880) / UNIT_DIGIN_CAP (0x337E30) / UNIT_DIGIN_SPEED (0x337EF0) (defines_map_1193 逐项核)。**CArmy+680 = 警告码枚举 (1..7 键全表) + CArmy+590 警告旗** (书未见新字段候选)。第三输出串 = "ctrl+g+s" 快捷键提示。**Debug ID 门 = byte_14332EC69** (非 byte_1435E1B51); 移动枚举第三值 = 3→friend (df77 漏记); df77「色值 0x600/0x6000/0x38000」实为 EH 析构位掩码非颜色 (高置信)。
+
+**SDL_IntersectRectAndLine = 0x1420F4E20 (SDL_rect.c 直证; 定案)**: outcode 助手 sub_1420F4A00 码位 1/2/4/8 与 SDL2 源逐位一致; sub_1420C0EB0 = SDL_SetError; 消费者二函字面串直证 = SDL_DrawLines / SDL_BlendLines — §4.35.58 区带第二函实证。
+
+#### 4.35.60 省界图形生成巨函 (pdxmapborders.cpp; 1 函 = 0x141B204A0, 定案)
+
+身份表:
+
+| 项 | 值 |
+|---|---|
+| 语义 | 从省位图提取省边界轮廓, 生成带宽度的 3D 带状顶点缓冲 + 256×256 像素分块剔除网格 |
+| 唯一调用方 | sub_14127C980 (装载编排主件, §4.35.16③); 宿主 = CPdxMap 实例 |
+| 调用形态 | sub_141B204A0(*(CPdxMap+8), CPdxMap+18848, CPdxMap+18872, CPdxMap+18920, 256, +17 ? −1 : 0x10000) |
+| 返回值 | u32 = 边界记录条数 (低半; 高半 = 单边界最大顶点数, 待裁) |
+| 线程上下文 | 装载期单任务; 每行循环经 sub_14222E270 汇报进度 + 协作让步 |
+
+参数表:
+
+| 参数 | 语义 |
+|---|---|
+| a1 | 渲染上下文; *(a1+128) = 后端图形设备 (CreateVertexBuffer 槽 35 消费) |
+| a2 | 出 = 顶点缓冲句柄数组 (宿主 +18848); vector<u64>, 每分块一个句柄 |
+| a3 | 出 = 边界记录数组 (宿主 +18872); vector<20B 记录>, 1.5× 增长 |
+| a4 | 出 = 分块剔除网格 (宿主 +18920); 头 16B + (W/256)×(H/256) 个 48B 块 |
+| a5 | 256 = 分块边长 (像素); 兼块角点坐标步进 |
+| a6 | 单顶点缓冲顶点上限: 0x10000 常态 (u16 索引寻址上限) / −1 = +17 置位时合并单一缓冲 |
+
+CPdxMap 输出槽 (写):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +8 | 渲染上下文* | 透传为本函数 a1; 后端设备 = *(ctx+128) |
+| +17 | uint8 | 自建/合并门 (原「未决」已收口): 置位 → a6 = −1 → 全部省界顶点并入单缓冲; 与「索引缓冲」通道行 +17 索引缓冲自建门为同一开关两侧消费 |
+| +18848 | vector<u64> 24B | 省界顶点缓冲句柄数组 {data@+18848, cap@+18856, count@+18860, alloc@+18864} |
+| +18872 | vector<20B> 24B | 省界边界记录数组 {data@+18872, cap@+18880, count@+18888, alloc@+18892} |
+| +18920 | 容器头 + 扁平数组 | 分块剔除网格 {data@+18920, cap@+18928, count@+18932 = 块数}; 元素 48B |
+
+CMap 单例 qword_143339D28 (只读):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +64 | int32 | 地图宽 W (经度方向; 轮廓跟踪 x 走 % W 环绕) |
+| +68 | int32 | 地图高 H |
+| +376 | 匿名结构* | 高度图 {宽@+8, 高@+12, 行跨距@+16, u8 数据@+40}; 顶点 z 双线性采样贴合 3D 地形 |
+| +560 | uint32 | 省表界 (有效省 id ∈ [1, +560)); 兼边界记录预分配基数 (20 × +560 条) |
+| +616 | 省静态描述符** 指针数组 | {data@+616, cap@+624, count@+628}; 按省 id 直索引; 描述符 +210 bit0 = 陆/海分判旗 (与 §4.14.6「可通铁路位」同一位两种消费, 不冲突) |
+| +2096 | 匿名结构* | 省位图 {u16 数据@+24, 宽@+48, 高@+52}; 每像素一个省 id |
+
+管线 (七阶段):
+
+| 阶段 | 动作 |
+|---|---|
+| 1 连通分量标号 | 显式栈 4 邻域 flood fill (同省描述符指针判等), 分量号 = 轮廓号; 单像素省 (弹栈计数 == 1 ∧ debug 旗 byte_14332EC69) 告警 "One-pixel province color found at <x,y>." (:195) |
+| 2 逐像素边掩码 | calloc(W×H, 4), 每像素 4 字节 = N/E/S/W 四向「邻省不同」旗; 比较对象 = 分量标号 (同省不同分量必不邻接) |
+| 3 闭合轮廓跟踪 | marching-squares 式: 步进/转向表每方向 9 int = 3 组候选 (dx, dy, 转向), x 走 (W+x+dx)%W 短弧; 3/4 省共点角点歧义取周围 4 像素 SIMD 掩码归属判定; 每步发射轮廓顶点 (相邻两像素中心均值) |
+| 4 分块网格初始化 | a4 重定容到 (W/256)×(H/256) 块, 每块 48B 写两角点 float3, 块内 vector<u16> @+24 = 命中该块的边界下标表 (初始空) |
+| 5 带状顶点发射 | 遍历省对 map 逐记录: 段法向 (dy, −dx) 归一化 × BORDER_WIDTH/2 双侧偏移 → 折线变带; 顶点 16B {f32 x, f32 y, f32 z = 高度图采样, u16 侧旗 0/1, u16 折线顶点序}; 块号 = (y/256)×每行列数 + (x/256), 记录下标去重 push 进块表; 累计顶点达 a6 上限切新块 |
+| 6 顶点缓冲创建 | 逐块槽 35 CreateVertexBuffer(设备, Block+16×start, count, 跨距 16, 0, 调试串 :1048); 句柄 push 进 a2 |
+| 7 收尾 | 释放临时区 (flood 栈 / 掩码 / 占用旗 / 边图 / Block); 析构 std::map 与 vector; 返回边界记录条数 |
+
+记录布局:
+
+| 记录 | 偏移 | 类型 | 语义 |
+|---|---|---|---|
+| 轮廓记录 16B (引擎分配器, 预分配 20×省表界, 1.5×) | +0 | int32 | 首顶点下标 (Src 全局递增计数) |
+| | +4 | int32 | 顶点计数 |
+| | +8 | int32 | 配对链 = 同 (省A, 省B) 对既有记录下标, 无则 −1 |
+| | +12 | uint8 | 同类旗 (跨界两侧同属非陆地或一侧为省表界哨兵 → 选渲染样式) |
+| | +14 | uint16 | 第二遍写入的 a3 记录下标 |
+| 边界记录 20B (a3 输出) | +0 | u16 | 省A |
+| | +2 | u16 | 省B |
+| | +4 | u16 | 带状顶点数 |
+| | +6 | u16 | 顶点数 − 2 |
+| | +8 | int32 | 顶点基址 |
+| | +18 | uint8 | 同类旗 (自轮廓记录 +12) |
+| 分块记录 48B (a4 元素) | +0 | float3 | 块角点 0 (像素坐标) |
+| | +12 | float3 | 块角点 1 (块矩形 [x, x+256]×[y, y+256]) |
+| | +24 | vector<u16> 24B | 命中该块的边界下标表 (去重 push, 1.5×) |
+| 顶点 16B | +0 | f32/f32/f32 | x / y / z (z = 高度图双线性) |
+| | +12 | u16 | 侧旗 (0/1 = 带之内/外侧) |
+| | +14 | u16 | 折线顶点序 |
+
+去重与合并机制:
+
+| 环节 | 方法 |
+|---|---|
+| 省对去重 | std::map<(u32 省A, u32 省B), int32 记录下标> (sub_141B201E0 原地插入); 轮廓上邻省 id 变化即开新记录 |
+| 同省多岛 | 同对多段经配对链 + 记录合并 (首顶点回填 / 计数累加 / sub_141B23390 旋转 Src 顶点区间使折线连续 / 丢弃末记录 / 边图回写下标) |
+| 空间索引 | 256×256 分块网格, 每块挂命中边界下标 vector<u16> = 渲染期视锥剔除 |
+| 环绕 | x 全程 % W 短弧 (abs(Δx) > W/2 时给较西侧者 +W); 轮廓跟踪/顶点插值/分块坐标三处一致 |
+
+define / 魔数:
+
+| 值 | 语义 |
+|---|---|
+| BORDER_WIDTH (0x143335FAC) | 省界带宽; 半值 ×0.5 作法向偏移量 |
+| 0x10000 | 单顶点缓冲顶点上限 = u16 索引寻址上限 |
+| −1 | a6 合并门值 (+17 置位) |
+| 20 × 省表界 | 边界记录预分配条数 (每省约 20 段经验上限, 高置信) |
+| W/2 | 经度短弧判定阈值 |
+| 1010000 ticks | 让步节流周期 (环境串回收) |
+
+关键子函数:
+
+| VA | 语义 |
+|---|---|
+| sub_14222E270 | 装载进度汇报 + 协作让步 (ctx, 源码行, 当前行, 总数, 0) |
+| sub_141B201E0 | std::map 原地插入/查找 (省对表) |
+| sub_141B23390 | 顶点区间旋转/拼接 (合并记录时使折线连续) |
+| sub_141B22F50 | 边界记录收尾 (配对链并合 / 计数归一) |
+| sub_140A60F10 | 高度采样 (CMap+376 u8 高度图双线性, 返 __m128) |
+| sub_141B22DD0 / sub_141B20330 / sub_1412793F0 | 分块数组重定容 / 新段就地构造 / 定容路径 |
+| off_143085170 | 引擎分配器 vtable ([1] alloc / [2] free) |
+
+> 推定: 步进/转向表 9-int/方向的精确三元组布局 (反编译把两表与 12×12B 初始化序列压同一栈区, SIMD 常量未内联不可直读); 分块角点 float3 第三分量语义。待裁: 返回值高半; a3 记录未用字节。
+
+#### 4.35.61 CWrapWorldShadowMap 构造 (渲染设备域; 1 函 = 0x1422D9670, 定案; df360)
+
+CWrapWorldShadowMap ctor (672B = malloc 0x2A0 直证; vtable 写 +0 直证): 世界阴影贴图包裹件 — 清零 + 挂 world + 后端分支装载采样常量 + 双实例装载 shadowblur FX + 5-tap 高斯模糊常数预置 + 按 44B 描述建渲染目标。**唯一调用方 = CGraphicalMap ctor sub_140B4F9C0** (malloc 0x2A0 → 存宿主 +96; §4.00 CGraphicalMap 段同步增补)。签名 (this, world, 边长=2048, a4 f32 = *(CGraphicalMap+40 对象)+64, "gfx/FX/shadowblur.lua")。
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +400 | 16B | 采样常量组 1 (非 D3D9 路装 rdata 常量) |
+| +416 | 16B | 采样常量组 2 (后端 id==1 与 id==2 分岔装不同常量 — GL/D3D 系深度/NDC 约定差异候选, 值未决) |
+| +432 | 16B | 采样常量组 3 |
+| +448 | float4 | texel 向量: D3D9 路 = 计算形 {v8, v8, 1.0, 0.0} (v8 = 0.5/size + 0.5 **半纹素偏移**, D3D9 采样惯例); 非 D3D9 路 = rdata 常量 |
+| +488 | i32 | FX 渲染资源 id 1 — 同一 "gfx/FX/shadowblur.lua" 两次 sub_142409E20 (横向/纵向双 pass 各持一实例, 推定; CPdxMeshType +336/+340 同形互证) |
+| +492 | i32 | FX 渲染资源 id 2 (同上第二次装载) |
+| +512 | f32 | 模糊采样偏移 0.0 |
+| +516 | f32 | 模糊采样偏移 1.3846154 (5-tap 线性采样高斯核偏移 18/13) |
+| +520 | f32 | 模糊采样偏移 3.2307692 (42/13) |
+| +524 | f32 | 高斯权重 0.227027 (经典 5-tap 三件套, 逐位解码直证) |
+| +528 | f32 | 高斯权重 0.316216 |
+| +532 | f32 | 高斯权重 0.070270 |
+| +544 | i32 | 阴影图边长 (现役 2048) |
+| +548 | f32 | a4 位型落位 (语义未决) |
+| +560 | qword | world 反向指针 |
+| +568 | 子对象 (ctor sub_1422CBA50) | 渲染目标持有块: 其 +24 = 目标槽 (释放旧 = 设备 ABI 槽 54 off_1430BF960 / 建新 = 槽 53 off_1430BF958) |
+
+流程: 写 vftable + 清零 → sub_1422CBA50 构 +568 块 → sub_142236CE0 尾插进 **world+1272 容器** {count@+1272, cap@+1276} (×1.5 增长) → sub_1422DB400 后按 **GetOwnBackendId off_1430BF7C0** (ret 0=D3D9 / 1=dx11 / 2=GL) 分支装采样常量 → 双装载 FX → 预置高斯常数 → sub_14240C0A0 装 44B 默认渲染目标描述 {byte0=1, +4=1, +8=3, +12=0, +16=−1, +24=0, +32=0, +36=7} → sub_1422CD1C0(this+568, \*(world+128), 描述) = 换目标。⚠ IDA 陷阱: off_1430BF7C0 的垃圾实参 = 数据槽渲染失真 (真身无参查询); sub_142409E20 的 vector<string> 出参与 sub_1422CD1C0 的 2/3 参被 IDA 吞 (尾参经寄存器)。
+
+#### 4.35.62 STL num_get 数字解析族 (S11 带; char 实例化聚集 0x1411B-C; 定案)
+
+**sub_1411B4B10 = `std::num_get<char, istreambuf_iterator<char>>::_Parse_fp_with_locale`** (1930 行): 流式浮点解析器, 返 2 字节 {低 = 基数 10/16, 高 = failbit 请求旗}。身份直证 = 同表兄弟带完整修饰名 (0x142521554 = wchar_t 版 `_Parse_fp_with_locale`; 0x1425243A4/0x142524E18 = `_Parse_int_with_locale`) + 三调用方 = do_get(float 0x1411C7CA0 / double 0x1411C7E10 / long double 0x1411C7F80) 虚函数体 (骨架 = 800/816 字节缓冲 → errno 保存清零 → strtof 0x14255FC50/strtod 0x14255FC48 → endptr/errno/高字节三重判 failbit)。主流程 = use_facet<ctype> vt+56 宽化 28 字符表 `"0123456789ABCDEFabcdef-+XxPp"` (尾哨兵 unk_1429A1365) → numpunct vt+32/40 千分位/grouping → 符号 → '0' 占位 → '0x' hex 检测 → 整数/小数扫描 (768 位上限, 超限计数) → 小数点 (vt+24 → localeconv '.') → half-up 舍入补偿 (dec 末位 '5' / hex '8' 进位) → 指数 e/E/p/P (int64 饱和累加, 溢出对消 dec ±1100 / hex 1050/4200) → 发指数 (std::reverse 残名收尾)。分组校验 = std::string 复用计每组位数 (≤127), 违例转高字节 failbit。同 TU 0x1411B65F0 = `_Parse_int_with_locale` char 版 (26 字符表)。
+
+| 族件 | VA | 定性 |
+|---|---|---|
+| use_facet<ctype<char>> | sub_14011DE30 | facet id 惰性注册 (计数器 dword_1435E6870; ctype id qword_1435E6888; C 域兜底缓存 qword_14332ECF8) |
+| use_facet<numpunct<char>> | sub_1401453F0 | 同形态 (id qword_14332ED30; 兜底 qword_14332F1F0) |
+| istreambuf_iterator sgetc / snextc | sub_1411C6F30 / sub_1411BF0E0 | 迭代原语 (迭代器态 16B {缓冲 ptr@0, 缓存旗@8, 当前符@9}; streambuf gnext@+56 / gcount@+80, underflow vt+48) |
+| char_traits::find | sub_14251D050 | (首,尾,符) → 命中指针 (dump 无定义体) |
+| facet 槽位 | — | ctype vt+56 do_widen / numpunct vt+24 do_decimal_point / vt+32 do_thousands_sep / vt+40 do_grouping (sret std::string) |
+| wchar_t 副本 | 0x142521554 (带名) / 0x142522C7C (无名) | 三副本未 ICF 折叠成因待裁 |
+
+#### 4.35.63 装载屏管理器单例簇 (loadingscreen 域推定; 建拆件 0x140B6F840 + 同簇件 — 新收)
+
+sub_140B6F840 = **装载屏管理器单例的建/拆/再建件**。a1 = CGameGraphics*, a2 = 加载屏对象 (app+872, 0xCC8, ctor sub_140B429A0), a3 = 跳过文本初始化旗, a4 = 强制重建旗。机制: a4=1 且旧管理器存在 → 旧 (manager+48)->vt+128 → 旧 manager->vt+200 → 清两单例全局, **随后 fall-through 重建** (非纯拆卸); a4=0 且已存在 → 幂等早退。建路 = a2 vt+80 按名取 "load_screen" 根窗口 → qword_14333C590; a3=0 时置 tip 轮换截止 qword_14333C5A0 = now + 15.0 (时钟单例 §4.35.39) + 首条 tip 文本入 qword_1430B0860 → manager vt+264 FindWindow("tip") → 其 vt+120 FindWindow("text") → SetText (§4.31) → sub_140B411B0 刷新帧合成; 无条件取 status 容器 vt+136 FindWindow("progressbar") → qword_14333C598 进度条元件 → 其 vt+752 子件 vt+144 推定归零。三调用点: InitLoadScreen sub_140184B30 (0,0 全量首建, §4.28.21) / 前端图形重初始化 sub_140B3D9B0 (a4=1 拆卸重建) / 包装 sub_140174040 (运行期显隐切换, a3=1 跳 tip)。
+
+全局与 widget 树 (定案):
+
+| 全局 / 件 | 语义 | 置信 |
+|---|---|---|
+| qword_14333C590 | 装载屏管理器单例 = load_screen 根窗口指针 (CContainerWindow, vtable 0x142B45278; 类层级 CContainerWindow ← TWindow ← CWindowObservable; CGuiObject 基子对象 @+48 持独立 vtable 段 = 主段 +632) | 定案 (PE RTTI 直读) |
+| qword_14333C598 | status→progressbar 进度条元件指针 | 定案 |
+| qword_14333C5A0 | f64 = 下一次 tip 轮换截止时刻 (建/轮换时置 now + 15.0) | 定案 |
+| qword_1430B0860 | 全局 32B std::string = 当前 tip 文本缓存 | 定案 |
+| sub_140B70520 | 随机 LOADING_TIP_\<N\> 本地化串构造器 (按语言/日期过滤 tip 池, 规则待裁) | 高置信 |
+| sub_140B70B30 | 进度/状态发射器 = 三全局唯一消费方 (设备前门 + 15.0s 轮换门 + status/tip 双文本 + 进度条复位 + 单帧合成 + Show→渲染→Hide; 全流程见下) | 定案 |
+| sub_140B711D0 | (manager+48)->vt+120 = Show | 定案 |
+| sub_140B711F0 | 三步显隐+刷新 (StartNewGame 路径, §4.2) | 高置信 |
+
+> widget 树 = load_screen → tip→text (tip 文本) / status→text (状态文本)·progressbar (进度条)。manager+48 子对象持独立 vtable, 显隐对在其 +120/+128 (§4.6 族形)。
+
+> **+120/+128 显隐指向定案 (读 A 成立)**: +120 = Show / +128 = Hide — 三重直证: ① +48 段 [15]+120 的 guard 要求 (+165 & 0x10) == 0 (非 hidden 才执行); ② 其体调子件 vt+120 并置 +312 = 1, [16]+128 调子件 vt+128 并置 +312 = 0; ③ 即时路径对 +165 bit3 (visible) 置/清, 且 Show 用 +5704 (show_position) / Hide 用 +5708 (hide_position)。显隐槽全表见下。
+
+**sub_140B70B30 全流程 (定案)** — 形参 (CGameGraphics* a1, 状态文本串 a2, 轮换门 a3, 合成门 a4, 状态文门 a5); 20 调用点 (形参序 = gfx, 文本, 轮换, 合成, 状态文), 主消费 = 地图/GFX 装载进度环 ("LOAD_GFX_PDXMAP_RIVERS/TERRAIN/…" 本地化键):
+
+| 步 | 门 | 贡献 |
+|---|---|---|
+| 1-2 | sub_1422370E0(a1) 设备轮询 (gfx+1288; graphics.cpp:2440/2455 alt-tab 日志) | 设备丢失 → 早退; byte_1430B0880 = gfx+1288 全局镜像 |
+| 3 | !qword_14333C590 | 无管理器 → sub_140B411B0(a1, a2, 1, 0) 直渲一帧 |
+| 4 | now > qword_14333C5A0 (§4.35.39 时钟单例) | a3 强制 1; 新 LOADING_TIP_N 串入 qword_1430B0860; 截止 = now + 15.0 |
+| 5 | 无条件 | manager vt+64 = Show |
+| 6 | a5 | status→text SetText (a2) |
+| 7 | 内容变化时 (元件 +272 与全局串比对) | tip→text SetText (qword_1430B0860) |
+| 8 | qword_1434531C0 | 进度条复位 (sub_140B70AE0: qword_14333C598 → vt+752 子件 → vt+144) |
+| 9 | 无条件 | sub_140B411B0(a1, 空串, a4, a3) 单帧合成 |
+| 10 | 无条件 | manager vt+72 = Hide; 其返回值即本件返回值 |
+
+显隐槽定案 (CContainerWindow):
+
+| 槽 | 语义 | 证据 |
+|---|---|---|
+| 主 vtable [8] vt+64 = sub_1422C45F0 | Show | +5752 != 1 门 + show_position + 子件 vt+120 + +312 = 1 |
+| 主 vtable [9] vt+72 = sub_1422BE470 | Hide | +5752 != 2 门 + hide_position + (this+48)->vt+528 + 子件 vt+128 + +312 = 0 |
+| +48 段 [15] vt+120 = sub_1422C4510 | Show (子件传播) | guard = (+165 & 0x10) == 0; 置 +165 bit3 (visible); 用 +5704 |
+| +48 段 [16] vt+128 = sub_1422BE1A0 | Hide (子件传播) | 调子件 vt+128; 清 +165 bit3; 用 +5708 |
+
+> 消费序: 本件 = Show → 渲染 → Hide; sub_140B711F0 = Hide → Show → Show(status 块) 重显序列 (§4.2 StartNewGame 路径)。
+> FindWindow 双槽定名: manager vt+264 = 转发桩 sub_1422BDC70 → vt+440 = sub_1422BA280 (containerwindow.cpp:868 断言, 严重度 4096); 另 vt+120 = sub_1422BC460 同族变体。两槽签名均为 (this, 串, bool), IDA 因桩体把形参记为 1 参 (实 3 参) 属失真。status 容器两槽 (vt+120 取 "text" / vt+136 取 "progressbar") 的立即子件 vs 递归差异仍未决。
+> 文本元件文本 @+272 (std::string); SetText = sub_1422CA920 (写 +272 + 刷新 sub_1422CB4A0); GetText = sub_140D55DA0 (返 a1+272)。
+
+新定性全局与姊妹件:
+
+| 全局 / 件 | 语义 | 置信 |
+|---|---|---|
+| byte_1430B0880 | gfx+1288 设备丢失旗的全局镜像 (两消费方 = 本件 + sub_140B70FF0) | 定案 |
+| qword_1434531C0 | 72B 装载进度跟踪器 (+12 计数 / +16 与 +40 回调表 / +48 id 哨兵 -1 / +56 与 +64 上下文; 唯一构造点 sub_142257B00 malloc 0x48) | 推定 (真身未决) |
+| dword_1434531C8 | 跟踪器自旋锁 (_InterlockedCompareExchange + _mm_pause) | 定案 |
+| sub_140B70FF0 | 姊妹件: 同设备前门 + 跟踪器/进度条, 无文本/无 Show-Hide 路径 | 高置信 |
+
+> 待裁: qword_1434531C0 真身 (无类名/源文件串); Show→渲染→Hide 包夹意图 (推定 = 装载屏由 sub_140B411B0 直接合成入帧, GUI 窗仅在合成窗口期内入树以避免截获输入, 或显隐动画被即时路径短路); +5752 状态机其余取值与迁移回调; sub_1422C4070 动画启动器完整语义; 两 FindWindow 槽递归差异; sub_140B70520 tip 池过滤规则; +5776/+5784 音效属性 (形态直证 = 句柄 + 去重播放 id + gfx 通道 qword_143453230, 资源名未取)。

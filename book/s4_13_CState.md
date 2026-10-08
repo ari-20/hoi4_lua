@@ -81,7 +81,7 @@ CProvince+192 = CState* 回指 (§4.14)。⚠ CGameState+260 **负定案**: 全 
 | +2120 | uint32 | manpower available | 人力三元组 (写门 = **total ≠0** 整块判定; 三叶恒全 — ⚠ 旧"三值任一非零"经验门被活体证伪: 3103.11 档 76 州 available/locked 非零而 total=0 整块不写) | |
 | +2124 | uint32 | locked | 人力三元组 | |
 | +2128 | uint32 | total | 人力三元组 (**整块写门字段**) | |
-| +2136 | uint32 | extra_shared_slots | >0 才写 (13613); loc UNLOCKED_SLOTS_STATE_EXTRA "Additional Slots in this State" (loc 锚定; resistance 数值在 +616 内嵌块, 非 +2136) | GUI: 共享槽 NUM/MAX (sub_1409D4980 → shared_slot_count + UNLOCKED_SLOTS; category=="wasteland" → **数据归零** (wasteland.txt local_building_slots = 0 的脚本效果, 原版文件直证; 代码侧仅向 tooltip 拼错误前缀无归零特判; +2200 名 SSO 实证)) |
+| +2136 | uint32 | extra_shared_slots | >0 才写 (13613); loc UNLOCKED_SLOTS_STATE_EXTRA "Additional Slots in this State" (loc 锚定; resistance 数值在 +616 内嵌块, 非 +2136) | GUI: 共享槽 NUM/MAX (sub_1409D4980 → shared_slot_count + UNLOCKED_SLOTS; category=="wasteland" → **数据归零 = 脚本值 0 与代码侧名字特判双保险**: sub_1409D4980 起始即对类别名 memcmp "wasteland" (9 字节) 命中分支 — 构造 loc 锚 21009/8465 的 tooltip 串后走零值返回路径; +2200 名 SSO 实证) |
 | +2140 | int32 | best VP province index | -2=未算 / -1=无 / ≥0=+24 数组下标; 断言 "_BestVPIndex != -2" (sub_1409D8A80, state.cpp) | |
 | +2141..+2147 | — | = manpower 区尾 + extra_shared_slots@2136 / bestVP / u32@2144 (**写侧定案 = 州内各省地形修正旗字节 (省 desc+168→+140) 的按位或累积**: sub_1409DF710 先清 0 后逐省 `|=`; sub_1409DED70 同式。**读侧在 1.19.3 全 dump 不存在** (0 读点) → 只写累积位掩码) / demil@2148 区 | | |
 | +2148 | uint8 | demilitarized | 非军事化 (13281); +2148 与 +2149 为两个独立 u8 (Reset 以 word 一次双清) | 存档行序在 ibc 前 |
@@ -126,7 +126,7 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 | +160 | int32 | 州 id (ctor −1; A 表下标) | 11 |
 | +168 | uint8 | 有效条目旗 (ctor 1; null 对象 0; CState 创建门/"Missing State ID" 校验) | — |
 | +176 | CStateHistory (72B) 内嵌 | history 块 (键 10293 → vtable[3]; +240 宿主槽) | 10293 |
-| +248 | 向量 24B | 静态资源条数组 {d@248, cap@256, **count@260**, alloc@264}; 元 16B {量 i64@0, res_id u32@8} | 11842 resources |
+| +248 | 向量 24B | 静态资源条数组 {d@248, cap@256, **count@260**, alloc@264}; 元 16B {量 i64@0, res_id u32@8} | 11842 resources; GUI: **count@260 = STATE_NO_RESOURCES 门** (州面板 tooltip #1 支: count==0 才有资格显示无资源文案, dg032 直证 — 撤该门「待裁」) |
 | +272 | u32 向量 24B | **邻接州 id 数组** {d@272, cap@280, count@284, alloc@288} — PostLoad 并行 sub_140ABCB30 建 (本州各省 prov+112/+124 经 provdb+40 省→州映射聚合去重排自身); 消费端 GetNeighborState sub_1409DB740 / owner 变更连锁 sub_1409DFC20 / §4.32 触发器链 | 非 parse 键 (定案) |
 | +296 | 向量 24B | impassable_ignored_links (**邻接州 id 排除表** — best-owner 计算 sub_1409D7BC0 实与邻州对象 +88 州 id 比对命中即跳过计分; 非 impassable 州 PostParse 清零并警告 statetemplate.cpp:253 — 精化: 只清 count@+308, data@+296 保留) | 10749 |
 | +320 | CContinent* | **大陆条目指针** (ctor = null 对象; PostParse 按首省 province+211 查容器 C 落位; 与 CStrategicRegion 无涉; 大陆 = map/continent.txt continents 块 7 条, 元 80B {名 SSO@8, 旗@40, id@44, 序号@48, 州表 vec@56}) | 非 parse 键 |
@@ -140,8 +140,27 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 | +350 | uint8 | 单州岛旗 (全省陆旗且陆上邻省全属本州, sub_140ABD150) | 非 parse 键 (定案, 原推定升档) |
 | +352 | fixed×1e-5 | buildings_max_level_factor (ctor 默认 1.0; 消费 = modifier 104 映射 /100000) | 13192 |
 | +360 | CStateCategory* | 默认 category (null 对象默认; 名查 category 库 qword_14332F968, 缺失报 :242; CState ctor 抄到 st+2200) | 13848 |
-| +368 | fixed×1e-5 | local_supplies (消费 ×全局常数/100000) | 12564 |
+| +368 | fixed×1e-5 | local_supplies (modifier 64 通道, 播种州基础修正器) | 12564; 1.19.3 消费点 = 补给 type0 州注入源 sub_1412229D0: 注入量 = A表(state,tag,64) + 1e5 基准 + A表(state,tag, 492/493) (controller==owner 取 492 = for_controller, 异主取 493 = enemy_local_supplies), 下钳 0 (§4.21; 补给系统重写后仍生效) |
 | +376 | CEffect (88B) 内嵌 | state_startup_effect (ctor 注册进全局 effect 注册表) | 10213 |
+
+ParseKey sub_140ABE640 全 14 case token→落点对齐 (13 数据键 + color skip; switch 全表直证):
+
+| token | 键名 | 落点 (stateDef) |
+|---|---|---|
+| 11 | id | +160 |
+| 27 | name | +64 (脚本原始名 SSO; +32 = 同键 localize 查询产物) |
+| 86 | color | skip — 不落盘 |
+| 10213 | state_startup_effect | +376 |
+| 10288 | provinces | +8 |
+| 10293 | history | +176 |
+| 10300 | manpower | +340 |
+| 10749 | impassable_ignored_links | +296 |
+| 11267 | impassable | +348 |
+| 11842 | resources | +248 |
+| 12564 | local_supplies | +368 |
+| 13192 | buildings_max_level_factor | +352 |
+| 13848 | state_category | +360 |
+| 19611 | force_link_ownership_to | +344 |
 
 装载链 8 步: continent.txt → state_category → history/states 并行解析 Insert → colors.txt → 省→州映射 → 省份分配 → PostLoad 建链/旗 → 位置重算 → InitGameState malloc(0x928) 造州。
 活体验证: 州 1000 与 vanilla 字面量逐项相符 (prov=5 / manpower=715857 / res=1 steel / 邻接 = {419,1001,420,230,229})。
@@ -184,7 +203,7 @@ lf@2308; B@2312 → data@2320 / count@2328 / mask@2332 / extra@2336 / lf@2340;
 | +113..+123 | — | = pad | | |
 | +124 | uint32 | compliance_modifiers 容器计数 | | |
 | +125..+519 | — | = LOCAL_COMPLIANCE CModifier 体 (cr+88..+279) + 「LOCAL_RESISTANCE」CModifier@cr+280 (st+896) 体至 cr+519 — 均按 §4.3.8 通用表读; 内含名单容器 +472 (10441) / +496 (10442) | | +472/+496 GUI: Update 状态行 (size 枚举分族) |
-| +520 | uint8 | operational_status | 仅真值写 | GUI: StatusView Update 显示门 ; 修正器重算总门 (sub_140F91850 首行 return) |
+| +520 | uint8 | operational_status | 仅真值写 | GUI: StatusView Update 显示门 ; 修正器重算总门 (sub_140F91850 首行 return); 月度日志 garrison 段以 sub_140F9B4B0(st+616, 1) 直读本字节作「该州被占领」门 (§4.2.10) |
 | +528 | 8B 指针 向量 | resistance_modifiers 名单 (15743) {data, count@+12} | | 元 8B 指针→名 SSO@+16 (writer 0X140F90BF0); GUI: occupation_modifier_entry 修正行 |
 | +552 | 8B 指针 向量 | compliance_modifiers 名单 (15747) | | UI 直消费: Update 修正行源 (定案) |
 | +576 | CPersistent* 向量 | active_actions {d@576, cap@592, c@588, alloc@600 推定} — 块键 **15762**, 元素 **40B 多态 CPersistent 后代** (sub_1424C24F0 = 元素自身 vtable[1] 自序列化, 尾原子 16; 类名待裁) | reader case 15762 → sub_140F904E0; 失效清理 sub_140F9AD20 (`*(elem+8)==0` → sub_140F9C760 swap-remove); dtor sub_140F91330 | 基线档恒空 (count==0 时 writer 跳过), 故存档中不出叶 |
@@ -231,7 +250,7 @@ sub_140FF3BE0(占领mgr, cr+80) 取得; 即 §4.3.2 记录 dp (occ+96 列表条�
 
 | 偏移 (vowner) | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +24 | 匿名结构 (桶) RH 桶数组 | RH 桶数组数据指针 (空表 = 静态哨兵 &unk_1430851A0) | 定名: CVariables 全长 56B: vtable@0, **random 种子对 +8/+12** (写门 `ru32(+8) != 1`, ctor=1; 写形 `random={ <+12> <+8> }` 反序, writer 0X1424C5B10), count@+32, mask@+36, extra u8@+40, max_load_factor f32@+44=0.9, **尾槽 qword@+48 = 宿主变量域注册表指针** (ctor sub_140BC5BD0 `*(a1+48)=a2`; CCharacter 域 &unk_14333C980 / CState 域 &dword_143339B60 / CCountry 域 &unk_143330CE0 / CGameState 域 &dword_14332F2A0 — 非「恒 0」) |
+| +24 | 匿名结构 (桶) RH 桶数组 | RH 桶数组数据指针 (空表 = 静态哨兵 &unk_1430851A0) | 定名: CVariables 全长 56B: vtable@0, **random 种子对 +8/+12** (写门 `ru32(+8) != 1`, ctor=1; 写形 `random={ <+12> <+8> }` 反序, writer 0X1424C5B10), count@+32, mask@+36, extra u8@+40, max_load_factor f32@+44=0.9, **尾槽 qword@+48 = 宿主变量域注册表指针** (ctor sub_140BC5BD0 `*(a1+48)=a2`; CCharacter 域 &unk_14333C980 (= docvar 63 内建键全局表, §4.00.4a; AddTriggerDynamicVariable 运行期注册同表) / CState 域 &dword_143339B60 / CCountry 域 &unk_143330CE0 / CGameState 域 &dword_14332F2A0 — 非「恒 0」) |
 | +32 | uint32 | 数据数组 count (五处互证: 段 / RH 迭代 / 对象层) | |
 | +36 | uint32 | RH mask | |
 | +40 | uint8 | extra (尾部溢出桶数) | 遍历上界 = mask + 1 + extra (缺 extra 即丢尾部条目) |
@@ -390,6 +409,31 @@ stateDef+248/+260 = 静态资源条 16B 数组 {量@0, res_id@8} (CState+48 = st
 | CSetStateVictoryPoints | 0x1429DB858 | 12156 victory_points | 0x50: +72 省 id / +76 VP 数 (工厂 "takes 2 parameters" 直证) | 0x1415A1220 → sub_140E810F0(省, +76); vtable[1]=空桩 不重存 |
 | CHistoryAddEffectState | 0x1429DB9A8 | 89 effect | 0x150: +72 CEffect 列表 + +160 scope 子对象 (注入 *(state+160) 州 id) | 0x14153FF80 (与国变体共享) 重放效应; vtable[1]=空桩 不重存 |
 
+**开局两段区间应用 (定案)** — 驱动 = sub_140A3D2A0 (history.cpp:165, 日志 "Executing History from X to Y"; 装载序全景见 §4.28.19, 新局/读档两路对照见 §4.2.20); 过滤判据 = `date = u32@(条目+16)`, `from < date ≤ to` (左开右闭) 命中才条目 vtable[17] Apply; 三容器循环 = 州库条目侵入链表 (stateDef+208, 链节点 {条目指针@+0, next@+16}, 州 id i∈[1, 库计数@+52)) / histdb 国家容器 / histdb general 容器。新局构建 sub_1401A5630 内两次调用:
+
+| 步 | 调用 | 区间 | 应用集 |
+|---|---|---|---|
+| 1 | SetCurrentDate(纪元) 后 sub_140A3D2A0(histdb, &off_143086B18, &off_143086B30) | (−1.1.1, 2.1.1] | 全部无日期条目 (其日期 = CGameDate 默认构造值, 恰落右闭边界内) + 日期 ≤ 2.1.1 的条目 |
+| 2 | SetCurrentDate(书签日期 a2+376) 后 sub_140A3D2A0(histdb, &off_143086B30, &书签日期) | (2.1.1, 书签日期] | 日期块按日期升序应用; 超过书签日期的条目静默丢弃 |
+
+区间边界常量 (PE .data 直读定案):
+
+| 常量 | 值 (小时数) | 语义 |
+|---|---|---|
+| off_143086B18 | 43791240 ("−1.1.1") | 负纪元哨兵 (第一段左开界) |
+| off_143086B30 | 43817520 ("2.1.1.1") | CGameDate 默认构造值 (第一段右闭界 = 第二段左开界) |
+
+**运行期执行 = 负定案 (定案)** — 州史日期块不构成运行期事件队列, 语义 = 按书签日期裁剪的开局状态差量 (选早书签时晚于书签的日期块整块静默丢弃, 运行期无日程重放):
+
+| 序 | 证据 |
+|---|---|
+| 1 | histdb 单例 qword_143339CC0 全 dump 仅 4 处引用 (惰性构造 1 + 销毁 3), 无任何日更/tick 消费点 |
+| 2 | sub_140A3D2A0 全 dump 仅 2 个调用点, 均在新局构建 sub_1401A5630 内 |
+| 3 | 州库 getter sub_140ABC450 全 dump 61 个调用点中, 唯一读 stateDef+208 历史链表者就是 sub_140A3D2A0 |
+| 4 | 国史侧同族负定案 (§4.3.13 落盘实证行) + CHistoryEntry 派生面全为 country/state 开局历史族 (§4.31.37) |
+
+读档路仅销毁 histdb, history 不再应用 (已物化进存档; §4.2.20 对照行)。
+
 #### 4.13.8 CResistanceActivityLog (驻军/抵抗活动日志条目; vtable 0x142984888)
 
 CPersistent 真 writer/reader (0x141000640 / 0x140FFBF80); 宿主容器 = occmgr+256 驻军活动日志 (GUI 消费锚 = §4.31 占领域行件)。
@@ -408,7 +452,7 @@ CPersistent 真 writer/reader (0x141000640 / 0x140FFBF80); 宿主容器 = occmgr
 
 > **本域 GUI 类布局**: 见 4.30.1。
 
-**CResistanceActivityDatabase** (96B; TGameItemDatabase<CResistanceActivityDatabase> 模板单例, 工厂 sub_1401733E0, pdx_scoped_singleton 门 qword_14332F008; resistanceactivitydatabase.cpp 定案): 布局 +8 装载目录串 / +40 32B RH 表 (data@+48 = 静态哨兵 **unk_143085390** / count@+56 / mask@+60 / extra u8@+64 / lf 0.9@+68; 桶 48B {名键区 40B, 对象指针@+40}; 键哈希 FNV-1a 32 位 + 长度预比) / +72 加载序向量 CPdxArray 24B (定义对象指针, 装载序)。Load 包装 sub_14018A950 (已载旗 +20 → `DB already loaded when loading <目录>` + throw); 多目录变体 sub_1401A17F0 (目录串表逐目录调装载 = mod 叠加)。**装载 0x140AA0BD0** (317 行): 清库 → 目录枚举 `*.txt` (64B/项) → 逐行 FNV-1a 32 哈希 → malloc 912B 构 **CResistanceActivity** (ctor sub_140AA01F0, RTTI 直证) → vtable[3] 吃行加载 → RH 插入; **重名 = 覆盖语义 (定案)**: 命中槽旧对象非零 → 格式化错误 `duplicate resistance action %s` (cpp:95, 非断言) → 旧对象从加载序向量线性查找并紧缩摘除 → 表槽写新对象 → 新对象尾插加载序 — **后载覆盖先载 (mod 替换) 且装载序位次重排**。
+**CResistanceActivityDatabase** (96B; TGameItemDatabase<CResistanceActivityDatabase> 模板单例, 工厂 sub_1401733E0, pdx_scoped_singleton 门 qword_14332F008; resistanceactivitydatabase.cpp 定案): 布局 +8 = _Paths 向量头 (读串 = _Paths[0] 别名, §4.00.51) / +40 32B RH 表 (data@+48 = 静态哨兵 **unk_143085390** / count@+56 / mask@+60 / extra u8@+64 / lf 0.9@+68; 桶 48B {名键区 40B, 对象指针@+40}; 键哈希 FNV-1a 32 位 + 长度预比) / +72 加载序向量 CPdxArray 24B (定义对象指针, 装载序)。Load 包装 sub_14018A950 (已载旗 +20 → `DB already loaded when loading <目录>` + throw); 多目录变体 sub_1401A17F0 (目录串表逐目录调装载 = mod 叠加)。**装载 0x140AA0BD0** (317 行): 清库 → 目录枚举 `*.txt` (64B/项) → 逐行 FNV-1a 32 哈希 → malloc 912B 构 **CResistanceActivity** (ctor sub_140AA01F0, RTTI 直证) → vtable[3] 吃行加载 → RH 插入; **重名 = 覆盖语义 (定案)**: 命中槽旧对象非零 → 格式化错误 `duplicate resistance action %s` (cpp:95, 非断言) → 旧对象从加载序向量线性查找并紧缩摘除 → 表槽写新对象 → 新对象尾插加载序 — **后载覆盖先载 (mod 替换) 且装载序位次重排**。
 
 #### 4.13.1a 抵抗活动执行体 (cr+576 active_actions 定名)
 
@@ -479,9 +523,15 @@ OWNER_CHANGE_EXTRA_SHARED_SLOTS_FACTOR 重缩 extra + 按比率降级共享槽�
 on_state_control_changed / on_state_owner_changed (scope 链皆 New → Old → State)。
 抵抗交接 = cr+80 > 0 → sub_140F9B6E0 转移 / 否则 SetOccupiedCountry (书具名互证)。
 
-**共享槽公式 sub_1409D4980 (定案)**: `clamp(extra(st+2136) + (l163@A表[owner] +
-g161@cc+1448) × (l164 + g162 + 1e5) / 1e5 / 1e5, 0, MAX_SHARED_SLOTS = 25)`; 魔法
-0x29F16B11C6D1E109 = /100000 (ceil(2^78/1e5), 全语料 ≥10 处同用); 下游三方互证返回值 =
+**共享槽公式 sub_1409D4980 (定案)**: `clamp(extra(st+2136) + (m163@A表[owner] +
+m161@cc+1448) × (m164 + m162 + 1e5) / 1e5 / 1e5, 0, MAX_SHARED_SLOTS)`; modifier id 定名
+(ref/modifier_idmap.txt): **163 = local_building_slots / 164 = local_building_slots_factor /
+161 = global_building_slots / 162 = global_building_slots_factor**; 钳位上限 = define
+**MAX_SHARED_SLOTS** (槽址 dword_143334520, 原版值 25 — mod 可改, 勿硬编码); 魔法
+0x29F16B11C6D1E109 = /100000 (ceil(2^78/1e5), 全语料 ≥10 处同用); 类别侧输入链 = st+2200 →
+类别对象+96 内嵌 CModifier (持 m163) → sub_1409D54A0 聚合并入州生效修正块 st+1560 (类别源
+合并倍率 1e5 = ×1.0) → A 表读值器 sub_1409D8F90; 函数起始 wasteland 名字特判分支 (主表 +2136 行);
+下游三方互证返回值 =
 普通整数槽数 (空余槽 sub_1409D3940 / CONSTRUCTION_MAPMODE loc / 已用槽 sub_1409D5310)。
 
 **占领州破坏工厂 sub_1409E09B0 (定案)**: 门 = A 表 controller 键

@@ -124,18 +124,18 @@ sub_140EC8DB0 (强制第二参 = 1)。真名 = tbb 任务符号直读
 
 | 阶段 | 动作 | 并行 |
 |---|---|---|
-| 0 | 脏检: 每国 120B 记录@ss+64 (+112 旗), 比对 owned_states 变化与补给系数宏缓存 (cc+1464 键 567, fixed×1e-5); 脏国逐个 **sub_140ECC220** 刷新 120B 记录 (+112 bit0 = country+1156>0 / +32 = clamp(系数宏+100000, ≥10000 — **钳位下限待 PE 验算**) / 首都州变则省 32B 行 +18 双向维护 / 尾 sub_140EB3D80 刷 owned_states 列表) | lambda_1 |
+| 0 | 脏检: 每国 120B 记录@ss+64 (+112 旗), 比对 owned_states 变化与补给系数宏缓存 (cc+1464 键 567, fixed×1e-5); 脏国逐个 **sub_140ECC220** 刷新 120B 记录 (+112 bit0 = country+1156>0 / +32 = clamp(系数宏+100000, ≥10000 — **下限 10000 定案** (sub_140ECC220 体首分支直证, 无上限钳)) / 首都州变则省 32B 行 +18 双向维护 / 尾 sub_140EB3D80 刷 owned_states 列表) | lambda_1 |
 | 1 | 打脏: 记录旗 \|= 2, tag 入脏国列表 {ss+160} | 串行 |
 | 2 | 三条 id 列表刷新 (ss+88/112/136 → sub_140ECC340/sub_140ECC820) + 逐脏国补给状态重算 | 串行 |
 | 3 | 补给节点全局遍历 (token 1812); 取 `小时 = now % 24` 为全程错峰相位 | 串行/并行双路 |
 | 4 | CSupplyCalculationData (**800B/国**, ss+288) 更新 | lambda_2 |
 | 5 | 国家 id 恒等排列上 8 连 pass: 依赖列表构建 (120B 记录 +88/+100 → calcdata+232)/字节标志压缩剔除 id | lambda_3/4/6/7/8 |
 | 6 | 每省 **216B 记录**扩容 (省界 = gs+700) + 4B/省数组 + 省级 pass | lambda_11 |
-| 7 | 护航/运输队按整点收集 (232B 元素, +4 时刻 `%24==当前小时`; a2=0 全收 + ss+232 哈希清理扩容) | 串行 |
+| 7 | 护航/运输队按整点收集 (232B 元素, +4 = 节点**省 id** word, `%24==当前小时`; 第二门 **type ∈ {2,3}**; a2=0 全收 + ss+232 哈希清理扩容) | 串行 |
 | 8 | **国家每日重算错峰: `id % 24 == 当前小时` 才执行** (sub_14122E520 清累计 + 30 槽日环 国对象+552..+624 清新槽) — 每日补给重算摊平到 24 小时的削峰机制 | lambda_16 |
-| 9 | 分发结算: **省满足率 = 省记录 rec[1]/rec[0]** (clamp ≤100000); 流入写 calcdata+184 区 40B 条目 {来源/快照/数量}; **库存扣减 calcdata+64**; 回填机械 = 脏国逐个遍历 css+528 条目: **sub_140EB3BE0** (sys+360 40B 行 find-or-push, 1.5× rotate 插入) + **sub_140EB5080** (条目内嵌收集向量按键归并 append); 配套扩容/清理 = sub_140ECA830 (sys+312 行数组 1.5×) / sub_140ECAA40 (sys+336 锁数组新尾清零) / sub_140EC8790 (216B 行两内嵌向量扩容前清空) / sub_140EC8710 (内层 160B 桶两内嵌向量元素级清空) | 串行 + lambda_19 |
+| 9 | 分发结算: **省满足率 = 省记录 rec[1]/rec[0]** (clamp ≤100000); 流入写 calcdata+184 区 40B 条目 {来源/快照/数量}; **库存扣减 = calc+184 表内 232B 节点条 +64 (_RemainingSupply)** (非 calc+64 120B 工作集); 回填机械 = 脏国逐个遍历 css+528 条目: **sub_140EB3BE0** (sys+360 40B 行 find-or-push, 1.5× rotate 插入) + **sub_140EB5080** (条目内嵌收集向量按键归并 append); 配套扩容/清理 = sub_140ECA830 (sys+312 行数组 1.5×) / sub_140ECAA40 (sys+336 锁数组新尾清零) / sub_140EC8790 (216B 行两内嵌向量扩容前清空) / sub_140EC8710 (内层 160B 桶两内嵌向量元素级清空) | 串行 + lambda_19 |
 | 10 | 每国三连 pass (全名 = sub_14122B820 → **sub_14122B300 → sub_14121C700 → sub_14122F110**) + 观察者钩子 = **sub_1415AE8C0** (sys+112/208/160 三脏表并集 → 逐脏 tag 逐 id 从单例 +88→+23776 观察者缓存 RH 24B 桶 backward-shift 删除) — 三 pass 细节见下表 | 混合 |
-| 11 | 最终并行结算 + **打下一轮脏标** (sub_140ECACF0: 省 32B 记录旗 \|= 4 入 ss+88, 国记录旗 \|= 4 入 ss+184); 尾部 **sub_140EC8350** 消费后清旗: 省 32B 行 +24 清 bit2/bit3 / 州 40B 行 +36 清 bit0 / 国 120B 记录 +112 清 bit2/bit4/bit8, 六脏列表计数全清零; css+456 排水 = sub_14122BD20 (逐节点 ECACF0 打脏后清零) | lambda_21/22 |
+| 11 | 最终并行结算 + **打下一轮脏标** (sub_140ECACF0: 省 32B 记录旗 \|= 4 入 ss+88, 国记录旗 \|= 4 入 ss+184); **sub_140EC8350 清旗在 lam21/22 之前** (三连 pass + 观察者钩子后、lam21 分发前; 先清后打脏 = 逻辑必然, ECACF0 在 lam21/22 内重打脏) 消费后清旗: 省 32B 行 +24 清 bit2/bit3 / 州 40B 行 +36 清 bit0 / 国 120B 记录 +112 清 bit2/bit4/bit8, 六脏列表计数全清零; css+456 排水 = sub_14122BD20 (逐节点 ECACF0 打脏后清零) | lambda_21/22 |
 
 阶段 10 三连 pass (逐 css 串行, 定案):
 
@@ -195,6 +195,8 @@ tbb lambda 族 (细粒度)。网络条目 (232B) 字段: +56 = `Node._TotalSuppl
 | sub_141230D40 (36 行) | lam7 每国每日重置编排 (清 css+504/+516/+528 + 护航订户重建 sub_141021F90(css+232,…,32,dword_1433343D0) + 流缓存重建) | 阶段 8 |
 | sub_141230E50 (95 行) | 节点构建主编排 (type1 空补→各源构建器; 尾扫 css+168 桶懒清 used==0) | 阶段 8 尾 |
 
+**静态数据源 (定案)**: 供应节点静态数据 = `map/supply_nodes.txt` (vanilla 727 节点全 land 省, 遍 513 州; 首列恒 1 非战略区 id), 游戏侧装载 = sub_140EB6340, nudger 编辑器对 = sub_141B6E4A0 + sub_141B69210; **`map/supplyareas/` = 死数据** (dump 全语料 "supply_area/supplyareas" 零命中, 引擎不装载, 仅存 1 个样例文件); 节点节点容量基数另受满级铁路常数 (NODE_FLOW_BONUS_PER_RAIL_LEVEL×MAX_RAILWAY_LEVEL) 与州 local_supplies (type0 州注入源)。
+
 **传播五联族** = 同一 Dijkstra 泛洪模板五实例 (两两逐字级孪生, 仅断言守卫字节异): sub_141209CA0 (调者 141220E00) / sub_14120AA10 (调者 141220690) / sub_14120C4F0 (调者 1412231D0) / sub_14120D260 (调者 141223990) — 门 = calc+208 位图[起省控制国 idx]; **sub_14120B780 变体** (调者 1412220B0) = 海外过境型 (门 = 起省控制国 ≠ 本国 ∧ 节点 type==5, 「控制国==本国 ∨ type≠5」省置 3 不再扩)。共同骨架 (断言 :1971 InfraRatio ≤1e5 / :2039 flow 严格递减):
 
 ```
@@ -211,6 +213,21 @@ tbb lambda 族 (细粒度)。网络条目 (232B) 字段: +56 = `Node._TotalSuppl
 falloff(d) = (mid == −100000) ? 满额 : max(1e5×SCALAR/(mid+1e5), MIN_PENALTY_SCALE);
 mid = K × (1e5×d − MIDPOINT)/1e5
 ```
+
+**falloff 变换链精化 (高置信推定)**: K 进变换前经取负助手 sub_1424EF6F0 (`*a1 = −a2`) 取负, 变换本体 sub_1424EFD10 → sub_1424EFB20 = 定点 **ln** 家族 (§4.21.1b 定案 sub_1424EF9D0 = 100000·ln(x/100000), 含 <1 域负分支)——即 falloff 分母实为 `ln(−K×(d−MIDPOINT))`, 哨兵 −100000 (ln 失败/下溢) 时 falloff 满额; 语义等价 logistic 增长曲线的定点近似。falloff 只乘 terrain_factor (≤0.16), 整项对 step 贡献 ≤ ~14%, MIN_PENALTY_SCALE 下钳约束量级。
+
+卡车/火车域增补 (定案; supplyunits.cpp/卡车分配簇), 逐项如下:
+
+| 项 | 定案 |
+|---|---|
+| SUPPLY_POINTS_PER_TRAIN | qword_1433381A0 (注册器直证; vanilla 1.0); 三消费点 = sub_141208C90 节点火车需求 (asked = ceil_away(1e5×⌊(NUM_RAILWAYS_TRAIN_FACTOR×节点+144+1)×聚合需求÷1e5⌋÷SPPT÷1e5), 高置信 — define 直证, PE 侧验算待补; SPPT=0 兜底 asked=1) / sub_14122F2F0 起始缓冲 / sub_140F75A00 空袭可打数 |
+| css+200 wanted 公式 | sub_14122EFF0 = 唯一业务写者, 两级向上取整; 人控国缓冲比恒 1.0 / AI 钳 [0,100]; css+384 = 缓冲比槽 (init 1.0 = BASE_SUPPLY_MULT_FOR_TRUCK_DEFAULT_BUFFER) |
+| 起始缓冲兑现双子不对称 | 卡车 sub_14122F5F0 不动装备池 (取比较器最大变体, 断言守卫全空才发) / 火车 sub_14122F2F0 从装备池真扣 sub_140E60E30 |
+| MIN_TRAIN_SUPPLY_FACTOR 混合公式 | sub_1412295E0 + 计费叶内联: 运力因子 = 0.5 + 满足率×0.5 (火车短缺保底 50% 运力) |
+| 铁路段 flow 公式 | sub_1414E0D10/DA0: `10 + 5×level − 5×level×(1−hp)`, 下限 5 |
+| 卡车磨损结算 | sub_141226C70 (0.003×0.65×100 定点链 → css+600 日环) |
+| 火车扣减叶 | sub_14122FE00: 每节运力 = 变体HP + BASE_TRAIN_HP; damage 满百扣车 + 装备池真移除 + css+272 减 |
+| 燃料负定案 | 火车装备无 fuel_consumption 字段; 补给池卡车不烧油; 燃料耦合单向 (补给比 → 部队燃料流入帽) |
 
 节点容量三分支选择器 sub_141228D50: 基数 = 1e5×NODE_FLOW_BONUS_PER_RAIL_LEVEL×MAX_RAILWAY_LEVEL/1e5 + 按省缓存 32B 条 {+18 首都 / +20 supply_node_level / +21 naval_base_level} 选 CAPITAL/NODE/NAVAL_BASE 族 INITIAL_SUPPLY_FLOW; 输出 24B {base_flow, \*_STARTING_PENALTY, \*_ADDED_PENALTY}; 三者皆零 → 断言 "no node available" (:3180)。
 
@@ -229,7 +246,7 @@ mid = K × (1e5×d − MIDPOINT)/1e5
 | qword_143335070 | SUPPLY_FLOW_REDUCTION_THRESHOLD | 折减阈 (两处) |
 | dword_143333DC8 | NBuildings.MAX_BUILDING_LEVELS (i32) | InfraRatio 分母兜底 (db 单例 +944 对象 +696/+700 缺省回落) |
 
-worker 层增补 (定案): 120B 国家缓存条 **+0 dword = 首都省 id** (sub_14121EF20 经此写 calc+416; 书原只录 +8/+40/+64/+88); calc+704 _NonLocalNodes **type2 节点亦登记** (不止 type3); calc+32 RH 表 (省→距离+1) 的 **value 槽 = 父省 id** 供 sub_141208C90 沿链回溯定位 type3/5 源节点 (AvoidInfLoopCounter < 100 防环); 232B 节点条建时序 (非首都: +56 = +64 = +24−+72; 首都: +16 = 容量并入、+120 = 100000 哨兵、+152 = 0); CSupplyConsumer **+31 = IsLocalSupplyFromAlly / +40 = asked / +64 = received / +104 = received_local**, 类型枚举 1=NAVY / 2=AIRBASE (:2268); css+392 settings 40B 条 id 对 = **{省 id, 节点 type}** (查找器 sub_14120F030, 缺省条 qword_14333DDA8); lam22 执行体 = sub_14122C890 (%24 轮转 ×2) → {141230340, 141230750} (112B foreign_homebase 条 +72/+88/+96 维护; 750 尾插 css+432 temp_nodes); 阶段 9 分发结算本体 = sub_141224480 (airdrop 预累加 + 消费者聚合 + share_scale = min(1e5, 1e5×需求/总量) + 阈值折减); 流域台账写叶 = sub_14121AA10 (节点内嵌 +208 使用台账的写者 — 与 css+208 挂接表同号异体再证)。
+worker 层增补 (定案): 120B 国家缓存条 **+0 dword = 首都省 id** (sub_14121EF20 经此写 calc+416; 书原只录 +8/+40/+64/+88); calc+704 _NonLocalNodes **type2 节点亦登记** (不止 type3); calc+32 RH 表 (省→距离+1) 的 **value 槽 = 父省 id** 供 sub_141208C90 沿链回溯定位 type3/5 源节点 (读侧 getter sub_141229070; 起点 = parent(节点+4 省 id), 每跳内联二分 calc+704 [前驱省], 一链可多命中; AvoidInfLoopCounter < 100 防环 + :589 一次性断言。type3 门 = 外交关系谓词 sub_140D25410 (cc+3976 外交对象 +8 每国数组, 军事通行类推定); type5 门 = 请求 tag 与属主同国 (sub_140BB52F0 = gs+832 表同国判定直证)。命中追加 css+32 请求向量 48B 源记录 {省@0, type@4, tag@8, 链省@12, 命中省@16, 属主 tag@20, 节点 idx@24, 需求 qword@32, 旗 byte@40=1}; 尾段火车门 = type&0xFFFFFFFA≠0 (排 type0/1/4/5) ∧ 节点+12 旗=0 → asked 回写订阅条+40 + {tag, asked, 旗0} 48B 记录。调方链 = sub_141221CE0 (逐节点聚合 +208 使用台账 → +184 订阅列表 find-or-create) ← sub_140ED0BA0 ← sub_140EBBFE0 (tbb 8 桶轮转包装, lam19 执行体候选待裁); 每国后继 sub_1412317C0 = calc+304 卡车入账 css+200); 232B 节点条建时序 (非首都: +56 = +64 = +24−+72; 首都: +16 = 容量并入、+120 = 100000 哨兵、+152 = 0); CSupplyConsumer **+31 = IsLocalSupplyFromAlly / +40 = asked / +64 = received / +104 = received_local**, 类型枚举 1=NAVY / 2=AIRBASE (:2268); css+392 settings 40B 条 id 对 = **{省 id, 节点 type}** (查找器 sub_14120F030, 缺省条 qword_14333DDA8); lam22 执行体 = sub_14122C890 (%24 轮转 ×2) → {141230340, 141230750} (112B foreign_homebase 条 +72/+88/+96 维护; 750 尾插 css+432 temp_nodes); 阶段 9 并行波次 = lambda_19 (执行体待逐读); **sub_141224480 调用点在 lam21 流量分发之后** (阶段 11 尾段环; 原归阶段 9 系顺序失真; airdrop 预累加 + 消费者聚合 + share_scale = min(1e5, 1e5×需求/总量) + 阈值折减); 流域台账写叶 = sub_14121AA10 (节点内嵌 +208 使用台账的写者 — 与 css+208 挂接表同号异体再证)。
 
 对外出口: 唯一非补给域调用 = sub_140F75A00 (§4.15 空袭物流打击主结算) → **sub_141226B10 节点运力扣减选变体助手** (fx1e5→<<15 定点换算 `((x/1e5)<<15)+((x%1e5)<<30)/3276800000`; calc+360 火车分配向量二分 + css+288 每变体谓词 sub_14122FE00; :823 回转换算)。换算常量: u64÷1e5 = magic `0x29F16B11C6D1E109>>14` (+>>63 进位加项, 簇内 11 处)。
 
@@ -252,7 +269,7 @@ CBC8C0 阈值分流 (定案): `v35 = BASE_LAND_TRADE_RANGE² × ln(两国持有�
 | 原语/查询 | 语义 |
 |---|---|
 | sub_1406EE6E0(CCountry*) | tag → CCountrySupplySystem* (`*(sys+264)[BB5490(country+8)]`); 全读侧国家入口 (80 调用者: 脚本 6 / AI 18 / UI 11 / 海军护航 10 / 供应核心 13) |
-| sub_141229210(calc, type:id) | FindNodeIndex: 节点 idx 二分 (case0 省→+656 表; 2/3→+704 `_NonLocalNodes`; 4→+728; 5→+752; case1 air 断言 country_supply.cpp:3029) |
+| sub_141229210(calc, type:id) | FindNodeIndex: 节点 idx 二分 (case0 省→+656 表; 2/3→+704 `_NonLocalNodes` (8B 条 {省 id, 节点 idx} 升序; sub_141208C90 读侧内联二分); 4→+728; 5→+752; case1 air 断言 country_supply.cpp:3029) |
 | sub_1414E3980(out, state_id, calc) | 州内全部节点 entry+64 求和 (calc+680 表 32B/项, state 键二分) |
 | sub_141658020(css, {prov,x}) | css+168 节点流缓存探测 (104B 桶, 断言 country_supply.h:386) |
 | sub_140EC8A00(sys, out, entry, 槽) | 流值变换: `*(sys+16)[idx]×(量+100000)/100000−100000` 负钳 0 |
@@ -267,7 +284,7 @@ CBC8C0 阈值分流 (定案): `v35 = BASE_LAND_TRADE_RANGE² × ln(两国持有�
 | sub_1414323B0 | **情报账页模糊区间** (非面值管线 — 全语料 E8 仅 2 调用者, 均为情报账页: sub_141EBB920 填 INTEL_LEDGER_SUPPLY_TOOLTIP $RANGE$ = "X - Y"/无情报 "NO_INTEL", sub_141EC19D0 账页行族刷新 → SetText +1476..+1508; 均不触顶栏): v23 = sub_14121F1D0 → sub_14142EB50 = countryintelhelper.cpp 模糊化区间估计器 (输出 (min,max) 两百分数 <<15 定点; 幅度随情报进度衰减至 0, 噪声 = 按 (id, 年偏移, 值, 游戏态种子) 确定性双路哈希; 常数实参 1692 = 噪声哈希种子, 函数内不查任何表); v15 = 观察方对目标国民用情报等级 ÷ NIntel.INTEL_COUNTRY_LEVEL_MAXIMUMS[0] (数据数组 = qword_1433390B8, 4×qword, 断言 countryintel.cpp:302, 缺项填 100000); FoW 总旗 byte_14332F63A 关 → 全部精确; define 定名 (注册调用直证): qword_1433315B0 = NIntel.CIVILIAN_SUPPLY_RANGE_INTEL_MIN (vanilla 0.1, 低于显 ??) / qword_143331668 = NIntel.CIVILIAN_SUPPLY_RANGE_INTEL_MAX (0.5, 不低于显精确值) / qword_143331708 = NIntel.CIVILIAN_SUPPLY_INTEL_RANGE_AT_LOWEST_INTEL (0.5, 最低情报扰动幅度) | 直读 定案 |
 | 顶栏视图 | 类 = **CTopBar** (RTTI); vtable 0x142a11290/b8/d0; vtable[15] = sub_14189D510 (调 sub_1418A33A0 刷新 supply 元件); 元件: +232 = supply_value (CInstantTextBox), +240 = supply_ratio_bar (CIcon), +39088 = logistics_button | RTTI+实机扫描 定案 |
 | sub_141633810 | 顶栏后勤 tooltip (LOGISTICS_CAPACITY[_DETAILED_DESC] 键): 火车/卡车/运输船行 = 持久通道比值 (css+272/calc+320 等); ⚠ 与面值分属两套来源 — css+208 流量累积为每次重算清空的临时量, 供给系统冻结时面值塌 0 而本 tooltip 行仍满 | 直读 定案 |
-| sub_141635650 / sub_141636C20 / sub_14162FB40 | 供应地图 tooltip 族 (SUPPLY_CAP_AVAILABLE / SUPPLYMODE_TOOLTIP_ENEMY_DISRUPTION / CONSUMER_SUPPLY_TOOLTIP; 直读 +312 216B 行与 232B 条目) | 本地化键 定案 |
+| sub_141635650 / sub_141636C20 / sub_14162FB40 | 供应地图 tooltip 族 (SUPPLY_CAP_AVAILABLE / SUPPLYMODE_TOOLTIP_ENEMY_DISRUPTION / CONSUMER_SUPPLY_TOOLTIP; 141636C20 = calc+184 的 232B 条目 + 144B 连接路径容器, 不读 +312 216B 行 — 该行仅属另两成员) | 本地化键 定案 |
 | sub_14167CBD0 (+ 入口 14167C560) | 逐省供应状态数组构建 → UI 侧缓存 {data@a1+56, cap@+64, count@+68}; 门细节 (定案): 发布器 +80 = stale 旗 (关门置 1 仍走 sub_14167C730 刷旧缓存); 门开且州数 %3==0 时使能 mapmode 3/4 重绘 | 定案 |
 | sub_1402B95E0(gs, json) | "province_supplies" JSON 导出: 每省 = clamp(100×max(流值),0,100) | 定案 |
 | sub_1403EE990 / sub_14042C7D0 | CNumOfSupplyNodesTrigger::GetValue/GetDesc → `*(u32*)(*(css+128)+428)` | 名表+断言 定案 |
@@ -277,8 +294,7 @@ CBC8C0 阈值分流 (定案): `v35 = BASE_LAND_TRADE_RANGE² × ln(两国持有�
 `_TotalSupply` / +64 `_RemainingSupply`, 与 sys+312 省聚合行两处**; GUI/单位域查询
 时刻按 14194CDF0 现算, 无持久化汇总字段。唯一被读侧消费的每小时引擎缓存 =
 CCountrySupplySystem+168 节点流缓存 (写者 = lam 7/lam 8); css+208 供应流数组无
-独立外部读者 (写侧内部消费); css+136 disrupted_supply 独立查询函数未定位,
-读取推定内联于 141636C20 — 待裁。
+独立外部读者 (写侧内部消费); css+136 disrupted_supply 表在 GUI 侧无直读者 (§4.21.6 供应地图 tooltip 的阻断/护航显示 = 232B 节点条目 +32++72 内联和与 +40/+136 门, 非表查询) — 定案 (待裁项关闭)。
 UI 渲染链: UpdateSupply 尾调 14167C560 (唯一调用点) → 全局发布器 unk_1430B3C10
 {data@+56 = 槽 qword_1430B3C48, cap@+64, count@+68 = 槽 dword_1430B3C54 = 就绪门}
 (唯一写者 = UpdateSupply) → map mode 上色 140F392D0 (直读 +56 槽逐省数组,
@@ -338,7 +354,7 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 | +28 | float | +8 表装载因子 lf = 0.9 | 定案 |
 | +32 | 匿名结构 (32B 形状) (RH 表 §3.2) | **省→距离+1 缓存** (空补 Dijkstra); 桶 12B {flag u8, key 省 id u32@+4, value u32@+8}; 插入器 sub_1401B04A0 (对象基 calc+32) | 定案 |
 | +64 | 匿名结构 (120B 形状) | **省/州/区聚合工作集**: 相对 +64: vec@0 = int×省数 (省→216B 记录 idx, init −1); vec@24 = **216B 聚合记录表** (USAggregatedProvinceSupplyData 同型: +0 word 省 id / +8 Σ(asked−received) / +16 同州链 next / +24 每消费者 24B 向量 **{8B ref id@+0, 节点条指针@+8 (232B 网络节点, 消费点解引用取 +40/+64/+152), 台账键 dword@+16}** / +48 16B 列表 {节点idx,国idx,权重} / +152 节点值); vec@48 int 数组; vec@72 (=calc+136) = int×州数 (州→已有节点 idx, 建重复节点门); vec@96 (=calc+160) = int×区数 (init −1); ctor 1414DFE80 / 清 1414E1860 / find-or-create sub_1414E0460 | 升级定案 (原「语义推定」) |
-| +184 | 匿名结构 (232B 形状) 向量 | **供应节点表**: +0 dword 节点 idx / +4 word 省 id / +8 dword type (0=州陆地 / 1=空补 / 2=建 (SupplyLevel 门) / 3=跨国非本地链接 / 3·5=海补) / +12 旗 byte / +56 `_TotalSupply` / +64 `_RemainingSupply` / +128 属主 tag / +152 节点值 / **+184 内嵌 Form P (48B 条订阅者挂接列表, count@+196; 阶段 10 pass1 sub_14122B300 写条+16 = 订阅者指针; 未命中 push {tag@0, 16B 零@+8, {0,100000}@+24, 0@+40})** / **+208 内嵌 Form P (40B 使用记录, count@+220)**; 建 type0 sub_1412229D0 / type1 sub_141222570 / type2 sub_141220690·141220E00 / type3 EA10 | 定案 (type 枚举本轮闭合; +184 订阅者列表新补) |
+| +184 | 匿名结构 (232B 形状) 向量 | **供应节点表**: +0 dword 节点 idx / +4 word 省 id (tooltip 侧以 dword 读, 省 id < 65536 无行为差异) / +8 dword type (0=州陆地 / 1=空补 / 2=建 (SupplyLevel 门) / **3=海军基地节点 (NAVALBASE_NODE_HEADER) / 5=外国本土节点 (FOREIGN_HOMEBASE_NODE_HEADER) — tooltip 派发直证**; 浮港由 +13 旗判定, 与 type 正交) / +12 旗 byte / +13 u8 浮港旗 / +32 i64 敌对阻断分量 A / +40 i64 护航效率分子 (≤0 ∧ +136>0 → 零效门) / +56 `_TotalSupply` / +64 `_RemainingSupply` / +72 i64 敌对阻断分量 B (ENEMY_DISRUPTION AMOUNT = +32++72) / +80 i64 节点流量容量 (1e5 定点, 级 = ÷1e5, 铁路/海军瓶颈 LEVEL 基准) / +128 属主 tag / +136 i64 护航需求/效率分母 / **+144 dword 铁路规模量 (NUM_RAILWAYS_TRAIN_FACTOR 乘数, 调方 sub_141221CE0 消费; 语义推定)** / +152 节点值 / **+184 内嵌 Form P (48B 条订阅者挂接列表, count@+196; 阶段 10 pass1 sub_14122B300 写条+16 = 订阅者指针; 未命中 push {tag@0, 16B 零@+8, {0,100000}@+24, 0@+40})** / **+208 内嵌 Form P (40B 使用记录, count@+220)**; 建 type0 sub_1412229D0 / type1 sub_141222570 / type2 sub_141220690·141220E00 / type3 EA10 | 定案 (type 枚举本轮闭合; +184 订阅者列表新补) |
 | +192 | uint32 | vec184 cap | 定案 |
 | +196 | uint32 | vec184 count = **节点数** (EA10 读作新节点 idx) | 定案 |
 | +200 | uint64 | vec184 alloc | 定案 |
@@ -399,7 +415,7 @@ RH 表对象 (§3.2) = 匿名结构 (32B 形状) {占位 uint64@+0 (不初始化
 | sub_1414E2AF0 | — | gamestate 双断言 | 节点 idx 查找 (mode 选表, 二分 {省 id, 节点 idx} 8B 对) |
 | sub_1414E2EB0 | — | gamestate 双断言 | 他国该省供给最大值 (遍历 120B 国家缓存条 +88 涉足 tag 数组) |
 
-主流程 (定案: 结构 / 推定: 语义名): ① record = CCountrySupplySystem(a1)+128 的 800B calcdata; ② **归属门** — 省控制国 (a3+392) idx 不在 record+208 涉足外国位图 (§4.21.2) → 降级: 查控制国 CDiplomacyStatus+3976 每国数组, sub_140D23030 判 (控制国, a1) 军事通行类关系, 失败返空, 成功以 a1 为供给源继续; ③ idx = sub_1414E2AF0(0, a3+164 省 id, &a1); ④ 越界 (idx<0 ∨ idx ≥ record+196 节点数) → :1179 断言 + 双 out 清 0; ⑤ node = record+184 表 + 232×idx: 可用量 = node+56 (_TotalSupply), 已耗 = node+56 − node+64 (_TotalSupply − _RemainingSupply); ⑥ sub_1414E2EB0 取他国该省最大值 → 可用量 = max(本国节点总量, 他国最大) (多国重叠省取最大显示值, 推定)。
+主流程 (定案: 结构 / 推定: 语义名): ① record = CCountrySupplySystem(a1)+128 的 800B calcdata; ② **归属门** — 省控制国 (a3+392) idx 不在 record+208 涉足外国位图 (§4.21.2) → 降级: 查控制国 cc+3976 外交对象 +8 每国数组, sub_140D23030 判 (控制国, a1) 军事通行类关系, 失败返空, 成功以 a1 为供给源继续; ③ idx = sub_1414E2AF0(0, a3+164 省 id, &a1); ④ 越界 (idx<0 ∨ idx ≥ record+196 节点数) → :1179 断言 + 双 out 清 0; ⑤ node = record+184 表 + 232×idx: 可用量 = node+56 (_TotalSupply), 已耗 = node+56 − node+64 (_TotalSupply − _RemainingSupply); ⑥ sub_1414E2EB0 取他国该省最大值 → 可用量 = max(本国节点总量, 他国最大) (多国重叠省取最大显示值, 推定)。
 
 helper A (sub_1414E2AF0) mode→表 (定案):
 
@@ -423,3 +439,51 @@ helper B (sub_1414E2EB0, 书原完全未收): sys = *(gs+984) CSupplySystem → 
 
 
 **country_supply.cpp 50-99 行簇增补 (互证批)**: 容量三分支选择器 sub_141228D50 全互证 (define 组 + :3180 "no node available" 断言不短路仍落 NAVAL_BASE 值)。节点构建主编排 sub_141230E50: 门断言 "You're calling this function incorrectly" (:444, 国+1156 > 0 — 与 CCountryAI::Update/特工命令同字段第三消费点); 尾扫 css+168 RH 表懒清 + 空槽步进断言 pdx_robin_hood_table.h:58 哨兵 (_DistancePlus1)。逐州工作叶 sub_14121D810: **id 三级映射 = +112 表 → +64 表 → 省 id → 记录 = *(a1+88) + 216×id**; 目标块 = *a3 间接基址 + 216×省id (**216B 跨距第二容器**)。本地供应发放叶 sub_141215BC0: 省 24B 源条目 {+8 消费者, +16 键}, **+36 计数处理完每省尾置 0** (for-update 藏写); avail = 消费者+40 − +64; 所有者+104 (received_local) += avail; 扣减 = max(0, avail − 消费者+152) → 省 _TotalNeed -=, 负断言 :3331; 断言锚 supply_system_utils.h:74 (内联助手)。
+
+#### 4.21.3 情报账页选中行 tooltip 生成器 (intel ledger info tab; 1 函 = 0x141EBB920, 定案 (语义)/真名未决)
+
+0x141EBB920 (账页 a1, 行条目 a2, 输出 a3): 按 `a2[2]` 三态模式码分派 (**−1 图表曲线 / −2 图表摘要 / 其他页行**), 约 20 种页型 (人力/工业/燃料/船团/卡车/火车/补给/装备六产线/damaged ratio 三 icon), 每页输出「模糊区间 "X - Y" ∨ NO_INTEL + 明细行 + 情报等级精度说明行」。**账页偏移表 (直读定案)**: −24 目标国对象 / +2672 图表数据源 / +2720..+2752 CIV_GRAPH 五开关槽 (industry/convoys/bombers/trucks/trains) / +2784..+2800 estimated civil/mil/naval icon / +2832 factory_trade / +2896 fuel / +2912 industry / +2928 manpower / +2944 convoys / +2960 trucks / +2976 trains / +2992 supply / +3088 图表类型 int (0-4) / +3096 历史数组基址 / +3108 历史点数。**cap define 全表 (消费直证)**: industry 1433319B8 / convoys 143331A68 / bombers 143331B28 / trucks 143331BC8 / trains 143331C70 / army manpower 1433320D8 / navy manpower 143333728 / air manpower 1433346A8; 尾行 cap 对 = manpower 1433317B8/143331870 / fuel 143330EA8/143330F50 / convoys 143331088/143331A68 / trucks 143331278/1433311E8 / trains 1433313D0/143331450 / supply 1433315B0/143331668 (= **NIntel.CIVILIAN_SUPPLY_RANGE_INTEL_MIN/MAX**, 本册互证) / industry·装备产线共用 1433374E8/143337590 (符号名除 supply 对外待裁)。**区间函数族 11+ 契约统一** `(out, obs, tgt, 0, &has)` → (min,max) + has; 抽样直证与 sub_1414323B0 同走 **sub_14142EB50 模糊估计器管线** (本册定案); 可见性判定族 5 个同参型。**装备/舰船产线查询原语 sub_141430BF0**(out, obs, tgt, 类别 int, 类型 1-6, 0, &has) — 类型 = EQUIPMENT/ARMOR/AIR/CAPITAL_SHIPS/SCREEN_SHIPS/OTHER_SHIPS; 类别 int 取自 sub_140E62F80 填 32B 缓冲 (countryintel+3944 对象查询)。**damaged factory ratio 三公式** (100000 定点, 除零 → 100000): civ total +912 avail = +888−952−960 / mil total +720 avail = +696−768−760 / nav total +816 分母 +792 (字段全在 countryintel+3944 解引用对象内)。图表历史数组元素 32B {+24 副值 damaged, +28 主值}; x 归一化消费 qword_14332F698+1280 子对象 vt+192 (分子) ÷ qword_143453090+206296 float (分母) × a1+2672 vt+48/+224 (起点/宽); 图表类型 0-4 = factory/convoys/bombers/trucks/trains 五曲线 (0-2 双行 total+damaged, 3-4 单行 stockpiled, 1-2 附 UNTIL_TODAY 累计)。**尾行精度说明原语 sub_141E9F5E0**(row, 等级名, 国家对, minDefine, maxDefine), 等级名 = "CIVILIAN_INTEL" (14B) 或 qword_142A8D2A8 处 14B rodata 串; 输出写 a3+4 第二容器。观察方槽 = gs+1312 (>0) 否则 gs+1316 → sub_14142F240 国家对句柄。
+
+**UpdateSupply 全量重析增补 (2629 行三窗; 定案)**: 本体 = 纯编排函数 (零业务字符串, 业务全在 lambda 叶); 15 处 start_for mangled 符号 `UpdateSupply_CSupplySystem__QEAAX_N_Z` 复证身份。**css+504 条目 = 136B 形态定案**, 语义收窄 = 本地消费者需求折算台账 (原「语义未决」); **节点+208 发放台账第三内联写点** = 本体阶段 9 主环 (原仅录两处)。lam19/lam20/lam6/lam8 启动包装 VA 已定位 (执行体待逐读); **lam21/22 grainsize = max(1, (count−1)/(3×NumTaskThreads))**; **EJobType 4/5 新见** (原 DB390 只录 0-3)。阶段 3 编排本体 = sub_140EB5E40 (原无函数名); a2=0 哈希清理扩容公式直证; sys+232 省键哈希 + 内层清条叶 sub_140EC19C0。qword_143339D28 单例 (推定 supply node 静态数据宿主, 待裁)。
+
+#### 4.21.4 补给火车 debug 画线 (gfx_train.cpp; 1 函 = 0x141C64A00, 定案)
+
+0x141C64A00: 画线原语 = sub_1422CCED0 参数表; 线宽 0.5/0.3/0.8; 色板 白/浅灰/蓝/红/绿 (PE 位码验算); **10000.0 = 100 单位距离平方门**; 下一路径点绿色。断言 gfx_train.cpp:752 "EntityData.GetSize() == _Wagons.GetSize()"; 调用者侧 **byte_14332F762 = 补给 debug 绘制总门** (写者待裁)。
+
+#### 4.21.5 补给 calc+304/+312 卡车满足率重算器 (1 函 = 0x14122F8D0, 定案)
+
+0x14122F8D0 (gamestate.h:1125 断言簇): Σ 各外国 232B **节点条 +96 运输需求** → `min(1e5, 1e10 × css._TotalTruckInfo._Allocated ÷ Σ)` = **卡车满足率写 calc+312** — 顶栏后勤面值的唯一基数 (书 :367 消费链上游首次闭合)。cache_countries 120B 条 +88 数组消费。调用方双路 = UpdateSupply tbb lambda **sub_140EBD450** (符号名直证) + 串行 sub_140ED0F20。
+
+#### 4.21.6 供应地图模式省 tooltip 组装器 (supply_gui_utils.cpp; 1 函 = 0x141636C20, 定案 (机制)/真名未决)
+
+`(CProvince* a1, unsigned mode, tooltip_builder* a3) → char` (1 = 已生成 / 0 = 不适用)。supply_gui_utils.cpp:859/860 双断言 ("Could not find From/ToNode") + 20 个 SUPPLYMODE_TOOLTIP_* / BOTTLENECK_CONNECTION_* loc 键直证功能身份。
+
+流程: v5 = 省 id (a1+164) → sub_1414E2AF0(mode, 省 id, &out) 节点 idx 查找 (mode→表 = 2→calc+704 / 1→+728 / 0→+704 未命中回退 +728, §4.21.2a) → 有效性门 = idler+1960 对象 +16 == 省 id (悬停省已变即不生成) → 玩家 tag gs+1312 / 观察模式 gs+1316 → 供给源国 = sub_14122A960(css_player, 省 id) 命中 css+480 foreign_homebase_nodes 则取玩家 tag, 否则取省控制国 tag (a1+392) → calc = *(css_source+128), entry = *(calc+184) + 232×idx, 已耗 = entry+56−entry+64, 首都基准 v25 = entry(*(calc+424))+56。
+
+分支 (entry+12 首都节点旗):
+
+| 分支 | loc 序 |
+|---|---|
+| 首都节点 | CAPITAL_NODE_HEADER (PROVINCE_NAME) → NODE_CONTROLLED_BY (源国≠玩家) → CAPITAL_NODE_SUPPLY_CAP → CAPITAL_MOVED_RECENTLY (剩余天数 > 0; PERCENTAGE = 迁都效率 sub_14121E6D0) → CAPITAL_NODE_BASE / _CIVILIAN / _MILITARY / _DOCKYARDS → 公共需求段 |
+| type 5 外国本土 | FOREIGN_HOMEBASE_NODE_HEADER (PROVINCE_NAME + LEVEL = entry+80) |
+| type 3 海军基地 (非浮港) | NAVALBASE_NODE_HEADER (PROVINCE_NAME + LEVEL) |
+| +13 浮港旗 | FLOATINGHARBOR_NODE_HEADER + FLOATINGHARBOR_EXPIRATION (过期天数 = sub_141229590 浮港记录经 sub_1401C6FE0 两次 + sub_140202070 换算) |
+| 其余 | SUPPLY_NODE_HEADER + (源国≠玩家 → NODE_CONTROLLED_BY) + NODE_CONVOY_ZERO_EFFICIENCY (entry+40≤0 ∧ +136>0) + SUPPLY_FROM_CAPITAL (entry+152>0 ∨ 首都旗) / DISCONNECTED + _DESC (entry+152≤0 且非首都) + SUPPLY_FROM_ALLY (sub_1414E2EB0 他国该省最大值 > entry+56) + ENEMY_DISRUPTION (AMOUNT = entry+32 + entry+72) |
+
+公共需求段 = sub_141631070 (731 行): DEMANDED_SUPPLY (ACTUAL/WANTED) / DIVISION_DEMAND / AIRPLANE_DEMAND / SHIP_DEMAND / USED_TRUCKS。TRAINS_NEEDED 段: 门 = entry+184 订阅者容器 Σ(+40) > 0 ∧ sub_1412DB270(entry+184, 玩家 tag) ≥ 0; NEEDED = 订阅记录+32 (所需火车数), ALLOCATED = 1e5×NEEDED×*(calc+352 火车满足率); 前调 sub_1412295E0(calc) 运力因子 = 0.5+满足率×0.5。首都旗 ∨ entry+56 == v25 → 短路返回 (跳过瓶颈列举)。
+
+**瓶颈列举 (144B 连接路径记录, 定案)**: sub_1412117E0(calc, entry+4 省 id, &out) 自本节点向首都回溯收集 (AvoidInfLoopCounter < 100); 记录布局 = {+112 i64 回溯最小键, +120 i64 通过流量 (上限 1e5), +128/+130 u16 起/止省 id, +134 u8 铁路级, +135 u8 海军瓶颈旗, +136 u8 铁路瓶颈旗, +137 u8 河流瓶颈旗}; 三路分流扫全表取 +112 最小者:
+
+| 分量 | 旗 | 公式 (PE 验算 定案) |
+|---|---|---|
+| 铁路 | rec+136 | RAILWAY_BOTTLENECKS: LEVEL = min(MAX_RAILWAY_LEVEL, 各连接级) 的运行最小值; NUMBER = RAILWAY_BASE_FLOW + RAILWAY_FLOW_PER_LEVEL×级; 损伤分支 (运行最小流量 < 1e5): NUMBER = 级 × RAILWAY_FLOW_PENALTY_PER_DAMAGED × (1e5−流量)/1e5; MAXIMUM = v25 |
+| 河流 | rec+137 | RIVER_BOTTLENECKS: REASON_RIVER NUMBER = RAILWAY_BASE_FLOW + RAILWAY_FLOW_PER_LEVEL×RIVER_RAILWAY_LEVEL (经 sub_1414E0DA0); MAXIMUM = v25 |
+| 海军 | rec+135 | NAVAL_BOTTLENECKS: LEVEL = min(双端节点条目+80)÷1e5; NUMBER = NAVAL_BASE_FLOW + NAVAL_FLOW_PER_LEVEL×级; CONVOYS_NEEDED (calc+704 _NonLocalNodes 二分解析双端 idx — :859/860 断言源; ALLOCATED = 48B 记录+28, NEEDED = +24) |
+
+**迁都补给效率公式 (sub_14121E6D0, PE 验算 定案)**: elapsed ≥ DAYS_TO_START_GIVING_FULL_SUPPLY_AFTER_MOVING_SUPPLY_CAPITAL → 100000; 否则 clamp(1e5 × (elapsed − DAYS_TO_START_GIVING_SUPPLY_AFTER_MOVING_SUPPLY_CAPITAL) ÷ (FULL − GIVING), 0, 1e5); 除零/INT_MIN 边界 → 100000。elapsed = (gs+1128 当前日期−43800000)/24 − css+380 (last_supply_capital_move)。
+
+**三首都供给源计算器 (书未录, 定案)**: sub_1414E1120 = CAPITAL_SUPPLY_CIVILIAN_FACTORIES × (ps+888÷1e5 − ps+960 − ps+952) / sub_1414E11F0 = CAPITAL_SUPPLY_MILITARY_FACTORIES × (ps+696÷1e5 − ps+760 − ps+768) / sub_1414E1190 = CAPITAL_SUPPLY_DOCKYARDS × (ps+792÷1e5); ps = *(country+3944) CProductionStatus, 四工厂池布局同 §4.8。民用池两减项 ps+960/+952 与 §4.8 民用池可用式 (+912/+920/+944) 的并存关系未决。
+
+**48B 订阅者记录字段语义 (高置信)**: +24 = NEEDED (初值 0) / +28 = ALLOCATED (初值 100000 = 满) / +32 = 所需火车数 / +40 = 显示门求和分量 — 与 §4.21.2 条目 +184 初值表互证。
+
+未决: 真名 (是否为 mapmode tooltip 回调/vtable 槽, 无导出符号); idler+1960 对象 +16 语义 (推定当前悬停省 id); entry+32/+72 两分量各自语义 (推定空袭 vs 海上/铁路阻断拆分); 144B 记录类名与「SNodeConnection 72B」的关系 (72B 是否单条连接, 144B = 连接+回溯元组); 浮港记录宿主容器; sub_1416399A0() 默认国 id 指针身份; 着色富文本色码 72/82 的色名映射。

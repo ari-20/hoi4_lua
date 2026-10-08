@@ -14,7 +14,7 @@
 | +200 | 匿名结构 (NNB 形状)* | null-object 句柄 | | |
 | +216 | MSVC 串 向量 24B | **启用 mod 名列表** (MSVC 串 32B/元; {d@216, cap@224, c@228, alloc@232}; scanner 键 14185 载入, op= 拷贝; 元素 cap>15 走堆) | 序 = mod 加载序 |  |
 | +240 | — | 标志 | | |
-| +248 | 匿名结构 (NNB 形状)* | scoped | | |
+| +248 | 匿名结构 (NNB 形状)* | **人类玩家花名册数组** (CHuman 160B/项, 计数@+260; 项布局同 +272 槽: 名串@+32 / **+64 第二显示名串 (alert 53 tooltip 的 PLAYER 参数; 语义推定 = 国家/玩家显示名, 待裁)** / country-link id@+112 / +148 bit0 = 领导人资格 / +152 会话判别 / **+128 日期水位 (CGameDate 小时域; 掉队判定 = 当前小时 − 水位 > LAG_DAYS_FOR_LOWER_SPEED×24)**; 查 = sub_1401C9CD0 线性扫) | §4.33 CPromoteToCountryLeaderCommand / CSetCountryControllerCommand | |
 | +272 | CHuman (内嵌 160B) | 人类玩家槽 | 共用布局: 名串@+32 / 二名串@+64 / badge@+96 / country-link id@+112 (sub_1401DA7C0 "country link index") / CGameDate@+120 / 枚举@+148 / 入参@+152 | |
 | +432 | CDedicatedServer (内嵌 156B) | 专用服务器槽 | 派生 CHuman 布局, 名串 "Dedicated server" | |
 | +464 | MSVC 串 32B | CDedicatedServer 名串 | 数据堆上, buf 槽 = 堆指针 | |
@@ -131,7 +131,7 @@ gs 单例实为派生类 CCurrentGameState; CGameState 本体 ≈ +0..+2535。
 
 | 偏移 | 类型 | 名称 | 语义 | 参见 |
 |---|---|---|---|---|
-| +2536 | 匿名结构 (16B 形状) | **战略空军 region→兵力树** (pdx 容器; strategicair.cpp) | | |
+| +2536 | 匿名结构 (16B 形状) | **战略空军 region→兵力树** (pdx 容器 {data@+0, 计数@+12 落 +2548}; strategicair.cpp); **元素 32B/项 按区域 id 索引** = {更新小时 int32@+0, 更新时刻 uint64@+8, 逐国 std::map 树头*@+16 (键 = 国 tag int32@节点+32; value+64 区域内空翼计数 / value+68 途经空翼计数 / value+84 有数据门), 在场判据 uint64@+24}; 消费 = 每小时翼解散清扫 (§4.2.10) + "Air missions in region" 调试视图 (sub_141AF81C0 → sub_141AF7460 逐国遍历, 子 toggle "country_selection") | | |
 | +2552 | — | 总线头 | | |
 | +2560 | 指针 | 三容器对象 (ctor 零填; 复位调 `sub_140DC3B70` 逐容器清 {data@+0/count@+12/子对象@+16} 三组) — 语义待裁 | | |
 | +2568 | uint8 | 运行时旗 (全 dump 唯一引用 sub_141AF5D10 置 0, 无读方, 不序列化) | | |
@@ -270,14 +270,14 @@ ships_built RB-tree 同址 (节点 {船型 token@+28, 数 u32@+32}), 非本表;
 
 #### 4.1.8 all_playthrough_data (gs+2200)
 
-块门 = u32@(gs+2216) ≠ 0 (writer 0X1401F2DD0)。
+块门 = u32@(gs+2216) ≠ 0 (writer 0X1401F2DD0) — **+2216 = 元素计数 count** (读件 sub_1401E5150 drain 逐项递减 / insert 递增直证; 「门≠0」语义 = count≠0, 非独立门字段)。
 
 RH map (gs 侧):
 
 | gs 偏移 | 类型 | 内容 |
 |---|---|---|
 | +2208 | RH 桶数组* | buckets = rp(gs+2208) |
-| +2209..+2219 | — | = RH map 内部 {计数尾, mask u32@+2220 = 7, distmax u8@+2224 = 5} — gate u32@2216 = 1, lf f32@2228 = 0.9  |
+| +2209..+2219 | — | = RH map 内部 {计数 count@+2216, mask u32@+2220 = 7, distmax u8@+2224 = 5} — gate u32@2216 = 1, lf f32@2228 = 0.9  |
 | +2220 | uint32 | mask = ru32(gs+2220) |
 | +2224 | uint8 | distmax = ru8(gs+2224) |
 
@@ -285,12 +285,17 @@ RH map (gs 侧):
 
 | 偏移 | 类型 | 内容 |
 |---|---|---|
+| +0 | uint32 | hash (= country 索引; insert 按 hash&mask 定位) |
 | +4 | uint8 | dist (0=空; **0xFE=墓碑也须跳** — 残留墓碑桶误收会多发叶) |
 | +8 | uint32 | key = tag id |
 | +16 | 匿名结构 (NNB 形状) | value ptr |
 
 **写序 = key (tag id) 升序** (writer sub_1401B3900 收集后经 sub_1401B6990
 sort; key 写门 tid>0 → 引号三字串)。
+> 读件 = sub_1401E5150 (pdx_unordered_map_parser「对象指针值」实例; 唯一调用方 =
+> CGameState 块 reader sub_1401E59D0 case 16067); **find-or-insert = sub_1401B06E0**
+> (§3.2 RH 机制的函数级落点; 重复键含同原初国等价判定 sub_140BB52F0, 销旧值装新值);
+> 值工厂 = sub_1401B1790 (§4.1.9), 空值 = pair 元2 token 357 "none"。
 
 #### 4.1.9 NCareerProfile::SPlaythroughCountryData (wrapper)
 
@@ -298,7 +303,7 @@ sort; key 写门 tid>0 → 引号三字串)。
 |---|---|
 | 类名 | NCareerProfile::SPlaythroughCountryData |
 | vtable RVA | 0x2721478 |
-| 挂载 | all_playthrough_data RH map 桶值对象 |
+| 挂载 | all_playthrough_data RH map 桶值对象; **值工厂 = sub_1401B1790** (malloc 0x9B8 + memset + 双 vtable: SPlaythroughCountryData / SProfileData + 子对象 ctor 链); 加载经 `vt[3]` 多态读 (sub_1424C0AA0; pair 解析器 sub_1401E4B00) |
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
@@ -608,7 +613,9 @@ RB-tree (std::map 形态): head = *(gs+2520), 规模 = *(gs+2528) (≠0 门); �
 
 - **簇机理**: gamestate.h 簇 4538 函数 = 全游戏 gs 消费面并集 — 两访问器 debug 门 (断言 1125/1126 latch byte_14332ED00/ED01 + 1116/1117 latch EDF9/EDFA) 强制内联进消费函数, 4536/4538 (99.96%) 直引 gs 单例 qword_14332F260, 仅 2 例外 (引用计数独立助手 sub_1401AAA50/sub_140193F90)。分族: GA 3563 / GB 726 / MIX 239 / REF 守卫 7 / AI 禁入包装器 3; 实现本体 57 函数在 gamestate.cpp 簇 (重叠 17)。
 - **方法学警示 (定案)**: 门内联 ≠ a1 是 gs — 0x140DC-0x140DE 区函数 (sub_140DC53C0 等) 带门但 a1 = tutorial 管理器 (+2400/+2412 数组按 gs+2608 tutorial_chapter 索引), 这些偏移不是 gs 槽。
-- **簇内新增形态定案 (浅扫批次)**: ① 访问器**半开第三形态** — sub_1402CF070/sub_140A70820 仅剩 :1126 ForbidCount 门 (GA/GB 之外编译器裁剪形); ② gs+8 vtable2 (CProvinceProvider) **接口槽调用形态** = 巨簇第二高频消费面 (`(*(vtable***)(gs+8)+N)()` 内联省查询, 反编译呈现为 `qword_14332F260 + 8` 易误读为数据偏移); ③ **CGameState vtable1 槽[9] (+72) = 高频 count/查询方法** (全语料 97 调用点; 无参形作循环上界, 带参形返 count 供 scoped_buffer 分配 `4×count` / `(count+7)&~7` memset 0xFF 两形态 — 候选国家数/省数族 getter, 运行时经 vtable 槽[9] 函数指针 RVA 定名); ④ 高频 gs 偏移惯用式全部对上 §1.2 零未录 (玩家 tag 对 1312/1316 fallback / 州 712/724 / 省数 700 / 区域 736/748 / CArmy 计数 1612 / 日期 1128 / 补给 984); ⑤ gs 访问器 out-of-line 三件套 sub_140BB48F0 (tag→国) / sub_140BB5490 (tag→索引) / sub_140BB52F0 (同原初国) 200+ 调用点无第四种克隆; ⑥ gs+260 = 同步校验对象 (+248 对象+12) 运行时读者群 = peacetelemetry / CFrontEndGameSetupView / CHumanItem / sub_140CDFA60。
+- **簇内新增形态定案 (浅扫批次)**: ① 访问器**半开第三形态** — sub_1402CF070/sub_140A70820 仅剩 :1126 ForbidCount 门 (GA/GB 之外编译器裁剪形); ② gs+8 vtable2 (CProvinceProvider) **接口槽调用形态** = 巨簇第二高频消费面 (`(*(vtable***)(gs+8)+N)()` 内联省查询, 反编译呈现为 `qword_14332F260 + 8` 易误读为数据偏移); **槽语义首件 = vt[0] 按省 id 取 CProvince\*** (§4.34.36 邻省择优器 id→省 roundtrip 直证; **vt[1] 同形 id→CProvince\***, 铁路炮 presence BFS 邻接链直证 id→省→+184 描述符→desc+112 邻接全链通, 双槽同语义);**vt[+16] (第三槽) = 按容器 token 取容器数组** — 实参 **2144** = 省数组
+{CProvince\*[] data@+0, cap@+8, count@+12} (渐变边框管理器簇直证: 温度地图模式缓存重建 0x140F3A0D0
+case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→单对象语义正交); ③ **CGameState vtable1 槽[9] (+72) = 高频 count/查询方法** (全语料 97 调用点; 无参形作循环上界, 带参形返 count 供 scoped_buffer 分配 `4×count` / `(count+7)&~7` memset 0xFF 两形态 — 候选国家数/省数族 getter, 运行时经 vtable 槽[9] 函数指针 RVA 定名); ④ 高频 gs 偏移惯用式全部对上 §1.2 零未录 (玩家 tag 对 1312/1316 fallback / 州 712/724 / 省数 700 / 区域 736/748 / CArmy 计数 1612 / 日期 1128 / 补给 984); ⑤ gs 访问器 out-of-line 三件套 sub_140BB48F0 (tag→国) / sub_140BB5490 (tag→索引) / sub_140BB52F0 (同原初国) 200+ 调用点; 第四形态 **sub_140BB4390** = `if (*tag) idx = sub_140BB5490(tag) else 0; return *(gs+784 国表 + 8*idx)` (gamestate.h:1116/1117 断言对, latch EDF9/EDFA; 体内即调 sub_140BB5490 = 三件套组合形非独立克隆); ⑥ gs+260 = 同步校验对象 (+248 对象+12) 运行时读者群 = peacetelemetry / CFrontEndGameSetupView / CHumanItem / sub_140CDFA60 / CCountryDiplomacyView::BuildTooltip (§4.30.64); **条目布局 = 160B {名串@+32, tag@+112}** (§4.30.64 直证; 语义推定 = 人类玩家描述符数组, USER_NAME 键直证)。
 - **反编译偏移伪影与下标形 (方法学)**: ① `(int*)gs+328` = 字节偏移 1312 (类型化指针步进缩放, 读侧必须归一); ② `*(_QWORD*)gs + 72LL` 是 **vtable1 槽[9] 调用形** (+72 作用于解引用后的vtable指针), 裸读假报 gs+576; `**(gs+1)` 假报 gs+1 — 剥伪前扫描器必错; ③ gs 槽消费另一主形态 = **下标形** (`*(gs_dword+328)`=+1312 / `+181`=+724 / `+89q`=+712 / `+175`=+700 / `+123q`=+984 / `+126q`=+1008 / `+213q`=+1704 / `+127q`=+1016, 全部对上 §1.2); 残量片 gs 直引密度锐减, 主通道 = out-of-line 访问器三件套。
 - **未收槽抽查**: **gs+2528 = ships_built map 的 _Mysize** (16B map 形 {head@2520, size@2528}; 插入点 `0x666666666666666` 比对 = STL `_Xlength_error("map/set too long")` 通用守卫非业务语义; ships_built 节点 = {_Left/_Parent/_Right/NIL@25, key@28, value@32} 高置信); **gs+2504 未名 map = runtime-only** (无 loader case 无 writer, dtor sub_1401C2620 在基类 ctor unwind; 语义推定 trade route 相关, 待裁)。
 

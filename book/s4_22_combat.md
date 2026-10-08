@@ -113,7 +113,7 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 | +40 | CProvince* | location = *(*(c+40)+164) |  |
 | +48 | uint32 | day | >0x7FFFFFFF → naval_combat 键 |
 | +52 | uint32 | duration |  |
-| +56 | 匿名结构 (NNB 形状) | terrain 串对象 | 门 byte@tobj+16, 串@tobj+24, 引号 |
+| +56 | CProvince* (运行时) / 匿名结构 (NNB 形状, 序列化形态) | **战斗所在省** — 运行时经 sub_140CE7410 = *(c+56) 直取, 6 处省字段读互证 (省 +164 id / +184 地形 def / +192 州 / +200 天气区 / +272 单位数组 / +392 tag; §4.22.17) | 序列化侧以 terrain 串对象形态落盘 (门 byte@tobj+16, 串@tobj+24, 引号) — 同槽两期 (运行时省指针 / 写盘 terrain 串), 待裁 |
 
 > **侧容器解引用 (定案)**: 侧容器 cont 的 **+0 是 vtable** (落在映像区间
 > [BASE, BASE+0x37ec000)), 不是数据指针 — 33 场陆战 66 个侧容器 66/66 实测。
@@ -672,7 +672,7 @@ CNavalCombat (combat = *(cb+24)) 本簇消费的运行时字段 (§4.22.5 表外
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
-| +56 | 匿名结构 (NNB 形状)* | terrain 串对象 (§4.22.5 已记); 本簇经 sub_140CE7410 取出后读 **+200 → +232 链** (护航优势奖励池) | 定案 |
+| +56 | CProvince* (运行时) | **战斗所在省** (sub_140CE7410 = *(c+56) 直取; 与陆战侧 §4.22.17 六处省字段读同访问器互证); 读 **+200 → +232 链** (护航优势奖励池); 序列化形态 = terrain 串对象 (§4.22.5) | 定案 |
 | +68 | int32 | **战斗状态**: ≤1 = 接敌前 (算加入数/算优势奖励); >1 = 已交战 (封锁加入, 清 disengage 与 combat+277) | 定案 |
 | +268 | uint8 | **全员加入门** (真 → 加入数 = 全舰, 跳过侦测判定) | 定案 |
 | +269 | uint8 | 同族门 (另一 naval 函数与 +268 同读, 经 sub_14161A9D0(cb) 旁证) | 推定 |
@@ -762,6 +762,25 @@ define 落名 (defines_map_1193.txt 直证):
 | qword_1433348B8 | COORDINATION_EFFECT_ON_TIME_TO_JOIN_COMBAT |
 | qword_143334820 | BEST_CAPITALS_TO_SCREENS_RATIO |
 | dword_143335C54 | COMBAT_MAX_GROUPS |
+
+#### 4.22.5b 海战网格行聚合与排序 (0x1417D-E 带; 定案)
+
+宿主 = sub_1417ED140 (§4.22.5 表 combat+232 行 GUI 消费体): 8 个 24B 行向量 (a1+24 起步进 24B ×8) 各走稳定降序排序 + a1+216 32B 元向量 (sub_1417DF250/sub_1417DFE90 实例) + 汇总文本/图标计数段。
+
+**聚合行 (40B) 布局** (填充器 sub_1417ECC10/sub_1417EC9F0):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | 24B 向量 {data, alloc@8, count@12} | CFEXMember const* 成员船指针数组 (CPdxHybridInlineBufferAllocator<CFEXMember const*,128> 背书; assign/swap 原语 = sub_1417E2F70) |
+| +24 | i32 | 聚合统计键① (填充侧读 CFEXMember+36, 推定对应舰船 +1548 值) |
+| +28 | i32 | 聚合统计键② (填充侧读 CFEXMember+40, 推定对应舰船 +1576 值) |
+| +32 | u8 | member+65 字节 |
+| +33 | u8 | member+224 state (✓§4.22.5) |
+| +34 | u8 | 军通反旗 (sub_140700600 假 → 1) |
+| +35 | u8 | 计算字节 |
+| +36 | u32 | owner tag = member+32 (sub_140BB52F0 同原初国比对参与行匹配) |
+
+排序 = **std::stable_sort 插入 pass sub_1417DF550** (MSVC ISORT_MAX=32 块内; 全函数域 0x1417DF550): comparator 六键降序稳定 ① +32 → ② +24 → ③ +28 → ④ 向量 count (+12) → ⑤ +35 → ⑥ max(成员+288 unique_id) (+288 自增源互证 ✓); 全等时地址比较 tiebreak (实现恒定性, 待裁)。编排 = sub_1417DDCB0 (>32 元按 1280B = 32 行分块逐块+归并) / sub_1417DFFA0 (缓冲减半 malloc 链)。
 
 #### 4.22.6 naval_combat_result 全族 (gs+1472 容器; ⚠ 与 4.22.5 是**两个族**)
 
@@ -1051,7 +1070,7 @@ PIERCING_THRESHOLDS{1,0.75,0.5,0} 出索引 → 乘数表 **PIERCING_THRESHOLD_D
 **伤害流水增补 (定案)**: STR/ORG 伤害修正真源 = LAND_COMBAT_STR/ORG_DAMAGE_MODIFIER 0.060/0.053; **穿甲双比值分工** (方向相反): 目标穿甲/射手装甲 → 骰面档 (装甲优势扩骰 STR 2/ORG 6); 射手穿甲/目标装甲 → 伤害乘数档 {1, 0.8, 0.65, 0.5} (穿甲不足减伤); **stats+664 = 装甲 (stat 63) / +672 = 穿甲 (stat 64) 定案** (乘数档守卫除数 = 目标装甲, 与 §4.18.10 情报估计互证)。闪避 = **unit+596 闪避配额计数器** (防御覆盖序号 vs 计数比较切换 90/60 档并 ++; 输入 = eff_def×(防 stat/10)/1e5)。新定案字段: CLandCombat c+64 战宽门 / c+152 边界战旗 (3 消费点) / CCombatant cb+220 敌空军旗 (陆海同槽) / CArmy 槽 46 = GetCombatWidth (Σ subunit def+88×营数) / 槽 39 = org 比 / 槽 34 = 强度比; 战术六值 c+168/+176 = combat_tactics.txt attacker/defender **伤害权** (加进骰基数: 强度比 + 该值); 战宽 getter = CLandCombat 槽 26 (0x1412ADE10, 地形×战术宽度+方向附加); 增援链 = 权重² 随机 + 接受率门 + 超宽踢尾 (COMBAT_OVER_WIDTH_PENALTY −1/% 钳 −0.33); 附带建筑损伤 sub_1412ABD80 (要塞 FORT 0.005/命中率 5% + 基建 0.0022 — ⚠ 两数值↔define 名对应待裁: LAND_COMBAT_COLLATERAL_FORT_FACTOR 驱动同省建筑条支 / LAND_COMBAT_COLLATERAL_INFRA_FACTOR 驱动州内省支, 数值缺省未对表; 暴击支 CRITICAL_BOMBARDMENT_DAMAGE 弹窗 ×40 巨伤 0.25%); debug 门 "Debug.OldCombat" byte_14332F64F / byte_143389FD4 控制台全跳伤害步。
 
 **combatland.cpp 簇 (8 函数全读) 增补 (定案)**: **三联机制闭环** — **cb+8 = u64 每小时激活修正位图** (kind idx 0..29, 置位原语 sub_1413E1190) → 伤害步首调 sub_140CDA7E0 逐位折入 observer **lb+624 modifier_hours** 后复位 (combatlog.cpp:789 断言 !consolidated); CUnit+368 队列 + cb+8 位图 + modifier_hours 三账并行。
-- **kind 索引表 0..29 全落** (值式要点): 0 指挥官技能/特质 (sub_1412B6C00 营权重×特质聚合, 州归属条件件 mods 175-180) / 2 包围 (ENCIRCLED_PENALTY−mod265, 守方∧州+210&1) / 3 经验 / 4 计划 (攻) / 5 stacking (COMBAT_STACKING_ 三 define, 交战省去重广度) / 6 超宽 / 7 挖掩 (守, ×边界战 dig_in_factor cb+1376) / 8 两栖登陆罚 (攻, 随进度衰减) / 9 要塞防御 (守∧Σ要塞>0, ×terrain_factor cb+1384) / 11 岸轰 (min(cb+16, SHORE_BOMBARDMENT_CAP); **cb+16 写式 = Σ炮击单位值/(100×其参战炮击数)×(1+同省海战 mod358)**) / 12 空优→轰 / 13 多线战斗 / 14 敌空优 / 15 空支 (AIR_SUPPORT_BASE×空支比) / 16 空降罚 / 17 补给缺乏 (缺额×COMBAT_SUPPLY_LACK_ 四 define) / 18 陆军情报 / 19 高层六源混流 (mods 427-430/574-579/346/553/348, 业务归并名待裁) / 20 州 tag 条件 (mod347) / 21 边界战 modifier (cb+1272) / 22 GIE 特质组 / 23 将军地形特质标记 (仅置位图不推队列) / 24 将领特质聚合 (州+1968 州单位表 64B/条, 特质旗位→mod id 映射表) / 27 每师 vtable[23]×terrain_factor / 28 天气 (mods 173/174/477) / 29 夜战 (昼光>0.8 才罚); kind 1/10/25/26+ 写点在簇外。
+- **kind 索引表 0..29 全落** (值式要点): 0 指挥官技能/特质 (sub_1412B6C00 营权重×特质聚合, 州归属条件件 mods 175-180) / 2 包围 (ENCIRCLED_PENALTY−mod265, 守方∧州+210&1) / 3 经验 / 4 计划 (攻) / 5 stacking (COMBAT_STACKING_ 三 define, 交战省去重广度) / 6 超宽 / 7 挖掩 (守, ×边界战 dig_in_factor cb+1376) / 8 两栖登陆罚 (攻, 随进度衰减) / 9 要塞防御 (守∧Σ要塞>0, ×terrain_factor cb+1384) / 11 岸轰 (**推送值取负** = −clamp(cb+16, 0, SHORE_BOMBARDMENT_CAP); **cb+16 本身不封顶**, 写式 = Σ炮击单位值/(100×其参战炮击数)×(1+同省海战 mod358)) / 12 铁路炮 (−ATTACK_TO_BOMBARDMENT_MODIFIER_FACTOR × **最强敌铁路炮炮击值 (max, sub_1412AA870)** /100; 挖掩乘子 = 1−0.8×值/100, 要塞乘子 = 1−1.333×值/100 仅攻方) / 13 多线战斗 / 14 敌空优 / 15 空支 (AIR_SUPPORT_BASE×空支比) / 16 空降罚 / 17 补给缺乏 (缺额×COMBAT_SUPPLY_LACK_ 四 define) / 18 陆军情报 / 19 高层六源混流 (mods 427-430/574-579/346/553/348, 业务归并名待裁) / 20 州 tag 条件 (mod347) / 21 边界战 modifier (cb+1272) / 22 GIE 特质组 / 23 将军地形特质标记 (仅置位图不推队列) / 24 将领特质聚合 (州+1968 州单位表 64B/条, 特质旗位→mod id 映射表) / 27 每师 vtable[23]×terrain_factor / 28 天气 (mods 173/174/477) / 29 夜战 (昼光>0.8 才罚); kind 1/10/25/26+ 写点在簇外。
 - **cb 新字段/写点**: +376 (实扣 STR 累加) / +384 (实扣 ORG 累加, 齐射命中后 +=, 业务名推定); +219 侧翼写点 = 去重省数 ≥ FLANKED_PROVINCES_COUNT; +220 = 敌 cb'+332≠0; +304 战术写点 = 加权抽中 → 库条, 落空 → CNullCombatTactic 兜底 + "Couldnt select a tactic in phase" (:3827); +344 = 师均×1e5 (Σ师 stats+544); 边界战三槽 **+1272/+1376/+1384 vtable[22] 运行时消费首次实证** (两类侧对象共用 vtable[22])。
 - **两栖入侵基值**: accC/accD = lerp(AMPHIBIOUS_INVADE_{ATTACK,DEFEND}_LOW[+mod27]→HIGH, 进度 v), v = 修正和 + 1e5×移动进度/路径总长, clamp[0,1e5]; 消耗 = accA×accC / accB×accD。
 - **战术权重三偏好 define 实名** (§4.22.12 增补): 国家偏好 = cc+5584 战术实例 (tactic+372 权重修正 id) ×(1+COUNTRY_PREFERRED_TACTIC_WEIGHT_FACTOR) / 军长 = 将+4272 vtable[10] ×(1+ARMY_GENERAL_…) / 军群长 = 军+440→军群将+4272 ×(1+FIELD_MARSHAL_…); 五门含国家解锁表 + tactic+224 条件触发器 (失败发 TACTIC_CONDITIONS_NOT_MET 中止)。
@@ -1072,7 +1091,7 @@ CCombatManager (§4.22.1, gs+608) 每小时推进 (挂点 = HourlyUpdate 相位 
 | B | 战史修剪 sub_140BB8910: CCombatHistory (cm+40) 尾部追加 = end_date 升序; **保留 168 小时 (7 天) 滑窗** + 回档守卫 (head.end_date > now 全弹) |
 | C | 主循环 (置 cm+72 _bInCombatUpdate=1): 逐战斗跳过已结束 (+82) → 首小时初始化 ([13]) → 活跃判定 ([9]) → **[15] 每小时战斗步进** (步序见下) → 未结束/已结束分别记录 |
 | D | XP 结算 sub_140BB6F60: leader 经验即时发放 (CUnitLeader::AddExperience: leader+3688 += xp, 超 `100000×单位阈值(+444)` 即升级) + **tbb 并行 ApplyCombatXpGains** (任务符号直读, EJobType 参与) + 收尾晋升扫描 (leader+3576/+3588 单位阈值 +2208) |
-| E | 结束善后: 二次遍历, 已结束或 [16] 复核真 → **RemoveCombat** (swap-remove; combatmanager.cpp:1169/1173/1189 三断言) → [14] 通知两侧 → **CCombatHistory::Add** → 逐省 (省战斗数组 province+224) 去重善后 sub_140BB9220 (同原初国战斗聚合 / 撤退判定 / **胜负 = SCombatSideData progress (lb+616) 高者置 win**) |
+| E | 结束善后: 二次遍历, 已结束或 [16] 复核真 → **RemoveCombat** (swap-remove; combatmanager.cpp:1169/1173/1189 三断言) → [14] 通知两侧 → **CCombatHistory::Add** → **sub_140BB79A0 逐省善后 (省单位表去重遍历) → 逐单位 sub_140BB9220 重跑进省判定** (留省单位夺省/与省内在场者开新战 = 生命周期间歇闭环; 勘误定案: 本行旧记单函 sub_140BB9220 直带「同原初国战斗聚合/撤退判定/胜负置位」——胜负实际 = 槽[24] 终局结算内 consolidation 以两侧 lb+616 progress 高者置 win, sub_140BB9220 本体不含胜负置位; 省战斗数组 = prov+368/+380, 按槽[11] GetTypeId 过滤) |
 
 槽[15] 主入口步序 (CLandCombat 0x1412B81D0; 定案): ① 按 define 周期调
 **sub_1412BBF90 = 战术重掷核** (§4.22.9); ② `++(a1+68)` 时长计数; ③ 遍历两侧
@@ -1264,10 +1283,14 @@ cancel_border_war (置 c+227 — 该字节结算未读, 与 c+228 cancel 门差 
 `时长 % TACTIC_SWAP_FREQUENCEY(12h)` → 重掷核 **sub_1412BBF90**。
 
 **主动权** (定案): 双方 vtable[29] 最高技能将领比大小，侦察大者（侧内逐军师统计
-对象+208 取 max）+ RECON_SKILL_IMPACT(5) 技能当量; **败方先掷普通战术，胜方
-后掷并反制败方新战术**，反制乘子 = 1 + INITIATIVE_PICK_COUNTER_ADVANTAGE_
-FACTOR(0.35)×技能差; counter 目标 = 战术 **+144（单值 id，非位图**; 由
-countered_by 串加载后解析）。
+对象+208 取 max）+ RECON_SKILL_IMPACT(5) 技能当量; **主动权合计严格大者后掷并反制
+败方新战术**，反制乘子 = 1 + INITIATIVE_PICK_COUNTER_ADVANTAGE_
+FACTOR(0.35)×技能差; **平局 = 攻方先掷且双方均无反制乘子** (dump 直读); counter
+目标 = 战术 **+144（单值 id，非位图**; 由 countered_by 串加载后解析）。
+
+**RNG 消费定案**: 每次重掷消费 **2 次全局流** — 相位种子 (combatland.cpp:3420) +
+加权选择 (:3803); 重掷核尾部把后掷方战术相位写入 battle+208 (前掷方相位被覆盖,
+"no" 相位不写)。
 
 **权重五门三偏好** (sub_1412BC860, 定案): active 旗 ∨ 国家解锁表（gs+1024
 注册表对象 +40 名哈希数组）→ 槽[10] → +224 条件触发器（失败静默零权，仅
@@ -1386,3 +1409,139 @@ defender/attacker_movement_speed/双方 org damage modifier）（定案）。
 
 
 **combatmanager.cpp 三创建函数同形骨架 (模式注, 互证补强)**: malloc → ctor (海战 sub_1415C2330 296B / 边界战 sub_1413EB800 248B) → refid 绑定 (sub_14221F390 + sub_14221E700(obj+16)) → profiler 标记 (:1049/:1152) → 活跃战斗表 (+8 d/+20 count) 线性查重登记 → vtable+48 槽[6] 设注册位 → vtable+136 **槽[17] 设 holder 引用 (三函共用; 海战传 a3, 边界战传 *(a3+16))** → init → vtable+144 槽[18] combatant 入战 → sub_140E797F0 反向登记 → 尾配置 (海战单侧版 0x140BB7660 **+277=1 = convoy_combat**; 双侧版 0x140BB77E0 无 +277, 尾段 sub_1415C3DE0; 边界战 0x140BB6B70 尾三写 +216/+228/+240)。入境加战 0x140BBAC40 补证: :584 断言前有**仅陆军 (type==0) 的单位自身 lead vetting 块** (sub_140C891E0 不过 → return 0, 对手侧之外); vtable+144 加入第 3 实参 = 1。
+
+#### 4.22.16 NumCombatsBombarding 结构细化与参战 tag 链谓词 (1 函 = 0x1412AD270 复核 + 新谓词 sub_1412B2B40, 定案)
+
+0x1412AD270 (CTaskForce\* a1) = **NumCombatsBombarding** (df111 定名复核通过; 分母消费 = §4.22:1054 kind 11 ÷ 其参战炮击数): 双源收集 — 源 A = TF+884 == 9 (岸轰任务) ∧ TF+960 非零 → 任务对象 +200 96B 元数组 (计数+212) → 条目 +40 8B 指针数组 (计数+52) → 元素 +0/+368 指针数组 (计数+380); 源 B = TF+496 (省) → +184 → **+124 计数** (sub_140E7F530) / 元素 sub_140E7F3F0。过滤 = 元素 vt+88 (槽 11) 判别真才收 (推定战斗/可炮击对象); 跨源指针查重去重 (×1.5 扩容, off_143085170 分配器)。**计数谓词 sub_1412B2B40 (国, 元素) 新定案**: 元素 +48 容器 (先) 与 +40 容器 (兜底) 各 **+56 = tag 链表头**, 节点 {i32 tag@+0, next@+16}; 逐 tag 非零 → sub_140BB5490 索引 + **sub_140700570(国, &tag)** (交战/敌对判定, §4.22:1228 同款) 真 → 返 1 — 即 +40/+48 = 战斗两侧参战方容器 (推定攻/守), +56 = 各自 tag 链表头。返回 = TF 轰击目标集合中「TF 所属国 (TF+472 tag → sub_140BB48F0) 参战」的去重战斗数, 与 kind 11 分母语义闭环。
+
+#### 4.22.17 CLandCombatant::[22] 每小时修饰符重算全量定案 (combatland.cpp; 1 函 = 0x1412AF7C0, 定案)
+
+身份表:
+
+| 项 | 值 |
+|---|---|
+| 身份 | CLandCombatant vtable[22] (vtable 偏移 +176); CLandBorderWarCombatant 共用同实现 |
+| 源码位 | combatland.cpp:1067 (断言 "No participants"); 另 :1228 (NumCombatsBombarding > 0) |
+| 签名 | (CLandCombatant* a1 = 本侧 cb, CLandCombatant* a2 = 敌方 cb′) |
+| 返回值 | cb+344 归一化 = **师均防空 (fixed×1e-5)**; 无单位返 cb+44 原始计数 |
+| 调用时机 | 每小时 (CCombatManager HourlyUpdate → CLandCombat 槽[15] 步序, 两侧 cb 各调一次); 读档/新局首小时亦调 |
+| 顶层门 | cb+72 参战 tag 链计数 == 0 → 断言返回 |
+| 有效逻辑 | 2249 行中约 1300 行为析构/清理样板 |
+
+CLandCombatant 本函读写字段 (cb 相对):
+
+| 偏移 | 类型 | 语义 | 本函行为 |
+|---|---|---|---|
+| +8 | uint32 位图 | 每小时修正位图 (kind 0..29) | 首调 sub_1413E1AB0 清 0; 逐 kind 置位 sub_1413E1190 |
+| +16 | int64 fixed×1e-5 | 岸轰总值 | 写; **不封顶** |
+| +24 | CCombat* | 宿主战斗回指 (sub_1401F6EA0 = *(cb+24)) | 读 |
+| +32 | CUnit** | 本侧全单位容器 (count@+44, 含预备队) | 主循环遍历 |
+| +56 | 侵入链表 | 参战 tag 链表 A {head@56, tail@64, count@72} | 读 (己方 tag 集) |
+| +216 | uint8 | is_attacker | 读 = 全函数攻守分流开关 |
+| +232 | CUnit** | front 列表 (count@+244) | 读 = 战宽求和 / 叠层计数 |
+| +320 | 结构数组 | 己方空军出动条目 {amount i32@+20, damage_factor i64@+24} (count@+332) | 读 = 空支底数 |
+| +344 | int64 fixed×1e-5 | 师均防空 | 写 (前置 0 → 累加 Σ师 stats+544 → 尾段 1e5×Σ/(1e5×unit_count) 归一化) |
+| +1272 | int64 fixed×1e-5 | 边界战 modifier | 读 (仅 combat+152) → kind 21 |
+| +1376 | int64 fixed×1e-5 | 边界战 dig_in_factor | 读 (仅边界战) → kind 7 乘子 |
+| +1384 | int64 fixed×1e-5 | 边界战 terrain_factor | 读 → kind 7/9/27 乘子; 非边界战 = 100000 |
+
+> +1272/+1376/+1384 = vt[22] 运行时消费首次实证 (与 §4.22.4 CLandBorderWarCombatant writer 字段互证); 语义链 = combat+152 旗 → cb+1272 (modifier) / cb+1376 (dig_in) / cb+1384 (terrain_factor)。
+
+六步流程:
+
+| 步 | 动作 |
+|---|---|
+| 0 | 无参战者门 + 基类重置 (cb+8 清 0; 逐师 unit+596 闪避配额清 0) |
+| 1 | 两栖基值整写: 过滤两栖入侵中 (sub_140C00350); prep = clamp[0,1e5](mod140 + 陆军师将军库 mod140 + mod454(键 prov+392 tag) + 1e5×移动进度/路径总长); accC(unit+408) = lerp(AMPHIBIOUS_INVADE_ATTACK_LOW, HIGH, prep); accD(unit+416) = lerp(DEFEND_LOW+mod27, HIGH, prep) — **直写非队列** (确认 §4.18.5) |
+| 2 | 岸轰 → cb+16: 邻接海洋省舰队扫描 (def+210&3==0 海洋门) + war_relation 战略区单位两路; 每 TF v = 1e5×岸攻合计/(1e5×max(1, NumCombatsBombarding)); cb+16 = Σv/100 ×(1+敌将 mod358); kind 11 推送值 = −clamp(cb+16, 0, SHORE_BOMBARDMENT_CAP) |
+| 3 | 循环前全局量: (a) 叠层惩罚 kind 5 = clamp(COMBAT_STACKING_PENALTY×超出数, −99000, 0), 超出数 = front 计数 − COMBAT_STACKING_EXTRA×max(0, 交战省去重数−1) − COMBAT_STACKING_START; (b) 空支底数 kind 15 = AIR_SUPPORT_BASE × min(1, Σ出动/(max(10, 3×敌战宽))); (c) 超宽惩罚 kind 6 = COMBAT_OVER_WIDTH_PENALTY×超出比; (d) 边界战分流 (combat+152 → cb+1272/cb+1384, 否则 0/100000); (e) 铁路炮三折算 (下表) |
+| 4 | 逐师主循环: 将领五库标量 (库 +624/+4024/+4064/+4104/+4144) → cb+344 防空累加 → 攻方调 sub_1412AEFC0 (内推 kind 8 两栖罚 / kind 16 空降罚) → 逐 kind 推入 → 尾钳 A/B ≥ 1000 (加法模式) |
+| 5 | 补给缺乏 kind 17 (见公式表); 循环尾守方上报 AI 意图 (省在场单位计数); cb+344 归一化 |
+
+铁路炮三折算 (门 = 铁路炮特性门 sub_1401AEB50(35); 输入 = sub_1412AA870 取**覆盖本省的最强敌铁路炮炮击值 max**):
+
+| 输出 | 公式 |
+|---|---|
+| kind 12 值 | −ATTACK_TO_BOMBARDMENT_MODIFIER_FACTOR × attack / 100 |
+| 挖掩乘子 (kind 7) | 1 + (−ATTACK_TO_ENTRENCHMENT_MODIFIER_FACTOR × attack / 100)/1e5 |
+| 要塞乘子 (仅攻方, 入 sub_1412AEFC0) | 1 + (−ATTACK_TO_FORTS_MODIFIER_FACTOR × attack / 100)/1e5 |
+
+> ⚠ sub_1412AA870 非「空优比」: 体读 = 遍历 war_relation (14346) 取对方国单位表中射程覆盖本省 (sub_140E8BF00) 的铁路炮, sub_140E88880 取炮击值, **保留最大值**并 sub_140E883C0 标记参战。
+
+补给缺乏 (kind 17) 完整公式:
+
+| 项 | 公式 |
+|---|---|
+| 门 | 有效补给比 < 100000 ∧ unit+1192 (空降倒计时) ≤ 0 |
+| lack | 100000 − 有效补给比 |
+| 州因子 | v186 = mod603 (LOCAL_SUPPLY_IMPACT); 师国非州核心 → += mod604 |
+| 国因子 | v185 = 100000; 师国 ∈ 州核心 tag 列表 → = mod595 (SUPPLY_PENALTY_ON_CORE) + 100000 |
+| 推送 | kind17 = side_define (COMBAT_SUPPLY_LACK_{ATTACKER,DEFENDER}_{ATTACK,DEFEND}) × lack × (v186 + v185) / 1e10, atk/def 各一 |
+
+> ⚠ mod595 以 **+100000 基线**进入 (即 (1+mod595) 乘子式), mod603/604 与 mod595 同属一个 (v186+v185) 因子 — 与 §4.18 战斗修正行的骨架一致, 本节补完整式。
+
+队列原语与双模式:
+
+| 函数 | 语义 |
+|---|---|
+| sub_1413E1190(cb, kind) | 置 cb+8 位图第 kind 位 (UI 修饰展示用) |
+| sub_140BF97C0(unit, kind, atk, def) | 推 24B 条 {kind u32@0, atk i64@+8, def i64@+16} 入 unit+368; 模式由 dword_1430B132C 选: 非零 = **乘法** A = A×(atk+1e5)/1e5 (下钳 1000) / 零 = **加法** A += atk; 尾段向战斗数组 (+424) 传播 |
+| sub_1412AAAF0 | 糖: atk‖def 才推 |
+| sub_140BFBA50 | 加法模式尾钳 A/B ≥ 1000 |
+
+> 三账并行: cb+8 位图 (UI) + CUnit+368 队列 (明细) + A(+392)/B(+400) 累加器 (乘积); 伤害步 (vt[19]) 首调 sub_140CDA7E0 把位图折入 observer lb+624 modifier_hours 后复位。
+
+kind 推送全表 (逐师循环; 值列 = (attack, defense)):
+
+| kind | 攻守门 | 值 | define/mod |
+|---|---|---|---|
+| 0 | 两方 | (mod95, mod96) | 指挥官聚合 sub_1412B6C00 (营权重×特质) |
+| 2 | 仅守 | (ENCIRCLED−mod265, 同) | ENCIRCLED_PENALTY; 门 = 地形陆 ∧ 合围判定 |
+| 3 | 两方 | (当前堑壕现值, 同) | sub_140C7E840 (非等级) |
+| 4 | 仅攻 | (unit+1136, 同) | 师计划 bonus (§4.18.17) |
+| 5 | 两方 | (v393, 同) | COMBAT_STACKING_PENALTY, 下钳 −0.99 |
+| 6 | 两方 | (v401, 同) | COMBAT_OVER_WIDTH_PENALTY |
+| 7 | 仅守 | ((1+挖掩乘子)×DIG_IN_FACTOR×max_org×挖掩等级×cb+1376, 同) | DIG_IN_FACTOR |
+| 8 | 仅攻 | sub_1412AEFC0 内推 | AMPHIBIOUS_LANDING_PENALTY ×(1−…DECREASE 衰减) |
+| 11 | 两方 | (−clamp(cb+16,0,CAP), 同) | SHORE_BOMBARDMENT_CAP |
+| 12 | 两方 | (v400, v400) | 铁路炮 −0.4×attack/100 |
+| 13 | 仅守 | (−0.5, −0.5) | MULTIPLE_COMBATS_PENALTY; 门 = 师 OG 在本战斗单位数 >1 |
+| 14 | 两方 | (0, v174) | ENEMY_AIR_SUPERIORITY_IMPACT; AA 基 = stats+544 + mods×区域敌空优 |
+| 15 | 两方 | (v182, 同) | AIR_SUPPORT_BASE × (1+mod135 天气+州) × (1+库 mod357) |
+| 16 | 仅攻 | sub_1412AEFC0 内推 (<0 才推) | PARADROP_PENALTY |
+| 17 | 两方 | 见上 | COMBAT_SUPPLY_LACK 四 define + mods 603/604/595 |
+| 18 | 两方 | (DEF_F×intel, ATK_F×intel) | ARMY_INTEL_COMBAT_BONUS_FACTOR × 情报网络强度 sub_14142E340 |
+| 19 | 两方/仅攻/仅守 | 六源混流 | mods 427-430 (流亡/GIE) / 574-579 (vs major/minor, 键 = 敌国旗 国+5210) / 346+553 (攻) / 348 (守, 取敌方 tag 集合最极端值) |
+| 20 | 仅攻 | (mod347, 0) | ATTACK_BONUS_AGAINST_A_COUNTRY_ON_ITS_CORES; 门 = 敌 tag ∈ 州核心 |
+| 21 | 两方 | (cb+1272, 同) | 边界战 modifier (仅 combat+152) |
+| 22 | 仅流亡 | (427+428, 429+430) | 政府 in exile 同国变体并档 |
+| 23 | 两方 | **仅置位图, 不推队列** | 门: 敌 tag ∈ 国+288 容器 |
+| 24 | 两方 | (Σmods, Σmods) | 将领地形特质聚合 (仅陆地省; 州单位表 +1968 64B/条 script 求值 + 特质旗位→mod 映射) |
+| 27 | 两方 | (v395×terr/1e5, 同) | cb vt[23] 每师地形值; 负值先 ×(1−mod353); ×v395 (cb+1384) |
+| 28 | 仅守/两方 | (mod173×R, mod174/477×R) | 天气 × 模板抗候系数 (unit+1208) |
+| 29 | 仅攻 | (v234, 0) | 库+624 + BASE_NIGHT_ATTACK_PENALTY + stats+832 + mod259; 门 = 天气省结构 +576 的 u64 > 80000 |
+
+kind 24 特质旗位映射 (特质 flags@+1448, 门字节@+1464 命中即停):
+
+| 旗 | 攻 mod | 守 mod |
+|---|---|---|
+| &4 | 183 | 184 |
+| &0x10000000 | 185 | 186 |
+| &8 | 189 | 191 |
+| &0x10 | 349 | 350 |
+| &0x20 | 181 | 182 |
+| 特质+1463 非零 | 187 | 188 |
+| &0x40000000 | 190 | — (仅攻) |
+| (基础) | 192 | 193 |
+
+订正项 (对历史 findings):
+
+| 项 | 订正 |
+|---|---|
+| 叠层下钳符号 | sub_1424EF6F0(ptr, v) 体 = `*ptr = -v` (存**负**常量) ⇒ 钳位 max(值, −99000), 非 +99000 (IDA 显示易误读) |
+| cb+16 封顶 | cb+16 本身**不封顶**; 封顶只作用于 kind 11 推送值 |
+| kind 11 符号 | 推送值带负号 |
+| 铁路炮源 | sub_1412AA870 = 最强敌铁路炮炮击值 (max), 非空优比 |
+| cb+219/cb+220/FLANKED_PROVINCES_COUNT/vt[29] 海战分支/vt[12] progress | **均不在本函** (历史 findings 误归; 通读全函数逐行确认); 写点应另定 (推定在 CLandCombat 槽[15] 步序其他环节) |
+
+> 待裁: kind 18 的 define↔qword 映射 (两 define 均为 1.0, 原版无行为差异; 推送参数序 a3←DEF_F / a4←ATK_F 与命名反向); kind 29 夜战门字段 (天气省结构 +576) 命名 — 代码极性要求其为**夜暗度** (>0.8 触发夜罚), 字段名需对 weather.cpp 结构定案。

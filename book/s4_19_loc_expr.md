@@ -224,7 +224,7 @@ CBrowserType 同族)。
 | ② | `sub_140AAB2E0(a1)` = CNamedCollection 求值: `qword_14332F030` (RH 16B 桶) 存在 → `sub_140AAAB70(表, out, 哈希(a1), &a1)`; 否则 → `sub_14141F030(a1)` 名字解析兜底 |
 | ③ | `sub_14141F030(expr)`: 遍历操作数 (216B, +8 data / +20 count), 跳过 `byte@+208 != 2` 者, **哈希(操作数+0) = 0x45d9f3b (73244475) 两轮乘加 xor-fold 雪崩终化, 非 FNV** (`x^=x>>16; x*=0x45d9f3b` ×2; 伪码 `v5 ^ HIWORD(*v4)` 形) 查 `qword_14332EED8` (CNamedCollectionDatabase) RH (**条目 24B = {+0 预留, +4 PSL 字节 0=空位, +8 key u32, +16 value 指针}; 线性探测 `++probe > *(entry+4)` 判失配; 哨兵界 = base + 24×(mask+1+哨兵字节)**) → 命中取 `entry+16` = CNamedCollection*, 写回操作数+8; 未命中 → 报 `"Failed to resolve named collection in math expression, defaulting to 0"` (script_math.cpp:383) + `sub_1403B80F0` + `sub_14140DDE0` + `+44 = 0` + `sub_14141C0D0(expr+32, 0, 0, −1)` 置空表达式 |
 
-**script_math VM (定案, 5 函闭环)**: 指令 = **3 字节定长 [opcode u8][operandA i8][operandB i8]** (扩容步距 3×count; 回填寻址 base+3×pos+1/+2; 与 math_instructions.h:54 operandA int8 断言互证; 操作数上限 127)。opcode 全表: 0=清零默认 [0][0][−1] / 2=every_collection 全链折叠 (体后首指令 ∈ {29,30} 且整条表达式被该短路链覆盖时 op32 重写) / 3=multiply (token 10499) / 21=root (11412) / 23=log (10676) / 24=单目 [24][−1] (语义未决) / 28=atan2 (11689) / 29=and (10600) / 30=or (10601) / 31=if 条件跳转 (**B1=TrueBranchSize / B2=TotalBodySize 双 i8 回填**, 断言 :250/:251) / 32=every_collection 迭代 (A=集合操作数 idx, B=体长; 断言 :306)。token 全表: 10179=if / 14573=else_if / 14035=else / 10762=limit / 11067=every_collection / 11556=named_collection; id 19 = 词法失败兜底值。**三编译器**: if 链 0x14141D850 (else_if 循环 + else 收尾; "if block must start with limit =" 错误) / and-or 短路链 0x14141E140 (双遍回填: B1=BodySize :193, B2=链内下一记录位越 i8 界顺延或总长) / every_collection 0x14141D2B0 (peek 须 named_collection; 追加 216B 操作数 {+0=*(u32*)(token+192) 集合名 token, +208=2 种类 tag}; "Too many constants and/or variables in math expression" 127 上界)。协函: 语句分发器 sub_14141E5A0 (token switch) / 块体解析 sub_14141EDF0 (and/or 挂点) / 首个 if 块 sub_14141D680 / 单表达式编译 sub_14141DCE0 / 3B 指令发射 sub_14141C0D0。解析器 ctx = {+0 = CExpression.operand_array*, +8 = instr_container*, +16 u8 错误旗}; reader 出错报 "Errors occurred while reading math expression defaulting to 0" (:350)。
+**script_math VM (定案, 5 函闭环)**: 指令 = **3 字节定长 [opcode u8][operandA i8][operandB i8]** (扩容步距 3×count; 回填寻址 base+3×pos+1/+2; 与 math_instructions.h:54 operandA int8 断言互证; 操作数上限 127)。opcode 全表: 0=清零默认 [0][0][−1] / 2=every_collection 全链折叠 (体后首指令 ∈ {29,30} 且整条表达式被该短路链覆盖时 op32 重写) / 9=clamp (token 18933; [9][−1][−1], min/max 双操作数隐式取) / 3=multiply (token 10499) / 21=root (11412) / 23=log (10676) / 24=单目 [24][−1] (语义未决) / 28=atan2 (11689) / 29=and (10600) / 30=or (10601) / 31=if 条件跳转 (**B1=TrueBranchSize / B2=TotalBodySize 双 i8 回填**, 断言 :250/:251) / 32=every_collection 迭代 (A=集合操作数 idx, B=体长; 断言 :306)。token 全表: 10179=if / 14573=else_if / 14035=else / 10762=limit / 11067=every_collection / 11556=named_collection; id 19 = 词法失败兜底值。**四编译器**: if 链 0x14141D850 (else_if 循环 + else 收尾; "if block must start with limit =" 错误) / and-or 短路链 0x14141E140 (双遍回填: B1=BodySize :193, B2=链内下一记录位越 i8 界顺延或总长) / every_collection 0x14141D2B0 (peek 须 named_collection; 追加 216B 操作数 {+0=*(u32*)(token+192) 集合名 token, +208=2 种类 tag}; "Too many constants and/or variables in math expression" 127 上界) / **clamp 参数块 0x14141AA70** (期望表 unk_1429BFB00 = {token 675 min, 676 max}, 两参数顺序固定, 各委派单表达式编译 sub_14141DCE0; 键不匹配挂错误节点 + 置 ctx+16=1)。协函: 语句分发器 sub_14141E5A0 (token switch) / 块体解析 sub_14141EDF0 (and/or 挂点) / 首个 if 块 sub_14141D680 / 单表达式编译 sub_14141DCE0 / 3B 指令发射 sub_14141C0D0。解析器 ctx = {+0 = CExpression.operand_array*, +8 = instr_container*, +16 u8 错误旗}; reader 出错报 "Errors occurred while reading math expression defaulting to 0" (:350)。`'@'` 注解代换 sub_1424C04A0 内部 (精化): token 槽旗@+4 非 0 → 整拷缓存返回; 串[1]=='(' → 报 parser.cpp:1087 "not yet implemented" + 空结果; 否则 **FNV-1a 32 (basis 0x811C9DC5) 哈希串[1:] (跳 '@') → 线性查 reader+304 符号表** (112B 条目, count@+316; 条目 {哈希@+32, id@+40, 旗@+44, 串@+48, len@+60}), 命中拷 {id, 旗, 串, len} 回 token 槽, 未命中/空表 → 拷 token 槽原值。
 | ④ | `sub_14141C0D0(a1, op, a, b)` = 指令发射 (math_instructions.h:54 断言 `OperandA >= numeric_limits<int8>::min() && …`) |
 
 **表达式 trigger 类**: `CCheckExpression` (vtable 0x1427CF258) / `CDebugMathExpression` (vtable 0x1427CF318),
@@ -354,7 +354,7 @@ sub_142245880 (235)** / 变量解析步 sub_142248C20 (109) / **格式化值发�
 
 **格式规格语法全集** (79F0 定案): `%` ×100 / `%%` ×1 / `*` `^` 两拼写族 / `+` `−` 红绿 /
 数字小数位默认 2 / `=` 强制加号 / `U` `l` 大小写 / `_` 零隐藏 / 字母固定色; 色逃逸
-`0x11+字母`、复位 `0x11+'!'`、± 缺省 'Y'。
+`0x11+字母`、复位 `0x11+'!'`、± 缺省 'Y'; **引擎 u16 实证 = 18449 (0x4811 → 字节 0x11 'H', 色码开) 与 8465 (0x2111 → 字节 0x11 '!', 复位)** (STAT_ADJUSTER 组合器 sub_141015080 内嵌字面, §4.19.13)。
 
 **加载链** (定案): 文件夹加载器枚举 *.yml (a3=0 按语言名过滤), "/replace/" 路径延后最后载;
 主语言文件加载 = 语言全局态三写 (off_1430BDED8 / byte_1430BDEE0 / qword_1435BA038 换表);
@@ -368,6 +368,17 @@ D980 真实签名 `(buf, size, 文件名, 0, a5, a6)` — **capstone 汇编核�
 ④ **64 位常量乘法压成低 32 位字面量** — 伪码 `435 * (c ^ h)` 实为 `movabs r8, 0x100000001B3;
 imul rcx, r8` 的 FNV-1a 64 (435 = 0x100000001B3 低 32 截断); 凡裸小常数乘 hash 先怀疑此形态
 (汇编复核曾险些据此产出「双 hash 混用同表」谬案)。
+
+**std::string 通用串层助手四件** (全语料高频内联级, 形态定案, df391 + df387):
+sub_14011FC50 = **move-assign** (释目标旧缓冲 → 32B 整体搬运 → 源置空态 SSO cap 15) /
+sub_14011DBC0 = **grow+append** (容量满时重分配 — 1.5× 上取整 16 对齐, ≥0x1000 走对齐头
++ 回填长度指针 — 并追加单字节; 伪码常丢参, 真签名 4 参 = Dst, count, src, size) /
+sub_1402DE330 = 数组析构助手 (eh vector destructor iterator 通道) / **sub_1401200A0 = cstr+std::string
+拼接** (真签名 3 参 = Dst, cstr, 串; 清空 Dst → strlen(cstr) 经 sub_14011D970 赋值 → append 串.数据/串.size;
+⚠ **IDA 全语料 10+ 调用点一律丢后两参** — 见单参形态调用时按 3 参解读, 原始字节定案, df387); 四件均非
+业务函数, 全书各处按此语义引用。另 **xmmword_1427179A0 = std::string
+空态常量** (16B = {size = 0, cap = 15} 小端对, 即 SSO 阈空串; 析构后重置 / move-assign 源置空经
+_mm_load 搬此常量; df387 原始字节定案 + df397 独立复见)。
 
 未决: D980 a4/a5/a6 精确语义与 56B 解析上下文 / 文件读取器 0x100000 参数 / `~` 旗 (Type 9)
 与数值格式化助手族 / Type 10 打印缩放侧证。
@@ -428,3 +439,7 @@ yml 行语法全集与空白集 (含 U+00A0/U+2007/U+202F/0x1C-1F)。错误分�
 
 
 **localize.cpp 50-99 行簇增补**: 主语言/单文件加载 sub_14224AF90 — 存在检查 → 整读 → **BOM 校验** (非 EF BB BF 告警 "Localization file '%s' should be in in utf-8-bom encoding" :1639, "in in" 源串原样) → 解析落点 sub_14239D980; 双全局槽 = byte_1430BDEE0 模式旗 / off_1430BDED8 路径槽。溢出检测 sub_142244B30 — "Reached max localization string length" (:524, 闩 byte_14345313F), **返回值 0=正常 / 1=溢出 (告警不拦)**。公共入口 sub_142245E60 (全语料 9458 处, 最热点) — 6144 tbb ETS 缓冲容量以 buf+6144 上界实参显式传扫描引擎 sub_142245880。
+
+#### 4.19.13 STAT_ADJUSTER 统计增减文案构建器簇 (1 主函 = 0x141014920 + 组合器 sub_141015080 + thunk 族, 高置信 (簇业务身份待裁))
+
+sub_141014920(out, stat_name [move 消费], value i64, is_diff bool): 键1 = "STAT_ADJUSTER_" + stat 名 → 无参本地化写 out; is_diff → 键2 = 前缀 + "_DIFF", 104B 参数 {_Type=9, "VALUE", value@+80} (与 §4.19:352 104B 参数对同构) 单参本地化追加; 否则键2 = 前缀 + "_VALUE", **value' = value + 100000** (i64 整数加, 推定 = PDX「+1e5 = 正/绿着色值编码」惯例, 精确发射语义待汇编, 挂 §4.19 数值格式化助手族未决) → **sub_14043E0D0 (新定案, 书无) = 单数值参数本地化格式化包装** (out, 键, 参数名, i64\* 值) 固定构 {_Type=9, 名, \*值} 104B 单元素表 → sub_142245E60。尾 out += '\n'。**0x141014 thunk 族**: sub_141014FB0 / sub_141015010 / sub_141015C80 = 6 行 jmp 转发壳 (真签名 4 参, IDA 只显 1 参 = 寄存器透传失真) + 组合器 **sub_141015080** = 三旗驱动 (a1[2] ATTACK / a1[3] DEFEND / a1[4] MOVEMENT 字面 SSO 直证), 每真旗构空串调 thunk (stat 名 = 字面串) + 缩进 (空格×a6) 逐段 append; a5 路径头部内嵌 **u16 字面 18449 (0x4811 色码开) / 8465 (0x2111 复位)** = §4.19:357 色逃逸方案引擎实例。消费面 9 站跨科技条目区与军队 GUI 区 (0x141FAEAE0 邻 CTechnologyTechnologyStatEntry ctor); 簇业务身份 (将领技能/装备改型/科技统计对比 tooltip) 待裁。

@@ -79,7 +79,8 @@ ctor = `sub_141BBE880(this, &window_name)`; 三具体类均先调本 ctor 再写
 ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `malloc(0x60)` +
 存入 **iface+1240**。全局定位链: `CInGameIdler + 1720 = iface` (ctor sub_140DC1B30 内
 `*(a1+1720) = sub_140B614C0(...)`) → iface 主虚槽 **[23] (vtable+184) = 取回 iface 自身** →
-`+1240` 取 handler。
+`+1240` 取 handler (df397 直证强化为定案: sub_140C24120 内 `v6 = vt[+184](v5)` +
+`sub_141391400(*(v6+1240), v4)` 与本链逐字吻合)。
 
 | 偏移 | 类型 | 名称/语义 | 证据 |
 |---|---|---|---|
@@ -162,7 +163,7 @@ ctor = `sub_1413911A0`; 由 `CInGameInterfaceHandler` ctor `sub_140B614C0` 内 `
 | sub_1413F71D0 | 敌方密码被破 `CRYPTO_ENEMY_CRYPTO_IS_BROKEN_TITLE` |
 | sub_1413F6A00 | 同上 (第二路) |
 | sub_140F30200 | 通用消息泵 (见 §4.17.6) |
-| sub_140C24120 | 将领伤病 `NOTIFICATION_OUR_GENERAL_SICK/WOUNDED[_DESC]` |
+| sub_140C24120 | 将领伤病 `NOTIFICATION_OUR_GENERAL_SICK/WOUNDED[_DESC]` (df397 精化: 门 = idler vtable+160 槽 20 取玩家国 tag 指针, 与 leader+288 等值比对 + sub_140BB52F0 同原初国容错; CEventScope 宿主 = 将领 (sub_14053B8E0); 标题本地化带 NAME = 将领名绑定, 描述不带 (第 4 参 1 vs 0); sender = leader+288 tag / receiver = 0 / 图标旗 0 → diplo_war_large_icon) |
 | sub_140FE3AA0 | 特殊项目被夺 `SPECIAL_PROJECT_CAPTURED_TITLE/MESSAGE` |
 | sub_141A34910 | 学说奖励解锁 `NOTIFICATION_REWARD_UNLOCKED` (断言 `doctrine_ui_utils.cpp`) |
 | sub_140BABD00 | 理念失效替换 `POLITICS_INVALID_IDEA_REMOVED/REPLACED` |
@@ -334,7 +335,7 @@ CAlertManager 布局 (偏移十进制):
 | 40 | alert_resistance | 0 | sub_140B31B80 (severity 动态 0/1/2 写 +1072) |
 | 41 | alert_naval_convoy_raiding_results | 0 | sub_140B286C0(mgr, cc, 1) |
 | 42 | alert_paused_diplomatic_actions | 0 | 内联: sub_1406CF890(cc)+224 ≤ 0 且 gs vtable+72 国家数 >1 → sub_140B0E1F0 |
-| 43 | alert_battleplans_with_no_divs | 0 | 直跳; 前置块逐州 sub_140B1C320 (带键) |
+| 43 | alert_battleplans_with_no_divs | 0 | 直跳; 前置块逐州 sub_140B1C320 (带键): a2+72 容器 → 元素双数组 +152/+176 → 子项 +504 数组/+540 缺省计数/+664 旗 → 计划对象 +57 旗/+164 计数/+560 数组 (元素 +92 师数); 收集判据三支 (+664 ∧ +164>0 直收 / 总和==0 收 / 逐项 sub_140B08B20 非空即停); 非空 → sub_140B01D40 add (键 = 州) / 全空 → sub_140B17240 remove (字面 43 对锁) |
 | 44 | alert_port_strike_results | 0 | sub_140B2E330 |
 | 45 | alert_dangerous_naval_invasion | 0 | 直跳; 第一 switch case 批量 sub_140B183F0 (同 id 1) |
 | 46 | alert_dangerous_naval_invasion | 0 | 同 id 45 |
@@ -344,7 +345,7 @@ CAlertManager 布局 (偏移十进制):
 | 50 | alert_subject_lose_autonomy | 0 | sub_140B35AE0 |
 | 51 | alert_subject_gain_autonomy | 0 | sub_140B354C0 |
 | 52 | alert_unassigned_divisions | 0 | 内联 + sub_140B05AA0, 维护 +100520 钳制缓存 |
-| 53 | alert_players_lagging_behind | 0 | sub_140B04E60 |
+| 53 | alert_players_lagging_behind | 0 | sub_140B04E60; **tooltip = sub_140B2DDC0** (BuildTooltip case 53; 逐掉队玩家格式化 alert_players_lagging_behind_desc_entry, 参数 PLAYER = 条目+64 名串 / HOURS = 当前小时 − 条目+128 水位 (下钳 0), append 到出参 a2+8; 掉队门 = LAG_DAYS_FOR_LOWER_SPEED (dword_1433361D0, 10 天); a2+40 恒空; 条目布局见 §4.1 gs+248) |
 | 54 | alert_non_payed_license | 0 | sub_140B2B810 |
 | 55 | alert_decision_new | 0 | sub_140B0D120(0, ·) |
 | 56 | alert_decision_timeout | 0 | sub_140B0D390(0, ·) |
@@ -385,3 +386,5 @@ worker 层补全 (定案): 簇实为 7 函数 (清单 6 + **sub_140B188A0 = 每�
 对拍定案: **零游戏状态写门** (update + 原语族 + 检查器群对 gs/cc 只读; 写仅落 mgr 自身字段与 GUI 元素) + **零存档面** (无 CPersistent 形态; serfam `alert` 零命中; 逐帧重评估自再生成) — sv2_export 无新增叶。风险三点: renderhide 旗置位时整体跳过 / 暂停冻结轮转 (+96432 不推进) / 单 id 82 帧采样延迟 (探针读某警报状态须等轮转位); `alert_manager_update` 出现在 profile_top/folded = 帧级常规项非异常。
 
 > 仍开放: id 68 门字节 (gs+1104 系逐国对象 +8) 业务名; id 10 豁免五函数与 id 14 原型表逐项业务名; +96464/+98432 休眠容器业务名; id 11 行 +24 字段业务名。
+
+**警报文案分发器 sub_140B0AB70 与 case 构建函族 (df366 补)**: a2 → 管理器 → **1128B/条的警报条目数组** (entry = base + 1128×i; +40 = std::string 文本成员); switch a3 警报类型, case 20-29 各有专属构建函 (sub_140B37230/140B1FA40/140B299B0/140B23D90/140B232F0/**140B21830**/140B22040/140B20B60/140B36210)。**case 26 = 阵营领导权转移可触发 (sub_140B21830 全案)**: 玩家阵营 (dip+656) 非空 → 领导国 = **fac+88 成员数组首元素 (推定成员序即领导序)** → CEventScope 构造 (sub_1415FFE70(scope, 玩家tag, 领导tag, gs+1128 日期), 176B; dtor sub_140302750 重置 CDiplomaticAction + 两 CGregorianDate vftable) → 双门 (sub_141138CA0 同源+FROM 环检 eventscope.h:193 ∧ sub_141615250 触发器求值, 门 byte_14332F617 + sub_1401AEB50(16)) → 写 `alert_faction_assume_leadership_possible_delayed` (FACTION = fac+24 阵营名 / LEADER = cc+80 definite name 定冠词形) + 尾附 ALERT_RIGHTCLICK。辅助定性: **sub_140129CA0 = string assign (dst ← src[0..size], size 0 = 清空)** 非 append。

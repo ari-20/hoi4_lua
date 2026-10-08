@@ -33,7 +33,7 @@ strength_sum_over_cores; 全链无 vtable 分流读取点, 按对象类各读各
 | +121..+131 | — | = sub_intel_networks 容器尾 {cap@+128}  |  |
 | +132 | uint32 | sub_intel_networks 容器计数 |  |
 | +133..+143 | — | = subnets 容器尾 + max_coverage 前置  |  |
-| +144 | 匿名结构 (40B) | **max_coverage_by_occupied_tag** 容器数据指针 — (0x4C00=19456), 元素 40B **{tag u32@0, pad@4, owned_worth u32@+8, states u32@+12, intel_network_gain_factor i64@+16, enemy_operative_detection_chance_factor i64@+24, enemy_operative_detection_chance i64@+32}** | c>0 |
+| +144 | 匿名结构 (40B) | **max_coverage_by_occupied_tag** 容器数据指针 — (0x4C00=19456), 元素 40B **{tag u32@0, pad@4, owned_worth u32@+8, states u32@+12, intel_network_gain_factor i64@+16, enemy_operative_detection_chance_factor i64@+24, enemy_operative_detection_chance i64@+32}**; **GUI: mode 3 州网 tooltip debug 比值链** (与 subnet+120 12B 条目按 tag 二分配对 sub_14022CF70; A/B 比值 ×1e5÷ 后全局权重混合 qword_143336C70·B + qword_143336B78·A, sub_1401C6FB0 ×c÷1e5; 记录+16 因子即 intel_network_gain_factor) | c>0 |
 | +145..+155 | — | = max_coverage 容器尾 {cap@+152}  |  |
 | +156 | uint32 | max_coverage_by_occupied_tag 容器计数 | c>0 |
 | +157..+167 | — | = max_coverage 容器尾 + intel_source vtable 前置  |  |
@@ -45,7 +45,7 @@ strength_sum_over_cores; 全链无 vtable 分流读取点, 按对象类各读各
 | +204 | uint32 | **未初始化死槽 (堆残留)** — ctor 0X1411CF7C0 **不置零本槽** (只置 +192/+200/+208); 唯一写点 = 容器清场路径 sub_1411CFBE0 `*(a1+204)=0`; **全 dump 零读者**。探针「约半数网非零」= 分配器残留字节 (ctor 未初始化的直接推论), 非覆盖率分母 | |
 | +208 | fixed×1e-5 | strength_sum (**loader 读档丢弃**, 运行时重算族) — **GUI: 全国覆盖 tooltip 强度行** (sub_1411D24A0) |  |
 | +216 | fixed×1e-5 | strength_sum_over_cores (loader 读档丢弃) — **GUI: 同上** |  |
-| +224 | fixed×1e-5 | **state_strength_max (定案)** (loader 读档丢弃) | **恒写; reader 未接, 段内内联**; **GUI: 机构行动行网强度** (sub_1411FB040 按 tag 找网 → sub_1411D47D0 = 逐 subnet+32 strength 取 MAX) |
+| +224 | fixed×1e-5 | **state_strength_max (定案)** (loader 读档丢弃) | **恒写; reader 未接, 段内内联**; **GUI: 机构行动行网强度** (sub_1411FB040 按 tag 找网 [宿主 +16 向量/+28 计数线性扫, 判等 = tag 相等 ∨ sub_140BB52F0 同原初国; 宿主来源 = sub_1406F98C0: gs+1696 管理器 → sub_140EB2E80(mgr, cc+8)] → sub_1411D47D0 = 逐 subnet+32 strength 取 MAX) |
 | +240 | CSubIntelNetwork* RH 桶数组 | **state_id → CSubIntelNetwork\* 反查缓存** {buckets@+240, mask u32@+252, extra u8@+256, max_load_factor f32@+260=0.9} — 桶 24B {dist u8@+4, key state_id@+8, value subnet*@+16} (lookup sub_1411D4890; 调用点语境 "#~ No sub intel network in this state (yet?)"; dtor 对 +240 非 &unk_1430B2990 才 free) | 不序列化  |
 
 #### 4.11.1 CStrategicOperative (so)
@@ -201,9 +201,9 @@ subnet 对连通表 = **pdx_triangular_matrix 三角矩阵** (n(n−1)/2 u32): �
 | +120 | 匿名结构 (12B 形状) 向量 24B | **coverage_per_occupied** {data@120, cap@+128, count@+132} — 12B 元 {tag 关联, u32@+4, u32@+8} (0x4BFD) | loader 19453 |
 | +144 | 匿名结构 (16B, 内含 CState*) | states 容器数据指针 — {data, count}; 16B 条 {州指针, strength int64×1e-5}; **loader = sub_141206C60** (16B {i32,fixed} pair 数组解析 → id→CState* 经 sub_1412063F0 + sub_1411CFCB0 落 map) | 州 id = uint32@州对象+88; 无过滤全量写 |
 | +145..+155 | — | = states 容器尾 {cap@+152}  |  |
-| +156 | uint32 | states 容器计数 |  |
+| +156 | uint32 | states 容器计数 — **GUI: mode 3 州网 tooltip debug "total States\|Worth" 行读数器之一** (sub_1412067A0; 另一读数器 = +100 coverage.owned 经 sub_14072DBF0; 两值与文案 States/Worth 对位待裁) |  |
 | +168 | 匿名结构 (NNB 形状) 向量 24B | **core_states** {data@168, cap@+176, count@+180} — **8B CState\* 元** (0x3189); **loader = sub_1403A9110** (i32 id 数组 → gs v10[89] 解引用 → sub_140B00560 落集合) | writer 遍历取 `*(st+88)` 发州 id; loader 12681 同法重建 |
-| +192 | idpair | operatives 容器数据指针 — id 对列表; **loader = sub_141207010** (CID 直读无解析) | 8B 紧致对 {type@0, id@4}; 定案 |
+| +192 | idpair | operatives 容器数据指针 — id 对列表; **loader = sub_141207010** (CID 直读无解析); **mode 3 tooltip debug 块按修正源消费本容器** (元素 sub_14221F310 解析 → CModifier tooltip), 与 loader operatives 语义关系待裁 | 8B 紧致对 {type@0, id@4}; 定案 |
 | +193..+203 | — | = operatives 容器尾 {cap@+200} (+205..+207 pad; **+208..+215 = 容器分配器指针** — 24B 头 alloc 槽, 对象 216B 止) |  |
 | +204 | uint32 | operatives 容器计数 |  |
 
@@ -246,7 +246,7 @@ coverage_per_occupied (0x4BFD, sub+120) 块: 第 1 条 tag=`.#1`, 第 2 条起�
 #### 4.11.7 CCountryIntel 六矩阵 (cc+4072)
 
 **获取**: `ci = *(cc + 4072)`; **vtable RVA 0X295F188**; **writer 0X140D07210**;
-load-key 0X140D063A0; clear 0X140D062E0。
+load-key 0X140D063A0; clear 0X140D062E0 (**装载器本体 = sub_140CFFE70, df366 全案**: 分发器 case 19263/19264/19356 → +64/+88/+112; 外层 24B 组元 pdx 四元组循环 (peek +100 旗, EOF 哨兵 id 19, id 4 = 闭合推定) → 内层 sub_140CFF740 逐 40B 条目 → sub_140D05D80 填充; 键 token 首字节 0x40 ('@') → sub_1424C04A0 变量表插值就地覆写 lexer+24; reader ctx +40 = lexer {+16 peek id / +24 当前 token / +100 peeked 旗} / +192 = 当前键 token 副本)。
 
 六矩阵 = 内联 24B 容器槽 `{data@+X, cap u32@+X+8, count u32@+X+12, alloc@+X+16}`
 (形态定案: writer 帮手 sub_140D008F0/CEC260 + loader 帮手 sub_140CFFAE0 双证):
@@ -353,6 +353,7 @@ economy/army/navy/air 四面板。
 > §4.11.11 起。原节号 §4.29 不再启用, 交叉引用已全数改指本节。
 
 **账本四页面板控制器族 (身份与公共形; PE 直读)**: 装配 = sub_1419DAC10 ("country_intel_ledger_view" 四页签) — Civilian ptr@宿主+5296 / Army @+5344 / Navy @+5392 / Air @+5440 (各页数据源指针 @−16 槽); 页签 id dword 四区 +5256/+5304/+5400/+5352。四类 = **CIntelLedgerArmyPanelController 1720B / NavyPanelController 432B (vtable 0x142A8DEE8) / AirPanelController 368B / CivilianPanelController 3152B**, 共同抽象基 **CIntelLedgerPanelController 8B** (purecall 直证); 公共形: 主表 3 槽 {[1] 共享 setter int→+8→虚调 [2], [2] Refresh} / +8 刷新 mode / +16 宿主窗 / +24 页数据源 (Refresh 尾消费) / **+32 次 CTooltipHandler 子对象 (MI, COL objoff=32) 2 槽** / +40/+48 每页一个 CIdeasTooltipHandler 系 8B 标签。各页条目容器 = CSimpleEmptyEntryList 40B {vtable, qword×2, 容器头@24, u32@32}: Army 页 +1432 模板 / +1496 库存 / +1584 Idea / +1632 Technology / +1680 Doctrine; Navy 页 +104/+168/+208 舰三行 (书已载窗名) + +296/+344/+392; Air 页 +96/+136 机队两行 + +224/+272/+320; Civilian 页 +2664 Technology / +3080 Idea (行类 CIntelLedger{Idea,Technology,Doctrine}Entry 为全局类, 39 处引用簇)。Refresh 槽[2] 覆写读页数据源重建容器, 全族无 CPersistent = 纯视图侧缓存不入存档。
+**CSimpleEmptyEntryList 构造序 (Civilian 页 ctor 0x141EBA870 直证, 定案)**: vtable 双写 = 先 `CEmptyEntryListBase<T>::vftable` → TLS magic-static 门后覆写为 `CSimpleEmptyEntryList<T>::vftable` (MSVC 标准序); **容器头@+24 = off_143085170 共享静态分配器对象** (§4.00:1955)。Civilian 页 ctor 细节: 调用点 malloc(0xC50) + 存宿主+5296 + 数据源取宿主+5280; 头部 +8 mode(0) / +16 宿主 / +24 数据源 / +40 = CIdeasTooltipHandler 基 vtable (与公共形 +32 次 CTooltipHandler 行措辞相容 — +32 = 主表第二基 vtable, +48 起为 glue); 另含 **两个 1288B glue 子对象** +48 (回调 sub_141EBEAD0) / +1336 (sub_141EBEAC0) (同 f2 CMinimapInterface 的 13 槽注册器形); 列表区 +2664 Technology / +3080 Idea (与上表一致), 末成员 +3144 = off_143085170 (+3144+8 = 3152 = 0xC50 收口); +2704..+3072 的 368B 零块用途未决。
 
 **CIdeasTooltipHandler ×4 同名 = 四个独立嵌套类 (非 ICF、非模板同实例)**: 四份 TD/COL/vtable (0x142A8C6E8 / 0x142A8DC30 / 0x142A8C0C0 / 0x142A8CEB0, 各宿主 PanelController 嵌套); 唯一差异槽 [0] = 逐页 tooltip 构建体 (直读账本视图单例 qword_14338B4C0 +5456 目标 tag — 与上表 win+5456 同坐标 — 及 gs+1312/1316 玩家 tag, 建 "CURRENT_ARMY_INTEL" 等 loc), 槽 [1] 全族共享 CTooltipHandler 基删除析构 0x1402DE980。「GUI handler 每-use 一类」引擎惯用形。
 
@@ -742,6 +743,7 @@ populate (重建式) 流程:
 | 4 | 窗 vtable+192 取容器 "entry_padding" → `+56 = *(元素+240)`; 返回 +56 | — |
 
 > 上游重建链 (sub_141834C90): 读旧窗 +165 字节 >>3 (旗) → 清理 → 调本 populate → `sub_141835130` 列表重建 (每特工建 COperativeViewEntry → 挂 operative_status_window, §4.11.26) → 旗真 → (+96)+48 子对象 vtable+120。
+> **sub_141835130 体级定案 (df364)**: sub_141834D30 从宿主+1336 链表收 **type 码 12** 元素 (值−3928 回对象本体 = **outer 回退新跨度**, 对照 §3.2b −16 / −24 型) → 逐特工 malloc(1528) + COperativeViewEntry ctor → "entry#N" 经 sub_141E41C80 挂 operative_status_window 纵向堆叠 → 裁多余行; **+120=展开/+128=收起/+165 bit3=已展开旗** (极性与上游 sub_141834C90 自洽); 空清单 ∧ 旗 92 ∧ 当前视图 23/4 → 切回视图 4; 第二调用方 = sub_140B68600 (handler 刷新波 +488 槽); 宿主+56 张力待裁 (本函按 int32 数值消费 vs 书记「容器持有槽」)。
 
 **行动列表排序族** (countryintelligenceagencyview.cpp; 9 函 = std::stable_sort / std::inplace_merge 模板族实例化, 比较器 lambda 内联; 操作 8B CID 对元素连续数组):
 
@@ -874,13 +876,13 @@ common/operations。GUI: 行+2736 = COperation*; is_operation_type 读 op+72。
 | +128 | CAndTrigger 88B | allowed — daily 失效删 op 求值点 | 12263 | 定案 |
 | +216 | CAndTrigger 88B | available (可否发动) | 12264 | 定案 |
 | +304 | 匿名结构 (NNB 形状) 向量 24B | awarded_tokens | 19423 | 定案 |
-| +328 | uint32 | days / base_duration (PostLoad 断言非零, operation.cpp:513) | 10605 | 定案 |
+| +328 | uint32 | days / base_duration (PostLoad 非零校验 = **错误日志非断言**, operation.cpp:513; df364 措辞订正) | 10605 | 定案 |
 | +336 | fixed×1e-5 | danger_level | 19302 | 定案 |
 | +344 | SSO 32B | difficulty | 10655 | 定案 |
 | +376 | uint32 | network_strength (所需谍报网强度) | 19009 | 定案 |
 | +384 | CEffect 88B | on_start (启动期经 sub_140210F70 另发通知 = 名字复用) | 19007 | 定案 |
 | +472 | uint32 | operatives / operative_slots (创建链按此扩快照表) | 15646 | 定案 |
-| +480 | CEffect 88B | outcome_execute (普通结局; Complete 在 op+192==0 时执行; 效果容器 count = def+500) | 19432 | 定案 |
+| +480 | CEffect 88B | outcome_execute (普通结局; Complete 在 op+192==0 时执行; 效果容器 count = def+500; PostLoad 第二校验 :529 = 容器空 → 错误日志, 消息文案称 outcome_chance=0 与实态张力待裁, df364) | 19432 | 定案 |
 | +568 | CEffect 88B | **outcome_extra_execute** (奖励结局效果, 无 fail 效果键; Complete 在 op+192!=0 时执行; 容器 count = def+588) | 19433 | 定案 |
 | +656 | CEffect 88B | outcome_potential | 14673 | 定案 |
 | +744 | CAndTrigger 88B | optional | 19008 | 定案 |
@@ -902,16 +904,16 @@ common/operations。GUI: 行+2736 = COperation*; is_operation_type 读 op+72。
 | +1296 | fixed×1e-5 | outcome_extra_chance (弃用键 19430 读入写 100000−v 并告警, operation.cpp:476) | 19673 | 定案 |
 | +1304 | fixed×1e-5 | risk_chance (计算器 sub_140A7C110) | 19427 | 定案 |
 | +1312 | fixed×1e-5 | experience (ctor 默认 1.0; Complete 特工经验 = define × 此值/1e5) | 11930 | 定案 |
-| +1320 | uint32 | 本 def 在 _cost modifier 类别库的 mdef 索引 (PostLoad 登记) | — | 定案 |
-| +1324 | uint32 | 本 def 在 _outcome 类别库的 mdef 索引 | — | 定案 |
-| +1328 | uint32 | 本 def 在 _risk 类别库的 mdef 索引 | — | 定案 |
+| +1320 | uint32 | 本 def 在 _cost modifier 类别库的 mdef 索引 (PostLoad 经 sub_141483B40 get-or-generate 登记; **库全局 = qword_143339E98**, df364) | — | 定案 |
+| +1324 | uint32 | 本 def 在 _outcome 类别库的 mdef 索引 (**库全局 = qword_143339EA0**) | — | 定案 |
+| +1328 | uint32 | 本 def 在 _risk 类别库的 mdef 索引 (**库全局 = qword_143339EA8**) | — | 定案 |
 | +1336 | 匿名结构 (NNB 形状) 向量 24B | cost_modifiers | 19429 | 定案 |
 | +1360 | 匿名结构 (NNB 形状) 向量 24B | outcome_modifiers | 19431 | 定案 |
 | +1384 | 匿名结构 (NNB 形状) 向量 24B | risk_modifiers | 19428 | 定案 |
 | +1408 | CPersistentScriptTargets 264B | operation_target | 19018 | 定案 |
 | +1672 | CPersistentScriptTargets 264B | selection_target | 19019 | 定案 |
 | +1936 | 匿名结构 (NNB 形状) 向量 24B | phases — 元 = COperationPhaseSelection* 8B (每出现一次 phases 键追加一个 32B selection 并入新成员; selection 内才是 member 列表) | 19005 | 定案 |
-| +1960 | COperationResources 32B | equipment 基础资源清单 (创建链先拷它) | 12110 | 定案 |
+| +1960 | COperationResources 32B | equipment 基础资源清单 (创建链先拷它; PostLoad return_on_complete 打标 = sub_140A7B030(+1960, 1) 逐资源元, df364) | 12110 | 定案 |
 | +1992 | uint8 | return_on_complete (PostLoad 逐资源元打 return 标) | 19426 | 定案 |
 | +1993 | uint8 | scale_cost_independent_of_target (置位 = 全目标口径; cost/time/资源三处一致) | 19350 | 定案 |
 | +1996 | uint32 | 名字 intern id (自定 Load 入口现算: 块名 FNV → 全局 intern 表) | — | 高置信 |
@@ -1179,7 +1181,7 @@ UI「敌军规模区间」显示的引擎侧同源。`sub_141432940(out i64×2, 
 | 陆军 | ARMY_ARMY_COUNT_RANGE_INTEL_{MIN,MAX,RANGE_AT_LOWEST_INTEL} = qword_143331DF8 / 143331EB8 / 143331F88 |
 | 空军 | AIR_AIRWING_COUNT_INTEL_{同三} = qword_143333B98 / 143333C30 / 143333CE8 |
 
-主消费 = AI 相对军力评估 sub_1406E9BF0 (geography\country.h 内联, §4.34): 分母 = Σ 交战国 (dip+152 缓存) 两估计器四累加; 分子陆军 = `1e5×(cc vtable 槽 9 返回国)+668 师数` + Σ 同阵营邻国 (dip+176 战争同盟缓存 × 邻居位图 cc+4208/+4220 门) 同估计器; 分子空军 = 自身空军估计首输出 (同国满情报捷径 = 精确值); `OUT = 陆军 lo 比 + |hi 比 − lo 比|/2`, 空军 max 比 > 1e5 → +10000 (空优 +0.1); 分母 ≤0 → 默认 1e5, 加法溢出护栏 → −1。门 = `OUT ≥ RELATIVE_STRENGTH_TO_INVADE` (qword_1433326C8)。**CCountry vtable 槽 9 (+72) = 国家对象解析器** (返回带 tag@+8/师计数@+668/邻居位图@+4208/diplo@+3976 的 CCountry, 常规国家返 self; 存在意义推定 = 内战/tag 换源时原初国解析, 与 cc+4876 original_tag 概念同族)。未初始化邻居位图断言 geography\country.h:1776 "Asking if %s is a neighbor of %s before the latter country is initialized" + :1778 一次性警告 (byte_14332FC62 门)。同阵营邻国可达谓词 sub_1412EFED0: 存在 X ∈ 己邻居列表#1 (cc+4232/4244) 使 X 阵营 == 己阵营 ∧ 目标 tag ∈ X 的邻居位图 — AI「可援助/驰援国」评估复合件 (与敌国判定/阵营成员判定/AI 策略求值 sub_1406CF0E0 vtable+32 组合)。
+主消费 = AI 相对军力评估 sub_1406E9BF0 (geography\country.h 内联, §4.34): 分母 = Σ 交战国 (dip+152 缓存) 两估计器四累加; 分子陆军 = `1e5×(cc vtable 槽 9 返回国)+668 师数` + Σ 同阵营邻国 (dip+176 战争同盟缓存 × 邻居位图 cc+4208/+4220 门) 同估计器; 分子空军 = 自身空军估计首输出 (同国满情报捷径 = 精确值); `OUT = 陆军 lo 比 + |hi 比 − lo 比|/2`, 空军门精确形 = `lo + |hi−lo|/2 > 1e5` (魔数 0x29F16B11C6D1E109 PE 验算 = 定点 /200000; 原「max 比」措辞不确) → +10000 (空优 +0.1); 分母 ≤0 → 默认 1e5, 加法溢出护栏 → −1。门 = `OUT ≥ RELATIVE_STRENGTH_TO_INVADE` (qword_1433326C8)。**CCountry vtable 槽 9 (+72) = 国家对象解析器** (返回带 tag@+8/师计数@+668/邻居位图@+4208/diplo@+3976 的 CCountry, 常规国家返 self; 存在意义推定 = 内战/tag 换源时原初国解析, 与 cc+4876 original_tag 概念同族)。未初始化邻居位图断言 geography\country.h:1776 "Asking if %s is a neighbor of %s before the latter country is initialized" + :1778 一次性警告 (byte_14332FC62 门)。同阵营邻国可达谓词 sub_1412EFED0: 存在 X ∈ 己邻居列表#1 (cc+4232/4244) 使 X 阵营 == 己阵营 ∧ 目标 tag ∈ X 的邻居位图 — AI「可援助/驰援国」评估复合件 (与敌国判定/阵营成员判定/AI 策略求值 sub_1406CF0E0 vtable+32 组合)。
 
 #### 4.11.20a 情报账本 Army 页装备库存行 (countryinteledgerview_army.cpp; 填充器 0x141EB6A70 394 行)
 
@@ -1279,8 +1281,13 @@ mdef ENEMY_*_OVER_OCCUPIED_TAG 不同名同槽, 两侧语义关系未决)。CGai
 §4.11.19); 海军象限独占「目标省在网内」门。拓扑五 define + 交付四 MAX_*_INTEL +
 OCCUPIED_TAG 双权重 define 全具名 (findings §2)。
 
+**0x1411D2EF0 出参 GUI 消费图 (直证)**: +0 growth 值 / +32 strength 值 (覆盖率 = ×1e5÷1e7) /
++48..+63 optional cap (值@+48 engaged@+56, 钳 [0,1e7]; 满额 'Y' 色否则 'R' +
+INTEL_NETWORK_STRENGTH 百分比) / +64..+87 串 #1 (size@+80; 非空 → 换行缩进 2) /
++96..+127 串 #2 (size@+112; 缩进 4); 消费方 = mode 3 operatives 州情报网 tooltip (§S16j,
+0x140E10910); 观测连续区 128B, 书记 136B 差 8B 待裁。
 未决: mission 过滤门语义 / SetStrengthInAllStates 外层函数 / subnet+112 业务名活体对拍 /
-0x1411D2EF0 出参 136B 逐字段 GUI 复核 / subnet 修正槽读者侧全景。
+subnet 修正槽读者侧全景。
 
 #### 4.11.24 countryintel.cpp 簇对账增补 (静态源引用链与钳位累加; 10 函闭环 — 4 函互证 + 6 函新定案)
 
@@ -1288,8 +1295,8 @@ OCCUPIED_TAG 双权重 define 全具名 (findings §2)。
 
 | 函数 | 行数 | 锚 | 定性 | 状态 |
 |---|---|---|---|---|
-| sub_140D05260 | 339 | :302 + :98–112 (11 条错误日志, define 名直证) | 静态上限表打包 440B | 已收互证 (机制名词 = 格式化错误日志 sub_1424C8950+8E60, **无中断** — §4.2 勘误行同源) |
-| sub_140D04D70 | 229 | :157–162 (6 条错误日志) | 动态绝对上限表打包 336B | 已收互证 (同上) |
+| sub_140D05260 | 339 | :302 + :98–112 (11 条错误日志, define 名直证) | 静态上限表打包 **448B = 14 槽 × 32B 混合表** (槽 0 = INTEL_COUNTRY_LEVEL_MAXIMUMS / 槽 1-6 静态源 / 槽 7-13 动态源软上限; 消费端 tooltip sub_141E9CAF0 按槽索引直证 — 静 `32×(i+1)` / 动 `32×i+224`) | 已收互证 (机制名词 = 格式化错误日志 sub_1424C8950+8E60, **无中断** — §4.2 勘误行同源) |
+| sub_140D04D70 | 229 | :157–162 (6 条错误日志) | 动态绝对上限表打包 **336B = 7 槽 × 48B** (槽内 +16/+24/+32/+40 = 四象限绝对上限; 6 define = DYNAMIC_INTEL_SOURCE_{EVENT, LAND_COMBAT, NAVAL_COMBAT, AIR_COMBAT, CAPTURED_OPERATIVE, AIR_RECON}_ABSOLUTE_MAXIMUMS + 第 7 槽默认哨兵 92233720200000) | 已收互证 (同上) |
 | sub_140D02EB0 | 42 | :391 "_Owner.IsValid()" | 资源观测基准 (mdef 549–552) | 已收互证 |
 | sub_140D05BE0 | 45 | :302 | INTEL_COUNTRY_LEVEL_MAXIMUMS 归一 4 元 + 静态缓存刷新 (**无参**; 监听器遍历在 dispatch 调用方 — §4.26 调用行已加注) | 已收互证 (本体边界补全) |
 | sub_140D04430 | 53 | :302 | 上限快照读取器 (懒归一 + 出参拷贝) | 新 |
@@ -1315,9 +1322,9 @@ OCCUPIED_TAG 双权重 define 全具名 (findings §2)。
 
 **钳位四象限累加原语 sub_140D05A00(idx, 入 4×i64, 上限 4×i64, 累加器矩阵)**: idx 越界 (<0 或 ≥ 累加器+12 count) → :20 断言 (闩 byte_14333CC50) 丢弃; 否则 32B/国槽 (累加器 data + 32×idx) 逐象限 += min(入, 上限)。唯一调用方 = **sub_140D02C30 逐国计算核** (§4.2 序 5 — 上限钳位就发生在逐源累加处)。
 
-**_IntelFromAlliesOverOthers 读取器 sub_140D042A0(矩阵宿主, 出 32B, tag)** (成员名断言直证): tag → idx (sub_140BB5490), idx 合法且 count (宿主+52) > 0 → 拷 *(宿主+40) + 32×idx 4×i64; 否则全零。越界且非空断言 :640。唯一消费方 = **情报 tooltip sub_141E9CAF0** (§4.2 序 5 tooltip 双消费点之一)。宿主身份未定名 (推定 CCountryIntel 运行时扩展或伴生结构); 写入者不在本簇 (推定 intel daily 管线 sub_14109AEA0 族)。
+**_IntelFromAlliesOverOthers 读取器 sub_140D042A0(矩阵宿主, 出 32B, tag)** (成员名断言直证): tag → idx (sub_140BB5490), idx 合法且 count (宿主+52) > 0 → 拷 *(宿主+40) + 32×idx 4×i64; 否则全零。越界且非空断言 :640。唯一消费方 = **情报 tooltip sub_141E9CAF0** (§4.11.31; §4.2 序 5 tooltip 双消费点之一)。宿主身份未定名 (推定 CCountryIntel 运行时扩展或伴生结构); 写入者不在本簇 (推定 intel daily 管线 sub_14109AEA0 族)。
 
-未决: _IntelFromAlliesOverOthers 宿主类与写入者 / sub_140D04D70 缺省哨兵 92233720200000 复核 / DYNAMIC_ABSOLUTE 六 define 全名序列抄录。
+未决: _IntelFromAlliesOverOthers 宿主类与写入者 / sub_140D04D70 缺省哨兵 92233720200000 复核 / 静态段 2 默认槽填充值 (§4.11.31)。
 
 #### 4.11.25 COperationOverviewWindow 运行期 (operationoverview.cpp; 3 函闭环 — Setup 26 元素 / Load / SetOperativeSlot)
 
@@ -1364,6 +1371,10 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 
 #### 4.11.28 机构升级库装载 (agencyupgrade.cpp; 1 函新定案 + reader 语义补充 2 点)
 
+#### 4.11.29 特工任务候选州收集/排序/求和 (CBoostIdeology 域; 1 函 = 0x1416E3EE0, 定案/内部公式未决)
+
+0x1416E3EE0 (任务上下文 a1, 32B 出参 a2, 透传 a3): 空门 = *(a1+72) 对象 vtable slot[20] 假 ∨ sub_1406F98C0(sub_140BB48F0(a1+84)) == 0 → 出参全零。**候选收集** = a1+96 8B CID 数组 (count@+108) 逐条 sub_14221F310 解析 (失败返 0; `−3808` 哨兵特判置 0); owner 门 = *(obj+288) == *(a1+80) 或双方非零 sub_140BB52F0 (tag 等价) → 收集对象指针 (1.5× 扩容, off_143085170 分配 functor = vtable[1] alloc/[2] dealloc)。主计算 sub_1411F53A0 → 40B 元素向量 (计数@+12) + 总值 = Σ(元素+8) qword 出参@+24。**排序 = std::stable_sort 半量临时缓冲形态**: count ≤ 32 原地 sub_1416E2D80; > 32 malloc(40×half) 失败折半重试, half > 102 落堆块、≤ 102 改栈上 4080B 缓冲; sub_1416E2EA0 = 带缓冲归并。**调用方**: sub_1416E4DE0 (3×104B 条目, 键 `OPERATIVE_MISSION_BOOST_IDEOLOGY_PARTY_DESC`/`_OPERATIVE_ENTRY`) / sub_1416E4C40 (特工任务管理窗, 键 `..._INITIATE_DESC`, 先按 *(a2+1448) 任务对象遍历 a1[359]+416 子项两档高亮) / sub_141952AB0 (tooltip `_TT`)。与 §4.11 CBoostIdeology 域谱系 (mission+88 州缓存/+96 意识形态) 相容。
+
 簇清册 (体内 cpp 锚 2/2):
 
 | 函数 | 行数 | 锚 | 定性 | 状态 |
@@ -1381,3 +1392,74 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 
 
 **countryintel.cpp / countryintelnetwork.cpp 50-99 行簇增补**: **静态源引用解析器 sub_140D04610 三重校验** = 属主门 (ref+8 vs ci+8, "Reference applied to the wrong owner" :772) / 世代门 (ref+20 vs ci+208, strict 才报 :780) / 池界门 (:787); **静态源池 = {data@ci+160, count@ci+172}, 元素跨距 72B**; ref 字段图 = {owner tag@+8, 池 idx@+12, 源 idx@+16, 世代戳@+20}。引用→源→入账链 sub_140D066D0 双失败路径 = :567 "Invalid intel reference, intel values will be dropped" (情报值静默丢弃) / :815 "A reference somehow outlived the intel source"; 钳位累加原语 sub_140D05A00 = 逐象限 += min(入, 上限), 32B/行; 盟友矩阵 = 宿主+40 data / +52 count。断言闩字节补全 = :20 CC50 / :302 CC78 / :567 CC7A / :640 CC7B / :772 CC7C / :780 CC7D / :787 CC7E / :815 CC7F / countryintelnetwork.cpp:97 DD72。**CGainPostProcessor::operator() = 0x1411D7050 数值语义**: 缓存条目 216B (= CSubIntelNetwork); 贡献 = (权重 × 增益基值) 魔数定点积 0x29F16B11C6D1E109 >> 78 (= a×b/1e5 保标度); 现值钳上 10000000 (定点 100.0); 输出 = clamp(贡献, [this+16 负向下限, 剩余 = 现值 − 已入账(描述+16)]); 禁用旗 = 描述+24; idx < 0 原权重直通。
+
+#### 4.11.30 阵营情报升级机会提示文本生成 (1 函 = 0x141A239A0, 定案; 宿主 GUI 类未决)
+
+0x141A239A0 (a1 = GUI 控件 [+16 上下文 / +24 行动容器 / +1416 门旗], 出参 a3): 门 = a1+1416 旗 ∧ 情报网络对象非零; 网络链 = CInGameIdler qword_14332F698 vtable+160 (槽 20) 当前上下文 id → sub_140BB48F0 取对象 → ***(国+3976) + 656 = CFaction\* (定案, 非情报网络对象)**: dip+656 多方互证 = faction 槽 (s4_10 多处 + 阵营影响点命令 0x140259160 同偏移作「是否属阵营」门) + 本函下游 sub_1413FAE80 体内本地化键 **"FACTION_UPGRADE_INTELLIGENCE_NAME_BONUS"** 直证 + 424B/条阵营升级条目遍历 + 成员国情报机构门 — 本机会提示实为**阵营情报升级**域; 行动枚举 sub_140624270 → 逐行动 sub_1413FAE80(faction+2104, {id, tag}, …) > 0 才产出 (faction+2104 子对象: +152 = 424B 条目数组 data (count@+164), 条 +8 计数 >0 各贡献 qword_143335870 入 BONUS 合计; +176 = 成员国容器 {data@+88, count@+100}, 元素 = CCountry\* (tag@+8) — 排除 a3 指定国后首个 sub_140FDD3B0(*(cc+4032), a4) > a5 的成员命中即返 BONUS 合计, 否则返 0; sub_140FDD3B0 = 情报机构数值取件, 推定)。**输出** = 逐条 localize `INTELLIGENCE_OPPURTUNITIES_ITEM` ({NAME = 行动名} 1 参) + 包裹 `INTELLIGENCE_OPPURTUNITIES` (⚠ **OPPURTUNITIES 为引擎原文拼写错误**, 键名照录); 行尾非 '\n' 先补 '\n'; 返 1 = 有内容。
+
+#### 4.11.31 情报账本行悬停 tooltip 构建器 (countryintel ledger; 1 函 = 0x141E9CAF0, 定案)
+
+纯视图函数 (无 CPersistent, 不入存档), 形参 `(观察方 tag 指针 a1, 目标方 tag 指针 a2, 类别 id a3 0-3, out std::string a4)`。书内原有 3 处 VA 引用 (§4.11 消费链 / _IntelFromAlliesOverOthers 唯一消费方 / §4.30:697 账本行悬停 tooltip 调用点 `sub_141E9CAF0(gs tag→cc, win+5368, id, out)`), 本节首次全量展开机制。同国门 sub_1414348A0 (观察方 == 目标方) → 只发 `INTEL_DIRECT_DATA_TOOLTIP` 早退。
+
+类别 id = 四象限下标 (modifier id 对反向钉死, 定案):
+
+| a3 | 象限 | INTEL_TO_OTHERS (读目标国 cc+1464) | INTEL_FACTOR (读观察方 cc+1464) |
+|---|---|---|---|
+| 0 | 民用 | 549 = MODIFIER_CIVILIAN_INTEL_TO_OTHERS | 507 = MODIFIER_CIVILIAN_INTEL_FACTOR |
+| 1 | 陆军 | 550 | 508 |
+| 2 | 海军 | 551 | 509 |
+| 3 | 空军 | 552 | 510 |
+
+主矩阵取数 = sub_140D045C0 (CCountryIntel 四象限读取器, 出 4×i64) 按 a3 取当前值; 等级上限 = `*(qword_1433390B8 + 8×a3)` (INTEL_COUNTRY_LEVEL_MAXIMUMS 4×i64)。
+
+发射顺序 (13 个 loc 键, 定案):
+
+| 序 | 段 | 键 | 要点 |
+|---|---|---|---|
+| 1 | 表头 | TOTAL_INTEL_ + 类别名 | 当前值 ≤ 上限 → 带后缀键 AMOUNT = 当前值; 否则**裸 TOTAL_INTEL_ (12 字符, 不加后缀)** AMOUNT = 上限 + 追加 INTEL_CAP_INFO AMOUNT = 当前值 |
+| 2 | 逐静态源 | INTEL_STATIC_SOURCE_ + 名 | 值 ≤ 上限或上限 ≤ 0 → 键 AMOUNT = 值 + 尾行 INTEL_STATIC_INFO; 超限 → AMOUNT = 上限 + INTEL_CAP_INFO AMOUNT = 值 |
+| 3 | 逐动态源 | INTEL_DYNAMIC_SOURCE_ + 名 | 双层钳位 (见下) |
+| 4 | 昨日对比 | INTEL_YESTERDAY_INFO | 两参 VALUE = 昨日值 / CHANGE = 当日−昨日 (格式类型码 9) |
+| 5 | 解密科技 | INTEL_FROM_DECRYPTION_TECH | sub_140D043B0 四象限按 a3 取值, 非 0 才发 |
+| 6 | 盟友情报 | INTEL_FROM_ALLIES | sub_140D042A0 (§4.11.24 _IntelFromAlliesOverOthers), 非 0 才发 |
+| 7 | 目标侧修正 | INTEL_TO_OTHERS | sub_140559C30(目标国 cc+1464, …, 549+a3, 100000, 3, −1, …) 结果串非空才发 |
+| 8 | 观察方修正 | TARGET_MODIFIER_INTEL_FACTOR | AMOUNT = sub_14055E360(观察方 cc+1464, 507+a3) 原值 |
+| 9 | 阈值表节 | INTEL_THRESHOLD_HEADER_ | AMOUNT = 当前值; 后接逐阈值 LOCKED/UNLOCKED + INTEL_THRESHOLD_ENTRY |
+
+每节以 `
+` 分隔 (节首查 out 末字节非 10 才补), 源行前缀 `"  "` 缩进; 空动态源 (当日值与昨日值皆 0) 整源不发射。
+
+**动态源双层钳位 (定案)**: 软上限 = 混合表 sub_140D05260 槽 7-13 (`32×i + 224 + 8×a3`); 绝对上限 = sub_140D04D70 表 (`48×i + 16 + 8×a3`)。未超软 → 键 AMOUNT = 当日值 (±昨日对比); 超软未超绝对 → AMOUNT = 软上限 + INTEL_CAP_INFO AMOUNT = 当日值; 超绝对 → AMOUNT = 绝对上限 + INTEL_CAP_INFO AMOUNT = 当日值。**实际值一律经 INTEL_CAP_INFO 旁注, 钳位只改主行数字**。昨日对比双清单 = sub_140D041E0 (当日) + sub_140D047B0 (昨日), 等长门 (两清单源数相等) 才取昨日值。
+
+**阈值表节 (定案)**: 阈值比较值 = sub_14142F240 (§4.21:446 同款国家对句柄)。四类别表构建器 = 0x141E9AE50 (民用) / 0x141E9A4D0 (陆军) / 0x141E9B7F0 (海军) / 0x141E99670 (空军), 出 robin-hood 表 40B/条 {+0 hash u32, +4 距离+1 (0 = 空槽, pdx_robin_hood_table.h 断言直证), +8 阈值上限 qword, +16 串列表指针, +24 计数}; 收集为 32B/元 {+0 阈值上限, +8 解锁条件串列表 24B}, 1.5× 扩容 (分配器 off_143085170); std::stable_sort 按上限升序 (≤32 元原地 sub_141E96A90 / >32 元归并 sub_141E96EA0, 半量临时缓冲, 与 §4.11.29 sub_1416E3EE0 同族); 逐元 `阈值数 >= 上限` → INTEL_THRESHOLD_UNLOCKED_LIMIT 否则 INTEL_THRESHOLD_LOCKED_LIMIT, 逐解锁条件发 INTEL_THRESHOLD_ENTRY (UNLOCK 标签, 格式类型码 1)。
+
+陆军阈值表 define↔loc 全映射 15 对 (sub_141E9A4D0 体内, defines_map_1193.txt 逐项核对, 定案):
+
+| define | loc 键后缀 |
+|---|---|
+| ARMY_MIN_INTEL_FOR_SUPPLY_ROUTES | SUPPLY_TRANSFER_ROUTE |
+| ARMY_MIN_INTEL_FOR_SUPPLY_ROUTES_TOOLTIPS | SUPPLY_TRANSFER_ROUTE_TOOLTIP |
+| ARMY_MIN_INTEL_TO_SHOW_BASIC_TEMPLATE_INFO | BASIC_TEMPLATE_INFO |
+| ARMY_MIN_INTEL_TO_SHOW_EXACT_TEMPLATE_INFO | DETAILED_TEMPLATE_INFO |
+| ARMY_MIN_INTEL_TO_SHOW_EQUIPMENT_RATIO | EQUIPMENT_RATIO |
+| ARMY_MIN_INTEL_TO_SHOW_EQUIPMENT_DESIGN_DETAILS | STOCKPILE_TYPE_DESIGN_DETAILS |
+| ARMY_ARMY_COUNT_RANGE_INTEL_MIN / MAX | FUZZY_TOTAL_ARMY_COUNT / TOTAL_ARMY_COUNT |
+| ARMY_DEPLOYED_MANPOWER_COUNT_RANGE_INTEL_MIN / MAX | FUZZY_DEPLOYED_MANPOWER / DEPLOYED_MANPOWER |
+| ARMY_TEMPLATE_UNIT_COUNT_INTEL_MIN / MAX | FUZZY_TEMPLATE_COUNT / TEMPLATE_COUNT |
+| ARMY_STOCKPILE_COUNT_INTEL_MIN / MAX | FUZZY_STOCKPILE_AMOUNTS / STOCKPILE_TYPES |
+| ARMY_MIN_INTEL_RATIO_NEEDED_FOR_DISPLAYING_FAKE_ENEMY_INTEL_IN_LEDGER | DISPLAY_ENEMY_FAKE_INTELS |
+
+本节首次定案的新函数契约 (书原无条目):
+
+| 函数 | 契约 |
+|---|---|
+| sub_140D04240 | 静态源值清单 reader (ci, 出 32B/源值数组, tag) — 源数 ≤6 (ci+160 池数 6) |
+| sub_140D041E0 | 当日动态源值清单 reader — 源数 ≤7 |
+| sub_140D047B0 | 昨日动态源值清单 reader |
+| sub_140D043B0 | 解密科技情报 reader (出四象限) |
+| sub_140D04C60 | 类别名串 builder (a3 → 串) |
+| sub_140D06E10 / sub_140D038E0 | 静态源名 / 动态源名 by idx (前缀 INTEL_STATIC_SOURCE_ 20 字符 / INTEL_DYNAMIC_SOURCE_ 21 字符) |
+| sub_141E99240 | 阈值表加条目 |
+| sub_141E96A90 / sub_141E96EA0 | ≤32 元插入排序 / >32 元归并 (std::stable_sort 两臂) |
+
+未决: ① 消费端 sub_140D05260 memcpy 展开 464B (29 OWORD) vs 生产端 448B (28 OWORD) 的 16B 差 — IDA 展开失真 or 真 16B 尾, 待 PE 侧汇编复核; ② sub_140129C10 单参语义使各 loc 串拼接顺序为推定 (键与参数清单不受影响); ③ 静态段 2 默认槽填充值 (0 / 哨兵 / 继承缺省 100000, 未超门时消费端不区分); ④ 民用 / 海军 / 空军阈值 define↔loc 映射表 (同构未抄录); ⑤ 阈值表出参 {+8 表基址, +16 维度, +24 字节, +28 float 0.9} 中两维度语义与 0.9f 用途 (推定 = sub_141E99240 上限缩放比, tooltip 内未消费)。

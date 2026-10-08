@@ -169,7 +169,7 @@ rl, rh, snow, bliz, sand, aw, nact, act)。
 
 #### 4.20.5 季节与天气元素族 (CSeasonType / CSeasons / CWeatherElementChance / CWeatherElementRange / CWeatherChancePeriod)
 
-**CSeasonType** (单季定义, 176B; vtable 0x14296BBA8; writer=CFG; reader 0x140DF9570): +8/+32 起止 CGameDate 24B ×2 / +64..+144 六组 CColor 12B (hsv_north 10936 / hsv_center 10937 / hsv_south 10938 / colorbalance_north 10939 / colorbalance_center 10940 / colorbalance_south 10941) / +160 u32 季节序号 (宿主写 0..3)。
+**CSeasonType** (单季定义, 176B; vtable 0x14296BBA8; writer=CFG; reader 0x140DF9570): +8/+32 起止 CGameDate 24B ×2 / +64..+144 六组 12B 三分量 (hsv_north 10936 / hsv_center 10937 / hsv_south 10938 / colorbalance_north 10939 / colorbalance_center 10940 / colorbalance_south 10941; **六键的 3 数值数组读取由公共子段 sub_140DF7E10 完成, reader 仅做 token 分派与 3 值落槽**; 子段含固定容量越界报错 "Expected only %d elements" 与 '@' (64) 脚本引用解析 sub_1424C04A0) / +160 u32 季节序号 (宿主写 0..3)。⚠ 六组 12B = 3×4B **裸数值数组 (无 vtable)**, 与 §4.35.36 的 32B 带 vtable CColor {vt@0, rgba float@16..28} 非同一布局; 值经 int 槽传递, 真类型 (int 通道 vs float 位模式) 待裁。
 
 **CSeasons** (季节总表, 1352B; vtable 0x14296BC48; writer=CFG; reader 0x140DF97F0): +16 CSeasonType[4] 内联 ×176B (winter 10783 / spring 10933 / summer 10934 / autumn 10935) / +720 **CTreeSeasonType[8]** 内联 ×64B (tree_winter/spring/summer/autumn 各 ×2, 10970-10977); 元素 CTreeSeasonType (64B, vtable 0x14296BBF8, serfam 在册): 起止 CGameDate×2 + +56 序号。
 
@@ -181,7 +181,7 @@ rl, rh, snow, bliz, sand, aw, nact, act)。
 
 #### 4.20.6 消费者矩阵 (系统 × 字段 × 函数)
 
-访问器四件套 (全消费者经此): 省条 GetProvinceWeather 0x140F19EE0 (mgr+16+384×id) / 省修正块 0x140F19EB0 (省条+72) / 区条 GetRegionWeather 0x140F1A000 (mgr+64+352×id) / 区修正块 0x140F19FD0 (区条+72)。修正块消费模式 = 块+16 pairs → sub_14055E360 (按 modifier id 取值; id 空间 = modifier idmap, 勿混 gfx token 表)。
+访问器四件套 (全消费者经此): 省条 GetProvinceWeather 0x140F19EE0 (mgr+16+384×id) / 省修正块 0x140F19EB0 (省条+72) / 区条 GetRegionWeather 0x140F1A000 (mgr+64+352×id) / 区修正块 0x140F19FD0 (区条+72)。⚠ **GetProvinceWeather 真签名 2 参 (mgr, id)** — GUI 调用点第三参 = 前一名串 SSO cap 寄存器残留伪影 (4 处, dg032 直证); 省条 +160 = 名串 ("HEADER/KEY" KEY 实参, dg032 增补); **雪档 GUI 消费点 = 州面板 tooltip #11 支 (sub_141747430)**: 雪量落 [mgr+576,+584) → weather_ground_snow_medium / [mgr+592,+600) → weather_ground_snow_high loc 选档; **WEATHER_PEACETIME 门 = sub_14174C180**: 修正 pairs 含 modifier id 79/80/81/82/83 任一 >0 (id 名待裁)。修正块消费模式 = 块+16 pairs → sub_14055E360 (按 modifier id 取值; id 空间 = modifier idmap, 勿混 gfx token 表)。
 
 | 系统 | 读取源 | modifier id | 修正名 | 函数 |
 |---|---|---|---|---|
@@ -204,7 +204,7 @@ rl, rh, snow, bliz, sand, aw, nact, act)。
 
 标量直读者 (非修正块): 雪判定 0x140BDE4C0 / 0x140E00590 / 0x1412B82E0 (省条+64>0); 触发器域雪量 0x140F1A610 = min(snow + 省条+48 地面雪累积, mgr+504); getter 族 0x140DBB1D0 温度 / 0x140D98090 offset / 0x140BCC3A0 雪 / 0x140C3ACC0 水; 战斗快照 snow 写入链 (定案): 陆战每小时步进头 sub_1412B82E0 判省雪量 (GetProvinceWeather +64>0) → sub_140CDF0F0 置 lb+744 bit0 → 结算 consolidation sub_140CDB850 快照 snow(+1093) = 防守侧 lb+744 bit0 / defensive_victory(+1092) = 防守 win 位 / overrun(+1094) 结算清零 / player_is_attacker(+1095) = attacker+584 vs gs+原初国 → sub_140CD9660 入池 (init 0x140CDD810)。**负结论**: 战斗攻防合成链无直接天气 token 读取 — 战斗的天气影响通道 = 修正块合成 + CCombat+1093 快照。海战侧另有**三快照通道** (§4.22.5 CNavalCombat c+152 现象枚举 / c+160 区修正块指针 / c+168 昼夜值, sub_1415C5820 每小时刷新)。昼夜联动: air 族全配 sub_140F19660 (DayNight 值 vs define DAY_NIGHT_COVERAGE_FACTOR) — air 修正 = 天气修正 × 昼夜档。
 
-UI 面: 现象图标档位 0x1415C5820 (区旗直读, 无 arctic/sandstorm 档) / 省修正 tooltip 0x141880500 ("weather_mud" 键族) / 温度 tooltip 0x1415D9A20 / 天气 map mode 0x141D9F360 (区条+active_modifiers) / 雪渲染双带 0x140476810 (POSTEFFECT_*_SNOW defines 归一混合) / 州天气摘要 0x140DA5C80 / 0x140DA8A40 (区条+320 使能旗); 渲染缓存族 (mgr+784/+808/+904..+928/+936/+960/+768/+832) 为渲染层自有缓存, 演化后经脏链惰性重绘, UI 数据每帧重取无独立定时器。
+UI 面: 现象图标档位 0x1415C5820 (区旗直读, 无 arctic/sandstorm 档) / 省修正 tooltip 0x141880500 ("weather_mud" 键族) / 温度 tooltip 0x1415D9A20 / 天气 map mode 0x141D9F360 (区条+active_modifiers) / **温度地图模式 (省粒度渐变边框) 0x140F3A0D0 → 0x140F1A0C0 (mgr = *(gs+1672); 渐变表 qword_143338F50 = NGraphics::TEMPERATURE_MAP_MODE_COLORS, 8 档 −35..+35 °C)** / 雪渲染双带 0x140476810 (POSTEFFECT_*_SNOW defines 归一混合) / 州天气摘要 0x140DA5C80 / 0x140DA8A40 (区条+320 使能旗); 渲染缓存族 (mgr+784/+808/+904..+928/+936/+960/+768/+832) 为渲染层自有缓存, 演化后经脏链惰性重绘, UI 数据每帧重取无独立定时器。
 
 #### 4.20.7 实现层增补 (loader 侧与并行拓扑)
 
@@ -256,7 +256,10 @@ water_gain_max 直传 mud 作除数。
 **DayNight 与 feather 三全局落址** (定案): FeatherMin = qword_14333D3F8 / FeatherMax =
 qword_14333D3F0 / FeatherDiff = qword_1430B1DC8; DayNight = Diff × (槽三分量点积 − Min)/1e5
 钳 [0,1e5]; 值 >0 时并入静态表 +88 day_night 定义 ×值。三全局名由 0x140F20C50 尾 debug 打印门 (byte_14345252A → weathermanager.cpp:3018 八字段串 "DayNight:: Id: %i, Hour: %i, GmtOffset: %lli, vHourDelta: %lli, DayNight: %lli, FeatherMin: %lli, FeatherMax: %lli, FeatherDiff: %lli") 直证。**省温度 OOS getter 0x140F1A0C0**
-(槽 30): 门 0 ≤ id < mgr+28 → out = *(mgr+16 + 384×id + 280), 越界写 0; 调用者 5 处 (区侧
+(槽 30): 门 0 ≤ id < mgr+28 → out = *(mgr+16 + 384×id + 280), 越界写 0; 调用者 5 处 — 其中 0x140F3A0D0 = **温度地图模式 (NGraphics::TEMPERATURE_MAP_MODE_COLORS) 省级颜色缓存重建器**
+(CGradientBorderManager 23 地图模式槽 case 14; 逐省温度 → 8 档 −35..+35 °C 渐变求 RGBA →
+packed ARGB 存 136B 桶 @+88, 参数 word @+76 = 127, 带脏标记/反向索引/空闲池; **渲染取色链,
+非 OOS checksum 喂入** — 槽 30 的 OOS 省侧走访另走 sub_140DAE720 族) (区侧
 槽 72 getter 未单独钉死维持)。
 
 未决: 资格旗语义名; prov+192 对象与 qword_143334848 落名 (mud 省附加乘数源);

@@ -51,6 +51,7 @@ reader = 槽[4] sub_140E23A90; 序列化面恰 2 键, 其余全部运行时字�
 | +320 | uint32 | 更新相位 = +96 % (2×NAir::HOURS_DELAY_AFTER_EACH_COMBAT) | 不序列化 | ctor −1; 门 sub_140E24530 对 (gs+1128−43800000) 取模放行周期更新 |
 
 注: 条目 vtable 0X296FC50 族属 CPowerBalance, 与 dominance 无关。
+注: 省→区回写 = CProvince+200 单指针 (§4.14 +200 行) — **一省恰属一区为设计定案** (单指针形态直证); 定义文件一省多属时后建区静默覆盖前者, 无去重告警 (高置信)。
 
 CNavalRegionDominance (dom) 主表:
 
@@ -259,7 +260,7 @@ SControlGroupData (32B):
 
 **三源总装载** (sub_140A65010): ① map/strategicregions 目录 — 已载门 = 单例 +20 非 0 → "DB already loaded when loading <路径>" (gameitemdatabase.h:160, TGameItemDatabase 模板族互证); 未载 → 存路径 +8 → sub_140AC0750 枚举 *.txt 逐文件装载 → 尾随虚槽[2]/[4] 后处理; ② map/colors.txt → sub_140AC08E0 (未读); ③ map/weatherpositions.txt → sub_140AC0AB0。
 
-**数据库单例** (sub_140163C30): {+8 路径串, +20 已载旗, +40 项指针数组, +48 容量, +52 计数 (= max id+1), +56 分配器, +112 活体对象计数}。
+**数据库单例** (getter sub_140163C30; 全局槽 **qword_14332F080**, §4.26 库表同源): {+0 主虚表 (Reload 尾调 [2]/[3]/[4] 三连装载后钩), **+8 = _Paths 24B pdx 向量头** (data@+8 = &元素[0], 读串 = _Paths[0] 别名), **+20 = _Paths 计数** ("已载" = count != 0, gameitemdatabase.h:281 断言直读域), +32 reload 深度计数, +40 项指针数组, +48 容量, +52 计数 (= max id+1), +56 分配器, +112 活体对象计数}。
 
 **定义块装载循环** (sub_140AC02C0): 节点键 == 12014 (strategic_region) 门 → malloc 336 → **sub_1415A3DF0 = CStrategicRegionTemplate ctor** (vftable 字面量直证; +168 有效旗 = 1; +176/+200/+240 三向量 + +272 SSO 初始化) → **虚槽[3] Load wrapper 消费整块** (CPersistent 槽契约互证); id = 模板 +160, id < 1 → assert "Invalid ID, not in range > 0." 后析构; 数组挂载槽 = 数据库数组 + 8×id (容量不足 ×1.5 保底 id+1 扩, 新槽填 null 对象 qword_14333A0D8 或 0 — §4.26 null 实例登记互证); 双串拷入 +96/+128 (目录项 64B 双 32B 串, 语义推定 = 定义文件路径/文件名); 流守卫 = 内嵌解析器 +100 一次性旗 + vtable[1] 状态 == 19 终止。
 

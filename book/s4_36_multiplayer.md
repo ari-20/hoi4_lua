@@ -689,7 +689,7 @@ rlog) ∨ `-lightrandomlog`(byte_14345252B) ∨ **human_ai**(byte_14332F639)) �
 | 56/57 | 陆/海军领袖 | 逐国 Leaders | 容器逐元素 vtable[+80] 领袖 id |
 | 58/59/62 | 已用/空闲船队/船队客户 | 逐国 Convoys | cc+4716 / sub_1402BC8A0 / cc+4688 (槽 62 同错峰门) |
 | 61 | 科技状态 | 逐国 Technologies | sub_1406CFCB0 逐项 |
-| 63..68 | AI 策略 6 项 | 逐国 AI | Local Random/Fuel Ratio/Fuel Usage/Irrationality/Num Divisions/Threat |
+| 63..68 | AI 策略 6 项 | 逐国 AI | **loc 全名 (multiplayer_l_english.yml 直证, U3 结案: 弹窗槽名 = "OOS_"+槽号 绑定槽号非偏移, 喂序与名序不可能错位)** = OOS_63 "AI Strategy - Local Random" / 64 "Fuel Ratio **Wanted**" / 65 "Fuel Usage" / 66 "Irrationality" / 67 "Num Divisions **Wanted**" / 68 "Threat Against"; 槽 65 ↔ ai+8928 ↔ "Fuel Usage" 三位一体闭合, ai+8928 值域 = {0,1,2} 三档枚举 (按档选策略对象 qword_143336A90/B30/BB8, 缺省 100000) |
 | 73 | 情报机构升级 | 逐国 | sub_1406CF7F0 +96 数组 |
 | 74 | 情报值 | 逐国 CountryIntel | sub_1406F1680 (SRW 锁内) 32B 条目数组 |
 | 75/76 | 陆战/海战 | 战斗走访 gs+608 | 每战斗 vtable[+88] 分流 1=陆/2=海 |
@@ -992,6 +992,10 @@ CU = `clausewitz\clausewitzlib\proxy_server.cpp`; CProxyServer = 主机权威星
 
 #### 4.36.17 pdx_net 主机名 → IPv4 解析器 (pdx_net.cpp; 1 函 = sub_1423E5D00, 高置信/对象类名未证)
 
+#### 4.36.18 前端托管表单提交 (1 函 = 0x141F5C130 + 孪生 getter 0x141F5BA70, 定案/归属类推定)
+
+0x141F5C130 (a1, a2, a3): ctx = *(a1+88) GUI 数据上下文 → **属性读取机制 = ctx vtable+128 (槽 16)(属性名串, 1), 值串在返回对象 +128** — 四变量 server_name / password / desc / tags (tags 经 sub_1424CCEA0 空格连接合并) → 汇聚 sub_141CE7440(*(a1+3008), name, password, desc, tags, *(a1+3016)) (a1+3016 int 旗语义未决; sink 链 = §4.36:637 主机选档件: id 串 → 管理器 *(a1+1368) vtable+880 (槽 110) 会话柄 → sub_140D9E4A0 七参游戏信息发射 → attach 派发 sub_140DA3A40 → sub_14163EF70 刷新信号推定); 尾调 *(ctx+48) 子对象 vt+128 收尾 (推定)。孪生 0x141F5BA70 = 同类 server_name 单属性 getter (表单回显读侧推定)。归属类实名待决 (a1 ≥3016B 前端对象, 候选托管会话域)。
+
 sub_1423E5D00 (getaddrinfo 包装): hints = {flags=0, family=AF_INET(2), socktype=SOCK_STREAM(1), 其余 32B 清零}; getaddrinfo(host, NULL, &hints, &ppResult) (host = 入参 MSVC 串, cap@+24 > 0xF 取堆) — 失败 → CLog 4096 :276「getaddrinfo Failed: %s」(实参 = FormatMessageA(0x12FF, NULL, err, 0x400, buf, 0x400, NULL) 系统文案); 成功 → 遍历结果链取首个 ai_family==AF_INET, `ntohl(*(u32*)(addr+2))` (sockaddr_in.sin_addr) 存出参 **+32 (IPv4 主机字节序)**, freeaddrinfo。**地址对象布局**: +0 u32 = 1 (族/有效标记, 推定) / +4..+20 16B 清零 (IPv6 或备用域, 未决) / +24 qword = 0 / +32 u32 IPv4 / +36 u16 端口。类名无 RTTI 锚 (CAddress/CIpAddress 均未证)。与 §4.36 pdx_net_steam.cpp 收发域同库不同件。
 
 **机制 (101 行, multiplayerviewitems.cpp:252, 定案)**: 多人浏览器/DirectJoin 弹窗每条目的地址列来源选择 — 按 a2 连接类型三分支, 全部汇入 sub_141F5BD50(a1, 串, a3) 写入视图项 (SetText 语义): ① a2+24 非空 → sub_1424CB370(id→串) = **Steam ID 路线** (§4.00.36 同名转换函互证); ② a2+32 dword 非空 → sub_1424CA660 = **AppId 串路线**; ③ 否则 → :252 断言 `Address.IsValid() && "Invalid Address on DirectJoin Popup"` (闩 byte_14338CB0C) → sub_1423E5E80 = **IP 地址格式化路线**。**连接信息布局**: +24 = Steam id (8B) / +32 = dword AppId / 其余 = IP 地址结构。玩家数据取自连接对象自身字段, 不查国家或存档数据。
@@ -1001,3 +1005,15 @@ sub_1423E5D00 (getaddrinfo 包装): hints = {flags=0, family=AF_INET(2), socktyp
 
 
 **pdx_achievements_interface.cpp 成就统计量域 (整域新, 类名推定 CStatistic)**: 统计量对象 = +16 观察者 (写后调 vtable 槽[13]=+104) / +24 类型 {0 未初始化, 1 int, 2 float, 3 平均率} / +28 值槽 (int/float 二义) / +32 平均率缓存 (类型 3 SetFloat 时复位 -1.0f) / +36 率参数。SetInt 0x142398450 / SetFloat 0x1423982E0 / GetFloat 0x1423980E0 / GetInt 0x1423981D0 / UpdateAvgRate 0x142398620。通则: 类型错配**强转不拒绝** (int↔float), 唯平均率被 SetInt/SetFloat 硬拒 ("Cannot set average rate types, use UpdateAvgRate instead." :115) 必走 UpdateAvgRate; 断言非致命 (once 后 return 0); 门 = byte_1435E1B51, 旗 byte_1435BA026..30。⚠ 注意: 此文件断言串连字断行易被误读为 "evements_interface" — 真名 pdx_achievements_interface.cpp, 检索勿按误名归事件界面域。
+
+#### 4.36.19 CalcCountryChecksums&lt;LoggingHasher&gt; 全函数复核增补 (1 函 = 0x140DAB4C0, 定案; 静默孪生 = sub_140DAE720)
+
+0x140DAB4C0 (LoggingHasher\* a1, CCountry\* a2, a3 = 91×12B MurmurHash3 状态行, 槽号 = DWORD 索引/3; 返回 = 闭标签 sub_140DAB440): §4.36.10/10a 复核批 — 7 关键段逐锚验证 100% 吻合 (df239 E1/E3 书内定案行再证)。**增补 10 项 (书未收细节)**: 错峰门 tag=0 分支 (`cc+8` 为 0 时 tag 取 0 参与判门, 0 相被深挖; 原记仅 `tag%12==小时`); 槽 39 资源 feed 走 **sub_140DB1340 整域查询** (非 BCC2F0 域族), 资源域偏移全形 = res `*(cc+4600)` 五域 +40/+392/+1456/+1104/+568 (槽 37/38/40/42/41); Air Wings 逐联队第二 feed = u64 `*(w+24)`、第三 = u32 sub_140F5C4D0(w); Aces 第二 feed = u64 `*(a+232)`; Convoys scopedptr 断言门控 = byte_1435E1B52 ∧ !byte_14333CECC ∧ 空指针 (pdx_scopedptr.h:134, 每条目 e[0]/e[4]/e[8] 读前三断言); **槽 73 token 门真支 = "4B 头 + 名串体" 两段连喂** (假支仅 4B, 比原「二选一」精写更细); DAB4C0 侧独立 EChecks 累加器 (已见位 0x20000 师尾/0x40000 控制区尾/0x80000 拥有区头/0x800000 Convoys 条目; df70 §4.1 位表只记 DA5C80 侧); CountryIntel 锁原语 = get_srw_lock (sub_1406F1680 返 SRW 包装) 直证; 错峰门分支补记同步 §4.36.10a。
+
+#### 4.36.20 CChat 添加/格式化消息入口 (1 函 = 0x141334270, 高置信/富文本频道代码与通知旗语义未决)
+
+`(CChat 控制器 a1, 消息载荷 a2, 文本串 a3, 频道/分类 a4, 带时间戳旗 a5, 附加数据 a6)`。唯一调用者 sub_141334890 在 a3 == -1 时先构造 "CHAT_SYSTEM" 串再透传; 尾调 sub_141342140 = CChatSyncAllCommand 促销的聊天 UI 刷新。
+
+流程: ① 门 = a2+16 消息文本为空直退; ② a5 真 → 墙钟 localtime64 → strftime `[%H:%M]` → 拼 ` ([HH:MM])` 前缀串; ③ 频道代码 = `*(u8*)(a4 + *(*a1+152))` (主模型读偏移量, a4 为基址取字节); ④ 构两字节富文本控制串 = `0x11 | (频道代码 << 8)` (与 §4.19 色逃逸 0x11+字母同族; 常量 8465 = 0x2111 = "!" 复位) → sub_141343CF0(a1+72) 写入频道前缀串; ⑤ a6+16 附加文本为空 → 退回 a3; ⑥ sub_141334AE0(a1, 文本, a2) 消息注入核心 (开头 `*(*a1+96)` 虚方法校验); ⑦ sub_141342140(*a1, a1) 刷新 UI; ⑧ 通知旗: `*(*a1+200) == a1+68` (活动频道 == 当前频道) 且 `*(*(*(a1+80))+165) & 8` → a1+112 清 0, 否则置 1 并调 sub_141341F20。
+
+未决: ""+byte 富文本频道代码含义 (频道图标/颜色代码/前缀标记); 通知旗四字段 (a1+68 当前频道 / *a1+200 活动频道 / a1+112 通知旗 / *(*(a1+80))+165 bit2 通知门) 命名与状态机; sub_141341F20 副作用。

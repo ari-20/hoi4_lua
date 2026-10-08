@@ -131,7 +131,7 @@
 | id 注册表 (#.id) | BASE+54758992/58/60 | 三源 RH (buckets@+8, mask@+20, +40 是 hash seed), value=u64@vp+8=(id<<32)\|type, 逐型 max; 源③ 8B×100 槽 | `idreg_unit_resolve` / `idreg_maxima`（§4.26.5） |
 | grand doctrine 定义库 | `qword_14332EEA8` | 定义库 {data@+56, mask@+68, extra@+72}; 推定 | — |
 | sub doctrine 定义库 | `qword_14332EEB0` | 定义库; 推定 | getter sub_14052AE00 |
-| rule def 表 | `qword_1433304C0` | 56B/条; 推定 | has_rule GetDesc 名来源 |
+| rule def 表 | `qword_1433304C0` | 56B/条; 直证 (relation_rule 两类 GetDesc 同式消费 + Execute 条目 +49 合并旗直读) | has_rule GetDesc 名来源; 关系规则覆写白名单 unk_142771098 = {7, 26} (详 §4.3) |
 | 事件目标名表 | `qword_14333D530` | 32B/条; 推定 | has_event_target GetDesc 名来源 |
 | 原 tag → 国 id 展开表库 | `qword_14332F260` | 表对象 {data, count@+12}; ⚠ 地址与 gs 单例全局同名址, 宿主归属未裁; 推定 | getter sub_1401DBD80 |
 | 歌曲库 | `unk_14333C610` | —; 高置信 | — |
@@ -139,7 +139,7 @@
 | 循环迭代上限 | `dword_1433368E0` | u32 (值未取); 推定 | — |
 | ironman 前置强制旗 | `byte_14332F646` | u8; 推定 | — |
 | 调试模式全局 | `byte_14332EC69` | u8; is_debug / debug 警告开关; 高置信 | — |
-| 动态国判定阈值 | `qword_143330D98 + 136` | u32; 推定 = 静态国家计数 (该全局 = 事件目标注册表); 推定 | — |
+| 动态国判定阈值 | `qword_143330D98 + 136` | u32; 推定 = 静态国家计数 (该全局 = **国家库/tag 管理器**, s4_01:37 与 s4_12:271 定案读法; 原括注「事件目标注册表」与其冲突, 待裁); 推定 | — |
 
 CSavedEventTarget 元素布局 (112B):
 
@@ -201,7 +201,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | focus_inlay_window | 0x332efd0 | +80 | +92 | "none" | 是 |  |
 | frontend_background | 0x332ef18 | +80 | +92 | "none" | 是 |  |
 | strategic_location | 0x332f078 | +80 | +92 | "none" | 是 | nm 推定 |
-| scripted_trigger_template | 0x332f058 | +64 | +76 | "sso96" | 否 | null=TNullObject@0x33121140 |
+| scripted_trigger_template | 0x332f058 | +64 | +76 | "sso96" | 否 | null=TNullObject@0x33121140; 条目基类 CAndTrigger (基 ctor sub_140549F40); 同名 = 首登静默跳过 (查 sub_140AB56D0 命中有效条目即 advance, 不追加不覆盖无日志; 与 on_actions 追加语义相反) |
 | scripted_diplomatic_action | 0x332f048 | +40 | +52 | "none" | 否 | 定案: nm = MSVC 串@def+16 (探针: 2 条) |
 | scripted_map_mode | 0x332f040 | +40 | +52 | "none" | 否 | **def 名串在 +232** (MSVC 32B: 缓冲@+232 / size@+248 / cap@+256) — 探针按 sso 族偏移取不到故误判无串; def 类 = `CScriptedMapMode` (vtable 0x142942720), 库 = `CScriptedMapModeDatabase` (vtable 0x1429427A0) ← TGameItemDatabase 模板, 单例 qword_14332F040; 匹配直证 = boot 加载器 sub_140AAF740 按 `def+232` 串 memcmp; def 其余键: 602 top→+8 / 603 bottom→+120 / 19186 failure→+264 / 19187 limited_success→+268 / 19188 critical_success→+272 |
 | equipment_group | 0x3330480 | +96 | +108 | tok8 | 是 | A 族变体 GetByToken vec@96/tok8@+8 |
@@ -232,7 +232,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | doctrine_track | 0x332eeb8 | +80 | +92 | tok8 | 是 |  |
 | ai_bonus_weight | 0x332edd0 | +96 | +108 | tok8 | 是 | TRS |
 | mio_organisation | 0x332ef48 | +96 | +108 | tok8 | 是 | TRS (Add 直证 sub_140168160; 副表@160) |
-| mio_policy | 0x332ef40 | +96 | +108 | tok8 | 是 | TRS |
+| mio_policy | 0x332ef40 | +96 | +108 | tok8 | 是 | TRS; **条目类 = NIndustrialOrganisation::CPolicyTemplate (808B 全布局 §4.26.26)**; 按名 RH 表头 @+64 (data@+72 空表哨兵页 unk_143085C90 / count@+80 / mask@+84 / extra@+88 / lf@+92) |
 | project | 0x332efe8 | +80 | +92 | tok8 | 是 |  |
 | prototype_reward | 0x332eff8 | +80 | +92 | tok8 | 是 |  |
 | specialization | 0x332f068 | +96 | +108 | tok8 | 是 | TRS |
@@ -249,7 +249,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | 2 | **A 族** = 名索引 vector@40（40B 条目 {sso 串@0, FNV hash@32}）+ 元素数组 {arr@64, cap@72, cnt@76}（terrain/country_leader/sub_unit） |
 | 3 | **B 族** = pdx vector {T** data@X, cap@X+8, cnt i32@X+12, alloc@X+16}（X=40/48/72/88/104 随库漂移） |
 | 4 | **PR 族** (PersistentReloadable) = {vec@8 基类(=_Paths 文件路径表非条目), 表@48 (size@64/mask@68), 条目 vec@80/cnt@92, token vec@104}，无 null 回退 |
-| 5 | **TRS 族** (TReloadableGameItemDatabaseSpecific) = {条目 vec@96/cnt@108, 宽名表@64 stride 56 {dist@4, token@8, 值@16, 名 sso@24}}；@128 起 32B = boost::signals2 信号（vtable off_1427028E0）非数据 |
+| 5 | **TRS 族** (TReloadableGameItemDatabaseSpecific) = {条目 vec@96/cnt@108, 按名 RH 表头 @64 (32B 内嵌形: data@+72 / count@+80 / mask@+84 / extra@+88 / lf 0.9@+92; 空表 data = 静态哨兵页), 56B 桶 {hash u32@0, dist u8@4, token@8, 值@16, 名 sso 32B@24}}；@128 起 32B = boost::signals2 信号（vtable off_1427028E0）非数据; 全例 = CPolicyDatabase (§4.26.26) |
 | 6 | **TReloadable 0x80/0x88 骨架** = {vec24@40, RH-map@64 (73244475 乘法 hash, stride 56, 静态默认条目@72), 条目 vec@96/cnt@108, 默认槽@120, byte@128} |
 | 7 | token = FNV-1a 大小写不敏感 hash；`sub_140AC4C70`（arr@88/cnt@100/token@+84）是 sub_unit 第二数组的 GetItem，勿误配 strategic_region |
 | 8 | **索引语义通则**: 存档引用静态定义一律写 def 名（token/内嵌串），**无任何字段写 idb 下标**; 唯一例外 = charmgr sub_unit_modifiers 容器 B key |
@@ -290,7 +290,7 @@ arr/cnt/名字段随派生类漂移（cnt 漂移实例 52/60/76/84/92/100/108/13
 | train_gfx | 0x332f0c0 | slots | 内嵌记录@40 (名 sso + entity@72) + 指针 vec@104 + 双槽位阵 vec@176/@200 (元素 = 内联 24B 嵌套 vec) | — |
 | technology_sharing_group | 0x332f098 | rh (token 键) | 接口 vtable@40 + RH 表@48, stride 24 {token@8, T*@16}; +80 = 默认模板 CTechnologySharingGroupTemplate* (160B) | 回退默认模板 (推定) |
 | script_enum | 0x332f028 | rh (token 键) | RH@64, stride 40 {name token@8, 值 = 内联 pdx vec\<u32\>@16 (枚举成员 token 列)} | miss → 空 vec@40 兜底 |
-| scripted_effect_template | 0x332f050 | PR 族 | 扩展 ".txt"@40 / RH map@48 stride24 / 条目 vec@80 (cnt@92) / token vec@104 / reload vec@128; 条目 CScriptedEffectTemplate 128B, 名 sso@+96 | 无 Null (nonull) |
+| scripted_effect_template | 0x332f050 | PR 族 | 扩展 ".txt"@40 / RH map@48 stride24 / 条目 vec@80 (cnt@92) / token vec@104 / reload vec@128; 条目 CScriptedEffectTemplate 128B, 名 sso@+96; 同名 = 首登静默跳过 (FindOrInsert worker sub_14012B940 命中有效条目即 advance, 不追加不覆盖无日志; 与 on_actions 追加语义相反) | 无 Null (nonull) |
 | peace_conference | 0x332efc8 | inline-vecs | 三内联 vec @184/@208/@232; vec@208 元素 192B {id@8, 有效标志@+140} | — |
 | project_dynamic_modifier | 0x332eff0 | 标准 | vec@40/cnt@52, 元素即 u32 token (线性扫) | — |
 | message_handler | 0x332ef60 | 非内容库 | **消息类型注册表 + 设置处理器** (剧证实证): 类型 vec@64/cnt@76 ([0]=Null), 设置 vec@40, 使能 u8@112 | Null 0x143339E60 / 0x143339E58 |
@@ -541,7 +541,7 @@ TGameItemDatabase 模板族重载方法族 (定案精化): **sub_1401A0000 只�
 | MIO org 名解析闭环 | 0x332ef48 | token@+56 创建时拷 org+64（运行时读 +96/+128 不变） |
 | 内容注册总入口 | sub_14018BB20 | 登记三元组 = malloc(size)→ctor→store 0x1433xxxxx 槽; 离线产线产 `ref/boot_registry.tsv` (320 槽, boot 链内 169 = 全库宇宙, 带 ctor 54; 103 key 规格表命中 101, 未中 2 = `name` 库 store 形态为 `*(_QWORD *)&slot =` 不匹配扫描正则 (19 引用手证槽在) + `entry` 伪槽 RVA 0x170 非库地址); 创建习语三形态 (内联/独立 creator/工厂·shared_ptr·自登记), 版本迁移按槽位+ctor 签名 join |
 | Null Object 哨兵 | 38 个 | arr[0] 身份校验锚; gs 双 vtable@+0/+8, ctor 0X1401BF930; reload 总线头 off_143085170 = gs+2592 与新库壳+96 共用 |
-| script_enum_equipment_bonus_type 注册库 | 0x332EED0 | vec ptrs@+96 / cnt@+108 / 项 token@+8 (CSpecificEquipmentBonus Load 校验直证, 缺项报错由 token 10987 给出); 装备加成类型 script enum 注册; **候选 idb 新挂 key** (未入 103 键) |
+| CEquipmentGroupDatabase | qword_14332EED0 | 装备组库 (vtable RTTI 直证, TReloadableGameItemDatabaseSpecific 链): 条目 vec@+96 / cnt@+108 / 项 token@+8; = bonus_type 值域第四数据源 — 合法值 = 装备 type ∪ archetype ∪ category ∪ equipment_group 四源并集 (CSpecificEquipmentBonus Load 校验消费, 缺项报错由 token 10987 给出); raids 装备名判定第三站 (依次查 CEquipmentDatabase 单例 0x332EEC0 → 类别注册表 → 本库, 全 miss 报 "is neither a type, an archetype, a category nor an equipment group"); ⚠ 与 §4.26.4 equipment_group 行所记单例 0x3330480 冲突 (该址 = CAgencyUpgrade TNullObject, §4.26.8a), 真身槽待裁 |
 | COnActionDataBase | TGameItemDatabase 形态 (ctor 直证: 桶@+8/+16, count@+32, hash 向量@+40) | on_action 静态库; **非 CPersistent** 无 serfam 指纹, savegame 负定案定案 |
 | CMapArrowManager 定义库 (地图箭头/符号) | `LoadDefinitions<CMapArrowManager>` 链 (与 §4.00 CFileWatcher 行同源) | 4 成员定义件均为 CPersistent 9 槽标准壳、**writer = CFG 空桩 (只装不存)**: CMapArrowDefinition (vtable 0x1429A6348, reader 0x14126A800; loader 组合 Button/Text 子件) / CMapArrowButtonDefinition (vtable 0x1429A62F8, reader 0x14126A680; tok 27/76/225/13075/15784 → 串入 +8/+40/+80/+84) / CMapArrowTextDefinition (vtable 0x1429A62A8, reader 0x14126AD90; tok 30/89/11861 三串) / CMapSymbolDefinition (vtable 0x142A3FD28, reader 0x141B1FA40; tok 27/47/143/415/11861 + +112 内嵌 STextDef 子类) |
 | graphical_culture 库 Null 哨兵 | CNullGraphicalCultureType (vtable 0x14293C058 11 槽) | CPersistent 族但 writer 空桩、reader 复用基 0x1424BEC40; 槽[9] 0x14067D3E0 只回吐内嵌名串 — 与 CNullAI*DatabaseEntry 同形态 |
@@ -686,7 +686,7 @@ TGameItemDatabase 模板族重载方法族 (定案精化): **sub_1401A0000 只�
 | 哈希 | 0x14055D480 | sub_1405574B0 = sub_140558710() **懒初始化**后返库 | 桶数 u32@+4 / 桶数组@+8, 分离链节点 {value ptr@+0, next@+8}; 值对象名串 @+424 (size@+440 / cap@+448, MSVC 32B 串) | modifier.cpp:2455 "missing static modifier definition: %s" → 兜底单例 |
 | 平坦数组 | 0x14055D580 | sub_14055B160 **直读** (无懒初始化) | data@+16 (元素 = 指针) / count i32@+28 线性扫; 元素名串 @+88 (size@+104 / cap@+112) | modifier.cpp:2474 "invalid modifier %s" → 同一兜底单例 |
 
-> 两视图共用同一库对象 qword_143330098, 未命中**共回退同一** TNullObject\<CStaticModifier\> 单例 0x143330368 (sub_140559230, §4.26.8a 行 133 访问器)。⚠ 两视图值对象名串偏移不同 (+424 vs +88) ⇒ 至少两类对象共存于同一库, 哪个是 544B CStaticModifier 未验 (待裁)。书既有引用 (§4.3 def 字段桥 / §4.32 has_relation_modifier 与 power_balance 校验槽) 均为哈希视图 0x14055D480。
+> 两视图共用同一库对象 qword_143330098, 未命中**共回退同一** TNullObject\<CStaticModifier\> 单例 0x143330368 (sub_140559230, §4.26.8a 行 133 访问器)。⚠ 两视图值对象名串偏移不同 (+424 vs +88) ⇒ 至少两类对象共存于同一库, 哪个是 544B CStaticModifier 未验 (待裁)。**GUI 单行消费点 (直证): mode 3 operatives 州情报网 tooltip** 两段 EFFECTS_FOR_COUNTRY 各以 +272/+280 视图构 120B 描述符 (sub_14055B010, 默认值槽 +56 = 1e5), 值槽覆写为覆盖率 (strength×1e5÷1e7), sub_140A75780 写自定义文本 + 置 +96 旗, sub_140A73300 → sub_14055AB90 渲染。书既有引用 (§4.3 def 字段桥 / §4.32 has_relation_modifier 与 power_balance 校验槽) 均为哈希视图 0x14055D480。
 
 **动态修正查重清扫器 0x14060C6B0 (高置信; 管理器类名待裁)**: a1 管理器布局 = {+264 已登记集合 (sub_14055F740 contains 查询) / +440 216B 条目数组 (count i32@+452, 步距 54 dword; 元素 dword[0] = 修正 id) / +472 RH 表 (键 = dword[0] 双轮雪崩哈希, P = 73244475, §4.16 RH 表同族; sub_140553120 探测, out = 既有条目 + 命中旗) / +488 条目总计数}。流程: 逐条目哈希探测 → 命中 ∨ 在 +264 集合 → modifier.cpp:2668 "Modifier set twice for the same dynamic modifier: %s line %d - %d" → **224B 块移位擦除** (块 {dword@0, u8 计数@4, dword@8, 子对象@16}; 拷贝 ctor sub_14015A370 / 析构 sub_1401545F0; 循环条件 = 下一块计数 byte > 1, 每块计数 −1) → 末块析构 + 计数 byte 清 0 → `--*(a1+488)`。
 
@@ -708,7 +708,7 @@ TGameItemDatabase 模板族重载方法族 (定案精化): **sub_1401A0000 只�
 
 **引擎内嵌 Dear ImGui 调试面板族** (与 CTweakable 并列的调试基建): 上下文全局 = qword_143451C80; 函数区 0x1421C-0x1421F/0x14213/0x14214/0x14228 (AI weights tuner sub_1421ED790 数值动画 tick / fronts visualizer / AI Templates / CEvolveTankImgui / tweaker window ×2, 字符串键注册 sub_1421CBE30); 调试视口状态含坐标钳位 ±256000 (@+76/+77 当前坐标 float, +304 镜像, +2044/+2045 取整缓存 — sub_1421DDEC0)。非 gameplay 操作面 (release 面板可见性未验)。
 
-> **qword_143451C80 身份裁定 (定案, 高置信): = ImGui 上下文全局 ImGuiContext\*** — 四证据: ① input_touch.cpp 两函零引用该单例 (否定证据); ② 全语料 1458 处引用按函数分桶, **1454 处集中 ImGui 函数区 0x1421C-0x1421F**, SDL 泵 0x1420B 系 / 触屏层 0x14238 系 / 后端初始化 0x14208 系均零引用 (决定性); ③ 0x1422095C0/0x14220D530 两例为深层 ctx 子结构导航形态 (ctx+6768→+128 写 / +6432 读; 确名未决); ④ §4.00.25 实测偏移按「ctx+8 = ImGuiIO」换算与 imgui.h 输入段成员序逐项自洽 (MouseDown→Wheel→WheelH→KeyCtrl..Super→KeysDown)。§4.00.25 原「触屏输入后端单例」命名废, 该节偏移保留、语义改写为 ImGuiIO 喂入; +920/+921 丢事件旗在 ImGuiContext 布局下重锚未决 (PDX 扩展态候选)。
+> **qword_143451C80 身份裁定 (定案, 高置信): = ImGui 上下文全局 ImGuiContext\*** — 四证据: ① input_touch.cpp 两函零引用该单例 (否定证据); ② 全语料 1458 处引用按函数分桶, **1454 处集中 ImGui 函数区 0x1421C-0x1421F**, SDL 泵 0x1420B 系 / 触屏层 0x14238 系 / 后端初始化 0x14208 系均零引用 (决定性); ③ 0x1422095C0/0x14220D530 两例为深层 ctx 子结构导航形态 (ctx+6768→+128 写 / +6432 读; **确名已收 = ctx+6432 = g.Font / +6440 = g.FontSize / +6768 = g.CurrentWindow (+128 = WriteAccessed 推定, +131 = SkipItems) — dg036 InputTextEx 本体定名**); ④ §4.00.25 实测偏移按「ctx+8 = ImGuiIO」换算与 imgui.h 输入段成员序逐项自洽 (MouseDown→Wheel→WheelH→KeyCtrl..Super→KeysDown)。§4.00.25 原「触屏输入后端单例」命名废, 该节偏移保留、语义改写为 ImGuiIO 喂入; +920/+921 丢事件旗在 ImGuiContext 布局下重锚未决 (PDX 扩展态候选)。
 
 管理器双单例 (定案):
 
@@ -839,6 +839,8 @@ idb 四库 + building 库的元素 def 布局 (全部 vtable[2]=空桩 = 只读 
 | +1088 | 内嵌 CConstructionSpeedFactor | construction_speed_factor (16385) | ≥108B: +8 factor(10603) / +16 trigger(10595) 子对象 / +36 trigger 存在旗 (mandatory); vtable 0x1429CB628 |
 | +1204 | uint8 | hide_if_missing_tech (17942) | |
 | +1208 | CModifier | dlc_allowed (17943) | CModifier 族名单 |
+
+> 建筑 def 脚本键 `per_controlled_building_extra_cost` 偏移未定, 待裁。
 **构建速度因子解析告警** `sub_1419D8D70` (construction_speed_factor.cpp:28, 日志旗 4096): 格式 `<a1>:<a2>-<a3> '<a4>'` (a1 = 建筑类名/上下文串, a2/a3 = 因子 id/触发器 id, a4 = 串细节; 四参语义推定), 推定为 CConstructionSpeedFactor 定义解析侧的重复/非法条目诊断出口。
 
 **CStateCategory** (state_category def; vtable 0x1429BA8D0; reader 0x1413C4D50; 库单例 0x332F968): +8 名 token hash / +24 MSVC 名串 / +64 CColor 子对象 (color 86; 注册进 CState 库色池, **+324 = 色池索引**) / +96 内嵌 CModifier (其余键如 local_building_slots 全落此) / +184 本地化名 / +316 float 0.9。
@@ -861,7 +863,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vtable[2]=空桩 = 只读 
 
 
 
-**名字/头像库族 (1.19.3 实名与值对象)**: CUnitNamesPool (单国名字池, 120B; vtable 0x1429461B8; writer 桩; reader 0x140AF4230): +8 prefix (12536) / +40 generic 名集 (12537, 读入去重合并) / +64 unique 名集 (12538) / +88 select_effect (13244) — 即 unit_names key (0x332F0D8) 的元素类型 (120B×国数 vector@+64/cnt@+76)。CNameGroupDatabase (4 范畴链式表: +40 names_divisions / +56 names_ships / +72 codenames_operatives / +88 names_railway_guns; [2]=0x1409C28D0 PostFinalize 引用缝合, 全库族唯一非桩 [2]) 与 CUnitNamesDatabase (common/units/names; 120B 池向量@+64/cnt@+76 = 国数)**归属易互换已钉死**: 4 目录装载者 = 0x140162D30/qword_14332EE90 (name_group key), "common/units/names" 装载者 = 0x1401642B0/qword_14332F0D8 (unit_names key)。CPortraitPool (单性别加权池, 72B; vtable 0x14293FC70; reader 0x140A891C0): +8 male **池向量头** (12775; 引擎自定义布局 {data@+8, count@+20}, 40B 元 {weight u64@+0, MSVC SSO 名串@+8, size@+24, cap@+32}) / +32 female 池向量头 (10773; {data@+32, count@+44}) / +56 性别已设旗 (weight 须先于 male/female, 否则告警 "weight is set after male & female entries") / +64 u64 weight (593, 默认 100000)。CPoliticalPortraitPool (名字→池映射, 元素 112B = {名串 32B, FNV@+32, CPortraitPool 内嵌 72B}; vtable 0x14293FCC0; reader 0x140A88F70) = CCountryPortraits+224 槽。**CCountryPortraits** (portrait idb 条目的 **400B 载荷**; 条目值对象 = 48B 头 + 本载荷, 取像与装载均经 value+48 取载荷, 详 §4.26.18) = vtable + 5×CPortraitPool (+8 = type 2 / +80 = type 1 / +152 = type 4 / +256 = type 3 [推定] / +328 = type 5) + CPoliticalPortraitPool (+224, 名→池映射); type 0 与 type 3 在取像路径未实现 (portraitdatabase.cpp "Not implemented" 断言三连)。**CPortraitDatabase** (portrait idb 本体, vtable 0x14293FD90, 基 VCPortraitDatabase::?$TGameItemDatabase, 单例 qword_14332EFD8; reader 0x140A86E70 / 取像器 0x140A877B0 / GetPortraitsForCountry 0x140A87600) = db+40 名→条目 RH 映射 (运行期键 = cosmetic_tag/original_tag/tag) + db+104 大陆载荷数组 (400B 步距) + db+136/+208/+280/+456 四库默认池 + 取像三级回退, 全表见 §4.26.18。CCharacterTemplateDatabase (角色模板库, 184B; 双 RH 表 @+64/@+96, miss → TNullObject 0x143330C60; 单例 qword_14332EE58, 载 "common/characters"); **注册件 sub_1406BC330** (库+32×(表序+2) 选表, a4∈{0,1} → +64/+96; 73244475 两轮乘混 + xor-fold 哈希; 24B 桶槽+16 = 值; 重复 tag 报 "Multiple character have the tag %s" character_template_database.cpp:242) / **PostFinalize 派生遍历件 sub_1406BCE20** (模板数组 {d@+128, c@+140} 元步距 64; 三重前置门 库+140≠0 ∧ +52>1 ∧ +168≠0, 失败断言 "This database was not loaded!" :159 latch byte_143330C80; lambda 实名 CCharacterTemplateDatabase::PostFinalize'::'19'::_lambda_1_ 钉死所属域; 两表语义未决) 与 CNameDatabase (common/names; RH map 16 桶起 {mask@+88=7/extra@+96=8}, 节点 0x428, 单例 qword_14332EF68) 均已在 idb 规格内。
+**名字/头像库族 (1.19.3 实名与值对象)**: CUnitNamesPool (单国名字池, 120B; vtable 0x1429461B8; writer 桩; reader 0x140AF4230): +8 prefix (12536) / +40 generic 名集 (12537, 读入去重合并; 引擎自定义向量 data@+40/count@+52) / +64 unique 名集 (12538; data@+64/count@+76) / +88 **generic_pattern (13246) = std::string 命名模板** (df396 勘误三错一处: 键名非 select_effect / token 非 13244 — 13244 真身 = select_effect / 类型非 token 整数; 占位符解析 = sub_140AEF0E0, 输出 40B {posNR i32@+0, posNAME i32@+4, 中段文本 string@+8}) — 即 unit_names key (0x332F0D8) 的元素类型 (120B×国数 vector@+64/cnt@+76)。CNameGroupDatabase (4 范畴链式表: +40 names_divisions / +56 names_ships / +72 codenames_operatives / +88 names_railway_guns; [2]=0x1409C28D0 PostFinalize 引用缝合, 全库族唯一非桩 [2]) 与 CUnitNamesDatabase (common/units/names; 120B 池向量@+64/cnt@+76 = 国数)**归属易互换已钉死**: 4 目录装载者 = 0x140162D30/qword_14332EE90 (name_group key), "common/units/names" 装载者 = 0x1401642B0/qword_14332F0D8 (unit_names key)。CPortraitPool (单性别加权池, 72B; vtable 0x14293FC70; reader 0x140A891C0): +8 male **池向量头** (12775; 引擎自定义布局 {data@+8, count@+20}, 40B 元 {weight u64@+0, MSVC SSO 名串@+8, size@+24, cap@+32}) / +32 female 池向量头 (10773; {data@+32, count@+44}) / +56 性别已设旗 (weight 须先于 male/female, 否则告警 "weight is set after male & female entries") / +64 u64 weight (593, 默认 100000)。CPoliticalPortraitPool (名字→池映射, 元素 112B = {名串 32B, FNV@+32, CPortraitPool 内嵌 72B}; vtable 0x14293FCC0; reader 0x140A88F70) = CCountryPortraits+224 槽。**CCountryPortraits** (portrait idb 条目的 **400B 载荷**; 条目值对象 = 48B 头 + 本载荷, 取像与装载均经 value+48 取载荷, 详 §4.26.18) = vtable + 5×CPortraitPool (+8 = type 2 / +80 = type 1 / +152 = type 4 / +256 = type 3 [推定] / +328 = type 5) + CPoliticalPortraitPool (+224, 名→池映射); type 0 与 type 3 在取像路径未实现 (portraitdatabase.cpp "Not implemented" 断言三连)。**CPortraitDatabase** (portrait idb 本体, vtable 0x14293FD90, 基 VCPortraitDatabase::?$TGameItemDatabase, 单例 qword_14332EFD8; reader 0x140A86E70 / 取像器 0x140A877B0 / GetPortraitsForCountry 0x140A87600) = db+40 名→条目 RH 映射 (运行期键 = cosmetic_tag/original_tag/tag) + db+104 大陆载荷数组 (400B 步距) + db+136/+208/+280/+456 四库默认池 + 取像三级回退, 全表见 §4.26.18。CCharacterTemplateDatabase (角色模板库, 184B; 双 RH 表 @+64/@+96, miss → TNullObject 0x143330C60; 单例 qword_14332EE58, 载 "common/characters"); **注册件 sub_1406BC330** (库+32×(表序+2) 选表, a4∈{0,1} → +64/+96; 73244475 两轮乘混 + xor-fold 哈希; 24B 桶槽+16 = 值; 重复 tag 报 "Multiple character have the tag %s" character_template_database.cpp:242) / **PostFinalize 派生遍历件 sub_1406BCE20** (模板数组 {d@+128, c@+140} 元步距 64; 三重前置门 库+140≠0 ∧ +52>1 ∧ +168≠0, 失败断言 "This database was not loaded!" :159 latch byte_143330C80; lambda 实名 CCharacterTemplateDatabase::PostFinalize'::'19'::_lambda_1_ 钉死所属域; 两表语义未决) 与 CNameDatabase (common/names; RH map 16 桶起 {mask@+88=7/extra@+96=8}, 节点 0x428, 单例 qword_14332EF68) 均已在 idb 规格内。
 
 
 
@@ -875,7 +877,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vtable[2]=空桩 = 只读 
 | CStrategicLocationTemplate (要冲定义, 40B; vtable 0x14271B960) | +8 token 哨兵 357 none / +16 vec<{building u32, level u32}> (data@16/cap@24/cnt@28); reader 每键解 building type (miss → "Invalid building type", strategic_locations_database.cpp:11), RHS 必整数; 形 `suez_canal = { suez_canal = 2 }` |
 | CStrategicRegionTemplate (战略区定义, 336B; vtable 0x1429DBE50) | +8 provinces (10288) / +32 名规范化 sso32 / +64 名原文 (27) / +128 dominance 阈值 / +160 id (181, ctor -1) / +168 u8=1 (有效旗; 世界装载按此门建区) / +176 weather (12040, 元素 224B, 内 period=12042) / **+200 天气表现点向量 {data@+200, cap@+208, count@+212, alloc@+216}, 16B 元 {f32 x@0, y@4, z@8, u8 small@12}** (唯一写者 = map/weatherpositions.txt 解析器 0x140AC0AB0 逐行 `region_id;x;y;z;small` 装载, §4.25.8; 与 +176 定义内 weather 块并存, ctor 双初始化, 非序列化) / +224/+228 锚点 {x i32, y i32} (region+100 锚点省 / +240 坐标副本 / 邻接锚距² 三者源) / +272 naval_terrain (15147) / +312 static_modifiers (15136, 元素 80B); **writer 0x1415A6F40 = nudge/调试回写通道** (非存档, 存档侧 = CStrategicRegion 实例 §4.3) |
 | CDifficultySetting (自定义难度项, 120B; vtable 0x142935978) | +8 HasNullObject 活位 / +16 multiplier 对象 (10912, 默认 null 单例 qword_143330368) / +24 countries 国名哈希列 (11593) / +48 modifier 文本 (10597) / +56 key 名 (220) / +88 icon (181); **def ↔ 存档实例 CDifficultySettingItem (0xD8, gs+1064) 分工对** |
-| CBookmark (主菜单书签, 400B; vtable 0x1427E3E08; writer=CFG) | +16 name (27) / +48 desc (10644) / +112 picture (464) / +160 filters (10669) / +240 default → CBookmarkCountryEntry* 列 (11405, 每块 344B) / +384 date (10314); 消费只在前端; **PostLoad = 主虚表槽[8] 0x14067D680 (TNullObject VCBookmark 同槽共享, postload 清单直证)**: 两段校验 = byte@+208 门内 label_order 完整性 (排序拷贝+二分, 缺失日志 :228) 与 default_country 落位 (扫 +240 列表比对 entry+8 == tag, :244, 日志级非断言); **+208 = 校验门字节 (置位者未决)**; label_order(+184) / id 收集(+216) / default 列表(+240) 三容器 = {data, cap@+8, count@+12} 引擎自定义族 |
+| CBookmark (主菜单书签, 400B; vtable 0x1427E3E08; writer=CFG) | +16 name (27) / +48 desc (10644) / +112 picture (464) / +160 filters (10669) / +240 default → CBookmarkCountryEntry* 列 (11405, 每块 344B) / +368 date (10314) 内嵌 CGameDate 24B {hours u32@+376; +384 = 第二 vtable 装载代理位 (reader 经该处对象 Load wrapper 槽)} — ctor 0x14067BE30 四行赋值直证, 执行链读数位 = +376; 消费只在前端; **PostLoad = 主虚表槽[8] 0x14067D680 (TNullObject VCBookmark 同槽共享, postload 清单直证)**: 两段校验 = byte@+208 门内 label_order 完整性 (排序拷贝+二分, 缺失日志 :228) 与 default_country 落位 (扫 +240 列表比对 entry+8 == tag, :244, 日志级非断言); **+208 = 校验门字节 (置位者未决)**; label_order(+184) / id 收集(+216) / default 列表(+240) 三容器 = {data, cap@+8, count@+12} 引擎自定义族 |
 | CCountryTagAliasEntry (~800B; vtable 0x1427EA8D0) | **+264 u32 别名 token** (resource.lua tok264 ✓); 键表 = 12048 variable / 13272 fallback / 13649 original_tag / 15763 country_score / 15764 global_event_target / 15765 event_target; ctor 端验 "invalid alias tag %s" (countrytagalias.cpp:15; 转名后类型域 ==3 才合法) / "alias is already existing tag %s" (:22, 全局 tag 注册表单例 qword_143330D98 按名查 sub_14071BC80 ≠ −1 即存在); ctor 布局: 基 **CScriptTargets@+8** (vtable 符号直证) / +24+112 双容器 / +200+224 双串 / +248+256 双旗 / +272+504+600(4B 元素)+656 容器组 / **+480「查全部国家」降级旗** (装载后校验 sub_140721400, :82: +488 变量/事件目标空 ∧ +16 原始 tag 旗假 ∧ +280 targets 旗假 → 置 +480=1 + 警告 "%s has no original tag, no targets or any variable/event target to map. it will check all countries"; 门 = sub_14039DF40 单例 +128 byte) |
 | CMTTHDatabaseEntry (MTTH 条目 = `mtth:` scoped var 目标, 56B; vtable 0x14271A658 9 槽; 谱系 CMeanTimeToHappen→CPersistentWithToken; writer = CFG 空桩) | +8 u32 db 名 token / +16 u32 内嵌上下文 token (db 条目 = 16382) / +24 i64 base (fixed×1e-5, ctor 默认 100000) / +32 CMTTHModifier** 向量 {cap@+40, count@+44, alloc@+48}; reader token 分派: base 11398 / factor 10603 / months 10604 (×30e5) / days 10605 (×1e5) / years 10606 (×365e5) / modifier 10597 (new CMTTHModifier 0x1F8); 未知名 fatal "unknown command '%s' for MTTH in file … line …" |
 | CScriptEnumDatabase 深读 | +40 空 vec = **miss 兜底仓** (键不在 → 返空 vec); RH@64 stride 40 {name token@8, 值 = 内联 vec<u32>@16}; 喂件 = common/script_enums.txt |
@@ -912,6 +914,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vtable[2]=空桩 = 只读 
 | focus_inlay_window | CFocusInlayWindowDatabase | 0x14332EFD0 |
 | historical_agency | CHistoricalAgencyDatabase | 0x14332EDB8 |
 | occupation_modifier | COccupationModifierDatabase | 0x14332EF90 (creator sub_140172450 直证; 装载闭环 §4.26.19) |
+| bookmark | CBookmarkDatabase | 0x14332EE20 (ctor sub_14067C250 RTTI 直证; creator sub_140170310; LoadFiles 0x1402DA2B0 = §4.00.51 第 10 实例) |
 | operations | COperationsDatabase | 0x14332EFA8 |
 | operation_phases | COperationPhasesDatabase | 0x14332EFB0 |
 | operation_tokens | COperationTokensDatabase | 0x14332EFB8 |
@@ -1015,7 +1018,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vtable[2]=空桩 = 只读 
 > CPrimeAchievement 行为槽: [1] sub_142398600 = 达成置位 (+88==0 → +88=1 → 通知上下文) / [2] sub_1423982C0 = 复位 (+88==1 → +88=0 → 通知) / [5] sub_1403CFD80 = `return *(u8*)(a1+88)` 查询。
 > ⚠ 定义族 (`CBaseAchievement` / `CAchievement`) 是成就定义数据 (id/触发器/ribbon), 运行时族是平台成就状态 (键/描述/达成旗) — 两族**勿互指**。
 
-**书签定义族** (def 去向 `common/bookmarks`; writer 空桩; 库 = **CBookmarkDatabase** TGameItemDatabase 模板 (vtable 0x1427E3E88; **逐文件加载器 0x14067CCF0**: 键 13210 bookmarks / 10249 bookmark, 条目 malloc 0x190 → ctor 0x14067BE30 → vtable[3] Parse; 库数组 {data@+40, cap@+48, count@+52, 分配器@+56}, 增长 max(n+1, cap×1.5); 日志 :362 "Bookmarks loaded"; 纯追加无 Lookup 插入), 附 Null 变体 VCBookmark TNullObject 0x1427E3FF0): **CBookmark** (vtable 0x1427E3E08, 基 CPersistent + THasNullObject; reader 0x14067DB80) 14 键: name(27)→+16 / picture(464)→+112 / desc(10644)→+48 串 / effect(89)→+264 触发器槽 / filters(10669)→+160 列表 / label_order(19089)→+184 追加合并 / default_country(13212)→+144 CCountryTag 校验读 / date(10314)→+384 块读 / default(11405)→+392 / sort_unplayed_first(11473)→+393 / include_majors_in_minor_list(18242)→+394 / apply_filter_to_majors(18953)→+395 / apply_filter_to_other_country(18646)→+396 / scrollable_country_list(18923)→+397 u8 系; 匿名国家子块 → +240 向量追加 (= CBookmarkCountryEntry, ctor 0x14067BFC0) + +216 id 收集 + +356/+360 已玩/未玩计数。**CBookmarkCountryEntry** (reader 0x14067E210; **+8 int 国家 tag — 运行期 default_country 落位校验键 (PostLoad 比对项), 书 9 键表原缺行**) 9 键: history(10293)→+24 / label(519)→+128 列表 / ideology(11838)→+152 组指针校验读 / required_dlc(15200)→+0 本对象解析 / available(12264)→+184 触发器槽 / minor(11242)→+272 / assume_not_played_if_missing_data(12791)→+273 / version(238)→+280 / override_leader_portrait(12792)→+312。**CCountryScorerDatabase** (打分器库, def 去向 `common/scorers/country`; TReloadableGameItemDatabase 模板; vtable 0x142941570 7 槽, null 项 "null_country_scorer"): 条目 reader 0x140AA4060 唯一键 targets(15733) → malloc 0x140 (320B) **SSingleScorerEntry** (内嵌 CScriptTargets@+8 + 双 CBaseTrigger + 双串 + flags@+248/+256) 追加 +24 指针向量 {cap@+32, count@+36}。
+**书签定义族** (def 去向 `common/bookmarks`; writer 空桩; 库 = **CBookmarkDatabase** TGameItemDatabase 模板 (vtable 0x1427E3E88; **逐文件加载器 0x14067CCF0**: 键 13210 bookmarks / 10249 bookmark, 条目 malloc 0x190 → ctor 0x14067BE30 → vtable[3] Parse; 库数组 {data@+40, cap@+48, count@+52, 分配器@+56}, 增长 max(n+1, cap×1.5); 日志 :362 "Bookmarks loaded"; 纯追加无 Lookup 插入), 附 Null 变体 VCBookmark TNullObject 0x1427E3FF0): **CBookmark** (vtable 0x1427E3E08, 基 CPersistent + THasNullObject; reader 0x14067DB80) 14 键: name(27)→+16 / picture(464)→+112 / desc(10644)→+48 串 / effect(89)→+264 触发器槽 / filters(10669)→+160 列表 / label_order(19089)→+184 追加合并 / default_country(13212)→+144 CCountryTag 校验读 / date(10314)→+368 内嵌 CGameDate 块读 (hours u32@+376; +384 = 第二 vtable 装载代理位, reader 装载入口; 执行链读 +376) / default(11405)→+392 / sort_unplayed_first(11473)→+393 / include_majors_in_minor_list(18242)→+394 / apply_filter_to_majors(18953)→+395 / apply_filter_to_other_country(18646)→+396 / scrollable_country_list(18923)→+397 u8 系; 匿名国家子块 → +240 向量追加 (= CBookmarkCountryEntry, ctor 0x14067BFC0) + +216 id 收集 + +356/+360 已玩/未玩计数。**CBookmarkCountryEntry** (reader 0x14067E210; **+8 int 国家 tag — 运行期 default_country 落位校验键 (PostLoad 比对项), 书 9 键表原缺行**) 9 键: history(10293)→+24 / label(519)→+128 列表 / ideology(11838)→+152 组指针校验读 / required_dlc(15200)→+0 本对象解析 / available(12264)→+184 触发器槽 / minor(11242)→+272 / assume_not_played_if_missing_data(12791)→+273 / version(238)→+280 / override_leader_portrait(12792)→+312。**CCountryScorerDatabase** (打分器库, def 去向 `common/scorers/country`; TReloadableGameItemDatabase 模板; vtable 0x142941570 7 槽, null 项 "null_country_scorer"): 条目 reader 0x140AA4060 唯一键 targets(15733) → malloc 0x140 (320B) **SSingleScorerEntry** (内嵌 CScriptTargets@+8 + 双 CBaseTrigger + 双串 + flags@+248/+256) 追加 +24 指针向量 {cap@+32, count@+36}。
 
 **CTreeShortcut** (国策树快捷键 def; vtable 0x142739B18 9 槽; writer 空桩 = 解析件; reader 0x1402D9470): target(107)→+16 串 / name(27)→+48 串 / scroll_wheel_factor(626)→+176 / trigger(10595)→+88 子对象 vtable+40; 未知键抛 "Error in focus tree shortcut"。
 
@@ -1032,7 +1035,7 @@ idb 四库 + building 库的元素 def 布局 (全部 vtable[2]=空桩 = 只读 
 **CSubUnitCategory** (单位类目定义, ≥108B; vtable 0x142985DC0; 名录): +16 类目名 SSO / +48 序号 (-1) / +56 容器 {d@56, c@68} / +84 i64=357 = **def 名 token** (ctor 0x141017F70 直写 357 = `none` 哨兵)。**CGraphicalCultureType** (graphicalculturetype 裸名定义; vtable 0x14293BFF8; 名录): +8 FNV 名哈希 / +16 名 SSO / +48 库内序号 / +96 固定 800B 表 (推定层/肖像映射)。**CTrainGfxDatabase** (train gfx 库; vtable 0x1429453B8, 5 槽非 CPersistent; 名录): idb train_gfx 已挂 (0x332F0C0, 内嵌记录@40 + 指针 vec@104 + 双槽位阵@176/@200), dtor 0x140ADED40 容器群直证 +152 第三 vec 亦存在。
 
 
-**脚本化值/文本/模板族 (三库已挂, 布局全录)**: CScriptableValue (脚本值求值对象, 248B; vtable 0x1429DAFC8; writer=CFG; reader 0x1415945D0): +8 CScopedVariable 208B 基值 (base 11398) / +216 CPdxArray<CScriptableValueModifier*> modifier 表 (10597, 逐条 504B) / +240 上下文 id; **CScriptableValueModifier** (504B; vtable 0x1429DAF08; CAndTrigger 后代): +88 CScopedVariable factor (种子 1.0) / +296 CScopedVariable add (种子 0) + 基条件表全 AND。**SModifierDefinitonReader** (modifier_definitions 行解析器, 32B 栈件; vtable 0x1427DDA50; reader 0x140610B80): +8 precision (19052) / +12 显示格式位包 (color_type 19042: good→bit1 / neutral→bit2; value_type 19043: percentage→bit0 / yes_no→bit5 / percentage_in_hundred→bit7) / +16 postfix 枚 (19049: 1 days / 2 hours / 4 daily) / **+24 category 位掩** (state=0x10 / country=0x8 / army=0x20 / ai=0x100 / naval=0x1 / air=0x2 / politics=0x80 / unit_leader=0x4 / intelligence_agency=0x10000 / scientist=0x40000 / peace=0x40 / defensive=0x200 / aggressive=0x400 / war_production=0x800 / military_advancements=0x1000 / military_equipment=0x2000 / autonomy=0x4000 / government_in_exile=0x8000; all=0xFFFFFF)。**CScriptableLocalization** (defined_text 条目, 64B; vtable 0x142942470; writer = 死断言 "Should not happen!" 永不写盘; reader 0x140AAC7A0): +8 name / +40 STriggerKeyPair 数组 (元素 24B {vtable@0, loc 载荷*@8 (localization_key 799 或 random_list 10172 二选一, 同文件互斥), CAndTrigger*@16})。**CScriptableLocalizationDatabase** = umap 哨兵@48/size@56/cs-FNV/node+48 值槽 + reload 钩 (dword_14333A0A0) — 「链表走反」修复族的第三例代码级证据。**CScriptedTriggerTemplate** (模板 and-trigger 树, 136B; vtable 0x142942C50): THasNullObject@88 + 名 sso@+96 + idx@+128; [1] GetName 覆写 0x1401776D0。**CScriptedTriggerTemplateDatabase**: vec@64/cnt@76 (槽 0 = TNullObject 0x88B) + 双 RH 表 (LF 0.9)。**CScriptedEffectTemplateDatabase**: 条目 vec@80/cnt@92 (条目 128B, 名 sso@+96) + **[2] = "d_" 前缀依赖收集器** (0x140AB4AC0) → +128 reload vec。
+**脚本化值/文本/模板族 (三库已挂, 布局全录)**: CScriptableValue (脚本值求值对象, 248B; vtable 0x1429DAFC8; writer=CFG; reader 0x1415945D0): +8 CScopedVariable 208B 基值 (base 11398) / +216 CPdxArray<CScriptableValueModifier*> modifier 表 (10597, 逐条 504B) / +240 上下文 id; **CScriptableValueModifier** (504B; vtable 0x1429DAF08; CAndTrigger 后代): +88 CScopedVariable factor (种子 1.0) / +296 CScopedVariable add (种子 0) + 基条件表全 AND。**SModifierDefinitonReader** (modifier_definitions 行解析器, 32B 栈件; vtable 0x1427DDA50; reader 0x140610B80): +8 precision (19052) / +12 显示格式位包 (color_type 19042: good→bit1 / neutral→bit2; value_type 19043: percentage→bit0 / yes_no→bit5 / percentage_in_hundred→bit7) / +16 postfix 枚 (19049: 1 days / 2 hours / 4 daily) / **+24 category 位掩** (state=0x10 / country=0x8 / army=0x20 / ai=0x100 / naval=0x1 / air=0x2 / politics=0x80 / unit_leader=0x4 / intelligence_agency=0x10000 / scientist=0x40000 / peace=0x40 / defensive=0x200 / aggressive=0x400 / war_production=0x800 / military_advancements=0x1000 / military_equipment=0x2000 / autonomy=0x4000 / government_in_exile=0x8000; all=0xFFFFFF)。**CScriptableLocalization** (defined_text 条目, 64B; vtable 0x142942470; writer = 死断言 "Should not happen!" 永不写盘; reader 0x140AAC7A0): +8 name / +40 STriggerKeyPair 数组 (元素 24B {vtable@0, loc 载荷*@8 (localization_key 799 或 random_list 10172 二选一, 同文件互斥), CAndTrigger*@16})。**CScriptableLocalizationDatabase** = umap 哨兵@48/size@56/cs-FNV/node+48 值槽 + reload 钩 (dword_14333A0A0) — 「链表走反」修复族的第三例代码级证据。**CScriptedTriggerTemplate** (模板 and-trigger 树, 136B; vtable 0x142942C50; 基类 CAndTrigger — 基 ctor sub_140549F40): THasNullObject@88 + 名 sso@+96 + idx@+128; [1] GetName 覆写 0x1401776D0。**CScriptedTriggerTemplateDatabase**: vec@64/cnt@76 (槽 0 = TNullObject 0x88B) + 双 RH 表 (LF 0.9)。**CScriptedEffectTemplateDatabase**: 条目 vec@80/cnt@92 (条目 128B, 名 sso@+96) + **[2] = "d_" 前缀依赖收集器** (0x140AB4AC0) → +128 reload vec。
 
 #### 4.26.11a 地图建筑装载域 (mapbuildings.cpp 5 函; map/buildings.txt 与 72B 实例)
 
@@ -1122,6 +1125,14 @@ db+40。**GetIndex = 模板+736 (1 起顺序索引, 0 = null)** — §4.34 三�
 
 调用点 5: InitGame 主初始化 sub_140147EE0(0) / gameapplication 重载 sub_1401750F0(a1) / 文件监视器 sub_140223750("common/defines/", 0) / 控制台 "Map reloaded" sub_14027A670 / 转发壳 sub_1401A4A20。
 
+NDefines 全局表与 mod 覆盖双轨 (定案):
+
+| 项 | 语义 |
+|---|---|
+| 引擎消费入口 | 合并后单一全局表 `NDefines` — CDefines::Load 内 lua_getglobal("NDefines") 后取 registry ref, 全部装载器 functor 从此表寻址 |
+| mod 覆盖轨道 ① | 同名 defines 文件整文件替换 (PHYSFS 挂载优先级) |
+| mod 覆盖轨道 ② | 异名文件追加装载, 写法决定合并粒度: 平铺赋值 `NDefines.NGroup.KEY = v` = 按键合并; 重建外壳表 + `for k,v in pairs()` 回填 = 组级合并 |
+
 PostLoadValidate 修复表 (sub_14074BDC0; 「动作」列 = 计数不足/非法时的自动修复):
 
 | 检查 | 槽 | 动作 |
@@ -1209,7 +1220,21 @@ PostLoadValidate 修复表 (sub_14074BDC0; 「动作」列 = 计数不足/非法
 
 单例 qword_14332F028 (gameitemdatabase.h:142 断言族)。表: +72 条目数组 / +84 桶掩码 / +88 越界溢出槽数 / +40 空值哨兵。条目 40B {距离 u8@+4 (0xFF = 空), 键 = 枚举名 token id u32@+8, 值向量 data@+16 / cap@+24 / count@+28, 分配器@+32}; 哈希 = 0x45D9F3B 双轮终混作用于 (键 ^ HIWORD(键))。文件格式 = `<名> = { 值… }` (值 = 裸整数或串 token 经串→整数); 读取器 = CReader (§4.00.17), @var 替换内联五处。**§4.23.15 的 script_enum_equipment_category ↔ EQUIPMENT_CATEGORY_META 对账即消费本通用件** (查找返回条目+16 值向量, 消费方 sub_140632BF0 按 {数据, 计数@+12 相对} 遍历 int32 值数组 = 成员 token id 序列) — 三表对账机制上游底座定位。
 
-未决: 通用脚本枚举全集清单 (equipment_category 之外的使用方)。
+消费全集 (六个枚举全数以硬编码 token id 被代码按名查询, 无空挂; 定案):
+
+| token id | 枚举名 | 值域 | 消费点 |
+|---|---|---|---|
+| 10986 | script_enum_advisor_slot_type | 开放 (原版 6 值) | sub_1412A3C70 (CAdvisor 装载, characters advisor 块 slot = 值校验) |
+| 10987 | script_enum_equipment_bonus_type | 开放 (原版 495 值) | sub_140632130 (CSpecificEquipmentBonus Load, 存档恢复期) / sub_1409F5FC0 (CEquipmentDatabase::CheckEquipmentTypeSanity 启动自检) |
+| 11056 | script_enum_operative_mission_type | 开放 (原版 5 值) | sub_140660520 (CAIOperativeMissionStrategy 装载) |
+| 16223 | script_enum_equipment_stat | 闭 — ↔ EQUIPMENT_STATS_META (原版 78 值) | sub_1413E4AC0 (MIO equipment_bonus 键域值集) |
+| 16224 | script_enum_production_stat | 闭 — META 对账推定 (原版 7 值) | sub_1414957D0 (MIO production_bonus 键域值集) |
+| 16225 | script_enum_equipment_category | 闭 — §4.23.15 双向对账 (原版 38 值) | sub_140F87B00 (equipment_category 值集) |
+
+- 枚举名在引擎代码中不以字符串出现 (`"script_enum_` 前缀全 dump 零命中), 均编译期 token 常量直传; 六名之外的枚举名无消费点 (= 死数据)。
+- 值校验仅报错不拒值: 单值成员判定 sub_140632BF0 miss → "Value does not belong to designated Script EnumType: %s not in %s" (4096 日志流), 值照常入对象。
+- 值级重复静默容忍: 装载器报错串仅枚举名级 ("duplicate script enum definition") 与语法级两类, 无值级查重; 成员判定 = 线性扫描, 重复无害。
+- 闭集三枚举与代码 META 表装载期双向对账 (改 vanilla 镜像值必触发启动报错); 开放三枚举无代码闭集, mod 可增删 (删 vanilla 值 = 该值退出对应键域, 仅影响脚本合法性不影响引擎运行)。
 
 #### 4.26.17 CBuildingStatus::GetMaxLevel (buildingstatus.cpp; 1 函 — 省建筑可建等级四源钳位)
 
@@ -1356,3 +1381,126 @@ LoadFromDirectory 执行流程 (定案):
 | 8 | gamestate.h:1126 断言 (B52 门, latch byte_14332ED01) 确认线程可访问 gamestate; `*(gs+2617)` (ingame 旗) → 取 idler (qword_14332F6A0) +1720 handler → `sub_140B674F0(handler, 11)` 与 `sub_140B674F0(handler, 0)` 取 per-country 视图槽 `*(handler + 8·idx + 200)` 各调vtable槽 [+16] | UI 刷新通知 |
 
 > 本函数所有 `a1[N]` 形态访问的 a1 是 `_DWORD*`, 故 `a1 + 18` = 字节 72、`a1 + 42` = 字节 168、`a1[6·type + 45]` = 字节 180+24·type; 插入器入参 `(_DWORD)a1 + 40` = 字节 40 (伪码 dword 强转隐藏 ×4 缩放, 与 creator 表头初始化逐项对方才定案)。
+
+#### 4.26.22 键名可移植性校验本体 (装载协议九步第 3 步; 1 函 = 0x140624D30, 定案)
+
+0x140624D30 (key std::string*, 出参串) -> bool: 逐字节扫 key (sub_1424CB4D0 下标访问), 收集 `>=0x80` 字节 (1.5x 增长数组, 分配器 = off_143085170 vtable[1]/[2]); 收集空 -> 返 1 (全 ASCII 合法); 非空 -> 出参追加 `dword_14272DA98` 6 字节前缀 (内容待 PE 取证) + 收集字节原串 + " extended ascii or partial UTF* character(s) " + 首字节单字符 + 循环 ", "+每字节 + " found in key", 返 0。宿主 sub_140625B10 (debug 门 byte_14332EC69, 见 4.26 装载协议段已收职能句) 失败路发「Warning: Possible portability issue with key」。
+
+#### 4.26.23 禁运 AI 权重 define 配对与评分结构 (1 函 = 0x141118740, 功能域定案/符号名未决; 函数详情待 AI 域批)
+
+**8 项 define ↔ 数据槽配对 (5 项本批新配, 全部定案)**: dword_143331F38 = **EMBARGO_SAME_IDEOLOGY_AI_WEIGHT** (同意识形态基重) / dword_143331FD8 = **EMBARGO_DIFFERENT_IDEOLOGY_AI_WEIGHT** / dword_1433320A0 = **EMBARGO_DIFFERENT_IDEOLOGY_AT_OFFENSIVE_WAR_AI_WEIGHT** (进攻战加成, 谓词 sub_140700510) / dword_143332148 = **EMBARGO_RECIPIENT_IS_MAJOR_AI_WEIGHT** (目标 cc+5210 major 旗加成) / dword_1433321D8 = **EMBARGO_NEIGHBOUR_AI_WEIGHT** (邻国谓词 sub_140433670 加成) / qword_143334140 = NUM_RESOURCES_TO_ALLOW_MINOR_EMBARGO (minor 资格资源门槛) / qword_143332858 = EMBARGO_WORLD_TENSION_THREAT_DIVISOR (张力贡献除数, 除零护栏 = 贡献 0) / dword_143337AC0 = DIPLOMATIC_ACTION_BREAK_SCORE (中止臂返回基)。**评分结构** (外交行动对象, vt+296 前置校验): 非 major 发起方先过资格门 (遍历 CStrategicResourceDatabase qword_14332F088 条目, 逐资源对 dip+368/{count@+380} 属国 tag 表逐国取 rs(cc+4600) 求和 ÷1e5, 全 ≤ 门槛 → 返 0); abort 臂 7 路 OR (同国/136 计数/关系旗 +744∧!+73/计数控/sub_140700870/sub_140D25880) → 返 BREAK_SCORE−1 或 0 (关系条目判定 sub_140D258E0); 否则基重 (dip+208+24 两容器 data 指针相等 → SAME 否则 DIFF [+进攻战]) + (min(计数, **15 硬编码 cap**) − 关系查表 sub_1406EC770 ÷1e5 ÷**3 定数**) + major + 张力 + 邻国 → max(…,0)。**+28 = 目标国 (recipient) 定案** / +20 = 发起方推定; cc+208 = 意识形态组容器推定。调用通道 = 函数表/指针 (语料无直 call)。
+
+#### 4.26.24 「AI Theatre」ImGui 调试窗 (1 函 = 0x141AF5360, 定案/宿主类未决)
+
+§4.26 调试面板族成员, 渲染槽 = 包装器 sub_141AF5330 (失败经 sub_141EE3020(a1+8) 收尾返 0), 由**调试窗分派管理器 sub_141198E70 条目 7** 经槽调用 (条目形 = {u8 使能, 8B 对象指针, 渲染槽}; 同表兄弟条目 = +0/+32 sub_141AE3CD0 / +1/+40 sub_141AE5FF0 / +2/+48 sub_141AE2FC0 / +3/+56 sub_141AEA730 / +4/+64 sub_141AE8710 / +5/+72 sub_141AE2240 / +6/+80 sub_141AEE060 / +13/+136 sub_141B163F0 / +18/+168 sub_141B1AFA0)。宿主类语料无 RTTI, 推定与 §4.26:709 AI weights tuner / fronts visualizer 同列。
+
+对象布局:
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | int32 | 当前显示国 tag id; 初值 = CInGameIdler 单例 qword_14332F698 虚表+160 返回的当前上下文 id |
+| +8 | 对象 | gs 派生访问器 (sub_141EE2FC0 以 gs+1120 构造, sub_141EE33F0 收尾) |
+| +24 | ptr | 战区行渲染器 sub_141AF2D50 上下文槽 |
+| +56 | u8 | 「Enable Map View」旗 |
+| +57 | u8 | 「Enable TheatreSystem」旗 (初值 sub_14132C0A0()) |
+| +58 | u8 | 地图视图已上锁状态 (1 = 已切 AI 视图, 待复位) |
+
+**控件链**: ① ImGui Begin `"AI Theatre"` (断言总门 byte_1435E1B52 开时走 gs 访问器断言链 gamestate.h:1125/1126, 闩 byte_14332ED00/ED01); ② Checkbox `"Enable AI View"` ↔ **byte_14332F63D = ai_view 旗** (§4.30:3038 外交 tooltip AI DEBUG 覆盖层消费面的互补写入面; 紧邻控制台 `ai` 总闸 byte_14332F63C); ③ Checkbox `"Enable TheatreSystem"` ↔ +57, 生效链 = sub_140BB48F0(tag→国) → sub_1406CF0E0(cc, AI 控制器) → sub_1402A8220(战区系统); 存在则 sub_141AF5BD0(解除全部分配) + 开/关 sub_14132BC50/BC40 + sub_1402A8C50, 不存在 → 文本 `"No AI "`; ④ Checkbox `"Enable Map View"` ↔ +56 → 调度器 sub_140A66B70 → **OnMapModeChange(mgr, 31, 0)** (mapmodedispatcher.cpp:238, 31 = AI 视图图层掩码, 位定义待裁) 或复位 (mgr, 0, 0); ⑤ 按钮 `"Regenerate Ai Theatres"` → sub_14132C4B0(重建); ⑥ InputText `"Tag"` (3 字截取 + sub_140BB41B0 建标签 → sub_140BB5470 校验 → sub_140BB5110 解析 → 写 +0; 非法 → `"Invalid tag"`, 合法 → `"Showing theatres of %s"`)。
+
+**FlowUnits 预统计结构** (CollapsingHeader `"FlowUnits Prepass Stats"`, 统计对象 = sub_141AF52F0 → 同 AI 链取战区系统):
+
+| 偏移 | 类型 | 输出语义 |
+|---|---|---|
+| +80 | int32 | Unit Pool total |
+| +84 | int32 | Skipped — In Combat |
+| +88 | int32 | Skipped — Naval Transfer |
+| +92 | int32 | Skipped — Understaffed Front |
+| +96 | int32 | active (scored); skipped = +80−+96 打印时现算 |
+| +100 | int32 | Fronts |
+| +104 | int32 | Score Evaluations |
+| +108 | int32 | saved (评估缓存命中) |
+
+**战区行枚举**: 容器 = sub_1402A8220(ai), 区间 {begin@+16, end@+24}, **步长 112**; 逐元 `sub_14136E9B0(元素+24) > 0` 门 → sub_141AF2D50 渲染单战区行 — 与 §4.34 NAITheatre 分划库 (112B 元素, 元素内嵌 LandTheatre@+24) **跨域同形互证** (同 112 步长 + 同 +24 内嵌, 运行时枚举侧与 AI 分划侧同一容器形)。
+
+
+#### 4.26.25 ImGui::InputTextEx 本体 (PDX imgui ≈1.72; 1 巨函 = 0x1421EAA30, 2087 行, 定案; dg036)
+
+ImGui::InputTextEx 输入框总入口 (原书 S11「文本流格式化」系误归, dg036 改判 ImGui 域)。签名 (label, hint, buf, buf_size, size_arg ImVec2\*, flags, callback, user_data) → char; a2 hint 槽 = InputTextWithHint 特征 (buf 空时以 TextDisabled 色绘制); 返回 = EnterReturnsTrue (1<<5) ? Enter 已接受旗 : buf 已写回旗。调用方 3 宿主: sub_1421EA9E0 (InputText 薄包装) / sub_1421EA280 ×2 (InputScalar/InputInt 形) / sub_1421F2390 (tweakergui 调试控制台输入框)。身份锚 = ImGuiInputTextCallbackData 12 字段 + stb undo 常量 99/999 + CursorAnim −0.30f + KeyMap 22 键 (含 KeyPadEnter@15 = 1.72 特征)。
+
+**ImGuiContext 消费面 (定名锚)**: g.Font = ctx+6432 / g.FontSize = ctx+6440 / g.CurrentWindow = ctx+6768 (书原「确名未决」收口) / g.ActiveId = ctx+6840 / **g.KeyMods = ctx+968** (ImGuiKeyModFlags 1/2/4/8) / 剪贴板 fnptr 对 = ctx+256/264 (+272 userdata) / KeyMap 22 键表 = ctx+60 (4B×enum) / **输入字符队列 (UTF-16) = ctx+5464 count / +5472 data** / Style.Colors = ctx+5660 (16B/项, alpha × Style.Alpha@+5480) / **InputTextState = ctx+8184** (≥3722B: +0 ID / +4 CurLenW / +8 CurLenA / +16..+56 TextW/TextA/InitialTextA 三 ImVector / +68 BufSize 缓存 / +72 ScrollX / +76..+88 stb cursor/select_start/select_end/insert_mode / +100 行列表 / +3682..+3692 stb undo 四指针 (undo/redo_point, undo/redo_char_point) / +3696 CursorAnim (−0.30f 复位) / +3704..+3720 flags/callback/user_data 每帧暂存)。io 侧: DeltaTime@+24 / KeyRepeatDelay@+148 / KeyRepeatRate@+152 / ConfigInputTextCursorBlink@+194 / MouseWheel@+312 / **KeyCtrl..Super@+328..331 (本函经验读 — ⚠ 与 §4.00.22 泵喂 +320..323 错位 8 字节, 待收口)**。
+
+flags 位表 (ImGuiInputTextFlags 1.72 命名, 18 位全实锚): 1<<4 AutoSelectAll / 1<<5 EnterReturnsTrue / 1<<6 CallbackCompletion / 1<<7 CallbackHistory / 1<<8 CallbackAlways / 1<<9 CallbackCharFilter / 1<<10 AllowTabInput / 1<<11 CtrlEnterForNewLine / 1<<12 NoHorizontalScroll / 1<<13 AlwaysOverwrite / 1<<14 ReadOnly / 1<<15 Password (字形 42 '*') / 1<<16 NoUndoRedo / 1<<17 CharsScientific / 1<<18 CallbackResize / 1<<20 Multiline / **1<<21 = PDX 扩展旗** (抑制变更标记 sub_1421D4990, vanilla 无)。
+
+编辑键派发 (sub_1421F4480 = stb_textedit 执行器 1155 行; 键码族 0x200000 + K_SHIFT 0x400000): 方向/词移/行首尾 (wordmove 键 Win=Ctrl / OSX=Alt; shortcut 键 = ConfigMacOSXBehaviors@ctx+201 切换 Ctrl/Super) / Delete/Backspace (删词/删行首变体) / undo (Z)/redo (Y) / 全选 (A) / 复制 (C/Ctrl+Ins) / 剪切 (X/Shift+Del) / 粘贴 (V/Shift+Ins, 经 sub_1421ED220 过滤器 = CharsDecimal/Hex/Sci/Upper/NoBlank 位掩码 + PUA 0xE000-0xF8FF 拒绝)。回调事件 (栈上 0x38B = ImGuiInputTextCallbackData): {EventFlag@0 (64/128/256/512/0x40000), Flags@4, UserData@8, EventChar@12, EventKey@14 (0=Tab/3=Up/4=Down), Buf@16, BufTextLen@24, BufSize@28, BufDirty@32, CursorPos@36, SelectionStart/End@40/44}。⚠ IDA 失真: a7 伪签名 void(int*) (真 = void(ImGuiInputTextCallbackData\*)); sub_1421DD050 丢浮点参; 绘制长度硬上界 len < 0x200000。配套定名: sub_1421D3130 = ImTextStrFromUtf8 / sub_1421D33E0 = ImTextStrToUtf8 / sub_1421D2C90 = ImStrncpy / sub_1421D3B30 = IsKeyPressed / sub_1421CF500 = ClearActiveID / sub_1421D1990+DCA00 = Get/SetClipboardText / sub_1421D1B50 = GetColorU32 / sub_1421F8B10 = ImFont 字形查找 (ImFont PDX 布局: glyph 跨距 40B, IndexLookup 0xFFFF = 缺字)。
+
+#### 4.26.26 MIO 政策库按名表后处理 pass 与条目类布局 (gameitemdatabase.h 族 + pdx_core; 1 函 = 0x14016E580, 287 行 — 新收)
+
+sub_14016E580 = **CPolicyDatabase (mio_policy 库, 单例 qword_14332EF40) 按名 RH 表后处理 pass**。唯一调用方 = 装载槽方法 sub_14016A9E0 (虚表驱动, 无直调; 0x14016A660..0x14016AAC0 八同构兄弟 = 各 TRS 库同槽实例化, 槽位归属待裁); 前置 = 解析 pass sub_140168A60 (逐名 find-or-insert + 名 token id 去重入 CPdxArray\<LexerToken,128\> + vtable[3] Load + 入 +96 条目数组)。本函机制 = 以 a2 (块解析器, +40 惰性 token 读出器) 当前 token 名串**全表线性查表** (无哈希 — 与插入/查表侧 token id 哈希定位并存的第二条查表路径; 长度预比 + memcmp, 空串短路); 命中条目的名 token id 若**不在本趟 a3 收集集中** → 栈建默认 CPolicyTemplate 逐字段拷入, **原位重置为默认构造态** (+8 id 保留)。两断言经 sub_1424C8080 a4=1 形: pdx_scopedptr.h:134 值指针空值守卫 (闩 byte_14332F20A) / pdx_robin_hood_table.h:58 迭代哨兵解引用检查 (闩 byte_14332F1FF)。返回值 = 末次赋值残值 (memcmp 结果 / 串析构返回 / 断言返回), 无业务语义, 推定真签名 void。触发场景推定 = 同名重定义或装载回滚 (a3 只记本趟解析过的 id, 时序未实证 — 待裁)。
+
+CPolicyDatabase 160B 全布局 (ctor 0x14014A140 四重 vtable 链 TGameItemDatabase → TReloadableGameItemDatabase → TReloadableGameItemDatabaseSpecific\<CPolicyDatabase,CPolicyTemplate\> → CPolicyDatabase; creator sub_140172D20 malloc 0xA0):
+
+| 偏移 | 类型 | 语义 | 置信 |
+|---|---|---|---|
+| +8 | CPdxArray 头 24B | _Paths 路径向量 {data@+8, cap@+16, count@+20, alloc@+24} | 高置信 (§4.26.4 统一式) |
+| +32 | u32 | 装载重入计数器 (ctor 置 0) | 高置信 (§4.26.4) |
+| +40 | CPdxArray 头 24B | watcher 句柄向量 (TRS 族 +40 漂移语义) | 高置信 (§4.26.4) |
+| +64 | CPdxRobinHoodTable 32B 内嵌 | 按名 RH 表头 (+0 首槽未用, §3.2 32B 内嵌形) | 定案 |
+| +72 | 56B 桶数组指针 | RH data; 空表 = 静态哨兵页 unk_143085C90 (§3.2 家族 56B 档) | 定案 |
+| +80 | u32 | RH count (ctor 置 0) | 定案 |
+| +84 | u32 | RH mask (hash & mask 定位) | 定案 |
+| +88 | u8 | RH extra | 定案 |
+| +92 | f32 | RH max_load_factor = 0.9 (ctor 常数 1063675494) | 定案 |
+| +96 | CPolicyTemplate*[] | 条目数组 _AliveEntries {data@+96, cap@+104, count@+108, alloc@+112}; 增长 max(n+1, cap×1.5), 8B 步距, alloc = 全局纯堆单例 off_143085170 | 定案 |
+| +128 | 不明对象指针 | ctor 直写 &off_142718900 | 待裁 |
+| +144 | 不明对象指针 | malloc 0x28 对象 (sub_1401469E0) | 待裁 |
+
+> 与 §4.26.4 TRS 族统一式逐项咬合: 条目数组 @+96/count@+108、按名表 @+64、宽名桶 56B 三式全对。
+
+> +128 / +144 两指针语义未定案 (@128 起 32B boost::signals2 信号段即 +128 对象所属)。
+
+按名 RH 桶 56B 形 (本库实例; §3.2 56B 档键形):
+
+| 偏移 | 类型 | 语义 | 置信 |
+|---|---|---|---|
+| +0 | u32 | 缓存哈希 (名 token id 经 0x045D9F3B 双轮雪崩; 插入/迁移写, 本 pass 不读) | 高置信 |
+| +4 | u8 | _DistancePlus1 (0 = 空槽, 0xFF = 迭代哨兵) | 定案 |
+| +8 | u32 | 键 = 名 token id (与模板 +8 同值) | 定案 |
+| +16 | CPolicyTemplate* | 值指针 (scoped_ptr 语义; 空触 pdx_scopedptr.h:134 断言) | 定案 |
+| +24 | std::string 32B | 名串 (buf@+24, size@+40, cap@+48; cap>15 时 data 指向 +24 槽内) | 定案 |
+
+> 桶 = §3.2 通用 24B 形 {hash/dist/键/值} 的 56B 扩展: 首 24B 与「按名 RH 索引桶 24B {步数@+4, 键@+8, 值@+16}」逐项吻合, +24..+56 尾挂 32B 名串。
+
+NIndustrialOrganisation::CPolicyTemplate 808B 全布局 (ctor 0x14014A2F0, 形参 2 = 名 token id; 勘误: 原书 §4.31.10 标条目类为 CPolicy 系误 — TReloadableGameItemDatabaseSpecific 第二模板参 + vtable 符号双直证, CPolicy 为另一运行时类非本库条目):
+
+| 偏移 | 类型 | 语义 | 置信 |
+|---|---|---|---|
+| +0 | vtable | NIndustrialOrganisation::CPolicyTemplate::vftable | 定案 |
+| +8 | u32 | 名 token id (ctor 形参 a2; = 桶键) | 定案 |
+| +16 | std::string 32B | 名串 (buf@+16, size@+32, cap@+40; ctor cap=15) | 定案 |
+| +48 | std::string 32B | 第二串 (buf@+48, size@+64, cap@+72; ctor cap=15; 语义待裁) | 定案 |
+| +80 | 循环链表头节点指针 | malloc 0x68; 节点 {self,self,self}, word@节点+24 = 0x0101 | 定案 |
+| +88 | qword | 链表尾 (ctor 0) | 定案 |
+| +96 | CModifier 192B 内嵌 | 修正块 (§4.3.8: 基 ctor sub_1424BE3C0 置 +8=357, body ctor sub_140555FB0 于 +16; 拷贝 sub_140556F80) | 定案 |
+| +288 | qword | 自有字段 (原位重置时整写; 语义待裁) | 定案 (语义待裁) |
+| +296 | u32 | 自有字段 (ctor 清 0; 语义待裁) | 定案 (语义待裁) |
+| +304 | CAndTrigger 88B | 触发器槽 1 (ctor sub_140549F40 / 拷贝 sub_14054A800 / 析构 sub_1401511B0+sub_1401558F0) | 定案 |
+| +392 | CAndTrigger 88B | 触发器槽 2 | 定案 |
+| +480 | CAndTrigger 88B | 触发器槽 3 | 定案 |
+| +568 | CEffect 块 88B | 效果槽 1 (ctor sub_14053CFD0 / 拷贝 sub_14053D3B0 / 析构 sub_14053D190) | 定案 |
+| +656 | CEffect 块 88B | 效果槽 2 | 定案 |
+| +744 | 公式块 56B | CMeanTimeToHappen/ai_will_do 同族 (ctor sub_1405516A0(…, 512), §4.27.2; 第二参 = 作用域位掩码, 他例 0/4, 512 值域待裁) | 定案 |
+| +800 | u32 | DEFAULT_INITIAL_POLICY_ATTACH_COST (define dword_143334860 直填) | 定案 |
+| +804 | u32 | DEFAULT_INITIAL_ATTACH_POLICY_COOLDOWN (define dword_143334918 直填; §4.8 tooltip 基准枚 623) | 定案 |
+
+公式块 56B 内部 (本批仅取原位重置写入路径字段, 其余待裁):
+
+| 偏移 | 类型 | 语义 | 置信 |
+|---|---|---|---|
+| 元素+8 | u32 | 公式块字段 (原位重置时整写) | 待裁 |
+| 元素+16 | u32 | 公式块字段 | 待裁 |
+| 元素+24 | qword | 公式块字段 | 待裁 |
+| 元素+32 | 24B 子件 | 拷贝 sub_1401575C0 | 待裁 |
+
+> 3×CAndTrigger (+304/+392/+480) / 2×CEffect (+568/+656) / 公式块 (+744) 各对应哪个 MIO 政策脚本键 (allowed / visible / complete_effect / ai_will_do …) 未定案 (待裁)。
+
+> +96 的 CModifier 是内嵌成员还是多继承基类未定案 (ctor 构造序倾向成员; 两形布局同)。
