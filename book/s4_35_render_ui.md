@@ -2022,7 +2022,8 @@ vtable1 槽位 (5 槽 PE 直读):
 **文本解码四件** (0x142299E30 / 0x14229A8A0 / [12] 0x14229BAF0 / [14] 0x14229C1C0; 另 [17] 0x14229BDD0 虚调 +144): UTF-8 → UTF-32 码点数组 (4B 元, `(4×count+7)&~7` 对齐 bump), 经 sub_1424FE880 校验后由 sub_142299FC0 / sub_14229AA50 发射; [14] 形 = strlen 的 C 串入口。
 
 **排版 + 顶点发射主函 [10] = 0x14229F170** (720 行, 高置信): 码点循环 + **逃逸码解释** ( = 改颜色 (写对象+88 与全局 qword_14346C0B0 / dword_14346C0BC 状态寄存) / - = 格式 / 
- = 换行) → 逐字发射 **6 × SVertex** (步进 168 = 6×28); 纹理 id 数组 (8B 元) 收集去重纹理 id 并按纹理累计顶点数 (`*(u32*)(slot+4) += 6`), 满 3072 顶点或文本结束经 off_1430BF8D8 + sub_14229B020 提交 draw call。
+
+ = 换行) → 逐字发射 **6 × SVertex** (步进 168 = 6×28); 纹理 id 数组 (8B 元) 收集去重纹理 id 并按纹理累计顶点数 (`*(u32*)(slot+4) += 6`), 满 3072 顶点或文本结束经 off_1430BF8D8 + sub_14229B020 提交 draw call。
 
 SVertex (28B; PE 符号 `CPdxHybridInlineBufferAllocator<CBitmapFont::SVertex,51,int>` 直证类型名 + 内联 51 元):
 
@@ -2548,3 +2549,130 @@ SVertex (28B; PE 符号 `CPdxHybridInlineBufferAllocator<CBitmapFont::SVertex,51
 | 0x142162640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.35 |
 | 0x14124D550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.35 |
 | 0x14215A9A0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.35 |
+
+#### 4.35.74 渲染 UI 体系函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14128FD30 | CProvinceGraphics::[1] |
+
+#### 4.35.75 渲染 UI 体系函数补遗（19 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1424A3A50 | 业务 图像编解码: YCbCr→RGB 逐像素转换（定点系数 6270/15137/4433） §4.35 渲染 |
+| 0x1422D8E00 | （无名） 业务 Catmull-Rom 样条求值（4 控制点 _mm_mul_ps 混合）；调用者 0x14127E160 属 0x14127E 后效体积区段（近邻传播） |
+| 0x141655C80 | （无名） 业务 串 "railway_map_arrow"/"river_supply_map_arrow"/"railway_map_arrow_flowing"/"supply_to_consumers" |
+| 0x14159A380 | （无名） 业务 网格 w/h 越界校验 + 逐单元 RGBA 字节/浮点累加；0x14159A 邻域 gradientborder.cpp + tbb reduce（近邻传播）：地图渐变边框纹理采样 |
+| 0x14125FBE0 | （无名） 业务 pdxmaptexturegeneration.cpp:137 + 串 "Array should be at least 1 element, did you forget to add the Null Object as Array[0]?" |
+| 0x14166E610 | （无名） 业务 qword_14338AB78/dword_14338AB88 全局 + 调 sub_140B58410（CGraphicalMap::UpdateProvinces 邻域）；0x14166E 邻域 gradientbordertexture.cpp（近邻传播） |
+| 0x140B55A90 | （无名） 业务 递归四象限细分 + 调 sub_1424FB240 采样；0x140B58 邻域 CGraphicalMap（近邻传播）：地图纹理象限采样 |
+| 0x142461A00 | 业务 图像编解码: 串字面量 "SOS"（JPEG 扫描段标记） §4.35 渲染 |
+| 0x14247E1B0 | 业务 串字面量 "missing IHDR" §4.35 渲染 |
+| 0x1424A3760 | 业务 图像编解码: YCbCr→RGB 调色板构建（定点系数 2896/2578） §4.35 渲染 |
+| 0x142498620 | 业务 图像编解码: 调色板逐像素通道变换（a1+144 三通道 256 项表） §4.35 渲染 |
+| 0x1424852D0 | 业务 串字面量 "Unrecognized equation type for pCAL chunk" §4.35 渲染 |
+| 0x14164C770 | 业务 串 "legacy_create_faction_window"; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.35 |
+| 0x140FEB280 | 业务 断言站点 posteffectvolumes.cpp:410 ->§4.35; 断言站点 posteffectvolumes.cpp:415 ->§4.35; 断言站点 posteffectvolumes.cpp:420 ->§4.35 |
+| 0x142510690 | 业务 串 "Fog of War is now ON."; 串 "Fog of War is now OFF."; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141656870 | 业务 串 "SDL_WINDOWS_ENABLE_MESSAGELOOP"; 串 "SDL_WINDOW_FRAME_USABLE_WHILE_CURSOR"; 串 "_SDL_WAKEUP" |
+| 0x14213FD80 | 业务 串 "join_phase"; 调用图 IDF top §4.1 frac 0.51; 反传 1/1 调用者 §4.35 |
+| 0x140B40660 | CGameGraphics::[10] 业务 CGameGraphics vtable 槽[10] 反查确认；释放两个全局图形设备对象（sub_141642360 经 off_1430BF920 函数表释放 qword_14338AA30/38） |
+| 0x140B40680 | CGameGraphics::[8] 业务 CGameGraphics vtable 槽[8] 反查确认；图形状态条件清理（sub_14223A750 判 a1+240 后清理 +208/+224；sub_1409E7710 清全局 qword_143339BD8） |
+
+
+#### 4.35.76 渲染 UI 体系函数补遗（42 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1422859D0 | 业务 sub_1422859D0 内 "mesh: "/"tex" 串 + memcpy 纹理路径拼接；callee @text.cpp:491 |
+| 0x1423CAB90 | 业务 float 数组处理内核（9 处 _mm_）；调用者 sub_1423D9930 同区 float 密集 |
+| 0x141B40A70 | 业务 ao_type/ao_pos_z/ao_rot_[xyz]/ao_scale/ao_duration/ao_max_visible/ao_animated 参数键（经 a1+80 vtable+128 按名取参） |
+| 0x14212FD00 | 业务 SSE 字节流处理（94 处 _mm_\*）；调用者 sub_142132CD0 |
+| 0x142145AE0 | 业务 SSE2 像素内核：_mm_unpackhi/lo_epi8→_mm_mullo_epi16→_mm_packus_epi16 定点 >>6；索引 byte_142B240D0 |
+| 0x14216E840 | 业务 字节流读取器（a1+5/8/9/11 为长度字段）；调用者 sub_142176600 = 像素格式派发 |
+| 0x1421A7820 | 业务 描述符解析（byte@(v25+17)/(v27+17) 作表索引、a1+24/48/56/72/80）——同 0x142176600 派发模式 |
+| 0x1421FEE90 | 业务 float 计算；调用者 sub_142203BB0 分配 14 字节元素记录（\_\_m128i 入参） |
+| 0x1423D19E0 | 业务 float 数组 4 通道变体；调用者 sub_1423D3E50 按 \*v13==4 / ==2 派发通道数（像素格式转换） |
+| 0x1421511C0 | 业务 SSE 像素内核，&byte_142B240D0[12\*a10] 表索引 + a1&0x1F 对齐（与 0x142145AE0 同签名同表） |
+| 0x14214CB50 | 业务 SSE 像素内核（129 处 _mm_\*），签名 (uint a1,int a2,…,int a10) 同 0x142143A20 |
+| 0x142168BF0 | 业务 位索引字节读取 v5[(u64)v1[40..42]>>3]；调用者 sub_142176600 为像素格式派发（off_142B2B040 表 + v2+17 索引） |
+| 0x14218F100 | 业务 RGBA 像素调制：(\*(_QWORD\*)(a1+32)+4\*偏移) 缓冲、v\*byte/0xFF、clamp 255 |
+| 0x14248B590 | 业务 纹理处理对象派发节点：vptr 槽 = sub_14248B500 分配的 248B 对象首字段 |
+| 0x142143A20 | 业务 SSE 像素内核（125 处 _mm_\*），与 0x14214CB50 同签名 |
+| 0x14216D740 | 业务 位索引字节写入 ((u8\*)v7)[(u64)v1[40..42]>>3]；\*v4>>22/>>12/>>2 位段抽取（与 0x142168BF0 读写对） |
+| 0x1424AAC70 | 业务 调用者 sub_142495670 = 128B 纹理处理对象派发族 |
+| 0x142194160 | 业务 RGBA 像素加性混合：同 a1+32 缓冲布局，v10\*b/0xFF+b\*a4/0xFF + clamp 255（与 0x14218F100 ICF 对） |
+| 0x14249E460 | 业务 调用者 sub_14248B590 = 纹理处理对象派发族 |
+| 0x14249B1C0 | 业务 纹理处理对象族：构造器 sub_14248B500 分配 248B 对象、vptr→sub_14248B590，按 a1+92 计数列分配 256B 块 |
+| 0x14249D360 | 业务 同上派发族（sub_14248B590 调用） |
+| 0x14249DCC0 | 业务 同上派发族（sub_14248B590 调用） |
+| 0x1424AE3D0 | 业务 派发族：构造器 sub_1424955C0 分配 128B 对象、vptr→sub_142495670 + memset 0x100 |
+| 0x142148860 | 业务 标量像素内核：word_142B240D2[\*]/byte_142B240D0[4\*i] 表查 + 差值缩放（与 0x14214D460 ICF 对） |
+| 0x142115150 | 业务 串字面量 'D3D11_UpdateTextureInternal, ID3D11Device1::Create' [4.35×2] |
+| 0x142435460 | 业务 串字面量 'glGetVertexAttribLi64vNV' [4.35×19] |
+| 0x1424329D0 | 业务 串字面量 'glFragmentColorMaterialEXT' [4.35×18] |
+| 0x142437450 | 业务 串字面量 'glBeginQuery' [4.35×19] |
+| 0x14240F6E0 | 业务 串字面量 'float4x4' [4.35×5] |
+| 0x142432C10 | 业务 串字面量 'glBindFramebufferEXT' [4.35×17] |
+| 0x14061FCB0 | 业务 串字面量 'gfx/achievements/' [4.35×1] |
+| 0x1420C6F20 | （无名；语料 fn） 业务 Win32 键盘钩子（CallNextHookEx）：VK→扫描码/HID usage 映射（9→43、0x1B→41、0x5B→227、0x5C→231、0xA2→224、0xA3→228、0xA4→226、0xA5→230），v7+5520 按键状态表维护；引擎输入层（若属 SDL… |
+| 0x1424569B0 | 业务 反向调用图 4/6 调用者投 §4.35 |
+| 0x14240B550 | 业务 反调用图传播 1.0 权重锚点投 §4.35（top 占比 0.50） |
+| 0x14128C4F0 | 业务 反向调用图 1/2 调用者投 §4.35 |
+| 0x1422934A0 | 业务 反调用图传播 1.0 权重锚点投 §4.35（top 占比 1.00） |
+| 0x1423F3ED0 | 业务 反调用图传播 1.0 权重锚点投 §4.35（top 占比 1.00） |
+| 0x14244B7A0 | 业务 反向调用图 1/2 调用者投 §4.35 |
+| 0x142278270 | 业务 反调用图传播 1.0 权重锚点投 §4.35（top 占比 1.00） |
+| 0x142420560 | 业务 反调用图传播 1.0 权重锚点投 §4.35（top 占比 1.00） |
+| 0x1423819E0 | 业务 反向调用图 1/2 调用者投 §4.35 |
+| 0x14241F320 | 业务 反调用图传播 1.0 权重锚点投 §4.35（top 占比 1.00） |
+
+#### 4.35.77 单调用转发桩结构定案（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14128EF70 | 转发桩: 被调者 0x14228D6F0 -> §4.35 (E:单调用转发(被调者入书))（推定） |
+| 0x140B5C3C0 | 转发桩: 转发至 （无名） 业务 pdxmaptexturegeneration.cpp:137 + 串 "Array should be at least 1 element, did you forget to add the Null Object as Array[0]?"（推定） |
+| 0x14228D6F0 | 转发桩: 转发至 业务 sub_1422859D0 内 "mesh: "/"tex" 串 + memcpy 纹理路径拼接；callee @text.cpp:491（推定） |
+| 0x14264D1B0 | 转发桩: 转发至 业务 串 "SDL_WINDOWS_ENABLE_MESSAGELOOP"; 串 "SDL_WINDOW_FRAME_USABLE_WHILE_CURSOR"; 串 "_SDL_WAKEUP"（推定） |
+| 0x14264D1C0 | 转发桩: 转发至 业务 串 "SDL_WINDOWS_ENABLE_MESSAGELOOP"; 串 "SDL_WINDOW_FRAME_USABLE_WHILE_CURSOR"; 串 "_SDL_WAKEUP"（推定） |
+| 0x14264D1E0 | 转发桩: 转发至 业务 串 "SDL_WINDOWS_ENABLE_MESSAGELOOP"; 串 "SDL_WINDOW_FRAME_USABLE_WHILE_CURSOR"; 串 "_SDL_WAKEUP"（推定） |
+| 0x14264D200 | 转发桩: 转发至 业务 串 "SDL_WINDOWS_ENABLE_MESSAGELOOP"; 串 "SDL_WINDOW_FRAME_USABLE_WHILE_CURSOR"; 串 "_SDL_WAKEUP"（推定） |
+| 0x14264D220 | 转发桩: 转发至 业务 串 "SDL_WINDOWS_ENABLE_MESSAGELOOP"; 串 "SDL_WINDOW_FRAME_USABLE_WHILE_CURSOR"; 串 "_SDL_WAKEUP"（推定） |
+| 0x14264D240 | 转发桩: 转发至 业务 串 "SDL_WINDOWS_ENABLE_MESSAGELOOP"; 串 "SDL_WINDOW_FRAME_USABLE_WHILE_CURSOR"; 串 "_SDL_WAKEUP"（推定） |
+
+#### 4.35.78 渲染 UI 体系函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142467760 | 反调用图单链锚点（0.5）投 §4.35；锚点 `sub_14048BEC0` |
+| 0x1417D71B0 | caller 141E06050/141E07CA0/141E07FC0（pdx_entity 段）；sub_1401205A0 |
+| 0x141009790 | loc 键 "GFX_ability_" / "ity_" |
+| 0x142298A30 | 调用链 SGfxFileReader::Reader@14223B400 / CBitmapFont::[8]@14229C470 |
+| 0x1422E4DA0 | 调用链 CBitmap::[2](sub_1422E4DA0) / CBitmap::[2](sub_1422E4DA0) / CBitmap::[2](sub_1422E4DA0) |
+| 0x14230DCC0 | 调用链 CTextureReloader::Update@14223CAA0 |
+| 0x14241E500 | 断言 gfx_dx9.cpp:4169 + 串 "GetFrontBufferData failed: "/"D3DXSaveSurfaceToFileInMemory failed: "/"Screenshot taken: "/"Failed taking screenshot: " → DX9 截图 |
+
+#### 4.35.79 渲染 UI 体系函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14167F800 | 业务 断言 regiongraphics.cpp:967 + 串 "soemthing wrong with naval strategic areas…(or very old save)" + gfxnavalcombat.cpp:92 + provincegraphics.cpp:2650 |
+| 0x141660780 | 业务 邻域 gfx_supply.cpp/gfxnavalcombat.cpp/maparrow.h + 断言 pdx_scopedptr.h:129 + gamestate.h:1125/1126 x8 + qword_14332F260 x12 |
+| 0x1418E60B0 | 业务 邻域 mapicon.h（CIntelLedgerMapIcon/CIntelMapModeMapIcon/CNavalHeadquarterMapIcon）+ intel_ledger_map_icons.cpp + 断言 pdx_scopedptr.h:134 x5 |
+| 0x14124C1E0 | 业务 邻域 gfxairplanes.cpp x6 + "_entity" 名拼装('_' 分隔) + sub_142291330 |
+| 0x1421F56F0 | 业务 多边形扇三角化：3*(n-2) 索引分配(sub_1421FB960) + 20B 顶点写入 + 3xWORD 三角形索引 |
+| 0x1423CDF60 | 业务 0x1423C-0x1423D 簇 float/__m128 计算（COERCE_FLOAT，sub_1423CD290） |
+| 0x1422637D0 | 业务 串 "Could not find parent joint [%s] for locator [%s]" + locator/p/q/pa 关节名 |
+| 0x142215570 | 业务 索引缓冲扩展：sub_1421FB960(6*n, 5*n) + (0xFFFF-count)/5 上限（16 位索引/网格族） |
+| 0x1423D0E90 | 业务 0x1423C-0x1423D 簇 float 计算（sub_1423D04C0/sub_1423D02F0） |
+| 0x1421FC380 | 业务 同 0x1421F56F0 网格/索引构建族（sub_1421FBBE0/sub_1421FB960/sub_1421FB810） |
+| 0x14227CD30 | 传播 caller 142287EA0→142281050←pdx_entity.cpp:2277 |
+
+#### 4.35.80 渲染 UI 体系函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1408519C0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:67`；lua 表 `NGraphics` 键 `FACTION_PING_MAP_GRADIENT`；sink `sub_142070630`；define 槽 `word_1433355D0` |
+| 0x140851DE0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:65`；lua 表 `NGraphics` 键 `FACTION_PING_MAP_UNAVAILABLE_COLOR`；sink `sub_14074B2C0`；define 槽 `unk_1433… |

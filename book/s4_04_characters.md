@@ -1013,24 +1013,12 @@ UpdateCharacterScientistStatus 0x1410EFCD0 (104) / DailyUpdate 0x1410EB430 (54) 
 | 0x140C1D550 | CUnitLeader::[16] vtable 槽 CUnitLeader::[16]（func_names RTTI 名） |
 | 0x1406B4DA0 | CCharacter::[0] vtable 槽 CCharacter::[0]（func_names RTTI 名） |
 | 0x140C0EB90 | CUnitLeader::[0] vtable 槽 CUnitLeader::[0]（func_names RTTI 名） |
-
-#### 4.4.34 角色族函数补遗（11 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.4.35 角色族函数补遗（2 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x140C0F8F0 | CUnitLeader::AddTriggerDynamicVariable? func_names 名 CUnitLeader::AddTriggerDynamicVariable? |
 | 0x140C1B1C0 | CUnitLeader::UpdateLocalizedName func_names 名 CUnitLeader::UpdateLocalizedName |
-
-#### 4.4.36 角色族函数补遗（2 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.4.37 角色族函数补遗（124 函）
 
 | VA | 语义/证据 |
@@ -1365,3 +1353,120 @@ UpdateCharacterScientistStatus 0x1410EFCD0 (104) / DailyUpdate 0x1410EB430 (54) 
 |---|---|
 | 0x140293ED0 | 肖像设置 剪影肖像开关："Silhouette portraits ENABLED"/"DISABLED" + "An error occurred" |
 | 0x140A7FB50 | 特工调试 特工调试信息：a1+1416 容器查询 + "[debug] no strategic operative" |
+
+#### 4.4.47 角色族函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419A9CC0 | CPlayerStatusCache::UpdateRaidTypeUnits? CPlayerStatusCache::UpdateRaidTypeUnits 玩家状态缓存（名带?） |
+| 0x1416C98F0 | CUnitLeaderTraitTree::[26] |
+| 0x140C0F670 | CUnitLeader::AddTriggerDynamicVariable? |
+| 0x140A89D80 | （无名，按证据定性） 键 ' > Army'/' > Navy'/' > Operative'/' > Scientist'/' > Common'（角色类别分支标签） |
+| 0x140C1B3F0 | （无名） VA 邻近 CUnitLeader::UpdateLocalizedName(±560)（情报/间谍/行动） |
+| 0x1406B5A60 | 无名（证据推断） 类名/模板：EPortraitType::Civilian |
+| 0x141C22370 | CScientistRoster::SetupDerived 科学家名册/等级/招募池（CScientistRoster::SetupDerived） |
+| 0x1416CA400 | CUnitLeaderTraitTree::[23] 单位领袖特质树 |
+| 0x1402EEF90 | 无名大函数 0x1402EEF90 诊断串 'Failed to deduce the unit leader from scope'（领袖作用域） |
+| 0x140448E30 | CIsExileLeader::GetDesc CIsExileLeader::GetDesc（角色/将领） |
+| 0x140332A70 | CScientist::[0] 科学家（角色类，科研角色） |
+
+#### 4.4.48 角色族函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C0C860 | （无名） 业务 写 CUnitAdjuster::vftable×1 + CModifier::vftable×15 + CGameDate::vftable×4；调用链 0x140C12520(CArmyLeader::vftable)←0x140C0C160 定位为 CUnitLeader 复制构造 |
+| 0x1411F9CF0 | sub_1411F9CF0 业务 战略特工抵抗条目（SRootOutResistanceEntryLocationOrderer 排序断言 + "Invalid state id from adjacencies!"，strategicoperative.cpp） |
+| 0x14238EF90 | sub_14238EF90 业务 抵抗活动列表（RESISTANCE_CHANCE_FOR_ACTIVITY / RESISTANCE_CHANCE_FOR_GARRISON_PENETRATE / RESISTANCE_ACTIVITY_LIST_TITLE + 本地化桶排序日志） |
+| 0x1412A47D0 | （无名） 业务 串 "ADVISOR_CANT_AFFORD_CP_REMOVED_TITLE"/"_DESC"/"ADVISOR" |
+| 0x1412A28F0 | sub_1412A28F0 业务 串 CHARACTER_NAME_TOOLTIP |
+| 0x1410ED650 | — 业务 邻域 CCountryCharacters::SAdvisorSlotInfo::Reader（0x1410EDDF0）= 国家角色区段 |
+| 0x140AE4230 | 业务 夹于 CUnitMedalDatabase::[1](d=9920) 与 CPdxHybridInlineBufferAllocator<CString>::[0](d=2256)，单位勋章数据库族 |
+| 0x1411A8040 | 业务 串字面量 " now has trait " §4.4 角色 |
+| 0x140AE4D90 | 业务 夹于 CPdxHybridInlineBufferAllocator<CString>::[6](d=160) 与 CUnitLeaderTrait::[7](d=23792)，单位将领特质族 |
+| 0x141A42770 | sub_141A42770 业务 串：_pPtr 、 C:\\mnt\\gsg\\hoi4\\hoi4_merged\\clausewitz\\pdx_core\\pdx_sco |
+| 0x140C12520 | CArmyLeader::[11] 业务 CArmyLeader vtable + CUnitAdjuster/CCommandPowerAllocator 协作，将领槽方法 |
+| 0x1418F2680 | sub_1418F2680 业务 串：TotalToDecrypt > 0 、 C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\op |
+| 0x140D06BF0 | sub_140D06BF0 业务 串：operationtokens 、 brokencypher 、 radar 、 intelnetwork |
+| 0x14182A940 | sub_14182A940 业务 串：( pScope == this 、、 pScope->_pFrom != this ) && \ 、 C:\\mnt\\gsg\\hoi4 |
+| 0x14251C890 | 业务 断言站点 character_manager.cpp:29 ->§4.4; 类路由 CArmy ->§4.18; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1412A5390 | CAdvisor::Writer 业务 存档 writer：token 13378/19482/19596/10354/19483/12318/14467/12278/12773/12269/14487/10644 逐字段写出，含 sub_140612DA0 子串、sub_1424C44F0 数组项（a1+200… |
+| 0x140611F60 | 业务 断言站点 country_characters.cpp:20 ->§4.4; 断言站点 country_characters.cpp:26 ->§4.4; 断言站点 gamestate.h:16 ->§4.1 |
+| 0x14241DBB0 | 业务 断言站点 eventscope.h:93; 断言站点 country_characters.cpp:49 ->§4.4; 串 "( pScope == this \ \ pScope->_pFrom !" |
+| 0x14029D5F0 | 业务 断言站点 program.cpp:18 ->§4.4; 类路由 CGenerateAdvisorCommand ->§4.33; 串 "Assigned to many scientists" |
+| 0x1413E0350 | Writer 业务 存档 writer：与 CAdvisor::Writer 共享 8 个 token id（10354/13378/19483/12269/14487/14467/12278/10644）；40B 元素数组（a1+224/236）+ 64B 元素数组（a1+704/716）+ a1+1048 子… |
+| 0x14071DAE0 | 业务 类名证据「TGameItemDatabase<CCountryLeaderDatabase>」 §4.4 角色 |
+| 0x1406ACAD0 | 业务 类名证据「TGameItemDatabase<NCareerProfile::CProfilePictureDatabase>」 §4.4 角色 |
+| 0x1406AF9A0 | 业务 类名证据「TGameItemDatabase<NCareerProfile::CRibbonDatabase>」 §4.4 角色 |
+
+
+#### 4.4.49 角色族函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AC1340 | 业务 UNIT_LEADER_ADVISOR_ROLE_[BTN_TT_HEADER/TITLE/TITLE_ACTIVE/ROLE_THEORIST_DESC] + "theorist" + ADVISORROLE/ROLENAME |
+| 0x140C13510 | 业务 串 `LEARNING_TRAITS`、`CODENAME`、`OPERATIVE_NAME_AND_CODENAME`、`LEADER_SKILL_WITH_PROGRESS`；遍历 a1+3576 数组（计数 a1+3588），`100000 * *(int*)(*v9+2208)` 1e-5 定点百分… |
+| 0x1406C38C0 | 业务 单位领袖创建回调（角色管理器 + 情报机构 + 图标条目联动） 串 "on_unit_leader_created"；被调用者 sub_1406B58C0 = character_manager.cpp:180、sub_140FD7480 = intelligenceagency.cpp:1184、sub_… |
+| 0x1406C5870 | 业务 单位领袖创建回调（0x1406C38C0 变体，多调 sub_140162FB0） 同 0x1406C38C0 证据链（character_manager/unitleader/intelligenceagency + "on_unit_leader_created"） |
+| 0x141A82EE0 | 业务 EV_HE/EV_SHE/EV_HIS/EV_HER/EV_HIMSELF/EV_HERSELF 性别代词 loc 族 + @localize.cpp:641 |
+| 0x141A9A610 | 业务 EV_\* 代词 loc 族（与 0x141A82EE0 同形双胞胎） |
+| 0x141A85C60 | 业务 EV_\* 代词 loc 族 + callee CGuiType::[9]（与 0x141A82EE0 同族） |
+| 0x1411ED950 | 业务 反向调用图 2/3 调用者投 §4.4 |
+| 0x141A93E00 | 业务 串字面量 '![MD]\\nGets the character of the current scope.' [4.4×1,4.32×1] |
+| 0x1423AE570 | 业务 反向调用图 1/2 调用者投 §4.4 |
+
+#### 4.4.50 常量串 getter 结构定案（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14073DE90 | 常量串 getter: 返回常量串 "NCharacter::COUNTRY_LEADER_BASE_RANDOM_MAX_YEAR_LENGTH"（高置信） |
+| 0x14073DF10 | 常量串 getter: 返回常量串 "NCharacter::OFFICER_CORP_HIGH_COMMAND_SLOTS_IN_MENU"（高置信） |
+| 0x14073DE80 | 常量串 getter: 返回常量串 "NCharacter::COUNTRY_LEADER_BASE_EXPIRE_YEAR_LENGTH"（高置信） |
+| 0x14073DED0 | 常量串 getter: 返回常量串 "NCharacter::DEFAULT_PP_COST_FOR_POLITICAL_ADVISOR"（高置信） |
+| 0x14073DEB0 | 常量串 getter: 返回常量串 "NCharacter::DEFAULT_CP_COST_FOR_DYNAMIC_ADVISORS"（高置信） |
+| 0x14073DEC0 | 常量串 getter: 返回常量串 "NCharacter::DEFAULT_PP_COST_FOR_MILITARY_ADVISOR"（高置信） |
+| 0x14073DF00 | 常量串 getter: 返回常量串 "NCharacter::OFFICER_CORP_ADVISOR_ENTRIES_IN_MENU"（高置信） |
+| 0x14073DF20 | 常量串 getter: 返回常量串 "NCharacter::POLITICAL_ADVISOR_SLOTS_IN_MENU"（高置信） |
+| 0x14073DEA0 | 常量串 getter: 返回常量串 "NCharacter::DEFAULT_CP_COST_FOR_ADVISOR"（高置信） |
+| 0x14073DF30 | 常量串 getter: 返回常量串 "NCharacter::SPECIALIST_ADVISOR_MIN_RANK"（高置信） |
+| 0x14073DEE0 | 常量串 getter: 返回常量串 "NCharacter::EXPERT_ADVISOR_MIN_RANK"（高置信） |
+| 0x14073DEF0 | 常量串 getter: 返回常量串 "NCharacter::GENIUS_ADVISOR_MIN_RANK"（高置信） |
+| 0x14073DE70 | 常量串 getter: 返回常量串 "NCharacter::ADVISOR_PROMOTION_COST"（高置信） |
+
+#### 4.4.51 单调用转发桩结构定案（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141832570 | 转发桩: 转发至 域关键词匹配 sub_141832E30 + 域关键词匹配; 源码路径 hoi4; 被 CEmptyEntryListBase<COperativeBottomBarItem>::[0] 等 1 命名函数调用（推定） |
+| 0x142618990 | 转发桩: 转发至 业务 断言站点 program.cpp:18 ->§4.4; 类路由 CGenerateAdvisorCommand ->§4.33; 串 "Assigned to many scientists"（推定） |
+| 0x140FDDFF0 | 转发桩: 转发至 业务逻辑（键 on_operative_recruited） "on_operative_recruited"/"%s: Cannot recruit operative %s (%i:%i)"（特工招募事件）（推定） |
+| 0x1425F2730 | 转发桩: 转发至 业务 类名证据「TGameItemDatabase<NCareerProfile::CProfilePictureDatabase>」 §4.4 角色（推定） |
+| 0x140E1E6F0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_INTEL_NETWORK_TOO"（推定） |
+| 0x141F17F20 | 转发桩: 转发至 "SCIENTIST_RECRUIT_COST_NOT_ENOUGH/SCIEN "SCIENTIST_RECRUIT_COST_NOT_ENOUGH/SCIENTIST_RECRUIT_COST/AM §4.4 角色/将领/特工（推定） |
+| 0x14265CBB0 | 转发桩: 被调者 0x141832570 -> §4.4 (E:单调用转发(被调者入书))（推定） |
+| 0x1416C3C40 | 转发桩: 转发至 （未命名）loc 串 OPEN_ARMY_LEADER_PREFERRED_TACTIC_ loc 串 OPEN_ARMY_LEADER_PREFERRED_TACTIC_SELECTION（将领偏好战术）（推定） |
+| 0x14260DCF0 | 转发桩: 转发至 （无名） 体设 CUnitLeader::vftable（RTTI 名）（推定） |
+| 0x1425F28E0 | 转发桩: 转发至 业务 类名证据「TGameItemDatabase<NCareerProfile::CRibbonDatabase>」 §4.4 角色（推定） |
+| 0x1425F6ED0 | 转发桩: 转发至 业务 类名证据「TGameItemDatabase<CCountryLeaderDatabase>」 §4.4 角色（推定） |
+| 0x14260BD10 | 转发桩: 转发至 （无名） 体设 CUnitLeader::vftable（RTTI 名）（推定） |
+| 0x14260BD40 | 转发桩: 转发至 （无名） 体设 CUnitLeader::vftable（RTTI 名）（推定） |
+| 0x14260BD70 | 转发桩: 转发至 （无名） 体设 CUnitLeader::vftable（RTTI 名）（推定） |
+| 0x14260DA70 | 转发桩: 转发至 （无名） 体设 CUnitLeader::vftable（RTTI 名）（推定） |
+| 0x1417C8EF0 | 转发桩: 转发至 sub_1417BC120 将领偏好战术选择 loc 键 OPEN_ARMY_LEADER_PREFERRED_TACTIC_SELECTION（推定） |
+
+#### 4.4.52 角色族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406B9DA0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x14139F470 | 游戏 CU 簇内: CCharacterPortraits::Writer / CEveryCharacterEffect::[27] |
+| 0x1413AE9E0 | 邻域传播改判（锚 0x1413AD960 §4.4，距离 0x1080）；跳点串 "pStr" |
+
+#### 4.4.53 角色族函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AFBE30 | 业务 串 "Write Current Nation Characters"/"Write All Characters"/Advisor/Country leader/Unit leader/Scientist/Converted/common/ideas |
+| 0x141AFCBA0 | 业务 串 "character_export/"/"recruit_character = " + CArchiveFile::[11] + gamestate.h:1126 |
+| 0x1410EEBA0 | 业务 country_characters.cpp:1093 被调用 + CCharacter + 断言 pdx_scopedptr.h:119 + gamestate.h:1116 |
+| 0x141E86370 | 业务 NOperativeMissions::CStateBased::GetState 被调用 + 状态 switch 取文本 + gamestate.h:1125 x2 + pairNode::[1] |
+| 0x141E37CC0 | 业务 邻域 CMapModeOperationSelectTarget::[1]/[5]/operativeportraitview.cpp + ref.h x2 |

@@ -558,12 +558,6 @@ CTerrainDatabase (单例 qword_14332F0A8, §4.26.8) 本 pass 读侧:
 | 0x140E7EDF0 | CProvince::[3] vtable 槽 CProvince::[3]（func_names RTTI 名） |
 | 0x140E794B0 | CProvince::[0] vtable 槽 CProvince::[0]（func_names RTTI 名） |
 | 0x140E794A0 | CProvince::[0] vtable 槽 CProvince::[0]（func_names RTTI 名） |
-
-#### 4.14.15 CProvince 域函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.14.16 CProvince 域函数补遗（12 函）
 
 | VA | 语义/证据 |
@@ -638,3 +632,53 @@ CTerrainDatabase (单例 qword_14332F0A8, §4.26.8) 本 pass 读侧:
 | VA | 语义/证据 |
 |---|---|
 | 0x141B547E0 | 未决窗口函数 · 地图模式绘制 串 "Painting with " + CONST 256/16440，地图绘制模式 |
+
+#### 4.14.25 CProvince 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E7F540 | （无名） 被 CProvince::[8] 调用（州/省份/突袭） |
+
+#### 4.14.26 CProvince 域函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141673AC0 | 业务 (x,y) → uint16 LUT 查表（基址 qword_143339D28+2096，宽高 at +48/+52）→ 坐标→省份 |
+| 0x140615AA0 | 业务 地图脚本解析：错误串 "Required left curly bracket on the right side of the climate token - "（climate 令牌，default.map 级地图数据） |
+| 0x1406BB7C0 | 业务 脚本解析：错误串 "Expected end of block"（与 0x140615AA0 同一 0x1406x 地图数据解析器族） |
+| 0x14031CCE0 | 业务 省校验：错误串 "Invalid province variable" / "Invalid province id" |
+| 0x140CF1B40 | CControllerArea::[2] 业务 地图区域类：同族槽见 areas.cpp:594 + pdx_scoped_buffer 序列化断言（省分组的控制区域） |
+| 0x140BBF1B0 | CProvinceSpatialCalculator::PrecalculateAdjacencyForRange? 业务 CProvinceSpatialCalculator::PrecalculateAdjacencyForRange，省份邻接预算（pdx_parallel_for.h:65 串行断言） |
+| 0x140B4ED50 | CGraphicalMap::UpdateProvinces? 业务 func_names 名 CGraphicalMap::UpdateProvinces?（图形地图省份更新） |
+| 0x1402A23A0 | (无名) 业务 地图纹理名 "vic_18"/"vic_18_black" |
+| 0x140FA7430 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 断言站点 effectimplementation.cpp:4 ->§4.32 |
+| 0x140E7C5E0 | 业务 距离表查询：qword_143339D28+704 __int16 表 + 三角索引 v9*(n-1)-v9*(v9-1)/2 + 100000 缩放 + 6553500000 哨兵 距离查询 |
+
+
+#### 4.14.27 CProvince 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E0C620 | 业务 串 `PROV_TOOLTIP_SELECTION`、`PROV_TOOLTIP_SELECTION_NUM_DIVS`、`PROVINCE_UNIT_MOVE_DAYS_HOURS`、`PROVINCE_UNIT_MOVE_NO_RAILWAY`、`RAILWAY_GUN`；调用者 0x140E05340… |
+
+#### 4.14.28 单调用转发桩结构定案（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B54110 | 转发桩: 转发至 未决窗口函数 · 地图模式绘制 串 "Painting with " + CONST 256/16440，地图绘制模式（推定） |
+| 0x1406BD570 | 转发桩: 转发至 业务 脚本解析：错误串 "Expected end of block"（与 0x140615AA0 同一 0x1406x 地图数据解析器族）（推定） |
+
+#### 4.14.29 CProvince 域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401EAB40 | 断言 gameitemdatabase.h:142 "_pInstance && \"Instance not created.\"" / gameitemdatabase.h |
+| 0x140E0C240 | 邻域传播改判（锚 0x140E0C620 §4.14，距离 0x3E0）；跳点串 "_pInstance && \"gamestate unitilialized\"" / "_ThreadForbidCount == 0 && \"Current thread is forbidden to access ga… |
+| 0x140E85180 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x141B640D0 | 调用链 CStrategicRegionNudger::CollectReloadNames@141B62BC0 |
+
+#### 4.14.30 CProvince 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BBF410 | tbb flag_task 任务体；调用者 CProvinceSpatialCalculator::PrecalculateAdjacencyFor（1/2 具名） |

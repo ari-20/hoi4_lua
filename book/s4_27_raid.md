@@ -1011,3 +1011,237 @@ CU = `hoi4\source\raids\ui\raid_instance_view.cpp`。**NRaids::NUi::CRaidInstanc
 | 0x141250D90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
 | 0x141668410 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.27 |
 | 0x141668510 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.27 |
+
+#### 4.27.17 突袭族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E87320 | NRaids::NUi::CActiveRaidMapIconData::[1] 业务 NRaids::NUi::CActiveRaidMapIconData::[1] 活跃突袭地图图标数据槽方法；类名自文档 |
+
+#### 4.27.18 突袭族函数命名空间补遗（129 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B31FF0 | NRaids::NNet::CCreateRaidCommand::Clone 名:NRaids::NNet::CCreateRaidCommand::Clone |
+| 0x1404A4910 | NRaids::CRaidReduceProjectProgressRatioEffect::[13] NRaids::CRaidReduceProjectProgressRatioEffect::[13] + "Can only add a progress between ... and"（袭击削减项目进度 … |
+| 0x141E8BCE0 | NRaids::NUi::CEnemyRaidMapIconData::[1] NRaids::NUi::CEnemyRaidMapIconData::[1]（州/省份/突袭） |
+| 0x141B3AB20 | NRaids::NUi::CRaidList::[0] NRaids::NUi::CRaidList::[0] + 域关键词匹配; 被调源码 clausewitz; 被 NRaids::NUi::CRaidList::[0] 等 1 命名函数调用 |
+| 0x1404A5A30 | NRaids::CRaidAddUnitExperienceEffect::[7] GetDesc 串 EFFECT_RAID_GIVE_UNIT_EXPERIENCE（突袭给单位经验） |
+| 0x1404A4F20 | NRaids::CDamageRaidUnitEffect::[7] `EFFECT_RAID_DAMAGE`+`_RATIO`/`_PLANE`/`_UNIT`/`_STRENGTH`/`STR_VAL`/`ORG_VAL` 伤害构成 |
+| 0x141B3B2E0 | NRaids::NUi::CRaidList::[6] vtable 槽 NRaids::NUi::CRaidList::[6]（func_names RTTI 名） |
+| 0x1401605C0 | NRaids::CRaidDatabase::[1] vtable 槽 NRaids::CRaidDatabase::[1]（func_names RTTI 名） |
+| 0x141E8AF40 | NRaids::NUi::CRaidUnitMapIconData::[1] vtable 槽 NRaids::NUi::CRaidUnitMapIconData::[1]（func_names RTTI 名） |
+| 0x140A9D0E0 | NRaids::CRaidDatabase::[5] vtable 槽 NRaids::CRaidDatabase::[5]（func_names RTTI 名） |
+| 0x141B34C60 | NRaids::NUi::CRaidFeedbackView::[0] vtable 槽 NRaids::NUi::CRaidFeedbackView::[0]（func_names RTTI 名） |
+| 0x140E856A0 | NRaids::CRaidSystem::[0] vtable 槽 NRaids::CRaidSystem::[0]（func_names RTTI 名） |
+| 0x140A9B910 | NRaids::CEquipmentRequirements::[0] vtable 槽 NRaids::CEquipmentRequirements::[0]（func_names RTTI 名） |
+| 0x141B3A810 | NRaids::NUi::CRaidList::[0] vtable 槽 NRaids::NUi::CRaidList::[0]（func_names RTTI 名） |
+| 0x141E8BE90 | NRaids::NUi::CEnemyRaidMapIconData::[5] vtable 槽 NRaids::NUi::CEnemyRaidMapIconData::[5]（func_names RTTI 名） |
+| 0x141B373C0 | NRaids::NUi::CRaidTypeIconItem::[0] vtable 槽 NRaids::NUi::CRaidTypeIconItem::[0]（func_names RTTI 名） |
+| 0x1418EB740 | NRaids::NUi::CRaidMapIcon::[4] vtable 槽 NRaids::NUi::CRaidMapIcon::[4]（func_names RTTI 名） |
+| 0x141E8AEF0 | NRaids::NUi::CRaidUnitMapIconData::[0] vtable 槽 NRaids::NUi::CRaidUnitMapIconData::[0]（func_names RTTI 名） |
+| 0x141B2CEC0 | NRaids::NUi::CRaidInstanceView::[7] vtable 槽 NRaids::NUi::CRaidInstanceView::[7]（func_names RTTI 名） |
+| 0x141B3A8A0 | NRaids::NUi::CRaidList::[5] vtable 槽 NRaids::NUi::CRaidList::[5]（func_names RTTI 名） |
+| 0x140A9E310 | NRaids::CRaidType::[5] vtable 槽 NRaids::CRaidType::[5]（func_names RTTI 名） |
+| 0x1418EB7B0 | NRaids::NUi::CRaidMapIcon::[2] vtable 槽 NRaids::NUi::CRaidMapIcon::[2]（func_names RTTI 名） |
+| 0x141E87680 | NRaids::NUi::CActiveRaidMapIconData::[5] vtable 槽 NRaids::NUi::CActiveRaidMapIconData::[5]（func_names RTTI 名） |
+| 0x1404A3FE0 | NRaids::CDamageRaidUnitEffect::[0] vtable 槽 NRaids::CDamageRaidUnitEffect::[0]（func_names RTTI 名） |
+| 0x141B37280 | NRaids::NUi::CRaidInstanceItem::[0] vtable 槽 NRaids::NUi::CRaidInstanceItem::[0]（func_names RTTI 名） |
+| 0x141B37440 | NRaids::NUi::CRaidUnitItem::[0] vtable 槽 NRaids::NUi::CRaidUnitItem::[0]（func_names RTTI 名） |
+| 0x141B37BB0 | NRaids::NUi::CRaidInstanceItem::[0] vtable 槽 NRaids::NUi::CRaidInstanceItem::[0]（func_names RTTI 名） |
+| 0x140A9BA30 | NRaids::CRaidSuccessLevels::[0] vtable 槽 NRaids::CRaidSuccessLevels::[0]（func_names RTTI 名） |
+| 0x141B37370 | NRaids::NUi::CRaidSourceItem::[0] vtable 槽 NRaids::NUi::CRaidSourceItem::[0]（func_names RTTI 名） |
+| 0x140FED0A0 | NRaids::CRaidInstance::[4] vtable 槽 NRaids::CRaidInstance::[4]（func_names RTTI 名） |
+| 0x141B37230 | NRaids::NUi::CRaidFilterCategoryItem::[0] vtable 槽 NRaids::NUi::CRaidFilterCategoryItem::[0]（func_names RTTI 名） |
+| 0x141E878F0 | NRaids::NUi::CRaidUnitMapIconData::[4] vtable 槽 NRaids::NUi::CRaidUnitMapIconData::[4]（func_names RTTI 名） |
+| 0x1418EB790 | NRaids::NUi::CRaidMapIcon::[0] vtable 槽 NRaids::NUi::CRaidMapIcon::[0]（func_names RTTI 名） |
+| 0x140A9B9E0 | NRaids::CRaidSuccessFactors::[0] vtable 槽 NRaids::CRaidSuccessFactors::[0]（func_names RTTI 名） |
+| 0x14129AC10 | NRaids::NUi::CRaidGuiManager::[1] vtable 槽 NRaids::NUi::CRaidGuiManager::[1]（func_names RTTI 名） |
+| 0x140A9B990 | NRaids::CRaidCategory::[0] vtable 槽 NRaids::CRaidCategory::[0]（func_names RTTI 名） |
+| 0x141B29D30 | NRaids::NUi::CRaidFilter::[8] vtable 槽 NRaids::NUi::CRaidFilter::[8]（func_names RTTI 名） |
+| 0x141B30B20 | NRaids::NUi::CRaidSetupView::[7] vtable 槽 NRaids::NUi::CRaidSetupView::[7]（func_names RTTI 名） |
+| 0x1418EB930 | NRaids::NUi::CRaidMapIcon::[8] vtable 槽 NRaids::NUi::CRaidMapIcon::[8]（func_names RTTI 名） |
+| 0x1419AB4D0 | NRaids::NUi::CPlayerStatusCache::[0] vtable 槽 NRaids::NUi::CPlayerStatusCache::[0]（func_names RTTI 名） |
+| 0x140A9BA90 | NRaids::CRaidType::[0] vtable 槽 NRaids::CRaidType::[0]（func_names RTTI 名） |
+| 0x14167DA00 | NRaids::NGfx::CRaidArrow::[0] vtable 槽 NRaids::NGfx::CRaidArrow::[0]（func_names RTTI 名） |
+| 0x140FECFB0 | NRaids::CRaidInstance::[3] vtable 槽 NRaids::CRaidInstance::[3]（func_names RTTI 名） |
+| 0x140F313F0 | NRaids::CRaidTargetCooldownStatus::[0] vtable 槽 NRaids::CRaidTargetCooldownStatus::[0]（func_names RTTI 名） |
+| 0x14167D9AC | NRaids::NGfx::CRaidArrow::[0] vtable 槽 NRaids::NGfx::CRaidArrow::[0]（func_names RTTI 名） |
+| 0x1418EB0FC | NRaids::NUi::CRaidMapIcon::[1] vtable 槽 NRaids::NUi::CRaidMapIcon::[1]（func_names RTTI 名） |
+| 0x141B371A4 | NRaids::NUi::CRaidInstanceItem::[1] vtable 槽 NRaids::NUi::CRaidInstanceItem::[1]（func_names RTTI 名） |
+| 0x141B371BC | NRaids::NUi::CRaidSourceItem::[1] vtable 槽 NRaids::NUi::CRaidSourceItem::[1]（func_names RTTI 名） |
+| 0x141B371E0 | NRaids::NUi::CRaidUnitItem::[1] vtable 槽 NRaids::NUi::CRaidUnitItem::[1]（func_names RTTI 名） |
+| 0x140FE9F80 | NRaids::CRaidInstance::[0] vtable 槽 NRaids::CRaidInstance::[0]（func_names RTTI 名） |
+| 0x141298B90 | NRaids::NUi::CRaidGuiManager::[0] vtable 槽 NRaids::NUi::CRaidGuiManager::[0]（func_names RTTI 名） |
+| 0x141B29608 | NRaids::NUi::CRaidFilter::[1] vtable 槽 NRaids::NUi::CRaidFilter::[1]（func_names RTTI 名） |
+| 0x141B29614 | NRaids::NUi::CRaidFilter::[0] vtable 槽 NRaids::NUi::CRaidFilter::[0]（func_names RTTI 名） |
+| 0x141B308BC | NRaids::NUi::CRaidSetupView::[1] vtable 槽 NRaids::NUi::CRaidSetupView::[1]（func_names RTTI 名） |
+| 0x141B308C8 | NRaids::NUi::CRaidSetupView::[0] vtable 槽 NRaids::NUi::CRaidSetupView::[0]（func_names RTTI 名） |
+| 0x141B34C4C | NRaids::NUi::CRaidFeedbackView::[1] vtable 槽 NRaids::NUi::CRaidFeedbackView::[1]（func_names RTTI 名） |
+| 0x141B37198 | NRaids::NUi::CRaidInstanceItem::[0] vtable 槽 NRaids::NUi::CRaidInstanceItem::[0]（func_names RTTI 名） |
+| 0x141B371B0 | NRaids::NUi::CRaidSourceItem::[0] vtable 槽 NRaids::NUi::CRaidSourceItem::[0]（func_names RTTI 名） |
+| 0x141B371C8 | NRaids::NUi::CRaidTypeIconItem::[1] vtable 槽 NRaids::NUi::CRaidTypeIconItem::[1]（func_names RTTI 名） |
+| 0x141B371D4 | NRaids::NUi::CRaidUnitItem::[0] vtable 槽 NRaids::NUi::CRaidUnitItem::[0]（func_names RTTI 名） |
+| 0x141E88034 | NRaids::NUi::CRaidTargetMapIconEntry::[0] vtable 槽 NRaids::NUi::CRaidTargetMapIconEntry::[0]（func_names RTTI 名） |
+| 0x141E87670 | NRaids::NUi::CEnemyRaidMapIconData::[2] vtable 槽 NRaids::NUi::CEnemyRaidMapIconData::[2]（func_names RTTI 名） |
+| 0x141E8B010 | NRaids::NUi::CRaidUnitMapIconData::[2] vtable 槽 NRaids::NUi::CRaidUnitMapIconData::[2]（func_names RTTI 名） |
+| 0x141B31510 | NRaids::NUi::CRaidSetupView::[9] vtable 槽 NRaids::NUi::CRaidSetupView::[9]（func_names RTTI 名） |
+| 0x14167DB14 | NRaids::NGfx::CRaidArrow::[1] vtable 槽 NRaids::NGfx::CRaidArrow::[1]（func_names RTTI 名） |
+| 0x1419ABDF0 | NRaids::NUi::CPlayerStatusCache::[1] vtable 槽 NRaids::NUi::CPlayerStatusCache::[1]（func_names RTTI 名） |
+| 0x1404A6320 | NRaids::CDamageRaidUnitEffect::[19] vtable 槽 NRaids::CDamageRaidUnitEffect::[19]（func_names RTTI 名） |
+| 0x141A3B2F0 | NRaids::CreateDynamicVariables func_names 名 NRaids::CreateDynamicVariables |
+| 0x1404A5C50 | NRaids::CRaidReduceProjectProgressRatioEffect::[7] vtable 槽 NRaids::CRaidReduceProjectProgressRatioEffect::[7]（func_names RTTI 名） |
+| 0x1414EACF0 | NRaids::CCountryRaidStatus::Writer func_names 名 NRaids::CCountryRaidStatus::Writer |
+| 0x141B29FF0 | NRaids::NUi::CRaidFilter::[7] vtable 槽 NRaids::NUi::CRaidFilter::[7]（func_names RTTI 名） |
+| 0x141B29A00 | NRaids::NUi::CRaidFilter::IsVisible func_names 名 NRaids::NUi::CRaidFilter::IsVisible |
+| 0x141B397D0 | NRaids::NUi::CRaidSourceItem::[8] vtable 槽 NRaids::NUi::CRaidSourceItem::[8]（func_names RTTI 名） |
+| 0x1404A46F0 | NRaids::CDamageRaidUnitEffect::[13] vtable 槽 NRaids::CDamageRaidUnitEffect::[13]（func_names RTTI 名） |
+| 0x141E88040 | NRaids::NUi::CRaidTargetMapIconEntry::[0] vtable 槽 NRaids::NUi::CRaidTargetMapIconEntry::[0]（func_names RTTI 名） |
+| 0x1414E91B0 | NRaids::CCountryRaidStatus::[0] vtable 槽 NRaids::CCountryRaidStatus::[0]（func_names RTTI 名） |
+| 0x141B34F70 | NRaids::NUi::CRaidFeedbackView::[0] vtable 槽 NRaids::NUi::CRaidFeedbackView::[0]（func_names RTTI 名） |
+| 0x140FE9F90 | NRaids::CRaidInstance::[0] vtable 槽 NRaids::CRaidInstance::[0]（func_names RTTI 名） |
+| 0x141B29620 | NRaids::NUi::CRaidFilter::[0] vtable 槽 NRaids::NUi::CRaidFilter::[0]（func_names RTTI 名） |
+| 0x141B322F0 | NRaids::NNet::CSetRaidAutoLaunchOption::Clone func_names 名 NRaids::NNet::CSetRaidAutoLaunchOption::Clone |
+| 0x141B32390 | NRaids::NNet::CSetRaidRiskLevelCommand::Clone func_names 名 NRaids::NNet::CSetRaidRiskLevelCommand::Clone |
+| 0x141B321B0 | NRaids::NNet::CRemoveRaidCommand::Clone func_names 名 NRaids::NNet::CRemoveRaidCommand::Clone |
+| 0x141B32250 | NRaids::NNet::CSetRaidAutoComplete::Clone func_names 名 NRaids::NNet::CSetRaidAutoComplete::Clone |
+| 0x1414EA3B0 | NRaids::CCountryRaidStatus::Reader func_names 名 NRaids::CCountryRaidStatus::Reader |
+| 0x141B32120 | NRaids::NNet::CExecuteRaidCommand::Clone func_names 名 NRaids::NNet::CExecuteRaidCommand::Clone |
+| 0x141B31F60 | NRaids::NNet::CCancelRaidCommand::Clone func_names 名 NRaids::NNet::CCancelRaidCommand::Clone |
+| 0x1404A4870 | NRaids::CRaidAddUnitExperienceEffect::[13] vtable 槽 NRaids::CRaidAddUnitExperienceEffect::[13]（func_names RTTI 名） |
+| 0x1404A6330 | NRaids::CRaidAddUnitExperienceEffect::[23] vtable 槽 NRaids::CRaidAddUnitExperienceEffect::[23]（func_names RTTI 名） |
+| 0x141B372D0 | NRaids::NUi::CRaidSimpleTextItem::[0] vtable 槽 NRaids::NUi::CRaidSimpleTextItem::[0]（func_names RTTI 名） |
+| 0x141B34650 | NRaids::NNet::CSetRaidAutoLaunchOption::PayloadReader func_names 名 NRaids::NNet::CSetRaidAutoLaunchOption::PayloadReader |
+| 0x140E86CC0 | NRaids::CRaidSystem::Writer func_names 名 NRaids::CRaidSystem::Writer |
+| 0x141B30B40 | NRaids::NUi::CRaidSetupView::Reload func_names 名 NRaids::NUi::CRaidSetupView::Reload |
+| 0x141B346E0 | NRaids::NNet::CSetRaidRiskLevelCommand::PayloadReader func_names 名 NRaids::NNet::CSetRaidRiskLevelCommand::PayloadReader |
+| 0x141B34530 | NRaids::NNet::CRemoveRaidCommand::PayloadReader func_names 名 NRaids::NNet::CRemoveRaidCommand::PayloadReader |
+| 0x141B345C0 | NRaids::NNet::CSetRaidAutoComplete::PayloadReader func_names 名 NRaids::NNet::CSetRaidAutoComplete::PayloadReader |
+| 0x141591BC0 | NRaids::CRaidSuccessLevels::Reader func_names 名 NRaids::CRaidSuccessLevels::Reader |
+| 0x1414EB1F0 | NRaids::CRaidTargetCooldownStatus::Writer func_names 名 NRaids::CRaidTargetCooldownStatus::Writer |
+| 0x141B38060 | NRaids::NUi::CRaidUnitItem::[0] vtable 槽 NRaids::NUi::CRaidUnitItem::[0]（func_names RTTI 名） |
+| 0x141B348F0 | NRaids::NNet::CRemoveRaidCommand::PayloadWriter func_names 名 NRaids::NNet::CRemoveRaidCommand::PayloadWriter |
+| 0x141B34950 | NRaids::NNet::CSetRaidAutoComplete::PayloadWriter func_names 名 NRaids::NNet::CSetRaidAutoComplete::PayloadWriter |
+| 0x140E86AB0 | NRaids::CRaidSystem::Reader func_names 名 NRaids::CRaidSystem::Reader |
+| 0x141B349B0 | NRaids::NNet::CSetRaidAutoLaunchOption::PayloadWriter func_names 名 NRaids::NNet::CSetRaidAutoLaunchOption::PayloadWriter |
+| 0x141B34A10 | NRaids::NNet::CSetRaidRiskLevelCommand::PayloadWriter func_names 名 NRaids::NNet::CSetRaidRiskLevelCommand::PayloadWriter |
+| 0x141B2A4B0 | NRaids::NUi::CRaidFilter::Reload func_names 名 NRaids::NUi::CRaidFilter::Reload |
+| 0x141B3A800 | NRaids::NUi::CRaidList::[1] vtable 槽 NRaids::NUi::CRaidList::[1]（func_names RTTI 名） |
+| 0x141B2B5CC | NRaids::NUi::CRaidInstanceView::IsVisible func_names 名 NRaids::NUi::CRaidInstanceView::IsVisible |
+| 0x141B2B5D8 | NRaids::NUi::CRaidInstanceView::[1] vtable 槽 NRaids::NUi::CRaidInstanceView::[1]（func_names RTTI 名） |
+| 0x141B34C40 | NRaids::NUi::CRaidFeedbackView::IsVisible func_names 名 NRaids::NUi::CRaidFeedbackView::IsVisible |
+| 0x141B3718C | NRaids::NUi::CRaidFilterCategoryItem::[1] vtable 槽 NRaids::NUi::CRaidFilterCategoryItem::[1]（func_names RTTI 名） |
+| 0x141B33710 | NRaids::NNet::CCancelRaidCommand::GetTypeId func_names 名 NRaids::NNet::CCancelRaidCommand::GetTypeId |
+| 0x141B33720 | NRaids::NNet::CCreateRaidCommand::GetTypeId func_names 名 NRaids::NNet::CCreateRaidCommand::GetTypeId |
+| 0x141B33730 | NRaids::NNet::CExecuteRaidCommand::GetTypeId func_names 名 NRaids::NNet::CExecuteRaidCommand::GetTypeId |
+| 0x141B33740 | NRaids::NNet::CRemoveRaidCommand::GetTypeId func_names 名 NRaids::NNet::CRemoveRaidCommand::GetTypeId |
+| 0x141B33750 | NRaids::NNet::CSetRaidAutoComplete::GetTypeId func_names 名 NRaids::NNet::CSetRaidAutoComplete::GetTypeId |
+| 0x141B33760 | NRaids::NNet::CSetRaidAutoLaunchOption::GetTypeId func_names 名 NRaids::NNet::CSetRaidAutoLaunchOption::GetTypeId |
+| 0x141B33770 | NRaids::NNet::CSetRaidRiskLevelCommand::GetTypeId func_names 名 NRaids::NNet::CSetRaidRiskLevelCommand::GetTypeId |
+| 0x141B35090 | NRaids::NUi::CRaidFeedbackView::Reload func_names 名 NRaids::NUi::CRaidFeedbackView::Reload |
+| 0x140A9E740 | NRaids::CRaidDatabase::[0] 袭击数据库（库装载） |
+| 0x141B34360 | NRaids::NNet::CCreateRaidCommand::PayloadReader 序列化 Reader/Writer 或网络命令载荷读写（NRaids::NNet::CCreateRaidCommand::PayloadReader） |
+| 0x1414EA490 | NRaids::CRaidTargetCooldownStatus::Reader 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 NRaids |
+| 0x141B347B0 | NRaids::NNet::CCreateRaidCommand::PayloadWriter NRaids::NNet::CCreateRaidCommand::PayloadWriter + 名字角色规则(NRaids::NNet::CCreateRaidCommand::PayloadWriter); 被 … |
+| 0x1418EB820 | NRaids::NUi::CRaidMapIcon::[10] func_names 全名 + 地图图标/地图模式类 |
+| 0x1418EB110 | NRaids::NUi::CRaidMapIcon::[0] func_names 全名 + 地图图标/地图模式类 |
+| 0x141B2AB20 | NRaids::NUi::CRaidFilter::[9] NRaids::NUi::CRaidFilter::[9]（突袭筛选器 UI） |
+| 0x141298BA0 | NRaids::NUi::CRaidGuiManager::[0] 突袭功能 GUI（NRaids::NUi::CRaidGuiManager::[0]） |
+| 0x141B39650 | NRaids::NUi::CRaidInstanceItem::[8] 突袭功能 GUI（NRaids::NUi::CRaidInstanceItem::[8]） |
+| 0x141B2B680 | NRaids::NUi::CRaidInstanceView::[0] func_names 全名 + UI 后缀类（CRaidInstanceView） |
+| 0x141B308E0 | NRaids::NUi::CRaidSetupView::[0] func_names 全名 + UI 后缀类（CRaidSetupView） |
+| 0x1404A4CE0 | NRaids::CAddRaidHistoryEntryEffect::[7] |
+
+#### 4.27.19 突袭族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141668650 | 业务 反向调用图 1/2 调用者投 §4.27; 唯一被调用者在书内 §4.1 |
+
+#### 4.27.20 常量串 getter 结构定案（37 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140749B10 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_FROM_CONTROLLED_NEIGHBOUR_STATES"（高置信） |
+| 0x140749B30 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_PENALTY_PER_ENEMY_COUNTER_INTEL"（高置信） |
+| 0x140749B40 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_PER_AIRFORCE_INTEL_OVER_COUNTRY"（高置信） |
+| 0x140749B70 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_PER_CIVILIAN_INTEL_OVER_COUNTRY"（高置信） |
+| 0x140749A80 | 常量串 getter: 返回常量串 "NRaids::RAID_MEDIUM_RISK_SETTING_DISASTER_MODIFIER"（高置信） |
+| 0x140749A90 | 常量串 getter: 返回常量串 "NRaids::RAID_MEDIUM_RISK_SETTING_SUCCESS_MODIFIER"（高置信） |
+| 0x140749A40 | 常量串 getter: 返回常量串 "NRaids::RAID_HIGH_RISK_SETTING_DISASTER_MODIFIER"（高置信） |
+| 0x140749B60 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_PER_ARMY_INTEL_OVER_COUNTRY"（高置信） |
+| 0x140749B80 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_PER_NAVY_INTEL_OVER_COUNTRY"（高置信） |
+| 0x140749A50 | 常量串 getter: 返回常量串 "NRaids::RAID_HIGH_RISK_SETTING_SUCCESS_MODIFIER"（高置信） |
+| 0x140749A60 | 常量串 getter: 返回常量串 "NRaids::RAID_LOW_RISK_SETTING_DISASTER_MODIFIER"（高置信） |
+| 0x140749AC0 | 常量串 getter: 返回常量串 "NRaids::RAID_SUCCESS_MODIFIER_THRESHOLD_NEUTRAL"（高置信） |
+| 0x1407499D0 | 常量串 getter: 返回常量串 "NRaids::MAX_STATE_TARGETS_TO_EVALUATE_PER_HOUR"（高置信） |
+| 0x140749A70 | 常量串 getter: 返回常量串 "NRaids::RAID_LOW_RISK_SETTING_SUCCESS_MODIFIER"（高置信） |
+| 0x140749BA0 | 常量串 getter: 返回常量串 "NRaids::THERMONUCLEAR_BOMB_MAX_DAMAGE_PERCENT"（高置信） |
+| 0x140749BB0 | 常量串 getter: 返回常量串 "NRaids::THERMONUCLEAR_BOMB_MIN_DAMAGE_PERCENT"（高置信） |
+| 0x140749AB0 | 常量串 getter: 返回常量串 "NRaids::RAID_SUCCESS_MODIFIER_THRESHOLD_BAD"（高置信） |
+| 0x140749BC0 | 常量串 getter: 返回常量串 "NRaids::THERMONUCLEAR_BOMB_PRODUCTION_SCALE"（高置信） |
+| 0x1407499B0 | 常量串 getter: 返回常量串 "NRaids::BASE_NAVAL_COMMANDO_RAID_DISTANCE"（高置信） |
+| 0x140749A30 | 常量串 getter: 返回常量串 "NRaids::RAID_DEFAULT_TARGET_COOLDOWN_DAYS"（高置信） |
+| 0x140749B90 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_PER_NETWORK_STRENGTH"（高置信） |
+| 0x140749AA0 | 常量串 getter: 返回常量串 "NRaids::RAID_OUTCOME_REPORT_DAYS_TO_LIVE"（高置信） |
+| 0x140749B50 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_PER_AIR_SUPERIORITY"（高置信） |
+| 0x1407499E0 | 常量串 getter: 返回常量串 "NRaids::MAX_TARGETS_TO_UPDATE_PER_FRAME"（高置信） |
+| 0x1407499F0 | 常量串 getter: 返回常量串 "NRaids::NUCLEAR_BOMB_MAX_DAMAGE_PERCENT"（高置信） |
+| 0x140749A00 | 常量串 getter: 返回常量串 "NRaids::NUCLEAR_BOMB_MIN_DAMAGE_PERCENT"（高置信） |
+| 0x140749B00 | 常量串 getter: 返回常量串 "NRaids::TARGET_DETECTION_INTEL_TRESHOLD"（高置信） |
+| 0x1407499C0 | 常量串 getter: 返回常量串 "NRaids::MAX_DETECTED_TARGETS_PER_HOUR"（高置信） |
+| 0x140749A10 | 常量串 getter: 返回常量串 "NRaids::NUCLEAR_BOMB_PRODUCTION_SCALE"（高置信） |
+| 0x140749AE0 | 常量串 getter: 返回常量串 "NRaids::RAID_TYPE_ICON_ITEM_POOL_SIZE"（高置信） |
+| 0x140749B20 | 常量串 getter: 返回常量串 "NRaids::TARGET_INTEL_FROM_DECRYPTION"（高置信） |
+| 0x140749A20 | 常量串 getter: 返回常量串 "NRaids::NUCLEAR_RAID_CATEGORY_NAME"（高置信） |
+| 0x140749AD0 | 常量串 getter: 返回常量串 "NRaids::RAID_TARGET_ITEM_POOL_SIZE"（高置信） |
+| 0x140749AF0 | 常量串 getter: 返回常量串 "NRaids::RAID_UNIT_SPEED_MULTIPLIER"（高置信） |
+| 0x140749980 | 常量串 getter: 返回常量串 "NRaids::ARMY_TRANSFER_AVOID_ENEMY"（高置信） |
+| 0x140749990 | 常量串 getter: 返回常量串 "NRaids::ARMY_TRANSFER_MOVE_SAFELY"（高置信） |
+| 0x1407499A0 | 常量串 getter: 返回常量串 "NRaids::BASE_DAYS_TO_PREPARE"（高置信） |
+
+#### 4.27.21 单调用转发桩结构定案（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141593430 | 转发桩: 转发至 199 ¦ `CRaidSource::CalculateDistance(CRaidTarget*, SDistanceResult&)` — 源→目标距离, 海/陆分路 ¦ 断言 raid_source.cpp:410/:416/:427/:446 (均 B52)（推定） |
+
+#### 4.27.22 突袭族函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140864D10 | define 读取器; 源锚 `raid_defines.h:41`; lua 表 `NGraphics` · define `RAID_ARROW_AIR_HEIGHT`; 存储助手 sub_142070980（float）; 全局槽 dword_143332770 |
+| 0x1408651E0 | define 读取器; 源锚 `raid_defines.h:46`; lua 表 `NGraphics` · define `RAID_ARROW_AIR_MAX_SEGMENT_LENGTH`; 存储助手 sub_142070980（float）; 全局槽 dword_143332C64 |
+| 0x140865A20 | define 读取器; 源锚 `raid_defines.h:45`; lua 表 `NGraphics` · define `RAID_ARROW_AIR_SLOPE_TARGET_LENGTH`; 存储助手 sub_142070980（float）; 全局槽 dword_143332B68 |
+| 0x140865CF0 | define 读取器; 源锚 `raid_defines.h:44`; lua 表 `NGraphics` · define `RAID_ARROW_AIR_SLOPE_TARGET_STEEPNESS`; 存储助手 sub_142070980（float）; 全局槽 dword_143332A44 |
+| 0x140866520 | define 读取器; 源锚 `raid_defines.h:39`; lua 表 `NGraphics` · define `RAID_ARROW_BALLISTIC_MAX_SEGMENT_LENGTH`; 存储助手 sub_142070980（float）; 全局槽 dword_1433325A8 |
+| 0x140866C10 | define 读取器; 源锚 `raid_defines.h:51`; lua 表 `NGraphics` · define `RAID_ARROW_LAND_SUBDIVISIONS`; 存储助手 sub_142070630（int32）; 全局槽 dword_143333040 |
+| 0x1408673B0 | define 读取器; 源锚 `raid_defines.h:48`; lua 表 `NGraphics` · define `RAID_ARROW_NAVAL_SUBDIVISIONS`; 存储助手 sub_142070630（int32）; 全局槽 dword_143332DEC |
+| 0x140867670 | define 读取器; 源锚 `raid_defines.h:50`; lua 表 `NGraphics` · define `RAID_ARROW_NAVAL_USE_MIDPOINTS`; 存储助手 sub_142072840（bool/int8）; 全局槽 byte_143330E6D |
+| 0x140867880 | define 读取器; 源锚 `raid_defines.h:58`; lua 表 `NGraphics` · define `RAID_MAP_ICON_DRAW_DISTANCE_MAX`; 存储助手 sub_142070980（float）; 全局槽 dword_143333520 |
+| 0x140867A90 | define 读取器; 源锚 `raid_defines.h:57`; lua 表 `NGraphics` · define `RAID_MAP_ICON_DRAW_DISTANCE_MIN`; 存储助手 sub_142070980（float）; 全局槽 dword_143333484 |
+| 0x140867CA0 | define 读取器; 源锚 `raid_defines.h:59`; lua 表 `NGraphics` · define `RAID_MAP_ICON_MAX_DRAW_DISTANCE_IN_RAID_MAP_MODE`; 存储助手 sub_142070980（float）; 全局槽 dword_14333… |
+
+#### 4.27.23 突袭族函数补遗（19 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409908D0 | defines 读取器 raid_defines.h 表 NRaids 键 ARMY_TRANSFER_MOVE_SAFELY |
+| 0x140990AE0 | defines 读取器 raid_defines.h 表 NRaids 键 BASE_DAYS_TO_PREPARE |
+| 0x140990DA0 | defines 读取器 raid_defines.h 表 NRaids 键 BASE_NAVAL_COMMANDO_RAID_DISTANCE |
+| 0x140990FB0 | defines 读取器 raid_defines.h 表 NRaids 键 MAX_DETECTED_TARGETS_PER_HOUR |
+| 0x140991270 | defines 读取器 raid_defines.h 表 NRaids 键 MAX_STATE_TARGETS_TO_EVALUATE_PER_HOUR |
+| 0x140991530 | defines 读取器 raid_defines.h 表 NRaids 键 MAX_TARGETS_TO_UPDATE_PER_FRAME |
+| 0x1409917F0 | defines 读取器 raid_defines.h 表 NRaids 键 NUCLEAR_BOMB_MAX_DAMAGE_PERCENT |
+| 0x140991A00 | defines 读取器 raid_defines.h 表 NRaids 键 NUCLEAR_BOMB_MIN_DAMAGE_PERCENT |
+| 0x140991C10 | defines 读取器 raid_defines.h 表 NRaids 键 NUCLEAR_BOMB_PRODUCTION_SCALE |
+| 0x140992030 | defines 读取器 raid_defines.h 表 NRaids 键 RAID_DEFAULT_TARGET_COOLDOWN_DAYS |
+| 0x140993EC0 | defines 读取器 raid_defines.h 表 NRaids 键 RAID_TYPE_ICON_ITEM_POOL_SIZE |
+| 0x140994860 | defines 读取器 raid_defines.h 表 NRaids 键 TARGET_INTEL_FROM_DECRYPTION |
+| 0x140994A70 | defines 读取器 raid_defines.h 表 NRaids 键 TARGET_INTEL_PENALTY_PER_ENEMY_COUNTER_INTEL |
+| 0x140994C80 | defines 读取器 raid_defines.h 表 NRaids 键 TARGET_INTEL_PER_AIRFORCE_INTEL_OVER_COUNTRY |
+| 0x140994E90 | defines 读取器 raid_defines.h 表 NRaids 键 TARGET_INTEL_PER_AIR_SUPERIORITY |
+| 0x1409954C0 | defines 读取器 raid_defines.h 表 NRaids 键 TARGET_INTEL_PER_NAVY_INTEL_OVER_COUNTRY |
+| 0x1409956D0 | defines 读取器 raid_defines.h 表 NRaids 键 TARGET_INTEL_PER_NETWORK_STRENGTH |
+| 0x140995AF0 | defines 读取器 raid_defines.h 表 NRaids 键 THERMONUCLEAR_BOMB_MIN_DAMAGE_PERCENT |
+| 0x140995D00 | defines 读取器 raid_defines.h 表 NRaids 键 THERMONUCLEAR_BOMB_PRODUCTION_SCALE |

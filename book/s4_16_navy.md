@@ -1311,12 +1311,6 @@ sub_14197D770 (a1 = 交火成员侧对象): a1+8 = 父交火对象 / a1+28 = 载
 | 0x140D50E8C | CFleet::[0] vtable 槽 CFleet::[0]（func_names RTTI 名） |
 | 0x140E9EF08 | CStrategicNavy::[0] vtable 槽 CStrategicNavy::[0]（func_names RTTI 名） |
 | 0x140C30D20 | CShip::[7] vtable 槽 CShip::[7]（func_names RTTI 名） |
-
-#### 4.16.32 海军域函数补遗（25 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.16.33 海军域函数补遗（6 函）
 
 | VA | 语义/证据 |
@@ -1327,12 +1321,6 @@ sub_14197D770 (a1 = 交火成员侧对象): a1+8 = 父交火对象 / a1+28 = 载
 | 0x140C3AD50 | CShip::[8] vtable 槽 CShip::[8]（func_names RTTI 名） |
 | 0x140C30C3C | CShip::[0] vtable 槽 CShip::[0]（func_names RTTI 名） |
 | 0x140C30D10 | CShip::[1] vtable 槽 CShip::[1]（func_names RTTI 名） |
-
-#### 4.16.34 海军域函数补遗（6 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.16.35 海军域函数补遗（3 函）
 
 | VA | 语义/证据 |
@@ -1539,3 +1527,715 @@ sub_14197D770 (a1 = 交火成员侧对象): a1+8 = 父交火对象 / a1+28 = 载
 | VA | 语义/证据 |
 |---|---|
 | 0x14158DD60 | 未决窗口函数 · 海上突袭类别 串 "raid_category_" 前缀构造 + stringop |
+
+#### 4.16.48 海军域函数补遗（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419AA1E0 | CPlayerStatusCache::UpdateRaidTypeUnits? / CPlayerStatusCache::UpdateRaidTypeUnits CPlayerStatusCache::UpdateRaidTypeUnits §4.16 海军 |
+| 0x1416205C0 | CNavalCombatant::[30] / CNavalCombatant 槽 30 + NOperativeMission CNavalCombatant 槽 30 + NOperativeMissions::GetState + 矩形缓冲分配 §4.16 海军 |
+| 0x140D7A940 | CTaskForce::[56] / CTaskForce 槽 56 CTaskForce 槽 56 §4.16 海军 |
+| 0x14197C8B0 | 海军对空交战 naval_fire_exchange_air.cpp 路径断言 ×3 |
+| 0x140FB2FC0 | navalmission.cpp 标签 + 主线程断言 |
+| 0x140CE4CF0 | CNavalCombatResultSide::[8] CNavalCombatResultSide 海战结果侧类槽[8] |
+| 0x14198A270 | （无名） 被 CTaskForceComposition::[8] 调用（海军） |
+| 0x141195990 | （无名） 被 CEvolveShipImgui::[0] 调用（海军） |
+| 0x1415C53F0 | CNavalCombat::[18] CNavalCombat::[18]（海军） |
+| 0x140EC1D40 | 无名（证据推断） 类名/模板：CNavalBaseConvoyClient::SClientID |
+| 0x1401414F0 | 无名（证据推断） 类名/模板：Z::_Func_impl_no_alloc 、 NAiNavalGoals::CGoalDatabase 、 NAiNavalGoals: |
+| 0x141620270 | （无名） 被 CNavalCombat::[21] 调用（海军） |
+| 0x14021E850 | 无名（证据推断） 类名/模板：NRaids::NUi 、 NRaids::NUi |
+| 0x14161B5F0 | （无名） 被 CNavalCombatant::[30] 调用（海军） |
+| 0x141D43870 | CShipsOverview::Reload 海军舰船整编/修理队列/舰船总览/海军剧院行/护航舰/突袭（CShipsOverview::Reload） |
+| 0x141F95B00 | CShipEntryDetailed::[1] 名:CShipEntryDetailed::[1] |
+| 0x140D6F220 | CTaskForce::[55] 名:CTaskForce::[55] |
+| 0x141D42FC0 | CShipsOverview::[0] 名:CShipsOverview::[0] |
+| 0x1414D65F0 | CPendingStratNavyTransfer::[4] CPendingStratNavyTransfer::[4] + 域关键词匹配; 被 CPendingStratNavyTransfer::[4] 等 1 命名函数调用 |
+| 0x140C189C0 | CNavyLeader::[20] CNavyLeader::[20] + 域关键词匹配; 被 CNavyLeader::[20] 等 1 命名函数调用 |
+| 0x140E86F10 | CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaidTarget>::[11] CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaidTarget>::[11] + 域关键词匹配; 被调源码 clause… |
+
+#### 4.16.49 海军域函数补遗（34 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140FB5920 | sub_140FB5920 业务 海军支配力描述（HAVING_NAVAL_DOMINANCE_IN_A_REGION / NAVAL_MISSION_*_DOMINANCE_DESC / 布雷清扫加成） |
+| 0x140D69DD0 | sub_140D69DD0 业务 舰队任务活动描述（TASK_FORCE_ACTIVITY_DESC_* + 护航/突袭 convoy 明细，map.cpp） |
+| 0x140E27C80 | （无名） 业务 navaltransfer.cpp:685/702/713 断言 |
+| 0x140B306E0 | （无名） 业务 串 "alert_raid_available_instant"/"alert_raid_available_delayed_header"/"RAID_TYPE" |
+| 0x140C31F30 | （无名） 业务 串 "TASK_FORCE_HAS_FUEL_INEFFICIENT_SHIP_FOR_MISSION"/"MISSION" |
+| 0x141CF00D0 | 业务 gamestate.h:1116 + interlocked 原子操作 + 调 CShieldObject::[87]，夹于 _Func_impl/CTListenerTrait 之间，盾对象（海军防护）状态更新 |
+| 0x141033BD0 | sub_141033BD0 业务 串 NAVAL_INVASION_BLOCKED_STRAIT + RULES |
+| 0x140D5FB10 | 业务 夹于 CFleet::Writer(d=3920) 与 CTaskForce::[0](d=18764)，舰队/特遣舰队族 |
+| 0x140E24BE0 | CNavalAccessibilityManager::Update? 业务 CNavalAccessibilityManager::Update 海军可达性管理器更新 |
+| 0x140E9CAA0 | CStrategicNavyManager::UpdateNavalSupplyHubCache? 业务 CStrategicNavyManager::UpdateNavalSupplyHubCache 海军补给枢纽缓存刷新 |
+| 0x140E2FA80 | 业务 夹于 CNavalUnitTransfer::Writer(d=27456) 与 CPeaceBiddingTurn::[0](d=34272)，海军单位转移/和会叫价族 |
+| 0x14121BE40 | 业务 gamestate.h:1116，夹于 CPdxHybridInlineBufferAllocator<SNodeConnection>::[6](d=3536) 与 CNavalBaseConvoyClient::[17](d=53952)，海军基地 convo 客户族 |
+| 0x1416549F0 | 业务 夹于 CCitySettings::SGroup::Reader(d=4704) 与 CShipCombatReader::[0](d=53520)，城市设置/舰船战斗读取族 |
+| 0x140D6FCB0 | 业务 夹于 CTaskForce::[54](d=688) 与 CTaskForce::[36](d=752)，特遣舰队槽方法族 |
+| 0x140E300A0 | 业务 夹于 CNavalUnitTransfer::Writer(d=29024) 与 CPeaceBiddingTurn::[0](d=32704)，海军单位转移/和会叫价族（与 0x140E2FA80 同簇） |
+| 0x141619D70 | 业务 夹于 start_for::[1](d=432) 与 CNavalCombatant::[0](d=3104)，并行任务/海军战斗者族 |
+| 0x141623130 | 业务 夹于 CNavalCombatant::Writer(d=3088) 与 CNavyLeaderModule::Reader(d=1200)，海军战斗者/海军将领模块族 |
+| 0x141668110 | 业务 "radar" 串 + dword_143331978，夹于 CShipCombatReader::Reader(d=13440) 与 start_for::[0]，舰船战斗读取/雷达族 |
+| 0x140EA85D0 | 业务 夹于 CStrategicNavy::GetEstimatedEnemyConvoysInRegion?(d=10752) 与 CStrategicNavy::[4](d=8736)，战略海军族 |
+| 0x140D4E870 | 业务 Init_thread 静态初始化，夹于 start_for::[1](d=27216) 与 CFleet::[0](d=9756)，并行任务/舰队族 |
+| 0x14221DCE0 | sub_14221DCE0 业务 串：raid_source_list_item_name 、 SOURCE_TYPE 、 raid_source_distance_to_tar |
+| 0x141B73B80 | sub_141B73B80 业务 串：CUnitNavalMoveAction unexpected token in read 、 _pInstance && \ 、 C:\\ |
+| 0x140C31030 | 业务 串 "FOCUS_FOUND"; 串 "FOCUS_FILTERED"; 串 "FOCUS_FOUND_CYCLE" |
+| 0x1409EEE50 | 业务 断言站点 navalmission.cpp:80 ->§4.16; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "_LOADED" |
+| 0x140C43350 | 业务 断言站点 pdx_robin_hood_table.h:79 ->§4.00; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla"; 串 "Invalid rehash requested for CPdxRob" |
+| 0x140D63150 | 业务 类路由 CSetNavyEngagementCommand ->§4.33; 类路由 COccupiedTerritoryStateEntry ->§4.31; 串 "SPEED" |
+| 0x140D4EE80 | 业务 类路由 CSetXORResearchCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 9/21 票 §4.16（同类方法连续排放） |
+| 0x140E1F6A0 | 业务 串 "GFX_mapicon_naval_mission_patrol" ->§4.16; 串 "GFX_mapicon_naval_mission_strike_for"; 串 "GFX_mapicon_naval_mission_convoy_rai" |
+| 0x140D506D0 | 业务 类路由 CSetTaskForceCompositionRequirementsCommand ->§4.33; 类路由 CSunkShipIcon ->§4.31; 串 "NAVY_CONTAINS_PRIDE_OF_FLEET_WITHOUT" |
+| 0x140C3D970 | 业务 断言站点 diplomaticaction.cpp:81; 类路由 CReadyAfterHotJoinCommand ->§4.33; 串 "_Actor.IsValid() == false \ \ _Recipi" |
+| 0x140EA5E80 | 业务 串 "); sub_14055AB90(v5 + 16, a1, "; 串 "); } else { v4 = j_j__mall"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14024E330 | 业务 体串 "Task force fulfillment is now hidden"; 体串 "Task force fulfillment is now shown" |
+| 0x140E9DA30 | 业务 类路由 CEquipmentArcheTypePool ->§4.28; 类路由 NFactions ->§4.25; 类路由 CStateSharedSlotBuildingItem ->§4.31 |
+| 0x141229630 | CNavalBaseConvoyClient::[18] 业务 槽[18] 返回常量 32（海军基地护航客户端的常量型虚方法）；语料 `__CxxQueryExceptionSize` 系错配 |
+
+#### 4.16.50 海军域函数命名空间补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1415C6050 | NNavalCombatHit::SNavalHit::[0] vtable 槽 NNavalCombatHit::SNavalHit::[0]（func_names RTTI 名） |
+| 0x1415C7BE0 | NNavalCombatHit::SNavalHit::Reader func_names 名 NNavalCombatHit::SNavalHit::Reader |
+| 0x1415C7CD0 | NNavalCombatHit::SNavalHit::Writer func_names 名 NNavalCombatHit::SNavalHit::Writer |
+| 0x1415C7C60 | NNavalCombatHit::SAirHit::Writer func_names 名 NNavalCombatHit::SAirHit::Writer |
+
+#### 4.16.51 海军域函数补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CE3B80 | 业务 串 `NAVAL_COMBAT_RESULT_LOSSES`、`NAVAL_COMBAT_RESULT_LOSSES_BY_COUNT`、`WHO`/`NAME`/`WHAT`；gameitemdatabase.h 断言 + scoped_buffer 写门 → 海战战损序列化 |
+| 0x1418FB910 | 业务 串 `CONVOY_ESCORT_EFFICIENCY_IN_REGION`、`CONVOY_ESCORT_MISSION_EFFECTIVENESS`、`CONVOY_ESCORT_PRESENCE_IN_REGION_EXPANDED`、`TOO_MANY_CONVOYS_FOR_CONVOY_ESCO… |
+| 0x140E203C0 | 业务 战略区域/海军可达性容器归并（两有序容器） 同族 strategicregion.cpp:164/327/432/578、CNavalAccessibilityManager::Update? |
+| 0x1418E9520 | 业务 海军总部地图图标构造 CLS CNavalHeadquarterMapIcon + CButtonObserverGlue |
+| 0x140C36460 | 业务 NAVY_XP_BONUS_[HEADER/NONE]/SHIP_LEVEL_%d/EXP_TOOLTIP/EXP_DAILY_GAIN loc 键族 |
+| 0x1417D9CE0 | 业务 naval_combat_results_*_survivor_entry/_air_entry + traits_grid（海军交战结果窗口） |
+| 0x1418FB1A0 | 业务 CONVOY_ESCORT_EFFICIENCY_[CONVOYS_IN_AREA_OF_OPERATION/NO_CONVOY_IN_FLEETS_AOO] + callee @navalmission.cpp:4995 |
+| 0x140E2F130 | 业务 调用图传播: 1/2 被调用者锚点投 4.16 §4.16 海军 |
+| 0x141801D90 | 业务 类名 CPdxHybridInlineBufferAllocator,CPdxHybridInlineBufferAllocator1,CTaskForce → §4.16（投票 1） |
+| 0x141E26CD0 | 业务 类名 CPdxHybridInlineBufferAllocator,CPdxHybridInlineBufferAllocator1,CShip → §4.16（投票 1） |
+| 0x140FADEB0 | 业务 反调用图传播 1.5 权重锚点投 §4.16（top 占比 0.56） |
+| 0x141593C10 | 业务 反向调用图 1/2 调用者投 §4.16 |
+
+#### 4.16.52 常量串 getter 结构定案（414 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140747920 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_EFFECT_ON_POSITIONING_FOR_CONVOY_ESCORT_MAX_RATIO"（高置信） |
+| 0x140748480 | 常量串 getter: 返回常量串 "NNavy::POSITIONING_PENALTY_FOR_SHIPS_JOINED_COMBAT_AFTER_IT_STARTS"（高置信） |
+| 0x140747B40 | 常量串 getter: 返回常量串 "NNavy::INTEL_LEVEL_MEDIUM_STRENGTH_ESTIMATE_HALF_RANGE_PERCENTAGE"（高置信） |
+| 0x140747F90 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SUB_DETECTION_INTERNAL_EFFICIENCY_FACTOR"（高置信） |
+| 0x1407483B0 | 常量串 getter: 返回常量串 "NNavy::NAVY_REPAIR_BASE_SEARCH_SCORE_PER_SHIP_WAITING_EXTRA_SHIP"（高置信） |
+| 0x140748730 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_SPEED_EFFECT_FOR_INITIAL_NAVAL_INVASION_SPOTTING"（高置信） |
+| 0x1407473B0 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING_EFFECT_FOR_INITIAL_NAVAL_INVASION_SPOTTING"（高置信） |
+| 0x140748740 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_SPEED_EFFECT_FOR_INITIAL_UNIT_TRANSFER_SPOTTING"（高置信） |
+| 0x1407473C0 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING_EFFECT_FOR_INITIAL_UNIT_TRANSFER_SPOTTING"（高置信） |
+| 0x140747B00 | 常量串 getter: 返回常量串 "NNavy::INTEL_LEVEL_LOW_STRENGTH_ESTIMATE_HALF_RANGE_PERCENTAGE"（高置信） |
+| 0x140748490 | 常量串 getter: 返回常量串 "NNavy::POSITIONING_PENALTY_HOURLY_DECAY_FOR_NEWLY_JOINED_SHIPS"（高置信） |
+| 0x140747BC0 | 常量串 getter: 返回常量串 "NNavy::MAX_ANTI_AIR_REDUCTION_EFFECT_ON_INCOMING_AIR_DAMAGE"（高置信） |
+| 0x140748810 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_REVEAL_TORPEDO_FIRING_DETECTION_MULTIPLIER"（高置信） |
+| 0x140747590 | 常量串 getter: 返回常量串 "NNavy::COMBAT_DETECTED_CONVOYS_FROM_SURFACE_DETECTION_STAT"（高置信） |
+| 0x140747C10 | 常量串 getter: 返回常量串 "NNavy::MAX_NUM_HOURS_TO_WAIT_AT_ALLY_DOCKYARDS_FOR_REPAIRS"（高置信） |
+| 0x140747C60 | 常量串 getter: 返回常量串 "NNavy::MAX_SHIP_COUNT_FOR_DOMINANCE_PATROL_ROLE_ASSIGNMENT"（高置信） |
+| 0x1407485D0 | 常量串 getter: 返回常量串 "NNavy::SCREENING_EFFICIENCY_PENALTY_ON_MINIMUM_POSITIONING"（高置信） |
+| 0x1407486C0 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_ENEMY_SPOTTING_MULTIPLIER_FOR_RUNNING_AWAY"（高置信） |
+| 0x140748A50 | 常量串 getter: 返回常量串 "NNavy::WAR_SCORE_GAIN_FOR_SUNK_SHIP_PRODUCTION_COST_FACTOR"（高置信） |
+| 0x140747F50 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_STRIKE_TARGETING_TO_SUB_DETECTION"（高置信） |
+| 0x140747910 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_EFFECT_ON_POSITIONING_FOR_CONVOY_ESCORT"（高置信） |
+| 0x140747E50 | 常量串 getter: 返回常量串 "NNavy::NAVAL_ACCIDENT_CRITICAL_HIT_CHANCE_REDUCTION_POTF"（高置信） |
+| 0x140748720 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_SPEED_EFFECT_FOR_INITIAL_CONVOY_SPOTTING"（高置信） |
+| 0x1407473A0 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING_EFFECT_FOR_INITIAL_CONVOY_SPOTTING"（高置信） |
+| 0x1407477B0 | 常量串 getter: 返回常量串 "NNavy::COORDINATION_EFFECT_ON_CONVOY_DEFENSE_EFFICIENCY"（高置信） |
+| 0x140748240 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_SWEEPERS_REDUCTION_ON_PENALTY_EFFECT"（高置信） |
+| 0x1407484D0 | 常量串 getter: 返回常量串 "NNavy::RELATIVE_SURFACE_DETECTION_TO_POSITIONING_FACTOR"（高置信） |
+| 0x140748940 | 常量串 getter: 返回常量串 "NNavy::TRAINING_DAILY_COUNTRY_EXP_MANPOWER_RATIO_FACTOR"（高置信） |
+| 0x140747A60 | 常量串 getter: 返回常量串 "NNavy::HIGHER_CARRIER_RATIO_POSITIONING_PENALTY_FACTOR"（高置信） |
+| 0x140747D80 | 常量串 getter: 返回常量串 "NNavy::MISSION_DAILY_COUNTRY_EXP_MANPOWER_RATIO_FACTOR"（高置信） |
+| 0x140747F40 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_STRIKE_ATTACK_TO_SUB_DETECTION"（高置信） |
+| 0x1407470F0 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_HEAVY_GUN_EFFICIENCY_ON_HEAVY_SHIPS"（高置信） |
+| 0x140747100 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_HEAVY_GUN_EFFICIENCY_ON_LIGHT_SHIPS"（高置信） |
+| 0x140747130 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_LIGHT_GUN_EFFICIENCY_ON_HEAVY_SHIPS"（高置信） |
+| 0x140747140 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_LIGHT_GUN_EFFICIENCY_ON_LIGHT_SHIPS"（高置信） |
+| 0x1407474F0 | 常量串 getter: 返回常量串 "NNavy::CHANCE_TO_DAMAGE_PART_ON_CRITICAL_HIT_FROM_AIR"（高置信） |
+| 0x140747C40 | 常量串 getter: 返回常量串 "NNavy::MAX_POSITIONING_PENALTY_FOR_NEWLY_JOINED_SHIPS"（高置信） |
+| 0x140747C50 | 常量串 getter: 返回常量串 "NNavy::MAX_POSITIONING_PENALTY_FROM_HIGHER_SHIP_RATIO"（高置信） |
+| 0x140747F70 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SUB_DETECTION_EXTERNAL_FACTOR"（高置信） |
+| 0x140748100 | 常量串 getter: 返回常量串 "NNavy::NAVAL_DOMINANCE_STRIKE_FORCE_MULTIREGION_DECAY"（高置信） |
+| 0x1407481D0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_ACCIDENT_CRITICAL_HIT_DAMAGE_SCALE"（高置信） |
+| 0x140748390 | 常量串 getter: 返回常量串 "NNavy::NAVY_REPAIR_BASE_SEARCH_BOOST_FOR_SAME_COUNTRY"（高置信） |
+| 0x140748470 | 常量串 getter: 返回常量串 "NNavy::PEACE_ACTION_TRANSFER_NAVY_EXPERIENCE_RETAINED"（高置信） |
+| 0x1407484A0 | 常量串 getter: 返回常量串 "NNavy::PRIDE_OF_THE_FLEET_LOST_TEMP_MODIFIER_DURATION"（高置信） |
+| 0x140747110 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_LEVEL_BY_MISSION_STRONGER_OR_EQUAL"（高置信） |
+| 0x140747480 | 常量串 getter: 返回常量串 "NNavy::CAPITAL_RATIO_FOR_FULL_SCREENING_FOR_CARRIERS"（高置信） |
+| 0x1407477C0 | 常量串 getter: 返回常量串 "NNavy::COORDINATION_EFFECT_ON_CONVOY_RAID_EFFICIENCY"（高置信） |
+| 0x140747D30 | 常量串 getter: 返回常量串 "NNavy::MIN_SHIP_COUNT_FOR_TASK_FORCE_ROLE_ASSIGNMENT"（高置信） |
+| 0x140747F00 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_PLANE_COUNT_TO_SUB_DETECTION"（高置信） |
+| 0x140748840 | 常量串 getter: 返回常量串 "NNavy::SUB_DETECTION_CHANCE_BASE_SPOTTING_POW_EFFECT"（高置信） |
+| 0x140747090 | 常量串 getter: 返回常量串 "NNavy::AA_EFFICIENCY_PENALTY_ON_MINIMUM_POSITIONING"（高置信） |
+| 0x140747180 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_TORPEDO_EFFICIENCY_ON_HEAVY_SHIPS"（高置信） |
+| 0x140747190 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_TORPEDO_EFFICIENCY_ON_LIGHT_SHIPS"（高置信） |
+| 0x140747490 | 常量串 getter: 返回常量串 "NNavy::CAPITAL_RATIO_FOR_FULL_SCREENING_FOR_CONVOYS"（高置信） |
+| 0x1407476B0 | 常量串 getter: 返回常量串 "NNavy::CONVOY_DEFENSE_MAX_REGION_TO_TASKFORCE_RATIO"（高置信） |
+| 0x140747790 | 常量串 getter: 返回常量串 "NNavy::CONVOY_SPOTTING_COOLDOWN_MIN_FROM_EFFICIENCY"（高置信） |
+| 0x140747A70 | 常量串 getter: 返回常量串 "NNavy::HIGHER_SHIP_RATIO_POSITIONING_PENALTY_FACTOR"（高置信） |
+| 0x140747BE0 | 常量串 getter: 返回常量串 "NNavy::MAX_CARRIER_RATIO_POSITIONING_PENALTY_FACTOR"（高置信） |
+| 0x140747C30 | 常量串 getter: 返回常量串 "NNavy::MAX_POSITIONING_BONUS_FROM_SURFACE_DETECTION"（高置信） |
+| 0x140748090 | 常量串 getter: 返回常量串 "NNavy::NAVAL_DOMINANCE_CHANCE_OF_ACCIDENT_REDUCTION"（高置信） |
+| 0x140748290 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MISSION_AI_CONVOY_NORMALIZATION_TARGET"（高置信） |
+| 0x1407485F0 | 常量串 getter: 返回常量串 "NNavy::SCREEN_RATIO_FOR_FULL_SCREENING_FOR_CAPITALS"（高置信） |
+| 0x140748860 | 常量串 getter: 返回常量串 "NNavy::SUB_DETECTION_STAT_FOR_SHIP_TO_BE_SUB_HUNTER"（高置信） |
+| 0x1407488A0 | 常量串 getter: 返回常量串 "NNavy::SURFACE_DETECTION_STAT_FOR_SHIP_TO_BE_PATROL"（高置信） |
+| 0x140748950 | 常量串 getter: 返回常量串 "NNavy::TRAINING_DAILY_COUNTRY_EXP_SHIP_RATIO_FACTOR"（高置信） |
+| 0x140748A40 | 常量串 getter: 返回常量串 "NNavy::WAR_SCORE_GAIN_FOR_SUNK_SHIP_MANPOWER_FACTOR"（高置信） |
+| 0x140747890 | 常量串 getter: 返回常量串 "NNavy::DEPTH_CHARGE_STAT_FOR_SHIP_TO_BE_SUB_HUNTER"（高置信） |
+| 0x1407478A0 | 常量串 getter: 返回常量串 "NNavy::DETECTION_CHANCE_MULT_AIR_SUPERIORITY_BONUS"（高置信） |
+| 0x140747CD0 | 常量串 getter: 返回常量串 "NNavy::MIN_HOURS_TO_SHUFFLE_NEWLY_ASSIGNED_PATROLS"（高置信） |
+| 0x140747D90 | 常量串 getter: 返回常量串 "NNavy::MISSION_DAILY_COUNTRY_EXP_SHIP_RATIO_FACTOR"（高置信） |
+| 0x140747EF0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_MAX_SPEED_TO_SUB_DETECTION"（高置信） |
+| 0x1407483A0 | 常量串 getter: 返回常量串 "NNavy::NAVY_REPAIR_BASE_SEARCH_NON_OPERATIONAL_STR"（高置信） |
+| 0x140748600 | 常量串 getter: 返回常量串 "NNavy::SCREEN_RATIO_FOR_FULL_SCREENING_FOR_CONVOYS"（高置信） |
+| 0x1407486E0 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_MISSION_DETECTION_THRESHOLD_MEDIUM"（高置信） |
+| 0x1407488E0 | 常量串 getter: 返回常量串 "NNavy::TRAINING_ACCIDENT_CRITICAL_HIT_DAMAGE_SCALE"（高置信） |
+| 0x1407489B0 | 常量串 getter: 返回常量串 "NNavy::UNDERWAY_REPLENISHMENT_CONVOY_COST_PER_FUEL"（高置信） |
+| 0x140747240 | 常量串 getter: 返回常量串 "NNavy::AMPHIBIOUS_INVADE_LANDING_PENALTY_DECREASE"（高置信） |
+| 0x140747800 | 常量串 getter: 返回常量串 "NNavy::COORDINATION_EFFECT_ON_MINE_SWEEPING_SPEED"（高置信） |
+| 0x140747820 | 常量串 getter: 返回常量串 "NNavy::COORDINATION_EFFECT_ON_TIME_TO_JOIN_COMBAT"（高置信） |
+| 0x140747AC0 | 常量串 getter: 返回常量串 "NNavy::INITIAL_ALLOWED_DOCKYARD_RATIO_FOR_REPAIRS"（高置信） |
+| 0x140747B10 | 常量串 getter: 返回常量串 "NNavy::INTEL_LEVEL_MEDIUM_HALF_RANGE_MIN_CAPITALS"（高置信） |
+| 0x140747CF0 | 常量串 getter: 返回常量串 "NNavy::MIN_MINE_CAPABLE_RATIO_FOR_ROLE_ASSIGNMENT"（高置信） |
+| 0x140748030 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_PLANE_STACKING_PENALTY_EFFECT"（高置信） |
+| 0x140748160 | 常量串 getter: 返回常量串 "NNavy::NAVAL_HOMEBASE_CALCULATION_DISTANCE_CUTOFF"（高置信） |
+| 0x1407483E0 | 常量串 getter: 返回常量串 "NNavy::NAVY_VISIBILITY_BONUS_ON_RETURN_FOR_REPAIR"（高置信） |
+| 0x140748850 | 常量串 getter: 返回常量串 "NNavy::SUB_DETECTION_CHANCE_SPOTTING_SPEED_EFFECT"（高置信） |
+| 0x140748890 | 常量串 getter: 返回常量串 "NNavy::SUPPORT_SHIP_RECOVERY_BASE_STRENGTH_FACTOR"（高置信） |
+| 0x140748930 | 常量串 getter: 返回常量串 "NNavy::TRAINING_DAILY_COUNTRY_EXP_MANPOWER_FACTOR"（高置信） |
+| 0x1407475B0 | 常量串 getter: 返回常量串 "NNavy::COMBAT_EVASION_TO_HIT_CHANCE_TORPEDO_MULT"（高置信） |
+| 0x140747690 | 常量串 getter: 返回常量串 "NNavy::CONVOY_BLOCKED_BY_ENEMY_CONTROLLED_REGION"（高置信） |
+| 0x140747730 | 常量串 getter: 返回常量串 "NNavy::CONVOY_RAID_MAX_REGION_TO_TASKFORCE_RATIO"（高置信） |
+| 0x140747980 | 常量串 getter: 返回常量串 "NNavy::EFFICIENCY_TO_TIME_TO_JOIN_COMBAT_PENALTY"（高置信） |
+| 0x140747D70 | 常量串 getter: 返回常量串 "NNavy::MISSION_DAILY_COUNTRY_EXP_MANPOWER_FACTOR"（高置信） |
+| 0x140747E70 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_AGILITY_TO_SUB_DETECTION"（高置信） |
+| 0x140747F60 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SUB_DETECTION_DECAY_RATE"（高置信） |
+| 0x140748130 | 常量串 getter: 返回常量串 "NNavy::NAVAL_HEADQUARTERS_SECOND_ADJACENT_FACTOR"（高置信） |
+| 0x1407481C0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_ACCIDENT_CRITICAL_HIT_CHANCES"（高置信） |
+| 0x140748830 | 常量串 getter: 返回常量串 "NNavy::SUB_DETECTION_CHANCE_BASE_SPOTTING_EFFECT"（高置信） |
+| 0x1407471E0 | 常量串 getter: 返回常量串 "NNavy::AI_MAX_TASKFORCES_PER_TRAINING_OBJECTIVE"（高置信） |
+| 0x1407477D0 | 常量串 getter: 返回常量串 "NNavy::COORDINATION_EFFECT_ON_MINE_LAYING_SPEED"（高置信） |
+| 0x140747B30 | 常量串 getter: 返回常量串 "NNavy::INTEL_LEVEL_MEDIUM_HALF_RANGE_PERCENTAGE"（高置信） |
+| 0x140748120 | 常量串 getter: 返回常量串 "NNavy::NAVAL_HEADQUARTERS_FIRST_ADJACENT_FACTOR"（高置信） |
+| 0x1407482A0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MISSION_AI_RANGE_THRESHOLD_EPSILON"（高置信） |
+| 0x140748370 | 常量串 getter: 返回常量串 "NNavy::NAVY_REPAIR_BASE_PRIORITY_THRESHOLD_HIGH"（高置信） |
+| 0x1407486D0 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_MISSION_DETECTION_THRESHOLD_LOW"（高置信） |
+| 0x140747620 | 常量串 getter: 返回常量串 "NNavy::COMBAT_ON_THE_WAY_INIT_DISTANCE_BALANCE"（高置信） |
+| 0x1407476A0 | 常量串 getter: 返回常量串 "NNavy::CONVOY_DEFENSE_MAX_CONVOY_TO_SHIP_RATIO"（高置信） |
+| 0x140747940 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_PER_SHIP_PER_HEAVY_GUN_ATTACK"（高置信） |
+| 0x140747970 | 常量串 getter: 返回常量串 "NNavy::EFFICIENCY_TO_JOIN_COMBAT_RATIO_PENALTY"（高置信） |
+| 0x140747AD0 | 常量串 getter: 返回常量串 "NNavy::INTEL_LEVEL_LOW_HALF_RANGE_MIN_CAPITALS"（高置信） |
+| 0x140747B20 | 常量串 getter: 返回常量串 "NNavy::INTEL_LEVEL_MEDIUM_HALF_RANGE_MIN_SHIPS"（高置信） |
+| 0x140747C80 | 常量串 getter: 返回常量串 "NNavy::MINE_PLANTING_REGION_TO_TASKFORCE_RATIO"（高置信） |
+| 0x140747C90 | 常量串 getter: 返回常量串 "NNavy::MINE_SWEEPING_REGION_TO_TASKFORCE_RATIO"（高置信） |
+| 0x140747D20 | 常量串 getter: 返回常量串 "NNavy::MIN_SHIPS_FOR_HIGHER_SHIP_RATIO_PENALTY"（高置信） |
+| 0x140747E40 | 常量串 getter: 返回常量串 "NNavy::NAVAL_ACCIDENT_CHANCE_REDUCTION_ON_POTF"（高置信） |
+| 0x140748020 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_PLANE_MIN_STACKING_PENALTY"（高置信） |
+| 0x140748350 | 常量串 getter: 返回常量串 "NNavy::NAVY_PIERCING_THRESHOLD_CRITICAL_VALUES"（高置信） |
+| 0x140748380 | 常量串 getter: 返回常量串 "NNavy::NAVY_REPAIR_BASE_PRIORITY_THRESHOLD_LOW"（高置信） |
+| 0x1407487F0 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_REVEAL_ON_MINIMUM_POSITIONING"（高置信） |
+| 0x1407470D0 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_ARMOR_EFFICIENCY_MULTIPLIER"（高置信） |
+| 0x1407474B0 | 常量串 getter: 返回常量串 "NNavy::CARRIER_OFFENSIVE_STANCE_DEFAULT_INDEX"（高置信） |
+| 0x140747510 | 常量串 getter: 返回常量串 "NNavy::COMBAT_ARMOR_PIERCING_DAMAGE_REDUCTION"（高置信） |
+| 0x1407475D0 | 常量串 getter: 返回常量串 "NNavy::COMBAT_LOW_MANPOWER_HIT_CHANCE_PENALTY"（高置信） |
+| 0x140747810 | 常量串 getter: 返回常量串 "NNavy::COORDINATION_EFFECT_ON_PATROL_SPOTTING"（高置信） |
+| 0x140747B80 | 常量串 getter: 返回常量串 "NNavy::LOW_ORG_FACTOR_ON_JOIN_COMBAT_DURATION"（高置信） |
+| 0x140747F30 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_STRENGTH_TARGET_SCORE"（高置信） |
+| 0x1407483C0 | 常量串 getter: 返回常量串 "NNavy::NAVY_REPAIR_BASE_SEARCH_SCORE_PER_SLOT"（高置信） |
+| 0x140748660 | 常量串 getter: 返回常量串 "NNavy::SHIP_SILHOUETTE_VALUE_PLANES_SUBMARINE"（高置信） |
+| 0x1407488D0 | 常量串 getter: 返回常量串 "NNavy::TRAINING_ACCIDENT_CRITICAL_HIT_CHANCES"（高置信） |
+| 0x140748910 | 常量串 getter: 返回常量串 "NNavy::TRAINING_ACCIDENT_STRENGTH_LOSS_FACTOR"（高置信） |
+| 0x1407474C0 | 常量串 getter: 返回常量串 "NNavy::CARRIER_OFFENSIVE_STANCE_SORTIE_RATIO"（高置信） |
+| 0x1407474E0 | 常量串 getter: 返回常量串 "NNavy::CHANCE_TO_DAMAGE_PART_ON_CRITICAL_HIT"（高置信） |
+| 0x140747840 | 常量串 getter: 返回常量串 "NNavy::DAMAGE_PENALTY_ON_MINIMUM_POSITIONING"（高置信） |
+| 0x140747A50 | 常量串 getter: 返回常量串 "NNavy::HEAVY_GUN_ATTACK_TO_SHORE_BOMBARDMENT"（高置信） |
+| 0x140747AF0 | 常量串 getter: 返回常量串 "NNavy::INTEL_LEVEL_LOW_HALF_RANGE_PERCENTAGE"（高置信） |
+| 0x140747B70 | 常量串 getter: 返回常量串 "NNavy::LIGHT_GUN_ATTACK_TO_SHORE_BOMBARDMENT"（高置信） |
+| 0x140747BF0 | 常量串 getter: 返回常量串 "NNavy::MAX_ESCAPE_SPEED_FROM_COMBAT_DURATION"（高置信） |
+| 0x140747E90 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_CAPITAL_TARGET_SCALE"（高置信） |
+| 0x140747EB0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_CARRIER_TARGET_SCALE"（高置信） |
+| 0x140747F80 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SUB_DETECTION_FACTOR"（高置信） |
+| 0x1407480F0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_DOMINANCE_STRIKE_FORCE_FRACTION"（高置信） |
+| 0x140748360 | 常量串 getter: 返回常量串 "NNavy::NAVY_PIERCING_THRESHOLD_DAMAGE_VALUES"（高置信） |
+| 0x140748420 | 常量串 getter: 返回常量串 "NNavy::ORG_COST_WHILE_MOVING_IN_MISSION_ZONE"（高置信） |
+| 0x140748500 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_AMOUNT_SHIPS_MEDIUM"（高置信） |
+| 0x140748770 | 常量串 getter: 返回常量串 "NNavy::STRIKE_FORCE_ON_BASE_FUEL_COST_FACTOR"（高置信） |
+| 0x1407487E0 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_REVEAL_DETECTION_MULTIPLIER"（高置信） |
+| 0x140747290 | 常量串 getter: 返回常量串 "NNavy::ANTI_AIR_MULT_ON_INCOMING_AIR_DAMAGE"（高置信） |
+| 0x140747500 | 常量串 getter: 返回常量串 "NNavy::COMBAT_ARMOR_PIERCING_CRITICAL_BONUS"（高置信） |
+| 0x1407477E0 | 常量串 getter: 返回常量串 "NNavy::COORDINATION_EFFECT_ON_MINE_PLANTING"（高置信） |
+| 0x1407477F0 | 常量串 getter: 返回常量串 "NNavy::COORDINATION_EFFECT_ON_MINE_SWEEPING"（高置信） |
+| 0x1407478E0 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_CONTROLLED_THRESHOLD_RATIO"（高置信） |
+| 0x140747950 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_PER_SHIP_PER_RANGE_NEUTRAL"（高置信） |
+| 0x140747960 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_PER_SHIP_PER_SPEED_NEUTRAL"（高置信） |
+| 0x140747AE0 | 常量串 getter: 返回常量串 "NNavy::INTEL_LEVEL_LOW_HALF_RANGE_MIN_SHIPS"（高置信） |
+| 0x140747E80 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_CAPITAL_TARGET_BASE"（高置信） |
+| 0x140747EA0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_CARRIER_TARGET_BASE"（高置信） |
+| 0x140747ED0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_CONVOY_TARGET_SCALE"（高置信） |
+| 0x140747EE0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_LOW_AA_TARGET_SCORE"（高置信） |
+| 0x140747F20 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SCREEN_TARGET_SCALE"（高置信） |
+| 0x140747FB0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SUB_DETECTION_SLOPE"（高置信） |
+| 0x1407480A0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_DOMINANCE_MINES_PLANTING_BONUS"（高置信） |
+| 0x1407480B0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_DOMINANCE_MINES_SWEEPING_BONUS"（高置信） |
+| 0x1407480D0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_DOMINANCE_SHIP_RECOVERY_CHANCE"（高置信） |
+| 0x140748150 | 常量串 getter: 返回常量串 "NNavy::NAVAL_HOMEBASE_BUILDING_SCORE_FACTOR"（高置信） |
+| 0x1407481E0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_ACCIDENT_ORG_LOSS_FACTOR"（高置信） |
+| 0x140748560 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_PRIO_MEDIUM_COMBAT"（高置信） |
+| 0x140748620 | 常量串 getter: 返回常量串 "NNavy::SHIP_SILHOUETTE_VALUE_PLANES_CAPITAL"（高置信） |
+| 0x140748630 | 常量串 getter: 返回常量串 "NNavy::SHIP_SILHOUETTE_VALUE_PLANES_CARRIER"（高置信） |
+| 0x140748670 | 常量串 getter: 返回常量串 "NNavy::SHIP_SILHOUETTE_VALUE_PLANES_SUPPORT"（高置信） |
+| 0x140748760 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_SPEED_MULT_FOR_RUNNING_AWAY"（高置信） |
+| 0x140748790 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_BASE_TORPEDO_REVEAL_CHANCE"（高置信） |
+| 0x1407471D0 | 常量串 getter: 返回常量串 "NNavy::AIR_SPOTTER_NORMALIZED_AIRWING_SIZE"（高置信） |
+| 0x1407472A0 | 常量串 getter: 返回常量串 "NNavy::ANTI_AIR_POW_ON_INCOMING_AIR_DAMAGE"（高置信） |
+| 0x140747670 | 常量串 getter: 返回常量串 "NNavy::COMBAT_TORPEDO_CRITICAL_DAMAGE_MULT"（高置信） |
+| 0x1407476F0 | 常量串 getter: 返回常量串 "NNavy::CONVOY_EFFICIENCY_REGAIN_AFTER_DAYS"（高置信） |
+| 0x140747700 | 常量串 getter: 返回常量串 "NNavy::CONVOY_EFFICIENCY_REGAIN_BASE_SPEED"（高置信） |
+| 0x140747930 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_PER_SHIP_PER_CARRIER_SIZE"（高置信） |
+| 0x140747BB0 | 常量串 getter: 返回常量串 "NNavy::MAX_ADMIRAL_HEADQUARTER_ASSIGNMENTS"（高置信） |
+| 0x140747EC0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_CONVOY_TARGET_BASE"（高置信） |
+| 0x140747F10 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SCREEN_TARGET_BASE"（高置信） |
+| 0x140748000 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_MEDAL_LAST_MEDAL_LIMIT"（高置信） |
+| 0x140748110 | 常量串 getter: 返回常量串 "NNavy::NAVAL_HEADQUARTERS_EXPERIENCE_SCALE"（高置信） |
+| 0x1407482E0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_TRANSFER_BASE_NAVAL_DIST_MULT"（高置信） |
+| 0x1407484E0 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_AMOUNT_SHIPS_HIGH"（高置信） |
+| 0x140748640 | 常量串 getter: 返回常量串 "NNavy::SHIP_SILHOUETTE_VALUE_PLANES_CONVOY"（高置信） |
+| 0x140748650 | 常量串 getter: 返回常量串 "NNavy::SHIP_SILHOUETTE_VALUE_PLANES_SCREEN"（高置信） |
+| 0x140748750 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_SPEED_MULT_FOR_CATCHING_UP"（高置信） |
+| 0x140748970 | 常量串 getter: 返回常量串 "NNavy::TRAINING_FUEL_COST_FOR_ESCORT_SHIPS"（高置信） |
+| 0x1407489D0 | 常量串 getter: 返回常量串 "NNavy::UNDERWAY_REPLENISHMENT_RANGE_FACTOR"（高置信） |
+| 0x140748A00 | 常量串 getter: 返回常量串 "NNavy::UNIT_TRANSFER_DETECTION_CHANCE_BASE"（高置信） |
+| 0x140747120 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_LEVEL_BY_MISSION_WEAKER"（高置信） |
+| 0x140747370 | 常量串 getter: 返回常量串 "NNavy::BASE_NAVAL_INVASION_SPOTTING_SPEED"（高置信） |
+| 0x140747630 | 常量串 getter: 返回常量串 "NNavy::COMBAT_RESULT_PRIORITY_DAY_TO_LIVE"（高置信） |
+| 0x140747720 | 常量串 getter: 返回常量串 "NNavy::CONVOY_LOSS_HISTORY_TIMEOUT_MONTHS"（高置信） |
+| 0x1407479E0 | 常量串 getter: 返回常量串 "NNavy::EXPERIENCE_FACTOR_NON_CARRIER_GAIN"（高置信） |
+| 0x140747C70 | 常量串 getter: 返回常量串 "NNavy::MAX_SUBMARINES_PER_AUTO_TASK_FORCE"（高置信） |
+| 0x140747FA0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SUB_DETECTION_MAX"（高置信） |
+| 0x1407481B0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_INVASION_SPOTTING_SPEED_MULT"（高置信） |
+| 0x1407481F0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_ACCIDENT_STRENGTH_LOSS"（高置信） |
+| 0x1407482D0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_TRANSFER_BASE_NAVAL_DIST_ADD"（高置信） |
+| 0x1407484F0 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_AMOUNT_SHIPS_LOW"（高置信） |
+| 0x140748520 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_PRIO_HIGH_COMBAT"（高置信） |
+| 0x140748A20 | 常量串 getter: 返回常量串 "NNavy::VISIBILITY_MULTIPLIER_FOR_SPOTTING"（高置信） |
+| 0x1407470E0 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_CONVOY_STRENGTH_FACTOR"（高置信） |
+| 0x140747420 | 常量串 getter: 返回常量串 "NNavy::BASE_UNIT_TRANSFER_SPOTTING_SPEED"（高置信） |
+| 0x140747470 | 常量串 getter: 返回常量串 "NNavy::CAPITAL_ONLY_COMBAT_ACTIVATE_TIME"（高置信） |
+| 0x1407474D0 | 常量串 getter: 返回常量串 "NNavy::CARRIER_ONLY_COMBAT_ACTIVATE_TIME"（高置信） |
+| 0x1407475E0 | 常量串 getter: 返回常量串 "NNavy::COMBAT_LOW_ORG_HIT_CHANCE_PENALTY"（高置信） |
+| 0x140747640 | 常量串 getter: 返回常量串 "NNavy::COMBAT_RESULT_PRIORITY_THRESHOLDS"（高置信） |
+| 0x1407478C0 | 常量串 getter: 返回常量串 "NNavy::DETECTION_CHANCE_MULT_RADAR_BONUS"（高置信） |
+| 0x140747FD0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SUB_TARGET_SCALE"（高置信） |
+| 0x140748040 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_RESULT_TIMEOUT_YEARS"（高置信） |
+| 0x140748050 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_SUB_DETECTION_FACTOR"（高置信） |
+| 0x140748540 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_PRIO_LOW_COMBAT"（高置信） |
+| 0x1407488F0 | 常量串 getter: 返回常量串 "NNavy::TRAINING_ACCIDENT_ORG_LOSS_FACTOR"（高置信） |
+| 0x140748920 | 常量串 getter: 返回常量串 "NNavy::TRAINING_DAILY_COUNTRY_EXP_FACTOR"（高置信） |
+| 0x140748A10 | 常量串 getter: 返回常量串 "NNavy::UNIT_TRANSFER_SPOTTING_SPEED_MULT"（高置信） |
+| 0x140747360 | 常量串 getter: 返回常量串 "NNavy::BASE_NAVAL_INVASION_DIVISION_CAP"（高置信） |
+| 0x1407474A0 | 常量串 getter: 返回常量串 "NNavy::CAPITAL_SHIP_COMBAT_RETREAT_MULT"（高置信） |
+| 0x140747BD0 | 常量串 getter: 返回常量串 "NNavy::MAX_CAPITALS_PER_AUTO_TASK_FORCE"（高置信） |
+| 0x140747D60 | 常量串 getter: 返回常量串 "NNavy::MISSION_DAILY_COUNTRY_EXP_FACTOR"（高置信） |
+| 0x140747FC0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_AIR_SUB_TARGET_BASE"（高置信） |
+| 0x1407484B0 | 常量串 getter: 返回常量串 "NNavy::PRIDE_OF_THE_FLEET_UNASSIGN_COST"（高置信） |
+| 0x140748570 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_UNIT_DYING_STR"（高置信） |
+| 0x1407470A0 | 常量串 getter: 返回常量串 "NNavy::ACCIDENTS_CHANCE_BALANCE_FACTOR"（高置信） |
+| 0x1407470C0 | 常量串 getter: 返回常量串 "NNavy::AGGRESION_MULTIPLIER_FOR_COMBAT"（高置信） |
+| 0x140747150 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_MAX_ARMOR_EFFICIENCY"（高置信） |
+| 0x140747160 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_MIN_ARMOR_EFFICIENCY"（高置信） |
+| 0x140747250 | 常量串 getter: 返回常量串 "NNavy::AMPHIBIOUS_INVADE_MOVEMENT_COST"（高置信） |
+| 0x1407476D0 | 常量串 getter: 返回常量串 "NNavy::CONVOY_EFFICIENCY_LOSS_MODIFIER"（高置信） |
+| 0x1407479D0 | 常量串 getter: 返回常量串 "NNavy::EXPERIENCE_FACTOR_CONVOY_ATTACK"（高置信） |
+| 0x140747B90 | 常量串 getter: 返回常量串 "NNavy::MANPOWER_LOSS_RATIO_ON_STR_LOSS"（高置信） |
+| 0x140747D50 | 常量串 getter: 返回常量串 "NNavy::MIN_TRACTED_ASSIST_DAMAGE_RATIO"（高置信） |
+| 0x140747DA0 | 常量串 getter: 返回常量串 "NNavy::MISSION_DAILY_EXP_GAIN_PER_SHIP"（高置信） |
+| 0x140747FE0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_MEDAL_ALLOW_CONVOY"（高置信） |
+| 0x140748010 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_MEDAL_MIN_DURATION"（高置信） |
+| 0x140748070 | 常量串 getter: 返回常量串 "NNavy::NAVAL_CONVOY_DANGER_TRIGGER_MAX"（高置信） |
+| 0x140748080 | 常量串 getter: 返回常量串 "NNavy::NAVAL_CONVOY_DANGER_TRIGGER_MIN"（高置信） |
+| 0x140748200 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_DECAY_AT_PEACE_TIME"（高置信） |
+| 0x140748230 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_PLANTING_SPEED_MULT"（高置信） |
+| 0x140748250 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_SWEEPING_SPEED_MULT"（高置信） |
+| 0x140748300 | 常量串 getter: 返回常量串 "NNavy::NAVAL_TRANSFER_DAMAGE_REDUCTION"（高置信） |
+| 0x140748710 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_MULTIPLIER_FOR_SURFACE"（高置信） |
+| 0x140748900 | 常量串 getter: 返回常量串 "NNavy::TRAINING_ACCIDENT_STRENGTH_LOSS"（高置信） |
+| 0x1407489C0 | 常量串 getter: 返回常量串 "NNavy::UNDERWAY_REPLENISHMENT_PRIORITY"（高置信） |
+| 0x1407489E0 | 常量串 getter: 返回常量串 "NNavy::UNIT_EXPERIENCE_PER_COMBAT_HOUR"（高置信） |
+| 0x140747310 | 常量串 getter: 返回常量串 "NNavy::BASE_CARRIER_SORTIE_EFFICIENCY"（高置信） |
+| 0x140747450 | 常量串 getter: 返回常量串 "NNavy::BEST_CAPITALS_TO_CARRIER_RATIO"（高置信） |
+| 0x140747460 | 常量串 getter: 返回常量串 "NNavy::BEST_CAPITALS_TO_SCREENS_RATIO"（高置信） |
+| 0x140747540 | 常量串 getter: 返回常量串 "NNavy::COMBAT_CHASE_RESIGNATION_HOURS"（高置信） |
+| 0x140747650 | 常量串 getter: 返回常量串 "NNavy::COMBAT_RETREAT_DECISION_CHANCE"（高置信） |
+| 0x140747660 | 常量串 getter: 返回常量串 "NNavy::COMBAT_TORPEDO_CRITICAL_CHANCE"（高置信） |
+| 0x140747740 | 常量串 getter: 返回常量串 "NNavy::CONVOY_ROUTE_SIZE_CONVOY_SCALE"（高置信） |
+| 0x1407479C0 | 常量串 getter: 返回常量串 "NNavy::EXPERIENCE_FACTOR_CARRIER_GAIN"（高置信） |
+| 0x140747D10 | 常量串 getter: 返回常量串 "NNavy::MIN_REPAIR_FOR_JOINING_COMBATS"（高置信） |
+| 0x140747E00 | 常量串 getter: 返回常量串 "NNavy::MISSION_FUEL_COSTS_PRIO_FACTOR"（高置信） |
+| 0x1407480E0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_DOMINANCE_SPOTTING_BONUS"（高置信） |
+| 0x140748170 | 常量串 getter: 返回常量串 "NNavy::NAVAL_HOMEBASE_OWNERSHIP_BONUS"（高置信） |
+| 0x1407482B0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_RANGE_TO_INGAME_DISTANCE"（高置信） |
+| 0x140748980 | 常量串 getter: 返回常量串 "NNavy::TRAINING_MAX_DAILY_COUNTRY_EXP"（高置信） |
+| 0x140748A30 | 常量串 getter: 返回常量串 "NNavy::WAR_SCORE_GAIN_FOR_SUNK_CONVOY"（高置信） |
+| 0x140747200 | 常量串 getter: 返回常量串 "NNavy::AMPHIBIOUS_INVADE_ATTACK_HIGH"（高置信） |
+| 0x140747220 | 常量串 getter: 返回常量串 "NNavy::AMPHIBIOUS_INVADE_DEFEND_HIGH"（高置信） |
+| 0x1407472C0 | 常量串 getter: 返回常量串 "NNavy::ANTI_AIR_TARGETTING_TO_CHANCE"（高置信） |
+| 0x140747300 | 常量串 getter: 返回常量串 "NNavy::ATTRITION_WHILE_MOVING_FACTOR"（高置信） |
+| 0x1407473E0 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING_FROM_DECRYPTION"（高置信） |
+| 0x140747870 | 常量串 getter: 返回常量串 "NNavy::DEPTH_CHARGES_HIT_CHANCE_MULT"（高置信） |
+| 0x140747DD0 | 常量串 getter: 返回常量串 "NNavy::MISSION_EFFICIENCY_POW_FACTOR"（高置信） |
+| 0x140748210 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_INTEL_DIFF_FACTOR"（高置信） |
+| 0x140748270 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINE_DANGER_TRIGGER_MAX"（高置信） |
+| 0x140748280 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINE_DANGER_TRIGGER_MIN"（高置信） |
+| 0x1407483D0 | 常量串 getter: 返回常量串 "NNavy::NAVY_SPOTTER_DETECTION_FACTOR"（高置信） |
+| 0x1407483F0 | 常量串 getter: 返回常量串 "NNavy::NEW_NAVY_LEADER_LEVEL_CHANCES"（高置信） |
+| 0x140748550 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_PRIO_MEDIUM"（高置信） |
+| 0x1407486F0 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_MOD_FOR_CONVOY_COUNT"（高置信） |
+| 0x1407471B0 | 常量串 getter: 返回常量串 "NNavy::AIR_MISSION_SPOTTING_FACTORS"（高置信） |
+| 0x1407471C0 | 常量串 getter: 返回常量串 "NNavy::AIR_SPOTTER_DETECTION_FACTOR"（高置信） |
+| 0x140747210 | 常量串 getter: 返回常量串 "NNavy::AMPHIBIOUS_INVADE_ATTACK_LOW"（高置信） |
+| 0x140747230 | 常量串 getter: 返回常量串 "NNavy::AMPHIBIOUS_INVADE_DEFEND_LOW"（高置信） |
+| 0x140747260 | 常量串 getter: 返回常量串 "NNavy::AMPHIBIOUS_INVADE_SPEED_BASE"（高置信） |
+| 0x1407475A0 | 常量串 getter: 返回常量串 "NNavy::COMBAT_EVASION_TO_HIT_CHANCE"（高置信） |
+| 0x1407476C0 | 常量串 getter: 返回常量串 "NNavy::CONVOY_DETECTION_CHANCE_BASE"（高置信） |
+| 0x140747770 | 常量串 getter: 返回常量串 "NNavy::CONVOY_SPOTTING_COOLDOWN_MAX"（高置信） |
+| 0x140747780 | 常量串 getter: 返回常量串 "NNavy::CONVOY_SPOTTING_COOLDOWN_MIN"（高置信） |
+| 0x140747A10 | 常量串 getter: 返回常量串 "NNavy::FIELD_EXPERIENCE_MAX_PER_DAY"（高置信） |
+| 0x140747E30 | 常量串 getter: 返回常量串 "NNavy::NAVAL_ACCIDENTS_DAYS_TO_LIVE"（高置信） |
+| 0x1407480C0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_DOMINANCE_ORG_RECOVERY"（高置信） |
+| 0x140748610 | 常量串 getter: 返回常量串 "NNavy::SELECTED_SORTIE_INITIAL_TIME"（高置信） |
+| 0x140748690 | 常量串 getter: 返回常量串 "NNavy::SHIP_TO_FLEET_ANTI_AIR_RATIO"（高置信） |
+| 0x140748780 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_BASE_STEALTH_VALUE"（高置信） |
+| 0x1407487D0 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_REVEAL_BASE_CHANCE"（高置信） |
+| 0x1407472F0 | 常量串 getter: 返回常量串 "NNavy::ATTRITION_STR_DAMAGE_CHANCE"（高置信） |
+| 0x140747520 | 常量串 getter: 返回常量串 "NNavy::COMBAT_BASE_CRITICAL_CHANCE"（高置信） |
+| 0x140747550 | 常量串 getter: 返回常量串 "NNavy::COMBAT_CRITICAL_DAMAGE_MULT"（高置信） |
+| 0x140747570 | 常量串 getter: 返回常量串 "NNavy::COMBAT_DAMAGE_TO_ORG_FACTOR"（高置信） |
+| 0x140747580 | 常量串 getter: 返回常量串 "NNavy::COMBAT_DAMAGE_TO_STR_FACTOR"（高置信） |
+| 0x1407476E0 | 常量串 getter: 返回常量串 "NNavy::CONVOY_EFFICIENCY_MIN_VALUE"（高置信） |
+| 0x1407478F0 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_DAILY_GAIN_FACTOR"（高置信） |
+| 0x140747900 | 常量串 getter: 返回常量串 "NNavy::DOMINANCE_DAILY_LOSS_FACTOR"（高置信） |
+| 0x1407479A0 | 常量串 getter: 返回常量串 "NNavy::ESCAPE_SPEED_PER_COMBAT_DAY"（高置信） |
+| 0x140747BA0 | 常量串 getter: 返回常量串 "NNavy::MANPOWER_LOSS_RATIO_ON_SUNK"（高置信） |
+| 0x140747DB0 | 常量串 getter: 返回常量串 "NNavy::MISSION_DEFAULT_SPREAD_BASE"（高置信） |
+| 0x140747E60 | 常量串 getter: 返回常量串 "NNavy::NAVAL_BASE_DOMINANCE_FACTOR"（高置信） |
+| 0x140748140 | 常量串 getter: 返回常量串 "NNavy::NAVAL_HEADQUARTER_ADJACENCY"（高置信） |
+| 0x140748190 | 常量串 getter: 返回常量串 "NNavy::NAVAL_INVASION_PREPARE_DAYS"（高置信） |
+| 0x140748510 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_PRIO_HIGH"（高置信） |
+| 0x140748580 | 常量串 getter: 返回常量串 "NNavy::REPAIR_SPLIT_TASKFORCE_SIZE"（高置信） |
+| 0x1407485A0 | 常量串 getter: 返回常量串 "NNavy::RESOURCE_LENDLEASE_PRIORITY"（高置信） |
+| 0x1407485E0 | 常量串 getter: 返回常量串 "NNavy::SCREEN_CAP_REDUCTION_FACTOR"（高置信） |
+| 0x140748700 | 常量串 getter: 返回常量串 "NNavy::SPOTTING_MULTIPLIER_FOR_SUB"（高置信） |
+| 0x1407488B0 | 常量串 getter: 返回常量串 "NNavy::TASK_FORCE_ROLE_TO_INSIGNIA"（高置信） |
+| 0x140747170 | 常量串 getter: 返回常量串 "NNavy::AGGRESSION_SETTINGS_VALUES"（高置信） |
+| 0x140747270 | 常量串 getter: 返回常量串 "NNavy::AMPHIBIOUS_LANDING_PENALTY"（高置信） |
+| 0x140747320 | 常量串 getter: 返回常量串 "NNavy::BASE_CONVOY_SPOTTING_SPEED"（高置信） |
+| 0x1407477A0 | 常量串 getter: 返回常量串 "NNavy::CONVOY_SPOTTING_SPEED_MULT"（高置信） |
+| 0x1407478B0 | 常量串 getter: 返回常量串 "NNavy::DETECTION_CHANCE_MULT_BASE"（高置信） |
+| 0x140747AB0 | 常量串 getter: 返回常量串 "NNavy::HOLD_MISSION_MOVEMENT_COST"（高置信） |
+| 0x140747CE0 | 常量串 getter: 返回常量串 "NNavy::MIN_MANPOWER_RATIO_TO_DROP"（高置信） |
+| 0x140748060 | 常量串 getter: 返回常量串 "NNavy::NAVAL_CONVOY_DANGER_RATIOS"（高置信） |
+| 0x140748460 | 常量串 getter: 返回常量串 "NNavy::OUT_OF_FUEL_TORPEDO_FACTOR"（高置信） |
+| 0x140748530 | 常量串 getter: 返回常量串 "NNavy::REPAIR_AND_RETURN_PRIO_LOW"（高置信） |
+| 0x1407485C0 | 常量串 getter: 返回常量串 "NNavy::RESOURCE_PURCHASE_PRIORITY"（高置信） |
+| 0x1407487C0 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_REVEALED_TIMEOUT"（高置信） |
+| 0x140748960 | 常量串 getter: 返回常量串 "NNavy::TRAINING_EXPERIENCE_FACTOR"（高置信） |
+| 0x1407471A0 | 常量串 getter: 返回常量串 "NNavy::AIR_BASE_DOMINANCE_FACTOR"（高置信） |
+| 0x140747280 | 常量串 getter: 返回常量串 "NNavy::ANTI_AIR_ATTACK_TO_AMOUNT"（高置信） |
+| 0x140747680 | 常量串 getter: 返回常量串 "NNavy::CONVOY_ATTACK_BASE_FACTOR"（高置信） |
+| 0x140747830 | 常量串 getter: 返回常量串 "NNavy::DAILY_MANPOWER_GAIN_RATIO"（高置信） |
+| 0x140747850 | 常量串 getter: 返回常量串 "NNavy::DECRYPTION_SPOTTING_BONUS"（高置信） |
+| 0x140747860 | 常量串 getter: 返回常量串 "NNavy::DEPTH_CHARGES_DAMAGE_MULT"（高置信） |
+| 0x140747880 | 常量串 getter: 返回常量串 "NNavy::DEPTH_CHARGES_HIT_PROFILE"（高置信） |
+| 0x140747FF0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_COMBAT_MEDAL_CHANCE"（高置信） |
+| 0x140748220 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINES_IN_REGION_MAX"（高置信） |
+| 0x1407482F0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_TRANSFER_BASE_SPEED"（高置信） |
+| 0x140748430 | 常量串 getter: 返回常量串 "NNavy::OUT_OF_FUEL_ATTACK_FACTOR"（高置信） |
+| 0x140748820 | 常量串 getter: 返回常量串 "NNavy::SUB_DETECTION_CHANCE_BASE"（高置信） |
+| 0x1407488C0 | 常量串 getter: 返回常量串 "NNavy::TRAINING_ACCIDENT_CHANCES"（高置信） |
+| 0x140747400 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING_FROM_RADAR"（高置信） |
+| 0x140747560 | 常量串 getter: 返回常量串 "NNavy::COMBAT_DAMAGE_RANDOMNESS"（高置信） |
+| 0x140747750 | 常量串 getter: 返回常量串 "NNavy::CONVOY_SINKING_SPILLOVER"（高置信） |
+| 0x140747760 | 常量串 getter: 返回常量串 "NNavy::CONVOY_SPOTTING_COOLDOWN"（高置信） |
+| 0x140747AA0 | 常量串 getter: 返回常量串 "NNavy::HIT_PROFILE_SPEED_FACTOR"（高置信） |
+| 0x140747DC0 | 常量串 getter: 返回常量串 "NNavy::MISSION_DOMINANCE_RATIOS"（高置信） |
+| 0x140748260 | 常量串 getter: 返回常量串 "NNavy::NAVAL_MINE_DANGER_RATIOS"（高置信） |
+| 0x140748340 | 常量串 getter: 返回常量串 "NNavy::NAVY_PIERCING_THRESHOLDS"（高置信） |
+| 0x140748440 | 常量串 getter: 返回常量串 "NNavy::OUT_OF_FUEL_RANGE_FACTOR"（高置信） |
+| 0x140748450 | 常量串 getter: 返回常量串 "NNavy::OUT_OF_FUEL_SPEED_FACTOR"（高置信） |
+| 0x140748590 | 常量串 getter: 返回常量串 "NNavy::RESOURCE_EXPORT_PRIORITY"（高置信） |
+| 0x1407485B0 | 常量串 getter: 返回常量串 "NNavy::RESOURCE_ORIGIN_PRIORITY"（高置信） |
+| 0x140748680 | 常量串 getter: 返回常量串 "NNavy::SHIP_SUPPORT_NEED_FACTOR"（高置信） |
+| 0x1407471F0 | 常量串 getter: 返回常量串 "NNavy::ALL_SHIPS_ACTIVATE_TIME"（高置信） |
+| 0x1407473F0 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING_FROM_NAVY"（高置信） |
+| 0x1407475C0 | 常量串 getter: 返回常量串 "NNavy::COMBAT_INITIAL_DURATION"（高置信） |
+| 0x140747990 | 常量串 getter: 返回常量串 "NNavy::ESCAPE_SPEED_HIDDEN_SUB"（高置信） |
+| 0x140747A00 | 常量串 getter: 返回常量串 "NNavy::FIELD_EXPERIENCE_FACTOR"（高置信） |
+| 0x140747B60 | 常量串 getter: 返回常量串 "NNavy::LEADER_EXPERIENCE_SCALE"（高置信） |
+| 0x140748180 | 常量串 getter: 返回常量串 "NNavy::NAVAL_INVASION_PLAN_CAP"（高置信） |
+| 0x1407481A0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_INVASION_PRIORITY"（高置信） |
+| 0x140748310 | 常量串 getter: 返回常量串 "NNavy::NAVAL_TRANSFER_PRIORITY"（高置信） |
+| 0x1407487A0 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_ESCAPE_RATIOS"（高置信） |
+| 0x140747350 | 常量串 getter: 返回常量串 "NNavy::BASE_JOIN_COMBAT_HOURS"（高置信） |
+| 0x1407473D0 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING_FROM_AIR"（高置信） |
+| 0x140747530 | 常量串 getter: 返回常量串 "NNavy::COMBAT_BASE_HIT_CHANCE"（高置信） |
+| 0x1407479F0 | 常量串 getter: 返回常量串 "NNavy::EXPERIENCE_LOSS_FACTOR"（高置信） |
+| 0x140747A20 | 常量串 getter: 返回常量串 "NNavy::FIELD_EXPERIENCE_SCALE"（高置信） |
+| 0x140747A90 | 常量串 getter: 返回常量串 "NNavy::HIT_PROFILE_SPEED_BASE"（高置信） |
+| 0x140747C20 | 常量串 getter: 返回常量串 "NNavy::MAX_ORG_ON_MANUAL_MOVE"（高置信） |
+| 0x140747D00 | 常量串 getter: 返回常量串 "NNavy::MIN_ORG_ON_MANUAL_MOVE"（高置信） |
+| 0x1407484C0 | 常量串 getter: 返回常量串 "NNavy::RADAR_DOMINANCE_FACTOR"（高置信） |
+| 0x1407487B0 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_HIDE_TIMEOUT"（高置信） |
+| 0x1407470B0 | 常量串 getter: 返回常量串 "NNavy::ADMIRAL_TASKFORCE_CAP"（高置信） |
+| 0x140747430 | 常量串 getter: 返回常量串 "NNavy::BATTLE_NAME_VP_CUTOFF"（高置信） |
+| 0x140747440 | 常量串 getter: 返回常量串 "NNavy::BATTLE_NAME_VP_FACTOR"（高置信） |
+| 0x140747610 | 常量串 getter: 返回常量串 "NNavy::COMBAT_MIN_HIT_CHANCE"（高置信） |
+| 0x1407478D0 | 常量串 getter: 返回常量串 "NNavy::DISBAND_MANPOWER_LOSS"（高置信） |
+| 0x1407479B0 | 常量串 getter: 返回常量串 "NNavy::ESCAPE_SPEED_SUB_BASE"（高置信） |
+| 0x140747D40 | 常量串 getter: 返回常量串 "NNavy::MIN_SPOTTING_PROGRESS"（高置信） |
+| 0x140748410 | 常量串 getter: 返回常量串 "NNavy::ORG_COST_WHILE_MOVING"（高置信） |
+| 0x1407486A0 | 常量串 getter: 返回常量串 "NNavy::SHORE_BOMBARDMENT_CAP"（高置信） |
+| 0x1407486B0 | 常量串 getter: 返回常量串 "NNavy::SPEED_TO_ESCAPE_SPEED"（高置信） |
+| 0x140748990 | 常量串 getter: 返回常量串 "NNavy::TRAINING_MIN_STRENGTH"（高置信） |
+| 0x1407489F0 | 常量串 getter: 返回常量串 "NNavy::UNIT_EXPERIENCE_SCALE"（高置信） |
+| 0x1407472D0 | 常量串 getter: 返回常量串 "NNavy::ATTRITION_DAMAGE_ORG"（高置信） |
+| 0x1407472E0 | 常量串 getter: 返回常量串 "NNavy::ATTRITION_DAMAGE_STR"（高置信） |
+| 0x140747CC0 | 常量串 getter: 返回常量串 "NNavy::MIN_HIT_PROFILE_MULT"（高置信） |
+| 0x1407482C0 | 常量串 getter: 返回常量串 "NNavy::NAVAL_SPEED_MODIFIER"（高置信） |
+| 0x140748800 | 常量串 getter: 返回常量串 "NNavy::SUBMARINE_REVEAL_POW"（高置信） |
+| 0x140747410 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING_SPEED"（高置信） |
+| 0x140747600 | 常量串 getter: 返回常量串 "NNavy::COMBAT_MIN_DURATION"（高置信） |
+| 0x140747B50 | 常量串 getter: 返回常量串 "NNavy::IN_COMBAT_FUEL_COST"（高置信） |
+| 0x140747E10 | 常量串 getter: 返回常量串 "NNavy::MISSION_MAX_REGIONS"（高置信） |
+| 0x1407472B0 | 常量串 getter: 返回常量串 "NNavy::ANTI_AIR_TARGETING"（高置信） |
+| 0x140747340 | 常量串 getter: 返回常量串 "NNavy::BASE_GUN_COOLDOWNS"（高置信） |
+| 0x140747710 | 常量串 getter: 返回常量串 "NNavy::CONVOY_HIT_PROFILE"（高置信） |
+| 0x140747C00 | 常量串 getter: 返回常量串 "NNavy::MAX_FUEL_FLOW_MULT"（高置信） |
+| 0x140747CA0 | 常量串 getter: 返回常量串 "NNavy::MINIMUM_SHIP_SPEED"（高置信） |
+| 0x140747DE0 | 常量串 getter: 返回常量串 "NNavy::MISSION_EXP_RATIOS"（高置信） |
+| 0x140747DF0 | 常量串 getter: 返回常量串 "NNavy::MISSION_FUEL_COSTS"（高置信） |
+| 0x140748870 | 常量串 getter: 返回常量串 "NNavy::SUPPLY_NEED_FACTOR"（高置信） |
+| 0x140747330 | 常量串 getter: 返回常量串 "NNavy::BASE_ESCAPE_SPEED"（高置信） |
+| 0x1407475F0 | 常量串 getter: 返回常量串 "NNavy::COMBAT_MAX_GROUPS"（高置信） |
+| 0x140748320 | 常量串 getter: 返回常量串 "NNavy::NAVY_EXPENSIVE_IC"（高置信） |
+| 0x140748400 | 常量串 getter: 返回常量串 "NNavy::ON_BASE_FUEL_COST"（高置信） |
+| 0x140747380 | 常量串 getter: 返回常量串 "NNavy::BASE_POSITIONING"（高置信） |
+| 0x140747A40 | 常量串 getter: 返回常量串 "NNavy::GUN_HIT_PROFILES"（高置信） |
+| 0x140747A80 | 常量串 getter: 返回常量串 "NNavy::HIT_PROFILE_MULT"（高置信） |
+| 0x140747CB0 | 常量串 getter: 返回常量串 "NNavy::MIN_GUN_COOLDOWN"（高置信） |
+| 0x140747E20 | 常量串 getter: 返回常量串 "NNavy::MISSION_SPREADS"（高置信） |
+| 0x140748880 | 常量串 getter: 返回常量串 "NNavy::SUPPLY_PRIORITY"（高置信） |
+| 0x140747A30 | 常量串 getter: 返回常量串 "NNavy::FUEL_COST_MULT"（高置信） |
+| 0x140748A60 | 常量串 getter: 返回常量串 "NNavy::XP_GAIN_FACTOR"（高置信） |
+| 0x140747390 | 常量串 getter: 返回常量串 "NNavy::BASE_SPOTTING"（高置信） |
+| 0x1407489A0 | 常量串 getter: 返回常量串 "NNavy::TRAINING_ORG"（高置信） |
+| 0x140748330 | 常量串 getter: 返回常量串 "NNavy::NAVY_MAX_XP"（高置信） |
+
+#### 4.16.53 模板实例化桩结构定案（149 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DA81F0 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x141DF6EA0 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x1418D0B30 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x141DA82E0 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417DCD80 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1418EAAB0 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141992E60 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417FE270 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903CD0 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F8380 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA83D0 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x1418F1B50 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x1417F0580 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x141DA81C0 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x141DF6E70 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x1418D0B00 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x141DA82B0 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417DCD50 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1418EAA80 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141992E30 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417FE240 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903CA0 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F8350 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA83A0 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x1418F1B20 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x1417F0550 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x141DA8190 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x141DF6E40 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x1418D0AD0 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x141DA8280 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417DCD20 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1418EAA50 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141DA8160 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x141992E00 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417FE210 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903C70 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F8320 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA8370 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x141DF6E10 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x1418D0AA0 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x1418F1AF0 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x141DA8250 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417DCCF0 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1417F0520 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x1418EAA20 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141992DD0 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417FE1E0 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903C40 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F82F0 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA8340 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x1418F1AC0 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x1417F04F0 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x141DA8230 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x141DF6EE0 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x1418D0B70 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x141DA8320 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417DCDC0 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1418EAAF0 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141992EA0 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417FE2B0 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903D10 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F83C0 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA8410 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x1418F1B90 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x1417F05C0 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x141E0FBB0 | 模板桩: 模板参数类名 CNavalBaseSelectionItem（高置信） |
+| 0x141E0FB70 | 模板桩: 模板参数类名 CNavalBaseSelectionItem（高置信） |
+| 0x141E0FB90 | 模板桩: 模板参数类名 CNavalBaseSelectionItem（高置信） |
+| 0x141DA8460 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x1418F1A80 | 模板桩: 模板参数类名 CTaskForce（高置信） |
+| 0x141DF6F30 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x141ED7D10 | 模板桩: 模板参数类名 CNavalLeaderModuleUi（高置信） |
+| 0x141ED7DA0 | 模板桩: 模板参数类名 CNavalLeaderModuleUi（高置信） |
+| 0x1418D0FD0 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x1418F1AA0 | 模板桩: 模板参数类名 CTaskForce（高置信） |
+| 0x141DA84B0 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417DCE10 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1418EAB40 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141ED7CF0 | 模板桩: 模板参数类名 CNavalLeaderModuleUi（高置信） |
+| 0x141ED7D30 | 模板桩: 模板参数类名 CNavalLeaderModuleUi（高置信） |
+| 0x141ED7D60 | 模板桩: 模板参数类名 CNavalLeaderModuleUi（高置信） |
+| 0x141ED7D80 | 模板桩: 模板参数类名 CNavalLeaderModuleUi（高置信） |
+| 0x141992EF0 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417FE5B0 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903DE0 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F84A0 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA8500 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x1418F1C40 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x1417F0610 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x1418F1A60 | 模板桩: 模板参数类名 CTaskForce（高置信） |
+| 0x141ED7D50 | 模板桩: 模板参数类名 CNavalLeaderModuleUi（高置信） |
+| 0x141DA8450 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x141DF6F20 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x1418D0FC0 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x141DA84A0 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417DCE00 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1418EAB30 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141992EE0 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417FE5A0 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903DD0 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F8490 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA8440 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x141DA84F0 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x1418F1C30 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x1417F0600 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x141DF6F10 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x141DA8430 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x1418D0FB0 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x141DA8490 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417DCDF0 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1418EAB20 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141DF6F00 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x1418D0FA0 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x141DA8480 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x141992ED0 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417DCDE0 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1417FE590 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903DC0 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418EAB10 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x1418F8480 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA84E0 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x1418F1C20 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x141DA8470 | 模板桩: 模板参数类名 CNavalRepairQueueNavalBaseEntry（高置信） |
+| 0x141992EC0 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417F05F0 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x1417FE580 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903DB0 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F8470 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141DA84D0 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x141DF6F40 | 模板桩: 模板参数类名 CNavalMissionExtensionEntry（高置信） |
+| 0x1418F1C10 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x1418D0FE0 | 模板桩: 模板参数类名 CNavalCombatResultsMapIcon（高置信） |
+| 0x141DA84C0 | 模板桩: 模板参数类名 CNavalRepairQueueShipEntry（高置信） |
+| 0x1417F05E0 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x1417DCE20 | 模板桩: 模板参数类名 CNavalCombatResultsWindow（高置信） |
+| 0x1418EAB50 | 模板桩: 模板参数类名 CNavalHeadquarterMapIcon（高置信） |
+| 0x141992F00 | 模板桩: 模板参数类名 CNavalMissionUnitItem（高置信） |
+| 0x1417FE5C0 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+| 0x141903DF0 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x1418F8460 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x1418F84B0 | 模板桩: 模板参数类名 CNavalCombatMapIcon（高置信） |
+| 0x141E0FD20 | 模板桩: 模板参数类名 CNavalBaseSelectionItem（高置信） |
+| 0x141E0FD30 | 模板桩: 模板参数类名 CNavalBaseSelectionItem（高置信） |
+| 0x141E0FD40 | 模板桩: 模板参数类名 CNavalBaseSelectionItem（高置信） |
+| 0x141903DA0 | 模板桩: 模板参数类名 CNavalMissionMapIcon（高置信） |
+| 0x141DA8510 | 模板桩: 模板参数类名 CNavalRepairWindow（高置信） |
+| 0x1418F1C50 | 模板桩: 模板参数类名 CNavalBaseMapIcon（高置信） |
+| 0x1417F0620 | 模板桩: 模板参数类名 CNavalCombatView（高置信） |
+| 0x1417FE4D0 | 模板桩: 模板参数类名 CNavalLossesOverview（高置信） |
+
+#### 4.16.54 单调用转发桩结构定案（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142614670 | 转发桩: 转发至 业务 类路由 CSetTaskForceCompositionRequirementsCommand ->§4.33; 类路由 CSunkShipIcon ->§4.31; 串 "NAVY_CONTAINS_PRIDE_OF_FLEET_WITHOUT"（推定） |
+| 0x141E13D80 | 转发桩: 转发至 162 ¦ 拖放移动回调 (:4182 SubUnitID 断言) ¦ sub_1413485C0 = CMoveShipsCommand (13092)（推定） |
+| 0x1417D9520 | 转发桩: 转发至 业务逻辑（键 NAVAL_COMBAT_RESULT_DEFEAT） "NAVAL_COMBAT_RESULT_DEFEAT"/"NAVAL_COMBAT_RESULT_VICTORY"/"outcome"（海战结果）（推定） |
+| 0x14181EE60 | 转发桩: 转发至 314 ¦ 航母防御姿态下拉回调 (舰载机状态文案收集) ¦ sub_141349D70 = CSetCarrierDefensiveStance (10227)（推定） |
+| 0x14181EE80 | 转发桩: 转发至 378 ¦ 交战规则下拉回调 (读 14198 偏好簇) ¦ sub_1413616D0 = CSetNavyEngagementCommand (13357)（推定） |
+| 0x14181EEA0 | 转发桩: 转发至 295 ¦ 修理拆分开关回调 (第二 RepairMode 入口) ¦ sub_141348E70 = CNavyRepairModeCommand (13581 变体)（推定） |
+| 0x1426672C0 | 转发桩: 转发至 业务 类路由 CEquipmentArcheTypePool ->§4.28; 类路由 NFactions ->§4.25; 类路由 CStateSharedSlotBuildingItem ->§4.31（推定） |
+| 0x140D6EEC0 | 转发桩: 转发至 sub_140D69DD0 业务 舰队任务活动描述（TASK_FORCE_ACTIVITY_DESC_* + 护航/突袭 convoy 明细，map.cpp）（推定） |
+| 0x141ED7E00 | 转发桩: 转发至 sub_141ED65D0 海军 task force/海军上将司令部逻辑（ADMIRAL_THRESHOLD_REACHED_NAVAL_HEADQUARTER CHANGE_ADMIRAL_I）（推定） |
+
+#### 4.16.55 海军域函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D4BFC0 | caller 140D4F7C0→140D530E0←CFleet::[8] (fleet.cpp:382) + fleet.cpp:1788/548/2649（4/6 fleet） |
+| 0x140D726F0 | pdx_scoped_buffer.h:54 断言 + caller 140D63620/140D72C20(taskforce.cpp:934 / 5572) |
+| 0x14134B5C0 | caller 14134FCC0(navalcommands.cpp:2130) |
+| 0x140D49340 | 游戏 CU 簇内: $0A::Z::start_for<…>::[1] / CFleet::[0] |
+| 0x140D4A660 | 游戏 CU 簇内: $0A::Z::start_for<…>::[1] / CFleet::[0] |
+| 0x140D4C430 | 游戏 CU 簇内: $0A::Z::start_for<…>::[1] / CFleet::[0] |
+| 0x140FB04F0 | 断言 navalmission.cpp:188 "!\"A task force has the reserve flag but is not in a reserve fleet!\"" / navalmission.cpp:183 "!\"The reinforcement task force is no… |
+| 0x141984F20 | 游戏 CU 簇内: NWarScoreDistributionHelper::CDistributi / CTaskForceComposition::[8] |
+| 0x141DF6900 | 调用链 CNavalMissionExtension::[1]@1417CF210 |
+
+#### 4.16.56 海军域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14024E3B0 | 业务 串 " has role "/" has no ships\n"/"no selected task forces" + taskforcebuilder.cpp:282 |
+| 0x1419786C0 | 业务 串 CARRIER_EFFICIENCY/CARRIER_EFFICIENCY_BAD/CARRIER_EFFICIENCY_ORG + naval_fire_exchange_air.cpp:344 x2 |
+| 0x140C37F40 | 业务 串 MAX_ORGANIZATION_TITLE/SHIP_MORALE/MORALE_TITLE/TRAINING_NAVY_ORG |
+| 0x1411F4E00 | 业务 邻域 strategicoperative.cpp x3 + ref.h x3 + gamestate.h:1125 + sub_1411F8720/sub_1411F2410 同族 |
+| 0x1418FD8E0 | 业务 串 NAVAL_SPOTTING_PROGRESS/NAVAL_SPOTTING_DAILY_CHANGE/NAVAL_SPOTTING_HOURLY_CHANGE/SPEED + navalmission.cpp:1280 |
+| 0x140C60AC0 | （无名） 业务 CShip 存档 Reader 子段（被 CShip::Reader 调用；含数组增长） |
+| 0x140C3BA50 | 调用图传播：CShip::[8]；SRC gamestate.h 断言 "_pInstance &&"/"_ThreadForbidCount == 0 &&" |
+| 0x140CE5160 | func_names slot 名 CNavalAccidentReport::Reader；gamestate.h:1125/1126 门控；调 Reader 槽与 sub_1424C0C00/0AA0/2100 读取原语 |
+
+#### 4.16.57 海军域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141147310 | 源文件锚 countrycommands.cpp / 类 CSetNavalDeploymentTargetCommand |
+| 0x141E72170 | 源文件锚 emptylists.h / 类 CEmptyEntryListBase<CNavyTheaterFleetRowItem> |

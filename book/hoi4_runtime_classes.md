@@ -104,6 +104,20 @@
 **收录纪律**: 只收代码中真实出现过 vtable 校验的类。无校验收录的类
 **不入表** —— 凭空填值 = 引入错误常量，比散写字面量更危险。
 
+**伪 vtable 识别（d 批次实证）**: .rdata 内存在**非 vtable 的代码字节区**，
+以 8 字节步长读出来像槽位但不是 vtable。判别: 真 vtable 的 `[-1]` 槽是
+PE COL（Complete Object Locator）指针, 且首槽是可执行代码地址;
+伪区 `0x1430BF7B0..0x1430BFA78` 的 `[-1]` 非 COL、首槽内容为
+`c3 cc cc cc …`（ret + int3 填充）= 代码字节, 非指针表。该区槽名呈
+桩名（`charNode::[0]` / `UserMathErrorFunction` / `stub_ret1`）,
+落在通用桩/ICF 汇点命名域内。**引用该区的函数身份须待 slot 契约表定案**,
+不得按 vtable 锚点直接定域。
+
+**`off_143085170` 不是 vtable 锚点**: 该全局指向
+`CPdxNewDeleteAllocator` 的 vtable（.data 起点 `0x143085000` 内）,
+大量函数引用它只证明路径上做了**引擎堆分配**, 不构成函数身份证据。
+单独引用此全局时勿当 vtable 锚点用。
+
 | 类名 | RVA | 位置 / 说明 |
 |---|---|---|
 | CState | 0x2936cc0 | 州主vtable (书 §4.13) |
@@ -168,6 +182,72 @@
 ### 0.3 指针有效性
 
 堆地址有效范围约 `[0x10000, 0x7FF000000000)`。越界即无效指针, 放弃访问。
+
+### 0.3.1 PE 构建路径区段判据
+
+> 给函数定域时, **PE 构建路径串比符号名更强的归属证据**。
+> 语料符号名可能是 ICF 合并/剥离后的残名, 构建路径是编译时写死的真源。
+
+全镜像可检索两类断言站点路径前缀:
+
+| 前缀 | 含义 | 可见数量 |
+|---|---|---|
+| `C:\mnt\gsg\hoi4\hoi4_merged\...` | 引擎自身代码 | 约 16,982 函引用 |
+| `C:\mnt\external_libs2\...` | 第三方静态链接库 | 171 函引用（SDL2 2.0.20 / GLEW / boost_1_84_0 等） |
+
+由此确立的判据:
+
+1. **带 mangled 库符号名 ≠ 必为库代码**——mangled 名可被 ICF 合并残留在引擎段;
+   以构建路径为准。
+2. **无断言无符号的函数块** = 第三方库 release 构建指纹（符号剥离 + 无 `__FILE__`
+   断言）, 不是 ICF 合并产物。0x14245-0x1424B 子段约 600 函全部无名即此形态。
+3. **高地址段不是纯库区**: 0x142400000+ 是引擎与静态库的**细粒度交错区**,
+   引擎模块与库块按子段交错排布, 同一 64KB 段内可并存两类代码。
+   反向也成立: **库区间内有零星游戏回调**——`0x1420B0390`
+   （`CCameraControlStrategy`, 类名证据）落在 SDL 串锚定的库区边缘之前。
+   故 VA 区间只能作**强提示非决定性**证据, 类名/串锚点优先于区间归属。
+   尾区全量实测（0x142 段 63324 函）: 体长中位 110B / p90 917B,
+   95%+ 无名, 采样 200 函 0 个 `.cpp` 断言、3 个 vtable 赋值——
+   **库 release 构建的叶子内联区**, 逐函数定性无增量信息;
+   但仍有 3945 函带体级证据（含 100KB+ 巨函数）, 这批须单独查,
+   不能与库叶子混同跳过。
+4. 已确认静态链接清单（PE 串证据）: SDL2 2.0.20 / GLEW / zlib（128 处）/
+   libpng / PHYSFS / LZMA / UNDNAME。判定基础设施归属时先核此清单。
+5. **<1KB 函数的传播失效**: 尾区小函数批的调用边可全部指向批外
+   （实测一批 2111 函 4457 条边零内部边）, 被调用者传播定域法不可用;
+   且小函数体常被剥离 assert 路径/vtable 符号/RTTI, 只剩少量带串者。
+   兜底判据顺序: 类名/串锚点 → VA 区间 → 形态学归类。
+
+### 0.3.2 语料函数头符号的可信层级
+
+> 反编译语料 `// === 0x<VA> <name> ===` 标记行的**符号名在 VA < 0x142400000 区
+> 系统性错配**: ICF/COMDAT 折叠把一批游戏类方法统一标成 CRT 伪符号。
+> 覆盖率统计若按语料符号名去重, 会把这批函数误判为「已查过的 CRT 函数」
+> 而整批滑出未查清单。
+
+已知伪符号及其折叠规模（a2 批次 259 函中约 130 件受影响）:
+
+| 伪符号（语料头） | 副本数 | 真身来源 |
+|---|---|---|
+| `Concurrency::details::_Condition_variable::scalar deleting destructor` | ≥19 | func_names rtti/slot 槽名 |
+| `_DeleteExceptionPtr` | ≥21 | func_names 槽名 + 部分 UCRT 真身 |
+| `std::stringbuf / basic_stringbuf::scalar deleting destructor` | ≥13 | func_names 槽名 + 部分 STL 真身 |
+| `Concurrency::critical_section::scalar deleting destructor` | ≥10 | func_names 槽名 |
+| `std::_Ref_count_del_alloc<__ExceptionPtr,…>::scalar deleting destructor` | ≥8 | func_names 槽名 |
+| `std::codecvt<wchar_t,char,_Mbstatet>::scalar deleting destructor` | ≥4 | func_names 槽名 |
+| `std::ios_base::precision/width`、`std::size<N>`、`_vcrt_thread_attach`、`__acrt_*`、`charNode::raw_length` 等 | 各 1–3 | func_names 槽名 |
+
+证据可信层级（强 → 弱）:
+
+1. **func_names 的 rtti/slot 槽名** = vtable 反查逐槽比对, 抽查 20/20 命中,
+   **可信**。
+2. **函数体内的 `&CClass::vftable` 引用** = 决定性证据（析构置最派生 vftable
+   属派生类正常语义, 非错配）。
+3. **函数头符号名** = 仅 VA ≥ 0x142400000 的带 mangled 名者可信; 低地址区
+   一律以 1/2 层证据覆盖。
+
+**「槽名与体级 vtable 名不一致」的裁定**: 二者为父子派生关系（派生类析构
+置基类 vftable）, 不是映射错; 只有确认非派生时才需回调族内节归属。
 
 ### 0.4 书写规范
 

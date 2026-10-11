@@ -366,12 +366,6 @@ chance_increase.mud 双值高低; OOS 槽 72 区侧 getter VA; RNG 守卫对内�
 | 0x140F1A100 | （无名，按证据定性） 键 FRAME/TEXT/PROV_TOOLTIP_TEMPERATURE_MODIFIER（省份 tooltip 温度修正） |
 | 0x141B85A50 | （无名，按证据定性） gamestate.h:1125 断言 + 串 'No Phenomenon Chance'（天气现象几率） |
 | 0x140F15730 | CWeatherManager::[0] vtable 槽 CWeatherManager::[0]（func_names RTTI 名） |
-
-#### 4.20.14 天气族函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.20.15 天气族函数补遗（1 函）
 
 | VA | 语义/证据 |
@@ -425,3 +419,64 @@ chance_increase.mud 双值高低; OOS 槽 72 区侧 getter VA; RNG 守卫对内�
 | 0x140D6CB60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.20 |
 | 0x140D6CA40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.20 |
 | 0x140D97320 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.20 |
+
+#### 4.20.22 天气族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1423448A0 | SForceReader::Writer SForceReader::Writer + planar/point/vortex/friction/turbulence/spin（力场/粒子物理序列化） |
+| 0x141B7F190 | CWeatherNudger::Reload CWeatherNudger::Reload + 域关键词匹配; 被调源码 hoi4; 被 CWeatherNudger::Reload 等 1 命名函数调用 |
+| 0x1417CC5A0 | 噪声波形计算 噪声波形计算：sinf(6.2831855×(x-0.25)/period)×pow(2.0,amp)+1.0（全局 0x1430B3FE8/FEC） |
+
+#### 4.20.23 天气族函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B87A90 | gamestate.h:1125 业务 天气数据：strcpy "Snowing Chance"（下雪概率字段）+ gamestate 断言 |
+| 0x141B849A0 | sub_141B849A0 业务 串 "Blizzard Chance" |
+| 0x141B86B60 | gamestate.h:1125 业务 天气数据：strcpy "Sandstorm Chance"（沙尘暴概率，与 0x141B87A90 "Snowing Chance" 同族） |
+| 0x141B86250 | sub_141B86250 业务 串 "Rain Light Chance" |
+| 0x140F14550 | sub_140F14550 业务 类方法（CWeatherManager::vtable） |
+| 0x1423EFCC0 | 业务 断言站点 weathermanager.cpp:8 ->§4.20; 类路由 CNumOwnedNeighbourStatesTrigger ->§4.32; 类路由 NDoctrines ->§4.25 |
+
+
+#### 4.20.24 天气族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AC1710 | 业务 串字面量 'map/weatherpositions.txt' [4.20×1] |
+
+#### 4.20.25 模板实例化桩结构定案（30 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B8E2D0 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E1E0 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E0F0 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E2A0 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E1B0 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E0C0 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E270 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E180 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E090 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E240 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E150 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E060 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E310 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E220 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E130 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E400 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E3B0 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E360 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E3F0 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E3A0 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E350 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E3E0 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E3D0 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E390 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E340 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E380 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E330 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+| 0x141B8E410 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
+| 0x141B8E3C0 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
+| 0x141B8E370 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |

@@ -1543,12 +1543,6 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 | 0x140C202A0 | COperativeLeader::[4] vtable 槽 COperativeLeader::[4]（func_names RTTI 名） |
 | 0x140C0E9F8 | COperativeLeader::[0] vtable 槽 COperativeLeader::[0]（func_names RTTI 名） |
 | 0x140C1D5B0 | COperativeLeader::[29] vtable 槽 COperativeLeader::[29]（func_names RTTI 名） |
-
-#### 4.11.36 情报间谍域函数补遗（12 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.11.37 情报间谍域函数补遗（3 函）
 
 | VA | 语义/证据 |
@@ -1556,12 +1550,6 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 | 0x140C1D720 | COperativeLeader::[5] vtable 槽 COperativeLeader::[5]（func_names RTTI 名） |
 | 0x140C1B0A0 | COperativeLeader::UpdateLocalizedName func_names 名 COperativeLeader::UpdateLocalizedName |
 | 0x140C10D40 | COperativeLeader::[10] vtable 槽 COperativeLeader::[10]（func_names RTTI 名） |
-
-#### 4.11.38 情报间谍域函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.11.39 情报间谍域函数补遗（38 函）
 
 | VA | 语义/证据 |
@@ -1713,3 +1701,242 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 | VA | 语义/证据 |
 |---|---|
 | 0x1413FBF50 | 未决窗口函数 · 特工/情报界面 串 "OPERATIONS"/"CRYPTOLOGY"/"SPYMASTER" 情报界面键 |
+
+#### 4.11.51 情报间谍域函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141ECCEB0 | 情报台账海军面板槽 情报台账海军面板槽；CIntelLedgerNavyPanelController::[2] 距 -528B，邻 CIntelLedgerNavyPanelController::CShipDetailsMainTooltipHandler(-11456B)，仅 gamestate.h 断言 |
+| 0x140BD9230 | （无名，按上游/loc 定性） 上游 CIntelLedgerAirPanelController::CLedgerAirwingEntry::[0]/CIntelLedgerNavyPanelControlle |
+| 0x141EC6280 | CIntelLedgerNavyPanelController + 空条目表 + CIntelLedgerNavyPanelController + 空条目表 + tooltip 处理器 §4.11 情报/间谍 |
+| 0x141EA4B20 | CIntelLedgerAirPanelController + 空条目表 + CIntelLedgerAirPanelController + 空条目表 + Ideas/AirWings toolt §4.11 情报/间谍 |
+| 0x140153770 | （未命名）被 COperation::[0] 调用 被 COperation::[0] 调用，特工行动 |
+| 0x1412B7770 | 调 NOperativeMissions::CStateBased::GetSt 调 NOperativeMissions::CStateBased::GetState §4.11 情报/间谍 |
+| 0x1411F88E0 | （未命名）L2 被调函数命名证据：NOperativeMissions::CStateBa L2 被调函数命名证据：NOperativeMissions::CStateBased::GetState（L2 被调名） |
+| 0x14197E0D0 | （无名） 被 CDynamicIntelSourcePool::AggregateAccumu 调用（情报/间谍/行动） |
+| 0x141117660 | CTransferSpyMasterAction::GetAiAcceptanceFactors CTransferSpyMasterAction::GetAiAcceptanceFactors 间谍主管行动 |
+| 0x141EB85E0 | （无名） 被 CIntelLedgerArmyPanelController::[2] 调用（情报/间谍/行动） |
+| 0x1411CBDA0 | （无名） 被 CCountryIntelNetwork::PrepareSubNetworkC 调用（情报/间谍/行动） |
+| 0x1411D03B0 | （无名） 被 CCountryIntelNetwork::PrepareSubNetworkC 调用（情报/间谍/行动） |
+| 0x141EAB690 | CIntelLedgerAirPanelController::[2] 情报面板/情报机构升级（CIntelLedgerAirPanelController::[2]） |
+| 0x140D04810 | CCountryIntel::[8] CCountryIntel::[8]（情报/间谍/行动） |
+| 0x1403DF610 | （无名） 被 CLocalIntelNetwork::[3] 调用（情报/间谍/行动） |
+| 0x1411D1090 | （无名） 被 CSubIntelNetwork::Reader 调用（情报/间谍/行动） |
+| 0x1424BBC80 | （无名） 被 CCountryOperationTokenManager::Writer 调用（情报/间谍/行动） |
+| 0x1410D9690 | COperativesAiAssignmentTextLogger::[2] 特工/特工任务/特工 AI（COperativesAiAssignmentTextLogger::[2]） |
+| 0x14044AAC0 | CIsOperative::GetDesc CIsOperative::GetDesc（情报/间谍/行动） |
+| 0x141432F00 | （无名） 被 CIntelLedgerCivilianPanelController::[0] 调用（情报/间谍/行动） |
+| 0x1414311E0 | （无名） 被 CIntelLedgerCivilianPanelController::[0] 调用（情报/间谍/行动） |
+| 0x1411D0B90 | CSubIntelNetwork::[0] 情报子网络 |
+| 0x141959830 | NOperativeMissions::CDiplomaticPressure::[14] func_names 全名 + 特工任务命名空间 NOperativeMissions |
+
+#### 4.11.52 情报间谍域函数补遗（29 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A33BF0 | sub_141A33BF0 业务 学说情报门槛（CLICK_TO_SHOW_DOCTRINE_INTEL / NOT_ENOUGH_INTEL_TO_SHOW_DOCTRINES / MIN_INTEL_REQUIRED_FOR_GRAND_DOCTRINE/SUBDOCTRINES/MASTERY） |
+| 0x140A7E8B0 | （无名） 业务 串 "OPERATION_VIEW_ERROR_INSUFFICIENT_OPERATIVES"/"_NETWORK_STRENGTH"/"PERC" |
+| 0x141405460 | — 业务 邻域 COperationInstance（0x141401A20）= 特工行动区段 |
+| 0x140621FE0 | 业务 夹于 CHistoricalAgency::Reader(d=112) 与 TGameItemDatabase<CAgencyUpgradeDatabase>::[1](d=4480)，历史情报机构数据库族 |
+| 0x140FBFE20 | COperativeMission::CalcOperativesToReassignIfAssignedToNetworkIn 业务 COperativeMission::CalcOperativesToReassignIfAssignedToNetworkIn 特工网络重派计算（gamestate.h:112… |
+| 0x140F30950 | 业务 Init_thread 静态初始化，夹于 SAXAEAUSBufferedOperations::CCountryIntelligenceAgencyView::[1](d=2560) 与 NRaids::CRaidTargetCooldownStatus::[0]，国家情报局视图/突袭冷却族 |
+| 0x140621850 | 业务 夹于 CHistoricalAgency::[0](d=672) 与 CHistoricalAgency::Reader(d=1824)，历史情报机构族 |
+| 0x140FC00D0 | COperativeMission::CalcOperativesToReassignIfAssignedToQuietNet… 业务 COperativeMission::CalcOperativesToReassignIfAssignedToQuietNetwork，特工重新分配（gamestate.h:1125） |
+| 0x14194EA30 | 业务 调 CDiplomaticAction::GetFirstCountryRef，夹于 COperativeMissionData::Writer(d=1296) 与 NFactions::CFactionTheaterManager::[0]，特工任务数据/派系战区管理族（同结构 3894） |
+| 0x141203160 | 业务 夹于 std::_Func_impl_no_alloc(d=2144) 与 CSubIntelNetwork::Reader(d=17024)，子情报网络族 |
+| 0x1416261C0 | sub_1416261C0 业务 串 RAID_INST_OUTCOME_*/RAID_DESC |
+| 0x141206140 | 业务 夹于 std::_Func_impl_no_alloc(d=14400) 与 CSubIntelNetwork::Reader(d=4768)，子情报网络族（与 0x141203160 同簇） |
+| 0x140D049B0 | 业务 夹于 CCountryIntel::[8](d=416) 与 CCountryIntel::[3](d=6448)，国家情报族 |
+| 0x141E42EF0 | — 业务 "DURATION_DAYS" loc 键 + 调用 sub_140C187A0（特工邻域 0x140C12DD0） |
+| 0x14164D860 | sub_14164D860 业务 串 "quiet_intel_network_edge"（情报网络边） |
+| 0x1410B6160 | — 业务 gamestate.h:1125 断言 + CGameDate + 调用 sub_1410C6180（0x1410C 特工 AI 区段） |
+| 0x141F938E0 | — 业务 ref.h:83 断言 + 调用 sub_140C1D640（0x140C1 特工邻域 0x140C12DD0） |
+| 0x14164DBC0 | 业务 夹于 std::_Ref_count_resource::[3](d=26768) 与 CGfxIntelNetworkEdgeListBuilder::Build?(d=1488)，情报网络边表构建族 |
+| 0x140CAACD0 | 业务 Init_thread 静态初始化 + 调 COperationInstance::[5]，夹于 CCountryResources::[5](d=16) 与 CConvoyClient::[10](d=2128)，行动实例/国家资源族 |
+| 0x1411B3050 | (无名) 业务 VA 邻域有名函数簇（std::AEBU1::ZXAEAU1::AEBU1::AXAEAUSCountryIntelInstance::_Func_…::[0]; std::AEBU34::std::_Func_impl_no_alloc<…>::[0]; std::AEBU1::ZXAEAU1:… |
+| 0x141208280 | sub_141208280 业务 串：Attempting to set the strength of a state that was not added 、 C:\\mnt |
+| 0x1411B1B70 | (无名) 业务 VA 邻域有名函数簇（std::AEBU1::ZXAEAU1::AEBU1::AXAEAUSCountryIntelInstance::_Func_…::[0]; std::AEBU34::std::_Func_impl_no_alloc<…>::[0]; std::AEBU1::ZXAEAU1:… |
+| 0x1401C8400 | 业务 类路由 COperativeLeader ->§4.11; 串 "released"; 串 "cooldown" |
+| 0x1413F88F0 | sub_1413F88F0 业务 串：( pScope == this 、、 pScope->_pFrom != this ) && \ 、 C:\\mnt\\gsg\\hoi4 |
+| 0x14218B270 | sub_14218B270 业务 串：_pInstance && \ 、 C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\games |
+| 0x1411BEC50 | (无名) 业务 VA 邻域有名函数簇（std::AEBU1::ZXAEAU1::AEBU1::AXAEAUSCountryIntelInstance::_Func_…::[0]; std::AEBU34::std::_Func_impl_no_alloc<…>::[0]; std::AEBU1::ZXAEAU1:… |
+| 0x14062A620 | 业务 断言站点 operativemission.cpp:23 ->§4.11; 类路由 CNavyDetachShipsAndRefitCommand ->§4.33; 串 "Token not defined for mission type!" |
+| 0x142497D40 | 业务 类路由 COperativeLeader ->§4.11; 类路由 CUnitLeader ->§4.4; 串 "0 < this->cnt_" |
+| 0x1411D6240 | 业务 串 "HasTriggerCondition()"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "_equipment_subsidy.cpp" |
+
+#### 4.11.53 情报间谍域函数命名空间补遗（45 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141959C40 | NOperativeMissions::CDiplomaticPressure::[18] NOperativeMissions::CDiplomaticPressure::[18] + 域关键词匹配; 被调源码 hoi4; 被 NOperativeMissions::CDiplomaticPressure::[… |
+| 0x14195AF00 | NOperativeMissions::CRootOutResistance::GetEfficiency NOperativeMissions::CRootOutResistance::GetEfficiency + 域关键词匹配; 被调源码 hoi4; 被 NOperativeMissions::CRootO… |
+| 0x141958F30 | NOperativeMissions::CDiplomaticPressure::[13] vtable 槽 NOperativeMissions::CDiplomaticPressure::[13]（func_names RTTI 名） |
+| 0x141956E70 | NOperativeMissions::CControlTrade::[18] vtable 槽 NOperativeMissions::CControlTrade::[18]（func_names RTTI 名） |
+| 0x1419578E0 | NOperativeMissions::CCounterIntelligence::[13] vtable 槽 NOperativeMissions::CCounterIntelligence::[13]（func_names RTTI 名） |
+| 0x141958180 | NOperativeMissions::CCounterIntelligence::[18] vtable 槽 NOperativeMissions::CCounterIntelligence::[18]（func_names RTTI 名） |
+| 0x141957860 | NOperativeMissions::CCounterIntelligence::[20] vtable 槽 NOperativeMissions::CCounterIntelligence::[20]（func_names RTTI 名） |
+| 0x141958EB0 | NOperativeMissions::CDiplomaticPressure::[20] vtable 槽 NOperativeMissions::CDiplomaticPressure::[20]（func_names RTTI 名） |
+| 0x141956280 | NOperativeMissions::CControlTrade::[20] vtable 槽 NOperativeMissions::CControlTrade::[20]（func_names RTTI 名） |
+| 0x1419525F0 | NOperativeMissions::CBoostIdeology::[0] vtable 槽 NOperativeMissions::CBoostIdeology::[0]（func_names RTTI 名） |
+| 0x141955C60 | NOperativeMissions::CControlTrade::[0] vtable 槽 NOperativeMissions::CControlTrade::[0]（func_names RTTI 名） |
+| 0x141956FE0 | NOperativeMissions::CCounterIntelligence::[0] vtable 槽 NOperativeMissions::CCounterIntelligence::[0]（func_names RTTI 名） |
+| 0x1419588D0 | NOperativeMissions::CDiplomaticPressure::[0] vtable 槽 NOperativeMissions::CDiplomaticPressure::[0]（func_names RTTI 名） |
+| 0x141954400 | NOperativeMissions::CBuildIntelNetwork::[0] vtable 槽 NOperativeMissions::CBuildIntelNetwork::[0]（func_names RTTI 名） |
+| 0x140FC2780 | NOperativeMissions::CNoMission::[20] vtable 槽 NOperativeMissions::CNoMission::[20]（func_names RTTI 名） |
+| 0x1419DECD0 | NOperativeMissions::CPropaganda::[0] vtable 槽 NOperativeMissions::CPropaganda::[0]（func_names RTTI 名） |
+| 0x141A32860 | NOperativeMissions::CCountryBased::[9] vtable 槽 NOperativeMissions::CCountryBased::[9]（func_names RTTI 名） |
+| 0x141A328D0 | NOperativeMissions::CNoMission::[17] vtable 槽 NOperativeMissions::CNoMission::[17]（func_names RTTI 名） |
+| 0x141955CC0 | NOperativeMissions::CControlTrade::[17] vtable 槽 NOperativeMissions::CControlTrade::[17]（func_names RTTI 名） |
+| 0x1419571E0 | NOperativeMissions::CCounterIntelligence::[17] vtable 槽 NOperativeMissions::CCounterIntelligence::[17]（func_names RTTI 名） |
+| 0x141958B10 | NOperativeMissions::CDiplomaticPressure::[17] vtable 槽 NOperativeMissions::CDiplomaticPressure::[17]（func_names RTTI 名） |
+| 0x141956CD0 | NOperativeMissions::CControlTrade::[8] vtable 槽 NOperativeMissions::CControlTrade::[8]（func_names RTTI 名） |
+| 0x141957990 | NOperativeMissions::CCounterIntelligence::[15] vtable 槽 NOperativeMissions::CCounterIntelligence::[15]（func_names RTTI 名） |
+| 0x141A326E0 | NOperativeMissions::CCountryBased::[16] vtable 槽 NOperativeMissions::CCountryBased::[16]（func_names RTTI 名） |
+| 0x1419569F0 | NOperativeMissions::CControlTrade::[14] vtable 槽 NOperativeMissions::CControlTrade::[14]（func_names RTTI 名） |
+| 0x1419E0320 | NOperativeMissions::CPropaganda::IsValid func_names 名 NOperativeMissions::CPropaganda::IsValid |
+| 0x141959050 | NOperativeMissions::CDiplomaticPressure::[12] vtable 槽 NOperativeMissions::CDiplomaticPressure::[12]（func_names RTTI 名） |
+| 0x1419563B0 | NOperativeMissions::CControlTrade::[12] vtable 槽 NOperativeMissions::CControlTrade::[12]（func_names RTTI 名） |
+| 0x1419DF030 | NOperativeMissions::CPropaganda::GetEfficiency func_names 名 NOperativeMissions::CPropaganda::GetEfficiency |
+| 0x141952960 | NOperativeMissions::CBoostIdeology::GetEfficiency func_names 名 NOperativeMissions::CBoostIdeology::GetEfficiency |
+| 0x14195C330 | NOperativeMissions::CRootOutResistance::IsValid func_names 名 NOperativeMissions::CRootOutResistance::IsValid |
+| 0x1419546D0 | NOperativeMissions::CBuildIntelNetwork::GetEfficiency func_names 名 NOperativeMissions::CBuildIntelNetwork::GetEfficiency |
+| 0x141956300 | NOperativeMissions::CControlTrade::[13] vtable 槽 NOperativeMissions::CControlTrade::[13]（func_names RTTI 名） |
+| 0x1419528D0 | NOperativeMissions::CBoostIdeology::Clone func_names 名 NOperativeMissions::CBoostIdeology::Clone |
+| 0x141954650 | NOperativeMissions::CBuildIntelNetwork::Clone func_names 名 NOperativeMissions::CBuildIntelNetwork::Clone |
+| 0x1419DEFB0 | NOperativeMissions::CPropaganda::Clone func_names 名 NOperativeMissions::CPropaganda::Clone |
+| 0x141953AB0 | NOperativeMissions::CBoostIdeology::IsValid func_names 名 NOperativeMissions::CBoostIdeology::IsValid |
+| 0x141959E10 | NOperativeMissions::CQuietIntelNetwork::Clone func_names 名 NOperativeMissions::CQuietIntelNetwork::Clone |
+| 0x14195AE90 | NOperativeMissions::CRootOutResistance::Clone func_names 名 NOperativeMissions::CRootOutResistance::Clone |
+| 0x141A32890 | NOperativeMissions::CCountryBased::Reader func_names 名 NOperativeMissions::CCountryBased::Reader |
+| 0x141954630 | NOperativeMissions::CBuildIntelNetwork::GetMissionData func_names 名 NOperativeMissions::CBuildIntelNetwork::GetMissionData |
+| 0x141959DF0 | NOperativeMissions::CQuietIntelNetwork::GetMissionData func_names 名 NOperativeMissions::CQuietIntelNetwork::GetMissionData |
+| 0x14195ABA0 | NOperativeMissions::CRootOutResistance::GetMissionData func_names 名 NOperativeMissions::CRootOutResistance::GetMissionData |
+| 0x1419DED30 | NOperativeMissions::CPropaganda::GetMissionData func_names 名 NOperativeMissions::CPropaganda::GetMissionData |
+| 0x1419558A0 | NOperativeMissions::CBuildIntelNetwork::IsValid NOperativeMissions::CBuildIntelNetwork::IsValid + 名字角色规则(NOperativeMissions::CBuildIntelNetwork::IsValid); 被调… |
+
+#### 4.11.54 情报间谍域函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140274CA0 | 业务 陆/海情报覆盖率计算：按 TAG 统计省份覆盖、控制、平面增益与覆盖增益和 串 "No ingame idler"/"No in-game interface handler"/"Invalid player tag"/"Invalid target tag"/"Intel from "/"Land Int… |
+| 0x1402718C0 | 业务 间谍网络图导出：按目标 TAG 计算网络覆盖率（NatCov）、子网络、涉及州数并写图文件 串 "Network against "/"NatCov="/"Sub network:"/"nStates="/"%5i %s\n"/"written in "/"Could not deduce the tag … |
+| 0x140F2C430 | 业务 串 `CREATE_AGENCY_BLOCKED`、`STATUS_RECRUIT_OPERATIVE`、`CREATE_AGENCY_BUTTON_PROGRESS`、`AGENCY_DEFENSE_LEVEL`；读 a1+1392，旗 byte_14332F63D 门，`AI allocated fac… |
+| 0x140A7D8F0 | 业务 OPERATION_VIEW_ERROR_[INSUFFICIENT_OPERATIVES/NO_OPERATIVE_ON_NETWORK/MISSING_TOKEN] + callee @operationmanager.cpp:280 |
+| 0x141EB01F0 | 业务 情报总账陆军面板控制器构造 CLS CIntelLedgerArmyPanelController + CButtonObserverGlue |
+| 0x141A1E490 | 业务 密码学视图国家条目构造 CLS CCryptologyViewCountryEntry + CButtonObserverGlue |
+| 0x141A1C6C0 | 业务 operation_bg/operation_ic/operation_ai_score/network_strength_[text/icon]/operatives_required_[icon/text] + @containerwindow.cpp ×2（行动窗口） |
+| 0x142306850 | 业务 调用图 h1name:NOperativeMissions::CStateBased::GetState [h1name:NOperativeMissions::CStateBased::GetState×1] |
+| 0x141207FA0 | 业务 反调用图传播 1.0 权重锚点投 §4.11（top 占比 1.00） |
+
+#### 4.11.55 模板实例化桩结构定案（71 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E396B0 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E3B800 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36B70 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141AD75A0 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141834620 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E45230 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E39680 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E3B7D0 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36B40 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141E86AA0 | 模板桩: 模板参数类名 COperativeMapIconEntry（高置信） |
+| 0x141AD7570 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x1418345F0 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E45200 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E39650 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E39620 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E3B7A0 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36B10 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141E86A70 | 模板桩: 模板参数类名 COperativeMapIconEntry（高置信） |
+| 0x141AD7540 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x1418345C0 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E451D0 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E3FD00 | 模板桩: 模板参数类名 COperativeOrderBar（高置信） |
+| 0x141E3B770 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36AE0 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141AD7510 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141834590 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E451A0 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E396F0 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E308D0 | 模板桩: 模板参数类名 COperativeLeader（高置信） |
+| 0x141E308F0 | 模板桩: 模板参数类名 COperativeLeader（高置信） |
+| 0x141E3B840 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36BB0 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141AD75E0 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141834660 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141AD6CF0 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141E45270 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E39740 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E3B890 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36C00 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141AD7BC0 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141834750 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E452E0 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E45180 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E39730 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E3B880 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36BF0 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141E86AE0 | 模板桩: 模板参数类名 COperativeMapIconEntry（高置信） |
+| 0x141E39720 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141AD7BB0 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141834740 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E452D0 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E39710 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E3B870 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36BE0 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141E86AD0 | 模板桩: 模板参数类名 COperativeMapIconEntry（高置信） |
+| 0x141AD7BA0 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141834730 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E39750 | 模板桩: 模板参数类名 COperativesBottomBarEmptySlotItem（高置信） |
+| 0x141E452C0 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E3B860 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E3FD80 | 模板桩: 模板参数类名 COperativeOrderBar（高置信） |
+| 0x141E36BD0 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141AD7B90 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141834720 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E452B0 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141E3B8A0 | 模板桩: 模板参数类名 COperativeBottomBarItem（高置信） |
+| 0x141E36C10 | 模板桩: 模板参数类名 COperativePortraitView（高置信） |
+| 0x141AD7BD0 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+| 0x141834760 | 模板桩: 模板参数类名 COperativeBottomBar（高置信） |
+| 0x141E452F0 | 模板桩: 模板参数类名 COperativeViewEntry（高置信） |
+| 0x141AD78C0 | 模板桩: 模板参数类名 COperativeLeaderItem（高置信） |
+
+#### 4.11.56 单调用转发桩结构定案（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1410E7010 | 转发桩: 被调者 0x141A9B700 -> §4.11 (E:单调用转发(被调者入书))（推定） |
+| 0x141A9B700 | 转发桩: 转发至 （无名） 被 CCountryOperationTokenManager::Writer 调用（情报/间谍/行动）（推定） |
+| 0x140F9F6B0 | 转发桩: 转发至 （无名） 被 CCountryOperationTokenManager::Writer 调用（情报/间谍/行动）（推定） |
+| 0x140E1E660 | 转发桩: 转发至 无名大函数 0x1419555A0 loc 键 OPERATIVE_INVALID_MISSION_REASON_*（特工任务理由）（推定） |
+| 0x14164F1B0 | 转发桩: 转发至 业务 夹于 std::_Ref_count_resource::[3](d=26768) 与 CGfxIntelNetworkEdgeListBuilder::Build?(d=1488)，情报网络边表构建族（推定） |
+| 0x14258DB10 | 转发桩: 转发至 （未命名）被 COperation::[0] 调用 被 COperation::[0] 调用，特工行动（推定） |
+| 0x14258DF60 | 转发桩: 转发至 （未命名）被 COperation::[0] 调用 被 COperation::[0] 调用，特工行动（推定） |
+| 0x140FC1160 | 转发桩: 转发至 COperativeMission::CalcOperativesToReassignIfAssignedToNetworkIn 业务 COperativeMission::CalcOperativesToReassignIfAssignedToNetworkIn 特工网络重派计算（games…（推定） |
+| 0x140FC1190 | 转发桩: 转发至 COperativeMission::CalcOperativesToReassignIfAssignedToQuietNet… 业务 COperativeMission::CalcOperativesToReassignIfAssignedToQuietNetwork，特工重新分配（game…（推定） |
+
+#### 4.11.57 情报间谍域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411FFDB0 | 反调用图单链锚点（0.5）投 §4.11；锚点 `sub_14135CFC0` |
+| 0x140FC0FA0 | caller 140FC6420←XAEBUSIntelNetworkNodeDesc（func_names RTTI 名） |
+| 0x1410D5520 | caller 1410D67A0←COperativesAi::[14]；gamestate.h:1125/1126 双断言；sub_140F9F9F0 |
+| 0x1411DB300 | caller 1411F9CF0←strategicoperative.cpp:992 + gamestate.h:1125 |
+| 0x1410ABE10 | caller 1410AB0C0(radar.cpp:812 邻域) |
+| 0x140443EA0 | func_names 符号名 `CNotAlreadyHired::Evaluate` + pdx_scopedptr.h 断言 |
+| 0x14164C840 | 调用链 CGfxIntelNetworkEdgeListBuilder::Build?@14164E190 |
+| 0x141EAD730 | 游戏 CU 簇内: CIntelLedgerAirPanelController::[2] / CIntelLedgerArmyPanelController::[1] |
+
+#### 4.11.58 情报间谍域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1415F0A90 | 业务 串 estimated_enemy_force_info/estimated_military_forces/estimated_navy_forces/estimated_airforce/estimated_*_industry_size + 邻域 countryintelhelper.cpp |
+| 0x141EB6550 | 业务 邻域 CIntelLedgerArmyPanelController::CArmyTabTooltipHandler/CLedgerStockpileEntry x6 + countryinteledgerview_army.cpp + 断言 ref.h:83 |
+| 0x141959DC0 | NOperativeMissions::CQuietIntelNetwork::[0] 业务 NOperativeMissions::CQuietIntelNetwork::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
+| 0x14195AB70 | NOperativeMissions::CRootOutResistance::[0] 业务 NOperativeMissions::CRootOutResistance::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
+| 0x140FC3D00 | VT NOperativeMissions::CNoMission；j_j__malloc_base；调 0x14195 段九函数（任务对象簇） |

@@ -974,7 +974,7 @@ CU = `hoi4\source\equipment\equipment_module_requirements.cpp`; 宿主类 **CEqu
 
 > 未决: CEquipmentType+24 串对象尾 u32@+32 语义; "No" 字面量 VA; 注记行 CSV 对齐 (逗号数 = 列数−1, 经寄存器透传, 未反汇编确认); "_chassis" / "_hull" 特判分支体; 警告码与列号精确拼装序; 静态注册表宿主类名与记录定长 (§4.28); generic 分组 Tag 列呈现; sub_14117C2C0 / sub_14117C410 的解析语义 (推定 = loc 查找)。
 
-#### 4.23.25 装备市场域函数补遗（29 函）
+#### 4.23.25 装备市场域函数补遗（28 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -989,7 +989,6 @@ CU = `hoi4\source\equipment\equipment_module_requirements.cpp`; 宿主类 **CEqu
 | 0x140DB3C80 | sub_140DB3C80 NIndustrialOrganisation::COrganisation 构造（正文 vtable+56 类型码 357） |
 | 0x142046960 | sub_142046960 CGregorianDate vtable + INTERNATIONAL_MARKET_DRAFT_(REQUIRED_)CONVOYS_TT + COUNTRY / CONVOYS（国际市场护航租用 UI） |
 | 0x1403C7F90 | sub_1403C7F90 CEquipmentArcheTypePool / CUnitAdjuster / SSubUnitStats vtable（装备原型池/子单位统计调整） |
-| 0x140458000 | NIndustrialOrganisation::CHasEquipmentTypeTrigger::GetDesc NIndustrialOrganisation::CHasEquipmentTypeTrigger::GetDesc；串「TRIGGER_MIO_HAS_EQUIPMENT_TYPE」 |
 | 0x141FFD2C0 | NInternationalMarket::CPurchaseEquipmentItem::[21] NInternationalMarket::CPurchaseEquipmentItem::[21]；串「INTERNATIONAL_MARKET_SOLD_BY」 |
 | 0x14100EFD0 | sub_14100EFD0 装备 archetype 表项（COUNT/NAME/ARCHETYPE_DESC_ENTRY） |
 | 0x14192BA30 | sub_14192BA30 装备变体默认模型（USE_DEFAULT_MODEL） |
@@ -1008,7 +1007,7 @@ CU = `hoi4\source\equipment\equipment_module_requirements.cpp`; 宿主类 **CEqu
 | 0x141514F60 | （未命名）loc 串 embargo_initiator_extended_desc/CO loc 串 embargo_initiator_extended_desc/COUNTRY1/COUNTRY2（禁运发起方描述） |
 | 0x1410173E0 | sub_1410173E0 体内构造/操作 vtable 类 CModifier（&CModifier::vftable）→ 通用修正对象（跨域） |
 
-#### 4.23.26 装备市场域函数补遗（19 函）
+#### 4.23.26 装备市场域函数补遗（18 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -1023,7 +1022,6 @@ CU = `hoi4\source\equipment\equipment_module_requirements.cpp`; 宿主类 **CEqu
 | 0x141F6ADA0 | sub_141F6ADA0 特征串:CONFIRMCANCELALLPRODUCTIONLINE_TITLE ; CONFIRMCANCELALLPRODUCTIONLINE_ |
 | 0x140E5F600 | 域关键词匹配 sub_140E5F600 + 域关键词匹配; 源码路径 hoi4; 断言站点 equipmentvariant.h:623 |
 | 0x1411003A0 | sub_1411003A0 特征串:CAN_NOT_SEND_LICENSE_NO_ACTIONS ; CAN_NOT_SEND_LICENSE_NO_FACTORIES |
-| 0x141BE1AE0 | NIndustrialOrganisation::XPEAVCOrganisation::Z::_Func_impl_no_a…::[2] NIndustrialOrganisation::XPEAVCOrganisation::Z::_Func_impl_no_a…::[2] + 域关键词匹配; 串 "GetP… |
 | 0x141F8C100 | AEAVCToolTip::_NPEAVCGuiObject::Z::_Func_impl_no_alloc<…>::[2] AEAVCToolTip::_NPEAVCGuiObject::Z::_Func_impl_no_alloc<…>::[2] + 域关键词匹配; 串 "INTERNATIONAL_MARK… |
 | 0x140E5BD20 | vtable/RTTI 类 CNamedEquipmentBonus sub_140E5BD20 + vtable/RTTI 类 CNamedEquipmentBonus |
 | 0x1401511C0 | vtable/RTTI 类 CAnonymousEquipmentGroup sub_1401511C0 + vtable/RTTI 类 CAnonymousEquipmentGroup; 被 CAnonymousEquipmentGroup::[0] 等 6 命名函数调用 |
@@ -1051,12 +1049,6 @@ CU = `hoi4\source\equipment\equipment_module_requirements.cpp`; 宿主类 **CEqu
 |---|---|
 | 0x141645A80 | （无名，按证据定性） 键 EQ_MOD_SLOT_*/_TITLE（装备模块槽位标题） |
 | 0x1413BDA80 | （无名，按证据定性） 键 EQUIPMENT/TYPE/AMOUNT；直接调用者为 NInternationalMarket::CCreatePurchaseContractEffect::GetDesc / CCancelPurchaseContractEffect::GetDesc（市场合同装备量） |
-
-#### 4.23.29 装备市场域函数补遗（2 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.23.30 装备市场域函数补遗（4 函）
 
 | VA | 语义/证据 |
@@ -1356,3 +1348,634 @@ CU = `hoi4\source\equipment\equipment_module_requirements.cpp`; 宿主类 **CEqu
 |---|---|
 | 0x1415FD490 | 列表移除 从 a1+7920 id 列表交换移除 v4 + 固定串 "trade" 经 vtable+440 查找 + vtable+72 刷新 |
 | 0x142051CD0 | 合约UI 采购合约进度图标切换：a2 分支选 "GFX_purchase_contract_progress" / "GFX_purchase_contract_stalled_progress" + vtable 728/736 |
+
+#### 4.23.43 装备市场域函数补遗（27 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411961B0 | CEvolvePlaneImgui::[4] small/medium/large/cv_small_plane_airframe，飞机装备演进 ImGui 调试工具 |
+| 0x1414AE330 | 业务逻辑（见证据锚） 读 *(a2+184) 两 int 字段做 100000 倍定点运算（金额/库存类）+ CGlobals 断言；域不明确 |
+| 0x1422693B0 | （无名，按上游/loc 定性） 上游 NInternationalMarket::CRequestEquipmentPurchaseAction::GetRequestDescText/CFrontEndIdle |
+| 0x141DAA5B0 | 业务逻辑（见证据锚） ref.h + idb 断言；遍历 v2+136 条目按位 0x2000000000 聚合 + /100000 定点（价格/标志聚合）；域不明确 |
+| 0x140C9B520 | （无名，按证据定性） 串 'A limit for module'/'A limit for category' + CModuleCountLimit（模块/类别数量上限） |
+| 0x141969F40 | （无名，按证据定性） 直接调用者 VT CUpgradeWindowOverride/SModifierStat + 串 'Equipment type tried to inherit all module slots from its parent'（装备模块槽位继承） |
+| 0x142004430 | CActiveContractsUiController::OpenCancelConfirmationPopup? CActiveContractsUiController::OpenCancelConfirmationPopup 装备市场合约 UI（名带?，读 gamestate 全局 qword_14332… |
+| 0x1413B1BF0 | NInternationalMarket::CRequestMarketAccessRightsAction::GetAiAcceptance |
+| 0x1401A9AC0 | （无名） 被 CAnonymousEquipmentGroup::[2] 调用（装备/市场） |
+| 0x140C68040 | （无名） 被 CEquipmentOverview::[0] 调用（装备/市场） |
+| 0x1403087A0 | （无名） 被 NInternationalMarket::CCreatePurchaseCon 调用（装备/市场） |
+| 0x14062BA80 | （无名） 被 CEquipmentDatabase::[2] 调用（装备/市场） |
+| 0x140A07980 | （无名） 被 CEquipmentGraphicPoolTypeMap::Reader 调用（装备/市场） |
+| 0x1415032A0 | CLendLeaseAction::[57] 国际市场/租借/装备加成/装备升级/装备变体/采购合约（CLendLeaseAction::[57]） |
+| 0x140157AB0 | （无名） 被 CAnonymousEquipmentGroup::[2] 调用（装备/市场） |
+| 0x140A00ED0 | （无名） 被 CEquipmentGraphicPoolTypeMap::Reader 调用（装备/市场） |
+| 0x141AA4D30 | NInternationalMarket::CCancelEquipmentPurchaseAction::[57] func_names 全名 + 装备市场命名空间 NInternationalMarket |
+| 0x142069A00 | （无名） 被 NInternationalMarket::CPurchaseDraftWind 调用（装备/市场） |
+| 0x141463A90 | CCreateEquipmentVariantSpec::Writer CCreateEquipmentVariantSpec::Writer（装备/市场） |
+| 0x1415377D0 | CEquipmentUpgrade::[0] 国际市场/租借/装备加成/装备升级/装备变体/采购合约（CEquipmentUpgrade::[0]） |
+| 0x1413B0570 | CEquipmentTypeVariable::[1] CEquipmentTypeVariable::[1] + 域关键词匹配; 被调源码 clausewitz; 被 CEquipmentTypeVariable::[1] 等 1 命名函数调用 |
+| 0x141F6B630 | CConfirmSwitchEquipment::[14] CConfirmSwitchEquipment::[14]（装备/市场） |
+| 0x141AA3C40 | NInternationalMarket::CCancelEquipmentPurchaseAction::[24] func_names 全名 + 装备市场命名空间 NInternationalMarket |
+| 0x140490CD0 | CAddEquipmentProduction::[4] CAddEquipmentProduction::[4] + 域关键词匹配; 被 CAddEquipmentProduction::[4] 等 1 命名函数调用 |
+| 0x14191FC00 | CPotentialDesignCollection::[0] 潜在设计集合（装备设计） |
+| 0x141924F20 | CPersistedMioQueue::[0] CPersistedMioQueue::[0] + 域关键词匹配; 被 CPersistedMioQueue::[0] 等 1 命名函数调用 |
+| 0x140DEA560 | 无名 sub_（人工读体裁定） 市场采购合同构造（类名 NInternationalMarket::CPurchaseContract + malloc(0x18) 引用计数 v4[2]=1） |
+
+#### 4.23.44 装备市场域函数补遗（39 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413C7A00 | sub_1413C7A00 业务 国际市场补贴总览（INTERNATIONAL_MARKET_SUBSIDIES_OVERVIEW_TITLE_YELLOW / PURCHASE_CONTRACT_SUBSIDIES_CONSUMED / ACTIVE_SUBSIDIES / CONSUMED_CIC；学说串来自… |
+| 0x1415C8FB0 | sub_1415C8FB0 业务 建筑工厂市场合同（CONSTRUCTION_FACTORIES_MARKET_CONTRACT_HEADER / CURRENT_CONTRACTS / TOTAL_ALLOCATED / NUM_CONTRACTS / NUM_FACTORIES） |
+| 0x141218AC0 | (无名) 业务 大对象构造函数：off_143085170 混合缓冲成员 ×多 + Init_thread + *(a1+352)=100000 定点字段；域不明确 |
+| 0x1414FF5B0 | （无名） 业务 150000 定点比例计算 + 调 logistics.cpp/equipmentpool.cpp 族；0x1414FF 邻域 CLendLeaseAction/CIncomingLendLeaseAction（近邻传播）：租借法案 |
+| 0x142065970 | （无名） 业务 串 "INTERNATIONAL_MARKET_ADD_TO_MARKET_BASE_COST_TT"/"_PRICE_MODIFIER_TT"/"_REQUIRE_CONVOYS_TT" |
+| 0x140A4A910 | （无名） 业务 串 "same_as_mio" + 调 sub_140F88180：MIO 相关脚本解析 |
+| 0x14204DA40 | （无名） 业务 串 "PURCHASE_CONTRACT_PROGRESS_LAST_PAYMENT"/"_INEFFICIENT_LAST_PAYMENT"/"DELIVERED"/"EXPECTED" |
+| 0x1413BCD30 | sub_1413BCD30 业务 串 PURCHASE_CONTRACT_EQUIPMENT_ENTRY/EQUIPMENT/AMOUNT |
+| 0x141530030 | 业务 脚本解析：错误串 "Expected start of list" / "Module category appears more than once in the list"（模块分类列表，疑似载具设计器模块） |
+| 0x14015BB20 | 业务 gameitemdatabase.h:780 站点 + 调 CDiplomaticAction::GetFirstCountryRef，紧邻 CAnonymousEquipmentGroup::[1](d=1172)，匿名装备组数据库条目 |
+| 0x141FF5EB0 | 业务 夹于 NInternationalMarket::CMarketPanelController::[0](d=14416) 与 CPlaneCategoryWidget::[1](d=22556)，SIMD，国际市场面板/飞机类别控件族 |
+| 0x14176AD20 | sub_14176AD20 业务 串 EQUIPMENT_CATEGORY/EQUIPMENT_CATEGORIES_AUTO |
+| 0x1409FCF60 | — 业务 邻域 CEquipmentGraphicPoolTypeMap（0x1409FCC60）= 装备图形池区段 |
+| 0x1417A7770 | — 业务 ref.h:83 CReferenceObject 引用断言；调用 sub_140BC30C0（0x140BC 装备变体邻域） |
+| 0x140AF4460 | — 业务 调用解析器原语族；0x140AF 区段（装备模块需求邻域 equipment_module_requirements.cpp:210） |
+| 0x1414905E0 | — 业务 0x14149 区段 = 设计公司/modifier 邻域（DESIGNER_DEPLOYED_LEADER_MODIFIERS 0x14149D630） |
+| 0x140BD8D00 | — 业务 邻域 CEquipmentVariant::CreateNewId（0x140BD7EB0）= 装备变体区段 |
+| 0x1413B2EC0 | 业务 夹于 NInternationalMarket::CRequestMarketAccessRightsAction::Writer(d=2608) 与 CMarketRequestAutomation::HandleSendingMarketAccessRequest?(d=10721)，市场访问请求族 |
+| 0x14203AFD0 | — 业务 调用 sub_1413B2940（0x1413B 国际市场邻域，CRequestMarketAccessRightsAction 0x1413B2130） |
+| 0x140A01180 | — 业务 邻域 CEquipmentGraphicPoolTypeMap（0x1409FCC60）= 装备图形池区段 |
+| 0x1419169C0 | 业务 串字面量 "same_as_mio" §4.23 装备 |
+| 0x1419FF6A0 | 业务 夹于 CContractPaymentConsumer::[1](d=1728) 与 CCreateEquipmentVariantScheduler::CreateVariants?(d=3056)，合同付款/装备变体调度族 |
+| 0x1413B1DF0 | NInternationalMarket::CRequestMarketAccessRightsAction::[59] 业务 NInternationalMarket::CRequestMarketAccessRightsAction 请求市场准入权行动（_DESC + COUNTRY） |
+| 0x140CA19D0 | 业务 夹于 CDuplicateArchetypeDefinition::Writer(d=16544) 与 CCountryResources::[0](d=18008)，国家资源/重复原型定义族（与 0x140CA5860 同簇） |
+| 0x140A0AE40 | CAnonymousEquipmentGroup::[2] 业务 func_names 名 |
+| 0x1413B59C0 | CMarketRequestAutomation::HandleSendingMarketAccessRequest? 业务 CMarketRequestAutomation::HandleSendingMarketAccessRequest 市场访问请求自动发送 |
+| 0x1414FFBC0 | CIncomingLendLeaseAction::GetAcceptMessageText 业务 CIncomingLendLeaseAction::GetAcceptMessageText 接收租借法案 action 接受文本 |
+| 0x1409E9080 | — 业务 0x1409E-9F 区段装备图形池邻域（CEquipmentGraphicPoolTypeMap 0x1409FCC60） |
+| 0x140A03BE0 | 业务 qword_143453090 全局引用，夹于 CPdxStaticInlineBufferAllocator<CFixedPoint>::[1](d=3328) 与 CEquipmentGraphicDatabase::[3](d=8800)，装备图形数据库族 |
+| 0x141021680 | (无名) 业务 调用窗口内命名函数 sub_1413B1BF0 |
+| 0x141FFD6A0 | NInternationalMarket::CPurchaseEquipmentItem::[20] 业务 NInternationalMarket::CPurchaseEquipmentItem 市场购买装备条目（INTERNATIONAL_MARKET_OTHER_STOCKPILE） |
+| 0x141A00290 | CCreateEquipmentVariantScheduler::CreateVariants? 业务 CCreateEquipmentVariantScheduler::CreateVariants，装备变体调度创建 |
+| 0x14205A0B0 | (无名) 业务 VA 邻域有名函数簇（NInternationalMarket::CAddToMarketEquipmentItem::[0]; NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui…::[0]; NInternationa… |
+| 0x1411AD740 | 业务 串 "OPERATIVE_INVALID_MISSION_REASON_CAN"; 串 "OPERATIVE_INVALID_MISSION_REASON_CAN"; 串 "RECRUIT_SCIENTIST_WINDOW_TITLE" |
+| 0x140A81E80 | 业务 断言站点 equipmentvariant.cpp:11 ->§4.23; 类路由 CCountryDecryptionState ->§4.28; 类路由 CCountryArmyOfficerCorpView ->§4.30 |
+| 0x140630610 | 业务 断言站点 eventscope.h:93; 串 "( pScope == this \ \ pScope->_pFrom !"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x14224C8E0 | 业务 串 "equipment_variant" ->§4.23; 调用图 IDF top §4.1 frac 0.79 |
+| 0x140E6ECE0 | 业务 双层循环：a2+32 配对表 vs a1+576 的 5 域记录（计数 +588），首字匹配则 v5[1] -= v2[1] 按 id 匹配记录并扣减（5 域步长） |
+| 0x140B8FA50 | CPersistedDesignsDb::[3] 业务 CPersistedDesignsDb vtable 槽[3] 反查确认（6 槽表，槽[2]=stub_ret1，槽[1]/[4]/[5] 均在 0x14192x 游戏代码区）；调 sub_141923C90 + sub_14191D0C0(this)，槽位… |
+
+#### 4.23.45 装备市场域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413B16E0 | NInternationalMarket::CRequestMarketAccessRightsAction::GetAiAcceptanceFactors 业务 func_names 名 NInternationalMarket::CRequestMarketAccessRightsAction::GetAiA… |
+| 0x140306F00 | NInternationalMarket::CGiveMarketAccessEffect::GetDesc 业务 串 "EFFECT_MARKET_GIVE_MARKET_ACCESS"/"COUNTRY"（效果描述） |
+| 0x140307CB0 | NInternationalMarket::CCreatePurchaseContractEffect::ResolveReferences 业务 串 "Seller's country tag is not provided."/"Number of contract's civilian factory is… |
+
+#### 4.23.46 装备市场域函数命名空间补遗（191 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B1BD20 | NInternationalMarket::CMarketStockpileEquipmentTransferCommand::[0] NInternationalMarket::CMarketStockpileEquipmentTransferCommand::[0] + 名字角色规则(NInternation… |
+| 0x141AA5DC0 | NInternationalMarket::CRequestEquipmentPurchaseAction::GetRequestDescText — func_names 名 + DIPLOMACY_REQUEST_EQUIPMENT_PURCHASE_DESCRIPTION + REQUESTER/EQUIP… |
+| 0x14045AA30 | NInternationalMarket::CDealCompletionTrigger::GetDesc 触发器/效果描述生成（GetDesc）（NInternationalMarket::CDealCompletionTrigger::GetDesc） |
+| 0x140307F90 | NInternationalMarket::CMultiplePurchaseContractTargetEffect::ParseToken 触发器/效果脚本解析（ParseToken/ParseValueKeys/ResolveReferences）（NInternationalMarket::CMultip… |
+| 0x140305BB0 | NInternationalMarket::CAddEquipmentSubsidyEffect::GetDesc：NInternationalMarket::CAddEquipmentSubsidyEffect::GetDesc NInternationalMarket::CAddEquipmentSubsid… |
+| 0x14206C300 | NInternationalMarket::CPriceLevelsWidget::[0]：NInternationalMarket::CPriceLevelsWidget::[0] NInternationalMarket::CPriceLevelsWidget::[0]；串 INTERNATIONAL_MAR… |
+| 0x140306230 | NInternationalMarket::CCancelPurchaseContractEffect::GetDesc（func_names 名） func_names 名 + 串 "INTERNATIONAL_MARKET_EQUIPMENT_AMOUNT"/"EFFECT_MARKET_CANCEL_PUR… |
+| 0x1420066A0 | NInternationalMarket::CMarketAccessOverviewItem::[0]：NInternationalMarket::CMarketAccessOverviewItem::[0] NInternationalMarket::CMarketAccessOverviewItem::[0… |
+| 0x141FFDFC0 | NInternationalMarket::CPurchasableEquipmentWindow 槽 0 串 INTERNATIONAL_MARKET_FILTER_COUNTRY_BUTTON / INTERNATIONAL_MARKET_FILTERED_COUNTRY |
+| 0x1413B2130 | NInternationalMarket::CRequestMarketAccessRightsAction::CanExecute 类名 + "TRIGGER_UNFULLFILLED_PREFIX" loc 键（市场准入请求动作） |
+| 0x1420518F0 | NInternationalMarket::CPurchaseContractEntry::[0] "PURCHASE_CONTRACT_CANCEL" + buttonwrapper.h:34 断言（购买合同条目按钮） |
+| 0x141AA52E0 | NInternationalMarket::CRequestEquipmentPurchaseAction::[24] vtable 槽 NInternationalMarket::CRequestEquipmentPurchaseAction::[24]（func_names RTTI 名） |
+| 0x1413B1440 | NInternationalMarket::CRequestMarketAccessRightsAction::[24] vtable 槽 NInternationalMarket::CRequestMarketAccessRightsAction::[24]（func_names RTTI 名） |
+| 0x14203CCC0 | NInternationalMarket::CSubsidyOverview::[0] vtable 槽 NInternationalMarket::CSubsidyOverview::[0]（func_names RTTI 名） |
+| 0x141F8BD60 | NInternationalMarket::CMarketOverviewPanelController::[1] vtable 槽 NInternationalMarket::CMarketOverviewPanelController::[1]（func_names RTTI 名） |
+| 0x142006460 | NInternationalMarket::CMarketAccessOverviewWindow::[0] vtable 槽 NInternationalMarket::CMarketAccessOverviewWindow::[0]（func_names RTTI 名） |
+| 0x14203CB90 | NInternationalMarket::CSubsidyOverview::CListController::[0] vtable 槽 NInternationalMarket::CSubsidyOverview::CListController::[0]（func_names RTTI 名） |
+| 0x142041D20 | NInternationalMarket::CMarketEquipmentItem::[0] vtable 槽 NInternationalMarket::CMarketEquipmentItem::[0]（func_names RTTI 名） |
+| 0x14200BF60 | NInternationalMarket::CEquipmentStockpileEquipmentItem::[0] vtable 槽 NInternationalMarket::CEquipmentStockpileEquipmentItem::[0]（func_names RTTI 名） |
+| 0x142007A30 | NInternationalMarket::CRequestAutomationOptionsWindow::[0] vtable 槽 NInternationalMarket::CRequestAutomationOptionsWindow::[0]（func_names RTTI 名） |
+| 0x140302F80 | NInternationalMarket::CAddEquipmentSubsidyEffect::[0] vtable 槽 NInternationalMarket::CAddEquipmentSubsidyEffect::[0]（func_names RTTI 名） |
+| 0x142047BC0 | NInternationalMarket::CPurchaseDraftItem::[0] vtable 槽 NInternationalMarket::CPurchaseDraftItem::[0]（func_names RTTI 名） |
+| 0x142059AB0 | NInternationalMarket::CAddToMarketEquipmentItem::[0] vtable 槽 NInternationalMarket::CAddToMarketEquipmentItem::[0]（func_names RTTI 名） |
+| 0x14203D6F0 | NInternationalMarket::CSubsidyOverview::[2] vtable 槽 NInternationalMarket::CSubsidyOverview::[2]（func_names RTTI 名） |
+| 0x14203D2F0 | NInternationalMarket::CSubsidyOverview::CListController::[1] vtable 槽 NInternationalMarket::CSubsidyOverview::CListController::[1]（func_names RTTI 名） |
+| 0x14206C270 | NInternationalMarket::CPriceLevelsWidget::[0] vtable 槽 NInternationalMarket::CPriceLevelsWidget::[0]（func_names RTTI 名） |
+| 0x142053320 | NInternationalMarket::CEditMarketStockpileWindow::[0] vtable 槽 NInternationalMarket::CEditMarketStockpileWindow::[0]（func_names RTTI 名） |
+| 0x142006380 | NInternationalMarket::CCancelMarketAccessPoup::[0] vtable 槽 NInternationalMarket::CCancelMarketAccessPoup::[0]（func_names RTTI 名） |
+| 0x141F8C760 | NInternationalMarket::CMarketSellerPanelController::[0] vtable 槽 NInternationalMarket::CMarketSellerPanelController::[0]（func_names RTTI 名） |
+| 0x1420533B0 | NInternationalMarket::CEditMarketStockpileWindow::[12] vtable 槽 NInternationalMarket::CEditMarketStockpileWindow::[12]（func_names RTTI 名） |
+| 0x1417B9B90 | NInternationalMarket::CCountryInternationalMarketView::[6] vtable 槽 NInternationalMarket::CCountryInternationalMarketView::[6]（func_names RTTI 名） |
+| 0x14204FB50 | NInternationalMarket::SCivAssignment::[0] vtable 槽 NInternationalMarket::SCivAssignment::[0]（func_names RTTI 名） |
+| 0x1417BA140 | NInternationalMarket::CCountryInternationalMarketView::[9] vtable 槽 NInternationalMarket::CCountryInternationalMarketView::[9]（func_names RTTI 名） |
+| 0x142048070 | NInternationalMarket::NPrivate::CTotalIcon::[0] vtable 槽 NInternationalMarket::NPrivate::CTotalIcon::[0]（func_names RTTI 名） |
+| 0x141F8A720 | NInternationalMarket::CMarketBuyerPanelController::[0] vtable 槽 NInternationalMarket::CMarketBuyerPanelController::[0]（func_names RTTI 名） |
+| 0x141AA6650 | NInternationalMarket::CRequestEquipmentPurchaseAction::[23] vtable 槽 NInternationalMarket::CRequestEquipmentPurchaseAction::[23]（func_names RTTI 名） |
+| 0x141FF2660 | NInternationalMarket::CMarketPanelController::[0] vtable 槽 NInternationalMarket::CMarketPanelController::[0]（func_names RTTI 名） |
+| 0x142044BB0 | NInternationalMarket::CPurchaseDraftItem::[0] vtable 槽 NInternationalMarket::CPurchaseDraftItem::[0]（func_names RTTI 名） |
+| 0x14203D340 | NInternationalMarket::CSubsidyOverview::CListController::[2] vtable 槽 NInternationalMarket::CSubsidyOverview::CListController::[2]（func_names RTTI 名） |
+| 0x142059810 | NInternationalMarket::CAddToMarketEquipmentItem::[23] vtable 槽 NInternationalMarket::CAddToMarketEquipmentItem::[23]（func_names RTTI 名） |
+| 0x1419D6110 | NInternationalMarket::CPurchaseRequest::[0] vtable 槽 NInternationalMarket::CPurchaseRequest::[0]（func_names RTTI 名） |
+| 0x141AA5280 | NInternationalMarket::CRequestEquipmentPurchaseAction::[0] vtable 槽 NInternationalMarket::CRequestEquipmentPurchaseAction::[0]（func_names RTTI 名） |
+| 0x142069E50 | NInternationalMarket::NDetails::CSubsidyDraftListItemView::[6] vtable 槽 NInternationalMarket::NDetails::CSubsidyDraftListItemView::[6]（func_names RTTI 名） |
+| 0x142069DF0 | NInternationalMarket::NDetails::CSubsidyDraftListItemView::[2] vtable 槽 NInternationalMarket::NDetails::CSubsidyDraftListItemView::[2]（func_names RTTI 名） |
+| 0x142069E30 | NInternationalMarket::NDetails::CSubsidyDraftListItemView::[3] vtable 槽 NInternationalMarket::NDetails::CSubsidyDraftListItemView::[3]（func_names RTTI 名） |
+| 0x142069E10 | NInternationalMarket::NDetails::CSubsidyDraftListItemView::[4] vtable 槽 NInternationalMarket::NDetails::CSubsidyDraftListItemView::[4]（func_names RTTI 名） |
+| 0x140303040 | NInternationalMarket::CCreatePurchaseContractEffect::[0] vtable 槽 NInternationalMarket::CCreatePurchaseContractEffect::[0]（func_names RTTI 名） |
+| 0x14204CA10 | NInternationalMarket::CPurchaseContractEntry::[0] vtable 槽 NInternationalMarket::CPurchaseContractEntry::[0]（func_names RTTI 名） |
+| 0x1417B9BE0 | NInternationalMarket::CCountryInternationalMarketView::[7] vtable 槽 NInternationalMarket::CCountryInternationalMarketView::[7]（func_names RTTI 名） |
+| 0x142006400 | NInternationalMarket::CMarketAccessOverviewItem::[0] vtable 槽 NInternationalMarket::CMarketAccessOverviewItem::[0]（func_names RTTI 名） |
+| 0x140303240 | NInternationalMarket::CScriptEquipmentAmountEntry::[0] vtable 槽 NInternationalMarket::CScriptEquipmentAmountEntry::[0]（func_names RTTI 名） |
+| 0x14200C6F0 | NInternationalMarket::CCancelSellingContractPopup::[16] vtable 槽 NInternationalMarket::CCancelSellingContractPopup::[16]（func_names RTTI 名） |
+| 0x14204FBB0 | NInternationalMarket::SConvoyAssignment::[0] vtable 槽 NInternationalMarket::SConvoyAssignment::[0]（func_names RTTI 名） |
+| 0x1419820A0 | NInternationalMarket::CMarketAccessRightsRelation::[0] vtable 槽 NInternationalMarket::CMarketAccessRightsRelation::[0]（func_names RTTI 名） |
+| 0x141B1B6E0 | NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand::[0] vtable 槽 NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand::[0]（func_nam… |
+| 0x1413B23F0 | NInternationalMarket::CRequestMarketAccessRightsAction::[57] vtable 槽 NInternationalMarket::CRequestMarketAccessRightsAction::[57]（func_names RTTI 名） |
+| 0x141FFE380 | NInternationalMarket::CPurchaseEquipmentItem::[0] vtable 槽 NInternationalMarket::CPurchaseEquipmentItem::[0]（func_names RTTI 名） |
+| 0x14200C6B0 | NInternationalMarket::CEquipmentStockpileEquipmentItem::[0] vtable 槽 NInternationalMarket::CEquipmentStockpileEquipmentItem::[0]（func_names RTTI 名） |
+| 0x1420691A0 | NInternationalMarket::NDetails::CSubsidyDraftListItemView::[1] vtable 槽 NInternationalMarket::NDetails::CSubsidyDraftListItemView::[1]（func_names RTTI 名） |
+| 0x14203CC70 | NInternationalMarket::NDetails::CSubsidyListItem::[1] vtable 槽 NInternationalMarket::NDetails::CSubsidyListItem::[1]（func_names RTTI 名） |
+| 0x142044C50 | NInternationalMarket::NPrivate::CTotalIcon::[0] vtable 槽 NInternationalMarket::NPrivate::CTotalIcon::[0]（func_names RTTI 名） |
+| 0x142044C10 | NInternationalMarket::CPurchaseDraftWindow::[0] vtable 槽 NInternationalMarket::CPurchaseDraftWindow::[0]（func_names RTTI 名） |
+| 0x142049DA0 | NInternationalMarket::CPurchaseDraftWindow::[6] vtable 槽 NInternationalMarket::CPurchaseDraftWindow::[6]（func_names RTTI 名） |
+| 0x142049D70 | NInternationalMarket::CPurchaseDraftItem::[22] vtable 槽 NInternationalMarket::CPurchaseDraftItem::[22]（func_names RTTI 名） |
+| 0x142059A70 | NInternationalMarket::CAddToMarketEquipmentItem::[24] vtable 槽 NInternationalMarket::CAddToMarketEquipmentItem::[24]（func_names RTTI 名） |
+| 0x1403085E0 | NInternationalMarket::CAnyPurchaseContractTrigger::[25] vtable 槽 NInternationalMarket::CAnyPurchaseContractTrigger::[25]（func_names RTTI 名） |
+| 0x141FFB810 | NInternationalMarket::CPurchaseEquipmentItem::[0] vtable 槽 NInternationalMarket::CPurchaseEquipmentItem::[0]（func_names RTTI 名） |
+| 0x142047850 | NInternationalMarket::CPurchaseDraftItem::[23] vtable 槽 NInternationalMarket::CPurchaseDraftItem::[23]（func_names RTTI 名） |
+| 0x14045AE80 | NInternationalMarket::CAllPurchaseContractTrigger::[23] vtable 槽 NInternationalMarket::CAllPurchaseContractTrigger::[23]（func_names RTTI 名） |
+| 0x14045AEB0 | NInternationalMarket::CAnyPurchaseContractTrigger::[23] vtable 槽 NInternationalMarket::CAnyPurchaseContractTrigger::[23]（func_names RTTI 名） |
+| 0x140DF2480 | NInternationalMarket::CEquipmentConvoyClient::[0] vtable 槽 NInternationalMarket::CEquipmentConvoyClient::[0]（func_names RTTI 名） |
+| 0x141F8BCC0 | NInternationalMarket::CMarketOverviewPanelController::[0] vtable 槽 NInternationalMarket::CMarketOverviewPanelController::[0]（func_names RTTI 名） |
+| 0x141FFB7D0 | NInternationalMarket::CPurchasableEquipmentWindow::[0] vtable 槽 NInternationalMarket::CPurchasableEquipmentWindow::[0]（func_names RTTI 名） |
+| 0x14200C010 | NInternationalMarket::CMarketStockpileWindow::[0] vtable 槽 NInternationalMarket::CMarketStockpileWindow::[0]（func_names RTTI 名） |
+| 0x142058F00 | NInternationalMarket::CAddEquipmentToMarketWindow::[0] vtable 槽 NInternationalMarket::CAddEquipmentToMarketWindow::[0]（func_names RTTI 名） |
+| 0x140303440 | NInternationalMarket::CRandomPurchaseContractEffect::[25] vtable 槽 NInternationalMarket::CRandomPurchaseContractEffect::[25]（func_names RTTI 名） |
+| 0x14203CACC | NInternationalMarket::CSubsidyOverview::[0] vtable 槽 NInternationalMarket::CSubsidyOverview::[0]（func_names RTTI 名） |
+| 0x14205330C | NInternationalMarket::CEditMarketStockpileWindow::[1] vtable 槽 NInternationalMarket::CEditMarketStockpileWindow::[1]（func_names RTTI 名） |
+| 0x14200634C | NInternationalMarket::CCancelMarketAccessPoup::[1] vtable 槽 NInternationalMarket::CCancelMarketAccessPoup::[1]（func_names RTTI 名） |
+| 0x142051CC0 | NInternationalMarket::CPurchaseContractEntry::[18] vtable 槽 NInternationalMarket::CPurchaseContractEntry::[18]（func_names RTTI 名） |
+| 0x142000C50 | NInternationalMarket::CPurchaseEquipmentItem::[22] vtable 槽 NInternationalMarket::CPurchaseEquipmentItem::[22]（func_names RTTI 名） |
+| 0x141F8A960 | NInternationalMarket::CMarketBuyerPanelController::[1] vtable 槽 NInternationalMarket::CMarketBuyerPanelController::[1]（func_names RTTI 名） |
+| 0x141F8BD40 | NInternationalMarket::CMarketOverviewPanelController::[2] vtable 槽 NInternationalMarket::CMarketOverviewPanelController::[2]（func_names RTTI 名） |
+| 0x14200BDE8 | NInternationalMarket::CMarketStockpileWindow::[1] vtable 槽 NInternationalMarket::CMarketStockpileWindow::[1]（func_names RTTI 名） |
+| 0x1417B9148 | NInternationalMarket::CCountryInternationalMarketView::[1] vtable 槽 NInternationalMarket::CCountryInternationalMarketView::[1]（func_names RTTI 名） |
+| 0x141FFB6E4 | NInternationalMarket::CPurchasableEquipmentWindow::[0] vtable 槽 NInternationalMarket::CPurchasableEquipmentWindow::[0]（func_names RTTI 名） |
+| 0x141FFB6F0 | NInternationalMarket::CPurchasableEquipmentWindow::[1] vtable 槽 NInternationalMarket::CPurchasableEquipmentWindow::[1]（func_names RTTI 名） |
+| 0x141FFB708 | NInternationalMarket::CPurchaseEquipmentItem::[1] vtable 槽 NInternationalMarket::CPurchaseEquipmentItem::[1]（func_names RTTI 名） |
+| 0x142006358 | NInternationalMarket::CMarketAccessOverviewItem::[1] vtable 槽 NInternationalMarket::CMarketAccessOverviewItem::[1]（func_names RTTI 名） |
+| 0x142006364 | NInternationalMarket::CMarketAccessOverviewWindow::[0] vtable 槽 NInternationalMarket::CMarketAccessOverviewWindow::[0]（func_names RTTI 名） |
+| 0x142006370 | NInternationalMarket::CMarketAccessOverviewWindow::[1] vtable 槽 NInternationalMarket::CMarketAccessOverviewWindow::[1]（func_names RTTI 名） |
+| 0x142007A14 | NInternationalMarket::CRequestAutomationOptionsWindow::[0] vtable 槽 NInternationalMarket::CRequestAutomationOptionsWindow::[0]（func_names RTTI 名） |
+| 0x142007A20 | NInternationalMarket::CRequestAutomationOptionsWindow::[1] vtable 槽 NInternationalMarket::CRequestAutomationOptionsWindow::[1]（func_names RTTI 名） |
+| 0x14200BDB8 | NInternationalMarket::CCancelSellingContractPopup::[1] vtable 槽 NInternationalMarket::CCancelSellingContractPopup::[1]（func_names RTTI 名） |
+| 0x14200BDC4 | NInternationalMarket::CEquipmentStockpileEquipmentItem::[1] vtable 槽 NInternationalMarket::CEquipmentStockpileEquipmentItem::[1]（func_names RTTI 名） |
+| 0x14200BDD0 | NInternationalMarket::CMarketStockpileWindow::[0] vtable 槽 NInternationalMarket::CMarketStockpileWindow::[0]（func_names RTTI 名） |
+| 0x14200BDDC | NInternationalMarket::CMarketStockpileWindow::[1] vtable 槽 NInternationalMarket::CMarketStockpileWindow::[1]（func_names RTTI 名） |
+| 0x142041D14 | NInternationalMarket::CMarketEquipmentItem::[1] vtable 槽 NInternationalMarket::CMarketEquipmentItem::[1]（func_names RTTI 名） |
+| 0x142044B68 | NInternationalMarket::CPurchaseDraftItem::[1] vtable 槽 NInternationalMarket::CPurchaseDraftItem::[1]（func_names RTTI 名） |
+| 0x142044B74 | NInternationalMarket::CPurchaseDraftWindow::[0] vtable 槽 NInternationalMarket::CPurchaseDraftWindow::[0]（func_names RTTI 名） |
+| 0x142044B80 | NInternationalMarket::CPurchaseDraftWindow::[1] vtable 槽 NInternationalMarket::CPurchaseDraftWindow::[1]（func_names RTTI 名） |
+| 0x142044B98 | NInternationalMarket::NPrivate::CTotalIcon::[1] vtable 槽 NInternationalMarket::NPrivate::CTotalIcon::[1]（func_names RTTI 名） |
+| 0x14204CA00 | NInternationalMarket::CPurchaseContractEntry::[1] vtable 槽 NInternationalMarket::CPurchaseContractEntry::[1]（func_names RTTI 名） |
+| 0x142053300 | NInternationalMarket::CEditMarketStockpileWindow::[0] vtable 槽 NInternationalMarket::CEditMarketStockpileWindow::[0]（func_names RTTI 名） |
+| 0x142058E24 | NInternationalMarket::CAddEquipmentToMarketWindow::[0] vtable 槽 NInternationalMarket::CAddEquipmentToMarketWindow::[0]（func_names RTTI 名） |
+| 0x142058E30 | NInternationalMarket::CAddEquipmentToMarketWindow::[1] vtable 槽 NInternationalMarket::CAddEquipmentToMarketWindow::[1]（func_names RTTI 名） |
+| 0x142058E3C | NInternationalMarket::CAddToMarketEquipmentItem::[1] vtable 槽 NInternationalMarket::CAddToMarketEquipmentItem::[1]（func_names RTTI 名） |
+| 0x14206C264 | NInternationalMarket::CPriceLevelsWidget::[1] vtable 槽 NInternationalMarket::CPriceLevelsWidget::[1]（func_names RTTI 名） |
+| 0x140E000E0 | NInternationalMarket::CPurchaseDraftItem::[24] vtable 槽 NInternationalMarket::CPurchaseDraftItem::[24]（func_names RTTI 名） |
+| 0x140DF2580 | NInternationalMarket::CEquipmentConvoyClient::[15] vtable 槽 NInternationalMarket::CEquipmentConvoyClient::[15]（func_names RTTI 名） |
+| 0x142069024 | NInternationalMarket::NDetails::CSubsidyDraftListItemView::[0] vtable 槽 NInternationalMarket::NDetails::CSubsidyDraftListItemView::[0]（func_names RTTI 名） |
+| 0x141FFF010 | NInternationalMarket::CPurchasableEquipmentWindow::[2] vtable 槽 NInternationalMarket::CPurchasableEquipmentWindow::[2]（func_names RTTI 名） |
+| 0x14200CFA0 | NInternationalMarket::CMarketStockpileWindow::[2] vtable 槽 NInternationalMarket::CMarketStockpileWindow::[2]（func_names RTTI 名） |
+| 0x140DF2590 | NInternationalMarket::CEquipmentConvoyClient::[17] vtable 槽 NInternationalMarket::CEquipmentConvoyClient::[17]（func_names RTTI 名） |
+| 0x140306840 | NInternationalMarket::CCreatePurchaseContractEffect::GetDesc func_names 名 NInternationalMarket::CCreatePurchaseContractEffect::GetDesc |
+| 0x141AA57D0 | NInternationalMarket::CRequestEquipmentPurchaseAction::GetAiAcceptanceFactors func_names 名 NInternationalMarket::CRequestEquipmentPurchaseAction::GetAiAccept… |
+| 0x142006F80 | NInternationalMarket::CMarketAccessOverviewWindow 槽 11 串 country_grid / country_list_window + func_names 名 |
+| 0x142047C80 | NInternationalMarket::CPurchaseDraftWindow::[0] vtable 槽 NInternationalMarket::CPurchaseDraftWindow::[0]（func_names RTTI 名） |
+| 0x140308290 | NInternationalMarket::CCreatePurchaseContractEffect::ParseToken func_names 名 NInternationalMarket::CCreatePurchaseContractEffect::ParseToken |
+| 0x142059B70 | NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui鈥�::[0] func_names 名 NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui鈥�::[0] |
+| 0x14203CE50 | NInternationalMarket::NDetails::CSubsidyListItem::[0] vtable 槽 NInternationalMarket::NDetails::CSubsidyListItem::[0]（func_names RTTI 名） |
+| 0x142069720 | NInternationalMarket::NDetails::CSubsidyDraftListItemView::[0] vtable 槽 NInternationalMarket::NDetails::CSubsidyDraftListItemView::[0]（func_names RTTI 名） |
+| 0x14045A840 | NInternationalMarket::CContractContainsEquipmentTrigger::GetDesc func_names 名 NInternationalMarket::CContractContainsEquipmentTrigger::GetDesc |
+| 0x1403040D0 | NInternationalMarket::CCancelPurchaseContractEffect::Execute func_names 名 NInternationalMarket::CCancelPurchaseContractEffect::Execute |
+| 0x140459EE0 | NInternationalMarket::CAnyPurchaseContractTrigger::Evaluate func_names 名 NInternationalMarket::CAnyPurchaseContractTrigger::Evaluate |
+| 0x140459D20 | NInternationalMarket::CAllPurchaseContractTrigger::Evaluate func_names 名 NInternationalMarket::CAllPurchaseContractTrigger::Evaluate |
+| 0x14200BE00 | NInternationalMarket::CCancelSellingContractPopup::[0] vtable 槽 NInternationalMarket::CCancelSellingContractPopup::[0]（func_names RTTI 名） |
+| 0x1413B1530 | NInternationalMarket::CRequestMarketAccessRightsAction::[56] vtable 槽 NInternationalMarket::CRequestMarketAccessRightsAction::[56]（func_names RTTI 名） |
+| 0x141FFC410 | NInternationalMarket::CPurchasableEquipmentWindow::[12] vtable 槽 NInternationalMarket::CPurchasableEquipmentWindow::[12]（func_names RTTI 名） |
+| 0x141AA66C0 | NInternationalMarket::CRequestEquipmentPurchaseAction::[57] vtable 槽 NInternationalMarket::CRequestEquipmentPurchaseAction::[57]（func_names RTTI 名） |
+| 0x14200C050 | NInternationalMarket::CMarketStockpileWindow::[12] vtable 槽 NInternationalMarket::CMarketStockpileWindow::[12]（func_names RTTI 名） |
+| 0x14045A690 | NInternationalMarket::CDealCompletionTrigger::GetValue func_names 名 NInternationalMarket::CDealCompletionTrigger::GetValue |
+| 0x14045A0E0 | NInternationalMarket::CBuyerTrigger::Evaluate func_names 名 NInternationalMarket::CBuyerTrigger::Evaluate |
+| 0x142069080 | NInternationalMarket::CSubsidyDraft::[0] vtable 槽 NInternationalMarket::CSubsidyDraft::[0]（func_names RTTI 名） |
+| 0x1420073F0 | NInternationalMarket::CMarketAccessOverviewWindow::Update func_names 名 NInternationalMarket::CMarketAccessOverviewWindow::Update |
+| 0x14045A330 | NInternationalMarket::CSellerTrigger::Evaluate func_names 名 NInternationalMarket::CSellerTrigger::Evaluate |
+| 0x1403080F0 | NInternationalMarket::CRandomPurchaseContractEffect::ParseToken func_names 名 NInternationalMarket::CRandomPurchaseContractEffect::ParseToken |
+| 0x141B1BA50 | NInternationalMarket::CSetMarketRequestAutomationOptionsCommand::Clone func_names 名 NInternationalMarket::CSetMarketRequestAutomationOptionsCommand::Clone |
+| 0x141B1BDF0 | NInternationalMarket::CMarketStockpileEquipmentTransferCommand::Clone func_names 名 NInternationalMarket::CMarketStockpileEquipmentTransferCommand::Clone |
+| 0x1413B2050 | NInternationalMarket::CRequestMarketAccessRightsAction::[23] vtable 槽 NInternationalMarket::CRequestMarketAccessRightsAction::[23]（func_names RTTI 名） |
+| 0x14205C250 | NInternationalMarket::CMarketStockpileClearCommand::Clone func_names 名 NInternationalMarket::CMarketStockpileClearCommand::Clone |
+| 0x14045A7B0 | NInternationalMarket::CBuyerTrigger::GetDesc func_names 名 NInternationalMarket::CBuyerTrigger::GetDesc |
+| 0x140DF24C0 | NInternationalMarket::CPurchaseContract::[0] vtable 槽 NInternationalMarket::CPurchaseContract::[0]（func_names RTTI 名） |
+| 0x142058F40 | NInternationalMarket::CAddToMarketEquipmentItem::[0] vtable 槽 NInternationalMarket::CAddToMarketEquipmentItem::[0]（func_names RTTI 名） |
+| 0x14045ADF0 | NInternationalMarket::CSellerTrigger::GetDesc func_names 名 NInternationalMarket::CSellerTrigger::GetDesc |
+| 0x140308570 | NInternationalMarket::CScriptEquipmentAmountEntry::Reader func_names 名 NInternationalMarket::CScriptEquipmentAmountEntry::Reader |
+| 0x1417B9160 | NInternationalMarket::CCountryInternationalMarketView::[0] vtable 槽 NInternationalMarket::CCountryInternationalMarketView::[0]（func_names RTTI 名） |
+| 0x14200DDC0 | NInternationalMarket::CMarketStockpileWindow::Update func_names 名 NInternationalMarket::CMarketStockpileWindow::Update |
+| 0x140308210 | NInternationalMarket::CAddEquipmentSubsidyEffect::ParseToken func_names 名 NInternationalMarket::CAddEquipmentSubsidyEffect::ParseToken |
+| 0x14045A2C0 | NInternationalMarket::CHasMarketAccessWithTrigger::Evaluate func_names 名 NInternationalMarket::CHasMarketAccessWithTrigger::Evaluate |
+| 0x1419D72B0 | NInternationalMarket::CEquipmentConvoyClient::Reader func_names 名 NInternationalMarket::CEquipmentConvoyClient::Reader |
+| 0x141AA4CC0 | NInternationalMarket::CCancelEquipmentPurchaseAction::[23] vtable 槽 NInternationalMarket::CCancelEquipmentPurchaseAction::[23]（func_names RTTI 名） |
+| 0x141B1C340 | NInternationalMarket::CMarketStockpileEquipmentTransferCommand::PayloadReader func_names 名 NInternationalMarket::CMarketStockpileEquipmentTransferCommand::Pa… |
+| 0x142058FE0 | NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui鈥�::[0] func_names 名 NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui鈥�::[0] |
+| 0x1417B98A0 | NInternationalMarket::CCountryInternationalMarketView::ClearContents func_names 名 NInternationalMarket::CCountryInternationalMarketView::ClearContents |
+| 0x142059E70 | NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui鈥�::[1] func_names 名 NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui鈥�::[1] |
+| 0x1419D7490 | NInternationalMarket::CEquipmentConvoyClient::Writer func_names 名 NInternationalMarket::CEquipmentConvoyClient::Writer |
+| 0x142059040 | NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui鈥�::[1] func_names 名 NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui鈥�::[1] |
+| 0x141B1B970 | NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand::PayloadReader func_names 名 NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand… |
+| 0x141B1BB90 | NInternationalMarket::CSetMarketRequestAutomationOptionsCommand::PayloadReader func_names 名 NInternationalMarket::CSetMarketRequestAutomationOptionsCommand::… |
+| 0x14204A570 | NInternationalMarket::CPurchaseDraftWindow::Update func_names 名 NInternationalMarket::CPurchaseDraftWindow::Update |
+| 0x1417BA110 | NInternationalMarket::CCountryInternationalMarketView::Setup func_names 名 NInternationalMarket::CCountryInternationalMarketView::Setup |
+| 0x141B1BBD0 | NInternationalMarket::CSetMarketRequestAutomationOptionsCommand::PayloadWriter func_names 名 NInternationalMarket::CSetMarketRequestAutomationOptionsCommand::… |
+| 0x141B1B9B0 | NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand::PayloadWriter func_names 名 NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand… |
+| 0x142007E40 | NInternationalMarket::CRequestAutomationOptionsWindow::Update func_names 名 NInternationalMarket::CRequestAutomationOptionsWindow::Update |
+| 0x141B1C390 | NInternationalMarket::CMarketStockpileEquipmentTransferCommand::PayloadWriter func_names 名 NInternationalMarket::CMarketStockpileEquipmentTransferCommand::Pa… |
+| 0x14205C370 | NInternationalMarket::CMarketStockpileClearCommand::PayloadReader func_names 名 NInternationalMarket::CMarketStockpileClearCommand::PayloadReader |
+| 0x14203DDF0 | NInternationalMarket::CSubsidyOverview::Update func_names 名 NInternationalMarket::CSubsidyOverview::Update |
+| 0x141F8BD00 | NInternationalMarket::CMarketOverviewPanelController::OnFilterC鈥�::[0] func_names 名 NInternationalMarket::CMarketOverviewPanelController::OnFilterC鈥�::[0] |
+| 0x14045A440 | NInternationalMarket::CContractContainsEquipmentTrigger::ParseValueKeys func_names 名 NInternationalMarket::CContractContainsEquipmentTrigger::ParseValueKeys |
+| 0x14200DDA0 | NInternationalMarket::CCancelSellingContractPopup::Update func_names 名 NInternationalMarket::CCancelSellingContractPopup::Update |
+| 0x1413B7700 | NInternationalMarket::$$A6AXAEBVCPurchaseContract::V?$function:鈥�::[0] func_names 名 NInternationalMarket::$$A6AXAEBVCPurchaseContract::V?$function:鈥�::[0] |
+| 0x1417B9154 | NInternationalMarket::CCountryInternationalMarketView::[0] vtable 槽 NInternationalMarket::CCountryInternationalMarketView::[0]（func_names RTTI 名） |
+| 0x14205C390 | NInternationalMarket::CMarketStockpileClearCommand::PayloadWriter func_names 名 NInternationalMarket::CMarketStockpileClearCommand::PayloadWriter |
+| 0x141FFB6FC | NInternationalMarket::CPurchasableEquipmentWindow::[1] vtable 槽 NInternationalMarket::CPurchasableEquipmentWindow::[1]（func_names RTTI 名） |
+| 0x142006340 | NInternationalMarket::CCancelMarketAccessPoup::[0] vtable 槽 NInternationalMarket::CCancelMarketAccessPoup::[0]（func_names RTTI 名） |
+| 0x14200BDAC | NInternationalMarket::CCancelSellingContractPopup::[0] vtable 槽 NInternationalMarket::CCancelSellingContractPopup::[0]（func_names RTTI 名） |
+| 0x142044B8C | NInternationalMarket::NPrivate::CTotalIcon::[0] vtable 槽 NInternationalMarket::NPrivate::CTotalIcon::[0]（func_names RTTI 名） |
+| 0x140308790 | NInternationalMarket::CRequestMarketAccessRightsAction::[10] vtable 槽 NInternationalMarket::CRequestMarketAccessRightsAction::[10]（func_names RTTI 名） |
+| 0x141B1B960 | NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand::GetTypeId func_names 名 NInternationalMarket::COverrideMarketEquipmentPriceLevelsCommand::Ge… |
+| 0x141B1BB80 | NInternationalMarket::CSetMarketRequestAutomationOptionsCommand::GetTypeId func_names 名 NInternationalMarket::CSetMarketRequestAutomationOptionsCommand::GetT… |
+| 0x141B1C0B0 | NInternationalMarket::CMarketStockpileEquipmentTransferCommand::GetTypeId func_names 名 NInternationalMarket::CMarketStockpileEquipmentTransferCommand::GetTypeId |
+| 0x14205C360 | NInternationalMarket::CMarketStockpileClearCommand::GetTypeId func_names 名 NInternationalMarket::CMarketStockpileClearCommand::GetTypeId |
+| 0x14206A410 | NInternationalMarket::CSubsidyDraft::IsValid func_names 名 NInternationalMarket::CSubsidyDraft::IsValid |
+| 0x140307420 | NInternationalMarket::CCancelPurchaseContractEffect::GetSupportedScopeMask func_names 名 NInternationalMarket::CCancelPurchaseContractEffect::GetSupportedScop… |
+| 0x1413B2040 | NInternationalMarket::CRequestMarketAccessRightsAction::[43] vtable 槽 NInternationalMarket::CRequestMarketAccessRightsAction::[43]（func_names RTTI 名） |
+| 0x1420535A0 | NInternationalMarket::CEditMarketStockpileWindow::[0] 市场库存编辑窗槽；loc \"INTERNATIONAL_MARKET_TOTAL_CIC_COST_TOOLTIP\"/\"EDIT_MARKET_COUNTRY_STOCKPILE_CHANGE_ADD… |
+| 0x142042110 | NInternationalMarket::CMarketEquipmentItem::[0] — INTERNATIONAL_MARKET_ADD_TO_MARKET_CIC_COST_TT / NO_TRADE_ROUTE_FOR_CONTRACT / ..._HAS_SUBSIDIES_TT（Item 后缀… |
+| 0x142068A20 | NInternationalMarket::NDetails::CSubsidy NInternationalMarket::NDetails::CSubsidyDraftListItemView + §4.31 GUI/窗口/列表 |
+| 0x14200C4F0 | NInternationalMarket::CEquipmentStockpileEquipmentItem::[20] 名:NInternationalMarket::CEquipmentStockpileEquipmentItem::[20] |
+| 0x142006540 | NInternationalMarket::CMarketAccessOverviewWindow::[12] 名:NInternationalMarket::CMarketAccessOverviewWindow::[12] |
+
+#### 4.23.47 装备市场域函数补遗（15 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419310D0 | 业务 "Invalid module …"/"Duplicate module assignment to slot …"/"attached to invalid slot"（装备模块槽位校验） |
+| 0x142051DE0 | 业务 邻域 edit_market_stockpile_window.cpp×6、purchase_contract_entry.cpp×2、purchase_draft_window.cpp×2；体 `_RTDynamicCast`→`CFrameAnimatedSprite`/`C2dObjectType`，… |
+| 0x140A4EB40 | 业务 INDUSTRIAL_ORG_TRAIT_TOOLTIP_[ALL_TYPES/LIMIT_TYPE]/INDUSTRIAL_ORGANIZATION_TOOLTIP_NAME |
+| 0x142008B10 | 业务 国际市场列表项构造 CLS NInternationalMarket/NDetails::MatchAll；vtable off_142AAF388/3C0/3F8/430 |
+| 0x141F30F00 | 业务 串字面量 'equipment_button' [4.23×1] |
+| 0x14193B080 | 业务 调用图传播: 1/2 被调用者锚点投 4.23 §4.23 装备 |
+| 0x142023E70 | 业务 串字面量 'VARIANT' [4.23×2] |
+| 0x1419167A0 | 业务 串字面量 'INDUSTRIAL_ORG_AVAILABLE_TOOLTIP_TITLE' [4.23×1] |
+| 0x14062C180 | 业务 反向调用图 3/5 调用者投 §4.23; 唯一被调用者在书内 §4.1 |
+| 0x14158A9B0 | 业务 类名 CEquipmentType,CEquipmentType1,CPdxHybridInlineBufferAllocator → §4.23（投票 1） |
+| 0x1410B1C80 | 业务 类名 CEquipmentVariant,CEquipmentVariant1,CPdxHybridInlineBufferAllocator → §4.23（投票 1） |
+| 0x1409F07C0 | 业务 反调用图传播 1.5 权重锚点投 §4.23（top 占比 0.67） |
+| 0x14100E9B0 | 业务 反向调用图 1/2 调用者投 §4.23 |
+| 0x140C97560 | 业务 反向调用图 2/3 调用者投 §4.23 |
+| 0x1401D7AC0 | 业务 反调用图传播 1.3 权重锚点投 §4.23（top 占比 0.75） |
+
+#### 4.23.48 常量串 getter 结构定案（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14074A910 | 常量串 getter: 返回常量串 "NTrade::ANTI_MONOPOLY_TRADE_FACTOR_THRESHOLD"（高置信） |
+| 0x14074A970 | 常量串 getter: 返回常量串 "NTrade::NAVAL_ROUTE_ACCESS_AVOID_COST_MULT"（高置信） |
+| 0x14074A900 | 常量串 getter: 返回常量串 "NTrade::ANTI_MONOPOLY_TRADE_FACTOR"（高置信） |
+| 0x14074A980 | 常量串 getter: 返回常量串 "NTrade::PARTY_SUPPORT_TRADE_FACTOR"（高置信） |
+| 0x14074A990 | 常量串 getter: 返回常量串 "NTrade::PUPPET_MASTER_TRADE_FACTOR"（高置信） |
+| 0x14074A950 | 常量串 getter: 返回常量串 "NTrade::MAX_MONTH_TRADE_FACTOR"（高置信） |
+| 0x14074A920 | 常量串 getter: 返回常量串 "NTrade::BASE_LAND_TRADE_RANGE"（高置信） |
+| 0x14074A940 | 常量串 getter: 返回常量串 "NTrade::DISTANCE_TRADE_FACTOR"（高置信） |
+| 0x14074A9B0 | 常量串 getter: 返回常量串 "NTrade::RELATION_TRADE_FACTOR"（高置信） |
+| 0x14074A8F0 | 常量串 getter: 返回常量串 "NTrade::ALLOW_TRADE_CUT_OFF"（高置信） |
+| 0x14074A9A0 | 常量串 getter: 返回常量串 "NTrade::PUPPET_TRADE_FACTOR"（高置信） |
+| 0x14074A960 | 常量串 getter: 返回常量串 "NTrade::MONTH_TRADE_FACTOR"（高置信） |
+| 0x14074A930 | 常量串 getter: 返回常量串 "NTrade::BASE_TRADE_FACTOR"（高置信） |
+
+#### 4.23.49 模板实例化桩结构定案（260 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142043120 | 模板桩: 模板参数类名 CMarketEquipmentItem（高置信） |
+| 0x142043190 | 模板桩: 模板参数类名 CMarketEquipmentItem（高置信） |
+| 0x142053040 | 模板桩: 模板参数类名 CPurchaseContractEntry（高置信） |
+| 0x14205FC10 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x1417937D0 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x1417936E0 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141F8C4B0 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8C530 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8C5B0 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F9B700 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x141C39310 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x141DCF590 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x141528030 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x1417935F0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DE0280 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B0B0 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x141D6B920 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x14200EFC0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200E2B0 | 模板桩: 模板参数类名 CEquipmentStockpileEquipmentItem（高置信） |
+| 0x14200E380 | 模板桩: 模板参数类名 CEquipmentStockpileEquipmentItem（高置信） |
+| 0x14205FBE0 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x14200E3F0 | 模板桩: 模板参数类名 CEquipmentStockpileEquipmentItem（高置信） |
+| 0x1417937A0 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x1417936B0 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141F9B6D0 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x141C392E0 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x14205BA50 | 模板桩: 模板参数类名 CEquipmentMarketStatus（高置信） |
+| 0x14205BB50 | 模板桩: 模板参数类名 CEquipmentMarketStatus（高置信） |
+| 0x141DCF560 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x141528000 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x1417935C0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DE0250 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B080 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x14204AB80 | 模板桩: 模板参数类名 CPurchaseDraftItem（高置信） |
+| 0x141D6B8F0 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x14204AC50 | 模板桩: 模板参数类名 CPurchaseDraftWindow（高置信） |
+| 0x14205FBB0 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x141793770 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x141793680 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x14205FB80 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x141F9B6A0 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x141793740 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x141793650 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141F9B670 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x141DDBF50 | 模板桩: 模板参数类名 CEquipmentModuleSelectorWindow（高置信） |
+| 0x141C392B0 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x141F74E60 | 模板桩: 模板参数类名 CEquipmentUpgradeDesignerView（高置信） |
+| 0x141F7B110 | 模板桩: 模板参数类名 CEquipmentModuleRemovalEntry（高置信） |
+| 0x141DDD820 | 模板桩: 模板参数类名 CEquipmentModuleSlotView（高置信） |
+| 0x141DCF530 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x141527FD0 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x141793590 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DE0220 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B050 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x141C39280 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x141D6B8C0 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x141DF12A0 | 模板桩: 模板参数类名 CMarketPanelsStateController（高置信） |
+| 0x141DF12C0 | 模板桩: 模板参数类名 CMarketPanelsStateController（高置信） |
+| 0x141DCF500 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x141527FA0 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x141793560 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DE01F0 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B020 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x14205FC50 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x141D6B890 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x141793810 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x141793720 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141F8BF50 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8BF90 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8BFD0 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F7AFC0 | 模板桩: 模板参数类名 CEquipmentModuleCategoryEntry（高置信） |
+| 0x141F7B000 | 模板桩: 模板参数类名 CEquipmentModuleRemovalEntry（高置信） |
+| 0x141F8BF10 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8BF30 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8BF70 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8BFB0 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x142007560 | 模板桩: 模板参数类名 CMarketAccessOverviewItem（高置信） |
+| 0x141F6EE60 | 模板桩: 模板参数类名 CEquipmentRoleIconEntry（高置信） |
+| 0x141F7AFE0 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x142007630 | 模板桩: 模板参数类名 CMarketAccessOverviewWindow（高置信） |
+| 0x141C39350 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x14204AC30 | 模板桩: 模板参数类名 CPurchaseDraftWindow（高置信） |
+| 0x141DCF5D0 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x141528070 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x141793630 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141F9B740 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x141F7B0F0 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x141D6B960 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x141FD9550 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x14205FD40 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x141794270 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x141F6EE80 | 模板桩: 模板参数类名 CEquipmentRoleSelectionWindow（高置信） |
+| 0x141794220 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141F7B140 | 模板桩: 模板参数类名 CEquipmentModuleRemovalEntry（高置信） |
+| 0x141DCF4E0 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x141F9B790 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x14200E350 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200E3C0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200E420 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200E3A0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200E2F0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x1401AB2D0 | 模板桩: 模板参数类名 CEquipmentGroupDatabase（高置信） |
+| 0x141DCB680 | 模板桩: 模板参数类名 CEquipmentVariantEntry（高置信） |
+| 0x14200E310 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200E330 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x141DE02C0 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x142007580 | 模板桩: 模板参数类名 CMarketAccessOverviewWindow（高置信） |
+| 0x141B05E40 | 模板桩: 模板参数类名 CEquipmentVariantBuilder（高置信） |
+| 0x141793320 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141F6EE40 | 模板桩: 模板参数类名 CEquipmentRoleSelectionWindow（高置信） |
+| 0x141793440 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141C393A0 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x14205FD30 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x141535910 | 模板桩: 模板参数类名 CEquipmentModuleRequirements（高置信） |
+| 0x141022D30 | 模板桩: 模板参数类名 CEquipmentVariantPool（高置信） |
+| 0x1417933A0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DDBEF0 | 模板桩: 模板参数类名 CEquipmentModuleSelectorWindow（高置信） |
+| 0x14200E200 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x141793360 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141793400 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141793500 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x14200E4D0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x141DCF650 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x1415280C0 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x1417941D0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794260 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x141DE0310 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B1C0 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x141DDBF10 | 模板桩: 模板参数类名 CEquipmentModuleSelectorWindow（高置信） |
+| 0x141794210 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141DDBF30 | 模板桩: 模板参数类名 CEquipmentModuleSelectorWindow（高置信） |
+| 0x141DD5EF0 | 模板桩: 模板参数类名 CEquipmentDesignerModelSelector（高置信） |
+| 0x14204B170 | 模板桩: 模板参数类名 CPurchaseDraftWindow（高置信） |
+| 0x14204B1B0 | 模板桩: 模板参数类名 CPurchaseDraftWindow（高置信） |
+| 0x141D6C490 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x141F9B780 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x14205FD20 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x14205FD10 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x141F7B160 | 模板桩: 模板参数类名 CEquipmentModuleCategoryEntry（高置信） |
+| 0x141F7B180 | 模板桩: 模板参数类名 CEquipmentModuleRemovalEntry（高置信） |
+| 0x141794250 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x141794200 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141C39390 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x141F8C430 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8C440 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8C450 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8C460 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8C470 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8C480 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F8C490 | 模板桩: 模板参数类名 CMarketOverviewPanelController（高置信） |
+| 0x141F9B770 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x14200EE50 | 模板桩: 模板参数类名 CEquipmentStockpileEquipmentItem（高置信） |
+| 0x14200EEA0 | 模板桩: 模板参数类名 CEquipmentStockpileEquipmentItem（高置信） |
+| 0x14200EEE0 | 模板桩: 模板参数类名 CEquipmentStockpileEquipmentItem（高置信） |
+| 0x141F6EF00 | 模板桩: 模板参数类名 CEquipmentRoleIconEntry（高置信） |
+| 0x141794240 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x1409FB570 | 模板桩: 模板参数类名 CEquipmentDatabase（高置信） |
+| 0x1409FB580 | 模板桩: 模板参数类名 CEquipmentDatabase（高置信） |
+| 0x1417941F0 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141F7B170 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x14205FD50 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x141F9B760 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x141DCF640 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x1415280B0 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x1417941C0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DE0300 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B1B0 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x1420530E0 | 模板桩: 模板参数类名 CPurchaseContractEntry（高置信） |
+| 0x141794280 | 模板桩: 模板参数类名 CEquipmentSpriteListItem（高置信） |
+| 0x141D6C480 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x141DDC310 | 模板桩: 模板参数类名 CEquipmentModuleSelectorWindow（高置信） |
+| 0x141794230 | 模板桩: 模板参数类名 CEquipmentNameGroupItem（高置信） |
+| 0x141C39380 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x141F75190 | 模板桩: 模板参数类名 CEquipmentUpgradeDesignerView（高置信） |
+| 0x142043230 | 模板桩: 模板参数类名 CMarketEquipmentItem（高置信） |
+| 0x141F7B1E0 | 模板桩: 模板参数类名 CEquipmentModuleRemovalEntry（高置信） |
+| 0x141DF1300 | 模板桩: 模板参数类名 CMarketPanelsStateController（高置信） |
+| 0x141DF1310 | 模板桩: 模板参数类名 CMarketPanelsStateController（高置信） |
+| 0x141F9B7A0 | 模板桩: 模板参数类名 CEquipmentPriorityOption（高置信） |
+| 0x14204B130 | 模板桩: 模板参数类名 CPurchaseDraftItem（高置信） |
+| 0x14204B190 | 模板桩: 模板参数类名 CPurchaseDraftItem（高置信） |
+| 0x14200EE60 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x141C39370 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x142043240 | 模板桩: 模板参数类名 CMarketEquipmentItem（高置信） |
+| 0x141DDD850 | 模板桩: 模板参数类名 CEquipmentModuleSlotView（高置信） |
+| 0x14204B140 | 模板桩: 模板参数类名 CPurchaseDraftItem（高置信） |
+| 0x141DCF630 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x1415280A0 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x1417941B0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x1420078A0 | 模板桩: 模板参数类名 CMarketAccessOverviewWindow（高置信） |
+| 0x141DE02F0 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B1A0 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x141DCF620 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x141D6C470 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x142007850 | 模板桩: 模板参数类名 CMarketAccessOverviewItem（高置信） |
+| 0x142007860 | 模板桩: 模板参数类名 CMarketAccessOverviewItem（高置信） |
+| 0x141528090 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x1417941A0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DE02E0 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B190 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x14205FD00 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x1401AC540 | 模板桩: 模板参数类名 CEquipmentGroupDatabase（高置信） |
+| 0x1417940A0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141C393B0 | 模板桩: 模板参数类名 CEquipmentArchetypeHeaderItem（高置信） |
+| 0x141F6EF10 | 模板桩: 模板参数类名 CEquipmentRoleSelectionWindow（高置信） |
+| 0x141F7B1F0 | 模板桩: 模板参数类名 CEquipmentModuleRemovalEntry（高置信） |
+| 0x141D6C460 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x141FD9900 | 模板桩: 模板参数类名 CEquipmentEntry（高置信） |
+| 0x14206A510 | 模板桩: 模板参数类名 CSubsidyDraft（高置信） |
+| 0x141DCF660 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x14204B160 | 模板桩: 模板参数类名 CPurchaseDraftWindow（高置信） |
+| 0x1415280D0 | 模板桩: 模板参数类名 CEquipmentMessagePopup（高置信） |
+| 0x1417941E0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DCB790 | 模板桩: 模板参数类名 CEquipmentVariantEntry（高置信） |
+| 0x141794090 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DCF610 | 模板桩: 模板参数类名 CEquipmentModelListItem（高置信） |
+| 0x141DE0320 | 模板桩: 模板参数类名 CEquipmentUpgradeView（高置信） |
+| 0x141F7B1D0 | 模板桩: 模板参数类名 CEquipmentModuleEntry（高置信） |
+| 0x142007870 | 模板桩: 模板参数类名 CMarketAccessOverviewWindow（高置信） |
+| 0x14200EE80 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EEC0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EF00 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x141794080 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794100 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x14204B180 | 模板桩: 模板参数类名 CPurchaseDraftWindow（高置信） |
+| 0x1417940E0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794130 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794180 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x14200EDB0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EE70 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EEB0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EEF0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EF20 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EF60 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EF80 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x14200EFA0 | 模板桩: 模板参数类名 CMarketStockpileWindow（高置信） |
+| 0x141D6C4A0 | 模板桩: 模板参数类名 CEquipmentViewItem（高置信） |
+| 0x141794140 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x14204B150 | 模板桩: 模板参数类名 CPurchaseDraftWindow（高置信） |
+| 0x14204B1A0 | 模板桩: 模板参数类名 CPurchaseDraftWindow（高置信） |
+| 0x1417940F0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141DDC2E0 | 模板桩: 模板参数类名 CEquipmentModuleSelectorWindow（高置信） |
+| 0x141535A20 | 模板桩: 模板参数类名 CEquipmentModuleRequirements（高置信） |
+| 0x141DDC2F0 | 模板桩: 模板参数类名 CEquipmentModuleSelectorWindow（高置信） |
+| 0x1409FBB50 | 模板桩: 模板参数类名 CEquipmentDatabase（高置信） |
+| 0x1409FBB60 | 模板桩: 模板参数类名 CEquipmentDatabase（高置信） |
+| 0x1417940D0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794120 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794170 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141F75120 | 模板桩: 模板参数类名 CEquipmentUpgradeDesignerWindow（高置信） |
+| 0x141F75140 | 模板桩: 模板参数类名 CEquipmentUpgradeDesignerWindow（高置信） |
+| 0x141F75150 | 模板桩: 模板参数类名 CEquipmentUpgradeDesignerWindow（高置信） |
+| 0x141F75160 | 模板桩: 模板参数类名 CEquipmentUpgradeDesignerWindow（高置信） |
+| 0x141F75170 | 模板桩: 模板参数类名 CEquipmentUpgradeDesignerWindow（高置信） |
+| 0x141F75180 | 模板桩: 模板参数类名 CEquipmentUpgradeDesignerWindow（高置信） |
+| 0x141DDC300 | 模板桩: 模板参数类名 CEquipmentModuleSelectorWindow（高置信） |
+| 0x1417940C0 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794110 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794160 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+| 0x141794190 | 模板桩: 模板参数类名 CEquipmentDesignerView（高置信） |
+
+#### 4.23.50 单调用转发桩结构定案（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413B6970 | 转发桩: 转发至 无名领域函数 sub_1413B5850 被调用者定名: CMarketRequestAutomation::HandleSendingMarketAccessRequest? 等命中 §4.23（占 100%，共 2 callee）（推定） |
+| 0x14177A590 | 转发桩: 转发至 域关键词匹配 sub_14177F130 + 域关键词匹配; 源码路径 hoi4; 被 CEmptyEntryListBase<NEquipmentDesigner::CEquipmentNameGroupItem>::[0] 等 1 命名函数调用（推定） |
+| 0x1414445D0 | 转发桩: 转发至 112 ¦ :114-118 ¦ Validate 纯断言: _FactoryCicProgress ∈ [0, def+208−def+200] / _EquipmentTransferProgress ∈ [0, def+208] — **GetTotalFactoryPayment() …（推定） |
+| 0x1425FF510 | 转发桩: 转发至 vtable/RTTI 类 CAnonymousEquipmentGroup sub_1401511C0 + vtable/RTTI 类 CAnonymousEquipmentGroup; 被 CAnonymousEquipmentGroup::[0] 等 6 命名函数调用（推定） |
+| 0x141537970 | 转发桩: 转发至 （未命名）LEVEL / EQUIPMENT_UPGRADE_LEVEL_AND_UP LEVEL / EQUIPMENT_UPGRADE_LEVEL_AND_UP，装备升级等级显示（推定） |
+| 0x141B05E60 | 转发桩: 转发至 sub_141B04150 evolve_equipment_imgui.cpp:167 "StatWeightings missing value"（imgui 装备演化调试视图）（推定） |
+| 0x142657270 | 转发桩: 被调者 0x14177A590 -> §4.23 (E:单调用转发(被调者入书))（推定） |
+| 0x142691600 | 转发桩: 转发至 域关键词匹配 sub_14204C7B0 + 域关键词匹配; 被调源码 clausewitz; 被 NInternationalMarket::CPurchaseContractEntry::[0] 等 1 命名函数调用（推定） |
+| 0x142691B50 | 转发桩: 转发至 域关键词匹配 sub_142058670 + 域关键词匹配（推定） |
+| 0x142601FC0 | 转发桩: 转发至 vtable/RTTI 类 CAnonymousEquipmentGroup sub_1401511C0 + vtable/RTTI 类 CAnonymousEquipmentGroup; 被 CAnonymousEquipmentGroup::[0] 等 6 命名函数调用（推定） |
+| 0x142602380 | 转发桩: 转发至 vtable/RTTI 类 CAnonymousEquipmentGroup sub_1401511C0 + vtable/RTTI 类 CAnonymousEquipmentGroup; 被 CAnonymousEquipmentGroup::[0] 等 6 命名函数调用（推定） |
+| 0x14258D410 | 转发桩: 转发至 vtable/RTTI 类 CAnonymousEquipmentGroup sub_1401511C0 + vtable/RTTI 类 CAnonymousEquipmentGroup; 被 CAnonymousEquipmentGroup::[0] 等 6 命名函数调用（推定） |
+| 0x1425FC760 | 转发桩: 转发至 vtable/RTTI 类 CAnonymousEquipmentGroup sub_1401511C0 + vtable/RTTI 类 CAnonymousEquipmentGroup; 被 CAnonymousEquipmentGroup::[0] 等 6 命名函数调用（推定） |
+| 0x1413CBD90 | 转发桩: 转发至 sub_1413C7A00 业务 国际市场补贴总览（INTERNATIONAL_MARKET_SUBSIDIES_OVERVIEW_TITLE_YELLOW / PURCHASE_CONTRACT_SUBSIDIES_CONSUMED / ACTIVE_SUBSIDIES / CONSUMED…（推定） |
+| 0x141F8C420 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "INTERNATIONAL_MARKET_OPEN_MARKET_VIEW_TOOLTIP_NO_A"（推定） |
+| 0x1420049A0 | 转发桩: 转发至 CActiveContractsUiController::OpenCancelConfirmationPopup? CActiveContractsUiController::OpenCancelConfirmationPopup 装备市场合约 UI（名带?，读 gamestate 全局 q…（推定） |
+| 0x14205BDB0 | 转发桩: 转发至 (无名) 业务 VA 邻域有名函数簇（NInternationalMarket::CAddToMarketEquipmentItem::[0]; NInternationalMarket::CAddEquipmentToMarketWindow::CCountryEqui…::[0]; NIn…（推定） |
+
+#### 4.23.51 装备市场域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409F1D30 | 反调用图单链锚点（0.5）投 §4.23；锚点 `_InterlockedIncrement` |
+| 0x140BCF780 | caller 140BCF430(equipmentvariant.cpp:1814，3/3 同簇) |
+| 0x140BCF8F0 | caller 140BCF510/140BCF430(equipmentvariant.cpp:1814) |
+| 0x142044510 | 体级 vtable `NInternationalMarket::NPrivate::CTotalIcon` + 串 "total_amount" |
+| 0x14193B3C0 | 串 "INDUSTRIAL_ORG_DESIGN_TEAM" |
+| 0x141DCEFE0 | 调用链 CEquipmentDesignerModelSelector::Setup?@141DD57A0 |
+| 0x141FFF920 | 调用链 NInternationalMarket::CPurchasableEquipmentWindow::[12]@141FFC410 |
+| 0x1420506E0 | 串 "PURCHASE_CONTRACT_PROGRESS_PAYMENT" / "PURCHASE_CONTRACT_PROGRESS_PAYMENT" / "PRODUCED"；调用链 NInternationalMarket::CPurchaseContractEntry::[0]@1420518F0 |
+
+#### 4.23.52 装备市场域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D03C80 | 业务 串 railway_gun_name/base_stats/combat_stats/stat_equipment_entry_railway_gun + railway_gun.cpp:1124 |
+| 0x14192FBF0 | 业务 串 "Invalid module "/" for slot "/"Expected start of block" + gameitemdatabase.h:142 + 邻域 NNotification::CIdeaExpiredNotification/ai_template_design.cpp |
+| 0x1413B4870 | 业务 邻域 market_core.cpp x6/CMarketRequestAutomation::HandleSendingMarketAccessRequest + 48 字节步长表聚合 |
+| 0x140F8EE00 | 业务 串 "Unrecognized equipment upgrade '"/"Expected start of block" + 邻域 equipment_category.cpp x8/equipment_upgrades_instance.cpp |
+| 0x141F69DE0 | 业务 equipmentvariant.cpp 区(0x140BD****) sub_140BD9800 取串 + '\n' 行追加 + lexer.cpp:381/localize.cpp:641 |
+| 0x141D68B30 | vtable+728 调用 + a2+1160 源；caller 141D68B30 |
+| 0x141DD6400 | 串 designer_stat_entry；调 sub_141DD7170/1414A4620（设计师面板）+ sub_140129CA0（串帮手） |
+| 0x141F75DF0 | §4.23（装备市场） 串 "equipment_icon_default"/"equipment_icon_naval"；a2 vtable+136 取类型；a1[0..2] 三槽输出 |

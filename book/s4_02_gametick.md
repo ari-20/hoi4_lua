@@ -686,7 +686,7 @@ sub_1401A8B10 = E9 thunk → sub_140B711F0 (三步 = `(manager+48)->vt+128` 显�
 | 0x140276C30 | sub_140276C30 随机种子/计数日志（"RandomCount = … RandomSeed = …"） |
 | 0x140291E40 | （未命名）串 "Command does not need any arguments"/ 串 "Command does not need any arguments"/"Stopped"（控制台命令 arity 校验） |
 
-#### 4.2.22 游戏时序与控制台通道补遗（55 函）
+#### 4.2.22 游戏时序与控制台通道补遗（50 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -707,8 +707,6 @@ sub_1401A8B10 = E9 thunk → sub_140B711F0 (三步 = `(manager+48)->vt+128` 显�
 | 0x14183BB90 | vtable/RTTI 类 CSetArmyLeaderCommand sub_14183BB90 + vtable/RTTI 类 CSetArmyLeaderCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
 | 0x141146FB0 | vtable/RTTI 类 CSetNavalDeploymentTargetCommand sub_141146FB0 + vtable/RTTI 类 CSetNavalDeploymentTargetCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
 | 0x14167E820 | 域关键词匹配 sub_14167E820 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1125 |
-| 0x141C02C80 | NFactions::NUi::CFactionIntelligencePopup::[14] NFactions::NUi::CFactionIntelligencePopup::[14] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
-| 0x141C21FD0 | NProject::NUi::CScientistRoster::[8] NProject::NUi::CScientistRoster::[8] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
 | 0x140AAD8A0 | 域关键词匹配 sub_140AAD8A0 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1125 |
 | 0x1418388A0 | vtable/RTTI 类 COrderConnectCommand sub_1418388A0 + vtable/RTTI 类 COrderConnectCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
 | 0x1412D4520 | CNudgeIdler::[54] CNudgeIdler::[54] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
@@ -724,7 +722,6 @@ sub_1401A8B10 = E9 thunk → sub_140B711F0 (三步 = `(manager+48)->vt+128` 显�
 | 0x141BA1B70 | vtable/RTTI 类 CSetDeploymentLineNameCommand sub_141BA1B70 + vtable/RTTI 类 CSetDeploymentLineNameCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
 | 0x14135FDB0 | vtable/RTTI 类 CCancelMovementCommand sub_14135FDB0 + vtable/RTTI 类 CCancelMovementCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
 | 0x14183BA90 | vtable/RTTI 类 CSetAreaDefenseSettingCommand sub_14183BA90 + vtable/RTTI 类 CSetAreaDefenseSettingCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
-| 0x1416023F0 | NFactions::CKickFromFactionAction::[24] NFactions::CKickFromFactionAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 NFactio… |
 | 0x1411012F0 | CImproveRelationAction::[24] CImproveRelationAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 CImproveRelationAction::[24] … |
 | 0x141A9ED50 | CDockingRightsAction::[24] CDockingRightsAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 CDockingRightsAction::[24] 等 1 命名… |
 | 0x141101FF0 | CSendAttacheAction::[24] CSendAttacheAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 CSendAttacheAction::[24] 等 1 命名函数调用 |
@@ -741,8 +738,6 @@ sub_1401A8B10 = E9 thunk → sub_140B711F0 (三步 = `(manager+48)->vt+128` 显�
 | 0x1410F9460 | vtable/RTTI 类 CCallAllyAction sub_1410F9460 + vtable/RTTI 类 CCallAllyAction; 被调源码 hoi4; 被 NFactions::COfferJoinFactionAction::[56] 等 1 命名函数调用 |
 | 0x14053D0B0 | 域关键词匹配 sub_14053D0B0 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1126 |
 | 0x141914A70 | vtable/RTTI 类 CAutomaticPause sub_141914A70 + vtable/RTTI 类 CAutomaticPause |
-| 0x1417987E0 | NFactions::NUi::CFactionTheaterSwitch::[0] NFactions::NUi::CFactionTheaterSwitch::[0] + 域关键词匹配; 串 "FACTION_THEATER_SWITCH_TO_FACTION_VIEW_TOO"; 被调源码 clausewitz |
-| 0x141BF8C80 | NFactions::NUi::CFactionCommanderWindow::[0] NFactions::NUi::CFactionCommanderWindow::[0] + 名字角色规则(NFactions::NUi::CFactionCommanderWindow::[0]); vtable/RTTI… |
 | 0x141038F20 | 域关键词匹配 sub_141038F20 + 域关键词匹配; 源码路径 hoi4; 断言站点 orderinstance.cpp:3459 |
 | 0x1410F99A0 | vtable/RTTI 类 CCancelLicensedProductionAction sub_1410F99A0 + vtable/RTTI 类 CCancelLicensedProductionAction; 被调源码 hoi4 |
 
@@ -945,3 +940,111 @@ sub_1401A8B10 = E9 thunk → sub_140B711F0 (三步 = `(manager+48)->vt+128` 显�
 | VA | 语义/证据 |
 |---|---|
 | 0x1419EA400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+
+#### 4.2.30 游戏时序与控制台通道补遗（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402818F0 | （无名）控制台命令：Need 2 arguments, fe: cold_climate 75 + Unknown climate definition: + divisions now have acclimatization ( 控制台命令：Need 2 arguments, fe: cold_climate… |
+| 0x14022D990 | （无名）Require one argument which is the tag of the target country + cheat_opinion_modifier_good/bad（控制台命令） Require one argument which is the tag of the target … |
+| 0x141274F10 | （无名，按上游/loc 定性） 上游 CNudgeIdler::[29]/CFrontEndIdler::[29]/CInGameIdler::[29] → idler 更新辅助 |
+| 0x14028BCD0 | （无名，按上游/loc 定性） 串 "Spawned Railway Gun #%d\ Railway gun spawned\ No railway gun equipment variants found\ Rai |
+| 0x1402534E0 | （无名，按证据定性） 串 'checksums/' + 'Command takes at most one argument'（控制台 checksums 命令） |
+| 0x140DC5970 | CInGameIdler::[75] 名:CInGameIdler::[75] |
+| 0x140DDFAF0 | CInGameIdler::[49] 名:CInGameIdler::[49] |
+| 0x142363EB0 | CDummyServer::[6] CDummyServer::[6]（命令/游戏循环） |
+| 0x14112EE40 | CGenerateWarGoalAction::[53] CGenerateWarGoalAction::[53] + 域关键词匹配; 被 CGenerateWarGoalAction::[53] 等 1 命名函数调用 |
+| 0x1419409F0 | 未命名业务函数 业务类 CMoveAirWingAndAirGroupToAirTheatreCommand（类名/调用链证据） |
+| 0x141C8E420 | CDiplomacyIncomingLendLeaseActionController::[4] CDiplomacyIncomingLendLeaseActionController::[4] + 域关键词匹配; 被 CDiplomacyIncomingLendLeaseActionController::[4… |
+| 0x141981970 | CDockingRightsRelation::[21] CDockingRightsRelation::[21] + 域关键词匹配; 被调源码 hoi4; 被 CDockingRightsRelation::[21] 等 1 命名函数调用 |
+| 0x141C95160 | CDiplomacyCountryAddWarGoalActionController::[15] CDiplomacyCountryAddWarGoalActionController::[15] + 域关键词匹配; 被 CDiplomacyCountryAddWarGoalActionController::… |
+| 0x14111D560 | CTransferSpyMasterAction::GetAiAcceptance CTransferSpyMasterAction::GetAiAcceptance + 域关键词匹配; 被调源码 hoi4; 被 CTransferSpyMasterAction::GetAiAcceptance 等 1 命名函数调用 |
+| 0x1412B3250 | CLandCombatant::[29] CLandCombatant::[29] + 域关键词匹配; 被 CLandCombatant::[29] 等 1 命名函数调用 |
+| 0x140BF2C20 | COrdersGroupMember::[1] COrdersGroupMember::[1] + 域关键词匹配; 被调源码 hoi4; 被 COrdersGroupMember::[1] 等 2 命名函数调用 |
+
+#### 4.2.31 游戏时序与控制台通道补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140002A70 | （无名 sub） 业务 注册名表：strcpy "ai_division_production"/"ai_equipment"/"ai_templates"/"ai_force_concentration"/"ai_theatre"/"ai_navy"/"characters"/"event_graph"/"ev… |
+| 0x14025B520 | （无名） 业务 串 "Granted %d fuel to %s" + gamestate 门控 + "Invalid arguments count."：控制台 fuel 命令 |
+| 0x14025E8A0 | （无名） 业务 串 "You need to specify a country tag to get its capital!"/"has no capital"：控制台 capital 命令 |
+| 0x14025D2E0 | （无名） 业务 串 "gamespeed: Command expects exactly one argument."/"Game speed set to"：控制台 gamespeed 命令 |
+| 0x140258AA0 | sub_140258AA0 业务 Invalid category specified. Use one of <short, medium, long> + Added ... faction initiative points to（控制台命令） |
+| 0x140298910 | （无名） 业务 串 "White peaced with"/"Failed to white peace with any of the specified countries."：控制台 white_peace 命令 |
+| 0x141193470 | （无名） 业务 串 "Added %d Funds to MIO" + gamestate 门控：控制台 add_mio_funds 命令 |
+| 0x1402578E0 | （无名） 业务 串 "No active raids to end"/"Successfully ended raids"/"Invalid outcome specified" + success/critical_success 分支：控制台 end_raids 命令 |
+| 0x14024A710 | sub_14024A710 业务 ConsoleCmdImpl.cpp:8131 · 控制台命令实现（ConsoleCmdImpl 路径断言/开关回显） |
+| 0x1424B56C0 | 业务 紧邻 _Func_impl_no_alloc<CConsoleCmdManager::<lambda_1_>>::[0](d=4576)，控制台命令管理器 lambda 族 |
+| 0x14023E330 | sub_14023E330 业务 控制台命令实现（ConsoleCmdImpl 路径断言/开关回显） |
+| 0x14024A500 | sub_14024A500 业务 ConsoleCmdImpl.cpp:8159 · 控制台命令实现（ConsoleCmdImpl 路径断言/开关回显） |
+| 0x140269EB0 | sub_140269EB0 业务 控制台命令实现（ConsoleCmdImpl 路径断言/开关回显） |
+| 0x14028D800 | sub_14028D800 业务 控制台命令实现（ConsoleCmdImpl 路径断言/开关回显） |
+| 0x14023E5E0 | sub_14023E5E0 业务 控制台命令实现（ConsoleCmdImpl 路径断言/开关回显） |
+| 0x140291C40 | 业务 体串 "Command doesn't need any arguments"; 唯一被调用者在书内 §4.00 |
+| 0x14026DBB0 | 业务 func_names module ConsoleCmdImpl.cpp; 断言站点 ConsoleCmdImpl.cpp:8657 |
+
+
+#### 4.2.32 游戏时序与控制台通道补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140235250 | 业务 串字面量 "Command doesn't need any arguments" [4.2×1] |
+| 0x140BE5B20 | 业务 反向调用图 1/2 调用者投 §4.2 |
+| 0x142395CB0 | （无名；语料 TopLevelExceptionFilter） 业务 顶层异常过滤器：识别 STATUS_STACK_OVERFLOW(0xC00000FD)，串 "Unhandled Exception" / "Long Task"，GetCurrentThread + off_142B5B8A0 崩溃转储路径… |
+| 0x1426F7F70 | 业务 反调用图传播 1.0 权重锚点投 §4.2（top 占比 1.00） |
+
+#### 4.2.33 单调用转发桩结构定案（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A46F10 | 转发桩: 转发至 域关键词匹配 sub_141A49EC0 + 域关键词匹配; 源码路径 hoi4; 被调源码 hoi4（推定） |
+| 0x1402AC610 | 转发桩: 转发至 同区段近邻 sub_1410F9460(距 0x31A70)属 4.2 族 sub_1410C79F0 + 同区段近邻 sub_1410F9460(距 0x31A70)属 4.2 族（推定） |
+| 0x141A470E0 | 转发桩: 转发至 域关键词匹配 sub_141A49EC0 + 域关键词匹配; 源码路径 hoi4; 被调源码 hoi4（推定） |
+| 0x14026EAE0 | 转发桩: 转发至 （无名）Require one argument which is the tag of the target country + cheat_opinion_modifier_good/bad（控制台命令） Require one argument which is the tag of t…（推定） |
+| 0x1426E86A0 | 转发桩: 转发至 CApplication/CApplicationObservable vtab CApplication/CApplicationObservable vtable + "assets"：应用资源装载 §4.2 游戏循环/命令（推定） |
+| 0x14258CCE0 | 转发桩: 转发至 CApplication/CApplicationObservable vtab CApplication/CApplicationObservable vtable + "assets"：应用资源装载 §4.2 游戏循环/命令（推定） |
+| 0x140279D50 | 转发桩: 转发至 （无名）Require one argument which is the tag of the target country + cheat_opinion_modifier_good/bad（控制台命令） Require one argument which is the tag of t…（推定） |
+
+#### 4.2.34 游戏时序与控制台通道补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14023F630 | 邻域传播改判（锚 0x140235250 §4.2，距离 0xA3E0）；跳点串 "Auto-unpause disabled" / "auto_unpause: Speed must be between 1 and " |
+| 0x140BE9080 | 邻域传播改判（锚 0x140BE5B20 §4.2，距离 0x3560）；跳点串 "GetPool()" |
+| 0x142395EB0 | 邻域传播改判（锚 0x142395CB0 §4.2，距离 0x200）；跳点串 "/minidump.dmp" / "/exception.txt" |
+
+#### 4.2.35 游戏时序与控制台通道补遗（30 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14066A620 | §4.2（CGameState/CCountry） vtable+80 取 a1+8 对象；sub_140BB5490(v4+8) tag；gamestate.h:1125/1126 |
+| 0x1406D03D0 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；a1+1120 数组（计数 a1+1132）；while (*result != a2) |
+| 0x140A772C0 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；1.5x 扩容；memcpy |
+| 0x140B6AE10 | §4.2（CGameState/CCountry） qword_14332F6A0+1336 链表（+16）；vtable+120 判定 + vtable+232 应用；v7[62] tag 门；断言 gamestate.h:1116 |
+| 0x140CC0520 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；_InterlockedAdd64 于 country+624 |
+| 0x140CC1D40 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；_InterlockedAdd 于 country+256 |
+| 0x140CC2F40 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；_InterlockedAdd 于 country+316 |
+| 0x140CC3540 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；_InterlockedAdd64 于 country+608 |
+| 0x140CC5230 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；_InterlockedAdd 于 country+336 |
+| 0x140CC5830 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；_InterlockedAdd64 于 country+688 |
+| 0x140CC7A80 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；sub_1414E6350(country+416, a1) |
+| 0x140CC8B80 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；sub_1414E6350(country+468, a1) |
+| 0x140CCA1A0 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；sub_1414E6350(country+368, a1) |
+| 0x140CCB2A0 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；sub_140BB48F0 tag→country；sub_1414E6350(country+392, a1) |
+| 0x140D30730 | §4.2（CGameState/CCountry） a1+648 容器；sub_140BB5490 tag 解析；__wind 异常框 |
+| 0x140D6FA50 | §4.2（CGameState/CCountry） a1+1600 管理器 vtable；a1+472 tag 表；sub_140BB48F0；sub_14196A360 三参构造 |
+| 0x140EC4C40 | §4.2（CGameState/CCountry） a1+40 数组 40B 桶；+36 位或 1；sub_14012B520(a1+136,&id) 入集合；gamestate 守门 |
+| 0x141289B90 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；qword_14332F260 单例；a1+60 计数；float v6/v9/v12/v14 运算 |
+| 0x1412DB2F0 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言 + qword_14332F260 单例；byte_14332ED00 惰性初始化 |
+| 0x141307AF0 | §4.2（CGameState/CCountry） sub_140BB5490 tag 解析；sub_140B60310(a1+64) 与 sub_1412F9F40(a1+152) 两路查表 |
+| 0x141308F50 | §4.2（CGameState/CCountry） 对象 +24；+480/+504==2 状态门；sub_140BA2600 有效性；sub_140BB52F0 tag 比对 |
+| 0x141478360 | §4.2（CGameState/CCountry） 串 "DIPLOMACY_ASSUME_FACTION_LEADERSHIP_IN_ALL_WARS_PROGRESS"/"CURRENT"/"NEEDED"；遍历 a3+152 数组（计数 a3+164）；sub_140BB5490 tag 解析；sub_14… |
+| 0x1414E3730 | §4.2（CGameState/CCountry） sub_140BB48F0(a2) tag 查国家；+3944 数组；vtable+176==2 类型判定；+140 计数 |
+| 0x1417A16D0 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；a1+16 门触发 sub_141ADB960(*(a1+24), 0) |
+| 0x1418C2CC0 | §4.2（CGameState/CCountry） 同 0x1418C31B0；核心调用 sub_1418BB4A0(a1) |
+| 0x141989830 | §4.2（CGameState/CCountry） sub_140D64510/sub_140D6EEB0 取国家容器；8B 步进遍历；++*(a1+8) 计数 |
+| 0x1419B0EB0 | §4.2（CGameState/CCountry） 断言 "gamestate unitilialized" gamestate.h:1125/"_ThreadForbidCount == 0" :1126；+1312/1316 tag；sub_140BB52F0 |
+| 0x141B4E0D0 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；a1+264/+256/+240/+248 四重门；qword_14332F698 vtable+128 |
+| 0x141D2B7F0 | §4.2（CGameState/CCountry） +4008 vtable+584 判定；+165 旗 &8；断言 gamestate.h:1125/1126；sub_141D285D0/sub_141D2CF10 |
+| 0x141E15C60 | §4.2（CGameState/CCountry） a1+2804 门；a3+1200 串对 sub_14221F310；sub_140D6EEB0(a3)+12 取值；*a5 += v11 |

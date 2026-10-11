@@ -2444,12 +2444,11 @@ CCountry::Load = CPersistent 主虚表 [4] reader (§4.00.1), 签名 (cc=a1, ctx
 
 备注: 领袖三键 (13511 / 13538+12470 / 12471) ctor 第三参 = 1 / 0 / (2,1) 为唯一分歧; 13024 = create_colonial_division_template 内 subject 子键 (tag 暂存); 10597 / 12014 / 14467 / 14787 = strategic_region 块内子键; 10754 / 11838 = dynamic_revolution_tag 子键; if 链键与 case 键合计唯一键 ≈127。
 
-#### 4.3.31 CCountry 域函数补遗（17 函）
+#### 4.3.31 CCountry 域函数补遗（16 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x1406D3870 | 国家动态变量/修正添加 国家动态变量/修正添加；邻域 CCountry::AddTriggerDynamicVariable；串 AIR_MORE_GROUND_CREWS |
-| 0x141610D60 | NFactions::CLeaveFactionAction::[21] DIPLOMACY_MESSAGE_OTHERS_TITLE / _OTHERS_DESC + COUNTRY/FACTION，退出阵营行动 |
 | 0x140421C00 | CIsLeadingVolunteerGroupWithOriginalCountry::GetDesc CIsLeadingVolunteerGroupWithOriginalCountry::GetDesc + TRIGGER_IS_LEADING_VOLUNTEERS(_IN_COUNTRY)（志愿军触发器） |
 | 0x14012E180 | sub_14012E180 gameitemdatabase.h:882 + CDiplomaticAction::GetFirstCountryRef（外交动作单例访问包裹） |
 | 0x140D34740 | sub_140D34740 diplomacy.cpp:2243 "Adding proposed diplo offer %s to %s between %s and %s, today %s with expire %i"（外交提议投递） |
@@ -2497,23 +2496,11 @@ CCountry::Load = CPersistent 主虚表 [4] reader (§4.00.1), 签名 (cc=a1, ctx
 | 0x140B110E0 | （无名，按证据定性） diplomaticaction.h 断言 _Actor.IsValid()\ \ _Recipient.IsValid()\ \ CanTargetSelf（外交行动有效性）+ CGameDate vtable |
 | 0x14025BB60 | （无名，按证据定性） gamestate.h:1125 断言 + 串 'fuel gain to'/'Enter an argument for fuel gain'（燃料增益参数解析） |
 | 0x14070DEC0 | 国家省份访问校验 "Prov.GetProvinceID() != 0"，country.cpp:6869 |
-
-#### 4.3.35 CCountry 域函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.3.36 CCountry 域函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x1406D2520 | CCountry::AddTriggerDynamicVariable func_names 名 CCountry::AddTriggerDynamicVariable |
-
-#### 4.3.37 CCountry 域函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.3.38 CCountry 域函数补遗（194 函）
 
 | VA | 语义/证据 |
@@ -2996,3 +2983,105 @@ CCountry::Load = CPersistent 主虚表 [4] reader (§4.00.1), 签名 (cc=a1, ctx
 | VA | 语义/证据 |
 |---|---|
 | 0x140FC2C80 | 未决窗口函数 · 取值+tag 比较+分派 sub_140FC3FD0(a1+24) 门 + sub_140FC0EA0(a1+16) + vt+80 取值，与 *(v3+288) 经 sub_140BB52F0(tag) 比较后 sub_140FC4380 分派 |
+
+#### 4.3.52 CCountry 域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411349F0 | CNonAggressionPactAction::CanExecute |
+| 0x140CB6990 | CCountryResources::[2] CCountryResources 国家资源类槽[2] |
+| 0x140A6B370 | CCountryNames::[8] CCountryNames::[8]（国家） |
+| 0x141C11100 | CCountryCharacterSelector::Reload CCountryCharacterSelector::Reload（国家） |
+| 0x1412A6620 | 未命名业务函数 国家经验状态（country_experience_status.cpp 断言） |
+| 0x14070CAB0 | 未命名业务函数 国家（country.cpp 断言） |
+
+#### 4.3.53 CCountry 域函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D01000 | 业务 夹于 CCountryManpower::Writer(d=9776) 与 CCountryIntel::[0](d=5392)，国家人力/情报族 |
+| 0x1417F8130 | 业务 串字面量 "ALL_COUNTRIES" §4.3 CCountry |
+| 0x141135C60 | CSendAttacheAction::CanExecute 业务 CSendAttacheAction::CanExecute 派遣武官 action 可执行判定 |
+| 0x140345F90 | CReleasePuppetEffect<$00>::[13] 业务 CReleasePuppetEffect<$00>::[13] 释放傀儡效果槽方法（CGameDate vtable 协作） |
+| 0x1401C3F20 | sub_1401C3F20 业务 串：. Reason: 、 C:\\mnt\\gsg\\hoi4\\hoi4_merged\\clausewitz\\pdx_core\\vi |
+| 0x140FE7FD0 | sub_140FE7FD0 业务 串：C:\\mnt\\gsg\\hoi4\\hoi4_merged\\clausewitz\\pdx_parser\\pdx_parser.h |
+| 0x140B6EE40 | sub_140B6EE40 业务 串：( pScope == this 、、 pScope->_pFrom != this ) && \ 、 C:\\mnt\\gsg\\hoi4 |
+| 0x140548DC0 | sub_140548DC0 业务 串：Token 、 is not supported within the allowed trigger |
+| 0x14024D320 | 业务 断言站点 country.cpp:54 ->§4.3; 类路由 CFullControlsStateTrigger ->§4.32; 串 "standard_font" |
+
+
+#### 4.3.54 CCountry 域函数补遗（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C54840 | 业务 COUNTRYVIEW_GIE_INFO_[HOST/LEGITIMACY/BONUSES\_\*/DELAYED] + EXILED_GOVERNMENT_HEADER（流亡政府） |
+| 0x140A6A260 | 业务 callee @country.h:1776 ×2（sub_1412EFED0/sub_140433670）+ CPdxHybridInlineBufferAllocator<…SEntityInstanceTextureSet>::[6] |
+| 0x140F87290 | 业务 调用图 h1mod:country.cpp [h1mod:country.cpp×2,h1mod:commandpowerallocator.cpp×1] |
+| 0x1401C8780 | 业务 类名 CBVauto,CBVauto1,CCountry → §4.3（投票 1） |
+| 0x141A8A620 | 业务 串字面量 "![MD]\\nGets Hers if the current country's leader i" [4.3×1] |
+| 0x141A8C780 | 业务 串字面量 '![MD]\\nGets the name of the right side of the curr' [4.3×1] |
+| 0x141A88670 | 业务 串字面量 '![MD]\\nGets the name of the current country with i' [4.3×1] |
+| 0x141A88C90 | 业务 串字面量 '![MD]\\nGets the fascist party of the current count' [4.3×1] |
+| 0x1413BF5B0 | 业务 类名 CCountry,CCountry1,CPdxHybridInlineBufferAllocator → §4.3（投票 1） |
+| 0x1413BF6B0 | 业务 类名 CCountry,CCountry1,CPdxHybridInlineBufferAllocator → §4.3（投票 1） |
+| 0x141C39D70 | 业务 反向调用图 1/2 调用者投 §4.3 |
+| 0x140EC4800 | 业务 反调用图传播 7.2 权重锚点投 §4.3（top 占比 0.63） |
+| 0x14065B010 | 业务 反调用图传播 2.0 权重锚点投 §4.3（top 占比 0.50） |
+
+#### 4.3.55 单调用转发桩结构定案（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141325220 | 转发桩: 转发至 调用图上游传播(占 100%, 1 票) sub_141325410 + 调用图上游传播(占 100%, 1 票)（推定） |
+| 0x141CA6B70 | 转发桩: 转发至 sub_141CA6270 特征串:countryflag_entry（推定） |
+| 0x1416F6F40 | 转发桩: 转发至 域关键词匹配 sub_1416FB1E0 + 域关键词匹配（推定） |
+| 0x141C4ABC0 | 转发桩: 转发至 域关键词匹配 sub_141584E00 + 域关键词匹配; 被 std::_Func_impl_no_alloc<…>::[2] 等 1 命名函数调用（推定） |
+| 0x1402A7580 | 转发桩: 被调者 0x141325220 -> §4.3 (E:单调用转发(被调者入书))（推定） |
+| 0x140C14140 | 转发桩: 转发至 未决窗口函数 · 取值+tag 比较+分派 sub_140FC3FD0(a1+24) 门 + sub_140FC0EA0(a1+16) + vt+80 取值，与 *(v3+288) 经 sub_140BB52F0(tag) 比较后 sub_140FC4380 分派（推定） |
+| 0x140F7BE60 | 转发桩: 转发至 业务 调用图 h1mod:country.cpp [h1mod:country.cpp×2,h1mod:commandpowerallocator.cpp×1]（推定） |
+| 0x142651990 | 转发桩: 被调者 0x1416F6F40 -> §4.3 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A0D60 | 转发桩: 被调者 0x1402A7580 -> §4.3 (E:单调用转发(链内))（推定） |
+| 0x142629410 | 转发桩: 转发至 调用图上游传播(占 50%, 2 票) sub_140DFCFE0 + 调用图上游传播(占 50%, 2 票)（推定） |
+| 0x1406D2080 | 转发桩: 转发至 国家作用域回调 country.cpp:8102 + "on_unit_leader_created" + eventscope 作用域断言 → 国家作用域回调（推定） |
+| 0x141C952C0 | 转发桩: 转发至 域关键词匹配 sub_141C96390 + 域关键词匹配（推定） |
+| 0x14261AFE0 | 转发桩: 转发至 调用图上游传播(占 50%, 2 票) sub_140DFCFE0 + 调用图上游传播(占 50%, 2 票)（推定） |
+
+#### 4.3.56 CCountry 域函数补遗（35 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141218180 | 反调用图单链锚点（0.5）投 §4.3；锚点 `_mm_cvtsi128_si32` |
+| 0x141019290 | 体级 vtable `SCriticalPart` + `CModifier`；100000 定点 @+328/+336/+360；caller 140AC3130(subunit_definition_database.cpp:211，2/2) |
+| 0x1406D9D00 | caller 1406DAD60/1406D9AC0(country.cpp:11712/6377 邻域) |
+| 0x140461780 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1404F7AE0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x1404F9000 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x14061B3F0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x14069D3A0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140736F50 | 串 "MODIFIER_DECISION_PREFIX" / "MODIFIER_MISSION_PREFIX" |
+| 0x140A00200 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140A29CE0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140ADD890 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140BB5D90 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140C9FEA0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140D11450 | 调用链 CDiplomaticAction::GetSecondCountryRef(sub_1403072A0) / CDiplomaticAction::GetSecondCountryRef(sub_1403072A0) / CDiplomaticAction::GetSecondCountryRef(su… |
+| 0x140D301D0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140DF0980 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140E83780 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140E99BB0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140F8FEF0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1410F0650 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1411B0D80 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1411CCED0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1411D5550 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1411FDC30 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1412067B0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x141215460 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x141215810 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x141300560 | 串 "ILLEGAL_EQUIPMENT_CATEGORY" |
+| 0x1413FD2F0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1414E86C0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x1415B83C0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x141C129E0 | 调用链 CCountryCharacterSelector::Reload@141C11100 |
+| 0x14235B940 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x14235E820 | 调用链 CPersistent::Load(sub_1424BE690) / CPersistent::Load(sub_1424BE690) / CPersistent::Load(sub_1424BE690) |

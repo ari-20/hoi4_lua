@@ -1338,7 +1338,7 @@ a4 > size 钳位 + begin > size 抛 out_of_range。遗留: qword_1435BA038 字�
 
 未决: TU/视图类名 (仅能定到 0x14128C–0x141294 地址族); CUnit type 1 真名 (下游 +884/+912/+976 与 §4.16 CTaskForce 域吻合 → 疑海军族); 38 类枚举完整定义 (需 sub_14128E1B0 全读 + def+164 对账); unit+488 在本函的可空 qword 读与 §4.18.5 kptr 门 0x2EDA support_attack 的关系 (两处读法不一致)。
 
-#### 4.18.28 陆军师族函数补遗（23 函）
+#### 4.18.28 陆军师族函数补遗（22 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -1363,7 +1363,6 @@ a4 > size 钳位 + begin > size 抛 out_of_range。遗留: qword_1435BA038 字�
 | 0x140B9A5C0 | sub_140B9A5C0 体内构造/操作 vtable 类 CUnitAdjuster（&CUnitAdjuster::vftable）→ 陆军单位调整/升级项/地面战斗方 |
 | 0x140F67E60 | （未命名）subunitdefinition.h:150 断言 "IsAir()" subunitdefinition.h:150 断言 "IsAir()"（子单位类型判定） |
 | 0x1415093A0 | （无名） vftable 类 CArmyReinforcementRequests::（陆军/单位） |
-| 0x1404A5A30 | NRaids::CRaidAddUnitExperienceEffect::[7] GetDesc 串 EFFECT_RAID_GIVE_UNIT_EXPERIENCE（突袭给单位经验） |
 | 0x1412AA6E0 | sub_1412AA6E0 体内构造/操作 vtable 类 CLandCombatant（&CLandCombatant::vftable）→ 陆军单位调整/升级项/地面战斗方 |
 
 #### 4.18.29 陆军师族函数补遗（11 函）
@@ -1420,12 +1419,6 @@ a4 > size 钳位 + begin > size 抛 out_of_range。遗留: qword_1435BA038 字�
 | 0x140C82660 | CArmy::[3] vtable 槽 CArmy::[3]（func_names RTTI 名） |
 | 0x140C8DB80 | CArmy::[6] vtable 槽 CArmy::[6]（func_names RTTI 名） |
 | 0x140C6E810 | CArmy::[5] vtable 槽 CArmy::[5]（func_names RTTI 名） |
-
-#### 4.18.32 陆军师族函数补遗（23 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.18.33 陆军师族函数补遗（5 函）
 
 | VA | 语义/证据 |
@@ -1435,12 +1428,6 @@ a4 > size 钳位 + begin > size 抛 out_of_range。遗留: qword_1435BA038 字�
 | 0x140C77B50 | CArmy::[49] vtable 槽 CArmy::[49]（func_names RTTI 名） |
 | 0x140C8AE20 | CArmy::[3] vtable 槽 CArmy::[3]（func_names RTTI 名） |
 | 0x140C82640 | CArmy::GetName func_names 名 CArmy::GetName |
-
-#### 4.18.34 陆军师族函数补遗（5 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.18.35 陆军师族函数补遗（1 函）
 
 | VA | 语义/证据 |
@@ -1634,3 +1621,434 @@ a4 > size 钳位 + begin > size 抛 out_of_range。遗留: qword_1435BA038 字�
 | VA | 语义/证据 |
 |---|---|
 | 0x141B3BD20 | 更新分派 逐元素更新分派：a1+136 数组（vtable+184 计数），+320 旗选 vtable+80/+96（与 sub_141B3Axx 统计族同域） |
+
+#### 4.18.47 陆军师族函数补遗（22 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141CF76E0 | CDivisionNamesContainer::[0] func_names CDivisionNamesContainer::[0]（师名称容器方法） |
+| 0x140E8DA40 | CRailwayGun::[56] func_names CRailwayGun::[56]（铁路炮对象方法） |
+| 0x14150DC80 | CArmyUpgradesStatus::[2] CArmyUpgradesStatus::[2] + std::locale（陆军升级状态 UI） |
+| 0x141052FE0 | （无名） 被 CAIFront::SpatializedDistributionOfUnass 调用（陆军/单位） |
+| 0x140A3CFF0 | COOBChange::[15] 陆军师模板/将领经验与技能/单位领袖/OOB/部署（COOBChange::[15]） |
+| 0x140BA5440 | divisiontemplate.cpp 断言 IsHumanControlled() |
+| 0x140C8B310 | CArmy::[2] CArmy::[2]（陆军/单位） |
+| 0x141016D10 | subunitdefinition.h 断言 ModifierIter->first==AdjusterIter->first |
+| 0x140F43A50 | （无名） 被 CConfirmAssignUnitsToFront::[14] 调用（陆军/单位） |
+| 0x140C01C20 | CUnit::[1] 陆军师模板/将领经验与技能/单位领袖/OOB/部署（CUnit::[1]） |
+| 0x141B71780 | CUnitsNudger::[0] CUnitsNudger::[0]（陆军/单位） |
+| 0x14106F0A0 | （无名） VA 邻近 CAIFront::SpatializedDistributionOfUnassigne(±496)（陆军/单位） |
+| 0x140CEB100 | CMilitaryDeploymentLine::Reader CMilitaryDeploymentLine::Reader（陆军/单位） |
+| 0x140CEA610 | CMilitaryDeployment::[1] 陆军师模板/将领经验与技能/单位领袖/OOB/部署（CMilitaryDeployment::[1]） |
+| 0x140CEA7F0 | CMilitaryDeployment::[2] 名:CMilitaryDeployment::[2] |
+| 0x14153FFA0 | COOBChange::[17] OOB 变更（陆军组织） |
+| 0x14150D860 | CGarrisonReinforcementRequests::[1] 驻军增援请求 |
+| 0x140CE7250 | CMilitaryDeploymentConveyor::[0] 军事部署传送带 |
+| 0x141F6D0A0 | CProductionSubUnitDefFilter::[0] 名:CProductionSubUnitDefFilter::[0] |
+| 0x140BD5D60 | （未命名）L2 被调函数命名证据：CRailwayGun L2 被调函数命名证据：CRailwayGun（L2 被调名） |
+| 0x140C877E0 | CArmy::[55] 陆军类 |
+| 0x14150D6C0 | CArmyUpgradesRequests::[1] 陆军升级请求 |
+
+#### 4.18.48 陆军师族函数补遗（37 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14007D460 | （无名 sub） 业务 注册名表：strcpy "LEADER_PROXIMITY_{FRONTLINE,CLOSE,MEDIUM,FAR,FREE_CONTROL}_{TITLE,DESC,DESC_GROUP}" + 图标键 "GFX_BPT_proximity_{frontline,close,medium… |
+| 0x14149CB40 | sub_14149CB40 业务 单位技能开关描述（ENABLES_ABILITY / ENABLED_ABILITY / DISABLED_ABILITY / ABILITY_NAME） |
+| 0x1410AB400 | sub_1410AB400 业务 UnitController Front: 调试拼接前缀 + 逗号空格分隔 |
+| 0x1409C2D20 | sub_1409C2D20 业务 师名称数据库（divisionnamesdatabase "Invalid value"/"not supported" + statetemplate "Province not valid"） |
+| 0x140E8A140 | sub_140E8A140 业务 列车炮描述（UNKNOWN/KNOWN_RAILWAY_GUN_DESC / RAILWAY_GUN_HEADER_MULTIPLE/SINGLE / UNIT_AVERAGE_STR / "Spotting Cooldown"） |
+| 0x140BDB940 | 业务 串字面量 "FORTS" §4.18 陆军 |
+| 0x140F4D010 | sub_140F4D010 业务 单位树转储：Children[ / Virtual Children[ / ]: / id: / Created by: 缩进串 |
+| 0x140AE9E10 | 业务 串字面量 "BOOST_ATTACK_FACTOR" §4.18 陆军 |
+| 0x1412C6120 | sub_1412C6120 业务 define 加权固定点公式（qword_14333xxx ×100000×v/100000 连乘求和 + fnv 立即数 0x29F16B11C6D1E109 + sub_140C4D110） |
+| 0x14144C2C0 | （无名） 业务 串 "UNIT_MEDALS" + pdx_scopedptr.h:134；0x14144C-D 邻域 CUnitHistory::Writer/CUnitMedalStore::Writer/army_history.cpp:285 |
+| 0x1409BF360 | 业务 3× divisionnamesdatabase.cpp:1369 调用（师名数据库相关遍历/计算） |
+| 0x140BEBF30 | sub_140BEBF30 业务 ordersgroup.cpp "!pUnit->IsRailwayGun()" 断言 |
+| 0x14102CF00 | 业务 夹于 COrderInstance::[0](d=15616) 与 COrderInstance::[8](d=41984)，Init_thread 静态初始化，命令实例族 |
+| 0x140615000 | 业务 qword_143337030/108/1B0 表引用，夹于 NAcclimatization::CData::[0](d=3104) 与 NAcclimatization::CData::Reader(d=4896)，气候适应数据族 |
+| 0x1406139B0 | 业务 gamestate.h:1125 + gamestate 旗，夹于 CAbilityDatabase::[1](d=1536) 与 CAbilityDatabase::[2](d=816)，能力数据库族 |
+| 0x140C69F00 | 业务 Init_thread 静态初始化，夹于 CArmyManpower::[0](d=8656) 与 CArmyManpower::Reader(d=1024)，集团军人力族 |
+| 0x140B9DA80 | 业务 串字面量 "BATALION" §4.18 陆军 |
+| 0x141235650 | CUnitNavalMoveAction::[10] 业务 func_names 名 CUnitNavalMoveAction::[10]（CUnit 族海军移动行动槽 10） |
+| 0x14026CFC0 | — 业务 gamestate.h:1125 断言 + "Wrong number of arguments" + CReferenceObject/CUnit 类名（单位脚本接口） |
+| 0x141026610 | 业务 夹于 std::_Func_impl_no_alloc(d=14416) 与 COrderInstance::[0](d=11248)，命令实例族 |
+| 0x140E89CB0 | CRailwayGun::[27] 业务 CRailwayGun::[27] 铁道炮槽方法（Railway/Current 特征） |
+| 0x141C6F720 | sub_141C6F720 业务 串 ARMY_LEADER_ALREADY_HAS_PREFERRED_TACTIC/PREFERRED_TACTIC_ARMY_LEADER_TOO_LOW_SKILL |
+| 0x141F64350 | 业务 串字面量 "MANPOWER" §4.18 陆军 |
+| 0x141571390 | — 业务 gamestate.h:1125 断言；调用 sub_1406CF810（0x1406C 单位区段） |
+| 0x140CC6BD0 | — 业务 gamestate.h:1125 断言 + 调用 sub_1406EC3E0（0x1406E 单位区段） |
+| 0x140E8AE40 | CRailwayGun::[28] 业务 CRailwayGun 列车炮 vtable 槽（gamestate.h:1125 访问门） |
+| 0x1419DED50 | — 业务 调用 sub_1406F98C0（0x1406F 单位/任务区段） |
+| 0x1421E54E0 | sub_1421E54E0 业务 串：_pInstance && \ 、 C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\games |
+| 0x140CA42C0 | 业务 串 "highlight"; 串 "VALUE"; 串 "DIFFERENCE" |
+| 0x14183C670 | (无名) 业务 "NAVAL_INVASION_PLAN_CAP_REACHED" 登陆计划上限键 |
+| 0x141B892B0 | 业务 二维索引表查找：a1+1184 表（*v6+8*v7，16B 行）+ -1 哨兵（+1236/+1240）+ 回退遍历 a1+992（+160 偏移），a2==a1+1088 判定 二维表查找 |
+| 0x140C9E600 | 业务 断言站点 eventscope.h:93; 串 "( pScope == this \ \ pScope->_pFrom !"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1424E7BC0 | 业务 串 "REQUEST_FOREIGN_MANPOWER_MUST_BE_IN_"; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.18 |
+| 0x14188CF80 | 业务 Init_thread 静态初始化，夹于 CTheatreSelector::Reload(d=4064) 与 CTheatreSelector::[9](d=2304)，战区选择器族 |
+| 0x14221E460 | 业务 类路由 CArmy ->§4.18; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140F4A900 | 业务 断言站点 divisiontemplatemanager.cpp:62 ->§4.18; 类路由 CIgnoreDecisionCommand ->§4.33; 串 "Trying to accept not acceptable divi" |
+| 0x140C67C60 | 业务 类路由 CSetPendingReassignTargetCommand ->§4.33; 类路由 CNewExileHostedPopupWindow ->§4.30; 调用图 IDF top §4.1 frac 1.00 |
+
+
+#### 4.18.49 陆军师族函数补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141504850 | 业务 串 `REQUESTED_REINFORCEMENT_DELIVERING_TO`、`REQUESTED_REINFORCEMENT_DELIVERING_TO_BLOCKED`、`REQUESTED_REINFORCEMENT_COLLECTING_ENTRY`；调用者 0x14150CF00 含 `MA… |
+| 0x141841800 | 业务 军事命令虚拟实例管理：VirtuallyCreated 数组遍历 + 命令实例构造/状态派发 断言 orderscommands.cpp:1592 "!VirtuallyCreated[nVirtual]->IsVirtual()"；调 orderinstance.cpp:385/398/411/424/3… |
+| 0x141505640 | 业务 串同 0x141504850 族（`REQUESTED_REINFORCEMENT_HEADER`、`REQUESTED_REINFORCEMENT_DELIVERING_TO_ENTRY`、`EQ`、`PROG`、`COUNT`）→ 增援请求视图 tooltip（与 0x141504850 同域双胞胎） |
+| 0x141698F70 | 业务 template_tab/regiments_grid/regiment_support_grid/base_stats/combat_stats/misc_stats/divisions 全套元素名（师模板设计器） |
+| 0x141015EC0 | 业务 STAT_ADJUSTER_BASE/STAT_ADJUSTER_BATALION loc 键族（"BATALION" 为引擎原文拼写） |
+| 0x141D176E0 | 业务 串 `ABILITY_TOOLTIP_FIELD_MARSHAL_BULK_SUMMARY_ALL_ACTIVE`、`ABILITY_TOOLTIP_FIELD_MARSHAL_BULK_WILL`、`COUNT`；调用者 0x141D198E0 含 `ABILITY_TOOLTIP_DAILY_COST`… |
+| 0x1414247F0 | 业务 callee @unit.cpp:2344 + @navaltransfer.cpp:198（单位海运调运） |
+| 0x141C2CC10 | 业务 串字面量 'DIVISION_CAP_USAGE_DESC' [4.18×1] |
+| 0x141F78680 | 业务 串字面量 'ROLE' [4.18×2] |
+| 0x141DD6B90 | 业务 串字面量 'designer_stat_entry' [4.18×2] |
+| 0x1412AA260 | 业务 类名 CArmy,CArmy1,CPdxHybridInlineBufferAllocator → §4.18（投票 1） |
+| 0x140C6D370 | 业务 类名 CArmy,CArmy1,CPdxHybridInlineBufferAllocator → §4.18（投票 1） |
+| 0x141467200 | 业务 反向调用图 1/2 调用者投 §4.18 |
+| 0x140CEB350 | 业务 反调用图传播 1.0 权重锚点投 §4.18（top 占比 1.00） |
+| 0x142700790 | 业务 反调用图传播 1.0 权重锚点投 §4.18（top 占比 1.00） |
+| 0x1406287D0 | 业务 反向调用图 1/2 调用者投 §4.18 |
+| 0x141B298A0 | 业务 反向调用图 1/2 调用者投 §4.18; 唯一被调用者在书内 §4.00 |
+
+#### 4.18.50 模板实例化桩结构定案（283 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141020070 | 模板桩: 模板参数类名 CUnitAdjuster（高置信） |
+| 0x1416C3990 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x141CF8C50 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x141D2F9B0 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD4620 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141CFC080 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3B9E0 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141C76E00 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x1416C37B0 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0C20 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD4530 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x1416C36C0 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1417729B0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141C76EF0 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x1416C38A0 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD6F10 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7690 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x1418DB8F0 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141AD6E20 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x1416C35D0 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x14188E350 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x141B76200 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x141E70D60 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x1416C3960 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x141CF8C20 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x141D2F980 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD45F0 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141CFC050 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3B9B0 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141C76DD0 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x1416C3780 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0BF0 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD4500 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x1416C3690 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x141772980 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141C76EC0 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x1416C3870 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD6EE0 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7660 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x1418DB8C0 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141AD6DF0 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x1416C35A0 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x14188E320 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x141B761D0 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x141E70D30 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x1416C3930 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x141CF8BF0 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x141D2F950 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD45C0 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141CFC020 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3B980 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141C76DA0 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x1416C3900 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x1416C3750 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0BC0 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD44D0 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x1416C3660 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x141772950 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141C76E90 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x141CF8BC0 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x1416C3840 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD6EB0 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7630 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x141D2F920 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD4590 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x1418DB890 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141CFBFF0 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3B950 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141AD6DC0 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x141C76D70 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x1416C3570 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x14188E2F0 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x1416C3720 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0B90 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD44A0 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x1416C3630 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x141772920 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141B761A0 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x141C76E60 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x141E70D00 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x1416C3810 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD6E80 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7600 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x1418DB860 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141AD6D90 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x1416C3540 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x14188E2C0 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x141B76170 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x141E70CD0 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x1416C39D0 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x141CF8C90 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x141D2F9F0 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD4660 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141CFC0C0 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3BA20 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141C76E40 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x141D16200 | 模板桩: 模板参数类名 CUnitLeaderTraitTreeItem（高置信） |
+| 0x1416C37F0 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0C60 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD4570 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x1416C3700 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1417729F0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x1416C39F0 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x141C76F30 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x140C28790 | 模板桩: 模板参数类名 CUnitLeader（高置信） |
+| 0x141AD6F50 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD76D0 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x1418DB930 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141AD6E60 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x14188E390 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x141B76240 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x140C287D0 | 模板桩: 模板参数类名 CUnitLeader（高置信） |
+| 0x140C287B0 | 模板桩: 模板参数类名 CUnitLeader（高置信） |
+| 0x141E70DA0 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x1416C3310 | 模板桩: 模板参数类名 CUnitTemplateItem（高置信） |
+| 0x1416C3370 | 模板桩: 模板参数类名 CUnitTemplateItem（高置信） |
+| 0x14168E950 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x141AD6CD0 | 模板桩: 模板参数类名 CDivisionLeaderItem（高置信） |
+| 0x141CF8BA0 | 模板桩: 模板参数类名 CDivisionNamesContainer（高置信） |
+| 0x141DD4680 | 模板桩: 模板参数类名 CDivisionEquipmentView（高置信） |
+| 0x141DD4470 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x1416C38E0 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x1416C4130 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x141AD6CB0 | 模板桩: 模板参数类名 CArmyLeader（高置信） |
+| 0x141AD6D50 | 模板桩: 模板参数类名 CArmyLeader（高置信） |
+| 0x1416C3610 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x140C287F0 | 模板桩: 模板参数类名 CArmyLeader（高置信） |
+| 0x141CF8CF0 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x1416D6110 | 模板桩: 模板参数类名 CArmyLeaderTraitWindow（高置信） |
+| 0x141D2FD10 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD4760 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141CFC110 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3BBB0 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141C76F80 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x141DD4490 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x1416C4090 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0D20 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD4710 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x1416C4040 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1417730B0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141C76FD0 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x1416C40E0 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD7990 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7C10 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x1418DB980 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141020180 | 模板桩: 模板参数类名 CUnitAdjuster（高置信） |
+| 0x141AD7940 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x1416C3FF0 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x14188E3E0 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x1416D0A80 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x1416C3390 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x141B762E0 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x1416C4120 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x141E712A0 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x141CF8CE0 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x141D2FD00 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD4750 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141CFC100 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3BBA0 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141C76F70 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x140AEDF00 | 模板桩: 模板参数类名 CUnitLeaderTrait（高置信） |
+| 0x1416C4080 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0D10 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD4700 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x1416C4030 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1417730A0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x1416C4110 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x141C76FC0 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x1416C40D0 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD7980 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7C00 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x1418DB970 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x1416C4100 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x141AD7930 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x141CF8CD0 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x1416C3FE0 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x1416C4150 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x14188E3D0 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x141D2FCF0 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD4740 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141CFC0F0 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3BB90 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141B762D0 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x141C76F60 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x141CF8CC0 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x1416C4070 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0D00 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD46F0 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x141D2FCE0 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD4730 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x1416C4020 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x141773090 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141E71290 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x141CFC0E0 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3BB80 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141C76FB0 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x141C76F50 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x1416C4140 | 模板桩: 模板参数类名 CArmyDivisionViewLandCombatEntry（高置信） |
+| 0x1416C4060 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0CF0 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD46E0 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x1416C40C0 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD7970 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7BF0 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x1416C4010 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x141773080 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x1418DB960 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141C76FA0 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x141AD7920 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x1416C3FD0 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x14188E3C0 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x141CF8D00 | 模板桩: 模板参数类名 CDivisionNamesContainerItem（高置信） |
+| 0x1416C40B0 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD7960 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7BE0 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x141B762C0 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x141D2FD20 | 模板桩: 模板参数类名 CDivisionTemplateNamedItem（高置信） |
+| 0x141DD4770 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x1418DB950 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141CFC120 | 模板桩: 模板参数类名 CDivisionsSummaryItemView（高置信） |
+| 0x141D3BBC0 | 模板桩: 模板参数类名 CArmyMilitaryOverviewItem（高置信） |
+| 0x141AD7910 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x141C76F90 | 模板桩: 模板参数类名 CDivisionLeaderMedalItem（高置信） |
+| 0x141D16350 | 模板桩: 模板参数类名 CUnitLeaderTraitTreeItem（高置信） |
+| 0x1416C3FC0 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x14188E3B0 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x141CF8CB0 | 模板桩: 模板参数类名 CDivisionNamesContainer（高置信） |
+| 0x141E71280 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x1416C40A0 | 模板桩: 模板参数类名 CArmyDivisionStatsView（高置信） |
+| 0x1416D0D30 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x141DD46C0 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141DD46D0 | 模板桩: 模板参数类名 CDivisionEquipmentTypeItem（高置信） |
+| 0x141DD4720 | 模板桩: 模板参数类名 CDivisionEquipmentItem（高置信） |
+| 0x141DD4780 | 模板桩: 模板参数类名 CDivisionEquipmentView（高置信） |
+| 0x141B762B0 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x1416C4050 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1417730C0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141C76FE0 | 模板桩: 模板参数类名 CUnitLeaderTraitItem（高置信） |
+| 0x141E71270 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x1416C40F0 | 模板桩: 模板参数类名 CArmyDivisionView（高置信） |
+| 0x141AD79A0 | 模板桩: 模板参数类名 CArmyLeaderWindow（高置信） |
+| 0x141AD7C20 | 模板桩: 模板参数类名 CUnitLeaderWindow（高置信） |
+| 0x1418DB990 | 模板桩: 模板参数类名 CUnitCounterItem（高置信） |
+| 0x141AD78B0 | 模板桩: 模板参数类名 CDivisionLeaderItem（高置信） |
+| 0x141AD7950 | 模板桩: 模板参数类名 CArmyLeaderItem（高置信） |
+| 0x140C2AFF0 | 模板桩: 模板参数类名 CArmyLeader（高置信） |
+| 0x1416C4000 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x14188E3F0 | 模板桩: 模板参数类名 CArmyGroupItem（高置信） |
+| 0x141772FD0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x1416C3ED0 | 模板桩: 模板参数类名 CUnitTemplateItem（高置信） |
+| 0x1416C3F00 | 模板桩: 模板参数类名 CUnitTemplateItem（高置信） |
+| 0x140C2AFC0 | 模板桩: 模板参数类名 CUnitLeader（高置信） |
+| 0x140C2AFD0 | 模板桩: 模板参数类名 CUnitLeader（高置信） |
+| 0x140C2AFE0 | 模板桩: 模板参数类名 CUnitLeader（高置信） |
+| 0x141772FB0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141772FE0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141B762F0 | 模板桩: 模板参数类名 CUnitsNudger（高置信） |
+| 0x141E712B0 | 模板桩: 模板参数类名 CArmyItem（高置信） |
+| 0x1416D0C90 | 模板桩: 模板参数类名 CUnitLeaderTraitWindow（高置信） |
+| 0x140AEDF20 | 模板桩: 模板参数类名 CUnitLeaderTrait（高置信） |
+| 0x1416D6520 | 模板桩: 模板参数类名 CArmyLeaderTraitWindow（高置信） |
+| 0x1416D6540 | 模板桩: 模板参数类名 CArmyLeaderTraitWindow（高置信） |
+| 0x141772F70 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141772F80 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141772F90 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141772FA0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141773070 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x1416C3EF0 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1416C3F20 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1416C3F30 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1416C3F40 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1416C3F50 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x1416C3F60 | 模板桩: 模板参数类名 CArmyDivisionListView（高置信） |
+| 0x141772FC0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141772FF0 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141773010 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141773020 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141773030 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141773040 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141773050 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x141773060 | 模板桩: 模板参数类名 CDivisionDesignerView（高置信） |
+| 0x1416C3EE0 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+| 0x1416C3F10 | 模板桩: 模板参数类名 CArmyBadgeView（高置信） |
+
+#### 4.18.51 单调用转发桩结构定案（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14205FC70 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 deployment_request.cpp:22（推定） |
+| 0x140F66910 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 unit.cpp:3764（推定） |
+| 0x141E17C30 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "army_group_box_middle_bg"（推定） |
+| 0x14102D980 | 转发桩: 转发至 sub_14102E6C0（无名） orderinstance.cpp:3523 站点 "GetOrderType() != ORDER_MOVE" 断言，COrderInstance 命令实例处理（推定） |
+| 0x14102E6A0 | 转发桩: 转发至 sub_14102E6C0（无名） orderinstance.cpp:3523 站点 "GetOrderType() != ORDER_MOVE" 断言，COrderInstance 命令实例处理（推定） |
+| 0x14260F7B0 | 转发桩: 转发至 业务 类路由 CSetPendingReassignTargetCommand ->§4.33; 类路由 CNewExileHostedPopupWindow ->§4.30; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x1414A8930 | 转发桩: 转发至 sub_14149EC70 陆军司令部下拉按钮 GUI 图名 GFX_army_hq_dropdown_button（推定） |
+| 0x14263A770 | 转发桩: 转发至 sub_1412AA6E0 体内构造/操作 vtable 类 CLandCombatant（&CLandCombatant::vftable）→ 陆军单位调整/升级项/地面战斗方（推定） |
+| 0x141C73040 | 转发桩: 转发至 sub_141C6F720 业务 串 ARMY_LEADER_ALREADY_HAS_PREFERRED_TACTIC/PREFERRED_TACTIC_ARMY_LEADER_TOO_LOW_SKILL（推定） |
+| 0x1425F3420 | 转发桩: 转发至 sub_1412AA6E0 体内构造/操作 vtable 类 CLandCombatant（&CLandCombatant::vftable）→ 陆军单位调整/升级项/地面战斗方（推定） |
+| 0x14168DF90 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 divisiontemplate.cpp:562（推定） |
+
+#### 4.18.52 陆军师族函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B08C70 | sub_140E5D0C0/1406F2F20/1413CFAF0/14136E9B0（任务/战斗族） |
+| 0x140B6BFF0 | 断言 "AirTheatre.IsValid() && Can not select an invalid air theatre" + ingameinterfacehandler.h；ref.h 断言 |
+| 0x140FFA1B0 | caller 14168C240 ← divisiontemplatemanager.cpp:833；+96/+108 模板数组 + *(v4+200) 比对 |
+| 0x141DB3C60 | ref.h 断言 + 串 PRODUCTION_NAVAL_NAME_LIST |
+| 0x140EF3F20 | caller 141039F80(orderinstance.cpp:3919) |
+| 0x140BBA500 | pdx_scoped_buffer.h:54 断言；caller 140BFB4A0(unit.cpp:2344) |
+| 0x1406E4C40 | 调用链 CConferenceSubjectParticipant::[0]@1414555D0；断言 gamestate.h:1116 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1117 "_ThreadForbidCount == 0 … |
+| 0x1414D6040 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x1415F3930 | 串 estimated_enemy_force_info；j_j__malloc_base；调 sub_1415F6870/1415F0A90 + 串帮手 |
+
+#### 4.18.53 陆军师族函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D185E0 | 业务 串 ABILITY_TOOLTIP_NAME(_CANCEL)/ABILITY_TOOLTIP_HEADER_DURATION_ONLY/COST_ONLY(_UNAFFORDABLE)/SUMMARY x9 |
+| 0x140C7BB20 | 业务 邻域 army.cpp x5（CArmy::GetTheatre）+ 串 ARMY_UNIT_SUPPLY/UNIT_AVERAGE_STR/CURRENT_ORGANIZATION/VALUE/"\nDEBUG:\nSpotting Cooldown:" + localize.cpp:641 x3 |
+| 0x1416A8610 | 业务 串 LEADER_ARMY_GROUP_CAPACITY_DESC/LEADING_TOO_MANY_UNITS_CURR_PENALTY/LEADING_TOO_MANY_ARMIES_DESC/LEADER_CAPACITY_DESC |
+| 0x140C90180 | CArmy::[56] 业务 CArmy vtable slot56 方法（单位等级图标名生成） |
+| 0x140159540 | caller 140AC3130←subunit_definition_database.cpp:211 |
+| 0x1413602E0 | ref.h 断言；caller 140C8E9E0←CArmy::[29]（func_names 名） |
+| 0x14192A710 | 体级 vtable `CPdxStaticInlineBufferAllocator<CPriorityQueue<CFixedPoint,SDivisionModelData,1>,6,int>::`vftable'`；caller 14192C7B0(gamestate.h:1125) |
+| 0x140C04590 | func_names rtti 名 CUnit::[29]；gamestate.h:1116/1117 门控；调 CPdxHybridInlineBufferAllocator<H$0CA>::[6] |
+| 0x141C6F370 | VT CSelectCountryPreferredTacticsEntry；串 button_background；调 sub_1422B9B00（button_background 槽） |
+
+#### 4.18.54 陆军师族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141509920 | 源文件锚 gamestate.h / 类 CArmyUpgradesRequests |
+| 0x14155C1B0 | 源文件锚 emptylists.h / 类 CEmptyEntryListBase<COccupiedTerritoryStateEntryWithoutResistance> |

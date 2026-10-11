@@ -3717,7 +3717,7 @@ sub_1417C39E0(a1 视图, a2 COrdersGroup*, a3 横幅态 u8, a4 分组边界 u8) 
 | 0x141F5B5F0 | CConnectionInfoPopup::[0] func_names 全名 + UI 后缀类（CConnectionInfoPopup） |
 | 0x141C1F860 | vtable/RTTI 类 CTextBufferObserver sub_141C1F860 + vtable/RTTI 类 CTextBufferObserver; 被 CCountryFactionView::SetupDerived 等 3 命名函数调用 |
 
-#### 4.30.75 GUI 主视图与地图函数补遗（89 函）
+#### 4.30.75 GUI 主视图与地图函数补遗（88 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -3742,7 +3742,6 @@ sub_1417C39E0(a1 视图, a2 COrdersGroup*, a3 横幅态 u8, a4 分组边界 u8) 
 | 0x14101B6B0 | 单位列表小图标 单位列表小图标；loc \"unit_\"+\"_icon_small\"，被调 gamestate.h:1125/text.cpp:491 |
 | 0x1416BA770 | 单位列表指挥点成本 UI 单位列表指挥点成本 UI；loc \"cp_cost_icon\"×2/\"cp_cost_text\"×2/\"unitlist_priority_icon\"，被调 gamestate.h:1125 |
 | 0x14149A320 | 师设计器条目 师设计器条目；loc \"designer_subunit_entry\"/\"DESIGNER_UNLOCK\"/\"DESIGNER_REMOVE\"+\"name\"/\"cost\"/\"subunit_icon\"/\"VALUE\"/\"GFX_remove_icon\" |
-| 0x1420535A0 | NInternationalMarket::CEditMarketStockpileWindow::[0] 市场库存编辑窗槽；loc \"INTERNATIONAL_MARKET_TOTAL_CIC_COST_TOOLTIP\"/\"EDIT_MARKET_COUNTRY_STOCKPILE_CHANGE_ADD… |
 | 0x14141F770 | 文本+作用域变量拼接 文本+作用域变量拼接；被调 textbase.cpp:272/text.cpp:491/scopedvariable.cpp:1288，邻 CUnitLeaderTemplate::[0](+34160B)/SInitialScientistSkillLevel::Reader |
 | 0x141629FD0 | 突袭风险设置窗 突袭风险设置窗；loc \"raid_inst_risk_taking_high\"/\"_medium\"/\"_low\"+\"SETTING\"/\"tooltip_risk_taking_header\"/\"_effect_success\"/\"_effect_disaster\" |
 | 0x141E083C0 | 舰队 UI 元素 舰队 UI 元素；loc \"number\"/\"fleet\"/\"_icon_medium_black\"，被调 gamestate.h:1125×2 |
@@ -4688,12 +4687,6 @@ sub_1417C39E0(a1 视图, a2 COrdersGroup*, a3 横幅态 u8, a4 分组边界 u8) 
 | 0x1422B8F60 | CContainerWindow::[59] vtable 槽 CContainerWindow::[59]（func_names RTTI 名） |
 | 0x140B7D170 | CEquipmentMessagePopup::[14] vtable 槽 CEquipmentMessagePopup::[14]（func_names RTTI 名） |
 | 0x1422C9340 | CCheckBox::[3] vtable 槽 CCheckBox::[3]（func_names RTTI 名） |
-
-#### 4.30.77 GUI 主视图与地图函数补遗（873 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.30.78 GUI 主视图与地图函数补遗（374 函）
 
 | VA | 语义/证据 |
@@ -5072,12 +5065,6 @@ sub_1417C39E0(a1 视图, a2 COrdersGroup*, a3 横幅态 u8, a4 分组边界 u8) 
 | 0x141575490 | CAllMapModesWindow::[1] vtable 槽 CAllMapModesWindow::[1]（func_names RTTI 名） |
 | 0x1422BA270 | TWindow::[3] vtable 槽 TWindow::[3]（func_names RTTI 名） |
 | 0x1422EF290 | CEditBox::[3] vtable 槽 CEditBox::[3]（func_names RTTI 名） |
-
-#### 4.30.79 GUI 主视图与地图函数补遗（374 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.30.80 GUI 主视图与地图函数补遗（41 函）
 
 | VA | 语义/证据 |
@@ -5792,3 +5779,1257 @@ sub_1417C39E0(a1 视图, a2 COrdersGroup*, a3 横幅态 u8, a4 分组边界 u8) 
 | 0x1421E7260 | 未决窗口函数 · UI 管理器全局+偏移分派 qword_143451C80(UI 管理器)+846 字节门取 +1012 对象，sub_1421F18C0 后按 (v3&8)==0 门调 sub_1421D9810(32*int16(v4+100)+v4+8) |
 | 0x1415B0F80 | 未决窗口函数 · UI 项匹配判定（4168 键） a1+4168 双字对 → sub_14221F310 → sub_140BEF400(v4)==a2 与 sub_140BF2020/+409/+410 组合判定 |
 | 0x141F91E20 | 未决窗口函数 · id→对象→名称查表链（+52 键） a1+52 双字对 → sub_14221F310 → sub_140D50EE0 → vt+184(v1) → sub_140B6D450(v5, v4, 0) |
+
+#### 4.30.98 GUI 主视图与地图函数补遗（109 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B8A2D0 | 天气 nudge 编辑窗口构建（按钮/预览/周期列表） 串 nudge_window_weather + 全套天气按钮与 *_desc/*_btn 件名 |
+| 0x142009B10 | UI 控件按类别匹配查找 NDetails::SMatchCategory/SMatchExcludingCategory + MatchAll lambda → UI 控件按类别匹配查找 |
+| 0x142056860 | 疑窗口/列表项析构样板 疑窗口/列表项析构样板；a1+8/104/200/296/392 stride-96 五元素清理 + 10 处虚调，邻 CListItem/CAddEquipmentToMarketWindow(+9656B) |
+| 0x1422F5200 | GUI 文本框/语音输入处理 GUI 文本框/语音输入处理；邻域 CEditBox::[8]/SpeechInputTextboxHandler::[1]/CWindowType；24 次 sub_1401AD74 字符串拼装 |
+| 0x141BC0EC0 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 CContinuousFocusView::[0]/CContinuousFocusItem::[0] |
+| 0x1420310E0 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 CAcesView::[0]/[1] |
+| 0x141CCDB60 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 CFrontendFriendsView::[1]/CLegacyButtonObserverGlue<CFrontEndFriendsFriendEntry>::[0] |
+| 0x140B84890 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 CScriptedWindow::[0] |
+| 0x141E3FD90 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 COperativeStatusView::[1]/COperativeViewEntry::[1] |
+| 0x140D9C7F0 | （无名，按上游/loc 定性） 上游 CDeleteSavedGameRulesPopUpWindow::[16] → 删除存档规则弹窗（无直接串） |
+| 0x141E50DA0 | （无名，按上游/loc 定性） 上游 CPeaceConferenceWindow::SetBiddingsInBeneficiaryItem → 和会出价条目（无直接串） |
+| 0x14177C120 | （无名，按上游/loc 定性） 上游 CEquipmentDesignerView::UpdateTankRolesDropdownBox |
+| 0x1416B9E00 | 陆军师统计视图 陆军师统计视图；邻域 CArmyDivisionListView::Setup/CArmyDivisionStatsView::[1]/[9] |
+| 0x140F31540 | （无名，按上游/loc 定性） 上游 CForceUpdateMapMode::Execute/CPeaceConferenceWindow::Reload/CCountryConstructionsView:: |
+| 0x1413CACD0 | （无名，按上游/loc 定性） 上游 CTacticsListView::SetupFilterButtons?（×3 同名）→ 战术列表视图筛选按钮 |
+| 0x141F568B0 | CGameRuleGroupView::[21] CGameRuleGroupView::[21]（View 类槽方法） |
+| 0x1422CC630 | 调试行渲染 调试行渲染；邻 CDebugLineHelper::[0](-2176B)/[1](+2832B)/[2](+2880B)，浮点/__m128 数学 |
+| 0x141CEA120 | 前端单机视图更新（float 参数，动画/滚动类） 前端单机视图更新（float 参数，动画/滚动类）；邻域 CFrontEndSingleplayerView::[0]/[4] |
+| 0x14232F9E0 | SCurveAnimationReader::Writer MUL / life_abs / life / system / spawn / ABS / ADD，曲线动画序列化 |
+| 0x1412861F0 | 后效体积渲染 后效体积渲染；邻 SPostEffectValuesReader::[0](-1328B)/SPostEffectVolumeReader::[0](-1264B)/CPdxPostEffectVolumeBox::[2](+2128B)，浮点/__m128 数学 |
+| 0x141DCD5F0 | （无名，按上游/loc 定性） 上游 CDivisionDesignerView::[7]/CEquipmentDesignerView::[7]/CEquipmentUpgradeDesignerWindow: |
+| 0x14149F250 | （无名，按上游/loc 定性） 上游 CEquipmentUpgradeDesignerWindow::STickUpdater::[9]/NIndustrialOrganisation::_Func_impl |
+| 0x1413239A0 | （无名，按上游/loc 定性） 上游 CPoliticalIdeasWindow::[2]/CSpiritItemWindow::[2] → 政治理念/精神窗口条目 |
+| 0x141BC3610 | CContinuousFocusView::RebuildPalette? / CContinuousFocusView::RebuildPalette CContinuousFocusView::RebuildPalette §4.31 GUI/窗口/列表 |
+| 0x142277720 | CPdxMeshObject::[2] |
+| 0x140B55FF0 | （无名，按证据定性） 直接调用者 VT CGraphicalMap + 串 gfx/FX/mapname.lua、gfx/FX/shadowblur.lua（地图 FX 资源路径处理） |
+| 0x141E06600 | 海战航空图标 GFX_navalcombat_air_* 贴图键前缀 |
+| 0x14157D9C0 | CCountryPoliticsView::ClearContents + CB CCountryPoliticsView::ClearContents + CButtonEventDispatcher §4.31 GUI/窗口/列表 |
+| 0x141CB6560 | 贸易要约窗口 tradeoffer_window + cancel_button + buy_needed_amount_button |
+| 0x141E24020 | 舰队编成编辑器子单位选择窗口 task_force_composition_editor_sub_unit_selection_window + low_res_pos |
+| 0x142327D00 | CFixedWindow::[25] CFixedWindow 槽 25 |
+| 0x141E60130 | 航空联队计数 UI air_wing_count_box + selected_group_frame |
+| 0x141F6BEC0 | CMapModeMilitaryDeployment::[5] |
+| 0x141238CA0 | 事件选项条目 event_option_entry |
+| 0x141D75490 | 决议追踪界面 track_decisions_checkbox + category_collapse_btn + icon_header_bg |
+| 0x1423569A0 | CArrowType::[9] / CArrowType 槽 9 CArrowType 槽 9 §4.30/§4.35 地图渲染 |
+| 0x142006040 | 市场准入总览窗口 market_access_overview_window + standard_diplomacy_controller |
+| 0x141F2B340 | GUI：equipments loc 键 equipments/equipments_grid/no_equipment/close |
+| 0x141D90A90 | GUI：logistics_info_window loc 键 logistics_info_window/close_button |
+| 0x141BA4BF0 | ingameinterfacehandler.h + 主线程断言 ingameinterfacehandler.h + 主线程断言，游戏内界面处理 |
+| 0x141C41FF0 | 政治理念条目 political_idea_entry + add_idea_button |
+| 0x141742240 | 未命名业务函数 GUI 类 CCountryProductionLineView 方法 |
+| 0x14007DBF0 | 生产视图过滤开关 show_equipment / show_armor / show_air / show_capital_ships / show_resources / show_outdated |
+| 0x141F3BAC0 | 游戏设置随机国家窗口 gamesetup_pick_random_country_window |
+| 0x1419BBD60 | GUI：menu_settings_ingame loc 键 menu_settings_ingame |
+| 0x14156E580 | COccupationStatusView::Update? COccupationStatusView::Update?（占据状态视图更新） |
+| 0x141F53E40 | GUI：custom_difficulty_name loc 键 custom_difficulty_name/custom_difficulty_icon/difficulty_slider |
+| 0x142330990 | 未命名业务函数 GUI 类 SParticleTextureReader 方法 |
+| 0x1417586B0 | （无名） 被 CDivisionDesignerView::Setup? 调用（装备/市场） |
+| 0x14181CE90 | （无名） 被 CNaviesView::UpdateButtons 调用（海军） |
+| 0x14224FC60 | （无名） 被 CFrontendMultiplayerView::[9] 调用（多人/Steam） |
+| 0x141F89850 | GUI：playthrough_overview_view loc 键 playthrough_overview_view/statistics_window |
+| 0x141C5B160 | CFactionListWindow::SetupDerived? CFactionListWindow::SetupDerived 派系列表窗口（名带?） |
+| 0x141687750 | GUI：achievement_name loc 键 achievement_name/achievement_desc |
+| 0x141F5CDC0 | CJoinConfigurationPopup::[4] CJoinConfigurationPopup::[4]（命令/游戏循环） |
+| 0x14203C3B0 | 未命名业务函数 GUI 类 CListWidget 方法 |
+| 0x141E33E90 | CMapModeOperationSelectTarget::[5] CMapModeOperationSelectTarget::[5]（地图模式选择目标操作） |
+| 0x1422A9F60 | CStandardlistbox::[4] CStandardlistbox 列表框控件槽[4] |
+| 0x142238600 | CParticleReloader::CollectReloadNames CParticleReloader::CollectReloadNames（粒子资源热重载名收集） |
+| 0x1422C25A0 | CContainerWindow::[2] CContainerWindow::[2]（GUI/窗口） |
+| 0x140B4EB40 | 未命名业务函数 GUI 类 CGraphicalMap 方法 |
+| 0x141863EC0 | GUI：peaceconference_right_window loc 键 peaceconference_right_window/current_and_history_actions/country_biddings_list |
+| 0x141EE1960 | （无名） 被 CAiFrontImportanceMapModeConfig::[2] 调用（地图渲染/地图模式） |
+| 0x141239BD0 | （无名） VA 邻近 CEventWindow::Reload(±400)（事件/触发/效果） |
+| 0x141C30AD0 | CCreateFolderPopUp::[14] CCreateFolderPopUp 创建文件夹弹窗槽[14] |
+| 0x141EF5680 | 未命名业务函数 GUI 类 CCareerProfileViewUpdateable 方法 |
+| 0x1422D7680 | CPdx3DObject::[7] 地图图标族（特殊设施/图标组/3D 对象）（CPdx3DObject::[7]） |
+| 0x141E31A60 | GUI：phase_title_picture loc 键 phase_title_picture/phase_title_name |
+| 0x141E129B0 | （无名） VA 邻近 CCompactShipListView::UpdateCompactShipList?(±448)（海军） |
+| 0x141F64140 | （无名） 被 CChangeUnitTemplateDialog::[14] 调用（陆军/单位） |
+| 0x14125C8F0 | 未命名业务函数 GUI 类 CScaleMapTextureThreaded 方法 |
+| 0x141806C90 | （无名） VA 邻近 CNaviesView::ConditionallyShowManufacturerLi(±432)（海军） |
+| 0x141E11800 | 无名 · compactshiplistview.h GUI 空表引用删除断言 compactshiplistview.h GUI 空表引用删除断言 |
+| 0x141274830 | CMapArrowManager::LoadDefinitions? CMapArrowManager::LoadDefinitions?（地图渲染/地图模式） |
+| 0x14237E0F0 | （无名） 被 CEditBox::[1] 调用（GUI/窗口） |
+| 0x141FF4840 | （无名） 被 CPurchasableEquipmentWindow::UpdateCount 调用（装备/市场） |
+| 0x14140A6F0 | 无名 · ingameinterfacehandler.h 主线程断言 ingameinterfacehandler.h 主线程断言 |
+| 0x141F661E0 | 未命名业务函数 GUI 类 CTooltipHandler 方法 |
+| 0x140A00050 | 未命名业务函数 GUI 类 CEquipmentGraphicPoolTypeMap 方法 |
+| 0x1422C99C0 | CCheckBox::[2] GUI 复选框类方法（CCheckBox::[2]） |
+| 0x14163FFF0 | CMapIconGroup::[0] 地图图标族（特殊设施/图标组/3D 对象）（CMapIconGroup::[0]） |
+| 0x1419D84E0 | CDebugMapModeConfig::CNormalizer::[2] CDebugMapModeConfig::CNormalizer::[2]（地图渲染/地图模式） |
+| 0x1416BE360 | （无名） VA 邻近 CArmyDivisionStatsView::[9](±48)（陆军/单位） |
+| 0x140B7A990 | 未命名业务函数 GUI 类 CSpecialProjectFinishedPopUpWindow 方法 |
+| 0x1422AEFC0 | 未命名业务函数 GUI 类 CButtonEventDispatcher 方法 |
+| 0x141386FA0 | （无名） 被 CNationalFocusView::[16] 调用（国家） |
+| 0x142326A50 | CFixedWindow::[28] CFixedWindow::[28]（GUI/窗口） |
+| 0x141F14810 | 未命名业务函数 GUI 类 CChangeRuleItemPair 方法 |
+| 0x140B716B0 | CMapIconManagerImpl::[0] func_names 全名 + 地图图标/地图模式类 |
+| 0x140C90B40 | 未命名业务函数 GUI 类 CUpgradeWindowOverride 方法 |
+| 0x141F412F0 | CGameSetupInterestingCountriesWindow::[1] CGameSetupInterestingCountriesWindow::[1]（游戏状态/时间） |
+| 0x141FED550 | CCareerProfilePages::CreateTooltipHandlers::lambda_70（有名） 类名含 CareerProfilePages（履历页） |
+| 0x141ABF9E0 | 未命名业务函数 GUI 类 COperativeLeaderWindow 方法 |
+| 0x141E583D0 | CExitPeaceConferenceDialog::[14] 名:CExitPeaceConferenceDialog::[14] |
+| 0x141B1F790 | CMapSymbolDefinition::[0] func_names 全名 + 地图图标/地图模式类 |
+| 0x141FEC5D0 | CCareerProfilePages::CreateTooltipHandlers::lambda_59（有名） 类名含 CareerProfilePages（履历页） |
+| 0x141525490 | 未命名业务函数 GUI 类 CSurrenderedPopupWindow 方法 |
+| 0x140B9DE80 | （无名） 被 CDivisionDesignerView::IsVisible 调用（装备/市场） |
+| 0x141914700 | CUnitsStackMapIconGroup::[19] func_names 全名 + 地图图标/地图模式类 |
+| 0x141E0E1E0 | 未命名业务函数 GUI 类 CCheckBoxObserver 方法 |
+| 0x1418BA590 | CDecisionMapIconContainer::[0] func_names 全名 + 地图图标/地图模式类 |
+| 0x141D501A0 | 未命名业务函数 GUI 类 CTooltipHandler 方法 |
+| 0x1422EAED0 | 未决窗口函数 · UI 位置缩放（DPI） `__crt_win32_buffer_debug_info::file_name` + vt+192 取位 + 除 qword_143453090+206296 缩放 + 差值写回 |
+| 0x140AAE0F0 | CScriptedMapMode::[0] func_names 全名 + 地图图标/地图模式类 |
+| 0x141BBF660 | 未命名业务函数 GUI 类 CButtonWrapper 方法 |
+| 0x14146BD70 | 未命名业务函数 GUI 类 CFactionViewSection 方法 |
+| 0x141FCBBB0 | NAirSelectionUI::CAirBaseSelectionItem::[0] GUI 类 CTooltipHandler 方法 |
+| 0x141B29510 | 未命名业务函数 GUI 类 CTooltipHandler 方法 |
+| 0x141237390 | 未命名业务函数 GUI 类 CCountryView 方法 |
+
+#### 4.30.99 GUI 主视图与地图函数补遗（299 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14209D840 | sub_14209D840 业务 调试可调变量 GUI（"Created tweaker gui" / "Tweakable variables not found!" / -name/-category/-title 参数） |
+| 0x14123A1E0 | sub_14123A1E0 业务 开始游戏/主菜单 UI（new_game / load / playsession_start / event_picture） |
+| 0x1415257D0 | sub_1415257D0 业务 装备列表 UI（equipment_items / equipment_item / FUEL / GFX_fuel_medium / SURRENDERED_OTHER） |
+| 0x140E75E70 | 业务 数组按 token 键插入排序（sub_14221F310 取键 / sub_141460080 比较秩）→ 疑 UI 有序列表维护 |
+| 0x1412A7430 | sub_1412A7430 业务 顶栏经验增益描述（EXPERIENCE_DAILY_GAIN_TOPBAR / ARMY/NAVY/AIR _EXPERIENCE_GAIN_ / TRAINING） |
+| 0x142146E30 | （无名） 业务 渲染区整数阵列处理（int a1/a2 + 10 指针参，自递归）；相机策略邻域 |
+| 0x140B8A1C0 | sub_140B8A1C0 业务 脚本化窗口父路径注册（country_list / focus_tree_scripted_window_container / army_panel / navy_panel / _ParentWindows，scriptedwindowmanager.cpp） |
+| 0x141A503F0 | sub_141A503F0 业务 raids 面板（调用 NRaids::CreateDynamicVariables；类型 2 条目循环 +608 偏移匹配） |
+| 0x1421A3740 | sub_1421A3740 业务 战争总览窗口 UI（war_ally_entry / wargoal / warscore / surrender_progressbar / casualties / major_country_overlay） |
+| 0x1417D28B0 | 业务 串字面量 "_faceplate" §4.30 UI窗口 |
+| 0x1424763B0 | 业务 UI 网格/表格布局：由 a1+68/+72/+524 比值算列数，结果写 a1+116/+392/+396，并按 stride 96 逐元素回填布局（a1+288 数组，计数 a1+56） |
+| 0x141569D20 | 业务 串字面量 "resistance_status_pos" §4.30 UI窗口 |
+| 0x1416FBDC0 | CCommandStructureView::SetupDerived 业务 func_names 名 CCommandStructureView::SetupDerived；串 "_advisors"/"OFFICER_ARMY"/"button" |
+| 0x141FB37C0 | CQueueToUnlockWindow::BuildSavedQueueItems? 业务 func_names 名 CQueueToUnlockWindow::BuildSavedQueueItems + CSavedQueueItem::SetCallback + robin_hood 断言 |
+| 0x14178BE50 | CEquipmentDesignerView::SetupModuleButtons 业务 func_names 名 CEquipmentDesignerView::SetupModuleButtons；串 "ypos_module_row_0" + pdx_scopedptr.h:124 |
+| 0x142000DD0 | CPurchasableEquipmentWindow::UpdateCountryFilterList 业务 func_names 名 CPurchasableEquipmentWindow::UpdateCountryFilterList + CCountryItem::EmplaceAssign 调用 |
+| 0x1415D95E0 | CTacticsListView::SetupFilterButtons? 业务 *View 类 → 窗口/视图；func_names 名带 ?（推断名） |
+| 0x141BDDF10 | CTechnologyInfoWindow::[9] 业务 func_names 名 CTechnologyInfoWindow::[9]；串 "research_progressbar"/"tech_info_title"/"HEADER_ENABLED"/"HEADER_DISABLED" |
+| 0x140B81720 | CSpecialProjectCapturedPopUpWindow::SetupDerived 业务 func_names 名 CSpecialProjectCapturedPopUpWindow::SetupDerived；串 "GFX_special_project_completed_popup_bg"/… |
+| 0x141F87020 | 业务 UI 分支过滤：按分支 strcpy "army"/"navy"/"air"/"land" 到局部 token 串，返回 char |
+| 0x1412D5960 | CNudgeIdler::[7] 业务 func_names 名 CNudgeIdler::[7]；串 "Nudge nudge..." + 调 CGameIdler::RestoreDeviceObjects |
+| 0x1416E1640 | 业务 UI 容器窗口：2× containerwindow.cpp:886 调用 + "title" 令牌读取 |
+| 0x1416A9F20 | 业务 GUI 引用管理层：ref.h:83 + gamegui.cpp:115 调用 + std::locale 串格式化，无类名 |
+| 0x1421F7E70 | 业务 UI 容器管理：stride-40 元素数组、0x80000000 隐藏位清除、选中态索引（a1+16/24/56/90）维护、负 float 回填，无类名 |
+| 0x141E8EE70 | sub_141E8EE70 业务 industrial_org_ui_context.cpp + INDUSTRIAL_ORGANIZATION_TOOLTIP_* |
+| 0x141A122B0 | sub_141A122B0 业务 串 CREATE_AGENCY_BUTTON |
+| 0x14213F6E0 | 业务 UI 元素布局更新：读 a1+680..764 尺寸/位置字段，经 a1+360 回调带 3 个 uint 通知，无类名 |
+| 0x1416F9530 | （无名） 业务 串 "tactics_list_container"/"tactics_list_gridbox"/"current_phase" + 调 CTacticsListView::SetupFilterButtons |
+| 0x141885E60 | strategicairview.cpp:1465 业务 战略空军视图：strategicairview.cpp 断言 "Wrong enum value!" ×2（*View 类） |
+| 0x141F56460 | CDifficultySettingGroupView::[21] 业务 *View 类（难度设置组视图）vtable 槽 21 |
+| 0x1416D3280 | CArmyLeaderTraitWindow::[9] 业务 func_names 名 CArmyLeaderTraitWindow::[9]；串 "SKILL_LEVEL_NEXT_AMOUNT"/"SKILL_LEVEL_CURRENT_PROGRESS"/"SKILL_LEVEL_MAX" |
+| 0x141DE0330 | 业务 装备设计器 UI：strcpy "niche_selection_widget" / "niches_dropdown"（niche 选择控件） |
+| 0x1424B9120 | sub_1424B9120 业务 串 Disabled/Enabled（开关项） |
+| 0x141E2E310 | gamestate.h:1116 业务 地图图标选择 UI：strcpy "GFX_mapicon_air_base" / "GFX_mapicon_rocket_site" + "BACK"/"SELECT" 按钮 |
+| 0x141B14FB0 | pdx_scopedptr.h:134 业务 积分文本生成：strcpy " (player)" + " points" + "%s - %s" 格式化（疑似结算/积分列表条目） |
+| 0x1418215A0 | 业务 夹于 CNavyLeaderTraitWindow::[8] 与 CFactionSetupWindow::[1] 之间，is_group_execution_cancelled + allocate 并行任务组，UI 窗口并行构建 |
+| 0x141FC4BF0 | 业务 DLC 缺失提示：define SAVED_GAME_RULES_DLC_MISSING + "DLC_MISSING_ITEM" + "NAME" 令牌 |
+| 0x141CDF050 | 业务 单人存档界面：strcpy "sp_continue_button" / "sp_load_button" / "sp_continue_flag_left/right"(+overlay) |
+| 0x14236FED0 | CButtonType::[13] 业务 UI 按钮类型类 vtable 槽 13（按钮样式/行为定义） |
+| 0x140B35760 | sub_140B35760 业务 串 ALERT_RIGHTCLICK |
+| 0x141CA1740 | sub_141CA1740 业务 串 DIPLOMACY_NO_WARGOAL + wargoals_grid |
+| 0x141ACD8C0 | sub_141ACD8C0 业务 unitleaderwindow.cpp + close_button/leader_view_search |
+| 0x14138F7E0 | 业务 gamestate.h:1125，夹于 CNationalFocusView::[9](d=1536) 与 CNationalFocusView::SetupDerived?(d=4608)，国策视图族 |
+| 0x1418A57E0 | 业务 夹于 _Func_impl_no_alloc(d=8000) 与 CWarOverView::IsVisible(d=20236)，战争概览窗口族 |
+| 0x141527B80 | sub_141527B80 业务 串 NEW_EXILE_POPUP_TITLE/NAMEDEF |
+| 0x141448420 | sub_141448420 业务 串 MEDAL_NAME_TITLE/TITLE |
+| 0x1416972E0 | — 业务 邻域 CArmiesView::[1]（0x141697AE4）= GUI 视图区段；ref.h:83 引用解引用断言 |
+| 0x14200A4F0 | CMarketStockpileWindow::UpdateGuiElements? 业务 CMarketStockpileWindow::UpdateGuiElements 市场囤积窗口 GUI 元素更新；类名自文档 |
+| 0x141AD6950 | CCapturedArmyLeaderWindow::SetupDerived? 业务 CCapturedArmyLeaderWindow::SetupDerived 被俘将领窗口派生构建；类名自文档 |
+| 0x14171ABA0 | sub_14171ABA0 业务 串 static_project_factories_entry/factories |
+| 0x141919ED0 | sub_141919ED0 业务 串 INDUSTRIAL_ORG_TOOLTIP_*（MIO tooltip） |
+| 0x141F5C5A0 | 业务 "addres(s)" 串，夹于 CConnectionInfoPopup::[5](d=3504) 与 CConnectionInfoPopup::[4](d=848)，联机连接信息弹窗 |
+| 0x1418208D0 | CNavyLeaderTraitWindow::[8] 业务 CNavyLeaderTraitWindow::[8] 海军将领特质窗口槽方法；类名自文档 |
+| 0x14157E340 | CCountryPoliticsView::ClearContents 业务 CCountryPoliticsView::ClearContents 国家政治视图内容清理；类名自文档 |
+| 0x1406EB8D0 | sub_1406EB8D0 业务 串 COMMAND_POWER_ALLOCATED_TOOLTIP_ENTRY |
+| 0x141839340 | 业务 ref.h:83 站点 CRef 判空断言，夹于 COperativeView::Reload(d=18096) 与 CArmyGroupCommand::[0](d=13424)，特工视图/集团军群命令族 |
+| 0x141DAAAF0 | CCarrierAirWingCompositionWindow::Update 业务 CCarrierAirWingCompositionWindow::Update 航母联队构成窗口更新；类名自文档 |
+| 0x1412A68B0 | sub_1412A68B0 业务 串 CURRENT_EXPERIENCE_TOPBAR/VALUE |
+| 0x1421DE460 | - 业务 渲染上下文距离剔除：qword_143451C80 全局，+1702/+1703 位置与 +76/+77 位置平方和 > (+14 半径)^2 则复位 +1704 |
+| 0x14128DE40 | 业务 夹于 CProvinceGraphics::[0](d=11040) 与 CProvinceGraphics::[1](d=7920)，省份图形族 |
+| 0x141DD2CC0 | sub_141DD2CC0 业务 串 division_equipment_view/is_allowed_button/foreign_equipment_allowed_button |
+| 0x141684850 | — 业务 邻域 CAchievementsView::IsVisible（0x141686518）= GUI 视图区段 |
+| 0x1419BD1C0 | CFrontendSettingsView::[14] 业务 CFrontendSettingsView::[14] 前端设置视图槽方法；类名自文档 |
+| 0x141862360 | — 业务 邻域 CPeaceConferenceWindow::Reload（0x141862010）= 和会窗口区段 |
+| 0x141ACFBF0 | sub_141ACFBF0 业务 loc 键 no_leader_button/pos_roster_overview_orientation_top_left |
+| 0x141697810 | sub_141697810 业务 串 "templates_grid"（模板网格 GUI 容器） |
+| 0x141473750 | 业务 Init_thread 静态初始化 + 调 CProjectListFilterWindow::Setup?，夹于 CCountryFactionView::SetupDerived 与 NFactions::NUi::CCountryFactionView::Setup，项目列表过滤窗口 |
+| 0x141DEC110 | sub_141DEC110 业务 loc 键 cancel/save/games，存读档界面 |
+| 0x1418B4050 | CWorldTensionPopUpWindow::[11] 业务 CWorldTensionPopUpWindow::[11] 世界紧张度弹窗槽方法；类名自文档 |
+| 0x141F75B00 | CConfirmRemoveBuildingLevel::Update 业务 类名 CConfirmRemoveBuildingLevel::Update（拆除建筑等级确认弹窗更新） |
+| 0x141BC3D30 | sub_141BC3D30 业务 串 "continuous_glow"/"pol_power_icon"（政治点数 UI 图标） |
+| 0x141AE2530 | 业务 夹于 _Func_impl_no_alloc(d=8896) 与 CDebugMapModeConfig…[1](d=44144)，调试地图模式族 |
+| 0x141469DB0 | sub_141469DB0 业务 串 "goals_container"（战争目标容器 GUI） |
+| 0x141A126C0 | CAgencyLogoSelectionWindow::[9] 业务 CAgencyLogoSelectionWindow::[9] 情报机构徽标选择窗口槽方法；类名自文档 |
+| 0x1422D25D0 | 业务 "gfx/FX/simple.lua" + Init_thread 静态初始化 + off_143085170，粒子 FX 资源装载 |
+| 0x141CFF950 | sub_141CFF950 业务 串 label/value（键值行） |
+| 0x141CCC8D0 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x1419B84C0 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x141D76660 | sub_141D76660 业务 串 "btn_bg"/"decision_icon"（决议图标 GUI 元素） |
+| 0x140DED5D0 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x141477FD0 | sub_141477FD0 业务 串 _FACTORY_PROGRESS/CURRENT/NEEDED |
+| 0x141AD0680 | sub_141AD0680 业务 unitleaderwindow.cpp "Invalid Navy Leader Sort" |
+| 0x140B7D970 | CAIControllerPopUpWindow::[11] 业务 CAIControllerPopUpWindow::[11] AI 控制器弹窗槽方法；类名自文档 |
+| 0x1416B34D0 | sub_1416B34D0 业务 串 "bar_org"/"bar_str"/"bar_org_median"/"bar_str_median"（组织度/强度条 UI） |
+| 0x1417330C0 | 业务 夹于 CCountryLogisticsView::[9](d=4320) 与 _Func_impl_no_alloc(d=2896)，国家后勤视图族 |
+| 0x141ACEE10 | COperativeLeaderRecruitmentWindow::[11] 业务 COperativeLeaderRecruitmentWindow::[11] 特工招募窗口槽方法（unitleaderwindow.cpp:3026 站点） |
+| 0x141C2E4C0 | sub_141C2E4C0 业务 GUI 窗口/控件 vtable 方法（CEditDesignerNotePopup::vtable） |
+| 0x141685350 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x141BC7330 | sub_141BC7330 业务 loc 键 start/close/stop，界面按钮 |
+| 0x141A56C90 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x1415278E0 | CSurrenderedPopupWindow::[11] 业务 CSurrenderedPopupWindow::[11] 投降弹窗槽方法；类名自文档 |
+| 0x141E45300 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x14173FBA0 | 业务 夹于 CCountryProductionLineView::[7](d=2256) 与 CCountryProductionLineView::Reload(d=2656)，国家生产线视图族 |
+| 0x14152D1A0 | sub_14152D1A0 业务 串 EQUIPMENT_DESIGNER_ARMY/NAVY/AIR_XP_COST |
+| 0x14072B580 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0,sub_140129C10 |
+| 0x140F24B90 | 业务 夹于 start_for::[1](d=6368) 与 CCountryIntelligenceAgencyView::[1](d=16844)，并行任务/国家情报局视图族 |
+| 0x141751C10 | sub_141751C10 业务 GUI 窗口/控件 vtable 方法（CForeignManpowerDiplomacyPopup::vtable） |
+| 0x1414DE2C0 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x14060D610 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x141A39450 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0,sub_140129C10 |
+| 0x141F53270 | CGameRuleView::[0] 业务 CGameRuleView 游戏规则视图（gamestate.h:1125 访问门） |
+| 0x141CCD570 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x1409E5820 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x141628320 | sub_141628320 业务 loc 键 tooltip_raid_cannot_reach/tooltip_raid_no_valid_unit |
+| 0x141548D20 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x1415A7920 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0,sub_14011FE60 |
+| 0x141B91CF0 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x1424E5F70 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x141C5ACE0 | CFactionListWindow::SetupDerived? 业务 CFactionListWindow::SetupDerived 派系列表窗口派生构建；类名自文档 |
+| 0x1402A2160 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x14192BD20 | (无名) 业务 调用 loc 串构造器族 sub_14011DBC0,sub_14011E010,sub_14011EBD0 |
+| 0x141C5BE50 | 业务 夹于 _Func_impl_no_alloc(d=2800) 与 CPowerBalanceView::[1](d=4908)，权力平衡视图族 |
+| 0x141269590 | 业务 qword_143339D28 引用，夹于 CMapArrowDefinition::[7](d=3120) 与 CMapArrowDefinitionInstance::[1](d=1776)，地图箭头定义族 |
+| 0x140AB1AE0 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x141551190 | (无名) 业务 调用窗口内命名函数 sub_141F87410 |
+| 0x141CADC70 | CSubjectRelationstripView::[22] 业务 CSubjectRelationstripView 附庸关系条（GFX_autonomy_unknown_icon） |
+| 0x141C714B0 | CAssignCharacterPreferredTacticDialog::Update 业务 CAssignCharacterPreferredTacticDialog::Update，指定战术对话框（PREFERRED_TACTIC_CHARACTER_SELECTION_LIST_HEADER） |
+| 0x14101BE70 | 业务 串字面量 "_icon_small" §4.30 UI窗口 |
+| 0x141AE53F0 | (无名) 业务 调用 loc 串构造器族 sub_14011FE60 |
+| 0x1416F2B60 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x141A87040 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x140E567B0 | (无名) 业务 调用 loc 串构造器族 sub_14011E010 |
+| 0x1413FF680 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x140531A10 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x141357AA0 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x14139DA00 | (无名) 业务 调用 loc 串构造器族 sub_14011E010 |
+| 0x140AC9150 | (无名) 业务 调用 loc 串构造器族 sub_14011E010 |
+| 0x141B0D100 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x1413B41C0 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x140B90AE0 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40,sub_14011E010 |
+| 0x141EDCFC0 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0,sub_14011FE60 |
+| 0x1416C47E0 | (无名) 业务 调用窗口内命名函数 sub_141C02910 |
+| 0x140210330 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x14133CBB0 | (无名) 业务 调用 loc 串构造器族 sub_14011E010,sub_14011EBD0,sub_140129C10 |
+| 0x14239BC00 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x141CB6960 | (无名) 业务 调用 loc 串构造器族 sub_14011E010,sub_14011EBD0 |
+| 0x141887E20 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x14007B5E0 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x142065290 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0 |
+| 0x14053A050 | (无名) 业务 调用 loc 串构造器族 sub_14011EBD0,sub_140129C10 |
+| 0x142188AB0 | (无名) 业务 调用 loc 串构造器族 sub_14011E010 |
+| 0x140BC0090 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x141623F50 | (无名) 业务 调用 loc 串构造器族 sub_14011FE60 |
+| 0x141892870 | (无名) 业务 调用 loc 串构造器族 sub_14011E010,sub_14011EBD0,sub_140129C10 |
+| 0x140A86840 | (无名) 业务 调用 loc 串构造器族 sub_14011E010,sub_14011EBD0 |
+| 0x14138C3B0 | 业务 串 "Unknown gestureId"; 串 "Unknown gestureId"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1412A4CE0 | 业务 串 "CStartFileTransfer rejected: only th"; 串 "CStartFileTransfer rejected: transfe"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1410A6AB0 | (无名) 业务 调用 loc 串构造器族 sub_14011DF40 |
+| 0x141C4DAC0 | 业务 类路由 NAiNavalGoals ->§4.25; 调用图 IDF 0.33/0.58 ->§4.31; 反传 1/1 调用者 §4.31 |
+| 0x1417FE980 | 业务 断言站点 character_template_database.cpp:42; 串 "); } } "; 串 ", v6); __wind { sub_141CCB35" |
+| 0x140F30820 | 业务 串 "any"; 串 "STATE"; 串 "COUNTRY" ->§4.3 |
+| 0x1415E1CB0 | 业务 类路由 COrderAddNewCompletePlanCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.30 |
+| 0x141AB0650 | 业务 类路由 CCheckBox ->§4.30; 串 "object != nullptr"; 串 "C:\\mnt\\external_libs2\\nlohmann_js" |
+| 0x142704900 | 业务 类路由 CRandomListEffect ->§4.32; 串 "target_province"; 串 "target_state" |
+| 0x140E02EC0 | 业务 类路由 CAcceptCommandDialog ->§4.30; 类路由 CMultiSpriteButton ->§4.31; 串 "_NAME" |
+| 0x140FBFD20 | 业务 类路由 CCountryConstructionsView ->§4.30; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.30 |
+| 0x141598FD0 | 业务 类路由 CCapturedArmyLeaderWindow ->§4.30; 类路由 CUnitLeaderWindow ->§4.30; 串 "pos_roster_overview_orientation_top_" |
+| 0x14106E900 | 业务 a1+96 数组查 a2 全匹配前移压缩 + 计数修正 + a1+568 选中清除 按值全移除+选中清除 |
+| 0x1417D4F90 | 业务 断言站点 pdx_robin_hood_table.h:79 ->§4.00; 类路由 CHasNavySizeTrigger ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x14168F390 | 业务 类路由 NIndustrialOrganisation ->§4.25; 串 "value for set_mio_size_up_requiremen"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1411CA0F0 | 业务 断言站点 politics.cpp:39; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "Creating leader for %s" |
+| 0x14137BC40 | 业务 类路由 CHeldOfficerWindow ->§4.30; 类路由 CHeldOfficerWindow ->§4.30; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1415A3AC0 | 业务 类路由 CHeldOfficerWindow ->§4.30; 类路由 CHeldOfficerWindow ->§4.30; 类路由 NAiNavalGoals ->§4.25 |
+| 0x141D8C7F0 | 业务 UI 日选择：写 a1+3864 = 日，经 vt+104 取 3 按钮（aBtnDays_0、qword_1430B5EE0、xmmword_1430B5F00），vt+176 置单选态 (值==日)+1 UI 单选按钮组 |
+| 0x1426F7790 | 业务 断言站点 convoys.cpp:43; 串 "_pConvoyVariant && \"Status should b"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1421DCC80 | 业务 qword_143451C80 UI 管理器：+892 槽位 + 1786/1803/1787 状态写 + a2+904 数组 + 4 个浮点差写入 16*(v3+57) + 7222/7223 旗 UI 焦点/悬停槽注册 |
+| 0x14022AF80 | 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse" |
+| 0x140B90910 | 业务 断言站点 relation.cpp:27; 串 "GetSecond() == For && \"Trying to ge"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x14126FCA0 | 业务 断言站点 historylogger.cpp:20 ->§4.1; 类路由 NCareerProfile ->§4.25; 串 "Video subsystem has not been initial" |
+| 0x14156F4E0 | 业务 类路由 CNaviesViewSunkShipItem ->§4.31; 调用图 IDF top §4.1 frac 0.67; 反传 1/1 调用者 §4.30 |
+| 0x1421D4A60 | 业务 视口区域钳位计算：qword_143451C80+7222/7223 标志 + fminf 上下限 + 16 字节矩形 视口钳位 |
+| 0x1416B4C60 | 业务 类路由 CMoveShipsWindow ->§4.30; 串 "Passed a NULL condition variable"; 串 "Passed mutex is not locked or locked" |
+| 0x1416CC570 | 业务 类路由 COrderAddNewCompletePlanCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 反传 6/11 调用者 §4.30 |
+| 0x141F83CF0 | 业务 串 ".lua"; 调用图 IDF top §4.1 frac 1.00; 邻域 6/14 票 §4.30（同类方法连续排放） |
+| 0x141F80A60 | 业务 串 "Couldn't send rumble, size %d is gre"; 调用图 IDF 0.33/0.58 ->§4.31; 邻域 6/14 票 §4.30（同类方法连续排放） |
+| 0x141E87A40 | 业务 串 "Video subsystem has not been initial"; 串 "Invalid window" ->§4.30; 串 "Invalid window" ->§4.30 |
+| 0x141274E50 | 业务 串 "name"; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.2 |
+| 0x1410B1B80 | 业务 断言站点 buildingtemplate.cpp:86; 断言站点 relationstripview.cpp:11 ->§4.1; 类路由 CShipCaptainWindow ->§4.30 |
+| 0x141523840 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x141D695A0 | 业务 按 a3 深度三分支，v7 = 5*计数(a1+1360)-k，调 vt+128/vt+176，a2[117] 置 0x10 或清 0x10 旗标 UI 按深度展开/折叠+旗标 |
+| 0x1411E0CC0 | 业务 类路由 CDismantleFactionDialog ->§4.30; 串 "default_confirmation_popup"; 调用图 IDF top §4.1 frac 0.69 |
+| 0x141807130 | 业务 类路由 CTemplateDeploymentWindow ->§4.30; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.31 |
+| 0x140D13090 | 业务 a1+144 数组查 a2 全匹配前移压缩 + 计数修正 + 归零清 +168 按值全移除+选中清除 |
+| 0x1417BC8D0 | 业务 UI 坐标换算：经 vt+192/vt+152 取双值 ÷ 全局缩放因子（qword_143453090+206296）再减偏移，输出 2D int 坐标换算 |
+| 0x1412FA6D0 | 业务 类路由 NRaids ->§4.25; 类路由 CFindView ->§4.30; 类路由 CInGameMenuLoadWindow ->§4.30 |
+| 0x141933720 | 业务 串 "GFX_raid_outcome_failure"; 串 "GFX_raid_outcome_limited_success"; 串 "GFX_raid_outcome_success" |
+| 0x140B179A0 | 业务 批量清标记位：41×282 段（a1+1112）与 82 段（a1+92496）各项 +56 目标 +165 位 &=~0x10 批量清标记位 |
+| 0x140DD8640 | 业务 a1+1713/1772 旗 + vt+192 两次取点 + 平方距离 sqrtf >= 1.0 距离阈值判定 |
+| 0x1426FF360 | 业务 断言站点 career_profile_ribbon.cpp:71 ->§4.1; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "Missing happened trigger in ribbon m" |
+| 0x140A3BE90 | 业务 断言站点 eventscope.h:93; 串 "( pScope == this \ \ pScope->_pFrom !"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x14126C3D0 | 业务 类路由 CSetNavyTheaterGroupNameCommand ->§4.33; 类路由 CAttachedRailwayGunTypeItem ->§4.31; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1421CEFC0 | 无名 sub_（人工读体裁定） UI 尺寸计算：按 a2+129/+133/+148/+149/+156/+160 标志分支，宽高取 a2+48/+52，为 0 时回退 a2+232-224 / 236-228 |
+| 0x140A8AFC0 | 业务 断言站点 gameitemdatabase.h:49 ->§4.26; 断言站点 countryarmyview.cpp:72 ->§4.30; 类路由 CNationalFocusView ->§4.30 |
+| 0x140B660F0 | 业务 类路由 CStandardDiplomacyPopup ->§4.30; 类路由 CCountryCharacterSelectionItem ->§4.31; 调用图 IDF top §4.00 frac 0.52 |
+| 0x14229E610 | 业务 串 "Invalid palette size, hIST allocatio"; 串 "Insufficient memory for hIST chunk d"; 调用图 IDF top §4.1 frac 0.80 |
+| 0x1420D4EE0 | 业务 28B→24B 记录压缩重排（7 双字→6 双字）+ +128 索引 a1+56 函数表分派 记录压缩+分派 |
+| 0x14254F830 | 业务 串 "(null)"; 串 "(null)"; 串 "(null)" |
+| 0x1421DC540 | 业务 光标/位置计算：qword_143451C80+846 对象，a1==0 双分支 + fmaxf(0,a2) + 浮点偏移式，写 +208/+212 位置计算 |
+| 0x142301C20 | 业务 +280 链表逐项 (float+128/+132) 累加 + 与 a1+544 或 qword_143453090+384/388 配对 尺寸累加/布局 |
+| 0x142419C20 | 业务 按模式（元素 +48 的 2/3/4/5）把计数 v5 除 2/3 或减 2，再经 vt+656 传尺寸参数 — 分栏/尺寸计算 分栏尺寸计算 |
+| 0x142703770 | 业务 类路由 CStatePopulationInThousandsTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 14/16 票 §4.30（同类方法连续排放） |
+| 0x141800040 | 业务 类路由 CIfTrigger ->§4.32; 类路由 CAndTrigger ->§4.12; 类路由 COrderReorderChildFrontCommand ->§4.33 |
+| 0x1418044F0 | 业务 类路由 NAiNavalGoals ->§4.25; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.31 |
+| 0x140BF2070 | 业务 窗口聚焦判定：空容器时比 qword_14332F698 vt+200 当前窗口 == a1；否则逐子项 vt+32 + +8/+12 标志判定 窗口聚焦判定 |
+| 0x1420C6E70 | 业务 断言站点 containerwindow.cpp:55 ->§4.30; 断言站点 pdx_audiosound_sdl.cpp:86 ->§4.00; 断言站点 spritetype.cpp:549 ->§4.26 |
+| 0x14121A5D0 | 业务 断言站点 unitleaderwindow.cpp:55 ->§4.30; 类路由 CNavalMissionMassMoveCommand ->§4.33; 类路由 CLoopHistoryContainerQueue ->§4.28 |
+| 0x1416513B0 | 业务 类路由 CFrontendFriendsView ->§4.30; 调用图 IDF top §4.1 frac 1.00; 邻域 3/4 票 §4.25（同类方法连续排放） |
+| 0x1422CADB0 | 业务 串 ") ) goto LABEL_12; v7 = v2"; 调用图 IDF top §4.1 frac 0.86; 邻域 28/28 票 §4.30（同类方法连续排放） |
+| 0x141269AE0 | 业务 断言站点 niche_selection_widget.cpp:27; 串 "Have you consider niche icon index o"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1422EE280 | 业务 断言站点 ai_area.cpp:26 ->§4.34; 串 "nIndex < _AreasLookup.GetSize()"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x141C940C0 | 业务 界面容器查找：a1+72 表（计数 a1+9184）按 *(元素+1368)+1008+1240 匹配 a2 容器查找 |
+| 0x1415E4D10 | 业务 a1+2588 计数数组逐 vt+32 释放，a1+2640 经 *(+1328) vt+360 关闭，a1+2624/2632/2640 三段收尾 UI 子对象数组+嵌套管理器关闭 |
+| 0x141E23B20 | 业务 分页步进：按 a1+5248→+352 的 vt+40/vt+56 分支把页计数（a1+44）减 1 或减 10（钳位 ≥0），变更则经 a1+5256 更新 分页步进计算 |
+| 0x141828C80 | 业务 断言站点 edit_market_stockpile_window.cpp:58; 断言站点 pdx_loc_formatter.cpp:19; 类路由 CEquipmentGraphicPool ->§4.30 |
+| 0x1419C8A50 | 业务 类路由 CTradeOfferWindow ->§4.30; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.29 |
+| 0x140ACE1A0 | 业务 类路由 CCountryDiplomacyView ->§4.30; 类路由 CCountryView ->§4.30; 类路由 CLandCombatMapIcon ->§4.31 |
+| 0x1419D77A0 | 业务 类路由 CGameSetupMenuLoadWindow ->§4.30; 调用图 IDF top §4.1 frac 0.57; 邻域 6/9 票 §4.30（同类方法连续排放） |
+| 0x140E56040 | 业务 按 a1+48 正负分两路：计数 a1+152 数组中 v1<*(elem)+8 / a1+128 数组中 v1>=*(elem)+16 的元素数 按阈值两路计数 |
+| 0x140BC90B0 | 业务 类路由 CRailwayGunListView ->§4.30; 调用图 IDF top §4.00 frac 0.78; 反传 top §4.12 3/7 |
+| 0x1418051F0 | 业务 断言站点 pdx_robin_hood_table.h:58 ->§4.00; 串 "_pEntry->_DistancePlus1 != nIterator"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x14213C460 | 业务 断言站点 parser.cpp:70; 断言站点 historylogger.cpp:15 ->§4.1; 类路由 CFixedWindow ->§4.30 |
+| 0x1422F1A70 | 业务 断言站点 unit.cpp:64; 类路由 CSetFuelPriorityCommand ->§4.33; 类路由 NFactions ->§4.25 |
+| 0x1417D57A0 | 业务 类路由 CShipStatsView ->§4.30; 类路由 CShipStatsView ->§4.30; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141539C20 | 业务 类路由 CShipRefitConfirmationWindow ->§4.30; 调用图 IDF top §4.1 frac 1.00; 邻域 4 票 §4.33（票散） |
+| 0x140B8F7F0 | 业务 断言站点 pdx_scoped_singleton.h:18 ->§4.1; 类路由 CCountryConstructionsView ->§4.30; 类路由 CCountryView ->§4.30 |
+| 0x1421D98E0 | 业务 qword_143451C80 UI 管理器：16*a1+5660 四个浮点 ×0.0039215689（1/255）写 RGBA UI 颜色设置 |
+| 0x1414B3F90 | 业务 类路由 CRailwayGunListView ->§4.30; 串 "RAILWAY_GUN_TRANSPORT_WEIGHT"; 串 "displayIndex must be in the range 0 " |
+| 0x1412509C0 | 业务 类路由 NOperativeMissions ->§4.25; 调用图 IDF top §4.1 frac 1.00; 邻域 10/13 票 §4.30（同类方法连续排放） |
+| 0x140C934B0 | 业务 类路由 CSetDefaultCountryOccupationPolicyCommand ->§4.33; 类路由 CCountryNavalRegionView ->§4.30; 串 "Haptic: Invalid haptic device identi" |
+| 0x14128C800 | 业务 串 "ActionType != _undefined_ && \"tryin"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "conferencewindow.cpp" |
+| 0x1424955C0 | 业务 经 vt+8 分配 128B 主块 + 循环 a1+56 次分配 256B 并 memset 0 + 填 -1 哨兵（步长 96 于 a1+288） 资源槽数组批量分配 |
+| 0x141FAA220 | 业务 UI 选中显隐：a1+2868←a2+4，+416 数组按 +88 匹配 → +1472→+48 显隐 选中显隐 |
+| 0x141FAA260 | 业务 列表选中：a1+32 对象 +416 数组（计数 +428）按 *(元素+88) 定位 a2+4 → a1+2864 选中态 + +1480 项刷新 列表选中 |
+| 0x140F5C1D0 | 业务 qword_143339740 全局数组相邻项差值 v4 → *a2 = 100000 * a4 / v4 定点百分比 定点 100000 百分比换算（全局表差值） |
+| 0x141298880 | 业务 类路由 CNationalFocusView ->§4.30; 类路由 CArmyLeaderTraitWindow ->§4.30; 类路由 CEditDesignerNotePopup ->§4.30 |
+| 0x14126C2F0 | 业务 类路由 NOperativeMissions ->§4.25; 类路由 CRemoveNavalInvasionTargetCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14187C4A0 | 业务 类路由 NInternationalMarket ->§4.25; 串 "SDL_GAMECONTROLLERCONFIG_FILE"; 串 "); sub_1420DB380(v3, 1); } s" |
+| 0x1421DCD90 | 业务 断言站点 gamegui.cpp:21 ->§4.30; 类路由 NIndustrialOrganisation ->§4.25; 类路由 CSetDesignTeamCommand ->§4.33 |
+| 0x14156CDE0 | 业务 类路由 COrderExecuteCommand ->§4.33; 类路由 NDoctrines ->§4.25; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141BC26A0 | 业务 a1+16 子对象 vt+232 与其 +48 子对象 vt+152 两路取值，双字对求和写入 a2 UI 两路度量求和 |
+| 0x141D20300 | 业务 类路由 CAttachScientistCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.31 |
+| 0x1426FFBC0 | 业务 类路由 CThreatSource ->§4.28; 调用图 IDF top §4.1 frac 0.67; 邻域 14/16 票 §4.30（同类方法连续排放） |
+| 0x1416F6DE0 | 业务 类路由 CRenameEquipmentVariantCommand ->§4.33; 串 "NOT_ENOUGH_PP_TO_DISBAND_POTF"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1413D46A0 | 业务 断言站点 gameitemdatabase.h:49 ->§4.26; 类路由 CLoopHistoryContainerQueue ->§4.28; 类路由 COrderSetPathCommand ->§4.33 |
+| 0x1421C80D0 | 业务 类路由 CStandardGridBox ->§4.30; 类路由 CIcon ->§4.31; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141CBA8B0 | 业务 a1+16 子对象 vt+536(0) → vt+176(3)，+4324>0 时遍历 +4312 数组逐项 vt+656 UI 面板刷新（4312/4324 容器） |
+| 0x141E17BA0 | 业务 a2 二分：对 a1+2656 或 a1+2664 控件调 vt+128，byte[117] 置 0x10 而对方清 0x10，末调 vt+120 两控件间切换选中态 |
+| 0x14212A0E0 | 业务 a1[8]→+184→+76/+80 标志与 byte+87 索引，命中清 dword_14345193C[9*v4] 槽，Atomic_fetch_add32 归一后释放 引用计数释放+UI 全局槽清零 |
+| 0x140FA0F40 | 业务 类路由 CArmyLeaderWindow ->§4.30; 调用图 IDF top §4.1 frac 0.36; 反传 1/1 调用者 §4.23 |
+| 0x1419B2670 | 业务 断言站点 pdxoptional.h:73 ->§4.1; 类路由 CTechnologyInfoWindow ->§4.30; 串 "_bIsSet" |
+| 0x1416D96C0 | 业务 类路由 CSetPinnedStrategicRegionCommand ->§4.33; 类路由 NAiNavalGoals ->§4.25; 类路由 CContainerWindow ->§4.30 |
+| 0x1411F16F0 | 业务 串 "INTERNATIONAL_MARKET_TOPBAR_BUTTON_T"; 串 "Video subsystem has not been initial"; 串 "Invalid window" ->§4.30 |
+| 0x1426FF260 | 业务 串 "AI PP spending log DISABLED"; 串 "AI PP spending log ENABLED"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140F332A0 | 业务 类路由 CSetResearchCommand ->§4.33; 类路由 CSetTaskForceIconAndColorCommand ->§4.33; 类路由 CCountryDiplomacyView ->§4.30 |
+| 0x142222510 | 业务 断言站点 equipment_market_system.cpp:32; 类路由 CConfirmCancelNavyActivityDialog ->§4.30; 串 "); return 1; } // === 0x140B6435" |
+| 0x1421DFD90 | 业务 缓冲扩容：++qword_143451C80+956 计数，off_1430BCFA0 分配+memcpy，off_1430BCFA8 释放旧 缓冲扩容+UI 管理器分配计数 |
+| 0x1416DDD00 | 业务 类路由 CSetAutoUpgradedEquipmentVariantCommand ->§4.33; 类路由 CInGameMenuLoadWindow ->§4.30; 串 "load" |
+| 0x1426F85E0 | 业务 类路由 CCreateFactionEffect ->§4.32; 串 "AI view is DISABLED"; 串 "AI view is ENABLED" |
+| 0x1411BD630 | 业务 a1+152 窗口：解绑 a1[208]（vt+32，反链不等判定）与 a1[144] 两子控件 UI 子控件解绑（208/144） |
+| 0x1421B19E0 | 业务 断言站点 pdx_task.cpp:97; 类路由 CFixedWindow ->§4.30; 类路由 CAddRelationModifierEffect ->§4.32 |
+| 0x1410A4570 | 业务 类路由 CCountryDiplomacyView ->§4.30; 类路由 CCountryView ->§4.30; 类路由 CStartStopDecryptionCommand ->§4.33 |
+| 0x141CFA120 | 业务 类路由 NFactions ->§4.25; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.30 |
+| 0x141200020 | 业务 类路由 CContainerWindow ->§4.30; 类路由 CDeleteSaveGamePopUpWindow ->§4.30; 类路由 CDistanceToTrigger ->§4.32 |
+| 0x14180C500 | 业务 串 "invalid (%i)"; 串 "%s (%i)"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14193E0C0 | 业务 类路由 CStandardGridBox ->§4.30; 类路由 TWindow ->§4.30; 类路由 COverlappingElementsBox ->§4.30 |
+| 0x14250C080 | 业务 类路由 COccupationPolicySelectionView ->§4.30; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1422EAF90 | 业务 byte(a1+5658) 门：a1+128 对象 vt+32 取值，经 (v4>=0.0)+v4*100000.0-0.5 定点换算减 *(a1+5480) 后入 vt+56 定点换算+偏移分派 |
+| 0x140F33CB0 | 业务 类路由 COrderSetParadropTargetCommand ->§4.33; 类路由 NFactions ->§4.25; 串 "DIPLOMACY_NO_WARGOAL" ->§4.10 |
+| 0x1420F13B0 | 业务 类路由 COverlappingElementsBox ->§4.30; 类路由 NDoctrines ->§4.25; 串 "Video subsystem must be initialized " |
+| 0x141D13C70 | 业务 a1==-1 时按 a2 分类(0..5)派生默认值，case0/1 用 byte_14332F618 全局旗，case2/4 用 a3 分类→默认槽位映射（全局旗 618） |
+| 0x1421DCBA0 | 业务 断言站点 virtualfilesystem_physfs.cpp:26 ->§4.1; 类路由 CFixedWindow ->§4.30; 类路由 CIcon ->§4.31 |
+| 0x1420F1720 | 业务 dword_143450CB8 布尔切换 + 与旧值异同时按 qword_143450C28/CA8/CB0 选目标调 qword_143450BE0 回调 全局选项切换+回调 |
+| 0x1421E9BE0 | 业务 类路由 CDropDownBox ->§4.30; 调用图 IDF top §4.00 frac 0.59 |
+| 0x1417263C0 | 业务 类路由 NFactions ->§4.25; 类路由 CNavyTheaterFleetRowItem ->§4.31; 串 "victory_point_mapicon" |
+| 0x1420F02D0 | 业务 类路由 CDropDownBox ->§4.30; 调用图 IDF top §4.1 frac 1.00 |
+| 0x142705A40 | 业务 断言站点 containerwindow.cpp:76 ->§4.30; 断言站点 checksumfile.cpp:42 ->§4.1; 类路由 COrderChildFrontRatioCommand ->§4.33 |
+| 0x1426F8670 | 业务 类路由 CTeleportArmiesEffect ->§4.32; 类路由 CNavalMissionSetTargetCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1422F4810 | 业务 类路由 CAnyCountryTrigger ->§4.32; 调用图 IDF top §4.1 frac 0.80; 反传 1/1 调用者 §4.2 |
+| 0x1421FBF20 | 业务 类路由 CEditBox ->§4.30; 调用图 IDF top §4.1 frac 0.67; 反传 1/1 调用者 §4.26 |
+| 0x140B68D30 | 业务 遍历 a1+84 计数的 a1+72 数组：vt+64(elem) 门 → vt+32(elem) 激活 UI 容器遍历条件激活 |
+| 0x1421D1DB0 | 业务 类路由 CEditBox ->§4.30; 串 "add a timed trait to unit leader"; 串 "modify character flag. Only modifies" |
+| 0x141DB1380 | 业务 a1[354] vt+584 门 + byte(v3+165)&8 → vt+128(v3+48)；a1[360]/a1[361] 置 qword_14333D528 哨位 UI 选中清除+哨位复位 |
+| 0x1416C5040 | 业务 类路由 CFrontendSettingsView ->§4.30; 调用图 IDF top §4.1 frac 0.94; 邻域 4/7 票 §4.31（同类方法连续排放） |
+| 0x140B72950 | 业务 类路由 SArmyUnitActivityData ->§4.28; 类路由 CFrontendMultiplayerView ->§4.30; 类路由 CAddRelationModifierEffect ->§4.32 |
+| 0x141F6E260 | 业务 a1+1384 控件 vt+224(v2, v4) + vt+464(v2, v3) 双调用后置零 UI 控件解绑（1384/1376） |
+| 0x141C2EE40 | 业务 类名证据「CScopedPopUp」 §4.30 UI窗口 |
+| 0x1420DBAA0 | 业务 类路由 CDropDownBox ->§4.30; 调用图 IDF top §4.1 frac 0.79 |
+| 0x140D594A0 | 业务 byte a1+261 置 1 → 遍历 a1+184 数组（计数 +196）vt+176(elem) → byte a1+261 置 0 UI 批量激活（261 旗门） |
+| 0x141F876E0 | 业务 类路由 CHasCountryLeaderWithTraitTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 1/3 |
+| 0x142324760 | 业务 类路由 CUnitAdjuster ->§4.28; 类路由 NInternationalMarket ->§4.25; 类路由 CFixedWindow ->§4.30 |
+| 0x141DB7D90 | 业务 类路由 CSetProductionLinePriorityCommand ->§4.33; 串 "coroutine expected"; 调用图 IDF top §4.1 frac 0.50 |
+| 0x142259240 | 业务 界面列表选中：a1+1304 链表按 +112 遍历匹配 a2 + a1+1384 记录选中项 + 9 行 列表选中 |
+| 0x1422592B0 | 业务 沿 a1+1304 链表（next +112）匹配 a2 → 存 a1+1384 + 调 +88 回调 + +73 门 → byte(a1+1353)=0 UI 列表项选择+回调激活（+88 回调） |
+| 0x1416EB240 | 业务 类路由 CIcon ->§4.31; 调用图 IDF top §4.1 frac 1.00; 反传 2/2 调用者 §4.30 |
+| 0x14118F870 | 业务 类路由 CCapturedArmyLeaderWindow ->§4.30; 类路由 CFrontEndView ->§4.30; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1420D9950 | 业务 断言站点 button.cpp:40; 断言站点 containerwindow.cpp:88 ->§4.30; 断言站点 pdx_audio.cpp:88 |
+| 0x141646EE0 | 业务 动画值更新：a1+17 脏旗 + a1+24 目标值 + a1+8 对象 + a1+20 速率 >0 插值 + 10 行 动画值更新 |
+| 0x1426FEF60 | 业务 串 "LONG_TERM"; 串 "MEDIUM_TERM"; 串 "SHORT_TERM" |
+| 0x141B7E510 | 业务 a1+1236/1240 != -1 → byte a1+1232=1；a1+1236=-1；a1+1112 vt+520/vt+656 通知 UI 选中记录+父控件通知（1232/1236/1240） |
+
+#### 4.30.100 GUI 主视图与地图函数命名空间补遗（112 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141CF3630 | NAirSelectionUI::CAirWingEntry::[0] / NAirSelectionUI::CAirWingEntry 槽 0 NAirSelectionUI::CAirWingEntry 槽 0 §4.15 空战 |
+| 0x14202B910 | NAirWingReorganizationUI::CAirWingReorganizationWindow::[0] 空军联队选择/重组/解散/空军任务地图图标（NAirWingReorganizationUI::CAirWingReorganizationWindow::[0]） |
+| 0x141F61DB0 | NAirSelectionUI::CMergeGroupsOption::[2] 名:NAirSelectionUI::CMergeGroupsOption::[2] |
+| 0x141F60F60 | NAirSelectionUI::CDisbandAllOption::[2] 空军联队选择/重组/解散/空军任务地图图标（NAirSelectionUI::CDisbandAllOption::[2]） |
+| 0x141CF4230 | NAirSelectionUI::CSelectedAirGroupView::[9]（func_names 名） func_names 名 + 串 "wings_compact_number_of_elements"：空军联队选择视图 |
+| 0x141F61F30 | NAirSelectionUI::CMergeGroupsOption::[3] vtable 槽 NAirSelectionUI::CMergeGroupsOption::[3]（func_names RTTI 名） |
+| 0x141F606B0 | NAirSelectionUI::CConsolidateWingsOption::[1] vtable 槽 NAirSelectionUI::CConsolidateWingsOption::[1]（func_names RTTI 名） |
+| 0x141F629E0 | NAirSelectionUI::CRemoveFromGroupOption::[1] vtable 槽 NAirSelectionUI::CRemoveFromGroupOption::[1]（func_names RTTI 名） |
+| 0x141CEDB10 | NAirSelectionUI::CStrategicPrioritiesWindow::[0] vtable 槽 NAirSelectionUI::CStrategicPrioritiesWindow::[0]（func_names RTTI 名） |
+| 0x141F63440 | NAirSelectionUI::CSplitWingOption::[1] vtable 槽 NAirSelectionUI::CSplitWingOption::[1]（func_names RTTI 名） |
+| 0x141F63100 | NAirSelectionUI::CSplitSelectionButton::[1] vtable 槽 NAirSelectionUI::CSplitSelectionButton::[1]（func_names RTTI 名） |
+| 0x141CF6C70 | NAirSelectionUI::CAirWingsToolbarController::[1] vtable 槽 NAirSelectionUI::CAirWingsToolbarController::[1]（func_names RTTI 名） |
+| 0x14205C830 | NAirSelectionUI::NQuickWingDeployment::CWingQuickDeployWidget::[0] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CWingQuickDeployWidget::[0]（func_names RTT… |
+| 0x141F61FD0 | NAirSelectionUI::CMergeGroupsOption::[1] vtable 槽 NAirSelectionUI::CMergeGroupsOption::[1]（func_names RTTI 名） |
+| 0x141CF4190 | NAirSelectionUI::CAirWingEntry::[18] vtable 槽 NAirSelectionUI::CAirWingEntry::[18]（func_names RTTI 名） |
+| 0x14205D710 | NAirWingReorganizationUI::NInternal::CFilterListItem::[0] vtable 槽 NAirWingReorganizationUI::NInternal::CFilterListItem::[0]（func_names RTTI 名） |
+| 0x141CF3400 | NAirSelectionUI::CAirWingEntry::[0] vtable 槽 NAirSelectionUI::CAirWingEntry::[0]（func_names RTTI 名） |
+| 0x141FD4300 | NAirSelectionUI::CGunEmplacementWingsSelectionItem::[0] vtable 槽 NAirSelectionUI::CGunEmplacementWingsSelectionItem::[0]（func_names RTTI 名） |
+| 0x141CEDBD0 | NAirSelectionUI::CStrategicPriorityItem::[0] vtable 槽 NAirSelectionUI::CStrategicPriorityItem::[0]（func_names RTTI 名） |
+| 0x141FDB0F0 | NAirSelectionUI::CAirWingOptionButton::[0] vtable 槽 NAirSelectionUI::CAirWingOptionButton::[0]（func_names RTTI 名） |
+| 0x141CECBB0 | NAirSelectionUI::CAirWingsByBaseView::[0] vtable 槽 NAirSelectionUI::CAirWingsByBaseView::[0]（func_names RTTI 名） |
+| 0x141F60430 | NAirSelectionUI::CCloseViewOption::[3] vtable 槽 NAirSelectionUI::CCloseViewOption::[3]（func_names RTTI 名） |
+| 0x141F60CE0 | NAirSelectionUI::CHoldWingsOption::[1] vtable 槽 NAirSelectionUI::CHoldWingsOption::[1]（func_names RTTI 名） |
+| 0x141CF6D10 | NAirSelectionUI::CAirWingsToolbarController::[0] vtable 槽 NAirSelectionUI::CAirWingsToolbarController::[0]（func_names RTTI 名） |
+| 0x141F62CC0 | NAirSelectionUI::CSelectAllOption::[1] vtable 槽 NAirSelectionUI::CSelectAllOption::[1]（func_names RTTI 名） |
+| 0x141F63C90 | NAirSelectionUI::CWingsCountWidget::[1] vtable 槽 NAirSelectionUI::CWingsCountWidget::[1]（func_names RTTI 名） |
+| 0x141F62C70 | NAirSelectionUI::CSelectAllOption::[3] vtable 槽 NAirSelectionUI::CSelectAllOption::[3]（func_names RTTI 名） |
+| 0x141FD70E0 | NAirSelectionUI::CRocketWingsSelectionItem::[12] vtable 槽 NAirSelectionUI::CRocketWingsSelectionItem::[12]（func_names RTTI 名） |
+| 0x141F614D0 | NAirSelectionUI::CReinforcementPreferenceOption::[1] vtable 槽 NAirSelectionUI::CReinforcementPreferenceOption::[1]（func_names RTTI 名） |
+| 0x141F5F8D0 | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[12] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[12]（func_n… |
+| 0x14202D690 | NAirWingReorganizationUI::CAirWingReorganizationWindow::[8] vtable 槽 NAirWingReorganizationUI::CAirWingReorganizationWindow::[8]（func_names RTTI 名） |
+| 0x141F617F0 | NAirSelectionUI::CHoldWingsOption::[3] vtable 槽 NAirSelectionUI::CHoldWingsOption::[3]（func_names RTTI 名） |
+| 0x142060890 | NAirWingReorganizationUI::NInternal::CManpowerListItem::[0] vtable 槽 NAirWingReorganizationUI::NInternal::CManpowerListItem::[0]（func_names RTTI 名） |
+| 0x1420608F0 | NAirWingReorganizationUI::NInternal::CManpowerListItem::[0] vtable 槽 NAirWingReorganizationUI::NInternal::CManpowerListItem::[0]（func_names RTTI 名） |
+| 0x141FD9E50 | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionEntry::[0] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionEntry::[0]（func_names… |
+| 0x141F63C50 | NAirSelectionUI::CWingsCountWidget::[2] vtable 槽 NAirSelectionUI::CWingsCountWidget::[2]（func_names RTTI 名） |
+| 0x141F602B0 | NAirSelectionUI::CAggressivenessOptionSelections::[1] vtable 槽 NAirSelectionUI::CAggressivenessOptionSelections::[1]（func_names RTTI 名） |
+| 0x141F60E20 | NAirSelectionUI::CDayNightCycleOptionSelections::[1] vtable 槽 NAirSelectionUI::CDayNightCycleOptionSelections::[1]（func_names RTTI 名） |
+| 0x141CEDAD0 | NAirSelectionUI::CMissionToolbarController::[1] vtable 槽 NAirSelectionUI::CMissionToolbarController::[1]（func_names RTTI 名） |
+| 0x141FCF220 | NAirSelectionUI::SAirMissionItem::[1] vtable 槽 NAirSelectionUI::SAirMissionItem::[1]（func_names RTTI 名） |
+| 0x141CF39D0 | NAirSelectionUI::CSelectedAirGroupView::[12] vtable 槽 NAirSelectionUI::CSelectedAirGroupView::[12]（func_names RTTI 名） |
+| 0x141F60230 | NAirSelectionUI::CDayNightCycleOptionSelections::[0] vtable 槽 NAirSelectionUI::CDayNightCycleOptionSelections::[0]（func_names RTTI 名） |
+| 0x141CEDA50 | NAirSelectionUI::CAirMissionButton::[0] vtable 槽 NAirSelectionUI::CAirMissionButton::[0]（func_names RTTI 名） |
+| 0x141CEDA90 | NAirSelectionUI::CAirStrategicTargetButton::[0] vtable 槽 NAirSelectionUI::CAirStrategicTargetButton::[0]（func_names RTTI 名） |
+| 0x141F5DE50 | NAirSelectionUI::CAirWingsSelectionList::[1] vtable 槽 NAirSelectionUI::CAirWingsSelectionList::[1]（func_names RTTI 名） |
+| 0x141F603F0 | NAirSelectionUI::CCloseViewOption::[0] vtable 槽 NAirSelectionUI::CCloseViewOption::[0]（func_names RTTI 名） |
+| 0x141FD4B90 | NAirSelectionUI::CGunEmplacementWingsSelectionItem::[12] vtable 槽 NAirSelectionUI::CGunEmplacementWingsSelectionItem::[12]（func_names RTTI 名） |
+| 0x141CF33E8 | NAirSelectionUI::CSelectedAirGroupView::[1] vtable 槽 NAirSelectionUI::CSelectedAirGroupView::[1]（func_names RTTI 名） |
+| 0x141FD62E4 | NAirSelectionUI::CRocketWingsSelectionItem::[1] vtable 槽 NAirSelectionUI::CRocketWingsSelectionItem::[1]（func_names RTTI 名） |
+| 0x141CECBA4 | NAirSelectionUI::CAirWingsByBaseView::[0] vtable 槽 NAirSelectionUI::CAirWingsByBaseView::[0]（func_names RTTI 名） |
+| 0x141CF33D0 | NAirSelectionUI::CAirWingEntry::[1] vtable 槽 NAirSelectionUI::CAirWingEntry::[1]（func_names RTTI 名） |
+| 0x141FD9E3C | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionEntry::[1] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionEntry::[1]（func_names… |
+| 0x141FCF084 | NAirSelectionUI::SAirMissionItem::[0] vtable 槽 NAirSelectionUI::SAirMissionItem::[0]（func_names RTTI 名） |
+| 0x141FCBBA0 | NAirSelectionUI::CAirBaseSelectionItem::[1] vtable 槽 NAirSelectionUI::CAirBaseSelectionItem::[1]（func_names RTTI 名） |
+| 0x141FCF078 | NAirSelectionUI::CAirWingSelectionItem::[1] vtable 槽 NAirSelectionUI::CAirWingSelectionItem::[1]（func_names RTTI 名） |
+| 0x141FD42F0 | NAirSelectionUI::CGunEmplacementWingsSelectionItem::[1] vtable 槽 NAirSelectionUI::CGunEmplacementWingsSelectionItem::[1]（func_names RTTI 名） |
+| 0x14168833C | NAirSelectionUI::CAirSelectionView::[1] vtable 槽 NAirSelectionUI::CAirSelectionView::[1]（func_names RTTI 名） |
+| 0x141CF33DC | NAirSelectionUI::CSelectedAirGroupView::[0] vtable 槽 NAirSelectionUI::CSelectedAirGroupView::[0]（func_names RTTI 名） |
+| 0x141F5F800 | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[0] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[0]（func_nam… |
+| 0x141F5F80C | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[1] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[1]（func_nam… |
+| 0x141FCBB94 | NAirSelectionUI::CAirBaseSelectionItem::[0] vtable 槽 NAirSelectionUI::CAirBaseSelectionItem::[0]（func_names RTTI 名） |
+| 0x141FCF06C | NAirSelectionUI::CAirWingSelectionItem::[0] vtable 槽 NAirSelectionUI::CAirWingSelectionItem::[0]（func_names RTTI 名） |
+| 0x141FD42E4 | NAirSelectionUI::CGunEmplacementWingsSelectionItem::[0] vtable 槽 NAirSelectionUI::CGunEmplacementWingsSelectionItem::[0]（func_names RTTI 名） |
+| 0x141FD62D8 | NAirSelectionUI::CRocketWingsSelectionItem::[0] vtable 槽 NAirSelectionUI::CRocketWingsSelectionItem::[0]（func_names RTTI 名） |
+| 0x141FD9E30 | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionEntry::[0] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionEntry::[0]（func_names… |
+| 0x14202B888 | NAirWingReorganizationUI::CAirWingReorganizationWindow::[0] vtable 槽 NAirWingReorganizationUI::CAirWingReorganizationWindow::[0]（func_names RTTI 名） |
+| 0x14202B894 | NAirWingReorganizationUI::CAirWingReorganizationWindow::[1] vtable 槽 NAirWingReorganizationUI::CAirWingReorganizationWindow::[1]（func_names RTTI 名） |
+| 0x14205ECC0 | NAirWingReorganizationUI::NInternal::CEquipmentEntry::[1] vtable 槽 NAirWingReorganizationUI::NInternal::CEquipmentEntry::[1]（func_names RTTI 名） |
+| 0x142060878 | NAirWingReorganizationUI::NInternal::CManpowerListItem::[1] vtable 槽 NAirWingReorganizationUI::NInternal::CManpowerListItem::[1]（func_names RTTI 名） |
+| 0x141FD6480 | NAirSelectionUI::CRocketWingsSelectionItem::[0] vtable 槽 NAirSelectionUI::CRocketWingsSelectionItem::[0]（func_names RTTI 名） |
+| 0x141CEDCE0 | NAirSelectionUI::CMissionToolbarController::[0] vtable 槽 NAirSelectionUI::CMissionToolbarController::[0]（func_names RTTI 名） |
+| 0x14202CD40 | NAirWingReorganizationUI::CAirWingReorganizationWindow::[0] vtable 槽 NAirWingReorganizationUI::CAirWingReorganizationWindow::[0]（func_names RTTI 名） |
+| 0x141FD43A0 | NAirSelectionUI::CGunEmplacementWingsSelectionItem::[0] vtable 槽 NAirSelectionUI::CGunEmplacementWingsSelectionItem::[0]（func_names RTTI 名） |
+| 0x14205D7A0 | NAirWingReorganizationUI::NInternal::CFilterListItem::[0] vtable 槽 NAirWingReorganizationUI::NInternal::CFilterListItem::[0]（func_names RTTI 名） |
+| 0x141FD1760 | NAirSelectionUI::SAirMissionItem::[0] vtable 槽 NAirSelectionUI::SAirMissionItem::[0]（func_names RTTI 名） |
+| 0x141FCBCC0 | NAirSelectionUI::CAirBaseSelectionItem::[0] vtable 槽 NAirSelectionUI::CAirBaseSelectionItem::[0]（func_names RTTI 名） |
+| 0x141F5FB60 | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[11] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[11]（func_n… |
+| 0x141F5FDC0 | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::Update func_names 名 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::Update |
+| 0x14202C4D0 | NAirWingReorganizationUI::CAirWingReorganizationWindow::[12] vtable 槽 NAirWingReorganizationUI::CAirWingReorganizationWindow::[12]（func_names RTTI 名） |
+| 0x141F9B170 | NAirSelectionUI::CEquipmentPriorityOption::[0] vtable 槽 NAirSelectionUI::CEquipmentPriorityOption::[0]（func_names RTTI 名） |
+| 0x141F62EF0 | NAirSelectionUI::CSplitSelectionButton::[3] vtable 槽 NAirSelectionUI::CSplitSelectionButton::[3]（func_names RTTI 名） |
+| 0x141F63200 | NAirSelectionUI::CSplitWingOption::[2] vtable 槽 NAirSelectionUI::CSplitWingOption::[2]（func_names RTTI 名） |
+| 0x141FD9EB0 | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionEntry::[0] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionEntry::[0]（func_names… |
+| 0x141688350 | NAirSelectionUI::CAirSelectionView::[0] vtable 槽 NAirSelectionUI::CAirSelectionView::[0]（func_names RTTI 名） |
+| 0x141F625D0 | NAirSelectionUI::CRemoveFromGroupOption::[2] vtable 槽 NAirSelectionUI::CRemoveFromGroupOption::[2]（func_names RTTI 名） |
+| 0x141F62D70 | NAirSelectionUI::CSplitSelectionButton::[2] vtable 槽 NAirSelectionUI::CSplitSelectionButton::[2]（func_names RTTI 名） |
+| 0x141F60800 | NAirSelectionUI::CCreateAirGroupOption::[2] vtable 槽 NAirSelectionUI::CCreateAirGroupOption::[2]（func_names RTTI 名） |
+| 0x141FD6330 | NAirSelectionUI::CRocketWingsSelectionItem::[0] vtable 槽 NAirSelectionUI::CRocketWingsSelectionItem::[0]（func_names RTTI 名） |
+| 0x141F9B060 | NAirSelectionUI::CEquipmentPriorityOption::[1] vtable 槽 NAirSelectionUI::CEquipmentPriorityOption::[1]（func_names RTTI 名） |
+| 0x14205EDD0 | NAirWingReorganizationUI::NInternal::CEquipmentEntry::[0] vtable 槽 NAirWingReorganizationUI::NInternal::CEquipmentEntry::[0]（func_names RTTI 名） |
+| 0x141CF3550 | NAirSelectionUI::CSelectedAirGroupsView::[0] vtable 槽 NAirSelectionUI::CSelectedAirGroupsView::[0]（func_names RTTI 名） |
+| 0x14202ED10 | NAirWingReorganizationUI::CAirWingReorganizationWindow::Update func_names 名 NAirWingReorganizationUI::CAirWingReorganizationWindow::Update |
+| 0x141F5F820 | NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[0] vtable 槽 NAirSelectionUI::NQuickWingDeployment::CPlaneTypeSelectionWindow::[0]（func_nam… |
+| 0x141CF3480 | NAirSelectionUI::CSelectedAirGroupView::[0] vtable 槽 NAirSelectionUI::CSelectedAirGroupView::[0]（func_names RTTI 名） |
+| 0x141CF0450 | NAirSelectionUI::NQuickWingDeployment::CQuickWingDeployUIContro鈥�::[1] func_names 名 NAirSelectionUI::NQuickWingDeployment::CQuickWingDeployUIContro鈥�::[1] |
+| 0x141C2F280 | NUI::CScopedPopUp<CDefaultConfirmationPopUpWindow>::[0] func_names 名 NUI::CScopedPopUp<CDefaultConfirmationPopUpWindow>::[0] |
+| 0x14205ECD0 | NAirWingReorganizationUI::NInternal::CEquipmentEntry::[0] vtable 槽 NAirWingReorganizationUI::NInternal::CEquipmentEntry::[0]（func_names RTTI 名） |
+| 0x142021580 | NUI::CScopedPopUp<CPopUpWindow>::[0] func_names 名 NUI::CScopedPopUp<CPopUpWindow>::[0] |
+| 0x141CF0640 | NAirSelectionUI::NQuickWingDeployment::CQuickWingDeployUIContro鈥�::[2] func_names 名 NAirSelectionUI::NQuickWingDeployment::CQuickWingDeployUIContro鈥�::[2] |
+| 0x141CF0630 | NAirSelectionUI::NQuickWingDeployment::CQuickWingDeployUIContro鈥�::[0] func_names 名 NAirSelectionUI::NQuickWingDeployment::CQuickWingDeployUIContro鈥�::[0] |
+| 0x142021528 | NUI::CScopedPopUp<CPopUpWindow>::[1] func_names 名 NUI::CScopedPopUp<CPopUpWindow>::[1] |
+| 0x141C2F150 | NUI::CScopedPopUp<CDefaultConfirmationPopUpWindow>::[0] func_names 名 NUI::CScopedPopUp<CDefaultConfirmationPopUpWindow>::[0] |
+| 0x141C2F15C | NUI::CScopedPopUp<CDefaultConfirmationPopUpWindow>::[1] func_names 名 NUI::CScopedPopUp<CDefaultConfirmationPopUpWindow>::[1] |
+| 0x141CF33F4 | NAirSelectionUI::CSelectedAirGroupsView::[0] vtable 槽 NAirSelectionUI::CSelectedAirGroupsView::[0]（func_names RTTI 名） |
+| 0x14202151C | NUI::CScopedPopUp<CPopUpWindow>::[0] func_names 名 NUI::CScopedPopUp<CPopUpWindow>::[0] |
+| 0x14205D700 | NAirWingReorganizationUI::NInternal::CFilterListItem::[1] vtable 槽 NAirWingReorganizationUI::NInternal::CFilterListItem::[1]（func_names RTTI 名） |
+| 0x141F604F0 | NAirSelectionUI::CConsolidateWingsOption::[2] define/本地化键（串 AIRWING_MERGE） |
+| 0x141F620C0 | NAirSelectionUI::CNicheSelectionOptionSelections::[1] NAirSelectionUI::CNicheSelectionOptionSelections::[1]（空军定位选择 UI） |
+| 0x141FCF090 | NAirSelectionUI::CAirWingSelectionItem::[0] func_names 全名 + UI 命名空间 NAirSelectionUI |
+| 0x141F61670 | NAirSelectionUI::CHoldWingsOption::[2] func_names 全名 + UI 命名空间 NAirSelectionUI |
+| 0x141F62B20 | NAirSelectionUI::CSelectAllOption::[2] func_names 全名 + UI 命名空间 NAirSelectionUI |
+| 0x1416884C0 | NAirSelectionUI::CAirSelectionView::Reload NAirSelectionUI::CAirSelectionView::Reload + 名字角色规则(NAirSelectionUI::CAirSelectionView::Reload); 被 NAirSelectionUI… |
+
+#### 4.30.101 GUI 主视图与地图函数补遗（91 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CB2D60 | 业务 TRADEVIEW_RES_PRODUCED_DETAILS_LINE[_PENALTY/_LOCKED/_ROUTE] 等 loc 键族；callee @localize.cpp:641 |
+| 0x1419B7020 | 业务 串 `menu_settings_VIDEO`、`allow_hotjoin`、`allow_coop`、`multisample_value`、`resolution_value`、`SM_TEX_QUALITY_HIGH/MEDIUM/LOW`；读 a1+24216，全局 qword_14332F698… |
+| 0x141DB49F0 | 业务 调用者 sub_1417429F0 持 production_win_top/military_tab/efficiency_growth_value + CCountryProductionLineView::[9] |
+| 0x1423C7890 | 业务 float 数组处理内核；紧邻下一函数 sub_141F54780 属 setupcustomsettingswindow.cpp（UI 窗口 TU） |
+| 0x141E52470 | 业务 callee CButtonDrag::[28] + @text.cpp:491（UI 拖拽处理） |
+| 0x1417DC200 | 业务 战损/幸存者窗口更新：先对 pairNode 容器按 +976 权重做定点加权汇总，再按名取子控件填网格 串 "survivors_grid"/"lost"/"lost_line_grid" + strcpy + sub_14011EBD0；vtable+432 取子控件；被调用者 pairNode::[1… |
+| 0x1417AB030 | 业务 title_losses_in_[manpower/equipment]/log_month_slider/max_log_months/equipment_tab/resistance_activities_tab + @containerwindow.cpp ×3 |
+| 0x141B66C30 | 业务 修改器编辑视图（修改器名/触发器名/always 条目） 串 edit_modifiers/modifier_name/trigger_name/always；被调用者 sub_140163C30 = gameitemdatabase.h:149 |
+| 0x141683C90 | 业务 游戏内界面处理器的控件哈希表构建 串 "unordered_map/set too long"；同族 ingameinterfacehandler.cpp:1565/2598/2624/2716/2371 |
+| 0x140B37FA0 | 业务 通用 GUI 粘合构造（CDummyGlueClass，具体窗口未知） CLS CDummyGlueClass + CButtonObserverGlue；sub_1402DDEF0/sub_1402DE480/sub_1402A69E0 = std::function 基础设施 |
+| 0x141F00460 | 业务 单位 3D 模型查看/属性窗口（含领袖加成/支援兵种倍率/地形修正网格） 12 个 GUI 元素名串（3d_container/3d_view/prev_model/leader_bonuses_grid/support_category_multipliers_grid/terrain_modifiers… |
+| 0x141E0A030 | - 业务 CLegacyButtonObserverGlue\<CNavyTheaterNavyItemBase\> 构造：绑定成员函数为按钮点击回调（std::_Func_impl_no_alloc\<std::_Binder\<...CNavyTheaterNavyItemBase::\*\>\>） `*a1… |
+| 0x141F8CDE0 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化（按钮回调胶水） 同形家族：14 参数 / 471 行 / 仅调 sub_1402DDEF0+sub_1402DE480+sub_1402A69E0 |
+| 0x141CD2170 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同上 |
+| 0x141BD8B50 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x141E7C1D0 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x141758990 | - 业务 CLegacyButtonObserverGlue\<CDivisionDesignerView\> 构造：师设计师视图按钮回调胶水 `*a1 = &CLegacyButtonObserverGlue<CDivisionDesignerView>::`vftable'`；`std::_Func_impl… |
+| 0x1416D6BB0 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x1417D1530 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x141DF1320 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x1418892E0 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x141CCAB70 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x1417B1820 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x141FDA260 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x141AD3580 | 业务 GFX_[leader/marshal]_selection_[entry/active_entry/unavailable]_bg 图名族 + callee @gamedlc.cpp:230 |
+| 0x141C41570 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化（多调 sub_1402E1260） 同形家族 |
+| 0x141DDD860 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x141E26530 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x142003590 | - 业务 装备市场合同窗口创建（合同网格 + 「无进行中合同」占位） "contracts_grid_container"、"contracts_grid"、"no_ongoing_contracts_text"；sub_1422BA420 创建容器；调 sub_1413B7B30/B50（装备市场族）+ sub… |
+| 0x1417C9F40 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族（14 × __int64 参变体） |
+| 0x141C61000 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族 |
+| 0x142258150 | - 业务 CLegacyButtonObserverGlue\<T\> 实例化 同形家族（14 × __int64 参变体） |
+| 0x141E09D30 | 业务 自身名 - @ navyleaderskillview.cpp:89；体为窗口指针断言（"Window is supposed to be set when..."）+ scoped_ptr 检查 |
+| 0x141E51DE0 | 业务 调用图 h2mod:peaceuihelper.cpp [h2mod:peaceuihelper.cpp×1,h2mod:peaceconference.cpp×1] |
+| 0x1414A57F0 | 业务 串字面量 'FOLDER_ITEM_TOOLTIP' [4.30×1] |
+| 0x1421DF4C0 | 业务 串字面量 'Pos=%d,%d\\n' [4.30×3] |
+| 0x141EF88F0 | 业务 串字面量 'ui_career_points_counting_up' [4.30×3] |
+| 0x141F8A3F0 | 业务 串字面量 'CAREER_PROFILE_STEAM_NOT_RUNNING' [4.30×2] |
+| 0x1416F4800 | 业务 反向调用图 1/2 调用者投 §4.30; 唯一被调用者在书内 §4.00 |
+| 0x142039680 | 业务 串字面量 'best_in_career_icon' [4.30×2] |
+| 0x1416F0FD0 | 业务 反向调用图 2/2 调用者投 §4.30 |
+| 0x1413D41B0 | 业务 GUI 空条目列表基类 CEmptyEntryListBase<T><CTechnologyTreeTechItem> |
+| 0x141E4C210 | 业务 GUI 空条目列表基类 CEmptyEntryListBase<T><CPeaceBiddingItem> |
+| 0x14155F6C0 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x14175E040 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x14177EE30 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x14177EF30 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x14177F330 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1417E4130 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1417F5340 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1417F5740 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x14182B2D0 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x14182B3D0 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1418AB600 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1418FD7E0 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x141DDACB0 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x141E22590 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x141EA5CB0 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x141EA5FB0 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x141EB1820 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x141EC7550 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1417E4230 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1415CEA70 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1416D2680 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x141C54740 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x1422B33D0 | 业务 反调用图传播 1.0 权重锚点投 §4.30（top 占比 1.00） |
+| 0x141AD8820 | 业务 反调用图传播 2.0 权重锚点投 §4.30（top 占比 1.00） |
+| 0x141807060 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x14188AB00 | 业务 断言源码路径 emptylists.h → §4.30 |
+| 0x141EF5CE0 | 业务 反调用图传播 1.3 权重锚点投 §4.30（top 占比 1.00） |
+| 0x1422E5350 | 业务 反调用图传播 1.5 权重锚点投 §4.30（top 占比 0.67） |
+| 0x1419BAF20 | 业务 反调用图传播 2.2 权重锚点投 §4.30（top 占比 0.54） |
+| 0x140F43BE0 | 业务 反调用图传播 2.0 权重锚点投 §4.30（top 占比 0.50） |
+| 0x141FB3340 | 业务 反调用图传播 1.0 权重锚点投 §4.30（top 占比 1.00） |
+| 0x14139DE10 | 业务 反向调用图 1/2 调用者投 §4.30 |
+| 0x1419DA320 | 业务 反调用图传播 1.0 权重锚点投 §4.30（top 占比 1.00） |
+| 0x141E8C1A0 | 业务 GUI 空条目列表基类 CEmptyEntryListBase<T><CNavalMissionUnitItem> |
+| 0x141DB8EB0 | 业务 GUI 空条目列表基类 CEmptyEntryListBase<T><CProductionSubUnitDefFilter> |
+| 0x141C2D190 | 业务 GUI 空条目列表基类 CEmptyEntryListBase<T><CDesignFolderListItem> |
+| 0x1411FFEF0 | 业务 反调用图传播 1.8 权重锚点投 §4.30（top 占比 0.55） |
+| 0x1422B0090 | 业务 反调用图传播 1.0 权重锚点投 §4.30（top 占比 1.00） |
+| 0x142326390 | 业务 反向调用图 5/6 调用者投 §4.30 |
+| 0x1417EAAB0 | 业务 反调用图传播 1.3 权重锚点投 §4.30（top 占比 0.50） |
+| 0x141FFA690 | 业务 反向调用图 1/2 调用者投 §4.30; 唯一被调用者在书内 §4.1 |
+| 0x141FFA8D0 | 业务 反向调用图 2/4 调用者投 §4.30 |
+| 0x141387310 | 业务 反调用图传播 74.0 权重锚点投 §4.30（top 占比 0.74） |
+| 0x1417BC690 | 业务 反向调用图 2/2 调用者投 §4.30 |
+| 0x14175A770 | 业务 反调用图传播 2.2 权重锚点投 §4.30（top 占比 1.00） |
+| 0x1422A7620 | 业务 调用图 1/2 锚点投 §4.30; 反向调用图 3/6 调用者投 §4.30 |
+| 0x1422CE280 | 业务 反调用图传播 1.0 权重锚点投 §4.30（top 占比 1.00） |
+| 0x1418B4530 | CWorldTensionPopUpWindow::Update 业务 世界张力弹窗 Update（sub_1418B47B0 + sub_140B826E0(this)）；vtable 槽[1] 反查确认（14 槽表） |
+
+#### 4.30.102 常量串 getter 结构定案（86 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140742FC0 | 常量串 getter: 返回常量串 "NInterface::MISSION_NAVAL_INVASION_SUPPORT_SOFT_REQ_THRESHOLD_SHORE_BOMBARDMENT"（高置信） |
+| 0x1407430C0 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_ROOT_OUT_RESISTANCE_EFFICIENCY_TO_EFFICIENCY_FACTOR"（高置信） |
+| 0x140742E00 | 常量串 getter: 返回常量串 "NInterface::EQUIPMENT_DESIGNER_SHOW_MODULE_FORBIDS_SPECIALIZED_ROLE_ICON"（高置信） |
+| 0x140743060 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_COUNTER_INTELLIGENCE_DEFENSE_TO_EFFICIENCY_FACTOR"（高置信） |
+| 0x140742F90 | 常量串 getter: 返回常量串 "NInterface::MISSION_CONVOY_ESCORT_SOFT_REQ_THRESHOLD_DEPTH_CHARGES_AVG"（高置信） |
+| 0x140742FA0 | 常量串 getter: 返回常量串 "NInterface::MISSION_CONVOY_ESCORT_SOFT_REQ_THRESHOLD_DEPTH_CHARGES_SUM"（高置信） |
+| 0x140742FB0 | 常量串 getter: 返回常量串 "NInterface::MISSION_CONVOY_ESCORT_SOFT_REQ_THRESHOLD_SUB_DETECTION"（高置信） |
+| 0x140743130 | 常量串 getter: 返回常量串 "NInterface::PRODUCTION_SHIP_FILTERS_ROLE_SELECTION_WINDOW_OFFSET_X"（高置信） |
+| 0x140743140 | 常量串 getter: 返回常量串 "NInterface::PRODUCTION_SHIP_FILTERS_ROLE_SELECTION_WINDOW_OFFSET_Y"（高置信） |
+| 0x140742DF0 | 常量串 getter: 返回常量串 "NInterface::EQUIPMENT_DESIGNER_SHOW_MODULE_FORBIDS_BASE_ROLE_ICON"（高置信） |
+| 0x140742FF0 | 常量串 getter: 返回常量串 "NInterface::MISSION_PATROL_SOFT_REQ_THRESHOLD_SURFACE_VISIBILITY"（高置信） |
+| 0x140743020 | 常量串 getter: 返回常量串 "NInterface::NAVAL_STRIKE_FORCE_ATTACK_LIKELYHOOD_THR_VERY_LIKELY"（高置信） |
+| 0x140743090 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_NETWORK_STRENGTH_GAIN_TO_EFFICIENCY_FACTOR"（高置信） |
+| 0x1407430E0 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_TRADE_INFLUENCE_DRIFT_TO_EFFICIENCY_FACTOR"（高置信） |
+| 0x1407431A0 | 常量串 getter: 返回常量串 "NInterface::TASK_FORCE_COMPOSITION_EDITOR_PADDING_TO_NAVIES_VIEW"（高置信） |
+| 0x140742D90 | 常量串 getter: 返回常量串 "NInterface::COUNTERINTELLIGENCE_ACTIVITY_LEVEL_THRESHOLD_COLORS"（高置信） |
+| 0x140742DA0 | 常量串 getter: 返回常量串 "NInterface::COUNTERINTELLIGENCE_ACTIVITY_LEVEL_THRESHOLD_VALUES"（高置信） |
+| 0x140742FE0 | 常量串 getter: 返回常量串 "NInterface::MISSION_PATROL_SOFT_REQ_THRESHOLD_SURFACE_DETECTION"（高置信） |
+| 0x140743050 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_BOOST_IDEOLOGY_DRIFT_TO_EFFICIENCY_FACTOR"（高置信） |
+| 0x140743010 | 常量串 getter: 返回常量串 "NInterface::NAVAL_STRIKE_FORCE_ATTACK_LIKELYHOOD_THR_UNLIKELY"（高置信） |
+| 0x140743000 | 常量串 getter: 返回常量串 "NInterface::NAVAL_STRIKE_FORCE_ATTACK_LIKELYHOOD_THR_LIKELY"（高置信） |
+| 0x140743070 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_MISSION_EFFICIENCY_ANIMATION_TIME_MAX"（高置信） |
+| 0x140743080 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_MISSION_EFFICIENCY_ANIMATION_TIME_MIN"（高置信） |
+| 0x1407430B0 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_PROPAGANDA_DRIFT_TO_EFFICIENCY_FACTOR"（高置信） |
+| 0x140742D20 | 常量串 getter: 返回常量串 "NInterface::ARMY_LIST_BOTTOM_PADDING_WITH_EXPEDITIONARIES"（高置信） |
+| 0x1407430A0 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_OPINION_DRIFT_TO_EFFICIENCY_FACTOR"（高置信） |
+| 0x1407430D0 | 常量串 getter: 返回常量串 "NInterface::OPERATIVE_TENSION_DRIFT_TO_EFFICIENCY_FACTOR"（高置信） |
+| 0x140742D80 | 常量串 getter: 返回常量串 "NInterface::CONVOY_ESCORT_PRESENCE_WARNING_THRESHOLD"（高置信） |
+| 0x140742EB0 | 常量串 getter: 返回常量串 "NInterface::MAX_DECISIONS_IN_DECISION_ALERT_TOOLTIP"（高置信） |
+| 0x140742FD0 | 常量串 getter: 返回常量串 "NInterface::MISSION_PATROL_SOFT_REQ_THRESHOLD_SPEED"（高置信） |
+| 0x140743150 | 常量串 getter: 返回常量串 "NInterface::SHIP_FUEL_EFFICIENCY_WARNING_THRESHOLD"（高置信） |
+| 0x140742E90 | 常量串 getter: 返回常量串 "NInterface::GRIDBOX_ELEMENTS_INTERPOLATION_SPEED"（高置信） |
+| 0x140742F80 | 常量串 getter: 返回常量串 "NInterface::MIO_CENTRAL_TREE_HORIZONTAL_POSITION"（高置信） |
+| 0x140742DE0 | 常量串 getter: 返回常量串 "NInterface::DRAG_AND_DROP_SCROLLING_SENSITIVITY"（高置信） |
+| 0x140742CD0 | 常量串 getter: 返回常量串 "NInterface::AIR_WING_REINFORCEMENT_ICON_SCALE"（高置信） |
+| 0x140742CE0 | 常量串 getter: 返回常量串 "NInterface::ARMY_GROUP_COLLAPSE_EXTRA_SPACING"（高置信） |
+| 0x140742DC0 | 常量串 getter: 返回常量串 "NInterface::DEFAULT_NAVAL_EQUIPMENT_ROLE_ICON"（高置信） |
+| 0x140743160 | 常量串 getter: 返回常量串 "NInterface::SHIP_REFIT_TOOLTIP_MAX_DIFF_LINES"（高置信） |
+| 0x140742F10 | 常量串 getter: 返回常量串 "NInterface::MINIMAP_PING_DELAY_BETWEEN_PINGS"（高置信） |
+| 0x140742CF0 | 常量串 getter: 返回常量串 "NInterface::ARMY_GROUP_FIRST_MEMBER_SPACING"（高置信） |
+| 0x140742D30 | 常量串 getter: 返回常量串 "NInterface::ARMY_UNIT_LEADER_ICON_SPRITE_ID"（高置信） |
+| 0x140742ED0 | 常量串 getter: 返回常量串 "NInterface::MAX_NON_SUCCESSFUL_COMBAT_COLOR"（高置信） |
+| 0x140742EF0 | 常量串 getter: 返回常量串 "NInterface::MID_NON_SUCCESSFUL_COMBAT_COLOR"（高置信） |
+| 0x140742F70 | 常量串 getter: 返回常量串 "NInterface::MIN_NON_SUCCESSFUL_COMBAT_COLOR"（高置信） |
+| 0x140743030 | 常量串 getter: 返回常量串 "NInterface::NAVY_UNIT_LEADER_ICON_SPRITE_ID"（高置信） |
+| 0x140743120 | 常量串 getter: 返回常量串 "NInterface::POLITICAL_LEADER_ICON_SPRITE_ID"（高置信） |
+| 0x140742E30 | 常量串 getter: 返回常量串 "NInterface::FLEET_BOTTOM_BAR_PADDING_RIGHT"（高置信） |
+| 0x140742F30 | 常量串 getter: 返回常量串 "NInterface::MINIMAP_PING_SPEEDUP_ON_SCREEN"（高置信） |
+| 0x1407431D0 | 常量串 getter: 返回常量串 "NInterface::TOOLTIP_SCREEN_BOTTOM_OFFSET_Y"（高置信） |
+| 0x140742E80 | 常量串 getter: 返回常量串 "NInterface::GARRISON_STRENGTH_TO_SHOW_RED"（高置信） |
+| 0x140742EE0 | 常量串 getter: 返回常量串 "NInterface::MAX_NO_FACTION_FILTER_BUTTONS"（高置信） |
+| 0x140743170 | 常量串 getter: 返回常量串 "NInterface::SHIP_SELECT_DOUBLE_CLICK_TIME"（高置信） |
+| 0x1407431F0 | 常量串 getter: 返回常量串 "NInterface::TOOLTIP_SCREEN_RIGHT_OFFSET_X"（高置信） |
+| 0x140743210 | 常量串 getter: 返回常量串 "NInterface::UNIT_SELECT_DOUBLE_CLICK_TIME"（高置信） |
+| 0x1407431E0 | 常量串 getter: 返回常量串 "NInterface::TOOLTIP_SCREEN_LEFT_OFFSET_X"（高置信） |
+| 0x140742D00 | 常量串 getter: 返回常量串 "NInterface::ARMY_GROUP_PORTRAIT_SPACING"（高置信） |
+| 0x140742E70 | 常量串 getter: 返回常量串 "NInterface::FUEL_STOCKPILE_DURATION_MAX"（高置信） |
+| 0x140743200 | 常量串 getter: 返回常量串 "NInterface::TOOLTIP_SCREEN_TOP_OFFSET_Y"（高置信） |
+| 0x140742CC0 | 常量串 getter: 返回常量串 "NInterface::AIR_WING_NICHE_ICON_SCALE"（高置信） |
+| 0x1407431B0 | 常量串 getter: 返回常量串 "NInterface::TASK_FORCE_ENTRY_OFFSET_Y"（高置信） |
+| 0x140742D10 | 常量串 getter: 返回常量串 "NInterface::ARMY_LIST_BOTTOM_PADDING"（高置信） |
+| 0x140742F00 | 常量串 getter: 返回常量串 "NInterface::MILITARY_FACTORIES_SCALE"（高置信） |
+| 0x140743180 | 常量串 getter: 返回常量串 "NInterface::SLOW_INTERFACE_THRESHOLD"（高置信） |
+| 0x140742E20 | 常量串 getter: 返回常量串 "NInterface::FLEET_BOTTOM_BAR_HEIGHT"（高置信） |
+| 0x140742F40 | 常量串 getter: 返回常量串 "NInterface::MINIMAP_TOGGLE_DURATION"（高置信） |
+| 0x1407430F0 | 常量串 getter: 返回常量串 "NInterface::PICKED_UP_NAVY_OFFSET_X"（高置信） |
+| 0x140743100 | 常量串 getter: 返回常量串 "NInterface::PICKED_UP_NAVY_OFFSET_Y"（高置信） |
+| 0x140743190 | 常量串 getter: 返回常量串 "NInterface::SUCCESFUL_COMBATS_COLOR"（高置信） |
+| 0x140742DD0 | 常量串 getter: 返回常量串 "NInterface::DEFAULT_TASKFORCE_ICON"（高置信） |
+| 0x140742E10 | 常量串 getter: 返回常量串 "NInterface::FIXED_TOOLTIP_POSITION"（高置信） |
+| 0x140742E40 | 常量串 getter: 返回常量串 "NInterface::FOCUS_TREE_ZOOM_FACTOR"（高置信） |
+| 0x140742E50 | 常量串 getter: 返回常量串 "NInterface::FOCUS_TREE_ZOOM_SPEED"（高置信） |
+| 0x140742F20 | 常量串 getter: 返回常量串 "NInterface::MINIMAP_PING_DURATION"（高置信） |
+| 0x1407431C0 | 常量串 getter: 返回常量串 "NInterface::TIMED_MESSAGE_TIMEOUT"（高置信） |
+| 0x140742D50 | 常量串 getter: 返回常量串 "NInterface::COMBAT_GOOD_PIERCING"（高置信） |
+| 0x140742D70 | 常量串 getter: 返回常量串 "NInterface::COMBAT_SOME_PIERCING"（高置信） |
+| 0x140742F50 | 常量串 getter: 返回常量串 "NInterface::MINIMAP_TOGGLE_SHIFT"（高置信） |
+| 0x140742EA0 | 常量串 getter: 返回常量串 "NInterface::LOGISTICS_PAST_WEEK"（高置信） |
+| 0x140742EC0 | 常量串 getter: 返回常量串 "NInterface::MAX_FOCUS_TREE_ZOOM"（高置信） |
+| 0x140742F60 | 常量串 getter: 返回常量串 "NInterface::MIN_FOCUS_TREE_ZOOM"（高置信） |
+| 0x140742DB0 | 常量串 getter: 返回常量串 "NInterface::DEFAULT_FLEET_ICON"（高置信） |
+| 0x140742D40 | 常量串 getter: 返回常量串 "NInterface::COMBAT_GOOD_ARMOR"（高置信） |
+| 0x140742D60 | 常量串 getter: 返回常量串 "NInterface::COMBAT_SOME_ARMOR"（高置信） |
+| 0x140742E60 | 常量串 getter: 返回常量串 "NInterface::FUEL_GRAPH_COLOR"（高置信） |
+| 0x140743040 | 常量串 getter: 返回常量串 "NInterface::NO_COMBATS_COLOR"（高置信） |
+| 0x140743110 | 常量串 getter: 返回常量串 "NInterface::PIXEL_OFFSET"（高置信） |
+
+#### 4.30.103 单调用转发桩结构定案（205 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409EE090 | 转发桩: 转发至 业务 类路由 CSetDefaultCountryOccupationPolicyCommand ->§4.33; 类路由 CCountryNavalRegionView ->§4.30; 串 "Haptic: Invalid haptic device identi"（推定） |
+| 0x140A8DB20 | 转发桩: 转发至 业务 断言站点 gameitemdatabase.h:49 ->§4.26; 断言站点 countryarmyview.cpp:72 ->§4.30; 类路由 CNationalFocusView ->§4.30（推定） |
+| 0x14202A4E0 | 转发桩: 转发至 窗口关闭 窗口关闭处理：+1392+165 清 0x10 旗 + vtable+56 判定 + vtable+48 关闭 + sub_141965AD0 子窗口级联（推定） |
+| 0x140B5C5C0 | 转发桩: 转发至 未命名业务函数 GUI 类 CGraphicalMap 方法（推定） |
+| 0x142002E60 | 转发桩: 转发至 CPurchasableEquipmentWindow::AddEquipmentBack func_names 名 CPurchasableEquipmentWindow::AddEquipmentBack（推定） |
+| 0x141EB1440 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x141EC6F30 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x141EA5810 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x1401A4FE0 | 转发桩: 转发至 CEquipmentGraphicPool（vtable 槽 [0]） GUI 类 CEquipmentGraphicPool 方法（推定） |
+| 0x141E21740 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x14182A310 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x14177A4A0 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x14177A4F0 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x14175A090 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x1418044A0 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x141804620 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x14182A2C0 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x141EA5720 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x14175A040 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x1418FA610 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x141DDA800 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x142126D50 | 转发桩: 转发至 窗口查询 双窗口状态查询：vtable+120(…,1100) 两处取值，失败返 0，后续 7 行比较（推定） |
+| 0x14177A630 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x1418FA590 | 转发桩: 转发至 业务 断言源码路径 emptylists.h → §4.30（推定） |
+| 0x142059DE0 | 转发桩: 转发至 未决窗口函数 · 滚动位置钳位 sub_1422F0160(*(a1+2912)+128) 取值后钳位到 [a1+160, a1+156] 区间（推定） |
+| 0x141CB6910 | 转发桩: 转发至 (无名) 业务 调用 loc 串构造器族 sub_14011E010,sub_14011EBD0（推定） |
+| 0x14230F740 | 转发桩: 被调者 0x142371460 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x140ACB530 | 转发桩: 转发至 业务 类路由 CCountryDiplomacyView ->§4.30; 类路由 CCountryView ->§4.30; 类路由 CLandCombatMapIcon ->§4.31（推定） |
+| 0x140F30CA0 | 转发桩: 转发至 业务 类路由 CSetResearchCommand ->§4.33; 类路由 CSetTaskForceIconAndColorCommand ->§4.33; 类路由 CCountryDiplomacyView ->§4.30（推定） |
+| 0x142371460 | 转发桩: 转发至 （无名） 体设 CDropDownBox::vftable（RTTI 名）（推定） |
+| 0x1423749D0 | 转发桩: 转发至 CStandardGridBox 标准网格盒 (vtable类名 CStandardGridBox) vtable引用 CStandardGridBox vftable（推定） |
+| 0x1420480E0 | 转发桩: 转发至 未决窗口函数 · 滚动位置钳位 sub_1422F0160(*(a1+2912)+128) 取值后钳位到 [a1+160, a1+156] 区间（推定） |
+| 0x1426E98A0 | 转发桩: 转发至 未决窗口函数 · UI 对象释放（管理器计数递减） sub_1421F89D0(a1+96) + 释放 a1+112/a1+88 并递减 qword_143451C80 +956 计数 + off_1430BCFA8（推定） |
+| 0x141ACC280 | 转发桩: 转发至 CCapturedArmyLeaderWindow::SetupDerived? 业务 CCapturedArmyLeaderWindow::SetupDerived 被俘将领窗口派生构建；类名自文档（推定） |
+| 0x141772E30 | 转发桩: 转发至 CFrontEndView::[7] vtable 槽 CFrontEndView::[7]（func_names RTTI 名）（推定） |
+| 0x141B73D50 | 转发桩: 转发至 单位堆栈 nudger 校验 单位堆栈 nudger 校验；断言 \"IsMoving( Value )\"/\"IsDisembark( Value )\"（nudgestacks.h）+gamestate.h:1125（推定） |
+| 0x142059090 | 转发桩: 转发至 文本设置 界面文本设置：a1+2912 对象 +128 域 sub_1422F27C0 落串（sub_1424CA600 取串）+ SSO 收尾（推定） |
+| 0x141667A10 | 转发桩: 转发至 业务 断言站点 historylogger.cpp:20 ->§4.1; 类路由 NCareerProfile ->§4.25; 串 "Video subsystem has not been initial"（推定） |
+| 0x141E57DB0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 conferencepopups.cpp:466（推定） |
+| 0x141FFA490 | 转发桩: 转发至 业务 反向调用图 2/4 调用者投 §4.30（推定） |
+| 0x1421CB360 | 转发桩: 转发至 未决窗口函数 · 双槽表清理 32B 槽位双指针逐项 sub_1421D49D0 释放 + 计数/标志复位（推定） |
+| 0x141761A70 | 转发桩: 转发至 CFrontEndView::[7] vtable 槽 CFrontEndView::[7]（func_names RTTI 名）（推定） |
+| 0x1421E00B0 | 转发桩: 转发至 业务 缓冲扩容：++qword_143451C80+956 计数，off_1430BCFA0 分配+memcpy，off_1430BCFA8 释放旧 缓冲扩容+UI 管理器分配计数（推定） |
+| 0x142054E40 | 转发桩: 转发至 文本设置 界面文本设置：a1+2912 对象 +128 域 sub_1422F27C0 落串（sub_1424CA600 取串）+ SSO 收尾（推定） |
+| 0x141725AB0 | 转发桩: 转发至 业务 类路由 NFactions ->§4.25; 类路由 CNavyTheaterFleetRowItem ->§4.31; 串 "victory_point_mapicon"（推定） |
+| 0x14263CE00 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x1426664F0 | 转发桩: 转发至 （无名） 体设 CBasePopupWindow::vftable（RTTI 名）（推定） |
+| 0x14266B210 | 转发桩: 转发至 未命名业务函数 GUI 类 COperativeLeaderWindow 方法（推定） |
+| 0x142689520 | 转发桩: 转发至 vtable/RTTI 类 CTextBufferObserver sub_141C1F860 + vtable/RTTI 类 CTextBufferObserver; 被 CCountryFactionView::SetupDerived 等 3 命名函数调用（推定） |
+| 0x14268AEB0 | 转发桩: 转发至 （无名） 体设 CSettingsGroupView::vftable（RTTI 名）（推定） |
+| 0x142690220 | 转发桩: 转发至 业务 类名证据「CScopedPopUp」 §4.30 UI窗口（推定） |
+| 0x142687EC0 | 转发桩: 转发至 （无名） 体设 CEmbeddedWindow::vftable（RTTI 名）（推定） |
+| 0x1418174F0 | 转发桩: 转发至 未命名业务函数 GUI 类 CCheckBoxObserver 方法（推定） |
+| 0x14265FF20 | 转发桩: 转发至 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse"（推定） |
+| 0x140A3C730 | 转发桩: 转发至 业务 断言站点 eventscope.h:93; 串 "( pScope == this \ \ pScope->_pFrom !"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"（推定） |
+| 0x142674940 | 转发桩: 转发至 （无名） 体设 CCommandStructureLeaderView::vftable（RTTI 名）（推定） |
+| 0x14268F5E0 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x141571CA0 | 转发桩: 转发至 域关键词匹配 sub_140F929D0 + 域关键词匹配; 源码路径 hoi4; 被 COccupationStatusView::Update? 等 3 命名函数调用（推定） |
+| 0x1421411E0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "Invalid window"（推定） |
+| 0x1416F6FA0 | 转发桩: 转发至 （无名） 体设 CHeldOfficerWindow::vftable（RTTI 名）（推定） |
+| 0x1418045E0 | 转发桩: 转发至 未命名业务函数 GUI 类 CCheckBoxObserver 方法（推定） |
+| 0x140F3BB70 | 转发桩: 转发至 sub_140F31000 gradientbordermanager.cpp:215 "The network contains an invalid state id"（地图渐变边界管理器网络校验）（推定） |
+| 0x141390EC0 | 转发桩: 转发至 CNationalFocusView::SetupDerived? func_names 名 CNationalFocusView::SetupDerived?（推定） |
+| 0x142608360 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x1426FC9F0 | 转发桩: 转发至 业务 断言站点 eventscope.h:93; 串 "( pScope == this \ \ pScope->_pFrom !"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"（推定） |
+| 0x142600DD0 | 转发桩: 被调者 0x140ACB530 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x141DDB710 | 转发桩: 被调者 0x140B473A0 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x1413B7CE0 | 转发桩: 转发至 未决窗口函数 · UI 坐标 getter 串 "px != 0" 像素非空校验 + CONST 160（推定） |
+| 0x1413B7D10 | 转发桩: 转发至 未决窗口函数 · UI 坐标 getter 串 "px != 0" 像素非空校验 + CONST 160（推定） |
+| 0x142656040 | 转发桩: 被调者 0x14175A090 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142657190 | 转发桩: 被调者 0x14177A4A0 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142657450 | 转发桩: 被调者 0x14177A4F0 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142657470 | 转发桩: 被调者 0x14177A630 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x14265B530 | 转发桩: 被调者 0x1418045E0 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x14265B5F0 | 转发桩: 被调者 0x141804620 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142680EF0 | 转发桩: 被调者 0x141DDA800 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x1426EF4D0 | 转发桩: 转发至 未决窗口函数 · CTernary<CCheckBox*> 析构 CTernary<CCheckBox *,STernaryTrait<CCheckBox *>> vtable + sub_14225D780 + 释放 +32 链表并清零（推定） |
+| 0x1426EF530 | 转发桩: 转发至 业务 类路由 CUnitAdjuster ->§4.28; 类路由 NInternationalMarket ->§4.25; 类路由 CFixedWindow ->§4.30（推定） |
+| 0x142651BB0 | 转发桩: 被调者 0x1416F6FA0 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142651BF0 | 转发桩: 被调者 0x1416F6FA0 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x14265C810 | 转发桩: 被调者 0x14182A2C0 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x14265C850 | 转发桩: 被调者 0x14182A310 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x14265D9D0 | 转发桩: 转发至 （无名） 体设 CAirCombatDisplayWindow::vftable（RTTI 名）（推定） |
+| 0x142661A90 | 转发桩: 被调者 0x1418FA610 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x1426798F0 | 转发桩: 转发至 （无名） 体设 CCareerProfileView::vftable（RTTI 名）（推定） |
+| 0x142685790 | 转发桩: 被调者 0x141EB1440 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142685810 | 转发桩: 被调者 0x141EA5720 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x1426897E0 | 转发桩: 转发至 （无名） 体设 CPolicyWindow::vftable（RTTI 名）（推定） |
+| 0x142689800 | 转发桩: 转发至 （无名） 体设 CQueueToUnlockWindow::vftable（RTTI 名）（推定） |
+| 0x14268F080 | 转发桩: 被调者 0x141FFA490 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142632AD0 | 转发桩: 转发至 未命名业务函数 GUI 类 CTooltipHandler 方法（推定） |
+| 0x142650B70 | 转发桩: 转发至 业务 类路由 CSetPinnedStrategicRegionCommand ->§4.33; 类路由 NAiNavalGoals ->§4.25; 类路由 CContainerWindow ->§4.30（推定） |
+| 0x142680D20 | 转发桩: 被调者 0x14175A090 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142682440 | 转发桩: 被调者 0x141E21740 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142609010 | 转发桩: 转发至 业务 断言站点 relation.cpp:27; 串 "GetSecond() == For && \"Trying to ge"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"（推定） |
+| 0x142613E30 | 转发桩: 转发至 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse"（推定） |
+| 0x142632A90 | 转发桩: 转发至 （无名） 体设 CRaidSetupView::vftable（RTTI 名）（推定） |
+| 0x1426820F0 | 转发桩: 被调者 0x141804620 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142685220 | 转发桩: 被调者 0x141EA5720 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142686DD0 | 转发桩: 被调者 0x141EC6F30 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142686E60 | 转发桩: 被调者 0x141EA5720 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142688310 | 转发桩: 转发至 （无名） 体设 CCareerProfileView::vftable（RTTI 名）（推定） |
+| 0x142688330 | 转发桩: 转发至 （无名） 体设 CCareerProfileView::vftable（RTTI 名）（推定） |
+| 0x142689C70 | 转发桩: 转发至 （无名） 体设 COrganisationDetailWindow::vftable（RTTI 名）（推定） |
+| 0x1426E93F0 | 转发桩: 被调者 0x1421CB360 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x140A67660 | 转发桩: 转发至 业务 类路由 COrderSetParadropTargetCommand ->§4.33; 类路由 NFactions ->§4.25; 串 "DIPLOMACY_NO_WARGOAL" ->§4.10（推定） |
+| 0x1413D9650 | 转发桩: 转发至 275 ¦ 文件夹页签切换处理 (学说 remap 双全局表; 默认切换路径)（推定） |
+| 0x1422CAA70 | 转发桩: 转发至 CEditBox::[79] vtable 槽 CEditBox::[79]（func_names RTTI 名）（推定） |
+| 0x1426851B0 | 转发桩: 被调者 0x141EA5810 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x14263D850 | 转发桩: 转发至 （无名） 体设 CReloadableWindow::vftable（RTTI 名）（推定） |
+| 0x142659C30 | 转发桩: 转发至 （无名） 体设 CDefaultInfoPopUpWindow::vftable（RTTI 名）（推定） |
+| 0x1426083F0 | 转发桩: 转发至 （无名） 体设 CDefaultInfoPopUpWindow::vftable（RTTI 名）（推定） |
+| 0x1426304E0 | 转发桩: 转发至 业务 a1+152 窗口：解绑 a1[208]（vt+32，反链不等判定）与 a1[144] 两子控件 UI 子控件解绑（208/144）（推定） |
+| 0x142658510 | 转发桩: 转发至 （无名） 体设 CReloadableWindow::vftable（RTTI 名）（推定） |
+| 0x141FB8F20 | 转发桩: 转发至 CQueueToUnlockWindow::LoadQueue（推定） |
+| 0x142658970 | 转发桩: 转发至 （无名） 体设 CReloadableWindow::vftable（RTTI 名）（推定） |
+| 0x141DED950 | 转发桩: 转发至 CAwardsView::ScrollToRibbon func_names 名 CAwardsView::ScrollToRibbon（推定） |
+| 0x142620890 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x14263D6E0 | 转发桩: 转发至 vtable/RTTI 类 CTextBufferObserver sub_141C1F860 + vtable/RTTI 类 CTextBufferObserver; 被 CCountryFactionView::SetupDerived 等 3 命名函数调用（推定） |
+| 0x142646F90 | 转发桩: 转发至 （无名） 体设 CReloadableWindow::vftable（RTTI 名）（推定） |
+| 0x14264CAE0 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x142650800 | 转发桩: 转发至 （无名） 体设 CUnitLeaderTraitWindow::vftable（RTTI 名）（推定） |
+| 0x1426548A0 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x142674790 | 转发桩: 转发至 （无名） 体设 CReloadableWindow::vftable（RTTI 名）（推定） |
+| 0x142678D00 | 转发桩: 转发至 vtable/RTTI 类 CTextBufferObserver sub_141C1F860 + vtable/RTTI 类 CTextBufferObserver; 被 CCountryFactionView::SetupDerived 等 3 命名函数调用（推定） |
+| 0x14268F000 | 转发桩: 转发至 （无名） 体设 CEmbeddedWindow::vftable（RTTI 名）（推定） |
+| 0x14268F840 | 转发桩: 转发至 （无名） 体设 CEmbeddedWindow::vftable（RTTI 名）（推定） |
+| 0x1426EF140 | 转发桩: 转发至 （无名） 体设 TWindow::vftable（RTTI 名）（推定） |
+| 0x142607F60 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x142608000 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x142608090 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x142608120 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x1426082F0 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x142630800 | 转发桩: 转发至 业务 a1+152 窗口：解绑 a1[208]（vt+32，反链不等判定）与 a1[144] 两子控件 UI 子控件解绑（208/144）（推定） |
+| 0x1426373B0 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x142639E50 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x142645440 | 转发桩: 转发至 （无名） 体设 COccupationSettingSelectionView::vftable（RTTI 名）（推定） |
+| 0x1426463E0 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x1426483C0 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x1426524E0 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x142654950 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x142659C40 | 转发桩: 转发至 （无名） 体设 CDefaultInfoPopUpWindow::vftable（RTTI 名）（推定） |
+| 0x14265C460 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x142665AA0 | 转发桩: 转发至 （无名） 体设 CFrontEndView::vftable（RTTI 名）（推定） |
+| 0x142666A70 | 转发桩: 转发至 （无名） 体设 CReloadableView::vftable（RTTI 名）（推定） |
+| 0x1426798E0 | 转发桩: 转发至 （无名） 体设 CFrontEndView::vftable（RTTI 名）（推定） |
+| 0x142679940 | 转发桩: 转发至 （无名） 体设 CFrontEndView::vftable（RTTI 名）（推定） |
+| 0x142679A80 | 转发桩: 转发至 （无名） 体设 CFrontEndView::vftable（RTTI 名）（推定） |
+| 0x14267A400 | 转发桩: 转发至 （无名） 体设 CFrontEndView::vftable（RTTI 名）（推定） |
+| 0x14268ABE0 | 转发桩: 转发至 （无名） 体设 CSettingsGroupView::vftable（RTTI 名）（推定） |
+| 0x14268F290 | 转发桩: 转发至 业务 反向调用图 2/4 调用者投 §4.30（推定） |
+| 0x14268F2A0 | 转发桩: 转发至 业务 反向调用图 1/2 调用者投 §4.30; 唯一被调用者在书内 §4.1（推定） |
+| 0x1426904C0 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x1426EC750 | 转发桩: 转发至 （无名） 体设 TTextBox::vftable（RTTI 名）（推定） |
+| 0x1426ECA10 | 转发桩: 转发至 （无名） 体设 TWindow::vftable（RTTI 名）（推定） |
+| 0x1425F3720 | 转发桩: 转发至 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse"（推定） |
+| 0x142600DE0 | 转发桩: 被调者 0x140ACB530 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x142643F90 | 转发桩: 转发至 （无名） 体设 CEquipmentMessagePopup::vftable（RTTI 名）（推定） |
+| 0x142648D20 | 转发桩: 转发至 未命名业务函数 GUI 类 CCountryView 方法（推定） |
+| 0x142658390 | 转发桩: 转发至 （无名） 体设 CReloadableWindow::vftable（RTTI 名）（推定） |
+| 0x14266B350 | 转发桩: 转发至 未命名业务函数 GUI 类 COperativeLeaderWindow 方法（推定） |
+| 0x14266E530 | 转发桩: 转发至 （无名） 体设 CReloadableWindow::vftable（RTTI 名）（推定） |
+| 0x142678BD0 | 转发桩: 转发至 （无名） 体设 CEmbeddedWindow::vftable（RTTI 名）（推定） |
+| 0x14267BFA0 | 转发桩: 转发至 （无名） 体设 CPoliticalIdeasWindow::vftable（RTTI 名）（推定） |
+| 0x14267CF10 | 转发桩: 转发至 未命名业务函数 GUI 类 CTooltipHandler 方法（推定） |
+| 0x14268D090 | 转发桩: 转发至 （无名） 体设 CEmbeddedWindow::vftable（RTTI 名）（推定） |
+| 0x14268F6E0 | 转发桩: 转发至 vtable/RTTI 类 CButtonEventDispatcher sub_140B7AD20 + vtable/RTTI 类 CButtonEventDispatcher; 被 CAIControllerPopUpWindow::[0] 等 8 命名函数调用（推定） |
+| 0x141F63D70 | 转发桩: 转发至 （无名） 被 CChangeUnitTemplateDialog::[14] 调用（陆军/单位）（推定） |
+| 0x1420F8150 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "Invalid window"（推定） |
+| 0x141CD7A60 | 转发桩: 转发至 UI 双面板显隐切换 a1+5320/+5336 + vtable+648/+656（推定） |
+| 0x140B473A0 | 转发桩: 转发至 gamegui.cpp "Failed to find" + GFX_EMI_unknown 回退（推定） |
+| 0x1417C9100 | 转发桩: 转发至 GUI：LEADER_PORTRAIT_DEPLOYMENT_INFO loc 键 LEADER_PORTRAIT_DEPLOYMENT_INFO/DIVISION，部署视图（推定） |
+| 0x14264D800 | 转发桩: 被调者 0x141667A10 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x1426210A0 | 转发桩: 被调者 0x140F30CA0 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x14264D0B0 | 转发桩: 转发至 业务 类路由 CFrontendFriendsView ->§4.30; 调用图 IDF top §4.1 frac 1.00; 邻域 3/4 票 §4.25（同类方法连续排放）（推定） |
+| 0x14265FD60 | 转发桩: 转发至 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse"（推定） |
+| 0x14265FD70 | 转发桩: 转发至 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse"（推定） |
+| 0x1426E98C0 | 转发桩: 被调者 0x1421CB360 -> §4.30 (E:单调用转发(被调者入书))（推定） |
+| 0x141772D00 | 转发桩: 转发至 管理器更新 a1+23680 对象 vtable+128 + 置 0x10 旗 + "name" 键查找 + 刷新 a1+11096 子系统；管理器更新（推定） |
+| 0x141772E20 | 转发桩: 转发至 域关键词匹配 sub_141761E70 + 域关键词匹配; 被 CDivisionDesignerView::[9] 等 2 命名函数调用（推定） |
+| 0x141772F60 | 转发桩: 转发至 UI 焦点切换 a1+17752/+23680 + 标志 &8/&16 + vtable+120/+128（推定） |
+| 0x141BC4860 | 转发桩: 转发至 （无名） 串 "tree"/"list"（GUI 树/列表切换）（推定） |
+| 0x141EF9B00 | 转发桩: 转发至 无名 · GUI 键 "information_text" GUI 键 "information_text"（推定） |
+| 0x141FAD6D0 | 转发桩: 转发至 同区段近邻 CQueueToUnlockWindow::SaveQueue(距 0xCC40)属 4.31 族 sub_141FAC580 + 同区段近邻 CQueueToUnlockWindow::SaveQueue(距 0xCC40)属 4.31 族（推定） |
+| 0x14259A960 | 转发桩: 转发至 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse"（推定） |
+| 0x142607800 | 转发桩: 转发至 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse"（推定） |
+| 0x1426784F0 | 转发桩: 转发至 业务 类路由 COOSPopUpWindow ->§4.30; 类路由 CInstantTextBox ->§4.30; 串 "browse"（推定） |
+| 0x141CAD180 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 relationstripview.cpp:313（推定） |
+| 0x141CAD510 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 relationstripview.cpp:911（推定） |
+| 0x141CAD580 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 relationstripview.cpp:711（推定） |
+| 0x141DED930 | 转发桩: 转发至 CAwardsView::ScrollToMedal func_names 名 CAwardsView::ScrollToMedal（推定） |
+| 0x141DED940 | 转发桩: 转发至 CAwardsView::ScrollToModAchievement func_names 名 CAwardsView::ScrollToModAchievement（推定） |
+| 0x1418619F0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 conferencewindow.cpp:1639（推定） |
+| 0x141861A60 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 conferencewindow.cpp:1639（推定） |
+| 0x141861BB0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 conferencewindow.cpp:1639（推定） |
+| 0x141861F50 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 conferencewindow.cpp:1639（推定） |
+| 0x141683C70 | 转发桩: 转发至 业务 游戏内界面处理器的控件哈希表构建 串 "unordered_map/set too long"；同族 ingameinterfacehandler.cpp:1565/2598/2624/2716/2371（推定） |
+| 0x1416C3C50 | 转发桩: 转发至 sub_141697810 业务 串 "templates_grid"（模板网格 GUI 容器）（推定） |
+| 0x141F116F0 | 转发桩: 转发至 STATE_NAME（窗口/视图） loc 键 ABORT_DISMANTLE_PROJECT_POPUP_TITLE/DESC + STATE_NAME（推定） |
+| 0x141861F40 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 conferencewindow.cpp:1639（推定） |
+| 0x1420EC850 | 转发桩: 转发至 业务 断言站点 button.cpp:40; 断言站点 containerwindow.cpp:88 ->§4.30; 断言站点 pdx_audio.cpp:88（推定） |
+| 0x1420EC860 | 转发桩: 转发至 业务 断言站点 button.cpp:40; 断言站点 containerwindow.cpp:88 ->§4.30; 断言站点 pdx_audio.cpp:88（推定） |
+| 0x1420EC870 | 转发桩: 转发至 业务 断言站点 button.cpp:40; 断言站点 containerwindow.cpp:88 ->§4.30; 断言站点 pdx_audio.cpp:88（推定） |
+| 0x1420EC8E0 | 转发桩: 转发至 业务 断言站点 button.cpp:40; 断言站点 containerwindow.cpp:88 ->§4.30; 断言站点 pdx_audio.cpp:88（推定） |
+| 0x142126850 | 转发桩: 转发至 业务 断言站点 button.cpp:40; 断言站点 containerwindow.cpp:88 ->§4.30; 断言站点 pdx_audio.cpp:88（推定） |
+
+#### 4.30.104 GUI 主视图与地图函数补遗（232 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DD1740 | 反调用图单链锚点（0.5）投 §4.30；锚点 `sub_141DD1F30` |
+| 0x1422B6CF0 | §4.x UI·界面控件 VA 局部性 d=0 锚 CContainerWindow::SetContextLocalizer::lambd |
+| 0x1422BA630 | §4.x UI·界面控件 VA 局部性 d=16 锚 CContainerWindow::[75] |
+| 0x1422BBEA0 | §4.x UI·界面控件 VA 局部性 d=112 锚 CContainerWindow::[17] |
+| 0x1422BC2C0 | §4.x UI·界面控件 VA 局部性 d=416 锚 CContainerWindow::[15] |
+| 0x1422BD8A0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CContainerWindow::[54] |
+| 0x1422BE300 | §4.x UI·界面控件 VA 局部性 d=176 锚 CContainerWindow::[34] |
+| 0x1422BE360 | §4.x UI·界面控件 VA 局部性 d=80 锚 CContainerWindow::[34] |
+| 0x1422C46C0 | §4.x UI·界面控件 VA 局部性 d=48 锚 CContainerWindow::[8] |
+| 0x1422C7090 | §4.x UI·界面控件 VA 局部性 d=32 锚 CStandardGridBox::[68] |
+| 0x1422C9900 | §4.x UI·界面控件 VA 局部性 d=192 锚 CCheckBox::[2] |
+| 0x1422C9940 | §4.x UI·界面控件 VA 局部性 d=128 锚 CCheckBox::[2] |
+| 0x1422C9CB0 | §4.x UI·界面控件 VA 局部性 d=32 锚 CCheckBox::[38] |
+| 0x1422CAA90 | §4.x UI·界面控件 VA 局部性 d=80 锚 CInstantTextBox::[6] |
+| 0x1422CB280 | §4.x UI·界面控件 VA 局部性 d=336 锚 CInstantTextBox::[83] |
+| 0x1422CB2A0 | §4.x UI·界面控件 VA 局部性 d=304 锚 CInstantTextBox::[83] |
+| 0x1422CB2E0 | §4.x UI·界面控件 VA 局部性 d=240 锚 CInstantTextBox::[83] |
+| 0x1422CB310 | §4.x UI·界面控件 VA 局部性 d=192 锚 CInstantTextBox::[83] |
+| 0x1422DBB00 | §4.x UI·界面控件 VA 局部性 d=512 锚 CReloadableWindow::[0] |
+| 0x1422DC180 | §4.x UI·界面控件 VA 局部性 d=112 锚 CReloadableWindow::Reload |
+| 0x1422ECE90 | §4.x UI·界面控件 VA 局部性 d=16 锚 CEditBox::[79] |
+| 0x1422ECEF0 | §4.x UI·界面控件 VA 局部性 d=112 锚 CEditBox::[79] |
+| 0x1422ECF00 | §4.x UI·界面控件 VA 局部性 d=128 锚 CEditBox::[79] |
+| 0x1422F18A0 | §4.x UI·界面控件 VA 局部性 d=2160 锚 CEditBox::[6] |
+| 0x1422F2050 | §4.x UI·界面控件 VA 局部性 d=1120 锚 CEditBox::[8] |
+| 0x1422F2080 | §4.x UI·界面控件 VA 局部性 d=1072 锚 CEditBox::[8] |
+| 0x1422F20D0 | §4.x UI·界面控件 VA 局部性 d=992 锚 CEditBox::[8] |
+| 0x1422F2120 | §4.x UI·界面控件 VA 局部性 d=912 锚 CEditBox::[8] |
+| 0x1422F2410 | §4.x UI·界面控件 VA 局部性 d=160 锚 CEditBox::[8] |
+| 0x1422F2460 | §4.x UI·界面控件 VA 局部性 d=80 锚 CEditBox::[8] |
+| 0x1422F24D0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CEditBox::[7] |
+| 0x1422F26D0 | §4.x UI·界面控件 VA 局部性 d=528 锚 CEditBox::[7] |
+| 0x1422F4860 | §4.x UI·界面控件 VA 局部性 d=240 锚 CEditBox::[25] |
+| 0x1422F77C0 | §4.x UI·界面控件 VA 局部性 d=1696 锚 CWindowType::[11] |
+| 0x1422F7980 | §4.x UI·界面控件 VA 局部性 d=1248 锚 CWindowType::[11] |
+| 0x1422F7B00 | §4.x UI·界面控件 VA 局部性 d=864 锚 CWindowType::[11] |
+| 0x1422F7E50 | §4.x UI·界面控件 VA 局部性 d=16 锚 CWindowType::[11] |
+| 0x1422F7E90 | §4.x UI·界面控件 VA 局部性 d=16 锚 CWindowType::[10] |
+| 0x1423031B0 | §4.x UI·界面控件 VA 局部性 d=32 锚 CDropDownBox::[33] |
+| 0x142303460 | §4.x UI·界面控件 VA 局部性 d=112 锚 CDropDownBox::[68] |
+| 0x1423036D0 | §4.x UI·界面控件 VA 局部性 d=112 锚 CDropDownBox::[69] |
+| 0x1423036F0 | §4.x UI·界面控件 VA 局部性 d=144 锚 CDropDownBox::[69] |
+| 0x14237F710 | §4.x UI·界面控件 VA 局部性 d=64 锚 TWindow::[48] |
+| 0x142387D20 | §4.x UI·界面控件 VA 局部性 d=3120 锚 COverlappingElementsBox::[92] |
+| 0x14024F180 | 串 "Tooltip disabled"/"Tooltip enabled"/"Tooltip enable" |
+| 0x1416C5790 | caller 1416CEB40←CUnitLeaderTraitWindow::SetupLeader |
+| 0x141762210 | 在 sub_1417591C0 中被赋入 `CDivisionDesignerView::`vftable'` 3 个槽（v18/v20/v28）；串 "name" + loc 查询 vt+128 |
+| 0x1417B82B0 | 体级 vtable `CColor` + ref.h:83 断言；caller 140B6D310(ingameinterfacehandler.cpp) |
+| 0x141A85A60 | 脚本注释串 "![MD]Gets the pronoun for the character with an initial capital letter." + 键名 GetHerHisCap |
+| 0x141C04E70 | a1+4288 串赋值 + a1+4200/4204 int + vtable+16/+64 刷新；caller 141798E20←_Func_impl_no_alloc<…>::[2] |
+| 0x141C0AF10 | sub_1424BC260 串取值 + sub_142245E60 本地化 + sub_1401FCFC0 比较；caller 141C0A2C0 |
+| 0x141CF15F0 | caller 141CF1390；sub_140F60720/141CF1800 |
+| 0x1422F1CC0 | caller 1422F1030 ← CEditBox::[6]（3/3 同槽） |
+| 0x14236D3F0 | caller 14225ABB0=CGui::[2]、14230FEE0=CContainerWindowType::[4]（2/2 GUI 类） |
+| 0x14237D830 | 体级 vtable `CTextBoxType`；caller 14237DA30←CTextBoxType::[0] |
+| 0x141D2D5E0 | gamestate.h:1125/1126 双断言；caller 14172BDE0←CCountryDeploymentView::Reload + 1416FA7C0/1416FB040 |
+| 0x1418F9050 | caller 1418F8970(mapicon.h:189 邻域) |
+| 0x140B53490 | caller 140B53890(graphicalmap.cpp:1036 邻域)；a1+32 子对象 +1784/+1648/+1649 标志门 |
+| 0x140D9CE80 | 邻域传播改判（锚 0x140D97C90 §4.1，距离 0x51F0）；跳点串 "failed to read cloud save somehow" + 调用者 CGameSetupIronmanSaveWindow::[4]@141F46A40 → 云存档/铁人存档窗口 |
+| 0x141BBB500 | 邻域传播改判（锚 0x141BB8510 §4.1，距离 0x2FF0）；跳点串 "move_ship_entry"/"ALL_SAME_TYPE_SHIPS"/"TYPE" + 调用者 CMoveShipsWindow::Reload@141BBC770、CMoveShipsWindow::[9]@141BBD… |
+| 0x14155F080 | 调用链 COccupationPolicySelectionView::[5]@14155E2E0 / COccupiedTerritoryCountryEntry::[0]@141562C30 / COccupationPolicySelectionView::[2]@14156D6B0；断言 gamestat… |
+| 0x140C53270 | 调用链 CStrategicAirView::Update@1418866D0 |
+| 0x141E19B40 | 调用链 CShipRefitConfirmationWindow::[14]@141E1A600；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 … |
+| 0x141F08600 | 调用链 CSetPrideOfTheFleetDialog::Update@141F09630；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 &… |
+| 0x141CD3DE0 | 调用链 CFrontEndGameSetupView::[11]@141CD6A10；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"C… |
+| 0x14231A6F0 | 调用链 CFrontendMultiplayerView::[9]@141CE8E00 |
+| 0x14178EE20 | 串 "HISTORICAL_PRESET" / "FOLDER_ITEM_TOOLTIP"；调用链 CEquipmentDesignerView::Reload@141787D30 / CEquipmentDesignerView::Setup@141788E70 / CEquipmentDesignerView… |
+| 0x141792F60 | 调用链 CEquipmentDesignerView::[9]@14178DC00 / _Func_impl_no_alloc<…>::[2]@141793B30 |
+| 0x142001510 | 调用链 CPurchasableEquipmentWindow::AddEquipmentBack@141FFB850 / CPurchasableEquipmentWindow::UpdateGuiElements@142001970 |
+| 0x1416EF4D0 | 调用链 CCombatLogView::[7]@1416EF450 / CCombatLogView::Reload@1416F0D20；断言 gameitemdatabase.h:142 "_pInstance && \"Instance not created.\"" / gameitemdatabase.h |
+| 0x140699180 | 调用链 CCareerProfileStatisticsView::AddCountryFilterItems@141FAAB90 |
+| 0x1402972D0 | 串 "Current version is:"/"Build Timestamp:"/"Commit Short Hash:" |
+| 0x140B51740 | 调用图传播 1 跳：CGraphicalMap::UpdateProvinces?（2 个） |
+| 0x140B75110 | VTNAME CLegacyButtonObserverGlue<CAIControllerPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x140B75530 | VTNAME CLegacyButtonObserverGlue<CConfirmationPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x140B75950 | VTNAME CLegacyButtonObserverGlue<CDefaultConfirmationPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x140B76190 | VTNAME CLegacyButtonObserverGlue<CFocusFinishedPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x140B765B0 | VTNAME CLegacyButtonObserverGlue<CIntelAgencyFinishedPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x140B77210 | VTNAME CLegacyButtonObserverGlue<CResearchFinishedPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x140B96D30 | 邻域传播改判（锚 0x140B87890 §4.30，距离 0xF4A0）；跳点串 "_alt_" / "_entity" |
+| 0x140B971E0 | 邻域传播改判（锚 0x140B87890 §4.30，距离 0xF950）；跳点串 "_pInstance && \"gamestate unitilialized\"" / "_ThreadForbidCount == 0 && \"Current thread is forbidden to access g… |
+| 0x140C3EC50 | 调用图传播 1 跳：CIntelLedgerArmyPanelController::CLedgerArmyTemplateEntry::[0]（4 个） |
+| 0x140F261D0 | 邻域传播改判（锚 0x140F28A80 §4.30，距离 0x28B0）；跳点串 "Tried to access countrytag outside of array, could be semi-serious - Johan L" |
+| 0x14109A7F0 | 串 "MODIFIER_CIVILIAN_INTEL_FACT"/"MODIFIER_ARMY_INTEL_FACTOR" |
+| 0x1412D0700 | VTNAME CLegacyButtonObserverGlue<CRightClickCloseItem> + std::_Func_impl_no_alloc×12 |
+| 0x1412D0B20 | VTNAME CLegacyButtonObserverGlue<CRightClickOpenItem> + std::_Func_impl_no_alloc×12 |
+| 0x14132E3D0 | VTNAME CLegacyButtonObserverGlue<CChat::CChannelItem> + std::_Func_impl_no_alloc×12 |
+| 0x14132E7F0 | VTNAME CLegacyButtonObserverGlue<CChat> + std::_Func_impl_no_alloc×12 |
+| 0x14132EC10 | VTNAME CLegacyButtonObserverGlue<CChat::CChatItem> + std::_Func_impl_no_alloc×12 |
+| 0x14137D160 | VTNAME CLegacyButtonObserverGlue<CNationalFocusFilterItem> + std::_Func_impl_no_alloc×12 |
+| 0x14137D580 | VTNAME CLegacyButtonObserverGlue<CNationalFocusShortcutItem> + std::_Func_impl_no_alloc×12 |
+| 0x141496C70 | VTNAME CLegacyButtonObserverGlue<CDesignerDivisionNameGroupItem> + std::_Func_impl_no_alloc×12 |
+| 0x141497090 | VTNAME CLegacyButtonObserverGlue<CDesignerEquipmentCategoryItem> + std::_Func_impl_no_alloc×12 |
+| 0x1414978D0 | VTNAME CLegacyButtonObserverGlue<CDesignerSubUnitItem> + std::_Func_impl_no_alloc×12 |
+| 0x1414981C0 | VTNAME CLegacyButtonObserverGlue<CClickableStandardGridBoxItem<CDesignFolderListItem>> + std::_Func_impl_no_alloc×12 |
+| 0x1415587C0 | VTNAME CLegacyButtonObserverGlue<COccupiedTerritoryCountryEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141558BE0 | VTNAME CLegacyButtonObserverGlue<COccupiedTerritoryStateEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141572350 | VTNAME CLegacyButtonObserverGlue<CMapModesInterface> + std::_Func_impl_no_alloc×12 |
+| 0x1415CBE90 | VTNAME CLegacyButtonObserverGlue<CLandCombatView> + std::_Func_impl_no_alloc×12 |
+| 0x1415E1FF0 | VTNAME CLegacyButtonObserverGlue<CDiplomacyCountryInfoController> + std::_Func_impl_no_alloc×12 |
+| 0x1415E23F0 | VTNAME CLegacyButtonObserverGlue<CDiplomacyCountryListController> + std::_Func_impl_no_alloc×12 |
+| 0x1416913E0 | VTNAME CLegacyButtonObserverGlue<CArmyDivisionListView> + std::_Func_impl_no_alloc×12 |
+| 0x1416A99F0 | 游戏 CU 簇内: CArmyDivisionStatsView::[8] / CTextBufferObserverGlue<CConsole>::[5] |
+| 0x1416AB6F0 | 游戏 CU 簇内: CArmyDivisionStatsView::[8] / CTextBufferObserverGlue<CConsole>::[5] |
+| 0x1416BEA60 | 游戏 CU 邻近: CArmyDivisionStatsView::[9] / std::X$$V::Z::_Func_impl_no_alloc<…>::[0 |
+| 0x1416C6300 | VTNAME CLegacyButtonObserverGlue<CCountryLeaderTraitItem> + std::_Func_impl_no_alloc×12 |
+| 0x1416E6120 | VTNAME CLegacyButtonObserverGlue<NCombatLogView::CCombatItem> + std::_Func_impl_no_alloc×12 |
+| 0x1416E6540 | VTNAME CLegacyButtonObserverGlue<CCombatLogView> + std::_Func_impl_no_alloc×12 |
+| 0x1416E71A0 | VTNAME CLegacyButtonObserverGlue<NCombatLogView::CPage> + std::_Func_impl_no_alloc×12 |
+| 0x1416F5B40 | VTNAME CLegacyButtonObserverGlue<CCountryArmyOfficerCorpView> + std::_Func_impl_no_alloc×12 |
+| 0x14170C990 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x141775B80 | VTNAME CLegacyButtonObserverGlue<CEquipmentDesignerView> + std::_Func_impl_no_alloc×12 |
+| 0x1417A8180 | VTNAME CLegacyButtonObserverGlue<CResistanceActivityItem> + std::_Func_impl_no_alloc×12 |
+| 0x1417A85A0 | VTNAME CLegacyButtonObserverGlue<CStripFlagGarrisonItem> + std::_Func_impl_no_alloc×12 |
+| 0x1417B4F90 | VTNAME CLegacyButtonObserverGlue<CInsigniaEntry> + std::_Func_impl_no_alloc×12 |
+| 0x1417CF790 | VTNAME CLegacyButtonObserverGlue<CConnectionLostDialog> + std::_Func_impl_no_alloc×12 |
+| 0x1417CFBB0 | VTNAME CLegacyButtonObserverGlue<COOSPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x1417D3D20 | 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / CNavalCombatResultsWindow::[1] |
+| 0x1417F0ED0 | VTNAME CLegacyButtonObserverGlue<CNavalLossesOverview> + std::_Func_impl_no_alloc×12 |
+| 0x1417F12F0 | VTNAME CLegacyButtonObserverGlue<CShipArchetypeItem> + std::_Func_impl_no_alloc×12 |
+| 0x1417F1710 | VTNAME CLegacyButtonObserverGlue<CShipOverviewHeaderItem> + std::_Func_impl_no_alloc×12 |
+| 0x1418587C0 | 调用图传播: 1 个命名调用者（1 游戏类，如 CPeaceConferenceWindow::SetBiddingsInBeneficiaryItem） |
+| 0x14185EB70 | 调用链 CPeaceConferenceWindow::[0]@141860410；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Cu… |
+| 0x14186ADD0 | VTNAME CLegacyButtonObserverGlue<CPlayerLobby> + std::_Func_impl_no_alloc×12 |
+| 0x141879300 | VTNAME CLegacyButtonObserverGlue<CStrategicAirView> + std::_Func_impl_no_alloc×12 |
+| 0x1418B1730 | VTNAME CLegacyButtonObserverGlue<CWorldTensionPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x1418B5810 | VTNAME CLegacyButtonObserverGlue<CAdjacencyRuleIcon> + std::_Func_impl_no_alloc×12 |
+| 0x1418B6050 | VTNAME CLegacyButtonObserverGlue<CConstructionInfoMapIcon> + std::_Func_impl_no_alloc×12 |
+| 0x1418B6470 | VTNAME CLegacyButtonObserverGlue<CDecisionMapIconItem> + std::_Func_impl_no_alloc×12 |
+| 0x1418B70D0 | VTNAME CLegacyButtonObserverGlue<CMissionMapIcon> + std::_Func_impl_no_alloc×12 |
+| 0x1418B74F0 | VTNAME CLegacyButtonObserverGlue<CNavalCombatResultsMapIcon> + std::_Func_impl_no_alloc×12 |
+| 0x1418B7910 | VTNAME CLegacyButtonObserverGlue<CRocketSiteMapIcon> + std::_Func_impl_no_alloc×12 |
+| 0x1418D1260 | VTNAME CLegacyButtonObserverGlue<CUnitCounterItem> + std::_Func_impl_no_alloc×12 |
+| 0x1418F9840 | VTNAME CLegacyButtonObserverGlue<CNavalMissionMapIcon> + std::_Func_impl_no_alloc×12 |
+| 0x1419B4690 | VTNAME CLegacyButtonObserverGlue<CSettingsScreen> + std::_Func_impl_no_alloc×12 |
+| 0x1419C6550 | VTNAME CLegacyButtonObserverGlue<CTutorialHint> + std::_Func_impl_no_alloc×12 |
+| 0x1419C7C70 | VTNAME CLegacyButtonObserverGlue<CTutorialMinimized> + std::_Func_impl_no_alloc×12 |
+| 0x1419E57F0 | VTNAME CLegacyButtonObserverGlue<CPeaceClickAllEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141A101E0 | VTNAME CLegacyButtonObserverGlue<CAgencyLogoSelectionWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141A13190 | VTNAME CLegacyButtonObserverGlue<CAgencyUpgradesWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141AB6060 | VTNAME CLegacyButtonObserverGlue<CArmyLeaderWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141AB6480 | VTNAME CLegacyButtonObserverGlue<CCapturedArmyLeaderItem> + std::_Func_impl_no_alloc×12 |
+| 0x141AB6CC0 | VTNAME CLegacyButtonObserverGlue<CHeldOfficerWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141AB70E0 | VTNAME CLegacyButtonObserverGlue<CMedalTemplateLeaderItem> + std::_Func_impl_no_alloc×12 |
+| 0x141AB8160 | VTNAME CLegacyButtonObserverGlue<CUnitLeaderWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141AEE6D0 | 串 No map mode manager、AI View is needed to disable rendering during AI update、Unit Controller State Min. Divs./Weight/ProvinceWeight；写 dword_1430B15CC 调试页 id |
+| 0x141B176A0 | 串 "Hourly Ticks Breakdown"/"Time (ms)" |
+| 0x141B17A80 | 串 "Hourly Ticks Breakdown"/"Time (ms)" |
+| 0x141B42240 | VTNAME CLegacyButtonObserverGlue<CTemplateEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141B4F4F0 | VTNAME CLegacyButtonObserverGlue<CContinentEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141B56890 | VTNAME CLegacyButtonObserverGlue<CStateNudger> + std::_Func_impl_no_alloc×12 |
+| 0x141B6FE00 | VTNAME CLegacyButtonObserverGlue<CStackEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141B78480 | VTNAME CLegacyButtonObserverGlue<CWeatherEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141B788A0 | VTNAME CLegacyButtonObserverGlue<CWeatherNudger> + std::_Func_impl_no_alloc×12 |
+| 0x141BC48D0 | VTNAME CLegacyButtonObserverGlue<CContinuousFocusDetailView> + std::_Func_impl_no_alloc×12 |
+| 0x141BC4CF0 | VTNAME CLegacyButtonObserverGlue<CNationalFocusDetailView> + std::_Func_impl_no_alloc×12 |
+| 0x141BE2350 | VTNAME CLegacyButtonObserverGlue<CResearchSlotItem> + std::_Func_impl_no_alloc×12 |
+| 0x141BF8800 | 串 "FACTION_SUPREME_COMMANDER_TYPE_SORT_FM" / "FACTION_SUPREME_COMMANDER_TYPE_SORT_AD" / "FACTION_SUPREME_COMMANDER_TYPE_SORT_ALL"；调用链 NFactions::NUi::CFactio… |
+| 0x141C52F70 | VTNAME CLegacyButtonObserverGlue<CExileViewItem> + std::_Func_impl_no_alloc×12 |
+| 0x141C87B50 | VTNAME CLegacyButtonObserverGlue<CDiplomacyActionStateItem> + std::_Func_impl_no_alloc×12 |
+| 0x141CB89D0 | VTNAME CLegacyButtonObserverGlue<CTradeResourceFilterItem> + std::_Func_impl_no_alloc×12 |
+| 0x141CB8DF0 | VTNAME CLegacyButtonObserverGlue<CTradeResourceInfoItem> + std::_Func_impl_no_alloc×12 |
+| 0x141CDE270 | 调用图传播: 1 个命名调用者（1 游戏类，如 CFrontEndMainView::[0]）；多数投 §4.30 |
+| 0x141CECF70 | VTNAME CLegacyButtonObserverGlue<NAirSelectionUI::CMissionToolbarController> + std::_Func_impl_no_alloc×12 |
+| 0x141CF6E00 | VTNAME CLegacyButtonObserverGlue<CDivisionNamesContainerItem> + std::_Func_impl_no_alloc×12 |
+| 0x141CFE590 | VTNAME CLegacyButtonObserverGlue<CRailwayGunStatsView> + std::_Func_impl_no_alloc×12 |
+| 0x141D00CF0 | 游戏 CU 簇内: CRailwayGunStatsView::Teardown / CRailwayGunListView::[3] |
+| 0x141D23F60 | VTNAME CLegacyButtonObserverGlue<CForeignTemplateListItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D24380 | VTNAME CLegacyButtonObserverGlue<CHqTemplateNamedItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D32180 | VTNAME CLegacyButtonObserverGlue<CAirMilitaryOverviewItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D325A0 | VTNAME CLegacyButtonObserverGlue<CArmyMilitaryOverviewItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D46220 | VTNAME CLegacyButtonObserverGlue<CProductionLineBuildingItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D46640 | VTNAME CLegacyButtonObserverGlue<CProductionLineEquipmentItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D46E80 | VTNAME CLegacyButtonObserverGlue<CProductionLineNavalItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D49360 | loc 键 "icon_overlay" |
+| 0x141D6E390 | VTNAME CLegacyButtonObserverGlue<CDecisionViewCategoryItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D6E7B0 | VTNAME CLegacyButtonObserverGlue<CDecisionViewDecisionItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D6EFF0 | VTNAME CLegacyButtonObserverGlue<CDecisionViewOnMapLocatorItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D83060 | VTNAME CLegacyButtonObserverGlue<CMilitaryDeploymentLineView> + std::_Func_impl_no_alloc×12 |
+| 0x141D93FF0 | VTNAME CLegacyButtonObserverGlue<CLogisticsInfoEquipmentItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D94830 | VTNAME CLegacyButtonObserverGlue<CLogisticsOverviewOtherItem> + std::_Func_impl_no_alloc×12 |
+| 0x141D94C50 | VTNAME CLegacyButtonObserverGlue<CLogisticsOverviewTypeItem> + std::_Func_impl_no_alloc×12 |
+| 0x141DA8520 | VTNAME CLegacyButtonObserverGlue<CCarrierAirWingCompositionEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141DBEDC0 | VTNAME CLegacyButtonObserverGlue<CStateBuildingItem> + std::_Func_impl_no_alloc×12 |
+| 0x141DC7560 | VTNAME CLegacyButtonObserverGlue<CPopupLendLeaseRequestItem> + std::_Func_impl_no_alloc×12 |
+| 0x141DCD210 | 调用图传播 1 跳：CDivisionDesignerView::[7]（1 个） |
+| 0x141DD07F0 | VTNAME CLegacyButtonObserverGlue<CDivisionEquipmentTypeItem> + std::_Func_impl_no_alloc×12 |
+| 0x141DE8AD0 | VTNAME CLegacyButtonObserverGlue<CInGameMenuLoadWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141DE8EF0 | VTNAME CLegacyButtonObserverGlue<CInGameMenuSaveWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141E14980 | VTNAME CLegacyButtonObserverGlue<CNavyTheaterReserveFleetRowItem> + std::_Func_impl_no_alloc×12 |
+| 0x141E14DA0 | VTNAME CLegacyButtonObserverGlue<CNavyTheaterRowItem> + std::_Func_impl_no_alloc×12 |
+| 0x141E49610 | VTNAME CLegacyButtonObserverGlue<CPeaceBiddingItem> + std::_Func_impl_no_alloc×12 |
+| 0x141E555C0 | VTNAME CLegacyButtonObserverGlue<CBiddingsPopupItem> + std::_Func_impl_no_alloc×12 |
+| 0x141E559E0 | VTNAME CLegacyButtonObserverGlue<CPeaceBiddingsPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141E5BCE0 | VTNAME CLegacyButtonObserverGlue<CAirTheatreGroupItem> + std::_Func_impl_no_alloc×12 |
+| 0x141E5C100 | §4.30 UI 回调安装机制 119/119 同族：VTNAME `CLegacyButtonObserverGlue<X>` + std::_Func_impl_no_alloc×12 + std::_Binder×12 + std::_Ph<2>/<3>×10；签名固定 `void(CGuiObject*,… |
+| 0x141E642E0 | VTNAME CLegacyButtonObserverGlue<CNewTheaterGroupItem> + std::_Func_impl_no_alloc×12 |
+| 0x141E64700 | VTNAME CLegacyButtonObserverGlue<CRegionAlertEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141E64F40 | VTNAME CLegacyButtonObserverGlue<CTheaterGroupAlertEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141E65360 | VTNAME CLegacyButtonObserverGlue<CTheaterGroupItem> + std::_Func_impl_no_alloc×12 |
+| 0x141EF5230 | *vtable 置换 NCareerProfile::CCareerProfileView::vftable + sub_140B77E10(a1+8)/(a1+1376) 构造链 → 生涯档案视图构造 |
+| 0x141EFA600 | 串 "loading_friend_profile_view" |
+| 0x141F2B000 | 串 "incoming_lend_lease_equipment_window" |
+| 0x141F3EAC0 | VTNAME CLegacyButtonObserverGlue<CGameSetupIronmanSaveWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141F3EEE0 | VTNAME CLegacyButtonObserverGlue<CGameSetupMenuLoadWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141F502D0 | VTNAME CLegacyButtonObserverGlue<CGameSetupCustomSettingsWindow> + std::_Func_impl_no_alloc×12 |
+| 0x141F59E10 | VTNAME CLegacyButtonObserverGlue<CConnectionInfoPopup> + std::_Func_impl_no_alloc×12 |
+| 0x141F5A230 | VTNAME CLegacyButtonObserverGlue<CHostConfigurationPupup> + std::_Func_impl_no_alloc×12 |
+| 0x141F764E0 | VTNAME CLegacyButtonObserverGlue<CEquipmentModuleEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141F8ED30 | VTNAME CLegacyButtonObserverGlue<CFleetViewEntry> + std::_Func_impl_no_alloc×12 |
+| 0x141FFE6E0 | 调用链 CPurchaseDraftWindow::StartSession(sub_142049DD0) / CPurchaseDraftWindow::StartSession(sub_142049DD0) / CPurchaseDraftWindow::StartSession(sub_142049DD0) |
+| 0x14201C120 | 串 "CAREER_PROFILE_EMPTY_MEDAL_PICKER_ITEM_TITLE" / "CAREER_PROFILE_EMPTY_MEDAL_PICKER_ITEM_DESCRIPTION" / "CAREER_PROFILE_EMPTY_MEDAL_PICKER_ITEM_TITLE"；断言 n… |
+| 0x142034B60 | VTNAME CLegacyButtonObserverGlue<CAirWingDetailsPopUpWindow> + std::_Func_impl_no_alloc×12 |
+| 0x14203C550 | 调用链 CPurchasableEquipmentWindow::ToggleSubsidiesOverview@142003110 |
+| 0x142085030 | VTNAME CLegacyButtonObserverGlue<CTweakableCategory> + std::_Func_impl_no_alloc×12 |
+| 0x142085450 | VTNAME CLegacyButtonObserverGlue<CTweakableDropDown> + std::_Func_impl_no_alloc×12 |
+| 0x142087D60 | 串 "tweaker_listcomponent"/"tweaker_label"/"tweaker_listitem"/"tweaker_right"/"tweaker_left"（loc 键族）→ tweaker 调试窗口 |
+| 0x14208B660 | 调用链 CTweakableDropDown::[13]@14208D260；loc 键 "tweaker_dropdownitem" / "tweaker_dropdownbutton" / "tweaker_label" |
+| 0x14212BD50 | 邻域传播改判（锚 0x142129BA0 §4.30，距离 0x21B0）；跳点串 "CoInitialize() failed" / "combase.dll" |
+| 0x1421E6080 | 邻域传播改判（锚 0x1421E5A30 §4.30，距离 0x650）；跳点串 "##Combo_%02d" |
+| 0x1422B1A50 | 调用链 CContainerWindow::[75]@1422C2890 |
+| 0x1422B22E0 | 调用链 CContainerWindow::[69]@1422C4210 |
+| 0x1422B2790 | 调用链 CContainerWindow::[15]@1422C4510 |
+| 0x1422C37B0 | 调用链 CContainerWindow::[46](sub_1422C37B0) / CContainerWindow::[46](sub_1422C37B0) / CContainerWindow::[46](sub_1422C37B0) |
+| 0x1422C5320 | 调用图传播: 7 个命名调用者（5 游戏类，如 CContainerWindow::[29]）；多数投 §4.30 |
+| 0x142313BF0 | VTNAME CLegacyButtonObserverGlue<CMatchmakingGuiFriendItem> + std::_Func_impl_no_alloc×12 |
+| 0x142314010 | VTNAME CLegacyButtonObserverGlue<CMatchmakingGuiServerItem> + std::_Func_impl_no_alloc×12 |
+| 0x1424579C0 | 邻域传播改判（锚 0x14245F080 §4.30，距离 0x76C0）；跳点串 "TRUEVISION-XFILE." |
+| 0x142461190 | 邻域传播改判（锚 0x14245F080 §4.30，距离 0x2110）；跳点串 "LSE" |
+| 0x1424621C0 | 邻域传播改判（锚 0x14245F080 §4.30，距离 0x3140）；跳点串 "SOS" / "LSE" |
+| 0x142472800 | 邻域传播改判（锚 0x14245F080 §4.30，距离 0x13780）；跳点串 "text compression mode is out of range" / "text chunk: out of memory" |
+| 0x14247C620 | 邻域传播改判（锚 0x14245F080 §4.30，距离 0x1D5A0）；跳点串 "PhotometricInterpretation" |
+
+#### 4.30.105 GUI 主视图与地图函数补遗（80 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E91110 | 业务 串 CAREER_PROFILE_MEDAL_TOOLTIP_PREFIX_YES/NO x3 + BRONZE/SILVER/GOLD_PREFIX/REQUIREMENT/POINTS + localize.cpp:641 x6 |
+| 0x1415DE650 | 业务 邻域 CCountryDiplomacyView::[0] + 串 "_desc"/TARGET/STATE/AND + localize.cpp:641 x3（列表->文本 join） |
+| 0x141A21990 | 业务 串 name/cryptology_state/activate_button/activate_button_text/start_stop_button/decryption_done_icon + containerwindow.cpp:886/899 x8 |
+| 0x141D0C2A0 | 业务 串 CONFIRMDELETETEXT_RAILWAY_GUNS(_ENCIRCLED_SINGLE/_MULTI)/CONFIRM_DIALOG_MULTI_RAILWAY_GUNS |
+| 0x141C511D0 | 业务 邻域 CSpiritItemWindow::[0]/CDismantleFactionDialog::Update/politicalideaswindow.cpp x2/CCollabarationViewItem::[0] |
+| 0x141F9E8B0 | 业务 邻域 CAwardDisplay::CreateSlots/gameitemdatabase.h + log2(122.0)/1.0f 数值 + pdx_robin_hood_table.h:579 |
+| 0x14215C720 | 业务 被调用 sub_1420E6370 x16（UI 选项切换 + 音效 1539/1540）+ sub_1420E61E0 x6 |
+| 0x1415E14F0 | 业务 邻域 CCountryDiplomacyView::[0]/gamestate.h + 同族 0x1415E0E10（char*/_BYTE* 缓冲变换） |
+| 0x142216800 | 业务 UI 主题/样式管理器 qword_143451D78 + 状态色表(v2+1016/+1664，-1.0 哨兵) + 标志 v2+1784/1785 |
+| 0x1421DDA40 | 业务 UI 布局引擎 qword_143451C80：标志 0x200 过滤 + fmaxf(4.0) 最小尺寸 + 836 数组遍历 |
+| 0x14226F770 | 业务 行列差/乘积运算(｜v5-v3｜ 阈值、(v3+1)*(v5+1) 网格索引）+ Init_thread 静态 + off_143085170 x6 |
+| 0x142329910 | CFixedWindow::[58] 业务 CFixedWindow vtable slot58 方法 |
+| 0x14157DE20 | （无名） 业务 CCountryPoliticsView::[7] 子段（被其调用；gamestate.h + gameitemdatabase.h 断言） |
+| 0x14215F0C0 | 业务 sub_1420E6370 x17 选项切换族 + 类型字节(a3[1]) switch 0-5 -> 标志位组合 |
+| 0x141FC74D0 | （无名） 业务 UI 窗口（VT 类 CConfirmSaveGameRulesWindow） |
+| 0x1421DB860 | 业务 UI 布局引擎 qword_143451C80 x9 + float 矢量(__m128) 布局运算 |
+| 0x142215E60 | 业务 UI 主题管理器 qword_143451D78 x6 + double 运算（同族 0x142216800） |
+| 0x141FA93A0 | sub_141FA93A0 业务 职业档案头像视图（调用图传播 CProfilePictureView::AddProfileBackgroundItems/AddProfilePictureItems + 串 country_header/CAREER_PROFILE_*） |
+| 0x1406996B0 | 业务 邻域 career_profile.cpp x14 + gamestate.h x3 + std_pair_parser.h/std_array_parser.h + 24 对 DWORD 比较（24B 步长 +16/+20 … +592/+596）谓词 |
+| 0x14182A360 | sub_14182A360 业务 行动总览窗口（调用图传播 COperationOverviewWindow::[0]） |
+| 0x140B851A0 | sub_140B851A0 业务 脚本外交弹窗单例（调用图传播 CScriptedDiplomacyActionSendPopup::[11]/CScriptedGUIDiplomacyPopup::[11] + Init_thread 惰性初始化） |
+| 0x141D9CFD0 | sub_141D9CFD0 业务 国家后勤视图（调用图传播 CCountryLogisticsView::[9]） |
+| 0x141DAA320 | CCarrierAirWingCompositionWindow::[11] 业务 CCarrierAirWingCompositionWindow::[11]（func_names rtti 槽 + 串 list/confir） |
+| 0x14201F970 | sub_14201F970 业务 职业档案统计视图筛选（调用图传播 CCareerProfileStatisticsView::AddDataSetFilter/AddGameModeFilter + 串 career_profile_simple_dropdown_item/btn_bg） |
+| 0x141C524A0 | CDismantleFactionDialog::[14] 业务 CDismantleFactionDialog::[14]（func_names rtti 槽 + 串 DIPLOMACY_DISMANTLE_FACTION_TITLE/CONFIRMDISMANTLE_FACTION_TEXT） |
+| 0x14172B010 | CCountryDeploymentView::ClearContents 业务 脚本/业务语义串 |
+| 0x141F708C0 | CEquipmentUpgradeDesignerView::[0] 业务 游戏类 vtable 槽（CEquipmentUpgradeDesignerView） |
+| 0x1415F7560 | CCountryTechnologyView::ClearContents 业务 脚本/业务语义串 |
+| 0x141E34510 | COperationRefundDialog::[14] 业务 游戏类 vtable 槽（COperationRefundDialog） |
+| 0x141793FC0 | _Func_impl_no_alloc<…>::[2] 业务 UI 本地化键/常量串（NO_FOLDER） |
+| 0x141772BF0 | _Func_impl_no_alloc<…>::[2] 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x141709DA0 | sub_141709DA0 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x141709DF0 | sub_141709DF0 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x141772B70 | _Func_impl_no_alloc<…>::[2] 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x141772C90 | _Func_impl_no_alloc<…>::[2] 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1415C22D0 | _Func_impl_no_alloc<…>::[2] 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x14191CCA0 | sub_14191CCA0 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1415751A0 | sub_1415751A0 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1417CC930 | sub_1417CC930 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1417A3D60 | sub_1417A3D60 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1417A70F0 | sub_1417A70F0 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1417C39B0 | sub_1417C39B0 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x141772E70 | _Func_impl_no_alloc<…>::[2] 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1415770B0 | sub_1415770B0 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1417CDA60 | sub_1417CDA60 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x1415658B0 | sub_1415658B0 业务 UI 窗口显示/隐藏/可见性（CWindow：+48 槽 +120/+128，+165 旗） |
+| 0x140C15520 | §4.x·UI 本地化 / scripted loc 自文档串：CAPTURED_GENERAL_LOCATION_UNKNOWN |
+| 0x1413AED40 | §4.x·UI 本地化 / scripted loc 自文档串：GFX_idea_unknown |
+| 0x14177FAD0 | §4.x·UI 本地化 / scripted loc 自文档串：SHIP_DESIGNER_TITLE/TANK_DESIGNER_TITLE/PLANE_DESIGNER_TITLE |
+| 0x14178CBF0 | §4.x·UI 窗口（CWindow） CWindow 显隐习语：+48 槽 +120/+128 调度，+165 旗 0x10 |
+| 0x1418CE510 | §4.x·UI 本地化 / scripted loc 自文档串：GFX_mapicon_facility_ |
+| 0x141FD2E90 | 双 UI 窗口显隐刷新 sub_140F63140 条件判定 + sub_140B43B80 设值 + sub_140F5AAB0/AAD0 双路取值 |
+| 0x1422C8B80 | CCheckBox 析构 显式双 vftable &CCheckBox::`vftable' @ a1+0 与 a1+128 |
+| 0x14138F660 | caller 14138B350=CNationalFocusView::[7]、14138B9B0=CNationalFocusView::Reload（2/2 同类） |
+| 0x141C54640 | 断言 emptylists.h:60 + GUI 空列表引用；caller 141C53CD0/141C53DF0 |
+| 0x141DD62B0 | func_names RTTI 名 CEmptyEntryListBase<CDesignerStatItem>；断言串 "GUI object managed by empty list is still referenced when deleted!" + emptylists.h:60 |
+| 0x142236E40 | caller 14223B0D0←CGuiAnimationReloader::Reader |
+| 0x1422EF490 | caller 1422F4A70←CEditBox::[24]/CEditBox::[2]/CEditBox::[8]（3/3 CEditBox）；a1+168 vtable +120/+128 文本布局槽 |
+| 0x141746B20 | 断言 "( pItem->GetWindow()==nullptr \ \ …GetOrigo()->GetParent()==nullptr ) && \"GUI object managed by empty list is still referenced when deleted! …gridbox…\"… |
+| 0x14177F230 | 同 emptylists.h:60 断言；与 0x141746B20 同族（不同 CEmptyList<T> 实例化） |
+| 0x1417F5640 | 同 emptylists.h:60 断言（once-flag byte_14338B150） |
+| 0x141C2F9F0 | 同 emptylists.h:60 断言（once-flag byte_14338C468） |
+| 0x1422DEF70 | switch *(a1+380) case 1..6 + sub_1416CCB00/570/680 尺寸测量 + x*w/y*h/居中数学 |
+| 0x141EF01E0 | vftable 名 std::_Func_impl_no_alloc<…NProject::NUi::CStartedResearchState…CProjectOutputRewardWindow…>；串 "RESTART_PROJECT_POPUP_TITLE"/"_DESC"；UI 根 qword_1433… |
+| 0x14133BD20 | 选中索引钳位 [−1,count−1]；环形索引 (head−idx+count−1)&(mask−1)；a1+224/232/240/248/256；通知 a1+4568 |
+| 0x1421E7B90 | 单例 qword_143451C80；浮点视口矩形 v28..v31；a3 位门（0x800）；sub_1421DA620 绘制；地址段 0x1421C-E 与 UI/地图绘制族同区 |
+| 0x1422EF060 | CU 同类簇: 邻接 1422EEBC0（CEditBox::[2]）/ 1422EF290（CEditBox::[3]） |
+| 0x140B77F20 | VTNAME CConfirmationPopUpWindow + 串 "confirmation_popup_window" |
+| 0x1416D14D0 | VTNAME CTacticsListView\ CSelectArmyLeaderPreferredTacticsEntry |
+| 0x14181F070 | func_names 符号名 CNavyLeaderTraitWindow::[9] + VTABLE RTTI .?AVCNavyLeaderTraitWindow@@[slot9] |
+| 0x141ADAA20 | VTNAME + 串 "kick_from_faction_country_item"/"leader_border"/"remove_from_faction_button" + 被调用者 CFactionMemberCountriesWindow::[6] |
+| 0x141B7CD30 | VTNAME CWeatherNudger\ CTextBufferObserver\ CScrollbarObserver |
+| 0x141C39950 | func_names 符号名 CReleaseCountryDialog::[14] + VTABLE RTTI .?AVCReleaseCountryDialog@@[slot14] |
+| 0x141E67210 | VT CButtonEventDispatcher + CStrategicRegionItem + CTooltipHandler；memcpy；调 sub_1402DE480/1422C6230（UI 原语） |
+| 0x141F13680 | VTNAME NFactions::NUi\ CFilterGoalItem\ CButtonWrapper |
+| 0x141F40300 | VTNAME CGameSetupIronmanSaveWindow\ CTextBufferObserverGlue\ CGameSetupIronmanSaveWindow |
+| 0x142057650 | VTNAME CListWidget\ NInternationalMarket::SMarketEquipmentData\ NInternationalMarket::CAddEquipmentToMarketWindow |
+| 0x142320470 | func_names 符号名 CLineChartType::[9] + VTABLE RTTI .?AVCLineChartType@@[slot9] |
+| 0x14232BB70 | func_names 符号名 CCurveGraph::[2] + VTABLE RTTI .?AVCCurveGraph@@[slot2] |
+| 0x14237BDB0 | VTNAME CScrollbarType\ CTernary\ CGuiType |

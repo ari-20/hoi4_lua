@@ -643,7 +643,7 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 - **R7 捞出 11 个控制台命令 functor** (推定, 待 §4.33 命令注册表对拍定实名): 语料与 PE 双零引用, 签名 = `char* f(char* buf, args)` + 用法提示串; 代表 sub_140240620 (建筑血量增删, 串 "Please specify <building type> <state or prov id> <health to add>" / "Building type not found")。
 - **工具链陷阱 (定案)**: ① 命名表键为 VA **十进制**, 按 `sub_` 名查零命中; ② 语料 `_fnoff.tsv` 非 VA 有序, `bisect` 查找会静默返回错误函数 (须建 `{VA: 偏移}` 字典直查); ③ `(int*)gs + N` 非 8 对齐下标形 = 类型化指针步进伪影, 字节偏移须归一 (同 §4.1.17 伪影条)。
 
-#### 4.1.19 CGameState 派发族与门控函数补遗（389 函）
+#### 4.1.19 CGameState 派发族与门控函数补遗（387 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -981,7 +981,6 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 | 0x1418FCC60 | 特混舰队/护航突袭警告 特混舰队/护航突袭警告：STR 'CURRENT_ACTIVE_TASK_FORCE_FOR_DOMINANCE_WARNING'/'TOO_MANY_REGIONS_FOR_CONVOY_RAID_WARNING' |
 | 0x1414715D0 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
 | 0x141CBD4A0 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
-| 0x142011B10 | NAiNavalGoals::CInvasionDefenseObjective::[6] gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
 | 0x141CF0710 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1116） |
 | 0x141065110 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
 | 0x14202F9D0 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
@@ -1031,7 +1030,6 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 | 0x141036000 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
 | 0x141D239A0 | _Func_impl_no_alloc<…>::[2] gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1116） |
 | 0x140E88560 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
-| 0x142014EF0 | NAiNavalGoals::CTrainingObjective::[1] gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
 | 0x140F02DC0 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1116） |
 | 0x140464450 | CHasActiveResistance::Evaluate gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
 | 0x140A8D120 | （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
@@ -1138,7 +1136,7 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 | 0x1410FAE80 | vtable/RTTI 类 CGameDate sub_1410FAE80 + vtable/RTTI 类 CGameDate; 被调源码 hoi4 |
 | 0x1410FB440 | vtable/RTTI 类 CGameDate sub_1410FB440 + vtable/RTTI 类 CGameDate; 被调源码 hoi4 |
 
-#### 4.1.21 CGameState 派发族与门控函数补遗（145 函）
+#### 4.1.21 CGameState 派发族与门控函数补遗（144 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -1155,7 +1153,6 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 | 0x141009500 | （未具名） "GFX_ability_icon_default"/"INVALID_ABILITY" + CAbility/CModifier 类名（能力图标 GUI） |
 | 0x14072BD70 | 事件域描述（_desc） eventscope.h:193 断言 + 串 `_desc` |
 | 0x141DECE00 | （未具名） "playthrough_overview_window" + NCareerProfile::CPlaythroughOverviewWindow 类名 |
-| 0x14201ABE0 | NCareerProfile::CRibbonDisplaySlot + "ca NCareerProfile::CRibbonDisplaySlot + "career_profile_ribbon_ §4.1 CGameState/gamestate |
 | 0x14012C840 | 外交动作辅助（调 GetFirstCountryRef） gameitemdatabase.h:882 断言 + 调 CDiplomaticAction::GetFirstCountryRef |
 | 0x141DC2EE0 | CStateStrategicResourceItem 槽 0 串 KEY / HEADER / COUNTRY / STATE_FOREIGN_RESOURCE_OWNER |
 | 0x141D8DAD0 | 后勤燃料消耗视图 串 LOGISTICS_VIEW_FUEL_CONSUMPTION_VALUE |
@@ -4239,12 +4236,6 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 | 0x1422AEC90 | CTrack::[102] vtable 槽 CTrack::[102]（func_names RTTI 名） |
 | 0x1422AECA0 | CGraphicalObject::[15] vtable 槽 CGraphicalObject::[15]（func_names RTTI 名） |
 | 0x1412EF100 | CLendLeaseAction::[43] vtable 槽 CLendLeaseAction::[43]（func_names RTTI 名） |
-
-#### 4.1.23 CGameState 派发族与门控函数补遗（2947 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.1.24 CGameState 派发族与门控函数补遗（3549 函）
 
 | VA | 语义/证据 |
@@ -7798,12 +7789,6 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 | 0x1423C2C30 | CCallbackImpl<$0CI>::[2] func_names 名 CCallbackImpl<$0CI>::[2] |
 | 0x1423C2C40 | CCallbackImpl<$0DI>::[2] func_names 名 CCallbackImpl<$0DI>::[2] |
 | 0x14012A120 | CPdxHybridInlineBufferAllocator<H::$0CA::CString>::[9] func_names 名 CPdxHybridInlineBufferAllocator<H::$0CA::CString>::[9] |
-
-#### 4.1.25 CGameState 派发族与门控函数补遗（3549 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.1.26 CGameState 派发族与门控函数补遗（297 函）
 
 | VA | 语义/证据 |
@@ -9520,3 +9505,2716 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 | 0x1419E0080 | 未决窗口函数 · gamestate 域查询链 sub_140BB48F0(gamestate 包装) → sub_1406F98C0 → sub_1411FB040 → qword_143331500 上界比较 |
 | 0x1418344F0 | 未决窗口函数 · gamestate 包装链+范围计算 *(a1+48) vt+160 取数组，>0 时经 sub_140BB48F0(gamestate 包装)/sub_1406CF7F0/sub_140F9F9F0/sub_140FDCB00 链算范围，byte(a1+184)=0 |
 | 0x140BA7C00 | 未决窗口函数 · 共享对象引用计数比较（+2720 标识） v3=*(a2+2720)；计数 a1+80 数组中引用同对象项数，与 sub_14072DE90(v3) 比较 |
+
+#### 4.1.45 CGameState 派发族与门控函数补遗（276 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142330AF0 | SSubsystemReader（子系统存档读取，本窗最大函） VT SSubsystemReader |
+| 0x141FF3040 | 国际市场面板控制器槽 国际市场面板控制器槽；邻域 NInternationalMarket::CMarketPanelController::[0]/CPlaneCategoryWidget/CTankCategoryWidget；调 sub_14251BAF x5/sub_141FFA30 x4 |
+| 0x141CF8230 | 师名称容器 GUI 师名称容器 GUI；串 division_name_dropdown_entry；邻域 CDivisionNamesContainer::[0]/CDivisionNamesContainerItem::[0] |
+| 0x1401FFE30 | 海军任务快照序列化 海军任务快照序列化；串 naval_mission_snapshot 下 composition/control_ratio/has_leader/mission/nation/naval_dominance/region_id |
+| 0x14006D930 | 视图名注册/定位表 视图名注册/定位表；串 country_info/countryconstructionsview/countrydecisionview/countrydeploymentview/countrydiplomacyview/countryintelligenceagencyview/coun… |
+| 0x1412B4100 | 陆战战斗员逻辑 陆战战斗员逻辑；邻域 CLandCombatant::[29]/[27]/[12]、CLandCombat::[10] |
+| 0x142055860 | 市场装备上架窗口槽 市场装备上架窗口槽；邻域 NInternationalMarket::CAddEquipmentToMarketWindow::[0]/CListItem；与 0x141FF3040 同形（sub_14251BAF x5 + sub_14011DF4 x5） |
+| 0x1406944D0 | 统计读取适配器（a1+8/+12 处 _InterlockedExchange） 统计读取适配器（a1+8/+12 处 _InterlockedExchange）；邻域 SStatsReadingAdapterV2::[0]、NCareerProfile::SCareerProfileAwards::Reader |
+| 0x141D93220 | 国家资源网格 GUI 国家资源网格 GUI；串 resources_grid；gamestate.h 门控断言 |
+| 0x141F7BD40 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 NDesignerUI::CNicheIconListItem::[0]/[1]、CScientistItem |
+| 0x1416D0D40 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 CTacticsListView<CSelectArmyLeaderPreferredTacticsEntry>::[0]/[1] |
+| 0x1417AD2D0 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 CStandardInterface::Reload/CHotJoinRequestItem::[1]/CHotJoinWindow::[1] |
+| 0x141FCC5C0 | 空军基地选择视图 空军基地选择视图；串 airbase_friendship_status/quick_wing_deployment/create_new_wing_glow/sticky_mission_area_btn(_icon)；邻域 NAirSelectionUI::CAirBaseSelection… |
+| 0x142074700 | VT CDLCDescriptor VT CDLCDescriptor：DLC 描述符装载/解析 |
+| 0x141034A10 | 作战指令/阵线数据处理 作战指令/阵线数据处理；邻域 COrderInstance::[0]/[8]/Reader |
+| 0x14193BD30 | 生产线/HQ 分配视图 生产线/HQ 分配视图；邻域 CMilitaryProductionLine::[29]/CNavalProductionLine::[10]/CHqDeploymentDistributable::[0] |
+| 0x141331E00 | GUI 国家图标/旗帜条目 GUI 国家图标/旗帜条目；串 country_icon/small_flag_frame_thin；邻域 CChat::CChannelItem::[0]/CChat::[0] |
+| 0x1424D47B0 | VT STaskItem/CTask VT STaskItem/CTask：任务条目（任务/命令系统） |
+| 0x1420AB190 | 地图 idler/粒子编辑器路径 地图 idler/粒子编辑器路径；邻域 CMapIdler::[17]/[18]/[4]/[5]，串 particle_editor |
+| 0x142068570 | gamestate 门控 + VT NInternationalMarket::CSubsidyDraft gamestate 门控 + VT NInternationalMarket::CSubsidyDraft：国际市场补贴草案 |
+| 0x1402A1A90 | 游戏 idler 家族成员 游戏 idler 家族成员；邻域 CNudgeIdler::Update/CGameIdler::[28]/CGameIdler::RestoreDeviceObjects? |
+| 0x1412D5120 | CNudgeIdler::[2]：CNudgeIdler::[2] CNudgeIdler::[2]；串 ambient_objects/buildings/nudge_selection_window/states/strategic_regions/supply/units/weather |
+| 0x140EC2B40 | VT CPdxHybridInlineBufferAllocator<SProvinceSupplyData,4,int> + 树旋转/重平衡 VT CPdxHybridInlineBufferAllocator<SProvinceSupplyData,4,int> + 树旋转/重平衡：省份补给数据容器操作 |
+| 0x141664190 | 海战攻防位置图标定位 海战攻防位置图标定位；串 attack_position_big-%d/attack_position_small-%d/defend_position_big-%d/defend_position_small-%d；邻域 CShipCombatReader |
+| 0x14060F120 | 修正器定义库装载 串 common/modifier_definitions / common/modifier_definition + 调 CPersistent::Load |
+| 0x1412E14E0 | 战斗目标选择（GetBestTarget） 串 `GetBestTarget` + eventscope / scoped_buffer 断言 |
+| 0x1418FFD90 | 业务逻辑（见证据锚） CGlobals 访问后遍历 *(gs+1424)+24 列表（count +36），按条目旗标(v13+184→+210&1)分派 |
+| 0x140FC47D0 | COperativeMission 槽 3（任务块解析） 串 `Expected a block` / `Invalid mission type` |
+| 0x1406BBB90 | 角色模板库校验（CharacterToken 断言） `CharacterToken == pCharacter->GetToken()` + character_template_database.cpp |
+| 0x141EF4F90 | （未具名） NCareerProfile::CCareerProfileView + NFriendsHandler::CFriend 类名（职业档案/好友视图） |
+| 0x142101F80 | 效果实现 效果实现：角色 gfx/portrait 装载与回退，STR 'Gfx not found: %s'/'gfx/leaders/'/'Portrait not found: %s' + effectimplementation.cpp |
+| 0x1417DEEC0 | 剧院组条目（VT CTheaterGroupItem） VT CTheaterGroupItem / CButtonEventDispatcher / CTooltipHandler |
+| 0x140F39BF0 | 规则条目（ChangeRule 配对） gamestate 断言 + 同窗 CChangeRuleItem 上下文 |
+| 0x141759C60 | 装备设计器定位图标条目 串 equipment_designer_niche_icon_entry + VT NDivisionDesigner::CNicheSelectionItem |
+| 0x140FD6140 | 游戏项数据库令牌查找（88B 元素桶） head：`*(_QWORD*)(a1+8) + 88 * ((int)a3 & v6)` 桶寻址 |
+| 0x140A67F80 | 数据库数组/查表一致性断言 串 `Array should be 1 element bigger than Lookup, did you forget to add the Null Object as Array[0]?` |
+| 0x14108C8C0 | 外交动作辅助（调 GetSecondCountryRef） gamestate 断言 + 调 CDiplomaticAction::GetSecondCountryRef |
+| 0x141C3BAA0 | 数据库实例门 + 派系目标 串 `Instance not created.` + gamestate 断言 |
+| 0x140BF3E80 | 命令组（ordersgroup）领袖部署移除 串 `Trying to remove a leader unit that is not deployed, or that is deployed to a non-division unit!` |
+| 0x141FCA810 | DLC 商店横幅链接 串 https://store.steampowered.com/app/1877010/…utm_campaign… |
+| 0x140EBEEB0 | tbb 并行任务（VT flag_task） tbb 并行任务（VT flag_task）：调 0x140EC3F30/0x140307560/0x140185F90，0x140EB-EF 补给/和会区 |
+| 0x141DEB2C0 | 特工行动资源 VT COperationResources |
+| 0x14140B6B0 | 字符串结果构造（std::string 初始化后填充） head：`*(_OWORD*)a2 = 0; a2[3] = 15;` SSO 初始化模式 |
+| 0x1420B2180 | 历史/缓存文件写 历史/缓存文件写：STR 'history.txt'/'history.tx' + 调 0x1424DC920（文件写） |
+| 0x1418CFC00 | UI 窗口数据源刷新 UI 窗口数据源刷新：尾部 vt 调用 `(*(v1+216)+8)->vt[+120]` + 调 0x140163CB0/0x140CB4C60/0x1418BBBB0 |
+| 0x141B08B80 | 派系主动 AI 描述 串 `Faction Initiative Ai` / `Sorted weighted list that the AI can choose from` |
+| 0x1414807F0 | 事件目标解析（MIO / 特殊项目查库） 串 `does not match any MIO in database` / `does not match any Special Project in database` + eventtarget.cpp |
+| 0x141A465C0 | gamestate 门控 ×2 + VT CGameDate/CGregorianDate gamestate 门控 ×2 + VT CGameDate/CGregorianDate：游戏日期操作 |
+| 0x14181B570 | CTaskForceIdentity UI CTaskForceIdentity UI：VT CTaskForceIdentity/CColor，STR 'highlight_glow'/'name'/'bg'/'historical'（pdx_scoped_buffer 内联） |
+| 0x14019ADF0 | 派系图标池 / 库装载校验 VT NFactions::CFactionIconPool + 串 `Cant reload when not loaded` |
+| 0x1415CF580 | 战术列表视图布局 串 window_title / current_phase / close / tactics_list_container / tactics_list_gridbox |
+| 0x140C95230 | 0x140C9 装备/舰队区 0x140C9 装备/舰队区：调 0x140C97B90（舰队任务类型判定，与 0x141300FE0 共用）+ 0x141483B40 |
+| 0x141F723C0 | 飞机设计器模型选择器 串 plane_designer_model_lis / variant_name / name + 调 CEquipmentDesignerModelSelector::Setup |
+| 0x141DA4500 | UI 注册表枚举（Availabe Uis） 串 `Availabe Uis:\n` / `Invalid UI name '` / `No ingame idler or imgui controller` |
+| 0x1417AF150 | CHotJoinWindow 槽6 CHotJoinWindow 槽6：STR 'confirm_window'/'requests_window'/'requests_grid'/'check_accept'/'check_declin' |
+| 0x141EDE080 | 生产状态构造 VT CProductionStatus |
+| 0x141C26510 | 规则类型条目容器 串 rule_type_item_container / icon / label + VT CButtonWrapper / CButtonObserverGlue |
+| 0x1401FD440 | AI 军事部长（ai_military_minister.cpp） AI 军事部长（ai_military_minister.cpp）：STR 'XOR tech not found - should never happen.' + VT CGameDate，科技选择循环 |
+| 0x1413B3CA0 | 0x1413B 市场/补贴区（0x1413B2790/0x1413B7850 被 0x1411997B0 共用） 0x1413B 市场/补贴区（0x1413B2790/0x1413B7850 被 0x1411997B0 共用）：调 0x140157780/0x140301D80/0x140302800 |
+| 0x141230340 | 补给海港门（SeaProv > 0） 串 `SeaProv > 0` + country_supply.cpp |
+| 0x141319760 | 地图数据库装载 地图数据库装载：STR 'gamestate.weekly'/'strategicregions'/'map/weatherpositions.txt'/'DB already loaded when loading' + 'order_convoy_transport'（gameitemdata… |
+| 0x141378EB0 | 字符串构造（SSO 初始化模式） head：`*(_OWORD*)Src = 0; Src[3] = 15;` |
+| 0x140F1D750 | 数据库数组下界门 串 `Array should be at least 1 element, did you forget to add the Null Object as Array[0]?` |
+| 0x141710C40 | CCountryConstructionView 建筑项 VT CCountryConstructionViewBuildingItem + 串 start_construction_entry/button |
+| 0x141C42BA0 | CPoliticsIdeaCategoryEntry 构造 CPoliticsIdeaCategoryEntry 构造：VT + STR 'country_politics_idea_category_entry'/'category_icon'/'name' |
+| 0x1418CCEB0 | 战斗指示器 UI 串 battle_indicator_direction / bg_btn / combat_progres / air_superiority_icon / mapicon_land_combat_* |
+| 0x140DF3CE0 | 国际市场序列化（装备类型令牌门） 串 `Wrong equipment type token!` + international_market_serializer.cpp |
+| 0x1406E6E20 | 角色创建（unit leader / 角色 manager 门） 串 `failed to create unit leader` + `requires character manager` + country.cpp |
+| 0x141B01E40 | 脚本资源构造（word_1427788D0） head：`si128 = _mm_load_si128(&xmmword_1427179B0)` 后串操作 |
+| 0x140B4AA70 | 0x140B4 陆军部署区 0x140B4 陆军部署区：调 0x140ED5080/0x140EDEBF0/0x140AD0A00/0x140B431F0/0x140ACBF30（0x140ACBF30/0x140AD0A00 与 0x140263010 共用） |
+| 0x142246910 | 0x14224 UI/存档混合区 0x14224 UI/存档混合区：STR 'fixed_' + 调 0x141787980/0x141492970/0x141790600/0x1412A8A80（pdx_scopedptr 内联） |
+| 0x140B24F10 | MIO 扩容延迟警报 串 alert_industrial_org_sizeup_delayed |
+| 0x1422CD820 | 远程云文件数据缓冲 串 `Failed allocate data buffer.` / `Failed to retrieve data from cloud.` + remotefile.cpp |
+| 0x1422A8C40 | VT C2dPositionObject + 调 CSimpleListbox<CStandardlistboxItem>::[18] VT C2dPositionObject + 调 CSimpleListbox<CStandardlistboxItem>::[18]：2D 列表框控件 |
+| 0x141706570 | 数据库工具区 数据库工具区：调 0x140B64FF0/0x140A66B70/0x140A66DE0/0x1415B81C0（0x140A66 族被 0x14028D490 共用） |
+| 0x141FBF8A0 | MIO 风味文本窗（industrial_organisation_flavortext_window） 串 flavor_id_ + industrial_organisation_flavortext_window |
+| 0x141B9DE70 | 驻军支援比例 temp_var 计算 串 temp_var:garrison_manpower_support_ratio / garrison_equipment_support_ratio / garrison_min_support_ratio |
+| 0x141E93920 | 权力平衡数据库装载（power_balance_database.cpp） 权力平衡数据库装载（power_balance_database.cpp）：STR '.txt'/'Template ID duplicate: %s' |
+| 0x140A2EAC0 | VT COriginalSameIdeologyGroupTrigger/COr VT COriginalSameIdeologyGroupTrigger/COriginalGovernmentInExileTrigger/COriginalChangeLeaderTrigger + STR 'subscript… |
+| 0x1409EA8A0 | 装备层级环检测 串 `Cyclic equipment hierarchy` + equipment_database.cpp |
+| 0x14194ED00 | 0x14194 装备模型区 0x14194 装备模型区：_DWORD 数组分块处理 + 尾部 0x141950E90（equipment_model_util 邻接） |
+| 0x141B84430 | 天气参数（ArcticWater 概率） 串 `ArcticWater Chance` |
+| 0x141BC5110 | VT CContinuousFocusDetailView VT CContinuousFocusDetailView：国策焦点详情视图 |
+| 0x140BE8320 | CScriptedWindowManager CScriptedWindowManager：VT 该类，脚本窗口注册/管理（调 0x140BE7D10/0x140F5F000/0x140B85530） |
+| 0x141D7BA70 | CDeployBaseItem 构造 CDeployBaseItem 构造：VT CDeployBaseItem，STR 'reinforcements_icon'/'low_prio' |
+| 0x140347370 | CResizeArrayEffectImp<$0A> 槽 13 串 `Invalid size:` + effectimplementation.cpp |
+| 0x14060FCE0 | 脚本块解析 脚本块解析：STR 'Expected hidden_modifier to be followed by a block'（hidden_modifier 节点解析） |
+| 0x1414994C0 | CClickableStandardGridBoxItem<CDesignerEquipmentCreatorItem> 构造 CClickableStandardGridBoxItem<CDesignerEquipmentCreatorItem> 构造：VT 三联 + STR 'designer_creator… |
+| 0x1424E0CB0 | CArchiveFile 操作 CArchiveFile 操作：VT CArchiveFile，调 0x1424DC920/0x1424DF2C0/0x1424F10A0（存档归档族） |
+| 0x141B08750 | 派系设施 / 派系剧院创建窗 串 `Setup a faction facility` / `Create a faction theater` / `Doctrine Sharing:` |
+| 0x1412A55E0 | 空军单位活动数据 VT SAirUnitActivityData |
+| 0x1422F28F0 | 0x14137-0x14138 空战任务区（airmission.cpp 邻接） 0x14137-0x14138 空战任务区（airmission.cpp 邻接）：调 0x141381960/0x14137C260/0x1413910F0 |
+| 0x142288460 | 定长 1096B 元素数组批量写 head：`memcpy(*a1 + 1096*v4, a3, 1096*v6)` |
+| 0x140C0D340 | VT CGregorianDate；释放 15 个 192 字节槽 + 约 20 个 std::string 成员 VT CGregorianDate；释放 15 个 192 字节槽 + 约 20 个 std::string 成员：大日期对象析构 |
+| 0x1418C7900 | 类别数据库装载区 类别数据库装载区：密集调 0x14072xxxx（0x140729330/0x14072DE80/0x140724710，与 0x14072FEA0 同族） |
+| 0x1410012D0 | 数据库项注册（标准 0x14014B4E0/0x1401AD740 序列 + 0 数据库项注册（标准 0x14014B4E0/0x1401AD740 序列 + 0x140BB3EF0/0x14064B030） |
+| 0x140D86820 | 建造并行任务（VT tbb flag_task） 建造并行任务（VT tbb flag_task）：调 0x140BB5490/0x140D90360（0x140D8 建造区） |
+| 0x1402658F0 | 隐藏国策查询/控制台 隐藏国策查询/控制台：STR 'Country has no hidden focuses' |
+| 0x1415419E0 | AI 日志缓冲（AI: 前缀） 串 `AI: ` + 调 CPdxHybridInlineBufferAllocator<$03H::SEntityInstanceTextureSet> |
+| 0x141C13C70 | 0x141C1 UI 区 0x141C1 UI 区：调 0x141C11530/0x141C10E60/0x141C10F40/0x14146D5D0/0x1422C4970 |
+| 0x1401BE460 | tbb 并行任务（VT flag_task） tbb 并行任务（VT flag_task）：调 0x1406FE100（0x1406F 任务族） |
+| 0x141E87C40 | 突袭目标条目（raid UI） 串 raid_target_entries_item / raid_type_icons_grid / raid_target_text |
+| 0x141AF8540 | 游戏项数据库令牌查找（104B 元素桶） head：`*(_QWORD*)(a1+8) + 104 * ((int)a3 & v7)` 桶寻址 |
+| 0x141C84180 | 特质图标项 特质图标项：STR 'icon'/'trait'，调 0x140B46710/0x140CDCC80/0x141C72A90（0x141C8 UI 族） |
+| 0x141DB6CD0 | 0x141DB UI 区（CStateBuildingItem 邻接） 0x141DB UI 区（CStateBuildingItem 邻接）：调 0x140BDE100/0x140C96180/0x141DB6AF0 |
+| 0x140A9FEB0 | 0x140A9 UI/数据库区 0x140A9 UI/数据库区：调 0x140AA07A0/0x140A71800/0x140A6F990（0x140A6/A7 族） |
+| 0x141E24E80 | 减号按钮图标注册 减号按钮图标注册：STR 'GFX_subtract_10'/'GFX_subtract_one'/'GFX_subtract_5' |
+| 0x141CD0920 | CFrontEndCreditsView 槽 14 VT CFrontEndCreditsView + 串 frontendcreditsview |
+| 0x14162AA60 | 0x14162 突袭/地图区 0x14162 突袭/地图区：调 0x140FECFA0/0x14158F1C0/0x14158F1E0/0x14162B610（0x141B94320 突袭 UI 共用 0x140FECFA0） |
+| 0x140DDDA40 | CProductionLine 槽 14 VT CProductionLine + 调 CPdxHybridInlineBufferAllocator |
+| 0x1401C5E10 | 国家命令并行任务（VT tbb flag_task） 国家命令并行任务（VT tbb flag_task）：STR 'Invalid insertion enum value for construction'/'Building has an invalid state'/'Invalid building'/… |
+| 0x14171B880 | 交易工厂静态条目 串 static_traded_factories_entry / factories |
+| 0x1422600D0 | 游戏大厅转储（gamelobby.cpp） 游戏大厅转储（gamelobby.cpp）：STR '.txt' + 流构造（std::ios_base），调 0x140DA2A90/0x140D9BEA0/0x141254450 |
+| 0x1413C9260 | 战斗战术校验 战斗战术校验：STR 'Invalid combat tactic' + 标准脚本工具序列 + 0x1406BDB00/0x1424C4FE0 |
+| 0x140F8B610 | 0x140F8 科技/角色区 0x140F8 科技/角色区：调 0x140F8CF70/0x140F8B940/0x140F8F580/0x140F8B470 同段族 |
+| 0x140FC4D50 | COperativeMission 派系任务构造（槽 3） 串 `Invalid mission type` + 调 NOperativeMissions::CStateBased::GetState |
+| 0x1412A59A0 | SArmyUnitActivityData 处理 SArmyUnitActivityData 处理：VT SArmyUnitActivityData + 标准脚本工具序列（0x14014B4E0/0x1401AD740） |
+| 0x140BA0050 | 0x140BA 脚本变量区（CVariables/0x140BAED10 邻接） 0x140BA 脚本变量区（CVariables/0x140BAED10 邻接）：调 0x140BB48F0/0x140D11AE0 + 0x14011DBC0/0x140129C10 四联 |
+| 0x141073280 | （未具名） CAIGeneral::HandleAiMicroAttacksForOrdersGroup + COrdersGroup/CFrontControlStrategyData 类名（AI 微操） |
+| 0x14061BE90 | 数据库装载区（gameitemdatabase.h 内联） 数据库装载区（gameitemdatabase.h 内联）：调 0x140620250/0x140620E10/0x140654280/0x1406383B0/0x14064D210（0x140612D60 被 Load 调用） |
+| 0x141AFE740 | 0x141AF UI 区（CHotJoinWindow 邻接） 0x141AF UI 区（CHotJoinWindow 邻接）：调 0x140A0D4A0/0x141B00E60/0x1401FF2C0/0x14022B420 |
+| 0x140F53170 | 0x14195 图形/装备模型区 0x14195 图形/装备模型区：密集调 0x141955710/0x14195A840/0x1419580E0/0x1419E01F0 等 0x14195 段函数（equipment_model_util 邻接） |
+| 0x141F7E9E0 | 生涯档案奖章/勋略网格 串 career_profile_awards / career_profile_medals_grid / career_profile_ribbons_grid |
+| 0x14129A3C0 | 派系目标状态（CFactionGoalStatus） QL NFactions::CFactionGoalStatus + 调 CPeaceActionScriptedAiDesire 相关 |
+| 0x140ADCF50 | 0x140AD 外交活动区（CTimedWargoalActivity 邻接） 0x140AD 外交活动区（CTimedWargoalActivity 邻接）：调 0x140ADE4E0/0x1402DBB30/0x1402C6350 |
+| 0x141EF1960 | 坐标换算（int 对 → float） head：`_mm_cvtepi32_ps` 序列 + dword_142A9031C |
+| 0x140E99830 | 数据库项注册（标准 0x14014B4E0/0x1401AD740 序列 + 0 数据库项注册（标准 0x14014B4E0/0x1401AD740 序列 + 0x1424C08D0/0x1424C4FE0） |
+| 0x14108E640 | 双出参状态取值 head：`*a3 = 0; *a4 = 1; if (*(a1+56)) *a4 = 0;` 跳过（双值 getter） |
+| 0x141C8B530 | CDiplomacyStageCoupController 构造 CDiplomacyStageCoupController 构造：VT CDiplomacyStageCoupController + 胶水，额外调 0x141C88B90/0x140F140C0 |
+| 0x14031A6D0 | 国家补给 robin hood 操作 国家补给 robin hood 操作：STR '!_NonLocalNodes.Contains( NodeProvince )' + country_supply.cpp + grow 内联 |
+| 0x140F9DBA0 | CVariables 变量表族 CVariables 变量表族：调 0x140BC8A00/0x140BC9120/0x140BC4600（与 0x140BC3F10 同三联） |
+| 0x141E34F40 | COperativePortraitView（特工肖像视图） VT COperativePortraitView |
+| 0x1423E44C0 | CSteamMatchmakingContext 槽 27（复制对端字段） head：`*(a1+144) = *(a2); *(a1+148) = *(a2+4); *(a1+142) = *(a2+40);` |
+| 0x14072FEA0 | categories 目录装载 categories 目录装载：STR '/categories'/'.txt'，调 0x140726190/0x1407264D0 |
+| 0x14024FBF0 | 陆军选中/消耗（army.cpp） 陆军选中/消耗（army.cpp）：STR 'Failed to fetch the graphical province from selection'/'Select province with a unit in it first!'/'ApplyAttrition() … |
+| 0x141E217C0 | 特遣舰队编成编辑器 VT CTaskForceCompositionEditor / CButtonEventDispatcher / CTooltipHandler |
+| 0x1401BC3D0 | CGameState::DoCareerProfileDailyUpdate? |
+| 0x140C98770 | 装备脚本块解析 串 `Expected no more than one statement in block` / `Expected start of block` + equipment.cpp |
+| 0x141925870 | CAIStrategyStore robin hood 操作 CAIStrategyStore robin hood 操作：VT CAIStrategyStore/CCountryAI + grow 内联（tag 561），AI 策略表维护 |
+| 0x1420D9270 | 事件系统队列关闭 串 `The event system has been shut down` / `Couldn't lock event queue` |
+| 0x1401321D0 | 战线/剧院（theatre.cpp） 战线/剧院（theatre.cpp）：STR 'Short Task'/'!ProvincePairsContainsNull( _SortedPairs )'，调 0x140144AE0/0x140F00F50 |
+| 0x141B88B20 | 天气 nudger 设值 串 `Calling SetValue` + weathernudger.cpp |
+| 0x140ED6260 | AI 区（0x140ED5080 被 ai_military_minister 调用） AI 区（0x140ED5080 被 ai_military_minister 调用）：调 0x142251D080/0x140CE9B90/0x1413CF7C0/0x140ACDB60 |
+| 0x14232A450 | CFixedWindow 槽57 CFixedWindow 槽57：单后续 0x14011E010（RTTI 名定案） |
+| 0x1401BE060 | 市场核心并行任务（VT tbb flag_task） 市场核心并行任务（VT tbb flag_task）：STR 'SubsidiesToRemove >= 0' + market_core.cpp |
+| 0x14072F610 | 空战王牌修正器 VT CAceModifier / CModifier |
+| 0x141F3FB90 | （未具名） CGameSetupGameplaySettingsWindow + CCheckBoxObserverGlue/CButtonObserverGlue 类名 |
+| 0x141E3BC20 | 0x141E3 UI 区 0x141E3 UI 区：调 0x140FC3800/0x140FC3360/0x1403B78B0 + 标准脚本工具序列 |
+| 0x1412972D0 | 版本信息对话框（复制到剪贴板） 串 `Current version is:` / `Commit Short Hash:` / `Additional information copied to the clipboard.` |
+| 0x141DBF1E0 | CProvinceBuildingCustomIconItem 构造 CProvinceBuildingCustomIconItem 构造：VT CBuildingItemBase/CProvinceBuildingCustomIconItem，STR 'province_building_special_ico… |
+| 0x141701620 | AI 策略/国策数据库装载（ai_strategy_database.cpp） AI 策略/国策数据库装载（ai_strategy_database.cpp）：STR 'AI focuses loaded'/' #' + operativesbottombar.cpp 'Untracked elements in… |
+| 0x141696990 | CArmyDivisionListView 析构 CArmyDivisionListView 析构：VT CArmyDivisionListView/CButtonEventDispatcher/CTooltipHandler，4 组 CButtonEventDispatcher 子对象释放（+27248/+25… |
+| 0x142460C60 | 外交行动目标校验 VT CGameDate + STR diplomaticaction.h '_Actor.IsValid()==false \ \ _Recipient...'/CanTargetSelf |
+| 0x140513390 | 事件域并行任务（VT tbb::interface9::internal::flag_task） 事件域并行任务（VT tbb::interface9::internal::flag_task）：调 0x140526710/0x1404D06D0（与 0x14050F000 共用回调） |
+| 0x140B4F020 | （未具名） CGraphicalMap::UpdateProvinces 类名（图形地图省份更新，同类名异实例） |
+| 0x14047EE60 | CVariableEffectBuilder 槽3 第二实例（同 STR 'at CVariableEffectBuilder 槽3 第二实例（同 STR 'at'/'Assigned' + 同调用集 0x1424BFBA0/0x1424CA600） |
+| 0x141193D10 | MIO 任务容量调整 串 `Added … Task Capacity to MIO` |
+| 0x1416C27A0 | 外国/殖民/流亡模板旗标 UI 外国/殖民/流亡模板旗标 UI：STR 'foreign_template_flag'/'colonial_force_flag_frame'/'exile_force_flag_frame' |
+| 0x1411938C0 | MIO 装备族 MIO 装备族：STR 'Size to MIO'/'Added'，调 0x140DB8CD0/0x140DBBB60（0x140DB 工业组织族） |
+| 0x1418AA010 | CWarOverView 析构 CWarOverView 析构：VT CWarOverView/CEmptyEntryListBase<CWarOverViewWarButton>/...<CWarFactionItem>/...<CWarAllyItem>，3 组子对象释放（步 56） |
+| 0x141D71FC0 | 脚本 UI 决策模板查找 串 `Could not find template for scripted UI: %s - Decision category: %s` |
+| 0x1419238D0 | 0x14192 图形/AI 区 0x14192 图形/AI 区：调 0x14148EDC0/0x14191FAD0/0x140229850/0x1401FFA00（equipment_model_util 邻接） |
+| 0x1409FCC60 | （未具名） CEquipmentGraphicPoolTypeMap 类名（装备图形池类型映射） |
+| 0x1419C80E0 | CTutorialChapter 析构 CTutorialChapter 析构：VT CTutorialChapter/CButtonEventDispatcher，+3952 子对象释放 + Init_thread 静态局部 + CButtonEventDispatcher(+48) 析构 |
+| 0x140EF4720 | 0x140EF 序列化区 0x140EF 序列化区：调 0x140E139B0 + 0x1424EF830，数组遍历写 |
+| 0x141E03F50 | UI 元素数组处理 UI 元素数组处理：步长 200 字节循环调 0x141DFFA80（固定大小元素批处理） |
+| 0x140D077E0 | 0x140D0 补给区（country_supply 邻接） 0x140D0 补给区（country_supply 邻接）：调 0x140D07480/0x1424C0AA0 + 标准脚本工具序列 |
+| 0x141DA10D0 | CNavalRepairQueueShipEntry 构造 CNavalRepairQueueShipEntry 构造：VT + STR 'naval_repair_queue_ship_entry' |
+| 0x1421DA960 | 大文件分块传输（chunk progress） head：qword_143451C80 + 分块循环 |
+| 0x14192E1E0 | 0x14192-0x14193 图形/AI 区 0x14192-0x14193 图形/AI 区：调 0x141929FC0/0x141929A30/0x141929EB0/0x14068ED40（equipment_model_util 邻接） |
+| 0x140B79630 | 情报机构完成弹窗 VT CIntelAgencyFinishedPopUpWindow + 串 research_finished_popup_window / agency_complete |
+| 0x141DA14E0 | CNavalRepairWindow 构造 CNavalRepairWindow 构造：VT CNavalRepairWindow/CCheckBoxObserverGlue<CNavalRepairWindow>，STR 'state_names_'/'mes_' |
+| 0x141974D80 | CFEXMember::SCachedInfo::Reader CFEXMember::SCachedInfo::Reader 类名（派系成员缓存反序列化） |
+| 0x141046340 | （未具名） COrderInstance::SChildFrontData 类名（命令实例子前线数据） |
+| 0x140D4ABA0 | 0x140D4 外交区（COfferMilitaryAccessRelation 邻接） 0x140D4 外交区（COfferMilitaryAccessRelation 邻接）：单后续 0x140D48C00 |
+| 0x141754A00 | CIncomingLendLeaseDiplomacyPopup 槽11 CIncomingLendLeaseDiplomacyPopup 槽11：STR 'confirm_button'/'title'/'receiver_flag'/'allowed peer(s): [' |
+| 0x141990CE0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x1416FE1D0 | （未具名） CGraphicalMap::UpdateProvinces 类名（图形地图省份更新） |
+| 0x141E044C0 | 0x141E0 UI 区（与 0x141E03F50 同 0x141DFFA80 族） 0x141E0 UI 区（与 0x141E03F50 同 0x141DFFA80 族）：调 0x141DFFA80/0x141DFFF10/0x141DFE710 |
+| 0x14155EDC0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140C0A4B0 | CGameState（例程） 调用 CGameState::[2]，读 v5[927]/v5[1042] 标志位 |
+| 0x142445180 | CTweakableTextbox 构造 CTweakableTextbox 构造：VT CTweakableTextbox/CTextBufferObserverGlue<CTweakableTextbox>，STR '*.fip'/'_Init@8'/'tweaker_textboxcomponent'/'t… |
+| 0x14129D200 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140E31790 | （未具名） CPeaceAction/CTakeNavyPeaceAction 类名（和会夺取海军行动） |
+| 0x14177CED0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x14160E710 | 定点值运算 定点值运算：vt[+184] 取值后 `100000*(x/100000+v10)` 再 /100000（fixed×1e-5 语义）+ 0x141478F50 构造 |
+| 0x141BCD9D0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x14016D4A0 | （未具名） CMTTHDatabaseEntry 类名 + robin_hood 迭代断言（MTTH 事件数据库条目） |
+| 0x141BF6200 | 0x141BF 阵营 UI 区（CConfirmFactionFacilityProgram 邻接） 0x141BF 阵营 UI 区（CConfirmFactionFacilityProgram 邻接）：调 0x1411844B0/0x141BF7740/0x141BF6990 |
+| 0x1403C26A0 | gamestate.h 主线程断言 + tbb 并行任务启动 |
+| 0x141B449A0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x141E3B4F0 | （未具名） CGraphicalObject/CFrameAnimatedSprite 类名（帧动画精灵 GUI） |
+| 0x140A54C00 | （未具名） tank_manufacturer/naval_manufacturer/aircraft_manufacture/materiel_manufacture 设计公司类型串 |
+| 0x141ACFEC0 | 单位领袖窗口排序 串 `Invalid Army Leader Sort` + unitleaderwindow.cpp |
+| 0x141032540 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x141F5B230 | CJoinConfigurationPopup 构造 CJoinConfigurationPopup 构造：VT 该类，STR 'multiplayer_connect_window' |
+| 0x141300FE0 | 舰队任务计算（double 出参 + *a5 累加贡献） 舰队任务计算（double 出参 + *a5 累加贡献）：a2+976/1008 + 0x140C97B90/0x140C956E0(==8) 判定 + a1+4728 |
+| 0x140724D60 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x1404F9840 | gamestate.h 主线程断言 + tbb 并行任务启动 |
+| 0x1419EA180 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x141A46C30 | （未具名） CPdxHybridInlineBufferAllocator + NFactions::NAi 类名（派系 AI 混合缓冲区） |
+| 0x140B91BD0 | 0x140B9 UI/海军区 0x140B9 UI/海军区：调 0x1414B1320/0x141267C60（0x141267860 被 raid_arrow 调用） |
+| 0x14066D4F0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140B95820 | （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期） |
+| 0x140C10E00 | CUnitLeader 槽10 CUnitLeader 槽10：a1+8/+12/+3776 计数 + a1+288 数组，尾部 28*count 返回（0x140F9FF10/0x14221F310 领导族） |
+| 0x140B208E0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x14107A910 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x141C2EE90 | （未具名） CSaveDesignToFilePopUp/CScopedPopUp/CDefaultConfirmationPopUpWindow 类名（保存设计确认弹窗） |
+| 0x141B8F720 | （未具名） NIndustrialOrganisation::STraitId 类名（MIO 特质 ID） |
+| 0x141B6BBC0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140CC9620 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x1404F9420 | gamestate.h 主线程断言 + tbb 并行任务启动 |
+| 0x1416964C0 | （未具名） CArmiesView/CButtonEventDispatcher/CTooltipHandler 类名（军队视图） |
+| 0x1414E1AF0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140DC92D0 | CInGameIdler::[48] CInGameIdler 帧顶闲置器槽[48] |
+| 0x1415BB550 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x1401E1150 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x14250AFA0 | AI 阵营（ai_faction.cpp） AI 阵营（ai_faction.cpp）：STR 'Invalid faction member'，调 0x1424F67F0/0x142512F10/0x141BE5E60 |
+| 0x1417407F0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x1418879C0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x141661B40 | 存档测试束 / 日期 VT CTestBundle / CGameDate |
+| 0x1412571E0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x141D2EE20 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x1406AE4B0 | modifier/定义区（0x1406A，被 0x14201E9B0 生涯档案 tooltip 调用） modifier/定义区（0x1406A，被 0x14201E9B0 生涯档案 tooltip 调用）：调 0x140549F40/0x1406ACEC0/0x14054A450 |
+| 0x141260FB0 | 渲染对象三组初始化 渲染对象三组初始化：0x1422D8300(...,1165623296=0.5f) 作用于 a1+16/+560/+1104（步 544）+ 大量归零 |
+| 0x1420B0D90 | CFirstPersonStrategy::[2] 类名（第一人称策略槽 2，地图镜头策略） |
+| 0x141696730 | （未具名） CArmyBadgeView/CButtonEventDispatcher/CTooltipHandler 类名（军队徽章视图） |
+| 0x140CCD570 | gamestate.h _pInstance/主线程断言 + _InterlockedExchange |
+| 0x140C91E00 | （无名） 被 CGameState::Reader 调用（存档/序列化） |
+| 0x1401B9060 | 未命名业务函数 业务类 CGameState（类名/调用链证据） |
+| 0x141195B90 | （未具名） CGregorianDate 类名（公历日期工具） |
+| 0x140FF5EE0 | CCountryOccupationStatus::[5] 类名 + CGregorianDate（国家占领状态槽 5） |
+| 0x140CCB500 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140CC8FC0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140CCB950 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140CCCF10 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140CC7EC0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140CCA5E0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x14105BDD0 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x140D69420 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141E486C0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140F03790 | gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器 |
+| 0x1415B3EE0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141C89660 | （未具名） CDiplomacyCallAllyActionController/CButtonObserverGlue 类名（召唤盟友外交动作 GUI） |
+| 0x1406A5040 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x14032C590 | 令牌派发（负数=哈希 / 正数=索引） head：`v2 = *(_DWORD*)a2; v4 = ~v2; if (*(int*)a2 >= 0) v4 = v2; switch(v4)` |
+| 0x140F100C0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140E7EC10 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141DA2190 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140B53720 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140BE1D60 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x1410DAE20 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x14151F2F0 | CStatePeaceAction::GotoState CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x1414B7FF0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x14150C550 | 未命名业务函数 业务类 CGameState（类名/调用链证据） |
+| 0x141C05AC0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x1418BB4A0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140CE6100 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141F495E0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x142206850 | （无名） 被 CInGameIdler::[29] 调用（游戏状态/时间） |
+| 0x1418BD560 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140D6D160 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x1411F7200 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141733AB0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141861A70 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141C3FE70 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x1413B61D0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140FAA470 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140DB9620 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x1419083F0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140F0AA90 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x14127EAD0 | 双分派序列化写 双分派序列化写：off_1430BF930/928/968 三联 + 两次变体调用（0x14127A480/0x141279DD0），按 a3[1784]/a3[1648] 标志分支 |
+| 0x1413EA5E0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x140E3B540 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141B51FD0 | 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x1414363B0 | 无名 sub_（人工读体裁定） 同 0x1414349F0（阈值改为 qword_1433335C8<=100000） |
+
+#### 4.1.46 CGameState 派发族与门控函数补遗（333 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14072E360 | 业务 调用图传播: 唯一被调用者在书内 4.1 §4.1 CGameState |
+| 0x141B01640 | 业务 a1+80 侵入式链表搬运（sub_1401B6200 splice 模式，byte+25 哨兵）→ 归属未定 待裁 |
+| 0x141303D90 | sub_141303D90 业务 gamestate 索引查询处理（qword_14332F260 gamestate 实例 + sub_140BB5490 id→索引 + 0x140D4xxx 序列化 helper） |
+| 0x140B6FDA0 | 业务 两局部构造（sub_14011DF40×2）+ a1 数组（步长 32）遍历；结构不透明 待裁 |
+| 0x1421C62F0 | 业务 调用图传播: 2/3 被调用者锚点投 4.1 §4.1 CGameState |
+| 0x140FE1250 | 业务 模块投票: 被调用者多数属 4.1 §4.1 CGameState |
+| 0x1411F5A50 | 业务 模块投票: 被调用者多数属 4.1 §4.1 CGameState |
+| 0x14028FB30 | 业务 串 "From Console"/"Granted "/" threat to "/"Invalid argument type." → 控制台命令实现；console 归属未定 推定 |
+| 0x140EB00B0 | （无名） 业务 gamestate.h:1125 门控 + pdx_scoped_buffer.h:54 断言；无其他类型线索 |
+| 0x14130E840 | 业务 sub_140683700(单例, a1+8 id) + FNV-1a（基 16777619）哈希；归属未定 待裁 |
+| 0x1418E0200 | （无名） 业务 gamestate.h:1125 门控；无其他类型线索 |
+| 0x1415CEFB0 | （无名） 业务 gamestate.h:1125 门控；无其他类型线索 |
+| 0x141B27440 | sub_141B27440 业务 gamestate 访问门 + Init_thread + off_143085170，无域识别串 |
+| 0x1423D65E0 | 业务 地址邻域投票 4.1 (140/302) §4.1 CGameState |
+| 0x141FA3100 | （无名） 业务 gamestate.h:1125 门控；无其他类型线索 |
+| 0x1410E4D00 | （无名） 业务 gamestate.h:1125 门控；无其他类型线索 |
+| 0x140B66AE0 | （无名） 业务 gamestate.h:1125 门控 + ref.h:83 + 调 sub_140B5CB70/0x140B5E7E0；无其他类型线索 |
+| 0x141B0C9A0 | sub_141B0C9A0 业务 vtable 槽方法；无任何域信号 |
+| 0x1417A1920 | （无名） 业务 gamestate.h:1125 门控 + 调 0x14159C260/0x14179FA80；无其他类型线索 |
+| 0x140B5E9C0 | sub_140B5E9C0 业务 vtable 槽方法；无任何域信号 |
+| 0x1414AC140 | （无名） 业务 gamestate.h:1125 门控；无其他类型线索 |
+| 0x1424507D0 | sub_1424507D0 业务 vtable 槽方法；无任何域信号 |
+| 0x1414C0A10 | sub_1414C0A10 业务 vtable 槽方法；无任何域信号 |
+| 0x141044AB0 | （无名） 业务 gamestate.h:1125 门控 + 调 0x140CF6650/0x1410230B0；无其他类型线索 |
+| 0x140BFC8D0 | （无名） 业务 gamestate.h:1125 门控 + 调 0x140E29930/0x140E2AC60；无其他类型线索 |
+| 0x140131E30 | sub_140131E30 业务 串 "Short Task" |
+| 0x141ECBCB0 | （无名） 业务 gamestate.h:1125 门控 + 串 "_mediu" + 调 sub_140B46320/0x140BDA540 |
+| 0x141E9C6B0 | sub_141E9C6B0 业务 vtable 槽方法；无任何域信号 |
+| 0x14178E780 | （无名） 业务 gamestate.h:1125 门控 + 调 0x1414A6CD0/0x142302DD0；无其他类型线索 |
+| 0x14167BE70 | （无名） 业务 gamestate.h:1125 门控；无其他类型线索 |
+| 0x140A62C50 | 业务 按 a1+628 目标计数对全局数组（dword_143339D4C 计数/D40 数据/D48 容量）1.5× 扩容并补零：全局表按索引确保容量 |
+| 0x140130670 | sub_140130670 业务 vtable 槽方法；无任何域信号 |
+| 0x141AF3590 | gamestate.h:1125 业务 gamestate 递归遍历（自调用 + h:1125 双断言），无类名 |
+| 0x141611B20 | （无名） 业务 gamestate.h:1125 门控；无其他类型线索 |
+| 0x140ECBDD0 | gamestate.h:1125 业务 gamestate 取数（h:1125/1126 槽调用）+ std::locale 串格式化，疑似 tooltip/描述生成，无类名 |
+| 0x140D86B80 | sub_140D86B80 业务 vtable=tbb::flag_task + 调 BB5490 |
+| 0x140BDAB20 | sub_140BDAB20 业务 vtable 槽方法；无任何域信号 |
+| 0x1411A8B50 | 业务 调用图传播: 唯一被调用者在书内 4.1 §4.1 CGameState |
+| 0x141B748A0 | (无名, gamestate.h:1125) 业务 按国家计数 gs[175] 清零 40 组 24 字节条目数组（a1[19..133]） |
+| 0x140B52810 | （无名） 业务 gamestate.h:1116 门控 + 调 0x140A5F5D0/0x140A60F10/0x14167E190；无其他类型线索 |
+| 0x141B85270 | sub_141B85270 业务 vtable 槽方法；无任何域信号 |
+| 0x140AC8DE0 | sub_140AC8DE0 业务 vtable 槽方法；无任何域信号 |
+| 0x140224880 | sub_140224880 业务 vtable 槽方法；无任何域信号 |
+| 0x1406C7180 | 业务 gamestate 容器遍历：gamestate.h:1126 槽 + a1+656 数组（计数 a1+668）逐项处理，无类名 |
+| 0x1406B46D0 | sub_1406B46D0 业务 vtable 槽方法；无任何域信号 |
+| 0x141EAE570 | sub_141EAE570 业务 vtable 槽方法；无任何域信号 |
+| 0x140B153F0 | sub_140B153F0 业务 vtable 槽方法；无任何域信号 |
+| 0x141309630 | sub_141309630 业务 vtable 槽方法；无任何域信号 |
+| 0x1423CC170 | 业务 地址邻域投票 4.1 (143/299) §4.1 CGameState |
+| 0x140A71B90 | sub_140A71B90 业务 vtable 槽方法；无任何域信号 |
+| 0x1423B84E0 | sub_1423B84E0 业务 vtable 槽方法；无任何域信号 |
+| 0x142289430 | sub_142289430 业务 vtable 槽方法；无任何域信号 |
+| 0x141032200 | sub_141032200 业务 vtable 槽方法；无任何域信号 |
+| 0x1415C70B0 | （无名） 业务 gamestate.h:1125 门控 + 调 sub_140F19FD0/0x1415A5560；无其他类型线索 |
+| 0x140B02D50 | sub_140B02D50 业务 vtable 槽方法；无任何域信号 |
+| 0x141149FC0 | sub_141149FC0 业务 vtable 槽方法；无任何域信号 |
+| 0x1412CA7E0 | sub_1412CA7E0 业务 vtable 槽方法；无任何域信号 |
+| 0x14195DED0 | sub_14195DED0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140E2E650 | sub_140E2E650 业务 vtable 槽方法；无任何域信号 |
+| 0x140A3E3E0 | sub_140A3E3E0 业务 vtable 槽方法；无任何域信号 |
+| 0x142405AB0 | sub_142405AB0 业务 vtable 槽方法；无任何域信号 |
+| 0x1409D8710 | sub_1409D8710 业务 vtable 槽方法；无任何域信号 |
+| 0x1411FA9A0 | sub_1411FA9A0 业务 调 sub_140BB5490(gamestate id→索引) ×2 |
+| 0x1423D8970 | 业务 地址邻域投票 4.1 (139/296) §4.1 CGameState |
+| 0x140D22D50 | 业务 模块投票: 被调用者多数属 4.1 §4.1 CGameState |
+| 0x1410480E0 | sub_1410480E0 业务 vtable 槽方法；无任何域信号 |
+| 0x141B91F20 | sub_141B91F20 业务 vtable 槽方法；无任何域信号 |
+| 0x141E02F90 | sub_141E02F90 业务 vtable 槽方法；无任何域信号 |
+| 0x140D88670 | sub_140D88670 业务 类方法（CArmyManpowerValues::vtable） |
+| 0x141FF6AA0 | sub_141FF6AA0 业务 vtable 槽方法；无任何域信号 |
+| 0x141858460 | sub_141858460 业务 vtable 槽方法；无任何域信号 |
+| 0x1421B4B30 | sub_1421B4B30 业务 vtable 槽方法；无任何域信号 |
+| 0x1410259C0 | sub_1410259C0 业务 vtable 槽方法；无任何域信号 |
+| 0x1416AAED0 | sub_1416AAED0 业务 vtable 槽方法；无任何域信号 |
+| 0x1401BACB0 | 业务 夹于 CGameState::DoCareerProfileWeeklyUpdate?(d=6799) 与 DoCareerProfileDailyUpdate?(d=5920)，CGameState 生涯档案周更族 |
+| 0x141654CA0 | sub_141654CA0 业务 vtable 槽方法；无任何域信号 |
+| 0x1406439A0 | sub_1406439A0 业务 串 [disabled]/[error]/undefined（调试标记） |
+| 0x140511AB0 | sub_140511AB0 业务 vtable=tbb::flag_task + 调 BB5490 |
+| 0x1401BAA00 | 业务 夹于 CGameState::DoCareerProfileWeeklyUpdate?(d=6111) 与 DoCareerProfileDailyUpdate?(d=6608)，CGameState 生涯档案周更族（与 0x1401BACB0 同簇） |
+| 0x1423D57B0 | sub_1423D57B0 业务 vtable 槽方法；无任何域信号 |
+| 0x140C418C0 | sub_140C418C0 业务 vtable 槽方法；无任何域信号 |
+| 0x141DE0B80 | sub_141DE0B80 业务 vtable 槽方法；无任何域信号 |
+| 0x141D12380 | sub_141D12380 业务 gameitemdatabase.h:142 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141AFFB40 | sub_141AFFB40 业务 vtable 槽方法；无任何域信号 |
+| 0x140DE4800 | — 业务 gamestate.h:1125 断言；调用 sub_140DC6970（0x140DC 区段），无其他线索 |
+| 0x1423DB670 | sub_1423DB670 业务 vtable 槽方法；无任何域信号 |
+| 0x140DE44F0 | sub_140DE44F0 业务 vtable 槽方法；无任何域信号 |
+| 0x1401338B0 | sub_1401338B0 业务 vtable 槽方法；无任何域信号 |
+| 0x1414267D0 | sub_1414267D0 业务 vtable 槽方法；无任何域信号 |
+| 0x1423DF220 | 业务 地址邻域投票 4.1 (129/295) §4.1 CGameState |
+| 0x140A44BB0 | sub_140A44BB0 业务 vtable 槽方法；无任何域信号 |
+| 0x140EEB6D0 | — 业务 gamestate.h:1125 访问器断言（_pInstance/_ThreadForbidCount），无其他线索 |
+| 0x140C5E1E0 | 业务 调用图传播: 2/3 被调用者锚点投 4.1 §4.1 CGameState |
+| 0x141E76F50 | 业务 调用图传播: 1/2 被调用者锚点投 4.1 §4.1 CGameState |
+| 0x142207BA0 | sub_142207BA0 业务 vtable 槽方法；无任何域信号 |
+| 0x1421D0BC0 | 业务 调用图传播: 1/2 被调用者锚点投 4.1 §4.1 CGameState |
+| 0x142203770 | sub_142203770 业务 vtable 槽方法；无任何域信号 |
+| 0x140B10AB0 | sub_140B10AB0 业务 vtable 槽方法；无任何域信号 |
+| 0x141E52100 | 业务 调用图传播: 唯一被调用者在书内 4.1 §4.1 CGameState |
+| 0x140B3ABF0 | sub_140B3ABF0 业务 vtable 槽方法；无任何域信号 |
+| 0x14144DA00 | sub_14144DA00 业务 gamestate.h:1125 · 类方法（CGameDate::vtable） |
+| 0x140EF4DE0 | — 业务 gamestate.h:1125 访问器断言，无其他线索 |
+| 0x1409BCA00 | 业务 调 CGameState::[2] 槽方法，夹于 CDifficultySettingItem::Writer 与 TGameItemDatabase<CNameGroupDatabase>::[1]，游戏状态查询 |
+| 0x1421D0F60 | sub_1421D0F60 业务 vtable 槽方法；无任何域信号 |
+| 0x140B6F1D0 | sub_140B6F1D0 业务 业务逻辑（串证据: invalid hash bucket count） 未定 |
+| 0x141045A40 | sub_141045A40 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x142106D10 | 业务 地址邻域投票 4.1 (179/428) §4.1 CGameState |
+| 0x141256AC0 | 业务 gamestate.h:1125 + gamestate 旗（byte_14332EDF9/EDFA 等 6 个），夹于 _Func_impl 与 std::_Func_impl 之间，gamestate 旗批量读写 |
+| 0x1403C2AC0 | sub_1403C2AC0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140E93390 | — 业务 gamestate.h:1125 访问器断言（_pInstance/_ThreadForbidCount），无其他线索 |
+| 0x140E14FC0 | sub_140E14FC0 业务 vtable 槽方法；无任何域信号 |
+| 0x1412A9D00 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0,sub_140BB5490 |
+| 0x14070E230 | sub_14070E230 业务 gamestate.h:1116 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1421A4570 | sub_1421A4570 业务 vtable 槽方法；无任何域信号 |
+| 0x141C1EDF0 | sub_141C1EDF0 业务 vtable 槽方法；无任何域信号 |
+| 0x1418EE0A0 | sub_1418EE0A0 业务 gamestate.h:1116 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140E3BE50 | 业务 模块投票: 被调用者多数属 4.1 §4.1 CGameState |
+| 0x141473AD0 | sub_141473AD0 业务 country_faction_view.cpp:250 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140BCBDF0 | sub_140BCBDF0 业务 gameitemdatabase.h:142 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1421849B0 | sub_1421849B0 业务 vtable 槽方法；无任何域信号 |
+| 0x14196B0F0 | 业务 模块投票: 被调用者多数属 4.1 §4.1 CGameState |
+| 0x140C41C30 | sub_140C41C30 业务 vtable 槽方法；无任何域信号 |
+| 0x142476CF0 | sub_142476CF0 业务 vtable 槽方法；无任何域信号 |
+| 0x1419D5960 | sub_1419D5960 业务 游戏逻辑（含源码路径断言） 未定 |
+| 0x1415BFB30 | sub_1415BFB30 业务 ref.h:83 · 业务逻辑（串证据: GetPtr() != 0 && \） 未定 |
+| 0x140CD7580 | sub_140CD7580 业务 vtable 槽方法；无任何域信号 |
+| 0x140E3DA80 | sub_140E3DA80 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140FE5330 | sub_140FE5330 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141A39E80 | sub_141A39E80 业务 project_scope_helper.cpp:135 · 业务逻辑（串证据: No program when picking reward for break） 未定 |
+| 0x141476D60 | sub_141476D60 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x14186A330 | sub_14186A330 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1423D04C0 | 业务 地址邻域投票 4.1 (142/307) §4.1 CGameState |
+| 0x1420E5520 | 业务 调用图传播: 2/3 被调用者锚点投 4.1 §4.1 CGameState |
+| 0x1410968F0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x1410DD360 | sub_1410DD360 业务 gamestate.h:1116 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141A023F0 | sub_141A023F0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141B2F9D0 | sub_141B2F9D0 业务 raid_instance_view.cpp:231 · 游戏逻辑（含源码路径断言） 未定 |
+| 0x141E83220 | sub_141E83220 业务 gamestate.h:1116 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140F90260 | sub_140F90260 业务 gameitemdatabase.h:142 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x14124B200 | sub_14124B200 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1415EBD10 | sub_1415EBD10 业务 ref.h:83 · 业务逻辑（串证据: GetPtr() != 0 && \） 未定 |
+| 0x14218B430 | sub_14218B430 业务 vtable 槽方法；无任何域信号 |
+| 0x14007ED60 | sub_14007ED60 业务 业务逻辑（串证据: Modifier stat factors） 未定 |
+| 0x141515300 | 业务 模块投票: 被调用者多数属 4.1 §4.1 CGameState |
+| 0x141E50580 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0 |
+| 0x141291750 | sub_141291750 业务 gamestate.h:1116 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140CD1AE0 | sub_140CD1AE0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1423950B0 | sub_1423950B0 业务 业务逻辑（串证据: \\\） 未定 |
+| 0x140E353F0 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0,sub_140BB5490 |
+| 0x141947080 | sub_141947080 业务 业务逻辑（串证据: COUNT） 未定 |
+| 0x14168B100 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x140FDCC90 | sub_140FDCC90 业务 业务逻辑（串证据: INTELLIGENCE_ADDITIONAL_UPGRADE_BONUS） 未定 |
+| 0x1419F1720 | sub_1419F1720 业务 gameitemdatabase.h:142 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141955320 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0 |
+| 0x1418CE790 | sub_1418CE790 业务 ref.h:83 · 业务逻辑（串证据: GetPtr() != 0 && \） 未定 |
+| 0x140B662E0 | sub_140B662E0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141336B60 | sub_141336B60 业务 业务逻辑（串证据: CChat） 未定 |
+| 0x141798940 | sub_141798940 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x14218C0B0 | sub_14218C0B0 业务 vtable 槽方法；无任何域信号 |
+| 0x14217E170 | sub_14217E170 业务 vtable 槽方法；无任何域信号 |
+| 0x1404F7F00 | sub_1404F7F00 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1404FA940 | sub_1404FA940 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1403EFDA0 | sub_1403EFDA0 业务 triggerimplementation.cpp:1535 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141F0F6B0 | sub_141F0F6B0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1407290C0 | sub_1407290C0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1409ED2F0 | sub_1409ED2F0 业务 equipment_database.cpp:1042 · 游戏逻辑（含源码路径断言） 未定 |
+| 0x140271690 | sub_140271690 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141A1D970 | 业务 模块投票: 被调用者多数属 4.1 §4.1 CGameState |
+| 0x1410A8B30 | sub_1410A8B30 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1418FAD40 | sub_1418FAD40 业务 业务逻辑（串证据: NAME） 未定 |
+| 0x1414660E0 | sub_1414660E0 业务 vtable 槽方法；无任何域信号 |
+| 0x1414C9A60 | sub_1414C9A60 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1419BA200 | sub_1419BA200 业务 业务逻辑（串证据: menu_settings_VIDEO） 未定 |
+| 0x14244F1D0 | sub_14244F1D0 业务 vtable 槽方法；无任何域信号 |
+| 0x1421876C0 | sub_1421876C0 业务 vtable 槽方法；无任何域信号 |
+| 0x142189C10 | sub_142189C10 业务 vtable 槽方法；无任何域信号 |
+| 0x1421A6600 | sub_1421A6600 业务 vtable 槽方法；无任何域信号 |
+| 0x1410E04B0 | sub_1410E04B0 业务 gamestate.h:1125 · 类方法（CGameDate::vtable） |
+| 0x140247C80 | sub_140247C80 业务 业务逻辑（串证据: Railway guns damaged\n） 未定 |
+| 0x1412624C0 | sub_1412624C0 业务 gamestate.h:1125 · 类方法（CGameDate::vtable） |
+| 0x141DCCA00 | sub_141DCCA00 业务 vtable 槽方法；无任何域信号 |
+| 0x1413AFB90 | (无名) 业务 调用 gamestate 访问器 sub_140BB4390 |
+| 0x1415013B0 | sub_1415013B0 业务 业务逻辑（串证据: FUEL） 未定 |
+| 0x1420EEAC0 | sub_1420EEAC0 业务 业务逻辑（串证据: Video subsystem has not been initialized） 未定 |
+| 0x140DC8EB0 | sub_140DC8EB0 业务 断言站 gamestate.h:1125（域证据） |
+| 0x1411EA800 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x14152B310 | sub_14152B310 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1424540D0 | 业务 调用图传播: 3/4 被调用者锚点投 4.1 §4.1 CGameState |
+| 0x1411E2150 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x140F432A0 | sub_140F432A0 业务 断言站 gamestate.h:1125（域证据） |
+| 0x1406D9670 | — 业务 gamestate.h:1125 断言；调用 sub_1401DBDC0（0x1401D 区段） |
+| 0x140C40590 | sub_140C40590 业务 vtable 槽方法；无任何域信号 |
+| 0x140B74E20 | sub_140B74E20 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141555890 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x140AFA450 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x14109F090 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x141860D30 | sub_141860D30 业务 断言站 gamestate.h:1116（域证据） |
+| 0x1419C5D20 | 业务 体串 "tutorial_objective_done" -> 4.1(22×64%); 唯一被调用者在书内 §4.00; 唯一调用者在书内 §4.1 |
+| 0x141EFB5D0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x140E32C80 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0,sub_140BB5490 |
+| 0x1418C3370 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x140CD5C50 | sub_140CD5C50 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x14188A6D0 | sub_14188A6D0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x14109EAE0 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x140652370 | sub_140652370 业务 vtable 槽方法；无任何域信号 |
+| 0x141883340 | sub_141883340 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140AB67B0 | (无名) 业务 仅 CGlobals 通用断言/弱串（.txt），域未裁（c=11，2833B） —（未决） |
+| 0x140FED4B0 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0 |
+| 0x141F7FE50 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x140C79820 | sub_140C79820 业务 断言站 gamestate.h:1125（域证据） |
+| 0x14142E8D0 | sub_14142E8D0 业务 countryintelhelper.cpp:1486 · 游戏逻辑（含源码路径断言） 未定 |
+| 0x141A8D430 | sub_141A8D430 业务 业务逻辑（串证据: ![MD]\nGets the rule description of the ） 未定 |
+| 0x141E042C0 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0,sub_140BB5490 |
+| 0x1401CC530 | sub_1401CC530 业务 类方法（CGameDate::vtable） |
+| 0x1411A75F0 | sub_1411A75F0 业务 gamestate.h:1116 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140CD1D60 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x140CD37D0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x140CD5640 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x140CCED60 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x140A737F0 | sub_140A737F0 业务 断言站 gamestate.h:1126（域证据） |
+| 0x140CCFC90 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x140CD1F50 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x140CD41C0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x140BEFCB0 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0 |
+| 0x140CC7640 | sub_140CC7640 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140CC9D60 | sub_140CC9D60 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140CCAE60 | sub_140CCAE60 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140CCC530 | sub_140CCC530 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140CCDBD0 | sub_140CCDBD0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x14102D5C0 | sub_14102D5C0 业务 断言站 gamestate.h:1125（域证据） |
+| 0x14197D210 | sub_14197D210 业务 按 id（+288）查表 + a1+92 状态更新 |
+| 0x1413C35C0 | sub_1413C35C0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x1414E0240 | sub_1414E0240 业务 断言站 gamestate.h:1125（域证据） |
+| 0x1402354F0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB52F0 |
+| 0x141903F90 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0 |
+| 0x140296E80 | sub_140296E80 业务 业务逻辑（串证据: No key specified） 未定 |
+| 0x141CDFB50 | sub_141CDFB50 业务 业务逻辑（串证据: ?locale=） 未定 |
+| 0x1410861D0 | sub_1410861D0 业务 断言站 gamestate.h:1125（域证据） |
+| 0x14182B4D0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x140AEF9D0 | sub_140AEF9D0 业务 业务逻辑（串证据: COUNTRY） 未定 |
+| 0x140A7D730 | (无名) 业务 仅 CGlobals 通用断言/弱串（_pPtr），域未裁（c=5，2458B） —（未决） |
+| 0x140A05860 | sub_140A05860 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x140A7C1E0 | (无名) 业务 仅 CGlobals 通用断言/弱串（_pPtr），域未裁（c=5，2417B） —（未决） |
+| 0x140FA0860 | sub_140FA0860 业务 断言站 gamestate.h:1116（域证据） |
+| 0x1414B29D0 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x14102D790 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x1411EC290 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x1410FF1E0 | sub_1410FF1E0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x14167C560 | (无名) 业务 仅 CGlobals 通用断言/弱串（_pInstance && \"gamestate unitilialized\），域未裁（c=8，2270B） —（未决） |
+| 0x140D1CD20 | (无名) 业务 调用 gamestate 访问器 sub_140BB4390,sub_140BB48F0 |
+| 0x141546690 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB5490 |
+| 0x141E8C6A0 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0,sub_140BB5490 |
+| 0x141A1D780 | (无名) 业务 调用 gamestate 访问器 sub_140BB52F0 |
+| 0x140F48D80 | (无名) 业务 仅 CGlobals 通用断言/弱串（_pInstance && \"gamestate unitilialized\），域未裁（c=3，2219B） —（未决） |
+| 0x1411F1500 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x141F28750 | sub_141F28750 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定 |
+| 0x141579DA0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0,sub_140BB5490 |
+| 0x141446E80 | (无名) 业务 调用 gamestate 访问器 sub_140BB4390,sub_140BB48F0 |
+| 0x140A37000 | (无名) 业务 仅 CGlobals 通用断言/弱串（.txt），域未裁（c=11，2141B） —（未决） |
+| 0x141431FE0 | (无名) 业务 调用 gamestate 访问器 sub_140BB47D0,sub_140BB48F0 |
+| 0x141257020 | (无名) 业务 仅 CGlobals 通用断言/弱串（_pInstance && \"gamestate unitilialized\），域未裁（c=3，2088B） —（未决） |
+| 0x140672F70 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x140D66D40 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x140A8D2E0 | sub_140A8D2E0 业务 断言站 gamestate.h:1125（域证据） |
+| 0x140524DD0 | (无名) 业务 仅 CGlobals 通用断言/弱串（( pScope == this // pScope->_pFrom != th），域未裁（c=6，1806B） —（未决） |
+| 0x140525A50 | (无名) 业务 仅 CGlobals 通用断言/弱串（( pScope == this // pScope->_pFrom != th），域未裁（c=6，1806B） —（未决） |
+| 0x140524150 | (无名) 业务 仅 CGlobals 通用断言/弱串（( pScope == this // pScope->_pFrom != th），域未裁（c=5，1787B） —（未决） |
+| 0x1419932E0 | (无名) 业务 仅 CGlobals 通用断言/弱串（GetPtr() != 0 && \"This Object is not cr），域未裁（c=5，1754B） —（未决） |
+| 0x140B645D0 | 业务 断言站点 pdx_robin_hood_table.h:79 ->§4.00; 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1 |
+| 0x140B56FC0 | (无名) 业务 仅 CGlobals 通用断言/弱串（_pInstance && \"gamestate unitilialized\），域未裁（c=3，1694B） —（未决） |
+| 0x1421C5BC0 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x140BF9670 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x141A2B5F0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x1402D1E60 | (无名) 业务 仅 CGlobals 通用断言/弱串（%s_desc），域未裁（c=6，1588B） —（未决） |
+| 0x14002F1D0 | 业务 体串 "* `Country` - The country that the idea is associa" -> 4.1(3×67%); 唯一被调用者在书内 §4.10 |
+| 0x1404C7930 | (无名) 业务 仅 CGlobals 通用断言/弱串（( pScope == this // pScope->_pFrom != th），域未裁（c=6，1571B） —（未决） |
+| 0x1421DC600 | (无名) 业务 仅 CGlobals 通用断言/弱串（wt），域未裁（c=3，1548B） —（未决） |
+| 0x1410264D0 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 断言站点 gameidler.cpp:98 |
+| 0x141507D90 | (无名) 业务 调用 gamestate 访问器 sub_140BB5490 |
+| 0x14241EB60 | 业务 断言站点 gamestate.h:16 ->§4.1; 断言站点 gamestate.h:17 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x14250B300 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x142637E60 | (无名) 业务 仅 CGlobals 通用断言/弱串（C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\s），域未裁（c=9，1392B） —（未决） |
+| 0x14016AC60 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "!HasStaticInitializationFinished && " |
+| 0x1414BE1B0 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x1420D7C10 | 业务 断言站点 speechinput.cpp:78 ->§4.1; 断言站点 speechinput.cpp:72 ->§4.1; 断言站点 gamestate.h:16 ->§4.1 |
+| 0x1424E45D0 | 业务 断言站点 effectimplementation.cpp:58 ->§4.32; 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1 |
+| 0x14011C240 | 业务 断言站点 gamestate.h:16 ->§4.1; 断言站点 gamestate.h:17 ->§4.1; 断言站点 localize.cpp:24 |
+| 0x140611CC0 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 断言站点 diplomacylendleaseitems.cpp:20 |
+| 0x1423E64D0 | 业务 全局注册表移除：扫描 qword_1435DA818（dword_1435DA824 计数）定位 a1 并移位删除 推定 注册表移除 |
+| 0x1421B5920 | 业务 断言站点 gamestate.h:16 ->§4.1; 断言站点 gamestate.h:17 ->§4.1; 断言站点 gamestate.h:25 ->§4.1 |
+| 0x142393080 | (无名) 业务 仅 CGlobals 通用断言/弱串（%s/%s/%s%04d%02d%02d_%02d%02d%02d.dmp），域未裁（c=4，1223B） —（未决） |
+| 0x14244EFF0 | (无名) 业务 调用 gamestate 访问器 sub_140BB48F0 |
+| 0x140A53380 | 业务 双集合匹配：v2+704 表（40B 行，计数 v2+716）内嵌遍历 a1+280（计数 a1+292），id(+32) + 串（SSO>15）双重比较 推定 双集合匹配 |
+| 0x142514D50 | (无名) 业务 仅 CGlobals 通用断言/弱串（%s%s），域未裁（c=6，1175B） —（未决） |
+| 0x14245E450 | 业务 状态机：a1+36 状态（205/207/210）转换，失败置 *(a1)+40=21/69 错误码并回调 (**a1) 推定 状态机 |
+| 0x141371220 | 无名 sub_（人工读体裁定） 遍历 a1+32→+3944 容器（v5+88 数组 / v5+100 计数），匹配 a3 于 *(*(+136)+1008)+1240，得值后算 700000*v9/v10（0.7 定点商，带 7*v9+0x7FFF... 溢出门） |
+| 0x1424831F0 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x142514FF0 | (无名) 业务 仅 CGlobals 通用断言/弱串（%s%s），域未裁（c=6，1108B） —（未决） |
+| 0x1410A91B0 | 业务 断言站点 gamestate.h:16 ->§4.1; 断言站点 gamestate.h:17 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x141F3E570 | 业务 断言站点 gamestate.h:16 ->§4.1; 断言站点 gamestate.h:17 ->§4.1; 断言站点 gamestate.h:25 ->§4.1 |
+| 0x140BDE050 | 业务 双层归属检查：外层 a2 数组比对 a1==*(v6+144)，内层 v9+152 子表匹配键 + a1==*(v10+8) 推定 双层归属查找 |
+| 0x142358980 | 业务 断言站点 historylogger.cpp:94 ->§4.1; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "Error generating monthly history log" |
+| 0x141011E40 | 业务 嵌套累加：a1+8 外表（计数 a1+20）/ a1+32 内表 16B 元素，和累加写回 +16 推定 嵌套累加 |
+| 0x140E69EA0 | 业务 双数组查找：a1+88（计数 a1+100）与 a1+136（计数 a1+148）回退，按 *(元素+1008)+1240 匹配 a2+1240 推定 双数组查找 |
+| 0x1423C8350 | 业务 sub_1423C6F10 判定：真则 sub_1423C75D0；假则取 v6+5736/v6+4 位移计算，置 a1+40/72/80=-1、a1+64/36、+48=0、*(v4+200)=-1 推定 条件重置 |
+| 0x1423C7510 | 业务 对象构造：a2 清零 136B + a2+80=a1 + calloc 0x88 挂 a2+136（后续 54 行初始化） 推定 对象构造 |
+| 0x14011A360 | 业务 断言站点 pdx_scoped_singleton.h:13 ->§4.1; 串 "_pInstance == nullptr && \"It should"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x142115370 | (无名) 业务 仅 CGlobals 通用断言/弱串（Texture is not currently available），域未裁（c=3，879B） —（未决） |
+| 0x140F861D0 | 无名 sub_（人工读体裁定） 两级容器定点加权和：a3+4384 各项的 +24 子数组按 +88 键匹配后 *a1 += 1e5*v6+104*子值/1e5 |
+| 0x1424996E0 | 业务 双层循环按三元组（v9/v9[1]/v9[2]）索引 a1+624→+48 二维表，(*v11)++ 计数饱和 -1 推定 二维计数表 |
+| 0x140614750 | 业务 三串键查找：a2 表（计数 a2[3]）逐元素 +88/+104/+112 SSO 串与 a3 三段比较 推定 串键查找 |
+| 0x141927810 | 业务 串键查找：a1 表逐元素 +32 SSO 串与 a2+32/+48（+56 长度）比对 推定 串键查找 |
+| 0x1421F4200 | 业务 u16 数组搬运：a1+792 表按 a1+3 偏移 memcpy 前移（2B 元素）+ +897 计数调整，a1[1791] 计数门控 推定 数组搬运 |
+| 0x140FCE140 | 业务 依 a1+120 类型（0..4）switch 选 v7+16/+40/+64 或 v6+224 与 a3 比较阈值 推定 阈值比较 |
+| 0x140B9A7C0 | 业务 加权求和：a1+168 数组（计数 +180）逐项，*(元素+1463) 旗过滤 → 部分 v4 / 总计 v3 两和 推定 加权求和 |
+| 0x141FFD230 | 业务 func_names module pdx_conditional_view.h; 反向调用图 1/2 调用者投 §4.2; 断言站点 pdx_conditional_view.h:37 |
+| 0x142414190 | 业务 断言站点 virtualfilesystem_physfs.cpp:2 ->§4.1; 串 "Invalid file"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x140CB4D00 | 业务 嵌套集合扫描：a1+1904 数组（计数 +1916）逐项 *(元素)+236 子数组遍历判定 推定 嵌套扫描 |
+| 0x140552770 | 业务 断言站点 pdxoptional.h:73 ->§4.1; 串 "_bIsSet"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x1421C5560 | 业务 调用图传播: 唯一被调用者在书内 4.1 §4.1 CGameState |
+| 0x142507290 | 业务 嵌套扫描：a1+64 数组（计数 a1+76）32B 元素，内层 do-while 遍历 + 16 行判定 推定 嵌套扫描 |
+| 0x141297F20 | 业务 断言站点 gamestate.h:16 ->§4.1; 断言站点 gamestate.h:17 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x1420E3490 | 业务 地址邻域投票 4.1 (192/464) §4.1 CGameState |
+| 0x140C74E70 | 业务 定点平方缩放：a2² × qword_143335AA0 系数（0x29F16B11C6D1E109 魔数常量乘）+ 上限钳位 100000 推定 定点缩放 |
+| 0x142105A20 | 业务 地址邻域投票 4.1 (179/427) §4.1 CGameState |
+| 0x140C958C0 | 业务 定点递归求值：qword_143337178×v3×1e5 倒数 magic，+1240 父链递归 定点求值 |
+| 0x140BD53C0 | 业务 定点乘法：qword_143330FF0 系数 × a2（0x29F16B11C6D1E109 魔数常量乘）+ 溢出返 0xFFFFFFFF 推定 定点乘法 |
+| 0x1420DC100 | 业务 地址邻域投票 4.1 (188/454) §4.1 CGameState |
+| 0x140CE30D0 | 业务 地址邻域投票 4.1 (203/396) §4.1 CGameState |
+| 0x1416239A0 | 业务 定点公式：100000×a2 magic 倒数 → 3×qword_143335F50×v3/100000 - 定点公式 |
+| 0x1420DDB80 | 业务 断言站点 input_touch.h:46 ->§4.1; 串 "Null Touch Device has no touches."; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x140715310 | 业务 定点预算累加：qword_1433366D8×a2×1e5 倒数 magic → a1+5352，/100000 取整+余数回写 - 定点预算 |
+| 0x1422EBEC0 | 业务 地址邻域投票 4.1 (333/694) §4.1 CGameState |
+
+
+#### 4.1.47 CGameState 派发族与门控函数补遗（151 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E439D0 | 业务 CGameState 相关更新：访问国家/州/和会模块并强制 gamestate 线程访问检查 断言 gamestate.h:1125×4（_pInstance 与 _ThreadForbidCount==0）；调 country.cpp:7154/state.cpp:1845/peaceconferenc… |
+| 0x140EBFEE0 | 业务 复合数据类移动/拷贝构造：232B 元素数组逐元素复制 + 10+ 字符串成员移动 移动语义标记 *(a2+8)=&unk_1430853F0 / *(a2+40)=&unk_143086250；off_143085170 子对象×11；std::string 析构标记（locale dtor）；a1+18… |
+| 0x141299430 | 业务 调用图 h1name:CInGameIdler::[20] [h1name:CInGameIdler::[20]×1,h1mod:gameitemdatabase.h×1] |
+| 0x141688A60 | 业务 调用图 h2mod:ingameinterfacehandler.cpp [h2mod:ingameinterfacehandler.cpp×1,h2name:CProductionLine::[14]×1] |
+| 0x141DC3C50 | 业务 调用图 h1mod:gameitemdatabase.h [h1mod:gameitemdatabase.h×1,h1mod:gradientbordermanager.cpp×1] |
+| 0x1412F8D20 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x140308E80 | 业务 反向调用图 1/2 调用者投 §4.1; 唯一被调用者在书内 §4.21 |
+| 0x14062C610 | 业务 调用图 2/2 锚点投 §4.1; 反向调用图 2/2 调用者投 §4.23 |
+| 0x1416EEE90 | 业务 调用图 2/4 锚点投 §4.1; 反向调用图 2/3 调用者投 §4.30 |
+| 0x140D02210 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 8/11 调用者投 §4.1 |
+| 0x140BEA670 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 3/5 调用者投 §4.1 |
+| 0x140EC2600 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 3/5 调用者投 §4.1 |
+| 0x140B63F30 | 业务 调用图 2/2 锚点投 §4.1; 反向调用图 1/2 调用者投 §4.2 |
+| 0x1406CD030 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 1/2 调用者投 §4.30 |
+| 0x1413FEF20 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 2/3 调用者投 §4.29 |
+| 0x1420921D0 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 3/5 调用者投 §4.1 |
+| 0x140EEAD40 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 1/2 调用者投 §4.00 |
+| 0x140BD1950 | 业务 调用图 2/2 锚点投 §4.1; 反向调用图 2/3 调用者投 §4.1 |
+| 0x140682F90 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 2/2 调用者投 §4.1 |
+| 0x142281DF0 | 业务 调用图 2/2 锚点投 §4.1; 反向调用图 6/7 调用者投 §4.00 |
+| 0x140D50CD0 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 4/6 调用者投 §4.00 |
+| 0x140E84940 | 业务 调用图 2/2 锚点投 §4.1; 反向调用图 1/2 调用者投 §4.31 |
+| 0x1417E2DB0 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 7/12 调用者投 §4.00 |
+| 0x1423EEC20 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 2/2 调用者投 §4.00 |
+| 0x140630B30 | 业务 调用图 2/3 锚点投 §4.1; 反向调用图 2/2 调用者投 §4.00 |
+| 0x141EF82B0 | 业务 调用图 2/3 锚点投 §4.1; 反向调用图 1/2 调用者投 §4.00 |
+| 0x14100F8D0 | 业务 反向调用图 3/5 调用者投 §4.1 |
+| 0x1423A9100 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1422604C0 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x141729490 | 业务 调用图 2/2 锚点投 §4.1; 反向调用图 1/2 调用者投 §4.00 |
+| 0x141B8F110 | 业务 反向调用图 1/2 调用者投 §4.1; 唯一被调用者在书内 §4.29 |
+| 0x140EB8C80 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1413E58C0 | 业务 反向调用图 2/4 调用者投 §4.1; 唯一被调用者在书内 §4.1 |
+| 0x141D79E60 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x140D4C930 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1411EC010 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x14137C3D0 | 业务 反向调用图 3/6 调用者投 §4.1; 唯一被调用者在书内 §4.00 |
+| 0x141FA5D70 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x142459550 | 业务 反向调用图 2/4 调用者投 §4.1 |
+| 0x14248E940 | 业务 反向调用图 3/5 调用者投 §4.1; 唯一被调用者在书内 §4.00 |
+| 0x14128AF40 | 业务 反向调用图 1/2 调用者投 §4.1; 唯一被调用者在书内 §4.1 |
+| 0x14206DD00 | 业务 反调用图传播 3.7 权重锚点投 §4.1（top 占比 0.64） |
+| 0x1409E9C40 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x142116DC0 | 业务 反向调用图 2/3 调用者投 §4.1; 调用图 top 4.8 33% (n=3) |
+| 0x141431C30 | 业务 反向调用图 4/4 调用者投 §4.1 |
+| 0x14166DA00 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x141431020 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x14246BDE0 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x141D175D0 | 业务 反调用图传播 1.7 权重锚点投 §4.1（top 占比 0.50） |
+| 0x1415245E0 | 业务 反向调用图 2/3 调用者投 §4.1; 唯一被调用者在书内 §4.00 |
+| 0x1414321F0 | 业务 反向调用图 6/6 调用者投 §4.1 |
+| 0x1411E5720 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 2/3 调用者投 §4.00 |
+| 0x1409FFB50 | 业务 反调用图传播 2.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x141C62F40 | 业务 反向调用图 2/2 调用者投 §4.1; 唯一被调用者在书内 §4.00 |
+| 0x1401CA680 | 业务 反调用图传播 5.0 权重锚点投 §4.1（top 占比 0.50） |
+| 0x1401CAEE0 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1406D1F80 | 业务 反调用图传播 2.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1421C5410 | 业务 反调用图传播 3.0 权重锚点投 §4.1（top 占比 0.50） |
+| 0x141A61650 | 业务 类名 CObjective,CObjective1,CPdxHybridInlineBufferAllocator → §4.1（投票 1） |
+| 0x1401C1B10 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1419AA7F0 | 业务 类名 CCachedLocationItem,CCachedLocationItem1,CPdxHybridInlineBufferAllocator → §4.1（投票 1） |
+| 0x1415AB4B0 | 业务 反调用图传播 2.3 权重锚点投 §4.1（top 占比 0.86） |
+| 0x1404A9C80 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x141962900 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x141992F10 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x140D4F080 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1419D7FE0 | 业务 反调用图传播 2.0 权重锚点投 §4.1（top 占比 0.50） |
+| 0x1414C2500 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1418E3310 | 业务 反调用图传播 2.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1401500B0 | 业务 调用图 2/2 锚点投 §4.1; 反向调用图 2/2 调用者投 §4.1 |
+| 0x141517DE0 | 业务 反调用图传播 5.3 权重锚点投 §4.1（top 占比 0.94） |
+| 0x141E5E220 | 业务 反调用图传播 1.7 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1415CB040 | 业务 反调用图传播 2.3 权重锚点投 §4.1（top 占比 0.64） |
+| 0x140B53240 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x14187AC10 | 业务 反调用图传播 3.5 权重锚点投 §4.1（top 占比 0.71） |
+| 0x140666BC0 | 业务 反调用图传播 2.0 权重锚点投 §4.1（top 占比 0.50） |
+| 0x1424FCDC0 | 业务 反向调用图 5/7 调用者投 §4.1 |
+| 0x1401D7DB0 | 业务 反调用图传播 3.2 权重锚点投 §4.1（top 占比 0.74） |
+| 0x140BBE920 | 业务 反调用图传播 1.3 权重锚点投 §4.1（top 占比 0.62） |
+| 0x1421B7A10 | 业务 反调用图传播 1.7 权重锚点投 §4.1（top 占比 0.50） |
+| 0x140128B70 | 业务 调用图 2/2 锚点投 §4.1; 反向调用图 4/7 调用者投 §4.00 |
+| 0x140DC04E0 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x142107440 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1410AC2D0 | 业务 反向调用图 2/3 调用者投 §4.1 |
+| 0x1424CCD90 | 业务 反向调用图 2/4 调用者投 §4.1 |
+| 0x1422B0110 | 业务 反向调用图 2/3 调用者投 §4.1 |
+| 0x140A9F630 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x140E840C0 | 业务 反向调用图 3/4 调用者投 §4.1 |
+| 0x1420DD200 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x140E58060 | 业务 反调用图传播 2.3 权重锚点投 §4.1（top 占比 0.57） |
+| 0x1415A6840 | 业务 反调用图传播 2.0 权重锚点投 §4.1（top 占比 0.50） |
+| 0x140B735E0 | 业务 反向调用图 2/2 调用者投 §4.1; 唯一被调用者在书内 §4.00 |
+| 0x141E8D260 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1401BA290 | 业务 反向调用图 10/12 调用者投 §4.1 |
+| 0x1409F18E0 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x141254740 | 业务 反调用图传播 1.3 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1401C1530 | 业务 反向调用图 2/4 调用者投 §4.1 |
+| 0x1421B8E80 | 业务 调用图 2/3 锚点投 §4.1; 反向调用图 3/6 调用者投 §4.1 |
+| 0x141C65AF0 | 业务 反调用图传播 3.3 权重锚点投 §4.1（top 占比 0.60） |
+| 0x141C39DD0 | 业务 调用图 1/2 锚点投 §4.1; 反向调用图 1/2 调用者投 §4.3 |
+| 0x142255EF0 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1401EE3D0 | 业务 反调用图传播 4.0 权重锚点投 §4.1（top 占比 0.50） |
+| 0x1416B5A50 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x140C51010 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x140150E80 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x14047B710 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1410E6230 | 业务 反调用图传播 2.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1410E6350 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1410E6410 | 业务 反调用图传播 6.7 权重锚点投 §4.1（top 占比 0.65） |
+| 0x14211BE50 | 业务 反向调用图 2/3 调用者投 §4.1 |
+| 0x1421E1E00 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x1401FE670 | 业务 反向调用图 2/4 调用者投 §4.1 |
+| 0x141537FF0 | 业务 反向调用图 3/6 调用者投 §4.1 |
+| 0x140EC8840 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1422AA9D0 | 业务 反向调用图 5/5 调用者投 §4.1 |
+| 0x1406B4AA0 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x140CA4580 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x140BBB740 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1411CFB30 | 业务 反向调用图 2/4 调用者投 §4.1 |
+| 0x1421B02F0 | 业务 反向调用图 3/6 调用者投 §4.1 |
+| 0x14029C610 | 业务 反向调用图 2/4 调用者投 §4.1 |
+| 0x14213A470 | 业务 反向调用图 3/4 调用者投 §4.1 |
+| 0x1421DFF70 | 业务 反向调用图 7/12 调用者投 §4.1 |
+| 0x141F497E0 | 业务 反向调用图 1/2 调用者投 §4.1; 唯一被调用者在书内 §4.00 |
+| 0x14124A4D0 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1401C2140 | 业务 反向调用图 3/5 调用者投 §4.1 |
+| 0x14022B490 | 业务 ICF 克隆等价 0x14193cca0（唯一调用者在书内 §4.1） |
+| 0x142377940 | 业务 反向调用图 2/2 调用者投 §4.1; 唯一被调用者在书内 §4.31 |
+| 0x1401C1D10 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1410B5360 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x14014C7B0 | 业务 反向调用图 2/4 调用者投 §4.1; 唯一被调用者在书内 §4.1 |
+| 0x142348FE0 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x142348F70 | 业务 反向调用图 2/2 调用者投 §4.1; 唯一被调用者在书内 §4.1 |
+| 0x1420E42C0 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x14071E800 | 业务 反调用图传播 1.5 权重锚点投 §4.1（top 占比 1.00） |
+| 0x140A86110 | 业务 反向调用图 1/2 调用者投 §4.1; 唯一被调用者在书内 §4.1 |
+| 0x14022D090 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x14068F7E0 | 业务 反向调用图 17/19 调用者投 §4.1 |
+| 0x1401C1F10 | 业务 反向调用图 1/2 调用者投 §4.1; 唯一被调用者在书内 §4.1 |
+| 0x1413774D0 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x142159FF0 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x141992130 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1421C5280 | 业务 反向调用图 2/3 调用者投 §4.1 |
+| 0x1401D2570 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+| 0x1424EF840 | 业务 反向调用图 2/2 调用者投 §4.1; 唯一被调用者在书内 §4.00 |
+| 0x141CF5BE0 | 业务 反向调用图 4/6 调用者投 §4.1 |
+| 0x1419ABD70 | 业务 反向调用图 2/2 调用者投 §4.1 |
+| 0x1420E3DC0 | 业务 反向调用图 1/2 调用者投 §4.1 |
+| 0x1410A6E70 | 业务 反向调用图 2/3 调用者投 §4.1 |
+| 0x14012ADD0 | 业务 反向调用图 1/2 调用者投 §4.1; 唯一被调用者在书内 §4.00 |
+| 0x140F0A9F0 | 业务 反调用图传播 1.0 权重锚点投 §4.1（top 占比 1.00） |
+
+#### 4.1.48 常量串 getter 结构定案（26 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140740140 | 常量串 getter: 返回常量串 "NGame::TRADE_ROUTE_RECALCULATE_FREQUENCY_DAYS"（高置信） |
+| 0x1407400F0 | 常量串 getter: 返回常量串 "NGame::MISSION_REMOVE_FROM_INTERFACE_DEFAULT"（高置信） |
+| 0x140740100 | 常量串 getter: 返回常量串 "NGame::MUSIC_PLAYER_RECENTLY_PLAYED_SIZE"（高置信） |
+| 0x140740090 | 常量串 getter: 返回常量串 "NGame::MAJOR_PARTICIPANTS_FOR_MAJOR_WAR"（高置信） |
+| 0x14073FFF0 | 常量串 getter: 返回常量串 "NGame::DECISION_ALERT_TIMEOUT_DAYS"（高置信） |
+| 0x1407400C0 | 常量串 getter: 返回常量串 "NGame::MAX_SCRIPTED_LOC_RECURSION"（高置信） |
+| 0x140740060 | 常量串 getter: 返回常量串 "NGame::INFO_MESSAGE_TIMEOUT_DAYS"（高置信） |
+| 0x140740070 | 常量串 getter: 返回常量串 "NGame::LAG_DAYS_FOR_LOWER_SPEED"（高置信） |
+| 0x14073FFC0 | 常量串 getter: 返回常量串 "NGame::ALERT_SFX_COOLDOWN_DAYS"（高置信） |
+| 0x14073FFB0 | 常量串 getter: 返回常量串 "NGame::AIR_LOG_TIMEOUT_HOURS"（高置信） |
+| 0x14073FFE0 | 常量串 getter: 返回常量串 "NGame::COMBAT_LOG_MAX_MONTHS"（高置信） |
+| 0x140740020 | 常量串 getter: 返回常量串 "NGame::EVENT_TIMEOUT_DEFAULT"（高置信） |
+| 0x1407400A0 | 常量串 getter: 返回常量串 "NGame::MAP_SCALE_PIXEL_TO_KM"（高置信） |
+| 0x1407400B0 | 常量串 getter: 返回常量串 "NGame::MAX_EFFECT_ITERATION"（高置信） |
+| 0x1407400D0 | 常量串 getter: 返回常量串 "NGame::MESSAGE_TIMEOUT_DAYS"（高置信） |
+| 0x140740050 | 常量串 getter: 返回常量串 "NGame::HANDS_OFF_START_TAG"（高置信） |
+| 0x140740040 | 常量串 getter: 返回常量串 "NGame::GAME_SPEED_SECONDS"（高置信） |
+| 0x140740080 | 常量串 getter: 返回常量串 "NGame::LAG_DAYS_FOR_PAUSE"（高置信） |
+| 0x1407400E0 | 常量串 getter: 返回常量串 "NGame::MINOR_SAVE_VERSION"（高置信） |
+| 0x140740010 | 常量串 getter: 返回常量串 "NGame::ENERGY_RESOURCE"（高置信） |
+| 0x14073FFD0 | 常量串 getter: 返回常量串 "NGame::CHECKSUM_SALT"（高置信） |
+| 0x140740030 | 常量串 getter: 返回常量串 "NGame::FUEL_RESOURCE"（高置信） |
+| 0x140740110 | 常量串 getter: 返回常量串 "NGame::OIL_RESOURCE"（高置信） |
+| 0x140740120 | 常量串 getter: 返回常量串 "NGame::SAVE_VERSION"（高置信） |
+| 0x140740130 | 常量串 getter: 返回常量串 "NGame::START_DATE"（高置信） |
+| 0x140740000 | 常量串 getter: 返回常量串 "NGame::END_DATE"（高置信） |
+
+#### 4.1.49 单调用转发桩结构定案（1080 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F19140 | 转发桩: 被调者 0x140FA30D0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x14253EC5C | 转发桩: 转发至 （无名） 体设 Node::vftable（RTTI 名）（推定） |
+| 0x1401F75B0 | 转发桩: 转发至 未命名业务函数 业务类 CGameState（类名/调用链证据）（推定） |
+| 0x14253E960 | 转发桩: 转发至 （无名） 体设 Node::vftable（RTTI 名）（推定） |
+| 0x140DB6FE0 | 转发桩: 转发至 业务 双集合匹配：v2+704 表（40B 行，计数 v2+716）内嵌遍历 a1+280（计数 a1+292），id(+32) + 串（SSO>15）双重比较 推定 双集合匹配（推定） |
+| 0x141B8A0C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1402205D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14032EF70 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x1404C87D0 | 转发桩: 转发至 断言 script_collection_evaluator.h:230 ×4（无类型串，泛化分支，体积较小 7224）（推定） |
+| 0x14179E5F0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x142394450 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 pdx_thread_tbb.cpp:91（推定） |
+| 0x141B48980 | 转发桩: 转发至 （无名，按证据定性） gamestate.h:1125 断言站点（_pInstance&&_ThreadForbidCount==0，CGameState 成员）（推定） |
+| 0x1425F07D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1404C8410 | 转发桩: 转发至 脚本集合 ForEach 求值器 脚本集合 ForEach 求值器；断言 eventscope.h:193 + script_collection_evaluator.h:230 + 集合类型串 "country"（推定） |
+| 0x14260AEA0 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x142684810 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142273000 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 pdxkeys.cpp:165（推定） |
+| 0x140AD52D0 | 转发桩: 转发至 （无名） 体设 CFolderPosition::vftable（RTTI 名）（推定） |
+| 0x140A26410 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x141537630 | 转发桩: 转发至 业务 反向调用图 3/6 调用者投 §4.1（推定） |
+| 0x14253E574 | 转发桩: 转发至 （无名） 体设 Node::vftable（RTTI 名）（推定） |
+| 0x140C78530 | 转发桩: 转发至 sub_140C79820 业务 断言站 gamestate.h:1125（域证据）（推定） |
+| 0x141B5A970 | 转发桩: 转发至 gamestate.h:1116 门控 ×3，无其他串；vtable 调用（推定） |
+| 0x140C9C9D0 | 转发桩: 转发至 （无名） 体设 SModifierStat::vftable（RTTI 名）（推定） |
+| 0x1420974A0 | 转发桩: 转发至 （无名） 体设 SSubsystemReader::vftable（RTTI 名）（推定） |
+| 0x140AD28C0 | 转发桩: 转发至 （无名） 体设 CTechnologyPath::vftable（RTTI 名）（推定） |
+| 0x141F495A0 | 转发桩: 转发至 政治总览窗口 `pol_faction_icon`/`country_leader`/`government`/`party`/`elections`/`political_pie_chart`+`CColor` vtable（推定） |
+| 0x1420804B0 | 转发桩: 转发至 VT std::ifstream + 串 "console_edit"/"console_list" VT std::ifstream + 串 "console_edit"/"console_list"：控制台编辑/列表命令（推定） |
+| 0x1420F19E0 | 转发桩: 转发至 调试覆盖层开关簇 head：dword_143450C78 / dword_143450CC8 门 + sub_142109F20(…, 1.0f)（推定） |
+| 0x1401C2940 | 转发桩: 转发至 （无名） 体设 CCombatHistory::vftable（RTTI 名）（推定） |
+| 0x14002FC30 | 转发桩: 转发至 （无名） 体设 SPlaythroughCountryData::vftable（RTTI 名）（推定） |
+| 0x14253EA04 | 转发桩: 转发至 （无名） 体设 Node::vftable（RTTI 名）（推定） |
+| 0x140DF25A0 | 转发桩: 转发至 CEquipmentMarketSystem::SetCallbacks? func_names 名 CEquipmentMarketSystem::SetCallbacks?（推定） |
+| 0x1425F1320 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142600CA0 | 转发桩: 转发至 （无名） 体设 CFolderPosition::vftable（RTTI 名）（推定） |
+| 0x142606620 | 转发桩: 转发至 （无名） 体设 CTextBlock::vftable（RTTI 名）（推定） |
+| 0x142610BE0 | 转发桩: 转发至 业务 反向调用图 1/2 调用者投 §4.1（推定） |
+| 0x1426126D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142612ED0 | 转发桩: 转发至 （无名） 体设 CStateManpower::vftable（RTTI 名）（推定） |
+| 0x1426291A0 | 转发桩: 转发至 （无名） 体设 CStaticIntelSourceReference::vftable（RTTI 名）（推定） |
+| 0x14263AE80 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263AF00 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263E8C0 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x142670320 | 转发桩: 被调者 0x141B7CC70 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142670380 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14267F0D0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426F54F0 | 转发桩: 转发至 业务 反向调用图 1/2 调用者投 §4.1（推定） |
+| 0x1425938A0 | 转发桩: 被调者 0x1402205D0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425938E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425938F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142593A80 | 转发桩: 转发至 业务 ICF 克隆等价 0x14193cca0（唯一调用者在书内 §4.1）（推定） |
+| 0x1425A2B10 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425EF9A0 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x140F9E530 | 转发桩: 转发至 （无名） 体设 CUnitMedalStore::vftable（RTTI 名）（推定） |
+| 0x14253E5B4 | 转发桩: 转发至 （无名） 体设 Node::vftable（RTTI 名）（推定） |
+| 0x142666A40 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1403030F0 | 转发桩: 转发至 （无名） 体设 CScopedVariableWithPostValidate::vftable（RTTI 名）（推定） |
+| 0x142296820 | 转发桩: 转发至 （无名） 体设 CPdx3DType::vftable（RTTI 名）（推定） |
+| 0x1421EE300 | 转发桩: 转发至 渲染区调试直方图输出 渲染区调试直方图输出；串 "%d: %8.4g"/"%d: %8.4g %d: %8.4g"（推定） |
+| 0x141400B00 | 转发桩: 转发至 （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125）（推定） |
+| 0x141B7CC40 | 转发桩: 被调者 0x141B8A0C0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x14015E790 | 转发桩: 转发至 业务 调用图 2/2 锚点投 §4.1; 反向调用图 2/2 调用者投 §4.1（推定） |
+| 0x140DBA850 | 转发桩: 转发至 军官视图 `countryofficercorpview`/`divisioncommanderwindow`/`CShipCaptainWindow`+`NAVAL_INVASION_LACK_TRANSPORT`/`NAVAL_INVASION_PREPERATION_SPEED`+3 个…（推定） |
+| 0x14208A8E0 | 转发桩: 转发至 （无名） 体设 CTweakableArrayCurveManipulator::vftable（RTTI 名）（推定） |
+| 0x14208AA10 | 转发桩: 转发至 （无名） 体设 CTweakableGraphManipulator::vftable（RTTI 名）（推定） |
+| 0x14224E110 | 转发桩: 转发至 （无名） 体设 CSdlEvents::vftable（RTTI 名）（推定） |
+| 0x141F2B610 | 转发桩: 转发至 gamestate 门控 + pdx_scoped_buffer.h:54 断言 gamestate 门控 + pdx_scoped_buffer.h:54 断言：gamestate 门控的缓冲区写入（同 0x140C74400 形态）（推定） |
+| 0x141F160F0 | 转发桩: 转发至 无名领域函数 sub_141C0CE90 调用 gamestate id→索引查询 sub_140BB5490/48F0（1 次，校准定案：调它的函数属 §4.1）（推定） |
+| 0x1417DFDB0 | 转发桩: 转发至 业务 调用图 1/2 锚点投 §4.1; 反向调用图 7/12 调用者投 §4.00（推定） |
+| 0x141442330 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x141AED240 | 转发桩: 转发至 （未具名） "Area %i: %.3f"/"Areas (%s): %.3f"/"No area covering province" = 地图区域面积统计（推定） |
+| 0x1410472D0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x1425AE5A0 | 转发桩: 转发至 （无名） 体设 CSavedEventTarget::vftable（RTTI 名）（推定） |
+| 0x1419159F0 | 转发桩: 转发至 （无名） 体设 CDynamicEquipmentGroup::vftable（RTTI 名）（推定） |
+| 0x141511A50 | 转发桩: 转发至 （无名） 体设 CExileDivisionsTransfer::vftable（RTTI 名）（推定） |
+| 0x1413AD7D0 | 转发桩: 被调者 0x140DB8AF0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1417DFCB0 | 转发桩: 转发至 业务 调用图 1/2 锚点投 §4.1; 反向调用图 7/12 调用者投 §4.00（推定） |
+| 0x14253E8B0 | 转发桩: 转发至 （无名） 体设 Node::vftable（RTTI 名）（推定） |
+| 0x1424DF830 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x140638D20 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x14015F4C0 | 转发桩: 转发至 （无名） 体设 CEquipmentBonus::vftable（RTTI 名）（推定） |
+| 0x140ACBCD0 | 转发桩: 转发至 （无名） 体设 CFolderPosition::vftable（RTTI 名）（推定） |
+| 0x14163F110 | 转发桩: 转发至 a1+14470 门 a1+14470 门：推进 a1+14464 索引（a1+14292 上界、a1+14280 数组）+ vtable+32 通知 + 清双标志 推定（推定） |
+| 0x142273280 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 pdxkeys.cpp:165（推定） |
+| 0x142659980 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x141515E50 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 ntract_delivery_state.h:30（推定） |
+| 0x1426406D0 | 转发桩: 转发至 （无名） 体设 CPendingAction::vftable（RTTI 名）（推定） |
+| 0x142650390 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x1426F1CD0 | 转发桩: 转发至 （无名） 体设 C2dObject::vftable（RTTI 名）（推定） |
+| 0x141D1FF50 | 转发桩: 被调者 0x140FA30D0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142625010 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142632D20 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142643970 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142601980 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426F6945 | 转发桩: 转发至 （无名） 体设 Facet_base::vftable（RTTI 名）（推定） |
+| 0x14263EA10 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14263EA40 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14263EA80 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14263EAB0 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x1426139C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426250C0 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142632D60 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1426017A0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x14261CD00 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x141022D40 | 转发桩: 转发至 业务 定点递归求值：qword_143337178×v3×1e5 倒数 magic，+1240 父链递归 定点求值（推定） |
+| 0x1422A98A0 | 转发桩: 转发至 （无名） 体设 COptionObserver::vftable（RTTI 名）（推定） |
+| 0x141400B50 | 转发桩: 转发至 （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125）（推定） |
+| 0x140FA30D0 | 转发桩: 转发至 CArchiveFile 操作 CArchiveFile 操作：VT CArchiveFile，调 0x1424DC920/0x1424DF2C0/0x1424F10A0（存档归档族）（推定） |
+| 0x1422FF730 | 转发桩: 转发至 （无名） 体设 COptionObserver::vftable（RTTI 名）（推定） |
+| 0x1409B8490 | 转发桩: 转发至 （无名） 体设 CDifficultySetting::vftable（RTTI 名）（推定） |
+| 0x140A40960 | 转发桩: 转发至 （无名） 体设 CIdeaGroupType::vftable（RTTI 名）（推定） |
+| 0x14101A0F0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x141020AD0 | 转发桩: 转发至 业务 定点递归求值：qword_143337178×v3×1e5 倒数 magic，+1240 父链递归 定点求值（推定） |
+| 0x1426F46A0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1425EEBD0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1402D0BB0 | 转发桩: 转发至 CArchiveFile 操作 CArchiveFile 操作：VT CArchiveFile，调 0x1424DC920/0x1424DF2C0/0x1424F10A0（存档归档族）（推定） |
+| 0x1414664E0 | 转发桩: 转发至 sub_1414660E0 业务 vtable 槽方法；无任何域信号（推定） |
+| 0x141C4AC20 | 转发桩: 被调者 0x140FCE450 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x141CF3A00 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 ingameinterfacehandler.cpp:2421（推定） |
+| 0x142601790 | 转发桩: 转发至 （无名） 体设 CBaseTimedActivity::vftable（RTTI 名）（推定） |
+| 0x142659BA0 | 转发桩: 转发至 （无名） 体设 CMapMode::vftable（RTTI 名）（推定） |
+| 0x14268A6D0 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x1426F664C | 转发桩: 转发至 （无名） 体设 Facet_base::vftable（RTTI 名）（推定） |
+| 0x14208ACA0 | 转发桩: 转发至 （无名） 体设 CTweakableArrayCurveManipulator::vftable（RTTI 名）（推定） |
+| 0x14258C7D0 | 转发桩: 转发至 （无名） 体设 CReloadDispatcher::vftable（RTTI 名）（推定） |
+| 0x140ACE0C0 | 转发桩: 转发至 CArchiveFile 操作 CArchiveFile 操作：VT CArchiveFile，调 0x1424DC920/0x1424DF2C0/0x1424F10A0（存档归档族）（推定） |
+| 0x141B7CC70 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x140B9F560 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x1425F4610 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1420ECB80 | 转发桩: 转发至 sub_1420EEAC0 业务 业务逻辑（串证据: Video subsystem has not been initialized） 未定（推定） |
+| 0x142591140 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x140B56E70 | 转发桩: 转发至 sub_14167D890 vtable 间接调用 §待裁（推定） |
+| 0x1402A83F0 | 转发桩: 转发至 sub_1410B4D30 float+xmm 寄存器 + vtable 间接调用 §待裁（推定） |
+| 0x141520510 | 转发桩: 转发至 （未具名） CVolunteerForceTransfer 类名（志愿军转移）+ gamestate.h:1116（推定） |
+| 0x1401C95B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425FD610 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142225B80 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 pdx_cloudstorage.cpp:41（推定） |
+| 0x1412841E0 | 转发桩: 转发至 （无名） 体设 SPostEffectHeightVolumeReader::vftable（RTTI 名）（推定） |
+| 0x141DFEFB0 | 转发桩: 转发至 （无名） 体设 SCachedInfo::vftable（RTTI 名）（推定） |
+| 0x142629480 | 转发桩: 转发至 （无名） 体设 CAIModule::vftable（RTTI 名）（推定） |
+| 0x1414E0A40 | 转发桩: 转发至 fixed 数值计算（含百分比修正） 100000*a3 + sub_140F78500(a2+144)/100000 推定（推定） |
+| 0x1420152E0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x1426E6620 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x142630CA0 | 转发桩: 转发至 （无名） 体设 CStaticIntelSourceReference::vftable（RTTI 名）（推定） |
+| 0x142634790 | 转发桩: 转发至 （无名） 体设 CLendLeaseAction::vftable（RTTI 名）（推定） |
+| 0x14265D720 | 转发桩: 转发至 （无名） 体设 CChatMessage::vftable（RTTI 名）（推定） |
+| 0x14265FC50 | 转发桩: 转发至 （无名） 体设 CCallAllyAction::vftable（RTTI 名）（推定） |
+| 0x142662B40 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x142670370 | 转发桩: 被调者 0x141B7CC70 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142670950 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426914C0 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x14258F930 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425AE860 | 转发桩: 转发至 （无名） 体设 CSavedEventTarget::vftable（RTTI 名）（推定） |
+| 0x1425FD420 | 转发桩: 转发至 （无名） 体设 CExcelParse::vftable（RTTI 名）（推定） |
+| 0x142634780 | 转发桩: 转发至 （无名） 体设 CGiveStateControlAction::vftable（RTTI 名）（推定） |
+| 0x141C4ABE0 | 转发桩: 被调者 0x140FCE450 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142622290 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425F4A80 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425F5160 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142627DF0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426355F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142678F30 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14268A790 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142627D90 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262D200 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142679000 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426350E0 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x142627740 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14266E3C0 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x1424B6900 | 转发桩: 转发至 由 a1 构串后调 sub_1424B8380 分派（同 0x1424B79F0 簇） 由 a1 构串后调 sub_1424B8380 分派（同 0x1424B79F0 簇）：控制台命令处理（推定） |
+| 0x1425F0BF0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425F8760 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x1426144A0 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x14261D480 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x14261E660 | 转发桩: 转发至 （无名） 体设 CSubUnitStatBonus::vftable（RTTI 名）（推定） |
+| 0x142626570 | 转发桩: 转发至 （无名） 体设 CGarrisonReinforcementRequests::vftable（RTTI 名）（推定） |
+| 0x142627710 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x142627720 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x14262AE00 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142632A10 | 转发桩: 转发至 （无名） 体设 CSelectionListObserver::vftable（RTTI 名）（推定） |
+| 0x14264CD50 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x142681990 | 转发桩: 转发至 （无名） 体设 CStandardMusicPlaybackController::vftable（RTTI 名）（推定） |
+| 0x140727A20 | 转发桩: 转发至 CArchiveFile 操作 CArchiveFile 操作：VT CArchiveFile，调 0x1424DC920/0x1424DF2C0/0x1424F10A0（存档归档族）（推定） |
+| 0x140FCE450 | 转发桩: 转发至 CArchiveFile 操作 CArchiveFile 操作：VT CArchiveFile，调 0x1424DC920/0x1424DF2C0/0x1424F10A0（存档归档族）（推定） |
+| 0x1426112F0 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x1409E1A80 | 转发桩: 转发至 sub_1409D0720 gamestate 作用域访问（断言「gamestate unitilialized」+「ThreadForbidCount == 0」）（推定） |
+| 0x1426088D0 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142622590 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142680940 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x142681E60 | 转发桩: 转发至 （无名） 体设 CNavyTheaterNavyItemBase::vftable（RTTI 名）（推定） |
+| 0x1426F66D9 | 转发桩: 转发至 （无名） 体设 Facet_base::vftable（RTTI 名）（推定） |
+| 0x1418DF390 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x141B38310 | 转发桩: 转发至 以 "nukes" 为键取 a1[7]，按 +1280/+1292 计数构表 以 "nukes" 为键取 a1[7]，按 +1280/+1292 计数构表：核弹列表构建 GUI（推定） |
+| 0x140E7E440 | 转发桩: 转发至 （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125）（推定） |
+| 0x1417A18B0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x141697C00 | 转发桩: 转发至 CArmyDivisionListView 析构 CArmyDivisionListView 析构：VT CArmyDivisionListView/CButtonEventDispatcher/CTooltipHandler，4 组 CButtonEventDispatcher 子对象释放（…（推定） |
+| 0x142624200 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x14264AC70 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1402A75B0 | 转发桩: 转发至 sub_1402A7820 vtable 间接调用 §待裁（推定） |
+| 0x14032DAE0 | 转发桩: 转发至 （无名） 体设 CAdvisor::vftable（RTTI 名）（推定） |
+| 0x14032DB10 | 转发桩: 转发至 （无名） 体设 CCountryLeader::vftable（RTTI 名）（推定） |
+| 0x140DB8AF0 | 转发桩: 转发至 军官视图 `countryofficercorpview`/`divisioncommanderwindow`/`CShipCaptainWindow`+`NAVAL_INVASION_LACK_TRANSPORT`/`NAVAL_INVASION_PREPERATION_SPEED`+3 个…（推定） |
+| 0x140DB9790 | 转发桩: 转发至 军官视图 `countryofficercorpview`/`divisioncommanderwindow`/`CShipCaptainWindow`+`NAVAL_INVASION_LACK_TRANSPORT`/`NAVAL_INVASION_PREPERATION_SPEED`+3 个…（推定） |
+| 0x1425F3080 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x142604C40 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426204A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262D230 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142643A90 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142647880 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426478C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426562C0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426628B0 | 转发桩: 转发至 （无名） 体设 CDynamicEquipmentGroup::vftable（RTTI 名）（推定） |
+| 0x1426E6CA0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x141B39130 | 转发桩: 转发至 以 "nukes" 为键取 a1[7]，按 +1280/+1292 计数构表 以 "nukes" 为键取 a1[7]，按 +1280/+1292 计数构表：核弹列表构建 GUI（推定） |
+| 0x14258E560 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x140AF5330 | 转发桩: 转发至 sub_140AEF9D0 业务 业务逻辑（串证据: COUNTRY） 未定（推定） |
+| 0x1424B4D40 | 转发桩: 转发至 控制台命令分发/帮助 控制台命令分发/帮助；串 "Unknown command"/"Console Error - command has missing action."/"Command available only for developers."/"Console not avail…（推定） |
+| 0x141B1EF20 | 转发桩: 转发至 （无名）gamestate.h:1125 访问门 + qword_14332F260 x9 + __debugbreak，无域识别串 gamestate.h:1125 访问门 + qword_14332F260 x9 + __debugbreak，无域识别串（推定） |
+| 0x1426F18D0 | 转发桩: 转发至 （无名） 体设 SAnimatedLightReader::vftable（RTTI 名）（推定） |
+| 0x140EA5A70 | 转发桩: 转发至 （无名） 体设 CModifier::vftable（RTTI 名）（推定） |
+| 0x14168E300 | 转发桩: 转发至 师模板人控判定 师模板人控判定；断言 divisiontemplate.cpp:2503 + "_Country.GetCountry().IsHumanControlled()"（推定） |
+| 0x141022D80 | 转发桩: 转发至 业务 定点递归求值：qword_143337178×v3×1e5 倒数 magic，+1240 父链递归 定点求值（推定） |
+| 0x14265EC40 | 转发桩: 转发至 （无名） 体设 CStandardMusicPlaybackController::vftable（RTTI 名）（推定） |
+| 0x140DB8120 | 转发桩: 转发至 军官视图 `countryofficercorpview`/`divisioncommanderwindow`/`CShipCaptainWindow`+`NAVAL_INVASION_LACK_TRANSPORT`/`NAVAL_INVASION_PREPERATION_SPEED`+3 个…（推定） |
+| 0x140DB81D0 | 转发桩: 转发至 军官视图 `countryofficercorpview`/`divisioncommanderwindow`/`CShipCaptainWindow`+`NAVAL_INVASION_LACK_TRANSPORT`/`NAVAL_INVASION_PREPERATION_SPEED`+3 个…（推定） |
+| 0x1416FF540 | 转发桩: 转发至 sub_1416FA9D0 vtable 间接调用 §待裁（推定） |
+| 0x1426ED360 | 转发桩: 转发至 （无名） 体设 CTextInputReceiver::vftable（RTTI 名）（推定） |
+| 0x140BF3E70 | 转发桩: 转发至 命令组（ordersgroup）领袖部署移除 串 `Trying to remove a leader unit that is not deployed, or that is deployed to a non-division unit!`（推定） |
+| 0x14208A8C0 | 转发桩: 转发至 （未具名） "tweaker_label" + "+"/"-" 调节器 GUI；邻域 CTweakableBoolManipulator/CTweakerListItem（推定） |
+| 0x1426EC9B0 | 转发桩: 转发至 （无名） 体设 COptionObservable::vftable（RTTI 名）（推定） |
+| 0x1426EE460 | 转发桩: 转发至 （无名） 体设 COptionObservable::vftable（RTTI 名）（推定） |
+| 0x141A326B0 | 转发桩: 转发至 （无名） 体设 COperativeMissionData::vftable（RTTI 名）（推定） |
+| 0x141C07FA0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x1424F08A0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 weightedrandom.cpp:79（推定） |
+| 0x142226120 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 pdx_store.cpp:38（推定） |
+| 0x141019F90 | 转发桩: 转发至 （无名） 体设 CUnitAdjuster::vftable（RTTI 名）（推定） |
+| 0x141E25F50 | 转发桩: 转发至 sub_141E21C30 vtable 间接调用 §待裁（推定） |
+| 0x14258CCF0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142665E90 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x142665F70 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142666170 | 转发桩: 转发至 （无名） 体设 CDarkFullscreenOverlay::vftable（RTTI 名）（推定） |
+| 0x1425FACA0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142605030 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x142636270 | 转发桩: 转发至 （无名） 体设 SpeechInputHandler::vftable（RTTI 名）（推定） |
+| 0x14263E970 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14263E990 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x142655F60 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x142656020 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142656080 | 转发桩: 转发至 （无名） 体设 CEntitySprite::vftable（RTTI 名）（推定） |
+| 0x1426560A0 | 转发桩: 转发至 （无名） 体设 CEntitySprite::vftable（RTTI 名）（推定） |
+| 0x142656FD0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142657290 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x142658FC0 | 转发桩: 转发至 （无名） 体设 CDarkFullscreenOverlay::vftable（RTTI 名）（推定） |
+| 0x1426593A0 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x1426593C0 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x1426816B0 | 转发桩: 转发至 （无名） 体设 CDarkFullscreenOverlay::vftable（RTTI 名）（推定） |
+| 0x14268BBA0 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x142692250 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426E8CA0 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x1426E8CC0 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x1426EEDD0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426EEDF0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426EEE10 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426F1880 | 转发桩: 转发至 业务 反向调用图 2/4 调用者投 §4.1（推定） |
+| 0x141C37400 | 转发桩: 转发至 sub_141C38200 float+xmm 寄存器 + vtable 间接调用 §待裁（推定） |
+| 0x1425F3EC0 | 转发桩: 转发至 （无名） 体设 CRadarsPool::vftable（RTTI 名）（推定） |
+| 0x1425F3EE0 | 转发桩: 转发至 （无名） 体设 CConvoys::vftable（RTTI 名）（推定） |
+| 0x1425F4220 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426013D0 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x142604E00 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x142608010 | 转发桩: 转发至 （无名） 体设 CAutomaticPause::vftable（RTTI 名）（推定） |
+| 0x1426081D0 | 转发桩: 转发至 （无名） 体设 CAutomaticPause::vftable（RTTI 名）（推定） |
+| 0x142608230 | 转发桩: 转发至 （无名） 体设 CAutomaticPause::vftable（RTTI 名）（推定） |
+| 0x1426082D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142615300 | 转发桩: 转发至 （无名） 体设 CFactionGoalStatus::vftable（RTTI 名）（推定） |
+| 0x142617680 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x1426176A0 | 转发桩: 转发至 （无名） 体设 CReloadDispatcher::vftable（RTTI 名）（推定） |
+| 0x1426177A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426179E0 | 转发桩: 转发至 （未具名） CGregorianDate 类名（公历日期工具）（推定） |
+| 0x142631580 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142633C60 | 转发桩: 转发至 （无名） 体设 CReloadDispatcher::vftable（RTTI 名）（推定） |
+| 0x1426361F0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142637440 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14264E170 | 转发桩: 转发至 sub_141CFA8D0 vtable 间接调用 §待裁（推定） |
+| 0x14264E1D0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142651320 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x142652530 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142655A00 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x142658B00 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426590C0 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x14265A160 | 转发桩: 转发至 （无名） 体设 CCombatBoxGrids::vftable（RTTI 名）（推定） |
+| 0x14265D3F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14265D600 | 转发桩: 转发至 业务 反向调用图 2/4 调用者投 §4.1; 唯一被调用者在书内 §4.1（推定） |
+| 0x14265D640 | 转发桩: 转发至 （无名） 体设 SpeechInputHandler::vftable（RTTI 名）（推定） |
+| 0x14265D990 | 转发桩: 转发至 （无名） 体设 CAirViewDetails::vftable（RTTI 名）（推定） |
+| 0x14265FFA0 | 转发桩: 转发至 （无名） 体设 CAirWingMapStack::vftable（RTTI 名）（推定） |
+| 0x142660160 | 转发桩: 转发至 （无名） 体设 CAirWingMapStack::vftable（RTTI 名）（推定） |
+| 0x142664D30 | 转发桩: 转发至 （无名） 体设 CAirWingMapStack::vftable（RTTI 名）（推定） |
+| 0x14266B3F0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14266E680 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426702C0 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x142670640 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x142675810 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142675860 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426758B0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142675950 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142675A50 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14267A410 | 转发桩: 转发至 （无名） 体设 CSessionInfoObserver::vftable（RTTI 名）（推定） |
+| 0x14267A800 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14267F0B0 | 转发桩: 转发至 （无名） 体设 CDivisionNamesContainer::vftable（RTTI 名）（推定） |
+| 0x14267FF10 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142681500 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142682540 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426831E0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142683F50 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142684400 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426861D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142688710 | 转发桩: 转发至 （无名） 体设 CEntitySprite::vftable（RTTI 名）（推定） |
+| 0x142689EB0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14268BAE0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14268C5D0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14268CF60 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14268D920 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142690370 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142690B30 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142691110 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x1426EA780 | 转发桩: 转发至 （无名） 体设 CEffectHandler::vftable（RTTI 名）（推定） |
+| 0x1425903C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425903E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142590740 | 转发桩: 转发至 业务 反向调用图 1/2 调用者投 §4.1（推定） |
+| 0x1425A0C00 | 转发桩: 被调者 0x1402A75B0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425F0560 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425F3960 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425F3980 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425F8940 | 转发桩: 转发至 （无名） 体设 CStateManpower::vftable（RTTI 名）（推定） |
+| 0x1425F8960 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425F8980 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425FFFE0 | 转发桩: 转发至 （无名） 体设 CScriptedMapModeLayer::vftable（RTTI 名）（推定） |
+| 0x142600020 | 转发桩: 转发至 （无名） 体设 CScriptedMapModeLayer::vftable（RTTI 名）（推定） |
+| 0x142601080 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x142601150 | 转发桩: 转发至 （无名） 体设 CSubUnitStatBonus::vftable（RTTI 名）（推定） |
+| 0x1426020E0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionAssociatedModifiers::vftable（RTTI 名）（推定） |
+| 0x1426024A0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionAssociatedModifiers::vftable（RTTI 名）（推定） |
+| 0x142608370 | 转发桩: 转发至 （无名） 体设 CAutomaticPause::vftable（RTTI 名）（推定） |
+| 0x14260BDA0 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x14260BDC0 | 转发桩: 转发至 （无名） 体设 COperativeMission::vftable（RTTI 名）（推定） |
+| 0x14260BE10 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260BE30 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x14260BE70 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260BE90 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x14260C2B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260C2D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260E2D0 | 转发桩: 转发至 （无名） 体设 CUnitHistory::vftable（RTTI 名）（推定） |
+| 0x14260F7D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260F850 | 转发桩: 转发至 （无名） 体设 CUnitHistory::vftable（RTTI 名）（推定） |
+| 0x1426147D0 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x142615270 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142615480 | 转发桩: 转发至 （无名） 体设 CFactionGoalStatus::vftable（RTTI 名）（推定） |
+| 0x14261E600 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142621DE0 | 转发桩: 转发至 （无名） 体设 CAirMission::vftable（RTTI 名）（推定） |
+| 0x142623E00 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x142623ED0 | 转发桩: 转发至 （无名） 体设 CFlagManager::vftable（RTTI 名）（推定） |
+| 0x1426250A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142625150 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426261A0 | 转发桩: 转发至 （无名） 体设 CFlagManager::vftable（RTTI 名）（推定） |
+| 0x142634A60 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142634AA0 | 转发桩: 转发至 （无名） 体设 CAiIndustrialOrganisation::vftable（RTTI 名）（推定） |
+| 0x142634C40 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263AE50 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263B5F0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x14263C370 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263C3B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263E880 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14263E8A0 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14264E6B0 | 转发桩: 转发至 （无名） 体设 CDivisionNamesContainer::vftable（RTTI 名）（推定） |
+| 0x142650B90 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142658570 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142659060 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142659D70 | 转发桩: 转发至 （无名） 体设 CStandardMusicPlayerController::vftable（RTTI 名）（推定） |
+| 0x14265D490 | 转发桩: 转发至 （无名） 体设 CChatMessageObserver::vftable（RTTI 名）（推定） |
+| 0x14265D4A0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14265D830 | 转发桩: 转发至 （无名） 体设 CDarkFullscreenOverlay::vftable（RTTI 名）（推定） |
+| 0x142660740 | 转发桩: 转发至 （无名） 体设 CAirWingMapStack::vftable（RTTI 名）（推定） |
+| 0x1426664B0 | 转发桩: 转发至 （无名） 体设 CUpdateable::vftable（RTTI 名）（推定） |
+| 0x142667DA0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14266E100 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x1426703C0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426703E0 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x142670400 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426705A0 | 转发桩: 被调者 0x141B7CC40 -> §4.1 (E:单调用转发(链内))（推定） |
+| 0x1426739C0 | 转发桩: 转发至 （无名） 体设 CUpdateable::vftable（RTTI 名）（推定） |
+| 0x1426739D0 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142675180 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142682740 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142682C90 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x14268DC30 | 转发桩: 转发至 （无名） 体设 CDynamicEquipmentGroup::vftable（RTTI 名）（推定） |
+| 0x142690CE0 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x142691B40 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x142691FE0 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426E71A0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426E7290 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426E7360 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426E7380 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426E7590 | 转发桩: 转发至 （无名） 体设 SParticleSystemReader::vftable（RTTI 名）（推定） |
+| 0x1426EC900 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426ECA20 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426ECA40 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426ED280 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426ED580 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x1426EDD80 | 转发桩: 转发至 （无名） 体设 CTextBuffer::vftable（RTTI 名）（推定） |
+| 0x1426EDDA0 | 转发桩: 转发至 （无名） 体设 CTextInputReceiver::vftable（RTTI 名）（推定） |
+| 0x1426EE3D0 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1418F1BB0 | 转发桩: 转发至 (无名) 业务 调用 gamestate 访问器 sub_140BB52F0,sub_140BB5490（推定） |
+| 0x14258D5D0 | 转发桩: 转发至 （无名） 体设 CSubUnitStatBonus::vftable（RTTI 名）（推定） |
+| 0x142590060 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425900A0 | 转发桩: 被调者 0x1401C2940 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425937F0 | 转发桩: 被调者 0x1402205D0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A2C10 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425A4070 | 转发桩: 转发至 （无名） 体设 CScopedVariableWithPostValidate::vftable（RTTI 名）（推定） |
+| 0x1425A8ED0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1425F0180 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425F0300 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425F0320 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425F0340 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425F0360 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425F0600 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425FABD0 | 转发桩: 被调者 0x140A26410 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425FC610 | 转发桩: 转发至 sub_140155680 vtable 间接调用 §待裁（推定） |
+| 0x142600E00 | 转发桩: 转发至 （无名） 体设 CSubUnitStatBonus::vftable（RTTI 名）（推定） |
+| 0x1426017E0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426090E0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142609160 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142609990 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426099B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260A460 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260B6C0 | 转发桩: 转发至 （无名） 体设 COrdersGroupMember::vftable（RTTI 名）（推定） |
+| 0x14260B720 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260B740 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260B7A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260BD80 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260BFD0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionAssociatedModifiers::vftable（RTTI 名）（推定） |
+| 0x14260C380 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionAssociatedModifiers::vftable（RTTI 名）（推定） |
+| 0x14260E190 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142611600 | 转发桩: 转发至 （无名） 体设 CResourceDeliveryRoute::vftable（RTTI 名）（推定） |
+| 0x142611670 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142611690 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142612220 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x142613140 | 转发桩: 转发至 （无名） 体设 CStaticIntelSourceReference::vftable（RTTI 名）（推定） |
+| 0x142613240 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142613450 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142613460 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142613480 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426134A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142613D90 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142613DB0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142613DD0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142613DF0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142613E10 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426147B0 | 转发桩: 转发至 （无名） 体设 CNavalMission::vftable（RTTI 名）（推定） |
+| 0x1426153F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142617460 | 转发桩: 转发至 （无名） 体设 CFlagManager::vftable（RTTI 名）（推定） |
+| 0x14261BB90 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x14261BBB0 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x14261CAC0 | 转发桩: 转发至 （无名） 体设 CLicensedProductionStatus::vftable（RTTI 名）（推定） |
+| 0x14261CB00 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261CB20 | 转发桩: 被调者 0x140E5C860 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142621F80 | 转发桩: 转发至 （无名） 体设 CAirMission::vftable（RTTI 名）（推定） |
+| 0x142622110 | 转发桩: 转发至 （无名） 体设 CAirMission::vftable（RTTI 名）（推定） |
+| 0x1426228F0 | 转发桩: 转发至 （无名） 体设 CNavalDeploymentTarget::vftable（RTTI 名）（推定） |
+| 0x142623F10 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x142623FE0 | 转发桩: 转发至 （无名） 体设 CFlagManager::vftable（RTTI 名）（推定） |
+| 0x142624FF0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426266D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142629490 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426294B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142631190 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x142631450 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142631480 | 转发桩: 转发至 （无名） 体设 CUpdateable::vftable（RTTI 名）（推定） |
+| 0x1426314A0 | 转发桩: 转发至 （无名） 体设 CAutomaticPause::vftable（RTTI 名）（推定） |
+| 0x142634D60 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426370C0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x14263AAD0 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x14263AB80 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x14263AE30 | 转发桩: 转发至 （无名） 体设 CTechnologySharing::vftable（RTTI 名）（推定） |
+| 0x14263AF10 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263AF20 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263AFC0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263AFD0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263B010 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263C360 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263C3A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142644710 | 转发桩: 转发至 （无名） 体设 CEquipmentBonus::vftable（RTTI 名）（推定） |
+| 0x142644750 | 转发桩: 被调者 0x141537630 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1426460A0 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142648CA0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14264DE80 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x14264E670 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x14264E680 | 转发桩: 转发至 （无名） 体设 CUpdateable::vftable（RTTI 名）（推定） |
+| 0x14264E690 | 转发桩: 转发至 （无名） 体设 CTemplateChanger::vftable（RTTI 名）（推定） |
+| 0x142655CF0 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142656D60 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142659040 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x14265C4F0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14265F9D0 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x1426640A0 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x142664280 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426642A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142664650 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14266AEB0 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x14266B160 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14266B200 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x1426703B0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142670450 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426778E0 | 转发桩: 转发至 sub_141CFA8D0 vtable 间接调用 §待裁（推定） |
+| 0x142678E90 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x14267AC70 | 转发桩: 转发至 （无名） 体设 CUpdateable::vftable（RTTI 名）（推定） |
+| 0x14267AC80 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x14267EFA0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x14267FD50 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142680830 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142683CA0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x142689BA0 | 转发桩: 转发至 （无名） 体设 CDynamicEquipmentGroup::vftable（RTTI 名）（推定） |
+| 0x14268ABB0 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x14268AEE0 | 转发桩: 转发至 （无名） 体设 CUpdateable::vftable（RTTI 名）（推定） |
+| 0x1426920C0 | 转发桩: 转发至 （无名） 体设 CCheckBoxObserver::vftable（RTTI 名）（推定） |
+| 0x1426E6EC0 | 转发桩: 转发至 （无名） 体设 CTextBufferObserver::vftable（RTTI 名）（推定） |
+| 0x1426ED4E0 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x1426ED550 | 转发桩: 转发至 （无名） 体设 CTextBlock::vftable（RTTI 名）（推定） |
+| 0x1426EDED0 | 转发桩: 转发至 （无名） 体设 CFactory::vftable（RTTI 名）（推定） |
+| 0x1426EF6C0 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x1426F2CE0 | 转发桩: 转发至 （无名） 体设 CFactory::vftable（RTTI 名）（推定） |
+| 0x1426F31C0 | 转发桩: 转发至 （无名） 体设 COptionObserver::vftable（RTTI 名）（推定） |
+| 0x140ED6A90 | 转发桩: 被调者 0x140DB9790 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x14258D540 | 转发桩: 转发至 （无名） 体设 CSubUnitStatBonus::vftable（RTTI 名）（推定） |
+| 0x1425A5DA0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425F0120 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425F01B0 | 转发桩: 转发至 （无名） 体设 CAIResearchNeed::vftable（RTTI 名）（推定） |
+| 0x1425FE7D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425FFFD0 | 转发桩: 转发至 （无名） 体设 CScriptedMapModeLayer::vftable（RTTI 名）（推定） |
+| 0x142600010 | 转发桩: 转发至 （无名） 体设 CScriptedMapModeLayer::vftable（RTTI 名）（推定） |
+| 0x14260BDF0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260BE60 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260BEF0 | 转发桩: 转发至 VT CGregorianDate；释放 15 个 192 字节槽 + 约 20 个 std::string 成员 VT CGregorianDate；释放 15 个 192 字节槽 + 约 20 个 std::string 成员：大日期对象析构（推定） |
+| 0x14260E160 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260E1A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142611300 | 转发桩: 转发至 （无名） 体设 CConvoySubscriber::vftable（RTTI 名）（推定） |
+| 0x1426126E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142613290 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426159F0 | 转发桩: 转发至 （无名） 体设 CLargefileHandlerInterface::vftable（RTTI 名）（推定） |
+| 0x14261FC80 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1426273A0 | 转发桩: 转发至 （无名） 体设 CEquipmentBonus::vftable（RTTI 名）（推定） |
+| 0x142627730 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262DA90 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142632640 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x14263C330 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426433E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426439E0 | 转发桩: 转发至 （无名） 体设 CArmyReinforcementRequests::vftable（RTTI 名）（推定） |
+| 0x142648C80 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142648CC0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142648CE0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14264DFC0 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x142658DB0 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x14265E740 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x1426638E0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142665030 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14266E040 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142670330 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142670440 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x142671D20 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x142682400 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x1426E7580 | 转发桩: 转发至 （无名） 体设 SParticleSystemReader::vftable（RTTI 名）（推定） |
+| 0x1426E8B10 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x1426E9EF0 | 转发桩: 转发至 （无名） 体设 CApplicationObservable::vftable（RTTI 名）（推定） |
+| 0x1426EC580 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x1426ED9C0 | 转发桩: 转发至 （无名） 体设 CChatMessageObservable::vftable（RTTI 名）（推定） |
+| 0x1426F1B00 | 转发桩: 转发至 （无名） 体设 CTextBlock::vftable（RTTI 名）（推定） |
+| 0x1406D2090 | 转发桩: 转发至 CCountry 回调 `on_unit_leader_created`（country.cpp:8102）+eventscope 断言（推定） |
+| 0x1420F1010 | 转发桩: 转发至 调试覆盖层开关簇 head：dword_143450C80 / qword_143450C88 + sub_1420FFF10（推定） |
+| 0x14261BA10 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x1426EB670 | 转发桩: 转发至 （无名） 体设 CFactory::vftable（RTTI 名）（推定） |
+| 0x141C16570 | 转发桩: 转发至 gamestate 门控 ×3 + 串 "THEATER_ASSIGNED_COUNTRIES"/"THEATER_ASSIGNED_REGIONS" gamestate 门控 ×3 + 串 "THEATER_ASSIGNED_COUNTRIES"/"THEATER_ASSIGNED_REGI…（推定） |
+| 0x140E49B40 | 转发桩: 转发至 （未具名） CPeaceAction/CTakeNavyPeaceAction 类名（和会夺取海军行动）（推定） |
+| 0x14201F910 | 转发桩: 转发至 生涯档案背景 tooltip 生涯档案背景 tooltip：STR 'CAREER_PROFILE_TOOLTIP_BACKGROUND_UNLOCKED'/'..._LOCKED'/'REQUIREMENT' + GFX_/ICON 键（推定） |
+| 0x14201F920 | 转发桩: 转发至 生涯档案图片锁定/解锁 tooltip 串 CAREER_PROFILE_TOOLTIP_PICTURE_UNLOCKED / CAREER_PROFILE_TOOLTIP_PICTURE_LOCKED + 调 CChoice<CSmoothListboxItem>::[3]（推定） |
+| 0x1426ED940 | 转发桩: 转发至 （无名） 体设 CChatMessage::vftable（RTTI 名）（推定） |
+| 0x1426664A0 | 转发桩: 转发至 （无名） 体设 CStandardInterface::vftable（RTTI 名）（推定） |
+| 0x14268C1D0 | 转发桩: 转发至 （无名） 体设 CMarketPanelController::vftable（RTTI 名）（推定） |
+| 0x14258CEC0 | 转发桩: 转发至 （无名） 体设 CReloadDispatcher::vftable（RTTI 名）（推定） |
+| 0x14258FFD0 | 转发桩: 转发至 （无名） 体设 CGameState::vftable（RTTI 名）（推定） |
+| 0x142605330 | 转发桩: 转发至 （无名） 体设 CGui::vftable（RTTI 名）（推定） |
+| 0x1426159E0 | 转发桩: 转发至 （无名） 体设 CSessionInfoObserver::vftable（RTTI 名）（推定） |
+| 0x142621DC0 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x142626F00 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x142632810 | 转发桩: 转发至 （无名） 体设 CMapIconClient::vftable（RTTI 名）（推定） |
+| 0x142634980 | 转发桩: 转发至 （无名） 体设 CAIModule::vftable（RTTI 名）（推定） |
+| 0x1426406C0 | 转发桩: 转发至 （无名） 体设 CPendingAction::vftable（RTTI 名）（推定） |
+| 0x14264E360 | 转发桩: 转发至 （无名） 体设 CTemplateChanger::vftable（RTTI 名）（推定） |
+| 0x142658CC0 | 转发桩: 转发至 （无名） 体设 CStandardInterface::vftable（RTTI 名）（推定） |
+| 0x14265D750 | 转发桩: 转发至 （无名） 体设 CChatMessage::vftable（RTTI 名）（推定） |
+| 0x1426631F0 | 转发桩: 转发至 （无名） 体设 CProductionLine::vftable（RTTI 名）（推定） |
+| 0x142663270 | 转发桩: 转发至 （无名） 体设 CProductionLine::vftable（RTTI 名）（推定） |
+| 0x1426658F0 | 转发桩: 转发至 业务 反向调用图 3/4 调用者投 §4.1（推定） |
+| 0x1426663B0 | 转发桩: 转发至 （无名） 体设 CMapIconClient::vftable（RTTI 名）（推定） |
+| 0x14266E5D0 | 转发桩: 转发至 （无名） 体设 CNudgerStrategy::vftable（RTTI 名）（推定） |
+| 0x14266ED10 | 转发桩: 转发至 （无名） 体设 CNudgerStrategy::vftable（RTTI 名）（推定） |
+| 0x14266FEC0 | 转发桩: 转发至 （无名） 体设 CNudgerStrategy::vftable（RTTI 名）（推定） |
+| 0x1426722D0 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142673060 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142679D60 | 转发桩: 转发至 （无名） 体设 CChatMessage::vftable（RTTI 名）（推定） |
+| 0x142680470 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x142680490 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x142681440 | 转发桩: 转发至 （无名） 体设 CSaveGameController::vftable（RTTI 名）（推定） |
+| 0x142681490 | 转发桩: 转发至 （无名） 体设 CSaveGameController::vftable（RTTI 名）（推定） |
+| 0x142681E10 | 转发桩: 转发至 （无名） 体设 CNavyTheaterNavyItemBase::vftable（RTTI 名）（推定） |
+| 0x142684370 | 转发桩: 转发至 （无名） 体设 CNavyTheaterGroupItemBase::vftable（RTTI 名）（推定） |
+| 0x142685750 | 转发桩: 转发至 （无名） 体设 CIntelLedgerPanelController::vftable（RTTI 名）（推定） |
+| 0x1426882F0 | 转发桩: 转发至 （无名） 体设 CUpdateable::vftable（RTTI 名）（推定） |
+| 0x14268A6A0 | 转发桩: 转发至 （无名） 体设 CSaveGameController::vftable（RTTI 名）（推定） |
+| 0x14268AB10 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x14268B0F0 | 转发桩: 转发至 （无名） 体设 CStandardInterface::vftable（RTTI 名）（推定） |
+| 0x14268DE40 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x14268E040 | 转发桩: 转发至 （无名） 体设 CSavedGameRulesController::vftable（RTTI 名）（推定） |
+| 0x14268E070 | 转发桩: 转发至 （无名） 体设 CSavedGameRulesController::vftable（RTTI 名）（推定） |
+| 0x14268EF50 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x14268EFB0 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x14268F300 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x1426E8B00 | 转发桩: 转发至 （无名） 体设 CPdxEventHandler::vftable（RTTI 名）（推定） |
+| 0x1426EC050 | 转发桩: 转发至 （无名） 体设 CPdx3DObject::vftable（RTTI 名）（推定） |
+| 0x1426EC9A0 | 转发桩: 转发至 （无名） 体设 CScrollbarObserver::vftable（RTTI 名）（推定） |
+| 0x1426ED2C0 | 转发桩: 转发至 （无名） 体设 CLostDeviceInterface::vftable（RTTI 名）（推定） |
+| 0x1426ED2E0 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426ED310 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426F3A80 | 转发桩: 转发至 （无名） 体设 CCloudFile::vftable（RTTI 名）（推定） |
+| 0x1426F5F50 | 转发桩: 转发至 （无名） 体设 CFile::vftable（RTTI 名）（推定） |
+| 0x1426F6330 | 转发桩: 转发至 （无名） 体设 Facet_base::vftable（RTTI 名）（推定） |
+| 0x1425A0290 | 转发桩: 转发至 （无名） 体设 CPdxEventHandler::vftable（RTTI 名）（推定） |
+| 0x1425A29A0 | 转发桩: 转发至 （无名） 体设 CNationalFocus::vftable（RTTI 名）（推定） |
+| 0x1425F0020 | 转发桩: 转发至 （无名） 体设 CStrategySpecificData::vftable（RTTI 名）（推定） |
+| 0x1425FEA00 | 转发桩: 转发至 业务 反向调用图 1/2 调用者投 §4.1; 唯一被调用者在书内 §4.1（推定） |
+| 0x142601780 | 转发桩: 转发至 （无名） 体设 CBaseTimedActivity::vftable（RTTI 名）（推定） |
+| 0x1426017F0 | 转发桩: 转发至 （无名） 体设 CBaseTimedActivity::vftable（RTTI 名）（推定） |
+| 0x142601860 | 转发桩: 转发至 （无名） 体设 CBaseTimedActivity::vftable（RTTI 名）（推定） |
+| 0x142607AB0 | 转发桩: 转发至 （无名） 体设 CReloadDispatcher::vftable（RTTI 名）（推定） |
+| 0x14260B6A0 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x14260BED0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x14260BEE0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x14260DAE0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x14260DF50 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x14260F760 | 转发桩: 转发至 （无名） 体设 CUnit::vftable（RTTI 名）（推定） |
+| 0x142612370 | 转发桩: 转发至 （无名） 体设 CLoss::vftable（RTTI 名）（推定） |
+| 0x142613280 | 转发桩: 转发至 （无名） 体设 CNavalDeploymentTarget::vftable（RTTI 名）（推定） |
+| 0x1426137A0 | 转发桩: 转发至 （无名） 体设 CRelation::vftable（RTTI 名）（推定） |
+| 0x142614760 | 转发桩: 转发至 （无名） 体设 CUnit::vftable（RTTI 名）（推定） |
+| 0x142621F60 | 转发桩: 转发至 （无名） 体设 CSelectable::vftable（RTTI 名）（推定） |
+| 0x142622580 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426228A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142626EF0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x142628390 | 转发桩: 转发至 （无名） 体设 CAIBaseGeneral::vftable（RTTI 名）（推定） |
+| 0x142632A00 | 转发桩: 转发至 （无名） 体设 CInGameUpdateableInterface::vftable（RTTI 名）（推定） |
+| 0x142634240 | 转发桩: 转发至 （无名） 体设 CAIModule::vftable（RTTI 名）（推定） |
+| 0x142640C80 | 转发桩: 转发至 （无名） 体设 CPendingAction::vftable（RTTI 名）（推定） |
+| 0x142643430 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x142643440 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x142645020 | 转发桩: 转发至 （无名） 体设 CBitmap::vftable（RTTI 名）（推定） |
+| 0x14264DDD0 | 转发桩: 转发至 （无名） 体设 CMapIconClient::vftable（RTTI 名）（推定） |
+| 0x14265D3D0 | 转发桩: 转发至 （无名） 体设 CChatMessage::vftable（RTTI 名）（推定） |
+| 0x1426622B0 | 转发桩: 转发至 （无名） 体设 CDynamicEquipmentGroup::vftable（RTTI 名）（推定） |
+| 0x142663B40 | 转发桩: 转发至 （无名） 体设 CAIModule::vftable（RTTI 名）（推定） |
+| 0x142669C80 | 转发桩: 转发至 （无名） 体设 CAIBaseGeneral::vftable（RTTI 名）（推定） |
+| 0x14266EAD0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14266FAB0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14267B3D0 | 转发桩: 转发至 （无名） 体设 CHistoryEntryItemBase::vftable（RTTI 名）（推定） |
+| 0x1426804A0 | 转发桩: 转发至 （无名） 体设 CTooltipHandler::vftable（RTTI 名）（推定） |
+| 0x142685180 | 转发桩: 转发至 （无名） 体设 CIntelLedgerPanelController::vftable（RTTI 名）（推定） |
+| 0x14268A0A0 | 转发桩: 转发至 （无名） 体设 CUpdateable::vftable（RTTI 名）（推定） |
+| 0x14268C190 | 转发桩: 转发至 （无名） 体设 CMarketPanelController::vftable（RTTI 名）（推定） |
+| 0x1426EB560 | 转发桩: 转发至 （无名） 体设 CPdxEventHandler::vftable（RTTI 名）（推定） |
+| 0x1426EC570 | 转发桩: 转发至 （无名） 体设 CFont::vftable（RTTI 名）（推定） |
+| 0x1426ED320 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426ED330 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426ED490 | 转发桩: 转发至 （无名） 体设 C2dObject::vftable（RTTI 名）（推定） |
+| 0x1426ED4D0 | 转发桩: 转发至 （无名） 体设 C2dObject::vftable（RTTI 名）（推定） |
+| 0x1426ED900 | 转发桩: 转发至 （无名） 体设 CChatMessage::vftable（RTTI 名）（推定） |
+| 0x1426F1AF0 | 转发桩: 转发至 （无名） 体设 C2dObject::vftable（RTTI 名）（推定） |
+| 0x1426F4280 | 转发桩: 转发至 （无名） 体设 CStoreContext::vftable（RTTI 名）（推定） |
+| 0x1426F4300 | 转发桩: 转发至 （无名） 体设 CUGCContext::vftable（RTTI 名）（推定） |
+| 0x1426F5420 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426F5B60 | 转发桩: 转发至 （无名） 体设 CPdxRefCounted::vftable（RTTI 名）（推定） |
+| 0x1426F5C00 | 转发桩: 转发至 （无名） 体设 CPdxRefCounted::vftable（RTTI 名）（推定） |
+| 0x1426F6628 | 转发桩: 转发至 （无名） 体设 Facet_base::vftable（RTTI 名）（推定） |
+| 0x1426F6A7A | 转发桩: 转发至 （无名） 体设 Facet_base::vftable（RTTI 名）（推定） |
+| 0x140E49B00 | 转发桩: 转发至 (无名) 业务 调用 gamestate 访问器 sub_140BB52F0,sub_140BB5490（推定） |
+| 0x1425FCFF0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1426276A0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x142670050 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x141515D80 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 ntract_delivery_state.h:30（推定） |
+| 0x1406BD580 | 转发桩: 转发至 角色模板库校验（CharacterToken 断言） `CharacterToken == pCharacter->GetToken()` + character_template_database.cpp（推定） |
+| 0x141FA15F0 | 转发桩: 转发至 sub_141F9E730 float+xmm 寄存器 + vtable 间接调用 §待裁（推定） |
+| 0x141833660 | 转发桩: 转发至 未决窗口函数 · gamestate 包装链+范围计算 *(a1+48) vt+160 取数组，>0 时经 sub_140BB48F0(gamestate 包装)/sub_1406CF7F0/sub_140F9F9F0/sub_140FDCB00 链算范围，byte(a1+184)=0（推定） |
+| 0x141833670 | 转发桩: 转发至 未决窗口函数 · gamestate 包装链+范围计算 *(a1+48) vt+160 取数组，>0 时经 sub_140BB48F0(gamestate 包装)/sub_1406CF7F0/sub_140F9F9F0/sub_140FDCB00 链算范围，byte(a1+184)=0（推定） |
+| 0x14140B010 | 转发桩: 转发至 （未具名） "SCIENTIST_TOOLTIP_SKILL_LEVEL_HEADER" loc 键（科学家技能 tooltip）（推定） |
+| 0x14198BF40 | 转发桩: 转发至 （无名） 体设 CTaskForceComposition::vftable（RTTI 名）（推定） |
+| 0x1416FF800 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1116（推定） |
+| 0x141B3C0E0 | 转发桩: 转发至 全部启动按钮 tooltip（gamestate.h:1116 内联） 全部启动按钮 tooltip（gamestate.h:1116 内联）：STR 'tooltip_launch_all_button_first'/'..._second'（推定） |
+| 0x1425EEC00 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425EFB10 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFB90 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC10 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC90 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x14262BF50 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426E7FE0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1401AB4B0 | 转发桩: 转发至 断言 gameitemdatabase.h:281/331/324/336 + 串 "Cant reload when not loaded" 断言 gameitemdatabase.h:281/331/324/336 + 串 "Cant reload when not loaded"：数据库重载（推定） |
+| 0x1401AB500 | 转发桩: 转发至 数据库 Load（gameitemdatabase.h:281） 数据库 Load（gameitemdatabase.h:281）：STR '!_Paths.IsEmpty()' + gamestate.h 访问门，调 0x14013FCE0/0x14119E390/0x141404A30（推定） |
+| 0x1401AB510 | 转发桩: 转发至 数据库 Load（gameitemdatabase.h:281） 数据库 Load（gameitemdatabase.h:281）：STR 'Can only add a progress between'（进度区间校验）+ '!_Paths.IsEmpty()'（推定） |
+| 0x1401AB520 | 转发桩: 转发至 派系图标池 / 库装载校验 VT NFactions::CFactionIconPool + 串 `Cant reload when not loaded`（推定） |
+| 0x1401AB560 | 转发桩: 转发至 断言 gameitemdatabase.h:281/331/324/336 + VT NFactions::CFactionRuleGroup + 串 "Cant reload when not loaded" 断言 gameitemdatabase.h:281/331/324/336 + V…（推定） |
+| 0x1401AB570 | 转发桩: 转发至 数据库 Load（gameitemdatabase.h:281） 数据库 Load（gameitemdatabase.h:281）：STR '!_Paths.IsEmpty()' + 流构造，调 0x140174650（推定） |
+| 0x1401AB580 | 转发桩: 转发至 库重载门（Cant reload when not loaded） 串 `!_Paths.IsEmpty() && "Cant reload when not loaded"` + gameitemdatabase.h（推定） |
+| 0x1401AB5F0 | 转发桩: 转发至 数据库 Load（gameitemdatabase.h:281） 数据库 Load（gameitemdatabase.h:281）：STR '!_Paths.IsEmpty()' + 流构造，调 0x140174CB0/0x1414C30A0（与 0x14019C210 同源对，4080B）（推定） |
+| 0x1416FF7F0 | 转发桩: 转发至 sub_1416FA9D0 vtable 间接调用 §待裁（推定） |
+| 0x14258ACA0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1425A8350 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426000A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142603FA0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426099D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426139D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426139F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142618E70 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261F840 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261F870 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262ADB0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262AE70 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262C770 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262C7A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262FCC0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14264AC90 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14264AF00 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14264AF70 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142671920 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426913F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426914B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426EA250 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426EAC30 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426EFA70 | 转发桩: 转发至 （无名） 体设 SParticleSystemReader::vftable（RTTI 名）（推定） |
+| 0x140BF4360 | 转发桩: 转发至 命令组（ordersgroup）领袖部署移除 串 `Trying to remove a leader unit that is not deployed, or that is deployed to a non-division unit!`（推定） |
+| 0x14259A130 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425EFB00 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFB20 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFB30 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFB40 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFB50 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFB60 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFB70 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFB80 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFBA0 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFBB0 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFBC0 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFBD0 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFBE0 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFBF0 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC00 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC20 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC30 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC40 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC50 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC60 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC70 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425EFC80 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1426018E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426125C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426134F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426139E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142617C10 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142617CD0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142617CE0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142617D40 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1426240C0 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x14262AD80 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262B520 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263EA70 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14263F610 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x142643AC0 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x14264D8C0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14265F170 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14266AC40 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142691200 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x1426E8090 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x141C691D0 | 转发桩: 转发至 CGameIdler::[1] vtable 槽 CGameIdler::[1]（func_names RTTI 名）（推定） |
+| 0x14258BBF0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14258E940 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142591CD0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142592110 | 转发桩: 转发至 （无名） 体设 CSavedEventTarget::vftable（RTTI 名）（推定） |
+| 0x142592ED0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142593830 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1425938C0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142599A90 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x14259BFC0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14259C460 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14259C4C0 | 转发桩: 转发至 （无名） 体设 COperativesAiAssignmentTextLogger::vftable（RTTI 名）（推定） |
+| 0x14259D170 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x14259D7D0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14259D890 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14259F6B0 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x1425A1220 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1425A1A20 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1425A60D0 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A60E0 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A61B0 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A61C0 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A6330 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1425A65E0 | 转发桩: 转发至 （无名） 体设 CCivilWarSetup::vftable（RTTI 名）（推定） |
+| 0x1425A74B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425EEC10 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425EFAF0 | 转发桩: 转发至 （无名） 体设 CRuleDefinition::vftable（RTTI 名）（推定） |
+| 0x1425F3410 | 转发桩: 转发至 （无名） 体设 CLandCombat::vftable（RTTI 名）（推定） |
+| 0x1425F5040 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x1425F8FB0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 modifier.h:1191（推定） |
+| 0x1425FAB00 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425FBDB0 | 转发桩: 转发至 （无名） 体设 CIdeology::vftable（RTTI 名）（推定） |
+| 0x1425FBE10 | 转发桩: 转发至 （无名） 体设 CIdeologyGroup::vftable（RTTI 名）（推定） |
+| 0x1425FCF20 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1425FCF30 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1425FCF40 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1425FCF50 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1425FEEF0 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1425FEF20 | 转发桩: 转发至 sub_140A8BF80 vtable 间接调用 §待裁（推定） |
+| 0x142600970 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142600990 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1426019B0 | 转发桩: 转发至 （无名） 体设 CCivilWarSetup::vftable（RTTI 名）（推定） |
+| 0x1426034A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142603610 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142603620 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142604830 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142604DE0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x142605120 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x14260A680 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14260B0B0 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14260BCC0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260DE50 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 modifier.h:1191（推定） |
+| 0x14260DE60 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260E430 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260F890 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260F8A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142610B80 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142610BA0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426118B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426118F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142612D20 | 转发桩: 转发至 （无名） 体设 CStateManpower::vftable（RTTI 名）（推定） |
+| 0x142612F90 | 转发桩: 转发至 （无名） 体设 CStateManpower::vftable（RTTI 名）（推定） |
+| 0x1426135D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142615960 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142615D90 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142615E40 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1426163C0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142616550 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142616B50 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x142616CC0 | 转发桩: 转发至 （无名） 体设 CChecksumFile::vftable（RTTI 名）（推定） |
+| 0x142616CF0 | 转发桩: 转发至 （无名） 体设 CChecksumFile::vftable（RTTI 名）（推定） |
+| 0x1426170C0 | 转发桩: 转发至 （无名） 体设 CChecksumFile::vftable（RTTI 名）（推定） |
+| 0x1426170E0 | 转发桩: 转发至 （无名） 体设 CChecksumFile::vftable（RTTI 名）（推定） |
+| 0x142617600 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x142617640 | 转发桩: 转发至 sub_1419A1CC0 vtable 间接调用 §待裁（推定） |
+| 0x142617F00 | 转发桩: 转发至 （无名） 体设 CBitmap::vftable（RTTI 名）（推定） |
+| 0x1426183D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142618670 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142618C80 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x142618E60 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261D250 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14261D850 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14261DC90 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14261F8E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261F8F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261F960 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261F970 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261FD40 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14261FFE0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1426200D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426200E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142622D00 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 modifier.h:1191（推定） |
+| 0x142622D10 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 modifier.h:1191（推定） |
+| 0x142624120 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142624190 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142624290 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1426242A0 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142625DA0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142625DB0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142626060 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426275C0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x1426275D0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x1426276B0 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x1426284A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142629230 | 转发桩: 转发至 （无名） 体设 CStaticIntelSourceReference::vftable（RTTI 名）（推定） |
+| 0x142629B60 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14262A5D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262AE90 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262AEA0 | 转发桩: 转发至 （无名） 体设 CCallAllyAction::vftable（RTTI 名）（推定） |
+| 0x14262B1F0 | 转发桩: 转发至 （无名） 体设 CTimedWargoalActivity::vftable（RTTI 名）（推定） |
+| 0x14262B280 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262B290 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262B510 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262B530 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262B720 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262BF80 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262C760 | 转发桩: 转发至 （无名） 体设 CJoinAllyAction::vftable（RTTI 名）（推定） |
+| 0x14262C790 | 转发桩: 转发至 （无名） 体设 CCallAllyAction::vftable（RTTI 名）（推定） |
+| 0x14262C9C0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x14262CFA0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262CFB0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262D700 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14262FCD0 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x142630DB0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 modifier.h:1191（推定） |
+| 0x1426312B0 | 转发桩: 转发至 （无名） 体设 CResourceDeliveryRoute::vftable（RTTI 名）（推定） |
+| 0x1426312C0 | 转发桩: 转发至 （无名） 体设 CResourceDeliveryRoute::vftable（RTTI 名）（推定） |
+| 0x142631F00 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142633270 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426346C0 | 转发桩: 转发至 （无名） 体设 CCallAllyAction::vftable（RTTI 名）（推定） |
+| 0x1426346D0 | 转发桩: 转发至 （无名） 体设 CJoinAllyAction::vftable（RTTI 名）（推定） |
+| 0x1426346F0 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x142634740 | 转发桩: 转发至 （无名） 体设 CSendExpeditionaryForceAction::vftable（RTTI 名）（推定） |
+| 0x142634760 | 转发桩: 转发至 （无名） 体设 CSendExpeditionaryForceAction::vftable（RTTI 名）（推定） |
+| 0x142634770 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x1426347B0 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x1426347C0 | 转发桩: 转发至 （无名） 体设 CWarGoal::vftable（RTTI 名）（推定） |
+| 0x1426347D0 | 转发桩: 转发至 （无名） 体设 CGenerateWarGoalAction::vftable（RTTI 名）（推定） |
+| 0x142635190 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426390B0 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14263B130 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263C2C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263D9D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263F6F0 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x142643910 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142643A10 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426440E0 | 转发桩: 转发至 （无名） 体设 CSubUnitStatBonus::vftable（RTTI 名）（推定） |
+| 0x142645A60 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x14264A160 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14264CDF0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14264CE00 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14264D0D0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14264DDA0 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x14264DDB0 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x1426516A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426562B0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142659970 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x14265D6A0 | 转发桩: 转发至 （无名） 体设 CTextBuffer::vftable（RTTI 名）（推定） |
+| 0x14265D6E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14265D7A0 | 转发桩: 转发至 （无名） 体设 CChatMessage::vftable（RTTI 名）（推定） |
+| 0x1426628C0 | 转发桩: 转发至 （无名） 体设 CDynamicEquipmentGroup::vftable（RTTI 名）（推定） |
+| 0x1426628D0 | 转发桩: 被调者 0x1419159F0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142662AB0 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x142662B00 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x14266AE00 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14266C870 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x14266D210 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14266D260 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14266D280 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x14266D2A0 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x14266D2C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14266DFB0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x14266DFC0 | 转发桩: 转发至 （无名） 体设 CRomeBitmap::vftable（RTTI 名）（推定） |
+| 0x14266FEB0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1426718A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426728E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142672930 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142675B20 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x142675B60 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x142675FC0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426773D0 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x1426773E0 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x142678130 | 转发桩: 转发至 （无名） 体设 CGiveStateControlAction::vftable（RTTI 名）（推定） |
+| 0x142678140 | 转发桩: 转发至 （无名） 体设 CAskForStateControlAction::vftable（RTTI 名）（推定） |
+| 0x142678370 | 转发桩: 转发至 （无名） 体设 CGiveStateControlAction::vftable（RTTI 名）（推定） |
+| 0x142679A70 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x14267F170 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142681540 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426832E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142688450 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x142689860 | 转发桩: 转发至 （无名） 体设 CDynamicEquipmentGroup::vftable（RTTI 名）（推定） |
+| 0x142689D50 | 转发桩: 转发至 （无名） 体设 CDynamicEquipmentGroup::vftable（RTTI 名）（推定） |
+| 0x1426911C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142691290 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426912D0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426912E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142691400 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x1426915B0 | 转发桩: 转发至 （无名） 体设 CDiplomaticAction::vftable（RTTI 名）（推定） |
+| 0x1426918B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426918C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426E69D0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426E6AA0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426E6AE0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426E6B70 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426E6B80 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426E6BB0 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x1426E6CB0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426E7050 | 转发桩: 转发至 （无名） 体设 CDebugLineHelper::vftable（RTTI 名）（推定） |
+| 0x1426EA090 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426EABA0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426EAC10 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426EB3A0 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426F3A70 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426F46B0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426F46C0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426F46D0 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426F4C30 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1414778C0 | 转发桩: 转发至 sub_141473AD0 业务 country_faction_view.cpp:250 · 游戏逻辑（gamestate 访问门包装，域未定） 未定（推定） |
+| 0x1416C3EB0 | 转发桩: 转发至 sub_1416AAED0 业务 vtable 槽方法；无任何域信号（推定） |
+| 0x14179EDC0 | 转发桩: 转发至 （无名） gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125）（推定） |
+| 0x141C260A0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 gamestate.h:1125（推定） |
+| 0x141DC71D0 | 转发桩: 转发至 业务 调用图 h1mod:gameitemdatabase.h [h1mod:gameitemdatabase.h×1,h1mod:gradientbordermanager.cpp×1]（推定） |
+| 0x141DEF280 | 转发桩: 转发至 （未具名） "CAREER_PROFILE_AWARDS_NOT_AVAILABLE_IN_MULTIPLAYER"/"CAREER_PROFILE_STEAM_NOT_RUNNING" + CServer/CNetworkServer/CProxyServer 类名（推定） |
+| 0x141F11500 | 转发桩: 转发至 sub_141F0F6B0 业务 gamestate.h:1125 · 游戏逻辑（gamestate 访问门包装，域未定） 未定（推定） |
+| 0x14258BAC0 | 转发桩: 转发至 （无名） 体设 HOI4EditorInterface::vftable（RTTI 名）（推定） |
+| 0x14258F920 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14258FE20 | 转发桩: 转发至 业务 反向调用图 3/5 调用者投 §4.1（推定） |
+| 0x1425920F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142592720 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14259AF40 | 转发桩: 转发至 （无名） 体设 CCivilWarSetup::vftable（RTTI 名）（推定） |
+| 0x14259F450 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1425AE870 | 转发桩: 转发至 （无名） 体设 CSavedEventTarget::vftable（RTTI 名）（推定） |
+| 0x1425F4630 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x1425FBE70 | 转发桩: 转发至 （无名） 体设 CIdeology::vftable（RTTI 名）（推定） |
+| 0x1425FBE80 | 转发桩: 转发至 （无名） 体设 CIdeologyGroup::vftable（RTTI 名）（推定） |
+| 0x1426016C0 | 转发桩: 转发至 （无名） 体设 CFolderPosition::vftable（RTTI 名）（推定） |
+| 0x142606790 | 转发桩: 转发至 （无名） 体设 CArchiveFile::vftable（RTTI 名）（推定） |
+| 0x142609F50 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260DEB0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 modifier.h:1191（推定） |
+| 0x14260E0B0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 modifier.h:1191（推定） |
+| 0x14260E310 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14260E3C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142610B70 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142612580 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142612600 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426131E0 | 转发桩: 转发至 （无名） 体设 CStaticIntelSourceReference::vftable（RTTI 名）（推定） |
+| 0x1426142F0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142617EF0 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426207A0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426240B0 | 转发桩: 被调者 0x14032DAE0 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1426241A0 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x1426241B0 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142624240 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142624280 | 转发桩: 被调者 0x14032DB10 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142626070 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 modifier.h:1191（推定） |
+| 0x142626640 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142626720 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x142627690 | 转发桩: 转发至 （无名） 体设 CSubUnitDefinitionId::vftable（RTTI 名）（推定） |
+| 0x14262BF70 | 转发桩: 转发至 （无名） 体设 CRequestLicensedProductionAction::vftable（RTTI 名）（推定） |
+| 0x142633AB0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426347A0 | 转发桩: 转发至 （无名） 体设 CRequestLicensedProductionAction::vftable（RTTI 名）（推定） |
+| 0x142639660 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142639670 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263A6A0 | 转发桩: 被调者 0x14032EF70 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x14263AED0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14263E8D0 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x14263E910 | 转发桩: 转发至 （无名） 体设 CEquipmentVariant::vftable（RTTI 名）（推定） |
+| 0x1426439C0 | 转发桩: 转发至 （无名） 体设 CEquipmentArcheTypePool::vftable（RTTI 名）（推定） |
+| 0x1426598F0 | 转发桩: 转发至 （无名） 体设 CCharacterPortraits::vftable（RTTI 名）（推定） |
+| 0x14265FC40 | 转发桩: 转发至 （无名） 体设 CCallAllyAction::vftable（RTTI 名）（推定） |
+| 0x142665040 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142665080 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426702F0 | 转发桩: 被调者 0x141B7CC70 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142670300 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142670310 | 转发桩: 被调者 0x141B7CC70 -> §4.1 (E:单调用转发(被调者入书))（推定） |
+| 0x142670340 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142672920 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142678380 | 转发桩: 转发至 （无名） 体设 CAskForStateControlAction::vftable（RTTI 名）（推定） |
+| 0x1426915C0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x1426EAC00 | 转发桩: 转发至 （无名） 体设 CVirtualFile::vftable（RTTI 名）（推定） |
+| 0x1426EBBD0 | 转发桩: 转发至 （无名） 体设 CMemoryFile::vftable（RTTI 名）（推定） |
+| 0x1426F54B0 | 转发桩: 转发至 业务 反向调用图 1/2 调用者投 §4.1（推定） |
+| 0x14263F5F0 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x14259D8E0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x14259F6C0 | 转发桩: 转发至 （未具名） CDivisionTemplateData/CGregorianDate 类名（师模板数据 + 日期）（推定） |
+| 0x142604250 | 转发桩: 转发至 （无名） 体设 CIdeaGroupType::vftable（RTTI 名）（推定） |
+| 0x14260E3B0 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x142610B90 | 转发桩: 转发至 （无名） 体设 CGregorianDate::vftable（RTTI 名）（推定） |
+| 0x140C3B830 | 转发桩: 转发至 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0）（推定） |
+| 0x14129D560 | 转发桩: 转发至 gamestate.h _pInstance/主线程断言 gamestate.h _pInstance/主线程断言，状态访问器（推定） |
+| 0x1413B7AA0 | 转发桩: 转发至 未命名业务函数 CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0）（推定） |
+| 0x140E5C860 | 转发桩: 转发至 业务 反向调用图 2/4 调用者投 §4.1（推定） |
+| 0x14153F9C0 | 转发桩: 转发至 （无名） 体设 CDownloadProfileRequestSteam::vftable（RTTI 名）（推定） |
+| 0x1420ECAC0 | 转发桩: 转发至 sub_1420EEAC0 业务 业务逻辑（串证据: Video subsystem has not been initialized） 未定（推定） |
+
+#### 4.1.50 CGameState 派发族与门控函数补遗（408 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DA6400 | sub_141DA6400 业务 数组线性查找（a1+2904 表，a1+2916 计数） |
+| 0x14164B030 | 反调用图单链锚点（0.5）投 §4.1；锚点 `LODWORD` |
+| 0x1421074C0 | 反调用图单链锚点（0.5）投 §4.1；锚点 `_mm_stream_ps` |
+| 0x1419AC8C0 | 反调用图单链锚点（0.5）投 §4.1；锚点 `sub_1419AA8F0` |
+| 0x1421070F0 | 反调用图单链锚点（0.5）投 §4.1；锚点 `sub_1420C29E0` |
+| 0x1423C9730 | 反调用图单链锚点（0.5）投 §4.1；锚点 `sub_1423C8900` |
+| 0x140EFB880 | 反调用图单链锚点（0.5）投 §4.1；锚点 `std::locale::global` |
+| 0x141510070 | 反调用图单链锚点（0.7）投 §4.1；锚点 `sub_140433990` |
+| 0x141DE43C0 | 反调用图单链锚点（0.5）投 §4.1；锚点 `sub_141DE4250` |
+| 0x1424FE2F0 | 反调用图单链锚点（0.8）投 §4.1；锚点 `_mm_load_si128` |
+| 0x1401EE350 | 反调用图单链锚点（0.8）投 §4.1；锚点 `sub_14024E030` |
+| 0x14024C900 | （待定） 串锚 "Offensive fronts snapping debug is now" |
+| 0x1402CA250 | （待定） 游戏 CU 邻近: nlohmann::detail::output_string_adapter< / CJointNationalFocus::[0] |
+| 0x1402CB0A0 | （待定） 游戏 CU 邻近: nlohmann::detail::output_string_adapter< / CJointNationalFocus::[0] |
+| 0x14068B730 | （待定） 游戏 CU 邻近: CBuildingDatabase::CIntermediateBuilding / CPdxHybridInlineBufferAllocator<…>::[0] |
+| 0x14068BB20 | （待定） 游戏 CU 邻近: CBuildingDatabase::CIntermediateBuilding / CPdxHybridInlineBufferAllocator<…>::[0] |
+| 0x140715690 | （待定） 调用图传播: 2 个命名调用者（1 游戏类，如 CGameState::DoCareerProfileDailyUpdate?） |
+| 0x14071AD30 | （待定） 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / TGameItemDatabase<CCountryLeaderDatabase |
+| 0x140ABDC40 | （待定） 游戏 CU 簇内: CStateTemplate::[8] / CStateDatabase::[4] |
+| 0x140AC6360 | （待定） 游戏 CU 簇内: CSubUnitDatabase::[2] / CTechnologySharingGroupDatabase::[0] |
+| 0x140D0AAB0 | （待定） 游戏 CU 簇内: CCountryIntel::[2] / SMusicReader::[0] |
+| 0x140D2D420 | objects_global（建议节号待裁） 调 gamestate.h:1126 线程断言访问器 sub_140BB5490 |
+| 0x140F5DBA0 | objects_global（建议节号待裁） 调 gamestate.h:1126 线程断言访问器 sub_140BB4390 |
+| 0x141072D20 | （待定） 游戏 CU 邻近: std::XHH::Z::_Func_impl_no_alloc<…>::[3] / CAIGeneral::HandleAIMicroAttacks? |
+| 0x1410CE420 | （待定） 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / COperativesAi::[0] |
+| 0x1411B25C0 | （待定） 游戏 CU 邻近: std::AEBU34::std::_Func_impl_no_alloc<…> / boyer_moore_finder<…>::[2] |
+| 0x1411BC320 | （待定） 游戏 CU 邻近: std::AEBU34::std::_Func_impl_no_alloc<…> / boyer_moore_finder<…>::[2] |
+| 0x141268C30 | （待定） 游戏 CU 簇内: CMapArrowDefinition::[7] / CMapArrowDefinitionInstance::[1] |
+| 0x1412736E0 | （待定） 游戏 CU 簇内: CMapArrowManager::LoadDefinitions? / CFileWatcher::Reload |
+| 0x1412F4430 | （待定） 游戏 CU 簇内: CIntelligenceAgencyAI::[15] / CAIInteriorMinister::[0] |
+| 0x141337930 | gamestate 守门取值（只读访问前置检查） 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" + :1126 "_ThreadForbidCount == 0" |
+| 0x1413BC640 | （待定） 串锚 "INTERNATIONAL_MARKET_DRAFT_DELIVERY_AMOUNT_TT" |
+| 0x1414AB110 | （待定） 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / CProductionLine::[0] |
+| 0x1414BCCD0 | （待定） 游戏 CU 簇内: CBuildingTemplate::SLevelMax::Reader / CPendingAction::[0] |
+| 0x1414F65A0 | objects_global（建议节号待裁） 调 gamestate.h:1126 线程断言访问器 sub_140BB48F0 |
+| 0x141702360 | （待定） 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / CCountryMilitaryOverview::[1] |
+| 0x1418A4640 | objects_global（建议节号待裁） 调 gamestate.h:1126 线程断言访问器 sub_140BB4BB0 |
+| 0x1419B3E10 | §4.x-UI-设置面板/通用 CCheckBoxObserverGlue<CSettingsScreen>::vftable构造 |
+| 0x1419B4A90 | §4.x-UI-设置面板/通用 CScrollbarObserverGlue<CSettingsScreen>::vftable构造 |
+| 0x1419C1DE0 | §4.x-UI-设置面板/通用 串"SM_TEX_QUALITY_HIGH/MEDIUM/LOW"选项映射 |
+| 0x1419CCD60 | （待定） 游戏 CU 簇内: CTutorialMinimized::Reload / CHasSetNatFocus::[9] |
+| 0x1419DE3C0 | §4.x-UI-设置面板/通用 设vtable或多字段初始化 |
+| 0x141A60C50 | （待定） 游戏 CU 邻近: tbb::interface9::internal::2::$$CBVauto_ / CAiDiscardForceConcentrationTargetComman |
+| 0x141AEC920 | §4.x-UI-调试/通用 串"null (%i)"/"%s (%i)"诊断输出 |
+| 0x141B0B510 | §4.x-UI-调试/通用 串"Game Info debug UI"/"General game info" |
+| 0x141C28890 | （待定） 游戏 CU 邻近: std::X$$V::Z::_Func_impl_no_alloc<…>::[3 / NAirInterfaceUtil::CMissionIconItem::[0] |
+| 0x141D84A10 | §4.x-地图模式/大厅/存档 std::_Ref_count_obj2<CMapModeMilitaryDeployment>共享指针构造 |
+| 0x141D84A40 | §4.x-地图模式/大厅/存档 std::_Ref_count_obj2<CMapModeMilitaryDeploymentToOrder>共享指针构造 |
+| 0x141DB68F0 | （待定） 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / CEmptyEntryListBase<CProductionSubUnitDe |
+| 0x141DEFD10 | §4.x-地图模式/大厅/存档 CScrollbarObserverGlue<CColorSelectionContainer>符号 |
+| 0x141E84F30 | §4.x-地图模式/大厅/存档 串"click_default" |
+| 0x141EC5880 | （待定） 游戏 CU 簇内: CIntelLedgerHeaderController::[1] / CIntelLedgerNavyPanelController::[1] |
+| 0x141ED7E20 | §4.x-军事/建筑/情报UI 串"REMOVE_ADMIRAL_TO_NAVAL_HEADQUARTER" |
+| 0x141ED9730 | §4.x-军事/建筑/情报UI CSimpleEmptyEntryList<CNationalitiesBoxItem>符号 |
+| 0x141EF03B0 | §4.x-军事/建筑/情报UI 串"ONGOING_PROJECT_SHOW_PROJECT_OUTPUT" |
+| 0x141EF0480 | §4.x-军事/建筑/情报UI 串"ONGOING_PROJECT_SHOW_BREAKTHROUGHS_OUTPUT" |
+| 0x141F11210 | §4.x-军事/建筑/情报UI 串"ABORT_DISMANTLE_FACILITY_DESC_TT" |
+| 0x141F20610 | §4.x-海军许可/文件完整性 COrganisationDetailWindow lambda描述符+_std_type_info_compare |
+| 0x141F8E160 | §4.x-UI窗口/装备生产/市场 串"MUSICPLAYER_TIME_MIN_SEC"/"SEC" |
+| 0x141FAD6F0 | §4.x-UI窗口/装备生产/市场 串"career_profile"截断 |
+| 0x142002800 | §4.x-UI窗口/装备生产/市场 串"SORT_EQUIPMENT_BY_COST" |
+| 0x1420029C0 | §4.x-UI窗口/装备生产/市场 串"SORT_EQUIPMENT_BY_AMOUNT" |
+| 0x14200E8C0 | §4.x-UI窗口/装备生产/市场 串"INTERNATIONL_MARKET_CLICK_TO_DELETE" |
+| 0x142066400 | （待定） 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / CListItem<…>::[1] |
+| 0x142081E50 | §4.x-相机/输入/UI窗口 串"(?)"证据不足 |
+| 0x1420F3060 | gamma 斜表生成 自文档错误串 "Parameter '%s' is invalid"（参数 "gamma"/"ramp"）；被 1420ED3C0/1420BDA30 调用 |
+| 0x1421584C0 | （待定） 串锚 "Setting cooperative level to exclusive" |
+| 0x14218EB10 | §4.x-渲染/图形 "Failed to compile shader"+GL回调表(a1+16/48/56/80)查shader日志,SDL_Log输出 |
+| 0x142226FC0 | （待定） 游戏 CU 簇内: CFilterLogger::[1] / CGraphicsSettings::[0] |
+| 0x142229A90 | §4.x-渲染/图形 设vtable或多字段初始化 |
+| 0x142268EF0 | §4.x-渲染/图形 串"Monday".."Saturday"星期名 |
+| 0x1422AAC70 | §4.x UI·界面控件 VA 局部性 d=48 锚 CStandardlistbox::[6] |
+| 0x1422AC310 | §4.x UI·界面控件 VA 局部性 d=48 锚 CChoice<CSmoothListboxItem>::[1] |
+| 0x1422ACC80 | §4.x UI·界面控件 VA 局部性 d=64 锚 CStandardlistbox::[45] |
+| 0x1422ACCA0 | §4.x UI·界面控件 VA 局部性 d=32 锚 CStandardlistbox::[45] |
+| 0x1422CF610 | §4.x UI·界面控件 VA 局部性 d=16 锚 CBrowser::[8] |
+| 0x1422CF7E0 | §4.x UI·界面控件 VA 局部性 d=448 锚 CBrowser::[8] |
+| 0x1422D1190 | §4.x UI·界面控件 VA 局部性 d=32 锚 CButtonStandard::[31] |
+| 0x1422D11C0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CButtonStandard::[6] |
+| 0x1422D1F10 | §4.x UI·界面控件 VA 局部性 d=16 锚 CButtonStandard::[101] |
+| 0x1422D21D0 | §4.x UI·界面控件 VA 局部性 d=112 锚 CButtonStandard::[112] |
+| 0x1422D2200 | §4.x UI·界面控件 VA 局部性 d=160 锚 CButtonStandard::[112] |
+| 0x1422D2220 | §4.x UI·界面控件 VA 局部性 d=192 锚 CButtonStandard::[112] |
+| 0x1422D24E0 | §4.x UI·界面控件 VA 局部性 d=896 锚 CButtonStandard::[112] |
+| 0x1422D24F0 | §4.x UI·界面控件 VA 局部性 d=912 锚 CButtonStandard::[112] |
+| 0x1422D2500 | §4.x UI·界面控件 VA 局部性 d=928 锚 CButtonStandard::[112] |
+| 0x1422D2510 | §4.x UI·界面控件 VA 局部性 d=944 锚 CButtonStandard::[112] |
+| 0x1422D2520 | §4.x UI·界面控件 VA 局部性 d=960 锚 CButtonStandard::[112] |
+| 0x1422D2530 | §4.x UI·界面控件 VA 局部性 d=976 锚 CButtonStandard::[112] |
+| 0x1422D2540 | §4.x UI·界面控件 VA 局部性 d=992 锚 CButtonStandard::[112] |
+| 0x1422D34A0 | §4.x UI·界面控件 VA 局部性 d=400 锚 CArrowObject::[16] |
+| 0x1422D34D0 | §4.x UI·界面控件 VA 局部性 d=448 锚 CArrowObject::[16] |
+| 0x1422D3930 | §4.x UI·界面控件 VA 局部性 d=1568 锚 CArrowObject::[16] |
+| 0x1422D4EF0 | §4.x UI·界面控件 VA 局部性 d=96 锚 CInstantSprite::[53] |
+| 0x1422D4F10 | §4.x UI·界面控件 VA 局部性 d=128 锚 CInstantSprite::[53] |
+| 0x1422D4F60 | §4.x UI·界面控件 VA 局部性 d=208 锚 CInstantSprite::[53] |
+| 0x1422D4FC0 | §4.x UI·界面控件 VA 局部性 d=304 锚 CInstantSprite::[53] |
+| 0x1422D5030 | §4.x UI·界面控件 VA 局部性 d=416 锚 CInstantSprite::[53] |
+| 0x1422D5080 | §4.x UI·界面控件 VA 局部性 d=496 锚 CInstantSprite::[53] |
+| 0x1422D5180 | §4.x UI·界面控件 VA 局部性 d=752 锚 CInstantSprite::[53] |
+| 0x1422D5190 | §4.x UI·界面控件 VA 局部性 d=768 锚 CInstantSprite::[53] |
+| 0x1422D9330 | §4.x 图形渲染 VA 局部性 d=2400 锚 CWrapWorldShadowMap::[0] |
+| 0x1422D9E00 | §4.x 图形渲染 VA 局部性 d=368 锚 CWrapWorldShadowMap::[0] |
+| 0x1422DAC30 | §4.x 图形渲染 VA 局部性 d=1856 锚 CWrapWorldShadowMap::[1] |
+| 0x1422DE070 | §4.x UI·界面控件 VA 局部性 d=64 锚 CGuiType::[3] |
+| 0x1422E80E0 | §4.x 平台集成(Steam) VA 局部性 d=16 锚 CChatBuffer::CSendChatMessage::Clone |
+| 0x1422E8640 | §4.x 平台集成(Steam) VA 局部性 d=16 锚 CChatBuffer::CWriteToChatBuffer::GetTypeId |
+| 0x1422EC420 | （待定） 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / CInstantTextObject::[9] |
+| 0x1422EC7F0 | §4.x UI·界面控件 VA 局部性 d=896 锚 CInstantTextObject::[9] |
+| 0x1422ECC20 | §4.x UI·界面控件 VA 局部性 d=176 锚 CInstantTextObject::[9] |
+| 0x1422ECC50 | （待定） 调用图传播: 3 个命名调用者（1 游戏类，如 CInstantTextObject::[48]） |
+| 0x1422ED030 | §4.x UI·界面控件 VA 局部性 d=64 锚 CInstantTextObject::[42] |
+| 0x1422ED050 | §4.x UI·界面控件 VA 局部性 d=32 锚 CInstantTextObject::[42] |
+| 0x1422ED520 | §4.x UI·界面控件 VA 局部性 d=48 锚 CInstantTextObject::[52] |
+| 0x1422ED530 | §4.x UI·界面控件 VA 局部性 d=32 锚 CInstantTextObject::[52] |
+| 0x1422ED5A0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CInstantTextObject::[50] |
+| 0x1422ED6C0 | §4.x UI·界面控件 VA 局部性 d=64 锚 COption::[5] |
+| 0x1422FA2B0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CInstantTextBoxType::[10] |
+| 0x1422FD340 | §4.x UI·界面控件 VA 局部性 d=576 锚 C2dPieChartTemplate<SPieVertex>::[54] |
+| 0x1422FD890 | §4.x 图形渲染 VA 局部性 d=32 锚 CPositionType::[4] |
+| 0x1422FDFC0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CSprite::[33] |
+| 0x1422FE7A0 | §4.x UI·界面控件 VA 局部性 d=32 锚 CSprite::[45] |
+| 0x1422FE8D0 | §4.x UI·界面控件 VA 局部性 d=32 锚 CSprite::[82] |
+| 0x1423002E0 | §4.x UI·界面控件 VA 局部性 d=48 锚 CSmoothListbox::[6] |
+| 0x142305920 | §4.x UI·界面控件 VA 局部性 d=912 锚 CButtonDrag::[0] |
+| 0x1423067A0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CButtonDrag::[6] |
+| 0x142307800 | §4.x UI·界面控件 VA 局部性 d=32 锚 CButtonDrag::[99] |
+| 0x142307F90 | §4.x UI·界面控件 VA 局部性 d=320 锚 CLineChart::[10] |
+| 0x142308900 | §4.x UI·界面控件 VA 局部性 d=432 锚 CFrameAnimatedSprite::[10] |
+| 0x14231A3F0 | §4.x UI·界面控件 VA 局部性 d=7920 锚 CMatchmakingGui::Reload |
+| 0x14231A4F0 | §4.x UI·界面控件 VA 局部性 d=7664 锚 CMatchmakingGui::Reload |
+| 0x14232BF70 | §4.x UI·界面控件 VA 局部性 d=16 锚 CCurveGraph::[25] |
+| 0x142348AC0 | §4.x 游戏系统 VA 局部性 d=336 锚 CPdxGameControllerGroup::[0] |
+| 0x142348B00 | §4.x 游戏系统 VA 局部性 d=400 锚 CPdxGameControllerGroup::[0] |
+| 0x14235F500 | §4.x UI·界面控件 VA 局部性 d=16 锚 CProgressbarSprite::[87] |
+| 0x14235FF90 | §4.x UI·界面控件 VA 局部性 d=48 锚 CProgressbarSprite::[10] |
+| 0x142360EB0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CTextSpriteType::[21] |
+| 0x142360ED0 | §4.x UI·界面控件 VA 局部性 d=16 锚 CTextSpriteType::[15] |
+| 0x142363860 | §4.x 网络 VA 局部性 d=16 锚 CDummyServer::[5] |
+| 0x1423698F0 | §4.x 网络 VA 局部性 d=0 锚 CProxyServer::[13] |
+| 0x142371260 | §4.x UI·界面控件 VA 局部性 d=144 锚 CDropDownBoxType::[0] |
+| 0x1423738C0 | §4.x UI·界面控件 VA 局部性 d=352 锚 CExtendedScrollbarType::[0] |
+| 0x142373940 | §4.x UI·界面控件 VA 局部性 d=384 锚 CExtendedScrollbarType::[10] |
+| 0x142376540 | §4.x UI·界面控件 VA 局部性 d=64 锚 CListboxType::[0] |
+| 0x142376730 | §4.x UI·界面控件 VA 局部性 d=16 锚 CListboxType::[10] |
+| 0x14237C4C0 | §4.x UI·界面控件 VA 局部性 d=752 锚 CScrollbarType::[11] |
+| 0x14237F3D0 | §4.x 游戏系统 VA 局部性 d=16 锚 CTrack::[0] |
+| 0x14237F3E0 | §4.x 游戏系统 VA 局部性 d=32 锚 CTrack::[0] |
+| 0x142399980 | §4.x 平台集成(Steam) VA 局部性 d=0 锚 CCallback<$0A::UDlcInstalled_t::CSteamStoreC |
+| 0x14239A0D0 | §4.x 平台集成(Steam) VA 局部性 d=1072 锚 CSteamAchievementsContext::[7] |
+| 0x14239E120 | §4.x 平台集成(Steam) VA 局部性 d=17536 锚 CSteamAchievementsContext::[7] |
+| 0x1423B17B0 | §4.x 音频 VA 局部性 d=7984 锚 CAudio::[0] |
+| 0x1423B17C0 | §4.x 音频 VA 局部性 d=7968 锚 CAudio::[0] |
+| 0x1423B3740 | §4.x 音频 VA 局部性 d=48 锚 CAudioMusic::[0] |
+| 0x1423B5C20 | §4.x 音频 VA 局部性 d=9488 锚 CAudioMusic::[0] |
+| 0x1423B5C30 | §4.x 音频 VA 局部性 d=9504 锚 CAudioMusic::[0] |
+| 0x1423B62C0 | §4.x 音频 VA 局部性 d=11184 锚 CAudioMusic::[0] |
+| 0x1423B6490 | §4.x 音频 VA 局部性 d=11648 锚 CAudioMusic::[0] |
+| 0x1423B66D0 | §4.x 音频 VA 局部性 d=12224 锚 CAudioMusic::[0] |
+| 0x1423B72B0 | §4.x 音频 VA 局部性 d=9680 锚 CAudioCategory::[0] |
+| 0x1423B72C0 | §4.x 音频 VA 局部性 d=9664 锚 CAudioCategory::[0] |
+| 0x1423B7410 | §4.x 音频 VA 局部性 d=9328 锚 CAudioCategory::[0] |
+| 0x1423B7660 | §4.x 音频 VA 局部性 d=8736 锚 CAudioCategory::[0] |
+| 0x1423B7950 | §4.x 音频 VA 局部性 d=7984 锚 CAudioCategory::[0] |
+| 0x1423B9580 | §4.x 音频 VA 局部性 d=768 锚 CAudioCategory::[0] |
+| 0x1423B9790 | §4.x 音频 VA 局部性 d=240 锚 CAudioCategory::[0] |
+| 0x1423B9C40 | （待定） 游戏 CU 邻近: SSDLAudioContext::[0] / CAudioInstance::[2] |
+| 0x1423BDF90 | §4.x 音频 VA 局部性 d=16 锚 CAudioInstance::[2] |
+| 0x1423BE2E0 | §4.x 音频 VA 局部性 d=864 锚 CAudioInstance::[2] |
+| 0x1423BE9B0 | §4.x 音频 VA 局部性 d=2608 锚 CAudioInstance::[2] |
+| 0x1423C0610 | §4.x 音频 VA 局部性 d=224 锚 SAudioContext::[0] |
+| 0x1423C0640 | §4.x 音频 VA 局部性 d=272 锚 SAudioContext::[0] |
+| 0x1423C0700 | §4.x 音频 VA 局部性 d=464 锚 SAudioContext::[0] |
+| 0x1423C0730 | §4.x 音频 VA 局部性 d=512 锚 SAudioContext::[0] |
+| 0x1423C0760 | §4.x 音频 VA 局部性 d=560 锚 SAudioContext::[0] |
+| 0x1423C1370 | §4.x 音频 VA 局部性 d=3648 锚 SAudioContext::[0] |
+| 0x1423C1CD0 | §4.x 平台集成(Steam) VA 局部性 d=1840 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C1CE0 | §4.x 平台集成(Steam) VA 局部性 d=1824 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C1CF0 | §4.x 平台集成(Steam) VA 局部性 d=1808 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C1D00 | §4.x 平台集成(Steam) VA 局部性 d=1792 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C1E00 | §4.x 平台集成(Steam) VA 局部性 d=1536 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C1E10 | §4.x 平台集成(Steam) VA 局部性 d=1520 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C1E20 | §4.x 平台集成(Steam) VA 局部性 d=1504 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C1E30 | §4.x 平台集成(Steam) VA 局部性 d=1488 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C1E40 | §4.x 平台集成(Steam) VA 局部性 d=1472 锚 CCallback<$00::UP2PSessionRequest_t::CSteamN |
+| 0x1423C2720 | §4.x UI·界面控件 VA 局部性 d=64 锚 CSteamBrowserInstance::[0] |
+| 0x1423C2740 | §4.x UI·界面控件 VA 局部性 d=96 锚 CSteamBrowserInstance::[0] |
+| 0x1423C2770 | §4.x UI·界面控件 VA 局部性 d=144 锚 CSteamBrowserInstance::[0] |
+| 0x1423C2850 | §4.x UI·界面控件 VA 局部性 d=320 锚 CSteamBrowserInstance::[14] |
+| 0x1423C3B50 | §4.x UI·界面控件 VA 局部性 d=1584 锚 CBrowserInstance::[12] |
+| 0x1423C5880 | §4.x UI·界面控件 VA 局部性 d=9056 锚 CBrowserInstance::[12] |
+| 0x1423C6950 | §4.x UI·界面控件 VA 局部性 d=13360 锚 CBrowserInstance::[12] |
+| 0x1423C6960 | §4.x UI·界面控件 VA 局部性 d=13376 锚 CBrowserInstance::[12] |
+| 0x1423C6B60 | §4.x UI·界面控件 VA 局部性 d=13888 锚 CBrowserInstance::[12] |
+| 0x1423C8470 | §4.x UI·界面控件 VA 局部性 d=20304 锚 CBrowserInstance::[12] |
+| 0x1423C8750 | §4.x UI·界面控件 VA 局部性 d=21040 锚 CBrowserInstance::[12] |
+| 0x1423C88F0 | §4.x UI·界面控件 VA 局部性 d=21456 锚 CBrowserInstance::[12] |
+| 0x1423C8B10 | §4.x UI·界面控件 VA 局部性 d=22000 锚 CBrowserInstance::[12] |
+| 0x1423C9840 | §4.x UI·界面控件 VA 局部性 d=25376 锚 CBrowserInstance::[12] |
+| 0x1423CAB60 | §4.x UI·界面控件 VA 局部性 d=30272 锚 CBrowserInstance::[12] |
+| 0x1423CBB30 | §4.x UI·界面控件 VA 局部性 d=34320 锚 CBrowserInstance::[12] |
+| 0x1423D0E50 | §4.x 平台集成(Steam) VA 局部性 d=47200 锚 CCloudFile::[0] |
+| 0x1423D3D80 | §4.x 平台集成(Steam) VA 局部性 d=35120 锚 CCloudFile::[0] |
+| 0x1423D3DC0 | §4.x 平台集成(Steam) VA 局部性 d=35056 锚 CCloudFile::[0] |
+| 0x1423D4320 | §4.x 平台集成(Steam) VA 局部性 d=33680 锚 CCloudFile::[0] |
+| 0x1423D4340 | §4.x 平台集成(Steam) VA 局部性 d=33648 锚 CCloudFile::[0] |
+| 0x1423D4640 | §4.x 平台集成(Steam) VA 局部性 d=32880 锚 CCloudFile::[0] |
+| 0x1423D4670 | §4.x 平台集成(Steam) VA 局部性 d=32832 锚 CCloudFile::[0] |
+| 0x1423D4800 | §4.x 平台集成(Steam) VA 局部性 d=32432 锚 CCloudFile::[0] |
+| 0x1423D4D00 | §4.x 平台集成(Steam) VA 局部性 d=31152 锚 CCloudFile::[0] |
+| 0x1423D4D30 | §4.x 平台集成(Steam) VA 局部性 d=31104 锚 CCloudFile::[0] |
+| 0x1423D7490 | §4.x 平台集成(Steam) VA 局部性 d=21024 锚 CCloudFile::[0] |
+| 0x1423D78B0 | §4.x 平台集成(Steam) VA 局部性 d=19968 锚 CCloudFile::[0] |
+| 0x1423D94D0 | §4.x 平台集成(Steam) VA 局部性 d=12768 锚 CCloudFile::[0] |
+| 0x1423DB0B0 | §4.x 平台集成(Steam) VA 局部性 d=5632 锚 CCloudFile::[0] |
+| 0x1423DB2A0 | §4.x 平台集成(Steam) VA 局部性 d=5136 锚 CCloudFile::[0] |
+| 0x1423DB380 | §4.x 平台集成(Steam) VA 局部性 d=4912 锚 CCloudFile::[0] |
+| 0x1423DB390 | §4.x 平台集成(Steam) VA 局部性 d=4896 锚 CCloudFile::[0] |
+| 0x1423DB400 | §4.x 平台集成(Steam) VA 局部性 d=4784 锚 CCloudFile::[0] |
+| 0x1423DB430 | §4.x 平台集成(Steam) VA 局部性 d=4736 锚 CCloudFile::[0] |
+| 0x1423DB480 | §4.x 平台集成(Steam) VA 局部性 d=4656 锚 CCloudFile::[0] |
+| 0x1423DB9D0 | §4.x 平台集成(Steam) VA 局部性 d=3296 锚 CCloudFile::[0] |
+| 0x1423DBA20 | §4.x 平台集成(Steam) VA 局部性 d=3216 锚 CCloudFile::[0] |
+| 0x1423DBB40 | §4.x 平台集成(Steam) VA 局部性 d=2928 锚 CCloudFile::[0] |
+| 0x1423DBB70 | §4.x 平台集成(Steam) VA 局部性 d=2880 锚 CCloudFile::[0] |
+| 0x1423DBD40 | §4.x 平台集成(Steam) VA 局部性 d=2416 锚 CCloudFile::[0] |
+| 0x1423DBD60 | §4.x 平台集成(Steam) VA 局部性 d=2384 锚 CCloudFile::[0] |
+| 0x1423DBDE0 | §4.x 平台集成(Steam) VA 局部性 d=2256 锚 CCloudFile::[0] |
+| 0x1423DBFE0 | §4.x 平台集成(Steam) VA 局部性 d=1744 锚 CCloudFile::[0] |
+| 0x1423DC150 | §4.x 平台集成(Steam) VA 局部性 d=1376 锚 CCloudFile::[0] |
+| 0x1423DC180 | §4.x 平台集成(Steam) VA 局部性 d=1328 锚 CCloudFile::[0] |
+| 0x1423DC1C0 | §4.x 平台集成(Steam) VA 局部性 d=1264 锚 CCloudFile::[0] |
+| 0x1423DC220 | §4.x 平台集成(Steam) VA 局部性 d=1168 锚 CCloudFile::[0] |
+| 0x1423DC2F0 | §4.x 平台集成(Steam) VA 局部性 d=960 锚 CCloudFile::[0] |
+| 0x1423DEE50 | §4.x 平台集成(Steam) VA 局部性 d=3376 锚 CSteamCloudFile::[6] |
+| 0x1423DEE60 | §4.x 平台集成(Steam) VA 局部性 d=3392 锚 CSteamCloudFile::[6] |
+| 0x1423DEEA0 | §4.x 平台集成(Steam) VA 局部性 d=3456 锚 CSteamCloudFile::[6] |
+| 0x1423DF5D0 | §4.x 平台集成(Steam) VA 局部性 d=3264 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF5F0 | §4.x 平台集成(Steam) VA 局部性 d=3232 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF650 | §4.x 平台集成(Steam) VA 局部性 d=3136 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF660 | §4.x 平台集成(Steam) VA 局部性 d=3120 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF680 | §4.x 平台集成(Steam) VA 局部性 d=3088 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF690 | §4.x 平台集成(Steam) VA 局部性 d=3072 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF6A0 | §4.x 平台集成(Steam) VA 局部性 d=3056 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF6C0 | §4.x 平台集成(Steam) VA 局部性 d=3024 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF6E0 | §4.x 平台集成(Steam) VA 局部性 d=2992 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF700 | §4.x 平台集成(Steam) VA 局部性 d=2960 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF720 | §4.x 平台集成(Steam) VA 局部性 d=2928 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF740 | §4.x 平台集成(Steam) VA 局部性 d=2896 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF750 | §4.x 平台集成(Steam) VA 局部性 d=2880 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF760 | §4.x 平台集成(Steam) VA 局部性 d=2864 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF7D0 | §4.x 平台集成(Steam) VA 局部性 d=2752 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF7F0 | §4.x 平台集成(Steam) VA 局部性 d=2720 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF800 | §4.x 平台集成(Steam) VA 局部性 d=2704 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF870 | §4.x 平台集成(Steam) VA 局部性 d=2592 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF8F0 | §4.x 平台集成(Steam) VA 局部性 d=2464 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF970 | §4.x 平台集成(Steam) VA 局部性 d=2336 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF990 | §4.x 平台集成(Steam) VA 局部性 d=2304 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF9A0 | §4.x 平台集成(Steam) VA 局部性 d=2288 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF9B0 | §4.x 平台集成(Steam) VA 局部性 d=2272 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF9C0 | §4.x 平台集成(Steam) VA 局部性 d=2256 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423DF9D0 | §4.x 平台集成(Steam) VA 局部性 d=2240 锚 CCallback<$00::UValidateAuthTicketResponse_t |
+| 0x1423E2890 | §4.x 平台集成(Steam) VA 局部性 d=320 锚 CSteamMatchmakingContext::[16] |
+| 0x1423EC790 | §4.x 平台集成(Steam) VA 局部性 d=7728 锚 CSteamNetContext::[3] |
+| 0x1423EC8F0 | §4.x 平台集成(Steam) VA 局部性 d=8080 锚 CSteamNetContext::[3] |
+| 0x142402B20 | §4.x 平台集成(Steam) VA 局部性 d=16 锚 CSteamStoreContext::[10] |
+| 0x142402B40 | §4.x 平台集成(Steam) VA 局部性 d=48 锚 CSteamStoreContext::[10] |
+| 0x1424040D0 | §4.x 平台集成(Steam) VA 局部性 d=112 锚 CSteamUGCContext::[1] |
+| 0x1424056F0 | §4.x 图形渲染 VA 局部性 d=3872 锚 CTextureHandler::[0] |
+| 0x142405700 | §4.x 图形渲染 VA 局部性 d=3856 锚 CTextureHandler::[0] |
+| 0x142405720 | §4.x 图形渲染 VA 局部性 d=3824 锚 CTextureHandler::[0] |
+| 0x142406DB0 | §4.x 图形渲染 VA 局部性 d=1952 锚 CTextureHandler::[0] |
+| 0x142407A90 | §4.x 图形渲染 VA 局部性 d=5248 锚 CTextureHandler::[0] |
+| 0x142407AC0 | §4.x 图形渲染 VA 局部性 d=5296 锚 CTextureHandler::[0] |
+| 0x142407AF0 | §4.x 图形渲染 VA 局部性 d=5344 锚 CTextureHandler::[0] |
+| 0x142407B00 | §4.x 图形渲染 VA 局部性 d=5360 锚 CTextureHandler::[0] |
+| 0x14240AC00 | §4.x 游戏系统 VA 局部性 d=4576 锚 CEffectHandler::[0] |
+| 0x14240C070 | §4.x 游戏系统 VA 局部性 d=9808 锚 CEffectHandler::[0] |
+| 0x14240C0E0 | §4.x 游戏系统 VA 局部性 d=9920 锚 CEffectHandler::[0] |
+| 0x142419E40 | （待定） 游戏 CU 簇内: CEffectHandler::[0] / start_for<…>::[1] |
+| 0x14241D690 | （待定） 游戏 CU 簇内: CEffectHandler::[0] / start_for<…>::[1] |
+| 0x142421B20 | §4.x 图形渲染 VA 局部性 d=6912 锚 CPdxResourceCache<VCString::CTextureResource |
+| 0x142421C50 | §4.x 图形渲染 VA 局部性 d=7216 锚 CPdxResourceCache<VCString::CTextureResource |
+| 0x142422400 | §4.x 图形渲染 VA 局部性 d=9184 锚 CPdxResourceCache<VCString::CTextureResource |
+| 0x1424238B0 | §4.x 图形渲染 VA 局部性 d=14480 锚 CPdxResourceCache<VCString::CTextureResource |
+| 0x142423E50 | §4.x 图形渲染 VA 局部性 d=15920 锚 CPdxResourceCache<VCString::CTextureResource |
+| 0x1424241E0 | §4.x 图形渲染 VA 局部性 d=16832 锚 CPdxResourceCache<VCString::CTextureResource |
+| 0x1424242C0 | §4.x 图形渲染 VA 局部性 d=17056 锚 CPdxResourceCache<VCString::CTextureResource |
+| 0x1424B9010 | §4.x 游戏系统 VA 局部性 d=64 锚 CTweakableInt::[0] |
+| 0x1424BA310 | §4.x 平台集成(Steam) VA 局部性 d=96 锚 CCallbackImpl<$0BAI>::[2] |
+| 0x1424BE610 | §4.x 游戏系统 VA 局部性 d=16 锚 CDatabaseObject::[3] |
+| 0x1424CD2D0 | （待定） 调用图传播: 5 个命名调用者（1 游戏类，如 CMatchmakingServerListResponse::[0]） |
+| 0x1424D60B0 | §4.x 游戏系统 VA 局部性 d=4304 锚 CChecksum::SetupVersionObject? |
+| 0x14253D0A8 | （待定） 游戏 CU 簇内: _purecall / DNameStatusNode::[2] |
+| 0x14253D7CC | （待定） 游戏 CU 簇内: _purecall / DNameStatusNode::[2] |
+| 0x14253DCC0 | （待定） 游戏 CU 簇内: _purecall / DNameStatusNode::[2] |
+| 0x1425421E8 | （待定） 游戏 CU 簇内: _purecall / DNameStatusNode::[2] |
+| 0x1401C7B50 | 邻域印证（锚 0x1401CBA10 §4.1，距离 0x3EC0）；跳点串 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamestate\""；volatile int32** 双指针 = gamestate 读写锁取… |
+| 0x1402341E0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x1402B55E0 | 调用链 CHistoryLogger::OnDailyUpdate?@1402B2170 / CHistoryLogger::OnDailyUpdate?@1402B37E0 |
+| 0x1403C9010 | 邻域传播改判（锚 0x1403B41C0 §4.1，距离 0x14E50）；跳点串 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamestate\"" / "( pScope == this \ \ pScope->_p… |
+| 0x14053C320 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x140682800 | 调用链 CBuildingTemplate::[0]@1406834B0 |
+| 0x140A58380 | 邻域印证（锚 0x140A69EF0 §4.1，距离 0x11B70）；跳点串 "ModuleNotFound" / "UnexpectedFileLocation" |
+| 0x140A58A80 | 邻域印证（锚 0x140A69EF0 §4.1，距离 0x11470）；跳点串 " <= Src \ \ L" / " > &Src[v38] ) { v3 = 14; } else if ( Src > L" |
+| 0x140A90C70 | 调用链 NProject::CCompletePrototypeReward::[7]@140496230 |
+| 0x140B14A10 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x140B15800 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x140C5ADE0 | 断言 gamestate.h:1116 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1117 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x140C60740 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x140C657E0 | 调用链 CGameState::DoCareerProfileHourlyUpdate?@1401B1C40 / CGameState::DoCareerProfileHourlyUpdate?@1401BC6F0 |
+| 0x140C92F00 | 邻域印证（锚 0x140C910C0 §4.1，距离 0x1E40）；跳点串 "_pPtr" / "px != 0" |
+| 0x140CF5D80 | 调用链 CGameState::Reader@1401E59D0；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thr… |
+| 0x140D3DA40 | 邻域印证（锚 0x140D49340 §4.1，距离 0xB900）；跳点串 "; v6[2] = " |
+| 0x140D872D0 | 邻域印证（锚 0x140D84980 §4.1，距离 0x2950）；跳点串 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamestate\"" / "_pInstance && \"Instance not creat… |
+| 0x140DFAE80 | 邻域印证（锚 0x140DECBC0 §4.1，距离 0xE2C0）；跳点串 "_pInstance && \"gamestate unitilialized\"" / "_ThreadForbidCount == 0 && \"Current thread is forbidden to access game… |
+| 0x140E03400 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x140E2A830 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x140E2E280 | 邻域印证（锚 0x140E2DF20 §4.1，距离 0x360）；跳点串 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamestate\"" |
+| 0x140E51DD0 | 邻域印证（锚 0x140E4CF80 §4.1，距离 0x4E50）；跳点串 "_pPtr" / "_pInstance && \"gamestate unitilialized\"" |
+| 0x140E70790 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x140F09A10 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x140F355A0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x140F359D0 | 调用链 pairNode::[1](sub_14072DEA0) / pairNode::[1](sub_14072DEA0) / pairNode::[1](sub_14072DEA0) |
+| 0x140F5E890 | 断言 gamestate.h:1125/1126 + 16 个被调用站点 + 0 循环单返回 → gamestate 复合析构/清理链 |
+| 0x140FA3F70 | 邻域印证（锚 0x140FAFDA0 §4.1，距离 0xBE30）；跳点串 "_pPtr" |
+| 0x140FA7570 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x141031830 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x141032BA0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x141076C90 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x1410D6360 | 邻域印证（锚 0x1410D8AA0 §4.1，距离 0x2740）；跳点串 "_pInstance && \"gamestate unitilialized\"" / "_ThreadForbidCount == 0 && \"Current thread is forbidden to access game… |
+| 0x141185600 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x141197010 | 调用链 CEvolveTankImgui::[5](sub_141197010) / CEvolveTankImgui::[5](sub_141197010) / CEvolveTankImgui::[5](sub_141197010) |
+| 0x14125CD00 | 调用链 start_for<…>::[1]@141260D30 |
+| 0x14127F200 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x141289EB0 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x14128D9C0 | 邻域印证（锚 0x1412736E0 §4.1，距离 0x1A2E0）；跳点串 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamestate\"" |
+| 0x141291060 | 邻域印证（锚 0x1412736E0 §4.1，距离 0x1D980）；跳点串 "GetPtr() != 0 && \"This Object is not created or a valid CReference" / "Object. Probably an error.\"" |
+| 0x14129CE40 | 调用链 CInGameIdler::[20](sub_140B3C380) / CInGameIdler::[20](sub_140B3C380) / CInGameIdler::[20](sub_140B3C380) |
+| 0x1412DF890 | 邻域印证（锚 0x1412F4430 §4.1，距离 0x14BA0）；跳点串 "_traderoute_convoy" / "westerngfx_traderoute_convoy" |
+| 0x14131D4E0 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x141379280 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x1413CA990 | 邻域印证（锚 0x1413CE2C0 §4.1，距离 0x3930）；跳点串 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamestate\"" |
+| 0x1413FCCF0 | 调用链 COperationInstance::[2]@141401A20 |
+| 0x1414149D0 | 邻域传播改判（锚 0x14140BFB0 §4.1，距离 0x8A20）；同 14140FBE0 族（script_collection_evaluator.h:230 + eventscope.h:193）；类型串 "unit" |
+| 0x141415750 | 邻域传播改判（锚 0x14140BFB0 §4.1，距离 0x97A0）；同 14140FBE0 族；类型串 "character" |
+| 0x14141A3C0 | 邻域传播改判（锚 0x141424320 §4.1，距离 0x9F60）；同 14140FBE0 族；类型串 "unit" |
+| 0x141426BE0 | 断言 gamestate.h:1116 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1117 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x14145C500 | 邻域印证（锚 0x14145BE90 §4.1，距离 0x670）；跳点串 "resources_strip\ " / "Size >= 0" |
+| 0x1414C4880 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x1414DFE80 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x1414FABB0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x1415063C0 | 调用链 CGarrisonStatus::[2]@14150E040 / CReinforcementStatus::[2]@14150E150 |
+| 0x141521B90 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x14152A9E0 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x14152AD20 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x141535A40 | 邻域印证（锚 0x141539740 §4.1，距离 0x3D00）；跳点串 "this->is_initialized()" |
+| 0x14154BE20 | 邻域印证（锚 0x14155BF70 §4.1，距离 0x10150）；跳点串 "Couldn't find entity" |
+| 0x141565300 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x14156BEC0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x1415B0780 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x141676AB0 | 调用链 CBuildingsNudger::CollectReloadNames@141B462C0；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == … |
+| 0x1416F43D0 | 邻域印证（锚 0x1416F4D10 §4.1，距离 0x940）；跳点串 "GetPtr() != 0 && \"This Object is not created or a valid CReferenceOb" / "ject. Probably an error.\"" |
+| 0x141869BD0 | 调用链 CPlayerLobby::[13]@14186FF20；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thr… |
+| 0x141871370 | 串 "SYSTEM_SERVER_LOST" / "SYSTEM_SERVER_LOST"；调用链 CPlayerLobby::[5](sub_141871370) / CPlayerLobby::[5](sub_141871370) / CPlayerLobby::[5](sub_141871370)；断言 g… |
+| 0x141941B10 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x141A5A6D0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x141AEBCA0 | SRC gamestate.h + 串 "_pInstance && " + 串 "GoTo" |
+| 0x141B45D00 | 邻域印证（锚 0x141B44ED0 §4.1，距离 0xE30）；跳点串 "_pInstance && \"Instance not created.\"" / "_pInstance && \"gamestate unitilialized\"" |
+| 0x141B48310 | 邻域印证（锚 0x141B44ED0 §4.1，距离 0x3440）；跳点串 "_pInstance && \"Instance not created.\"" / "_pInstance && \"gamestate unitilialized\"" |
+| 0x141B84DA0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x141B8BDB0 | 调用链 CWeatherNudger::[5]@141B89460；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current th… |
+| 0x141B981B0 | 邻域印证（锚 0x141B97E30 §4.1，距离 0x380）；分配器/单例证据 CPdxHybridInlineBufferAllocator<$03H::SEntityInstanceTextureSet>::[6](sub_1406CF0E0) / CPdxHybridInlineBufferAlloc… |
+| 0x141B99860 | 邻域印证（锚 0x141B97E30 §4.1，距离 0x1A30）；分配器/单例证据 CPdxHybridInlineBufferAllocator<$03H::SEntityInstanceTextureSet>::[6](sub_1406CF0E0) / CPdxHybridInlineBufferAllo… |
+| 0x141C5D5F0 | SRC gamestate.h + 串 "_pInstance && " + 串 "BOP_TOOLTIP" |
+| 0x141C86880 | 邻域印证（锚 0x141C81A90 §4.1，距离 0x4DF0）；跳点串 "_pInstance && \"gamestate unitilialized\"" / "_ThreadForbidCount == 0 && \"Current thread is forbidden to access game… |
+| 0x141CA2D70 | 调用链 CDiplomacyAskForStateControlController::[7]@141C99B30 |
+| 0x141D39E00 | 调用链 CGuiType::[9](sub_14061F7D0) / CGuiType::[9](sub_14061F7D0) / CGuiType::[9](sub_14061F7D0) |
+| 0x141D74230 | SRC gamestate.h + 串 "_pInstance && " |
+| 0x141DB0A30 | 邻域印证（锚 0x141DB1F30 §4.1，距离 0x1500）；跳点串 "GetPtr() != 0 && \"This Object is not created or a valid CReferenceObje" / "ct. Probably an error.\"" |
+| 0x141DE3420 | 串 "VICTORY_POINTS_" |
+| 0x141EA3150 | SRC gamestate.h + 串 "_pInstance && " + 串 "GFX_" |
+| 0x14207D800 | 邻域印证（锚 0x14207E460 §4.1，距离 0xC60）；跳点串 "invalid hash bucket count" |
+| 0x1420E0F60 | 邻域印证（锚 0x1420DDFC0 §4.1，距离 0x2FA0）；跳点串 "ERROR: NumPoints = %i" |
+| 0x1420F8E30 | 邻域传播改判（锚 0x1420DDFC0 §4.1，距离 0x1AE70）；跳点串 "Invalid renderer" / "Invalid texture" |
+| 0x1421CFB10 | 邻域印证（锚 0x1421D0040 §4.1，距离 0x530）；跳点串 "MOVE" |
+| 0x1421FE810 | 邻域印证（锚 0x1421FDBA0 §4.1，距离 0xC70）；跳点串 "cmap" / "loca" |
+| 0x142204670 | 串 "POSITION" / "TEXCOORD" / "POSITION" |
+| 0x142235240 | 调用链 CGraphics::Render2dTree?(sub_142235240) / CGraphics::Render2dTree?(sub_142235240) / CGraphics::Render2dTree?(sub_142235240) |
+| 0x14226B550 | 邻域印证（锚 0x14226AAD0 §4.1，距离 0xA80）；跳点串 "Size >= 0" |
+| 0x14226BA20 | 邻域印证（锚 0x14226AAD0 §4.1，距离 0xF50）；跳点串 "Size >= 0" |
+| 0x1422DE890 | 邻域印证（锚 0x1422EC940 §4.1，距离 0xE0B0）；跳点串 "CGui::Get()->MayDeleteGuiObject() \ \ _bMayDeleteOutOfTurn" |
+| 0x14241E000 | 邻域印证（锚 0x14241D690 §4.1，距离 0x970）；跳点串 "IsValidRect" / "Short Task" |
+| 0x14242EA50 | 邻域印证（锚 0x1424239D0 §4.1，距离 0xB080）；跳点串 "glActiveShaderProgram" / "glBindProgramPipeline" |
+| 0x14244F550 | 邻域印证（锚 0x14244A760 §4.1，距离 0x4DF0）；跳点串 "Error encountered while decoding RLE8 BMP data" / "Error encountered while decoding RLE4 BMP data" |
+| 0x1424501F0 | 邻域印证（锚 0x14244A760 §4.1，距离 0x5A90）；跳点串 "Error encountered while decoding RLE4 BMP data" / "Error encountered while decoding RLE8 BMP data" |
+| 0x1424B3D70 | 调用链 CInGameIdler::[4]@140DD3A50 |
+| 0x1424E6CA0 | 邻域印证（锚 0x1424D7AE0 §4.1，距离 0xF1C0）；跳点串 "[^a-zA-Z0-9+/=]" / "()$^.*+?[]\ \\-{},:=!\n\r\b" |
+| 0x1424F15F0 | 邻域印证（锚 0x1424D7AE0 §4.1，距离 0x19B10）；跳点串 "!finalized" |
+| 0x1424F9DE0 | 邻域印证（锚 0x1424D7AE0 §4.1，距离 0x22300）；跳点串 "Failed to convert " / " from utf8 to utf16." |
+| 0x1424FAD90 | 邻域印证（锚 0x1424D7AE0 §4.1，距离 0x232B0）；跳点串 "bad conversion" |
+| 0x142515DE0 | 邻域印证（锚 0x14253D0A8 §4.1，距离 0x272C8）；跳点串 "!entry->tree.isdir" |
+| 0x14251EB90 | 邻域印证（锚 0x14253D0A8 §4.1，距离 0x1E518）；跳点串 "false" / "true" |
+| 0x1425207C0 | 调用图传播 1 跳：std::_W::_WU?$char_traits::V?$istreambuf_iterator::time_get<…>::[9]（2 个） |
+| 0x142540748 | 邻域印证（锚 0x1425421E8 §4.1，距离 0x1AA0）；loc 键 "wchar_t" / "char32_t" / "char8_t" |
+| 0x14254E664 | 邻域印证（锚 0x1425421E8 §4.1，距离 0xC47C）；跳点串 "(null)" |
+| 0x140B07950 | 54 例共享双断言序言 `_pInstance && "…"` + `_ThreadForbidCount == 0`（SRC `gamestate.h`）+ `_Position + NeededSize <= _BufferSize`（SRC `pdx_scoped_buffer.h`）；序言 = 访问门桩*… |
+| 0x1401CEE00 | 游戏 CU 簇内: CGameState::AddTriggerDynamicVariable? / CClientPingCommand::Clone |
+
+#### 4.1.51 CGameState 派发族与门控函数补遗（358 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401CF620 | 业务 断言 gamestate.cpp:2703/2674 + 串 "MAP_ERROR:"/"is fractioned!"/"Naval strategic region"/"The following provinces are separated from the rest" |
+| 0x141F984A0 | （无名） 业务 CColor 构造（体写 &CColor::`vftable'，收尾 sub_140F28EA0(a1+232)） |
+| 0x140DCB600 | （无名） 业务 gamestate 相关计算（调 sub_140BB4390 = gamestate.h:1116 方法） |
+| 0x141C12630 | （无名） 业务 角色选择列表构建（被 CCountryCharacterSelector::Reload / CCountryArmyOfficerCorpViewExte… |
+| 0x14224F0C0 | （无名） 业务 CSession 相关（被 CSession::[0] 调用） |
+| 0x14070B680 | （无名） 业务 多字段结构比较器（sub_140BB52F0 串相等短路比较×多组；11 调用点） |
+| 0x1415070A0 | （无名） 业务 CArmyReinforcementRequests 存档 Reader 子段（被其 Reader 调用） |
+| 0x1413F2500 | （无名） 业务 CReducedFocusCost 相关（被 CReducedFocusCost::[3] 调用） |
+| 0x140F8BB60 | （无名） 业务 CEquipmentUpgradesInstance 存档 Reader 子段（被其 Reader 调用） |
+| 0x14257F744 | （无名） 业务 ID→标志位管理（qword_1435E7650 分页表，72B 元素 +56/+57/+61 位操作） |
+| 0x1414E89F0 | （无名） 业务 NRaids::CCountryRaidStatus 存档 Reader 子段（被其 Reader 调用） |
+| 0x140C51BA0 | （无名） 业务 CShip/海军容器更新（24B 元素数组 sub_140C5B2E0；收尾 sub_140C3F6E0 属 CShip 区） |
+| 0x141F8C9A0 | （无名） 业务 音乐播放控制（被 CStandardMusicPlaybackController::[6] 与 CStandardMusicTrackItem::[0] … |
+| 0x141B743E0 | （无名） 业务 CUnitsNudger::Update 子段（被其调用；gamestate.h + gameitemdatabase.h 断言） |
+| 0x141C122B0 | （无名） 业务 角色选择器列表构建（被 CCountryCharacterSelector::Reload 调用） |
+| 0x141C6D670 | （无名） 业务 结构比较器（sub_140BB5490/sub_1413C6EA0 串比较短路×多组） |
+| 0x140AA4950 | （无名） 业务 存档 Reader 子段（Reader 调用 profile：sub_1401AD740/14014B4E0/1401A84B0/1424C04A0/140… |
+| 0x140A1D990 | （无名） 业务 VT 类 NLoc::SScopeLocalizer 相关 |
+| 0x1423DCB70 | CSteamCloudStorageContext::[7] 业务 命名函数（身份按符号名） |
+| 0x141B50150 | （无名） 业务 UI 列表项/控件（VT 类 CContinentEntry） |
+| 0x1404A6FC0 | CHasContestedOwner::[22] 业务 命名函数（身份按符号名） |
+| 0x140625410 | CAgencyUpgrade::[4] 业务 命名函数（身份按符号名） |
+| 0x141037550 | （无名） 业务 VT 类 COrderInstance::SChildFrontData 相关 |
+| 0x140432EB0 | （无名） 业务 VT 类 SSupportCategoryStatMultiplier 相关 |
+| 0x1419D8A20 | CConstructionSpeedFactor::[7] 业务 命名函数（身份按符号名） |
+| 0x140AB0F90 | （无名） 业务 CScriptedDiplomaticActionTemplate 命名调用者域（调用图传播 1 跳） |
+| 0x1409F0E90 | （无名） 业务 CEquipmentModule 命名调用者域（调用图传播 1 跳） |
+| 0x1409EF610 | （无名） 业务 VT 类 CDuplicateArchetypeDefinition 相关 |
+| 0x140690140 | （无名） 业务 VT 类 NCareerProfile::SProfileData 相关 |
+| 0x141FC40F0 | （无名） 业务 UI 列表项/控件（VT 类 CSavedGameRulesItem） |
+| 0x141012A50 | （无名） 业务 CTaskForce 命名调用者域（调用图传播 1 跳） |
+| 0x142163130 | sub_142163130 业务 位域差量写（a3+14/+15 位掩码比较，sub_1420E6370(a1,idx,bit) ×9 位索引 0..10） |
+| 0x14142E4D0 | sub_14142E4D0 业务 AI 态度评分（调用图传播 4/4：COutragedAttitude::GetScore/CProtectiveAttitude::GetScore/CHostileAttitude::GetScore/CThreatenedAttitude::GetScore） |
+| 0x14150E1C0 | sub_14150E1C0 业务 陆军增援请求（调用图传播 CArmyReinforcementRequests::[2]） |
+| 0x140C39E40 | sub_140C39E40 业务 舰船变体描述（串 VARIANT/TYPE/SHIP_TYPE_DESC/COUNT） |
+| 0x1419F44F0 | sub_1419F44F0 业务 和平竞价（peacebiddings.cpp:50 + 串 "pHistoryAction->IsTargetingState()" + pdx_scopedptr.h:134） |
+| 0x14164EE40 | sub_14164EE40 业务 情报网络边表构建（调用图传播 CGfxIntelNetworkEdgeListBuilder::Build + gamestate.h:1125 断言） |
+| 0x140BFC0D0 | sub_140BFC0D0 业务 陆军行动序列（unit.cpp:3097 + 串 ACTION_UNIT_STANDING_STILL/DEFENDING/SUPPORT/MOVE/ATTACK/STRATEGIC/NAVAL_TRANSFER/INVASION ×8） |
+| 0x141C99780 | CDiplomacyLendLeaseActionController::[9] 业务 CDiplomacyLendLeaseActionController::[9]（func_names rtti 槽 + ref.h:83 断言） |
+| 0x1406178D0 | sub_1406178D0 业务 前端 idler（调用图传播 CNudgeIdler::[19]/CFrontEndIdler::[19]，7 调用者中 2 具名） |
+| 0x1415BAD50 | sub_1415BAD50 业务 海军确认弹窗（串 default_confirmation_popup + NAVAL_CONFIRM_REMOVE_ALL_REGIONS/TEXT + ref.h:83） |
+| 0x1421615A0 | sub_1421615A0 业务 位域差量写（比较 a3 与 a2+151 标志字节，逐位 sub_1420E6370 派发） |
+| 0x1423018C0 | CSmoothListbox::[25] 业务 CSmoothListbox::[25]（func_names rtti 槽，UI 列表框） |
+| 0x140231130 | sub_140231130 业务 生产线（调用图传播 CProductionLine::[14]，6 调用者中唯一具名） |
+| 0x140B1C860 | sub_140B1C860 业务 均势告警（gamestate.h:1125 断言 + 串 alert_bop_timeout_delayed/LIST） |
+| 0x141C4EC40 | sub_141C4EC40 业务 政治理念窗口（politicalideaswindow.cpp:37 + 串 "_pGridBox != nullptr \ \ _pListBox != nullptr"） |
+| 0x1404FCE90 | sub_1404FCE90 业务 触发器并行求值（eventscope.h:193 断言 + tbb start_for<…> 并行体） |
+| 0x1404FE190 | sub_1404FE190 业务 触发器并行求值（eventscope.h:193 断言 + tbb start_for<…> 并行体） |
+| 0x14113FC50 | sub_14113FC50 业务 派遣志愿军控制器（调用图传播 CDiplomacySendVolunteersController::[0] + ref.h:83 断言） |
+| 0x1404FF490 | sub_1404FF490 业务 触发器并行求值（eventscope.h:193 断言 + tbb start_for<…> 并行体） |
+| 0x140B496C0 | sub_140B496C0 业务 理念图标回退（串 GFX_idea_unknown） |
+| 0x1404B2AA0 | CEveryFactionMember::[28] 业务 CEveryFactionMember::[28]（func_names rtti 槽，阵营成员枚举） |
+| 0x140271220 | sub_140271220 业务 突袭准备（gamestate.h:1116 断言 + 串 "No active raids to prepare"/"Successfully prepared raids"/"The specified progress must be >0 and <=1"） |
+| 0x141E424A0 | sub_141E424A0 业务 行动状态回调（串 OPERATION/COUNTRY/ON_OPERATION_STATUS） |
+| 0x141DFF010 | sub_141DFF010 业务 海战结果（串 NAME/KILLER/NAVAL_COMBAT_RESULT_SUNK_BY） |
+| 0x140080DE0 | sub_140080DE0 业务 科技树连线图标（串 GFX_techline_center_bottom_left/right/top_* ×8） |
+| 0x141B63E50 | sub_141B63E50 业务 战略区域 nudger（调用图传播 CStrategicRegionNudger::CollectReloadNames） |
+| 0x140AF0C20 | sub_140AF0C20 业务 单位名称数据库（调用图传播 CUnitNamesDatabase::GenerateNameForNavyTheater + pdx_scopedptr.h:134） |
+| 0x141EB2900 | CIntelLedgerArmyPanelController::CIdeasTooltipHandler::[0] 业务 CIntelLedgerArmyPanelController::CIdeasTooltipHandler::[0]（func_names rtti 槽 + 串 CURRENT_ARMY_I… |
+| 0x141B7D8B0 | sub_141B7D8B0 业务 游戏物品数据库遍历（被调用链 gameitemdatabase.h:142：sub_1401DB540 + sub_140ABC450 逐项访问，+188 计数） |
+| 0x141DBCBB0 | sub_141DBCBB0 业务 生产子单位过滤器（gameitemdatabase.h:142 + 串 SUBUNIT/COUNT/PRODUCTION_SUB_UNIT_FILTER + CToolTip/CProductionSubUnitDefFilter 调用图） |
+| 0x1410A8D70 | CRadarsPool::[2] 业务 游戏类 vtable 槽（CRadarsPool） |
+| 0x140ABE410 | CStateDatabase::[4] 业务 游戏物品数据库 |
+| 0x142307820 | CButtonDrag::[8] 业务 游戏类 vtable 槽（CButtonDrag） |
+| 0x14166F150 | start_for<…>::[1] 业务 游戏类 vtable 槽（start_for<…>） |
+| 0x141B7DCD0 | sub_141B7DCD0 业务 objects_global（日期）·HOI4 类成员/被 HOI4 类调用 |
+| 0x1411A4FC0 | sub_1411A4FC0 业务 objects_global（日期）·HOI4 类成员/被 HOI4 类调用 |
+| 0x141A0B4C0 | sub_141A0B4C0 业务 objects_military·military·air base |
+| 0x1422A68B0 | sub_1422A68B0 业务 objects_misc（GUI/界面）·HOI4 类成员/被 HOI4 类调用 |
+| 0x1422F43C0 | sub_1422F43C0 业务 objects_misc（GUI/界面）·HOI4 类成员/被 HOI4 类调用 |
+| 0x14016FDF0 | sub_14016FDF0 业务 游戏数据库: CPersistentReloadableGameItemDatabase<NFactions::NAi::CAiFactionTheaterDatabase,NFactions::NAi::CAiFactionTheater,NDatabaseConfig::SD… |
+| 0x140731840 | （无符号） 业务 判定谓词：两张表 a1+64/76、a1+88/100 查重 + a2+1620/a2+2816 标志分支，链 sub_1407313C0/sub_1407367D0 |
+| 0x141AE5E40 | （无符号） 业务 按名取对象并回设：strcpy "null" 默认值 + sub_140BDA540 查表 + vtable+184 回调 + sub_140B6D1C0 落值 |
+| 0x141BBF780 | （无符号） 业务 流式双段格式化输出并追加换行：vtable+96 与 vtable+64 两次格式化 + 尾部写 0x0A |
+| 0x142138480 | （无符号） 业务 渲染顶点缓冲构建：sub_1420F6A80 分配 a10*12/20 float，位置按 a14/a15 缩放，索引步进 1/2/4 字节 |
+| 0x140A42220 | （无符号） 业务 命名对象注册表查找 + null 对象兜底：a1+160/172 表按串匹配，未命中返回 qword_143339CE0 |
+| 0x1409E2090 | std::_Func_impl_no_alloc<…>::[2] 业务 gamestate 守门回调：国家 id a3+168 经 gs+89*8 表取对象，sub_140319D60 + sub_1413C1020 派发 |
+| 0x141832F30 | <无名> 业务 UI（CEmptyList 析构，同 0x141746B20 族） |
+| 0x1418F57A0 | <无名> 业务 UI（CEmptyList 析构，同 0x141746B20 族） |
+| 0x141EC7450 | <无名> 业务 UI（CEmptyList 析构，同 0x141746B20 族） |
+| 0x141FD6120 | <无名> 业务 音频/音乐系统（a1+9840 音频管理器，+9848/+9856 当前曲目句柄，队列操作 sub_141CEE8C0/890/900） |
+| 0x141C69950 | std::X$$V::Z::_Func_impl_no_alloc<…>::[2] 业务 脚本回调（std::_Func impl：gamestate 操作，v5=1312/1316 分支 + sub_1415114D0(…,v6+4016,…,1)） |
+| 0x1417B3860 | <无名> 业务 UI 文本设置（sub_141CDFB50 取名串 → sub_140B38FD0 设值，3 个 SSO 串清理） |
+| 0x14111B000 | CImproveRelationAction::GetAiAcceptance 业务 CImproveRelationAction::GetAiAcceptance 外交行动 AI 接受度 |
+| 0x141F7CC80 | （无名） 业务 确认弹窗控制器（default_confirmation_popup） |
+| 0x141360020 | （无名） 业务 CReferenceObject 有效性校验 |
+| 0x141EF2FD0 | （无名） 业务 CReferenceObject 有效性校验 |
+| 0x141CF7F90 | sub_141CF7F90 业务 委托-子对象vtable |
+| 0x141CBA930 | sub_141CBA930 业务 委托-子对象vtable |
+| 0x141C21BF0 | sub_141C21BF0 业务 委托-子对象vtable |
+| 0x141D78790 | sub_141D78790 业务 委托-子对象vtable |
+| 0x1422347A0 | sub_1422347A0 业务 委托-子对象vtable |
+| 0x141C3C490 | sub_141C3C490 业务 委托-子对象vtable |
+| 0x141C06030 | sub_141C06030 业务 委托-子对象vtable |
+| 0x141CC7BD0 | sub_141CC7BD0 业务 委托-子对象vtable |
+| 0x141CC9350 | sub_141CC9350 业务 委托-子对象vtable |
+| 0x141ACC2C0 | sub_141ACC2C0 业务 委托-子对象vtable |
+| 0x141B31330 | sub_141B31330 业务 委托-子对象vtable |
+| 0x14225E320 | sub_14225E320 业务 委托-子对象vtable |
+| 0x140D0D810 | CNavalDeploymentTarget::[0] 业务 CNavalDeploymentTarget::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
+| 0x141C94D60 | sub_141C94D60 业务 委托-子对象vtable |
+| 0x14186CB30 | CChatMessageObserverGlue<CPlayerLobby>::[0] 业务 CChatMessageObserver::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
+| 0x140D0D840 | CRocketDeployment::[0] 业务 CRocketDeployment::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
+| 0x1414C35C0 | CPendingTransportUnit::[0] 业务 CPendingAction::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
+| 0x141CCEDD0 | sub_141CCEDD0 业务 委托-子对象vtable |
+| 0x14225D430 | sub_14225D430 业务 委托-子对象vtable |
+| 0x141C20340 | sub_141C20340 业务 委托-子对象vtable |
+| 0x141BD9E50 | sub_141BD9E50 业务 委托-子对象vtable |
+| 0x141D05CD0 | sub_141D05CD0 业务 委托-子对象vtable |
+| 0x141B2C9B0 | sub_141B2C9B0 业务 委托-子对象vtable |
+| 0x141C04D10 | sub_141C04D10 业务 委托-子对象vtable |
+| 0x1422A3F20 | sub_1422A3F20 业务 委托-子对象vtable |
+| 0x141AD77C0 | sub_141AD77C0 业务 委托-子对象vtable |
+| 0x141D1FF30 | sub_141D1FF30 业务 委托-子对象vtable |
+| 0x142250160 | sub_142250160 业务 委托-子对象vtable |
+| 0x141C04D90 | sub_141C04D90 业务 委托-子对象vtable |
+| 0x141C2B220 | sub_141C2B220 业务 委托-子对象vtable |
+| 0x141C61DE0 | sub_141C61DE0 业务 委托-子对象vtable |
+| 0x141CB5AA0 | sub_141CB5AA0 业务 委托-子对象vtable |
+| 0x142250AC0 | sub_142250AC0 业务 委托-子对象vtable |
+| 0x141C4FE70 | sub_141C4FE70 业务 委托-子对象vtable |
+| 0x141C11000 | sub_141C11000 业务 委托-子对象vtable |
+| 0x141C12DA0 | sub_141C12DA0 业务 委托-子对象vtable |
+| 0x141C5E2E0 | sub_141C5E2E0 业务 委托-子对象vtable |
+| 0x141B30B00 | sub_141B30B00 业务 委托-子对象vtable |
+| 0x141D05CF0 | sub_141D05CF0 业务 委托-子对象vtable |
+| 0x141D07160 | sub_141D07160 业务 委托-子对象vtable |
+| 0x141C4C170 | sub_141C4C170 业务 委托-子对象vtable |
+| 0x141C57EB0 | sub_141C57EB0 业务 委托-子对象vtable |
+| 0x141BC3550 | sub_141BC3550 业务 委托-子对象vtable |
+| 0x141CEE890 | sub_141CEE890 业务 委托-子对象vtable |
+| 0x14225E620 | sub_14225E620 业务 委托-子对象vtable |
+| 0x141C04D50 | sub_141C04D50 业务 委托-子对象vtable |
+| 0x141C04DD0 | sub_141C04DD0 业务 委托-子对象vtable |
+| 0x141AC9460 | sub_141AC9460 业务 委托-子对象vtable |
+| 0x141BE4650 | sub_141BE4650 业务 委托-子对象vtable |
+| 0x141CB5A30 | sub_141CB5A30 业务 委托-子对象vtable |
+| 0x141D06050 | sub_141D06050 业务 委托-子对象vtable |
+| 0x141D12E70 | sub_141D12E70 业务 委托-子对象vtable |
+| 0x141697E10 | COrgStrIndicator::[1] 业务 CTooltipHandler::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
+| 0x141C04E10 | sub_141C04E10 业务 委托-子对象vtable |
+| 0x141CEE900 | sub_141CEE900 业务 委托-子对象vtable |
+| 0x141D2AD50 | sub_141D2AD50 业务 委托-子对象vtable |
+| 0x140DB45F0 | CChunkReceived::[0] 业务 CCommand::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
+| 0x141390EE0 | std::XPEAV5::Z::_Func_impl_no_alloc<…>::[2] 业务 字段读取（a1+8，2 层解引） |
+| 0x142252CE0 | sub_142252CE0 业务 委托-子对象vtable |
+| 0x140EB37C0 | sub_140EB37C0 业务 CSunkConvoyInfo::vtable 安装器（构造/类型槽赋值，无释放） |
+| 0x141C94B10 | sub_141C94B10 业务 委托-子对象vtable |
+| 0x1410720F0 | std::H::USArmyAssignmentUnitComparator::Z::_Func_impl_no_alloc<…>::[2] 业务 字段读取（a2+24，3 层解引） |
+| 0x141858020 | IPEAVCSession::PEBVCOrdersGroup::H::VCID::AXAEBV?$CPdxArray::_F…::[2] 业务 字段读取（a1+8，1 层解引） |
+| 0x14153E610 | CCallResult<ULobbyEnter_t::CSteamMatchmakingContext>::[1] 业务 字段读取（a1+24，3 层解引） |
+| 0x141BC7790 | sub_141BC7790 业务 委托-子对象vtable |
+| 0x141BCA6F0 | sub_141BCA6F0 业务 委托-子对象vtable |
+| 0x141BCA710 | sub_141BCA710 业务 委托-子对象vtable |
+| 0x141CEE870 | sub_141CEE870 业务 委托-子对象vtable |
+| 0x141CEF740 | sub_141CEF740 业务 委托-子对象vtable |
+| 0x141B1C8D0 | sub_141B1C8D0 业务 委托-子对象vtable |
+| 0x141C11020 | sub_141C11020 业务 委托-子对象vtable |
+| 0x141CF6D80 | sub_141CF6D80 业务 委托-子对象vtable |
+| 0x141CF6DA0 | sub_141CF6DA0 业务 委托-子对象vtable |
+| 0x141CADC40 | sub_141CADC40 业务 委托-子对象vtable |
+| 0x142236E20 | sub_142236E20 业务 委托-子对象vtable |
+| 0x141BECA30 | sub_141BECA30 业务 委托-子对象vtable |
+| 0x141C94480 | sub_141C94480 业务 委托-子对象vtable |
+| 0x141C94500 | sub_141C94500 业务 委托-子对象vtable |
+| 0x142250290 | sub_142250290 业务 委托-子对象vtable |
+| 0x1422502A0 | sub_1422502A0 业务 委托-子对象vtable |
+| 0x142250AB0 | sub_142250AB0 业务 委托-子对象vtable |
+| 0x141B1CA00 | sub_141B1CA00 业务 委托-子对象vtable |
+| 0x142250270 | sub_142250270 业务 委托-子对象vtable |
+| 0x141ADFF70 | sub_141ADFF70 业务 委托-子对象vtable |
+| 0x141C057A0 | sub_141C057A0 业务 委托-子对象vtable |
+| 0x141C057B0 | sub_141C057B0 业务 委托-子对象vtable |
+| 0x140F755A0 | sub_140F755A0 业务 std::string 成员释放（空缓冲哨 unk_1430B1E90 比较 + j_free） |
+| 0x1411BD570 | sub_1411BD570 业务 std::string 成员释放（空缓冲哨 unk_143086250 比较 + j_free） |
+| 0x1412195A0 | sub_1412195A0 业务 std::string 成员释放（空缓冲哨 unk_1430B2BD0 比较 + j_free） |
+| 0x140B957F0 | sub_140B957F0 业务 std::string 成员释放（空缓冲哨 unk_1430B12A0 比较 + j_free） |
+| 0x140BB4250 | sub_140BB4250 业务 std::string 成员释放（空缓冲哨 unk_1430B12D8 比较 + j_free） |
+| 0x140D507D0 | sub_140D507D0 业务 std::string 成员释放（空缓冲哨 unk_1430B1368 比较 + j_free） |
+| 0x140D507F0 | sub_140D507F0 业务 std::string 成员释放（空缓冲哨 unk_1430B1398 比较 + j_free） |
+| 0x140DC3B50 | sub_140DC3B50 业务 std::string 成员释放（空缓冲哨 unk_1430B1598 比较 + j_free） |
+| 0x140DFD120 | sub_140DFD120 业务 std::string 成员释放（空缓冲哨 unk_1430B1620 比较 + j_free） |
+| 0x140E84060 | sub_140E84060 业务 std::string 成员释放（空缓冲哨 unk_1430B17D0 比较 + j_free） |
+| 0x140E84080 | sub_140E84080 业务 std::string 成员释放（空缓冲哨 unk_1430B1830 比较 + j_free） |
+| 0x140E840A0 | sub_140E840A0 业务 std::string 成员释放（空缓冲哨 unk_1430B1800 比较 + j_free） |
+| 0x140E84130 | sub_140E84130 业务 std::string 成员释放（空缓冲哨 unk_1430B1790 比较 + j_free） |
+| 0x140F755C0 | sub_140F755C0 业务 std::string 成员释放（空缓冲哨 unk_1430B1E50 比较 + j_free） |
+| 0x141002C10 | sub_141002C10 业务 std::string 成员释放（空缓冲哨 unk_1430B20F0 比较 + j_free） |
+| 0x141053F30 | sub_141053F30 业务 std::string 成员释放（空缓冲哨 unk_1430B22C0 比较 + j_free） |
+| 0x141053F60 | sub_141053F60 业务 std::string 成员释放（空缓冲哨 unk_1430B22F0 比较 + j_free） |
+| 0x141053F80 | sub_141053F80 业务 std::string 成员释放（空缓冲哨 unk_1430B22A0 比较 + j_free） |
+| 0x14107A020 | sub_14107A020 业务 std::string 成员释放（空缓冲哨 unk_1430B2350 比较 + j_free） |
+| 0x14107A040 | sub_14107A040 业务 std::string 成员释放（空缓冲哨 unk_1430B23B0 比较 + j_free） |
+| 0x14107A060 | sub_14107A060 业务 std::string 成员释放（空缓冲哨 unk_1430B2310 比较 + j_free） |
+| 0x14107A080 | sub_14107A080 业务 std::string 成员释放（空缓冲哨 unk_1430B2330 比较 + j_free） |
+| 0x1410A3120 | sub_1410A3120 业务 std::string 成员释放（空缓冲哨 unk_1430B24B0 比较 + j_free） |
+| 0x1410A3140 | sub_1410A3140 业务 std::string 成员释放（空缓冲哨 unk_1430B2550 比较 + j_free） |
+| 0x1410A3160 | sub_1410A3160 业务 std::string 成员释放（空缓冲哨 unk_1430B2460 比较 + j_free） |
+| 0x1410B2AE0 | sub_1410B2AE0 业务 std::string 成员释放（空缓冲哨 unk_1430B25B0 比较 + j_free） |
+| 0x1410D3EE0 | sub_1410D3EE0 业务 std::string 成员释放（空缓冲哨 unk_1430B2600 比较 + j_free） |
+| 0x1410D3F00 | sub_1410D3F00 业务 std::string 成员释放（空缓冲哨 unk_1430B25E0 比较 + j_free） |
+| 0x1410D3F20 | sub_1410D3F20 业务 std::string 成员释放（空缓冲哨 unk_1430B26A0 比较 + j_free） |
+| 0x1410D3F40 | sub_1410D3F40 业务 std::string 成员释放（空缓冲哨 unk_1430B2630 比较 + j_free） |
+| 0x1411BCC60 | sub_1411BCC60 业务 std::string 成员释放（空缓冲哨 unk_1430B2970 比较 + j_free） |
+| 0x1411F1E30 | sub_1411F1E30 业务 std::string 成员释放（空缓冲哨 unk_1430B2B60 比较 + j_free） |
+| 0x1411F1E60 | sub_1411F1E60 业务 std::string 成员释放（空缓冲哨 unk_1430B2A40 比较 + j_free） |
+| 0x1411F1E80 | sub_1411F1E80 业务 std::string 成员释放（空缓冲哨 unk_1430B2A90 比较 + j_free） |
+| 0x1411F1EB0 | sub_1411F1EB0 业务 std::string 成员释放（空缓冲哨 unk_1430B2A10 比较 + j_free） |
+| 0x1411F1ED0 | sub_1411F1ED0 业务 std::string 成员释放（空缓冲哨 unk_1430B2B40 比较 + j_free） |
+| 0x1411F1EF0 | sub_1411F1EF0 业务 std::string 成员释放（空缓冲哨 unk_1430B2B30 比较 + j_free） |
+| 0x1412AA570 | sub_1412AA570 业务 std::string 成员释放（空缓冲哨 unk_1430B2ED0 比较 + j_free） |
+| 0x1412E2C80 | sub_1412E2C80 业务 std::string 成员释放（空缓冲哨 unk_1430B2F08 比较 + j_free） |
+| 0x1412FBB80 | sub_1412FBB80 业务 std::string 成员释放（空缓冲哨 unk_1430B2F28 比较 + j_free） |
+| 0x1412FBBC0 | sub_1412FBBC0 业务 std::string 成员释放（空缓冲哨 unk_1430B2FF0 比较 + j_free） |
+| 0x14134ABB0 | sub_14134ABB0 业务 std::string 成员释放（空缓冲哨 unk_1430B3168 比较 + j_free） |
+| 0x14139F7B0 | sub_14139F7B0 业务 std::string 成员释放（空缓冲哨 unk_1430B31F8 比较 + j_free） |
+| 0x141405DB0 | sub_141405DB0 业务 std::string 成员释放（空缓冲哨 unk_1430B37A0 比较 + j_free） |
+| 0x141481D50 | sub_141481D50 业务 std::string 成员释放（空缓冲哨 unk_1430B3808 比较 + j_free） |
+| 0x1415AA370 | sub_1415AA370 业务 std::string 成员释放（空缓冲哨 unk_1430B3980 比较 + j_free） |
+| 0x1415AA390 | sub_1415AA390 业务 std::string 成员释放（空缓冲哨 unk_1430B3930 比较 + j_free） |
+| 0x14161A7F0 | sub_14161A7F0 业务 std::string 成员释放（空缓冲哨 unk_1430B3A00 比较 + j_free） |
+| 0x1416566A0 | sub_1416566A0 业务 std::string 成员释放（空缓冲哨 unk_1430B3B70 比较 + j_free） |
+| 0x1416566C0 | sub_1416566C0 业务 std::string 成员释放（空缓冲哨 unk_1430B3B90 比较 + j_free） |
+| 0x1416566E0 | sub_1416566E0 业务 std::string 成员释放（空缓冲哨 unk_1430B3BC0 比较 + j_free） |
+| 0x1418E7370 | sub_1418E7370 业务 std::string 成员释放（空缓冲哨 unk_1430B41A8 比较 + j_free） |
+| 0x141AF2D30 | sub_141AF2D30 业务 委托-子对象vtable |
+| 0x1413AC020 | std::$$V::XZU1::A?AUSDynamicTriggerDocInfo::_Func_impl_no_alloc<…>::[2] 业务 字段读取（a1+8，1 层解引） |
+| 0x141ABFF74 | sub_141ABFF74 业务 委托-子对象vtable |
+| 0x141D50720 | sub_141D50720 业务 委托-子对象vtable |
+| 0x141D7C390 | sub_141D7C390 业务 委托-子对象vtable |
+| 0x140FC6430 | std::U9::_NAEBUSIntelNetworkNodeDesc::Z::Z::01::SA?AV3::COperat…::[2] 业务 游戏全局数据槽读写（0x33xxxxx .data 槽） |
+| 0x1404331D0 | objects_military（建议节号待裁） 调用者 vtable CSubUnitDefinition |
+| 0x14047CA90 | 变量 effect/trigger 构建 调用图传播：被 CVariableEffectBuilder<…>::[7]/[13] 与 CVariableTriggerBuilder<…>::[22] 调用；sub_14054F730/sub_140542330 入表 |
+| 0x140A8C920 | objects_politics（权力平衡）（建议节号待裁） 调用者 vtable CPowerBalanceTemplate |
+| 0x140A99E10 | objects_military（建议节号待裁） vtable CAnonymousEquipmentGroup |
+| 0x140D7EBD0 | objects_military（建议节号待裁） 调用者 vtable NDoctrines::CFolderStatus |
+| 0x14101F870 | CSortedAssociativeArray<CSubUnitDefinitionId,CUnitAdjuster,...>::CConflictResolverWrapper 构造 显式 vftable &std::_Func_impl_no_alloc<CSortedAssociativeArray<CSu… |
+| 0x14168A860 | objects_military（建议节号待裁） 串 "Unhandled subunit type"；fnmod=divisiontemplatemanager.cpp:1543 |
+| 0x141925440 | objects_economy（建议节号待裁） vtable CPersistedMioQueue |
+| 0x1419B6E70 | §4.x-UI-设置面板/通用 转发到子对象vtable方法 |
+| 0x1419C01D0 | §4.x-UI-设置面板/通用 转发到子对象vtable方法 |
+| 0x1419C8F80 | §4.x-UI-设置面板/通用 转发到子对象vtable方法 |
+| 0x1419CE320 | §4.x-UI-设置面板/通用 转发到子对象vtable方法 |
+| 0x141A08E30 | §4.x-UI-设置面板/通用 转发到子对象vtable方法 |
+| 0x141B900E0 | objects_economy（建议节号待裁） vtable NIndustrialOrganisation::STraitId |
+| 0x141C0E780 | std::function 回调 func_names 名 _Func_impl_no_alloc<…>::[2] @ gamestate.h:1125；gamestate.h:1126 线程禁入断言 |
+| 0x141C965D0 | pdx_scoped_buffer 查询执行 断言 pdx_scoped_buffer.h:54 "_Position + NeededSize <= _BufferSize"；错误经 vtable+656/+176 上报 |
+| 0x141D8C490 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141D905C0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DD0340 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DD8D40 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DDB0F0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DDD510 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DDD590 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DDD5B0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DDFB50 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DDFEA0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DE0B40 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DE8650 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DE8670 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DE8680 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DF0F40 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DF10D0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DF2A10 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DF8B80 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DF8BA0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141DF8BC0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E0BD40 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E0BD60 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E12710 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E163B0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E1A080 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E235E0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E35E90 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E35EB0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E35ED0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E35EF0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E36690 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E39360 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E3F6E0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E43EE0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E44430 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E46A30 | CEmptyEntryListBase<CPeaceExpandableSeparatorEntry> 析构 显式 vftable &CEmptyEntryListBase<CPeaceExpandableSeparatorEntry>::`vftable'；断言 emptylists.h:60 |
+| 0x141E488A0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E50550 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E58310 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E7F040 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E872B0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E872C0 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141E89370 | §4.x-地图模式/大厅/存档 转发到子对象vtable方法 |
+| 0x141EB5930 | §4.x-军事/建筑/情报UI 转发到子对象vtable方法 |
+| 0x141EE7820 | §4.x-军事/建筑/情报UI 转发到子对象vtable方法 |
+| 0x141EEADC0 | §4.x-军事/建筑/情报UI 转发到子对象vtable方法 |
+| 0x141EF1910 | §4.x-军事/建筑/情报UI 转发到子对象vtable方法 |
+| 0x141F115D0 | §4.x-军事/建筑/情报UI 转发到子对象vtable方法 |
+| 0x141F29AE0 | §4.x-海军许可/文件完整性 转发到子对象vtable方法 |
+| 0x141F663D0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F67420 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F6D1F0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F6D270 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F6E780 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F6E9F0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F6EBD0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F6EEA0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F95D10 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F97CD0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141F97DC0 | objects_military（建议节号待裁） 调用者 vtable CShipEntryDetailed |
+| 0x141FA4D40 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x141FA73B0 | 脚本变量 "pointer" 取值 串锚 v16=0x7265746E696F70（"pointer"）；(a3+5484)&1 开关 floor/ceil 分支 |
+| 0x141FDB0D4 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x1420077D0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x142007830 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x1420222E0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x14203C9B0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x14203E060 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x142044680 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x14205BDC0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x14205ED90 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x14205EDB0 | §4.x-UI窗口/装备生产/市场 转发到子对象vtable方法 |
+| 0x14206A4E0 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x14206CCA0 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x14207E610 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x142081110 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x142081CB0 | objects_misc（GUI/界面）（建议节号待裁） 调用者 vtable CTextBufferObserverGlue<CConsole> |
+| 0x14208B3C0 | objects_misc（GUI/界面）（建议节号待裁） 调用者 vtable CTweakableCharArrayManipulator |
+| 0x14208B620 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x14208B630 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x14208CC40 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x14208D840 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x142091850 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x142091890 | §4.x-相机/输入/UI窗口 转发到子对象vtable方法 |
+| 0x14228CAA0 | objects_world（建议节号待裁） 调用者 vtable CGfxTradeRouteConvoy |
+| 0x1422A97A0 | §4.x UI·界面控件 体引用 vftable TObservable<CChoiceObserver<CStandardlistboxItem>,CChoiceClassObservable<CStandardlistboxItem>> |
+| 0x1422FC050 | §4.x UI·界面控件 体引用 vftable C2dPieChartTemplate<STexturedPieVertex> |
+| 0x1422FC170 | §4.x UI·界面控件 体引用 vftable C2dPieChartTemplate<STexturedPieVertex>/CLostDeviceInterface |
+| 0x1422FF550 | §4.x UI·界面控件 体引用 vftable TObservable<CChoiceObserver<CSmoothListboxItem>,CChoiceClassObservable<CSmoothListboxItem>> |
+| 0x1423137B0 | §4.x UI·界面控件 体引用 vftable CCheckBoxObserverGlue<CMatchmakingGui> |
+| 0x14234D650 | objects_world（建议节号待裁） 调用者 vtable SEntityAttachmentGroupReader |
+| 0x142398AA0 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<24> |
+| 0x142398AF0 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<16> |
+| 0x1423C2400 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<8> |
+| 0x1423C2450 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<4> |
+| 0x1423C24A0 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<56> |
+| 0x1423C24F0 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<40> |
+| 0x1423CD290 | §4.x UI·界面控件 VA 局部性 d=40304 锚 CBrowserInstance::[12] |
+| 0x1423E0290 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<20> |
+| 0x1423E7410 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<1> |
+| 0x1423E7460 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<9> |
+| 0x142401EB0 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<4> |
+| 0x142402E90 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<16> |
+| 0x1424D0E40 | s4 脚本描述/tooltip 文本生成节 递归缩进写出器：深度 a4 → 每层 4 空格；经 writer vtable 槽 +48 发射 std::string；消费 `.rdata` 0x1427387E4 起的 HOI4 trigger 描述串表（「…naval transfer」「<from provi… |
+| 0x142704A50 | §4.x 平台集成(Steam) 体引用 vftable CCallbackImpl<264> |
+| 0x140A9AAF0 | 调用图传播 1 跳：NRaids::CRaidType::[0]（1 个） |
+| 0x140CD8A60 | 调用图传播 1 跳：NCombatLog::CStatsObserver::SCombatSideData::[0]（3 个） |
+| 0x141052DE0 | 调用图传播 1 跳：CAIFront::BalanceUnitsOnFrontBetweenArmies（1 个） |
+| 0x141441B10 | VTNAME CReferenceObject/NProject::CProgram/COnDelay<NProject::CProgram::SOnScientistUnnassignInfo,NProject::CProgram::SOnScientistUnassigned,int>/COnDelay<NP… |
+| 0x1417A2CA0 | 断言 gamestate.h:1125 _pInstance && gamestate unitilialized + _ThreadForbidCount == 0；memset；调 sub_14118D710/14012B520 |
+| 0x1401B7780 | CU 同类簇: 邻接 1401B1C40（CGameState::DoCareerProfileHourlyUpdate?）/ 1401B8F41（CGameState::DoCareerProfileDailyUpdate?） |
+
+#### 4.1.52 CGameState 派发族与门控函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140866260 | sub_140866260 业务 define 读取器 · raid_defines.h:40 · NGraphics.RAID_ARROW_BALLISTIC_MAX_SEGMENTS · dword 未细分 · ->dword_143332660 |
+
+#### 4.1.53 CGameState 派发族与门控函数补遗（34 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141360F80 | sub_141360F80 业务 类/CSetArmyFakeTemplateCommand |
+| 0x141285540 | sub_141285540 业务 类/CPdxPostEffectVolumeManager |
+| 0x1412604C0 | sub_1412604C0 业务 设施锚/pdxmaptexturegeneration.cpp |
+| 0x140E8E350 | sub_140E8E350 业务 类/CRailwayGunManualOrderCommand |
+| 0x141EC6C10 | sub_141EC6C10 业务 类/CIntelLedgerNavyPanelController::CLedgerShipTypeEntry |
+| 0x14183A400 | sub_14183A400 业务 类/COrderReorderChildFrontCommand |
+| 0x141146530 | sub_141146530 业务 类/CReplaceAdvisorCommand |
+| 0x1411433B0 | sub_1411433B0 业务 类/CAddProductionLineCommand |
+| 0x141EEFFD0 | sub_141EEFFD0 业务 本地化键/STOP_PROJECT_POPUP_TITLE |
+| 0x1419A13A0 | sub_1419A13A0 业务 类/CSetEquipmentVariantOverrideSpriteCommand |
+| 0x1413480F0 | sub_1413480F0 业务 类/CNavyCancelRefitCommand |
+| 0x141C72EE0 | sub_141C72EE0 业务 类/CAssignCharacterPreferredTacticDialog |
+| 0x141940410 | sub_141940410 业务 类/CDeleteAirWingCommand |
+| 0x1419417E0 | sub_1419417E0 业务 类/CStratAirTransferCommand |
+| 0x141BA1290 | sub_141BA1290 业务 类/CCreateConveyorExtendedCommand |
+| 0x141A255A0 | sub_141A255A0 业务 类/CSetOperativeCodenameCommand |
+| 0x141142900 | sub_141142900 业务 类/CAddAdvisorRoleToCharacterCommand |
+| 0x14134A920 | sub_14134A920 业务 类/CSwitchNavalRepairDockyard |
+| 0x141DC7C10 | sub_141DC7C10 业务 类/CPopupLendLeaseInfoItem |
+| 0x141A38060 | sub_141A38060 业务 类/NProject::SProjectContext |
+| 0x141146160 | sub_141146160 业务 类/CRemoveConstructionCommand |
+| 0x14199C210 | sub_14199C210 业务 类/CSetIndustrialManufacturerCommand |
+| 0x141F67FD0 | sub_141F67FD0 业务 类/CTraitAssignmentConfirmation |
+| 0x141147650 | sub_141147650 业务 类/CSetProductionLineAmountToProduceCommand |
+| 0x1419A11D0 | sub_1419A11D0 业务 类/CSetEquipmentVariantNicheIconCommand |
+| 0x141A7D7E0 | sub_141A7D7E0 业务 类/CSetNavyTheaterGroupImportantCommand |
+| 0x141A7D9B0 | sub_141A7D9B0 业务 类/CSetTheaterGroupNameCommand |
+| 0x141940D30 | sub_141940D30 业务 类/CSetCarrierStickyMissionAreaCommand |
+| 0x141BA0DC0 | sub_141BA0DC0 业务 类/CAddConveyorLineCommand |
+| 0x141BA1530 | sub_141BA1530 业务 类/CRemoveConveyorCommand |
+| 0x1414965F0 | sub_1414965F0 业务 设施锚/production_bonus.cpp |
+| 0x1414966B0 | sub_1414966B0 业务 设施锚/production_bonus.cpp |
+| 0x141F57380 | sub_141F57380 业务 类/CFileIntegrityWatermark |
+| 0x141F2EDC0 | sub_141F2EDC0 业务 类/CNavalLicenseEntry |

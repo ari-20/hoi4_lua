@@ -400,13 +400,11 @@ sub_142514C60 (目录归档 open): 目录存在性/类型判定 sub_1425148B0 (�
 
 **largefile.cpp 联机大文件传输协议 (clausewitzlib 层, 书未收新域)**: 消息三件套 + ctor — **CStartFileTransfer 执行 0x1422E1000** (载荷 {+16 文件名, +40 size, +56 checksum, +44..+51 句柄槽}; 新建/复用 240B 句柄 sub_1422DFD20 → 按名+checksum+size 开档 sub_1422E19F0) / **CSendChunk 执行 0x1422E0E90** ({+40 块数据, +64 chunk 序号, +68 发送句柄}; 有句柄 sub_1422E0520 发出 / 无则 "CSendChunk Execute FAIL" :131) / **CChunkReceived ctor 0x1422DFBE0** (vtable 名直证; {+40 chunk, +44 id, +48 progress 定点 round(a4×1e5)}) / **执行 0x1422E0D00** (管理器缺位断言 "missing large file handle (chunk received)" :199)。管理器单例 = unk_1430B1DF8 (解引用经 sub_14221F310; **槽[10] = 收块/开档契约位**, ctor+apply 同槽互证; 槽[12] 取参), 日志类别码 769。类名 unk_1430B1DF8 挂载链未决。
 
-#### 4.29.11 mod 装载与虚拟文件系统函数补遗（4 函）
+#### 4.29.11 mod 装载与虚拟文件系统函数补遗（2 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x141CDE520 | （未命名）OLD_SAVEGAME_POPUP OLD_SAVEGAME_POPUP，旧存档兼容弹窗 |
-| 0x140CDE340 | NCombatLog::COrdersGroupLogs::Reader NCombatLog::COrdersGroupLogs::Reader + CGameDate/CLoss/CManpowerLoss/CPerTemplateStats/SCombatStats vtable（战斗日志反序列化） |
-| 0x141A7C640 | NDoctrines::CUnlockGrandDoctrineCommand::PayloadReader NDoctrines::CUnlockGrandDoctrineCommand::PayloadReader；串「_pInstance && "Instance not created."」 |
 | 0x140BD20A0 | （未命名）串 "version_name"/"(selecting latest vers 串 "version_name"/"(selecting latest version)"，存档/模组版本选择逻辑 |
 
 #### 4.29.12 mod 装载与虚拟文件系统函数补遗（12 函）
@@ -442,23 +440,11 @@ sub_142514C60 (目录归档 open): 目录存在性/类型判定 sub_1425148B0 (�
 |---|---|
 | 0x140A6B770 | SNamesPool::Reader SNamesPool 名字池，namedatabase.cpp:56 |
 | 0x14140D680 | SInitialScientistSkillLevel::Reader SInitialScientistSkillLevel，scientist_template.cpp:75 |
-
-#### 4.29.15 mod 装载与虚拟文件系统函数补遗（2 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.29.16 mod 装载与虚拟文件系统函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x14232FEA0 | SVectorParamReader::Writer — func_names 名 + =/{ /空格/回车 四分量序列化四件套 x4 func_names 名 + =/{ /空格/回车 四分量序列化四件套 x4 |
-
-#### 4.29.17 mod 装载与虚拟文件系统函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.29.18 mod 装载与虚拟文件系统函数补遗（49 函）
 
 | VA | 语义/证据 |
@@ -611,3 +597,519 @@ sub_142514C60 (目录归档 open): 目录存在性/类型判定 sub_1425148B0 (�
 | 0x142514840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
 | 0x141684CB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
 | 0x1420757B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+
+#### 4.29.25 mod 装载与虚拟文件系统函数补遗（71 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140ABA1C0 | CScriptedWindowTemplate::SDynamicListInfo::Reader CScriptedWindowTemplate::SDynamicListInfo::Reader（Reader 角色） |
+| 0x1422E7280 | CSystemMessage::Reader func_names 全名 CSystemMessage::Reader，Reader/Writer 角色定 §4.29 |
+| 0x1410F7790 | CCountryFuelStatus::Reader CCountryFuelStatus::Reader（Reader 角色） |
+| 0x140D11D60 | ULexerToken::UEAAXAEAVCReader::CDeploymentStatus::ReadMember::S…::[1] ULexerToken::...CDeploymentStatus::ReadMember（ReadMember 角色） |
+| 0x14197CBF0 | CFEXAir::Reader CFEXAir::Reader（Reader 角色） |
+| 0x140F84D40 | CAirMission::Reader CAirMission::Reader（Reader 角色） |
+| 0x1414E7110 | CCountryPlayerSettings::Reader CCountryPlayerSettings::Reader + CDiplomaticAction::GetFirstCountryRef（国家玩家设置反序列化） |
+| 0x14113E360 | CCallAllyAction::Reader / CCallAllyAction::Reader CCallAllyAction::Reader §4.29 存档/序列化 |
+| 0x140AAC930 | STriggerKeyPair::Reader STriggerKeyPair |
+| 0x141A00670 | CCreateEquipmentVariantScheduler::Reader CCreateEquipmentVariantScheduler |
+| 0x14235CD70 | SGfxBlendStateReader::[4] func_names SGfxBlendStateReader::[4]，Reader 类定 §4.29 |
+| 0x140E27690 | CNavalUnitTransfer::Reader func_names 全名 CNavalUnitTransfer::Reader，Reader/Writer 角色定 §4.29 |
+| 0x140D84140 | CTechnologySharing::Writer / CTechnologySharing::Writer CTechnologySharing::Writer §4.29 存档/序列化 |
+| 0x140C66C60 | CStrategicAirManager::Writer / CStrategicAirManager::Writer CStrategicAirManager::Writer §4.29 存档/序列化 |
+| 0x1415C4790 | CNavalCombat::Reader CNavalCombat::Reader + CCombat::Reader（战斗/海战反序列化） |
+| 0x141517EC0 | CLoopHistoryContainer::Writer / CLoopHistoryContainer::Writer CLoopHistoryContainer::Writer §4.29 存档/序列化 |
+| 0x14142CA80 | SSupportCategoryStatMultiplier::Reader func_names SSupportCategoryStatMultiplier::Reader + 串 'Invalid subunit category'，Reader 角色定 §4.29 |
+| 0x1409CE510 | SUniformDatabaseReader<…>::[0] SUniformDatabaseReader 槽 0 |
+| 0x140A1F060 | SOperatorReader::[0] SOperatorReader 槽 0 |
+| 0x1407209E0 | （未命名）L2 被调函数命名证据：CPersistent::Load L2 被调函数命名证据：CPersistent::Load（L2 被调名） |
+| 0x14140CF50 | CScientist::Writer |
+| 0x140DF9D40 | （无名） VA 邻近 CTreeSeasonType::Reader(±672)（存档/序列化） |
+| 0x1415A15A0 | CStateHistory::Reader |
+| 0x140AEBA20 | Reader Reader（unitleadertraits.cpp 单位领袖特质表） |
+| 0x140A924C0 | SOutput::ReadMember 序列化结构成员读取（SOutput/SInvasionReport/SPrimeStat）（SOutput::ReadMember） |
+| 0x141A0F330 | CWeatherTerrainModifier::Reader |
+| 0x14235DCD0 | SGfxSamplersScope::Reader SGfxSamplersScope::Reader 图形采样器 |
+| 0x1424BF3C0 | 未命名业务函数 序列化类 CWriter（方法角色 Reader/Writer） |
+| 0x1419C5B70 | （无名） 被 CTutorialChapter::Reader 调用（存档/序列化） |
+| 0x14063C2F0 | （无名） VA 邻近 CRule::Writer(±416)（存档/序列化） |
+| 0x1423584A0 | （无名） 被 SGfxShaderFileReader::Reader 调用（存档/序列化） |
+| 0x140FCC690 | CCountryLeader::Writer CCountryLeader::Writer（存档/序列化） |
+| 0x142309890 | （无名） 被 CPdxMeshType::Reader 调用（存档/序列化） |
+| 0x142357710 | （无名） VA 邻近 CFrameAnimatedSpriteType::Reader(±192)（存档/序列化） |
+| 0x140AC7030 | CTechnologySharingGroupDatabase::Reader 序列化 Reader/Writer 或网络命令载荷读写（CTechnologySharingGroupDatabase::Reader） |
+| 0x1411FEDB0 | CStrategicOperative::Reader 序列化 Reader/Writer 或网络命令载荷读写（CStrategicOperative::Reader） |
+| 0x1422E70C0 | CPersonalChatMessage::Reader 名:CPersonalChatMessage::Reader |
+| 0x142344CA0 | SParticleSystemReader::Writer 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 SParticleSystemReader |
+| 0x140C28200 | CArmyLeader::Writer 序列化 Reader/Writer 或网络命令载荷读写（CArmyLeader::Writer） |
+| 0x140F04CB0 | CWorldThreat::Reader 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 CWorldThreat |
+| 0x140D12330 | CDeploymentStatus::Reader 名:CDeploymentStatus::Reader |
+| 0x1402CDED0 | （无名） 被 CContinuousNationalFocus::Reader 调用（存档/序列化） |
+| 0x141006490 | CNavalRegionDominance::Writer 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 CNavalRegionDominance |
+| 0x1413E41F0 | CCombatant::Writer 名:CCombatant::Writer |
+| 0x140F22F50 | SWeatherPerRegion::Writer 名:SWeatherPerRegion::Writer |
+| 0x141376FF0 | CPositionOverride::Reader 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 CPositionOverride |
+| 0x140F20640 | SWeatherPerRegion::Reader func_names 全名 + 序列化角色 |
+| 0x1410F0490 | CCountryCharacters::Writer 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 CCountryCharacters |
+| 0x14101F3E0 | SCriticalPart::Reader func_names 全名 + 序列化角色 |
+| 0x1413F5C90 | CCountryCollaborationStatus::Writer func_names 全名 + 序列化角色 |
+| 0x141964210 | SAirWingCombatData::Reader 名:SAirWingCombatData::Reader |
+| 0x1412A8B70 | CCountryExperienceStatus::Reader func_names 全名 + 序列化角色 |
+| 0x141510290 | CArmyReinforcementRequests::Writer 名:CArmyReinforcementRequests::Writer |
+| 0x140EB36A0 | CStrategicOperativeManager::Writer 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 CStrategicOperativeManager |
+| 0x14234AA80 | SMusicReader::Reader SMusicReader::Reader + 名字角色规则(SMusicReader::Reader); 被 SMusicReader::Reader 等 1 命名函数调用 |
+| 0x14144D130 | CUnitMedalStore::Writer func_names 全名 + 序列化角色 |
+| 0x141964700 | SAirWingCombatData::Writer 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 SAirWingCombatData |
+| 0x1406AC220 | Reader func_names 裸名 + 序列化角色（Reader） |
+| 0x14151F640 | CLiberateCountryAction::Reader CLiberateCountryAction::Reader + 名字角色规则(CLiberateCountryAction::Reader); 被调源码 hoi4; 被 CLiberateCountryAction::Reader 等 1 命名函数调用 |
+| 0x1406127C0 | CDynamicModifierContainer::SDynamicModifierEntry::Writer 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 CDynamicModifierContainer |
+| 0x1423507C0 | SEntityAttachmentGroupReader::Reader SEntityAttachmentGroupReader::Reader + 名字角色规则(SEntityAttachmentGroupReader::Reader); 被 SEntityAttachmentGroupReader::Rea… |
+| 0x140ADCE40 | CTimedWargoalActivity::Writer func_names 全名 + 序列化角色 |
+| 0x14163E520 | CSetGameRuleOption::PayloadReader CSetGameRuleOption::PayloadReader + 名字角色规则(CSetGameRuleOption::PayloadReader); 被调源码 clausewitz; 被 CSetGameRuleOption::Paylo… |
+| 0x140BBC970 | CHuman::Writer 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 CHuman |
+| 0x14193EB10 | CHqDeploymentDistributable::Reader func_names 全名 + 序列化角色 |
+| 0x141289850 | SPostEffectVolumeReader::Reader SPostEffectVolumeReader::Reader + 名字角色规则(SPostEffectVolumeReader::Reader); 被 SPostEffectVolumeReader::Reader 等 1 命名函数调用 |
+| 0x141B1F1F0 | CTaskForceIdentity::Writer 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 CTaskForceIdentity |
+| 0x1418512E0 | COrderReplaceRootCommands::PayloadReader func_names 全名 + 序列化角色 |
+| 0x140EB2070 | SSparseArrayWriter<…>::[1] SSparseArrayWriter<…>::[1] + 域关键词匹配; 被 SSparseArrayWriter<…>::[1] 等 1 命名函数调用 |
+| 0x1415105B0 | CReinforcementRequest::Writer CReinforcementRequest::Writer + 名字角色规则(CReinforcementRequest::Writer); 被 CReinforcementRequest::Writer 等 1 命名函数调用 |
+| 0x14070ABF0 | CCountryColors::Reader CCountryColors::Reader + 名字角色规则(CCountryColors::Reader); 被 CCountryColors::Reader 等 1 命名函数调用 |
+
+#### 4.29.26 mod 装载与虚拟文件系统函数补遗（59 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DB9FF0 | sub_141DB9FF0 业务 robin_hood 迭代断言 _pEntry->_DistancePlus1 + gamestate 访问门 + off_143085170，Writer 族同形 |
+| 0x140C64EE0 | （无名） 业务 gamestate.h:1125 门控 + pdx_scoped_buffer.h:54 + 通用序列化调用 |
+| 0x14164A300 | （无名） 业务 pdx_scoped_buffer.h:54 断言 + 调 sub_14229B020（0x14229 资产序列化区段）：序列化缓冲写入 |
+| 0x1423B5440 | （无名） 业务 pdx_scoped_buffer.h:54 + 0x1423B3-BF 序列化族调用 |
+| 0x14118EFE0 | SPersist::Write 业务 func_names 名 SPersist::Write；robin_hood 断言 + 通用 Writer 调用 |
+| 0x14139DF20 | （无名） 业务 pdx_scopedptr.h:134 + 调 CSteamCloudFile::[13] + 0x14139E8A0：Steam 云存档写入 |
+| 0x14167E990 | gamestate.h:1116 业务 gamestate 访问（h:1116 双断言）+ pdx_scoped_buffer 写界断言 → CGameState 相关序列化 writer |
+| 0x140F42BD0 | （无名） 业务 gamestate.h:1125 门控 + pdx_scoped_buffer.h:54 + 通用序列化调用 |
+| 0x140CB9360 | CResourceOrigin::Reader 业务 func_names 名 CResourceOrigin::Reader + 调 CConvoyClient::Reader + gamestate.h:1125 门控 |
+| 0x140E21900 | （无名） 业务 gameitemdatabase.h:142 + pdx_scoped_buffer.h:54 + CPdxLinearAllocator::[1] 调用 |
+| 0x14144B4B0 | CUnitHistory::Reader 业务 Reader 角色（单位历史序列化读取器） |
+| 0x140EE16F0 | CTechnology::Reader 业务 func_names 名 |
+| 0x141B85660 | gamestate.h:1125 业务 gamestate 序列化 writer：自递归 + pdx_scoped_buffer.cpp:10/h:54 写入 + gamestate 槽调用，无类名 |
+| 0x1422415D0 | SAnimationMapData::Reader 业务 func_names 名 SAnimationMapData::Reader；串 "scrolling"/"rotating_cw"/"pulsing"/"overlay" |
+| 0x14103C330 | gamestate.h:1125 业务 gamestate 序列化 writer：h:1125 双断言 + pdx_scoped_buffer 写界断言 |
+| 0x141B8F250 | 业务 夹于 PayloadReader(d=2912) 与 TListenerTrait<CProductionStatus>::[1](d=6016)，生产状态 payload 序列化族 |
+| 0x141BAF660 | — 业务 邻域 NFactions::CUseFactionMemberManpower::PayloadWriter + CUpdateIntelligenceAdvisorSlotCommand::PayloadWriter = 命令负载序列化区段 |
+| 0x141DEA620 | sub_141DEA620 业务 strcpy 构建 "save"/"game_name" 路径段，存档目录布局组装 |
+| 0x1419EE6A0 | 业务 夹于 _Func_impl_no_alloc(d=20160) 与 CPeaceBiddingTurn::Reader(d=25552)，和会叫价回合族 |
+| 0x141BAFC60 | 业务 夹于 NFactions::CUseFactionMemberManpower::PayloadWriter(d=2832) 与 CProfileBadgeItem::Setup?(d=30032)，派系人力/档案徽章条目族 |
+| 0x140552C50 | — 业务 调用 RobinHood Grow 克隆 sub_14055ECF0（容器扩容），0x14055 区段 |
+| 0x1414DD6B0 | 业务 夹于 CPendingTransportUnit::[4](d=28640) 与 CPersistedBookmarkPlaythroughDb::[3](d=2032)，待运输单位/持久化书签档案族 |
+| 0x1424D74F0 | CChecksum::SetupVersionObject? 业务 CChecksum::SetupVersionObject + PdxParallelFor(YAXHHW4EJobType) 并行校验和构造版本对象 |
+| 0x14152B030 | 业务 gamestate.h:1125，夹于 NDoctrines::SDoctrineEquipmentBonusHandle::Writer(d=4336) 与 CMissionStatsReadHelper::[0](d=4992)，学说装备奖励/任务统计族 |
+| 0x140A96760 | 业务 夹于 SUniformReader<>::[2](d=2448) 与 NRaids::CEquipmentRequirements::[0](d=20912)，均匀读取器/突袭装备需求族（同尺寸 4644 克隆簇） |
+| 0x1411A1110 | CCountryOperationManager::Reader 业务 func_names 名 CCountryOperationManager::Reader（国家行动管理器序列化读器） |
+| 0x140554B70 | 业务 夹于 CPersistent::Reader(d=10208) 与 CDynamicModifier::[0](d=9872)，无业务串，持久化/动态修正族 |
+| 0x140D9E0E0 | — 业务 strcpy(".hoi4") 扩展名匹配 + sub_1424CBA10 串比较，存档文件过滤回调 |
+| 0x1401F9F30 | 业务 夹于 CAutotestSettings::Reader(d=4608) 与 CAutotestSettings::[0](d=1488)，自动测试设置族 |
+| 0x140DEED70 | 业务 pdx_parser.h:2222 站点 "Expected opening brace" + 调 CDiplomaticAction::GetFirstCountryRef，token id（10373/10385/16024）分派至 a2+8/+16/+24，pdx 解析回调 |
+| 0x142317D20 | 业务 串字面量 "refresh_internet" §4.29 mod装载/VFS |
+| 0x1406AAB40 | 业务 调 CDiplomaticAction::GetFirstCountryRef，夹于 NCareerProfile::SProfileData::Writer(d=848) 与 TGameItemDatabase<CMedalDatabase>::[1]，生涯档案/勋章数据库族 |
+| 0x1411B0AC0 | 业务 pdx_parser.h:2222 站点 "Expected opening brace" + 调 CDiplomaticAction::GetFirstCountryRef，紧邻 std::_Func_impl/boyer_moore_finder，pdx 解析回调 |
+| 0x140A95DD0 | SUniformReader<…>::[2] 业务 SUniformReader<>::[2] 均匀读取器模板实例（Expected 特征），数值读取 |
+| 0x140ADC440 | CTimedStageCoupActivity::Reader 业务 CTimedStageCoupActivity::Reader，政变阶段活动反序列化（gamestate.h:1125） |
+| 0x14063BE80 | SOverrideSerializer::Reader 业务 SOverrideSerializer::Reader，rule override 反序列化（rule.cpp:428） |
+| 0x140DF0170 | 业务 pdx_parser.h:2222 站点 "Expected opening brace" + 调 CDiplomaticAction::GetFirstCountryRef，紧邻 _Func_impl/NInternationalMarket::CEquipmentConvoyClient::[0]，pd… |
+| 0x141BB6AE0 | 业务 gamestate.h:1125，夹于 NFactions::CUseFactionMemberManpower::PayloadWriter(d=31120) 与 CProfileBadgeItem::Setup?(d=1744)，派系人力/档案徽章族 |
+| 0x140556CF0 | — 业务 CPdxHybridInlineBufferAllocator + CFixedPoint 类名（定点数序列化缓冲区） |
+| 0x141219E80 | — 业务 CPdxHybridInlineBufferAllocator + CCountryTag 类名（国家标签序列化缓冲区） |
+| 0x14006C000 | — 业务 CPdxHybridInlineBufferAllocator + CString 类名（字符串序列化缓冲区） |
+| 0x14142C340 | — 业务 邻域 SSubUnitStats::Reader / SSupportCategoryStatMultiplier::Reader（0x14142CA50/80）= 属性 Reader 区段 |
+| 0x1414FA2B0 | 业务 pdx_parser.h:2222 站点 "Expected opening brace" + 调 CDiplomaticAction::GetFirstCountryRef，紧邻 VCString::equal_to/_Func_impl 与 CCountryReportsManager::[0]，pdx… |
+| 0x1406108F0 | CDynamicModifierContainer::SDynamicModifierEntry::Reader 业务 CDynamicModifierContainer::SDynamicModifierEntry::Reader（"Could not find dynamic modifier"） |
+| 0x14117F400 | 业务 夹于 CWarScoreBreakdown::Writer(d=17296) 与 CEvent::[0](d=840)，战争分数拆分/事件族 |
+| 0x1419760B0 | CFEXMember::Writer 业务 CFEXMember::Writer FEX 成员序列化 writer |
+| 0x140EE5C10 | CTechnologySharingGroup::Reader 业务 CTechnologySharingGroup::Reader，科技共享组反序列化（"Invalid template id:"） |
+| 0x141980820 | 业务 Init_thread 静态初始化，夹于 CSubunitBonusPersistent::Writer(d=3600) 与 CAirBaseAccessRelation::[0](d=2368)，子单位奖励/空军基地通行关系族 |
+| 0x1402DC910 | CNationalFocusProgress::Writer 业务 CNationalFocusProgress::Writer，国策进度序列化（nationalfocus.cpp:1755 "Originator.IsValid()"） |
+| 0x1423D49C0 | 业务 紧邻 CCloudFile::[0](d=31984)，云存档文件族 |
+| 0x141295E60 | (无名) 业务 调用窗口内命名函数 sub_14207D230 |
+| 0x141F8E540 | sub_141F8E540 业务 序列化类型名（strcpy 串 disabled_track） |
+| 0x14142D240 | SSubUnitStats::Writer 业务 SSubUnitStats::Writer，子单位统计序列化（pdx_core 序列化辅助族） |
+| 0x141434750 | 业务 串 "icon"; 串 "flag"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1424FC2F0 | 业务 类路由 SParticleTextureReader ->§4.29; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141DE84C0 | sub_141DE84C0 业务 序列化类型名（strcpy 串 dark_overlay） |
+| 0x1421D96D0 | 业务 断言站点 pdx_ugc_steam.cpp:23 ->§4.29; 类路由 CEditBox ->§4.30; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x1414C00C0 | 业务 断言站点 virtualfilesystem.cpp:70 ->§4.29; 类路由 CGameSetupRandomCountryWindow ->§4.30; 串 "IsValid()" |
+| 0x1421D8E00 | 业务 断言站点 virtualfilesystem.cpp:6 ->§4.29; 类路由 CSmoothListboxItem ->§4.31; 串 "IsValid()" |
+
+
+#### 4.29.27 mod 装载与虚拟文件系统函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1424D8B50 | 业务 "Could not open manifest file: "/"Did not find any directory info in the -dirs file!"/"sub_directories"/"file_extension" + CArchiveFile::[2] |
+| 0x14067C8E0 | 业务 串字面量 'invalid dlc name: ' [4.29×1] |
+| 0x141A43BC0 | 业务 反向调用图 1/2 调用者投 §4.29 |
+| 0x14109AC00 | 业务 反向调用图 1/2 调用者投 §4.29 |
+| 0x1402C1B60 | 业务 断言源码路径 json.h → §4.29 |
+| 0x1401FA3D0 | 业务 反调用图传播 1.0 权重锚点投 §4.29（top 占比 1.00） |
+| 0x1424DE7F0 | 业务 反调用图传播 1.0 权重锚点投 §4.29（top 占比 1.00） |
+| 0x1424D9D00 | 业务 反调用图传播 1.0 权重锚点投 §4.29（top 占比 1.00） |
+
+#### 4.29.28 单调用转发桩结构定案（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409C8F80 | 转发桩: 转发至 调用图上游传播(占 100%, 1 票) sub_1409C61B0 + 调用图上游传播(占 100%, 1 票)（推定） |
+| 0x141F8E6C0 | 转发桩: 转发至 sub_141F8E540 业务 序列化类型名（strcpy 串 disabled_track）（推定） |
+| 0x1424C4E70 | 转发桩: 转发至 调用图上游传播(占 78%, 5 票) sub_1424CD560 + 调用图上游传播(占 78%, 5 票)（推定） |
+| 0x141B31840 | 转发桩: 转发至 同区段近邻 SPostEffectVolumeReader::Reader(距 0x10A80)属 4.29 族 sub_14129A2D0 + 同区段近邻 SPostEffectVolumeReader::Reader(距 0x10A80)属 4.29 族（推定） |
+| 0x141B31860 | 转发桩: 转发至 同区段近邻 SPostEffectVolumeReader::Reader(距 0x10A80)属 4.29 族 sub_14129A2D0 + 同区段近邻 SPostEffectVolumeReader::Reader(距 0x10A80)属 4.29 族（推定） |
+| 0x1425FF6A0 | 转发桩: 转发至 调用图上游传播(占 42%, 3 票) sub_140A9A810 + 调用图上游传播(占 42%, 3 票)（推定） |
+| 0x1426EE760 | 转发桩: 转发至 （无名） 被 CPdxMeshType::Reader 调用（存档/序列化）（推定） |
+| 0x1426F19E0 | 转发桩: 转发至 （无名） 被 CPdxMeshType::Reader 调用（存档/序列化）（推定） |
+
+#### 4.29.29 mod 装载与虚拟文件系统函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411CC290 | caller 1411CC440(pdx_parser.h:2222) |
+| 0x1406104F0 | func_names slot 契约名 Reader（序列化槽） |
+| 0x140BBCEC0 | 路径锚 source\id_generator\id_counter_store.cpp |
+| 0x141404EC0 | 调用图传播: 3 个命名调用者（2 游戏类，如 CCountryOperationTokenManager::ReadMember）；多数投 §4.29 |
+| 0x14145BE90 | 游戏 CU 簇内: CCicBank::Writer / CScientistLevel::Reader |
+| 0x1415AFC20 | 游戏 CU 邻近: CPdxHybridInlineBufferAllocator<H::$0BI: / CNavyTheaterGroup::[0] |
+
+#### 4.29.30 mod 装载与虚拟文件系统函数补遗（327 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F4D8A0 | 业务 串 "\n- Roots["/"\n- Fallbacks[" x5（资产/VFS 回退链转储） |
+| 0x140014740 | vftable CEffectEntry<CAddTimedUnitLeaderTraitEffect>; 描述串 "add a timed trait to unit leader" |
+| 0x1400148C0 | vftable CEffectEntry<CClearCharacterFlagEffect>; 描述串 "clear character flag" |
+| 0x140014980 | vftable CEffectEntry<CDemoteLeaderEffect>; 描述串 "Demotes field marshal to general" |
+| 0x140014B60 | vftable CEffectEntry<CPromoteLeaderEffect>; 描述串 "promotes general to field marshal" |
+| 0x140014D40 | vftable CEffectEntry<CReplaceUnitLeaderTraitEffect>; 描述串 "add trait to unit leader" |
+| 0x140014E00 | vftable CEffectEntry<CSetCharacterFlagEffect>; 描述串 "set character flag" |
+| 0x140016540 | vftable CEffectEntry<CAddBuildingConstructionEffect>; 描述串 "Starts building construction for amount of levels in specified state o" |
+| 0x1400165A0 | vftable CEffectEntry<CAddClaimByEffect>; 描述串 "Add state claim by country." |
+| 0x140016660 | vftable CEffectEntry<CAddCoreOfEffect>; 描述串 "Add state as core of country" |
+| 0x1400166C0 | vftable CEffectEntry<CAddExtraSharedBuildingSlotsEffect>; 描述串 "add extra shared building slot to state" |
+| 0x140016960 | vftable CEffectEntry<CClearStateFlagEffect>; 描述串 "clear state flag" |
+| 0x140016CC0 | vftable CEffectEntry<CRemoveClaimByEffect>; 描述串 "Removes state claim by country." |
+| 0x140016D20 | vftable CEffectEntry<CRemoveCoreOfEffect>; 描述串 "Removes state as core of country" |
+| 0x140016F00 | vftable CEffectEntry<CSetBorderWarEffect>; 描述串 "starts a border war in a state with neighbouring state that also has b" |
+| 0x140017020 | vftable CEffectEntry<CAddDemilitarizedZone>; 描述串 "sets the demilitarized status for currently scoped state" |
+| 0x140017200 | vftable CEffectEntry<CSetStateFlagEffect>; 描述串 "set state flag" |
+| 0x140017500 | vftable CEffectEntry<CAddDoctrineCostReduction>; 描述串 "adds a limited use cost reduction for doctrines" |
+| 0x1400175C0 | vftable CEffectEntry<CAddTechBonusEffect>; 描述串 "adds a limited use tech bonus" |
+| 0x140017680 | vftable CEffectEntry<CInheritTechnologyEffect>; 描述串 "Copies over technology state from target" |
+| 0x1400177A0 | vftable CEffectEntry<CSelectTechTreeIconOrigin>; 描述串 "Override tech tree to use other countries icons" |
+| 0x140017800 | vftable CEffectEntry<CSetResearchSlotsEffect>; 描述串 "Sets the number of research slots" |
+| 0x140017980 | vftable CEffectEntry<CActivateDecisionEffect>; 描述串 "Activates specified decision for scope country" |
+| 0x140017B60 | vftable CEffectEntry<CAddAceEffect>; 描述串 "adds an air ace" |
+| 0x140017C20 | vftable CEffectEntry<CAddAIStrategyEffect>; 描述串 "Adds strategy entry to country AI" |
+| 0x140017E00 | vftable CEffectEntry<CAddCommandPowerEffect>; 描述串 "add command power to country" |
+| 0x140018160 | vftable CEffectEntry<AddFuelEffect>; 描述串 "add fuel to the country" |
+| 0x1400182E0 | vftable CEffectEntry<CManpowerAddEffect>; 描述串 "Adds manpower to the country in scope or locally on a state if in stat" |
+| 0x1400183A0 | vftable CEffectEntry<CAddNamedThreatEffect>; 描述串 "Adds country threat" |
+| 0x1400184C0 | vftable CEffectEntry<CAddNukeEffect>; 描述串 "add nukes to country" |
+| 0x1400185E0 | vftable CEffectEntry<CAddPoliticalPowerEffect>; 描述串 "add political power to country" |
+| 0x1400186A0 | vftable CEffectEntry<CAddRegionEfficiency>; 描述串 "add efficiency factor to strategic region for from country" |
+| 0x140018940 | vftable CEffectEntry<CAddStateClaimEffect>; 描述串 "add claim on state" |
+| 0x1400189A0 | vftable CEffectEntry<CAddStateCoreEffect>; 描述串 "add core on state" |
+| 0x140018A00 | vftable CEffectEntry<CAddThreatEffect>; 描述串 "Adds country threat" |
+| 0x140018E80 | vftable CEffectEntry<CAddAirExperienceEffect>; 描述串 "add air experience for country" |
+| 0x140018F40 | vftable CEffectEntry<CAddArmyExperienceEffect>; 描述串 "add army experience for country" |
+| 0x1400190C0 | vftable CEffectEntry<CCancelBorderWar>; 描述串 "cancel border war between two states" |
+| 0x140019180 | vftable CEffectEntry<CChangeTagEffect>; 描述串 "Changes player to other country" |
+| 0x140019360 | vftable CEffectEntry<CClearGlobalEventTargetEffect>; 描述串 "clear a global event target" |
+| 0x1400193C0 | vftable CEffectEntry<CClearGlobalEventTargetsEffect>; 描述串 "clear all global event targets" |
+| 0x140019540 | vftable CEffectEntry<CClearCountryFlagEffect>; 描述串 "clear country flag" |
+| 0x1400195A0 | vftable CEffectEntry<CClearGlobalFlagEffect>; 描述串 "clear global flag" |
+| 0x140019600 | vftable CEffectEntry<CCompleteNationalFocusEffect>; 描述串 "completes a focus for a country" |
+| 0x140019780 | vftable CEffectEntry<CLegacyCreateCorpsCommanderEffect>; 描述串 "create corps commander for country" |
+| 0x140019900 | vftable CEffectEntry<CLegacyCreateFieldMarshalEffect>; 描述串 "create field marshal for country" |
+| 0x140019960 | vftable CEffectEntry<CCreateImportEffect>; 描述串 "Creates trade between two countries" |
+| 0x140019A20 | vftable CEffectEntry<CLegacyCreateNavyLeaderEffect>; 描述串 "create navy leader for country" |
+| 0x140019C00 | vftable CEffectEntry<CCreateWargoalEffect>; 描述串 "creates wargoal for country in scope" |
+| 0x140019D80 | vftable CEffectEntry<CDeclareWarEffect>; 描述串 "declares war on specified country" |
+| 0x14001A0E0 | vftable CEffectEntry<CAddDivisionTemplateEffect>; 描述串 "add a division template to country" |
+| 0x14001A200 | vftable CEffectEntry<CEndPuppetEffect>; 描述串 "Stops specefied country being a puppet of current country" |
+| 0x14001ADA0 | vftable CEffectEntry<CGiveGuaranteeEffect>; 描述串 "guarantees specified country" |
+| 0x14001AE00 | vftable CEffectEntry<CGiveMilitaryAccessEffect>; 描述串 "gives military access to the specified country" |
+| 0x14001AF20 | vftable CEffectEntry<CGoToProvinceEffect>; 描述串 "Goes to stated province." |
+| 0x14001AF80 | vftable CEffectEntry<CGoToStateEffect>; 描述串 "Goes to stated state." |
+| 0x14001B040 | vftable CEffectEntry<CHoldElectionEffect>; 描述串 "Immediately holds an election in the target country" |
+| 0x14001B520 | vftable CEffectEntry<CAddNavyExperienceEffect>; 描述串 "add naval experience for country" |
+| 0x14001B5E0 | vftable CEffectEntry<CPlaySongEffect>; 描述串 "Plays song from database" |
+| 0x14001BDC0 | vftable CEffectEntry<CRandomSubjectCountryEffect>; 描述串 "Executes child effects on random subject country that fulfills the lim" |
+| 0x14001BEE0 | vftable CEffectEntry<CRandomizeVariableEffect<CVariableResolver>>; 描述串 "refer to randomize_temp_variable" |
+| 0x14001BF40 | vftable CEffectEntry<CRandomizeWeatherEffect>; 描述串 "Randomize weather effect" |
+| 0x14001C120 | vftable CEffectEntry<CReleaseNationEffect<0>>; 描述串 "releases specified country as a puppet using your owned states" |
+| 0x14001C1E0 | vftable CEffectEntry<CReleaseNationEffect<1>>; 描述串 "releases specified country as a puppet using your owned or controlled " |
+| 0x14001C240 | vftable CEffectEntry<CReleasePuppetEffect<0>>; 描述串 "releases specified country as puppet using states you own" |
+| 0x14001C2A0 | vftable CEffectEntry<CReleasePuppetEffect<1>>; 描述串 "releases specified country as puppet using states you own or control" |
+| 0x14001C6C0 | vftable CEffectEntry<CRemoveIdeasWithTraitEffect>; 描述串 "Remove all ideas with specified trait from country" |
+| 0x14001C7E0 | vftable CEffectEntry<CRemoveOpinionModifierEffect>; 描述串 "Remove opinion modifier from target" |
+| 0x14001C9C0 | vftable CEffectEntry<CRemoveStateClaimEffect>; 描述串 "remove claim on state" |
+| 0x14001CA20 | vftable CEffectEntry<CRemoveStateCoreEffect>; 描述串 "remove core on state" |
+| 0x14001CC00 | vftable CEffectEntry<CResetProvinceEffect>; 描述串 "reset name of a province back to localization one." |
+| 0x14001CF60 | vftable CEffectEntry<CSaveEventTargetAsEffect>; 描述串 "save an event target" |
+| 0x14001CFC0 | vftable CEffectEntry<CSaveGlobalEventTargetAsEffect>; 描述串 "save a global event target" |
+| 0x14001D0E0 | vftable CEffectEntry<CEmbargoEffect>; 描述串 "embargos specified tag" |
+| 0x14001D200 | vftable CEffectEntry<CSetBorderWarCombatData>; 描述串 "update border war properties" |
+| 0x14001D440 | vftable CEffectEntry<CSetCountryFlagEffect>; 描述串 "set country flag" |
+| 0x14001D4A0 | vftable CEffectEntry<CSetCountryLeaderIdeologyEffect>; 描述串 "change the ideology of active leader" |
+| 0x14001D800 | vftable CEffectEntry<CSetFuelEffect>; 描述串 "set fuel for country" |
+| 0x14001D8C0 | vftable CEffectEntry<CSetGlobalFlagEffect>; 描述串 "set global flag" |
+| 0x14001DC20 | vftable CEffectEntry<CSetPartyNameEffect>; 描述串 "change partyname for an ideology in a country" |
+| 0x14001DD40 | vftable CEffectEntry<CSetPoliticalPowerEffect>; 描述串 "set political power for country" |
+| 0x14001DE60 | vftable CEffectEntry<CSetProvinceControllerEffect>; 描述串 "set controller for province" |
+| 0x14001DF20 | vftable CEffectEntry<CSetRelationRuleEffect>; 描述串 "DEPRECATED: See add_relation_rule_override" |
+| 0x14001E040 | vftable CEffectEntry<CSetStateControllerEffect>; 描述串 "set controller for state" |
+| 0x14001E0A0 | vftable CEffectEntry<CSetStateOwnerEffect>; 描述串 "set owner for state" |
+| 0x14001E2E0 | vftable CEffectEntry<CShowIdeasTooltipEffect>; 描述串 "show what idea does" |
+| 0x14001E3A0 | vftable CEffectEntry<CSoundEffect>; 描述串 "Plays sound effect" |
+| 0x14001E7C0 | vftable CEffectEntry<CTransferStateEffect>; 描述串 "set owner and controller for state" |
+| 0x14001E940 | vftable CEffectEntry<CUnlockDecisionCategoryTooltipEffect>; 描述串 "localizes name of category and displays tooltip that shows it will be " |
+| 0x14001EA00 | vftable CEffectEntry<CUnlockNationalFocusEffect>; 描述串 "unlocks a focus for a country" |
+| 0x14001EE40 | vftable CTriggerEntry<CAIIrrationalityTrigger>; 描述串 "check the ai irrationality value" |
+| 0x14001EEA0 | vftable CTriggerEntry<CAILiberateDesireTrigger>; 描述串 "check what liberation desire the country has towards a specified count" |
+| 0x14001EF00 | vftable CTriggerEntry<CAIWantsDivisionsTrigger>; 描述串 "Will compare towards the amount of divisions an ai wants to have." |
+| 0x14001F440 | vftable CTriggerEntry<CAlwaysTrigger>; 描述串 "always returns specified value" |
+| 0x14001F620 | vftable CTriggerEntry<CAnyClaimTrigger>; 描述串 "check if there is a claim between a country and all others" |
+| 0x14001F680 | vftable CTriggerEntry<CAnyCountryTrigger>; 描述串 "check if any country meets the trigger" |
+| 0x14001FCE0 | vftable CTriggerEntry<CCanResearchTrigger>; 描述串 "check if country can research technology" |
+| 0x14001FD40 | vftable CTriggerEntry<CCanSelectTrait>; 描述串 "check if leader can select a trait" |
+| 0x14001FDA0 | vftable CTriggerEntry<CCasualtiesTrigger>; 描述串 "Check the amount of casualties a country has suffered in all of it's w" |
+| 0x14001FF20 | vftable CTriggerEntry<CCivilwarTargetTrigger>; 描述串 "civilwar target is ( for civil wars checks )" |
+| 0x14001FF80 | vftable CTriggerEntry<CClampVariableTrigger>; 描述串 "clamps a temp variable between two values/variables" |
+| 0x140020280 | vftable CTriggerEntry<CControlsProvinceTrigger>; 描述串 "check controller for province" |
+| 0x1400202E0 | vftable CTriggerEntry<CControlsStateTrigger>; 描述串 "check controller for state(s)" |
+| 0x1400204C0 | vftable CTriggerEntry<CCountryExistsTrigger>; 描述串 "check if the specified country exist" |
+| 0x140020520 | vftable CTriggerEntry<CCurrentConscriptionAmountTrigger>; 描述串 "Checks the current conscription amount of the country.\n" |
+| 0x140020580 | vftable CTriggerEntry<CIsDateTrigger>; 描述串 "checks for a specific date" |
+| 0x140020BE0 | vftable CTriggerEntry<CForeignManpowerTrigger>; 描述串 "check the amount of foreign garrison manpower we have" |
+| 0x140020C40 | vftable CTriggerEntry<CHasFuelRatioTrigger>; 描述串 "Compares the fuel ratio to a variable.\nExample: fuel_ratio > 0.5" |
+| 0x140020CA0 | vftable CTriggerEntry<CGameRulesAllowAchievements>; 描述串 "Returns true if all of the active game rule options allow achievements" |
+| 0x140020D00 | vftable CTriggerEntry<CGarrisonManpowerNeedTrigger>; 描述串 "check the amount of manpower needed by garrisons" |
+| 0x140020D60 | vftable CTriggerEntry<CGivesMilitaryAccessToTrigger>; 描述串 "check if country gives military access to specified country" |
+| 0x140020F40 | vftable CTriggerEntry<CHasAnnexWarGoal>; 描述串 "Checks a country has annex war goal on another country" |
+| 0x140020FA0 | vftable CTriggerEntry<CHasAnyCustomDifficultyTrigger>; 描述串 "Returns true if the game has any custom difficulty on" |
+| 0x140021000 | vftable CTriggerEntry<CHasAnyLicenseTrigger>; 描述串 "Country has any active licenses\nExample: has_any_license = yes" |
+| 0x140021120 | vftable CTriggerEntry<CHasArmySizeTrigger>; 描述串 "checks for amount of divisions, additionally of a specified type" |
+| 0x140021360 | vftable CTriggerEntry<CHasBorderWar>; 描述串 "Checks if a there is any border wars for country/state" |
+| 0x1400213C0 | vftable CTriggerEntry<CHasBorderWarBetween>; 描述串 "Checks if a there is a border war between two states" |
+| 0x140021420 | vftable CTriggerEntry<CHasBorderWarWith>; 描述串 "Checks if a there is a border against a state/country" |
+| 0x1400214E0 | vftable CTriggerEntry<CHasCapitulatedTrigger>; 描述串 "checks if the country has capitulated" |
+| 0x140021660 | vftable CTriggerEntry<CHasCivilWarTrigger>; 描述串 "check if participant in civil war as revolter or target" |
+| 0x140021780 | vftable CTriggerEntry<CHasCompletedNationalFocusTrigger>; 描述串 "has country completed focus" |
+| 0x140021A20 | vftable CTriggerEntry<CHasCountryLeaderIdeologyTrigger>; 描述串 "Checks the Ideology of the active country leader" |
+| 0x140021B40 | vftable CTriggerEntry<CDamagedBuildingsTrigger>; 描述串 "check for damaged buildings of nation" |
+| 0x140021BA0 | vftable CTriggerEntry<CHasDecisionTrigger>; 描述串 "check if country has active selected decision" |
+| 0x140021C00 | vftable CTriggerEntry<CHasDefensiveWarTrigger>; 描述串 "is country at defensive war" |
+| 0x140021C60 | vftable CTriggerEntry<CHasDefensiveWarWithTrigger>; 描述串 "One country has defensive war against other country." |
+| 0x140021CC0 | vftable CTriggerEntry<CHasDeployedAirForceSizeTrigger>; 描述串 "checks for amount of aircrafts, additionally of a specified type" |
+| 0x140021D20 | vftable CTriggerEntry<CHasDesignBasedOnTrigger>; 描述串 "check if country has a buildable non-obsolete design based on an arche" |
+| 0x140021D80 | vftable CTriggerEntry<CHasDLCTrigger>; 描述串 "Checks if player has a DLC.\nExample: has_dlc = \"name of the dlc\"" |
+| 0x140021EA0 | vftable CTriggerEntry<CHasElectionsTrigger>; 描述串 "Checks the country's politics on allowing elections. has_elections = y" |
+| 0x140021F00 | vftable CTriggerEntry<CHasEquipmentTrigger>; 描述串 "checks for amount of equipment stored" |
+| 0x140022020 | vftable CTriggerEntry<CHasFocusTreeTrigger>; 描述串 "Does current country have the specified focus tree." |
+| 0x140022080 | vftable CTriggerEntry<CHasFuelTrigger>; 描述串 "check amount of fuel\nexample:\nhas_fuel > 500" |
+| 0x1400220E0 | vftable CTriggerEntry<CFullControlsStateTrigger>; 描述串 "check controller for state(s)" |
+| 0x140022200 | vftable CTriggerEntry<CHasGovernmentTrigger>; 描述串 "does country government (ruling party) belong to ideology group" |
+| 0x140022260 | vftable CTriggerEntry<CHasGuaranteedTrigger>; 描述串 "check if country has guaranteed specified country" |
+| 0x1400222C0 | vftable CTriggerEntry<CHasIdeaTrigger>; 描述串 "check if country has idea" |
+| 0x140022320 | vftable CTriggerEntry<CHasIdeaWithTraitTrigger>; 描述串 "check if country has idea with specified trait" |
+| 0x140022380 | vftable CTriggerEntry<CHasCreateIntelligenceAgencyTrigger>; 描述串 "has country created an Intelligence Agency" |
+| 0x1400223E0 | vftable CTriggerEntry<CHasLegitimacyTrigger>; 描述串 "Check scope country legitimacy 0-100: Example has_legitimacy < 60" |
+| 0x1400224A0 | vftable CTriggerEntry<CHasManpowerTrigger>; 描述串 "check amount of manpower" |
+| 0x140022560 | vftable CTriggerEntry<CHasMilitaryAccessToTrigger>; 描述串 "check country has military access to specified country" |
+| 0x1400227A0 | vftable CTriggerEntry<CHasNonAggressionPactWith>; 描述串 "Check if country has non aggression pact with the specified country" |
+| 0x140022860 | vftable CTriggerEntry<CHasOffensiveWarTrigger>; 描述串 "is country at offensive war" |
+| 0x1400228C0 | vftable CTriggerEntry<CHasOffensiveWarWithTrigger>; 描述串 "One country has offensive war against other country." |
+| 0x140022920 | vftable CTriggerEntry<CHasOffensiveWarWithoutFriendTrigger>; 描述串 "is country at offensive war without specific ally present" |
+| 0x1400229E0 | vftable CTriggerEntry<CHasOpinionTrigger>; 描述串 "check what opinion the country has towards a specified country" |
+| 0x140022A40 | vftable CTriggerEntry<CHasOpinionModifierTrigger>; 描述串 "check if a country has the opinion modifier" |
+| 0x140022AA0 | vftable CTriggerEntry<CHasPoliticalPowerTrigger>; 描述串 "check amount of political power" |
+| 0x140022DA0 | vftable CTriggerEntry<CHasRuleTrigger>; 描述串 "Checks if a rule set for a country.\nExample: has_rule = can_puppet" |
+| 0x140022E60 | vftable CTriggerEntry<CHasStabilityTrigger>; 描述串 "check value of stability 0-1: Example has_stability < 0.6" |
+| 0x140022EC0 | vftable CTriggerEntry<CHasStartDateTrigger>; 描述串 "Compare the initial start date of current game." |
+| 0x140022F20 | vftable CTriggerEntry<CHasSubjectTrigger>; 描述串 "Checks if the country has for subject the given country" |
+| 0x140022F80 | vftable CTriggerEntry<CHasTechTrigger>; 描述串 "check if country has technology" |
+| 0x140023040 | vftable CTriggerEntry<CHasTemplateTrigger>; 描述串 "Check if country has a division template of specific name" |
+| 0x140023220 | vftable CTriggerEntry<CHasTraitTrigger>; 描述串 "check if sides leader has trait" |
+| 0x1400232E0 | vftable CTriggerEntry<CHasVariable>; 描述串 "Checks if a variable exists in a scope" |
+| 0x1400233A0 | vftable CTriggerEntry<CHasWarTrigger>; 描述串 "is country at war" |
+| 0x140023400 | vftable CTriggerEntry<CHasWarSupportTrigger>; 描述串 "check value of war_support 0-1: Example has_war_support < 0.6" |
+| 0x140023460 | vftable CTriggerEntry<CHasWarTogetherTrigger>; 描述串 "Are the countries fighting on the same side of a war" |
+| 0x1400234C0 | vftable CTriggerEntry<CHasWarWithTrigger>; 描述串 "is countries at war" |
+| 0x140023520 | vftable CTriggerEntry<CHasWarWithMajorTrigger>; 描述串 "is country at war with a major" |
+| 0x1400237C0 | vftable CTriggerEntry<CIsAITrigger>; 描述串 "Checks if country is AI controlled." |
+| 0x140023880 | vftable CTriggerEntry<CIsBorderWar>; 描述串 "Checks if a the combatant or leader has a border war" |
+| 0x1400238E0 | vftable CTriggerEntry<CIsCryptologyDepartmentActive>; 描述串 "has country an active cryptology department" |
+| 0x140023940 | vftable CTriggerEntry<CIsDebugTrigger>; 描述串 "returns true if game is in debug mode (launched with -debug argument)" |
+| 0x1400239A0 | vftable CTriggerEntry<CIsDecryptingTrigger>; 描述串 "checks if is currently decrypting a cipher. Example is_decrypting = GE" |
+| 0x140023A00 | vftable CTriggerEntry<CIsDynamicCountryTrigger>; 描述串 "returns true if the country is a dynamic country (tag is D01-D50)" |
+| 0x140023A60 | vftable CTriggerEntry<CIsEmbargoedByTrigger>; 描述串 "check if embargoed by specified country" |
+| 0x140023AC0 | vftable CTriggerEntry<CIsEmbargoingTrigger>; 描述串 "check if country is embargoing specified country" |
+| 0x140023B20 | vftable CTriggerEntry<CIsHostingGovernmentInExileTrigger>; 描述串 "Checks if scope country is hosting an exile. is_exile_host = yes" |
+| 0x140023BE0 | vftable CTriggerEntry<CIsFactionLeaderTrigger>; 描述串 "check if country leads a faction" |
+| 0x140023C40 | vftable CTriggerEntry<CIsFullyDecryptedTrigger>; 描述串 "checks if fully decrypted a cipher. Example is_fully_decrypted = GER" |
+| 0x140023D00 | vftable CTriggerEntry<CIsGuaranteedByTrigger>; 描述串 "check if guaranteed by specified country" |
+| 0x140023D60 | vftable CTriggerEntry<CIsHistoricalFocus>; 描述串 "check if the historical focus is active" |
+| 0x140023E80 | vftable CTriggerEntry<CIsInFactionTrigger>; 描述串 "check if member of any faction" |
+| 0x140023EE0 | vftable CTriggerEntry<CIsInFactionWithTrigger>; 描述串 "check if member of same faction as specified country" |
+| 0x140023F40 | vftable CTriggerEntry<CIsInPeaceConferenceTrigger>; 描述串 "Checks if the country is currently in a peaceconference" |
+| 0x140024000 | vftable CTriggerEntry<CIsIronmanTrigger>; 描述串 "Check if current game is ironman." |
+| 0x1400240C0 | vftable CTriggerEntry<CIsLeadingVolunteerGroup>; 描述串 "is_leading_volunteer_group = FRA" |
+| 0x140024120 | vftable CTriggerEntry<CIsLeadingVolunteerGroupWithOriginalCountry>; 描述串 "is_leading_volunteer_group_with_original_country = FRA" |
+| 0x140024180 | vftable CTriggerEntry<CIsLendLeasingTrigger>; 描述串 "is lend-leasing country" |
+| 0x1400242A0 | vftable CTriggerEntry<CIsMajorTrigger>; 描述串 "check if country is a major" |
+| 0x140024300 | vftable CTriggerEntry<CIsNeighborOfTrigger>; 描述串 "check if neighbor ( controlled territory ) with specified country" |
+| 0x140024360 | vftable CTriggerEntry<CIsOperationTypeTrigger>; 描述串 "checks the type of operation" |
+| 0x1400243C0 | vftable CTriggerEntry<CIsOwnerNeighborOfTrigger>; 描述串 "check if neighbor ( owned territory ) with specified country" |
+| 0x140024480 | vftable CTriggerEntry<CIsPuppetTrigger>; 描述串 "Checks if the country is puppet of any other country" |
+| 0x1400244E0 | vftable CTriggerEntry<CIsPuppetOfTrigger>; 描述串 "Checks if the country is puppet of specified country" |
+| 0x140024600 | vftable CTriggerEntry<CIsSpyMasterTrigger>; 描述串 "check if country is Spy Master" |
+| 0x1400246C0 | vftable CTriggerEntry<CIsSubjectTrigger>; 描述串 "Checks if the country is subject of any other country" |
+| 0x140024720 | vftable CTriggerEntry<CIsSubjectOfTrigger>; 描述串 "Checks if the country is subject of specified country" |
+| 0x1400247E0 | vftable CTriggerEntry<CIsTutorial>; 描述串 "check if the tutorial is active" |
+| 0x140024840 | vftable CTriggerEntry<CLandDoctrineLevelTrigger>; 描述串 "checks researched land doctrine level" |
+| 0x140024900 | vftable CTriggerEntry<CWarLengthTrigger>; 描述串 "Check number of months the country has been at war" |
+| 0x140024E40 | vftable CTriggerEntry<COccupiedStatesTrigger>; 描述串 "check the number of states occupied by nation" |
+| 0x140024EA0 | vftable CTriggerEntry<CNumOfAvailableCivilianFactoriesTrigger>; 描述串 "check amount of available civilian factories" |
+| 0x140024F00 | vftable CTriggerEntry<CNumOfAvailableMilitaryFactoriesTrigger>; 描述串 "check amount of available military factories" |
+| 0x140024F60 | vftable CTriggerEntry<CNumOfAvailableNavalFactoriesTrigger>; 描述串 "check amount of available naval factories" |
+| 0x140024FC0 | vftable CTriggerEntry<CNumOfCivilianFactoriesTrigger>; 描述串 "check amount of civilian factories" |
+| 0x1400250E0 | vftable CTriggerEntry<CNumOfControlledStatesTrigger>; 描述串 "check amount of controlled stats" |
+| 0x1400251A0 | vftable CTriggerEntry<CNumOfMilitaryFactoriesTrigger>; 描述串 "check amount of military factories" |
+| 0x140025200 | vftable CTriggerEntry<CNumOfNavalFactoriesTrigger>; 描述串 "check amount of naval factories" |
+| 0x140025260 | vftable CTriggerEntry<CNumOfNukesTrigger>; 描述串 "check amount of nukes" |
+| 0x1400252C0 | vftable CTriggerEntry<CNumOfOperativesTrigger>; 描述串 "Checks the number of operatives the country controls" |
+| 0x140025380 | vftable CTriggerEntry<CNumOfSupplyNodesTrigger>; 描述串 "check amount of supply nodes" |
+| 0x1400254A0 | vftable CTriggerEntry<CNumResearchedTechnologies>; 描述串 "Number of researched technologies" |
+| 0x140025500 | vftable CTriggerEntry<CCountSubjectsTrigger>; 描述串 "check the number of subjects of nation" |
+| 0x140025560 | vftable CTriggerEntry<CCountTechnologySharingGroupsTrigger>; 描述串 "checks how many groups a nation is a member of" |
+| 0x1400255C0 | vftable CTriggerEntry<COriginalResearchSlotsTrigger>; 描述串 "check number of research slots at start of game" |
+| 0x140025620 | vftable CTriggerEntry<COriginalTagTrigger>; 描述串 "original tag is ( for civil wars checks )" |
+| 0x140025680 | vftable CTriggerEntry<COwnsStateTrigger>; 描述串 "check owner for state(s)" |
+| 0x140025980 | vftable CTriggerEntry<CRoundTempVariableTrigger>; 描述串 "Rounds a temporary variable\nExample: round_temp_variable = num_dogs" |
+| 0x140025AA0 | vftable CTriggerEntry<CShipsInAreaTrigger>; 描述串 "checks for amount of ships in specified area" |
+| 0x140025C80 | vftable CTriggerEntry<CSurrenderProgressTrigger>; 描述串 "check if a country is close to surrendering" |
+| 0x140025CE0 | vftable CTriggerEntry<CTagTrigger>; 描述串 "country tag trigger" |
+| 0x140025D40 | vftable CTriggerEntry<CTargetConscriptionAmountTrigger>; 描述串 "Checks the target conscription amount of the country.\n" |
+| 0x140025DA0 | vftable CTriggerEntry<CThreatTrigger>; 描述串 "check the global threat value (world tension). 0-1 value" |
+| 0x140025E60 | vftable CTriggerEntry<NCareerProfile::CCheckMedal>; 描述串 "Checks if the required medal is achieved and collected" |
+| 0x140025F20 | vftable CTriggerEntry<NCareerProfile::CCheckPlaythroughValue>; 描述串 "Compares a playthrough value to a number" |
+| 0x140025F80 | vftable CTriggerEntry<NCareerProfile::CCheckPoints>; 描述串 "Compares a career points value to a number" |
+| 0x140026040 | vftable CTriggerEntry<NCareerProfile::CCheckRibbon>; 描述串 "Checks if the required ribbon is achieved and collected" |
+| 0x1400260A0 | vftable CTriggerEntry<NCareerProfile::CCheckValue>; 描述串 "Compares a career profile value to a number" |
+| 0x140026100 | vftable CTriggerEntry<NCareerProfile::CHasPlayerFlag>; 描述串 "Checks if the flag is set for the local player" |
+| 0x140026220 | vftable CTriggerEntry<NCareerProfile::CNumOfPointsTrigger>; 描述串 "check amount of gained career points" |
+| 0x140026400 | vftable CTriggerEntry<CHasAirLedger>; 描述串 "has_air_ledger = yes/no - Checks if the current character has an air l" |
+| 0x140026520 | vftable CTriggerEntry<CHasIDTrigger>; 描述串 "check unit leader has specified ID. Don't localize this. Tooltip only " |
+| 0x1400266A0 | vftable CTriggerEntry<CHasNavyLedger>; 描述串 "has_navy_ledger = yes/no - Checks if the current character has a navy " |
+| 0x140026760 | vftable CTriggerEntry<CIsAdvisor>; 描述串 "is_advisor = yes/no - Checks if the current character is an advisor" |
+| 0x1400267C0 | vftable CTriggerEntry<CIsAirChief>; 描述串 "_is_air_chief = yes/no - Checks if the character in scope is hired as " |
+| 0x140026820 | vftable CTriggerEntry<CIsArmyChief>; 描述串 "is_army_chief = yes/no - Checks if the character in scope is hired as " |
+| 0x140026880 | vftable CTriggerEntry<CIsArmyLeader>; 描述串 "is_army_leader = yes/no - Checks if the current character is a army le" |
+| 0x140026940 | vftable CTriggerEntry<CIsCharacterTrigger>; 描述串 "Checks whether the character in scope matches the character in input" |
+| 0x1400269A0 | vftable CTriggerEntry<CIsCharacterSlot>; 描述串 "alias of has_advisor_role" |
+| 0x140026A00 | vftable CTriggerEntry<CIsCorpsCommander>; 描述串 "is_corps_commander = yes/no - Checks if the current character is a cor" |
+| 0x140026AC0 | vftable CTriggerEntry<CIsExileLeader>; 描述串 "Checks if scope leader is from an exiled government. is_exiled_leader " |
+| 0x140026B80 | vftable CTriggerEntry<CIsFemaleTrigger>; 描述串 "checks if scoped unit leader, ace or country is female" |
+| 0x140026BE0 | vftable CTriggerEntry<CIsFieldMarshal>; 描述串 "is_field_marshal = yes/no - Checks if the current unit leader is a fie" |
+| 0x140026EE0 | vftable CTriggerEntry<CIsNavyChief>; 描述串 "_is_navy_chief_ = yes/no - Checks if the character in scope is hired a" |
+| 0x140026F40 | vftable CTriggerEntry<CIsNavyLeader>; 描述串 "is_navy_leader = yes/no - Checks if the current character is a navy le" |
+| 0x140026FA0 | vftable CTriggerEntry<CIsOperative>; 描述串 "is_operative = yes/no - Checks if the current character is an operativ" |
+| 0x140027000 | vftable CTriggerEntry<CIsOperativeCapturedTrigger>; 描述串 "Checks whether the operative has the matching captured status\n" |
+| 0x140027120 | vftable CTriggerEntry<CIsTheorist>; 描述串 "is_theorist = yes/no - Checks if the character in scope is hired as a " |
+| 0x140027180 | vftable CTriggerEntry<CIsUnitLeader>; 描述串 "is_unit_leader = yes/no - Checks if the current character is a unit le" |
+| 0x140027240 | vftable CTriggerEntry<CCommandingAmountUnitsTrigger>; 描述串 "Check number of units commanded by the unit leader \n num_units > 2" |
+| 0x140027E40 | vftable CTriggerEntry<NInternationalMarket::CBuyerTrigger>; 描述串 "Check the buyer country. Example: buyer = GER" |
+| 0x140027FC0 | vftable CTriggerEntry<NInternationalMarket::CSellerTrigger>; 描述串 "Check the seller country. Example: seller = GER" |
+| 0x1400280E0 | vftable CTriggerEntry<CArmyHasBattalionInTemplateTrigger>; 描述串 "checks if division template has the subunit type." |
+| 0x140028140 | vftable CTriggerEntry<CArmyHasTemplateTrigger>; 描述串 "checks if division template has majority of subunit type." |
+| 0x140028200 | vftable CTriggerEntry<CIsUnitReservesTrigger>; 描述串 "returns true if this unit's template has the reserves priority" |
+| 0x1400282C0 | vftable CTriggerEntry<CHasUnitStrengthTrigger>; 描述串 "Check scope unit strength status 0-1: Example unit_strength < 1" |
+| 0x140028500 | vftable CEffectEntry<CDestroyUnitEffect>; 描述串 "destroy currently scoped unit" |
+| 0x140028A60 | vftable CTriggerEntry<CAllStateTrigger>; 描述串 "check if all states meets the trigger. tooltip=key can be defined to o" |
+| 0x140028D60 | vftable CTriggerEntry<CAnyStateTrigger>; 描述串 "check if any state meets the trigger. tooltip=key can be defined to ov" |
+| 0x140028E80 | vftable CTriggerEntry<CStrategicRegionIDTrigger>; 描述串 "check state's strategic area id" |
+| 0x140029060 | vftable CTriggerEntry<CDistanceToTrigger>; 描述串 "check distance between two states" |
+| 0x140029120 | vftable CTriggerEntry<CHasActiveResistance>; 描述串 "returns true if state has an active resistance (above zero)" |
+| 0x140029180 | vftable CTriggerEntry<CHasResistance>; 描述串 "returns true if state has a resistance" |
+| 0x1400291E0 | vftable CTriggerEntry<CHasStateCategoryTrigger>; 描述串 "Check if state has a specific state category" |
+| 0x1400292A0 | vftable CTriggerEntry<CIsImpassableTrigger>; 描述串 "checks if a state is impassable" |
+| 0x140029300 | vftable CTriggerEntry<CHasBorderConflictTrigger>; 描述串 "checks if a state is in border conflict" |
+| 0x140029360 | vftable CTriggerEntry<CIsCapitalTrigger>; 描述串 "Is scope state a capital. 169 = { is_capital = yes }" |
+| 0x1400293C0 | vftable CTriggerEntry<CIsClaimedByTrigger>; 描述串 "Checks if state is claimed by country" |
+| 0x140029420 | vftable CTriggerEntry<CIsCoastalTrigger>; 描述串 "check if state is coastal" |
+| 0x140029480 | vftable CTriggerEntry<CIsControlledByTrigger>; 描述串 "check if state is controlled by" |
+| 0x1400294E0 | vftable CTriggerEntry<CIsCoreOfTrigger>; 描述串 "Checks if state is core of country" |
+| 0x140029540 | vftable CTriggerEntry<CIsDemilitarizedTrigger>; 描述串 "checks if a state is a demilitarized zone" |
+| 0x1400295A0 | vftable CTriggerEntry<CIsFullyControlledByTrigger>; 描述串 "Checks if state is fully controlled by specified tag" |
+| 0x140029600 | vftable CTriggerEntry<CIsInHomeArea>; 描述串 "Checks if the first province in the state is connected to the capital " |
+| 0x1400296C0 | vftable CTriggerEntry<CIsOnContinentTrigger>; 描述串 "is state located on continent" |
+| 0x140029780 | vftable CTriggerEntry<CIsOwnedAndControlledByTrigger>; 描述串 "check if state is owned by" |
+| 0x1400297E0 | vftable CTriggerEntry<CIsOwnedByTrigger>; 描述串 "check if state is owned by" |
+| 0x140029A80 | vftable CTriggerEntry<COwnsAnyStateOfTrigger>; 描述串 "Check if the country owns any of the states in the list." |
+| 0x140029AE0 | vftable CTriggerEntry<CStrategicRegionIDTrigger>; 描述串 "check state's strategic area id" |
+| 0x140029C60 | vftable CTriggerEntry<CStateIDTrigger>; 描述串 "check state id" |
+| 0x140029CC0 | vftable CTriggerEntry<CStateAndTerrainStrategicValueTrigger>; 描述串 "Checks for state strategic value" |
+| 0x140029D20 | vftable CTriggerEntry<CStatePopulationTrigger>; 描述串 "check the population in the state" |
+| 0x140029DE0 | vftable CTriggerEntry<CStateStrategicValueTrigger>; 描述串 "Checks for state strategic value" |
+| 0x140029E40 | vftable CTriggerEntry<CArmorTrigger>; 描述串 "Check that average armor level of combatant is over a certain level" |
+| 0x140029EA0 | vftable CTriggerEntry<CDiginTrigger>; 描述串 "check if we have digin level (lowest)" |
+| 0x140029F00 | vftable CTriggerEntry<CFastestTrigger>; 描述串 "check if fastest unit of combatant is over this limit" |
+| 0x140029F60 | vftable CTriggerEntry<CFrontageFullTrigger>; 描述串 "check if sides front is full or can get more reinforcements" |
+| 0x140029FC0 | vftable CTriggerEntry<CHardnessTrigger>; 描述串 "check lowest/highest hardness level on combatant" |
+| 0x14002A0E0 | vftable CTriggerEntry<CHasCarrierAirWingsOnMissionTrigger>; 描述串 "check if side has a career with air wings on a mission" |
+| 0x14002A1A0 | vftable CTriggerEntry<CHasCombatModifierTrigger>; 描述串 "check if combatant has modifier" |
+| 0x14002A200 | vftable CTriggerEntry<CHasFlankedOpponentTrigger>; 描述串 "check if side has flanked their opponent" |
+| 0x14002A260 | vftable CTriggerEntry<CHasMaxPlanningTrigger>; 描述串 "check if side has maximal planning bonus" |
+| 0x14002A2C0 | vftable CTriggerEntry<CHasReservesTrigger>; 描述串 "check if side has reserves waiting" |
+| 0x14002A380 | vftable CTriggerEntry<CIsAmphibiousInvasionTrigger>; 描述串 "check if combat is at night" |
+| 0x14002A3E0 | vftable CTriggerEntry<CIsAttackerTrigger>; 描述串 "check if attacker side in combat" |
+| 0x14002A440 | vftable CTriggerEntry<CIsDefenderTrigger>; 描述串 "check if defender side in combat" |
+| 0x14002A4A0 | vftable CTriggerEntry<CIsFightingAirUnitsTrigger>; 描述串 "check if side is fighting air units" |
+| 0x14002A560 | vftable CTriggerEntry<CIsFightingInTerrainTrigger>; 描述串 "check what terrain is in combat" |
+| 0x14002A620 | vftable CTriggerEntry<CIsWinningTrigger>; 描述串 "check if defender side in combat" |
+| 0x14002A680 | vftable CTriggerEntry<CLessCombatWidthThanOpponentTrigger>; 描述串 "check if side has more combat width than their opponent" |
+| 0x14002A6E0 | vftable CTriggerEntry<CMinPlanningTrigger>; 描述串 "check if side has maximal planning bonus" |
+| 0x14002A740 | vftable CTriggerEntry<CNightTrigger>; 描述串 "check if combat is at night" |
+| 0x14002A7A0 | vftable CTriggerEntry<CCombatPhaseTrigger>; 描述串 "check if we are in this combat phase" |
+| 0x14002A860 | vftable CTriggerEntry<CReconAdvantageTrigger>; 描述串 "checks if side has an advantage in recon level" |
+| 0x14002A8C0 | vftable CTriggerEntry<CReservesTrigger>; 描述串 "check amount of reserves" |
+| 0x14002A920 | vftable CTriggerEntry<CSkillTrigger>; 描述串 "compare leader skill levels" |
+| 0x14002A980 | vftable CTriggerEntry<CSkillAdvantageTrigger>; 描述串 "compare leader skill levels" |
+| 0x14002A9E0 | vftable CTriggerEntry<CTemperatureTrigger>; 描述串 "check combat province temperature" |
+| 0x14002BC50 | vftable CTriggerEntry<CPcCurrentTurnTrigger>; 描述串 "Checks turn number in PC.\nExample:\npc_turn > 20" |
+| 0x14002BD70 | vftable CEffectEntry<`anonymous namespace'::CAddOffsiteBuildingEffect>; 描述串 "Add an offsite building to a country" |
+| 0x14002C010 | vftable CEffectEntry<NProject::`anonymous namespace'::CClearProjectFlagEffect>; 描述串 "clear project flag" |
+| 0x14002C370 | vftable CEffectEntry<NProject::`anonymous namespace'::CSetProjectFlagEffect>; 描述串 "set project flag" |
+| 0x14002C5B0 | vftable CEffectEntry<CSendEquipmentEffect>; 描述串 "Sends to target scope specified amount of equipment." |
+| 0x14002C670 | vftable CEffectEntry<CSetEquipmentFraction>; 描述串 "Modify all equipments by factor" |
+| 0x14002CF10 | vftable CTriggerEntry<CNumNukesBeingDropped>; 描述串 "total number of nukes that are currently ready to be dropped" |
+| 0x14002D4B0 | vftable CEffectEntry<CAddToFactionEffect>; 描述串 "adds specified country to faction" |
+| 0x14002D5D0 | vftable CEffectEntry<CDismantleFactionEffect>; 描述串 "dismantle faction led by the current country" |
+| 0x14002D690 | vftable CEffectEntry<CLeaveFactionEffect>; 描述串 "Country leaves the faction" |
+| 0x14002D750 | vftable CEffectEntry<CRemoveFromFactionEffect>; 描述串 "removes specified country from faction" |
+| 0x14002D7B0 | vftable CEffectEntry<CSetFactionLeaderEffect>; 描述串 "set current country as leader of its faction" |
+| 0x14002DA50 | vftable CEffectEntry<CSetFactionSpyMasterEffect>; 描述串 "set current country as spy master of its faction" |
+| 0x14002F6A0 | vftable CTriggerEntry<CAndTrigger>; 描述串 "all inside trigger must be true" |
+| 0x14002F700 | vftable CTriggerEntry<CNotTrigger>; 描述串 "negates content of trigger" |
+| 0x14002F760 | vftable CTriggerEntry<COrTrigger>; 描述串 "at least one entry inside trigger must be true" |
+| 0x1400795C0 | vftable CEffectEntry<CEffectTooltipEffect>; 描述串 "Shows just tooltip of effects" |
+| 0x140079680 | vftable CEffectEntry<CHiddenEffect>; 描述串 "Effect not shown in tooltips" |
+| 0x1400796E0 | vftable CEffectEntry<CIfEffect>; 描述串 "a conditional effect" |
+| 0x140079800 | vftable CEffectEntry<CRandomEffect>; 描述串 "a random effect" |
+| 0x140079AD0 | vftable CTriggerEntry<CIfTrigger>; 描述串 "if_, CIfTrigger, A conditional trigger\nif = { limit = { <triggers> } " |
+| 0x140079B30 | vftable CTriggerEntry<CLogScriptTrigger>; 描述串 "Print message to game.log - Can be localized" |
+| 0x1403E8F50 | vftable CPlanningSkillLevelTrigger; 串 ['TRIGGER_PLANNING_LEVEL', 'planning_lev', 'el'] |
+| 0x1404418B0 | triggers/career_profile_trigger_implementation:439 断言; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\triggers\\car" |
+| 0x1404B8650 | triggers/triggerbase:822 断言; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\triggers\\tri" |
+
+#### 4.29.31 mod 装载与虚拟文件系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AF95A0 | 脚本令牌序列化器: 令牌 id switch (0x167/0xD/0xE/0xF 等) + 字面量 yes / has_dlc = |

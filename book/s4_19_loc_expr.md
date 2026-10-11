@@ -731,3 +731,40 @@ sub_141014920(out, stat_name [move 消费], value i64, is_diff bool): 键1 = "ST
 | 0x141774230 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.19 |
 | 0x1410EC8F0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.19 |
 | 0x140154330 | 无名 sub_（调用图定位） 调用图传播: 4/7 锚点投 §4.19 |
+
+#### 4.19.16 本地化绑定与表达式系统函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AA6810 | 业务 "expects a fixed point number, got …"/"expects a valid country tag, got …"/"Unsupported data type for constants: " + @countrytag.cpp:135 |
+| 0x1421F1260 | 业务 串字面量 '##<' [4.19×2] |
+| 0x141A98630 | 业务 调用图 h2mod:localize.cpp [h2mod:localize.cpp×2,h1mod:country.cpp×1] |
+| 0x141015CE0 | 业务 调用图 localize.cpp×1 + lexer.cpp×1 = 本地化词法分析 |
+| 0x14226F3B0 | 业务 串字面量 '%s%lli%s' [4.19×6] |
+| 0x14226F010 | 业务 串字面量 '%s%i%s' [4.19×6] |
+
+#### 4.19.17 单调用转发桩结构定案（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14226EF30 | 转发桩: 转发至 业务 串字面量 '%s%lli%s' [4.19×6]（推定） |
+| 0x14226E940 | 转发桩: 转发至 业务 串字面量 '%s%lli%s' [4.19×6]（推定） |
+| 0x14226ED70 | 转发桩: 转发至 业务 串字面量 '%s%i%s' [4.19×6]（推定） |
+| 0x14226E780 | 转发桩: 转发至 业务 串字面量 '%s%i%s' [4.19×6]（推定） |
+
+#### 4.19.18 本地化绑定与表达式系统函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140130A40 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140A241F0 | 调用链 CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1401AD740) / CDiplomaticAction::GetFirstCountryRef(sub_1… |
+| 0x140A2E640 | loc 键 "original_rule_group_gie_rules" / "original_government_in_exile_allowed" / "original_rule_group_leader_industry" |
+| 0x140A7EDF0 | 调用链 COperation::[4]@140A7F200 |
+| 0x142248720 | loc 键 "localisation_untranslated/" |
+| 0x142257260 | 串 ".gui"/"localization"/"text"/"localize" + 调用者 sub_142256880 → 本地化/GUI 文本装载 |
+
+#### 4.19.19 本地化绑定与表达式系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14235BDA0 | 业务 串 "#ifdef"/"#else"/"#endif"/"@ifdef"/"@else" 条件文本预处理 + parser.cpp:1087 + CDiplomaticAction::GetFirstCountryRef + token 4/19 终止 |

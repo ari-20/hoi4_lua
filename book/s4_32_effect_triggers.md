@@ -1832,7 +1832,7 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x1413A0EC0 | CMultipleUnitLeaderTargetEffect::ParseToken CMultipleUnitLeaderTargetEffect::ParseToken（事件/触发/效果） |
 | 0x1413A9FD0 | CCustomOverrideTooltipTrigger::Parse CCustomOverrideTooltipTrigger::Parse（事件/触发/效果） |
 
-#### 4.32.28 脚本 effect/trigger 补遗卡（160 函）
+#### 4.32.28 脚本 effect/trigger 补遗卡（154 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -1880,7 +1880,6 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x14044E4C0 | CAnyUnitLeaderTrigger::Evaluate CAnyUnitLeaderTrigger::Evaluate（Evaluate 角色） |
 | 0x140453A10 | CAnyNavyLeaderTrigger::GetTooltip |
 | 0x1403A7640 | CLegacyCreateLeaderEffect::ResolveReferences 标签:effectimplementation.cpp:5423 |
-| 0x1404A11F0 | NProject::CAllScientistsTrigger::Evaluate 标签:eventscope.h:193 |
 | 0x140487AD0 | CPowerBalanceModifierEffect::ResolveReferences 标签:power_balance_effects.cpp:404 |
 | 0x14031B2F0 | CBaseStateResistanceComplianceModifierEffect::ResolveReferences 标签:state_effect_implementation.cpp:2854 |
 | 0x1403B5210 | CRemoveWargoalEffect::ParseToken func_names 全名 + 脚本角色（ParseToken） |
@@ -1890,7 +1889,6 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x1403F9370 | CCountDivisionsTrigger::GetDesc func_names 全名 + GetDesc 角色 |
 | 0x14030F2F0 | CRemoveClaimByEffect::Execute func_names 全名 + 脚本角色（Execute） |
 | 0x14030F450 | CRemoveCoreOfEffect::Execute 标签:gamestate.h:1116 |
-| 0x140529670 | NDoctrines::CAddMasteryBonusEffect::Execute NDoctrines::CAddMasteryBonusEffect::Execute + 名字角色规则( |
 | 0x140464A00 | CIsCapitalTrigger::Evaluate 标签:gamestate.h:1125 |
 | 0x140432990 | CHasResourcesRightsTrigger::Validate 名:CHasResourcesRightsTrigger::Validate |
 | 0x140310C60 | CSetStateCategoryEffect::Execute CSetStateCategoryEffect::Execute + 名字角色规则(CSetStateCategoryEffect::Execute); 串 "_pInstance && \"; 源码路径 hoi4 |
@@ -1900,7 +1898,6 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x1403FAA60 | CDaysSinceCapitulatedTrigger::GetDesc 名:CDaysSinceCapitulatedTrigger::GetDesc |
 | 0x140310AF0 | CSetResistanceEffect::Execute func_names 全名 + 脚本角色（Execute） |
 | 0x14040A5C0 | CHasDefensiveWarWithTrigger::GetDesc 名:CHasDefensiveWarWithTrigger::GetDesc |
-| 0x1404A17B0 | NProject::CCanAssignFactionSupportiveScientistToFaction::Evaluate 标签:pdxspan.h:77 |
 | 0x14035F9D0 | CResetProvinceEffect::Execute CResetProvinceEffect::Execute + 名字角色规则(CResetProvinceEffect::Execute); 串 "_pInstance && \"; 源码路径 hoi4 |
 | 0x14048F3A0 | CPcIsStateClaimedByTrigger::GetDesc 名:CPcIsStateClaimedByTrigger::GetDesc |
 | 0x140350F60 | CCreateImportEffect::Execute func_names 全名 + 脚本角色（Execute） |
@@ -1925,7 +1922,6 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x140424B70 | CIsSubjectTrigger::GetDesc 名:CIsSubjectTrigger::GetDesc |
 | 0x1402EA680 | CAddManeuverSkillEffect::GetDesc 名:CAddManeuverSkillEffect::GetDesc |
 | 0x1404A9EB0 | CSetFactionUpgrade::ParseTargetToken 标签:faction_effects.cpp:932 |
-| 0x14052BCE0 | NDoctrines::CHasDoctrineTrigger::Evaluate NDoctrines::CHasDoctrineTrigger::Evaluate + 名字角色规则(NDoctrines::CHasDoctrineTrigger::Evaluate); 串 "Invalid doctrine … |
 | 0x1403A6B30 | CAddOpinionModifierEffect::ResolveReferences 标签:effectimplementation.cpp:3563 |
 | 0x1404A0500 | CSendEquipmentFractionEffect::ParseToken CSendEquipmentFractionEffect::ParseToken + 名字角色规则(CSendEquipmentFractionEffect::ParseToken); 串 "Unexpected token:"; … |
 | 0x14051C1D0 | CAllCollectionElementsTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
@@ -1981,7 +1977,6 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x14045B8E0 | CArmyHasTemplateTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
 | 0x14045BEF0 | CHasUnitStrengthTrigger::GetValue CHasUnitStrengthTrigger::GetValue + 域关键词匹配; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 hoi4 |
 | 0x140470CC0 | CResistanceTargetTrigger::GetDesc 名:CResistanceTargetTrigger::GetDesc |
-| 0x14052B360 | NDoctrines::CAddMasteryBonusEffect::[5] NDoctrines::CAddMasteryBonusEffect::[5] + 域关键词匹配; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 hoi4 |
 | 0x1403A8380 | CTimedIdeaEffect::PostValidate CTimedIdeaEffect::PostValidate + 域关键词匹配; 串 "At least one of those parameter is mandato"; 被调源码 hoi4 |
 | 0x1402E5C00 | CSetLeaderNamePortraitOrDescription<$01>::[13] character_effect_implementation.cpp:768 角色字段效果（槽方法） |
 | 0x1403EE870 | CNumOfOperativesTrigger::GetValue func_names 全名 + 脚本角色（GetValue） |
@@ -1991,7 +1986,6 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x1403D6130 | CHasEquipmentTrigger::Evaluate CHasEquipmentTrigger::Evaluate + 名字角色规则(CHasEquipmentTrigger::Evaluate); 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 … |
 | 0x1404361A0 | CHasGovernmentTrigger::Parse CHasGovernmentTrigger::Parse + 域关键词匹配; 串 "has_government only works with an = compar"; 被 CHasGovernmentTrigger::Parse 等 1 命名函数调用 |
 | 0x140330420 | CActivateMissionTooltipEffect::[0] func_names 全名 + UI 后缀类（CActivateMissionTooltipEffect） |
-| 0x14052AFE0 | NDoctrines::CAddDailyMasteryEffect::[25] NDoctrines::CAddDailyMasteryEffect::[25] + 域关键词匹配; 串 "AMOUNT"; 被调源码 clausewitz |
 | 0x140EE5750 | vtable/RTTI 类 CTechnologySharing sub_140EE5750 + vtable/RTTI 类 CTechnologySharing |
 | 0x1403D5990 | CHasDefensiveWarWithTrigger::Evaluate CHasDefensiveWarWithTrigger::Evaluate + 名字角色规则(CHasDefensiveWarWithTrigger::Evaluate); 被调源码 hoi4; 被 CHasDefensiveWarWit… |
 | 0x1403D1DE0 | CDivisionsInStateTrigger::Evaluate CDivisionsInStateTrigger::Evaluate + 名字角色规则(CDivisionsInStateTrigger::Evaluate); 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\… |
@@ -2920,12 +2914,6 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x1403F0070 | CTagTrigger::GetSupportedScopeMask func_names 名 CTagTrigger::GetSupportedScopeMask |
 | 0x140445590 | CIsFemaleTrigger::GetSupportedScopeMask func_names 名 CIsFemaleTrigger::GetSupportedScopeMask |
 | 0x1413A78F0 | CGameVariableTrigger::GetSupportedScopeMask func_names 名 CGameVariableTrigger::GetSupportedScopeMask |
-
-#### 4.32.31 脚本 effect/trigger 补遗卡（790 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.32.32 脚本 effect/trigger 补遗卡（576 函）
 
 | VA | 语义/证据 |
@@ -3506,12 +3494,6 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x140479E60 | CIsFightingInWeatherTrigger::CIsBlizzard::[1] vtable 槽 CIsFightingInWeatherTrigger::CIsBlizzard::[1]（func_names RTTI 名） |
 | 0x1403F0060 | CScriptedEffect::GetSupportedScopeMask func_names 名 CScriptedEffect::GetSupportedScopeMask |
 | 0x1403A1D30 | COperativeAndCountryBaseEffect::GetSupportedTargetMask func_names 名 COperativeAndCountryBaseEffect::GetSupportedTargetMask |
-
-#### 4.32.33 脚本 effect/trigger 补遗卡（576 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.32.34 脚本 effect/trigger 补遗卡（5 函）
 
 | VA | 语义/证据 |
@@ -3915,3 +3897,603 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x141C33990 | 未决窗口函数 · 位掩码修饰逐位累加 遍历 a2+1032 的 64 位掩码，sub_141C337C0 查槽，*v8 += a3 逐位累加 |
 | 0x141DBB680 | 未决窗口函数 · 三级回退取值 sub_14173B240/270/2A0 三级查找 (a1+3960, a1+3992)，取 +13176/+15760/+13184 |
 | 0x141C94010 | 未决窗口函数 · 标志掩码批量写 a1[2]+2640 + 四次 sub_141C96760(v6, a1[1139..1142], a2, 掩码常量) |
+
+#### 4.32.48 脚本 effect/trigger 补遗卡（112 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414121B0 | 脚本集合 ForEach 模板实例（industrial_organisation） 脚本集合 ForEach 模板实例（industrial_organisation）；同族断言+类型名 |
+| 0x1404CCB80 | 脚本集合 ForEach 模板实例（industrial_organisation） 脚本集合 ForEach 模板实例（industrial_organisation）；同族断言+类型名 |
+| 0x1404DFE20 | 脚本集合 ForEach 模板实例（industrial_organisation） 脚本集合 ForEach 模板实例（industrial_organisation）；同族断言+类型名 |
+| 0x1403C0170 | 脚本集合 ForEach 模板实例（purchase_contract） 脚本集合 ForEach 模板实例（purchase_contract）；同族断言+类型名 |
+| 0x1404DBE20 | 脚本集合 ForEach 模板实例（purchase_contract） 脚本集合 ForEach 模板实例（purchase_contract）；同族断言+类型名 |
+| 0x1404D82E0 | 脚本集合 ForEach 模板实例（strategic_region） 脚本集合 ForEach 模板实例（strategic_region）；同族断言+类型名 |
+| 0x1404EB3E0 | 脚本集合 ForEach 模板实例（strategic_region） 脚本集合 ForEach 模板实例（strategic_region）；同族断言+类型名 |
+| 0x1403AE580 | CRandomizeVariableEffect<CVariableResolver>::[4] |
+| 0x1403C42E0 | eventscope.h scope 断言 + tbb 并行任务启动 |
+| 0x14047F700 | CVariableEffectBuilder<…>::[3] func_names CVariableEffectBuilder<…>::[3] + variablescripthelper.cpp 断言 'Assigned'（脚本变量效果构造器） |
+| 0x140482260 | CVariableTriggerBuilder<CModuloVariable<CTempVariableResolver>>::[5] func_names CVariableTriggerBuilder<CModuloVariable<…>>::[5] + 断言 'Assigned'（脚本变量触发器构造器） |
+| 0x14031D7E0 | CBuildingConstructionEffect::[26] / CBuildingConstructionEffect 槽 26 CBuildingConstructionEffect 槽 26 §4.8 生产/建筑 |
+| 0x1404FC2B0 | eventscope.h scope 断言 + tbb 并行任务启动 |
+| 0x1404FE8B0 | eventscope.h scope 断言 + tbb 并行任务启动 |
+| 0x1404FFBB0 | eventscope.h scope 断言 + tbb 并行任务启动 |
+| 0x1404FD5B0 | eventscope.h scope 断言 + tbb 并行任务启动 |
+| 0x1403421B0 | CEffectEntry<CStartCivilWarEffect>::[1] 效果条目（效果执行族） |
+| 0x1402E60F0 | CAddMaxAssignableTrait::Execute |
+| 0x140303460 | eventscope.h scope 断言 + memcpy |
+| 0x1403B54A0 | CSetBorderWarCombatData::ParseToken CSetBorderWarCombatData::ParseToken + 名字角色规则(CSetBorderWarCombatData::ParseToken); 被 CSetBorderWarCombatData::ParseToken … |
+| 0x14101F710 | 未命名业务函数 业务类 CSubUnitDefinitionId（类名/调用链证据） |
+| 0x1403CD610 | CHasAvailableOrAllowedIdeaWithTraitsTrigger<$0A>::[22] 名:CHasAvailableOrAllowedIdeaWithTraitsTrigger<$0A>::[22] |
+| 0x1404066C0 | CHasCollaborationTrigger::[27] |
+| 0x1403B1970 | CCreateImportEffect::ParseToken CCreateImportEffect::ParseToken（进口效果令牌解析） |
+| 0x14036F2B0 | CSetOrAddVictoryPointsEffect<$0A>::[7] |
+| 0x1411F8B10 | 未命名业务函数 业务类 CStateBased（类名/调用链证据） |
+| 0x14112B5A0 | CDiplomaticAction::GetRequestDescText 名:CDiplomaticAction::GetRequestDescText |
+| 0x14030A230 | （无名） 被 CEveryNeighborStateEffect::[28] 调用（事件/触发/效果） |
+| 0x140466DF0 | COccupationLawTrigger::Evaluate COccupationLawTrigger::Evaluate（占据法律触发器） |
+| 0x140F8E5E0 | （无名） 被 CCreateEquipmentVariantEffect::PostValid 调用（装备/市场） |
+| 0x141079920 | 未命名业务函数 业务类 CAIGeneral（类名/调用链证据） |
+| 0x1404A9510 | CAnyCountryWithOriginalTagOfTrigger::[23] func_names 全名 + 类域（CAnyCountryWithOriginalTagOfTrigger） |
+| 0x14062B390 | 未命名业务函数 业务类 CAIEquipmentRoleDatabase（类名/调用链证据） |
+| 0x1402F3800 | （无名） VA 邻近 CEveryArmyEffect::[0](±128)（事件/触发/效果） |
+| 0x140345450 | CClearArrayEffectImp<$0A>::[13] |
+| 0x140DFA360 | 未命名业务函数 业务类 CProductionLine（类名/调用链证据） |
+| 0x1410A9640 | 未命名业务函数 业务类 CCountryTag（类名/调用链证据） |
+| 0x14071E4D0 | （无名） 被 CAddTraitEffect::GetDesc 调用（事件/触发/效果） |
+| 0x141396F10 | CRandomListEffect::BuildTooltip 名:CRandomListEffect::BuildTooltip |
+| 0x140537D90 | （无名） 被 CEffect::ExecuteChecked 调用（事件/触发/效果） |
+| 0x1404A78C0 | （无名） 被 CAllCountryOfTrigger::[23] 调用（事件/触发/效果） |
+| 0x1423A3FF0 | （无名） 被 CCreateFactionFromTemplateEffect::GetDes 调用（事件/触发/效果） |
+| 0x140ACBA20 | 未命名业务函数 业务类 CTechnologyPath（类名/调用链证据） |
+| 0x141453FB0 | 未命名业务函数 业务类 CWarScoreBreakdown（类名/调用链证据） |
+| 0x1403C3B20 | （无名） 被 CHasResourcesInCollectionTrigger::GetDes 调用（生产/建筑） |
+| 0x140520040 | CAnyCollectionElementTrigger::[23] CAnyCollectionElementTrigger::[23]（事件/触发/效果） |
+| 0x14043DAE0 | 无名大函数 0x14043DAE0 CScriptScope 作用域断言（eventscope.h 同族） |
+| 0x140524470 | 无名大函数 0x140524470 CScriptScope 作用域断言（eventscope.h 同族） |
+| 0x1405250F0 | 无名大函数 0x1405250F0 CScriptScope 作用域断言（eventscope.h 同族） |
+| 0x14072DF40 | 无名大函数 0x14072DF40 CScriptScope 作用域断言（eventscope.h 同族） |
+| 0x14151DD20 | CForceGovernmentAction::GetDescription 名:CForceGovernmentAction::GetDescription |
+| 0x1413EB960 | 未命名业务函数 业务类 CLandBorderWarCombatant（类名/调用链证据） |
+| 0x1413A0B40 | CEveryCharacterEffect::[27] 名:CEveryCharacterEffect::[27] |
+| 0x141C393C0 | 未命名业务函数 业务类 CReleaseCountryDialogCReleaseCountryDialog（类名/调用链证据） |
+| 0x141B729B0 | CUnitsNudger::Reload 名:CUnitsNudger::Reload |
+| 0x14032DFD0 | 未命名业务函数 业务类 CAddAceEffect（类名/调用链证据） |
+| 0x1403DF500 | CRoundTempVariableTrigger::ParseValueKeys CRoundTempVariableTrigger::ParseValueKeys + 域关键词匹配; 被 CRoundTempVariableTrigger::ParseValueKeys 等 1 命名函数调用 |
+| 0x140230FF0 | 未命名业务函数 业务类 CProductionLine（类名/调用链证据） |
+| 0x141575840 | CMapModesInterface::Reload 名:CMapModesInterface::Reload |
+| 0x1402F7320 | 未命名业务函数 业务类 CEffect（类名/调用链证据） |
+| 0x1403D2460 | CGameRulesAllowAchievements::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CGameRulesAllowAchievements |
+| 0x1404C7BD0 | 无名大函数 0x1404C7BD0 CScriptScope 作用域断言（eventscope.h 同族） |
+| 0x1403DB000 | CIsHistoricalFocus::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CIsHistoricalFocus |
+| 0x140C2BDC0 | 无名大函数 0x140C2BDC0 CScriptScope 作用域断言（eventscope.h 同族） |
+| 0x1403B6850 | CTransferShip::ParseToken 调船行动，脚本令牌解析族 |
+| 0x14193E4B0 | 未命名业务函数 业务类 CEquipmentArcheTypePool（类名/调用链证据） |
+| 0x141A2F580 | CConfirmAssignUnitsToFront::Update 名:CConfirmAssignUnitsToFront::Update |
+| 0x1407189E0 | 未命名业务函数 业务类 CShipRefitProductionLine（类名/调用链证据） |
+| 0x1403EE2F0 | CNumFreeOperativeSlots::GetValue func_names 全名 + 脚本角色（GetValue） |
+| 0x1402E4270 | CAddTraitEffect::[0] 名:CAddTraitEffect::[0] |
+| 0x140437A20 | ParseToken func_names 裸名 + 脚本角色（ParseToken，eventscope.h 同族） |
+| 0x140C30200 | 未命名业务函数 业务类 CSunkShipInfo（类名/调用链证据） |
+| 0x1403CC960 | CPrintVariablesTrigger::[0] CPrintVariablesTrigger::[0] + 域关键词匹配; 被 CPrintVariablesTrigger::[0] 等 1 命名函数调用 |
+| 0x1405287D0 | CSetStrategicProvinceLocationBuildingLevel::ParseToken 效果/触发求值执行（方法角色 \1）；类属 CSetStrategicProvinceLocationBuildingLevel |
+| 0x140348E10 | CAddCivilWarTarget::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x1410FA020 | 未命名业务函数 业务类 CGenerateWarGoalAction（类名/调用链证据） |
+| 0x140C2D5A0 | 未命名业务函数 业务类 CSunkShipInfo（类名/调用链证据） |
+| 0x1416C4500 | 未决窗口函数 · 脚本值钳位计算 公式计算：`v3*v4*0.0099999998` + ceilf/floorf 取整 + +16/+28 上下界钳位（旗 +8/+20/+32 门控） |
+| 0x141535810 | CEquipmentModuleRequirements::InheritLimits? 业务类 CEquipmentModuleRequirements（类名/调用链证据） |
+| 0x140F71930 | 未命名业务函数 业务类 CShipRefitProductionLine（类名/调用链证据） |
+| 0x1402F14B0 | ParseToken func_names 裸名 + 脚本角色（ParseToken，eventscope.h 同族） |
+| 0x14054F980 | 未命名业务函数 触发器（trigger.cpp 断言） |
+| 0x140BD04B0 | 未命名业务函数 业务类 CNamedEquipmentBonus（类名/调用链证据） |
+| 0x1403CCC20 | CFindHighestOrLowestElementTrigger<$00>::[22] 名:CFindHighestOrLowestElementTrigger<$00>::[22] |
+| 0x1410532E0 | 未命名业务函数 业务类 CUnit（类名/调用链证据） |
+| 0x1404A8220 | 未命名业务函数 业务类 CCountryTag（类名/调用链证据） |
+| 0x140332F50 | CSetPartyNameEffect::[0] func_names 全名 + 类域（CSetPartyNameEffect） |
+| 0x1413F3320 | 未命名业务函数 业务类 CCountryLeaderTemplate（类名/调用链证据） |
+| 0x140332090 | CGenerateScientistRoleEffect::[0] func_names 全名 + 类域（CGenerateScientistRoleEffect） |
+| 0x1414366E0 | 未决窗口函数 · trigger 比例判定 同 0x1414351A0 结构，阈值 qword_143338390（同族不同计数器） |
+| 0x1403CD1E0 | CForEachTriggerImp<$00>::[22] CForEachTriggerImp<$00>::[22] + 域关键词匹配; 被调源码 hoi4; 被 CForEachTriggerImp<$00>::[22] 等 1 命名函数调用 |
+| 0x141434D60 | 未决窗口函数 · trigger 比例判定 同 0x1414351A0 结构，阈值 qword_143330E18 |
+| 0x141436A10 | 未决窗口函数 · trigger 比例判定 同 0x1414351A0 结构，阈值 qword_143338000 |
+| 0x140331DE0 | CForEffect::[0] CForEffect::[0] + 域关键词匹配; 被 CForEffect::[0] 等 1 命名函数调用 |
+| 0x1403313C0 | CCreateOperativeLeaderEffect::[0] func_names 全名 + 类域（CCreateOperativeLeaderEffect） |
+| 0x1403335A0 | CStartPeaceConferenceEffect::[0] func_names 全名 + 类域（CStartPeaceConferenceEffect） |
+| 0x140333720 | CTransferShip::[0] 调船行动，脚本令牌解析族 |
+| 0x141133C80 | CIncreaseAutonomyAction::CanExecute func_names 全名 + 脚本角色（CanExecute） |
+| 0x1403B5590 | CSetCanBeFiredToAdvisorRole::ParseToken CSetCanBeFiredToAdvisorRole::ParseToken + 名字角色规则(CSetCanBeFiredToAdvisorRole::ParseToken); 被 CSetCanBeFiredToAdvisorR… |
+| 0x1403DC2F0 | CIsRunningOperation::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CIsRunningOperation |
+| 0x1403CC4A0 | CHasResourcesRightsTrigger::[0] CHasResourcesRightsTrigger::[0] + 域关键词匹配; 被 CHasResourcesRightsTrigger::[0] 等 1 命名函数调用 |
+| 0x141392DD0 | CIntEffect::ParseTargetToken CIntEffect::ParseTargetToken + 域关键词匹配; 被 CIntEffect::ParseTargetToken 等 1 命名函数调用 |
+| 0x141D16840 | 未决窗口函数 · 混合定点/浮点计算 三对象 vt+752/768/152/680 + `(int)(*(a1+24)/100000.0) * v3` 混合定点/浮点计算 |
+| 0x140443BB0 | CIsPoliticalAdvisor::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x1403DA720 | CIsBorderWar::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x140548D00 | 触发器词法分析首令牌验证初始化 delegating lambda 名含 `GetFirstInvalidToken`、`CSortedSet<LexerToken>`、`CAndTrigger`、`CPdxOptional<LexerToken>`；置 a1[0]=0xAA 标记后经 a2 vt+160 回调 |
+| 0x1404438E0 | CIsNavyChief::Evaluate CIsNavyChief::Evaluate + 名字角色规则(CIsNavyChief::Evaluate); 被 CIsNavyChief::Evaluate 等 1 命名函数调用 |
+| 0x1404A6CF0 | CStateAndCountryEffect<CRemoveContestedOwner>::[7] CStateAndCountryEffect<CRemoveContestedOwner>::[7] + 域关键词匹配; 被 CStateAndCountryEffect<CRemoveContestedOwne… |
+| 0x1413A3070 | CIfTrigger::GetTooltip CIfTrigger::GetTooltip + 域关键词匹配; 被 CIfTrigger::GetTooltip 等 1 命名函数调用 |
+| 0x14051BF80 | CCollectionContainsTrigger::[0] CCollectionContainsTrigger::[0] + 域关键词匹配; 被 CCollectionContainsTrigger::[0] 等 1 命名函数调用 |
+| 0x1403EE660 | CNumOfFactoriesTrigger::GetValue CNumOfFactoriesTrigger::GetValue + 域关键词匹配; 被调源码 hoi4; 被 CNumOfFactoriesTrigger::GetValue 等 1 命名函数调用 |
+| 0x1403CB150 | CForEachScopesTriggerImp<$00>::[0] CForEachScopesTriggerImp<$00>::[0] + 域关键词匹配; 被 CForEachScopesTriggerImp<$00>::[0] 等 1 命名函数调用 |
+
+#### 4.32.49 脚本 effect/trigger 补遗卡（266 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BC6B70 | sub_140BC6B70 业务 调试 map 转储（"invalid unordered_map<K, T> key" + " : " + "\n\n" 键值格式化） |
+| 0x140A19B00 | sub_140A19B00 业务 脚本集合运算符（GetSize on "raid_instance"，script_collection_evaluator.h switch ≤6） |
+| 0x1403A28F0 | sub_1403A28F0 业务 定时 idea 效果描述（FREQUENCY_YEAR/MONTH/DAY + EFFECT_TIMED_IDEA_TIME_VALUE） |
+| 0x141410980 | sub_141410980 业务 脚本集合并行迭代（"Collection operator %s doesn't support [Parallel]ForEach for objects of type %s" + "country"） |
+| 0x14139C110 | sub_14139C110 业务 效果树调试转储（"START/END Effect: " / "Scope ID: " / "Values = " / "Children = " / " = <effect>"） |
+| 0x140504110 | （无名） 业务 script_collection_input_impl.h 断言 + 串 "Failed to find state with id: %d"：州集合脚本输入 |
+| 0x14037F860 | CDestroyShipsEffect::GetDesc 业务 func_names 名 CDestroyShipsEffect::GetDesc；串 "EFFECT_DESTROY_SHIPS"/"EFFECT_DESTROY_SHIPS_ALL" |
+| 0x140350600 | CCreateDynamicCountry::Execute 业务 func_names 名 CCreateDynamicCountry::Execute；effectimplementation.cpp 断言；串 "%s: No remaining dynamic tags"/"%s: original tag… |
+| 0x140323B50 | CAddDoctrineCostReduction::ParseToken 业务 func_names 名 CAddDoctrineCostReduction::ParseToken；technology_effect_implementation.cpp:693；串 "Duplicate technology … |
+| 0x1402EC0B0 | CAddUnitLeaderTraitEffect::GetDesc 业务 func_names 名 CAddUnitLeaderTraitEffect::GetDesc；character_effect_implementation.cpp:1362；串 "Invalid trait: %s"/"EFFECT_… |
+| 0x1403BF570 | （无名） 业务 script_collection_evaluator.h:230 + "Collection operator %s doesn't support [Parallel]ForEach for objects of type %s" + 类型串 "industrial_organisation" |
+| 0x1404DB220 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "industrial_organisation" |
+| 0x1404D7190 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "purchase_contract" |
+| 0x1404EA290 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "purchase_contract" |
+| 0x1404D3670 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "strategic_region" |
+| 0x1404E6770 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "strategic_region" |
+| 0x140445D00 | CCommandingAmountUnitsTrigger::GetDesc 业务 func_names 名 CCommandingAmountUnitsTrigger::GetDesc；串 "TRIGGER_NUM_UNITS_SHIP"/"TRIGGER_NUM_UNITS_DIVISIONS" |
+| 0x1404CB4C0 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "combatant" |
+| 0x1404DE770 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "combatant" |
+| 0x1404CF4D0 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "ace" |
+| 0x1404E2770 | （无名） 业务 script_collection_evaluator.h:230 同上 + 类型串 "ace" |
+| 0x140415310 | CHasResourcesRightsTrigger::GetDesc 业务 func_names 名 CHasResourcesRightsTrigger::GetDesc；串 "TRIGGER_HAS_RESOURCES_RIGHT"/"TRIGGER_HAS_NOT_RESOURCES_RIGHT" |
+| 0x140360710 | CSetAutonomyEffect::Execute 业务 func_names 名 CSetAutonomyEffect::Execute；串 "_set_autonomy_: invalid target tag"/"could not find the autonomy state"/"would pup… |
+| 0x1404C50A0 | （无名） 业务 script_collection_evaluator.h:230 + 类型串 "state" |
+| 0x1403E0E10 | CAnyHomeAreaNeighborCountryTrigger::GetTooltip 业务 func_names 名 CAnyHomeAreaNeighborCountryTrigger::GetTooltip；串 "TRIGGER_ANY_HOME_AREA_NEIGHBOR_COUNTRY_STARTS" |
+| 0x1404F05E0 | （无名） 业务 script_collection_evaluator.h:230 + 类型串 "state" + 调 CAndTrigger::Evaluate |
+| 0x141393DF0 | CLogScriptEffect::Execute 业务 func_names 名 CLogScriptEffect::Execute；effectbase.cpp:1783；调 0x1420803C0（日志写出） |
+| 0x1404DF290 | （无名） 业务 script_collection_evaluator.h:230 + 类型串 "faction" |
+| 0x1403A6DE0 | CGenerateScientistRoleEffect::ResolveReferences 业务 func_names 名 CGenerateScientistRoleEffect::ResolveReferences；串 "Invalid scientist trait:"/"does not exist … |
+| 0x140316730 | CDamageBuildingEffect::GetDesc 业务 func_names 名 CDamageBuildingEffect::GetDesc；state_effect_implementation.cpp:1855；串 "EFFECT_DAMAGE_BUILDING"/"Failed to find… |
+| 0x1421AF640 | — 业务 位掩码判定（*(a1+24) 元素 & 0x3F)==0x1E + 容量校验；调用者持脚本 local/field/method 串（脚本属性算子） |
+| 0x140370050 | CActivateMissionTooltipEffect::GetDesc 业务 func_names 名 CActivateMissionTooltipEffect::GetDesc；串 "EFFECT_ACTIVATES_MISSION" |
+| 0x1403B1BD0 | CCreateOperativeLeaderEffect::ParseToken 业务 func_names 名 CCreateOperativeLeaderEffect::ParseToken；串 "Expected start of list" + 调 0x1413F0390 |
+| 0x140346A10 | CRemoveFromArrayEffectImp<$0A>::[13] 业务 func_names 名 CRemoveFromArrayEffectImp<$0A>::[13]；effectimplementation.cpp:16366；串 "Invalid index to remove:" |
+| 0x1403FE910 | CFightingArmyStrengthRatioTrigger::GetDesc 业务 func_names 名 CFightingArmyStrengthRatioTrigger::GetDesc；串 "TRIGGER_FIGHTING_ARMY_STRENGTH_RATIO_MORE_THAN"/"_LE… |
+| 0x140451990 | CAllUnitLeaderTrigger::GetTooltip 业务 Trigger 后缀 + GetTooltip 角色 |
+| 0x140361010 | CSetCanBeFiredToAdvisorRole::Execute (effectimplementation.cpp:24154) 业务 Effect 后缀 + Execute 角色（顾问可解雇设定） |
+| 0x14140E0D0 | (无名, gamestate.h:1125) 业务 同上串（脚本国家标签常量解析） |
+| 0x1404B9980 | （无名） 业务 script_collection_input_impl.h + 串 "Constant value is not a country tag or array of country tags" |
+| 0x140349970 | CAddCountryLeaderTraitEffect::Execute (effectimplementation.cpp:1185) 业务 Effect 后缀 + Execute 角色（添加国家领袖特质） |
+| 0x140392870 | CSetPartyNameEffect::GetDesc 业务 Effect 后缀（设定政党名效果描述） |
+| 0x14191BF10 | 业务 描述生成：localize.cpp:641 + text.cpp:491 + "VALUE" 令牌（本地化占位替换） |
+| 0x1404AD8D0 | CAddFactionInitiativeEffect::GetDesc 业务 Effect 后缀（添加派系倡议效果描述） |
+| 0x1403150E0 | CAddStateModifierEffect::GetDesc 业务 func_names 名 CAddStateModifierEffect::GetDesc；串 "EFFECT_ADD_STATE_MODIFIER"/"MODIFIERS" |
+| 0x1415A9180 | 业务 紧邻 CWarReparationTimedEffect::Writer(d=688)，SIMD，战争赔款定时效果序列化族 |
+| 0x1404289D0 | CNumOfAvailableMilitaryFactoriesTrigger::GetDesc 业务 func_names 名 CNumOfAvailableMilitaryFactoriesTrigger::GetDesc；串 "TRIGGER_NUM_OF_AVAILABLE_MILITARY_FACTOR… |
+| 0x1403EA460 | CAmountTakenIdeasTrigger::[23] 业务 Trigger 后缀（已采纳理念数量）vtable 槽 23 |
+| 0x1403AB310 | CRemoveMilitaryRoleEffect::Parse 业务 Effect 后缀（移除军事角色效果解析，ParseToken 同族） |
+| 0x140382EA0 | CHarmOperativeEffect::GetDesc 业务 func_names 名 CHarmOperativeEffect::GetDesc；串 "EFFECT_HARM_OPERATIVE"/"No operative could be deduced from the scope." |
+| 0x14031C6B0 | CStaticProvinceModifierEffect::ParseToken 业务 CStaticProvinceModifierEffect::ParseToken 省份修正效果 token 解析 |
+| 0x140490980 | CAddOffsiteBuildingEffect::[7] 业务 EFFECT_ADD_OFFSITE_BUILDING / BUILDING / NUMBER 断言串，离线建筑效果槽方法 |
+| 0x140406FC0 | CHasCompletedNationalFocusTrigger::GetDesc 业务 CHasCompletedNationalFocusTrigger::GetDesc 已完成国策 trigger 描述 |
+| 0x14046CF90 | CHasStateCategoryTrigger::GetDesc 业务 CHasStateCategoryTrigger::GetDesc 州类别 trigger 描述 |
+| 0x14152C440 | sub_14152C440 业务 串 TRIGGER_AND_STARTS |
+| 0x1403F6100 | CCasualtiesInflictedByInThousandsTrigger::GetDesc 业务 CCasualtiesInflictedByInThousandsTrigger::GetDesc 承受伤亡 trigger 描述 |
+| 0x140486220 | CRemovePowerBalanceModifierEffect::GetDesc 业务 func_names 名 CRemovePowerBalanceModifierEffect::GetDesc；串 "EFFECT_REMOVE_POWER_BALANCE_MODIFIER"/"POWER_BALANCE… |
+| 0x140232650 | sub_140232650 业务 串 "Had errors compiling the trigger"/"Invalid scope for trigger" |
+| 0x140A118D0 | 业务 串字面量 "ACTIVATION_EFFECT" §4.32 Effect/Trigger |
+| 0x140418FF0 | CHasTechTrigger::GetDesc 业务 CHasTechTrigger::GetDesc 科技 trigger 描述生成 |
+| 0x140AB6490 | sub_140AB6490 业务 scriptedtrigger.cpp + 串 should_initiate_resistance/is_diplomatic_action_valid_ |
+| 0x140343D30 | CAddCorpsRoleEffect::Execute 业务 CAddCorpsRoleEffect::Execute 兵团角色效果执行（effectimplementation.cpp:6689 站点） |
+| 0x14037A3E0 | CBecomeExiledGovernmentEffect::GetDesc 业务 CBecomeExiledGovernmentEffect::GetDesc 流亡政府效果描述 |
+| 0x14039E850 | sub_14039E850 业务 effectimplementation.cpp "there is no state with ID %d" |
+| 0x140472900 | CFreeBuildingSlotsTrigger::ValidateLate 业务 CFreeBuildingSlotsTrigger::ValidateLate 空建筑槽 trigger 晚校验（state_trigger_implementation.cpp:376） |
+| 0x140376980 | CAddPopularityEffect::GetDesc 业务 CAddPopularityEffect::GetDesc 增加政党支持度效果描述 |
+| 0x14139B0B0 | CRandomListEffect::ParseToken 业务 CRandomListEffect::ParseToken random_list 效果 token 解析 |
+| 0x140386D90 | CRecallAttacheEffect::GetDesc 业务 CRecallAttacheEffect::GetDesc 召回武官效果描述 |
+| 0x140B01330 | 业务 串字面量 "NON_ACTIVE_MODIFIER_ALERT_ENTRY" §4.32 Effect/Trigger |
+| 0x1403F66C0 | CCivilwarTargetTrigger::GetDesc 业务 串 "CIVILWAR_TARGET_IS"/"CIVILWAR_TARGET_IS_NOT"（触发器描述） |
+| 0x14139B550 | CNewsEventEffect::[27] 业务 CNewsEventEffect vtable 槽（eventscope.h:193 "Infinite cycle in event FROM scope"） |
+| 0x140489A00 | CHasPowerBalanceTrigger::GetDesc 业务 CHasPowerBalanceTrigger::GetDesc 权力平衡 trigger 描述 |
+| 0x140378720 | CAddStateClaimEffect::GetDesc 业务 串 "EFFECT_ADD_STATE_CLAIM"/"STATE"（效果描述） |
+| 0x140318F50 | CSetStateNameEffect::GetDesc 业务 串 "EFFECT_SET_STATE_NAME"/"EFFECT_RESET_STATE_NAME"（效果描述） |
+| 0x1403C9640 | 业务 off_1427A1A60 指针表引用，夹于 CMarkTechnologyTreeLayoutDirtyEffect::[26](d=52000) 与 CAnyCountryWithOriginalTagTrigger::[0](d=6720)，科技树布局/trigger 表驱动族 |
+| 0x140313C90 | CAddClaimByEffect::GetDesc 业务 CAddClaimByEffect::GetDesc 添加领土主张效果描述 |
+| 0x1403F3630 | CAnyClaimTrigger::GetDesc 业务 CAnyClaimTrigger::GetDesc 任意主张 trigger 描述 |
+| 0x14050C3D0 | 业务 off_1427CE9C8 引用，紧邻 CAnyCollectionElementTrigger::[0](d=64368)，集合元素 trigger 族（表驱动） |
+| 0x1405171E0 | 业务 off_1427CEBA8 引用，紧邻 CAnyCollectionElementTrigger::[0](d=19808)，集合元素 trigger 族（表驱动，与 0x14050C3D0 同结构） |
+| 0x14041D3E0 | CIsAITrigger::GetDesc 业务 串 "TRIGGER_IS_AI"/"TRIGGER_IS_NOT_AI"（触发器描述） |
+| 0x140399400 | CUncompleteNationalFocusEffect::GetDesc 业务 GetDesc 生成国策未完成效果描述串；类名自文档 |
+| 0x140610DE0 | 业务 串字面量 "Unknown modifier" §4.32 Effect/Trigger |
+| 0x1413F42F0 | 业务 夹于 CRandomCountryEffect::[28](d=736) 与 CCountryCollaborationStatus::[0](d=880)，随机国家效果/国家合作状态族（与 0x140FF0DF0 同尺寸 4351） |
+| 0x140BCC6E0 | — 业务 调用解析器原语族（sub_1401AD740 等，同 CFlagEffect::Parse 调用集） |
+| 0x1402E6360 | CAddRandomTraitEffect::Execute 业务 串 "Adding active trait: " + character_effect_implementation.cpp:244（效果执行） |
+| 0x1403B3260 | CForEachScopeEffect::ParseToken 业务 CForEachScopeEffect::ParseToken，scope 效果脚本解析（token "^num"） |
+| 0x140509580 | 业务 off_1427CE9E8 引用，无近邻，集合元素 trigger 表驱动族（与 0x14050C3D0/0x1405171E0 同结构 4249B） |
+| 0x140387350 | CRecruitCharacterEffect::GetDesc 业务 CRecruitCharacterEffect::GetDesc 招募角色效果描述（gamestate.h:1116 站点） |
+| 0x14031CA10 | CTeleportArmiesEffect::ParseToken 业务 CTeleportArmiesEffect::ParseToken 传送军队效果 token 解析 |
+| 0x140316DD0 | CRemoveBuildingEffect::GetDesc 业务 CRemoveBuildingEffect::GetDesc 拆除建筑效果描述（state_effect_implementation.cpp:1012） |
+| 0x140507A80 | 业务 off_1427CEAA8 引用，无近邻，集合元素 trigger 表驱动族（同结构 4145B 三例之一） |
+| 0x140384260 | CLegacyCreateCountryLeaderEffect::GetDesc 业务 CLegacyCreateCountryLeaderEffect::GetDesc 遗留路径国家领袖创建效果（effectimplementation.cpp:624） |
+| 0x140516950 | 业务 off_1427CEDE8 引用，紧邻 CAnyCollectionElementTrigger::[0](d=22000)，集合元素 trigger 表驱动族 |
+| 0x140320C80 | CAddResearchSlotEffect::GetDesc 业务 串 "EFFECT_ADD_RESEARCH_SLOT"/"EFFECT_REMOVE_RESEARCH_SLOT"（效果描述） |
+| 0x140C08F60 | sub_140C08F60 业务 串：TRIGGER_COMMAND_POWER_DAILY |
+| 0x14041F5D0 | CIsFriendTrigger::GetDesc 业务 CIsFriendTrigger::GetDesc 友方 trigger 描述 |
+| 0x1403AA5D0 | Parse 业务 Parse：作用域类型(a2+192)分发 + token id 11450 分支（ParseToken 族） |
+| 0x140379C00 | CAddUnitsToDivisionTemplateEffect::GetDesc 业务 串 "EFFECT_ADD_UNITS_TO_DIVISION_TEMPLATE"/"TEMPLATE_NAME"（效果描述） |
+| 0x14042E4F0 | CReceivedExpeditionaryForcesTrigger::GetDesc 业务 CReceivedExpeditionaryForcesTrigger::GetDesc 接收远征军 trigger 描述 |
+| 0x1403614C0 | CSetCollaborationEffect::Execute 业务 CSetCollaborationEffect::Execute（effectimplementation.cpp:21481，"%s scoped is not able to use collaborations"） |
+| 0x1404784A0 | CIsAmphibiousInvasionTrigger::GetDesc 业务 是两栖登陆触发器 GetDesc（TRIGGER_IS_AMPHIBIOUS_INVASION + YES/NO） |
+| 0x140393C70 | CSetStateControllerEffect::GetDesc 业务 串 "EFFECT_SET_STATE_CONTROLLER"/"STATE"（效果描述） |
+| 0x140321EB0 | CModifyTechnologySharingBonusEffect::GetDesc 业务 修改科技共享加成效果 GetDesc（EFFECT_MODIFY_COUNTRY_TECH_SHARING_BONUS） |
+| 0x14041D6C0 | CIsActiveDecryptionBonusesEnabledTrigger::GetDesc 业务 串 "TRIGGER_IS_ACTIVE_DECRYPTION_BONUSES_ENABLED"/"TRIGGER_IS_NOT_..."（触发器描述） |
+| 0x140394250 | CSetTemplateDivisionCapEffect::GetDesc 业务 CSetTemplateDivisionCapEffect::GetDesc 师模板上限效果描述 |
+| 0x1404700D0 | COccupiedTagTrigger::GetDesc 业务 占领tag触发器 GetDesc（TRIGGER_HAS_WAR_OCCUPIED_TAG_IS / TRIGGER_HAS_NOT_OCCUPIED_TAG_IS_NOT） |
+| 0x14040F7D0 | CHasMilitaryAccessToTrigger::GetDesc 业务 CHasMilitaryAccessToTrigger::GetDesc 军事通行权 trigger 描述 |
+| 0x14041E480 | CIsEmbargoedByTrigger::GetDesc 业务 串 "TRIGGER_IS_EMBARGOED_BY"/"TRIGGER_IS_NOT_EMBARGOED_BY"（触发器描述） |
+| 0x1422F1E30 | (无名) 业务 调用窗口内命名函数 sub_14036C840 |
+| 0x14030F710 | CRemoveStaticProvinceModifierEffect::Execute 业务 移除静态省份修正效果::Execute（gamestate.h:1116 访问门） |
+| 0x140302970 | 业务 Init_thread 静态初始化，夹于 NIndustrialOrganisation::CUnlockPolicyTooltipEffect::ParseToken(d=4336) 与 NInternationalMarket::CAddEquipmentSubsidyEffect::[0](d=155… |
+| 0x140423980 | CIsPuppetTrigger::GetDesc 业务 是傀儡触发器 GetDesc（TRIGGER_IS_PUPPET / TRIGGER_IS_NOT_PUPPET） |
+| 0x140350250 | CCompleteNationalFocusEffect::Execute 业务 完成国策效果::Execute（effectimplementation.cpp:10476，Unkown focus scripted 断言） |
+| 0x140345960 | CRandomizeVariableEffect<CTempVariableResolver>::[13] 业务 func_names 名 + 串 "%s: %lld"（随机变量效果槽 13） |
+| 0x14041EFE0 | CIsFactionLeaderTrigger::GetDesc 业务 是阵营领袖触发器 GetDesc（TRIGGER_IS_FACTION_LEADER / TRIGGER_IS_NOT_FACTION_LEADER） |
+| 0x140402360 | CHasAttacheTrigger::GetDesc 业务 有随从武官触发器 GetDesc（TRIGGER_HAS_ATTACHE / TRIGGER_HAS_NOT_ATTACHE） |
+| 0x14048E750 | CPcIsLoserTrigger::GetDesc 业务 玩家是输家触发器 GetDesc（TRIGGER_PC_IS_LOSER / TRIGGER_PC_IS_NOT_LOSER） |
+| 0x1420931D0 | (无名) 业务 调用窗口内命名函数 sub_1403A7C90 |
+| 0x1404303D0 | CSurrenderProgressTrigger::GetDesc 业务 投降进度触发器 GetDesc（TRIGGER_LESS_THAN_X_SURRENDER_PROGRESS / MORE_THAN） |
+| 0x1404710B0 | CStateIDTrigger::GetDesc 业务 州id触发器 GetDesc（TRIGGER_STATE_ID / TRIGGER_STATE_ID_NOT） |
+| 0x1404B5F80 | CFactionInfluenceRankTrigger::GetDesc 业务 阵营影响力排名触发器 GetDesc（FACTION_INFLUENCE_RANK_MORE_THAN / LESS_THAN） |
+| 0x141F800A0 | (无名) 业务 调用窗口内命名函数 sub_1403CF8C0 |
+| 0x141254460 | 业务 off_1430BF7F0/off_1430BF860 指针表 + qword_14332F698/F339D28，紧邻 std::_Func_impl(d=33824)，表驱动回调族 |
+| 0x141BE49F0 | sub_141BE49F0 业务 脚本/序列化键（串 accept_button） |
+| 0x140521200 | CCollectionContainsTrigger::ParseToken 业务 CCollectionContainsTrigger::ParseToken（"Collection contains trigger may only compare against items of the same"） |
+| 0x1402ED3E0 | CRemoveUnitLeaderEffect::GetDesc 业务 移除单位指挥官效果 GetDesc（EFFECT_REMOVE_FM_LEADER / EFFECT_REMOVE_CC_LEADER / EFFECT_REMOVE_NAVY_LEADER / EFFECT_REMOVE_OPERATIVE… |
+| 0x141FBFD80 | (无名) 业务 调用窗口内命名函数 sub_1402E60F0 |
+| 0x142061220 | sub_142061220 业务 脚本/序列化键（串 manpower_text） |
+| 0x141A8A020 | 业务 体串 "GetHerHisCap" -> 4.32(2×100%); 唯一被调用者在书内 §4.1 |
+| 0x141A8E4C0 | sub_141A8E4C0 业务 脚本文档注册器（串 ![MD] + 描述 + 命令名）：![MD]\nGets the adjective of the current country. |
+| 0x142471120 | 业务 类路由 CEnemyNavalStrengthRatioTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 2/2 票 §4.31（同类方法连续排放） |
+| 0x141A97AB0 | sub_141A97AB0 业务 脚本文档注册器（串 ![MD] + 描述 + 命令名）：![MD]\nGets the controller country of the state. 、 |
+| 0x141A80E30 | sub_141A80E30 业务 脚本文档注册器（串 ![MD] + 描述 + 命令名）：![MD]\nGets Her if the ace is a female, otherwise |
+| 0x140BEEA70 | sub_140BEEA70 业务 串：C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\triggers\\triggerimplem |
+| 0x1423B3CA0 | 业务 类路由 CClampVariableTrigger ->§4.32; 串 "Cant assign to a read only variable"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140371700 | CAddArmyExperienceEffect::GetDesc 业务 增加陆军经验效果 GetDesc（EFFECT_ADD_ARMY_EXPERIENCE） |
+| 0x140391A70 | CSetFuelRatioEffect::GetDesc 业务 设定燃油比例效果 GetDesc（EFFECT_SET_FUEL_RATIO） |
+| 0x14211BB30 | 业务 断言站点 pdx_robin_hood_table.h:58 ->§4.00; 类路由 CAddOpinionModifierEffect ->§4.32; 串 "_pEntry->_DistancePlus1 != nIterator" |
+| 0x1402CDB30 | 业务 断言站点 triggerimplementation.cpp:36 ->§4.32; 类路由 CIsInTechnologySharingGroupTrigger ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x141920180 | sub_141920180 业务 脚本/序列化键（串 equipment） |
+| 0x141FBEB20 | 业务 断言站点 gameitemdatabase.h:27 ->§4.26; 断言站点 triggerimplementation.cpp:50 ->§4.32; 断言站点 peaceconference.cpp:55 |
+| 0x142355210 | 业务 类路由 CHasCarrierAirWingsInOwnCombatTrigger ->§4.32; 串 "TRIGGER_CARRIER_AIRWINGS_IN_OWN_COMB"; 串 "TRIGGER_NOT_CARRIER_AIRWINGS_IN_OWN_" |
+| 0x1403C6910 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 断言站点 frontendgamesetupview.h:0 |
+| 0x142355690 | 业务 类路由 NIndustrialOrganisation ->§4.25; 类路由 CIsImpassableTrigger ->§4.32; 类路由 CHasReservesTrigger ->§4.32 |
+| 0x14237C5D0 | 有效性校验 遍历 a1+616 操作码数组，switch 0x2F/0x4C/0x86/0x88..0x8D 检查各关联子字段（a1+264..+520）非空，返回有效性 |
+| 0x1421889A0 | 业务 类路由 CDivideTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00 |
+| 0x142188EC0 | 业务 断言站点 character_effect_implementation.cpp:52 ->§4.32; 串 "grid_box_item"; 串 "subsidies_draft_item" |
+| 0x140A2D280 | sub_140A2D280 业务 脚本/序列化键（串 _applicability） |
+| 0x142257D80 | 业务 类路由 CPromoteLeaderEffect ->§4.32; 串 "EFFECT_PROMOTE_LEADER"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1403B71A0 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "NUMBER" |
+| 0x1412CCE80 | 业务 a1+24 起 18 组容器（24B 步长）逐一按 a2 尾部交换移除 + 条件性 a1+0 数组移除 多容器批量移除 |
+| 0x14211A550 | 业务 断言站点 unitleader.cpp:41; 断言站点 unitleader.cpp:49; 类路由 CAddToTempArrayTrigger ->§4.32 |
+| 0x142412DB0 | 业务 断言站点 ai_country.cpp:48; 断言站点 state_trigger_implementation.cpp:38 ->§4.32; 类路由 CCountryAI ->§4.34 |
+| 0x1425374D0 | 业务 断言站点 effectimplementation.cpp:48 ->§4.32; 断言站点 ai_taskforce_template.cpp:28; 断言站点 pdx_robin_hood_table.h:58 ->§4.00 |
+| 0x1400812E0 | 业务 类路由 CArmorTrigger ->§4.32; 调用图 IDF top §4.1 frac 0.82 |
+| 0x14014E8E0 | 业务 断言站点 pdx_scoped_singleton.h:18 ->§4.1; 断言站点 triggerimplementation.cpp:37 ->§4.32; 断言站点 unit.cpp:67 |
+| 0x14032EAF0 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 类路由 CHasAddedTensionAmountTrigger ->§4.32 |
+| 0x1418CD390 | sub_1418CD390 业务 脚本/序列化键（串 bg_btn） |
+| 0x1424883A0 | 业务 断言站点 effectimplementation.cpp:21 ->§4.32; 类路由 CTransferUnitsFractionEffect ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x14032A580 | 业务 串 "this->is_initialized()"; 串 "C:\\mnt\\external_libs2\\boost_1_84_"; 串 "this->is_initialized()" |
+| 0x141256940 | sub_141256940 业务 脚本/序列化键（串 swap_left） |
+| 0x141228A70 | 业务 逐项二分查找（v9>>1 galloping）v3+704 表 + 232B 记录 +184/+120 取值取最大 列表二分查找取最大值 |
+| 0x1421356A0 | 业务 类路由 CHasAnyGeneralCapturedByTrigger ->§4.32; 串 "TRIGGER_HAS_GENERAL_CAPTURED_BY"; 串 "TRIGGER_HAS_NOT_GENERAL_CAPTURED_BY" |
+| 0x1424F75F0 | 业务 类路由 CInheritTechnologyEffect ->§4.32; 串 "Config.numArchivers > 0"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x1402F2240 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 串 "_pInstance && \"gamestate unitiliali" |
+| 0x1403695C0 | 业务 断言站点 triggerimplementation.cpp:53 ->§4.32; 类路由 CHasTechTrigger ->§4.32; 类路由 CEquipmentStats ->§4.28 |
+| 0x1421D4880 | 业务 断言站点 ingameinterfacehandler.cpp:65; 类路由 CLegacyCreateCountryLeaderEffect ->§4.32; 串 "_Idler.CanUpdateGui()" |
+| 0x14032D2D0 | 业务 断言站点 industrial_org_template.cpp:5; 串 "unknown MIO filter type"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x14032E420 | 业务 串 "_animated"; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.32 3/9 |
+| 0x140153670 | 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10 |
+| 0x14229C0D0 | 业务 类路由 CSetCountryNationalFocusTreeEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 3/3 票 §4.30（同类方法连续排放） |
+| 0x140E7CE00 | 业务 定点公式：100000 标度 + 魔数乘 0x29F16B11C6D1E109 + qword_143331060/143331100 系数 + 修饰链 +184→+168→+148 定点值公式计算 |
+| 0x14197A5A0 | 业务 +64/+40 两数组按 (a2[6],a2[7]) idpair 尾部交换移除 + a1+88/+92 减 a2[31] 双表 idpair 移除+计数修正 |
+| 0x14197D6A0 | 业务 +64/+40 两数组按 (a2[6],a2[7]) idpair 尾部交换移除 + a1+88/+92 减 a2[31] 双表 idpair 移除+计数修正 |
+| 0x141D9B8D0 | sub_141D9B8D0 业务 脚本/序列化键（串 efficiency_progressbar） |
+| 0x14245D880 | 业务 断言站点 triggerimplementation.cpp:35 ->§4.32; 类路由 CArmyManpowerInStateTrigger ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1414348E0 | 业务 脚本对象数量上限校验：a3 时直接判 qword_143334608 <= 100000 + 48 字节键缓冲 数量上限校验 |
+| 0x1414362A0 | 业务 脚本对象数量上限校验：同形（qword_143333688 <= 100000） 数量上限校验 |
+| 0x141435840 | 业务 脚本对象数量上限校验：同形（qword_1433380B8 <= 100000） 数量上限校验 |
+| 0x1421C6020 | 业务 类路由 CAddAirExperienceEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1424812B0 | 业务 断言站点 ingameinterfacehandler.cpp:1; 类路由 CIsPuppetOfTrigger ->§4.32; 类路由 CSetFleetIconAndColorCommand ->§4.33 |
+| 0x1411EE8D0 | 业务 断言站点 faction_triggers.cpp:80 ->§4.32; 类路由 CGarrisonLogView ->§4.30; 类路由 CCompareIdeologyWithFactionTrigger ->§4.32 |
+| 0x1401D79E0 | 业务 断言站点 unit_trigger_implementation.cpp:95 ->§4.32; 类路由 CTagTrigger ->§4.32; 类路由 CArmyHasOfficerNameTrigger ->§4.32 |
+| 0x1410273F0 | 业务 断言站点 conferenceparticipants.cpp:36; 串 "!_ScoreDistribution.IsEmpty() && \"I"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x14011EFD0 | 业务 类路由 CHasDesignBasedOnTrigger ->§4.32; 串 "TRIGGER_HAS_DESIGN_BASED_ON"; 串 "TRIGGER_HAS_NOT_DESIGN_BASED_ON" |
+| 0x141995070 | 业务 断言站点 effectimplementation.cpp:12 ->§4.32; 类路由 CSetTemplateDivisionForceRecruitingEffect ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1424600F0 | 业务 断言站点 diplomacy.h:13; 类路由 CGainXpEffect ->§4.32; 串 "VALUE" |
+| 0x1424F6590 | 业务 类路由 CIsDebugTrigger ->§4.32; 串 "dt->root->sibling == NULL"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x1424747F0 | 业务 断言站点 triggerimplementation.cpp:94 ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "invalid scope in trigger %s" |
+| 0x142528CE8 | 业务 类路由 CAddResistanceTargetEffect ->§4.32; 调用图 IDF top §4.1 frac 0.64 |
+| 0x142124CE0 | 业务 类路由 CIsLicensingAnyToTrigger ->§4.32; 调用图 IDF top §4.1 frac 0.99 |
+| 0x140A3B110 | sub_140A3B110 业务 脚本/序列化键（串 _short_desc） |
+| 0x1424750C0 | 业务 断言站点 unit_trigger_implementation.cpp:16 ->§4.32; 类路由 CHasUnitOrganizationTrigger ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x142114C00 | 业务 类路由 CAddStateModifierEffect ->§4.32; 类路由 CCreateDivisionTemplateCommand ->§4.33; 串 "add_state_modifier" |
+| 0x14250BC70 | 业务 类路由 CAddDaysMissionTimeoutEffect ->§4.32; 类路由 CClientOutOfSyncCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1421358E0 | 业务 断言站点 effectimplementation.cpp:69 ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "Invalid Decision ID for activate_mis" |
+| 0x140FD29E0 | sub_140FD29E0 业务 脚本/序列化键（串 tank_manufacturer） |
+| 0x1421F55B0 | 业务 类路由 CCompareAutonomyTrigger ->§4.32; 调用图 IDF top §4.00 frac 0.59; 反传 2/2 调用者 §4.26 |
+| 0x1401F0060 | 业务 类路由 CRemoveAdvisorRoleEffect ->§4.32; 类路由 CReadyAfterHotJoinCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1411C5BD0 | 业务 断言站点 state_effect_implementation.cpp:92 ->§4.32; 类路由 CRemoveBuildingEffect ->§4.32; 串 "Has %i of %s, expected %i" |
+| 0x14047A870 | 业务 断言站点 career_profile_medal.cpp:28 ->§4.1; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "Missing silver trigger in medal meta" |
+| 0x1424E78B0 | 业务 断言站点 industrial_org_trait_bonus.cpp:60; 断言站点 deployment.cpp:55; 断言站点 resistance.cpp:26 |
+| 0x1423BFD40 | 业务 断言站点 ai_country.h:54; 类路由 CAIIrrationalityTrigger ->§4.32; 串 "CONOUT$" |
+| 0x1401C17C0 | 业务 断言站点 deployment.cpp:14; 类路由 CIsOperativeCapturedTrigger ->§4.32; 类路由 CDucePortrait ->§4.31 |
+| 0x1411C8A90 | 业务 断言站点 simplechecksum.cpp:72 ->§4.00; 类路由 CIsPowerBalanceInRangeTrigger ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x140252CC0 | 业务 断言站点 triggerimplementation.cpp:68 ->§4.32; 断言站点 gameitemdatabase.h:42 ->§4.26; 类路由 CHasResourcesTrigger ->§4.32 |
+| 0x142495EE0 | 业务 断言站点 triggerimplementation.cpp:67 ->§4.32; 类路由 CDivisionsInStateBorderTrigger ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x14148E8E0 | 业务 断言站点 triggerimplementation.cpp:85 ->§4.32; 类路由 NFactions ->§4.25; 类路由 CHasArmySizeTrigger ->§4.32 |
+| 0x14250F880 | 业务 类路由 CHasDynamicModifierTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00 |
+| 0x142349090 | 业务 类路由 CDeclareWarEffect ->§4.32; 串 "GFX_frontend_bg_basic"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1424CDA60 | 业务 断言站点 triggerbase.h:22; 类路由 CCollectionSizeTrigger ->§4.32; 串 "Invalid has_built setup" |
+| 0x140B5FFE0 | 业务 断言站点 doctrine_selection_items.cpp:13; 断言站点 state_effect_implementation.cpp:14 ->§4.32; 类路由 CMassMoveCommand ->§4.33 |
+| 0x140150CD0 | 业务 断言站点 state_trigger_implementation.cpp:75 ->§4.32; 类路由 CDistanceToTrigger ->§4.32; 类路由 NFactions ->§4.25 |
+| 0x1420C4DB0 | 业务 断言站点 deployed_leader_effect.cpp:94 ->§4.32; 类路由 CReleaseFromCaptivityEffect ->§4.32; 串 "ACP" |
+| 0x141E03C10 | 业务 断言站点 gamelobby.cpp:16 ->§4.5; 断言站点 state_trigger_implementation.cpp:69 ->§4.32; 类路由 CFreeBuildingSlotsTrigger ->§4.32 |
+| 0x14032F780 | 业务 断言站点 faction_effects.cpp:26 ->§4.32; 类路由 CSetEntityPositionEffect ->§4.32; 类路由 CSetFactionNameEffect ->§4.32 |
+| 0x14224CAE0 | 业务 断言站点 ai_general.cpp:94; 类路由 CRemoveCountryLeaderRoleEffect ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1423F2380 | 业务 递归：a3 += a2+72，嵌套 a1+2272（2304B 步长）× a2+112（136B 步长）计数累加 递归计数累加 |
+| 0x14212AF60 | 业务 类路由 CEndPuppetEffect ->§4.32; 类路由 NDoctrines ->§4.25; 串 "TRACK_COMPLETED_TRIGGER" |
+| 0x14032D910 | 业务 类路由 CAddPowerBalanceValueEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.25 |
+| 0x142419BB0 | 业务 类路由 CAddPowerBalanceValueEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 3/3 票 §4.31（同类方法连续排放） |
+| 0x1420DFB30 | 业务 断言站点 effectimplementation.cpp:1 ->§4.32; 类路由 CNumDivisionsInStatesTrigger ->§4.32; 类路由 CFocusFinishedPopUpWindow ->§4.30 |
+| 0x1421F3880 | 业务 类路由 CModifyTechnologySharingBonusEffect ->§4.32; 调用图 IDF top §4.1 frac 0.65; 反传 1/1 调用者 §4.26 |
+| 0x1423C68C0 | 业务 类路由 CHasTraitTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14014CB90 | 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33 |
+| 0x1420B20D0 | 业务 断言站点 oos_checks.cpp:46; 断言站点 effectimplementation.cpp:70 ->§4.32; 断言站点 divisiontemplate.cpp:75 ->§4.18 |
+| 0x14241DDC0 | 业务 断言站点 railway_gun.cpp:33 ->§4.1; 类路由 CDeleteUnitsEffect ->§4.32; 类路由 CNationalFocusProgressTrigger ->§4.32 |
+| 0x1401A8020 | 业务 断言站点 effectimplementation.cpp:37 ->§4.32; 断言站点 ai_strategy_database.h:24; 类路由 CAddPoliticalPowerEffect ->§4.32 |
+| 0x1421FB960 | 业务 类路由 CHasDLCTrigger ->§4.32; 调用图 IDF top §4.1 frac 0.49 |
+| 0x1425070B0 | 业务 断言站点 effectimplementation.cpp:87 ->§4.32; 类路由 CUnlockDecisionCategoryTooltipEffect ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x142462790 | 业务 类路由 CSetPortraitEffect ->§4.32; 类路由 CHasCharacterTrigger ->§4.32; 调用图 IDF top §4.1 frac 0.71 |
+| 0x14234C810 | 业务 类路由 CIsGuaranteedByTrigger ->§4.32; 类路由 CIsOnContinentTrigger ->§4.32; 串 "mainmenu_panel_upperright" |
+| 0x140126DE0 | 业务 类路由 CArrayTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14244EF50 | 业务 类路由 CAddOpinionModifierEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 2/2 票 §4.31（同类方法连续排放） |
+| 0x1426F79B0 | 业务 断言站点 effectimplementation.cpp:69 ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "No focus set in effect\n" |
+| 0x1411BBEB0 | 业务 类路由 CCountryTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 4/9 票 §4.10（同类方法连续排放） |
+| 0x142200CC0 | 业务 断言站点 effectimplementation.cpp:29 ->§4.32; 断言站点 gameitemdatabasehelper.h:22 ->§4.26; 类路由 CTargetedDecisionEffect ->§4.32 |
+| 0x1422EB090 | 业务 断言站点 state_trigger_implementation.cpp:36 ->§4.32; 类路由 CHasStateCategoryTrigger ->§4.32; 串 "Operatives are now avoiding detectio" ->§4.4 |
+| 0x1415A5C20 | 业务 断言站点 purchase_contract_text.cpp:47 ->§4.1; 串 "Unknown promotion for Purchase Contr"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x141392210 | 业务 类路由 CLendLeaseBaseAction ->§4.28; 类路由 COrderAddNewCompletePlanCommand ->§4.33; 类路由 NFactions ->§4.25 |
+| 0x140150C00 | 业务 类路由 CCreateOperativeLeaderEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 2/4 调用者 §4.12 |
+| 0x14244CC20 | 业务 类路由 CCasualtiesInflictedByInThousandsTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.35 |
+| 0x14241D5E0 | 业务 断言站点 naval_triggers.cpp:42 ->§4.32; 类路由 CHasNavalControlTrigger ->§4.32; 类路由 CUpgradeShipCaptainCommand ->§4.33 |
+| 0x1425646D8 | 业务 类路由 CAddSkillLevelEffect ->§4.32; 类路由 CHasWarWithTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1421216C0 | 业务 类路由 CAIHasRoleDivisionTrigger ->§4.32; 类路由 NCareerProfile ->§4.25; 调用图 IDF top §4.1 frac 1.00 |
+| 0x142482AD0 | 业务 类路由 CDamageBuildingEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 2/2 票 §4.31（同类方法连续排放） |
+| 0x142123610 | 业务 类路由 CStockpileRatioTrigger ->§4.32; 类路由 CPcIsForcedGovernmentTrigger ->§4.32; 类路由 CSetTaskForceCompositionRequirementsCommand ->§4.33 |
+| 0x1413AD8C0 | 业务 类路由 COrderReorderChildFrontCommand ->§4.33; 调用图 IDF top §4.1 frac 0.70; 邻域 18/34 票 §4.32（同类方法连续排放） |
+| 0x142453BE0 | 业务 类路由 CAddFactionPowerProjectionEffect ->§4.32; 串 "!empty()"; 串 "C:\\mnt\\external_libs2\\boost_1_84_" |
+| 0x14011F940 | 业务 断言站点 script_collection_triggers.cpp:25 ->§4.32; 类路由 CAddDecryptionEffect ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1401202A0 | 业务 类路由 CSetPopularitiesEffect ->§4.32; 类路由 CHasStateCategoryTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1413928A0 | 业务 断言站点 gameitemdatabase.h:42 ->§4.26; 串 "_pInstance && \"Instance not created"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1401F7880 | 业务 类路由 CBaseStateResistanceComplianceModifierEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 2/2 票 §4.25（同类方法连续排放） |
+| 0x1420C4C80 | 业务 类路由 CAllOperativeLeaderTrigger ->§4.32; 串 "SDL_THREAD_STACK_SIZE"; 调用图 IDF top §4.1 frac 0.74 |
+| 0x1401436D0 | 业务 类路由 CCreateDynamicCountry ->§4.32; 类路由 NInternationalMarket ->§4.25; 类路由 CHasTechBonusTrigger ->§4.32 |
+| 0x14007A970 | 业务 断言站点 peace_conference_database.cpp:82 ->§4.1; 类路由 CCollectionContainsTrigger ->§4.32; 串 "Unreachable code" |
+| 0x140522090 | 业务 唯一被调用者在书内 §4.00; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_EQUAL"; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_GREATER_THAN"; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER... |
+| 0x140523120 | 业务 类路由 NFactions ->§4.25; 调用图 IDF top §4.1 frac 0.60; 邻域 24/26 票 §4.32（同类方法连续排放） |
+| 0x140523210 | 业务 唯一被调用者在书内 §4.00; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_EQUAL"; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_GREATER_THAN"; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER... |
+| 0x140523260 | 业务 唯一被调用者在书内 §4.00; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_EQUAL"; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_GREATER_THAN"; 注册表邻域串 TRIGGER_VALUE_* "TRIGGER... |
+| 0x1423C0570 | 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00 |
+| 0x142159FA0 | 业务 类路由 CAddFactionGoalSlotEffect ->§4.32; 串 "); fwrite(a2, 1u, v4, v5); retur"; 串 "); return atexit(sub_1427001D0); }" |
+| 0x1401B63E0 | 业务 断言站点 state_effect_implementation.cpp:31 ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "No building type or tags specified f" |
+| 0x14245E000 | 业务 类路由 CIsPowerBalanceInRangeTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00; 邻域 2/2 票 §4.31（同类方法连续排放） |
+| 0x1401C1440 | 业务 类路由 CAddStabilityEffect ->§4.32; 类路由 CScriptFlag ->§4.28; 调用图 IDF top §4.1 frac 1.00 |
+| 0x142444F70 | 业务 类路由 CIntEffect ->§4.32; 类路由 CBecomeExiledGovernmentEffect ->§4.32; 类路由 CHasArmySizeTrigger ->§4.32 |
+| 0x1403A1D80 | CPrintVariablesEffect::GetSupportedScopeMask 业务 返回常量 14（作用域掩码）；CPrintVariablesEffect vtable 槽[19] 反查确认（CEffect 族，槽[1]=CEffect::GetName） |
+
+
+#### 4.32.50 脚本 effect/trigger 补遗卡（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1421C28E0 | 业务 串字面量 '(for generator)' [4.32×5] |
+| 0x1421C2B50 | 业务 串字面量 '(for index)' [4.32×5] |
+| 0x1420F1D00 | 业务 反调用图传播 1.0 权重锚点投 §4.32（top 占比 1.00） |
+| 0x140343430 | 业务 反调用图传播 1.0 权重锚点投 §4.32（top 占比 1.00） |
+| 0x140521C70 | 业务 反调用图传播 2.0 权重锚点投 §4.32（top 占比 1.00） |
+| 0x141392130 | 业务 反调用图传播 2.0 权重锚点投 §4.32（top 占比 1.00） |
+| 0x14032DA30 | 业务 反调用图传播 2.0 权重锚点投 §4.32（top 占比 1.00） |
+| 0x14043CE90 | 业务 反调用图传播 1.0 权重锚点投 §4.32（top 占比 1.00） |
+| 0x1403B2CB0 | 业务 反向调用图 2/2 调用者投 §4.32 |
+| 0x142473110 | 业务 反调用图传播 1.5 权重锚点投 §4.32（top 占比 0.67） |
+| 0x1413B0EB0 | 业务 反调用图传播 7.5 权重锚点投 §4.32（top 占比 1.00） |
+| 0x14031E7F0 | 业务 反调用图传播 1.0 权重锚点投 §4.32（top 占比 1.00） |
+| 0x140492360 | 业务 反调用图传播 1.0 权重锚点投 §4.32（top 占比 1.00） |
+| 0x140522860 | 业务 注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_NOT_EQUAL" |
+| 0x140522AE0 | 业务 ICF 克隆等价 0x140522860（注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_NOT_EQUAL"） |
+| 0x1405230D0 | 业务 ICF 克隆等价 0x140522860（注册表邻域串 TRIGGER_VALUE_* "TRIGGER_VALUE_NOT_EQUAL"） |
+
+#### 4.32.51 模板实例化桩结构定案（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B03130 | 模板桩: 模板参数类名 CEffect（高置信） |
+| 0x141D1FEF0 | 模板桩: 模板参数类名 CCommandStructureLeaderView（高置信） |
+| 0x141D1FF10 | 模板桩: 模板参数类名 CCommandStructureLeaderView（高置信） |
+| 0x141D1FF90 | 模板桩: 模板参数类名 CCommandStructureLeaderView（高置信） |
+| 0x141D1FFA0 | 模板桩: 模板参数类名 CCommandStructureLeaderView（高置信） |
+| 0x1416FFE10 | 模板桩: 模板参数类名 CCommandStructureView（高置信） |
+
+#### 4.32.52 单调用转发桩结构定案（126 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140525FE0 | 转发桩: 转发至 （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato（推定） |
+| 0x14070D1C0 | 转发桩: 转发至 调用图上游传播(占 62%, 3 票) sub_1403324A0 + 调用图上游传播(占 62%, 3 票)（推定） |
+| 0x141539510 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x1403C8730 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x140AB5C50 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x1404B9920 | 转发桩: 转发至 （无名） 业务 script_collection_evaluator.h:230 + 类型串 "state"（推定） |
+| 0x1404C83B0 | 转发桩: 转发至 （无名，按上游/loc 定性） eventscope.h:193（推定） |
+| 0x1404C8710 | 转发桩: 转发至 （无名，按证据定性） script_collection_evaluator.h:230 断言（'Collection operator %s doesn't support [Parallel]ForEach'）（推定） |
+| 0x1404C8830 | 转发桩: 转发至 （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato（推定） |
+| 0x1404C8890 | 转发桩: 转发至 （无名，按证据定性） script_collection_evaluator.h:230 断言（'Collection operator %s doesn't support [Parallel]ForEach'）（推定） |
+| 0x1404C89B0 | 转发桩: 转发至 （无名） 业务 script_collection_evaluator.h:230 + 类型串 "state" + 调 CAndTrigger::Evaluate（推定） |
+| 0x14140DC60 | 转发桩: 转发至 sub_141410980 业务 脚本集合并行迭代（"Collection operator %s doesn't support [Parallel]ForEach for objects of type %s" + "country"）（推定） |
+| 0x14140DD80 | 转发桩: 转发至 脚本集合 ForEach 模板实例（state） 脚本集合 ForEach 模板实例（state）；同族断言+类型名，被调 eventscope.h:193（推定） |
+| 0x14140DD20 | 转发桩: 转发至 脚本集合 ForEach 模板实例（state） 脚本集合 ForEach 模板实例（state）；同族断言+类型名，被调 eventscope.h:193（推定） |
+| 0x1404C84D0 | 转发桩: 转发至 脚本集合 ForEach 模板实例（country） 脚本集合 ForEach 模板实例（country）；同族断言+类型名\"country\"，被调 eventscope.h:193×5（推定） |
+| 0x1426327A0 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x1425F85E0 | 转发桩: 转发至 业务 串 "_animated"; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.32 3/9（推定） |
+| 0x1426313E0 | 转发桩: 转发至 调用图上游传播(占 50%, 2 票) sub_14022BC70 + 调用图上游传播(占 50%, 2 票)（推定） |
+| 0x1426F16B0 | 转发桩: 被调者 0x142349130 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x141F29980 | 转发桩: 转发至 未决窗口函数 · 标志掩码批量写 a1[2]+2640 + 四次 sub_141C96760(v6, a1[1139..1142], a2, 掩码常量)（推定） |
+| 0x1423B65B0 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x14015E910 | 转发桩: 转发至 未决窗口函数 · NRaids 库析构 `TReloadableGameItemDatabase<NRaids::CRaidDatabase>` + `TGameItemDatabase<NRaids::CRaidDatabase>` 双 vtable 析构（推定） |
+| 0x1406CB5A0 | 转发桩: 被调者 0x14070D1C0 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x141537600 | 转发桩: 被调者 0x141539510 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x1423B6610 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x1421AEF70 | 转发桩: 转发至 未决窗口函数 · 脚本类型错误上报 串 "attempt to %s %s '%s' (a %s value)" 脚本类型错误，STRIDE 16（推定） |
+| 0x142515AF0 | 转发桩: 转发至 业务 类路由 CIsDebugTrigger ->§4.32; 串 "dt->root->sibling == NULL"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla"（推定） |
+| 0x1403CBBA0 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x1403CBF10 | 转发桩: 被调者 0x1403C8730 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x1403CC580 | 转发桩: 转发至 （无名） 体设 CDateTrigger::vftable（RTTI 名）（推定） |
+| 0x14258C820 | 转发桩: 转发至 业务 断言站点 state_trigger_implementation.cpp:75 ->§4.32; 类路由 CDistanceToTrigger ->§4.32; 类路由 NFactions ->§4.25（推定） |
+| 0x1425F27F0 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x14260A2A0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14261E070 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x1423B6540 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x1423A5B80 | 转发桩: 转发至 （无名） 被 CCreateFactionFromTemplateEffect::GetDes 调用（事件/触发/效果）（推定） |
+| 0x1423B63C0 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x1423B6460 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x14268D6A0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14261D860 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14261DC40 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142634970 | 转发桩: 被调者 0x1401C24F0 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x142647610 | 转发桩: 被调者 0x1401C24F0 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x1421AEFC0 | 转发桩: 转发至 未决窗口函数 · 脚本类型错误上报 串 "attempt to %s %s '%s' (a %s value)" 脚本类型错误，STRIDE 16（推定） |
+| 0x140E9D9A0 | 转发桩: 转发至 业务 断言站点 deployment.cpp:14; 类路由 CIsOperativeCapturedTrigger ->§4.32; 类路由 CDucePortrait ->§4.31（推定） |
+| 0x1423B62D0 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x140EAB2D0 | 转发桩: 转发至 调用图上游传播(占 67%, 3 票) sub_140E9A2E0 + 调用图上游传播(占 67%, 3 票)（推定） |
+| 0x1423B6510 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x14258BC30 | 转发桩: 转发至 业务 断言站点 script_collection_triggers.cpp:25 ->§4.32; 类路由 CAddDecryptionEffect ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"（推定） |
+| 0x1423B63F0 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x1423B6430 | 转发桩: 转发至 业务 类路由 CRoundTempVariableEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x1424CC0C0 | 转发桩: 被调者 0x14256474C -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x14267FEC0 | 转发桩: 转发至 业务 串 "_animated"; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.32 3/9（推定） |
+| 0x142683CF0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142683D10 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14258CD30 | 转发桩: 转发至 业务 断言站点 pdx_scoped_singleton.h:18 ->§4.1; 断言站点 triggerimplementation.cpp:37 ->§4.32; 断言站点 unit.cpp:67（推定） |
+| 0x1425F3840 | 转发桩: 被调者 0x1406CB5A0 -> §4.32 (E:单调用转发(链内))（推定） |
+| 0x142632AB0 | 转发桩: 被调者 0x141298860 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x14263A780 | 转发桩: 转发至 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 类路由 CHasAddedTensionAmountTrigger ->§4.32（推定） |
+| 0x14263C540 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14263C560 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14258D1D0 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x14258D230 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x1425A2540 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x1425FF190 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x1425FF230 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x142607560 | 转发桩: 被调者 0x1401C24F0 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x14260A200 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14260A2C0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14261BE30 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14261BED0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14261BEF0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14263C510 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142644730 | 转发桩: 被调者 0x141537600 -> §4.32 (E:单调用转发(链内))（推定） |
+| 0x1426611B0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142667650 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14267A930 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142684380 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x14268D900 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x1425F2EF0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142634CC0 | 转发桩: 被调者 0x1401C24F0 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x142641050 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142667630 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142667640 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x1426F37D0 | 转发桩: 转发至 业务 类路由 CCreateOperativeLeaderEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 2/4 调用者 §4.12（推定） |
+| 0x1415DEFB0 | 转发桩: 转发至 sub_140A3B110 业务 脚本/序列化键（串 _short_desc）（推定） |
+| 0x142590920 | 转发桩: 被调者 0x1401C24F0 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x142628480 | 转发桩: 被调者 0x1401C24F0 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x1406120A0 | 转发桩: 转发至 业务 串字面量 "Unknown modifier" §4.32 Effect/Trigger（推定） |
+| 0x1425F2870 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x1425F2880 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x1425A8CE0 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x1425A9480 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x1425ADE10 | 转发桩: 转发至 vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用（推定） |
+| 0x142608F80 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x1426669D0 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x1426F3740 | 转发桩: 转发至 业务 类路由 CCreateOperativeLeaderEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 2/4 调用者 §4.12（推定） |
+| 0x1401C24F0 | 转发桩: 转发至 业务 断言站点 state_effect_implementation.cpp:31 ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "No building type or tags specified f"（推定） |
+| 0x141C94730 | 转发桩: 被调者 0x141F29980 -> §4.32 (E:单调用转发(被调者入书))（推定） |
+| 0x14211C2B0 | 转发桩: 转发至 业务 断言站点 pdx_robin_hood_table.h:58 ->§4.00; 类路由 CAddOpinionModifierEffect ->§4.32; 串 "_pEntry->_DistancePlus1 != nIterator"（推定） |
+| 0x1426E7FC0 | 转发桩: 转发至 业务 类路由 CHasDesignBasedOnTrigger ->§4.32; 串 "TRIGGER_HAS_DESIGN_BASED_ON"; 串 "TRIGGER_HAS_NOT_DESIGN_BASED_ON"（推定） |
+| 0x14258E4E0 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x14259BCC0 | 转发桩: 转发至 调用图上游传播(占 50%, 2 票) sub_14022BC70 + 调用图上游传播(占 50%, 2 票)（推定） |
+| 0x1425A6560 | 转发桩: 转发至 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 类路由 CHasAddedTensionAmountTrigger ->§4.32（推定） |
+| 0x1425A6570 | 转发桩: 转发至 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 类路由 CHasAddedTensionAmountTrigger ->§4.32（推定） |
+| 0x1425FF100 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x1426016D0 | 转发桩: 转发至 未命名业务函数 业务类 CTechnologyPath（类名/调用链证据）（推定） |
+| 0x1426228D0 | 转发桩: 转发至 业务 串 "_animated"; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.32 3/9（推定） |
+| 0x142638680 | 转发桩: 转发至 业务 类路由 CLendLeaseBaseAction ->§4.28; 类路由 COrderAddNewCompletePlanCommand ->§4.33; 类路由 NFactions ->§4.25（推定） |
+| 0x1426F19D0 | 转发桩: 转发至 业务 类路由 CIsGuaranteedByTrigger ->§4.32; 类路由 CIsOnContinentTrigger ->§4.32; 串 "mainmenu_panel_upperright"（推定） |
+| 0x1413B7C50 | 转发桩: 转发至 未决窗口函数 · 库条目按名解析 标签比较 + +3976 库 sub_140D3DF60/3F440 + sub_1406EA240(0x1A=26 类型) + sub_140D246C0 取值（推定） |
+| 0x14258C880 | 转发桩: 转发至 业务 断言站点 state_trigger_implementation.cpp:75 ->§4.32; 类路由 CDistanceToTrigger ->§4.32; 类路由 NFactions ->§4.25（推定） |
+| 0x1425A62E0 | 转发桩: 转发至 业务 串 "_animated"; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.32 3/9（推定） |
+| 0x1425F2840 | 转发桩: 转发至 业务 类路由 CSetEntityMovementEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.25 3/10（推定） |
+| 0x1425F8E60 | 转发桩: 转发至 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 类路由 CHasAddedTensionAmountTrigger ->§4.32（推定） |
+| 0x1425F92C0 | 转发桩: 转发至 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 类路由 CHasAddedTensionAmountTrigger ->§4.32（推定） |
+| 0x142638690 | 转发桩: 转发至 业务 类路由 CLendLeaseBaseAction ->§4.28; 类路由 COrderAddNewCompletePlanCommand ->§4.33; 类路由 NFactions ->§4.25（推定） |
+| 0x142639300 | 转发桩: 转发至 业务 断言站点 state_trigger_implementation.cpp:75 ->§4.32; 类路由 CDistanceToTrigger ->§4.32; 类路由 NFactions ->§4.25（推定） |
+| 0x1426F36C0 | 转发桩: 转发至 业务 类路由 CCreateOperativeLeaderEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 2/4 调用者 §4.12（推定） |
+| 0x1426F36D0 | 转发桩: 转发至 业务 类路由 CCreateOperativeLeaderEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 2/4 调用者 §4.12（推定） |
+| 0x1426F37C0 | 转发桩: 转发至 业务 类路由 CCreateOperativeLeaderEffect ->§4.32; 调用图 IDF top §4.1 frac 1.00; 反传 2/4 调用者 §4.12（推定） |
+| 0x140C9D920 | 转发桩: 转发至 CEquipmentModuleRequirements::InheritLimits? 业务类 CEquipmentModuleRequirements（类名/调用链证据）（推定） |
+| 0x141286DE0 | 转发桩: 转发至 （无名） 断言站点 posteffectvolumes.cpp:1019（推定） |
+| 0x141298860 | 转发桩: 转发至 业务 类路由 CCountTriggersTrigger ->§4.32; 类路由 CCharacterManager ->§4.4; 类路由 CMassRemoveProductionsLineCommand ->§4.33（推定） |
+| 0x142349130 | 转发桩: 转发至 业务 类路由 CDeclareWarEffect ->§4.32; 串 "GFX_frontend_bg_basic"; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x14256474C | 转发桩: 转发至 业务 类路由 CAddSkillLevelEffect ->§4.32; 类路由 CHasWarWithTrigger ->§4.32; 调用图 IDF top §4.1 frac 1.00（推定） |
+
+#### 4.32.53 脚本 effect/trigger 补遗卡（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413971E0 | 调用链 CRetireEffect::[25]@141395220 / CIntEffect::[25]@1413958D0；断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadFor… |
+| 0x140308C40 | 调用图传播: 1 个命名调用者（1 游戏类，如 CTeleportArmiesEffect::Execute）；多数投 §4.32 |
+| 0x14032AB00 | 调用图传播: 3 个命名调用者（3 游戏类，如 CSwapIdeasEffect::Parse）；多数投 §4.32 |
+| 0x141393750 | 路径锚 source\effects\effectbase.cpp |
+| 0x14140FBE0 | 断言 script_collection_evaluator.h:230 + eventscope.h:193 "Infinite cycle in event FROM scope" + 串 "Collection operator %s doesn't support [Parallel]ForEach fo… |
+| 0x1415A8F20 | 游戏 CU 邻近: CWarReparationTimedEffect::Writer / CPdxHybridInlineBufferAllocator<H::$0BI: |
+| 0x1424BF160 | 调用图传播: 3 个命名调用者（1 游戏类，如 CCreateUnitEffect::Execute）；多数投 §4.32 |
+| 0x14001EDE0 | 脚本触发器注册壳（221 个模板实例, 代表 VA; 族级收编）: 枢纽 qword_143330050 + sub_140550970 + CTriggerEntry<CTrigger>::`vftable' |
+| 0x140014380 | 脚本效果注册壳（106 个模板实例, 代表 VA; 族级收编）: 枢纽 qword_143330000 + sub_1405415A0 + CEffectEntry<CEffect>::`vftable' |
+
+#### 4.32.54 脚本 effect/trigger 补遗卡（29 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141390080 | 业务 邻域 effectbase.cpp（CContextEffect::ExecuteChecked/CFireEventEffect::Execute/CLogScriptEffect::Execute/CRandomListEffect::Execute）+ a1+8728/8824 80B 步长 |
+| 0x1421C6C30 | 业务 串 "function or expression too complex"（脚本表达式错误）+ 0x1421C5* 表达式求值簇 |
+| 0x14044CE00 | CAllArmyLeaderTrigger::Evaluate 业务 CAllArmyLeaderTrigger::Evaluate（func_names 名 + eventscope.h:193 断言 + 调用 CAndTrigger::Evaluate） |
+| 0x1404B6C30 | CFactionPowerProjectionTrigger::GetDesc 业务 CFactionPowerProjectionTrigger::GetDesc（func_names 名 + 串 FACTION_POWER_PROJECTION_LESS_THAN/MORE_THAN） |
+| 0x1409D1B10 | sub_1409D1B10 业务 国家目标值触发器（调用图传播 CCountryTargetedValueTrigger::AddTriggerDynamicVariable） |
+| 0x1403858E0 | CModifyBuildingEffect::GetDesc 业务 CModifyBuildingEffect::GetDesc（func_names 名 + 串 EFFECT_MODIFY_BUILDING_RESOURCES/BUILDING/AMOUNT/FRAME） |
+| 0x140362D50 | CSetNameEffect::Execute 业务 CSetNameEffect::Execute（func_names 名 + effectimplementation.cpp:23612 + 串 " has been retired. Can't Update."） |
+| 0x14038BDF0 | CRemoveScientistRoleEffect::GetDesc 业务 CRemoveScientistRoleEffect::GetDesc（func_names 名 + effectimplementation.cpp:6506 + 串 EFFECT_REMOVE_SCIENTIST_ROLE） |
+| 0x1402EDC40 | CReplaceUnitLeaderTraitEffect::GetDesc 业务 脚本/业务语义串 |
+| 0x14043B280 | CHasResourcesTrigger::ParseToken 业务 trigger 实现 |
+| 0x14030D2C0 | CAddComplianceEffect::Execute 业务 游戏状态访问 |
+| 0x14139CA60 | XPEBVCEffect::Z::_Func_impl_no_alloc<…>::[2] 业务 对象虚方法调用/转发（vtable+16 调度） |
+| 0x140334970 | 游戏 CU 簇内: CCreateUnitLeaderEffect::[25] / CClearTempArrayTrigger::ParseValueKeys |
+| 0x140357870 | 路径锚 source\effects\effectimplementation.cpp |
+| 0x14037BC70 | func_names slot 名；串 EFFECT_CLEAR_TEMPLATE_DIVISION_CAP、NAME；调 sub_1410E48A0（desc 原语） |
+| 0x14039A880 | func_names 符号名 CUnlockNationalFocusEffect::GetDesc + VTABLE RTTI .?AVCUnlockNationalFocusEffect@@[slot7] |
+| 0x1403A6690 | func_names 符号名 CAddCountryLeaderRoleEffect::ResolveReferences + VTABLE RTTI .?AVCAddCountryLeaderRoleEffect@@[slot23] |
+| 0x1403F9D20 | func_names 符号名 CCountSubjectsTrigger::GetDesc + VTABLE RTTI .?AVCCountSubjectsTrigger@@[slot21] |
+| 0x140406430 | func_names slot 名；串 TRIGGER_IS_IN_CIVIL_WAR、TRIGGER_IS_NOT_IN_CIVIL_WAR；调 sub_1410E48A0 |
+| 0x14041FB80 | func_names slot 名；串 TRIGGER_IS_GOVERNMENT_IN_EXILE、TRIGGER_NOT_IS_GOVERNMENT_IN_EXILE；调 sub_1410E48A0（trigger desc 原语） |
+| 0x14047FFA0 | func_names 符号名 CVariableEffectBuilder<CGetSupplyVehicles<CVariableResolver>>::[3] + VTABLE RTTI .?AV?$CVariableEffectBuilder@V?$CGetSupplyVehicles@VCVariable… |
+| 0x140487EE0 | func_names slot 名；断言 source/effects/power_balance_effects.cpp:548/554；串 %s: Please specify the side ID、%s: Unable to find side with ID: %s；被 CPowerBalanceEff… |
+| 0x14048EB60 | func_names slot 名；串 TRIGGER_PC_IS_ON_WINNING_SIDE、TRIGGER_PC_IS_NOT_ON_WINNING_SIDE；调 sub_1410E48A0 |
+| 0x140491750 | 调用图传播：CAddDesignTemplateBonusEffect::ParseToken + 串 "a fixed point number"/" is not " |
+| 0x1404B61B0 | vtable slot21 + 串 "FACTION_INFLUENCE_LESS_THAN"/"FACTION_INFLUENCE_MORE_THAN"/"FACTION_RATIO"/"VALUE" |
+| 0x141391F60 | VT CRandomListEffectMember + CScopedVariable；LIB std；调 sub_14011DF40/14015A370/14053CFD0 |
+| 0x14034AEA0 | §4.33（effect/trigger 脚本层） func_names 名 CAddNamedThreatEffect::Execute；断言 gamestate.h:1116/1117；pdx_string +296（>0xF 取指针） |
+| 0x140370C50 | §4.33（effect/trigger 脚本层） func_names CAddAceEffect::GetDesc；串 "NAME"/"SURNAME"/"CALLSIGN"/"EFFECT_ADD_ACE"；eh vector 0x68×3 |
+| 0x141399D80 | §4.33（effect/trigger 脚本层） func_names 名 CFireEventEffect::ResolveReferences；串链表遍历；v2..v10 指针槽逐一解引用 |

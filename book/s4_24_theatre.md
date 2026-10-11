@@ -927,23 +927,11 @@ sub_140F3FF80 (a1 = COrdersGroup, a2 = 待入组单位数组 {data@+0, count@+12
 | 0x140F01A60 | CFront::Writer func_names 全名 CFront::Writer，Reader/Writer 角色定 §4.29 |
 | 0x140EEB590 | CFront::[0] vtable 槽 CFront::[0]（func_names RTTI 名） |
 | 0x140EEB680 | CTheatre::[0] vtable 槽 CTheatre::[0]（func_names RTTI 名） |
-
-#### 4.24.25 战区前线族函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.24.26 战区前线族函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x140EFCF10 | CFront::Reader func_names 名 CFront::Reader |
-
-#### 4.24.27 战区前线族函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.24.28 战区前线族函数补遗（33 函）
 
 | VA | 语义/证据 |
@@ -1043,3 +1031,68 @@ sub_140F3FF80 (a1 = COrdersGroup, a2 = 待入组单位数组 {data@+0, count@+12
 | VA | 语义/证据 |
 |---|---|
 | 0x1424D4390 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+
+#### 4.24.34 战区前线族函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141257840 | 前线(CFront)对象处理 前线(CFront)对象处理；_RTDynamicCast 目标 RTTI = CFront（经 CReferenceObject 基），含引用计数清理分支 |
+| 0x140EE6BE0 | NTheatreManager::InitializeFrontsForCountries? |
+| 0x140EF8720 | CTheatre::[8] 名:CTheatre::[8] |
+| 0x141968B60 | 无名 sub_（人工读体裁定） NPathFind::SHop 数组单例初始化（TLS 样板 + CPdxArray<NPathFind::SHop,8,int> 模板参数） |
+
+#### 4.24.35 战区前线族函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AF41F0 | sub_141AF41F0 业务 Connected With Theatre:（战区连接调试输出） |
+| 0x140EF2BF0 | 业务 夹于 CPdxHybridInlineBufferAllocator::[6](d=30000) 与 CFront::[8](d=23104)，前线（front）对象族 |
+| 0x141052AF0 | 业务 夹于 COrderInstance::SOrderInstanceRef::Writer(d=26000) 与 CAIFront::BalanceUnitsOnFrontBetweenArmies(d=12144)，命令实例引用/AI 前线族 |
+| 0x140EF0570 | 业务 gamestate.h:1125，夹于 CPdxHybridInlineBufferAllocator::[6](d=20144) 与 CFront::[8](d=32960)，前线对象族 |
+| 0x14026F140 | 业务 体串 "PathFind cache disabled."; 体串 "PathFind cache enabled." |
+| 0x140EEAA20 | 业务 类路由 CContextLocalizationText ->§4.31; 调用图 IDF top §4.1 frac 1.00; 邻域 10/18 票 §4.24（同类方法连续排放） |
+| 0x140EF1540 | 业务 断言站点 pdx_pinned_array.h:70 ->§4.1; 串 "Index >= 0 && Index < _Size && \"Out"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x140EE6E60 | 业务 类路由 CAcceptCommandDialog ->§4.30; 调用图 IDF top §4.1 frac 0.57; 邻域 10/21 票 §4.24（同类方法连续排放） |
+| 0x141097870 | 业务 前线寻路断言邻域 "Micro attack pathfinding should not use " |
+
+#### 4.24.36 战区前线族函数命名空间补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EE8E20 | NTheatreManager::InitializeFrontsForCountries func_names 名 + tbb 任务分配 |
+| 0x140EE8720 | NTheatreManager::InitializeTheatresForEveryone? NTheatreManager::InitializeTheatresForEveryone? + tbb auto_partitionizer + gamestate.h:1116（战区管理器并行初始化） |
+
+#### 4.24.37 战区前线族函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BFDFD0 | 业务 "Theatre = "/"In transit to "/" ::::::\n"（战区/调运转储） |
+| 0x141AF4850 | 业务 " Score: "/" FrontId: "/"Unit: "（前线/单位分数转储） |
+| 0x141266B30 | 业务 同族 sub_141253880（blitz/fallback/withdraw/offence_line）+ CMapArrowManager::LoadDefinitions；float xmm 密集 |
+| 0x14125B320 | 业务 "child_edge" + 同族 sub_141253880 持 blitz_line/fallback_line/withdraw_line/offence_line；sub_1412739D0 → CMapArrowManager::LoadDefinitions |
+| 0x141269CA0 | 业务 fixed×1e-5→float 换算 ((int)\*v7)/100000.0；调用者 sub_14126AE10 持 CPdxHybridInlineBufferAllocator<SMapArrowVertex> |
+| 0x141033A10 | 业务 反向调用图 1/2 调用者投 §4.24 |
+
+#### 4.24.38 单调用转发桩结构定案（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BB4350 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 ai_theatre_graph.cpp:134（推定） |
+| 0x140EEA380 | 转发桩: 转发至 业务 断言站点 pdx_pinned_array.h:70 ->§4.1; 串 "Index >= 0 && Index < _Size && \"Out"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla"（推定） |
+| 0x14261F830 | 转发桩: 被调者 0x140EEA380 -> §4.24 (E:单调用转发(被调者入书))（推定） |
+| 0x14261F810 | 转发桩: 被调者 0x140EEA380 -> §4.24 (E:单调用转发(被调者入书))（推定） |
+| 0x14261F480 | 转发桩: 转发至 业务 类路由 CContextLocalizationText ->§4.31; 调用图 IDF top §4.1 frac 1.00; 邻域 10/18 票 §4.24（同类方法连续排放）（推定） |
+
+#### 4.24.39 战区前线族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B3A9B0 | 反调用图单链锚点（0.5）投 §4.24；锚点 `sub_142040D40` |
+| 0x141035190 | 邻域传播改判（锚 0x141033A10 §4.24，距离 0x1780）；跳点串 "pStr" |
+| 0x141243780 | 邻域传播改判（锚 0x14125B320 §4.24，距离 0x17BA0）；跳点串 "idle" / "Failed to create entity instance of internal airplane scene." |
+
+#### 4.24.40 战区前线族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E65A30 | VT CNewTheaterGroupItem；串 new_theater_group_item；调 sub_1422C6040/141E6C2A0/141E642E0/141E6DF10 |

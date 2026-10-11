@@ -782,23 +782,11 @@ SProjectHistory 条目 (a2, 88B):
 | 0x141BDC380 | （无名，按证据定性） 键 RESEARCH_DESIGN_TEAM_IS_BUSY + NAME（科研设计团队忙碌状态） |
 | 0x1414BA2C0 | 科技键 "TECH" + gamestate.h:1125 站点 + pdx_core 单例断言 |
 | 0x140ED4EF0 | CTechnologyStatus::[0] vtable 槽 CTechnologyStatus::[0]（func_names RTTI 名） |
-
-#### 4.7.22 科技域函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.7.23 科技域函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x140ED4860 | （无名） 体设 CTechnologyStatus::vftable（RTTI 名） |
-
-#### 4.7.24 科技域函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.7.25 科技域函数补遗（21 函）
 
 | VA | 语义/证据 |
@@ -909,3 +897,417 @@ SProjectHistory 条目 (a2, 88B):
 |---|---|
 | 0x141FA37F0 | 科技UI "ONGOING_PROJECT_GO_TO_NEXT/PREVIOUS_BREAKTHROUGH" 按方向选择 + vtable+520 条件分支；科研突破导航 UI |
 | 0x140DB7460 | 科研完成回调 "on_mio_tech_reseach_completed" 回调注册（sub_140A53810 + sub_1413AE5C0 + malloc(0x20)） |
+
+#### 4.7.36 科技域函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D81880 | CTechnologySharing::GetFullTooltip? / CTechnologySharing::GetFullTooltip CTechnologySharing::GetFullTooltip §4.7 科技 |
+| 0x140D83BF0 | CTechnologySharing::Reader 科技共享反序列化 + `CPdxHybridInlineBufferAllocator<CString,10,int>` |
+| 0x1413F2DD0 | CReducedFocusCost::[3] CReducedFocusCost 槽 3 |
+| 0x140D811D0 | CTechnologySharing::GetFullTooltip? 科技共享/科技信息窗口/研究命令（CTechnologySharing::GetFullTooltip?） |
+| 0x1413C7080 | 学说图标名 new_mobile_warfare / superior_firepower / grand_battle_plan / mass_assault / new_fleet_in_being 等 10 学说键 |
+| 0x140EE58C0 | CTechnologySharingGroup::[17] 科技共享/科技信息窗口/研究命令（CTechnologySharingGroup::[17]） |
+| 0x140D7CF70 | （无名） 被 NDoctrines::CCountryDoctrineStatus::[8] 调用（学说） |
+| 0x141CAFEA0 | （无名） 被 NProject::NUi::CProjectHistoryRoster::[0 调用（科技） |
+| 0x141CB0080 | 无名（证据推断） 类名/模板：NProject::NUi 、 NProject::NUi |
+| 0x140AC71E0 | （无名） 被 CTechnologyDatabase::[2] 调用（科技） |
+| 0x140D80F10 | （无名） 被 NDoctrines::CCountryDoctrineStatus::[8] 调用（学说） |
+| 0x140142670 | 无名（证据推断） 类名/模板：Z::_Func_impl_no_alloc 、 NDoctrines::CTrackDatabase 、 NDoctrines::CTra |
+| 0x141CC6600 | 无名（证据推断） 类名/模板：NFactions::CFactionUpgradeStatus 、 NFactions::CDoctrineSharingStatus |
+| 0x141C1BFA0 | （无名） 被 NFactions::NUi::CAssignResearchFacilityW 调用（科技） |
+| 0x141F36140 | （无名） VA 邻近 NDoctrines::CTrackItem::[0](±496)（学说） |
+| 0x140D81FA0 | CTechnologySharing::[10] 名:CTechnologySharing::[10] |
+| 0x14147CDF0 | （无名） VA 邻近 NDoctrines::CTrackStatus::Writer(±240)（学说） |
+| 0x140EE1530 | CTechnology::[0] 科技类 |
+| 0x140A96160 | 无名大函数 0x140A96160 诊断串 'Only project tags are supported in the project tags file'（特种项目） |
+| 0x140FE08C0 | NProject::CProject::[0] 名:NProject::CProject::[0] |
+| 0x1413CDC50 | （无名） VA 邻近 NDoctrines::CCountryDoctrineStatus::[8](±512)（学说） |
+| 0x140D84070 | CTechnologySharing::[11] CTechnologySharing::[11] + 域关键词匹配; 被调源码 hoi4; 被 CTechnologySharing::[11] 等 1 命名函数调用 |
+| 0x141F0C610 | 科学家监听器 科学家更新监听器：NInterfaceMessages::SScopedListener<SScientistUpdatedListener> + v2+1228 计数 |
+
+#### 4.7.37 科技域函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413C85C0 | sub_1413C85C0 业务 学说效果来源描述（DOCTRINE_EFFECT_SOURCE_GRAND_DOCTRINE/SUBDOCTRINE/REWARD、MASTERY、TRACK） |
+| 0x141F10330 | sub_141F10330 业务 特殊项目/科学家计划（PROGRAM_PROJECT_NAME / PROGRAM_SCIENTIST_QUIT / SPECIAL_PROJECT_RESOURCE_USAGE / PROGRAM_NO_SCIENTIST_ASSIGNED / PROGRAM_CAN_START） |
+| 0x140496230 | NProject::CCompletePrototypeReward::[7] 业务 func_names 名 NProject::CCompletePrototypeReward::[7]；串 "EFFECT_COMPLETE_SPECIAL_PROTOTYPE_REWARD"/"PROTOTYPE_REWARD" |
+| 0x1404944C0 | NProject::CAddBreakthroughPoints::[7] 业务 func_names 名 NProject::CAddBreakthroughPoints::[7]；串 "ADD_BREAKTHROUGH_POINTS_EFFECT_DESC"/"ADD_BREAKTHROUGH_POINTS_… |
+| 0x1413C6A20 | （无名） 业务 doctrine_utils.cpp:102 + 串 "DOCTRINE_ARMY_XP_COS"/"DOCTRINE_XP_COST_INSUFFICIENT"/"Unknown XP type" |
+| 0x140A91F90 | NProject::CPrototypeReward::[4] 业务 特殊项目系统（NProject = CProject/CProgram/CPrototypeReward/CProjectDatabase/CNarrative 族，1.19 新系统）vtable 槽 4 |
+| 0x141F3AC50 | 业务 学说解锁：define UNLOCK_DOCTRINE_TEXT + "COST" 令牌（sub_1402E3540 查询） |
+| 0x140D81C20 | CTechnologySharing::GetFullTooltip? 业务 科技共享完整提示，func_names 名带 ? |
+| 0x141BE6E70 | sub_141BE6E70 业务 串 SCIENTIST_NAME/SPECIAL_PROJECT_RESEARCH_TIME_TOOLTIP_* |
+| 0x140AC8B00 | 业务 夹于 CTechnologySharingGroupDatabase::Reader(d=6864) 与 TGameItemDatabase<CTechnologyDatabase>::[1](d=12560)，科技共享组/科技数据库族 |
+| 0x140AA1B00 | 业务 夹于 CScientistTrait::[4](d=272) 与 CCountryScorerEntry::[0](d=3156)，SIMD，科学家特质/国家评分条目族 |
+| 0x140EE5430 | CTechnologyStatus::Writer 业务 CTechnologyStatus::Writer 科技状态序列化 writer（pdx_scoped_buffer.h:54 站点） |
+| 0x1413C98C0 | 业务 调 CDiplomaticAction::GetFirstCountryRef，夹于 NDoctrines::SMasteryFromUnitLeader::Writer(d=9520) 与 NDoctrines::CCountryDoctrineStatus::[8]，学说精通/国家学说状态族（与 0x1… |
+| 0x1414646A0 | sub_1414646A0 业务 串 "SPECIAL_PROJECT_SCIENTIST_INJURED"/"DAYS"（特殊项目科学家受伤） |
+| 0x140AA1750 | CScientistTraitDatabase::[0] 业务 CScientistTraitDatabase::[0] 科学家特质数据库槽方法；类名自文档 |
+| 0x141A05E50 | 业务 串字面量 "PROGRAM_SCIENTIST_BONUS" §4.7 科技 |
+| 0x140B5E410 | sub_140B5E410 业务 串：EFFECT_MIO_ADD_RESEARCH_ASSIGN_COST 、 EFFECT_MIO_SET_DESIGN_CHANGE_ASS |
+| 0x14145CD00 | sub_14145CD00 业务 串：SPECIAL_PROJECT_CANT_START 、 SPECIAL_PROJECT_CAN_START |
+| 0x1423B32D0 | sub_1423B32D0 业务 串：RECIPIENT 、 EFFECT_TRANSFER_UNITS 、 ( pScope == this 、、 pScope->_pFrom |
+| 0x140BF3CC0 | 业务 断言站点 technology_sharing_template.cpp:55 ->§4.7; 断言站点 gameitemdatabase.h:49 ->§4.26; 类路由 CStateSharedSlotBuildingItem ->§4.31 |
+| 0x1426FE0C0 | 业务 断言站点 limitedusetechbonus.cpp:7 ->§4.7; 串 "GFX_leader_details_icon_available_tr"; 串 "_ClaimsActive > 0" |
+| 0x140ACB630 | 业务 类名证据「TGameItemDatabase<CTechnologyDatabase>」 §4.7 科技 |
+| 0x140D7F3E0 | 业务 类路由 CTaskForceCompositionRequirements ->§4.28; 类路由 CSpecializationItem ->§4.31; 类路由 CChangeNavyLeaderDialog ->§4.30 |
+
+#### 4.7.38 科技域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1404955F0 | NProject::CAddScientistTraitEffect::[7] 业务 Effect 后缀（特殊项目科学家特质）vtable 槽 7 |
+| 0x141C20070 | NProject::NUi::CSpecializationSortItem::[0] 业务 类名 *SortItem + 串 "SCIENTIST_ROSTER_SORT_BUTTON_TOOLTIP"/"REASON"（科学家花名册排序条目） |
+| 0x141EEE3A0 | NProject::NUi::CProgramOngoingProjectView::[0] 业务 NProject::NUi::CProgramOngoingProjectView::[0] 项目进行中视图槽方法；类名自文档 |
+| 0x141C22630 | NProject::NUi::CScientistRoster::[14] 业务 NProject::NUi::CScientistRoster::[14] 科学家名册槽方法；类名自文档 |
+| 0x141F33110 | NProject::NUi::CProjectSimpleRoster::[5] 业务 NProject::NUi::CProjectSimpleRoster 项目花名册 GUI 项 |
+| 0x140FE5C00 | NProject::CProject::Writer 业务 NProject::CProject::Writer，项目序列化（pdx_core 序列化辅助族 27 调用） |
+
+#### 4.7.39 科技域函数命名空间补遗（202 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C1FB40 | NProject::NUi::CScientistList::[0] NProject::NUi::CScientistList::[0] + vtable/RTTI 类 CTextBufferObserver; vtable/RTTI 含 CTextBufferObserver; 被 NProject::NUi… |
+| 0x141C21FD0 | NProject::NUi::CScientistRoster::[8] NProject::NUi::CScientistRoster::[8] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x140495D90 | NProject::CCompleteProjectEffect::[7] NProject::CCompleteProjectEffect::[7] + PROJECT / EFFECT_COMPLETE_SPECIAL_PROJECT（项目完成效果） |
+| 0x140A91450 | NProject::CPrototypeReward::[7] NProject::CPrototypeReward::[7] + "in prototype_reward" / "at least 1 option is mandatory" / "only one option can have defaul… |
+| 0x141C21C60 | NProject::NUi::CScientistRoster::[6] NProject::NUi::CScientistRoster::[6] + SCIENTIST_TOOLTIP_CLICK_(UN)ASSIGN / SCIENTIST_CANT_CLICK（项目科学家名册 UI） |
+| 0x141EEA9F0 | NProject::NUi::CBreakthroughCostItem::[0] NProject::NUi::CBreakthroughCostItem::[0]，串 SPECIAL_PROJECT_BREAKTHROUGH_COST/AMOUNT/SPECIALIZATION |
+| 0x140E77850 | NProject::CProgramStatus::Reader NProject::CProgramStatus::Reader（特殊项目程序状态读取器） |
+| 0x1404A13B0 | NProject::CAnyActiveScientistTrigger::Evaluate 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x1404A2BB0 | NProject::CHasBreakthroughPointsTrigger::GetDesc NProject::CHasBreakthroughPointsTrigger::GetDesc + 名字角色规则(NProject::CHasBreakthroughPointsTrigger::GetDesc);… |
+| 0x141EEE240 | NProject::NUi::CPreviewState::[0] NProject::NUi::CPreviewState::[0] + 域关键词匹配; 串 "_pButton && !_pButton->IsNullObject()"; 源码路径 clausewitz |
+| 0x140494B20 | NProject::CAddBreakthroughProgress::[7]（func_names 名） func_names 名 + 串 "ADD_BREAKTHROUGH_PROGRESS_EFFECT_DESC"/"ADD_BREAKTHROUGH_PROGRESS_EFFECT_SPECIALIZATI… |
+| 0x141F17F30 | NProject::NUi::CScientistItem::[0]：NProject::NUi::CScientistItem::[0] NProject::NUi::CScientistItem::[0]；串 SCIENTIST_RECRUIT_COST_DEFAULT/DESC/LAST + SPECIAL… |
+| 0x140497580 | NProject::CCompletePrototypeReward::[23]（func_names 名） func_names 名 + 串 "No prototype reward was provided"/"No project has the prototype reward option"/"No i… |
+| 0x140496860 | NProject::CInjureScientistEffect 槽7 NProject::CInjureScientistEffect 槽7：STR 'SPECIAL_PROJECT_INJURE_SCIENTIST_FOR_DAYS'/'Scoped character has no scientist role' |
+| 0x140495A20 | NProject::CAddScientistXpEffect 槽7 NProject::CAddScientistXpEffect 槽7：STR 'SCIENTIST_ADD_XP_SPECIALIZATION_EFFECT'/'SPECIALIZATION'/'timeout_progressbar' |
+| 0x1404A2740 | NProject::CCanAssignFactionSupportiveScientistToFaction::GetDesc 串 TRIGGER_FACTION_SUPPORTIVE_SCIENTIST_SPOTS / FACTIONNAME |
+| 0x1404A3140 | NProject::CIsProjectCompletedTrigger::GetDesc TRIGGER_IS_SPECIAL_PROJECT_COMPLETED / TRIGGER_IS_NOT_SPECIAL_PROJECT_COMPLETED loc 键 |
+| 0x141EEE190 | NProject::NUi::CProgramOngoingProjectView::[12] vtable 槽 NProject::NUi::CProgramOngoingProjectView::[12]（func_names RTTI 名） |
+| 0x1404987B0 | NProject::CEveryScientistEffect::[26] vtable 槽 NProject::CEveryScientistEffect::[26]（func_names RTTI 名） |
+| 0x140493FE0 | NProject::CInjureScientistEffect::[13] vtable 槽 NProject::CInjureScientistEffect::[13]（func_names RTTI 名） |
+| 0x141FA4340 | NProject::NUi::CProjectOutputRewardWindow::[6] vtable 槽 NProject::NUi::CProjectOutputRewardWindow::[6]（func_names RTTI 名） |
+| 0x140A94280 | NProject::CProjectDatabase::[2] vtable 槽 NProject::CProjectDatabase::[2]（func_names RTTI 名） |
+| 0x141481D70 | NProject::CProjectPool::[0] vtable 槽 NProject::CProjectPool::[0]（func_names RTTI 名） |
+| 0x141A04CB0 | NProject::CBreakthroughProgress::[2] vtable 槽 NProject::CBreakthroughProgress::[2]（func_names RTTI 名） |
+| 0x141EEE860 | NProject::NUi::CProgramOngoingProjectView::[1] vtable 槽 NProject::NUi::CProgramOngoingProjectView::[1]（func_names RTTI 名） |
+| 0x141CB1B40 | NProject::NUi::CFacilitiesTabView::[8] vtable 槽 NProject::NUi::CFacilitiesTabView::[8]（func_names RTTI 名） |
+| 0x140492890 | NProject::CCompleteProjectEffect::[6] vtable 槽 NProject::CCompleteProjectEffect::[6]（func_names RTTI 名） |
+| 0x140494180 | NProject::CSetProjectFlagEffect::[13] vtable 槽 NProject::CSetProjectFlagEffect::[13]（func_names RTTI 名） |
+| 0x141F193C0 | NProject::NUi::CRecruitScientistWindow::[0] vtable 槽 NProject::NUi::CRecruitScientistWindow::[0]（func_names RTTI 名） |
+| 0x141F0F900 | NProject::NUi::CProgramItem::[1] vtable 槽 NProject::NUi::CProgramItem::[1]（func_names RTTI 名） |
+| 0x1404936E0 | NProject::CAddScientistTraitEffect::[13] vtable 槽 NProject::CAddScientistTraitEffect::[13]（func_names RTTI 名） |
+| 0x141F33CD0 | NProject::NUi::CProjectHistoryItem::[0] vtable 槽 NProject::NUi::CProjectHistoryItem::[0]（func_names RTTI 名） |
+| 0x141471200 | NProject::NUi::CProjectSimpleRoster::[4] vtable 槽 NProject::NUi::CProjectSimpleRoster::[4]（func_names RTTI 名） |
+| 0x140160540 | NProject::CPrototypeRewardOption::[0] vtable 槽 NProject::CPrototypeRewardOption::[0]（func_names RTTI 名） |
+| 0x141C22560 | NProject::NUi::CScientistRoster::[9] vtable 槽 NProject::NUi::CScientistRoster::[9]（func_names RTTI 名） |
+| 0x141EEE060 | NProject::NUi::CPreviewState::[1] vtable 槽 NProject::NUi::CPreviewState::[1]（func_names RTTI 名） |
+| 0x141EEA670 | NProject::NUi::CProjectItem::[0] vtable 槽 NProject::NUi::CProjectItem::[0]（func_names RTTI 名） |
+| 0x140493660 | NProject::CAddScientistLevelEffect::[13] vtable 槽 NProject::CAddScientistLevelEffect::[13]（func_names RTTI 名） |
+| 0x14015EE30 | NProject::CSpecializationDatabase::[1] vtable 槽 NProject::CSpecializationDatabase::[1]（func_names RTTI 名） |
+| 0x141F0CB50 | NProject::NUi::CProgramItem::[0] vtable 槽 NProject::NUi::CProgramItem::[0]（func_names RTTI 名） |
+| 0x141A04ED0 | NProject::CProgramConsumer::[0] vtable 槽 NProject::CProgramConsumer::[0]（func_names RTTI 名） |
+| 0x141C22130 | NProject::NUi::CScientistRoster::[5] vtable 槽 NProject::NUi::CScientistRoster::[5]（func_names RTTI 名） |
+| 0x140A946E0 | NProject::CProjectTemplate::[3] vtable 槽 NProject::CProjectTemplate::[3]（func_names RTTI 名） |
+| 0x141C225D0 | NProject::NUi::CScientistRoster::[7] vtable 槽 NProject::NUi::CScientistRoster::[7]（func_names RTTI 名） |
+| 0x141EEE820 | NProject::NUi::CProgramOngoingProjectView::[8] vtable 槽 NProject::NUi::CProgramOngoingProjectView::[8]（func_names RTTI 名） |
+| 0x140A91EF0 | NProject::SOutput::[3] vtable 槽 NProject::SOutput::[3]（func_names RTTI 名） |
+| 0x141CB0600 | NProject::NUi::CFacilitiesTabView::[12] vtable 槽 NProject::NUi::CFacilitiesTabView::[12]（func_names RTTI 名） |
+| 0x141EEE120 | NProject::NUi::CStartedResearchState::[1] vtable 槽 NProject::NUi::CStartedResearchState::[1]（func_names RTTI 名） |
+| 0x141CB3200 | NProject::NUi::CFacilitiesTabView::[6] vtable 槽 NProject::NUi::CFacilitiesTabView::[6]（func_names RTTI 名） |
+| 0x141FA3A30 | NProject::NUi::CProjectOutputRewardWindow::[8] vtable 槽 NProject::NUi::CProjectOutputRewardWindow::[8]（func_names RTTI 名） |
+| 0x140492620 | NProject::CCompleteProjectEffect::[0] vtable 槽 NProject::CCompleteProjectEffect::[0]（func_names RTTI 名） |
+| 0x140492510 | NProject::CAddBreakthroughPoints::[0] vtable 槽 NProject::CAddBreakthroughPoints::[0]（func_names RTTI 名） |
+| 0x140493FB0 | NProject::CCompletePrototypeReward::[13] vtable 槽 NProject::CCompletePrototypeReward::[13]（func_names RTTI 名） |
+| 0x1404981C0 | NProject::CAddScientistXpEffect::[4] vtable 槽 NProject::CAddScientistXpEffect::[4]（func_names RTTI 名） |
+| 0x141FA30A0 | NProject::NUi::CProjectOutputRewardWindow::[0] vtable 槽 NProject::NUi::CProjectOutputRewardWindow::[0]（func_names RTTI 名） |
+| 0x1404937C0 | NProject::CClearProjectFlagEffect::[13] vtable 槽 NProject::CClearProjectFlagEffect::[13]（func_names RTTI 名） |
+| 0x140498180 | NProject::CAddScientistLevelEffect::[4] vtable 槽 NProject::CAddScientistLevelEffect::[4]（func_names RTTI 名） |
+| 0x141F32B80 | NProject::NUi::CProjectSimpleItem::[0] vtable 槽 NProject::NUi::CProjectSimpleItem::[0]（func_names RTTI 名） |
+| 0x141F33BC0 | NProject::NUi::CProjectHistoryItem::[0] vtable 槽 NProject::NUi::CProjectHistoryItem::[0]（func_names RTTI 名） |
+| 0x141C1FC30 | NProject::NUi::CSpecializationSortItem::[0] vtable 槽 NProject::NUi::CSpecializationSortItem::[0]（func_names RTTI 名） |
+| 0x140A91420 | NProject::CHasFloatingHarborTrigger::[21] vtable 槽 NProject::CHasFloatingHarborTrigger::[21]（func_names RTTI 名） |
+| 0x141C05DA0 | NProject::NUi::CProgramList::[0] vtable 槽 NProject::NUi::CProgramList::[0]（func_names RTTI 名） |
+| 0x140496DA0 | NProject::CEveryScientistEffect::[27] vtable 槽 NProject::CEveryScientistEffect::[27]（func_names RTTI 名） |
+| 0x140492560 | NProject::CAddScientistXpEffect::[0] vtable 槽 NProject::CAddScientistXpEffect::[0]（func_names RTTI 名） |
+| 0x140A93AD0 | NProject::CProjectTemplate::[0] vtable 槽 NProject::CProjectTemplate::[0]（func_names RTTI 名） |
+| 0x140497DA0 | NProject::CInjureScientistEffect::[3] vtable 槽 NProject::CInjureScientistEffect::[3]（func_names RTTI 名） |
+| 0x14146D1C0 | NProject::NUi::CScientistRoster::[0] vtable 槽 NProject::NUi::CScientistRoster::[0]（func_names RTTI 名） |
+| 0x141C1CB80 | NProject::NUi::CProjectFilterListItem::[0] vtable 槽 NProject::NUi::CProjectFilterListItem::[0]（func_names RTTI 名） |
+| 0x141C22120 | NProject::NUi::CScientistRoster::[13] vtable 槽 NProject::NUi::CScientistRoster::[13]（func_names RTTI 名） |
+| 0x141B1C8B0 | NProject::NUi::CProgramView::[1] vtable 槽 NProject::NUi::CProgramView::[1]（func_names RTTI 名） |
+| 0x141F0E1C0 | NProject::NUi::CProgramItem::[1] vtable 槽 NProject::NUi::CProgramItem::[1]（func_names RTTI 名） |
+| 0x140492690 | NProject::CCompletePrototypeReward::[0] vtable 槽 NProject::CCompletePrototypeReward::[0]（func_names RTTI 名） |
+| 0x140FE0A00 | NProject::SProjectHistory::[0] vtable 槽 NProject::SProjectHistory::[0]（func_names RTTI 名） |
+| 0x1404A3870 | NProject::CAllActiveScientistsTrigger::[23] vtable 槽 NProject::CAllActiveScientistsTrigger::[23]（func_names RTTI 名） |
+| 0x1404A38D0 | NProject::CAnyActiveScientistTrigger::[23] vtable 槽 NProject::CAnyActiveScientistTrigger::[23]（func_names RTTI 名） |
+| 0x14015FF50 | NProject::CNarrative::[0] vtable 槽 NProject::CNarrative::[0]（func_names RTTI 名） |
+| 0x140160500 | NProject::CPrototypeReward::[0] vtable 槽 NProject::CPrototypeReward::[0]（func_names RTTI 名） |
+| 0x140161040 | NProject::SOutput::[0] vtable 槽 NProject::SOutput::[0]（func_names RTTI 名） |
+| 0x1404925A0 | NProject::CInjureScientistEffect::[0] vtable 槽 NProject::CInjureScientistEffect::[0]（func_names RTTI 名） |
+| 0x140A909D0 | NProject::CHasFloatingHarborTrigger::[0] vtable 槽 NProject::CHasFloatingHarborTrigger::[0]（func_names RTTI 名） |
+| 0x141EEE0E0 | NProject::NUi::CProgramOngoingProjectView::[0] vtable 槽 NProject::NUi::CProgramOngoingProjectView::[0]（func_names RTTI 名） |
+| 0x14015CFA0 | NProject::CProjectDatabase::[1] vtable 槽 NProject::CProjectDatabase::[1]（func_names RTTI 名） |
+| 0x14015CFE0 | NProject::CPrototypeRewardDatabase::[1] vtable 槽 NProject::CPrototypeRewardDatabase::[1]（func_names RTTI 名） |
+| 0x1404925E0 | NProject::CSetProjectFlagEffect::[0] vtable 槽 NProject::CSetProjectFlagEffect::[0]（func_names RTTI 名） |
+| 0x1404926D0 | NProject::CEveryScientistEffect::[0] vtable 槽 NProject::CEveryScientistEffect::[0]（func_names RTTI 名） |
+| 0x140ABAB50 | NProject::CSpecializationTemplate::[0] vtable 槽 NProject::CSpecializationTemplate::[0]（func_names RTTI 名） |
+| 0x141CB0270 | NProject::NUi::CProjectHistoryRoster::[0] vtable 槽 NProject::NUi::CProjectHistoryRoster::[0]（func_names RTTI 名） |
+| 0x141CB0430 | NProject::NUi::CProjectSimpleRoster::[0] vtable 槽 NProject::NUi::CProjectSimpleRoster::[0]（func_names RTTI 名） |
+| 0x141F0CBC0 | NProject::NUi::CProgramItemBase::[0] vtable 槽 NProject::NUi::CProgramItemBase::[0]（func_names RTTI 名） |
+| 0x1404A38A0 | NProject::CAllScientistsTrigger::[23] vtable 槽 NProject::CAllScientistsTrigger::[23]（func_names RTTI 名） |
+| 0x1404A3900 | NProject::CAnyScientistTrigger::[23] vtable 槽 NProject::CAnyScientistTrigger::[23]（func_names RTTI 名） |
+| 0x141482A40 | NProject::CProjectPool::[8] vtable 槽 NProject::CProjectPool::[8]（func_names RTTI 名） |
+| 0x141F0CACC | NProject::NUi::CProgramItem::[0] vtable 槽 NProject::NUi::CProgramItem::[0]（func_names RTTI 名） |
+| 0x140492910 | NProject::CEveryActiveScientistEffect::[25] vtable 槽 NProject::CEveryActiveScientistEffect::[25]（func_names RTTI 名） |
+| 0x140492930 | NProject::CEveryScientistEffect::[25] vtable 槽 NProject::CEveryScientistEffect::[25]（func_names RTTI 名） |
+| 0x141F32B70 | NProject::NUi::CProjectSimpleItem::[1] vtable 槽 NProject::NUi::CProjectSimpleItem::[1]（func_names RTTI 名） |
+| 0x141F33BB0 | NProject::NUi::CProjectHistoryItem::[1] vtable 槽 NProject::NUi::CProjectHistoryItem::[1]（func_names RTTI 名） |
+| 0x141A058B0 | NProject::CProgramConsumer::[10] vtable 槽 NProject::CProgramConsumer::[10]（func_names RTTI 名） |
+| 0x141EEE048 | NProject::NUi::CProgramOngoingProjectView::[0] vtable 槽 NProject::NUi::CProgramOngoingProjectView::[0]（func_names RTTI 名） |
+| 0x141B1C7EC | NProject::NUi::CProgramView::[0] vtable 槽 NProject::NUi::CProgramView::[0]（func_names RTTI 名） |
+| 0x141CB0258 | NProject::NUi::CFacilitiesTabView::[0] vtable 槽 NProject::NUi::CFacilitiesTabView::[0]（func_names RTTI 名） |
+| 0x141CB0264 | NProject::NUi::CFacilitiesTabView::[1] vtable 槽 NProject::NUi::CFacilitiesTabView::[1]（func_names RTTI 名） |
+| 0x141EEA658 | NProject::NUi::CProjectItem::[1] vtable 槽 NProject::NUi::CProjectItem::[1]（func_names RTTI 名） |
+| 0x141EEE030 | NProject::NUi::CProgramOngoingProjectView::[0] vtable 槽 NProject::NUi::CProgramOngoingProjectView::[0]（func_names RTTI 名） |
+| 0x141EEE03C | NProject::NUi::CProgramOngoingProjectView::[1] vtable 槽 NProject::NUi::CProgramOngoingProjectView::[1]（func_names RTTI 名） |
+| 0x141F0CAC0 | NProject::NUi::CProgramItem::[1] vtable 槽 NProject::NUi::CProgramItem::[1]（func_names RTTI 名） |
+| 0x141F0CAD8 | NProject::NUi::CProgramItem::[0] vtable 槽 NProject::NUi::CProgramItem::[0]（func_names RTTI 名） |
+| 0x141F0CAE4 | NProject::NUi::CProgramItemBase::[1] vtable 槽 NProject::NUi::CProgramItemBase::[1]（func_names RTTI 名） |
+| 0x141F0CAFC | NProject::NUi::CProgramItemBase::[0] vtable 槽 NProject::NUi::CProgramItemBase::[0]（func_names RTTI 名） |
+| 0x141F17E8C | NProject::NUi::CScientistItem::[1] vtable 槽 NProject::NUi::CScientistItem::[1]（func_names RTTI 名） |
+| 0x141FA3034 | NProject::NUi::CProjectOutputRewardWindow::[0] vtable 槽 NProject::NUi::CProjectOutputRewardWindow::[0]（func_names RTTI 名） |
+| 0x141FA3040 | NProject::NUi::CProjectOutputRewardWindow::[1] vtable 槽 NProject::NUi::CProjectOutputRewardWindow::[1]（func_names RTTI 名） |
+| 0x14201652C | NProject::NUi::CDetailedOutputItem::[0] vtable 槽 NProject::NUi::CDetailedOutputItem::[0]（func_names RTTI 名） |
+| 0x140E759FC | NProject::CProgramStatus::[0] vtable 槽 NProject::CProgramStatus::[0]（func_names RTTI 名） |
+| 0x141A058A0 | NProject::CProgramConsumer::[11] vtable 槽 NProject::CProgramConsumer::[11]（func_names RTTI 名） |
+| 0x140A90A10 | NProject::CHasFloatingHarborTrigger::[22] vtable 槽 NProject::CHasFloatingHarborTrigger::[22]（func_names RTTI 名） |
+| 0x140A94E30 | NProject::CProjectTemplate::[4] vtable 槽 NProject::CProjectTemplate::[4]（func_names RTTI 名） |
+| 0x141F0E1E0 | NProject::NUi::CProgramItem::[0] vtable 槽 NProject::NUi::CProgramItem::[0]（func_names RTTI 名） |
+| 0x141C06330 | NProject::NUi::CProgramList::[2] vtable 槽 NProject::NUi::CProgramList::[2]（func_names RTTI 名） |
+| 0x14146DC00 | NProject::NUi::CFilterEntryItem<鈥�>::[0] func_names 名 NProject::NUi::CFilterEntryItem<鈥�>::[0] |
+| 0x141F32D60 | NProject::NUi::CProjectSimpleItem::[0] vtable 槽 NProject::NUi::CProjectSimpleItem::[0]（func_names RTTI 名） |
+| 0x140495360 | NProject::CAddScientistLevelEffect::[7] vtable 槽 NProject::CAddScientistLevelEffect::[7]（func_names RTTI 名） |
+| 0x140FE4C50 | NProject::CProject::Reader func_names 名 NProject::CProject::Reader |
+| 0x140E771A0 | NProject::CProgramStatus::[8] vtable 槽 NProject::CProgramStatus::[8]（func_names RTTI 名） |
+| 0x140497AF0 | NProject::CAddScientistTraitEffect::[3] vtable 槽 NProject::CAddScientistTraitEffect::[3]（func_names RTTI 名） |
+| 0x1404A1A30 | NProject::CHasScientistLevelTrigger::Evaluate func_names 名 NProject::CHasScientistLevelTrigger::Evaluate |
+| 0x1404A1030 | NProject::CAllActiveScientistsTrigger::Evaluate func_names 名 NProject::CAllActiveScientistsTrigger::Evaluate |
+| 0x1404A3CC0 | NProject::CHasScientistLevelTrigger::ParseToken func_names 名 NProject::CHasScientistLevelTrigger::ParseToken |
+| 0x1404A15B0 | NProject::CAnyScientistTrigger::Evaluate func_names 名 NProject::CAnyScientistTrigger::Evaluate |
+| 0x140497FB0 | NProject::CAddBreakthroughProgress::[4] vtable 槽 NProject::CAddBreakthroughProgress::[4]（func_names RTTI 名） |
+| 0x1404A3930 | NProject::CHasProjectFlagTrigger::[23] vtable 槽 NProject::CHasProjectFlagTrigger::[23]（func_names RTTI 名） |
+| 0x1404A3620 | NProject::CIsScientistInjured::GetDesc func_names 名 NProject::CIsScientistInjured::GetDesc |
+| 0x140A91A00 | NProject::SOutput::[8] vtable 槽 NProject::SOutput::[8]（func_names RTTI 名） |
+| 0x141F32BD0 | NProject::NUi::CProjectSimpleRoster::[7] vtable 槽 NProject::NUi::CProjectSimpleRoster::[7]（func_names RTTI 名） |
+| 0x141CB34B0 | NProject::NUi::CFacilitiesTabView::Update func_names 名 NProject::NUi::CFacilitiesTabView::Update |
+| 0x141F33F90 | NProject::NUi::CProjectHistoryRoster::[6] vtable 槽 NProject::NUi::CProjectHistoryRoster::[6]（func_names RTTI 名） |
+| 0x141EEAC20 | NProject::NUi::CProjectItem::[0] vtable 槽 NProject::NUi::CProjectItem::[0]（func_names RTTI 名） |
+| 0x141F19440 | NProject::NUi::CRecruitScientistWindow::[8] vtable 槽 NProject::NUi::CRecruitScientistWindow::[8]（func_names RTTI 名） |
+| 0x1404A2D70 | NProject::CHasScientistSpecializationTrigger::GetDesc func_names 名 NProject::CHasScientistSpecializationTrigger::GetDesc |
+| 0x1404973D0 | NProject::CCompleteProjectEffect::[23] vtable 槽 NProject::CCompleteProjectEffect::[23]（func_names RTTI 名） |
+| 0x141CB02F0 | NProject::NUi::CFacilitiesTabView::[0] vtable 槽 NProject::NUi::CFacilitiesTabView::[0]（func_names RTTI 名） |
+| 0x140497E90 | NProject::CAddBreakthroughPoints::[4] vtable 槽 NProject::CAddBreakthroughPoints::[4]（func_names RTTI 名） |
+| 0x140E75B10 | NProject::CProgramStatus::[1] vtable 槽 NProject::CProgramStatus::[1]（func_names RTTI 名） |
+| 0x141EEE6D0 | NProject::NUi::CStartedResearchState::[0] vtable 槽 NProject::NUi::CStartedResearchState::[0]（func_names RTTI 名） |
+| 0x142016540 | NProject::NUi::CDetailedOutputItem::[0] vtable 槽 NProject::NUi::CDetailedOutputItem::[0]（func_names RTTI 名） |
+| 0x140498200 | NProject::CCompleteProjectEffect::[4] vtable 槽 NProject::CCompleteProjectEffect::[4]（func_names RTTI 名） |
+| 0x1414443E0 | NProject::CProgram::Writer func_names 名 NProject::CProgram::Writer |
+| 0x140E75A10 | NProject::CProgram::[0] vtable 槽 NProject::CProgram::[0]（func_names RTTI 名） |
+| 0x141F33C10 | NProject::NUi::CProjectHistoryRoster::[7] vtable 槽 NProject::NUi::CProjectHistoryRoster::[7]（func_names RTTI 名） |
+| 0x140FE3460 | NProject::CProject::[8] vtable 槽 NProject::CProject::[8]（func_names RTTI 名） |
+| 0x140A94360 | NProject::CProjectTemplate::[7] vtable 槽 NProject::CProjectTemplate::[7]（func_names RTTI 名） |
+| 0x1404A2CC0 | NProject::CHasFacilitySpecializationTrigger::GetDesc func_names 名 NProject::CHasFacilitySpecializationTrigger::GetDesc |
+| 0x140A923D0 | NProject::CPrototypeRewardOption::Reader func_names 名 NProject::CPrototypeRewardOption::Reader |
+| 0x140160460 | NProject::CProjectDynamicModifierDatabase::[1] vtable 槽 NProject::CProjectDynamicModifierDatabase::[1]（func_names RTTI 名） |
+| 0x141F0F2C0 | NProject::NUi::CProgramItem::[2] vtable 槽 NProject::NUi::CProgramItem::[2]（func_names RTTI 名） |
+| 0x141B1CA10 | NProject::NUi::CProgramView::Reload func_names 名 NProject::NUi::CProgramView::Reload |
+| 0x141A38A00 | NProject::SProjectContext::Writer func_names 名 NProject::SProjectContext::Writer |
+| 0x1404940C0 | NProject::CModifyProjectFlagEffect::[13] vtable 槽 NProject::CModifyProjectFlagEffect::[13]（func_names RTTI 名） |
+| 0x141B1C800 | NProject::NUi::CProgramView::[0] vtable 槽 NProject::NUi::CProgramView::[0]（func_names RTTI 名） |
+| 0x141A389A0 | NProject::SProjectHistory::Reader func_names 名 NProject::SProjectHistory::Reader |
+| 0x1404A1960 | NProject::CHasFacilitySpecializationTrigger::Evaluate func_names 名 NProject::CHasFacilitySpecializationTrigger::Evaluate |
+| 0x1404A1D50 | NProject::CHasScientistSpecializationTrigger::Evaluate func_names 名 NProject::CHasScientistSpecializationTrigger::Evaluate |
+| 0x1404A3B10 | NProject::CCanAssignFactionSupportiveScientistToFaction::Parse func_names 名 NProject::CCanAssignFactionSupportiveScientistToFaction::Parse |
+| 0x141F199E0 | NProject::NUi::CRecruitScientistWindow::[10] vtable 槽 NProject::NUi::CRecruitScientistWindow::[10]（func_names RTTI 名） |
+| 0x140493740 | NProject::CAddScientistXpEffect::[13] vtable 槽 NProject::CAddScientistXpEffect::[13]（func_names RTTI 名） |
+| 0x141A355B0 | NProject::CProjectStateMachine::[0] vtable 槽 NProject::CProjectStateMachine::[0]（func_names RTTI 名） |
+| 0x140ABB1C0 | NProject::CSpecializationTemplate::Reader func_names 名 NProject::CSpecializationTemplate::Reader |
+| 0x141F17EA0 | NProject::NUi::CScientistItem::[0] vtable 槽 NProject::NUi::CScientistItem::[0]（func_names RTTI 名） |
+| 0x141C209F0 | NProject::NUi::CScientistList::Reload func_names 名 NProject::NUi::CScientistList::Reload |
+| 0x141CB1C00 | NProject::NUi::CProjectHistoryRoster::Reload func_names 名 NProject::NUi::CProjectHistoryRoster::Reload |
+| 0x141CB1C70 | NProject::NUi::CProjectSimpleRoster::Reload func_names 名 NProject::NUi::CProjectSimpleRoster::Reload |
+| 0x141483890 | NProject::CProjectPool::Writer func_names 名 NProject::CProjectPool::Writer |
+| 0x1404A19E0 | NProject::CHasProjectFlagTrigger::Evaluate func_names 名 NProject::CHasProjectFlagTrigger::Evaluate |
+| 0x141A38AC0 | NProject::SProjectHistory::Writer func_names 名 NProject::SProjectHistory::Writer |
+| 0x140A92630 | NProject::CPrototypeReward::SThreshold::Reader func_names 名 NProject::CPrototypeReward::SThreshold::Reader |
+| 0x1404A1E90 | NProject::CIsScientistInjured::Evaluate func_names 名 NProject::CIsScientistInjured::Evaluate |
+| 0x1404A1E50 | NProject::CIsScientistActiveTrigger::Evaluate func_names 名 NProject::CIsScientistActiveTrigger::Evaluate |
+| 0x1404A1DE0 | NProject::CIsProjectBeingResearchedTrigger::Evaluate func_names 名 NProject::CIsProjectBeingResearchedTrigger::Evaluate |
+| 0x141A05A90 | NProject::CProgramConsumer::Reader func_names 名 NProject::CProgramConsumer::Reader |
+| 0x1404A1930 | NProject::CHasBreakthroughPointsTrigger::Evaluate func_names 名 NProject::CHasBreakthroughPointsTrigger::Evaluate |
+| 0x14146CBD0 | NProject::NUi::CFilterEntryItem<鈥�>::[0] func_names 名 NProject::NUi::CFilterEntryItem<鈥�>::[0] |
+| 0x1404A1E20 | NProject::CIsProjectCompletedTrigger::Evaluate func_names 名 NProject::CIsProjectCompletedTrigger::Evaluate |
+| 0x141A05AD0 | NProject::CProgramConsumer::Writer func_names 名 NProject::CProgramConsumer::Writer |
+| 0x14146CC20 | NProject::NUi::CProjectListFilterWindow<鈥�>::[0] func_names 名 NProject::NUi::CProjectListFilterWindow<鈥�>::[0] |
+| 0x141CB02B0 | NProject::NUi::CProjectListFilterWindow<鈥�>::[0] func_names 名 NProject::NUi::CProjectListFilterWindow<鈥�>::[0] |
+| 0x14146CAD4 | NProject::NUi::CFilterEntryItem<鈥�>::[1] func_names 名 NProject::NUi::CFilterEntryItem<鈥�>::[1] |
+| 0x141C1FC7C | NProject::NUi::CSpecializationSortItem::[1] vtable 槽 NProject::NUi::CSpecializationSortItem::[1]（func_names RTTI 名） |
+| 0x141F0CAF0 | NProject::NUi::CProgramItemBase::[0] vtable 槽 NProject::NUi::CProgramItemBase::[0]（func_names RTTI 名） |
+| 0x140496EC0 | NProject::CHasProjectFlagTrigger::GetSupportedScopeMask func_names 名 NProject::CHasProjectFlagTrigger::GetSupportedScopeMask |
+| 0x141A04880 | NProject::CBreakthroughProgress::[3] 类名（项目突破进度槽 3）+ 调用解析器原语族 |
+| 0x1404982C0 | NProject::CCompletePrototypeReward::[4] NProject::CCompletePrototypeReward::[4]；串「Got unexpected token 」 |
+| 0x141443710 | NProject::CProgram::Reader 序列化 Reader/Writer（方法角色 Reader/Writer）；类属 NProject |
+| 0x141A388A0 | NProject::SProjectContext::Reader NProject::SProjectContext::Reader + 名字角色规则(NProject::SProjectContext::Reader); 被 NProject::SProjectContext::Reader 等 1 命名函数调用 |
+| 0x140493060 | NProject::CAddBreakthroughPoints::[13] NProject::CAddBreakthroughPoints::[13] + 域关键词匹配; 串 "_pEntry->_DistancePlus1 != nIteratorSentin"; 源码路径 clausewitz |
+| 0x141F34150 | NProject::NUi::CProjectHistoryRoster::[5] 项目历史名册（NProject，海军/生产项目 UI） |
+| 0x141EEF4C0 | NProject::NUi::CProgramOngoingProjectView::Update 名:NProject::NUi::CProgramOngoingProjectView::Update |
+| 0x141B1C8F0 | NProject::NUi::CProgramView::[2] NProject::NUi::CProgramView::[2] + 域关键词匹配; 被调源码 clausewitz; 被 NProject::NUi::CProgramView::[2] 等 1 命名函数调用 |
+| 0x1404A11F0 | NProject::CAllScientistsTrigger::Evaluate 标签:eventscope.h:193 |
+| 0x1404A17B0 | NProject::CCanAssignFactionSupportiveScientistToFaction::Evaluate 标签:pdxspan.h:77 |
+| 0x1404A33D0 | NProject::CIsScientistActiveTrigger::GetDesc |
+| 0x140495180 | NProject::CAddProjectProgressRatioEffect::[7] |
+| 0x1404A3BB0 | NProject::CHasBreakthroughPointsTrigger::ParseToken NProject::CHasBreakthroughPointsTrigger::ParseToken + 名字角色规则(NProject::CHasBreakthroughPointsTrigger::Par… |
+
+#### 4.7.40 科技域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D826B0 | 业务 串 `TECH_SHARNG_FACTOR_PER_COUNTRY`、`TECH_SHARNG_FACTOR_BASE`、`TECH_SHARNG_COUNTRY_BONUS`、`TECH_SHARNG_RESEARCH_OPPORTUNITIES`；vtable+96 取表 → 科技共享 tooltip |
+| 0x14193D3E0 | 业务 科技树加权累积：树遍历 + 定点 1e-5 权重求和 + 'H'(72) 特征分支 调 technology.cpp:3245 + stat_helper.h:119 + gameitemdatabase.h:142；100000 定点缩放与除法（v19=(100000*v18)/(100000*v16)）… |
+| 0x141464470 | 业务 串字面量 'SCIENTIST_LACKING_SKILL' [4.7×1] |
+| 0x1413CFC90 | 业务 反调用图传播 1.0 权重锚点投 §4.7（top 占比 1.00） |
+| 0x141D16790 | 业务 反调用图传播 1.5 权重锚点投 §4.7（top 占比 0.67） |
+| 0x140B5FF50 | 业务 反向调用图 1/2 调用者投 §4.7 |
+
+#### 4.7.41 常量串 getter 结构定案（44 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140749780 | 常量串 getter: 返回常量串 "NProject::BASIC_RESEARCH_TECHNOLOGY_BONUS_DIMINISHING_RETURN_FACTOR"（高置信） |
+| 0x140749820 | 常量串 getter: 返回常量串 "NProject::DEFAULT_PROJECT_COMPLETION_SCIENTIST_EXPERIENCE_GAIN"（高置信） |
+| 0x140749870 | 常量串 getter: 返回常量串 "NProject::MINIMUM_PROJECT_SPEED_FACTOR_FROM_RESOURCE_SHORTAGE"（高置信） |
+| 0x140749880 | 常量串 getter: 返回常量串 "NProject::MINIMUM_PROJECT_SPEED_FACTOR_FROM_SUPPLY"（高置信） |
+| 0x1407497A0 | 常量串 getter: 返回常量串 "NProject::BREAKTHROUGH_DAILY_NUCLEAR_REACTOR_GAIN"（高置信） |
+| 0x1407497C0 | 常量串 getter: 返回常量串 "NProject::BREAKTHROUGH_DAILY_SCIENTIST_SKILL_GAIN"（高置信） |
+| 0x140749790 | 常量串 getter: 返回常量串 "NProject::BASIC_RESEARCH_TECHNOLOGY_BONUS_FACTOR"（高置信） |
+| 0x140749910 | 常量串 getter: 返回常量串 "NProject::SCIENTIST_BASIC_RESEARCH_DAILY_XP_GAIN"（高置信） |
+| 0x1407497E0 | 常量串 getter: 返回常量串 "NProject::BREAKTHROUGH_GAIN_ANIMATION_SPEED_MAX"（高置信） |
+| 0x1407498A0 | 常量串 getter: 返回常量串 "NProject::PROJECT_CAPTURE_BREAKTHROUGH_PROGRESS"（高置信） |
+| 0x140749890 | 常量串 getter: 返回常量串 "NProject::NEEDED_SUPPLY_FOR_FULL_SPEED_PROJECT"（高置信） |
+| 0x140749930 | 常量串 getter: 返回常量串 "NProject::SCIENTIST_SKILL_LEVEL_SPEED_MODIFIER"（高置信） |
+| 0x1407497B0 | 常量串 getter: 返回常量串 "NProject::BREAKTHROUGH_DAILY_ROCKET_SITE_GAIN"（高置信） |
+| 0x140749950 | 常量串 getter: 返回常量串 "NProject::SUPPORTIVE_SCIENITST_PROGRESS_BONUS"（高置信） |
+| 0x140749970 | 常量串 getter: 返回常量串 "NProject::SUPPORTIVE_SCIENTISTS_SHARING_BONUS"（高置信） |
+| 0x1407497D0 | 常量串 getter: 返回常量串 "NProject::BREAKTHROUGH_DAILY_TECHNOLOGY_GAIN"（高置信） |
+| 0x1407498B0 | 常量串 getter: 返回常量串 "NProject::PROJECT_CAPTURE_DIMINISHING_RETURN"（高置信） |
+| 0x140749900 | 常量串 getter: 返回常量串 "NProject::RECRUIT_SCIENTIST_ONE_TRAIT_CHANCE"（高置信） |
+| 0x14074A870 | 常量串 getter: 返回常量串 "NTechnology::DEFAULT_XP_BOOST_RESEARCH_BONUS"（高置信） |
+| 0x14074A890 | 常量串 getter: 返回常量串 "NTechnology::DEFAULT_XP_UNLOCK_RESEARCH_COST"（高置信） |
+| 0x140749850 | 常量串 getter: 返回常量串 "NProject::FACILITY_SUPPLY_WARNING_RED_RATIO"（高置信） |
+| 0x14074A860 | 常量串 getter: 返回常量串 "NTechnology::BASE_YEAR_AHEAD_PENALTY_FACTOR"（高置信） |
+| 0x14074A880 | 常量串 getter: 返回常量串 "NTechnology::DEFAULT_XP_BOOST_RESEARCH_COST"（高置信） |
+| 0x140749940 | 常量串 getter: 返回常量串 "NProject::SCIENTIST_SKILL_LEVEL_THRESHOLDS"（高置信） |
+| 0x14074A8A0 | 常量串 getter: 返回常量串 "NTechnology::LICENSE_PRODUCTION_TECH_BONUS"（高置信） |
+| 0x140749770 | 常量串 getter: 返回常量串 "NProject::AMOUNT_OF_SUPPORTIVE_SCIENTISTS"（高置信） |
+| 0x140749860 | 常量串 getter: 返回常量串 "NProject::ITERATION_REWARD_DEFAULT_WEIGHT"（高置信） |
+| 0x1407498D0 | 常量串 getter: 返回常量串 "NProject::PROJECT_LOSS_FACTOR_ON_CAPTURE"（高置信） |
+| 0x140749960 | 常量串 getter: 返回常量串 "NProject::SUPPORTIVE_SCIENTISTS_FRACTION"（高置信） |
+| 0x14074A840 | 常量串 getter: 返回常量串 "NTechnology::BASE_RESEARCH_POINTS_SAVED"（高置信） |
+| 0x1407498E0 | 常量串 getter: 返回常量串 "NProject::PROTOTYPE_PHASE_MAX_PROGRESS"（高置信） |
+| 0x140749810 | 常量串 getter: 返回常量串 "NProject::DEFAULT_EMPTY_REWARD_WEIGHT"（高置信） |
+| 0x1407498C0 | 常量串 getter: 返回常量串 "NProject::PROJECT_CAPTURE_GAIN_RATIO"（高置信） |
+| 0x140749830 | 常量串 getter: 返回常量串 "NProject::DEFAULT_STOP_PROJECT_DAYS"（高置信） |
+| 0x14074A8C0 | 常量串 getter: 返回常量串 "NTechnology::MAX_TECH_SHARING_BONUS"（高置信） |
+| 0x14074A8E0 | 常量串 getter: 返回常量串 "NTechnology::USE_BONUS_REGRET_TIMER"（高置信） |
+| 0x1407497F0 | 常量串 getter: 返回常量串 "NProject::DAYS_TO_REMOVE_SCIENTIST"（高置信） |
+| 0x140749920 | 常量串 getter: 返回常量串 "NProject::SCIENTIST_INJURED_FACTOR"（高置信） |
+| 0x140749840 | 常量串 getter: 返回常量串 "NProject::DISMANTLE_FACILITY_DAYS"（高置信） |
+| 0x1407498F0 | 常量串 getter: 返回常量串 "NProject::RECRUIT_SCIENTIST_COST"（高置信） |
+| 0x14074A8D0 | 常量串 getter: 返回常量串 "NTechnology::MIN_RESEARCH_SPEED"（高置信） |
+| 0x140749800 | 常量串 getter: 返回常量串 "NProject::DEFAULT_COMPLEXITY"（高置信） |
+| 0x14074A850 | 常量串 getter: 返回常量串 "NTechnology::BASE_TECH_COST"（高置信） |
+| 0x14074A8B0 | 常量串 getter: 返回常量串 "NTechnology::MAX_SUBTECHS"（高置信） |
+
+#### 4.7.42 模板实例化桩结构定案（48 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B83470 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141F08320 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141BE1A80 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE5990 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x140B83440 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141F082F0 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141BE1A50 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE5960 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x140B83410 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141F082C0 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141BE1A20 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x140B833E0 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141BE5930 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x141F08290 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141BE19F0 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE5900 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x141BE19D0 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141477E70 | 模板桩: 模板参数类名 CResearchFacilityItem（高置信） |
+| 0x140B834B0 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141BE1AC0 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE59D0 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x141F08360 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141477700 | 模板桩: 模板参数类名 CResearchFacilityItem（高置信） |
+| 0x140B839B0 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141F083B0 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141BE1D20 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE5A70 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x140B839A0 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141F083A0 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141BE1D10 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE5A60 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x140B83990 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141F08390 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x140B83980 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141BE1D00 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141F08380 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141477E00 | 模板桩: 模板参数类名 CResearchFacilityItem（高置信） |
+| 0x141477E50 | 模板桩: 模板参数类名 CResearchFacilityItem（高置信） |
+| 0x141BE5A50 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x141BE1CF0 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x140B839C0 | 模板桩: 模板参数类名 CResearchFinishedPopUpWindow（高置信） |
+| 0x141BE5A40 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+| 0x141F083C0 | 模板桩: 模板参数类名 CTechnologyStatListEntry（高置信） |
+| 0x141BE1D30 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE1CC0 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE1CD0 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE1CE0 | 模板桩: 模板参数类名 CTechnologyInfoWindow（高置信） |
+| 0x141BE5A80 | 模板桩: 模板参数类名 CResearchSlotItem（高置信） |
+
+#### 4.7.43 单调用转发桩结构定案（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D84530 | 转发桩: 转发至 无名领域函数 sub_140D81710 被调用者定名: CTechnologySharing::GetFullTooltip? 等命中 §4.7（占 100%，共 2 callee）（推定） |
+| 0x14258E530 | 转发桩: 转发至 域关键词匹配 sub_1401548B0 + 域关键词匹配（推定） |
+| 0x1413CBFF0 | 转发桩: 转发至 sub_1413C85C0 业务 学说效果来源描述（DOCTRINE_EFFECT_SOURCE_GRAND_DOCTRINE/SUBDOCTRINE/REWARD、MASTERY、TRACK）（推定） |
+| 0x141FA4E10 | 转发桩: 转发至 科技UI "ONGOING_PROJECT_GO_TO_NEXT/PREVIOUS_BREAKTHROUGH" 按方向选择 + vtable+520 条件分支；科研突破导航 UI（推定） |
+| 0x141FA4D70 | 转发桩: 转发至 科技UI "ONGOING_PROJECT_GO_TO_NEXT/PREVIOUS_BREAKTHROUGH" 按方向选择 + vtable+520 条件分支；科研突破导航 UI（推定） |
+| 0x141F114F0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "PROGRAM_ITEM_BASIC_RESEARCH_TOOLTIP"（推定） |
+| 0x142688EB0 | 转发桩: 转发至 科学家监听器 科学家更新监听器：NInterfaceMessages::SScopedListener<SScientistUpdatedListener> + v2+1228 计数（推定） |
+| 0x142678D70 | 转发桩: 转发至 （无名） 被 NProject::NUi::CProjectHistoryRoster::[0 调用（科技）（推定） |
+| 0x142678D80 | 转发桩: 转发至 无名（证据推断） 类名/模板：NProject::NUi 、 NProject::NUi（推定） |
+| 0x142600CC0 | 转发桩: 转发至 业务 类名证据「TGameItemDatabase<CTechnologyDatabase>」 §4.7 科技（推定） |
+| 0x141CC6080 | 转发桩: 转发至 （无名，按上游/loc 定性） loc "GRAND_DOCTRINE_SELECTION_TITLE"（推定） |
+
+#### 4.7.44 科技域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411A6E90 | 业务 串 "Added "/" skill level for all specializations to " + gameitemdatabase.h:142 + sub_14140A880 x2 |
+| 0x141EED9E0 | 业务 串 SPECIAL_PROJECT_STOP_PROJECT_TT/ONGOING_PROJECT_BREAKTHROUGH_REFUND(_DETAIL/_DELAYED)/SPECIALIZATION/AMOUNT/DAYS |
+| 0x1409E4160 | 业务 串 MASTERY_GAIN_CONDITION_HEADER/MASTERY_FROM_EQUIPMENT_CATEGORY_ENTRY/CATEGORY + localize.cpp:641 |
+| 0x1411A9C80 | 业务 串 "No lead scientist assigned to the program"/"Invalid specialization"/"A facility view needs to be open" + ingameinterfacehandler.cpp:2716 |
+| 0x1404A2EB0 | NProject::CIsProjectBeingResearchedTrigger::GetDesc 业务 NProject::CIsProjectBeingResearchedTrigger::GetDesc（func_names 名 + 串 TRIGGER_IS_SPECIAL_PROJECT_BEING_… |
+| 0x1414678A0 | CU 同类簇: 邻接 1414654F0（NProject::CComplexity::[4]）/ 14146CAD4（NProject::NUi::CFilterEntryItem<…>::[1]） |

@@ -1068,12 +1068,6 @@ sub_1423E5D00 (getaddrinfo 包装): hints = {flags=0, family=AF_INET(2), socktyp
 |---|---|
 | 0x141335180 | 多人聊天 CHAT_USERJOINEDCHANNEL |
 | 0x1414848F0 | 成就路径串 "achievements/v..." + 内联串拼装 |
-
-#### 4.36.25 联机模式函数补遗（2 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.36.26 联机模式函数补遗（1 函）
 
 | VA | 语义/证据 |
@@ -1162,3 +1156,114 @@ sub_1423E5D00 (getaddrinfo 包装): hints = {flags=0, family=AF_INET(2), socktyp
 | VA | 语义/证据 |
 |---|---|
 | 0x1411B0440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+
+#### 4.36.35 联机模式函数补遗（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142316770 | 多人服务器浏览器过滤器（has_players/no_password/not_full/version） 键 filter_has_players / filter_no_password / filter_not_full / filter_version |
+| 0x1422E65D0 | CStandardChatMessage::[11] CStandardChatMessage::[11] 槽方法 |
+| 0x14239DBC0 | （未命名）回调分发型 回调分发型（a4 为函数指针 + 缓冲）；邻近 CSteamUGCContext/CGameApplication::InitFriendsHandler/CProxyServer 的平台/网络 TU |
+| 0x141333EC0 | CChat::[8] / CChat 槽 8 CChat 槽 8 §4.36 多人 |
+| 0x141F5CFA0 | 多人房间可见性设置 public_checkbox / private_checkbox / friends_only_checkbox |
+| 0x1406B6100 | 多人服务器：未知领袖肖像回退 串 gfx/leaders/leader_unknown.dds / GFX_portrait_unknown + 调 CServer::[20] |
+| 0x1402DF5B0 | GUI：localgames_tab loc 键 localgames_tab/remotegames_tab，多人大厅 |
+| 0x140643D00 | （无名） 被 CGameApplication::InitFriendsHandler 调用（多人/Steam） |
+| 0x14153D870 | CFriendsHandlerSteam::[15] CFriendsHandlerSteam::[15]（多人/Steam） |
+| 0x14186FF20 | CPlayerLobby::[13] 名:CPlayerLobby::[13] |
+| 0x1423E7DB0 | CSteamNetContext::[25] CSteamNetContext::[25]（多人/Steam） |
+| 0x1422E02C0 | CLargefileHandler::[0] 聊天/文件传输/存档压缩包/Steam 匹配/网络服务器（CLargefileHandler::[0]） |
+| 0x1426F1E80 | 未命名业务函数 多人服务器（server.cpp 断言） |
+| 0x1423C30C0 | CSteamBrowserInstance::[4] CSteamBrowserInstance::[4] + 域关键词匹配; 被 CSteamBrowserInstance::[4] 等 1 命名函数调用 |
+| 0x1406A4300 | 未决窗口函数 · CServer→CNetworkServer/CProxyServer 动态转换 qword_14332F698 vt+136 取对象后 _RTDynamicCast 到 CNetworkServer / CProxyServer，未命中则清 a1+984..+1008 槽区 |
+| 0x1423E3160 | CSteamMatchmakingContext::[23] CSteamMatchmakingContext::[23] + 域关键词匹配; 被 CSteamMatchmakingContext::[23] 等 1 命名函数调用 |
+
+#### 4.36.36 联机模式函数补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D9C1B0 | （无名） 业务 调 CArchiveFile::[14]；0x140D9D-DA 邻域全为 gamelobby.cpp（近邻传播）：游戏大厅序列化 |
+| 0x1413354F0 | 业务 串字面量 "CHAT_SYSTEM" §4.36 多人 |
+| 0x14226A410 | 业务 串字面量 "cksm_members" §4.36 多人 |
+| 0x1423E1890 | （无名） 业务 串 "name"/"desc"/"mod"/"tags"/"version"/"checksum"/"join_phase"/"actual_password"/"status"/"password"：多人游戏房间信息 |
+| 0x140D980D0 | （无名） 业务 写 CGameLobby::vftable×2 + 大厅成员表拷贝 |
+| 0x14186CD40 | sub_14186CD40 业务 串 ingame_multiplayer_entry/player_shield + 调 BB5490 |
+| 0x1423CE6D0 | 业务 夹于 CBrowserInstance::[12](d=45488) 与 CCloudFile::[0](d=57312)，浏览器实例/云文件族（前端网络） |
+| 0x140D956F0 | 业务 夹于 tbb::auto_partitioner::start_for::[1](d=4832) 与 CGameLobby::[0](d=14600)，并行分区/游戏大厅族 |
+| 0x141342E30 | 业务 串字面量 "/whisper " §4.36 多人 |
+| 0x141332850 | 业务 紧邻 CChat::CChannelItem::[0](d=2448)，CAliasButton(d=32400) 之后，聊天频道 UI 条目族 |
+| 0x1423C1EA0 | 业务 夹于 SAudioContext::[0](d=6512) 与 CCallback<CSteamNetContext>::[3](d=1376)，音频上下文/Steam 网络回调族 |
+| 0x1423A4890 | 业务 夹于 CSteamAchievementsContext::[7](d=44016) 与 CPdxHybridInlineBufferAllocator::[0]，Steam 成就上下文族 |
+| 0x140FF5290 | 业务 断言站点 network_server.cpp:13 ->§4.36; 串 "DirectSound GetCurrentPosition"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x142363140 | 业务 串 "Camera movement unlocked!"; 串 "Camera movement locked!"; 串 "ARMY" |
+| 0x142368BF0 | 业务 串 "idle"; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.36 |
+| 0x141337730 | 业务 类路由 CServer ->§4.36; 串 "flag"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141C34B40 | 业务 体串 "FRIENDS_LOAD_FRIEND_PROFILE_FAILED" -> 4.36(4×75%); 唯一被调用者在书内 §4.3; 唯一调用者在书内 §4.36 |
+
+#### 4.36.37 联机模式函数命名空间补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14153D460 | NFriendsHandler::CDownloadProfileRequestSteam::[0] vtable 槽 NFriendsHandler::CDownloadProfileRequestSteam::[0]（func_names RTTI 名） |
+| 0x141C34F80 | NFriendsHandler::CDownloadProfileRequestSteam::[1] vtable 槽 NFriendsHandler::CDownloadProfileRequestSteam::[1]（func_names RTTI 名） |
+| 0x140A31AE0 | NFriendsHandler::CFriend::[0] vtable 槽 NFriendsHandler::CFriend::[0]（func_names RTTI 名） |
+
+#### 4.36.38 联机模式函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142318050 | 业务 串 `sort_by_name`→`SORT_BY_NAME`、`MATCHMAKING_SORT_BY_MOD/VERSION/TAGS/SLOTS/PING/PASSWORD`（12 字符 memcmp 分派）→ 多人服务器浏览器列表排序 |
+| 0x140200FE0 | 业务 游戏遥测事件构建：部队营级缩写统计 断言 gametelemetry.cpp:305；串 "Battalion without abbreviation found when building telemetry." |
+| 0x14224F740 | 业务 反调用图传播 1.0 权重锚点投 §4.36（top 占比 1.00） |
+| 0x14153CB30 | 业务 类名 CCallResult,CCallResult2,NFriendsHandler → §4.36（投票 1） |
+| 0x14153CAA0 | 业务 类名 CCallResult,CCallResult2,CResult → §4.36（投票 1） |
+| 0x142401AB0 | 业务 反向调用图 1/2 调用者投 §4.36 |
+| 0x1403A5F70 | 业务 反向调用图 2/3 调用者投 §4.36 |
+| 0x141332700 | 业务 反向调用图 1/2 调用者投 §4.36; 唯一被调用者在书内 §4.00 |
+| 0x14153DC00 | 业务 反向调用图 1/2 调用者投 §4.36 |
+| 0x141333870 | 业务 反向调用图 2/4 调用者投 §4.36 |
+
+#### 4.36.39 模板实例化桩结构定案（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402A6850 | 模板桩: 模板参数类名 CServer（高置信） |
+
+#### 4.36.40 单调用转发桩结构定案（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DEA2A0 | 转发桩: 转发至 GUI：localgames_tab loc 键 localgames_tab/remotegames_tab，多人大厅（推定） |
+| 0x141DEA260 | 转发桩: 转发至 GUI：localgames_tab loc 键 localgames_tab/remotegames_tab，多人大厅（推定） |
+| 0x141F42BF0 | 转发桩: 转发至 GUI：localgames_tab loc 键 localgames_tab/remotegames_tab，多人大厅（推定） |
+| 0x142397780 | 转发桩: 转发至 vtable/RTTI 类 CDummyAchievementsContext sub_142397610 + vtable/RTTI 类 CDummyAchievementsContext; 被 CDummyAchievementsContext::[0] 等 1 命名函数调用（推定） |
+| 0x14153D3E0 | 转发桩: 转发至 业务 类名 CCallResult,CCallResult2,CResult → §4.36（投票 1）（推定） |
+| 0x14153D420 | 转发桩: 转发至 业务 类名 CCallResult,CCallResult2,NFriendsHandler → §4.36（投票 1）（推定） |
+| 0x142363370 | 转发桩: 转发至 业务 串 "Camera movement unlocked!"; 串 "Camera movement locked!"; 串 "ARMY"（推定） |
+| 0x142636090 | 转发桩: 转发至 业务 反向调用图 1/2 调用者投 §4.36; 唯一被调用者在书内 §4.00（推定） |
+| 0x1426F2450 | 转发桩: 转发至 业务 串 "Camera movement unlocked!"; 串 "Camera movement locked!"; 串 "ARMY"（推定） |
+| 0x1426F2110 | 转发桩: 转发至 业务 串 "Camera movement unlocked!"; 串 "Camera movement locked!"; 串 "ARMY"（推定） |
+| 0x14231FAA0 | 转发桩: 转发至 多人服务器浏览器过滤器（has_players/no_password/not_full/version） 键 filter_has_players / filter_no_password / filter_not_full / filter_version（推定） |
+| 0x14163EF60 | 转发桩: 转发至 （未命名）loc 串 HOST_LOADING_SAVEGAME/NAME loc 串 HOST_LOADING_SAVEGAME/NAME（多人主机载档提示）（推定） |
+| 0x1414848E0 | 转发桩: 转发至 成就路径串 "achievements/v..." + 内联串拼装（推定） |
+
+#### 4.36.41 联机模式函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142363850 | §4.x 网络 VA 局部性 d=32 锚 CServer::[1] |
+| 0x141336FC0 | 串 "CChat" ×2；caller 141339690←CChat::[1] |
+| 0x1409B9E40 | 调用链 CServer::[20](sub_140CE9BA0) / CServer::[20](sub_140CE9BA0) / CServer::[20](sub_140CE9BA0) |
+| 0x1409BDDE0 | 邻域传播改判（锚 0x1409BA730 §4.36，距离 0x36B0）；跳点串 "_pShip" / "!\"invalid\"" |
+| 0x1409BE400 | 邻域传播改判（锚 0x1409BA730 §4.36，距离 0x3CD0）；跳点串 "_pShip" / "!\"invalid\"" |
+| 0x1409BEB60 | 邻域传播改判（锚 0x1409BA730 §4.36，距离 0x4430）；跳点串 "_pShip" / "!\"invalid\"" |
+| 0x1412ECA60 | 串 "CAN_DEACTIVATE_AFTER"；调用链 CLendLeaseAction::[47](sub_1412EF110) / CServer::[8](sub_1406F3910) / CLendLeaseAction::[47](sub_1412EF110)；断言 gamestate.h:1125 … |
+| 0x1423E2A40 | 调用链 CSteamMatchmakingContext::[26]@1423E3210 |
+
+#### 4.36.42 联机模式函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1423EE1B0 | 业务 邻域 pdx_net_steam.cpp/CSteamNetContext::[4]/[8]/[3] x6 + (a1+1584) 4x0x48 注册 + sub_14022BD20 |
+| 0x14133E270 | 业务 串 CHAT_ERROR_UNKNOWNUSER/CHAT_ERROR_MUTEUNMUTE_SELF/CHAT_ERROR_MUTE_MISSINGARGS + NAME |
+| 0x1409B99F0 | 业务 divisionnamesdatabase.cpp:1369 x5 + CServer::[20]（0x1409BA730 孪生，同被调用集） |

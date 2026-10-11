@@ -511,7 +511,7 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 
 0x1402256B0: CEventManager 单例两向量喂入 → 三容器 (串@+8/+376) → set\<string\>; 过滤 = 全空白 (sub_1424CCBC0) ∧ FNV 键存在性 (sub_14239D0F0 → 本地化 DB qword_1435BA038)。用途推定 = 事件本地化键引用清查 (开发期工具通道), 宿主与调用侧待裁。
 
-#### 4.12.11 事件决议域函数补遗（39 函）
+#### 4.12.11 事件决议域函数补遗（37 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -541,8 +541,6 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 | 0x1402D2C10 | CNationalFocus::[13] CNationalFocus::[13]；串「NATIONAL_FOCUS_NO_CURRENT_EFFECT」 |
 | 0x14047E3F0 | sub_14047E3F0 variablescripthelper.cpp:174（sorted_country_list/country_list_scores；invalid country scorer） |
 | 0x140F97E60 | sub_140F97E60 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
-| 0x1404564D0 | NIndustrialOrganisation::CAllIndustrialOrgTrigger::Evaluate 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
-| 0x1404A13B0 | NProject::CAnyActiveScientistTrigger::Evaluate 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
 | 0x140FA45E0 | sub_140FA45E0 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
 | 0x140433830 | sub_140433830 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
 | 0x140C2CCF0 | （无名） 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
@@ -555,7 +553,7 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 | 0x140525BE0 | sub_140525BE0 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
 | 0x14072AAC0 | sub_14072AAC0 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
 
-#### 4.12.12 事件决议域函数补遗（28 函）
+#### 4.12.12 事件决议域函数补遗（24 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -563,14 +561,12 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 | 0x141613D60 | （无名）RELATION_FACTION_MEMBERS_NEAR_ASSUMING_LEADERSHIP_HEADER + FACTION_MEMBER_ABLE_TO_ASSUME_LEADERSHIP + COUNTRY/PROGRESS 键 RELATION_FACTION_MEMBERS_NEAR_AS… |
 | 0x140EDF040 | （无名）RESEARCH_TIME_TOOLTIP_WITH_XP_COST_FACTOR / RESEARCH_BONUS_COST_REDUCTION + COST/VALUE/BASE 键 RESEARCH_TIME_TOOLTIP_WITH_XP_COST_FACTOR / RESEARCH_BONUS_… |
 | 0x140FE19E0 | （无名）HAS_ALL_PREREQUISITES / NOT_HAS_ALL_PREREQUISITES + PROJECT 键 HAS_ALL_PREREQUISITES / NOT_HAS_ALL_PREREQUISITES + PROJECT 键 |
-| 0x141AA5DC0 | NInternationalMarket::CRequestEquipmentPurchaseAction::GetRequestDescText — func_names 名 + DIPLOMACY_REQUEST_EQUIPMENT_PURCHASE_DESCRIPTION + REQUESTER/EQUIP… |
 | 0x140B20F80 | （无名）alert_external_influences_delayed_entry/list + alert_external_influences_stage_coup + COUNTRY/ACTIONS/LIST 键 alert_external_influences_delayed_entry/list… |
 | 0x140B1F270 | （无名）DOCTRINE + ALERT_RIGHTCLICK（学说告警延迟描述） DOCTRINE + ALERT_RIGHTCLICK（学说告警延迟描述） |
 | 0x140B2CEA0 | （无名）alert_outdated_equipment_delayed + ALERT_RIGHTCLICK + LIST 键 alert_outdated_equipment_delayed + ALERT_RIGHTCLICK + LIST 键 |
 | 0x140C68470 | （无名）FLAG/COUNTRY/CURRENT 三键（描述构造，键数不足） FLAG/COUNTRY/CURRENT 三键（描述构造，键数不足） |
 | 0x14037B010 | CCancelBorderWar::GetDesc — func_names 名 + effectimplementation.cpp:18460 + EFFECT_CANCEL_BORDER_WAR + STATE1/STATE2 键 func_names 名 + effectimplementation.cp… |
 | 0x14113F7C0 | sub_14113F7C0 模块标签 eventscope.h:193 |
-| 0x14052CAD0 | NDoctrines::CHasCompletedSubdoctrineTrigger::GetDesc NDoctrines::CHasCompletedSubdoctrineTrigger::GetDesc + 名字角色规则(NDoctrines::CHasCompletedSubdoctrineTrigge… |
 | 0x14043DC70 | sub_14043DC70 模块标签 eventscope.h:193 |
 | 0x140524600 | sub_140524600 模块标签 eventscope.h:193 |
 | 0x140525280 | sub_140525280 模块标签 eventscope.h:193 |
@@ -584,11 +580,9 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 | 0x14140D9C0 | 域关键词匹配 sub_14140D9C0 + 域关键词匹配; 源码路径 hoi4; 断言站点 eventscope.h:193 |
 | 0x141129C10 | sub_141129C10 模块标签 eventscope.h:193 |
 | 0x1402EC6D0 | CBoostPlanning::GetDesc CBoostPlanning::GetDesc + 名字角色规则(CBoostPlanning::GetDesc); 串 "EFFECT_IMPROVE_PLANNING"; 被调源码 clausewitz |
-| 0x1404A2BB0 | NProject::CHasBreakthroughPointsTrigger::GetDesc NProject::CHasBreakthroughPointsTrigger::GetDesc + 名字角色规则(NProject::CHasBreakthroughPointsTrigger::GetDesc);… |
-| 0x14052A9F0 | NDoctrines::CSetGrandDoctrineEffect::GetDesc NDoctrines::CSetGrandDoctrineEffect::GetDesc + 名字角色规则(NDoctrines::CSetGrandDoctrineEffect::GetDesc); 串 "SET_GRAN… |
 | 0x140A7D030 | 域关键词匹配 sub_140A7D030 + 域关键词匹配; 源码路径 hoi4; 断言站点 eventscope.h:193 |
 
-#### 4.12.13 事件决议域函数补遗（18 函）
+#### 4.12.13 事件决议域函数补遗（17 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -598,7 +592,6 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 | 0x14050CB30 | CEventScope 作用域链断言 "pScope == this pS CEventScope 作用域链断言 "pScope == this pScope->_pFrom != this §4.12 事件 |
 | 0x140C74A20 | "NAVAL_INVASION_PLANNING_BONUS_MALUS"+VA "NAVAL_INVASION_PLANNING_BONUS_MALUS"+VALUE：define 引用的脚本描述/t §4.12 事件 |
 | 0x140407C00 | CHasCoreOccupationModifier::GetDesc / "TRIGGER_HAS_CORE_OCCUPATION_MODIFIER/TR "TRIGGER_HAS_CORE_OCCUPATION_MODIFIER/TRIGGER_HAS_NOT_..." §4.12 事件 |
-| 0x140457CD0 | NIndustrialOrganisation::CCheckSizeTrigger::GetDesc / "TRIGGER_MIO_CURRENT_SIZE" "TRIGGER_MIO_CURRENT_SIZE" §4.12 事件 |
 | 0x14072BA90 | sub_14072BA90（无名） eventscope.h:193 站点 "Infinite cycle in event FROM scope" + gamestate.h:1125，紧邻 CInstantSprite::[87]/CDecision::[1]，事件作用域遍历（与 0x140728A40 同族） |
 | 0x140728A40 | sub_140728A40（无名） eventscope.h:193 站点 "Infinite cycle in event FROM scope" + remove_effect 串，事件作用域遍历（与 0x14072BA90 同族） |
 | 0x140AE9550 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
@@ -620,23 +613,11 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 | 0x1414A6CD0 | 修饰容器初始化 "MODIFIER_NONE" 默认值，a1+1336 修饰指针 |
 | 0x140725880 | CDecisionStatus::[0] vtable 槽 CDecisionStatus::[0]（func_names RTTI 名） |
 | 0x14117F7A0 | CEventOption::[0] vtable 槽 CEventOption::[0]（func_names RTTI 名） |
-
-#### 4.12.15 事件决议域函数补遗（5 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.12.16 事件决议域函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x140734C80 | CDecisionStatus::SDecisionRandomCountItem::Reader func_names 名 CDecisionStatus::SDecisionRandomCountItem::Reader |
-
-#### 4.12.17 事件决议域函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.12.18 事件决议域函数补遗（11 函）
 
 | VA | 语义/证据 |
@@ -757,3 +738,375 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 |---|---|
 | 0x1401F7C80 | 未决窗口函数 · ProcessDeferredTargetedDecisions 类型萃取 a3 switch(1..4) 类型萃取：_std_type_info_compare + lambda vtable "ProcessDeferredTargetedDecisions_CGameState" |
 | 0x140F8E030 | 未决窗口函数 · 遍历收集条目到输出对象 sub_140BCAFB0(a2) 后遍历 a1+8 数组（16B 步长，计数 a1+20），经 sub_141538080(elem, byte+8) 取值 sub_140BCB530 写入 a2 |
+
+#### 4.12.28 事件决议域函数补遗（44 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14224C0A0 | CColor::[3] CColor::[3] 槽名 |
+| 0x14151D330 | CTakeNavyPeaceAction::GetDisplayName |
+| 0x140379080 | CDbRefVariable::GetForTooltip? |
+| 0x1403F5AF0 | CCanSelectTrait::GetDesc |
+| 0x1419EB1F0 | （未命名）u16 动态数组 grow + 线性去重 u16 动态数组 grow + 线性去重；邻近 CCollectionSizeTrigger/CRemoveFromFactionEffect 的 trigger/effect TU |
+| 0x14044A3B0 | CIsLeadingArmyInProvince::GetDesc func_names 全名 CIsLeadingArmyInProvince::GetDesc，GetDesc 角色定 §4.12 |
+| 0x140510690 | CEventScope 作用域链断言 CEventScope 作用域链断言 §4.12 事件 |
+| 0x140517840 | CEventScope 作用域链断言 CEventScope 作用域链断言 §4.12 事件 |
+| 0x140411930 | CHasOccupationModifier::GetDesc CHasOccupationModifier |
+| 0x140427EB0 | CNumFactionMembers::GetDesc CNumFactionMembers |
+| 0x1403811C0 | CForceOperativeLeaderIntoHiding::GetDesc CForceOperativeLeaderIntoHiding，特工效果 |
+| 0x140078650 | 事件域字符串函数注册 GetDateString / GetDateStringShortMonth / GetTokenLocalizedKey，CEventScope const& lambda 注册 |
+| 0x14041C1B0 | CHasWargoalAgainst::GetDesc CHasWargoalAgainst |
+| 0x1403CD440 | CHasAvailableOrAllowedIdeaWithTraitsTrigger<$00>::[22] CHasAvailableOrAllowedIdeaWithTraitsTrigger<$00>::[22]（事件/触发/效果） |
+| 0x140680D30 | （无名） 被 STriggerKeyPair::Reader 调用（事件/触发/效果） |
+| 0x140A60D20 | （无名） 被 CScriptedMapEntity::[8] 调用（事件/触发/效果） |
+| 0x140348AA0 | CAddAutonomyRatio::Execute 脚本效果执行（Execute）（CAddAutonomyRatio::Execute） |
+| 0x14143B860 | CScriptedCountryReader::[3] 脚本化读取器/可脚本本地化/触发器条目/作用域遍历/数组极值效果（CScriptedCountryReader::[3]） |
+| 0x140345220 | CClearArrayEffectImp<$00>::[13] CClearArrayEffectImp<$00>::[13]（clear_array 效果模板实例） |
+| 0x1403CCEA0 | CForEachScopesTriggerImp<$00>::[22] 脚本化读取器/可脚本本地化/触发器条目/作用域遍历/数组极值效果（CForEachScopesTriggerImp<$00>::[22]） |
+| 0x1403E86B0 | CTriggerEntry<CNavyStrengthComparisonTrigger>::[1] 脚本化读取器/可脚本本地化/触发器条目/作用域遍历/数组极值效果（CTriggerEntry<CNavyStrengthComparisonTrigger>::[1]） |
+| 0x14046E2C0 | CIsInHomeArea::GetDesc 名:CIsInHomeArea::GetDesc |
+| 0x14051D670 | CTriggerEntry<CCollectionSizeTrigger>::[1] CTriggerEntry<CCollectionSizeTrigger>::[1]（事件/触发/效果） |
+| 0x140465720 | CIsInHomeArea::Evaluate 触发器求值（Evaluate）（CIsInHomeArea::Evaluate） |
+| 0x140F20050 | SWeatherEffectEntityReader::Reader SWeatherEffectEntityReader::Reader（事件/触发/效果） |
+| 0x142409A20 | CEffectHandler::[0] CEffectHandler::[0]（事件/触发/效果） |
+| 0x140448CE0 | CIsCountryLeader::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x14044A090 | CIsLeadingArmy::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x14044B1B0 | CIsUnitLeader::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x140447EC0 | CIsAirChief::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x14044A220 | CIsLeadingArmyGroup::GetDesc 名:CIsLeadingArmyGroup::GetDesc |
+| 0x14044AD00 | CIsPoliticalAdvisor::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CIsPoliticalAdvisor |
+| 0x140449C80 | CIsHiredAsAdvisor::GetDesc 触发器/效果描述生成（GetDesc）（CIsHiredAsAdvisor::GetDesc） |
+| 0x140449960 | CIsFieldMarshal::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CIsFieldMarshal |
+| 0x140421720 | CIsJustifyingWargoalAgainst::GetDesc 触发器/效果描述生成（GetDesc）（CIsJustifyingWargoalAgainst::GetDesc） |
+| 0x1404463E0 | CHasArmyLedger::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CHasArmyLedger |
+| 0x140448050 | CIsArmyChief::GetDesc 名:CIsArmyChief::GetDesc |
+| 0x14044B020 | CIsTheorist::GetDesc 触发器/效果描述生成（GetDesc）（CIsTheorist::GetDesc） |
+| 0x140447D30 | CIsAdvisor::GetDesc 触发器/效果描述生成（GetDesc）（CIsAdvisor::GetDesc） |
+| 0x14044B340 | CNotAlreadyHired::GetDesc 名:CNotAlreadyHired::GetDesc |
+| 0x140345660 | CFindHighestLowestInArrayEffect<$00>::[13] 脚本化读取器/可脚本本地化/触发器条目/作用域遍历/数组极值效果（CFindHighestLowestInArrayEffect<$00>::[13]） |
+| 0x141181560 | （无名） VA 邻近 CDelayedEvent::Writer(±608)（事件/触发/效果） |
+| 0x14046CA20 | CHasActiveResistance::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CHasActiveResistance |
+| 0x1404B7B20 | CHasFactionResearchUnlocked::GetDesc func_names 全名 + GetDesc 角色 |
+
+#### 4.12.29 事件决议域函数补遗（43 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141CF4CD0 | sub_141CF4CD0 业务 事件调试日志控制台命令（"Please specify event id" / "There is no event with ID #" / "Debug Log for event"，ConsoleCmdImpl.cpp） |
+| 0x1402CB440 | 业务 构造函数：写 `CNationalFocus::`vftable'`（国策对象构造） |
+| 0x140387650 | CReduceFocusCost::GetDesc 业务 func_names 名 CReduceFocusCost::GetDesc；串 "REDUCE_FOCUS_DAYS_EFFECT"/"REDUCE_FOCUS_DAYS_MULTIPLE_FOCUS" |
+| 0x14039B560 | CFreeRandomOperativeEfect::GetDescWrapper 业务 func_names 名 CFreeRandomOperativeEfect::GetDescWrapper；串 "EFFECT_FREE_RANDOM_OPERATIVE_ALL_SUCCESS"/"_FAILURE" |
+| 0x141E41D70 | sub_141E41D70 业务 _ACTION 后缀 + 空格-空格拼接（action 描述构造，证据不足） |
+| 0x14112CEE0 | CRequestLicensedProductionAction::GetRequestDescText 业务 func_names 名 CRequestLicensedProductionAction::GetRequestDescText；串 "_REQUEST_DESC"/"COUNTRY"/"LIST"/… |
+| 0x14037C4D0 | GetDesc 业务 func_names 名 GetDesc；eventscope.h:193；串 "EFFECT_COUNTRY_EVENT"/"Invalid event with id" |
+| 0x1402D95B0 | （无名） 业务 串 "Prio is already set for focus tree filter" + 调 CDiplomaticAction::GetFirstCountryRef |
+| 0x1403CABD0 | eventscope.h:193 业务 同上族 |
+| 0x14050D510 | eventscope.h:193 业务 同上族 |
+| 0x1405113A0 | eventscope.h:193 业务 同上族（同尺寸同断言同 tbb flag_task），另一遍历方向 |
+| 0x140518230 | eventscope.h:193 业务 事件作用域遍历：断言 "Infinite cycle in event FROM scope"（eventscope.h:193）+ tbb flag_task 并行 |
+| 0x141BCA7E0 | 业务 持续国策状态：define CONTINUOUS_FOCUS_ACTIVE_STATUS / CONTINUOUS_FOCUS_NOT_ACTIVE_STATUS + "start"/"status"/"stop" 令牌 |
+| 0x141A90FC0 | countrytext.cpp:109 业务 国家文本宏展开：countrytext.cpp 错误串 "no valid faction leader for text promotion GetFactionLeader" / "no valid overlord for text promotion Over… |
+| 0x1414A6930 | 业务 文本构建：text.cpp:491 调用 + xmmword 初值串 + strcpy "name"（本地化文本族，与 0x14191BF10 同 text.cpp:491） |
+| 0x141933900 | 业务 dword_143335B90/qword_14333D528 表引用，夹于 NNotification::CIdeaExpiredNotification::[5](d=16560) 与 CEquipmentProductionLine::[1](d=1772)，理念到期通知/装备生产线族 |
+| 0x141D799C0 | — 业务 gamestate.h:1125 断言 + 调用 sub_14053A610（0x14053 事件作用域工具族） |
+| 0x14016D1A0 | — 业务 pdx_scopedptr + robin_hood 迭代器断言；调用 sub_1403072B0（0x14030 效果实现区段） |
+| 0x1410784E0 | — 业务 "unordered_map/set too long" 断言 + 调用 sub_14071AB00（0x14071 决策区段） |
+| 0x14047D850 | sub_14047D850 业务 串 "GetBestTarget" + eventscope.h:193 作用域断言（事件作用域最佳目标选取） |
+| 0x1412BDAA0 | — 业务 gamestate.h:1125 断言 + 调用 sub_1406FCFB0（0x1406F 任务/单位区段） |
+| 0x14053C610 | — 业务 gamestate.h:1116 断言；调用 sub_140535C20/sub_140537D20（0x14053 事件作用域工具族） |
+| 0x140FD00F0 | — 业务 "_desc" loc 键后缀 + 调用 sub_140535820（事件作用域工具族） |
+| 0x141933120 | 业务 紧邻 NNotification::CIdeaExpiredNotification::[5](d=14544) 与 CEquipmentProductionLine::[1](d=3788)，理念到期通知/装备生产线族（与 0x141933900 同簇） |
+| 0x1407320A0 | CDecisionDatabase::[0] 业务 CDecisionDatabase 决策库 vtable 槽（gamestate.h:1126 访问门） |
+| 0x14036EBD0 | CReleaseNationEffect<$00>::[7] 业务 释放国家效果（EFFECT_RELEASE_NATION + COUNTRY） |
+| 0x141D79350 | sub_141D79350 业务 串 "DECISION_COST_COMPACT"/"DECISION_AMOUNT_DAYS"（决议消耗工具提示） |
+| 0x1403AEAE0 | CResizeArrayEffectImp<$00>::[4] 业务 CResizeArrayEffectImp<$00> 数组调整效果模板实例 |
+| 0x140388510 | CRemoveCivilWarTarget::GetDesc 业务 移除内战目标效果 GetDesc（EFFECT_REMOVE_CIVIL_WAR_TARGET + COUNTRY） |
+| 0x141A3A270 | sub_141A3A270 业务 串：( pScope == this 、、 pScope->_pFrom != this ) && \ 、 C:\\mnt\\gsg\\hoi4 |
+| 0x141A97E80 | (无名) 业务 formatter "Gets the name of the state." |
+| 0x141A978E0 | (无名) 业务 formatter "Gets the owner country of the state." |
+| 0x141A92120 | (无名) 业务 formatter "Gets the player country." |
+| 0x140F3D600 | sub_140F3D600 业务 串：available 、 ( pScope == this 、、 pScope->_pFrom != this ) && \ 、 C:\\mn |
+| 0x14100CE90 | 业务 类路由 CAndTrigger ->§4.12; 类路由 CDeployAirWingCommand ->§4.33; 串 "cancel_diplo_action" |
+| 0x1402A6E60 | 业务 断言站点 decisionviewutil.cpp:4 ->§4.12; 断言站点 relationstripview.cpp:11 ->§4.1; 串 "Unknown state" |
+| 0x1406C93E0 | 业务 串 "descriptio" ->§4.12; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.34 |
+| 0x1420CDA70 | 业务 串 "Setting vibration failed: 0x%lx\n"; 调用图 IDF top §4.1 frac 1.00; 反传 2/2 调用者 §4.12 |
+| 0x14116AA40 | 业务 脚本事件处理：a3==10394 事件 id + a2+212/200 名称 + qword_143330D98 单例 事件处理 |
+| 0x140611C10 | 业务 串 "allowed_to_remove"; 调用图 IDF top §4.1 frac 1.00; 反传 1/2 调用者 §4.12 |
+| 0x141217930 | 业务 串 "Unexpected token in building level c"; 调用图 IDF top §4.1 frac 0.57; 反传 1/1 调用者 §4.12 |
+| 0x140724200 | 业务 类名证据「TGameItemDatabase<CDecisionDatabase>」 §4.12 事件决议 |
+| 0x140A75E10 | 业务 类名证据「TGameItemDatabase<COnActionDataBase>」 §4.12 事件决议 |
+
+
+#### 4.12.30 事件决议域函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BC6230 | 业务 串 `HAS_EXCLUSIVE_FOCUS`、`NATIONAL_FOCUS_EXCLUSIVE_INFO_ENTRY`、`FOCUS_SINGLE_OR_PREREQ%s`、`FOCUS_MIX_AND_PREREQ%s`；调用者 0x141388390 含 `Focus ID = `、`FOCUS_S… |
+| 0x140A78590 | 业务 ON_ACTION_CHANCE/NOTHING_OA loc 键（on_action 概率） |
+| 0x140729D90 | 业务 串字面量 'has_fullfilled_custom_cost' [4.12×1] |
+| 0x141FA2E30 | 业务 串字面量 'SPECIAL_PROJECT_DEFAULT_ITERATION_REWARD_OPTION_DE' [4.12×2] |
+| 0x141219CC0 | 业务 反向调用图 1/2 调用者投 §4.12; 唯一被调用者在书内 §4.1 |
+| 0x140534900 | 业务 反向调用图 1/2 调用者投 §4.12 |
+| 0x141A974C0 | 业务 串字面量 '![MD]\\nGets the name of the special project' [4.12×1] |
+| 0x140BC3910 | 业务 调用图 1/2 锚点投 §4.12; 反向调用图 2/4 调用者投 §4.1 |
+| 0x1410D3000 | 业务 反向调用图 1/2 调用者投 §4.12 |
+| 0x1410E62F0 | 业务 反向调用图 1/2 调用者投 §4.12 |
+| 0x140BC5C10 | 业务 反向调用图 2/4 调用者投 §4.12; 唯一被调用者在书内 §4.00 |
+
+#### 4.12.31 常量串 getter 结构定案（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14073FDA0 | 常量串 getter: 返回常量串 "NFocus::MAX_SAVED_FOCUS_PROGRESS"（高置信） |
+| 0x14073FD80 | 常量串 getter: 返回常量串 "NFocus::FOCUS_PROGRESS_PEACE"（高置信） |
+| 0x14073FD90 | 常量串 getter: 返回常量串 "NFocus::FOCUS_PROGRESS_WAR"（高置信） |
+| 0x14073FD70 | 常量串 getter: 返回常量串 "NFocus::FOCUS_POINT_DAYS"（高置信） |
+
+#### 4.12.32 模板实例化桩结构定案（213 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D7AF40 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x141D7B030 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x141D7AE50 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x141D7AB30 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7AC20 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7AD60 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x1418D0770 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x14123CB80 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x141D7AF10 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x141D7B000 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x141D7AE20 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x141D7AB00 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7ABF0 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7AD30 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x1418D0740 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x14123CB50 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x141D7AEE0 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x141D7AFD0 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x141D7AC80 | 模板桩: 模板参数类名 CDecisionViewDecisionItemBase（高置信） |
+| 0x141D7ADF0 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x141D7AAD0 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7ABC0 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7AEB0 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x141D7AD00 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x141D7AFA0 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x1418D0710 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x141D7ADC0 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x141D7AAA0 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7AB90 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7ACD0 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x14123CB20 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x1418D06E0 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x14123CAF0 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x141D7AF80 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x141D7B070 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x141D7AE90 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x141D7AB70 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7AC60 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7ADA0 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x1418D07B0 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x14123CBC0 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x141D7ACB0 | 模板桩: 模板参数类名 CDecisionViewDecisionItemBase（高置信） |
+| 0x141D7B220 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x141D7B270 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x141D7B1D0 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x141D7B0C0 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7B110 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7B180 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x140C06A90 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06AB0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06AD0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06AF0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06B10 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06B30 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06B50 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06B70 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06B90 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06BB0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06BD0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06BF0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06C10 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06C30 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06C50 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06C70 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06C90 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06CB0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06CD0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06CF0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06D10 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06D30 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06D50 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06D70 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06D90 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06DB0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06DD0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06DF0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06E10 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06E30 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06E50 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06E70 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06E90 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06EB0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06ED0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06EF0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06F10 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C06F30 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1418D0E90 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x14123CC10 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x1403B9A20 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x141D7B210 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x141D7B260 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x141D7B1C0 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x141D7B0B0 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7B100 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7B170 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x141D7B200 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x1418D0E80 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x141D7B250 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x141D7B130 | 模板桩: 模板参数类名 CDecisionViewDecisionItemBase（高置信） |
+| 0x141D7B1B0 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x141D7B1F0 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x1401F5130 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E17B0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E17C0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E17D0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E17E0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C286F0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28700 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28710 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28720 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28730 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28740 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28750 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28760 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28770 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28780 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28810 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28820 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28830 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28840 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28850 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28860 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28870 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28880 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28890 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C288A0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C288C0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C288D0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C288E0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C288F0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28900 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28910 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28920 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28930 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28940 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28950 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28970 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28980 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28990 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C289A0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C289B0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C289C0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C289D0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C289E0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C289F0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A00 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A20 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A30 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A40 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A50 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A60 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A70 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A80 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A90 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28AA0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28AB0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28AD0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28AE0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28AF0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28B00 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28B10 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1401F51F0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1401F5200 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1401F5210 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1401F5220 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1401F5230 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1401F5240 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1401F5250 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1401F5260 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E1850 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E1860 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E1870 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E1880 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E1890 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E18A0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E18B0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1409E18C0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C288B0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28960 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28A10 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28AC0 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28B20 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28B30 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28B40 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x140C28B50 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x141D7B240 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x141D7B0A0 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7B0F0 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7B1A0 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x14123CC00 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x141D7B160 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x141D7B090 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7B0E0 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x1418D0E70 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x141D7B230 | 模板桩: 模板参数类名 CDecisionViewTargetedDecisionItem（高置信） |
+| 0x141D7B150 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x1412D0430 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1412D0440 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1412D0450 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1412D0460 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1412D0470 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x1412D0480 | 模板桩: 模板参数类名 CEventScope（高置信） |
+| 0x141D7B280 | 模板桩: 模板参数类名 CDecisionViewTimedDecisionItem（高置信） |
+| 0x1418D0E60 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x141D7B140 | 模板桩: 模板参数类名 CDecisionViewDecisionItemBase（高置信） |
+| 0x141D7B1E0 | 模板桩: 模板参数类名 CDecisionViewOnMapLocatorItem（高置信） |
+| 0x14123CBF0 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x141D7B0D0 | 模板桩: 模板参数类名 CDecisionViewCategoryItem（高置信） |
+| 0x141D7B120 | 模板桩: 模板参数类名 CDecisionViewDecisionItem（高置信） |
+| 0x141D7B190 | 模板桩: 模板参数类名 CDecisionViewEventItem（高置信） |
+| 0x14123CBE0 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+| 0x1418D0EA0 | 模板桩: 模板参数类名 CDecisionMapIconItem（高置信） |
+| 0x14123CC20 | 模板桩: 模板参数类名 CEventWindow（高置信） |
+
+#### 4.12.33 单调用转发桩结构定案（14 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14138C0F0 | 转发桩: 转发至 域关键词匹配 sub_141381C90 + 域关键词匹配（推定） |
+| 0x1403BCD00 | 转发桩: 转发至 （未命名）script_collection_evaluator.h:230："Collection operator %s doesn't support [Parallel]ForEach for…state" ×4 script_collection_evaluator.h:230："C…（推定） |
+| 0x1404C8770 | 转发桩: 转发至 （未命名）同上 script_collection_evaluator.h:230 断言族 同上 script_collection_evaluator.h:230 断言族，集合算子求值（推定） |
+| 0x141380EC0 | 转发桩: 被调者 0x14138C0F0 -> §4.12 (E:单调用转发(被调者入书))（推定） |
+| 0x140FE38E0 | 转发桩: 转发至 sub_141A3A270 业务 串：( pScope == this 、、 pScope->_pFrom != this ) && \ 、 C:\\mnt\\gsg\\hoi4（推定） |
+| 0x1420D9250 | 转发桩: 转发至 sub_1420D8E50 "The event system has been shut down" / "Couldn't lock event queue" / "Event queue is full (%d events)"（事件队列投递）（推定） |
+| 0x1426375A0 | 转发桩: 被调者 0x141380EC0 -> §4.12 (E:单调用转发(链内))（推定） |
+| 0x1425F7C90 | 转发桩: 转发至 业务 类名证据「TGameItemDatabase<CDecisionDatabase>」 §4.12 事件决议（推定） |
+| 0x1425FDB90 | 转发桩: 转发至 业务 类名证据「TGameItemDatabase<COnActionDataBase>」 §4.12 事件决议（推定） |
+| 0x140A4AE60 | 转发桩: 转发至 sub_1413AE5C0 模块标签 eventscope.h:193（推定） |
+| 0x140A4AE70 | 转发桩: 转发至 sub_1413AE5C0 模块标签 eventscope.h:193（推定） |
+| 0x141FA4D60 | 转发桩: 转发至 业务 串字面量 'SPECIAL_PROJECT_DEFAULT_ITERATION_REWARD_OPTION_DE' [4.12×2]（推定） |
+| 0x14138B4E0 | 转发桩: 转发至 （无名，按证据定性） 直接调用者持键 NATIONAL_FOCUS_TITLE/FOCUS_TREE_VIEW_HEADER/COUNTRY（国策焦点树视图同族）（推定） |
+| 0x1420DA730 | 转发桩: 转发至 事件系统队列锁/关闭 事件系统队列锁/关闭；串 \"The event system has been shut down\"×2/\"Couldn't lock event queue\"×3（推定） |
+
+#### 4.12.34 事件决议域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141592910 | 断言 "In..."+eventscope.h；串 "target_leader"/"target_province"（事件脚本键）；4 caller |
+| 0x1402D1AC0 | 调用链 CNationalFocus::[8]@1402D5500 |
+| 0x140D2C300 | 路径锚 source\eventscope.h |
+| 0x1410D5D00 | 邻域传播改判（锚 0x1410D3000 §4.12，距离 0x2D00）；UCRT locale 机制（_LocaleUpdate/__crt_locale_pointers/Init_thread）+ 跳点串 "_pInstance && \"Instance not created.\""、"Index >… |
+| 0x141213E90 | 邻域传播改判（锚 0x141219CC0 §4.12，距离 0x5E30）；跳点串 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamestate\"" |
+| 0x141539740 | 游戏 CU 簇内: CEquipmentUpgrade::CUpgradeCost::Reader / CEventOption::Reader |
+| 0x141F9F8A0 | 邻域传播改判（锚 0x141FA2E30 §4.12，距离 0x3590）；跳点串 "Non-invasion order passed to invasion support goal" + 调用者 NAiNavalGoals::CObjectiveTypeTracker<…>::[1]@141ED2200 →… |

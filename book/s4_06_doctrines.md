@@ -553,3 +553,173 @@ CU = `hoi4\source\doctrines\ui\track_item.cpp` (5/5 函断言串一致); RTTI �
 | VA | 语义/证据 |
 |---|---|
 | 0x141F469C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.6 |
+
+#### 4.6.20 学说族函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141CC27E0 | NDoctrines::CFolderTabItem::[0] 业务 func_names 名 NDoctrines::CFolderTabItem::[0]；串 "_doctrine_folder_desc" |
+| 0x14147B740 | NDoctrines::STemporaryCostReduction::Reader 业务 NDoctrines::STemporaryCostReduction::Reader 临时减价 reader（gameitemdatabase.h:142 站点） |
+| 0x141CC3730 | NDoctrines::CFolderView::[0] 业务 NDoctrines::CFolderView::[0] 学说文件夹视图槽方法（buttonwrapper.h:34 站点）；类名自文档 |
+| 0x14052D6D0 | NDoctrines::CHasMasteryLevelTrigger::ParseToken 业务 NDoctrines::CHasMasteryLevelTrigger::ParseToken，学说精通等级触发器解析 |
+
+#### 4.6.21 学说族函数命名空间补遗（113 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409CC550 | NDoctrines::CDoctrineBaseTemplate::[8] NDoctrines::CDoctrineBaseTemplate::[8]（学说） |
+| 0x14052CAD0 | NDoctrines::CHasCompletedSubdoctrineTrigger::GetDesc NDoctrines::CHasCompletedSubdoctrineTrigger::GetDesc + 名字角色规则(NDoctrines::CHasCompletedSubdoctrineTrigge… |
+| 0x14052A9F0 | NDoctrines::CSetGrandDoctrineEffect::GetDesc NDoctrines::CSetGrandDoctrineEffect::GetDesc + 名字角色规则(NDoctrines::CSetGrandDoctrineEffect::GetDesc); 串 "SET_GRAN… |
+| 0x14052CC20 | NDoctrines::CHasDoctrineTrigger::GetDesc NDoctrines::CHasDoctrineTrigger |
+| 0x140529A20 | NDoctrines::CSetSubDoctrineEffect::Execute 脚本效果执行（Execute）（NDoctrines::CSetSubDoctrineEffect::Execute） |
+| 0x14052C240 | NDoctrines::CHasDoctrineTrigger::ParseValueKeys 触发器/效果脚本解析（ParseToken/ParseValueKeys/ResolveReferences）（NDoctrines::CHasDoctrineTrigger::ParseValueKeys） |
+| 0x14052C950 | NDoctrines::CHasCombatTacticTrigger::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 NDoctrines |
+| 0x14052B290 | NDoctrines::CAddDailyMasteryEffect::[5] vtable 槽 NDoctrines::CAddDailyMasteryEffect::[5]（func_names RTTI 名） |
+| 0x140160760 | NDoctrines::CRewardTemplate::[0] vtable 槽 NDoctrines::CRewardTemplate::[0]（func_names RTTI 名） |
+| 0x14052B1C0 | NDoctrines::CAddMasteryEffect::[25] vtable 槽 NDoctrines::CAddMasteryEffect::[25]（func_names RTTI 名） |
+| 0x140D7D860 | NDoctrines::CFolderStatus::[0] vtable 槽 NDoctrines::CFolderStatus::[0]（func_names RTTI 名） |
+| 0x141CC33E0 | NDoctrines::CFolderView::[1] vtable 槽 NDoctrines::CFolderView::[1]（func_names RTTI 名） |
+| 0x140FC8530 | NDoctrines::CFolderStatus::[8] vtable 槽 NDoctrines::CFolderStatus::[8]（func_names RTTI 名） |
+| 0x140D7DA20 | NDoctrines::STemporaryCostReduction::[0] vtable 槽 NDoctrines::STemporaryCostReduction::[0]（func_names RTTI 名） |
+| 0x14052B420 | NDoctrines::CAddMasteryEffect::[5] vtable 槽 NDoctrines::CAddMasteryEffect::[5]（func_names RTTI 名） |
+| 0x140D7D8F0 | NDoctrines::CTrackStatus::[0] vtable 槽 NDoctrines::CTrackStatus::[0]（func_names RTTI 名） |
+| 0x140D7D7F0 | NDoctrines::CDoctrineSystem::[0] vtable 槽 NDoctrines::CDoctrineSystem::[0]（func_names RTTI 名） |
+| 0x141F352E0 | NDoctrines::CTrackItem::[0] vtable 槽 NDoctrines::CTrackItem::[0]（func_names RTTI 名） |
+| 0x14163AC70 | NDoctrines::CCountryDoctrineView::[0] vtable 槽 NDoctrines::CCountryDoctrineView::[0]（func_names RTTI 名） |
+| 0x14163AE00 | NDoctrines::CCountryDoctrineView::[7] vtable 槽 NDoctrines::CCountryDoctrineView::[7]（func_names RTTI 名） |
+| 0x141F394F0 | NDoctrines::CDoctrineSelectionList::[1] vtable 槽 NDoctrines::CDoctrineSelectionList::[1]（func_names RTTI 名） |
+| 0x1409E6C80 | NDoctrines::CTrackTemplate::[8] vtable 槽 NDoctrines::CTrackTemplate::[8]（func_names RTTI 名） |
+| 0x141CC2790 | NDoctrines::CFolderTabItem::[0] vtable 槽 NDoctrines::CFolderTabItem::[0]（func_names RTTI 名） |
+| 0x141F394A0 | NDoctrines::CDoctrineListItem::[0] vtable 槽 NDoctrines::CDoctrineListItem::[0]（func_names RTTI 名） |
+| 0x1409CBE10 | NDoctrines::CFolderTemplate::[8] vtable 槽 NDoctrines::CFolderTemplate::[8]（func_names RTTI 名） |
+| 0x141FC2A20 | NDoctrines::CRewardItem::[0] vtable 槽 NDoctrines::CRewardItem::[0]（func_names RTTI 名） |
+| 0x14015FE90 | NDoctrines::CMilestoneTemplate::[0] vtable 槽 NDoctrines::CMilestoneTemplate::[0]（func_names RTTI 名） |
+| 0x140528F80 | NDoctrines::CAddMasteryEffect::[0] vtable 槽 NDoctrines::CAddMasteryEffect::[0]（func_names RTTI 名） |
+| 0x14015FA60 | NDoctrines::CFolderTemplate::[0] vtable 槽 NDoctrines::CFolderTemplate::[0]（func_names RTTI 名） |
+| 0x14015FE50 | NDoctrines::CMasteryConditions::[0] vtable 槽 NDoctrines::CMasteryConditions::[0]（func_names RTTI 名） |
+| 0x140528FC0 | NDoctrines::STemporaryMasteryGain::[0] vtable 槽 NDoctrines::STemporaryMasteryGain::[0]（func_names RTTI 名） |
+| 0x141F382C0 | NDoctrines::NImpl::CSubDoctrineInfoPolicy::[1] vtable 槽 NDoctrines::NImpl::CSubDoctrineInfoPolicy::[1]（func_names RTTI 名） |
+| 0x14015CE60 | NDoctrines::CFolderDatabase::[1] vtable 槽 NDoctrines::CFolderDatabase::[1]（func_names RTTI 名） |
+| 0x14015CF20 | NDoctrines::CGrandDoctrineDatabase::[1] vtable 槽 NDoctrines::CGrandDoctrineDatabase::[1]（func_names RTTI 名） |
+| 0x14015D0A0 | NDoctrines::CSubDoctrineDatabase::[1] vtable 槽 NDoctrines::CSubDoctrineDatabase::[1]（func_names RTTI 名） |
+| 0x14015D0E0 | NDoctrines::CTrackDatabase::[1] vtable 槽 NDoctrines::CTrackDatabase::[1]（func_names RTTI 名） |
+| 0x14015F480 | NDoctrines::CDoctrineBaseTemplate::[0] vtable 槽 NDoctrines::CDoctrineBaseTemplate::[0]（func_names RTTI 名） |
+| 0x14015FC50 | NDoctrines::CGrandDoctrineTemplate::[0] vtable 槽 NDoctrines::CGrandDoctrineTemplate::[0]（func_names RTTI 名） |
+| 0x140160B90 | NDoctrines::CSubDoctrineTemplate::[0] vtable 槽 NDoctrines::CSubDoctrineTemplate::[0]（func_names RTTI 名） |
+| 0x140160BD0 | NDoctrines::CTrackTemplate::[0] vtable 槽 NDoctrines::CTrackTemplate::[0]（func_names RTTI 名） |
+| 0x141F381C0 | NDoctrines::NImpl::CGrandDoctrineInfoPolicy::[1] vtable 槽 NDoctrines::NImpl::CGrandDoctrineInfoPolicy::[1]（func_names RTTI 名） |
+| 0x1409CDEF0 | NDoctrines::CGrandDoctrineTemplate::[14] vtable 槽 NDoctrines::CGrandDoctrineTemplate::[14]（func_names RTTI 名） |
+| 0x14163AC54 | NDoctrines::CCountryDoctrineView::[1] vtable 槽 NDoctrines::CCountryDoctrineView::[1]（func_names RTTI 名） |
+| 0x14163AC60 | NDoctrines::CCountryDoctrineView::[0] vtable 槽 NDoctrines::CCountryDoctrineView::[0]（func_names RTTI 名） |
+| 0x141CC2778 | NDoctrines::CFolderTabItem::[1] vtable 槽 NDoctrines::CFolderTabItem::[1]（func_names RTTI 名） |
+| 0x141F352D0 | NDoctrines::CTrackItem::[1] vtable 槽 NDoctrines::CTrackItem::[1]（func_names RTTI 名） |
+| 0x141F39494 | NDoctrines::CDoctrineListItem::[1] vtable 槽 NDoctrines::CDoctrineListItem::[1]（func_names RTTI 名） |
+| 0x141FC2A14 | NDoctrines::CRewardItem::[1] vtable 槽 NDoctrines::CRewardItem::[1]（func_names RTTI 名） |
+| 0x141D227C0 | NDoctrines::CEntryButton::[0] vtable 槽 NDoctrines::CEntryButton::[0]（func_names RTTI 名） |
+| 0x141FC2A60 | NDoctrines::CRewardItem::[0] vtable 槽 NDoctrines::CRewardItem::[0]（func_names RTTI 名） |
+| 0x1409CDAB0 | NDoctrines::CGrandDoctrineTemplate::[13] vtable 槽 NDoctrines::CGrandDoctrineTemplate::[13]（func_names RTTI 名） |
+| 0x1413CDE50 | NDoctrines::CCountryDoctrineStatus::[8] vtable 槽 NDoctrines::CCountryDoctrineStatus::[8]（func_names RTTI 名） |
+| 0x141F39EE0 | NDoctrines::CDoctrineSelectionList::[0] vtable 槽 NDoctrines::CDoctrineSelectionList::[0]（func_names RTTI 名） |
+| 0x14052D3C0 | NDoctrines::CMasteryTrigger::GetDesc func_names 名 NDoctrines::CMasteryTrigger::GetDesc |
+| 0x14052D900 | NDoctrines::CMasteryTrigger::ParseToken func_names 名 NDoctrines::CMasteryTrigger::ParseToken |
+| 0x140529510 | NDoctrines::CAddDailyMasteryEffect::Execute func_names 名 NDoctrines::CAddDailyMasteryEffect::Execute |
+| 0x14052CEF0 | NDoctrines::CHasGrandDoctrineInFolderTrigger::GetDesc func_names 名 NDoctrines::CHasGrandDoctrineInFolderTrigger::GetDesc |
+| 0x1405297D0 | NDoctrines::CAddMasteryEffect::Execute func_names 名 NDoctrines::CAddMasteryEffect::Execute |
+| 0x14052C3B0 | NDoctrines::CHasGrandDoctrineInFolderTrigger::ParseValueKeys func_names 名 NDoctrines::CHasGrandDoctrineInFolderTrigger::ParseValueKeys |
+| 0x1409CC3B0 | NDoctrines::CDoctrineBaseTemplate::[12] vtable 槽 NDoctrines::CDoctrineBaseTemplate::[12]（func_names RTTI 名） |
+| 0x14052AB70 | NDoctrines::CUnlockCombatTacticEffect::GetDesc func_names 名 NDoctrines::CUnlockCombatTacticEffect::GetDesc |
+| 0x140D7D6D0 | NDoctrines::CCountryDoctrineStatus::[0] vtable 槽 NDoctrines::CCountryDoctrineStatus::[0]（func_names RTTI 名） |
+| 0x14052BB60 | NDoctrines::CHasCombatTacticTrigger::Evaluate func_names 名 NDoctrines::CHasCombatTacticTrigger::Evaluate |
+| 0x14052BA80 | NDoctrines::CDoctrineTrackCompletedTrigger::Evaluate func_names 名 NDoctrines::CDoctrineTrackCompletedTrigger::Evaluate |
+| 0x14052BF90 | NDoctrines::CHasSubdoctrineInTrackTrigger::Evaluate func_names 名 NDoctrines::CHasSubdoctrineInTrackTrigger::Evaluate |
+| 0x140529CB0 | NDoctrines::CUnlockSubUnitEffect::Execute func_names 名 NDoctrines::CUnlockSubUnitEffect::Execute |
+| 0x140529980 | NDoctrines::CSetGrandDoctrineEffect::Execute func_names 名 NDoctrines::CSetGrandDoctrineEffect::Execute |
+| 0x14052C890 | NDoctrines::CDoctrineTrackCompletedTrigger::GetDesc func_names 名 NDoctrines::CDoctrineTrackCompletedTrigger::GetDesc |
+| 0x141A7BAD0 | NDoctrines::CUnlockSubDoctrineCommand::Clone func_names 名 NDoctrines::CUnlockSubDoctrineCommand::Clone |
+| 0x140529BF0 | NDoctrines::CUnlockCombatTacticEffect::Execute func_names 名 NDoctrines::CUnlockCombatTacticEffect::Execute |
+| 0x14052AAB0 | NDoctrines::CSetSubDoctrineEffect::GetDesc func_names 名 NDoctrines::CSetSubDoctrineEffect::GetDesc |
+| 0x14052D300 | NDoctrines::CHasSubdoctrineInTrackTrigger::GetDesc func_names 名 NDoctrines::CHasSubdoctrineInTrackTrigger::GetDesc |
+| 0x14147B640 | NDoctrines::STrackFilter::Writer func_names 名 NDoctrines::STrackFilter::Writer |
+| 0x141A7BA40 | NDoctrines::CUnlockGrandDoctrineCommand::Clone func_names 名 NDoctrines::CUnlockGrandDoctrineCommand::Clone |
+| 0x14052ACD0 | NDoctrines::CUnlockSubUnitEffect::GetDesc func_names 名 NDoctrines::CUnlockSubUnitEffect::GetDesc |
+| 0x140529180 | NDoctrines::CSetSubDoctrineEffect::ParseTargetToken func_names 名 NDoctrines::CSetSubDoctrineEffect::ParseTargetToken |
+| 0x14052C180 | NDoctrines::CDoctrineTrackCompletedTrigger::ParseValueKeys func_names 名 NDoctrines::CDoctrineTrackCompletedTrigger::ParseValueKeys |
+| 0x14052C510 | NDoctrines::CHasSubdoctrineInTrackTrigger::ParseValueKeys func_names 名 NDoctrines::CHasSubdoctrineInTrackTrigger::ParseValueKeys |
+| 0x14052BC50 | NDoctrines::CHasCompletedSubdoctrineTrigger::Evaluate func_names 名 NDoctrines::CHasCompletedSubdoctrineTrigger::Evaluate |
+| 0x1416F7EF0 | NDoctrines::CEntryButton::[1] vtable 槽 NDoctrines::CEntryButton::[1]（func_names RTTI 名） |
+| 0x1413C6FF0 | NDoctrines::NUtils::SMasteryFromUnitLeader::Reader func_names 名 NDoctrines::NUtils::SMasteryFromUnitLeader::Reader |
+| 0x140528EE0 | NDoctrines::CAddDailyMasteryEffect::[0] vtable 槽 NDoctrines::CAddDailyMasteryEffect::[0]（func_names RTTI 名） |
+| 0x14163B370 | NDoctrines::CCountryDoctrineView::Setup func_names 名 NDoctrines::CCountryDoctrineView::Setup |
+| 0x14052BE10 | NDoctrines::CHasGrandDoctrineInFolderTrigger::Evaluate func_names 名 NDoctrines::CHasGrandDoctrineInFolderTrigger::Evaluate |
+| 0x14052D680 | NDoctrines::CHasDoctrineTrigger::ValidateLate func_names 名 NDoctrines::CHasDoctrineTrigger::ValidateLate |
+| 0x14163ACD0 | NDoctrines::CCountryDoctrineView::ClearContents func_names 名 NDoctrines::CCountryDoctrineView::ClearContents |
+| 0x14147BA60 | NDoctrines::STemporaryMasteryGain::Reader func_names 名 NDoctrines::STemporaryMasteryGain::Reader |
+| 0x14052D5E0 | NDoctrines::CHasMasteryLevelTrigger::Validate func_names 名 NDoctrines::CHasMasteryLevelTrigger::Validate |
+| 0x14052D630 | NDoctrines::CMasteryTrigger::Validate func_names 名 NDoctrines::CMasteryTrigger::Validate |
+| 0x141A7D090 | NDoctrines::CUnlockSubDoctrineCommand::PayloadWriter func_names 名 NDoctrines::CUnlockSubDoctrineCommand::PayloadWriter |
+| 0x14163AD30 | NDoctrines::CCountryDoctrineView::PreSetup func_names 名 NDoctrines::CCountryDoctrineView::PreSetup |
+| 0x14147BB40 | NDoctrines::STemporaryMasteryGain::Writer func_names 名 NDoctrines::STemporaryMasteryGain::Writer |
+| 0x14147BAD0 | NDoctrines::STemporaryCostReduction::Writer func_names 名 NDoctrines::STemporaryCostReduction::Writer |
+| 0x141529A30 | NDoctrines::SDoctrineEquipmentBonusHandle::Reader func_names 名 NDoctrines::SDoctrineEquipmentBonusHandle::Reader |
+| 0x14052B4C0 | NDoctrines::CAddMasteryBonusEffect::ParseToken func_names 名 NDoctrines::CAddMasteryBonusEffect::ParseToken |
+| 0x14052B470 | NDoctrines::CAddDailyMasteryEffect::ParseToken func_names 名 NDoctrines::CAddDailyMasteryEffect::ParseToken |
+| 0x14052B510 | NDoctrines::CAddMasteryEffect::ParseToken func_names 名 NDoctrines::CAddMasteryEffect::ParseToken |
+| 0x14052C200 | NDoctrines::CHasCompletedSubdoctrineTrigger::ParseValueKeys func_names 名 NDoctrines::CHasCompletedSubdoctrineTrigger::ParseValueKeys |
+| 0x141A7D040 | NDoctrines::CUnlockGrandDoctrineCommand::PayloadWriter func_names 名 NDoctrines::CUnlockGrandDoctrineCommand::PayloadWriter |
+| 0x14147AB30 | NDoctrines::STrackFilter::Reader func_names 名 NDoctrines::STrackFilter::Reader |
+| 0x1413C7390 | NDoctrines::NUtils::SMasteryFromUnitLeader::Writer func_names 名 NDoctrines::NUtils::SMasteryFromUnitLeader::Writer |
+| 0x141529F40 | NDoctrines::SDoctrineEquipmentBonusHandle::Writer func_names 名 NDoctrines::SDoctrineEquipmentBonusHandle::Writer |
+| 0x141A7BF70 | NDoctrines::CUnlockGrandDoctrineCommand::GetTypeId func_names 名 NDoctrines::CUnlockGrandDoctrineCommand::GetTypeId |
+| 0x141A7BF80 | NDoctrines::CUnlockSubDoctrineCommand::GetTypeId func_names 名 NDoctrines::CUnlockSubDoctrineCommand::GetTypeId |
+| 0x14052B0D0 | NDoctrines::CAddMasteryBonusEffect::[25] define/本地化键（串 ADD_MASTERY_BONUS_EFFECT） |
+| 0x141A7C640 | NDoctrines::CUnlockGrandDoctrineCommand::PayloadReader NDoctrines::CUnlockGrandDoctrineCommand::PayloadReader；串「_pInstance && "Instance not created."」 |
+| 0x140529670 | NDoctrines::CAddMasteryBonusEffect::Execute NDoctrines::CAddMasteryBonusEffect::Execute + 名字角色规则( |
+| 0x14052BCE0 | NDoctrines::CHasDoctrineTrigger::Evaluate NDoctrines::CHasDoctrineTrigger::Evaluate + 名字角色规则(NDoctrines::CHasDoctrineTrigger::Evaluate); 串 "Invalid doctrine … |
+| 0x14052B360 | NDoctrines::CAddMasteryBonusEffect::[5] NDoctrines::CAddMasteryBonusEffect::[5] + 域关键词匹配; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 hoi4 |
+| 0x14052AFE0 | NDoctrines::CAddDailyMasteryEffect::[25] NDoctrines::CAddDailyMasteryEffect::[25] + 域关键词匹配; 串 "AMOUNT"; 被调源码 clausewitz |
+| 0x14052B5E0 | NDoctrines::CSetSubDoctrineEffect::ParseToken func_names 全名 |
+| 0x14052BE70 | NDoctrines::CHasMasteryLevelTrigger::Evaluate 名:NDoctrines::CHasMasteryLevelTrigger::Evaluate |
+| 0x14052C060 | NDoctrines::CMasteryTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 NDoctrines |
+
+#### 4.6.22 学说族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140FC8290 | 业务 串字面量 'SUBDOCTRINE_MUTUALLY_EXCLUSIVE' [4.6×1] |
+
+#### 4.6.23 常量串 getter 结构定案（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14073F8A0 | 常量串 getter: 返回常量串 "NDoctrines::THEATER_COMMANDER_UNITS_MASTERY_GAIN_FACTOR_PER_SKILL"（高置信） |
+| 0x14073F840 | 常量串 getter: 返回常量串 "NDoctrines::MASTERY_BAR_ANIMATION_SPEED_PER_DAILY_MASTERY"（高置信） |
+| 0x14073F870 | 常量串 getter: 返回常量串 "NDoctrines::MILITARY_ATTACHE_MASTERY_TRANSFER_FACTOR"（高置信） |
+| 0x14073F890 | 常量串 getter: 返回常量串 "NDoctrines::NAVAL_MISSION_MASTERY_GAIN_FACTORS"（高置信） |
+| 0x14073F800 | 常量串 getter: 返回常量串 "NDoctrines::BASE_MASTERY_GAIN_TARGET_MANPOWER"（高置信） |
+| 0x14073F850 | 常量串 getter: 返回常量串 "NDoctrines::MASTERY_BAR_MAX_ANIMATION_SPEED"（高置信） |
+| 0x14073F820 | 常量串 getter: 返回常量串 "NDoctrines::MASTERY_BANK_CONVERSION_RATE"（高置信） |
+| 0x14073F8B0 | 常量串 getter: 返回常量串 "NDoctrines::TRAINING_MASTERY_GAIN_FACTOR"（高置信） |
+| 0x14073F860 | 常量串 getter: 返回常量串 "NDoctrines::MAX_MONTHLY_MASTERY_GAIN"（高置信） |
+| 0x14073F880 | 常量串 getter: 返回常量串 "NDoctrines::MIN_MASTERY_GAIN_PER_DAY"（高置信） |
+| 0x14073F810 | 常量串 getter: 返回常量串 "NDoctrines::DEFAULT_REWARD_MASTERY"（高置信） |
+| 0x14073F830 | 常量串 getter: 返回常量串 "NDoctrines::MASTERY_BANK_MAX"（高置信） |
+
+#### 4.6.24 单调用转发桩结构定案（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F37070 | 转发桩: 转发至 433 ¦ 轨道 → GUI 绑定刷新 (列表数据 + 逐控件 vtable[91] 写值槽)（推定） |
+| 0x141F378F0 | 转发桩: 转发至 433 ¦ 轨道 → GUI 绑定刷新 (列表数据 + 逐控件 vtable[91] 写值槽)（推定） |
+| 0x141F37090 | 转发桩: 转发至 433 ¦ 轨道 → GUI 绑定刷新 (列表数据 + 逐控件 vtable[91] 写值槽)（推定） |
+
+#### 4.6.25 学说族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1415282F0 | caller 141530E20←NDoctrines::CFolderTemplate::[8]；qword_14338A850 查表建 3 个 pdx_string |
+
+#### 4.6.26 学说族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14052D0B0 | NDoctrines::CHasMasteryLevelTrigger::GetDesc 业务 NDoctrines::CHasMasteryLevelTrigger::GetDesc（func_names 名 + 串 HAS_MASTERY_LEVEL_TRIGGER/HAS_NOT/SUBDOCTRINE） |

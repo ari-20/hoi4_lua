@@ -641,11 +641,10 @@ SetId 双门 = 未注册才可改 (:377) / 新 id 槽可顶替零省占位 (:383
 | 0x14039E670 | （未命名）effectimplementation.cpp:23759 + 串 "Occu effectimplementation.cpp:23759 + 串 "Occupation law database is not loaded"/"Token %s is not a valid occupation … |
 | 0x1413C3D10 | （无名） vftable 类 CModifier::（州/省份/突袭） |
 
-#### 4.13.12 CState 域函数补遗（2 函）
+#### 4.13.12 CState 域函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
-| 0x141EEE240 | NProject::NUi::CPreviewState::[0] NProject::NUi::CPreviewState::[0] + 域关键词匹配; 串 "_pButton && !_pButton->IsNullObject()"; 源码路径 clausewitz |
 | 0x140CFC0B0 | vtable/RTTI 类 CStateManpower sub_140CFC0B0 + vtable/RTTI 类 CStateManpower; 被调源码 hoi4 |
 
 #### 4.13.13 CState 域函数补遗（5 函）
@@ -667,23 +666,11 @@ SetId 双门 = 未注册才可改 (:377) / 新 id 槽可顶替零省占位 (:383
 | 0x1409DC750 | CState::STemporaryResourceData::Reader func_names 名 CState::STemporaryResourceData::Reader |
 | 0x1409E15A0 | CState::STemporaryResourceData::Writer func_names 名 CState::STemporaryResourceData::Writer |
 | 0x1409D0F58 | CState::[0] vtable 槽 CState::[0]（func_names RTTI 名） |
-
-#### 4.13.15 CState 域函数补遗（5 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.13.16 CState 域函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x1409DB5D0 | CState::[3] vtable 槽 CState::[3]（func_names RTTI 名） |
-
-#### 4.13.17 CState 域函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.13.18 CState 域函数补遗（2 函）
 
 | VA | 语义/证据 |
@@ -746,3 +733,86 @@ SetId 双门 = 未注册才可改 (:377) / 新 id 槽可顶替零省占位 (:383
 | VA | 语义/证据 |
 |---|---|
 | 0x14052EFA0 | 未决窗口函数 · 建筑状态修饰符格式化 FILE formatted_localization.h + 串 "building_state_modifier"/"Formatter %s requires a localization context" |
+
+#### 4.13.27 CState 域函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14195CF60 | （无名） VA 邻近 CRaidTargetManager::EvaluateStateTargets?(±512)（州/省份/突袭） |
+| 0x141B2E970 | （无名） 被 NRaids::NUi::CRaidInstanceView::Reload 调用（州/省份/突袭） |
+| 0x140B4DB60 | （无名） 被 CGraphicalMap::UpdateProvinces? 调用（州/省份/突袭） |
+| 0x1415A52C0 | （无名） 被 CStrategicRegionTemplate::[8] 调用（州/省份/突袭） |
+| 0x14151EA00 | CStatePeaceAction::RightClickGotoState 州合规/核心/控制者/州和平行动/邻州与本土区域触发器（CStatePeaceAction::RightClickGotoState） |
+| 0x141B62670 | （无名） VA 邻近 CStrategicRegionNudger::Reload(±176)（州/省份/突袭） |
+| 0x140A991C0 | （无名） 被 NRaids::CRaidDatabase::[6] 调用（州/省份/突袭） |
+| 0x140FF3470 | CCountryOccupationStatus::[0] 名:CCountryOccupationStatus::[0] |
+| 0x1413C1FD0 | COccupationModifier::[0] 名:COccupationModifier::[0] |
+
+#### 4.13.28 CState 域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E0E6A0 | gamestate.h:1125 业务 州层级逻辑：define 查询 "HOME_BASE_STATE_NAME"（sub_142245E60）+ token "STATE"/"LEVEL"/"name" |
+| 0x140FF5C00 | sub_140FF5C00 业务 断言 "_ForeignManpowerReceivers.IsEmpty()"（countryoccupationstatus.cpp:908，外来人力接收者） |
+| 0x140FE9BE0 | sub_140FE9BE0 业务 串 "raid_unit_not_yet_at_source"/"UNIT"/"SOURCE"（突袭单位状态） |
+| 0x140CF7B10 | 业务 gamestate.h:1125 + 调 CPdxHybridInlineBufferAllocator<SEntityInstanceTextureSet>::[6]，夹于 COwnerArea::[1]/[5]，领主区域（占领区）族 |
+| 0x140F5CEE0 | sub_140F5CEE0 业务 串：C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\effects\\state_effect_i |
+| 0x14011BE70 | 业务 断言站点 state.cpp:55 ->§4.13; 类路由 NProject ->§4.25; 串 "Messaging error" |
+| 0x14211AB40 | 业务 断言站点 state.cpp:45 ->§4.13; 串 "_BestVPIndex != -2 && \"should have "; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+
+
+#### 4.13.29 CState 域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F93010 | 业务 COMPLIANCE_GROWTH[_HAS_CLAIM/_IS_AT_PEACE]/COMPLIANCE_DECAY[_VALUE/_DUE_TO_EXILE_LEGITIMACY] loc 键族 |
+| 0x140A739F0 | 业务 OCCUPATION_POLICY_[COMPARED_TO_LAW/STATE_MODIFIER/SUPRESSED_STATE_MODIFIER] + CAPTURED_GENERALS_TOOLTIP_CLICK |
+| 0x141C4C480 | 业务 串字面量 'AUTONOMY_PROGRESS_DESC' [4.13×1] |
+| 0x1415DED50 | 业务 串字面量 'STATE' [4.13×1] |
+| 0x140B44260 | 业务 串字面量 'GFX_autonomy_unknown_icon' [4.13×1] |
+
+#### 4.13.30 模板实例化桩结构定案（18 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DC7080 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x141DC7050 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x141DC7020 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x141DC6FF0 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x141DC6FD0 | 模板桩: 模板参数类名 CProvinceBuildingCustomIconItem（高置信） |
+| 0x141DC70C0 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x1409E17F0 | 模板桩: 模板参数类名 CState（高置信） |
+| 0x1409E1830 | 模板桩: 模板参数类名 CState（高置信） |
+| 0x1409E1810 | 模板桩: 模板参数类名 CState（高置信） |
+| 0x141DC7370 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x141DC7360 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x141DC7350 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x141DC7340 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x141DC7330 | 模板桩: 模板参数类名 CProvinceBuildingCustomIconItem（高置信） |
+| 0x141DC7380 | 模板桩: 模板参数类名 CProvinceBuildingItem（高置信） |
+| 0x1409E2BD0 | 模板桩: 模板参数类名 CState（高置信） |
+| 0x1409E2BE0 | 模板桩: 模板参数类名 CState（高置信） |
+| 0x1409E2BF0 | 模板桩: 模板参数类名 CState（高置信） |
+
+#### 4.13.31 单调用转发桩结构定案（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1426007C0 | 转发桩: 转发至 域关键词匹配 sub_140ABBFF0 + 域关键词匹配（推定） |
+| 0x14167E330 | 转发桩: 转发至 域关键词匹配 sub_14154A3B0 + 域关键词匹配（推定） |
+| 0x14264DDE0 | 转发桩: 被调者 0x14167E330 -> §4.13 (E:单调用转发(被调者入书))（推定） |
+| 0x1415DEF50 | 转发桩: 转发至 业务 串字面量 'STATE' [4.13×1]（推定） |
+
+#### 4.13.32 CState 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409ED180 | caller 1409EACA0←1409E9EE0/1409EE4A0(1409Exxxx 簇，state.cpp:844/2323 邻域) |
+
+#### 4.13.33 CState 域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B4D490 | 业务 邻域 buildingsnudger.cpp x2 + gameitemdatabase.h:142 x2 + sub_1422C96A0 x8 + sub_14022B420 x5 |
+| 0x1409DC780 | 业务 串 "Tag specified several times:"/"Expected start of list" + 邻域 state.cpp x12/CState::AddTriggerDynamicVariable/CState::Reader |
+| 0x14129CBE0 | VT CBuildingReference；调 sub_141466A00/141299D60/140E868C0/140E866F0 |

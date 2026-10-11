@@ -2174,7 +2174,7 @@ sub_141B5C0C0 (CStateNudger* this, 单参; 推定 `CStateNudger::ApplyStates`, n
 
 > 未决: sub_14222BDC0 守卫子对象身份 (ICF 折叠成 CRT 杂函数, 跨 CApplication/idler/gs/CFaction 四类共用); +9900 门旗置位点; sub_14239D170 第七参语义 (本点传 yml 路径串, 与书载「显式既有值」不符, 真义待汇编); walker 捕获段表与 72B 值对象布局未展开; 关联值 25965 (离线 token 表该 id = PAK_communist_guy, 疑库自维护键空间); yml 路径追加顺序 (IDA 隐参链不可全读); sub_141B5DA20 业务语义。
 
-#### 4.00.60 基类契约层函数补遗（2725 函）
+#### 4.00.60 基类契约层函数补遗（2724 函）
 
 | VA | 语义/证据 |
 |---|---|
@@ -3816,7 +3816,6 @@ sub_141B5C0C0 (CStateNudger* this, 单参; 推定 `CStateNudger::ApplyStates`, n
 | 0x140FDE1D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
 | 0x1411DAB90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
 | 0x1423BF2B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
-| 0x141C1FB40 | NProject::NUi::CScientistList::[0] NProject::NUi::CScientistList::[0] + vtable/RTTI 类 CTextBufferObserver; vtable/RTTI 含 CTextBufferObserver; 被 NProject::NUi… |
 | 0x14002C490 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
 | 0x140A4C050 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
 | 0x141083480 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
@@ -5109,3 +5108,316 @@ sub_141B5C0C0 (CStateNudger* this, 单参; 推定 `CStateNudger::ApplyStates`, n
 | 0x142203BB0 | 无名 sub_（人工读体裁定） 分配 14B 步长元素（sub_1421D49B0(14*v15)），两次 sub_142201B20 查询配对 |
 | 0x1401B6100 | 无名 sub_（人工读体裁定） 递归遍历子树（!*(BYTE*)(v3+25) 递归 v3[2]），对 v6[14] 数组按 480B 步长逐项调 sub_1401C98D0 |
 | 0x140143190 | 无名 sub_（人工读体裁定） 构造：a1 头部置 (a3, a2)，malloc(0x7D8=2008B) 工作缓冲交 sub_140A7BAB0 处理后释放，挂结果 |
+
+#### 4.00.63 基类契约层函数补遗（69 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409C37E0 | 业务 串字面量 "Name order = " §4.00 基类/通用 |
+| 0x1411E86A0 | 业务 紧邻 CPdxHybridInlineBufferAllocator::[0](d=41920)，混合缓冲分配器族 |
+| 0x14209C4B0 | — 业务 带自文档串（"ios_base::badbit set"） |
+| 0x1411E3DA0 | 业务 夹于 _Func_impl_no_alloc(d=52176) 与 CPdxHybridInlineBufferAllocator::[0](d=60608)，混合缓冲分配器/泛型族 |
+| 0x14024F3A0 | sub_14024F3A0 业务 串 "Trees enabled"/"Trees disabled"（地图树切换） |
+| 0x141767040 | — 业务 带自文档串（"text"） |
+| 0x1420A7A10 | — 业务 带自文档串（"lower_left"） |
+| 0x141821B00 | — 业务 带自文档串（"negotiator_flag_entry"） |
+| 0x140C7E530 | — 业务 带自文档串（"SUB_UNIT_ACCURAT_VALUE"） |
+| 0x1416E9A10 | — 业务 带自文档串（"modifier_icon_entry"） |
+| 0x140FEB360 | — 业务 带自文档串（"raid_inst_item_desc"） |
+| 0x1417D8CA0 | — 业务 带自文档串（"NAVAL_HEADQUARTER_TASKFORCE_IN_RANGE"） |
+| 0x1417B6100 | — 业务 带自文档串（"insignia_list"） |
+| 0x141D81E50 | — 业务 带自文档串（"name"） |
+| 0x141D81CA0 | — 业务 带自文档串（"name"） |
+| 0x140326160 | — 业务 带自文档串（".\n"） |
+| 0x141FC1A00 | — 业务 带自文档串（"traits_window"） |
+| 0x141D79F70 | — 业务 带自文档串（"TIMED_DECISION_COMPLETED"） |
+| 0x140FB6800 | — 业务 带自文档串（"NAVAL_MISSION_NAME_"） |
+| 0x141C53B10 | — 业务 带自文档串（"occupier_flag_entry"） |
+| 0x141CFDF30 | CConfirmDeleteOrdersGroup::[14] 业务 CConfirmDeleteOrdersGroup::[14]（类名未匹配映射表） |
+| 0x141D6ADC0 | — 业务 带自文档串（"resources_grid"） |
+| 0x141D430F0 | — 业务 带自文档串（"ships"） |
+| 0x141237680 | — 业务 带自文档串（"close_button"） |
+| 0x141D52700 | — 业务 带自文档串（"resources_grid"） |
+| 0x1400757D0 | — 业务 带自文档串（"Ideology acceptance."） |
+| 0x141D61F00 | — 业务 带自文档串（"efficiency_progressbar_to_ma"） |
+| 0x141CED270 | — 业务 带自文档串（"bombing_priorities_grid"） |
+| 0x1415CD5F0 | — 业务 带自文档串（"global_modifier_icon_entry"） |
+| 0x141D96360 | — 业务 带自文档串（"resources_grid"） |
+| 0x1420E9210 | — 业务 带自文档串（"Video subsystem has not been initial"） |
+| 0x1402919D0 | — 业务 带自文档串（"Command doesn't need any arguments"） |
+| 0x1423ECAF0 | — 业务 带自文档串（"Short Task"） |
+| 0x141D43C40 | — 业务 带自文档串（"archetype_na"） |
+| 0x14208C010 | — 业务 带自文档串（"tweaker_closewindow"） |
+| 0x140B87ED0 | — 业务 带自文档串（"_control"） |
+| 0x1420B34A0 | — 业务 带自文档串（"previewer_editbox"） |
+| 0x141916CD0 | — 业务 带自文档串（"INDUSTRIAL_ORG_AIR_XP_COST"） |
+| 0x141ACBC80 | — 业务 带自文档串（"rescue_captured_general"） |
+| 0x142220610 | — 业务 带自文档串（"bad locale name"） |
+| 0x14029C270 | — 业务 带自文档串（"bad locale name"） |
+| 0x141ABF6B0 | — 业务 带自文档串（"medals_grid"） |
+| 0x14203AA80 | — 业务 带自文档串（"value"） |
+| 0x140A3B220 | — 业务 带自文档串（"TARGET"） |
+| 0x141F5F660 | — 业务 带自文档串（"quick_wing_deployment_selection_wind"） |
+| 0x1421B7650 | — 业务 带自文档串（"index"） |
+| 0x14172A850 | — 业务 带自文档串（"GFX_deploy_upgrades_entry"） |
+| 0x141A06150 | — 业务 带自文档串（"VALUE"） |
+| 0x1421D4700 | — 业务 带自文档串（"\r\n%*s%.*s"） |
+| 0x140C197E0 | — 业务 带自文档串（"STAT_BASE_VALUE"） |
+| 0x1420B1F30 | — 业务 带自文档串（"previewer_editbox"） |
+| 0x14172A520 | — 业务 带自文档串（"GFX_deploy_garrisons_entry"） |
+| 0x141DD66E0 | — 业务 带自文档串（"designer_stat_entry"） |
+| 0x1418AB280 | — 业务 带自文档串（"waroverview_wars_box"） |
+| 0x140C17D40 | — 业务 带自文档串（"STAT_BASE_VALUE"） |
+| 0x142157D00 | — 业务 带自文档串（"UTF-8"） |
+| 0x142124FB0 | — 业务 带自文档串（"Parameter '%s' is invalid"） |
+| 0x140E68F40 | — 业务 带自文档串（"MODIFIER_FACTORY_ENERGY_CONSUMPTION"） |
+| 0x14061AC00 | — 业务 带自文档串（".txt"） |
+| 0x1406879D0 | — 业务 带自文档串（".txt"） |
+| 0x140AF40A0 | — 业务 带自文档串（".txt"） |
+| 0x14238EA80 | — 业务 带自文档串（" %d work, %d block, ratio %5.2f"） |
+| 0x1401E4960 | — 业务 带自文档串（"%d. %s: %d %s"） |
+| 0x141EFCD20 | — 业务 带自文档串（"technology_unit_upgrade_stat_item"） |
+| 0x141B7F510 | — 业务 带自文档串（"Big"） |
+| 0x141217FD0 | 业务 断言站点 fleetregionrange.cpp:18 ->§4.00; 断言站点 fleetregionrange.cpp:23 ->§4.00; 断言站点 raid_target_status.cpp:71 |
+| 0x141172C50 | — 业务 带自文档串（"STATE"） |
+| 0x1421C9500 | — 业务 带自文档串（"No such operator defined"） |
+| 0x140E27A80 | 无名 sub_（人工读体裁定） 双整数键匹配计数：v5[1]==*(a2+28) && *v5==*(a2+24) 于 a1+24 数组（计数 a1+36），随后按计数偏移移动 |
+
+
+#### 4.00.64 基类契约层函数补遗（35 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1423937E0 | 业务 调用图传播: 2/3 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x1412DFFA0 | 业务 调用图传播: 3/4 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x1420A3310 | 业务 调用图传播: 3/4 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14013BB70 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14013C410 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14013D270 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14013DB10 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14013E970 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x141A2D490 | 业务 调用图传播: 1/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x140122600 | 业务 调用图传播: 3/3 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x1424474E0 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x141E46E00 | 业务 调用图传播: 4/6 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x140138AB0 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x140139A50 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14013A9F0 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x140A451F0 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14223CE70 | 业务 调用图传播: 1/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x140134E30 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x1401353B0 | 业务 调用图传播: 3/3 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x140137FB0 | 业务 调用图传播: 3/3 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x1423CA7E0 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x1420C1EA0 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x141524130 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14205A590 | 业务 调用图传播: 1/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14196E7E0 | 业务 调用图传播: 1/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x141702090 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14211FAD0 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x1423C3FA0 | 业务 调用图传播: 1/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14227E770 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14062D220 | 业务 调用图传播: 3/6 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x140B5DFC0 | 业务 调用图传播: 2/2 被调用者锚点投 4.00 §4.00 基类/通用 |
+| 0x14131A450 | 业务 类名 CAIPoliticalMinister,CAIPoliticalMinister1,CFixedPoint → §4.00（投票 1） |
+| 0x1411F19E0 | 业务 类名 CFixedPoint,CFixedPoint1,CIdeologyGroup → §4.00（投票 1） |
+| 0x14162F180 | 业务 类名 CFixedPoint,CFixedPoint1,CPdxHybridInlineBufferAllocator → §4.00（投票 1） |
+| 0x1423EE0F0 | 业务 类名 CPdxArray,CPdxArray2 → §4.00（投票 1） |
+
+#### 4.00.65 基类契约层函数补遗（53 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141CF0410 | §4.x-生产/项目/装备 TListenerTrait<NAir::NQuickWingDeployment::CQuickWingDeployController,0>::vftable |
+| 0x141CFF590 | §4.x-生产/项目/装备 TListenerTrait<CRailwayGunViewEntry,0>::vftable |
+| 0x141FFAF90 | §4.x-UI窗口/装备生产/市场 TListenerTrait<NInternationalMarket::CMarketStockpile,0>::vftable |
+| 0x1421BDE50 | 串 "string/function/table expected"/"invalid replacement value (a %s)"；17 sub 含 1421ACxxx lua 原语族 |
+| 0x1417B32D0 | 串 "http://www.heartsofiron4.com" |
+| 0x14144D350 | 体级 vtable `CUnitHistoryEntry` + `CSunkShipInfo` + `CGameDate`×2；caller 140C329D0 |
+| 0x140BEAE60 | sub_140BF1CF0/1406F9E60/1406F2F20（战斗族？） |
+| 0x140EA2DC0 | sub_140E9D090/1406F1680/140D02980（军事族？） |
+| 0x141761B50 | 串 "name"；caller 141772BE0←_Func_impl_no_alloc |
+| 0x1418F8EF0 | sub_1401FF2C0；caller 1418F8EF0 |
+| 0x1419B02A0 | caller 140E03400(gamestate.h:1125)/141660780(pdx_scopedptr.h:129) |
+| 0x141D8C1B0 | caller 141D8C1B0；sub_1402DE9B0 |
+| 0x141E11B60 | sub_141E11DE0/141E122F0/1401516C0 |
+| 0x142021130 | sub_1402DE480/140B7AD20 无名 |
+| 0x141F49B60 | 体级 vtable `CGameDate`×2 + `CGregorianDate` + 串 "date"/"icon"；caller 141F4A9B0(gameitemdatabase.h:149) |
+| 0x140614E70 | gamestate.h:1125/1126 双断言；caller 140614C40/1406156A0；sub_140F19EB0/140F19FD0 |
+| 0x1406445D0 | 断言 "Array should be at least 1 element, did you forget to add the Null Object as Array[0]?" + gameitemdatabasehelper.h；传播 caller→140647590→gameitemdatabase.h… |
+| 0x1406FCBB0 | sub_140677390/1406774A0/1406745B0（州族）；caller 1406FCBB0 |
+| 0x140722720 | 同族断言 + gameitemdatabasehelper.h；传播 caller→140726D70→gameitemdatabase.h:281 |
+| 0x14072AE10 | gamestate.h:1125/1126 双断言；4 caller 含 141D79640；sub_140535110/14053A610/140BB4F60/140535820 |
+| 0x1409E1D90 | func_names 名 `std::_Func_impl_no_alloc<…>::[2]` + gamestate.h 双断言 |
+| 0x140A09820 | sub_140A0B5B0/14014CD10；caller 140A09820 |
+| 0x140A757E0 | 同族断言 + gameitemdatabasehelper.h；传播 caller→140A772C0→gameitemdatabase.h:281 |
+| 0x140AC7850 | 同族断言 + gameitemdatabasehelper.h；传播 caller→140ACDDD0→gameitemdatabase.h:281 |
+| 0x140BC4FF0 | caller 140BC4D20/140BC5AC0(selectable.cpp:71 邻域) |
+| 0x140BE2D20 | caller 1401E1150(gamestate.h:1125)；+1060/+1064 标志位族 |
+| 0x140BFEFB0 | gamestate.h:1125/1126 双断言；caller 140C881D0(army.cpp:3066) + 140E8B8E0(gamestate.h:1125) |
+| 0x140D541D0 | gamestate.h:1125/1126 双断言 |
+| 0x140E7E460 | gamestate.h:1125/1126 双断言；caller 140EA9720 |
+| 0x1410ECFB0 | ref.h:83 断言 + stricmp 名称比较；caller 1416FF810←_Func_impl_no_alloc<…>::[2](gamestate.h:1125) |
+| 0x1415B4470 | gamestate.h:1125/1126 双断言序言；caller 140C63320/141FCC1A0 |
+| 0x141671650 | gamestate.h:1125/1126 双断言 |
+| 0x1417A2860 | gamestate.h:1125 双断言序言；caller 1417A10C0/1417A16D0(gamestate.h:1125) |
+| 0x1418CE620 | gamestate.h:1125/1126 双断言 |
+| 0x1419E8C60 | gamestate.h:1125/1126 双断言 + NtCurrentTeb TLS 门；a1+1320 非空判定 |
+| 0x141BD1690 | gamestate.h:1125/1126 双断言；sub_1413D8350(a1+128)；qword_14332F260+328 上界 |
+| 0x1416F8C80 | 路径锚 source\emptylists.h |
+| 0x140151310 | F1-bigoff（126 个模板实例, 代表 VA; 族级收编）: a1+大偏移 (≥512); STL 类型 ≤~200B |
+| 0x1401541F0 | F2-elemoff（56 个模板实例, 代表 VA; 族级收编）: 元素指针 +大偏移 (≥256) |
+| 0x14002FF30 | R14-uistr（33 个模板实例, 代表 VA; 族级收编）: 界面字符串常量 |
+| 0x14006C370 | R15-gameid（25 个模板实例, 代表 VA; 族级收编）: 域内标识符常量 |
+| 0x140073670 | V8-fixed（14 个模板实例, 代表 VA; 族级收编）: 魔数 0x29F16B11C6D1E109 / 100000 |
+| 0x14006B3B0 | R13-descstr（5 个模板实例, 代表 VA; 族级收编）: 脚本描述字符串 |
+| 0x140AE7D10 | V9a-toklook（5 个模板实例, 代表 VA; 族级收编）: 元素 +8 域与 token 常量比对 |
+| 0x14007FBC0 | V24-fmtreg（4 个模板实例, 代表 VA; 族级收编）: sub_141A8xxxx(&v1, &unk_14338Bxxx) 批量挂载 |
+| 0x1401A8A90 | V7-date（3 个模板实例, 代表 VA; 族级收编）: 纪元 43800000 / 365 / 8760 周期 |
+| 0x140A23300 | V13-gamestr（2 个模板实例, 代表 VA; 族级收编）: SHORT_TERM/MEDIUM_TERM/LONG_TERM 等 |
+| 0x1401E3C50 | V23-aicopy（2 个模板实例, 代表 VA; 族级收编）: CStrategicAI::SExpeditionData / CGameDate::`vftable' |
+| 0x1402D2100 | V24b-descfmt（2 个模板实例, 代表 VA; 族级收编）: sub_14021FC20(Buffer, "%s_desc") |
+| 0x140147C10 | V29-floatfix（2 个模板实例, 代表 VA; 族级收编）: ×100000.0 取整 |
+| 0x140B58420 | V21-clamp: fminf/fmaxf 边界 |
+| 0x140B58450 | V22-bittest: _bittest64 常量掩码 |
+| 0x1401807C0 | V35-gameflag: 读全局对象标志位 |
+
+#### 4.00.66 基类契约层通用执行形态族（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BDC700..0x141990CD0 | 字段读取（303 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B7D140..0x14191CEE0 | 虚方法转发（141 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140BA61B0..0x141961F80 | 字段写入（69 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B9EBA0..0x1415E5AB0 | 成员指针访问器（27 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140C2DF50..0x1419502A0 | 弱引用锁定（26 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B7D0F0..0x141990FF0 | 引擎根对象（24 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x1410372C0..0x1414DFD50 | 标志计数器置位（6 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140E34960..0x1421FC850 | 定点运算（2 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+
+#### 4.00.67 基类契约层函数补遗（77 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412D0490 | std::_Func_impl_no_alloc<…>::[2] 业务 CGameDate::vtable 安装器（构造/类型槽赋值，无释放） |
+| 0x1412D0550 | std::_Func_impl_no_alloc<…>::[2] 业务 CGameDate::vtable 安装器（构造/类型槽赋值，无释放） |
+| 0x140159D90 | §4.x（节号待裁） 成员级拷贝 +8..+512；sub_140156970/sub_14011FC50；两处所有权转移（v4 偷取、源清 0、vtable 析构） |
+| 0x140189AD0 | §4.x（节号待裁） 串 "DB already loaded when loading "；断言 gameitemdatabase.h:179；lambda _Func_impl_no_alloc<TReloadableGameItemDatabase<COperationTokensDatabase>::In… |
+| 0x140253000 | §4.x（节号待裁） 串 "Drawing province Ids "/"Not drawing province Ids "；dword_14332F664 != 4 toggle |
+| 0x14026A6A0 | §4.x（节号待裁） 串 "ENABLED"/"DISABLED"/"map icons "；byte_14332F610 toggle；memcpy 前缀插入 |
+| 0x14036EE40 | §4.x（节号待裁） func_names 名 CReleasePuppetEffect<$00>::[7] |
+| 0x140B88630 | §4.x（节号待裁） 串 "gui_click"/"_click"；sub_1424CF380(v12, 0, "gui_click", 2)；长度 < 6 截断 |
+| 0x140C09B90 | §4.x UI 层（节号待裁） vtable+232 取根对象；+927<=1 门；+1042/1043 对；+560/+572 子数组；逐项 vtable+32 |
+| 0x140C0A720 | §4.x UI 层（节号待裁） 同 0x140C09B90 结构 |
+| 0x140C0D1A0 | §4.x·事件监听（TListenerTrait） 体级 `*a1 = &TListenerTrait<CCustomizableBuildingItem,1>::vftable` |
+| 0x140CE0710 | §4.x 存档序列化层（节号待裁） func_names 名；sub_142220260(a2,63,a1+224)；四组 +56/+68、+80/+92、+104/+116、+128/+140 数组写 token 12110 |
+| 0x140D98680 | §4.x（节号待裁） a1+632 串（>0xF 取 a1+608 堆指针）；堆头 0x1000/0x1F 校验后 j_free |
+| 0x140E28F40 | §4.x 存档序列化层（节号待裁） func_names 名 CNavalUnitTransfer::Writer |
+| 0x140E360A0 | §4.x（节号待裁） sub_140E37D70 取节点；+8/+12 遍历；sub_140D32720(a4+472/+456) 双表插入；+40 指针交换 |
+| 0x140E95EF0 | §4.x 存档序列化层（节号待裁） func_names 名；sub_1424C4220(a2,19649)；+8/+20 数组逐项 sub_1424C2A10(token +196) |
+| 0x140ED4850 | §4.x·事件监听（TListenerTrait） 体级 `*a1 = &TListenerTrait<CTechnology,0>::vftable` |
+| 0x140F30550 | §4.x（节号待裁） j_j__malloc_base(0x88) 节点；sub_141596C00 初始化；+25 旗；+32 id 匹配门 |
+| 0x140FB7F50 | §4.x（节号待裁） a1+160/+164 串对 sub_14221F310；a1+20==1 门；a1+164 vs a1+140 比对 |
+| 0x140FC5390 | §4.x UI 层（节号待裁） a1+24=1；malloc 0x40；sub_141954150 构造；ref.h:83 |
+| 0x140FC5DF0 | §4.x UI 层（节号待裁） a1+24=2；malloc 0x20；sub_141959D90 构造；ref.h:83 |
+| 0x140FC5FB0 | §4.x UI 层（节号待裁） a1+24=4；malloc 0x20；sub_14195AB40(obj, a1+8+288, a2)；ref.h:83 |
+| 0x1410221B0 | §4.x（节号待裁） 断言 pdx_core/pdx_scopedptr.h "_pPtr"；a1+128 = sub_14100DCB0(a1+16)；*(a1+108) - *(a1+128)/100000 |
+| 0x141268650 | §4.x（节号待裁） qword_143339D28+64 全局定义 乘 100000；9999900000 上界；16B 元素 m128i 遍历 |
+| 0x1412AA3D0 | §4.x（节号待裁） vftable CLandCombatant；sub_14011DF40 成员构造 +232/256/280；off_143085170 基类 |
+| 0x141302280 | §4.x（节号待裁） 100000LL * ((a2+3944)+696/100000 - +768 - +760)；0x8000000000000000 溢出门 |
+| 0x141330EE0 | §4.x（节号待裁） pdx_string 移动（+24/32 cap 15）；sub_14011DF40 成员构造 +40；j_j__malloc_base(0x10) 建链表头 +72 |
+| 0x1414E8470 | §4.x·事件监听（TListenerTrait） 体级 `*a1 = &TListenerTrait<CProvince,0>::vftable` |
+| 0x14159CA20 | §4.x（节号待裁） a1+128+120 守门回调 sub_14166F070；sub_14012B520(a1+48,&id) 入集合 |
+| 0x1415BA720 | §4.x UI 层（节号待裁） 串 "default_confirmation_popup"；sub_140B789C0(a1, qword_14332F698, &name)；ref.h:83 |
+| 0x141618540 | §4.x（节号待裁） 全局 qword_143339D28；+64/6 列数；+24 WORD 数组；+628 阈值门 |
+| 0x141686320 | §4.x（节号待裁） vftable CAchievementsView（a1 与 a1+40 双槽）；sub_141686A10(a1+80)；a1+64 vtable+200 释放 |
+| 0x1416D1B30 | §4.x UI 层（节号待裁） vftable CTacticsListView<CSelectArmyLeaderPreferredTacticsEntry>(a1/+40/+48 三槽)；sub_1416D2680 初始化 +2728 容器 |
+| 0x141766E00 | §4.x（节号待裁） a1+17708/+17716 置 -1 哨兵；a1+11928 清零；a1+120 子对象 vtable+120；a1+40 vtable+72 |
+| 0x1417C3270 | §4.x（节号待裁） sub_14221F310(+48) 解析；dword_1430B3FC8[2**(a2+8)] 掩码；+112/+124 数组逐项 & +1448 位域 |
+| 0x1417D1F80 | §4.x·事件监听（TListenerTrait） 体级 `*a1 = &TListenerTrait<CMusicPlayer,0>::vftable` |
+| 0x1418395F0 | §4.x（节号待裁） vftable COrderGroupCommand；+8/+12/-1、+20/-65536、+28 等成员初值；断言 ref.h:83 |
+| 0x1418E7A40 | §4.x UI 层（节号待裁） a1+220 计数门；malloc 0x5B8；sub_141E81C70(obj, qword_143453230)；pdx_scopedptr.h:124 |
+| 0x141933FE0 | §4.x·事件监听（TListenerTrait） 体级 `*a1 = &TListenerTrait<NIndustrialOrganisation::COrganisation,0>::vftable` |
+| 0x141961FA0 | §4.x·事件监听（TListenerTrait） 体级 `*a1 = &TListenerTrait<CBuildingListenable,1>::vftable` |
+| 0x141996900 | §4.x·事件监听（TListenerTrait） 体级 `*a1 = &TListenerTrait<CFriendsHandler,0>::vftable` |
+| 0x1419999D0 | §4.x 存档序列化层（节号待裁） func_names CAddHumanCommand::PayloadReader；token 10394/11126/16004 分发；16004 构造 SProfileBadge |
+| 0x1419AD3E0 | §4.x（节号待裁） a1+136 56B 元素表；句柄位掩码 0x8000000/0x10000000/0x20000000 清设；+48/+49 计数；a1+292 复位 |
+| 0x141A00F30 | §4.x-UI-设置面板/通用 TListenerTrait<CState,0>::vftable |
+| 0x141A6EE60 | §4.x（节号待裁） a2/a3 (int,int) 对表；*a5+56*idx 取行；sub_141593260 双行查表；v13[4] 比较 |
+| 0x141B5A080 | §4.x（节号待裁） sub_14222BDB0/sub_14222BDC0 双查；vtable+72 取值；vtable+32(1) 加引用；sub_140462050 |
+| 0x141B907C0 | §4.x-生产/项目/装备 TListenerTrait<CProductionStatus,0>::vftable |
+| 0x141C203C0 | §4.x（节号待裁） a1[349] 管理器；+96+304/+328 两串 memcmp；sub_1422F0160/sub_142245E60 建串 |
+| 0x141C66500 | §4.x UI 层（节号待裁） 平滑过渡系数 3t²-2t³ 簇；位置写回 a1+0/4/8；全局 qword_143339D28 |
+| 0x141DE8480 | §4.x-地图模式/大厅/存档 TListenerTrait<CGameLobby,0>::vftable |
+| 0x141E7CEB0 | §4.x（节号待裁） a1+1456 对 a2 逐级比较（+12 标志、sub_140F5E7F0 取值、sub_140F60710()+1008 再 +1240）；断言 ref.h:83 |
+| 0x141E7E5D0 | §4.x UI 层（节号待裁） (a2<<6)\ &0xBF 写入 a1[5]/a1[15]/a1[16]/a1[7] 的 +116；各子对象 vtable+376/+392 通知 |
+| 0x141F40760 | §4.x UI 层（节号待裁） strcpy "savegame_item"；vtable CGameSetupMenuLoadWindow；sub_1402DD700(a1,a2,v6) 挂接 |
+| 0x141F78970 | §4.x UI 层（节号待裁） strcat "_texticon"；sub_140F8A230(&v17,a2,+8)；sub_1424BC260 哈希 |
+| 0x141FC3F40 | §4.x UI 层（节号待裁） vftable CSavedGameRulesController + CCheckBoxObserverGlue<CSavedGameRulesController>；a1+24 回指 self |
+| 0x14200F130 | §4.x-UI窗口/装备生产/市场 TListenerTrait<CControllerArea,0>::vftable |
+| 0x1420DD890 | §4.x（节号待裁） 串 "Parameter '%s' is invalid"/"mappingString"；前缀 "hint:"；'!' 取反、','/':' 分隔、0x7F 上限 |
+| 0x1420F10C0 | §4.x（节号待裁） 全局 qword_143450C28 单例切换；sub_14211FAD0；float a3/a4 与 dword_143450C48 比较 |
+| 0x142127A30 | §4.x（节号待裁） 全局链表 +128 摘链；count +108/array +112；sub_1420E4260/sub_1420F1E20 释放 |
+| 0x14213E670 | §4.x（节号待裁） switch(a2) case 1..7 映射 1/2/3/5/4/6/7/8；sub_1421101C0(a3,a4) 查表 |
+| 0x1421654A0 | §4.x UI 层（节号待裁） 写入 (a2+184)+12*(count+6)；标志位 0xC/0x10/3 分支；sub_1420C28A0 比对 16B GUID 表 |
+| 0x1421B5690 | §4.x 存档序列化层（节号待裁） 16B 槽位类型标记 3/4；"%.14g" float→串；sub_1421B3340 串 intern |
+| 0x1421D8A80 | §4.x（节号待裁） 全局 qword_143451C80；位置 +304 下界 -256000.0；48B 槽位（48*v4）；+1776/+1777 计数 |
+| 0x1422284A0 | §4.x（节号待裁） 断言 graphicssettings.cpp:715；串 "Usable res: "；off_1430BFA20/off_1430BFA28 显示模式遍历 |
+| 0x14223F250 | §4.x（节号待裁） vftable CSpriteType；sub_142240140(a1+118, 0, a1[121]) 数组释放；a1+59 指针 |
+| 0x1422D3DF0 | §4.x UI 层（节号待裁） qword_1434811B8(a2, a1+128) 全局函数指针；sub_141CEA120/sub_1422D3720 初始化；a1+140/+156/+208 清零 |
+| 0x142312250 | §4.x（节号待裁） 两侧 +2736 C 串 strlen 后 sub_1401FCFC0 比较；链表 +8 遍历 |
+| 0x142329340 | §4.x UI 层（节号待裁） func_names CFixedWindow；a1+6720 vtable+744；sub_1422FDFC0；a1+6844 计数环 |
+| 0x14241F0F0 | §4.x UI 层（节号待裁） vtable+520 单值/+552 槽 1/2/5/6/7/8/10/11 绑定；a4 结构 [3..9]；a5 旧值比对分支 |
+| 0x140EC4560 | lowbias32 哈希常量 0x45D9F3B（73244475）双乘 (id^HIWORD(id))；表 @*a1+232；条目引用计数 vtable+16 释放 |
+| 0x1413125E0 | sub_1406302C0() 源计数；resize a1+840/+848/+852；在 32B 条目表 a1+936/+948 按 +24 id 查填 |
+| 0x140202240 | vftable CGregorianDate + pdx_robin_hood_table.h 哈希扩容断言 |
+| 0x141E2CEE0 | ref.h CReferenceObject 断言；caller 141F97F80 |
+| 0x14066F1D0 | §4.00 通用层 robin_hood 容器 109/109 同族：SRC `pdx_robin_hood_table.h` + 串 "CPdxRobinHoodTable can't grow from from %d buckets." / "Invalid rehash requested for CPd… |
+| 0x1412EC7D0 | VT CGameDate + CLendLeaseAction；断言 gamestate.h:1125/1126；调 sub_1414FB7D0/1411178A0/140D246B0/14100CAE0 等 |
+| 0x140FE4390 | VTNAME CGameDate + SRC gamestate.h 断言 "_pInstance &&"/"_ThreadForbidCount == 0 &&" |
+| 0x140FE3520 | VT CGameDate + CScriptFlag；调 sub_1401D2BE0/140FDFC00/140CBF570/1401E4190；5 调用者全无名 |
+
+#### 4.00.68 基类契约层通用执行形态族（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BBC7E0..0x14198B190 | 字段读取（304 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B7CF50..0x1419276B0 | 虚方法转发（141 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140BA51E0..0x1419A83D0 | 字段写入（69 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B97140..0x141783B80 | 成员指针访问器（27 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140C2A130..0x141993890 | 弱引用锁定（26 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B7D010..0x1419910A0 | 引擎根对象（24 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x141035E70..0x1415C31B0 | 标志计数器置位（6 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140C3CE50..0x140C3CE50 | 定点运算（1 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+
+#### 4.00.69 基类契约层通用执行形态族（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BF1530..0x141983F30 | 字段读取（300 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B7D370..0x14191CEA0 | 虚方法转发（139 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140C04420..0x141912A90 | 字段写入（67 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B9F680..0x1415E4C90 | 成员指针访问器（25 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140C5B220..0x141912EC0 | 弱引用锁定（24 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140BBEA10..0x14190F930 | 引擎根对象（22 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x141191600..0x1413CF860 | 标志计数器置位（4 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+
+#### 4.00.70 基类契约层函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141837270 | 源文件锚 ref.h / 类 CCreateAreaDefenseCommand (通用基类) |
+| 0x141839840 | 源文件锚 ref.h / 类 COrderNewFallbackCommand (通用基类) |
+| 0x14183B5C0 | 源文件锚 ref.h / 类 COrderUnassignCommand (通用基类) |
+
+#### 4.00.71 基类契约层通用执行形态族（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BF1550..0x14196DC00 | 字段读取（298 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140B7D3B0..0x14191CD20 | 虚方法转发（137 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140C04430..0x14190D6E0 | 字段写入（65 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140BA04A0..0x1414BA680 | 成员指针访问器（23 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140CDCDA0..0x141903D30 | 弱引用锁定（22 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x140DFDE50..0x14190F420 | 引擎根对象（20 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |
+| 0x1411C2FF0..0x1413CF7B0 | 标志计数器置位（2 件, 首末 VA; 逐 VA 见 findings/cov_full/_book_inbook.tsv） |

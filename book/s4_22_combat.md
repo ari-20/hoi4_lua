@@ -1599,23 +1599,11 @@ kind 24 特质旗位映射 (特质 flags@+1448, 门字节@+1464 命中即停):
 | 0x1413E0870 | CCombat::[0] vtable 槽 CCombat::[0]（func_names RTTI 名） |
 | 0x1413E2DD0 | CCombat::[13] vtable 槽 CCombat::[13]（func_names RTTI 名） |
 | 0x140F70980 | CCombat::[8] vtable 槽 CCombat::[8]（func_names RTTI 名） |
-
-#### 4.22.22 战斗族函数补遗（14 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.22.23 战斗族函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x1413E0880 | CCombat::[0] vtable 槽 CCombat::[0]（func_names RTTI 名） |
-
-#### 4.22.24 战斗族函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.22.25 战斗族函数补遗（1 函）
 
 | VA | 语义/证据 |
@@ -1758,3 +1746,146 @@ kind 24 特质旗位映射 (特质 flags@+1448, 门字节@+1464 命中即停):
 | VA | 语义/证据 |
 |---|---|
 | 0x140C84840 | （无名） 串 "PREPARATION_BASE_DAILY_DECAY"/"PREPARATION_BASE_DAILY_DECAY_MANUAL_ORDER"（战斗准备衰减） |
+
+#### 4.22.36 战斗族函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C1AA20 | （未命名）被 CLandCombatant::[14] 与 CNavalCombatant::[14] 共同调用 被 CLandCombatant::[14] 与 CNavalCombatant::[14] 共同调用，战斗件通用路径 |
+| 0x14195DBC0 | CRaidTargetManager::DetectTargets? |
+| 0x140CDB1C0 | （未命名）SCombatStats/NCombatLog 类名引用 SCombatStats/NCombatLog 类名引用（战斗统计） |
+| 0x140CDED10 | NCombatLog::CStatsObserver::SCombatSideData::Reader NCombatLog::CStatsObserver::SCombatSideData::Reader（战斗侧数据读取器） |
+| 0x140FC05A0 | 无名（证据推断） 类名/模板：charNode::raw_length |
+| 0x1413E0950 | CCombatant::[0] 战斗参与者 |
+| 0x1413E33A0 | CCombatant::Reader CCombatant::Reader（战斗） |
+| 0x14161EDB0 | CNavalCombatant::[12] 海军战斗参与者 |
+| 0x1413E2970 | CCombat::[8] 战斗类 |
+| 0x1412B7D80 | CLandCombatant::[25] 名:CLandCombatant::[25] |
+| 0x140FEC690 | 未命名业务函数 突袭实例（raid_instance.cpp 断言） |
+
+#### 4.22.37 战斗族函数补遗（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1417E43A0 | sub_1417E43A0 业务 海战伤害统计（total_damage_dealt / damage_dealt_light_guns / damage_dealt_screen / damage_dealt_by_ship_types，RATIO） |
+| 0x140636360 | sub_140636360 业务 陆战随机逻辑（combatland.cpp:2856/2892 + boost random uniform_int_distribution） |
+| 0x1417E4F70 | 业务 串字面量 "damage_done_by_weapon_type" §4.22 战斗 |
+| 0x1412B2C10 | （无名） 业务 调 NOperativeMissions::CStateBased::GetState；0x1412B 邻域 CLandCombatant/combatland.cpp（近邻传播） |
+| 0x140CDF1A0 | （无名） 业务 0x140CDF 邻域 NCombatLog::CStatsObserver/CLoss/CEquipmentLoss/CLoss Writer 族（近邻传播）：战斗日志 |
+| 0x1417AC7E0 | 业务 战斗日志：strcpy "COMBAT_LOG_EMPTY_EQ"（空装备战斗日志占位） |
+| 0x140360CF0 | CSetBorderWarCombatData::Execute 业务 CSetBorderWarCombatData::Execute 边境战争战斗数据写入（gamestate.h:1116 内联站点） |
+| 0x1415CAA00 | 业务 夹于 NNavalCombatHit::SNavalHit::Writer(d=11568) 与 CTacticsListView<CTacticsListEntry>::[1](d=13908)，海战命中/战术列表族 |
+| 0x1412B9980 | CLandCombatant::[30] 业务 CLandCombatant::[30] 地面战斗者槽方法（ref.h:83 站点）；类名自文档 |
+| 0x14002FCC0 | sub_14002FCC0 业务 战术权重因子（"_preferred_weight_factor" / "Naval preferred weight factor." / CombatTactic） |
+| 0x140CDA360 | sub_140CDA360 业务 串：!_bFinalized 、 C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\combatlo |
+| 0x140BB1EB0 | 业务 夹于 W4ModifierCategory::W4ModifierType::CModifier 槽方法(d=5728) 与 CCombatHistory::[0](d=19264)，修正器/战斗历史族 |
+| 0x14128E740 | sub_14128E740 业务 战斗任务/战术名表（training / support_attack / naval_attack / naval_move / retreat） |
+| 0x1406E54D0 | sub_1406E54D0 业务 战争分数计算 loc 键（SCORE_CALC_ARMY / SCORE_CALC_SCORE_MULT / ARMIES / MULT） |
+| 0x1414B5CF0 | sub_1414B5CF0 业务 串：!_bFinalized 、 C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\combatlo |
+| 0x142469A90 | 业务 串 "unexpected zlib return"; 串 "unexpected zlib return"; 串 "unsupported zlib version" |
+| 0x140553CA0 | 业务 断言站点 combatlog.cpp:29 ->§4.22; 串 "gCombatData._Refs[ n ] > 0 && gComba"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x140CEF460 | 业务 断言站点 subunitdefinition.cpp:32; 断言站点 subunitdefinition.cpp:45; 断言站点 naval_combatant.cpp:47 ->§4.22 |
+| 0x1423B93B0 | 业务 串 "COMBAT_LOG_BATTLE_LOST_EQUIPMENT" ->§4.22; 串 ", (__int64)v11, "; 调用图 IDF top §4.1 frac 1.00 |
+| 0x142483590 | 业务 串 "error writing ancillary chunked comp"; 调用图 IDF top §4.1 frac 0.93; 反传 3/3 调用者 §4.22 |
+| 0x140A6CB30 | 业务 断言站点 combatlog.cpp:98 ->§4.22; 类路由 CStrategicNavy ->§4.16; 串 "!_bFinalized" |
+
+#### 4.22.38 战斗族函数命名空间补遗（39 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CD90A0 | NCombatLog::CEquipmentLoss::[0] vtable 槽 NCombatLog::CEquipmentLoss::[0]（func_names RTTI 名） |
+| 0x141983020 | NWarScoreDistributionHelper::CFactionInfluenceRedistributer::[2] vtable 槽 NWarScoreDistributionHelper::CFactionInfluenceRedistributer::[2]（func_names RTTI 名） |
+| 0x140CD9310 | NCombatLog::SCombatData::[0] vtable 槽 NCombatLog::SCombatData::[0]（func_names RTTI 名） |
+| 0x1419830C0 | NWarScoreDistributionHelper::CTowardsOverlordRedistributer::[2] vtable 槽 NWarScoreDistributionHelper::CTowardsOverlordRedistributer::[2]（func_names RTTI 名） |
+| 0x140D342D0 | NWarScoreDistributionHelper::CDistributionForOneWinner::[0] vtable 槽 NWarScoreDistributionHelper::CDistributionForOneWinner::[0]（func_names RTTI 名） |
+| 0x140CD9140 | NCombatLog::CLoss::[0] vtable 槽 NCombatLog::CLoss::[0]（func_names RTTI 名） |
+| 0x140CD9220 | NCombatLog::CManpowerLoss::[0] vtable 槽 NCombatLog::CManpowerLoss::[0]（func_names RTTI 名） |
+| 0x141983090 | NWarScoreDistributionHelper::CSmallScoresRedistributer::[2] vtable 槽 NWarScoreDistributionHelper::CSmallScoresRedistributer::[2]（func_names RTTI 名） |
+| 0x140CD93D0 | NCombatLog::CStatsObserver::SCombatSideData::[0] vtable 槽 NCombatLog::CStatsObserver::SCombatSideData::[0]（func_names RTTI 名） |
+| 0x140CD9260 | NCombatLog::COrdersGroupLogs::[0] vtable 槽 NCombatLog::COrdersGroupLogs::[0]（func_names RTTI 名） |
+| 0x140CD92D0 | NCombatLog::CStatsObserver::[0] vtable 槽 NCombatLog::CStatsObserver::[0]（func_names RTTI 名） |
+| 0x141983100 | NWarScoreDistributionHelper::CTowardsPlayersRedistributer::[2] vtable 槽 NWarScoreDistributionHelper::CTowardsPlayersRedistributer::[2]（func_names RTTI 名） |
+| 0x140CE0D20 | NCombatLog::CStatsObserver::SCombatSideData::Writer func_names 名 + 按令牌写（sub_1424C2E20(a2, 14163, …)） |
+| 0x140CDDC50 | NCombatLog::CStatsObserver::CActivityInGroup::Reader func_names 名 NCombatLog::CStatsObserver::CActivityInGroup::Reader |
+| 0x140CDE800 | NCombatLog::CStatsObserver::Reader func_names 名 |
+| 0x140CDE050 | NCombatLog::CManager::Reader func_names 名 NCombatLog::CManager::Reader |
+| 0x140CE0990 | NCombatLog::CStatsObserver::Writer func_names 名 NCombatLog::CStatsObserver::Writer |
+| 0x140CD8FF0 | NCombatLog::CStatsObserver::CActivityInGroup::[0] vtable 槽 NCombatLog::CStatsObserver::CActivityInGroup::[0]（func_names RTTI 名） |
+| 0x140CE0580 | NCombatLog::CManager::Writer func_names 名 NCombatLog::CManager::Writer |
+| 0x140CDEBC0 | NCombatLog::SCombatData::Reader func_names 名 NCombatLog::SCombatData::Reader |
+| 0x140CE0BC0 | NCombatLog::SCombatData::Writer func_names 名 NCombatLog::SCombatData::Writer |
+| 0x140CDE2A0 | NCombatLog::CManpowerLoss::Reader func_names 名 NCombatLog::CManpowerLoss::Reader |
+| 0x140CD9180 | NCombatLog::CManager::[0] vtable 槽 NCombatLog::CManager::[0]（func_names RTTI 名） |
+| 0x140CE0650 | NCombatLog::CManpowerLoss::Writer func_names 名 NCombatLog::CManpowerLoss::Writer |
+| 0x140CDEFA0 | NCombatLog::CStatsObserver::SDamageDone::Reader func_names 名 NCombatLog::CStatsObserver::SDamageDone::Reader |
+| 0x140CDDF90 | NCombatLog::CEquipmentLoss::Reader func_names 名 NCombatLog::CEquipmentLoss::Reader |
+| 0x140CE11D0 | NCombatLog::CStatsObserver::SDamageDone::Writer func_names 名 NCombatLog::CStatsObserver::SDamageDone::Writer |
+| 0x140CDE000 | NCombatLog::CLoss::Reader func_names 名 NCombatLog::CLoss::Reader |
+| 0x141983110 | NWarScoreDistributionHelper::SRedistribution::Reader func_names 名 NWarScoreDistributionHelper::SRedistribution::Reader |
+| 0x140CE0940 | NCombatLog::COrdersGroupLogs::CPerTemplateStats::Writer func_names 名 NCombatLog::COrdersGroupLogs::CPerTemplateStats::Writer |
+| 0x140CDEF60 | NCombatLog::COrdersGroupLogs::SCombatStats::Reader func_names 名 NCombatLog::COrdersGroupLogs::SCombatStats::Reader |
+| 0x140CDF000 | NCombatLog::CStatsObserver::SCombatSideData::SModifierHours::Reader func_names 名 NCombatLog::CStatsObserver::SCombatSideData::SModifierHours::Reader |
+| 0x140CE04F0 | NCombatLog::CEquipmentLoss::Writer func_names 名 NCombatLog::CEquipmentLoss::Writer |
+| 0x140CE1190 | NCombatLog::COrdersGroupLogs::SCombatStats::Writer func_names 名 NCombatLog::COrdersGroupLogs::SCombatStats::Writer |
+| 0x140CE1250 | NCombatLog::CStatsObserver::SCombatSideData::SModifierHours::Writer func_names 名 NCombatLog::CStatsObserver::SCombatSideData::SModifierHours::Writer |
+| 0x140CE0540 | NCombatLog::CLoss::Writer func_names 名 NCombatLog::CLoss::Writer |
+| 0x140CD6F40 | NCombatLog::CStatsObserver::SCombatSideData::SModifierHours NCombatLog::CStatsObserver::SCombatSideData::SModifierHours：VT 该类，战斗侧修正小时数统计 |
+| 0x140CDE340 | NCombatLog::COrdersGroupLogs::Reader NCombatLog::COrdersGroupLogs::Reader + CGameDate/CLoss/CManpowerLoss/CPerTemplateStats/SCombatStats vtable（战斗日志反序列化） |
+| 0x140CE00D0 | NCombatLog::CStatsObserver::CActivityInGroup::Writer NCombatLog::CStatsObserver::CActivityInGroup::Writer（战斗日志活动统计序列化） |
+
+#### 4.22.39 战斗族函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C7CD50 | 业务 串 `COMREIC_NOT_FIGHT`、`COMREIC_TOO_MUCH_WIDTH`、`SPEED_REINFORCEMENT_BONUS`、`MODIFIER_BASE_VALUE_PERCENTAGE`；vtable+168（参战判定）、vtable+368，`100000 * v12 / a4… |
+| 0x140670420 | 业务 环境战斗声音区域包含判定（AABB/点盒检测，SIMD） 被调用者 sub_140671F50 = ambientbattlesound.cpp:311；__m128 位置 + 盒边界三比较 |
+| 0x14066E470 | 业务 反调用图传播 1.7 权重锚点投 §4.22（top 占比 1.00） |
+| 0x14161EB70 | 业务 反向调用图 1/2 调用者投 §4.22 |
+
+#### 4.22.40 模板实例化桩结构定案（14 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1416E1B60 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1B30 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1B00 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1AD0 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1BA0 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1DC0 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1DB0 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1DA0 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1D90 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1DD0 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x140F02B70 | 模板桩: 模板参数类名 CFront（高置信） |
+| 0x140F02B80 | 模板桩: 模板参数类名 CFront（高置信） |
+| 0x1416E1D70 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+| 0x1416E1D80 | 模板桩: 模板参数类名 CBattlePlansTools（高置信） |
+
+#### 4.22.41 单调用转发桩结构定案（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140FC3380 | 转发桩: 转发至 CCombat::[8] vtable 槽 CCombat::[8]（func_names RTTI 名）（推定） |
+| 0x142471690 | 转发桩: 转发至 域关键词匹配 sub_14246C390 + 域关键词匹配（推定） |
+| 0x142471930 | 转发桩: 转发至 域关键词匹配 sub_14246C390 + 域关键词匹配（推定） |
+| 0x14205EEF0 | 转发桩: 转发至 sub_14202D6E0 调 CCombatTactic::[9]；gamestate 单例访问（战斗战术对象操作）（推定） |
+| 0x140FEC7A0 | 转发桩: 转发至 未命名业务函数 突袭实例（raid_instance.cpp 断言）（推定） |
+| 0x1423A9B70 | 转发桩: 转发至 业务 断言站点 combatlog.cpp:29 ->§4.22; 串 "gCombatData._Refs[ n ] > 0 && gComba"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"（推定） |
+| 0x1416D63C0 | 转发桩: 转发至 （无名，按上游/loc 定性） loc "TACTIC\ ARMY_LEADER_CURRENT_PREFERRED_TACTIC\ PREFERRED_TACTIC*" → 战术选择/偏好（推定） |
+| 0x140FEC670 | 转发桩: 转发至 未命名业务函数 突袭实例（raid_instance.cpp 断言）（推定） |
+
+#### 4.22.42 战斗族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141964490 | 体级 vtable `CPdxHybridInlineBufferAllocator<SDamageEntry,42,int>` |
+| 0x14234B4D0 | 调用链 SMusicReader::Reader@14234AA80 / SSoundReader::Reader@14234B1F0 |
+
+#### 4.22.43 战斗族函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141987560 | 业务 串 WARSCORE_PROGRESSBAR/WARSCORE_PROGRESSBAR_STATUS_QUO/DEFENDERS/AGGRESSORS/SIDE + 邻域 warscore_distribution.cpp/NWarScoreDistributionHelper |
+| 0x1412B6560 | 业务 串 TACTICS_MOVEMENTSPEED_ATTACKER/TACTICS_VALUE_POSITIVE/TACTICS_VALUE_NEGATIVE/VALUE |
+| 0x1416F21D0 | 业务 串 COMBAT_LOG_ENEMY/COMBAT_LOG_FRIENDLY/GND/AIR/COMBAT_LOG_MP_LOST_DESC/COMBAT_LOG_EQ_LOST/SEPARATION_LINE |
+| 0x1413E2DE0 | CCombat::[4] 业务 CCombat::[4]（func_names rtti 槽 + gamestate.h:1125 断言） |

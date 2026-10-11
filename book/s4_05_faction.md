@@ -695,3 +695,564 @@ SetupDerived 主流程: 按名创建 5 个 .gui 子件 + close 钮 (创建器: g
 | VA | 语义/证据 |
 |---|---|
 | 0x14014F1F0 | 数据库析构 数据库析构：vtable 名 CPersistentReloadableGameItemDatabase<NFactions::CFactionRuleGroupDatabase> 直接标识派系规则组库 |
+
+#### 4.5.18 阵营系统函数补遗（31 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D87A10 | CFaction::UpdatePower? / CFaction::UpdatePower CFaction::UpdatePower §4.3 CCountry |
+| 0x14112ECC0 | CDeclareWarAction::[53] func_names 全名 + 类域（CDeclareWarAction） |
+| 0x140140370 | 无名（证据推断） 类名/模板：Z::_Func_impl_no_alloc 、 NFactions::CFactionMemberUpgradeDatabase 、 NF |
+| 0x14160F4B0 | NFactions::CLeaveFactionAction::[59] 名:NFactions::CLeaveFactionAction::[59] |
+| 0x140AB1810 | CScriptedDiplomaticAction::[56] func_names 全名 + 类域（CScriptedDiplomaticAction） |
+| 0x141C96450 | CDiplomacyStandardController::[13] 名:CDiplomacyStandardController::[13] |
+| 0x141BA7F80 | NFactions::CCreateFactionTheater::Clone func_names 全名 + 派系命名空间 NFactions |
+| 0x140D8CA30 | NFactions::CFaction::[8] func_names 全名 + 派系命名空间 NFactions |
+| 0x14111F7B0 | CEmbargoAction::[59] 名:CEmbargoAction::[59] |
+| 0x141C9CB50 | CDiplomacyStageCoupController::[7] func_names 全名 + 类域（CDiplomacyStageCoupController） |
+| 0x141C93BF0 | CDiplomacyStandardController::[0] 名:CDiplomacyStandardController::[0] |
+| 0x141100770 | CAskForStateControlAction::[24] 名:CAskForStateControlAction::[24] |
+| 0x141102210 | CSendVolunteerAction::[24] func_names 全名 + 类域（CSendVolunteerAction） |
+| 0x141610110 | NFactions::CKickFromFactionAction::[59] func_names 全名 + 派系命名空间 NFactions |
+| 0x140A2A320 | NFactions::CFactionMemberUpgrade::[11] func_names 全名 + 派系命名空间 NFactions |
+| 0x141139BE0 | CGuaranteeAction::[57] func_names 全名 + 类域（CGuaranteeAction） |
+| 0x14014F2C0 | 未决窗口函数 · 派系模板库析构 `CPersistentReloadableGameItemDatabase<NFactions::CFactionTemplateDatabase,...>` 析构 |
+| 0x140AB3C60 | CScriptedDiplomaticAction::[57] func_names 全名 + 类域（CScriptedDiplomaticAction） |
+| 0x141C979B0 | CDiplomacyCountryDeclareWarActionController::[2] func_names 全名 + 类域（CDiplomacyCountryDeclareWarActionController） |
+| 0x1411008A0 | CBoostPartyPopularityAction::[24] func_names 全名 + 类域（CBoostPartyPopularityAction） |
+| 0x141100AD0 | CCancelAccessToLicenseProductionAction::[24] func_names 全名 + 类域（CCancelAccessToLicenseProductionAction） |
+| 0x1411017E0 | COfferMilitaryAccessAction::[24] func_names 全名 + 类域（COfferMilitaryAccessAction） |
+| 0x141C9A7D0 | CDiplomacyGiveStateControlController::[7] func_names 全名 + 类域（CDiplomacyGiveStateControlController） |
+| 0x141234AD0 | CUnitMoveAction::[22] func_names 全名 + 类域（CUnitMoveAction） |
+| 0x14151AEC0 | CLiberateCountryAction::[24] func_names 全名 + 类域（CLiberateCountryAction） |
+| 0x141121750 | CSendExpeditionaryForceAction::[59] func_names 全名 + 类域（CSendExpeditionaryForceAction） |
+| 0x14151AFF0 | CPuppetCountryAction::[24] func_names 全名 + 类域（CPuppetCountryAction） |
+| 0x140AD7940 | CTimedWargoalActivity::[0] 限时战争目标活动 |
+| 0x1419966A0 | NFactions::CFactionRuleStatus::Writer func_names 全名 + 派系命名空间 NFactions |
+| 0x14113A200 | CRequestAccessToLicenseProductionAction::[57] func_names 全名 + 类域（CRequestAccessToLicenseProductionAction） |
+| 0x141981420 | COfferAirBaseAccessRelation::[22] func_names 全名 + 类域（COfferAirBaseAccessRelation） |
+
+#### 4.5.19 阵营系统函数补遗（19 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14012D500 | gameitemdatabase.h:882 业务 派系图标池构造：写 `NFactions::CFactionIconPool::`vftable'`，gameitemdatabase.h:882 模板断言 |
+| 0x140D86F30 | CFaction::UpdateInfluence? 业务 派系影响力更新，func_names 名带 ? |
+| 0x140AA4CD0 | 业务 CDiplomaticAction::GetFirstCountryRef 逐国迭代 + 字符串拼接，外交 action 参与国描述生成（与 0x140A008C0 同结构克隆） |
+| 0x140A008C0 | 业务 CDiplomaticAction::GetFirstCountryRef 逐国迭代 + 字符串拼接，与 0x140AA4CD0 同结构克隆（额外写 a2+264） |
+| 0x140D88B10 | 业务 夹于 CFaction::UpdatePower?(d=4352) 与 CPdxHybridInlineBufferAllocator<SWarBlobT>(d=2384)，派系实力/战争数据族 |
+| 0x141AB0340 | 业务 夹于 CIncomingDiplomaticAction::Writer(d=37904) 与 CAbstractArmyLeaderItem::[1](d=64588)，入站外交 action/将领条目族 |
+| 0x1412E1B00 | sub_1412E1B00 业务 串：FACTION_ACCESS_TAB_MILITARY 、 FACTION_ACCESS_TAB_LOCK 、 FACTION_ACCESS |
+| 0x140D91960 | (无名) 业务 VA 邻域有名函数簇（tbb::interface9::internal::2::$$CBVauto_partitioner::Z::start_f…::[1]; tbb::interface9::internal::2::$$CBVauto_partitioner::Z::start_f…::[… |
+| 0x140C728B0 | sub_140C728B0 业务 串：C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\diplomacy\\factions\\sc |
+| 0x140A2E410 | 业务 断言站点 project_commands.cpp:84; 断言站点 gamelobby.cpp:79 ->§4.5; 断言站点 gamelobby.cpp:80 ->§4.5 |
+| 0x14064C640 | 业务 断言站点 achievements_mod_storage.cpp:48 ->§4.5; 类路由 CSavedAchievementMod ->§4.28; 串 "Cloud save file for mod achievement " |
+| 0x1424D3BB0 | 业务 断言站点 gamelobby.cpp:2 ->§4.5; 断言站点 raid_effect_implementation.cpp:91 ->§4.32; 断言站点 scripttargets.cpp:43 |
+| 0x142507330 | 业务 断言站点 gamelobby.cpp:0 ->§4.5; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "![MD]\n" |
+| 0x1423245F0 | 业务 断言站点 gamelobby.cpp:32 ->§4.5; 断言站点 ai_occupation.cpp:31; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1423ECF90 | 业务 断言站点 gamelobby.cpp:67 ->§4.5; 类路由 CSetPoliticalPowerEffect ->§4.32; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1421D2630 | 业务 断言站点 career_profile.cpp:86; 断言站点 achievements_mod_storage.cpp:69 ->§4.5; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x1424758C0 | 业务 断言站点 achievements_mod_storage.cpp:12 ->§4.5; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 调用图 IDF top §4.1 frac 0.75 |
+| 0x140FF8730 | 业务 断言站点 faction_member_status.cpp:86 ->§4.5; 串 "!\"GetInfluenceStat out of range\""; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x140153450 | 业务 串 "GFX_upgrade_frame_1"; 串 "click_default"; 调用图 IDF top §4.1 frac 1.00 |
+
+#### 4.5.20 阵营系统函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141ADF8F0 | NFactions::NUi::CInviteCountryItem::[20] 业务 *Item 类（派系 UI 邀请国家条目）vtable 槽 20 |
+| 0x1413FC350 | NFactions::CFactionUpgradeStatus::Writer 业务 func_names 名 |
+| 0x141C00280 | NFactions::NUi::CDismantleFactionConfirmationWindow::[16] 业务 NFactions::NUi::CDismantleFactionConfirmationWindow::[16] 解散派系确认窗口槽方法；类名自文档 |
+| 0x141F0A510 | NFactions::NUi::CFactionMemberUpgradeItem::[0] 业务 NFactions::NUi::CFactionMemberUpgradeItem::[0] 派系成员升级条目槽方法；类名自文档 |
+| 0x1414705D0 | NFactions::NUi::CFactionResearchSection::[0] 业务 NFactions::NUi::CFactionResearchSection 阵营科研区段 GUI（gamestate.h:1125） |
+
+#### 4.5.21 阵营系统函数命名空间补遗（366 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141798640 | NFactions::NUi::CFactionTheaterItem::[0] CGameState 单例访问（gamestate.h 断言 _pInstance && / _ThreadForbidCount == 0） |
+| 0x141C02C80 | NFactions::NUi::CFactionIntelligencePopup::[14] NFactions::NUi::CFactionIntelligencePopup::[14] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x1416023F0 | NFactions::CKickFromFactionAction::[24] NFactions::CKickFromFactionAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 NFactio… |
+| 0x1417987E0 | NFactions::NUi::CFactionTheaterSwitch::[0] NFactions::NUi::CFactionTheaterSwitch::[0] + 域关键词匹配; 串 "FACTION_THEATER_SWITCH_TO_FACTION_VIEW_TOO"; 被调源码 clausewitz |
+| 0x141BF8C80 | NFactions::NUi::CFactionCommanderWindow::[0] NFactions::NUi::CFactionCommanderWindow::[0] + 名字角色规则(NFactions::NUi::CFactionCommanderWindow::[0]); vtable/RTTI… |
+| 0x141BF9420 | NFactions::NUi::CFactionCommanderWindow::[11] func_names 全名 NFactions::NUi::CFactionCommanderWindow::[11]，*Command 角色定 §4.2 |
+| 0x141BA7AE0 | NFactions::CCreateFactionTheater::[0] 业务类 CCommandNFactions（类名/调用链证据） |
+| 0x14160C250 | NFactions::CAssumeFactionLeadershipAction::GetAiAcceptance NFactions::CAssumeFactionLeadershipAction::GetAiAcceptance + 域关键词匹配; 被调源码 hoi4; 被 NFactions::CAssu… |
+| 0x140A2BB50 | NFactions::CFactionUpgradeGroup::[4] NFactions::CFactionUpgradeGroup::[4] + 域关键词匹配; 被 NFactions::CFactionUpgradeGroup::[4] 等 1 命名函数调用 |
+| 0x141610D60 | NFactions::CLeaveFactionAction::[21] DIPLOMACY_MESSAGE_OTHERS_TITLE / _OTHERS_DESC + COUNTRY/FACTION，退出阵营行动 |
+| 0x14160EF80 | NFactions::COfferJoinFactionAction::[17] |
+| 0x141C00590 | NFactions::NUi::CDoctrineSharingPopup::[16] NFactions::NUi::CDoctrineSharingPopup::[16]（学说） |
+| 0x141C178E0 | NFactions::NUi::CGoalItem::[0] NFactions::NUi::CGoalItem::[0] + CATEGORY / FACTION_ADD_GOAL / FACTION_GOAL / FACTION_GOAL_ITEM_TOOLTIP（阵营目标项） |
+| 0x14160EAE0 | NFactions::CJoinFactionAction::[17] NFactions::CJoinFactionAction::[17] + COUNTRY / DIPLOMACY_MESSAGE_OTHERS_TITLE / FACTION（加入阵营动作） |
+| 0x14160CF50 | NFactions::CLeaveFactionAction::GetAiAcceptance NFactions::CLeaveFactionAction::GetAiAcceptance（派系退会 AI 接受度） |
+| 0x141BFE6D0 | NFactions::NUi::CAssignTheaterLeaderPopup::[16] 阵营规则/解散阵营/傀儡行动/召盟友/政变/选举/内战/独立保证/战争目标/合法性/意识形态任务（NFactions::NUi::CAssignTheaterLeaderPopup::[16]） |
+| 0x141C021B0 | NFactions::NUi::CBecomeLeaderConfirmationWindow::[14] 阵营规则/解散阵营/傀儡行动/召盟友/政变/选举/内战/独立保证/战争目标/合法性/意识形态任务（NFactions::NUi::CBecomeLeaderConfirmationWindow::[14]） |
+| 0x141C1CFA0 | NFactions::NUi::CResearchFacilityItem::[0] 阵营规则/解散阵营/傀儡行动/召盟友/政变/选举/内战/独立保证/战争目标/合法性/意识形态任务（NFactions::NUi::CResearchFacilityItem::[0]） |
+| 0x1416133E0 | NFactions::COfferJoinFactionAction::GetRequestDescText：NFactions::COfferJoinFactionAction::GetRequestDescText NFactions::COfferJoinFactionAction::GetRequestD… |
+| 0x141C1D450 | NFactions::NUi::CAssignResearchFacilityWindow::[5] `faction_program_facility_item`+`NFactions::NUi::CResearchFacilityItem`/`NProject::NUi::CProjectFilterList… |
+| 0x141C26EA0 | NFactions::NUi::CRuleTypeItem::[0]：NFactions::NUi::CRuleTypeItem::[0] |
+| 0x141470830 | NFactions::NUi::CFactionTabSection::[0]：NFactions::NUi::CFactionTabSection::[0] NFactions::NUi::CFactionTabSection::[0]；串 FACTION_ACCESS_TO_MILITARY_TAB/FACT… |
+| 0x141F169D0 | NFactions::NUi::CFactionMemberScientistItem::[0]：NFactions::NUi::CFactionMemberScientistItem::[0] NFactions::NUi::CFactionMemberScientistItem::[0]；串 FACTION_… |
+| 0x140A2B780 | NFactions::CFactionUpgradeGroup 槽8（faction_upgrade_group.cpp:112） NFactions::CFactionUpgradeGroup 槽8（faction_upgrade_group.cpp:112）：STR 'default upgrade is n… |
+| 0x141611590 | NFactions::CAssumeFactionLeadershipAction::GetActionTitleText（func_names 名） func_names 名 + 串 "DIPLOMACY_MESSAGE_ACTION_TITLE"/"_RECIPIENT_DESC"/"FACTION"：接任派… |
+| 0x141BFEBD0 | NFactions::NUi::CConfirmFactionFacilityProgram 槽16（gamestate.h:1125） NFactions::NUi::CConfirmFactionFacilityProgram 槽16（gamestate.h:1125）：STR 'FACILITYNAME'/… |
+| 0x141C1B760 | NFactions::NUi::CRequestManpowerWindow 槽6（gamestate.h:1125） NFactions::NUi::CRequestManpowerWindow 槽6（gamestate.h:1125）：STR 'REQUEST_FACTION_MANPOWER_VALUES'… |
+| 0x141BFE8C0 | NFactions::NUi::CBecomeLeaderConfirmationWindow::[16] COST/FACTION/COOLDOWN loc 键 + CBecomeLeaderConfirmationWindow 类名 |
+| 0x14179DE40 | NFactions::NUi::CFactionTheaterSwitch::[6] 类名 + "_miniature" 串（派系战场剧院切换 GUI 槽 6） |
+| 0x1416024E0 | NFactions::CLeaveFactionAction::[24] vtable 槽 NFactions::CLeaveFactionAction::[24]（func_names RTTI 名） |
+| 0x141F15DB0 | NFactions::NUi::CFilterRuleItem::[0] vtable 槽 NFactions::NUi::CFilterRuleItem::[0]（func_names RTTI 名） |
+| 0x14179DA40 | NFactions::NUi::CFactionPingCountryItem::[20] vtable 槽 NFactions::NUi::CFactionPingCountryItem::[20]（func_names RTTI 名） |
+| 0x141E2F140 | NFactions::NUi::CFactionIconWindow::[0] vtable 槽 NFactions::NUi::CFactionIconWindow::[0]（func_names RTTI 名） |
+| 0x1416175F0 | NFactions::CJoinFactionAction::[57] vtable 槽 NFactions::CJoinFactionAction::[57]（func_names RTTI 名） |
+| 0x141F11FD0 | NFactions::NUi::CChangeGoalItemRow::[0] vtable 槽 NFactions::NUi::CChangeGoalItemRow::[0]（func_names RTTI 名） |
+| 0x141617440 | NFactions::CAssumeFactionLeadershipAction::[57] vtable 槽 NFactions::CAssumeFactionLeadershipAction::[57]（func_names RTTI 名） |
+| 0x1414774D0 | NFactions::NUi::CCountryFactionView::[9] vtable 槽 NFactions::NUi::CCountryFactionView::[9]（func_names RTTI 名） |
+| 0x141796E70 | NFactions::NUi::CFactionTheaterItem::[0] vtable 槽 NFactions::NUi::CFactionTheaterItem::[0]（func_names RTTI 名） |
+| 0x140A2A260 | NFactions::CFactionUpgrade::[4] vtable 槽 NFactions::CFactionUpgrade::[4]（func_names RTTI 名） |
+| 0x141C0C690 | NFactions::NUi::CChangeRuleWindow::[0] vtable 槽 NFactions::NUi::CChangeRuleWindow::[0]（func_names RTTI 名） |
+| 0x141617750 | NFactions::CLeaveFactionAction::[57] vtable 槽 NFactions::CLeaveFactionAction::[57]（func_names RTTI 名） |
+| 0x141617590 | NFactions::CDismantleFactionAction::[57] vtable 槽 NFactions::CDismantleFactionAction::[57]（func_names RTTI 名） |
+| 0x141BA7D20 | NFactions::CSetFactionIconAndColor::[0] vtable 槽 NFactions::CSetFactionIconAndColor::[0]（func_names RTTI 名） |
+| 0x1417996A0 | NFactions::NUi::CFactionPingCountryItem::[21] vtable 槽 NFactions::NUi::CFactionPingCountryItem::[21]（func_names RTTI 名） |
+| 0x141ADD320 | NFactions::NUi::CInviteCountryItem::[21] vtable 槽 NFactions::NUi::CInviteCountryItem::[21]（func_names RTTI 名） |
+| 0x14015F880 | NFactions::CFactionIconPool::[0] vtable 槽 NFactions::CFactionIconPool::[0]（func_names RTTI 名） |
+| 0x14146D390 | NFactions::NUi::CIntelligenceTabSection::[0] vtable 槽 NFactions::NUi::CIntelligenceTabSection::[0]（func_names RTTI 名） |
+| 0x140A2D9A0 | NFactions::CFactionRuleGroup::[4] vtable 槽 NFactions::CFactionRuleGroup::[4]（func_names RTTI 名） |
+| 0x141BF9280 | NFactions::NUi::CFactionCommanderWindow::[6] vtable 槽 NFactions::NUi::CFactionCommanderWindow::[6]（func_names RTTI 名） |
+| 0x141C19790 | NFactions::NUi::CFactionProgramItem::[27] vtable 槽 NFactions::NUi::CFactionProgramItem::[27]（func_names RTTI 名） |
+| 0x14146CF10 | NFactions::NUi::CFactionCountrySection::[0] vtable 槽 NFactions::NUi::CFactionCountrySection::[0]（func_names RTTI 名） |
+| 0x141823420 | NFactions::NUi::CLegacyCreateFactionWindow::[5] vtable 槽 NFactions::NUi::CLegacyCreateFactionWindow::[5]（func_names RTTI 名） |
+| 0x141ADB730 | NFactions::NUi::CKickFromFactionCountryItem::[0] vtable 槽 NFactions::NUi::CKickFromFactionCountryItem::[0]（func_names RTTI 名） |
+| 0x14194F910 | NFactions::CFactionTheaterManager::[0] vtable 槽 NFactions::CFactionTheaterManager::[0]（func_names RTTI 名） |
+| 0x141F0A0D0 | NFactions::NUi::CFactionMemberUpgradeItem::[1] vtable 槽 NFactions::NUi::CFactionMemberUpgradeItem::[1]（func_names RTTI 名） |
+| 0x141613A60 | NFactions::CAssumeFactionLeadershipAction::[23] vtable 槽 NFactions::CAssumeFactionLeadershipAction::[23]（func_names RTTI 名） |
+| 0x141BE6250 | NFactions::CTechnologySharingFaction::[18] vtable 槽 NFactions::CTechnologySharingFaction::[18]（func_names RTTI 名） |
+| 0x141613CF0 | NFactions::COfferJoinFactionAction::[23] vtable 槽 NFactions::COfferJoinFactionAction::[23]（func_names RTTI 名） |
+| 0x141613B30 | NFactions::CDismantleFactionAction::[23] vtable 槽 NFactions::CDismantleFactionAction::[23]（func_names RTTI 名） |
+| 0x141613C10 | NFactions::CKickFromFactionAction::[23] vtable 槽 NFactions::CKickFromFactionAction::[23]（func_names RTTI 名） |
+| 0x141796CE0 | NFactions::NUi::CFactionPingCountryItem::[0] vtable 槽 NFactions::NUi::CFactionPingCountryItem::[0]（func_names RTTI 名） |
+| 0x141613AD0 | NFactions::CCreateFactionAction::[23] vtable 槽 NFactions::CCreateFactionAction::[23]（func_names RTTI 名） |
+| 0x141C19720 | NFactions::NUi::CFactionProgramItemEmpty::[0] vtable 槽 NFactions::NUi::CFactionProgramItemEmpty::[0]（func_names RTTI 名） |
+| 0x141F0A080 | NFactions::NUi::CFactionMemberUpgradeButton::[0] vtable 槽 NFactions::NUi::CFactionMemberUpgradeButton::[0]（func_names RTTI 名） |
+| 0x141613C80 | NFactions::CLeaveFactionAction::[23] vtable 槽 NFactions::CLeaveFactionAction::[23]（func_names RTTI 名） |
+| 0x141613BA0 | NFactions::CJoinFactionAction::[23] vtable 槽 NFactions::CJoinFactionAction::[23]（func_names RTTI 名） |
+| 0x141822D20 | NFactions::NUi::CLegacyCreateFactionWindow::[0] vtable 槽 NFactions::NUi::CLegacyCreateFactionWindow::[0]（func_names RTTI 名） |
+| 0x141E2F240 | NFactions::NUi::CFactionColorPickerWindow::[5] vtable 槽 NFactions::NUi::CFactionColorPickerWindow::[5]（func_names RTTI 名） |
+| 0x141F11F70 | NFactions::NUi::CChangeGoalItem::[0] vtable 槽 NFactions::NUi::CChangeGoalItem::[0]（func_names RTTI 名） |
+| 0x140D894D0 | NFactions::CFactionProgramStatus::[0] vtable 槽 NFactions::CFactionProgramStatus::[0]（func_names RTTI 名） |
+| 0x140177790 | NFactions::CFactionUpgrade::[14] vtable 槽 NFactions::CFactionUpgrade::[14]（func_names RTTI 名） |
+| 0x14146CE90 | NFactions::NUi::CFactionArmySection::[0] vtable 槽 NFactions::NUi::CFactionArmySection::[0]（func_names RTTI 名） |
+| 0x141C0C990 | NFactions::NUi::CChangeRuleWindow::[5] vtable 槽 NFactions::NUi::CChangeRuleWindow::[5]（func_names RTTI 名） |
+| 0x140A2C5F0 | NFactions::CFactionMemberUpgradeGroup::[11] vtable 槽 NFactions::CFactionMemberUpgradeGroup::[11]（func_names RTTI 名） |
+| 0x141E2F030 | NFactions::NUi::CFactionColorPickerWindow::[0] vtable 槽 NFactions::NUi::CFactionColorPickerWindow::[0]（func_names RTTI 名） |
+| 0x141E75970 | NFactions::NUi::CFactionButton::[1] vtable 槽 NFactions::NUi::CFactionButton::[1]（func_names RTTI 名） |
+| 0x141797050 | NFactions::NUi::CFactionTheaterWindow::[5] vtable 槽 NFactions::NUi::CFactionTheaterWindow::[5]（func_names RTTI 名） |
+| 0x141C22AE0 | NFactions::NUi::CFactionScientistRoster::[7] vtable 槽 NFactions::NUi::CFactionScientistRoster::[7]（func_names RTTI 名） |
+| 0x141ADB680 | NFactions::NUi::CInviteCountriesWindow::[0] vtable 槽 NFactions::NUi::CInviteCountriesWindow::[0]（func_names RTTI 名） |
+| 0x141ADB5F0 | NFactions::NUi::CFactionCountryItem::[0] vtable 槽 NFactions::NUi::CFactionCountryItem::[0]（func_names RTTI 名） |
+| 0x141C1CBC0 | NFactions::NUi::CResearchFacilityItem::[0] vtable 槽 NFactions::NUi::CResearchFacilityItem::[0]（func_names RTTI 名） |
+| 0x141F16870 | NFactions::NUi::CFactionMemberScientistItem::[0] vtable 槽 NFactions::NUi::CFactionMemberScientistItem::[0]（func_names RTTI 名） |
+| 0x1417A0DE0 | NFactions::NUi::CFactionUiManager::[1] vtable 槽 NFactions::NUi::CFactionUiManager::[1]（func_names RTTI 名） |
+| 0x14146D4B0 | NFactions::NUi::CRequestManpowerWindow::[0] vtable 槽 NFactions::NUi::CRequestManpowerWindow::[0]（func_names RTTI 名） |
+| 0x141822DD0 | NFactions::NUi::CNewFactionWindow::[0] vtable 槽 NFactions::NUi::CNewFactionWindow::[0]（func_names RTTI 名） |
+| 0x14179F7F0 | NFactions::NUi::CFactionTheaterSwitch::[0] vtable 槽 NFactions::NUi::CFactionTheaterSwitch::[0]（func_names RTTI 名） |
+| 0x141BFB9C0 | NFactions::NUi::CDoctrineSharingFolderItem::[0] vtable 槽 NFactions::NUi::CDoctrineSharingFolderItem::[0]（func_names RTTI 名） |
+| 0x141ADB6E0 | NFactions::NUi::CInviteCountryItem::[0] vtable 槽 NFactions::NUi::CInviteCountryItem::[0]（func_names RTTI 名） |
+| 0x141C17890 | NFactions::NUi::CGoalItem::[0] vtable 槽 NFactions::NUi::CGoalItem::[0]（func_names RTTI 名） |
+| 0x141C26A00 | NFactions::NUi::CRuleTypeItem::[0] vtable 槽 NFactions::NUi::CRuleTypeItem::[0]（func_names RTTI 名） |
+| 0x141F13A00 | NFactions::NUi::CFilterGoalItem::[0] vtable 槽 NFactions::NUi::CFilterGoalItem::[0]（func_names RTTI 名） |
+| 0x140A23390 | NFactions::CFactionGoal::[1] vtable 槽 NFactions::CFactionGoal::[1]（func_names RTTI 名） |
+| 0x141C07BC0 | NFactions::NUi::CChangeGoalWindow::[5] vtable 槽 NFactions::NUi::CChangeGoalWindow::[5]（func_names RTTI 名） |
+| 0x140A2BEB0 | NFactions::CFactionMemberUpgradeGroup::[12] vtable 槽 NFactions::CFactionMemberUpgradeGroup::[12]（func_names RTTI 名） |
+| 0x141C24150 | NFactions::NUi::CIntelligenceAdvisorSelectionItem::[0] vtable 槽 NFactions::NUi::CIntelligenceAdvisorSelectionItem::[0]（func_names RTTI 名） |
+| 0x14146CCD0 | NFactions::NUi::CConfirmRuleWindow::[0] vtable 槽 NFactions::NUi::CConfirmRuleWindow::[0]（func_names RTTI 名） |
+| 0x14146CD70 | NFactions::NUi::CConfirmGoalWindow::[0] vtable 槽 NFactions::NUi::CConfirmGoalWindow::[0]（func_names RTTI 名） |
+| 0x140177740 | NFactions::CFactionMemberUpgrade::[14] vtable 槽 NFactions::CFactionMemberUpgrade::[14]（func_names RTTI 名） |
+| 0x14146D030 | NFactions::NUi::CFactionHeaderSection::[0] vtable 槽 NFactions::NUi::CFactionHeaderSection::[0]（func_names RTTI 名） |
+| 0x141BF8DD0 | NFactions::NUi::CFactionCommanderWindow::[12] vtable 槽 NFactions::NUi::CFactionCommanderWindow::[12]（func_names RTTI 名） |
+| 0x141C5A860 | NFactions::NUi::CFactionListItem::[0] vtable 槽 NFactions::NUi::CFactionListItem::[0]（func_names RTTI 名） |
+| 0x141ADB630 | NFactions::NUi::CFactionMemberCountriesWindow::[0] vtable 槽 NFactions::NUi::CFactionMemberCountriesWindow::[0]（func_names RTTI 名） |
+| 0x14157E2A0 | NFactions::NUi::CFactionListWindow::[0] vtable 槽 NFactions::NUi::CFactionListWindow::[0]（func_names RTTI 名） |
+| 0x140A2A100 | NFactions::CFactionIconPool::[4] vtable 槽 NFactions::CFactionIconPool::[4]（func_names RTTI 名） |
+| 0x140A2A2F0 | NFactions::CFactionMemberUpgrade::[12] vtable 槽 NFactions::CFactionMemberUpgrade::[12]（func_names RTTI 名） |
+| 0x14015CB60 | NFactions::NAi::CAiFactionTheaterDatabase::[1] vtable 槽 NFactions::NAi::CAiFactionTheaterDatabase::[1]（func_names RTTI 名） |
+| 0x140D89490 | NFactions::CFaction::[0] vtable 槽 NFactions::CFaction::[0]（func_names RTTI 名） |
+| 0x140B64420 | NFactions::NUi::CFactionPingView::[0] vtable 槽 NFactions::NUi::CFactionPingView::[0]（func_names RTTI 名） |
+| 0x14146DA50 | NFactions::NUi::CAssignTheaterLeaderPopup::[15] vtable 槽 NFactions::NUi::CAssignTheaterLeaderPopup::[15]（func_names RTTI 名） |
+| 0x14146DA20 | NFactions::NUi::CLeaveFactionConfirmationWindow::[16] vtable 槽 NFactions::NUi::CLeaveFactionConfirmationWindow::[16]（func_names RTTI 名） |
+| 0x14146DB70 | NFactions::NUi::CInviteToFactionPopup::[15] vtable 槽 NFactions::NUi::CInviteToFactionPopup::[15]（func_names RTTI 名） |
+| 0x141796F10 | NFactions::NUi::CFactionTheaterWindow::[0] vtable 槽 NFactions::NUi::CFactionTheaterWindow::[0]（func_names RTTI 名） |
+| 0x14146DAB0 | NFactions::NUi::CDismantleFactionConfirmationWindow::[15] vtable 槽 NFactions::NUi::CDismantleFactionConfirmationWindow::[15]（func_names RTTI 名） |
+| 0x14146DBA0 | NFactions::NUi::CKickFromFactionPopup::[15] vtable 槽 NFactions::NUi::CKickFromFactionPopup::[15]（func_names RTTI 名） |
+| 0x141C07D90 | NFactions::NUi::CChangeGoalWindow::[8] vtable 槽 NFactions::NUi::CChangeGoalWindow::[8]（func_names RTTI 名） |
+| 0x14146DAE0 | NFactions::NUi::CDoctrineSharingPopup::[15] vtable 槽 NFactions::NUi::CDoctrineSharingPopup::[15]（func_names RTTI 名） |
+| 0x14015CC60 | NFactions::CFactionGoalDatabase::[1] vtable 槽 NFactions::CFactionGoalDatabase::[1]（func_names RTTI 名） |
+| 0x14015CCA0 | NFactions::CFactionIconsDatabase::[1] vtable 槽 NFactions::CFactionIconsDatabase::[1]（func_names RTTI 名） |
+| 0x14015CCE0 | NFactions::CFactionMemberUpgradeDatabase::[1] vtable 槽 NFactions::CFactionMemberUpgradeDatabase::[1]（func_names RTTI 名） |
+| 0x14015CD20 | NFactions::CFactionMemberUpgradeGroupDatabase::[1] vtable 槽 NFactions::CFactionMemberUpgradeGroupDatabase::[1]（func_names RTTI 名） |
+| 0x14015CD60 | NFactions::CFactionRuleDatabase::[1] vtable 槽 NFactions::CFactionRuleDatabase::[1]（func_names RTTI 名） |
+| 0x14015CDA0 | NFactions::CFactionRuleGroupDatabase::[1] vtable 槽 NFactions::CFactionRuleGroupDatabase::[1]（func_names RTTI 名） |
+| 0x14015CDE0 | NFactions::CFactionTemplateDatabase::[1] vtable 槽 NFactions::CFactionTemplateDatabase::[1]（func_names RTTI 名） |
+| 0x14015F140 | NFactions::NAi::CAiFactionTheater::[0] vtable 槽 NFactions::NAi::CAiFactionTheater::[0]（func_names RTTI 名） |
+| 0x14015F840 | NFactions::CFactionGoal::[0] vtable 槽 NFactions::CFactionGoal::[0]（func_names RTTI 名） |
+| 0x14015F900 | NFactions::CFactionUpgrade::[0] vtable 槽 NFactions::CFactionUpgrade::[0]（func_names RTTI 名） |
+| 0x14015F940 | NFactions::CFactionUpgradeGroup::[0] vtable 槽 NFactions::CFactionUpgradeGroup::[0]（func_names RTTI 名） |
+| 0x14015F980 | NFactions::CFactionRule::[0] vtable 槽 NFactions::CFactionRule::[0]（func_names RTTI 名） |
+| 0x14015FA20 | NFactions::CFactionTemplate::[0] vtable 槽 NFactions::CFactionTemplate::[0]（func_names RTTI 名） |
+| 0x140A267D0 | NFactions::CFactionGoalStatus::[0] vtable 槽 NFactions::CFactionGoalStatus::[0]（func_names RTTI 名） |
+| 0x14146CC90 | NFactions::NUi::CAssignResearchFacilityWindow::[0] vtable 槽 NFactions::NUi::CAssignResearchFacilityWindow::[0]（func_names RTTI 名） |
+| 0x14146CDC0 | NFactions::NUi::CCountryFactionView::[0] vtable 槽 NFactions::NUi::CCountryFactionView::[0]（func_names RTTI 名） |
+| 0x14146CE50 | NFactions::NUi::CDoctrineSharingWindow::[1] vtable 槽 NFactions::NUi::CDoctrineSharingWindow::[1]（func_names RTTI 名） |
+| 0x14146D080 | NFactions::NUi::CFactionProgramList::[0] vtable 槽 NFactions::NUi::CFactionProgramList::[0]（func_names RTTI 名） |
+| 0x14146D210 | NFactions::NUi::CFactionTabSection::[0] vtable 槽 NFactions::NUi::CFactionTabSection::[0]（func_names RTTI 名） |
+| 0x14146DBD0 | NFactions::NUi::CLeaveFactionConfirmationWindow::[15] vtable 槽 NFactions::NUi::CLeaveFactionConfirmationWindow::[15]（func_names RTTI 名） |
+| 0x141796CA0 | NFactions::NUi::CFactionCountryListWindow::[0] vtable 槽 NFactions::NUi::CFactionCountryListWindow::[0]（func_names RTTI 名） |
+| 0x141BE61F0 | NFactions::CTechnologySharingFaction::[13] vtable 槽 NFactions::CTechnologySharingFaction::[13]（func_names RTTI 名） |
+| 0x141C236F0 | NFactions::NUi::CIntelligenceAdvisorSelectionItem::[0] vtable 槽 NFactions::NUi::CIntelligenceAdvisorSelectionItem::[0]（func_names RTTI 名） |
+| 0x141BE61D0 | NFactions::CTechnologySharingFaction::[9] vtable 槽 NFactions::CTechnologySharingFaction::[9]（func_names RTTI 名） |
+| 0x14146DB10 | NFactions::NUi::CFactionIntelligencePopup::[15] vtable 槽 NFactions::NUi::CFactionIntelligencePopup::[15]（func_names RTTI 名） |
+| 0x14146DB40 | NFactions::NUi::CFactionTheaterPopup::[15] vtable 槽 NFactions::NUi::CFactionTheaterPopup::[15]（func_names RTTI 名） |
+| 0x141BE6220 | NFactions::CTechnologySharingFaction::[14] vtable 槽 NFactions::CTechnologySharingFaction::[14]（func_names RTTI 名） |
+| 0x14146DA80 | NFactions::NUi::CConfirmFactionFacilityProgram::[15] vtable 槽 NFactions::NUi::CConfirmFactionFacilityProgram::[15]（func_names RTTI 名） |
+| 0x1417970AC | NFactions::NUi::CFactionPingCountryItem::[0] vtable 槽 NFactions::NUi::CFactionPingCountryItem::[0]（func_names RTTI 名） |
+| 0x141C03310 | NFactions::NUi::CFactionPopup::[17] vtable 槽 NFactions::NUi::CFactionPopup::[17]（func_names RTTI 名） |
+| 0x141C01DF0 | NFactions::NUi::CConfirmGoalWindow::[15] vtable 槽 NFactions::NUi::CConfirmGoalWindow::[15]（func_names RTTI 名） |
+| 0x141796C60 | NFactions::NUi::CFactionPingCountryItem::[1] vtable 槽 NFactions::NUi::CFactionPingCountryItem::[1]（func_names RTTI 名） |
+| 0x141825540 | NFactions::NUi::CLegacyCreateFactionWindow::[7] vtable 槽 NFactions::NUi::CLegacyCreateFactionWindow::[7]（func_names RTTI 名） |
+| 0x141BF8C60 | NFactions::NUi::CFactionCommanderWindow::[1] vtable 槽 NFactions::NUi::CFactionCommanderWindow::[1]（func_names RTTI 名） |
+| 0x141C17878 | NFactions::NUi::CGoalItem::[1] vtable 槽 NFactions::NUi::CGoalItem::[1]（func_names RTTI 名） |
+| 0x141C5A854 | NFactions::NUi::CFactionListItem::[1] vtable 槽 NFactions::NUi::CFactionListItem::[1]（func_names RTTI 名） |
+| 0x14146CB1C | NFactions::NUi::CConfirmGoalWindow::[1] vtable 槽 NFactions::NUi::CConfirmGoalWindow::[1]（func_names RTTI 名） |
+| 0x141ADB5D0 | NFactions::NUi::CInviteCountryItem::[1] vtable 槽 NFactions::NUi::CInviteCountryItem::[1]（func_names RTTI 名） |
+| 0x141ADB5DC | NFactions::NUi::CKickFromFactionCountryItem::[1] vtable 槽 NFactions::NUi::CKickFromFactionCountryItem::[1]（func_names RTTI 名） |
+| 0x141C1CB70 | NFactions::NUi::CResearchFacilityItem::[1] vtable 槽 NFactions::NUi::CResearchFacilityItem::[1]（func_names RTTI 名） |
+| 0x14179F7E0 | NFactions::NUi::CFactionTheaterSwitch::[1] vtable 槽 NFactions::NUi::CFactionTheaterSwitch::[1]（func_names RTTI 名） |
+| 0x14146CAE0 | NFactions::NUi::CConfirmRuleWindow::[0] vtable 槽 NFactions::NUi::CConfirmRuleWindow::[0]（func_names RTTI 名） |
+| 0x14146CAEC | NFactions::NUi::CConfirmRuleWindow::[1] vtable 槽 NFactions::NUi::CConfirmRuleWindow::[1]（func_names RTTI 名） |
+| 0x14146CAF8 | NFactions::NUi::CFactionPopup::[0] vtable 槽 NFactions::NUi::CFactionPopup::[0]（func_names RTTI 名） |
+| 0x14146CB04 | NFactions::NUi::CFactionPopup::[1] vtable 槽 NFactions::NUi::CFactionPopup::[1]（func_names RTTI 名） |
+| 0x14146CB10 | NFactions::NUi::CConfirmGoalWindow::[0] vtable 槽 NFactions::NUi::CConfirmGoalWindow::[0]（func_names RTTI 名） |
+| 0x14146CB28 | NFactions::NUi::CCountryFactionView::[1] vtable 槽 NFactions::NUi::CCountryFactionView::[1]（func_names RTTI 名） |
+| 0x14146CB40 | NFactions::NUi::CDoctrineSharingPopup::[0] vtable 槽 NFactions::NUi::CDoctrineSharingPopup::[0]（func_names RTTI 名） |
+| 0x14146CB4C | NFactions::NUi::CDoctrineSharingPopup::[1] vtable 槽 NFactions::NUi::CDoctrineSharingPopup::[1]（func_names RTTI 名） |
+| 0x14146CB58 | NFactions::NUi::CFactionArmySection::[1] vtable 槽 NFactions::NUi::CFactionArmySection::[1]（func_names RTTI 名） |
+| 0x14146CB64 | NFactions::NUi::CFactionCountrySection::[1] vtable 槽 NFactions::NUi::CFactionCountrySection::[1]（func_names RTTI 名） |
+| 0x14146CB70 | NFactions::NUi::CFactionHeaderSection::[1] vtable 槽 NFactions::NUi::CFactionHeaderSection::[1]（func_names RTTI 名） |
+| 0x14146CB7C | NFactions::NUi::CFactionResearchSection::[1] vtable 槽 NFactions::NUi::CFactionResearchSection::[1]（func_names RTTI 名） |
+| 0x14146CB88 | NFactions::NUi::CFactionTabSection::[1] vtable 槽 NFactions::NUi::CFactionTabSection::[1]（func_names RTTI 名） |
+| 0x14146CBA0 | NFactions::NUi::CFactionTheaterPopup::[1] vtable 槽 NFactions::NUi::CFactionTheaterPopup::[1]（func_names RTTI 名） |
+| 0x14146CBAC | NFactions::NUi::CIntelligenceTabSection::[1] vtable 槽 NFactions::NUi::CIntelligenceTabSection::[1]（func_names RTTI 名） |
+| 0x14146CBB8 | NFactions::NUi::CInviteToFactionPopup::[0] vtable 槽 NFactions::NUi::CInviteToFactionPopup::[0]（func_names RTTI 名） |
+| 0x14146CBC4 | NFactions::NUi::CInviteToFactionPopup::[1] vtable 槽 NFactions::NUi::CInviteToFactionPopup::[1]（func_names RTTI 名） |
+| 0x141796C94 | NFactions::NUi::CFactionTheaterItem::[1] vtable 槽 NFactions::NUi::CFactionTheaterItem::[1]（func_names RTTI 名） |
+| 0x141822AF4 | NFactions::NUi::CFactionSetupWindow::[1] vtable 槽 NFactions::NUi::CFactionSetupWindow::[1]（func_names RTTI 名） |
+| 0x141822B00 | NFactions::NUi::CFactionSetupWindow::[0] vtable 槽 NFactions::NUi::CFactionSetupWindow::[0]（func_names RTTI 名） |
+| 0x141822B0C | NFactions::NUi::CNewFactionTemplateItem::[1] vtable 槽 NFactions::NUi::CNewFactionTemplateItem::[1]（func_names RTTI 名） |
+| 0x141BF8C6C | NFactions::NUi::CFactionCommanderWindow::[0] vtable 槽 NFactions::NUi::CFactionCommanderWindow::[0]（func_names RTTI 名） |
+| 0x141BFB9A8 | NFactions::NUi::CDoctrineSharingFolderItem::[1] vtable 槽 NFactions::NUi::CDoctrineSharingFolderItem::[1]（func_names RTTI 名） |
+| 0x141C19630 | NFactions::NUi::CFactionProgramItem::[1] vtable 槽 NFactions::NUi::CFactionProgramItem::[1]（func_names RTTI 名） |
+| 0x141C1963C | NFactions::NUi::CFactionProgramItem::[0] vtable 槽 NFactions::NUi::CFactionProgramItem::[0]（func_names RTTI 名） |
+| 0x141C19648 | NFactions::NUi::CFactionProgramItem::[0] vtable 槽 NFactions::NUi::CFactionProgramItem::[0]（func_names RTTI 名） |
+| 0x141C19654 | NFactions::NUi::CFactionProgramItemEmpty::[1] vtable 槽 NFactions::NUi::CFactionProgramItemEmpty::[1]（func_names RTTI 名） |
+| 0x141C236D8 | NFactions::NUi::CIntelligenceAdvisorSelectionItem::[1] vtable 槽 NFactions::NUi::CIntelligenceAdvisorSelectionItem::[1]（func_names RTTI 名） |
+| 0x141C236E4 | NFactions::NUi::CIntelligenceAdvisorSlotItem::[1] vtable 槽 NFactions::NUi::CIntelligenceAdvisorSlotItem::[1]（func_names RTTI 名） |
+| 0x141C269F0 | NFactions::NUi::CRuleTypeItem::[1] vtable 槽 NFactions::NUi::CRuleTypeItem::[1]（func_names RTTI 名） |
+| 0x141F0A068 | NFactions::NUi::CFactionMemberUpgradeButton::[1] vtable 槽 NFactions::NUi::CFactionMemberUpgradeButton::[1]（func_names RTTI 名） |
+| 0x141F11F58 | NFactions::NUi::CChangeGoalItem::[1] vtable 槽 NFactions::NUi::CChangeGoalItem::[1]（func_names RTTI 名） |
+| 0x141F139F4 | NFactions::NUi::CFilterGoalItem::[1] vtable 槽 NFactions::NUi::CFilterGoalItem::[1]（func_names RTTI 名） |
+| 0x141F1498C | NFactions::NUi::CChangeRuleItem::[1] vtable 槽 NFactions::NUi::CChangeRuleItem::[1]（func_names RTTI 名） |
+| 0x141F1685C | NFactions::NUi::CFactionMemberScientistItem::[1] vtable 槽 NFactions::NUi::CFactionMemberScientistItem::[1]（func_names RTTI 名） |
+| 0x141C22AD0 | NFactions::NUi::CFactionScientistRoster::[4] vtable 槽 NFactions::NUi::CFactionScientistRoster::[4]（func_names RTTI 名） |
+| 0x14146EB00 | NFactions::NUi::CFactionCountrySection::[0] vtable 槽 NFactions::NUi::CFactionCountrySection::[0]（func_names RTTI 名） |
+| 0x141E759C0 | NFactions::NUi::CFactionButton::[0] vtable 槽 NFactions::NUi::CFactionButton::[0]（func_names RTTI 名） |
+| 0x141C00BA0 | NFactions::NUi::CInviteToFactionPopup::[16] vtable 槽 NFactions::NUi::CInviteToFactionPopup::[16]（func_names RTTI 名） |
+| 0x141F12180 | NFactions::NUi::CChangeGoalItem::[0] vtable 槽 NFactions::NUi::CChangeGoalItem::[0]（func_names RTTI 名） |
+| 0x141610230 | NFactions::COfferJoinFactionAction::[59] vtable 槽 NFactions::COfferJoinFactionAction::[59]（func_names RTTI 名） |
+| 0x14146DF80 | NFactions::NUi::CFactionArmySection::[0] vtable 槽 NFactions::NUi::CFactionArmySection::[0]（func_names RTTI 名） |
+| 0x14146FAC0 | NFactions::NUi::CFactionHeaderSection::[0] vtable 槽 NFactions::NUi::CFactionHeaderSection::[0]（func_names RTTI 名） |
+| 0x1418235F0 | NFactions::NUi::CFactionSetupWindow::[0] vtable 槽 NFactions::NUi::CFactionSetupWindow::[0]（func_names RTTI 名） |
+| 0x141BFF8E0 | NFactions::NUi::CConfirmRuleWindow::[16] vtable 槽 NFactions::NUi::CConfirmRuleWindow::[16]（func_names RTTI 名） |
+| 0x141BFEFA0 | NFactions::NUi::CConfirmGoalWindow::[16] vtable 槽 NFactions::NUi::CConfirmGoalWindow::[16]（func_names RTTI 名） |
+| 0x14160F7D0 | NFactions::CJoinFactionAction::[59] vtable 槽 NFactions::CJoinFactionAction::[59]（func_names RTTI 名） |
+| 0x141615CF0 | NFactions::CJoinFactionAction::CanExecute func_names 名 NFactions::CJoinFactionAction::CanExecute |
+| 0x1416127C0 | NFactions::CJoinFactionAction::GetRequestDescText func_names 名 NFactions::CJoinFactionAction::GetRequestDescText |
+| 0x141612120 | NFactions::CCreateFactionAction::GetRequestDescText func_names 名 NFactions::CCreateFactionAction::GetRequestDescText |
+| 0x141615440 | NFactions::CCreateFactionAction::CanExecute func_names 名 NFactions::CCreateFactionAction::CanExecute |
+| 0x141612DE0 | NFactions::CKickFromFactionAction::GetRequestDescText func_names 名 NFactions::CKickFromFactionAction::GetRequestDescText |
+| 0x141F14F50 | NFactions::NUi::CChangeRuleItem 槽 0 func_names 名 + gamestate 访问断言 |
+| 0x141C26A50 | NFactions::NUi::CActiveRuleText::[0] vtable 槽 NFactions::NUi::CActiveRuleText::[0]（func_names RTTI 名） |
+| 0x141611210 | NFactions::CDismantleFactionAction::[21] vtable 槽 NFactions::CDismantleFactionAction::[21]（func_names RTTI 名） |
+| 0x141827EE0 | NFactions::NUi::CLegacyCreateFactionWindow::[6] vtable 槽 NFactions::NUi::CLegacyCreateFactionWindow::[6]（func_names RTTI 名） |
+| 0x141C00760 | NFactions::NUi::CFactionIntelligencePopup::[16] vtable 槽 NFactions::NUi::CFactionIntelligencePopup::[16]（func_names RTTI 名） |
+| 0x141BE62C0 | NFactions::CTechnologySharingFaction::[12] vtable 槽 NFactions::CTechnologySharingFaction::[12]（func_names RTTI 名） |
+| 0x141BAE4B0 | NFactions::CUnlockFolderDoctrineSharingCommand::PayloadReader func_names 名 NFactions::CUnlockFolderDoctrineSharingCommand::PayloadReader |
+| 0x140A23880 | NFactions::CFactionGoal::[4] vtable 槽 NFactions::CFactionGoal::[4]（func_names RTTI 名） |
+| 0x140A299E0 | NFactions::CFactionGoalStatus::Writer func_names 名 NFactions::CFactionGoalStatus::Writer |
+| 0x141C01B90 | NFactions::NUi::CBecomeLeaderConfirmationWindow::[15] vtable 槽 NFactions::NUi::CBecomeLeaderConfirmationWindow::[15]（func_names RTTI 名） |
+| 0x141ADFC50 | NFactions::NUi::CKickFromFactionCountryItem::[20] vtable 槽 NFactions::NUi::CKickFromFactionCountryItem::[20]（func_names RTTI 名） |
+| 0x141C01E20 | NFactions::NUi::CConfirmRuleWindow::[15] vtable 槽 NFactions::NUi::CConfirmRuleWindow::[15]（func_names RTTI 名） |
+| 0x14146D840 | NFactions::NUi::CCountryFactionView::ClearContents func_names 名 NFactions::NUi::CCountryFactionView::ClearContents |
+| 0x14179E0C0 | NFactions::NUi::CFactionTheaterWindow::[6] vtable 槽 NFactions::NUi::CFactionTheaterWindow::[6]（func_names RTTI 名） |
+| 0x141C03130 | NFactions::NUi::CLeaveFactionConfirmationWindow::[14] vtable 槽 NFactions::NUi::CLeaveFactionConfirmationWindow::[14]（func_names RTTI 名） |
+| 0x141615B70 | NFactions::CDismantleFactionAction::CanExecute func_names 名 NFactions::CDismantleFactionAction::CanExecute |
+| 0x141610BD0 | NFactions::CAssumeFactionLeadershipAction::[58] vtable 槽 NFactions::CAssumeFactionLeadershipAction::[58]（func_names RTTI 名） |
+| 0x14160F640 | NFactions::CDismantleFactionAction::[59] vtable 槽 NFactions::CDismantleFactionAction::[59]（func_names RTTI 名） |
+| 0x14179F850 | NFactions::NUi::CFactionUiManager::[0] vtable 槽 NFactions::NUi::CFactionUiManager::[0]（func_names RTTI 名） |
+| 0x141C02060 | NFactions::NUi::CKickFromFactionPopup::[14] vtable 槽 NFactions::NUi::CKickFromFactionPopup::[14]（func_names RTTI 名） |
+| 0x140A2D450 | NFactions::CFactionRule::[8] vtable 槽 NFactions::CFactionRule::[8]（func_names RTTI 名） |
+| 0x141602110 | NFactions::CCreateFactionAction::[24] vtable 槽 NFactions::CCreateFactionAction::[24]（func_names RTTI 名） |
+| 0x141BA7BF0 | NFactions::CModifyFactionTheater::[0] vtable 槽 NFactions::CModifyFactionTheater::[0]（func_names RTTI 名） |
+| 0x140A2D860 | NFactions::CFactionRule::[4] vtable 槽 NFactions::CFactionRule::[4]（func_names RTTI 名） |
+| 0x1416025D0 | NFactions::COfferJoinFactionAction::[24] vtable 槽 NFactions::COfferJoinFactionAction::[24]（func_names RTTI 名） |
+| 0x141BAE340 | NFactions::CSetFactionUpgradeCommand::PayloadReader func_names 名 NFactions::CSetFactionUpgradeCommand::PayloadReader |
+| 0x141602020 | NFactions::CAssumeFactionLeadershipAction::[24] vtable 槽 NFactions::CAssumeFactionLeadershipAction::[24]（func_names RTTI 名） |
+| 0x1413FA240 | NFactions::CFactionUpgradeStatus::[0] vtable 槽 NFactions::CFactionUpgradeStatus::[0]（func_names RTTI 名） |
+| 0x141602210 | NFactions::CDismantleFactionAction::[24] vtable 槽 NFactions::CDismantleFactionAction::[24]（func_names RTTI 名） |
+| 0x14146D250 | NFactions::NUi::CFactionTheaterPopup::[0] vtable 槽 NFactions::NUi::CFactionTheaterPopup::[0]（func_names RTTI 名） |
+| 0x141ADD280 | NFactions::NUi::CFactionMemberCountriesWindow::[8] vtable 槽 NFactions::NUi::CFactionMemberCountriesWindow::[8]（func_names RTTI 名） |
+| 0x141BAD870 | NFactions::CAddFactionGoalCommand::PayloadReader func_names 名 NFactions::CAddFactionGoalCommand::PayloadReader |
+| 0x141C5A8A0 | NFactions::NUi::CFactionListWindow::[5] vtable 槽 NFactions::NUi::CFactionListWindow::[5]（func_names RTTI 名） |
+| 0x140A28210 | NFactions::CFactionGoalDatabase::[0] vtable 槽 NFactions::CFactionGoalDatabase::[0]（func_names RTTI 名） |
+| 0x141823340 | NFactions::NUi::CFactionSetupWindow::ClearContents func_names 名 NFactions::NUi::CFactionSetupWindow::ClearContents |
+| 0x141C5AA10 | NFactions::NUi::CFactionListItem::[0] vtable 槽 NFactions::NUi::CFactionListItem::[0]（func_names RTTI 名） |
+| 0x1416177E0 | NFactions::COfferJoinFactionAction::[57] vtable 槽 NFactions::COfferJoinFactionAction::[57]（func_names RTTI 名） |
+| 0x141C19810 | NFactions::NUi::CFactionProgramItem::[0] vtable 槽 NFactions::NUi::CFactionProgramItem::[0]（func_names RTTI 名） |
+| 0x141C23730 | NFactions::NUi::CIntelligenceAdvisorSlotItem::[0] vtable 槽 NFactions::NUi::CIntelligenceAdvisorSlotItem::[0]（func_names RTTI 名） |
+| 0x141C19660 | NFactions::NUi::CFactionProgramItem::[0] vtable 槽 NFactions::NUi::CFactionProgramItem::[0]（func_names RTTI 名） |
+| 0x141BA7DB0 | NFactions::CAddFactionGoalCommand::Clone func_names 名 NFactions::CAddFactionGoalCommand::Clone |
+| 0x140D91C10 | NFactions::CFactionSystem::[0] vtable 槽 NFactions::CFactionSystem::[0]（func_names RTTI 名） |
+| 0x141ADD370 | NFactions::NUi::CInviteCountriesWindow::[10] vtable 槽 NFactions::NUi::CInviteCountriesWindow::[10]（func_names RTTI 名） |
+| 0x141BA87D0 | NFactions::CUpdateIntelligenceAdvisorSlotCommand::Clone func_names 名 NFactions::CUpdateIntelligenceAdvisorSlotCommand::Clone |
+| 0x141BA8230 | NFactions::CFactionSetCommanderCommand::Clone func_names 名 NFactions::CFactionSetCommanderCommand::Clone |
+| 0x140A2A4B0 | NFactions::CFactionMemberUpgrade::[13] vtable 槽 NFactions::CFactionMemberUpgrade::[13]（func_names RTTI 名） |
+| 0x14131A9D0 | NFactions::CSetFactionPingExecutionType::Clone func_names 名 NFactions::CSetFactionPingExecutionType::Clone |
+| 0x141BA8190 | NFactions::CFactionAttachScientistCommand::Clone func_names 名 NFactions::CFactionAttachScientistCommand::Clone |
+| 0x141BA8610 | NFactions::CSetFactionTheaterPinVisibility::Clone func_names 名 NFactions::CSetFactionTheaterPinVisibility::Clone |
+| 0x140A2A1A0 | NFactions::CFactionUpgrade::[11] vtable 槽 NFactions::CFactionUpgrade::[11]（func_names RTTI 名） |
+| 0x141BA7EE0 | NFactions::CClearFactionTheater::Clone func_names 名 NFactions::CClearFactionTheater::Clone |
+| 0x141BAE0B0 | NFactions::CModifyFactionTheater::PayloadReader func_names 名 NFactions::CModifyFactionTheater::PayloadReader |
+| 0x141BA8740 | NFactions::CUnlockFolderDoctrineSharingCommand::Clone func_names 名 NFactions::CUnlockFolderDoctrineSharingCommand::Clone |
+| 0x141BADE60 | NFactions::CFactionAttachScientistCommand::PayloadReader func_names 名 NFactions::CFactionAttachScientistCommand::PayloadReader |
+| 0x141BA82D0 | NFactions::CFactionUnattachScientistCommand::Clone func_names 名 NFactions::CFactionUnattachScientistCommand::Clone |
+| 0x14131AA60 | NFactions::CUseFactionMemberManpower::Clone func_names 名 NFactions::CUseFactionMemberManpower::Clone |
+| 0x141BA7E50 | NFactions::CAddFactionProgramCommand::Clone func_names 名 NFactions::CAddFactionProgramCommand::Clone |
+| 0x141BA8100 | NFactions::CEraseFactionRuleCommand::Clone func_names 名 NFactions::CEraseFactionRuleCommand::Clone |
+| 0x141BA86B0 | NFactions::CSetFactionUpgradeCommand::Clone func_names 名 NFactions::CSetFactionUpgradeCommand::Clone |
+| 0x141BA8580 | NFactions::CSetFactionRuleCommand::Clone func_names 名 NFactions::CSetFactionRuleCommand::Clone |
+| 0x141471850 | NFactions::NUi::CCountryFactionView::Reload func_names 名 NFactions::NUi::CCountryFactionView::Reload |
+| 0x141BA83A0 | NFactions::CRemoveFactionProgramCommand::Clone func_names 名 NFactions::CRemoveFactionProgramCommand::Clone |
+| 0x1406338F0 | NFactions::NAi::CAiFactionTheater::[4] vtable 槽 NFactions::NAi::CAiFactionTheater::[4]（func_names RTTI 名） |
+| 0x141E2F2A0 | NFactions::NUi::CFactionIconWindow::[5] vtable 槽 NFactions::NUi::CFactionIconWindow::[5]（func_names RTTI 名） |
+| 0x1414714F0 | NFactions::NUi::CCountryFactionView::[7] vtable 槽 NFactions::NUi::CCountryFactionView::[7]（func_names RTTI 名） |
+| 0x141C00AE0 | NFactions::NUi::CFactionTheaterPopup::[16] vtable 槽 NFactions::NUi::CFactionTheaterPopup::[16]（func_names RTTI 名） |
+| 0x141994760 | NFactions::CFactionRuleStatus::[0] vtable 槽 NFactions::CFactionRuleStatus::[0]（func_names RTTI 名） |
+| 0x141C07470 | NFactions::NUi::CChangeGoalWindow::[0] vtable 槽 NFactions::NUi::CChangeGoalWindow::[0]（func_names RTTI 名） |
+| 0x141611A90 | NFactions::CCreateFactionAction::GetEnableTrigger func_names 名 NFactions::CCreateFactionAction::GetEnableTrigger |
+| 0x141F14A30 | NFactions::NUi::CChangeRuleItemPair::[0] vtable 槽 NFactions::NUi::CChangeRuleItemPair::[0]（func_names RTTI 名） |
+| 0x141600760 | NFactions::CCreateFactionAction::[0] vtable 槽 NFactions::CCreateFactionAction::[0]（func_names RTTI 名） |
+| 0x140D94100 | NFactions::CFactionSystem::Reader func_names 名 NFactions::CFactionSystem::Reader |
+| 0x14146CF90 | NFactions::NUi::CFactionGoalsSection::[0] vtable 槽 NFactions::NUi::CFactionGoalsSection::[0]（func_names RTTI 名） |
+| 0x141796FA0 | NFactions::NUi::CFactionTheaterSwitch::[5] vtable 槽 NFactions::NUi::CFactionTheaterSwitch::[5]（func_names RTTI 名） |
+| 0x141BAEE00 | NFactions::CModifyFactionTheater::PayloadWriter func_names 名 NFactions::CModifyFactionTheater::PayloadWriter |
+| 0x141BADF40 | NFactions::CFactionSetCommanderCommand::PayloadReader func_names 名 NFactions::CFactionSetCommanderCommand::PayloadReader |
+| 0x141E2F0A0 | NFactions::NUi::CFactionIconItem::[0] vtable 槽 NFactions::NUi::CFactionIconItem::[0]（func_names RTTI 名） |
+| 0x14146D0C0 | NFactions::NUi::CFactionResearchSection::[0] vtable 槽 NFactions::NUi::CFactionResearchSection::[0]（func_names RTTI 名） |
+| 0x1416174F0 | NFactions::CCreateFactionAction::[57] vtable 槽 NFactions::CCreateFactionAction::[57]（func_names RTTI 名） |
+| 0x1416176C0 | NFactions::CKickFromFactionAction::[57] vtable 槽 NFactions::CKickFromFactionAction::[57]（func_names RTTI 名） |
+| 0x141BAD990 | NFactions::CAddFactionProgramCommand::PayloadReader func_names 名 NFactions::CAddFactionProgramCommand::PayloadReader |
+| 0x141BAE270 | NFactions::CSetFactionPingExecutionType::PayloadReader func_names 名 NFactions::CSetFactionPingExecutionType::PayloadReader |
+| 0x141F149A0 | NFactions::NUi::CChangeRuleItem::[0] vtable 槽 NFactions::NUi::CChangeRuleItem::[0]（func_names RTTI 名） |
+| 0x141993960 | NFactions::CFactionProgramStatus::Writer func_names 名 NFactions::CFactionProgramStatus::Writer |
+| 0x14146D420 | NFactions::NUi::CInviteToFactionPopup::[0] vtable 槽 NFactions::NUi::CInviteToFactionPopup::[0]（func_names RTTI 名） |
+| 0x141BE5FF0 | NFactions::CDoctrineSharingStatus::Writer func_names 名 NFactions::CDoctrineSharingStatus::Writer |
+| 0x141BAF0F0 | NFactions::CUpdateIntelligenceAdvisorSlotCommand::PayloadWriter func_names 名 NFactions::CUpdateIntelligenceAdvisorSlotCommand::PayloadWriter |
+| 0x141BAE150 | NFactions::CRemoveFactionProgramCommand::PayloadReader func_names 名 NFactions::CRemoveFactionProgramCommand::PayloadReader |
+| 0x141BAEF90 | NFactions::CSetFactionPingExecutionType::PayloadWriter func_names 名 NFactions::CSetFactionPingExecutionType::PayloadWriter |
+| 0x141BE5E90 | NFactions::CDoctrineSharingStatus::Reader func_names 名 NFactions::CDoctrineSharingStatus::Reader |
+| 0x1414717E0 | NFactions::NUi::CAssignResearchFacilityWindow::Reload func_names 名 NFactions::NUi::CAssignResearchFacilityWindow::Reload |
+| 0x141BAEA20 | NFactions::CAddFactionGoalCommand::PayloadWriter func_names 名 NFactions::CAddFactionGoalCommand::PayloadWriter |
+| 0x141BAE1C0 | NFactions::CRemoveIntelligenceAdvisorFromSlotCommand::PayloadReader func_names 名 NFactions::CRemoveIntelligenceAdvisorFromSlotCommand::PayloadReader |
+| 0x14160CEF0 | NFactions::CKickFromFactionAction::GetAiAcceptance func_names 名 NFactions::CKickFromFactionAction::GetAiAcceptance |
+| 0x141BAE220 | NFactions::CSetFactionIconAndColor::PayloadReader func_names 名 NFactions::CSetFactionIconAndColor::PayloadReader |
+| 0x141BADA20 | NFactions::CClearFactionTheater::PayloadReader func_names 名 NFactions::CClearFactionTheater::PayloadReader |
+| 0x141BAED40 | NFactions::CFactionSetCommanderCommand::PayloadWriter func_names 名 NFactions::CFactionSetCommanderCommand::PayloadWriter |
+| 0x14146D150 | NFactions::NUi::CFactionRulesSection::[0] vtable 槽 NFactions::NUi::CFactionRulesSection::[0]（func_names RTTI 名） |
+| 0x141BAE2F0 | NFactions::CSetFactionTheaterPinVisibility::PayloadReader func_names 名 NFactions::CSetFactionTheaterPinVisibility::PayloadReader |
+| 0x141BAE9A0 | NFactions::CUseFactionMemberManpower::PayloadReader func_names 名 NFactions::CUseFactionMemberManpower::PayloadReader |
+| 0x141BAECE0 | NFactions::CFactionAttachScientistCommand::PayloadWriter func_names 名 NFactions::CFactionAttachScientistCommand::PayloadWriter |
+| 0x141616640 | NFactions::CKickFromFactionAction::CanExecute func_names 名 NFactions::CKickFromFactionAction::CanExecute |
+| 0x141BAF050 | NFactions::CSetFactionUpgradeCommand::PayloadWriter func_names 名 NFactions::CSetFactionUpgradeCommand::PayloadWriter |
+| 0x141BAF0A0 | NFactions::CUnlockFolderDoctrineSharingCommand::PayloadWriter func_names 名 NFactions::CUnlockFolderDoctrineSharingCommand::PayloadWriter |
+| 0x141BE6520 | NFactions::CTechnologySharingFaction::Reader func_names 名 NFactions::CTechnologySharingFaction::Reader |
+| 0x141BAF000 | NFactions::CSetFactionTheaterPinVisibility::PayloadWriter func_names 名 NFactions::CSetFactionTheaterPinVisibility::PayloadWriter |
+| 0x141BAEAE0 | NFactions::CClearFactionTheater::PayloadWriter func_names 名 NFactions::CClearFactionTheater::PayloadWriter |
+| 0x141BE6800 | NFactions::CTechnologySharingFaction::Writer func_names 名 NFactions::CTechnologySharingFaction::Writer |
+| 0x141BAEF40 | NFactions::CSetFactionIconAndColor::PayloadWriter func_names 名 NFactions::CSetFactionIconAndColor::PayloadWriter |
+| 0x141BAEF00 | NFactions::CRemoveIntelligenceAdvisorFromSlotCommand::PayloadWriter func_names 名 NFactions::CRemoveIntelligenceAdvisorFromSlotCommand::PayloadWriter |
+| 0x141611A50 | NFactions::CAssumeFactionLeadershipAction::GetCostText func_names 名 NFactions::CAssumeFactionLeadershipAction::GetCostText |
+| 0x141950D50 | NFactions::CFactionTheaterManager::Reader func_names 名 NFactions::CFactionTheaterManager::Reader |
+| 0x1419935C0 | NFactions::CFactionProgramStatus::Reader func_names 名 NFactions::CFactionProgramStatus::Reader |
+| 0x141BAEA90 | NFactions::CAddFactionProgramCommand::PayloadWriter func_names 名 NFactions::CAddFactionProgramCommand::PayloadWriter |
+| 0x141995A40 | NFactions::CFactionRuleStatus::Reader func_names 名 NFactions::CFactionRuleStatus::Reader |
+| 0x141BAF150 | NFactions::CUseFactionMemberManpower::PayloadWriter func_names 名 NFactions::CUseFactionMemberManpower::PayloadWriter |
+| 0x1418249F0 | NFactions::NUi::CFactionSetupWindow::PreSetup func_names 名 NFactions::NUi::CFactionSetupWindow::PreSetup |
+| 0x141951C80 | NFactions::CFactionTheaterManager::Writer func_names 名 NFactions::CFactionTheaterManager::Writer |
+| 0x14146CB94 | NFactions::NUi::CFactionTheaterPopup::[0] vtable 槽 NFactions::NUi::CFactionTheaterPopup::[0]（func_names RTTI 名） |
+| 0x14015BFC0 | NFactions::CFactionGoal::[0] vtable 槽 NFactions::CFactionGoal::[0]（func_names RTTI 名） |
+| 0x14146CB34 | NFactions::NUi::CCountryFactionView::[0] vtable 槽 NFactions::NUi::CCountryFactionView::[0]（func_names RTTI 名） |
+| 0x141C15180 | NFactions::NUi::CFactionCommanderItem::[1] vtable 槽 NFactions::NUi::CFactionCommanderItem::[1]（func_names RTTI 名） |
+| 0x14131D870 | NFactions::CSetFactionPingExecutionType::GetTypeId func_names 名 NFactions::CSetFactionPingExecutionType::GetTypeId |
+| 0x14131D880 | NFactions::CUseFactionMemberManpower::GetTypeId func_names 名 NFactions::CUseFactionMemberManpower::GetTypeId |
+| 0x141BAA4E0 | NFactions::CAddFactionGoalCommand::GetTypeId func_names 名 NFactions::CAddFactionGoalCommand::GetTypeId |
+| 0x141BAA4F0 | NFactions::CAddFactionProgramCommand::GetTypeId func_names 名 NFactions::CAddFactionProgramCommand::GetTypeId |
+| 0x141BAA500 | NFactions::CClearFactionTheater::GetTypeId func_names 名 NFactions::CClearFactionTheater::GetTypeId |
+| 0x141BAA510 | NFactions::CCreateFactionTheater::GetTypeId func_names 名 NFactions::CCreateFactionTheater::GetTypeId |
+| 0x141BAA520 | NFactions::CEraseFactionRuleCommand::GetTypeId func_names 名 NFactions::CEraseFactionRuleCommand::GetTypeId |
+| 0x141BAA530 | NFactions::CFactionAttachScientistCommand::GetTypeId func_names 名 NFactions::CFactionAttachScientistCommand::GetTypeId |
+| 0x141BAA540 | NFactions::CFactionSetCommanderCommand::GetTypeId func_names 名 NFactions::CFactionSetCommanderCommand::GetTypeId |
+| 0x141BAA550 | NFactions::CFactionUnattachScientistCommand::GetTypeId func_names 名 NFactions::CFactionUnattachScientistCommand::GetTypeId |
+| 0x141BAA560 | NFactions::CModifyFactionTheater::GetTypeId func_names 名 NFactions::CModifyFactionTheater::GetTypeId |
+| 0x141BAA570 | NFactions::CRemoveFactionProgramCommand::GetTypeId func_names 名 NFactions::CRemoveFactionProgramCommand::GetTypeId |
+| 0x141BAA580 | NFactions::CRemoveIntelligenceAdvisorFromSlotCommand::GetTypeId func_names 名 NFactions::CRemoveIntelligenceAdvisorFromSlotCommand::GetTypeId |
+| 0x141BAA590 | NFactions::CSetFactionIconAndColor::GetTypeId func_names 名 NFactions::CSetFactionIconAndColor::GetTypeId |
+| 0x141BAA5A0 | NFactions::CSetFactionRuleCommand::GetTypeId func_names 名 NFactions::CSetFactionRuleCommand::GetTypeId |
+| 0x141BAA5B0 | NFactions::CSetFactionTheaterPinVisibility::GetTypeId func_names 名 NFactions::CSetFactionTheaterPinVisibility::GetTypeId |
+| 0x141BAA5C0 | NFactions::CSetFactionUpgradeCommand::GetTypeId func_names 名 NFactions::CSetFactionUpgradeCommand::GetTypeId |
+| 0x141BAA5D0 | NFactions::CUnlockFolderDoctrineSharingCommand::GetTypeId func_names 名 NFactions::CUnlockFolderDoctrineSharingCommand::GetTypeId |
+| 0x141BAA5E0 | NFactions::CUpdateIntelligenceAdvisorSlotCommand::GetTypeId func_names 名 NFactions::CUpdateIntelligenceAdvisorSlotCommand::GetTypeId |
+| 0x141611B10 | NFactions::CCreateFactionAction::[43] vtable 槽 NFactions::CCreateFactionAction::[43]（func_names RTTI 名） |
+| 0x140D935E0 | NFactions::VCFactionMemberStatus::U?$SDefaultSetSize::NPdx::NIm鈥�::[3] func_names 名 NFactions::VCFactionMemberStatus::U?$SDefaultSetSize::NPdx::NIm鈥�::[3] |
+| 0x141BADA70 | NFactions::CCreateFactionTheater::PayloadReader NFactions::CCreateFactionTheater |
+| 0x140D8FCF0 | NFactions::CFaction::Writer NFactions::CFaction::Writer（阵营对象存档序列化） |
+| 0x1413FB750 | NFactions::CFactionUpgradeStatus::Reader |
+| 0x141BAE7B0 | NFactions::CUpdateIntelligenceAdvisorSlotCommand::PayloadReader 序列化 Reader/Writer 或网络命令载荷读写（NFactions::CUpdateIntelligenceAdvisorSlotCommand::PayloadReader） |
+| 0x141827B00 | NFactions::NUi::CFactionSetupWindow::[9] |
+| 0x141C02910 | NFactions::NUi::CDismantleFactionConfirmationWindow::[14] NFactions::NUi::CDismantleFactionConfirmationWindow 解散派系确认窗槽[14] |
+| 0x141C01850 | NFactions::NUi::CKickFromFactionPopup::[16] / "DIPLOMACY_KICK_FROM_FACTION_POPUP_DESC" "DIPLOMACY_KICK_FROM_FACTION_POPUP_DESC" + COUNTRY/FACTION §4.31 GUI/窗… |
+| 0x141E2FA90 | NFactions::NUi::CFactionIconWindow::[6] NFactions::NUi::CFactionIconWindow::[6] + gamestate（阵营图标窗口） |
+| 0x141C1CC20 | NFactions::NUi::CAssignResearchFacilityWindow::[7] / NFactions::NUi::CAssignResearchFacilityW NFactions::NUi::CAssignResearchFacilityWindow 槽 7 §4.31 GUI/窗口/列表 |
+| 0x141ADBBA0 | NFactions::NUi::CInviteCountryItem::[0] / NFactions::NUi::CInviteCountryItem 槽 0 NFactions::NUi::CInviteCountryItem 槽 0 §4.31 GUI/窗口/列表 |
+| 0x141F13A50 | NFactions::NUi::CFilterGoalItem::[0] 名:NFactions::NUi::CFilterGoalItem::[0] |
+| 0x141471090 | NFactions::NUi::CIntelligenceTabSection::[0] 名:NFactions::NUi::CIntelligenceTabSection::[0] |
+| 0x141602300 | NFactions::CJoinFactionAction::[24] 业务类 CJoinFactionActionNFactions（类名/调用链证据） |
+| 0x14179BF90 | NFactions::NUi::CFactionTheaterWindow::[4] 业务类 CFactionTheaterWindow（类名/调用链证据） |
+
+#### 4.5.22 阵营系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BF7CE0 | 业务 阵营指挥官窗口构造（std::function 回调安装） CLS NFactions::NUi::CFactionCommanderWindow + CButtonObserverGlue（vtable 名内） |
+| 0x1401559D0 | 业务 反调用图传播 1.5 权重锚点投 §4.5（top 占比 0.56） |
+| 0x14118B760 | 业务 反向调用图 2/3 调用者投 §4.5; 唯一被调用者在书内 §4.1 |
+| 0x141827740 | NFactions::NUi::CFactionSetupWindow::Setup 业务 阵营设置窗口 Setup：sub_141825690(this) + sub_141237840(this)；类无 RTTI，取 func_names 槽契约名 |
+
+#### 4.5.23 常量串 getter 结构定案（75 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14073FC40 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_LAND_SUPPLY_USAGE_MODIFIER_SKILL_FACTOR"（高置信） |
+| 0x14073FC60 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_NAVY_SUPPLY_USAGE_MODIFIER_SKILL_FACTOR"（高置信） |
+| 0x14073FC30 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_LAND_SUPPLY_USAGE_MODIFIER_BASE"（高置信） |
+| 0x14073FC50 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_NAVY_SUPPLY_USAGE_MODIFIER_BASE"（高置信） |
+| 0x14073FB30 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_HEAD_OF_COUNTER_INTEL_BONUS_COUNTRY"（高置信） |
+| 0x14073FB40 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_HEAD_OF_COUNTER_INTEL_BONUS_OTHERS"（高置信） |
+| 0x14073FA80 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_EXPEDITIONARY_FORCE_PROVIDER_FACTOR"（高置信） |
+| 0x14073FA90 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_EXPEDITIONARY_FORCE_RECIEVER_FACTOR"（高置信） |
+| 0x14073FB50 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_HEAD_OF_CRYPTOLOGY_BONUS_COUNTRY"（高置信） |
+| 0x14073FB70 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_HEAD_OF_OPERATIONS_BONUS_COUNTRY"（高置信） |
+| 0x14073FB60 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_HEAD_OF_CRYPTOLOGY_BONUS_OTHERS"（高置信） |
+| 0x14073FB80 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_HEAD_OF_OPERATIONS_BONUS_OTHERS"（高置信） |
+| 0x14073FC20 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_COUNTRY_LIMIT_SKILL_FACTOR"（高置信） |
+| 0x14073FA10 | 常量串 getter: 返回常量串 "NFactions::DOCTRINE_SHARING_MONTHLY_MASTERY_GAIN_PER_COMMANDER"（高置信） |
+| 0x14073FC00 | 常量串 getter: 返回常量串 "NFactions::FACTION_TAKE_OVER_RELUCTANCE_VERSUS_HUMAN_INFLUENCE"（高置信） |
+| 0x14073FC80 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_REGION_LIMIT_SKILL_FACTOR"（高置信） |
+| 0x14073FAA0 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_GARRISON_SUPPORT_PROVIDER_FACTOR"（高置信） |
+| 0x14073FAB0 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_GARRISON_SUPPORT_RECIEVER_FACTOR"（高置信） |
+| 0x14073F8F0 | 常量串 getter: 返回常量串 "NFactions::AI_FACTION_THEATER_COMMANDER_SELECTION_RANDOMNESS"（高置信） |
+| 0x14073F900 | 常量串 getter: 返回常量串 "NFactions::AI_FACTION_THEATER_TEMPLATE_SELECTION_RANDOMNESS"（高置信） |
+| 0x14073FAF0 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_SCIENTIST_CONTRIBUTION_VALUE"（高置信） |
+| 0x14073F950 | 常量串 getter: 返回常量串 "NFactions::AI_PING_FORCE_CONCENTRATION_AGGRESSIVE_FACTOR"（高置信） |
+| 0x14073FAC0 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_INDUSTRIAL_CAPACITY_FACTOR"（高置信） |
+| 0x14073FBD0 | 常量串 getter: 返回常量串 "NFactions::FACTION_MANPOWER_RECIEVE_CONTRIBUTION_SCALAR"（高置信） |
+| 0x14073FC10 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_COUNTRY_LIMIT_BASE"（高置信） |
+| 0x14073FC70 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_REGION_LIMIT_BASE"（高置信） |
+| 0x14073F960 | 常量串 getter: 返回常量串 "NFactions::AI_PING_FORCE_CONCENTRATION_CAREFUL_FACTOR"（高置信） |
+| 0x14073F9D0 | 常量串 getter: 返回常量串 "NFactions::ASSIGN_FACILITY_TO_FACTION_INITIATIVE_COST"（高置信） |
+| 0x14073FA00 | 常量串 getter: 返回常量串 "NFactions::DOCTRINE_SHARING_BASE_MASTERY_GAIN_MONTHLY"（高置信） |
+| 0x14073FB20 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_ALLOWED_ADVISOR_TRAIT"（高置信） |
+| 0x14073FBA0 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_SHARING_SPY_SLOT_GAIN"（高置信） |
+| 0x14073F980 | 常量串 getter: 返回常量串 "NFactions::AI_PING_FORCE_CONCENTRATION_TARGET_WEIGHT"（高置信） |
+| 0x14073F9E0 | 常量串 getter: 返回常量串 "NFactions::BECOME_FACTION_LEADER_INFLUENCE_THRESHOLD"（高置信） |
+| 0x14073FBC0 | 常量串 getter: 返回常量串 "NFactions::FACTION_MANPOWER_GIVE_CONTRIBUTION_SCALAR"（高置信） |
+| 0x14073FC90 | 常量串 getter: 返回常量串 "NFactions::FACTION_THEATER_COMMANDER_SECONDARY_BONUS"（高置信） |
+| 0x14073F970 | 常量串 getter: 返回常量串 "NFactions::AI_PING_FORCE_CONCENTRATION_FRONT_FACTOR"（高置信） |
+| 0x14073FBF0 | 常量串 getter: 返回常量串 "NFactions::FACTION_SUPREME_COMMANDER_EFFECTIVENESS"（高置信） |
+| 0x14073FD50 | 常量串 getter: 返回常量串 "NFactions::THEATER_COMMANDER_LAND_EXPERIENCE_SCALE"（高置信） |
+| 0x14073FD60 | 常量串 getter: 返回常量串 "NFactions::THEATER_COMMANDER_NAVY_EXPERIENCE_SCALE"（高置信） |
+| 0x14073F9F0 | 常量串 getter: 返回常量串 "NFactions::BECOME_FACTION_LEADER_INFLUENCE_WEIGHT"（高置信） |
+| 0x14073FD40 | 常量串 getter: 返回常量串 "NFactions::REPLACING_UNFINISHED_FACTION_GOAL_COST"（高置信） |
+| 0x14073F8D0 | 常量串 getter: 返回常量串 "NFactions::AI_FACTION_POWER_PROJECTION_TRESHOLD"（高置信） |
+| 0x14073FA60 | 常量串 getter: 返回常量串 "NFactions::FACTION_DOCTRINE_SHARING_UNLOCK_COST"（高置信） |
+| 0x14073FD20 | 常量串 getter: 返回常量串 "NFactions::PEACE_CONFERENCE_MINIMAL_REQUIREMENT"（高置信） |
+| 0x14073FAE0 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_LEND_LEASE_FACTOR"（高置信） |
+| 0x14073FB10 | 常量串 getter: 返回常量串 "NFactions::FACTION_INITIATIVE_CHANGE_RULE_COST"（高置信） |
+| 0x14073FB00 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_WAR_SCORE_FACTOR"（高置信） |
+| 0x14073FB90 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_SHARING_BONUS"（高置信） |
+| 0x14073F8E0 | 常量串 getter: 返回常量串 "NFactions::AI_FACTION_POWER_PROJECTION_VALUE"（高置信） |
+| 0x14073FA70 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_EFFECTS_FACTOR"（高置信） |
+| 0x14073FBB0 | 常量串 getter: 返回常量串 "NFactions::FACTION_INTELLIGENCE_UNLOCK_COST"（高置信） |
+| 0x14073FA30 | 常量串 getter: 返回常量串 "NFactions::FACTION_CONTRIBUTION_DEBT_LIMIT"（高置信） |
+| 0x14073FAD0 | 常量串 getter: 返回常量串 "NFactions::FACTION_INFLUENCE_LEADER_BONUS"（高置信） |
+| 0x14073FBE0 | 常量串 getter: 返回常量串 "NFactions::FACTION_REPLACE_COMMANDER_COST"（高置信） |
+| 0x14073F910 | 常量串 getter: 返回常量串 "NFactions::AI_MAX_POWER_PROJECTION_SCORE"（高置信） |
+| 0x14073F920 | 常量串 getter: 返回常量串 "NFactions::AI_MIN_POWER_PROJECTION_SCORE"（高置信） |
+| 0x14073F9A0 | 常量串 getter: 返回常量串 "NFactions::AI_PING_INVASION_UNIT_REQUEST"（高置信） |
+| 0x14073FA20 | 常量串 getter: 返回常量串 "NFactions::FACTION_ASSIGN_SCIENTIST_COST"（高置信） |
+| 0x14073FCA0 | 常量串 getter: 返回常量串 "NFactions::FACTION_UNLOCK_COMMANDER_COST"（高置信） |
+| 0x14073FD00 | 常量串 getter: 返回常量串 "NFactions::PASSIVE_INITIATIVE_GENERATION"（高置信） |
+| 0x14073FD10 | 常量串 getter: 返回常量串 "NFactions::PEACE_CONFERENCE_MAX_DISCOUNT"（高置信） |
+| 0x14073F9C0 | 常量串 getter: 返回常量串 "NFactions::AI_THEATER_CREATION_PENALTY"（高置信） |
+| 0x14073F990 | 常量串 getter: 返回常量串 "NFactions::AI_PING_FRONT_UNIT_REQUEST"（高置信） |
+| 0x14073FCD0 | 常量串 getter: 返回常量串 "NFactions::MAX_NUM_MEDIUM_TERM_GOALS"（高置信） |
+| 0x14073FA50 | 常量串 getter: 返回常量串 "NFactions::FACTION_DEFAULT_TEMPLATE"（高置信） |
+| 0x14073FCE0 | 常量串 getter: 返回常量串 "NFactions::MAX_NUM_SHORT_TERM_GOALS"（高置信） |
+| 0x14073F930 | 常量串 getter: 返回常量串 "NFactions::AI_PICK_FROM_TOP_AMOUNT"（高置信） |
+| 0x14073F9B0 | 常量串 getter: 返回常量串 "NFactions::AI_PING_NAVAL_DOMINANCE"（高置信） |
+| 0x14073FCC0 | 常量串 getter: 返回常量串 "NFactions::MAX_NUM_LONG_TERM_GOALS"（高置信） |
+| 0x14073F8C0 | 常量串 getter: 返回常量串 "NFactions::AI_DAYS_TO_SELECT_GOAL"（高置信） |
+| 0x14073F940 | 常量串 getter: 返回常量串 "NFactions::AI_PING_AREA_PRIORITY"（高置信） |
+| 0x14073FA40 | 常量串 getter: 返回常量串 "NFactions::FACTION_DEFAULT_ICON"（高置信） |
+| 0x14073FCB0 | 常量串 getter: 返回常量串 "NFactions::MAX_FACTION_THEATERS"（高置信） |
+| 0x14073FD30 | 常量串 getter: 返回常量串 "NFactions::RANK_FOR_SHINY_FLAG"（高置信） |
+| 0x14073FCF0 | 常量串 getter: 返回常量串 "NFactions::MAX_PROJECT_COUNT"（高置信） |
+
+#### 4.5.24 单调用转发桩结构定案（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D90310 | 转发桩: 转发至 无名领域函数 sub_140D866B0 被调用者定名: CFaction::UpdatePower? 等命中 §4.5（占 100%，共 2 callee）（推定） |
+| 0x1425A13B0 | 转发桩: 转发至 业务 串 "GFX_upgrade_frame_1"; 串 "click_default"; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x14258F890 | 转发桩: 转发至 业务 串 "GFX_upgrade_frame_1"; 串 "click_default"; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x1425F0520 | 转发桩: 转发至 业务 断言站点 achievements_mod_storage.cpp:48 ->§4.5; 类路由 CSavedAchievementMod ->§4.28; 串 "Cloud save file for mod achievement "（推定） |
+| 0x14179EE00 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "FACTION_THEATER_DEFAULT_NAME"（推定） |
+
+#### 4.5.25 阵营系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141019670 | 串 invalid dlc name:；调 CDiplomaticAction::GetFirstCountryRef[slot] + sub_1401AE230/1424C1EF0（数据库读取） |
+| 0x1406E9490 | 邻域传播改判（锚 0x1406EFBF0 §4.5，距离 0x6760）；跳点串 "!_RailwayGuns.Contains( &RailwayGun ) && \"Adding RailwayGun unit to country " / "which already owns it\"" |
+| 0x141A24150 | 串 "FACTION_UPGRADE_INTELLIGENCE_NAME_BONUS" |
+| 0x141A418A0 | 串 "FACTION_GOAL_AVAILABLE" |
+
+#### 4.5.26 阵营系统函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14118FA30 | 业务 邻域 faction_member_status.cpp x5/SPersist::Write/ideology.cpp Reader + qword_14332F698+1264→+384 全局链 + off_143085170 x23 可变参 + a1+1784/1648 标志 + a1+144..19… |
+| 0x141ADBED0 | NFactions::NUi::CKickFromFactionCountryItem::[0] 业务 CKickFromFactionCountryItem 构造（vtable slot0） |
+| 0x141C19930 | NFactions::NUi::CFactionProgramItemEmpty::[0] 业务 游戏类 vtable 槽（NFactions::NUi::CFactionProgramItemEmpty） |
+| 0x1410FEF60 | 断言 ref.h:83；调用者 CLendLeaseAction::[47]；调 CIcon::[70]、CLendLeaseAction::[47]、DNameStatusNode::[0] |
+| 0x142259800 | memcpy；调 CDiplomaticAction::GetFirstCountryRef[slot] + 0x14015 段构造簇 + sub_1424C1540/0AA0（解析原语） |
+| 0x140A2F3C0 | CU 同类簇: 邻接 140A2E630（NFactions::CFactionRuleGroupDatabase::[2）/ 140A2F980（NFactions::CFactionTemplateDatabase::[2]） |
+| 0x141994060 | CU 同类簇: 邻接 141993960（NFactions::CFactionProgramStatus::Writer）/ 141994760（NFactions::CFactionRuleStatus::[0]） |

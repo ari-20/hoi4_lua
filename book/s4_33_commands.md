@@ -3465,12 +3465,6 @@ BECOME_SPYMASTER_PP_COST; 派系领袖 +2104 写 tag。
 | 0x14072DE80 | CCommand::GetTmpA func_names 名 CCommand::GetTmpA |
 | 0x14226A100 | CCommand::GetTmpB func_names 名 CCommand::GetTmpB |
 | 0x141236960 | CCommand::SetTmpB func_names 名 CCommand::SetTmpB |
-
-#### 4.33.29 命令子类补遗（1468 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.33.30 命令子类补遗（404 函）
 
 | VA | 语义/证据 |
@@ -3879,12 +3873,6 @@ BECOME_SPYMASTER_PP_COST; 派系领袖 +2104 写 tag。
 | 0x141E74870 | CSetPinnedStrategicRegionCommand::GetTypeId func_names 名 CSetPinnedStrategicRegionCommand::GetTypeId |
 | 0x141EF40C0 | CRecruitScientistCommand::GetTypeId func_names 名 CRecruitScientistCommand::GetTypeId |
 | 0x141337B50 | CChatUserLeftChannelCommand::GetTypeId func_names 名 CChatUserLeftChannelCommand::GetTypeId |
-
-#### 4.33.31 命令子类补遗（404 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.33.32 命令子类补遗（15 函）
 
 | VA | 语义/证据 |
@@ -4048,3 +4036,484 @@ BECOME_SPYMASTER_PP_COST; 派系领袖 +2104 写 tag。
 | VA | 语义/证据 |
 |---|---|
 | 0x140291BA0 | 控制台命令 控制台命令："Reset and started" / "Command doesn't need any arguments" 回显 |
+
+#### 4.33.43 命令子类补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1400772A0 | 科技 sp_* 控制台命令族注册/帮助文本 串 sp_add_scientist/sp_research_all/sp_breakthrough/sp_prototype_reward/toggle_hidden_techs + 用法示例 |
+| 0x141A6C750 | AI 命令容器操作 AI 命令容器操作；memcpy 56B 元素块+atexit 析构注册，邻 CAiDiscardForceConcentrationTargetCommand::Clone(+30160B)/CAiOnFailedInvasionCommand::Clone/CAiStoreForceCon… |
+| 0x140BC05A0 | （无名） 被 CChangeCountryControllerCommand::Execute 调用（命令/游戏循环） |
+| 0x141831590 | （无名） 被 CIntelligenceAgencyCreationCommand::Exec 调用（情报/间谍/行动） |
+| 0x1406CD3B0 | （无名） 被 CSetFleetCommand::Execute 调用（海军） |
+| 0x14133BB60 | （无名） 被 CChatNewChannelCommand::Execute 调用（命令/游戏循环） |
+| 0x140BC03F0 | （无名） 被 CChangeCountryControllerCommand::Execute 调用（命令/游戏循环） |
+| 0x140D9B0B0 | （无名） 被 CRemovePlayerCommand::Execute 调用（命令/游戏循环） |
+| 0x140BDE1D0 | （无名） 被 CUpdateEquipmentVariantCommand::Execute 调用（装备/市场） |
+| 0x141147AC0 | 未命名业务函数 国家命令（countrycommands.cpp 断言） |
+| 0x141520560 | （无名） 被 CDeployArmyHqCommand::IsValid 调用（陆军/单位） |
+| 0x14102CDB0 | 未命名业务函数 单位命令实例（orderinstance.cpp 断言） |
+
+#### 4.33.44 命令子类补遗（171 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140286BD0 | sub_140286BD0 业务 控制台命令实现（std::string SSO 初始化 + "Incorrect number of arguments" + " = " 参数格式化） |
+| 0x14025F6F0 | 业务 串字面量 " days" §4.33 Command |
+| 0x14025FFE0 | sub_14025FFE0 业务 控制台命令实现（同 0x140286BD0 骨架："Incorrect number of arguments" + " = " 参数格式化 + gamestate/eventscope 断言） |
+| 0x14026ABC0 | 业务 串字面量 "Please specify a mapmode." §4.33 Command |
+| 0x1424B1BE0 | sub_1424B1BE0 业务 控制台命令（ConsoleCmdImpl.cpp:12461 + "No units selected or no units under the mouse" + " - " 拼接） |
+| 0x14026D7D0 | gamestate.h:1116 业务 控制台命令参数处理：错误串 "Please specify a positive value as argument" / "Please specify a positive value" + "adding " 拼接 |
+| 0x14023C770 | gamestate.h:1116 业务 控制台命令（雪量）：串 "Snow level in selected province is " / " (modified by " / "You must specify an amount of snow" / "A province must be selecte… |
+| 0x14028C910 | gamestate.h:1125 业务 控制台命令（创建特工行动）：串 "This command takes two arguments: (1) an operation id (2) a target tag" / "Successfully created: " |
+| 0x14023F2C0 | 业务 控制台命令（音效）：串 "No such sound effect '" / "Sound effect handler not initialized" / "Expected the effect name as single argument" |
+| 0x14027DC10 | gamestate.h:1125 业务 控制台命令（辞职）：strcpy " resigned" + "Invalid command" 错误路径 |
+| 0x140F07DD0 | — 业务 邻域 CSetGameSpeedCommand::PayloadWriter / CHourlyTickCommand::PayloadWriter（0x140F07450/3A0） |
+| 0x140E90940 | 业务 夹于 CRailwayGunSetNameCommand::PayloadWriter(d=4352) 与 CProvinceRailwayInfo::[0](d=7696)，铁道炮命名命令/省份铁路族 |
+| 0x140DB23B0 | 业务 夹于 start_for::[1](d=2384) 与 CGiveMedalCommand::[0](d=8560)，并行任务/授予勋章命令族 |
+| 0x140253220 | 业务 串字面量 "Invalid number of arguments" §4.33 Command |
+| 0x141A6A2B0 | 业务 夹于 tbb::auto_partitioner::start_for::[1](d=48560) 与 CAiDiscardForceConcentrationTargetCommand::Clone(d=39536)，并行分区/AI 丢弃兵力集中命令族 |
+| 0x14194AC80 | CSetQuickDeployPreferenceCommand::PayloadWriter 业务 CSetQuickDeployPreferenceCommand::PayloadWriter，快速部署偏好命令负载写 |
+| 0x141E54360 | CEndTurnPeaceConferenceCommand::PayloadReader 业务 CEndTurnPeaceConferenceCommand::PayloadReader，和会回合结束命令（pdx_scopedptr.h:119） |
+| 0x1414BE680 | (无名) 业务 调用窗口内命名函数 sub_141A7EAA0 |
+| 0x140F08FD0 | 业务 断言站点 triggerbase.cpp:1; 类路由 CSetEquipmentVariantOverrideModelCommand ->§4.33; 串 "FEX_STATE_UNINITIALIZED" |
+| 0x141A6BC50 | 业务 断言站点 pdx_view.h:9; 串 "reinterpret_cast<const TDerived*>( t"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x14193F060 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 类路由 CArmyReinforcementItem ->§4.31 |
+| 0x141344530 | 业务 断言站点 pdx_achievements_steam.cpp:21; 断言站点 pdx_achievements_steam.cpp:27; 串 "army_sort_group" ->§4.18 |
+| 0x140E90C10 | 业务 断言站点 gamestate.h:25 ->§4.1; 断言站点 gamestate.h:26 ->§4.1; 类路由 CSetNavalBaseDisabledForRepairsStateCommand ->§4.33 |
+| 0x140D5FFD0 | (无名) 业务 调用窗口内命名函数 sub_14116A490 |
+| 0x1412E7BE0 | 业务 断言站点 notificationinterface.h:64; 串 "_ObserverList.Contains( Observer ) ="; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla" |
+| 0x14136F590 | 业务 类路由 CRailwayGunStatsView ->§4.30; 调用图 IDF top §4.1 frac 0.86; 邻域 15/30 票 §4.33（同类方法连续排放） |
+| 0x14021FD90 | 业务 类路由 CRandomizeWeatherEffect ->§4.32; 串 "Randomize weather with seed:"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1411B1CD0 | 业务 断言站点 eventscope.h:93; 类路由 COrderNewFrontCommand ->§4.33; 类路由 CContinuousFocusDetailView ->§4.30 |
+| 0x141296830 | 业务 类路由 CCreateEquipmentVariantCommand ->§4.33; 串 "unknown arrow type"; 串 "table index is nil" |
+| 0x141198B80 | 业务 类路由 COrderBlockSectionsCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 4 票 §4.10（票散） |
+| 0x14132CF00 | 业务 串 "progress_bar"; 调用图 IDF top §4.1 frac 0.92; 邻域 11/16 票 §4.33（同类方法连续排放） |
+| 0x1414FAA00 | 业务 类路由 CSetOrdersLinkCommand ->§4.33; 类路由 CActiveWargoalStripView ->§4.30; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1414B7E90 | 业务 断言站点 ai_commands.cpp:99 ->§4.33; 断言站点 ai_commands.cpp:93 ->§4.33; 类路由 CAiStoreForceConcentrationTargetCommand ->§4.33 |
+| 0x14135E700 | 业务 断言站点 gamestate.cpp:23 ->§4.1; 串 "raid_instance_entry"; 串 "default_confirmation_popup" |
+| 0x1420C3660 | 业务 断言站点 gamesynchronizationmanager.cpp:71; 类路由 CNavySetUnderwayReplenishmentCommand ->§4.33; 类路由 COperationMapIconEntry ->§4.31 |
+| 0x140F23480 | 业务 断言站点 event.cpp:71; 类路由 CCombat ->§4.22; 类路由 CSetObsoleteDivisionTemplateCommand ->§4.33 |
+| 0x1401BF280 | 业务 断言站点 gamestate.h:26 ->§4.1; 类路由 COrderSetInvasionSourceCommand ->§4.33; 串 "%d %s %d" |
+| 0x140FF1A50 | 业务 类路由 CMassCancelMovementCommand ->§4.33; 类路由 CSetTaskForceIconAndColorCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141B448C0 | 业务 类路由 CAttachScientistCommand ->§4.33; 调用图 IDF top §4.1 frac 0.73; 反传 1/1 调用者 §4.29 |
+| 0x140AFD0E0 | 业务 类路由 CIgnoreTargetedDecisionCommand ->§4.33; 类路由 NProject ->§4.25; 类路由 CSetWingEquipmentNicheCommand ->§4.33 |
+| 0x140AFC450 | 业务 类路由 CRemoveAutonomyCommand ->§4.33; 串 "LCMapStringEx"; 串 "LCMapStringEx" |
+| 0x141376F00 | 业务 类路由 CAssignToTheaterGroupCommand ->§4.33; 串 "this->is_initialized()"; 串 "C:\\mnt\\external_libs2\\boost_1_84_" |
+| 0x140A83120 | 业务 类路由 CChatUserJoinedChannelCommand ->§4.33; 类路由 NFactions ->§4.25; 串 "Tag" |
+| 0x1412F7CA0 | 业务 串 "value_limit_exact"; 串 "value_limit_min_max"; 串 "value_limit_invalid" |
+| 0x141EF17C0 | 业务 串 "api-ms-"; 调用图 IDF top §4.1 frac 0.54; 邻域 24/24 票 §4.33（同类方法连续排放） |
+| 0x1410519A0 | 业务 类路由 CCreateFactionCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 2/2 票 §4.28（同类方法连续排放） |
+| 0x14250F9F0 | 业务 类路由 CAiStoreTotalWantedNrDivisionsCommand ->§4.33; 串 "subscription_click"; 串 "context" |
+| 0x1412D9A10 | 业务 类路由 CSetNavyTheaterGroupForCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 4/6 票 §4.33（同类方法连续排放） |
+| 0x140E920C0 | 业务 断言站点 gameitemdatabase.h:42 ->§4.26; 类路由 CNavyDetachShipsAndMergeCommand ->§4.33; 类路由 CMoveArmiesInTheaterCommand ->§4.33 |
+| 0x14062CC80 | 业务 类路由 CSetPendingReassignTargetCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.18 |
+| 0x1414E0980 | 业务 类路由 CEditAreaDefenseStateCommand ->§4.33; 串 "!\"Invalid categoty selected, this s"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x14255C81C | 业务 类路由 CCreateUnitLeaderEffect ->§4.32; 类路由 NInlayWindowScript ->§4.25; 类路由 CChangeRailwayConstructionLeveLCommand ->§4.33 |
+| 0x141403620 | 业务 类路由 COrderSetCollapseCommand ->§4.33; 类路由 CSetObsoleteEquipmentVariantCommand ->§4.33; 类路由 CCheckBox ->§4.30 |
+| 0x1411E6380 | 业务 类路由 CSetOperativeMissionCommand ->§4.33; 串 "Invalid renderer"; 调用图 IDF top §4.1 frac 0.50 |
+| 0x14211AD70 | 业务 断言站点 pdx_speech_stt_winsapi.cpp:77 ->§4.1; 断言站点 gameitemdatabasehelper.h:20 ->§4.26; 类路由 COrderExecuteCommand ->§4.33 |
+| 0x140E756C0 | 业务 类路由 CSetProductionLineAmountToProduceCommand ->§4.33; 类路由 CEndTurnPeaceConferenceCommand ->§4.33; 串 "bg_btn" |
+| 0x14136EC40 | 业务 串 "unit_leader_trait"; 调用图 IDF top §4.1 frac 1.00; 邻域 15/30 票 §4.33（同类方法连续排放） |
+| 0x140CF53E0 | 业务 断言站点 combat.cpp:24; 串 "false && \"no location should lack t"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x140D0C010 | 业务 类路由 CAddAdvisorRoleToCharacterCommand ->§4.33; 类路由 CArmyGroupCommand ->§4.33; 串 "icon" |
+| 0x1426FDB90 | 业务 类路由 CProductionLineNavalItem ->§4.31; 类路由 CAddDesignTemplateBonusEffect ->§4.32; 类路由 CPostHotJoinCommand ->§4.33 |
+| 0x14250CC70 | 业务 类路由 CIgnoreTargetedDecisionCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1423E6CA0 | 业务 断言站点 sunkshipinfo.cpp:20; 断言站点 strategicregiontemplate.cpp:37; 断言站点 null_object.h:33 |
+| 0x1412A1E80 | 业务 类路由 CExecuteButtonCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.10 1/3 |
+| 0x140FA93C0 | 业务 类路由 CDispatchNavalCombatResultsCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 3/4 票 §4.25（同类方法连续排放） |
+| 0x141A6AC20 | 业务 类路由 CChangeGroupLeaderDialog ->§4.30; 串 "assign_leader"; 串 "Parameter '%s' is invalid" |
+| 0x1406166E0 | 业务 断言站点 localization_environment_text.cpp:88; 类路由 CCheckSyncCommand ->§4.33; 类路由 CNavyCancelActivityCommand ->§4.33 |
+| 0x1421D4B80 | 业务 断言站点 leadergroupsview_attachmentitems.cpp:55; 类路由 CGiveResourceRightsEffect ->§4.32; 类路由 CMergeNaviesCommand ->§4.33 |
+| 0x1425186D0 | 业务 类路由 CClientPingCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141443910 | 业务 断言站点 ai_country.cpp:80; 类路由 CCreateTradeCommand ->§4.33; 串 "!_pStrategy \ \ _pStrategy->IsValidTh" |
+| 0x14121A670 | 业务 类路由 NFactions ->§4.25; 类路由 CSetMaxAllowedRepairFactoriesCommand ->§4.33; 类路由 CBoostIdeologyMissionWindow ->§4.30 |
+| 0x140A84910 | 业务 断言站点 technology.cpp:45 ->§4.7; 类路由 CSetNavalProductionLineAirWingCompositionCommand ->§4.33; 类路由 CMarkSunkShipInfoAsReadCommand ->§4.33 |
+| 0x1411D7550 | 业务 类路由 CSetIntelligenceAgencyLogoCommand ->§4.33; 类路由 CRemoveConveyorLineCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140AE4040 | 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31 |
+| 0x14136FDE0 | 业务 类路由 NIndustrialOrganisation ->§4.25; 调用图 IDF top §4.1 frac 1.00; 邻域 15/30 票 §4.33（同类方法连续排放） |
+| 0x1401754A0 | 业务 断言站点 relation.cpp:78; 断言站点 faction_member_status.cpp:13 ->§4.5; 断言站点 commandpowerallocator.cpp:17 |
+| 0x140DED9B0 | 业务 串 "AMOUNT"; 调用图 IDF top §4.1 frac 1.00; 邻域 12/16 票 §4.33（同类方法连续排放） |
+| 0x141656600 | 业务 类路由 CAddPlayerCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 CNavalCombatResultsAirSurvivorItem ->§4.31 |
+| 0x14193CD60 | 业务 类路由 CIntelligenceAgencyCancelCreationCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.8 |
+| 0x140B6F780 | 业务 断言站点 production_bonus.cpp:79 ->§4.8; 类路由 CAmendIncomingLendLeaseActionCommand ->§4.33; 类路由 CSetNavyEngagementCommand ->§4.33 |
+| 0x14131A2F0 | 业务 类路由 COperativePortraitView ->§4.30; 串 "SDL_VIDEODRIVER"; 串 "dummy" |
+| 0x140D64F90 | 业务 断言站点 navalcommands.cpp:28 ->§4.33; 类路由 CProductionLineInterfaceFactoriesScaleCommand ->§4.33; 类路由 CRenameAirGroupCommand ->§4.33 |
+| 0x140614A30 | 业务 类路由 CStratAirMoveEquipmentToReservesCommand ->§4.33; 串 "#~ operation already started"; 串 "#~ operation already started" |
+| 0x1402CC520 | 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 CShipArchetypeItem ->§4.31; 类路由 CChangeAirGroupInsigniaCommand ->§4.33 |
+| 0x1419E9EF0 | 业务 类路由 CAttachScientistCommand ->§4.33; 串 "Invalid renderer"; 调用图 IDF top §4.1 frac 0.77 |
+| 0x140A4BAC0 | 业务 类路由 CHourlyTickCommand ->§4.33; 类路由 CTriggerAbilityCommand ->§4.33; 类路由 CCombat ->§4.22 |
+| 0x1411BD170 | 业务 断言站点 production_line_names.cpp:7; 类路由 CSetFleetCommand ->§4.33; 串 "HasAllocatedName()" |
+| 0x140F72B20 | 业务 类路由 CReplaceAdvisorCommand ->§4.33; 调用图 IDF top §4.1 frac 0.77 |
+| 0x1420D7D40 | 业务 类路由 CSetProductionLineCommand ->§4.33; 类路由 CSetFleetLeaderCommand ->§4.33; 类路由 CStratAirSetMissionCommand ->§4.33 |
+| 0x14027AF50 | 业务 断言站点 folder_status.cpp:69; 类路由 CProductionLineInterfaceFactoriesScaleCommand ->§4.33; 串 "Interface reloaded." |
+| 0x141294DE0 | 业务 类路由 CSetIndustrialOrganisationTaskCommand ->§4.33; 串 "combat"; 调用图 IDF top §4.1 frac 0.98 |
+| 0x140F093F0 | 业务 串 "Invalid texture"; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.29 |
+| 0x1411C9A40 | 业务 类路由 CSetIndustrialOrgTraitsInQueueCommand ->§4.33; 类路由 CAcesViewEntry ->§4.31; 串 "dockyard" |
+| 0x1411C0380 | 业务 类路由 CSetDivisionNameCommand ->§4.33; 类路由 CSetAreaDefenseSettingCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14103BBE0 | 业务 断言站点 session.cpp:83; 类路由 CNavalMissionMassMoveCommand ->§4.33; 类路由 CCreateDivisionTemplateCommand ->§4.33 |
+| 0x1412F5B60 | 业务 类路由 COrderReorderChildFrontCommand ->§4.33; 类路由 NFactions ->§4.25; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140556960 | 业务 断言站点 airwing.cpp:7 ->§4.15; 类路由 CCancelMovementCommand ->§4.33; 类路由 CCancelMovementCommand ->§4.33 |
+| 0x14022ADE0 | 业务 断言站点 industrial_org_trait_bonus.cpp:82; 类路由 CAchievementsView ->§4.30; 串 "Invalid trait bonus token" |
+| 0x142255FF0 | 业务 类路由 CUpdateSupplyNodeCountrySettingsCommand ->§4.33; 类路由 CChatSyncAllCommand ->§4.33; 类路由 NWarScoreDistributionHelper ->§4.25 |
+| 0x14022BD80 | 业务 断言站点 country.cpp:15 ->§4.3; 类路由 CReorderAirTheatersCommand ->§4.33; 类路由 CTemplateEntry ->§4.31 |
+| 0x140A02C90 | 业务 类路由 CPromoteToCountryLeaderCommand ->§4.33; 类路由 CReinstateExileCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14029B310 | 业务 类路由 CPeaceSummaryPopUpWindow ->§4.30; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.33 |
+| 0x1401A54D0 | 业务 类路由 CSetCountryUpgradePriorityCommand ->§4.33; 类路由 CSetCountryControllerTypeCommand ->§4.33; 类路由 CSetSupplyReinforcementPriorityCommand ->§4.33 |
+| 0x1411BD2D0 | 业务 断言站点 equipmentdesignerview.cpp:68; 断言站点 leadergroupsview_attachmentitems.cpp:91; 类路由 CNavySetUnderwayReplenishmentCommand ->§4.33 |
+| 0x140247BC0 | 业务 断言站点 peaceactions.cpp:10; 类路由 CSetFleetLeaderCommand ->§4.33; 串 "invalid number of arguments." |
+| 0x14122C3A0 | 业务 类路由 CSetPrideOfTheFleetCommand ->§4.33; 类路由 CSetOrderGroupExecutionTypeCommand ->§4.33; 类路由 CPersistedMioQueue ->§4.28 |
+| 0x1406CB7B0 | 业务 类路由 CSendPingCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 2 票 §4.28（票散） |
+| 0x141A61D70 | 业务 串 "Invalid window" ->§4.30; 串 "Video subsystem has not been initial"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x142100490 | 业务 类路由 CSetPlayerAiPrefsCommand ->§4.33; 类路由 CRandomListEffect ->§4.32; 串 "Couldn't lock event queue" |
+| 0x14014FE10 | 业务 类路由 CRemoveShipRefitProductionLineCommand ->§4.33; 类路由 CSelectBookmarkCommand ->§4.33; 类路由 COrderDeleteAllCommand ->§4.33 |
+| 0x14240B6F0 | 业务 类路由 COrderDeleteCommand ->§4.33; 类路由 NIndustrialOrganisation ->§4.25; 串 "idle" |
+| 0x141B94BF0 | 业务 类路由 CEquipmentRoleSelectionWindow ->§4.30; 串 "UTF-8"; 串 "WCHAR_T" |
+| 0x140AEEBD0 | 业务 类路由 CUpdateSupplyNodeCountrySettingsCommand ->§4.33; 类路由 NFactions ->§4.25; 串 "UTF-8" |
+| 0x140BCCA40 | 业务 类路由 CChangeCountryControllerCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 4/6 票 §4.28（同类方法连续排放） |
+| 0x1401BA320 | 业务 类路由 CSetPinnedStrategicRegionCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1401A84B0 | 业务 类路由 CReplaceIdeaCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 反传 top §4.26 75/258 |
+| 0x140CEFFB0 | 业务 断言站点 pdx_pinned_array.h:28 ->§4.1; 断言站点 strategicaircommands.cpp:66 ->§4.33; 类路由 CSetPinnedStrategicRegionCommand ->§4.33 |
+| 0x141045780 | 业务 类路由 CMoveArmiesInTheaterCommand ->§4.33; 类路由 NProject ->§4.25; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1402F7730 | 业务 断言站点 peace_conference_database.cpp:38 ->§4.1; 类路由 CSetOrderGroupMotorizationCommand ->§4.33; 类路由 CSetUseDynamicVersionPositioningVariantCommand ->§... |
+| 0x1420CF9E0 | 业务 断言站点 gameitemdatabase.h:42 ->§4.26; 断言站点 gamegui.cpp:15 ->§4.30; 类路由 NIndustrialOrganisation ->§4.25 |
+| 0x141B92C10 | 业务 类路由 CNavalRepairQueueShipEntry ->§4.31; 调用图 IDF top §4.1 frac 0.69; 反传 1/1 调用者 §4.30 |
+| 0x1420C2C00 | 业务 类路由 CSetOrderGroupOrdersInstanceNamesCommand ->§4.33; 类路由 CSetEquipmentVariantNameListCommand ->§4.33; 类路由 CSetConveyorNameCommand ->§4.33 |
+| 0x1402C1A80 | 业务 断言站点 modifier.h:91 ->§4.1; 类路由 CConvertFactoryCommand ->§4.33; 类路由 CSetArmyTemplateCommand ->§4.33 |
+| 0x142249040 | 业务 断言站点 virtualfilesystem_physfs.cpp:51 ->§4.1; 类路由 CHiddenTrigger ->§4.32; 类路由 CCommand ->§4.33 |
+| 0x1422CC2F0 | 业务 类路由 CProductionLineInterfaceToggleExpandCommand ->§4.33; 类路由 CNavyRepairModeCommand ->§4.33; 调用图 IDF top §4.1 frac 0.68 |
+| 0x140558590 | 业务 断言站点 gfxtraderoute.cpp:44; 类路由 CSetDefaultCountryOccupationPolicyCommand ->§4.33; 类路由 COrderChildFrontRatioCommand ->§4.33 |
+| 0x14062FFE0 | 业务 类路由 CSpecialProjectCapturedPopUpWindow ->§4.30; 类路由 CSupportAttackCommand ->§4.33; 类路由 CEventOption ->§4.12 |
+| 0x1409F6C80 | 业务 类路由 CChangeProductionLinePriorityCommand ->§4.33; 类路由 CDisengageFromNavalCombatCommand ->§4.33; 类路由 NFactions ->§4.25 |
+| 0x140AE4D00 | 业务 断言站点 production.cpp:9 ->§4.8; 类路由 CUpgradeDivisionOfficerCommand ->§4.33; 类路由 CSupportAttackCommand ->§4.33 |
+| 0x140C4EAA0 | 业务 类路由 CDeleteUnitCommand ->§4.33; 类路由 CNavalMissionSetTypeCommand ->§4.33; 类路由 CNavalMissionSetTypeCommand ->§4.33 |
+| 0x1426FEFD0 | 业务 类路由 CSetEntityPositionEffect ->§4.32; 类路由 CAIMessageEffect ->§4.32; 类路由 CSelectTargetedDecisionCommand ->§4.33 |
+| 0x1416625A0 | 业务 类路由 CStartProjectCommand ->§4.33; 调用图 IDF top §4.1 frac 0.91; 反传 1/1 调用者 §4.18 |
+| 0x14244EDF0 | 业务 类路由 CSelectEventOptionCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 2/2 票 §4.31（同类方法连续排放） |
+| 0x1411B73A0 | 业务 类路由 CSetEquipmentVariantOverrideSpriteCommand ->§4.33; 类路由 CInstantTextBox ->§4.30; 串 "AI Fronts" |
+| 0x14022B210 | 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31 |
+| 0x140DBDBC0 | 业务 类路由 CSetResearchCommand ->§4.33; 类路由 CDecisionViewDecisionItem ->§4.31; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141668760 | 业务 断言站点 special_project_text.cpp:35; 类路由 CStratAirCancelTransferCommand ->§4.33; 串 "!\"Unknown promotion for Special Pro" |
+| 0x14154A1D0 | 业务 断言站点 deployment_request.cpp:22; 断言站点 frontend.cpp:50; 类路由 CSaveGameItem ->§4.31 |
+| 0x142413AD0 | 业务 类路由 NProject ->§4.25; 类路由 CSendPingCommand ->§4.33; 类路由 CChatSyncAllCommand ->§4.33 |
+| 0x140E47A70 | 业务 类路由 CAbortDismantleFacilityCommand ->§4.33; 类路由 CNavyRepairNowCommand ->§4.33; 类路由 CLaunchOperationCommand ->§4.33 |
+| 0x1411ACE00 | 业务 类路由 CUnitLeaderTraitWindow ->§4.30; 类路由 CDeployConveyorLineCommand ->§4.33; 类路由 CAbortDismantleFacilityCommand ->§4.33 |
+| 0x1411A5CE0 | 业务 类路由 CSetDivisionNameCommand ->§4.33; 类路由 NRaids ->§4.25; 类路由 CFrontEndView ->§4.30 |
+| 0x14116EBC0 | 业务 断言站点 pdxoptional.h:73 ->§4.1; 类路由 NFactions ->§4.25; 串 "_bIsSet" |
+| 0x14029C580 | 业务 断言站点 variablescripthelper.cpp:30; 类路由 CAnyCountryWithOriginalTagTrigger ->§4.32; 类路由 CDisengageFromNavalCombatCommand ->§4.33 |
+| 0x140F8D1F0 | 业务 类路由 COrderAddNewCompletePlanCommand ->§4.33; 串 "Out of memory"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140ED7BD0 | 业务 类路由 CIntelligenceAgencyCancelCreationCommand ->§4.33; 类路由 CProductionLineRailwayGunRepairItem ->§4.31; 调用图 IDF top §4.1 frac 0.47 |
+| 0x14071ED10 | 业务 断言站点 taskforce.cpp:87 ->§4.16; 类路由 CSelectTargetedDecisionCommand ->§4.33; 类路由 COrderReconnectCommand ->§4.33 |
+| 0x1411BD0F0 | 业务 类路由 CSetAsReserveFleetCommand ->§4.33; 类路由 COrderNewFrontCommand ->§4.33; 类路由 CMoveAirGroupAndAirTheatreToFreeCommand ->§4.33 |
+| 0x14132B6C0 | 业务 类路由 CSetAirWingNameCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 CDifficultySettingItemView ->§4.30 |
+| 0x140BCC330 | 业务 类路由 CSupplySystem ->§4.21; 类路由 CAddConstructionCommand ->§4.33; 类路由 CContextTrigger ->§4.32 |
+| 0x140D88A90 | 业务 类路由 CMassCancelMovementCommand ->§4.33; 类路由 CQueueUnitActionCommand ->§4.33; 串 "PRODUCTION_CAN_NOT_DEPLOY" |
+| 0x14211EE50 | 业务 断言站点 pdxmeshobject.cpp:76 ->§4.1; 类路由 CAddSizeCommand ->§4.33; 类路由 CBypassNationalFocusCommand ->§4.33 |
+| 0x140F8F5E0 | 业务 断言站点 updateableinterface.cpp:62; 断言站点 equipment_variant_reference.cpp:32; 断言站点 orderscommands.cpp:53 |
+| 0x140D8F320 | 业务 断言站点 graphics.cpp:14; 类路由 CAiStoreForceConcentrationTargetCommand ->§4.33; 类路由 CEquipmentUpgradeDesignerWindow ->§4.30 |
+| 0x140CA5570 | 业务 类路由 CDropCurrentNationalFocusCommand ->§4.33; 类路由 CPromoteAutonomyCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14228A3B0 | 业务 类路由 CChangeRailwayConstructionLeveLCommand ->§4.33; 类路由 CSetProductionLineAmountToProduceCommand ->§4.33; 调用图 IDF top §4.1 frac 0.65 |
+| 0x141326410 | 业务 类路由 CNavyLeaderModule ->§4.28; 类路由 CFrontendMultiplayerView ->§4.30; 类路由 NProject ->§4.25 |
+| 0x140628750 | 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30 |
+| 0x140F77630 | 业务 类路由 CSetShipRefitDeploymentTargetCommand ->§4.33; 类路由 COrderChildFrontRatioCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140243B60 | 业务 串 "Collision turned off."; 串 "Collision turned on."; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140194B40 | 业务 类路由 CPeaceConferenceManager ->§4.28; 类路由 NFactions ->§4.25; 类路由 CMoreGroundCrewsCommand ->§4.33 |
+| 0x140F4E1A0 | 业务 类路由 CAmendIncomingLendLeaseActionCommand ->§4.33; 类路由 COrderBlockSectionsCommand ->§4.33; 类路由 NInternationalMarket ->§4.25 |
+| 0x141197780 | 业务 断言站点 navytheatergroup.cpp:87; 断言站点 equipment_entry.cpp:78; 类路由 CNavyRepairNowCommand ->§4.33 |
+| 0x140D8C8D0 | 业务 类路由 CIgnoreDecisionCommand ->§4.33; 类路由 CSetFleetIconAndColorCommand ->§4.33; 类路由 CRenameAirTheatreCommand ->§4.33 |
+| 0x140EE5E80 | 业务 类路由 CSetOrderGroupExecutionTypeCommand ->§4.33; 类路由 CSetOperativeCodenameCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00 |
+| 0x141A3D730 | 业务 串 "Invalid renderer"; 串 "png_read_update_info/png_start_read_"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140F97DF0 | 业务 类路由 COrderReconnectCommand ->§4.33; 类路由 CMoveIndustrialOrgTraitInQueueCommand ->§4.33; 类路由 CConfirmKickBanPlayerDialog ->§4.30 |
+| 0x140CDB130 | 业务 类路由 CConvoySubscriber ->§4.28; 类路由 CReplaceBuildingCommand ->§4.33; 类路由 CBoostIdeologyMissionWindow ->§4.30 |
+| 0x140E6F2C0 | 业务 类路由 CSetNavyTheaterGroupNameCommand ->§4.33; 类路由 CIdeaItem ->§4.31; 串 "DIPLOMACY_INCREASEAUTONOMY" |
+| 0x1421ACC10 | 业务 断言站点 null_object.h:33; 断言站点 production_line.h:24; 类路由 CSetCountryRaidsPriorityCommand ->§4.33 |
+| 0x1406C8BC0 | 业务 类路由 CMoreGroundCrewsCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 COperativeStatusView ->§4.30 |
+| 0x140C48550 | 业务 类路由 CSetStateOverrideOccupationPolicyCommand ->§4.33; 类路由 CMoveShipsCommand ->§4.33; 类路由 CTechnologyTreeTechItem ->§4.31 |
+
+
+#### 4.33.45 命令子类补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14027E220 | 业务 "No filename specified."/"Executing file "/"Couldn't find file." + @parser.cpp:891/1087（脚本文件执行命令） |
+| 0x14026B440 | 业务 "Please specify province ids separated by spaces."/"Conquered "/" Unknown Provinces: " + callee @province.cpp:394（conquer 命令） |
+| 0x1402694C0 | 业务 "Locked efficiency of … to …"/"Could not find locked efficiency on …"/"Removed Locked efficiency from …"（锁定效率命令） |
+| 0x140270920 | 业务 " now prepares for war against "/" no longer prepares for war against "/"Invalid country tag or not AI: "（prepare_for_war 命令） |
+| 0x1411AA9F0 | 业务 "Set skill level … to … for all specializations to …"（技能控制台命令回显）+ callee @ingameinterfacehandler.h:197 |
+| 0x1420B2B30 | 业务 "To load an asset use the following syntax:[type] [asset_name], for example \"mesh flute\"."（asset 装载命令） |
+| 0x141045930 | 业务 反调用图传播 1.0 权重锚点投 §4.33（top 占比 1.00） |
+| 0x140C47DE0 | 业务 反调用图传播 1.0 权重锚点投 §4.33（top 占比 1.00） |
+| 0x140EA2430 | 业务 反调用图传播 1.0 权重锚点投 §4.33（top 占比 1.00） |
+| 0x14134AB30 | 业务 反调用图传播 4.0 权重锚点投 §4.33（top 占比 0.50） |
+| 0x140B414C0 | 业务 反调用图传播 1.0 权重锚点投 §4.33（top 占比 1.00） |
+
+#### 4.33.46 单调用转发桩结构定案（216 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B6B860 | 转发桩: 转发至 业务 断言站点 airwing.cpp:7 ->§4.15; 类路由 CCancelMovementCommand ->§4.33; 类路由 CCancelMovementCommand ->§4.33（推定） |
+| 0x142123030 | 转发桩: 转发至 业务 断言站点 gameitemdatabase.h:42 ->§4.26; 断言站点 gamegui.cpp:15 ->§4.30; 类路由 NIndustrialOrganisation ->§4.25（推定） |
+| 0x140F030C0 | 转发桩: 转发至 未命名业务函数 单位命令实例（orderinstance.cpp 断言）（推定） |
+| 0x142684B60 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142122980 | 转发桩: 被调者 0x142123030 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14014C680 | 转发桩: 转发至 业务 断言站点 relation.cpp:78; 断言站点 faction_member_status.cpp:13 ->§4.5; 断言站点 commandpowerallocator.cpp:17（推定） |
+| 0x14062B2F0 | 转发桩: 转发至 业务 类路由 CSpecialProjectCapturedPopUpWindow ->§4.30; 类路由 CSupportAttackCommand ->§4.33; 类路由 CEventOption ->§4.12（推定） |
+| 0x140AAD790 | 转发桩: 转发至 业务 类路由 CChangeProductionLinePriorityCommand ->§4.33; 类路由 CDisengageFromNavalCombatCommand ->§4.33; 类路由 NFactions ->§4.25（推定） |
+| 0x141B44BC0 | 转发桩: 被调者 0x141B459A0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x141277E80 | 转发桩: 被调者 0x140B6B860 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x141277EC0 | 转发桩: 被调者 0x140B6B860 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1411C9CA0 | 转发桩: 转发至 业务 断言站点 production_line_names.cpp:7; 类路由 CSetFleetCommand ->§4.33; 串 "HasAllocatedName()"（推定） |
+| 0x141B459A0 | 转发桩: 转发至 业务 类路由 CMoreGroundCrewsCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 COperativeStatusView ->§4.30（推定） |
+| 0x1426077F0 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x14260B340 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261E1D0 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14262EC20 | 转发桩: 转发至 业务 断言站点 country.cpp:15 ->§4.3; 类路由 CReorderAirTheatersCommand ->§4.33; 类路由 CTemplateEntry ->§4.31（推定） |
+| 0x14266E6F0 | 转发桩: 被调者 0x141B44C10 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14266E940 | 转发桩: 被调者 0x141B44C30 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14266EC90 | 转发桩: 被调者 0x141B44C70 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142683970 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142684480 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30（推定） |
+| 0x14258FA50 | 转发桩: 被调者 0x14014C680 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1425EF7E0 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x1425EF800 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142124BE0 | 转发桩: 转发至 业务 断言站点 gameitemdatabase.h:42 ->§4.26; 断言站点 gamegui.cpp:15 ->§4.30; 类路由 NIndustrialOrganisation ->§4.25（推定） |
+| 0x140B63600 | 转发桩: 被调者 0x140B6B860 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x141053E80 | 转发桩: 转发至 业务 类路由 CMoveArmiesInTheaterCommand ->§4.33; 类路由 NProject ->§4.25; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x141148F10 | 转发桩: 转发至 业务 断言站点 pdxoptional.h:73 ->§4.1; 类路由 NFactions ->§4.25; 串 "_bIsSet"（推定） |
+| 0x142669840 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x142671A20 | 转发桩: 被调者 0x141B951F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142700F30 | 转发桩: 转发至 业务 类路由 CChangeProductionLinePriorityCommand ->§4.33; 类路由 CDisengageFromNavalCombatCommand ->§4.33; 类路由 NFactions ->§4.25（推定） |
+| 0x142684C70 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1411BD250 | 转发桩: 转发至 业务 断言站点 production_line_names.cpp:7; 类路由 CSetFleetCommand ->§4.33; 串 "HasAllocatedName()"（推定） |
+| 0x14114E2C0 | 转发桩: 转发至 （无名） 体设 CAddConstructionCommand::vftable（RTTI 名）（推定） |
+| 0x142618BF0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261DFE0 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14261F5B0 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14265D140 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142607620 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x14267B570 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x142621130 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1426321C0 | 转发桩: 被调者 0x141277EC0 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142683790 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14261D830 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14262D950 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x141B44C70 | 转发桩: 转发至 业务 类路由 CMoreGroundCrewsCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 COperativeStatusView ->§4.30（推定） |
+| 0x14265D330 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1426305B0 | 转发桩: 转发至 业务 断言站点 production_line_names.cpp:7; 类路由 CSetFleetCommand ->§4.33; 串 "HasAllocatedName()"（推定） |
+| 0x142671A70 | 转发桩: 被调者 0x141B951F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142683DD0 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A4E10 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261DA30 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x141B44C30 | 转发桩: 转发至 业务 类路由 CMoreGroundCrewsCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 COperativeStatusView ->§4.30（推定） |
+| 0x142633820 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A8EC0 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x142628440 | 转发桩: 被调者 0x141053E80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x141B44C10 | 转发桩: 转发至 业务 类路由 CMoreGroundCrewsCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 COperativeStatusView ->§4.30（推定） |
+| 0x140B6F140 | 转发桩: 转发至 业务 断言站点 airwing.cpp:7 ->§4.15; 类路由 CCancelMovementCommand ->§4.33; 类路由 CCancelMovementCommand ->§4.33（推定） |
+| 0x141A26670 | 转发桩: 转发至 （无名） 体设 CSetOperativeMissionCommand::vftable（RTTI 名）（推定） |
+| 0x1426321D0 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142636FD0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261DF50 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x140B636F0 | 转发桩: 转发至 业务 断言站点 airwing.cpp:7 ->§4.15; 类路由 CCancelMovementCommand ->§4.33; 类路由 CCancelMovementCommand ->§4.33（推定） |
+| 0x1414FA9D0 | 转发桩: 转发至 业务 类路由 CSetOrdersLinkCommand ->§4.33; 类路由 CActiveWargoalStripView ->§4.30; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x14259E700 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261E190 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142632200 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x141370A70 | 转发桩: 转发至 业务 类路由 NIndustrialOrganisation ->§4.25; 调用图 IDF top §4.1 frac 1.00; 邻域 15/30 票 §4.33（同类方法连续排放）（推定） |
+| 0x1402B4CE0 | 转发桩: 转发至 业务 断言站点 modifier.h:91 ->§4.1; 类路由 CConvertFactoryCommand ->§4.33; 类路由 CSetArmyTemplateCommand ->§4.33（推定） |
+| 0x14261F380 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142602240 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x14260AC80 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x141B951F0 | 转发桩: 转发至 业务 类路由 CEquipmentRoleSelectionWindow ->§4.30; 串 "UTF-8"; 串 "WCHAR_T"（推定） |
+| 0x141339D10 | 转发桩: 转发至 （无名） 被 CChatNewChannelCommand::Execute 调用（命令/游戏循环）（推定） |
+| 0x1425F0680 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x142601210 | 转发桩: 被调者 0x14014C680 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142602600 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x14261CB80 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1426365B0 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x14266E700 | 转发桩: 被调者 0x141B44BC0 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x14258D610 | 转发桩: 被调者 0x14014C680 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14258D630 | 转发桩: 被调者 0x14014C680 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A2580 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 CShipArchetypeItem ->§4.31; 类路由 CChangeAirGroupInsigniaCommand ->§4.33（推定） |
+| 0x142600EC0 | 转发桩: 被调者 0x14014C680 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142608900 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14260AA30 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14260ABA0 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1426311F0 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1426370D0 | 转发桩: 转发至 业务 类路由 NIndustrialOrganisation ->§4.25; 调用图 IDF top §4.1 frac 1.00; 邻域 15/30 票 §4.33（同类方法连续排放）（推定） |
+| 0x14263B5E0 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x14262DA70 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x14262DA80 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x14262DC00 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142643400 | 转发桩: 被调者 0x1414FA9D0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14261F330 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142629190 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142618CD0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261BAC0 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142628870 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x14262D990 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14262D9F0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14262DAA0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142632150 | 转发桩: 被调者 0x141277E80 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142632160 | 转发桩: 被调者 0x141277E80 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142632170 | 转发桩: 被调者 0x141277E80 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x1426321B0 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x1426321E0 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x1426321F0 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x1426325B0 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142632620 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142632630 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142636570 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142636860 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1426368A0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142665070 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142671830 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14268D770 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1426ED7F0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1426ED830 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1426ED890 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1406CBA80 | 转发桩: 转发至 业务 类路由 CMoreGroundCrewsCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 COperativeStatusView ->§4.30（推定） |
+| 0x14134ABD0 | 转发桩: 转发至 业务 类路由 CMoreGroundCrewsCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 COperativeStatusView ->§4.30（推定） |
+| 0x14258D650 | 转发桩: 被调者 0x14014C680 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A8EF0 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x1425FA510 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14260AD40 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142618BB0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261DC70 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14261DCF0 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14262AE10 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14262B050 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14262B0A0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14262D970 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14262DBD0 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x142632180 | 转发桩: 被调者 0x141277E80 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142632440 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142632450 | 转发桩: 被调者 0x140B63600 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142632600 | 转发桩: 被调者 0x141277E80 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142632610 | 转发桩: 被调者 0x141277E80 -> §4.33 (E:单调用转发(链内))（推定） |
+| 0x142636DB0 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x142636E10 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x142669870 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x1426717A0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14264FF00 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142650F50 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142659400 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1420D7D30 | 转发桩: 转发至 业务 类路由 CSetProductionLineCommand ->§4.33; 类路由 CSetFleetLeaderCommand ->§4.33; 类路由 CStratAirSetMissionCommand ->§4.33（推定） |
+| 0x14259BFD0 | 转发桩: 转发至 业务 断言站点 country.cpp:15 ->§4.3; 类路由 CReorderAirTheatersCommand ->§4.33; 类路由 CTemplateEntry ->§4.31（推定） |
+| 0x14259D8F0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142603810 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14260B5A0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14260B5B0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142614DD0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142618030 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261F5A0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261F790 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261F7A0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261F7F0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142622C70 | 转发桩: 转发至 业务 断言站点 unit.cpp:83; 断言站点 diplomacy.cpp:81 ->§4.10; 类路由 CCountryScorerEntry ->§4.31（推定） |
+| 0x142624C60 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142628210 | 转发桩: 被调者 0x141053E80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142629140 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1426291E0 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1426291F0 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142630150 | 转发桩: 转发至 业务 类路由 CSetProductionLineAmountToProduceCommand ->§4.33; 类路由 CEndTurnPeaceConferenceCommand ->§4.33; 串 "bg_btn"（推定） |
+| 0x1426305F0 | 转发桩: 被调者 0x1411BD250 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142630600 | 转发桩: 转发至 业务 类路由 CSetAsReserveFleetCommand ->§4.33; 类路由 COrderNewFrontCommand ->§4.33; 类路由 CMoveAirGroupAndAirTheatreToFreeCommand ->§4.33（推定） |
+| 0x142633280 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142640C70 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14264DE50 | 转发桩: 转发至 业务 断言站点 airwing.cpp:7 ->§4.15; 类路由 CCancelMovementCommand ->§4.33; 类路由 CCancelMovementCommand ->§4.33（推定） |
+| 0x14264EF10 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14264EF20 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1426553B0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142655920 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14265CE60 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14265CED0 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142669B10 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14266B750 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1426746B0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142675E50 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30（推定） |
+| 0x142683D70 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142684B70 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142687D00 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x142687D10 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x14268F0C0 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30（推定） |
+| 0x14268FB00 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30（推定） |
+| 0x142690750 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30（推定） |
+| 0x142592730 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14259D9A0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x1425F51C0 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x1425FBF00 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30（推定） |
+| 0x1425FFE90 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142607730 | 转发桩: 被调者 0x140B636F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14260B600 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14261FC20 | 转发桩: 转发至 业务 串 "Invalid texture"; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.29（推定） |
+| 0x142620FD0 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142622500 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142624410 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142624CB0 | 转发桩: 被调者 0x14062B2F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142629210 | 转发桩: 被调者 0x140AAD790 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14262B000 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x14262B1D0 | 转发桩: 转发至 （无名） 体设 CDiplomaticActionCommand::vftable（RTTI 名）（推定） |
+| 0x142633850 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142636000 | 转发桩: 转发至 业务 类路由 CSetAirWingNameCommand ->§4.33; 类路由 NFactions ->§4.25; 类路由 CDifficultySettingItemView ->§4.30（推定） |
+| 0x142636ED0 | 转发桩: 被调者 0x14134ABD0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142636F00 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+| 0x142643BF0 | 转发桩: 转发至 （无名） 体设 CDiplomaticActionCommand::vftable（RTTI 名）（推定） |
+| 0x1426505A0 | 转发桩: 转发至 业务 类路由 CSetOperationAutoRepeatCommand ->§4.33; 类路由 CSetScorchedStateCommand ->§4.33; 类路由 CUnitTemplateItem ->§4.31（推定） |
+| 0x14265CDC0 | 转发桩: 转发至 （无名） 体设 CAssignToTheaterGroupCommand::vftable（RTTI 名）（推定） |
+| 0x142669B20 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142671A60 | 转发桩: 被调者 0x141B951F0 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x142675EF0 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30（推定） |
+| 0x14268B260 | 转发桩: 被调者 0x1406CBA80 -> §4.33 (E:单调用转发(被调者入书))（推定） |
+| 0x14268C330 | 转发桩: 转发至 业务 类路由 CSetUnitNameCommand ->§4.33; 类路由 NDoctrines ->§4.25; 类路由 CCountryView ->§4.30（推定） |
+| 0x1426699A0 | 转发桩: 转发至 （无名） 体设 CCommand::vftable（RTTI 名）（推定） |
+
+#### 4.33.47 命令子类补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14103DF60 | caller 141848FE0=COrderNewFrontCommand::Execute、14184BA10=CSetOrderGroupOrdersInstanceNamesCommand（2/2 命令类） |
+| 0x141EF4C60 | gamestate.h 双断言；4 caller = CAbortDismantleFacilityCommand::Execute/CAttachScientistCommand::Execute/CDismantleFacilityCommand::Execute/CPrototypeRewardOption… |
+| 0x14184BBE0 | 断言 pdx_scoped_buffer.h:54 + 调用者 COrderMergeRootsCommand::Execute@141848B20 → 军事命令（合并根源）序列化 writer |
+| 0x140327060 | 调用链 CUpdateSupplyNodeCountrySettingsCommand::Execute@14115F340 |
+| 0x141141D20 | 串 "BATALION" / "AMOUNT" / "CAN_NOT_PARADROP_BATALION"；调用链 CRequestExpeditionariesCommand::Execute@141159F90 |
+| 0x1413429D0 | 调用链 CChatSyncAllCommand::Execute@1413372A0 / CChatUserJoinedChannelCommand::Execute@141337510 / CChat::Reload@14133A3C0；断言 gamestate.h:1125 "_pInstance && \"… |
+| 0x140285B20 | 邻域传播改判（锚 0x14028DAE0 §4.33，距离 0x7FC0）；__m128i 字符串构建 + 自递归；0x14027-0x14028 情报区邻域（inbook 140274CA0/1402718C0 均投 §4.11） |
+| 0x1402880C0 | 断言 gamestate.h:1125 "_pInstance && \"gamestate unitilialized\"" / gamestate.h:1126 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamest… |
+| 0x141345860 | 游戏 CU 邻近: _Func_impl_no_alloc<…>::[3] / CAddTaskForceTemplateCommand::[0] |
+| 0x14135F040 | 游戏 CU 簇内: CSetTaskForceIconAndColorCommand::Payloa / CMassMoveCommand::[0] |
+| 0x140002620 | 命令工厂注册项（425 个模板实例, 代表 VA; 族级收编）: ctor 目标经语料复核构造 C*Command 派生类 |
+
+#### 4.33.48 命令子类补遗（29 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140268AD0 | 业务 串 "Locked detection of "/"Removed Locked detection from "/"Could not find locked detection on " + gamestate.h:1126 |
+| 0x140266820 | 业务 串 "(no leader)"/"(leader: "/"Leader modifiers"/"Unit modifiers"/"Fail, no army is selected?" + ConsoleCmdImpl.cpp 邻域 |
+| 0x1402746B0 | 业务 串 "No tokens"/" : " + ConsoleCmdImpl.cpp 邻域 + 断言 pdx_scopedptr.h:129/pdx_robin_hood_table.h:58 |
+| 0x140261FE0 | 业务 串 "Highlighting of detected encirclements" + ENABLED/DISABLED/ALL + ConsoleCmdImpl.cpp 邻域 |
+| 0x14024F6C0 | 业务 串 "Toggled unit controller weights mapmode:" x5 + ConsoleCmdImpl.cpp 邻域 + off_1430C6DE0 |
+| 0x141168870 | sub_141168870 业务 CRemoveIdeaCommand（countrycommands.cpp:4719 + 串 "CRemoveIdeaCommand::IsValid() ..." ×7 + 调用者 CRemoveIdeaCommand::Execute） |
+| 0x14114EB60 | §4.x·CDeployAirWingCommand 体级 `*a1 = &CDeployAirWingCommand::vftable` |
+| 0x140248DD0 | 串 Air vs Land combat ONLY is now 、ENABLED、DISABLED；读写 byte_143389FD4；调 sub_14011D970/140144930 |
+| 0x14049B830 | §4.33（effect/trigger 脚本层） func_names 名；pdx_string +320（>0xF 取指针）；sub_140544BB0(a1+88,a2,0) 作用域解析；sub_140FE30D0 |
+| 0x1413FF0E0 | §4.33（effect/trigger 脚本层） doc 串 "Gets the target country of the operation."；名 "Target"/"Operation" |
+| 0x1413FF4B0 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the first operative of the operation."；j_j__malloc_base(0x40) |
+| 0x141442370 | 调用图传播：CDismantleFacilityCommand::Execute + SRC program.cpp 断言 "!_FacilityDismantleSchedule.IsScheduled() &&" + 串 "ui_finished_dismantling_sound" |
+| 0x1419A6810 | func_names slot 名 CCreateEquipmentVariantCommand::PayloadReader；5 个调用者均为该槽；调 Reader 槽 + sub_14192FBF0/14199FE00 |
+| 0x141A80C50 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets her if the ace is a female, otherwise his." |
+| 0x141A82370 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the surname of the ace." |
+| 0x141A84180 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the pronoun for the character."；j_j__malloc_base(0x30) |
+| 0x141A86850 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the old name of the current country."；j_j__malloc_base(0x30)；_mm_load_si128 |
+| 0x141A88070 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the manpower of the current country."；j_j__malloc_base(0x30) |
+| 0x141A88280 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the name of the current country's faction."；"GetFactionName" |
+| 0x141A88880 | §4.33（effect/trigger 脚本层） doc 串 "...communist party of the current country."；名 "GetCommunistParty" |
+| 0x141A88A80 | §4.33（effect/trigger 脚本层） doc 串 "...democratic party of the current country."；名 "GetDemocraticParty" |
+| 0x141A88E90 | §4.33（effect/trigger 脚本层） doc 串 "Gets the capital state of the current country."；GetCapitalState 族 |
+| 0x141A8A830 | §4.33（effect/trigger 脚本层） 串 "GetHerselfHimself"；说明串 "![MD]\nGets herself if the current country's leader is female…"；"Countr" 前缀 |
+| 0x141A8BD00 | §4.33（effect/trigger 脚本层） doc 串 "...leader of the facist party..."；名 "GetFascistLeader" |
+| 0x141A8BF10 | §4.33（effect/trigger 脚本层） doc 串 "![MD]\nGets the name of the leader of the neutral party..."；名 "GetNeutralLeader" |
+| 0x141A8D230 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the faction leader country of the current country."；"FactionLeader" |
+| 0x141A92A10 | §4.33（effect/trigger 脚本层） doc 串 "Gets the current game date as a long string."；名 "Scope" |
+| 0x141A98230 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the name of the capital victory point of the state."；"GetCapitalVictoryPointName" |
+| 0x141D0DE60 | VTNAME CConfirmUnassignUnits + 串 "default_confirmation_popup" + SRC clausewitzlib/ref.h |

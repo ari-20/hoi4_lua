@@ -2276,12 +2276,6 @@ CReader 增补 (336B): +24 = 错误旗 (== 0 成功, :307 日志门) / +40 = CLe
 | 0x140DEA120 | CAutosave::PayloadWriter func_names 名 CAutosave::PayloadWriter |
 | 0x14163E660 | CSetAchievementsOK::PayloadWriter func_names 名 CSetAchievementsOK::PayloadWriter |
 | 0x1406104E0 | CModifier::Reader func_names 名 CModifier::Reader |
-
-#### 4.28.39 会话与身份注册块函数补遗（299 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.28.40 会话与身份注册块函数补遗（54 函）
 
 | VA | 语义/证据 |
@@ -2736,3 +2730,178 @@ CReader 增补 (336B): +24 = 错误旗 (== 0 成功, :307 日志门) / +40 = CLe
 |---|---|
 | 0x142411990 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.28 |
 | 0x142415480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+
+#### 4.28.45 会话与身份注册块函数补遗（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1410393F0 | 作战指令/阵线数据处理 作战指令/阵线数据处理；邻域 COrderInstance::[0]/[8]/Reader/SChildFrontData::Reader |
+| 0x14198C680 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 CTaskForceCompositionRequirements::Reader/Writer、CNavalMissionUnitItem::[0]/[1] |
+| 0x142320D90 | 同形窗口更新方法（12 参族） 同形窗口更新方法（12 参族）；邻域 CLineChartType::[23]/CLineChartType::Reader/CFixedWindow::[7] |
+| 0x1419F1C90 | 和会出价回合处理 和会出价回合处理；邻域 CPeaceBiddingTurn::Reader/Writer；12 次 sub_140BB549 |
+| 0x140A337A0 | 规则数据库处理 规则数据库处理；邻域 TGameItemDatabase<CGameRulesDatabase>::[1]/CGameRule::[0]/CFrontEndBackgroundDatabaseItem::Reader/CFriendsHandler::[4]；16 次 sub_14011FE6 |
+| 0x141405DD0 | 行动实例处理 行动实例处理；邻域 COperationInstance::Reader/Writer、CCountryOperationTokenManager::[0]/ReadMember |
+| 0x14144BA10 | CUnitMedalStore::Reader 串 `Expected start of list` / `Expected history entry` |
+| 0x1402AF6F0 | CTestBundle::Reader CTestBundle::Reader：VT CTest，测试包序列化读入（0x1424C0AA0/0x1424C2060 + 标准注册序列） |
+| 0x1411D5ED0 | CCountryIntelNetwork::Reader CCountryIntelNetwork::Reader：国家情报网络序列化读入（0x1411CD260/0x1411D4590/0x1411CCC10 族） |
+| 0x140C20530 | CArmyLeader::Reader CArmyLeader::Reader：存档读入后单位入列，STR gridbox.h 'pItem->CanAdd( &Unit, bSplitSelected, bCoarseCountryGrouping )' + 'Index < _Elements.GetSize()' |
+| 0x1414E7670 | CCountryPlayerSettings::Writer 类名（国家玩家设置序列化写入） |
+| 0x1411D6C40 | CCountryIntelNetwork::Writer CCountryIntelNetwork::Writer：国家情报网络序列化写（0x1424C2xxx/0x1424C4xxx 写块序列） |
+| 0x1412025B0 | CStrategicOperative::Writer 类名（战略特工序列化写入） |
+
+#### 4.28.46 会话与身份注册块函数补遗（18 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BCFBA0 | 业务 串 "ship_history_entry"; 调用图 IDF top §4.1 frac 1.00; 邻域 4/6 票 §4.28（同类方法连续排放） |
+| 0x14150A360 | 业务 串 "AIR_VIEW_DETECTION"; 调用图 IDF top §4.1 frac 1.00; 邻域 4/4 票 §4.28（同类方法连续排放） |
+| 0x1414085C0 | 业务 断言站点 relationstripview.cpp:13 ->§4.1; 类路由 CCapitalMapIcon ->§4.31; 串 "Not supported" |
+| 0x14141D0D0 | 业务 类路由 NCareerProfile ->§4.25; 串 "vs_1_1"; 串 "vs_2_0" |
+| 0x142424490 | 业务 类路由 SCVAASettings ->§4.28; 类路由 CMetaTrigger ->§4.32; 类路由 CAndTrigger ->§4.12 |
+| 0x141195640 | 业务 串 "Don't know this kind of peace biddin"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"; 串 "ceconferencepopups.cpp" |
+| 0x1406306A0 | 业务 类路由 CCountryManpower ->§4.28; 调用图 IDF top §4.1 frac 1.00; 邻域 5 票 §4.25（票散） |
+| 0x141297C30 | 业务 类路由 SAdvisorData ->§4.28; 类路由 NFactions ->§4.25; 类路由 CDetachAirWingFromArmyCommand ->§4.33 |
+| 0x1419693A0 | 业务 串 "NAVPROD_COST_VALUE"; 串 "VALUE"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x140D06480 | 业务 类路由 CCountryTargetedValueTrigger ->§4.32; 调用图 IDF top §4.1 frac 0.62; 反传 1/1 调用者 §4.11 |
+| 0x14234C620 | 业务 类路由 SControlGroupData ->§4.28; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.29 |
+| 0x140BBBD40 | 业务 类路由 COrderSetParadropSourceCommand ->§4.33; 串 "Week"; 串 "Invalid texture" |
+| 0x1424FD9F0 | 业务 类路由 SAirUnitActivityData ->§4.28; 类路由 CInstantTextBox ->§4.30; 串 "IsValidLocaleName" |
+| 0x1413F0620 | 业务 类路由 NProject ->§4.25; 串 "Invalid window" ->§4.30; 串 "Video subsystem has not been initial" |
+| 0x142289F60 | 业务 断言站点 editboxtype.cpp:30; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\cla"; 串 "textureFile is only supported if ins" |
+| 0x14226E8A0 | 业务 串 "; v8[2] ="; 串 "; v8[3] ="; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1419617A0 | 业务 类路由 NFactions ->§4.25; 类路由 CTechnologySharing ->§4.7; 类路由 CPowerBalanceTargetedValueTrigger ->§4.32 |
+| 0x140AEA5F0 | 业务 类路由 CNavalDeployment ->§4.28; 类路由 CNavalDeploymentTarget ->§4.28; 类路由 CEquipmentStats ->§4.28 |
+
+
+#### 4.28.47 会话与身份注册块函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140690F90 | 业务 遍历 a1+8 处 2056 字节元素数组（计数 a1+20），每元素名串在 +2024（SSO 长度判据 +2048），经 sub_14071BC80（全局 qword_143330D98）查表后按 token a2（12418/16055/16365/16756/17168/17747/17870/19… |
+| 0x142446470 | 业务 "stream error"/"buffer error"（zlib 状态串）写入 a1+32；存档 zip 解压错误路径 |
+| 0x14239FC90 | 业务 调用者 sub_1423A07B0 持 "localization_tag_file.yml"/"l_english_tag"/"_tag"（存档 tag-loc 导出）；函数本体为回调式迭代 + "\\n""\\t" 转义 |
+| 0x14014C930 | 业务 反调用图传播 1.8 权重锚点投 §4.28（top 占比 0.55） |
+| 0x1424BF540 | 业务 类名 CChecksumFile,CChecksumFile2,CFile2 → §4.28（投票 1） |
+
+#### 4.28.48 模板实例化桩结构定案（62 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402E2E90 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1402E2E60 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1401AB070 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AAF90 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB050 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB0B0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB0D0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB130 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB030 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AAF70 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB210 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB150 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB190 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB010 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB090 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1402E2E30 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1401AAFD0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB1D0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB170 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AAFB0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB230 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1402E2E00 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1401AB0F0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AAF50 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB1F0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AAFF0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AAF30 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB1B0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB110 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AB250 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC410 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC3A0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC400 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1402E2ED0 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1401AC430 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC440 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC470 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC3F0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC390 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC4E0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC480 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC4A0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC3E0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC420 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC3C0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC4C0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC490 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC3B0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC4F0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC450 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC380 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC4D0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC3D0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC370 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC4B0 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC460 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1401AC500 | 模板桩: 模板参数类名 CPersistentReloadableGameItemDatabase（高置信） |
+| 0x1402E2FD0 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1402E2FC0 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1402E2FB0 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1402E2FA0 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+| 0x1402E2FE0 | 模板桩: 模板参数类名 CSaveGameItem（高置信） |
+
+#### 4.28.49 单调用转发桩结构定案（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1426F17C0 | 转发桩: 转发至 业务 类路由 SControlGroupData ->§4.28; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.29（推定） |
+
+#### 4.28.50 会话与身份注册块函数补遗（27 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402C4F30 | 邻域传播改判（锚 0x1402AF440 §4.28，距离 0x15AF0）；跳点串 "Short Task" |
+| 0x1406FE9A0 | 断言 pdx_scoped_buffer.h:54 写门 |
+| 0x140D2F5A0 | 游戏 CU 簇内: SLendLeaseHistory::Writer / CDiplomacyStatus::[0] |
+| 0x140E3D6B0 | 游戏 CU 簇内: CPeaceBiddingTurn::[0] / CPeaceConference::[8] |
+| 0x140E5BAC0 | 游戏 CU 簇内: CPowerBalanceSystem::Writer / CProductionStatus::[2] |
+| 0x14100C050 | 游戏 CU 簇内: Reader / CEquipmentArcheTypePool::Reader |
+| 0x1410213D0 | 游戏 CU 簇内: CConvoys::CalcRequiredConvoysForLendLeas / CConvoySubscriber::Reader |
+| 0x141026F10 | 游戏 CU 邻近: std::_Func_impl_no_alloc<…>::[3] / COrderInstance::[0] |
+| 0x141030250 | 断言 pdx_scoped_buffer.h:54 "_Position + NeededSize <= _BufferSize" + __m128 写门；9.5KB/6 被调用者 = 类专属存档 writer（无游戏串，域别靠写门推定） |
+| 0x14104D680 | 游戏 CU 簇内: COrderInstance::SOrderInstanceRef::Write / CAIFront::BalanceUnitsOnFrontBetweenArmi |
+| 0x14104DF60 | 游戏 CU 簇内: COrderInstance::SOrderInstanceRef::Write / CAIFront::BalanceUnitsOnFrontBetweenArmi |
+| 0x1411AD1E0 | 游戏 CU 簇内: CPoliticalParty::Writer / CStaticIntelSourcePool::[8] |
+| 0x14125D0C0 | 断言 pdx_scoped_buffer.h:54 写门 |
+| 0x1412C9B10 | 邻域传播改判（锚 0x1412BA8C0 §4.28，距离 0xF250）；跳点串 "GetPool()" |
+| 0x1412D2890 | 邻域传播改判（锚 0x1412BA8C0 §4.28，距离 0x17FD0）；跳点串 ". Reason: " / "sFilePath.Find( '\"' ) == -1" |
+| 0x1412EEBF0 | 断言 pdx_scoped_buffer.h:54 写门 |
+| 0x141622AF0 | 游戏 CU 簇内: CNavalCombatant::Writer / CNavyLeaderModule::Reader |
+| 0x14166D480 | 断言 pdx_scoped_buffer.h:54 + 调用者 sub_14166D090；类专属存档 writer（无游戏串，域别靠写门推定） |
+| 0x14167ED70 | 断言 gamestate.h:1116/1117 + pdx_scoped_buffer.h:54 写门 → 带 gamestate 访问的存档 writer |
+| 0x1416AB290 | 断言 pdx_scoped_buffer.h:54 写门 |
+| 0x1419DCDE0 | 断言 pdx_scoped_buffer.h:54 写门 |
+| 0x141AA9740 | 游戏 CU 簇内: CIncomingDiplomaticAction::Writer / CAbstractArmyLeaderItem::[1] |
+| 0x141B1FE50 | 断言 pdx_scoped_buffer.h:54 写门 |
+| 0x141DE3D10 | 断言 pdx_scoped_buffer.h:54 写门 |
+| 0x142092400 | 调用链 SParticleSystemReader::[8]@1423310F0 / SParticleSystemReader::Reader@142332EB0 / SAnimatedLightReader::Reader@14234E580 |
+| 0x1420937C0 | 断言 pdx_scoped_buffer.h:54 写门 |
+| 0x1423DD220 | 断言 pdx_scoped_buffer.h:54 写门；CSteamCloudStorageContext::[6](sub_1423DD220)；CSteamCloudStorageContext::[6](sub_1423DD220) |
+
+#### 4.28.51 会话与身份注册块函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141344D60 | （无名） 业务 CRestructureShipsToTaskforceCompositions::PayloadReader 子段（被其 PayloadReader 调用） |
+| 0x1410143E0 | sub_1410143E0 业务 装备 archetype/module（调用图传播 CDuplicateArchetypeDefinition::Reader + CEquipmentType::[4] + CEquipmentModule::[4]，3 具名/4） |
+| 0x140FF0230 | sub_140FF0230 业务 CCountryOccupationData::Reader（调用图传播，存档 Reader 角色） |
+| 0x1401E9820 | CSelectionGroupReader::Reader 业务 CSelectionGroupReader::Reader（func_names rtti 槽，存档 Reader 角色） |
+| 0x141492F60 | sub_141492F60 业务 AI 师模板 Reader（调用图传播 CAICompactDivisionTemplate::Reader） |
+| 0x141A00C90 | CProductionResourceCost::Reader 业务 游戏物品数据库 |
+| 0x1401BFBA0 | vftable CDedicatedServer ;; SProfileBadge; 串 ['Dedicated server', 'Dedicated server'] |
+
+#### 4.28.52 会话与身份注册块函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14191F650 | 源文件锚 pdx_scoped_singleton.h / 类 CPersistedDesignsDb |

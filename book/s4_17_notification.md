@@ -422,12 +422,6 @@ worker 层补全 (定案): 簇实为 7 函数 (清单 6 + **sub_140B188A0 = 每�
 | 0x140B242F0 | 驻军不足即时警报 alert_not_enough_garrison_instant + ALERT_RIGHTCLICK |
 | 0x140B25B30 | 被发现警报 alert_is_spotting_instant + ALERT_SPOTTER_INFO_REGION + ALERT_LEFTCLICK_TOGGLE_SPOTTER |
 | 0x141BBEC60 | （无名） 体设 CNotification::vftable（RTTI 名） |
-
-#### 4.17.12 通知与警报系统函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.17.13 通知与警报系统函数补遗（1 函）
 
 | VA | 语义/证据 |
@@ -511,3 +505,74 @@ worker 层补全 (定案): 簇实为 7 函数 (清单 6 + **sub_140B188A0 = 每�
 | VA | 语义/证据 |
 |---|---|
 | 0x141102CA0 | 未决窗口函数 · 计数有效条目 遍历 a1+120 数组（计数 a1+132）对非空对经 sub_14221F310/sub_140BA0040/sub_140C01960 三条件计数 |
+
+#### 4.17.24 通知与警报系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1423B48D0 | 音频系统内部 音频系统内部；邻 CAudio::[0](-4592B)/CAudioMusic::[0](-4544B)/CAudioCategory::[0](+20400B)/CAudioInstance::[0] |
+| 0x14153B500 | CProgressStatus::GetFullDescription? CProgressStatus::GetFullDescription 进度状态描述（名带?） |
+| 0x14237ED70 | CTrack::[7] 名:CTrack::[7] |
+| 0x140A67EA0 | CMessageHandler::[1] 消息处理器（通知系统） |
+
+#### 4.17.25 通知与警报系统函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141896EC0 | sub_141896EC0 业务 顶栏超时条目描述（TOPBAR_TIMEOUT_ITEM_LOC，NAME/DAYS） |
+| 0x140F616F0 | (无名) 业务 为 a1+504 列表（count a1+516）每项按 token（18449/8465）构造 loc 串（消息/名单类） |
+| 0x1423B2390 | 业务 紧邻 CAudio::[0](d=4944)，tbb start_for 近邻，音频子系统任务 |
+| 0x141927F50 | 业务 夹于 CMusicPlayerSettings::Writer(d=2272) 与 CPdxStaticInlineBufferAllocator::[0]，音乐播放器设置族 |
+| 0x140BC30F0 | 业务 a1+64 旗标门 vt+24 调用，遍历 a1+8 链表逐 vt+16(elem,v5)，未命中再逐 vt+24 观察者通知分发 |
+| 0x14224F900 | 业务 a1+376 头/+384 计数 malloc 0x20 节点入侵入式链表，再遍历 a1+8 观察者调 vt+16 观察者链表追加+通知 |
+
+#### 4.17.26 通知与警报系统函数命名空间补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BBEEA0 | NNotification::CNotification::[0] vtable 槽 NNotification::CNotification::[0]（func_names RTTI 名） |
+| 0x141377BF0 | NNotification::CExternallyCompletedFocusNotification::[0] vtable 槽 NNotification::CExternallyCompletedFocusNotification::[0]（func_names RTTI 名） |
+| 0x14192F3F0 | NNotification::CIdeaExpiredNotification::[0] vtable 槽 NNotification::CIdeaExpiredNotification::[0]（func_names RTTI 名） |
+| 0x141391B20 | NNotification::CNotificationContainer::[8] vtable 槽 NNotification::CNotificationContainer::[8]（func_names RTTI 名） |
+| 0x141391384 | NNotification::CNotificationContainer::[0] vtable 槽 NNotification::CNotificationContainer::[0]（func_names RTTI 名） |
+| 0x1417C959C | NNotification::CLegacyMessagePopUpNotification::[1] vtable 槽 NNotification::CLegacyMessagePopUpNotification::[1]（func_names RTTI 名） |
+| 0x14192F3E4 | NNotification::CIdeaExpiredNotification::[1] vtable 槽 NNotification::CIdeaExpiredNotification::[1]（func_names RTTI 名） |
+| 0x141BBED18 | NNotification::CNotification::[1] vtable 槽 NNotification::CNotification::[1]（func_names RTTI 名） |
+| 0x1417C95B0 | NNotification::CLegacyMessagePopUpNotification::[0] vtable 槽 NNotification::CLegacyMessagePopUpNotification::[0]（func_names RTTI 名） |
+| 0x141377BD8 | NNotification::CExternallyCompletedFocusNotification::[1] vtable 槽 NNotification::CExternallyCompletedFocusNotification::[1]（func_names RTTI 名） |
+
+#### 4.17.27 通知与警报系统函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142207F70 | 业务 带时间戳的消息记录入队：日期格式化 + 8 级重要度分箱 + 32B 记录追加 + 区间 min/max 统计 struct tm/_time64；定点 1e-6 时间换算 (v36/1000000.0+v35)；阈值表 unk_1430BD190（8 桶）+ 12B 步表 qword_1430BD2D0/… |
+| 0x1422FF430 | 业务 类名 CChoiceClassObservable,CChoiceClassObservable3,CChoiceObserver → §4.17（投票 1） |
+
+#### 4.17.28 模板实例化桩结构定案（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BBF5B0 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF580 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF550 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF520 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF5F0 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF640 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF630 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF620 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF610 | 模板桩: 模板参数类名 CNotification（高置信） |
+| 0x141BBF650 | 模板桩: 模板参数类名 CNotification（高置信） |
+
+#### 4.17.29 单调用转发桩结构定案（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142637190 | 转发桩: 转发至 （无名） 体设 CNotification::vftable（RTTI 名）（推定） |
+| 0x142659A90 | 转发桩: 转发至 （无名） 体设 CNotification::vftable（RTTI 名）（推定） |
+| 0x142662E50 | 转发桩: 转发至 （无名） 体设 CNotification::vftable（RTTI 名）（推定） |
+
+#### 4.17.30 通知与警报系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402A2C30 | 业务 "COMMA"/"PERIOD" 分隔符 token 映射 + 0x11/0x20 转义文本拼接 + gameidler/CSelectionList/notificationinterface 邻域 |

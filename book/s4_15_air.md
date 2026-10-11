@@ -645,12 +645,6 @@ CU = `hoi4\source\airutil.cpp`。八函身份表:
 | 0x140F5A9A0 | CAirWing::[0] vtable 槽 CAirWing::[0]（func_names RTTI 名） |
 | 0x140F5A988 | CAirWing::[0] vtable 槽 CAirWing::[0]（func_names RTTI 名） |
 | 0x140C4AD4C | CStrategicAir::[2] vtable 槽 CStrategicAir::[2]（func_names RTTI 名） |
-
-#### 4.15.25 空军域函数补遗（11 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.15.26 空军域函数补遗（3 函）
 
 | VA | 语义/证据 |
@@ -658,12 +652,6 @@ CU = `hoi4\source\airutil.cpp`。八函身份表:
 | 0x140C47E80 | （无名） 体设 CStrategicAir::vftable（RTTI 名） |
 | 0x140C48FF0 | （无名） 体设 CStrategicAir::vftable（RTTI 名） |
 | 0x140F5A5B0 | （无名） 体设 CAirWing::vftable（RTTI 名） |
-
-#### 4.15.27 空军域函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.15.28 空军域函数补遗（26 函）
 
 | VA | 语义/证据 |
@@ -806,3 +794,302 @@ CU = `hoi4\source\airutil.cpp`。八函身份表:
 | 0x140CDB040 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
 | 0x141A06B30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
 | 0x1418862B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+
+#### 4.15.36 空军域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B43B80 | （无名）GFX_ace_none / GFX_ / _ace_ / _ace_m_ / _ace_f_（王牌飞行员头像贴图名构造） GFX_ace_none / GFX_ / _ace_ / _ace_m_ / _ace_f_（王牌飞行员头像贴图名构造） |
+| 0x1414EB260 | （无名） VA 邻近 NRaids::CRaidTargetCooldownStatus::Writer(±112)（空军/空战） |
+| 0x140C48E40 | （无名） 被 CStrategicAir::[0] 调用（空军/空战） |
+| 0x140C5DFE0 | （无名） 被 CStrategicAirManager::[2] 调用（空军/空战） |
+| 0x141F5F920 | （无名） 被 NAirSelectionUI::NQuickWingDeployment::C 调用（空军/空战） |
+| 0x1406F7890 | 无名（证据推断） 类名/模板：NAirSelectionUI::CRocketWingsSelectionItem 、 NAirSelectionUI::CRocketW |
+| 0x140446250 | CHasAirLedger::GetDesc CHasAirLedger::GetDesc（空军/空战） |
+| 0x140F76A10 | CAirMission::[0] 空中任务 |
+
+#### 4.15.37 空军域函数补遗（31 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402BBDD0 | sub_1402BBDD0 业务 空军联队集合查询（CPdxHybridInlineBufferAllocator<CAirWing*> + sub_140BB5490 gamestate id→索引 + a1+32 表索引） |
+| 0x141E5F920 | sub_141E5F920 业务 空军联队 UI（air_groups_box / unmoveable_assign_button） |
+| 0x1424AA3B0 | sub_1424AA3B0 业务 空军域（调 0x140F238B0/0x140F29150 空军区函数 + ref/scopedptr 校验，无域串） |
+| 0x1412AB8E0 | — 业务 定点乘法（魔数 0x29F16B11C6D1E109）+ qword_1433362E0/143336390 + a1+312 的 +912/+920 字段；调用者为空军联队 UI |
+| 0x14124A550 | gfxairplanes.cpp:700 业务 飞机场景实体：错误串 "Failed to create entity instance of internal airplane scene." |
+| 0x140F76470 | （无名） 业务 airmission.cpp:4651 + 串 "Consumer without Supply Location targetted for Air Strike!" |
+| 0x140C3F6E0 | CStrategicAir::GatherIntermediateOperationalStatuses? 业务 CStrategicAir::GatherIntermediateOperationalStatuses 汇集中间作战状态（战略空军） |
+| 0x1415B3070 | sub_1415B3070 业务 串 "AIRWING_ATTACHED_MANUAL_ORDER_DESC"/"AIRWING_ATTACHED_MANUAL_ORDER_TITLE"（空军联队手动命令） |
+| 0x140C452C0 | CStrategicAir::GatherIntermediateOperationalStatuses? 业务 CStrategicAir::GatherIntermediateOperationalStatuses 同名另一实例（不同实例化/作用域） |
+| 0x140C4A6F0 | sub_140C4A6F0 业务 strategicair.cpp "State without controller encountered during air update." + 调 BB5490 |
+| 0x140FF0DF0 | 业务 夹于 NRaids::CRaidInstance::Writer(d=5168) 与 CCountryOccupationStatus::[0](d=9608)，突袭实例序列化族（与 0x1413F42F0 同尺寸 4351） |
+| 0x140F73C90 | 业务 夹于 CShipRefitProductionLine::Writer(d=7328) 与 CAirMission::[0](d=11648)，舰船改装生产线/空军任务族 |
+| 0x140F5E110 | sub_140F5E110 业务 调用 CUnitNamesDatabase::GenerateNameForAirWing?（空军联队命名生成） |
+| 0x140C4D490 | CCountryAirContainer::[11] 业务 func_names 名 CCountryAirContainer::[11]（国家空军容器槽 11）+ strategicair.cpp:598 |
+| 0x14195D930 | CRaidTargetManager::EvaluateStateTargets? 业务 CRaidTargetManager::EvaluateStateTargets 突袭目标管理器评估州目标 |
+| 0x140C47420 | 业务 夹于 CStrategicAirManager::UpdatePortStrikeLimitPerRegion?(d=7152) 与 CStrategicAir::[2](d=14636)，战略空军族 |
+| 0x14109F780 | 业务 夹于 CNuke::Writer(d=20768) 与 CRadarsPool::[0](d=17132)，核武器/雷达池族 |
+| 0x141FCD930 | 业务 Init_thread 静态初始化，夹于 NAirSelectionUI::CAirBaseSelectionItem::[0](d=7280)，空军基地选择条目族 |
+| 0x142498910 | sub_142498910 业务 串：air_wing_name |
+| 0x140F5AB00 | 业务 类路由 CSetAutoUpgradedEquipmentVariantCommand ->§4.33; 串 "ONGOING_PROJECT_GO_TO_NEXT_BREAKTHRO"; 串 "ONGOING_PROJECT_GO_TO_PREVIOUS_BREAK" |
+| 0x140B3AF10 | 业务 断言站点 airutil.cpp:68 ->§4.15; 串 "Selectable.IsValid() && \"Invalid se"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x140F3E520 | 业务 类路由 CNavalMoveCommand ->§4.33; 串 "buyer_specific_tab_window"; 调用图 IDF top §4.1 frac 1.00 |
+| 0x1402C3E60 | 业务 断言站点 airwing.cpp:78 ->§4.15; 串 "len >= 1"; 串 "C:\\mnt\\external_libs2\\nlohmann_js" |
+| 0x140F3E440 | 业务 类路由 CNavalMoveCommand ->§4.33; 类路由 CMoveShipsWindow ->§4.30; 串 "Passed NULL destination surface" |
+| 0x14240DDF0 | 业务 断言站点 strategicair.cpp:46 ->§4.15; 类路由 CDesignFolderItem ->§4.31; 类路由 NAirSelectionUI ->§4.25 |
+| 0x1424139F0 | 业务 断言站点 strategicair.cpp:97 ->§4.15; 类路由 CAddTechBonusEffect ->§4.32; 串 "HasAccess( Tag )" |
+| 0x14054A390 | 业务 断言站点 airwing.cpp:92 ->§4.15; 串 "MissionIndex < _StatsPerMission.GetS"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi" |
+| 0x140F3F120 | 业务 类路由 CSetPreferredTacticCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 6/10 票 §4.15（同类方法连续排放） |
+| 0x14015EFF0 | 业务 断言站点 aces.cpp:53 ->§4.15; 类路由 CRequestGameStateSynchCommand ->§4.33; 串 "_bIsAlive" |
+| 0x1402B4BC0 | 业务 断言站点 airmission.cpp:17 ->§4.15; 类路由 CRemoveIndustrialOrgTraitFromQueueCommand ->§4.33; 类路由 CNavalBaseSelectionItem ->§4.31 |
+| 0x14011F7D0 | 业务 断言站点 career_profile.cpp:18; 断言站点 strategicair.cpp:80 ->§4.15; 类路由 CCompleteNationalFocusEffect ->§4.32 |
+
+
+#### 4.15.38 空军域函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140619B60 | 业务 ACE_PILOT_HEADER/ACE_PILOT_STATUS_[KIA/ACTIVE]/ACE_PILOT_WING_SIZE_EFFECT_[BIGGER/SMALLER] + "ace_" 前缀 |
+| 0x14205FD60 | 业务 空军重组 UI 人力列表项构造 CLS NAirWingReorganizationUI::NInternal::CManpowerListItem + CButtonObserverGlue（vtable 名内） |
+| 0x14205CC00 | 业务 空军重组 UI 筛选列表项构造 CLS NAirWingReorganizationUI::NInternal::CFilterListItem + CButtonObserverGlue |
+| 0x14197D990 | CFEXAir::Writer 业务 存档 writer：token 10754/12214/13161/12445/12767/676/12451/13394/12453/12454/10925/11381/27/12455/12456 逐字段写 + 32B 元素数组（a1+168/180，sub_1424C4… |
+| 0x140C5CD60 | 业务 反向调用图 1/2 调用者投 §4.15; 调用图 top 4.1 33% (n=3) |
+| 0x140FA9790 | 业务 类名 CAirWing,CAirWing1,CPdxHybridInlineBufferAllocator → §4.15（投票 1） |
+| 0x140BB2EB0 | 业务 反调用图传播 2.0 权重锚点投 §4.15（top 占比 1.00） |
+| 0x140F80490 | 业务 反调用图传播 1.0 权重锚点投 §4.15（top 占比 1.00） |
+| 0x140C4EC10 | 业务 反调用图传播 1.0 权重锚点投 §4.15（top 占比 1.00） |
+| 0x1412503E0 | 业务 反调用图传播 1.0 权重锚点投 §4.15（top 占比 1.00） |
+
+#### 4.15.39 常量串 getter 结构定案（173 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14073D080 | 常量串 getter: 返回常量串 "NAir::AIR_WING_ATTACK_LOGISTICS_TRAIN_DAMAGE_DISRUPTION_MITIGATION"（高置信） |
+| 0x14073D090 | 常量串 getter: 返回常量串 "NAir::AIR_WING_ATTACK_LOGISTICS_TRAIN_DAMAGE_DISRUPTION_SMOOTHING"（高置信） |
+| 0x14073D1A0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_LOSS_REDUCTION_OVER_FRIENDLY_TERRITORY_FACTOR"（高置信） |
+| 0x14073D570 | 常量串 getter: 返回常量串 "NAir::EFFICIENCY_REGION_CHANGE_DAILY_GAIN_MARITIME_PATROL_PLANE"（高置信） |
+| 0x14073DB00 | 常量串 getter: 返回常量串 "NAir::REINFORCEMENT_DISABLING_DURATION_IN_LAND_CARRIER_TRANSFER"（高置信） |
+| 0x14073D070 | 常量串 getter: 返回常量串 "NAir::AIR_WING_ATTACK_LOGISTICS_RAILWAY_DAMAGE_SPILL_FACTOR"（高置信） |
+| 0x14073D060 | 常量串 getter: 返回常量串 "NAir::AIR_WING_ATTACK_LOGISTICS_NO_TRUCK_DISRUPTION_FACTOR"（高置信） |
+| 0x14073D590 | 常量串 getter: 返回常量串 "NAir::EFFICIENCY_REGION_CHANGE_DAILY_GAIN_STRATEGIC_BOMBER"（高置信） |
+| 0x14073D610 | 常量串 getter: 返回常量串 "NAir::EXPERIENCE_SCALE_ATTACK_LOGISTICS_NO_TRUCK_CONSUMERS"（高置信） |
+| 0x14073D050 | 常量串 getter: 返回常量串 "NAir::AIR_WING_ATTACK_LOGISTICS_INFRA_DAMAGE_SPILL_FACTOR"（高置信） |
+| 0x14073D5A0 | 常量串 getter: 返回常量串 "NAir::EFFICIENCY_REGION_CHANGE_DAILY_GAIN_TACTICAL_BOMBER"（高置信） |
+| 0x14073D600 | 常量串 getter: 返回常量串 "NAir::EXPERIENCE_SCALE_ATTACK_LOGISTICS_NODE_AND_TRAINS"（高置信） |
+| 0x14073D580 | 常量串 getter: 返回常量串 "NAir::EFFICIENCY_REGION_CHANGE_DAILY_GAIN_NAVAL_BOMBER"（高置信） |
+| 0x14073D9D0 | 常量串 getter: 返回常量串 "NAir::NAVAL_COMBAT_EXTERNAL_PLANES_JOIN_RATIO_PER_DAY"（高置信） |
+| 0x14073D2A0 | 常量串 getter: 返回常量串 "NAir::BASE_STRATEGIC_BOMBING_HIT_PLANE_DAMAGE_FACTOR"（高置信） |
+| 0x14073D0A0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_ATTACK_LOGISTICS_TRAIN_DAMAGE_FACTOR"（高置信） |
+| 0x14073D0B0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_ATTACK_LOGISTICS_TRUCK_DAMAGE_FACTOR"（高置信） |
+| 0x14073D2C0 | 常量串 getter: 返回常量串 "NAir::BASE_STRATEGIC_BOMBING_HIT_SHIP_DAMAGE_FACTOR"（高置信） |
+| 0x14073D1F0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_TRAINING_MISSION_ACCIDENT_FACTOR"（高置信） |
+| 0x14073D440 | 常量串 getter: 返回常量串 "NAir::DETECT_CHANCE_FROM_AIRCRAFTS_EFFECTIVE_COUNT"（高置信） |
+| 0x14073D550 | 常量串 getter: 返回常量串 "NAir::EFFICIENCY_REGION_CHANGE_DAILY_GAIN_DEFAULT"（高置信） |
+| 0x14073D560 | 常量串 getter: 返回常量串 "NAir::EFFICIENCY_REGION_CHANGE_DAILY_GAIN_FIGHTER"（高置信） |
+| 0x14073D0C0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_ATTACK_LOGISTICS_TRUCK_MAX_FACTOR"（高置信） |
+| 0x14073D220 | 常量串 getter: 返回常量串 "NAir::ANTI_AIR_ATTACK_TO_DAMAGE_REDUCTION_FACTOR"（高置信） |
+| 0x14073D180 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_GROUND_MISSION_COMPLETED_GAIN"（高置信） |
+| 0x14073D0F0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_COUNTRY_XP_FROM_TRAINING_FACTOR"（高置信） |
+| 0x14073D1D0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_RECON_MISSION_COMPLETED_GAIN"（高置信） |
+| 0x14073D230 | 常量串 getter: 返回常量串 "NAir::ANTI_AIR_MAXIMUM_DAMAGE_REDUCTION_FACTOR"（高置信） |
+| 0x14073D620 | 常量串 getter: 返回常量串 "NAir::EXPERIENCE_SCALE_ATTACK_LOGISTICS_TRUCKS"（高置信） |
+| 0x14073DB50 | 常量串 getter: 返回常量串 "NAir::STRATEGIC_BOMBING_RAILWAY_PRIORITY_SCALE"（高置信） |
+| 0x14073DB70 | 常量串 getter: 返回常量串 "NAir::STRATEGIC_BOMBING_STATE_BUILD_PRIO_SCALE"（高置信） |
+| 0x14073D200 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_TRAINING_MISSION_GAIN_DAILY"（高置信） |
+| 0x14073D290 | 常量串 getter: 返回常量串 "NAir::BASE_STRATEGIC_BOMBING_HIT_PLANE_CHANCE"（高置信） |
+| 0x14073D540 | 常量串 getter: 返回常量串 "NAir::EFFICIENCY_REGION_CHANGE_DAILY_GAIN_CAS"（高置信） |
+| 0x14073D5B0 | 常量串 getter: 返回常量串 "NAir::EFFICIENCY_REGION_CHANGE_PENALTY_FACTOR"（高置信） |
+| 0x14073D9A0 | 常量串 getter: 返回常量串 "NAir::MISSION_EFFICIENCY_MULT_AT_LACK_OF_FUEL"（高置信） |
+| 0x14073D9C0 | 常量串 getter: 返回常量串 "NAir::NAVAL_COMBAT_EXTERNAL_PLANES_JOIN_RATIO"（高置信） |
+| 0x14073DB40 | 常量串 getter: 返回常量串 "NAir::STRATEGIC_BOMBING_PROV_BUILD_PRIO_SCALE"（高置信） |
+| 0x14073D2B0 | 常量串 getter: 返回常量串 "NAir::BASE_STRATEGIC_BOMBING_HIT_SHIP_CHANCE"（高置信） |
+| 0x14073D320 | 常量串 getter: 返回常量串 "NAir::CARRIER_COMBAT_DAMAGE_STATS_MULTIPLIER"（高置信） |
+| 0x14073D390 | 常量串 getter: 返回常量串 "NAir::COMBAT_BETTER_AGILITY_DAMAGE_REDUCTION"（高置信） |
+| 0x14073D9F0 | 常量串 getter: 返回常量串 "NAir::NAVAL_MINES_PLANTING_SPEED_LOWER_BOUND"（高置信） |
+| 0x14073DA10 | 常量串 getter: 返回常量串 "NAir::NAVAL_MINES_SWEEPING_SPEED_LOWER_BOUND"（高置信） |
+| 0x14073DB60 | 常量串 getter: 返回常量串 "NAir::STRATEGIC_BOMBING_STATE_BUILDING_SCALE"（高置信） |
+| 0x14073CFA0 | 常量串 getter: 返回常量串 "NAir::AIR_COMBAT_FINAL_DAMAGE_PLANES_FACTOR"（高置信） |
+| 0x14073D330 | 常量串 getter: 返回常量串 "NAir::CARRIER_HOURS_DELAY_AFTER_EACH_COMBAT"（高置信） |
+| 0x14073D350 | 常量串 getter: 返回常量串 "NAir::CARRIER_PLANES_AMOUNT_FOR_POSITIONING"（高置信） |
+| 0x14073D910 | 常量串 getter: 返回常量串 "NAir::LEND_LEASED_EQUIPMENT_EXPERIENCE_GAIN"（高置信） |
+| 0x14073DA40 | 常量串 getter: 返回常量串 "NAir::NAVAL_STRIKE_BASE_STR_TO_PLANES_RATIO"（高置信） |
+| 0x14073DA80 | 常量串 getter: 返回常量串 "NAir::NAVAL_STRIKE_DETECTION_BALANCE_FACTOR"（高置信） |
+| 0x14073DB80 | 常量串 getter: 返回常量串 "NAir::SUBMARINE_CARRIER_SIZE_STAT_INCREMENT"（高置信） |
+| 0x14073D2D0 | 常量串 getter: 返回常量串 "NAir::BASE_UNIT_WEIGHT_IN_TRANSPORT_PLANES"（高置信） |
+| 0x14073D400 | 常量串 getter: 返回常量串 "NAir::COMBAT_MAX_WINGS_AT_ONCE_PORT_STRIKE"（高置信） |
+| 0x14073D9E0 | 常量串 getter: 返回常量串 "NAir::NAVAL_COMBAT_EXTERNAL_PLANES_MIN_CAP"（高置信） |
+| 0x14073DA30 | 常量串 getter: 返回常量串 "NAir::NAVAL_RECON_DETECTION_BALANCE_FACTOR"（高置信） |
+| 0x14073CF80 | 常量串 getter: 返回常量串 "NAir::AIR_AGILITY_TO_NAVAL_STRIKE_AGILITY"（高置信） |
+| 0x14073D3A0 | 常量串 getter: 返回常量串 "NAir::COMBAT_BETTER_SPEED_DAMAGE_INCREASE"（高置信） |
+| 0x14073D040 | 常量串 getter: 返回常量串 "NAir::AIR_REGION_SUPERIORITY_PIXEL_SCALE"（高置信） |
+| 0x14073D170 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_AIR_VS_AIR_COMBAT_GAIN"（高置信） |
+| 0x14073D380 | 常量串 getter: 返回常量串 "NAir::CLOSE_AIR_SUPPORT_EXPERIENCE_SCALE"（高置信） |
+| 0x14073DB30 | 常量串 getter: 返回常量串 "NAir::STRATEGIC_BOMBING_INFRA_PRIO_SCALE"（高置信） |
+| 0x14073DBD0 | 常量串 getter: 返回常量串 "NAir::USE_SINGLE_NAVAL_ARMAMENT_CATEGORY"（高置信） |
+| 0x14073D210 | 常量串 getter: 返回常量串 "NAir::AI_ALLOWED_PLANES_KEPT_IN_RESERVE"（高置信） |
+| 0x14073D3E0 | 常量串 getter: 返回常量串 "NAir::COMBAT_MAX_WINGS_AT_GROUND_ATTACK"（高置信） |
+| 0x14073D4E0 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_DEFENCE_DEFENCE_FACTOR"（高置信） |
+| 0x14073DA90 | 常量串 getter: 返回常量串 "NAir::NAVAL_STRIKE_TARGETTING_TO_AMOUNT"（高置信） |
+| 0x14073CEE0 | 常量串 getter: 返回常量串 "NAir::ACCIDENT_CHANCE_RELIABILITY_MULT"（高置信） |
+| 0x14073D4D0 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_DEFENCE_ATTACK_FACTOR"（高置信） |
+| 0x14073D300 | 常量串 getter: 返回常量串 "NAir::BOMBING_DAMAGE_EXPERIENCE_SCALE"（高置信） |
+| 0x14073D4A0 | 常量串 getter: 返回常量串 "NAir::DETECT_EFFICIENCY_RANDOM_FACTOR"（高置信） |
+| 0x14073D4F0 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_DEFENCE_SPEED_FACTOR"（高置信） |
+| 0x14073DA00 | 常量串 getter: 返回常量串 "NAir::NAVAL_MINES_PLANTING_SPEED_MULT"（高置信） |
+| 0x14073DA20 | 常量串 getter: 返回常量串 "NAir::NAVAL_MINES_SWEEPING_SPEED_MULT"（高置信） |
+| 0x14073DA50 | 常量串 getter: 返回常量串 "NAir::NAVAL_STRIKE_CARRIER_MULTIPLIER"（高置信） |
+| 0x14073DAB0 | 常量串 getter: 返回常量串 "NAir::NO_SEARCH_MISSION_DETECT_FACTOR"（高置信） |
+| 0x14073CF90 | 常量串 getter: 返回常量串 "NAir::AIR_COMBAT_FINAL_DAMAGE_PLANES"（高置信） |
+| 0x14073D020 | 常量串 getter: 返回常量串 "NAir::AIR_NAVAL_KAMIKAZE_DAMAGE_MULT"（高置信） |
+| 0x14073D030 | 常量串 getter: 返回常量串 "NAir::AIR_NAVAL_KAMIKAZE_LOSSES_MULT"（高置信） |
+| 0x14073D260 | 常量串 getter: 返回常量串 "NAir::BASE_AIR_INVASION_DIVISION_CAP"（高置信） |
+| 0x14073D3D0 | 常量串 getter: 返回常量串 "NAir::COMBAT_DAMAGE_STATS_MULTILPIER"（高置信） |
+| 0x14073D920 | 常量串 getter: 返回常量串 "NAir::MANPOWER_LOSS_RATIO_PLANE_SHOT"（高置信） |
+| 0x14073CEA0 | 常量串 getter: 返回常量串 "NAir::AA_INDUSTRY_AIR_DAMAGE_FACTOR"（高置信） |
+| 0x14073CF00 | 常量串 getter: 返回常量串 "NAir::ACE_DEATH_BY_OTHER_ACE_CHANCE"（高置信） |
+| 0x14073CFB0 | 常量串 getter: 返回常量串 "NAir::AIR_COMBAT_FINAL_DAMAGE_SCALE"（高置信） |
+| 0x14073CFC0 | 常量串 getter: 返回常量串 "NAir::AIR_DAMAGE_TO_DIVISION_LOSSES"（高置信） |
+| 0x14073D460 | 常量串 getter: 返回常量串 "NAir::DETECT_CHANCE_FROM_OCCUPATION"（高置信） |
+| 0x14073D8E0 | 常量串 getter: 返回常量串 "NAir::HOURS_DELAY_AFTER_EACH_COMBAT"（高置信） |
+| 0x14073DAD0 | 常量串 getter: 返回常量串 "NAir::PORT_STRIKES_DELAY_MULTIPLIER"（高置信） |
+| 0x14073DBC0 | 常量串 getter: 返回常量串 "NAir::TOP_SPEED_DAMAGE_BONUS_FACTOR"（高置信） |
+| 0x14073CEB0 | 常量串 getter: 返回常量串 "NAir::ACCIDENT_CHANCE_BALANCE_MULT"（高置信） |
+| 0x14073CED0 | 常量串 getter: 返回常量串 "NAir::ACCIDENT_CHANCE_CARRIER_MULT"（高置信） |
+| 0x14073CF20 | 常量串 getter: 返回常量串 "NAir::ACE_DEATH_CHANCE_PLANES_MULT"（高置信） |
+| 0x14073D1B0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_LOSS_WHEN_KILLED"（高置信） |
+| 0x14073D240 | 常量串 getter: 返回常量串 "NAir::ANTI_AIR_PLANE_DAMAGE_CHANCE"（高置信） |
+| 0x14073D250 | 常量串 getter: 返回常量串 "NAir::ANTI_AIR_PLANE_DAMAGE_FACTOR"（高置信） |
+| 0x14073D430 | 常量串 getter: 返回常量串 "NAir::DETECT_CHANCE_FROM_AIRCRAFTS"（高置信） |
+| 0x14073D490 | 常量串 getter: 返回常量串 "NAir::DETECT_EFFICIENCY_FROM_RADAR"（高置信） |
+| 0x14073D640 | 常量串 getter: 返回常量串 "NAir::FIELD_EXPERIENCE_MAX_PER_DAY"（高置信） |
+| 0x14073DBB0 | 常量串 getter: 返回常量串 "NAir::THRUST_WEIGHT_AGILITY_FACTOR"（高置信） |
+| 0x14073CF40 | 常量串 getter: 返回常量串 "NAir::ACE_EARN_CHANCE_PLANES_MULT"（高置信） |
+| 0x14073D000 | 常量串 getter: 返回常量串 "NAir::AIR_MORE_GROUND_CREWS_BOOST"（高置信） |
+| 0x14073D0E0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_BOMB_DAMAGE_FACTOR"（高置信） |
+| 0x14073D2E0 | 常量串 getter: 返回常量串 "NAir::BIGGEST_AGILITY_FACTOR_DIFF"（高置信） |
+| 0x14073D360 | 常量串 getter: 返回常量串 "NAir::CARRIER_SIZE_STAT_INCREMENT"（高置信） |
+| 0x14073D3C0 | 常量串 getter: 返回常量串 "NAir::COMBAT_DAMAGE_SCALE_CARRIER"（高置信） |
+| 0x14073D500 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_DETECTION_FACTOR"（高置信） |
+| 0x14073D900 | 常量串 getter: 返回常量串 "NAir::INTERCEPTION_DISTANCE_SCALE"（高置信） |
+| 0x14073D990 | 常量串 getter: 返回常量串 "NAir::MISSION_COMMAND_POWER_COSTS"（高置信） |
+| 0x14073D010 | 常量串 getter: 返回常量串 "NAir::AIR_MORE_GROUND_CREWS_COST"（高置信） |
+| 0x14073D100 | 常量串 getter: 返回常量串 "NAir::AIR_WING_FLIGHT_SPEED_MULT"（高置信） |
+| 0x14073D120 | 常量串 getter: 返回常量串 "NAir::AIR_WING_MAX_STATS_AGILITY"（高置信） |
+| 0x14073D140 | 常量串 getter: 返回常量串 "NAir::AIR_WING_MAX_STATS_BOMBING"（高置信） |
+| 0x14073D150 | 常量串 getter: 返回常量串 "NAir::AIR_WING_MAX_STATS_DEFENCE"（高置信） |
+| 0x14073D950 | 常量串 getter: 返回常量串 "NAir::MIN_PLANE_COUNT_AIR_SUPPLY"（高置信） |
+| 0x14073DA60 | 常量串 getter: 返回常量串 "NAir::NAVAL_STRIKE_DAMAGE_TO_ORG"（高置信） |
+| 0x14073DA70 | 常量串 getter: 返回常量串 "NAir::NAVAL_STRIKE_DAMAGE_TO_STR"（高置信） |
+| 0x14073DB10 | 常量串 getter: 返回常量串 "NAir::SECONDARY_DAMAGE_LOGISTICS"（高置信） |
+| 0x14073CFF0 | 常量串 getter: 返回常量串 "NAir::AIR_INVASION_PREPARE_DAYS"（高置信） |
+| 0x14073D130 | 常量串 getter: 返回常量串 "NAir::AIR_WING_MAX_STATS_ATTACK"（高置信） |
+| 0x14073D2F0 | 常量串 getter: 返回常量串 "NAir::BIGGEST_SPEED_FACTOR_DIFF"（高置信） |
+| 0x14073D340 | 常量串 getter: 返回常量串 "NAir::CARRIER_PERCENTAGE_DEFEND"（高置信） |
+| 0x14073D420 | 常量串 getter: 返回常量串 "NAir::DAY_NIGHT_COVERAGE_FACTOR"（高置信） |
+| 0x14073D470 | 常量串 getter: 返回常量串 "NAir::DETECT_CHANCE_FROM_RADARS"（高置信） |
+| 0x14073D4B0 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_AGILITY_FACTOR"（高置信） |
+| 0x14073D520 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_FACTOR_CARRIER"（高置信） |
+| 0x14073D8F0 | 常量串 getter: 返回常量串 "NAir::INTERCEPTION_DAMAGE_SCALE"（高置信） |
+| 0x14073D970 | 常量串 getter: 返回常量串 "NAir::MISSILE_LAUNCHER_CAPACITY"（高置信） |
+| 0x14073DAA0 | 常量串 getter: 返回常量串 "NAir::NON_CORE_STRATEGIC_IMPACT"（高置信） |
+| 0x14073DAC0 | 常量串 getter: 返回常量串 "NAir::PARADROP_EXPERIENCE_SCALE"（高置信） |
+| 0x14073DAE0 | 常量串 getter: 返回常量串 "NAir::PORT_STRIKE_DAMAGE_FACTOR"（高置信） |
+| 0x14073D160 | 常量串 getter: 返回常量串 "NAir::AIR_WING_MAX_STATS_SPEED"（高置信） |
+| 0x14073D1E0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_TRAINING_MAX"（高置信） |
+| 0x14073D3F0 | 常量串 getter: 返回常量串 "NAir::COMBAT_MAX_WINGS_AT_ONCE"（高置信） |
+| 0x14073D450 | 常量串 getter: 返回常量串 "NAir::DETECT_CHANCE_FROM_NIGHT"（高置信） |
+| 0x14073D4C0 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_ATTACK_FACTOR"（高置信） |
+| 0x14073D940 | 常量串 getter: 返回常量串 "NAir::MAX_QUICK_WING_SELECTION"（高置信） |
+| 0x14073D960 | 常量串 getter: 返回常量串 "NAir::MIN_PLANE_COUNT_PARADROP"（高置信） |
+| 0x14073CF60 | 常量串 getter: 返回常量串 "NAir::ACE_WING_SIZE_MAX_BONUS"（高置信） |
+| 0x14073D280 | 常量串 getter: 返回常量串 "NAir::BASE_KAMIKAZE_TARGETING"（高置信） |
+| 0x14073D370 | 常量串 getter: 返回常量串 "NAir::CAS_NIGHT_ATTACK_FACTOR"（高置信） |
+| 0x14073D530 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_SPEED_FACTOR"（高置信） |
+| 0x14073D630 | 常量串 getter: 返回常量串 "NAir::FIELD_EXPERIENCE_FACTOR"（高置信） |
+| 0x14073D480 | 常量串 getter: 返回常量串 "NAir::DETECT_EFFICIENCY_BASE"（高置信） |
+| 0x14073D650 | 常量串 getter: 返回常量串 "NAir::FIELD_EXPERIENCE_SCALE"（高置信） |
+| 0x14073D980 | 常量串 getter: 返回常量串 "NAir::MISSILE_LAUNCHER_SLOTS"（高置信） |
+| 0x14073DAF0 | 常量串 getter: 返回常量串 "NAir::RECON_LAND_SPOT_CHANCE"（高置信） |
+| 0x14073DB20 | 常量串 getter: 返回常量串 "NAir::SECONDARY_DAMAGE_STRAT"（高置信） |
+| 0x14073CF10 | 常量串 getter: 返回常量串 "NAir::ACE_DEATH_CHANCE_BASE"（高置信） |
+| 0x14073CFE0 | 常量串 getter: 返回常量串 "NAir::AIR_INVASION_PLAN_CAP"（高置信） |
+| 0x14073D0D0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_AVERAGE_SIZE"（高置信） |
+| 0x14073D410 | 常量串 getter: 返回常量串 "NAir::COMBAT_MULTIPLANE_CAP"（高置信） |
+| 0x14073D5C0 | 常量串 getter: 返回常量串 "NAir::ESCORT_AGILITY_FACTOR"（高置信） |
+| 0x14073CEC0 | 常量串 getter: 返回常量串 "NAir::ACCIDENT_CHANCE_BASE"（高置信） |
+| 0x14073CEF0 | 常量串 getter: 返回常量串 "NAir::ACCIDENT_EFFECT_MULT"（高置信） |
+| 0x14073CF30 | 常量串 getter: 返回常量串 "NAir::ACE_EARN_CHANCE_BASE"（高置信） |
+| 0x14073CF70 | 常量串 getter: 返回常量串 "NAir::AGGRESSION_THRESHOLD"（高置信） |
+| 0x14073D270 | 常量串 getter: 返回常量串 "NAir::BASE_KAMIKAZE_DAMAGE"（高置信） |
+| 0x14073D5D0 | 常量串 getter: 返回常量串 "NAir::ESCORT_ATTACK_FACTOR"（高置信） |
+| 0x14073CFD0 | 常量串 getter: 返回常量串 "NAir::AIR_DEPLOYMENT_DAYS"（高置信） |
+| 0x14073D3B0 | 常量串 getter: 返回常量串 "NAir::COMBAT_DAMAGE_SCALE"（高置信） |
+| 0x14073D5F0 | 常量串 getter: 返回常量串 "NAir::ESCORT_SPEED_FACTOR"（高置信） |
+| 0x14073D190 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_LEVELS"（高置信） |
+| 0x14073D930 | 常量串 getter: 返回常量串 "NAir::MAX_FUEL_FLOW_MULT"（高置信） |
+| 0x14073D9B0 | 常量串 getter: 返回常量串 "NAir::MISSION_FUEL_COSTS"（高置信） |
+| 0x14073DB90 | 常量串 getter: 返回常量串 "NAir::SUPPLY_NEED_FACTOR"（高置信） |
+| 0x14073DBA0 | 常量串 getter: 返回常量串 "NAir::SUPPLY_PRIO_FACTOR"（高置信） |
+| 0x14073D110 | 常量串 getter: 返回常量串 "NAir::AIR_WING_MAX_SIZE"（高置信） |
+| 0x14073D510 | 常量串 getter: 返回常量串 "NAir::DISRUPTION_FACTOR"（高置信） |
+| 0x14073D310 | 常量串 getter: 返回常量串 "NAir::CAPACITY_PENALTY"（高置信） |
+| 0x14073D1C0 | 常量串 getter: 返回常量串 "NAir::AIR_WING_XP_MAX"（高置信） |
+| 0x14073D660 | 常量串 getter: 返回常量串 "NAir::FUEL_COST_MULT"（高置信） |
+| 0x14073CF50 | 常量串 getter: 返回常量串 "NAir::ACE_WING_SIZE"（高置信） |
+| 0x14073D5E0 | 常量串 getter: 返回常量串 "NAir::ESCORT_FACTOR"（高置信） |
+
+#### 4.15.40 模板实例化桩结构定案（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14205C910 | 模板桩: 模板参数类名 CAirBase（高置信） |
+| 0x140F879C0 | 模板桩: 模板参数类名 CAirMission（高置信） |
+| 0x140F87A00 | 模板桩: 模板参数类名 CAirMission（高置信） |
+
+#### 4.15.41 单调用转发桩结构定案（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14252882C | 转发桩: 转发至 业务 断言站点 career_profile.cpp:18; 断言站点 strategicair.cpp:80 ->§4.15; 类路由 CCompleteNationalFocusEffect ->§4.32（推定） |
+| 0x142537A58 | 转发桩: 转发至 业务 断言站点 career_profile.cpp:18; 断言站点 strategicair.cpp:80 ->§4.15; 类路由 CCompleteNationalFocusEffect ->§4.32（推定） |
+| 0x140C67050 | 转发桩: 转发至 无名领域函数 sub_140C44250 被调用者定名: CStrategicAirManager::UpdatePortStrikeLimitPerRegion? 等命中 §4.15（占 56%，共 2 callee）（推定） |
+| 0x1402C0DE0 | 转发桩: 转发至 业务 断言站点 airmission.cpp:17 ->§4.15; 类路由 CRemoveIndustrialOrgTraitFromQueueCommand ->§4.33; 类路由 CNavalBaseSelectionItem ->§4.31（推定） |
+| 0x1426F6634 | 转发桩: 转发至 业务 断言站点 career_profile.cpp:18; 断言站点 strategicair.cpp:80 ->§4.15; 类路由 CCompleteNationalFocusEffect ->§4.32（推定） |
+| 0x1402B4AF0 | 转发桩: 被调者 0x1402C0DE0 -> §4.15 (E:单调用转发(被调者入书))（推定） |
+| 0x1426F66AD | 转发桩: 转发至 业务 断言站点 career_profile.cpp:18; 断言站点 strategicair.cpp:80 ->§4.15; 类路由 CCompleteNationalFocusEffect ->§4.32（推定） |
+| 0x141E90580 | 转发桩: 转发至 25 ¦ 子单位定义 +792 键取值 (`return *(def+792)`)（推定） |
+| 0x1426E99C0 | 转发桩: 转发至 业务 断言站点 career_profile.cpp:18; 断言站点 strategicair.cpp:80 ->§4.15; 类路由 CCompleteNationalFocusEffect ->§4.32（推定） |
+| 0x140BB37D0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 断言站点 air_update_tracer.cpp:130（推定） |
+| 0x14258FB80 | 转发桩: 转发至 业务 断言站点 career_profile.cpp:18; 断言站点 strategicair.cpp:80 ->§4.15; 类路由 CCompleteNationalFocusEffect ->§4.32（推定） |
+| 0x1414EC180 | 转发桩: 转发至 （无名） VA 邻近 NRaids::CRaidTargetCooldownStatus::Writer(±112)（空军/空战）（推定） |
+| 0x140C48710 | 转发桩: 转发至 （无名） 被 CStrategicAir::[0] 调用（空军/空战）（推定） |
+| 0x1402B5A00 | 转发桩: 转发至 业务 断言站点 airmission.cpp:17 ->§4.15; 类路由 CRemoveIndustrialOrgTraitFromQueueCommand ->§4.33; 类路由 CNavalBaseSelectionItem ->§4.31（推定） |
+| 0x14054A9F0 | 转发桩: 转发至 业务 断言站点 airwing.cpp:92 ->§4.15; 串 "MissionIndex < _StatsPerMission.GetS"; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi"（推定） |
+| 0x141FD9780 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "START_SAM_WINGS"（推定） |
+| 0x1426322C0 | 转发桩: 转发至 业务 类路由 CSetPreferredTacticCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 6/10 票 §4.15（同类方法连续排放）（推定） |
+| 0x14260E9B0 | 转发桩: 被调者 0x140C48710 -> §4.15 (E:单调用转发(被调者入书))（推定） |
+| 0x1425A1520 | 转发桩: 被调者 0x1402B4AF0 -> §4.15 (E:单调用转发(链内))（推定） |
+| 0x142628520 | 转发桩: 转发至 业务 类路由 CSetPreferredTacticCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 6/10 票 §4.15（同类方法连续排放）（推定） |
+| 0x140E37030 | 转发桩: 转发至 调用图上游传播(占 67%, 2 票) sub_140E34EC0 + 调用图上游传播(占 67%, 2 票)（推定） |
+| 0x14261C030 | 转发桩: 被调者 0x140E37030 -> §4.15 (E:单调用转发(被调者入书))（推定） |
+| 0x142621BA0 | 转发桩: 转发至 业务 类路由 CSetPreferredTacticCommand ->§4.33; 调用图 IDF top §4.1 frac 1.00; 邻域 6/10 票 §4.15（同类方法连续排放）（推定） |
+
+#### 4.15.42 空军域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14100F430 | caller 140F66DD0(airwing.cpp:1444/2753/4193 邻域) |
+| 0x140AF0460 | 调用图传播: 1 个命名调用者（1 游戏类，如 CUnitNamesDatabase::GenerateNameForAirGroup）；多数投 §4.15 |
+| 0x141038A50 | 串 "SECOND" / "NAVAL_INVASION_BLOCKED_STRAIT" |
+| 0x141888AA0 | 串 "AIRVIEW_GRAPH_VALUE" / "AIRVIEW_GRAPH_VALUE" |
+
+#### 4.15.43 空军域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F635A0 | 业务 串 TYPE/ICONFRAME/COUNT/AIRWING_STACK_INFO + CEquipmentType + 邻域 NAirSelectionUI::CCreateAirGroupOption/CRemoveFromGroupOption |
+| 0x140C5C0A0 | 业务 airwing.cpp:2965/3178/3245/3276 x4 + gamestate.h:1125/1126 + off_143085170 x14（可变参） |
+| 0x141BEDB30 | 业务 串 AIR_WINGS_COUNT/PLANES/CAPACITY + airwing.cpp:2931 + 断言 ref.h:83 |
+| 0x140C50B80 | 业务 邻域 strategicair.cpp x27 + production.cpp:3760 + strategicair.cpp:3697 + gamestate.h:1116 |
+| 0x141CF1100 | CU 同类簇: 邻接 141CF0640（NAirSelectionUI::NQuickWingDeployment::C）/ 141CF33D0（NAirSelectionUI::CAirWingEntry::[1]） |
+| 0x140C42430 | CU 同类簇: 邻接 140C3F6E0（CStrategicAir::GatherIntermediateOperati）/ 140C43FC1（CStrategicAir::GatherIntermediateOperati） |

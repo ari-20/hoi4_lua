@@ -522,23 +522,11 @@ helper B (sub_1414E2EB0, 书原完全未收): sys = *(gs+984) CSupplySystem → 
 | 0x140D66810 | （无名，按证据定性） 键 NAVY_SUPPLY_USAGE_DESC_SUPPLY_HUB_REDUCTION（海军补给枢纽消耗描述） |
 | 0x141AEB6E0 | 补给诊断输出 "Cached Max Supply:" / "Actual Supply Use:" / "Recalc Supply" |
 | 0x140EC46D4 | CSupplySystem::[0] vtable 槽 CSupplySystem::[0]（func_names RTTI 名） |
-
-#### 4.21.11 补给系统函数补遗（4 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.21.12 补给系统函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x140EBC2E0 | CSupplySystem::UpdateSupply? func_names 名 CSupplySystem::UpdateSupply? |
-
-#### 4.21.13 补给系统函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.21.14 补给系统函数补遗（10 函）
 
 | VA | 语义/证据 |
@@ -627,3 +615,191 @@ helper B (sub_1414E2EB0, 书原完全未收): sys = *(gs+984) CSupplySystem → 
 | 0x140ED0CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
 | 0x140ED1000 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
 | 0x140ED0F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+
+#### 4.21.21 补给系统函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B6BE70 | CSupplyNudger::[4] — func_names 类名 CSupplyNudger（补给调节器，槽 4） func_names 类名 CSupplyNudger（补给调节器，槽 4） |
+| 0x141375230 | CLogisticsStatus::Reader CLogisticsStatus::Reader（补给/后勤） |
+| 0x140326ED0 | （无名） 被 CUpdateSupplyNodeCountrySettingsCommand: 调用（补给/后勤） |
+| 0x14194D480 | 无名大函数 0x14194D480 诊断串 'Motorization level on a hub was not a defined level'（补给枢纽摩托化） |
+| 0x141370C90 | 未命名业务函数 后勤（logistics.cpp 断言） |
+| 0x141B6B9A0 | CSupplyNudger::Update CSupplyNudger::Update + 域关键词匹配; 被调源码 hoi4; 被 CSupplyNudger::Update 等 1 命名函数调用 |
+| 0x141020CF0 | CConvoys::CalcRequiredConvoysForInternationalMarketEquipment? 名:CConvoys::CalcRequiredConvoysForInternationalMarketEquipment? |
+
+#### 4.21.22 补给系统函数补遗（14 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CA0810 | 业务 断言站点 pathfinding\\trade_pathfind.h:113 §4.21 补给 |
+| 0x140C527B0 | sub_140C527B0 业务 燃料后勤（FUEL_TITLE / LOGISTICS_FUEL_PERCENTAGE / FUEL_DAILY_REQUIRED/_RECEIVED / FUEL_DAILY_REQUIRED_MAX_DESC_NAVY） |
+| 0x140C79DD0 | （无名） 业务 串 "UNIT_AVERAGE_ORG"/"UNIT_AVERAGE_STR"/"ARMY_UNIT_SUPPLY" |
+| 0x140CAE660 | （无名） 业务 串 "NO_LEGAL_TRANSPORT_PATH"/"IMPORTING_REQUEST_WAITING_TO_START"/"INSUFFICIENT_CONVOYS_THEY"/"INSUFFICIENT_CONVOYS_US" |
+| 0x140EBD720 | 业务 夹于 CSupplySystem::UpdateSupply?(d=5184) 与 UpdateProvinceSupplyFactors?(d=7840)，补给系统族 |
+| 0x140EAFB60 | — 业务 gamestate.h:1125 断言；调用 sub_140E7C120（0x140E2-E7 补给邻域） |
+| 0x141461250 | — 业务 gamestate.h:1116 断言 + 调用 sub_140E6FCC0（0x140E6 补给区段） |
+| 0x140C32600 | sub_140C32600 业务 串：FUEL_DAILY_REQUIRED_MAX |
+| 0x140FE8400 | — 业务 调用 sub_140E7D130（0x140E7 补给区段） |
+| 0x140EC9F10 | 业务 类路由 CUpgradeDivisionOfficerCommand ->§4.33; 调用图 IDF top §4.1 frac 0.91; 邻域 12/19 票 §4.21（同类方法连续排放） |
+| 0x140EC4750 | 业务 断言站点 pdx_triangular_matrix.h:43; 类路由 NFactions ->§4.25; 类路由 CAddHumanCommand ->§4.33 |
+| 0x140EC0EB0 | 业务 断言站点 cic_bank.cpp:40; 类路由 CChatUserJoinedCommand ->§4.33; 串 "BankValue >= 0_fixed && \"Trying to " |
+| 0x140EC0FB0 | 业务 类路由 CHiddenEffect ->§4.32; 调用图 IDF top §4.1 frac 0.89; 邻域 12/22 票 §4.21（同类方法连续排放） |
+| 0x140EBF990 | 业务 类路由 CChatUserJoinedCommand ->§4.33; 串 "glowup"; 调用图 IDF top §4.1 frac 0.50 |
+
+
+#### 4.21.23 常量串 getter 结构定案（103 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14074A380 | 常量串 getter: 返回常量串 "NSupply::DAYS_TO_START_GIVING_FULL_SUPPLY_AFTER_MOVING_SUPPLY_CAPITAL"（高置信） |
+| 0x14074A1F0 | 常量串 getter: 返回常量串 "NSupply::AI_FRONT_MINIMUM_UNITS_PER_PROVINCE_FOR_SUPPLY_CALCULATIONS"（高置信） |
+| 0x14074A390 | 常量串 getter: 返回常量串 "NSupply::DAYS_TO_START_GIVING_SUPPLY_AFTER_MOVING_SUPPLY_CAPITAL"（高置信） |
+| 0x14074A3C0 | 常量串 getter: 返回常量串 "NSupply::ESTIMATED_DIVISION_WEIGHT_FOR_SUPPLY_ESTIMATIONS_GUI"（高置信） |
+| 0x14074A6D0 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_FLOW_DIST_LOGISTICS_FALLOFF_MIN_PENALTY_SCALE"（高置信） |
+| 0x14074A5D0 | 常量串 getter: 返回常量串 "NSupply::NUMBER_OF_SHOWN_SUPPLY_SOURCES_IN_SUPPLY_MAPMODE"（高置信） |
+| 0x14074A630 | 常量串 getter: 返回常量串 "NSupply::RAILWAY_DISTANCE_FACTOR_FOR_REINFORCEMENT_SPEED"（高置信） |
+| 0x14074A480 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_STARTING_PENALTY_PER_PROVINCE"（高置信） |
+| 0x14074A540 | 常量串 getter: 返回常量串 "NSupply::NAVAL_DISTANCE_FACTOR_FOR_REINFORCEMENT_SPEED"（高置信） |
+| 0x14074A750 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_HUB_MOTORIZATION_MARGINAL_EFFECT_DECAY"（高置信） |
+| 0x14074A800 | 常量串 getter: 返回常量串 "NSupply::TRUCK_DISTANCE_FACTOR_FOR_REINFORCEMENT_SPEED"（高置信） |
+| 0x14074A4C0 | 常量串 getter: 返回常量串 "NSupply::MIN_DIFF_FOR_AUTO_UPDATING_EXISTING_RAILWAYS"（高置信） |
+| 0x14074A6C0 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_FLOW_DIST_LOGISTICS_FALLOFF_MIDPOINT"（高置信） |
+| 0x14074A3D0 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_ADDED_PENALTY_PER_PROVINCE"（高置信） |
+| 0x14074A4D0 | 常量串 getter: 返回常量串 "NSupply::MIN_SURRENDER_LIMIT_TO_MOVE_SUPPLY_CAPITAL"（高置信） |
+| 0x14074A290 | 常量串 getter: 返回常量串 "NSupply::BASE_SUPPLY_MULT_FOR_TRUCK_DEFAULT_BUFFER"（高置信） |
+| 0x14074A370 | 常量串 getter: 返回常量串 "NSupply::COOLDOWN_DAYS_AFTER_MOVING_SUPPLY_CAPITAL"（高置信） |
+| 0x14074A6E0 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_FLOW_DIST_LOGISTICS_FALLOFF_SCALAR"（高置信） |
+| 0x14074A440 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_DECAY_NO_CONTROL_PENALTY"（高置信） |
+| 0x14074A450 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_DURATION_RATIO_AT_MIN_HP"（高置信） |
+| 0x14074A530 | 常量串 getter: 返回常量串 "NSupply::NAVAL_BASE_STARTING_PENALTY_PER_PROVINCE"（高置信） |
+| 0x14074A430 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_DECAY_MAX_NAVAL_PENALTY"（高置信） |
+| 0x14074A6F0 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_FLOW_DROP_REDUCTION_AT_MAX_INFRA"（高置信） |
+| 0x14074A740 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_HUB_FULL_MOTORIZATION_TRUCK_COST"（高置信） |
+| 0x14074A270 | 常量串 getter: 返回常量串 "NSupply::BASE_ARMY_SUPPLY_MULT_FOR_TRUCK_BUFFER"（高置信） |
+| 0x14074A280 | 常量串 getter: 返回常量串 "NSupply::BASE_NAVY_SUPPLY_MULT_FOR_TRUCK_BUFFER"（高置信） |
+| 0x14074A1E0 | 常量串 getter: 返回常量串 "NSupply::AI_FRONT_MAX_UNITS_ENEMY_COUNT_FACTOR"（高置信） |
+| 0x14074A230 | 常量串 getter: 返回常量串 "NSupply::ARMY_SUPPLY_RATIO_SPEED_GAIN_PER_HOUR"（高置信） |
+| 0x14074A260 | 常量串 getter: 返回常量串 "NSupply::BASE_AIR_SUPPLY_MULT_FOR_TRUCK_BUFFER"（高置信） |
+| 0x14074A2A0 | 常量串 getter: 返回常量串 "NSupply::BASE_SUPPLY_MULT_FOR_TRUCK_MAX_BUFFER"（高置信） |
+| 0x14074A2B0 | 常量串 getter: 返回常量串 "NSupply::BASE_SUPPLY_MULT_FOR_TRUCK_MIN_BUFFER"（高置信） |
+| 0x14074A320 | 常量串 getter: 返回常量串 "NSupply::CAPITAL_STARTING_PENALTY_PER_PROVINCE"（高置信） |
+| 0x14074A410 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_DECAY_MAX_AIR_PENALTY"（高置信） |
+| 0x14074A420 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_DECAY_MAX_NAVAL_BONUS"（高置信） |
+| 0x14074A500 | 常量串 getter: 返回常量串 "NSupply::NAVAL_BASE_ADDED_PENALTY_PER_PROVINCE"（高置信） |
+| 0x14074A680 | 常量串 getter: 返回常量串 "NSupply::STORED_SUPPLY_CONSUMPTION_RATE_FACTOR"（高置信） |
+| 0x14074A610 | 常量串 getter: 返回常量串 "NSupply::RAILWAY_CONVERSION_COOLDOWN_CIVILWAR"（高置信） |
+| 0x14074A6B0 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_FLOW_DIST_LOGISTICS_FALLOFF_K"（高置信） |
+| 0x14074A1D0 | 常量串 getter: 返回常量串 "NSupply::AI_FRONT_DIVISIONS_PER_SUPPLY_POINT"（高置信） |
+| 0x14074A220 | 常量串 getter: 返回常量串 "NSupply::ARMY_MAX_SUPPLY_RATIO_GAIN_PER_HOUR"（高置信） |
+| 0x14074A400 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_DECAY_MAX_AIR_BONUS"（高置信） |
+| 0x14074A460 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_INITIAL_SUPPLY_FLOW"（高置信） |
+| 0x14074A700 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_FLOW_PENALTY_CROSSING_RIVERS"（高置信） |
+| 0x14074A790 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_THRESHOLD_FOR_ARMY_ATTRITION"（高置信） |
+| 0x14074A2F0 | 常量串 getter: 返回常量串 "NSupply::CAPITAL_ADDED_PENALTY_PER_PROVINCE"（高置信） |
+| 0x14074A5B0 | 常量串 getter: 返回常量串 "NSupply::NODE_STARTING_PENALTY_PER_PROVINCE"（高置信） |
+| 0x14074A730 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_HUB_FULL_MOTORIZATION_BONUS"（高置信） |
+| 0x14074A340 | 常量串 getter: 返回常量串 "NSupply::CAPITAL_SUPPLY_CIVILIAN_FACTORIES"（高置信） |
+| 0x14074A360 | 常量串 getter: 返回常量串 "NSupply::CAPITAL_SUPPLY_MILITARY_FACTORIES"（高置信） |
+| 0x14074A570 | 常量串 getter: 返回常量串 "NSupply::NAVAL_SUPPLY_HUB_REDUCTION_FACTOR"（高置信） |
+| 0x14074A620 | 常量串 getter: 返回常量串 "NSupply::RAILWAY_CONVERSION_COOLDOWN_CORE"（高置信） |
+| 0x14074A640 | 常量串 getter: 返回常量串 "NSupply::RAILWAY_FLOW_PENALTY_PER_DAMAGED"（高置信） |
+| 0x14074A6A0 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_DISRUPTION_DAILY_RECOVERY"（高置信） |
+| 0x14074A760 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_NODE_MIN_SUPPLY_THRESHOLD"（高置信） |
+| 0x14074A240 | 常量串 getter: 返回常量串 "NSupply::ARMY_SUPPLY_RATIO_STARTING_GAIN"（高置信） |
+| 0x14074A250 | 常量串 getter: 返回常量串 "NSupply::AVAILABLE_MANPOWER_STATE_SUPPLY"（高置信） |
+| 0x14074A580 | 常量串 getter: 返回常量串 "NSupply::NODE_ADDED_PENALTY_PER_PROVINCE"（高置信） |
+| 0x14074A710 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_FLOW_REDUCTION_THRESHOLD"（高置信） |
+| 0x14074A7A0 | 常量串 getter: 返回常量串 "NSupply::TRAIN_ANTI_AIR_ATTACK_TO_AMOUNT"（高置信） |
+| 0x14074A520 | 常量串 getter: 返回常量串 "NSupply::NAVAL_BASE_INITIAL_SUPPLY_FLOW"（高置信） |
+| 0x14074A590 | 常量串 getter: 返回常量串 "NSupply::NODE_FLOW_BONUS_PER_RAIL_LEVEL"（高置信） |
+| 0x14074A5C0 | 常量串 getter: 返回常量串 "NSupply::NON_CORE_MANPOWER_STATE_SUPPLY"（高置信） |
+| 0x14074A3E0 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_BASE_DURATION"（高置信） |
+| 0x14074A7C0 | 常量串 getter: 返回常量串 "NSupply::TRAIN_ANTI_AIR_HIT_ROLL_COUNT"（高置信） |
+| 0x14074A830 | 常量串 getter: 返回常量串 "NSupply::VP_TO_SUPPLY_BONUS_CONVERSION"（高置信） |
+| 0x14074A310 | 常量串 getter: 返回常量串 "NSupply::CAPITAL_NODE_BASE_SUPPLY_ADD"（高置信） |
+| 0x14074A3A0 | 常量串 getter: 返回常量串 "NSupply::DEFAULT_STARTING_TRAIN_RATIO"（高置信） |
+| 0x14074A3B0 | 常量串 getter: 返回常量串 "NSupply::DEFAULT_STARTING_TRUCK_RATIO"（高置信） |
+| 0x14074A7D0 | 常量串 getter: 返回常量串 "NSupply::TRAIN_ARMOR_TARGETING_WEIGHT"（高置信） |
+| 0x14074A210 | 常量串 getter: 返回常量串 "NSupply::ALERT_VERY_LOW_SUPPLY_LEVEL"（高置信） |
+| 0x14074A300 | 常量串 getter: 返回常量串 "NSupply::CAPITAL_INITIAL_SUPPLY_FLOW"（高置信） |
+| 0x14074A3F0 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_BASE_SUPPLY"（高置信） |
+| 0x14074A600 | 常量串 getter: 返回常量串 "NSupply::RAILWAY_CONVERSION_COOLDOWN"（高置信） |
+| 0x14074A2E0 | 常量串 getter: 返回常量串 "NSupply::BUILT_NODE_BASE_SUPPLY_ADD"（高置信） |
+| 0x14074A4A0 | 常量串 getter: 返回常量串 "NSupply::LOCAL_NODE_BASE_SUPPLY_ADD"（高置信） |
+| 0x14074A560 | 常量串 getter: 返回常量串 "NSupply::NAVAL_NODE_BASE_SUPPLY_ADD"（高置信） |
+| 0x14074A470 | 常量串 getter: 返回常量串 "NSupply::FLOATING_HARBOR_MIN_DECAY"（高置信） |
+| 0x14074A5E0 | 常量串 getter: 返回常量串 "NSupply::NUM_RAILWAYS_TRAIN_FACTOR"（高置信） |
+| 0x14074A720 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_FROM_DAMAGED_INFRA"（高置信） |
+| 0x14074A7B0 | 常量串 getter: 返回常量串 "NSupply::TRAIN_ANTI_AIR_HIT_CHANCE"（高置信） |
+| 0x14074A350 | 常量串 getter: 返回常量串 "NSupply::CAPITAL_SUPPLY_DOCKYARDS"（高置信） |
+| 0x14074A5A0 | 常量串 getter: 返回常量串 "NSupply::NODE_INITIAL_SUPPLY_FLOW"（高置信） |
+| 0x14074A770 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_PATH_MAX_DISTANCE"（高置信） |
+| 0x14074A4F0 | 常量串 getter: 返回常量串 "NSupply::MIN_TRAIN_SUPPLY_FACTOR"（高置信） |
+| 0x14074A780 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_POINTS_PER_TRAIN"（高置信） |
+| 0x14074A200 | 常量串 getter: 返回常量串 "NSupply::ALERT_LOW_SUPPLY_LEVEL"（高置信） |
+| 0x14074A650 | 常量串 getter: 返回常量串 "NSupply::RAILWAY_FLOW_PER_LEVEL"（高置信） |
+| 0x14074A7F0 | 常量串 getter: 返回常量串 "NSupply::TRUCK_ATTRITION_FACTOR"（高置信） |
+| 0x14074A4E0 | 常量串 getter: 返回常量串 "NSupply::MIN_TRAIN_REQUIREMENT"（高置信） |
+| 0x14074A550 | 常量串 getter: 返回常量串 "NSupply::NAVAL_FLOW_PER_LEVEL"（高置信） |
+| 0x14074A330 | 常量串 getter: 返回常量串 "NSupply::CAPITAL_SUPPLY_BASE"（高置信） |
+| 0x14074A670 | 常量串 getter: 返回常量串 "NSupply::RIVER_RAILWAY_LEVEL"（高置信） |
+| 0x14074A810 | 常量串 getter: 返回常量串 "NSupply::TRUCK_HP_PER_ARMOR"（高置信） |
+| 0x14074A4B0 | 常量串 getter: 返回常量串 "NSupply::MAX_RAILWAY_LEVEL"（高置信） |
+| 0x14074A5F0 | 常量串 getter: 返回常量串 "NSupply::RAILWAY_BASE_FLOW"（高置信） |
+| 0x14074A820 | 常量串 getter: 返回常量串 "NSupply::VP_TO_SUPPLY_BASE"（高置信） |
+| 0x14074A660 | 常量串 getter: 返回常量串 "NSupply::RAILWAY_MIN_FLOW"（高置信） |
+| 0x14074A690 | 常量串 getter: 返回常量串 "NSupply::SUPPLY_BASE_MULT"（高置信） |
+| 0x14074A490 | 常量串 getter: 返回常量串 "NSupply::INFRA_TO_SUPPLY"（高置信） |
+| 0x14074A510 | 常量串 getter: 返回常量串 "NSupply::NAVAL_BASE_FLOW"（高置信） |
+| 0x14074A7E0 | 常量串 getter: 返回常量串 "NSupply::TRUCK_ATTRITION"（高置信） |
+| 0x14074A2C0 | 常量串 getter: 返回常量串 "NSupply::BASE_TRAIN_HP"（高置信） |
+| 0x14074A2D0 | 常量串 getter: 返回常量串 "NSupply::BASE_TRUCK_HP"（高置信） |
+
+#### 4.21.24 模板实例化桩结构定案（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A0B180 | 模板桩: 模板参数类名 CSupplyConsumer（高置信） |
+| 0x141912B90 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FD50 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141912B60 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FD20 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141912B30 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FCF0 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141912B00 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FCC0 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141912BD0 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FD90 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141912C20 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FDE0 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141912C10 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FDD0 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141912C00 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141912BF0 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FDC0 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141B6FDB0 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+| 0x141912C30 | 模板桩: 模板参数类名 CSupplyNodeMapIcon（高置信） |
+| 0x141B6FDF0 | 模板桩: 模板参数类名 CSupplyNudger（高置信） |
+
+#### 4.21.25 单调用转发桩结构定案（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140ED0600 | 转发桩: 转发至 无名领域函数 sub_140EB9CD0 被调用者定名: CSupplySystem::UpdateSupply? 等命中 §4.21（占 100%，共 2 callee）（推定） |
+| 0x1413B9930 | 转发桩: 转发至 CConvoys::CalcRequiredConvoysForInternationalMarketEquipment? 名:CConvoys::CalcRequiredConvoysForInternationalMarketEquipment?（推定） |
+| 0x14150BC00 | 转发桩: 转发至 增援请求物流窗口 串 "REQUESTED_REINFORCEMENT_COLLECTING_AND_DELIVERY"/"_BLOCKED"/"_HEADER" → 增援请求物流窗口（推定） |
+| 0x14261E000 | 转发桩: 转发至 业务 断言站点 cic_bank.cpp:40; 类路由 CChatUserJoinedCommand ->§4.33; 串 "BankValue >= 0_fixed && \"Trying to "（推定） |
+| 0x14261E140 | 转发桩: 转发至 业务 类路由 CHiddenEffect ->§4.32; 调用图 IDF top §4.1 frac 0.89; 邻域 12/22 票 §4.21（同类方法连续排放）（推定） |
+
+#### 4.21.26 补给系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A0B240 | 路径锚 source\supply\supply_consumer.cpp |
+
+#### 4.21.27 补给系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EB7860 | CU 同类簇: 邻接 140EB5E40（CSupplySystem::UpdateProvinceSupplyFacto）/ 140EB9D21（CSupplySystem::UpdateSupply?） |

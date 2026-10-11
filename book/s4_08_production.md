@@ -876,27 +876,22 @@ sub_141932000 (资源 → 生产成本惰性构造表): vec@a1+8 {data@+8, count
 
 0x140A53BE0 (§4.8:692 字段表 25 键全对号互证零冲突): **增量** = initial_trait 对象 (模板 +176 单体槽) 载入形态 = **+8 = 键 id / +16 = 宿主回指针**; 装载走 CEffect[3]/CTrigger[5] Parse 槽偏移契约 (vt+24/vt+40); token 表还原 15373 = xp_research_type (army/navy/air → 1/2/3) / 16217 = equipment_type; 掩码 0x80004003C1 与 §4.8.21 MIO 过滤类型同值互证 (GFX_idea_slot_naval_manufacturer 域)。
 
-#### 4.8.25 生产建筑域函数补遗（28 函）
+#### 4.8.25 生产建筑域函数补遗（23 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x141B46AD0 | （未命名）gamestate.h:1116 + "buildings_nudger_markers.txt" gamestate.h:1116 + "buildings_nudger_markers.txt"，建筑 nudger 调试工具 |
 | 0x1415BFE00 | （未命名）调用者持 vtable `CCustomizableBuildingItem` + listenable.h 断言 调用者持 vtable `CCustomizableBuildingItem` + listenable.h 断言，可定制建筑条目监听 |
-| 0x140495D90 | NProject::CCompleteProjectEffect::[7] NProject::CCompleteProjectEffect::[7] + PROJECT / EFFECT_COMPLETE_SPECIAL_PROJECT（项目完成效果） |
 | 0x140230370 | （未命名）gamestate.h:1125 + 调用 CProductionLine::[14] gamestate.h:1125 + 调用 CProductionLine::[14]，生产线 |
-| 0x140A91450 | NProject::CPrototypeReward::[7] NProject::CPrototypeReward::[7] + "in prototype_reward" / "at least 1 option is mandatory" / "only one option can have defaul… |
-| 0x1404A4910 | NRaids::CRaidReduceProjectProgressRatioEffect::[13] NRaids::CRaidReduceProjectProgressRatioEffect::[13] + "Can only add a progress between ... and"（袭击削减项目进度 … |
 | 0x1404582C0 | NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::GetDesc NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::GetDesc + TRIGGER_MIO_(NOT_)H… |
 | 0x14173B340 | sub_14173B340 PRODUCTION_CLICK_TO_APPEND_OR_INSERT / _NO_FACTORIES / _NO_DEPLOY / _DISABLED（生产插入模式提示 UI） |
 | 0x140E64130 | sub_140E64130 ORGANIZATION_NAME / VALUE / INDUSTRIAL_ORG_PP_GENERATION_COST（MIO 政治点数生成成本 UI） |
 | 0x140F6C960 | sub_140F6C960 PRODUCTION_REPAIRING_ETA_DATE / DATE / NEVER + CGameDate（生产维修 ETA 日期 UI） |
-| 0x141C21C60 | NProject::NUi::CScientistRoster::[6] NProject::NUi::CScientistRoster::[6] + SCIENTIST_TOOLTIP_CLICK_(UN)ASSIGN / SCIENTIST_CANT_CLICK（项目科学家名册 UI） |
 | 0x141938DE0 | sub_141938DE0 生产速率单位枚举（UNITS/PRODUCTION_UNITS_PER_YEAR\ MONTH\ WEEK\ DAY） |
 | 0x140DB46E0 | （未命名）构造 NIndustrialOrganisation::SHistoryWith 构造 NIndustrialOrganisation::SHistoryWithEquipment（vftable 赋值 + a1+240 历史 appending） |
 | 0x141F2EA40 | sub_141F2EA40 CLicenseProductionEntry vtable + std::locale（许可证生产条目） |
 | 0x140A50DC0 | （无名） 军工组织 trait（断言站点 industrial_org_trait.cpp:100） |
 | 0x1419D87B0 | sub_1419D87B0 建筑速度修正（VALUE/BUILDING_SPEED_FACTOR_WITH_TRIGGER） |
-| 0x141EEA9F0 | NProject::NUi::CBreakthroughCostItem::[0] NProject::NUi::CBreakthroughCostItem::[0]，串 SPECIAL_PROJECT_BREAKTHROUGH_COST/AMOUNT/SPECIALIZATION |
 | 0x141EFB230 | sub_141EFB230 体内构造/操作 vtable 类 NIndustrialOrganisation::CTraitBonus（&NIndustrialOrganisation::CTraitBonus::vftable）→ 工业组织（特质/政策窗） |
 | 0x140ABF890 | （未命名）loc 串 STRATEGIC_LOCATION_EXTRA_LEVEL/BUI loc 串 STRATEGIC_LOCATION_EXTRA_LEVEL/BUILDING/AMOUNT（战略地点加成） |
 | 0x141B30730 | （无名） vftable 类 CBuildingReference::（生产/建筑） |
@@ -953,12 +948,6 @@ sub_141932000 (资源 → 生产成本惰性构造表): vec@a1+8 {data@+8, count
 | 0x140E5CDE0 | CProductionStatus::[0] vtable 槽 CProductionStatus::[0]（func_names RTTI 名） |
 | 0x140E5CC94 | CProductionStatus::[1] vtable 槽 CProductionStatus::[1]（func_names RTTI 名） |
 | 0x140E6A910 | CProductionStatus::[4] vtable 槽 CProductionStatus::[4]（func_names RTTI 名） |
-
-#### 4.8.29 生产建筑域函数补遗（9 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.8.30 生产建筑域函数补遗（3 函）
 
 | VA | 语义/证据 |
@@ -966,12 +955,6 @@ sub_141932000 (资源 → 生产成本惰性构造表): vec@a1+8 {data@+8, count
 | 0x140E6AA00 | CProductionStatus::[2] vtable 槽 CProductionStatus::[2]（func_names RTTI 名） |
 | 0x140E699F0 | CProductionStatus::[8] vtable 槽 CProductionStatus::[8]（func_names RTTI 名） |
 | 0x140E5CC88 | CProductionStatus::[2] vtable 槽 CProductionStatus::[2]（func_names RTTI 名） |
-
-#### 4.8.31 生产建筑域函数补遗（3 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.8.32 生产建筑域函数补遗（1 函）
 
 | VA | 语义/证据 |
@@ -1167,3 +1150,644 @@ sub_141932000 (资源 → 生产成本惰性构造表): vec@a1+8 {data@+8, count
 | VA | 语义/证据 |
 |---|---|
 | 0x140DB70E0 | MIO事件 MIO 制造商分配事件：strcpy "on_mio_industrial_manufacturer_assigned" + 事件发射 |
+
+#### 4.8.44 生产建筑域函数补遗（28 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414B6780 | 建筑类型修饰键生成（生产速度/修理速度/成本/地形等级上限） 串 modifier_production_speed_/modifier_repair_speed_/modifier_production_cost_/_max_level_terrain_limit；gameitemdatabasehelper.… |
+| 0x140A4B360 | （无名，按上游/loc 定性） 上游 NIndustrialOrganisation::COrganisationDetailWindow::[0]/CPolicyItem::[0]/NIndustrialOrg |
+| 0x140B10740 | CProductionLine 槽 14 + pdx_scoped_buffer CProductionLine 槽 14 + pdx_scoped_buffer 写入 §4.8 生产/建筑 |
+| 0x140E59A40 | （无名，按证据定性） 直接调用者持串 'Ignoring railway gun production lines ... railway gun feature is not active'（铁路炮产线开关判定） |
+| 0x142026B00 | NIndustrialOrganisation::CTraitTree::[26] NIndustrialOrganisation::CTraitTree::[26] + mutually_exclusive_icon_ / industrial_organisation_mutually_exclusive_i… |
+| 0x141F75780 | CConfirmRemoveBuildingLevel::[14] |
+| 0x1422A2D80 | 无名（证据推断） 类名/模板：CAiIndustrialOrganisation::COrganisationState |
+| 0x141510CD0 | CCustomizableBuildingCollection::[8] 自定义建筑/空槽位/铁路建造与施工地图图标（CCustomizableBuildingCollection::[8]） |
+| 0x141178C80 | （无名） 被 CProductionStatus::[2] 调用（生产/建筑） |
+| 0x140457AD0 | NIndustrialOrganisation::CCheckNumberOfUnlockedTraitsTrigger::GetDesc NIndustrialOrganisation::CCheckNumberOfUnlockedTraitsTrigger::GetDesc（军工组织(MIO)） |
+| 0x140A53450 | NIndustrialOrganisation::COrganisationDatabase::[2] NIndustrialOrganisation::COrganisationDatabase::[2]（军工组织(MIO)） |
+| 0x140459610 | NIndustrialOrganisation::CIndustrialOrgFlagTrigger::[23] 工业组织：资金/政策/标志触发器（NIndustrialOrganisation::CIndustrialOrgFlagTrigger::[23]） |
+| 0x14049C680 | CCreateProductionLicense::Execute CCreateProductionLicense::Execute 生产许可 |
+| 0x1415C3320 | （未命名）L2 被调函数命名证据：CShipRefitProductionLine L2 被调函数命名证据：CShipRefitProductionLine（L2 被调名） |
+| 0x1414B5AE0 | （无名） VA 邻近 CProductionLine::[19](±16)（生产/建筑） |
+| 0x140CA3070 | （无名） 被 CCountryResources::[2] 调用（生产/建筑） |
+| 0x1413AFDB0 | NIndustrialOrganisation::CEveryIndustrialOrgEffect::[27] NIndustrialOrganisation::CEveryIndustrialOrgEffect::[27]（军工组织(MIO)） |
+| 0x140C9EA60 | （无名） 被 CResourceOrigin::Reader 调用（生产/建筑） |
+| 0x141B45A20 | CBuildingsNudger::[4] CBuildingsNudger 槽 4 |
+| 0x1414BB380 | （无名） VA 邻近 CBuildingTemplate::[4](±432)（生产/建筑） |
+| 0x1402FAFA0 | NIndustrialOrganisation::CSetAttachPolicyCostEffect::Execute NIndustrialOrganisation::CSetAttachPolicyCostEffect::Execute（军工组织(MIO)） |
+| 0x141101C90 | CRequestLicensedProductionAction::[24] 名:CRequestLicensedProductionAction::[24] |
+| 0x140300A60 | NIndustrialOrganisation::CSetDesignTeamAssignCostEffect::ResolveReferences NIndustrialOrganisation::CSetDesignTeamAssignCostEffect::ResolveReferences（军工组织(MIO)） |
+| 0x140BCCB90 | （无名） VA 邻近 CStrategicResourcePool::[2](±160)（生产/建筑） |
+| 0x1416CB080 | CUnitLeaderTraitTree::[19] CUnitLeaderTraitTree::[19]（军工组织(MIO)） |
+| 0x140CB6780 | CResourceExchange::[11] CResourceExchange::[11] + 域关键词匹配; 被调源码 hoi4; 被 CResourceExchange::[11] 等 1 命名函数调用 |
+| 0x14014F940 | 未决窗口函数 · 原型奖励库析构 `CPersistentReloadableGameItemDatabase<NProject::CPrototypeRewardDatabase,...>` 析构 |
+| 0x1415111C0 | CCustomizableBuildingCollection::[2] CCustomizableBuildingCollection::[2] + 域关键词匹配; 被调源码 hoi4; 被 CCustomizableBuildingCollection::[2] 等 1 命名函数调用 |
+
+#### 4.8.45 生产建筑域函数补遗（30 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DB1FF0 | sub_141DB1FF0 业务 海军生产命名表（PRODUCTION_NAVAL_NAME_LIST_EMPTY_NOT_ALLOWED / NAME_RESERVED / TOO_FEW_PRODUCED / ADD_NAME，EQUIPMENT/NAME） |
+| 0x14171AF00 | sub_14171AF00 业务 生产窗口顶部（production_win_top / PRODUCTION_OPERATIONAL_FACTORIES_VALUE / traded/local_factories_value / cic_bank_val / INTERNATIONAL_MARKET_EQUI… |
+| 0x140D8B160 | 业务 串字面量 "MANIFEST" §4.8 生产 |
+| 0x141A01080 | sub_141A01080 业务 工业组织分配（industrial_org_assignment.cpp "Unknown XP type"） |
+| 0x140F8E9B0 | （无名） 业务 串 "Invalid level "/"Invalid upgrade name '" + 调 sub_1409DB8A0（CState 对解析）/sub_1409F8880（gameitemdatabasehelper）：州建筑升级校验 |
+| 0x14171A0C0 | （无名） 业务 串 "static_consumer_goods_entry"/"PRODUCTION_CONSUMER_GOODS_VALUE"/"factories" |
+| 0x1411731F0 | gamestate.h:1125 业务 建筑等级上限：define BUILDING_CURRENT_MAX_LEVEL_CAPPED 查询 + scopedptr 断言 |
+| 0x140E722D0 | （无名） 业务 位掩码 0x1F0037FC00 分 8 路累加 v29..v32+i，经 vtable+176/+112/+216 查询；0x140E70-76 邻域 production.cpp/CProductionStatus/NProject::CProgram（近邻传播） |
+| 0x141A3A500 | sub_141A3A500 业务 串 on_project_completion_ |
+| 0x140DBEE60 | 业务 夹于 NIndustrialOrganisation::SHistoryWithEquipment::Writer(d=7456) 与 CInGameIdler::[0](d=25312)，工业组织历史/游戏 idler 族 |
+| 0x140405070 | CHasBuilt::GetDesc 业务 CHasBuilt::GetDesc 已建造 trigger 描述（gameitemdatabase.h:149 内联站点） |
+| 0x1417800A0 | 业务 串字面量 "LEVEL" §4.8 生产 |
+| 0x1421168A0 | sub_1421168A0 业务 串：hid.dll 、 HidD_GetAttributes 、 HidD_GetSerialNumberString 、 HidD_GetMa |
+| 0x140DC0580 | 业务 夹于 NIndustrialOrganisation::SHistoryWithEquipment::Writer(d=13376) 与 CInGameIdler::[0](d=19392)，SIMD，工业组织历史/游戏 idler 族（与 0x140DBEE60 同簇） |
+| 0x140456920 | NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::Evaluate 业务 NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::Evaluate 工业组织 trigger 求值（… |
+| 0x14068A690 | 业务 调 CDiplomaticAction::GetFirstCountryRef，夹于 CBuildingDatabase::CIntermediateBuildingTemplateData::[4](d=8224) 与 CPdxHybridInlineBufferAllocator::[0]，建筑数据库族 |
+| 0x140E73A20 | 业务 夹于 CProductionStatus::[2](d=7536) 与 NProject::CProgramStatus::[0](d=8156)，生产状态/项目状态族 |
+| 0x1414B3040 | 业务 夹于 _Func_impl_no_alloc(d=39744) 与 CProductionLine::[0](d=6976)，生产线族 |
+| 0x1414B81A0 | sub_1414B81A0 业务 建造成本统计 loc 键（STAT_COMMON_BUILD_COST_IC_VALUE / STAT_COMMON_BUILD_COST_IC_T_CONVERTING） |
+| 0x1411722C0 | sub_1411722C0 业务 建造校验 loc 键（CONSTRUCTION_CHECK_FOREIGN / BUILDING / COUNTRY） |
+| 0x1403C1EC0 | (无名) 业务 调用窗口内命名函数 sub_14049C680 |
+| 0x140C9E700 | sub_140C9E700 业务 串：Industrial Manufacturer Assign cost is entirely disabled - changing th |
+| 0x141516E70 | 业务 断言站点 eventscope.h:93; 断言站点 production.cpp:98 ->§4.8; 断言站点 gameitemdatabase.h:42 ->§4.26 |
+| 0x140E33E90 | 业务 类路由 CHistoricalDesignItem ->§4.31; 调用图 IDF top §4.1 frac 0.97; 邻域 8/15 票 §4.8（同类方法连续排放） |
+| 0x1421B83D0 | 业务 串 "%s:%d: %s"; 串 "char(%d)"; 串 "; v9 = (const char *)sub_1421A" |
+| 0x140E36E50 | 业务 类路由 CNavyTheaterFleetItem ->§4.31; 串 "_large"; 调用图 IDF top §4.1 frac 0.97 |
+| 0x140E34D70 | 业务 串 "name"; 调用图 IDF top §4.1 frac 1.00; 邻域 8/15 票 §4.8（同类方法连续排放） |
+| 0x140E37460 | 业务 类路由 CReserveOperativeForOperationCommand ->§4.33; 调用图 IDF top §4.00 frac 0.58; 邻域 8/15 票 §4.8（同类方法连续排放） |
+| 0x1423F2440 | 业务 递归：a2[1]+=a3、*a2+=*(a1+1872)*a3，再按 a1+2284 计数以 2304B 步长递归子节点（a3 按 *(a1+1872) 缩放） 层级定点累加 |
+| 0x140E4C3F0 | 业务 类路由 CSetTimedActivityDistributionPriorityCommand ->§4.33; 调用图 IDF top §4.1 frac 0.77; 邻域 10/18 票 §4.8（同类方法连续排放） |
+
+#### 4.8.46 生产建筑域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141FB6470 | NIndustrialOrganisation::CQueueItem::[0] 业务 func_names 名 NIndustrialOrganisation::CQueueItem::[0]；串 "INDUSTRIAL_ORG_QUEUE_WINDOW_ITEM"/"_REMOVE_TOOLTIP"/"_DR… |
+| 0x1404586E0 | NIndustrialOrganisation::CHasPolicyActiveTrigger::GetDesc 业务 NIndustrialOrganisation::CHasPolicyActiveTrigger::GetDesc 政策激活 trigger 描述 |
+| 0x140458C40 | NIndustrialOrganisation::CHasResearchCategoryTrigger::GetDesc 业务 NIndustrialOrganisation::CHasResearchCategoryTrigger::GetDesc 科研类别 trigger 描述 |
+| 0x140458990 | NIndustrialOrganisation::CHasPolicyTrigger::GetDesc 业务 MIO 触发器 GetDesc（断言串 TRIGGER_MIO_HAS_POLICY / TRIGGER_MIO_HAS_NOT_POLICY） |
+| 0x1402FE0A0 | NIndustrialOrganisation::CSetDesignTeamAssignCostEffect::GetDesc 业务 MIO 设定设计团队分配成本效果 GetDesc（EFFECT_MIO_SET_RESEARCH_ASSIGN_COST） |
+
+#### 4.8.47 生产建筑域函数命名空间补遗（223 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1404564D0 | NIndustrialOrganisation::CAllIndustrialOrgTrigger::Evaluate 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x140457CD0 | NIndustrialOrganisation::CCheckSizeTrigger::GetDesc / "TRIGGER_MIO_CURRENT_SIZE" "TRIGGER_MIO_CURRENT_SIZE" §4.12 事件 |
+| 0x1402FDA80 | NIndustrialOrganisation::CSetAttachPolicyCooldownEffect::GetDesc NIndustrialOrganisation::CSetAttachPolicyCooldownEffect |
+| 0x140456690 | NIndustrialOrganisation::CAnyIndustrialOrgTrigger::Evaluate 触发器求值（Evaluate）（NIndustrialOrganisation::CAnyIndustrialOrgTrigger::Evaluate） |
+| 0x140300480 | NIndustrialOrganisation::CUnlockTraitEffect::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x140458000 | NIndustrialOrganisation::CHasEquipmentTypeTrigger::GetDesc NIndustrialOrganisation::CHasEquipmentTypeTrigger::GetDesc；串「TRIGGER_MIO_HAS_EQUIPMENT_TYPE」 |
+| 0x141BE1AE0 | NIndustrialOrganisation::XPEAVCOrganisation::Z::_Func_impl_no_a…::[2] NIndustrialOrganisation::XPEAVCOrganisation::Z::_Func_impl_no_a…::[2] + 域关键词匹配; 串 "GetP… |
+| 0x1402FC390 | NIndustrialOrganisation::CAddAttachPolicyCostEffect::GetDesc NIndustrialOrganisation::CAddAttachPolicyCostEffect::GetDesc；串「NAME」 |
+| 0x1402FF650 | NIndustrialOrganisation::CShowIndustrialOrgTooltip::GetDesc：NIndustrialOrganisation::CShowIndustrialOrgTooltip::GetDesc NIndustrialOrganisation::CShowIndustr… |
+| 0x142021910 | NIndustrialOrganisation::CLoadQueuePopUp::[0]：NIndustrialOrganisation::CLoadQueuePopUp::[0] NIndustrialOrganisation::CLoadQueuePopUp::[0]；串 INDUSTRIAL_ORG_QU… |
+| 0x1420256F0 | NIndustrialOrganisation::CUpgradeVariantPopup 槽14 NIndustrialOrganisation::CUpgradeVariantPopup 槽14：STR '..._CONFIRM_POPUP_HEADER'/'EQUIPMENT_NAME'/'XPCOST'/… |
+| 0x1402FBD80 | NIndustrialOrganisation::CUnlockTraitEffect::Execute "complete_mio_trait - trait is already unlocked. Do nothing." + industrial_org_effect_implementation.cpp… |
+| 0x141FBABE0 | NIndustrialOrganisation::CDetailsInitialTraitItem::[0] vtable 槽 NIndustrialOrganisation::CDetailsInitialTraitItem::[0]（func_names RTTI 名） |
+| 0x140A4BD20 | NIndustrialOrganisation::CPolicyDatabase::[0] vtable 槽 NIndustrialOrganisation::CPolicyDatabase::[0]（func_names RTTI 名） |
+| 0x141F23760 | NIndustrialOrganisation::CEquipmentIconItem::[8] vtable 槽 NIndustrialOrganisation::CEquipmentIconItem::[8]（func_names RTTI 名） |
+| 0x142022260 | NIndustrialOrganisation::CSaveQueuePopUp::[15] vtable 槽 NIndustrialOrganisation::CSaveQueuePopUp::[15]（func_names RTTI 名） |
+| 0x141F21C90 | NIndustrialOrganisation::CEquipmentIconItem::[0] vtable 槽 NIndustrialOrganisation::CEquipmentIconItem::[0]（func_names RTTI 名） |
+| 0x141FBAF50 | NIndustrialOrganisation::CEquipmentTypeHeaderItem::[0] vtable 槽 NIndustrialOrganisation::CEquipmentTypeHeaderItem::[0]（func_names RTTI 名） |
+| 0x140A49830 | NIndustrialOrganisation::CPolicy::[0] vtable 槽 NIndustrialOrganisation::CPolicy::[0]（func_names RTTI 名） |
+| 0x141FBAD20 | NIndustrialOrganisation::CDetailsSeparatorItem::[0] vtable 槽 NIndustrialOrganisation::CDetailsSeparatorItem::[0]（func_names RTTI 名） |
+| 0x140161080 | NIndustrialOrganisation::STreeFlavorText::[0] vtable 槽 NIndustrialOrganisation::STreeFlavorText::[0]（func_names RTTI 名） |
+| 0x142029300 | NIndustrialOrganisation::CTraitTreeItem::[3] vtable 槽 NIndustrialOrganisation::CTraitTreeItem::[3]（func_names RTTI 名） |
+| 0x14015F0C0 | NIndustrialOrganisation::CAiBonusWeightDatabase::[1] vtable 槽 NIndustrialOrganisation::CAiBonusWeightDatabase::[1]（func_names RTTI 名） |
+| 0x1401602E0 | NIndustrialOrganisation::CPolicyDatabase::[1] vtable 槽 NIndustrialOrganisation::CPolicyDatabase::[1]（func_names RTTI 名） |
+| 0x140A51CE0 | NIndustrialOrganisation::COrganisationTemplate::[0] vtable 槽 NIndustrialOrganisation::COrganisationTemplate::[0]（func_names RTTI 名） |
+| 0x14016A970 | NIndustrialOrganisation::COrganisationDatabase::[6] vtable 槽 NIndustrialOrganisation::COrganisationDatabase::[6]（func_names RTTI 名） |
+| 0x1402F95F0 | NIndustrialOrganisation::CShowIndustrialOrgTooltip::[0] vtable 槽 NIndustrialOrganisation::CShowIndustrialOrgTooltip::[0]（func_names RTTI 名） |
+| 0x1402F9540 | NIndustrialOrganisation::CAddAttachPolicyCostEffect::[0] vtable 槽 NIndustrialOrganisation::CAddAttachPolicyCostEffect::[0]（func_names RTTI 名） |
+| 0x140456380 | NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::[0] vtable 槽 NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::[0]（func_names RTTI 名） |
+| 0x140628930 | NIndustrialOrganisation::CAiBonusWeightList::[0] vtable 槽 NIndustrialOrganisation::CAiBonusWeightList::[0]（func_names RTTI 名） |
+| 0x1404563F0 | NIndustrialOrganisation::CHasPolicyTrigger::[0] vtable 槽 NIndustrialOrganisation::CHasPolicyTrigger::[0]（func_names RTTI 名） |
+| 0x1420253C0 | NIndustrialOrganisation::CUpgradeVariantPopup::[16] vtable 槽 NIndustrialOrganisation::CUpgradeVariantPopup::[16]（func_names RTTI 名） |
+| 0x142024210 | NIndustrialOrganisation::CUpgradeVariantPopup::[0] vtable 槽 NIndustrialOrganisation::CUpgradeVariantPopup::[0]（func_names RTTI 名） |
+| 0x1402F96D0 | NIndustrialOrganisation::CUnlockPolicyTooltipEffect::[0] vtable 槽 NIndustrialOrganisation::CUnlockPolicyTooltipEffect::[0]（func_names RTTI 名） |
+| 0x140456460 | NIndustrialOrganisation::CHasTraitTrigger::[0] vtable 槽 NIndustrialOrganisation::CHasTraitTrigger::[0]（func_names RTTI 名） |
+| 0x141FC0940 | NIndustrialOrganisation::CTraitTree::[12] vtable 槽 NIndustrialOrganisation::CTraitTree::[12]（func_names RTTI 名） |
+| 0x141FC0F00 | NIndustrialOrganisation::COrganisationTreeWindow::[0] vtable 槽 NIndustrialOrganisation::COrganisationTreeWindow::[0]（func_names RTTI 名） |
+| 0x142028AE0 | NIndustrialOrganisation::CTraitTreeItem::[5] vtable 槽 NIndustrialOrganisation::CTraitTreeItem::[5]（func_names RTTI 名） |
+| 0x142022070 | NIndustrialOrganisation::CDeleteQueuePopUp::[16] vtable 槽 NIndustrialOrganisation::CDeleteQueuePopUp::[16]（func_names RTTI 名） |
+| 0x140A53B90 | NIndustrialOrganisation::COrganisationTemplate::[3] vtable 槽 NIndustrialOrganisation::COrganisationTemplate::[3]（func_names RTTI 名） |
+| 0x140A4BDD0 | NIndustrialOrganisation::CPolicyTemplate::[3] vtable 槽 NIndustrialOrganisation::CPolicyTemplate::[3]（func_names RTTI 名） |
+| 0x140A539F0 | NIndustrialOrganisation::COrganisationDatabase::[3] vtable 槽 NIndustrialOrganisation::COrganisationDatabase::[3]（func_names RTTI 名） |
+| 0x141FBB5B0 | NIndustrialOrganisation::CEquipmentTypeHeaderItem::[12] vtable 槽 NIndustrialOrganisation::CEquipmentTypeHeaderItem::[12]（func_names RTTI 名） |
+| 0x140628F20 | NIndustrialOrganisation::CAiBonusWeightDatabase::[0] vtable 槽 NIndustrialOrganisation::CAiBonusWeightDatabase::[0]（func_names RTTI 名） |
+| 0x141FB7C90 | NIndustrialOrganisation::CQueueToUnlockWindow::[2] vtable 槽 NIndustrialOrganisation::CQueueToUnlockWindow::[2]（func_names RTTI 名） |
+| 0x140DB4690 | NIndustrialOrganisation::SHistoryWithEquipment::[0] vtable 槽 NIndustrialOrganisation::SHistoryWithEquipment::[0]（func_names RTTI 名） |
+| 0x141FB55B0 | NIndustrialOrganisation::CSavedQueueItem::[0] vtable 槽 NIndustrialOrganisation::CSavedQueueItem::[0]（func_names RTTI 名） |
+| 0x141F24200 | NIndustrialOrganisation::COpenRosterButtonForPoliticalScreen::[1] vtable 槽 NIndustrialOrganisation::COpenRosterButtonForPoliticalScreen::[1]（func_names RTTI 名） |
+| 0x141FB5560 | NIndustrialOrganisation::CQueueItem::[0] vtable 槽 NIndustrialOrganisation::CQueueItem::[0]（func_names RTTI 名） |
+| 0x140456330 | NIndustrialOrganisation::CAnyIndustrialOrgTrigger::[0] vtable 槽 NIndustrialOrganisation::CAnyIndustrialOrgTrigger::[0]（func_names RTTI 名） |
+| 0x140160360 | NIndustrialOrganisation::CPolicyTemplate::[0] vtable 槽 NIndustrialOrganisation::CPolicyTemplate::[0]（func_names RTTI 名） |
+| 0x141F22810 | NIndustrialOrganisation::COrganisationListItem::[12] vtable 槽 NIndustrialOrganisation::COrganisationListItem::[12]（func_names RTTI 名） |
+| 0x140160C10 | NIndustrialOrganisation::CTraitTemplate::[0] vtable 槽 NIndustrialOrganisation::CTraitTemplate::[0]（func_names RTTI 名） |
+| 0x141F22840 | NIndustrialOrganisation::COrganisationListItem::[12] vtable 槽 NIndustrialOrganisation::COrganisationListItem::[12]（func_names RTTI 名） |
+| 0x1402F97E0 | NIndustrialOrganisation::CEveryIndustrialOrgEffect::[25] vtable 槽 NIndustrialOrganisation::CEveryIndustrialOrgEffect::[25]（func_names RTTI 名） |
+| 0x1404595B0 | NIndustrialOrganisation::CAllIndustrialOrgTrigger::[23] vtable 槽 NIndustrialOrganisation::CAllIndustrialOrgTrigger::[23]（func_names RTTI 名） |
+| 0x1404595E0 | NIndustrialOrganisation::CAnyIndustrialOrgTrigger::[23] vtable 槽 NIndustrialOrganisation::CAnyIndustrialOrgTrigger::[23]（func_names RTTI 名） |
+| 0x141F1A860 | NIndustrialOrganisation::CPolicyWindow::[0] vtable 槽 NIndustrialOrganisation::CPolicyWindow::[0]（func_names RTTI 名） |
+| 0x141FBABA0 | NIndustrialOrganisation::CBonusTypeIconItem::[0] vtable 槽 NIndustrialOrganisation::CBonusTypeIconItem::[0]（func_names RTTI 名） |
+| 0x141F22880 | NIndustrialOrganisation::COrganisationListItem::[2] vtable 槽 NIndustrialOrganisation::COrganisationListItem::[2]（func_names RTTI 名） |
+| 0x140DB45B0 | NIndustrialOrganisation::COrganisation::[0] vtable 槽 NIndustrialOrganisation::COrganisation::[0]（func_names RTTI 名） |
+| 0x141C3B5E0 | NIndustrialOrganisation::COrganisationListWindow::[0] vtable 槽 NIndustrialOrganisation::COrganisationListWindow::[0]（func_names RTTI 名） |
+| 0x141F1A820 | NIndustrialOrganisation::COrganisationDetailWindow::[0] vtable 槽 NIndustrialOrganisation::COrganisationDetailWindow::[0]（func_names RTTI 名） |
+| 0x141F1A8A0 | NIndustrialOrganisation::CQueueToUnlockWindow::[0] vtable 槽 NIndustrialOrganisation::CQueueToUnlockWindow::[0]（func_names RTTI 名） |
+| 0x141FBACE0 | NIndustrialOrganisation::CDetailsModifierItem::[0] vtable 槽 NIndustrialOrganisation::CDetailsModifierItem::[0]（func_names RTTI 名） |
+| 0x142021730 | NIndustrialOrganisation::CLoadQueuePopUp::[0] vtable 槽 NIndustrialOrganisation::CLoadQueuePopUp::[0]（func_names RTTI 名） |
+| 0x140459CF0 | NIndustrialOrganisation::CAnyIndustrialOrgTrigger::[26] vtable 槽 NIndustrialOrganisation::CAnyIndustrialOrgTrigger::[26]（func_names RTTI 名） |
+| 0x1413AFF90 | NIndustrialOrganisation::CRandomIndustrialOrgEffect::[28] vtable 槽 NIndustrialOrganisation::CRandomIndustrialOrgEffect::[28]（func_names RTTI 名） |
+| 0x141FB0B70 | NIndustrialOrganisation::CPolicyItem::[1] vtable 槽 NIndustrialOrganisation::CPolicyItem::[1]（func_names RTTI 名） |
+| 0x141FBAB2C | NIndustrialOrganisation::CDetailsInitialTraitItem::[0] vtable 槽 NIndustrialOrganisation::CDetailsInitialTraitItem::[0]（func_names RTTI 名） |
+| 0x141FBAB50 | NIndustrialOrganisation::CDetailsModifierItem::[1] vtable 槽 NIndustrialOrganisation::CDetailsModifierItem::[1]（func_names RTTI 名） |
+| 0x141FB5508 | NIndustrialOrganisation::CSavedQueueItem::[1] vtable 槽 NIndustrialOrganisation::CSavedQueueItem::[1]（func_names RTTI 名） |
+| 0x141F20D34 | NIndustrialOrganisation::COrganisationListItem::[1] vtable 槽 NIndustrialOrganisation::COrganisationListItem::[1]（func_names RTTI 名） |
+| 0x141F20D40 | NIndustrialOrganisation::COrganisationListItem::[1] vtable 槽 NIndustrialOrganisation::COrganisationListItem::[1]（func_names RTTI 名） |
+| 0x141FBAB38 | NIndustrialOrganisation::CDetailsInitialTraitItem::[1] vtable 槽 NIndustrialOrganisation::CDetailsInitialTraitItem::[1]（func_names RTTI 名） |
+| 0x141FBAB74 | NIndustrialOrganisation::CEquipmentTypeHeaderItem::[1] vtable 槽 NIndustrialOrganisation::CEquipmentTypeHeaderItem::[1]（func_names RTTI 名） |
+| 0x141FBAB8C | NIndustrialOrganisation::CHistoryItem::[1] vtable 槽 NIndustrialOrganisation::CHistoryItem::[1]（func_names RTTI 名） |
+| 0x141C3B4B4 | NIndustrialOrganisation::COrganisationListWindow::[1] vtable 槽 NIndustrialOrganisation::COrganisationListWindow::[1]（func_names RTTI 名） |
+| 0x141F1A808 | NIndustrialOrganisation::COrganisationDetailWindow::[1] vtable 槽 NIndustrialOrganisation::COrganisationDetailWindow::[1]（func_names RTTI 名） |
+| 0x141F1A814 | NIndustrialOrganisation::CQueueToUnlockWindow::[1] vtable 槽 NIndustrialOrganisation::CQueueToUnlockWindow::[1]（func_names RTTI 名） |
+| 0x141F20D10 | NIndustrialOrganisation::CEquipmentIconItem::[0] vtable 槽 NIndustrialOrganisation::CEquipmentIconItem::[0]（func_names RTTI 名） |
+| 0x141F20D28 | NIndustrialOrganisation::COrganisationListItem::[0] vtable 槽 NIndustrialOrganisation::COrganisationListItem::[0]（func_names RTTI 名） |
+| 0x141FB0B64 | NIndustrialOrganisation::CPolicyItem::[0] vtable 槽 NIndustrialOrganisation::CPolicyItem::[0]（func_names RTTI 名） |
+| 0x141FB54FC | NIndustrialOrganisation::CQueueItem::[1] vtable 槽 NIndustrialOrganisation::CQueueItem::[1]（func_names RTTI 名） |
+| 0x141FBAB20 | NIndustrialOrganisation::CBonusTypeIconItem::[0] vtable 槽 NIndustrialOrganisation::CBonusTypeIconItem::[0]（func_names RTTI 名） |
+| 0x141FBAB5C | NIndustrialOrganisation::CDetailsSeparatorItem::[0] vtable 槽 NIndustrialOrganisation::CDetailsSeparatorItem::[0]（func_names RTTI 名） |
+| 0x141FBAB68 | NIndustrialOrganisation::CEquipmentTypeHeaderItem::[0] vtable 槽 NIndustrialOrganisation::CEquipmentTypeHeaderItem::[0]（func_names RTTI 名） |
+| 0x141FBAB80 | NIndustrialOrganisation::CHistoryItem::[0] vtable 槽 NIndustrialOrganisation::CHistoryItem::[0]（func_names RTTI 名） |
+| 0x142021534 | NIndustrialOrganisation::CDeleteQueuePopUp::[0] vtable 槽 NIndustrialOrganisation::CDeleteQueuePopUp::[0]（func_names RTTI 名） |
+| 0x142021540 | NIndustrialOrganisation::CDeleteQueuePopUp::[1] vtable 槽 NIndustrialOrganisation::CDeleteQueuePopUp::[1]（func_names RTTI 名） |
+| 0x14202154C | NIndustrialOrganisation::CLoadQueuePopUp::[0] vtable 槽 NIndustrialOrganisation::CLoadQueuePopUp::[0]（func_names RTTI 名） |
+| 0x142021564 | NIndustrialOrganisation::CSaveQueuePopUp::[0] vtable 槽 NIndustrialOrganisation::CSaveQueuePopUp::[0]（func_names RTTI 名） |
+| 0x142021570 | NIndustrialOrganisation::CSaveQueuePopUp::[1] vtable 槽 NIndustrialOrganisation::CSaveQueuePopUp::[1]（func_names RTTI 名） |
+| 0x1420240C8 | NIndustrialOrganisation::CUnlockTraitPopup::[0] vtable 槽 NIndustrialOrganisation::CUnlockTraitPopup::[0]（func_names RTTI 名） |
+| 0x1420240D4 | NIndustrialOrganisation::CUnlockTraitPopup::[1] vtable 槽 NIndustrialOrganisation::CUnlockTraitPopup::[1]（func_names RTTI 名） |
+| 0x1420240E0 | NIndustrialOrganisation::CUpgradeVariantPopup::[0] vtable 槽 NIndustrialOrganisation::CUpgradeVariantPopup::[0]（func_names RTTI 名） |
+| 0x1420240EC | NIndustrialOrganisation::CUpgradeVariantPopup::[1] vtable 槽 NIndustrialOrganisation::CUpgradeVariantPopup::[1]（func_names RTTI 名） |
+| 0x141F241F0 | NIndustrialOrganisation::COpenRosterButtonForPoliticalScreen::[0] vtable 槽 NIndustrialOrganisation::COpenRosterButtonForPoliticalScreen::[0]（func_names RTTI 名） |
+| 0x14199ECD0 | NIndustrialOrganisation::CreateDynamicVariables func_names 名 NIndustrialOrganisation::CreateDynamicVariables |
+| 0x142024B30 | NIndustrialOrganisation::CUnlockTraitPopup::[0] vtable 槽 NIndustrialOrganisation::CUnlockTraitPopup::[0]（func_names RTTI 名） |
+| 0x141FBC720 | NIndustrialOrganisation::CHistoryItem::[8] vtable 槽 NIndustrialOrganisation::CHistoryItem::[8]（func_names RTTI 名） |
+| 0x141FB1FA0 | NIndustrialOrganisation::CPolicyItem::[0] vtable 槽 NIndustrialOrganisation::CPolicyItem::[0]（func_names RTTI 名） |
+| 0x140DBB350 | NIndustrialOrganisation::COrganisation::Reader func_names 名 NIndustrialOrganisation::COrganisation::Reader |
+| 0x140459020 | NIndustrialOrganisation::CIsOrganisationTrigger::GetDesc func_names 名 NIndustrialOrganisation::CIsOrganisationTrigger::GetDesc |
+| 0x140300040 | NIndustrialOrganisation::CUnlockIndustrialOrgTooltipEffect::GetDesc func_names 名 NIndustrialOrganisation::CUnlockIndustrialOrgTooltipEffect::GetDesc |
+| 0x140DBCCC0 | NIndustrialOrganisation::COrganisation::Writer func_names 名 NIndustrialOrganisation::COrganisation::Writer |
+| 0x1402FECD0 | NIndustrialOrganisation::CSetOrganisationNameKeyEffect::GetDesc func_names 名 NIndustrialOrganisation::CSetOrganisationNameKeyEffect::GetDesc |
+| 0x1402FC080 | NIndustrialOrganisation::CAddAttachPolicyCooldownEffect::GetDesc func_names 名 NIndustrialOrganisation::CAddAttachPolicyCooldownEffect::GetDesc |
+| 0x141FB69B0 | NIndustrialOrganisation::CSavedQueueItem::[0] vtable 槽 NIndustrialOrganisation::CSavedQueueItem::[0]（func_names RTTI 名） |
+| 0x1402FD360 | NIndustrialOrganisation::CAddSizeEffect::GetDesc func_names 名 NIndustrialOrganisation::CAddSizeEffect::GetDesc |
+| 0x142027E30 | NIndustrialOrganisation::CTraitTreeItem::[6] vtable 槽 NIndustrialOrganisation::CTraitTreeItem::[6]（func_names RTTI 名） |
+| 0x140A4FAB0 | NIndustrialOrganisation::CTraitTemplate::[7] vtable 槽 NIndustrialOrganisation::CTraitTemplate::[7]（func_names RTTI 名） |
+| 0x1402FDD90 | NIndustrialOrganisation::CSetAttachPolicyCostEffect::GetDesc func_names 名 NIndustrialOrganisation::CSetAttachPolicyCostEffect::GetDesc |
+| 0x140628F60 | NIndustrialOrganisation::CAiBonusWeightList::Reader func_names 名 NIndustrialOrganisation::CAiBonusWeightList::Reader |
+| 0x141FB3110 | NIndustrialOrganisation::CPolicyItem::[8] vtable 槽 NIndustrialOrganisation::CPolicyItem::[8]（func_names RTTI 名） |
+| 0x1402FD850 | NIndustrialOrganisation::CAddTaskCapacityEffect::GetDesc func_names 名 NIndustrialOrganisation::CAddTaskCapacityEffect::GetDesc |
+| 0x1402FC6A0 | NIndustrialOrganisation::CAddDesignTeamAssignCostEffect::GetDesc func_names 名 NIndustrialOrganisation::CAddDesignTeamAssignCostEffect::GetDesc |
+| 0x1420220B0 | NIndustrialOrganisation::CSaveQueuePopUp::[16] vtable 槽 NIndustrialOrganisation::CSaveQueuePopUp::[16]（func_names RTTI 名） |
+| 0x1402FE4E0 | NIndustrialOrganisation::CSetFundsEffect::GetDesc func_names 名 NIndustrialOrganisation::CSetFundsEffect::GetDesc |
+| 0x1402FD630 | NIndustrialOrganisation::CAddSizeUpRequirementFactorEffect::GetDesc func_names 名 NIndustrialOrganisation::CAddSizeUpRequirementFactorEffect::GetDesc |
+| 0x1402FE2C0 | NIndustrialOrganisation::CSetDesignTeamChangeCostEffect::GetDesc func_names 名 NIndustrialOrganisation::CSetDesignTeamChangeCostEffect::GetDesc |
+| 0x1402FE930 | NIndustrialOrganisation::CSetIndustrialManufacturerAssignCostEf鈥�::[7] func_names 名 NIndustrialOrganisation::CSetIndustrialManufacturerAssignCostEf鈥�::[7] |
+| 0x1402FCD00 | NIndustrialOrganisation::CAddFundsGainFactorEffect::GetDesc func_names 名 NIndustrialOrganisation::CAddFundsGainFactorEffect::GetDesc |
+| 0x1402FD140 | NIndustrialOrganisation::CAddResearchBonusEffect::GetDesc func_names 名 NIndustrialOrganisation::CAddResearchBonusEffect::GetDesc |
+| 0x1402FEFE0 | NIndustrialOrganisation::CSetResearchBonusEffect::GetDesc func_names 名 NIndustrialOrganisation::CSetResearchBonusEffect::GetDesc |
+| 0x1402FCAE0 | NIndustrialOrganisation::CAddFundsEffect::GetDesc func_names 名 NIndustrialOrganisation::CAddFundsEffect::GetDesc |
+| 0x1402FEB50 | NIndustrialOrganisation::CSetOrganisationIconEffect::GetDesc func_names 名 NIndustrialOrganisation::CSetOrganisationIconEffect::GetDesc |
+| 0x141FC07A0 | NIndustrialOrganisation::CTraitTree::[23] vtable 槽 NIndustrialOrganisation::CTraitTree::[23]（func_names RTTI 名） |
+| 0x140301010 | NIndustrialOrganisation::CSetIndustrialManufacturerAssignCostEf鈥�::[23] func_names 名 NIndustrialOrganisation::CSetIndustrialManufacturerAssignCostEf鈥�::[23] |
+| 0x140300C20 | NIndustrialOrganisation::CSetDesignTeamChangeCostEffect::ResolveReferences func_names 名 NIndustrialOrganisation::CSetDesignTeamChangeCostEffect::ResolveRefer… |
+| 0x142021600 | NIndustrialOrganisation::CDeleteQueuePopUp::[0] vtable 槽 NIndustrialOrganisation::CDeleteQueuePopUp::[0]（func_names RTTI 名） |
+| 0x1413B0130 | NIndustrialOrganisation::CRandomIndustrialOrgEffect::ParseToken func_names 名 NIndustrialOrganisation::CRandomIndustrialOrgEffect::ParseToken |
+| 0x1402FB900 | NIndustrialOrganisation::CSetOrganisationNameKeyEffect::Execute func_names 名 NIndustrialOrganisation::CSetOrganisationNameKeyEffect::Execute |
+| 0x141FBEC80 | NIndustrialOrganisation::COrganisationTreeWindow::[0] vtable 槽 NIndustrialOrganisation::COrganisationTreeWindow::[0]（func_names RTTI 名） |
+| 0x1402FB6C0 | NIndustrialOrganisation::CSetIndustrialManufacturerAssignCostEf鈥�::[13] func_names 名 NIndustrialOrganisation::CSetIndustrialManufacturerAssignCostEf鈥�::[13] |
+| 0x1402FBB10 | NIndustrialOrganisation::CSetSizeUpRequirementFactorEffect::Execute func_names 名 NIndustrialOrganisation::CSetSizeUpRequirementFactorEffect::Execute |
+| 0x1402FB1B0 | NIndustrialOrganisation::CSetDesignTeamAssignCostEffect::Execute func_names 名 NIndustrialOrganisation::CSetDesignTeamAssignCostEffect::Execute |
+| 0x1402FB9F0 | NIndustrialOrganisation::CSetResearchBonusEffect::Execute func_names 名 NIndustrialOrganisation::CSetResearchBonusEffect::Execute |
+| 0x140A50690 | NIndustrialOrganisation::STraitId::Reader func_names 名 NIndustrialOrganisation::STraitId::Reader |
+| 0x1402FB2E0 | NIndustrialOrganisation::CSetDesignTeamChangeCostEffect::Execute func_names 名 NIndustrialOrganisation::CSetDesignTeamChangeCostEffect::Execute |
+| 0x1402FA630 | NIndustrialOrganisation::CAddAttachPolicyCostEffect::Execute func_names 名 NIndustrialOrganisation::CAddAttachPolicyCostEffect::Execute |
+| 0x140301490 | NIndustrialOrganisation::CShowIndustrialOrgTooltip::ResolveReferences func_names 名 NIndustrialOrganisation::CShowIndustrialOrgTooltip::ResolveReferences |
+| 0x1403012C0 | NIndustrialOrganisation::CSetSizeUpRequirementFactorEffect::ResolveReferences func_names 名 NIndustrialOrganisation::CSetSizeUpRequirementFactorEffect::Resolv… |
+| 0x140300F10 | NIndustrialOrganisation::CSetFundsGainFactorEffect::ResolveReferences func_names 名 NIndustrialOrganisation::CSetFundsGainFactorEffect::ResolveReferences |
+| 0x1403011E0 | NIndustrialOrganisation::CSetResearchBonusEffect::ResolveReferences func_names 名 NIndustrialOrganisation::CSetResearchBonusEffect::ResolveReferences |
+| 0x1403013A0 | NIndustrialOrganisation::CSetTaskCapacityEffect::ResolveReferences func_names 名 NIndustrialOrganisation::CSetTaskCapacityEffect::ResolveReferences |
+| 0x1403003B0 | NIndustrialOrganisation::CUnlockPolicyTooltipEffect::GetDesc func_names 名 NIndustrialOrganisation::CUnlockPolicyTooltipEffect::GetDesc |
+| 0x140458F00 | NIndustrialOrganisation::CHasTraitTrigger::GetDesc func_names 名 NIndustrialOrganisation::CHasTraitTrigger::GetDesc |
+| 0x140459820 | NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::ValidateLate func_names 名 NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::ValidateLate |
+| 0x1402F9760 | NIndustrialOrganisation::CUnlockIndustrialOrgTooltipEffect::ParseTargetToken func_names 名 NIndustrialOrganisation::CUnlockIndustrialOrgTooltipEffect::ParseTa… |
+| 0x1402FFF60 | NIndustrialOrganisation::CTraitTooltipEffect::GetDesc func_names 名 NIndustrialOrganisation::CTraitTooltipEffect::GetDesc |
+| 0x140300760 | NIndustrialOrganisation::CAddDesignTeamChangeCostEffect::ResolveReferences func_names 名 NIndustrialOrganisation::CAddDesignTeamChangeCostEffect::ResolveRefer… |
+| 0x141F20D50 | NIndustrialOrganisation::CEquipmentIconItem::[0] vtable 槽 NIndustrialOrganisation::CEquipmentIconItem::[0]（func_names RTTI 名） |
+| 0x141FB0B80 | NIndustrialOrganisation::CPolicyItem::[0] vtable 槽 NIndustrialOrganisation::CPolicyItem::[0]（func_names RTTI 名） |
+| 0x140459470 | NIndustrialOrganisation::CIsTraitAvailableTrigger::GetDesc func_names 名 NIndustrialOrganisation::CIsTraitAvailableTrigger::GetDesc |
+| 0x140459510 | NIndustrialOrganisation::CIsTraitUnlockedTrigger::GetDesc func_names 名 NIndustrialOrganisation::CIsTraitUnlockedTrigger::GetDesc |
+| 0x1406416B0 | NIndustrialOrganisation::CTraitBonus::Reader func_names 名 NIndustrialOrganisation::CTraitBonus::Reader |
+| 0x140456890 | NIndustrialOrganisation::CHasEquipmentTypeTrigger::Evaluate func_names 名 NIndustrialOrganisation::CHasEquipmentTypeTrigger::Evaluate |
+| 0x141FB7CB0 | NIndustrialOrganisation::CQueueToUnlockWindow::Reload func_names 名 NIndustrialOrganisation::CQueueToUnlockWindow::Reload |
+| 0x1404598D0 | NIndustrialOrganisation::CHasPolicyTrigger::ValidateLate func_names 名 NIndustrialOrganisation::CHasPolicyTrigger::ValidateLate |
+| 0x140456F60 | NIndustrialOrganisation::CIsTraitAvailableTrigger::Evaluate func_names 名 NIndustrialOrganisation::CIsTraitAvailableTrigger::Evaluate |
+| 0x141FBAE40 | NIndustrialOrganisation::CHistoryItem::[0] vtable 槽 NIndustrialOrganisation::CHistoryItem::[0]（func_names RTTI 名） |
+| 0x1402FB800 | NIndustrialOrganisation::CSetIndustrialOrgFlagEffect::Execute func_names 名 NIndustrialOrganisation::CSetIndustrialOrgFlagEffect::Execute |
+| 0x140456C40 | NIndustrialOrganisation::CHasPolicyTrigger::Evaluate func_names 名 NIndustrialOrganisation::CHasPolicyTrigger::Evaluate |
+| 0x140160190 | NIndustrialOrganisation::COrganisationDatabase::[1] vtable 槽 NIndustrialOrganisation::COrganisationDatabase::[1]（func_names RTTI 名） |
+| 0x141FBADB0 | NIndustrialOrganisation::CEquipmentTypeHeaderItem::[0] vtable 槽 NIndustrialOrganisation::CEquipmentTypeHeaderItem::[0]（func_names RTTI 名） |
+| 0x140457020 | NIndustrialOrganisation::CIsTraitUnlockedTrigger::Evaluate func_names 名 NIndustrialOrganisation::CIsTraitUnlockedTrigger::Evaluate |
+| 0x140459C20 | NIndustrialOrganisation::CIsTraitAvailableTrigger::ParseToken func_names 名 NIndustrialOrganisation::CIsTraitAvailableTrigger::ParseToken |
+| 0x1402FB8C0 | NIndustrialOrganisation::CSetOrganisationIconEffect::Execute func_names 名 NIndustrialOrganisation::CSetOrganisationIconEffect::Execute |
+| 0x1402F9660 | NIndustrialOrganisation::CUnlockTraitEffect::[0] vtable 槽 NIndustrialOrganisation::CUnlockTraitEffect::[0]（func_names RTTI 名） |
+| 0x140641810 | NIndustrialOrganisation::CTraitBonus::Writer func_names 名 NIndustrialOrganisation::CTraitBonus::Writer |
+| 0x140456CD0 | NIndustrialOrganisation::CHasTraitTrigger::Evaluate func_names 名 NIndustrialOrganisation::CHasTraitTrigger::Evaluate |
+| 0x1402FABD0 | NIndustrialOrganisation::CAddTaskCapacityEffect::Execute func_names 名 NIndustrialOrganisation::CAddTaskCapacityEffect::Execute |
+| 0x140456D10 | NIndustrialOrganisation::CIndustrialOrgFlagTrigger::Evaluate func_names 名 NIndustrialOrganisation::CIndustrialOrgFlagTrigger::Evaluate |
+| 0x140456D90 | NIndustrialOrganisation::CIsOrganisationAvailableTrigger::Evaluate func_names 名 NIndustrialOrganisation::CIsOrganisationAvailableTrigger::Evaluate |
+| 0x140458FE0 | NIndustrialOrganisation::CIsOrganisationAvailableTrigger::GetDesc func_names 名 NIndustrialOrganisation::CIsOrganisationAvailableTrigger::GetDesc |
+| 0x140458FA0 | NIndustrialOrganisation::CIsAssignedToTaskTrigger::GetDesc func_names 名 NIndustrialOrganisation::CIsAssignedToTaskTrigger::GetDesc |
+| 0x140459430 | NIndustrialOrganisation::CIsOrganisationVisibleTrigger::GetDesc func_names 名 NIndustrialOrganisation::CIsOrganisationVisibleTrigger::GetDesc |
+| 0x140A4C3A0 | NIndustrialOrganisation::STreeFlavorText::Reader func_names 名 NIndustrialOrganisation::STreeFlavorText::Reader |
+| 0x140301880 | NIndustrialOrganisation::CUnlockPolicyTooltipEffect::ParseToken func_names 名 NIndustrialOrganisation::CUnlockPolicyTooltipEffect::ParseToken |
+| 0x140DBB840 | NIndustrialOrganisation::SHistoryWithEquipment::Reader func_names 名 NIndustrialOrganisation::SHistoryWithEquipment::Reader |
+| 0x1402FA760 | NIndustrialOrganisation::CAddDesignTeamAssignCostEffect::Execute func_names 名 NIndustrialOrganisation::CAddDesignTeamAssignCostEffect::Execute |
+| 0x1402FA7A0 | NIndustrialOrganisation::CAddDesignTeamChangeCostEffect::Execute func_names 名 NIndustrialOrganisation::CAddDesignTeamChangeCostEffect::Execute |
+| 0x1402FA950 | NIndustrialOrganisation::CAddFundsGainFactorEffect::Execute func_names 名 NIndustrialOrganisation::CAddFundsGainFactorEffect::Execute |
+| 0x1402FA990 | NIndustrialOrganisation::CAddIndustrialManufacturerAssignCostEf鈥�::[13] func_names 名 NIndustrialOrganisation::CAddIndustrialManufacturerAssignCostEf鈥�::[13] |
+| 0x1402FA9D0 | NIndustrialOrganisation::CAddResearchBonusEffect::Execute func_names 名 NIndustrialOrganisation::CAddResearchBonusEffect::Execute |
+| 0x1402FAB90 | NIndustrialOrganisation::CAddSizeUpRequirementFactorEffect::Execute func_names 名 NIndustrialOrganisation::CAddSizeUpRequirementFactorEffect::Execute |
+| 0x1402FAC40 | NIndustrialOrganisation::CClearIndustrialOrgFlagEffect::Execute func_names 名 NIndustrialOrganisation::CClearIndustrialOrgFlagEffect::Execute |
+| 0x140A4BE20 | NIndustrialOrganisation::CPolicy::Reader func_names 名 NIndustrialOrganisation::CPolicy::Reader |
+| 0x140DBD140 | NIndustrialOrganisation::SHistoryWithEquipment::Writer func_names 名 NIndustrialOrganisation::SHistoryWithEquipment::Writer |
+| 0x140459C00 | NIndustrialOrganisation::CCheckNumberOfUnlockedTraitsTrigger::ParseToken func_names 名 NIndustrialOrganisation::CCheckNumberOfUnlockedTraitsTrigger::ParseToken |
+| 0x140459B30 | NIndustrialOrganisation::CCheckNumberOfUnlockedTraitsTrigger::Parse func_names 名 NIndustrialOrganisation::CCheckNumberOfUnlockedTraitsTrigger::Parse |
+| 0x140A4C0F0 | NIndustrialOrganisation::CPolicy::Writer func_names 名 NIndustrialOrganisation::CPolicy::Writer |
+| 0x140456F30 | NIndustrialOrganisation::CIsOrganisationVisibleTrigger::Evaluate func_names 名 NIndustrialOrganisation::CIsOrganisationVisibleTrigger::Evaluate |
+| 0x140A51170 | NIndustrialOrganisation::STraitId::Writer func_names 名 NIndustrialOrganisation::STraitId::Writer |
+| 0x141FC15D0 | NIndustrialOrganisation::CTraitTree::PreSetup func_names 名 NIndustrialOrganisation::CTraitTree::PreSetup |
+| 0x140456CA0 | NIndustrialOrganisation::CHasResearchCategoryTrigger::Evaluate func_names 名 NIndustrialOrganisation::CHasResearchCategoryTrigger::Evaluate |
+| 0x140457180 | NIndustrialOrganisation::CHasPolicyTrigger::ParseValueKeys func_names 名 NIndustrialOrganisation::CHasPolicyTrigger::ParseValueKeys |
+| 0x140459C60 | NIndustrialOrganisation::CAnyIndustrialOrgTrigger::[25] vtable 槽 NIndustrialOrganisation::CAnyIndustrialOrgTrigger::[25]（func_names RTTI 名） |
+| 0x141C3B5A0 | NIndustrialOrganisation::$$A6AXAEBVCOrganisationListWindow::V?$鈥�::[0] func_names 名 NIndustrialOrganisation::$$A6AXAEBVCOrganisationListWindow::V?$鈥�::[0] |
+| 0x140456D60 | NIndustrialOrganisation::CIsAssignedToTaskTrigger::Evaluate func_names 名 NIndustrialOrganisation::CIsAssignedToTaskTrigger::Evaluate |
+| 0x140456C10 | NIndustrialOrganisation::CHasPolicyActiveTrigger::Evaluate func_names 名 NIndustrialOrganisation::CHasPolicyActiveTrigger::Evaluate |
+| 0x141F20D1C | NIndustrialOrganisation::CEquipmentIconItem::[1] vtable 槽 NIndustrialOrganisation::CEquipmentIconItem::[1]（func_names RTTI 名） |
+| 0x141FBAB44 | NIndustrialOrganisation::CDetailsModifierItem::[0] vtable 槽 NIndustrialOrganisation::CDetailsModifierItem::[0]（func_names RTTI 名） |
+| 0x141FBEC6C | NIndustrialOrganisation::COrganisationTreeWindow::[1] vtable 槽 NIndustrialOrganisation::COrganisationTreeWindow::[1]（func_names RTTI 名） |
+| 0x142021558 | NIndustrialOrganisation::CLoadQueuePopUp::[1] vtable 槽 NIndustrialOrganisation::CLoadQueuePopUp::[1]（func_names RTTI 名） |
+| 0x142026978 | NIndustrialOrganisation::CTraitTreeItem::[0] vtable 槽 NIndustrialOrganisation::CTraitTreeItem::[0]（func_names RTTI 名） |
+| 0x14199BE30 | NIndustrialOrganisation::STraitId 处理 NIndustrialOrganisation::STraitId 处理：VT STraitId，调 0x140A50C50（MIO 特质族） |
+| 0x140A53A40 | NIndustrialOrganisation::COrganisationDatabase::[0] NIndustrialOrganisation::COrganisationDatabase::[0] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x141C3BF30 | NIndustrialOrganisation::COrganisationListWindow::[0] INDUSTRIAL_ORG_LIST_WINDOW_FILTER_CATEGORY_TANK/SHIP/PLANE/MATERIEL 全族，军工组织列表窗口 |
+| 0x142021F80 | NIndustrialOrganisation::CSaveQueuePopUp::[0] define/本地化键（串 INDUSTRIAL_ORG_QUEUE_SAVE_BUTTON_DISABLED_TOOLTIP） |
+| 0x142028080 | NIndustrialOrganisation::CTraitTreeItem::[4] / NIndustrialOrganisation::CTraitTreeItem NIndustrialOrganisation::CTraitTreeItem 槽 4 §4.31 GUI/窗口/列表 |
+| 0x142028CD0 | NIndustrialOrganisation::CTraitTreeItem::[7] NIndustrialOrganisation::CTraitTreeItem::[7]，串 GFX_industrial_org_trait_button（MIO 特质按钮） |
+| 0x141F20E10 | NIndustrialOrganisation::COrganisationListItem::[0] 名:NIndustrialOrganisation::COrganisationListItem::[0] |
+| 0x142026A00 | NIndustrialOrganisation::CTraitTreeItem::[1] func_names 全名 + UI 后缀类（CTraitTreeItem） |
+| 0x1402FC8C0 | NIndustrialOrganisation::CAddDesignTeamChangeCostEffect::GetDesc |
+| 0x1402FE710 | NIndustrialOrganisation::CSetFundsGainFactorEffect::GetDesc |
+| 0x1413AFFB0 | NIndustrialOrganisation::CEveryIndustrialOrgEffect::ParseToken 效果/触发求值执行（方法角色 \1）；类属 NIndustrialOrganisation |
+| 0x1402FBC40 | NIndustrialOrganisation::CSetTaskCapacityEffect::Execute 名:NIndustrialOrganisation::CSetTaskCapacityEffect::Execute |
+| 0x1402FA500 | NIndustrialOrganisation::CAddAttachPolicyCooldownEffect::Execute 效果/触发求值执行（方法角色 \1）；类属 NIndustrialOrganisation |
+| 0x1402FB5A0 | NIndustrialOrganisation::CSetFundsGainFactorEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x140300680 | NIndustrialOrganisation::CAddDesignTeamAssignCostEffect::ResolveReferences NIndustrialOrganisation::CAddDesignTeamAssignCostEffect::ResolveReferences + 域关键词匹… |
+| 0x1402FAC80 | NIndustrialOrganisation::CModifyIndustrialOrgFlagEffect::Execute 名:NIndustrialOrganisation::CModifyIndustrialOrgFlagEffect::Execute |
+
+#### 4.8.48 生产建筑域函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B97FA0 | 业务 "_alt_"/"_entity" 串片段 + callee @production.cpp:3342 与 @production.cpp:3742 |
+| 0x1419303A0 | 业务 串 `Duplicate module assignment to slot \`、`Invalid module \`、`overwriting previously assigned module`；邻域 equipment_production_line.cpp×5、UNITS/FACTORIES/O… |
+| 0x140F6ADD0 | 业务 INDUSTRIAL_PROGRESS/CIC_BOOST_COST_EFFECT/CONVERSION_SPEED_MODIFIERS/INDUSTRIAL_CAPACITY_FACTOR/CONSTRUCTION_SPEED loc 键族 |
+| 0x1415C8360 | 业务 CIC_BANK_[HEADER/DESC/CURRENT_VALUE/CONSTRUCTION_CONTRIBUTION/CURRENTLY_EARNED_FROM_DEAL] loc 键族 |
+| 0x141B489C0 | 业务 建筑 nudger 工具：可选项切换 + 列表构建 被调用者 sub_141B4A950 = buildingsnudger.cpp:1673、sub_140BC2F60/sub_140BC32D0 = selectable.cpp:82/71 |
+| 0x1414B98A0 | 业务 STAT_COMMON_BUILD_COST_IC_[VALUE/VALUE_EXTRA/VALUE_EXTRA_PER_BUILDING] loc 键族 |
+| 0x140F6BD20 | 业务 CONSTRUCTION_SPEED_MODIFIERS/INDUSTRIAL_BASE_SPEED/BUILDING_SPEED_FACTOR/FACTORIES loc 键族 |
+| 0x140247920 | 业务 调用图 h1name:CProductionLine::[14] [h1name:CProductionLine::[14]×1,h2mod:ordersgroup.cpp×1] |
+| 0x141B0E090 | 业务 串字面量 'Estimated production cost to fix' [4.8×1] |
+| 0x140E4A8E0 | 业务 反调用图传播 1.5 权重锚点投 §4.8（top 占比 0.67） |
+
+#### 4.8.49 常量串 getter 结构定案（87 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140741E50 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::FUNDS_FOR_RESEARCH_COMPLETION_PER_RESEARCH_COST"（高置信） |
+| 0x140749660 | 常量串 getter: 返回常量串 "NProduction::MINIMUM_NUMBER_OF_FACTORIES_TAKEN_BY_CONSUMER_GOODS_PERCENT"（高置信） |
+| 0x140741DD0 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::ASSIGN_INDUSTRIAL_MANUFACTURER_PP_COST_PER_DAY"（高置信） |
+| 0x140749670 | 常量串 getter: 返回常量串 "NProduction::MINIMUM_NUMBER_OF_FACTORIES_TAKEN_BY_CONSUMER_GOODS_VALUE"（高置信） |
+| 0x1407496B0 | 常量串 getter: 返回常量串 "NProduction::MIN_NAVAL_EQUIPMENT_CONVERSION_RESOURCE_COST_FACTOR"（高置信） |
+| 0x140741DE0 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::DEFAULT_INITIAL_ATTACH_POLICY_COOLDOWN"（高置信） |
+| 0x140741E90 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::FUNDS_FROM_MANUFACTURER_PER_IC_PER_DAY"（高置信） |
+| 0x140749690 | 常量串 getter: 返回常量串 "NProduction::MIN_LAND_EQUIPMENT_CONVERSION_RESOURCE_COST_FACTOR"（高置信） |
+| 0x140741E40 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::FUNDS_FOR_CREATING_EQUIPMENT_VARIANT"（高置信） |
+| 0x140749640 | 常量串 getter: 返回常量串 "NProduction::MAX_MIL_FACTORIES_VISIBLE_FOR_MIL_EQUIPMENT_LINE"（高置信） |
+| 0x140741EB0 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::MAX_FUNDS_FROM_MANUFACTURER_PER_DAY"（高置信） |
+| 0x140749370 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_EFFICIENCY_ARCHETYPE_CHANGE_FACTOR"（高置信） |
+| 0x140741DC0 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::ASSIGN_DESIGN_TEAM_PP_COST_PER_DAY"（高置信） |
+| 0x140741DF0 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::DEFAULT_INITIAL_POLICY_ATTACH_COST"（高置信） |
+| 0x140749440 | 常量串 getter: 返回常量串 "NProduction::BASE_NAVAL_EQUIPMENT_CONVERSION_IC_COST_FACTOR"（高置信） |
+| 0x1407493C0 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_EFFICIENCY_VARIANT_CHANGE_FACTOR"（高置信） |
+| 0x140749420 | 常量串 getter: 返回常量串 "NProduction::BASE_LAND_EQUIPMENT_CONVERSION_IC_COST_FACTOR"（高置信） |
+| 0x140749390 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_EFFICIENCY_FAMILY_CHANGE_FACTOR"（高置信） |
+| 0x1407493B0 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_EFFICIENCY_PARENT_CHANGE_FACTOR"（高置信） |
+| 0x140741E70 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::FUNDS_FOR_SIZE_UP_LEVEL_FACTOR"（高置信） |
+| 0x140749560 | 常量串 getter: 返回常量串 "NProduction::FLOATING_HARBOR_MAX_NAV_FACTORIES_PER_LINE"（高置信） |
+| 0x140741E00 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::DEFAULT_INITIAL_TASK_CAPACITY"（高置信） |
+| 0x140749580 | 常量串 getter: 返回常量串 "NProduction::INITIAL_ALLOWED_FACTORY_RATIO_FOR_REPAIRS"（高置信） |
+| 0x140741E80 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::FUNDS_FOR_SIZE_UP_LEVEL_POW"（高置信） |
+| 0x140741EC0 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::UNLOCKED_TRAITS_PER_SIZE_UP"（高置信） |
+| 0x140749450 | 常量串 getter: 返回常量串 "NProduction::CAPITAL_SHIP_MAX_NAV_FACTORIES_PER_LINE"（高置信） |
+| 0x140749730 | 常量串 getter: 返回常量串 "NProduction::RESOURCE_PENALTY_WARNING_CRITICAL_RATIO"（高置信） |
+| 0x140741E10 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::DESIGN_TEAM_CHANGE_XP_COST"（高置信） |
+| 0x140741E20 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::DESIGN_TEAM_RESEARCH_BONUS"（高置信） |
+| 0x140749380 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_EFFICIENCY_BALANCE_FACTOR"（高置信） |
+| 0x1407495D0 | 常量串 getter: 返回常量串 "NProduction::LICENSE_EQUIPMENT_TECH_SPEED_MAX_YEARS"（高置信） |
+| 0x140749710 | 常量串 getter: 返回常量串 "NProduction::RAILWAY_GUN_MAX_MIL_FACTORIES_PER_LINE"（高置信） |
+| 0x1407494E0 | 常量串 getter: 返回常量串 "NProduction::ENERGY_SCALE_PER_TRADE_FACTORY_EXPORT"（高置信） |
+| 0x1407495E0 | 常量串 getter: 返回常量串 "NProduction::LICENSE_EQUIPMENT_TECH_SPEED_PER_YEAR"（高置信） |
+| 0x140741EA0 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::LEGACY_COST_FACTOR_SCALE"（高置信） |
+| 0x140749410 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_START_EFFICIENCY_FACTOR"（高置信） |
+| 0x1407494F0 | 常量串 getter: 返回常量串 "NProduction::ENERGY_SCALING_COST_BY_FACTORY_COUNT"（高置信） |
+| 0x140749680 | 常量串 getter: 返回常量串 "NProduction::MIN_FIELD_TO_TRAINING_MANPOWER_RATIO"（高置信） |
+| 0x140749750 | 常量串 getter: 返回常量串 "NProduction::SHIP_REFIT_DAMAGE_TO_PROGRESS_FACTOR"（高置信） |
+| 0x1407495B0 | 常量串 getter: 返回常量串 "NProduction::LICENSE_EQUIPMENT_SPEED_NOT_FACTION"（高置信） |
+| 0x1407495F0 | 常量串 getter: 返回常量串 "NProduction::LICENSE_EQUIPMENT_UPGRADE_XP_FACTOR"（高置信） |
+| 0x1407493D0 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_MAX_EFFICIENCY_FACTOR"（高置信） |
+| 0x1407494B0 | 常量串 getter: 返回常量串 "NProduction::DEFAULT_MAX_NAV_FACTORIES_PER_LINE"（高置信） |
+| 0x140749510 | 常量串 getter: 返回常量串 "NProduction::EQUIPMENT_LEND_LEASE_WEIGHT_FACTOR"（高置信） |
+| 0x140749570 | 常量串 getter: 返回常量串 "NProduction::INFRA_MAX_CONSTRUCTION_COST_EFFECT"（高置信） |
+| 0x1407495C0 | 常量串 getter: 返回常量串 "NProduction::LICENSE_EQUIPMENT_SPEED_NO_LICENSE"（高置信） |
+| 0x1407494A0 | 常量串 getter: 返回常量串 "NProduction::CONVOY_MAX_NAV_FACTORIES_PER_LINE"（高置信） |
+| 0x140749760 | 常量串 getter: 返回常量串 "NProduction::SHIP_REFIT_MAX_PROGRESS_TO_CANCEL"（高置信） |
+| 0x140741E30 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::ENABLE_TASK_CAPACITY"（高置信） |
+| 0x140749500 | 常量串 getter: 返回常量串 "NProduction::EQUIPMENT_BASE_LEND_LEASE_WEIGHT"（高置信） |
+| 0x140749530 | 常量串 getter: 返回常量串 "NProduction::EQUIPMENT_MODULE_CONVERT_XP_COST"（高置信） |
+| 0x140749550 | 常量串 getter: 返回常量串 "NProduction::EQUIPMENT_MODULE_REPLACE_XP_COST"（高置信） |
+| 0x140749650 | 常量串 getter: 返回常量串 "NProduction::MILITARY_FACTORY_COHERENCY_BONUS"（高置信） |
+| 0x140749700 | 常量串 getter: 返回常量串 "NProduction::PRODUCTION_RESOURCE_LACK_PENALTY"（高置信） |
+| 0x140749540 | 常量串 getter: 返回常量串 "NProduction::EQUIPMENT_MODULE_REMOVE_XP_COST"（高置信） |
+| 0x140749350 | 常量串 getter: 返回常量串 "NProduction::BASE_COUNTRY_ENERGY_PRODUCTION"（高置信） |
+| 0x1407494C0 | 常量串 getter: 返回常量串 "NProduction::EFFICIENCY_LOSS_PER_UNUSED_DAY"（高置信） |
+| 0x140749590 | 常量串 getter: 返回常量串 "NProduction::LEND_LEASE_DELIVERY_TOTAL_DAYS"（高置信） |
+| 0x1407496C0 | 常量串 getter: 返回常量串 "NProduction::MIN_POSSIBLE_TRAINING_MANPOWER"（高置信） |
+| 0x140749740 | 常量串 getter: 返回常量串 "NProduction::RESOURCE_TO_ENERGY_COEFFICIENT"（高置信） |
+| 0x140741E60 | 常量串 getter: 返回常量串 "NIndustrialOrganisation::FUNDS_FOR_SIZE_UP"（高置信） |
+| 0x140749600 | 常量串 getter: 返回常量串 "NProduction::LICENSE_IC_COST_YEAR_INCREASE"（高置信） |
+| 0x1407493A0 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_EFFICIENCY_GAIN"（高置信） |
+| 0x140749520 | 常量串 getter: 返回常量串 "NProduction::EQUIPMENT_MODULE_ADD_XP_COST"（高置信） |
+| 0x1407495A0 | 常量串 getter: 返回常量串 "NProduction::LICENSE_EQUIPMENT_BASE_SPEED"（高置信） |
+| 0x140749620 | 常量串 getter: 返回常量串 "NProduction::MAX_EQUIPMENT_RESOURCES_NEED"（高置信） |
+| 0x140749320 | 常量串 getter: 返回常量串 "NProduction::ANNEX_FIELD_EQUIPMENT_RATIO"（高置信） |
+| 0x140749470 | 常量串 getter: 返回常量串 "NProduction::CAPITULATE_STOCKPILES_RATIO"（高置信） |
+| 0x140749480 | 常量串 getter: 返回常量串 "NProduction::CIC_BANK_SPEED_BOOST_FACTOR"（高置信） |
+| 0x140749610 | 常量串 getter: 返回常量串 "NProduction::MAX_CIV_FACTORIES_PER_LINE"（高置信） |
+| 0x140749630 | 常量串 getter: 返回常量串 "NProduction::MAX_MIL_FACTORIES_PER_LINE"（高置信） |
+| 0x1407496E0 | 常量串 getter: 返回常量串 "NProduction::POWERED_FACTORY_SPEED_MIL"（高置信） |
+| 0x1407496F0 | 常量串 getter: 返回常量串 "NProduction::POWERED_FACTORY_SPEED_NAV"（高置信） |
+| 0x140749720 | 常量串 getter: 返回常量串 "NProduction::RAILWAY_GUN_REPAIR_SPEED"（高置信） |
+| 0x1407496A0 | 常量串 getter: 返回常量串 "NProduction::MIN_LICENSE_ACTIVE_DAYS"（高置信） |
+| 0x140749340 | 常量串 getter: 返回常量串 "NProduction::ANNEX_STOCKPILES_RATIO"（高置信） |
+| 0x1407493F0 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_SPEED_MIL"（高置信） |
+| 0x140749400 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_SPEED_NAV"（高置信） |
+| 0x140749490 | 常量串 getter: 返回常量串 "NProduction::CONVERSION_SPEED_BONUS"（高置信） |
+| 0x140749460 | 常量串 getter: 返回常量串 "NProduction::CAPITULATE_FUEL_RATIO"（高置信） |
+| 0x1407496D0 | 常量串 getter: 返回常量串 "NProduction::POWERED_FACTORY_SPEED"（高置信） |
+| 0x140749430 | 常量串 getter: 返回常量串 "NProduction::BASE_LICENSE_IC_COST"（高置信） |
+| 0x140749310 | 常量串 getter: 返回常量串 "NProduction::ANNEX_CONVOYS_RATIO"（高置信） |
+| 0x1407493E0 | 常量串 getter: 返回常量串 "NProduction::BASE_FACTORY_SPEED"（高置信） |
+| 0x140749330 | 常量串 getter: 返回常量串 "NProduction::ANNEX_FUEL_RATIO"（高置信） |
+| 0x140749360 | 常量串 getter: 返回常量串 "NProduction::BASE_ENERGY_COST"（高置信） |
+| 0x1407494D0 | 常量串 getter: 返回常量串 "NProduction::ENERGY_COST_CAP"（高置信） |
+
+#### 4.8.50 模板实例化桩结构定案（189 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DB61C0 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C0C0 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141D6BEE0 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB60D0 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB62B0 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141D6BFD0 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141D6BBF0 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C1B0 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6BB00 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6BD00 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141DB6490 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x1418D0680 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6BDF0 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141DB63A0 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141D6BA10 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141B4EDB0 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141DB6190 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C090 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141D6BEB0 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB60A0 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB6280 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141D6BFA0 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141D6BBC0 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C180 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6BAD0 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6BCD0 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141F6D4D0 | 模板桩: 模板参数类名 CProductionSubUnitDefFilter（高置信） |
+| 0x141DB6460 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x1418D0650 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6BDC0 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141EEFDC0 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141DB6370 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141D6B9E0 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141EEFD60 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141B4ED80 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141EEFD20 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141DB6160 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C060 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141D6BE80 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB6070 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB6250 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141D6BF70 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141D6BB90 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C150 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6BAA0 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6BCA0 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141DB6130 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141F6D4A0 | 模板桩: 模板参数类名 CProductionSubUnitDefFilter（高置信） |
+| 0x141D6C030 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141D6BE50 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB6040 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB6220 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141DB6430 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x1418D0620 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6BD90 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141DB6340 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141EEFD40 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141D6B9B0 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141EEFCE0 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141D6BF40 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141D6BB60 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C120 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6BA70 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6BC70 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141B4ED50 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141DB6400 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x1418D05F0 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6BD60 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141DB6310 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141D6B980 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141B4ED20 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141EEFDE0 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141EEFE00 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141EEFE30 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141DB6200 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C100 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141D6BF20 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB6110 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB62F0 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141EEFE20 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141EEFE50 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141D6C010 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141EEFDA0 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141D6BC30 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C1F0 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6BB40 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6BD40 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141DB64D0 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x1418D06C0 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6BE30 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141DB63E0 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141D6BA50 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141B4EDF0 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141EF0910 | 模板桩: 模板参数类名 CProgram（高置信） |
+| 0x141DB64F0 | 模板桩: 模板参数类名 CProductionNavalDeploymentWindow（高置信） |
+| 0x141DBE7C0 | 模板桩: 模板参数类名 CProductionEquipmentWindow（高置信） |
+| 0x141DBE7E0 | 模板桩: 模板参数类名 CProductionResourceFilter（高置信） |
+| 0x141DB6590 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C720 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141D6BC50 | 模板桩: 模板参数类名 CProductionLineItem（高置信） |
+| 0x141D6C680 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB6540 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB65E0 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141D6C6D0 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141D6C580 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C770 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6C530 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6C5E0 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141C69880 | 模板桩: 模板参数类名 CBuildingRosterItem（高置信） |
+| 0x141C698A0 | 模板桩: 模板参数类名 CBuildingRosterItem（高置信） |
+| 0x141DB6680 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x1418D0E40 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6C630 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141DB6630 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141D6C4E0 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141B4F020 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141DB6580 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C710 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141D6C670 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB6530 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB65D0 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141D6C6C0 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141D6C570 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C760 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6C520 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6C5D0 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141F6D510 | 模板桩: 模板参数类名 CProductionSubUnitDefFilter（高置信） |
+| 0x141DB6670 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x1418D0E30 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6C620 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141DB6570 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C700 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141DB6620 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141D6C4D0 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141D6C660 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB6520 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB65C0 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141DB6560 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C6F0 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141D6C650 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB6510 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB65B0 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x141D6C6B0 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141B4F010 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141D6C560 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C750 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6C510 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6C5C0 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141F6D500 | 模板桩: 模板参数类名 CProductionSubUnitDefFilter（高置信） |
+| 0x141DB6660 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x141D6C6A0 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x1418D0E20 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6C610 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141D6C550 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C740 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141DB6610 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141D6C500 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6C5B0 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141D6C4C0 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141DB65A0 | 模板桩: 模板参数类名 CProductionDeploymentNavyTheaterItem（高置信） |
+| 0x141D6C730 | 模板桩: 模板参数类名 CProductionLineRailwayGunRepairItem（高置信） |
+| 0x141DB6650 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x141D6C690 | 模板桩: 模板参数类名 CProductionLineRailwayBuildingItem（高置信） |
+| 0x141DB6550 | 模板桩: 模板参数类名 CProductionDeploymentNavalBaseItem（高置信） |
+| 0x141DB65F0 | 模板桩: 模板参数类名 CProductionDeploymentTaskForceItem（高置信） |
+| 0x1418D0E10 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6C600 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141DB6600 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141DB66A0 | 模板桩: 模板参数类名 CProductionNavalDeploymentWindow（高置信） |
+| 0x141D6C4B0 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141B4F000 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141D6C6E0 | 模板桩: 模板参数类名 CProductionLineRailwayGunItem（高置信） |
+| 0x141D6C590 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C780 | 模板桩: 模板参数类名 CProductionLineShipRefitItem（高置信） |
+| 0x141D6C540 | 模板桩: 模板参数类名 CProductionLineBuildingItem（高置信） |
+| 0x141D6C5F0 | 模板桩: 模板参数类名 CProductionLineMilitaryItem（高置信） |
+| 0x141DBE980 | 模板桩: 模板参数类名 CProductionEquipmentWindow（高置信） |
+| 0x141B4EFF0 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x141DB6690 | 模板桩: 模板参数类名 CProductionNameListWindow（高置信） |
+| 0x141DBE990 | 模板桩: 模板参数类名 CProductionResourceFilter（高置信） |
+| 0x1418D0E50 | 模板桩: 模板参数类名 CConstructionInfoMapIcon（高置信） |
+| 0x141D6C640 | 模板桩: 模板参数类名 CProductionLineNavalItem（高置信） |
+| 0x141DB6640 | 模板桩: 模板参数类名 CProductionNameListItem（高置信） |
+| 0x141D6C4F0 | 模板桩: 模板参数类名 CProductionFactoryItem（高置信） |
+| 0x141D6C440 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C450 | 模板桩: 模板参数类名 CProductionLineEquipmentItem（高置信） |
+| 0x141D6C5A0 | 模板桩: 模板参数类名 CProductionLineItem（高置信） |
+| 0x141B4F030 | 模板桩: 模板参数类名 CBuildingsNudger（高置信） |
+| 0x1415C2320 | 模板桩: 模板参数类名 CBuildingRosterWindow（高置信） |
+
+#### 4.8.51 单调用转发桩结构定案（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1421C7240 | 转发桩: 被调者 0x1421B8640 -> §4.8 (E:单调用转发(被调者入书))（推定） |
+| 0x141178E50 | 转发桩: 转发至 （无名） 被 CProductionStatus::[2] 调用（生产/建筑）（推定） |
+| 0x1421C53C0 | 转发桩: 被调者 0x1421B8640 -> §4.8 (E:单调用转发(被调者入书))（推定） |
+| 0x14015E8D0 | 转发桩: 转发至 数据库析构 数据库析构：vtable 名 TReloadableGameItemDatabase<NIndustrialOrganisation::CPolicyDatabase> 标识工业组织政策库（推定） |
+| 0x141DB6000 | 转发桩: 转发至 sub_141DB1FF0 业务 海军生产命名表（PRODUCTION_NAVAL_NAME_LIST_EMPTY_NOT_ALLOWED / NAME_RESERVED / TOO_FEW_PRODUCED / ADD_NAME，EQUIPMENT/NAME）（推定） |
+| 0x1414B83F0 | 转发桩: 转发至 业务 STAT_COMMON_BUILD_COST_IC_[VALUE/VALUE_EXTRA/VALUE_EXTRA_PER_BUILDING] loc 键族（推定） |
+| 0x1421B8640 | 转发桩: 转发至 业务 串 "%s:%d: %s"; 串 "char(%d)"; 串 "; v9 = (const char *)sub_1421A"（推定） |
+| 0x141F20570 | 转发桩: 转发至 业务逻辑（见证据锚） "INDUSTRIAL_ORG_DETAIL_TOOLTIP_FUNDS_HEADER/VALUES[_DELAYED]"（MIO 资金 tooltip）（推定） |
+| 0x141F6EED0 | 转发桩: 转发至 无名 sub_（断言站点/串定位） 串字面量 "PRODUCTION_EQUIPMENT_ROLE_FILTER"（推定） |
+| 0x140C959C0 | 转发桩: 转发至 生产资源/材料值显示 生产资源/材料值显示；loc \"PRODUCTION_MATERIAL_VAL\"/\"PRODUCTION_RESOURCES_PER_FACTORY\"+\"VALUE\"，被调 gameitemdatabase.h:142/localize.cpp:641（推定） |
+
+#### 4.8.52 生产建筑域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402A6A80 | caller 1410CBDE0(pdx_scoped_buffer.h:54) + 140E15A40(railway_manager.cpp:26 / mapmodemanager.cpp 域) |
+| 0x14124E310 | caller 14124F710→140B58470（gamestate.h:1125）；sub_14124AA10 |
+| 0x140DB0AD0 | 邻域传播改判（锚 0x140DB8E00 §4.8，距离 0x8330）；串 "AND"/" \ "/"OOS_" + memcpy 插入式字符串拼接；调用者 sub_140245D90/sub_140DD8D60 → OOS（不同步）日志/序列化 |
+| 0x140DB8630 | 邻域传播改判（锚 0x140DB8E00 §4.8，距离 0x7D0）；跳点串 "_pInstance && \"gamestate unitilialized\"" / "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gam… |
+| 0x141FBE470 | 邻域传播改判（锚 0x141FBC3D0 §4.8，距离 0x20A0）；被调用者 CPdxStaticInlineBufferAllocator<H$03H>::[4](sub_140161230)×3 + off_143085170；分配器支撑的游戏对象构造 |
+
+#### 4.8.53 生产建筑域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F41E30 | 业务 CProductionLine::[14] 被调用 + gamestate.h:1125 x3 + off_143085170 x8 + sub_140F40750/F40A60 |
+| 0x141F244C0 | NIndustrialOrganisation::COpenRosterButtonForPoliticalScreen::[0] 业务 游戏类 vtable 槽（NIndustrialOrganisation::COpenRosterButtonForPoliticalScreen） |
+| 0x140A93160 | caller 140A94360/140A94E30 ← NProject::CProjectTemplate::[7]/::[4]（2/2 同类） |
+| 0x140F48AD0 | memcpy；调 CProductionLine::[14] + sub_140BC3180/14072B2D0/140C89230/140BF9660；0 调用者 |

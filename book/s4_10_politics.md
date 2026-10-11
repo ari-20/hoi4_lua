@@ -2260,18 +2260,16 @@ define 配对 (defines_map_1193 逐项核):
 
 未决 6 项: ① 类归属语料内直证 (需 PE 侧 0x1429E2738+520 复读或运行时 vtable dump 升定案); ② 外交压力链层级语义与 >>15 量纲未逐层展开 (推定 = 国别意见修正 + fixed→整型); ③ CCountry vt[+72] (slot 9) 真身 (推定 identity getter, 未排除等布局包装对象); ④ sub_141600820 (CONTAIN 组) 内部因子未展开 (§4.10.38l 亦未展开); ⑤ 态度循环 vt[10] 命中即 break 的跨族差异是否有意设计 (join 同 break 形但分值异 +10/+10/−50/−20); ⑥ 步 4 门用原初双侧 / 文案用当前双侧 (跨族同形, 语义 = 原初关系判定 + 当前名显示, 未运行时验证)。
 
-#### 4.10.39 政治外交域函数补遗（25 函）
+#### 4.10.39 政治外交域函数补遗（23 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x1406C1AE0 | （未命名）NATIONAL_FOCUS_NO_CURRENT_EFFECT NATIONAL_FOCUS_NO_CURRENT_EFFECT，国家焦点当前效果 |
 | 0x1403F01A0 | CHasAvailableOrAllowedIdeaWithTraitsTrigger<$00>::[21] CHasAvailableOrAllowedIdeaWithTraitsTrigger<$00>::[21] + TRIGGER_HAS_(NOT_)AVAILABLE_IDEA_WITH_TRAITS … |
-| 0x141C178E0 | NFactions::NUi::CGoalItem::[0] NFactions::NUi::CGoalItem::[0] + CATEGORY / FACTION_ADD_GOAL / FACTION_GOAL / FACTION_GOAL_ITEM_TOOLTIP（阵营目标项） |
 | 0x1401474B0 | sub_1401474B0 NFactions::CFactionGoal 构造（正文 vtable+CProgress 子对象） |
 | 0x140344A00 | CAddRemoveDynamicModifierEffect<$0A>::[13] CAddRemoveDynamicModifierEffect<$0A>::[13] + "modifier does not exist" / "invalid scope"（动态修正增删 effect） |
 | 0x141191720 | Reader ideology.cpp:84；"no random ideology available for group %s"，意识形态反序列化 |
 | 0x140724250 | sub_140724250 CDecision 三 vtable 析构：清 a1+3344/3360 等多个成员 string（CDecision 生命周期） |
-| 0x14160EAE0 | NFactions::CJoinFactionAction::[17] NFactions::CJoinFactionAction::[17] + COUNTRY / DIPLOMACY_MESSAGE_OTHERS_TITLE / FACTION（加入阵营动作） |
 | 0x1413A3830 | sub_1413A3830 ideology_support_trigger + "Usage: <Ideology> < <float>"（意识形态支持度触发器） |
 | 0x1411F9540 | （未命名）调用链含 vtable `CModifier` + MODIFIER_IDEOLOGY_DRIFT_FROM_BOOST_IDEOLOGY_OPERATIVE_MISSION 调用链含 vtable `CModifier` + MODIFIER_IDEOLOGY_DRIFT_FROM_BOOST_IDE… |
 | 0x141BA6EB0 | （未命名）NFactions::CCreateFactionTheater 构造 NFactions::CCreateFactionTheater 构造（vftable 赋值 + a1+48 串构造） |
@@ -2316,23 +2314,11 @@ define 配对 (defines_map_1193 逐项核):
 | 0x140E33560 | 和会冲突声明裁决 peaceconference.cpp:2787 + "Conference.HasWinner( ConflictingClaim._Action->GetNegotiator() )" 断言 |
 | 0x140E32980 | 和会竞标回合 "BiddingTurns.GetSize() > TurnNumber - 1"，peaceconference.cpp:1802 |
 | 0x140D34290 | CDiplomacyStatus::[0] vtable 槽 CDiplomacyStatus::[0]（func_names RTTI 名） |
-
-#### 4.10.43 政治外交域函数补遗（4 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.10.44 政治外交域函数补遗（1 函）
 
 | VA | 语义/证据 |
 |---|---|
 | 0x140D33640 | （无名） 体设 CDiplomacyStatus::vftable（RTTI 名） |
-
-#### 4.10.45 政治外交域函数补遗（1 函）
-
-| VA | 语义/证据 |
-|---|---|
-
 #### 4.10.46 政治外交域函数补遗（1 函）
 
 | VA | 语义/证据 |
@@ -2956,3 +2942,547 @@ define 配对 (defines_map_1193 逐项核):
 |---|---|
 | 0x14052FA50 | 未决窗口函数 · 顾问描述格式化 FILE formatted_localization.h + 串 "advisor_desc" 顾问描述格式化 |
 | 0x140A45CD0 | 未决窗口函数 · 意识形态库析构 `TReloadableGameItemDatabase<CIdeologyDatabase>` + `TGameItemDatabase<CIdeologyDatabase>` 双 vtable 析构 |
+
+#### 4.10.59 政治外交域函数补遗（25 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412E95E0 | 调 CStageCoupAction::CanExecute + CBoostP 调 CStageCoupAction::CanExecute + CBoostPartyPopularityAction §4.10 政治/意识形态 |
+| 0x1411358F0 | CReturnAllExpeditionaryForcesAction::CanExecute |
+| 0x141125F80 | CSendAttacheAction::[42] CSendAttacheAction 槽 42 |
+| 0x141C8F0E0 | CDiplomacyIncomingLendLeaseActionController::[8] |
+| 0x14111FF30 | CGuaranteeAction::[59] CGuaranteeAction 槽 59 |
+| 0x140D90F10 | CFactionSystem::HourlyUpdate? |
+| 0x14111C140 | CNonAggressionPactAction::GetAiAcceptance CNonAggressionPactAction |
+| 0x140346230 | CReleasePuppetEffect<$0A>::[13] CReleasePuppetEffect<$0A>::[13]；串「C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\effects\\effe」 |
+| 0x141104D90 | CAddWarGoalAction::[56] |
+| 0x1402126A0 | 和会胜负统计 human_winners / human_losers / human_3rd_party / ai_winners / ai_losers + peace_conference_size + in_game_date |
+| 0x14251CC70 | （无名） 被 NFactions::NAi::CAiFactionTheater::[8] 调用（政治/外交） |
+| 0x140D3D130 | （无名） 被 CPeaceProposalAction::GetAiAcceptanceFac 调用（政治/外交） |
+| 0x140ADA5D0 | CTimedWargoalActivity::[12] 阵营规则/解散阵营/傀儡行动/召盟友/政变/选举/内战/独立保证/战争目标/合法性/意识形态任务（CTimedWargoalActivity::[12]） |
+| 0x141C8D120 | CDiplomacyGiveStateControlController::[4] |
+| 0x141C8CF50 | CDiplomacyStandardController::[14] CDiplomacyStandardController::[14]（政治/外交） |
+| 0x141A46A20 | （无名） VA 邻近 CPdxStaticInlineBufferAllocator<…>::[1](±416)（政治/外交） |
+| 0x141822900 | （无名） VA 邻近 NFactions::NUi::CFactionSetupWindow::[1](±500)（政治/外交） |
+| 0x14111F110 | CCallAllyAction::[59] 阵营规则/解散阵营/傀儡行动/召盟友/政变/选举/内战/独立保证/战争目标/合法性/意识形态任务（CCallAllyAction::[59]） |
+| 0x142070480 | （无名） 被 NDefines::CDefineRegistryHelper_NFaction 调用（政治/外交） |
+| 0x141ADB430 | （无名） 被 NFactions::NUi::CFactionMemberCountriesW 调用（政治/外交） |
+| 0x140BB0340 | （无名） VA 邻近 CPoliticalStatus::Writer(±480)（政治/外交） |
+| 0x14111D3F0 | CStageCoupAction::GetAiAcceptance 阵营规则/解散阵营/傀儡行动/召盟友/政变/选举/内战/独立保证/战争目标/合法性/意识形态任务（CStageCoupAction::GetAiAcceptance） |
+| 0x1411A31E0 | CPoliticalParty::[0] 政党 |
+| 0x1411A4ED0 | CPoliticalParty::[8] CPoliticalParty::[8] + 域关键词匹配; 被 CPoliticalParty::[8] 等 1 命名函数调用 |
+| 0x140674000 | CAutonomousState::[0] 自治状态 |
+
+#### 4.10.60 政治外交域函数补遗（53 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AF6A50 | sub_140AF6A50 业务 顾问/idea 特质告警条目（ACTIVE_MODIFIER_ALERT_ENTRY / TRAIT_WILL_EXPIRE / TRAIT_NOT_ACTIVE_WHEN_COMMANDING_AN_ARMY / ADVISORSLOT） |
+| 0x1411BF990 | sub_1411BF990 业务 外交区（调 0x1411B85A0/0x1411BC9A0/0x1411BD2C0 等 0x1411Bxxxx 外交区函数 + 字符串拼接 ×10，无域串） |
+| 0x140AF61C0 | sub_140AF61C0 业务 外交行动描述（调 CDiplomaticAction::GetFirstCountryRef ×8 + 字符串 SSO 惰性初始化） |
+| 0x14151A540 | sub_14151A540 业务 和会堆叠行动（PEACE_STACKED_WITH，ACTION） |
+| 0x141C83960 | sub_141C83960 业务 外交行动成本（DIPLOMACY_ACTION_NEGATIVE_COST_COMPACT / NEUTRAL_COST_COMPACT，VALUE） |
+| 0x1414FC110 | sub_1414FC110 业务 租借请求原因（DIPLOMACY_INCOMING_LEND_LEASE_REASON_PUPPET / _ENEMY / _TARGET_AT_WAR，WHO） |
+| 0x140E30930 | （无名） 业务 peaceconference.cpp:2724 + 断言 "!CountriesBidding.empty() && \"This should not be empty\"" |
+| 0x140E30370 | （无名） 业务 peaceconference.cpp:2724 + 断言 "!CountriesBidding.empty()" |
+| 0x1419EE090 | （无名） 业务 memset(255/-1) 索引表构建 + off_143085170 分配；0x1419F4 邻域 peacebiddings.cpp/CPeaceBiddingTurn::Reader（近邻传播，证据不足以定案） |
+| 0x141A33390 | （无名） 业务 串 "MILITARY_ATTACHE_MASTERY"/"COUNTRY"/"VALUE"/"FACTOR"：军事武官修正描述 |
+| 0x1419FDCC0 | （无名） 业务 peacetelemetry.cpp:266 + 断言 "!HumanWinnerParticipants.IsEmpty()" |
+| 0x141125420 | CDiplomaticAction::GetActionTitleText 业务 外交行动标题文本（方法名自文档） |
+| 0x141519C00 | CTakeNavyPeaceAction::GetCost 业务 func_names 名 CTakeNavyPeaceAction::GetCost；peaceactions.cpp:1351；串 "PEACE_COST_BREAKDOWN_SHIP_BASE_VALUE" + 断言 "FinalCost.Ge… |
+| 0x140E2D690 | 业务 和会行动遍历：`_RTDynamicCast` 至 `CTakeNavyPeaceAction`（基类 CPeaceAction），取 +52 数据并收集进链表 |
+| 0x1410E06C0 | civilwar.cpp:440 业务 内战/附庸处理：civilwar.cpp 断言 "Could not release puppet" / "country listed as puppet has no subject relation"，用 CGameDate |
+| 0x14185FBE0 | （无名） 业务 串 "PEACE_PASS_DESC"/"PEACE_END_TURN_DESC"/"PEACE_END_TURN_EXPECTED_CONTEST_DESC"/"PEACE_HAS_UNRESOLVED_ACTIONS" |
+| 0x142305300 | 业务 外交行动处理：7× `CDiplomaticAction::GetFirstCountryRef` + parser.cpp:1087 ×2 |
+| 0x14147A7A0 | gamestate.h:1125 业务 外交冷却：4× CGameDate vftable + "COOLDOWN"/"DATE" 令牌 + define DIPLOMACY_ASSUME_FACTION_LEADERSHIP_RECENTLY_CHANGED |
+| 0x140D3E050 | diplomacy.cpp:3242 业务 diplomacy.cpp + "VALUE" 令牌 + define WARSCORE_PARTICIPATION（战争分数参与度） |
+| 0x140A8CB60 | gamestate.h:1126 业务 外交行动+力量平衡：`CDiplomaticAction::GetFirstCountryRef` ×2 + power_balance_database.cpp:275 + parser.cpp 891/1087 + ingameinterfacehandler.cpp:… |
+| 0x140D38A90 | diplomacy.cpp:3110 业务 外交战争分数：diplomacy.cpp 断言 "pAlliesIncludingMe->Contains(Me)" / "TotalAlliesWarScore >= VZERO64" / "WarScoreRatio 0..1" |
+| 0x14112C430 | CPeaceProposalAction::GetRequestDescText 业务 和会/外交行动请求描述文本（方法名自文档） |
+| 0x1418AD560 | （无名） 业务 switch 12 分支（case 0-11）+ 100000 定点 + 调 diplomacy.cpp/relation.h 族（sub_140D38A90/0x140D3A110） |
+| 0x140AD9B60 | CTimedWargoalActivity::[11] 业务 POLITICS_TIMEDACTIVITY_WARGOAL_PROGRESS / POLITICS_JUSTIFY_WARGOAL 断言串，定时战争目标活动 |
+| 0x140A73460 | sub_140A73460 业务 occupationlawdatabase.cpp 占领法断言 ×3 |
+| 0x14072AFA0 | — 业务 "COST" loc 键；0x14072 区段（决策数据库邻域 CDecisionDatabase::[0] 0x1407320A0） |
+| 0x140E47DF0 | — 业务 pdx_scopedptr 断言 + 调用 sub_140720360（0x14072 决策区段） |
+| 0x14129DE10 | sub_14129DE10 业务 类方法（CAdvisor::vtable） |
+| 0x141441840 | sub_141441840 业务 调用 CDiplomaticAction::GetFirstCountryRef（外交行动双方引用） |
+| 0x140F03EC0 | sub_140F03EC0 业务 串 THREAT_LARGEST_DESC/COUNTRY |
+| 0x14112FC90 | CBoostPartyPopularityAction::CanExecute 业务 CBoostPartyPopularityAction::CanExecute 提升政党支持度 action 可执行判定 |
+| 0x141BCD630 | sub_141BCD630 业务 外交响应 loc 键（DR_TRADE_INFLUENCE） |
+| 0x140A81B10 | sub_140A81B10 业务 串 DIPLOMACY_OPINION_DECAY |
+| 0x1413C9E60 | sub_1413C9E60 业务 调用 CDiplomaticAction::GetFirstCountryRef（外交行动双方引用） |
+| 0x141264D10 | sub_141264D10 业务 调用 CDiplomaticAction::GetFirstCountryRef（外交行动双方引用） |
+| 0x140E59E30 | sub_140E59E30 业务 调用 CDiplomaticAction::GetFirstCountryRef（外交行动双方引用） |
+| 0x1411AD430 | sub_1411AD430 业务 调用 CDiplomaticAction::GetFirstCountryRef（外交行动双方引用） |
+| 0x1409E52A0 | sub_1409E52A0 业务 调用 CDiplomaticAction::GetFirstCountryRef（外交行动双方引用） |
+| 0x14144AB40 | — 业务 pdx_scopedptr 断言；0x14144-45 区段（CConferenceLiberatedParticipant 0x1414551E0 邻域） |
+| 0x141BCC3D0 | sub_141BCC3D0 业务 外交响应 loc 键（DR_COMPETING_FACTIONS + COUNTRY） |
+| 0x1402AB120 | sub_1402AB120 业务 串 "REQUEST_EXP_NOT_AI"/"REQUEST_EXP_MUST_BE_IN_SAME_FACTION"/"REQUEST_EXP_WE_ARE_NOT_AT_WAR"（远征请求条件判定，返回 bool） |
+| 0x1409CE8D0 | sub_1409CE8D0 业务 类方法（CModifier::vtable） |
+| 0x141FB0C10 | — 业务 "AI: " 日志前缀 + 调用 sub_140DB7DB0（0x140DB 外交关系区段） |
+| 0x141DBB3F0 | — 业务 gamestate.h:1125 断言 + 调用 sub_140DB6E00（0x140DB 外交关系区段） |
+| 0x141191D60 | (无名) 业务 调用窗口内命名函数 sub_141C8D120 |
+| 0x1414330C0 | sub_1414330C0 业务 串：COUNT 、 SEND_EXPEDITIONARY_REQUEST |
+| 0x1411BC560 | 业务 串 "OPERATIVE_INVALID_MISSION_REASON_CAN"; 串 "OPERATIVE_INVALID_MISSION_REASON_CAN"; 串 "ironman_cb" |
+| 0x1411B3C00 | 业务 类路由 CNavyRepairModeCommand ->§4.33; 串 "results_window" ->§4.30; 调用图 IDF top §4.1 frac 1.00 |
+| 0x14014FD50 | 业务 类名证据「TGameItemDatabase<COccupationModifierDatabase>」 §4.10 政治外交 |
+| 0x142358B40 | 业务 串 "All theatres rebuilt"; 调用图 IDF top §4.1 frac 1.00; 反传 1/1 调用者 §4.10 |
+| 0x1411BEF40 | 业务 串 "EGL not initialized"; 串 "Late swap tearing currently unsuppor"; 串 "Unable to set the EGL swap interval" |
+| 0x141129750 | CSendVolunteerAction::[43] 业务 槽[43] 返回常量 10（同族同槽，与 CJoinAllyAction::[43] 构成 per-subclass 常量表） |
+| 0x141129730 | CJoinAllyAction::[43] 业务 槽[43] 返回常量 5（外交行动族分类/权重型虚方法）；func_names 槽名 |
+
+
+#### 4.10.61 政治外交域函数补遗（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140FCE520 | 业务 串 `CANT_TAKE_IDEAS`、`IDEA_COST_`；调用者 0x141C45050 含 `REMOVE_IDEA`、`POLITICS_IDEA_NO_REMOVE`、`SELECT_DESIGN_COMPANY_DESC` → 政治理念（idea）tooltip |
+| 0x1419FD070 | 业务 和会遥测收集：红黑树节点计数 + 事件作用域键求值累积 断言 pdx_scopedptr.h:134×3；调 peacetelemetry.cpp:154；0x70B 红黑树头构造（自引用 +257 标志）+ 键比较 *(v19+28)>=v17 二叉搜索 |
+| 0x141CBDA00 | 业务 串 `TRADE_VALUE`、`TRADE_VALUE_FRACTION`、`TRADE_VALUE_FRACTION_NOT_FILLED`；调用链 0x1415FEDA0（串 `trade`）←0x1415FBEC0（串 `countrytradeview`）；读 a1+1328 容器（srw_loc… |
+| 0x141E479E0 | 业务 和会可用行动列表填充：为 CPeaceAggregatedAvailableActionItem（0x590B）条目填充行动 lambda 描述符 FillActions<CPeaceAggregatedAvailableActionItem>；条目分配 0x590B 经 sub_1419E6340（取 q… |
+| 0x141179F30 | 业务 WARSCORE_BREAKDOWN_[OCCUPATION/LAND_DAMAGE/AIR_DAMAGE/SUNK_CONVOYS/CASUALTIES/LENDLEASE_*] 全套 |
+| 0x141C46810 | 业务 IDEA_COST_COMPACT_ + "cost"/"AI: " 前缀（理念花费工具提示） |
+| 0x140A81220 | 业务 高频调用者 sub_1406F44D0 持 DIPLOMACY_OPINION_[SENT_VOLUNTEERS/LEASED_EQUIPMENT/FOR_DEMO_FROM_WT_GENERATION] + @country.cpp:10058 |
+| 0x1419831B0 | 业务 串字面量 'PEACE_WAR_SCORE_REDISTRIBUTION_ITEM' [4.10×1] |
+| 0x1406BC460 | 业务 调用图 h2name:CDiplomaticAction::GetFirstCountryRef [h2name:CDiplomaticAction::GetFirstCountryRef×1,h1mod:lexer.cpp×1] |
+| 0x141E17550 | 业务 调用图 h1name:CDiplomaticAction::GetSecondCountryRef [h1name:CDiplomaticAction::GetSecondCountryRef×1] |
+| 0x14024ABC0 | 业务 串字面量 ' will be capitulated on next daily tick.' [4.10×1,4.3×1] |
+| 0x140CB63F0 | 业务 反调用图传播 1.8 权重锚点投 §4.10（top 占比 0.55） |
+| 0x1401C16A0 | 业务 反调用图传播 2.8 权重锚点投 §4.10（top 占比 0.53） |
+
+#### 4.10.62 常量串 getter 结构定案（231 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14073F3A0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_INCREASE_COST_FACTOR_PER_MISSING_PERCENT_FOR_CAPITULATION"（高置信） |
+| 0x14073EB90 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_IMPROVE_RELATION_DIFFERENT_IDEOLOGY_GROUP_MAINTAIN_COST"（高置信） |
+| 0x14073ED90 | 常量串 getter: 返回常量串 "NDiplomacy::EQUIPMENT_PURCHASE_ACCEPTANCE_SCRIPTED_IDEOLOGY_ACCEPTANCE"（高置信） |
+| 0x14073F480 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_TIMED_EFFECT_RATIO_CIVILIAN_FACTORY_WAR_REPARATION"（高置信） |
+| 0x14073EBA0 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_IMPROVE_RELATION_SAME_IDEOLOGY_GROUP_MAINTAIN_COST"（高置信） |
+| 0x14073ECF0 | 常量串 getter: 返回常量串 "NDiplomacy::EMBARGO_DIFFERENT_IDEOLOGY_AT_OFFENSIVE_WAR_AI_WEIGHT"（高置信） |
+| 0x14073F0F0 | 常量串 getter: 返回常量串 "NDiplomacy::MARKET_ACCESS_ACCEPTANCE_SCRIPTED_IDEOLOGY_ACCEPTANCE"（高置信） |
+| 0x14073F3B0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_PLAY_NEW_TURN_SOUND_ONLY_IF_NOT_ALREADY_PLAYING"（高置信） |
+| 0x14073ECA0 | 常量串 getter: 返回常量串 "NDiplomacy::DECAY_RATE_OF_NEGATIVE_OPINION_AFTER_BEING_KICKED"（高置信） |
+| 0x14073ED60 | 常量串 getter: 返回常量串 "NDiplomacy::EQUIPMENT_PURCHASE_ACCEPTANCE_NON_AGGRESSION_PACT"（高置信） |
+| 0x14073F270 | 常量串 getter: 返回常量串 "NDiplomacy::NUM_DAYS_TO_ENABLE_KICKING_NEW_MEMBERS_OF_FACTION"（高置信） |
+| 0x14073ED40 | 常量串 getter: 返回常量串 "NDiplomacy::EQUIPMENT_PURCHASE_ACCEPTANCE_COMPETING_FACTIONS"（高置信） |
+| 0x14073EE00 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_LEADERSHIP_CHANGE_NOT_CAPITULATED_WEIGHT"（高置信） |
+| 0x14073F3F0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_SCORE_RESET_LOW_SCORE_MINIMUM_FOR_RECEIVER"（高置信） |
+| 0x14073EBF0 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_PEACE_TAKE_FACTION_CONTROLLED_STATE_FACTOR"（高置信） |
+| 0x14073F4A0 | 常量串 getter: 返回常量串 "NDiplomacy::PROVINCE_WORTH_FROM_STATE_VALUE_FACTOR_WARSCORE"（高置信） |
+| 0x14073F430 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_SCORE_TRANSFERRED_FROM_FACTION_INFLUENCE"（高置信） |
+| 0x14073EDA0 | 常量串 getter: 返回常量串 "NDiplomacy::EQUIPMENT_PURCHASE_ACCEPTANCE_TRADE_INFLUENCE"（高置信） |
+| 0x14073EA90 | 常量串 getter: 返回常量串 "NDiplomacy::ASSUME_FACTION_LEADERSHIP_MIN_MANPOWER_RATIO"（高置信） |
+| 0x14073EDE0 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_LEADERSHIP_CHANGE_IN_ALL_WARS_WEIGHT"（高置信） |
+| 0x14073EE10 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_LEADERSHIP_CHANGE_NOT_SUBJECT_WEIGHT"（高置信） |
+| 0x14073F0B0 | 常量串 getter: 返回常量串 "NDiplomacy::MARKET_ACCESS_ACCEPTANCE_NON_AGGRESSION_PACT"（高置信） |
+| 0x14073F450 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_TIMED_EFFECT_LENGTH_DEMILITARIZED_ZONE"（高置信） |
+| 0x14073EA80 | 常量串 getter: 返回常量串 "NDiplomacy::ASSUME_FACTION_LEADERSHIP_MIN_FACTORY_RATIO"（高置信） |
+| 0x14073ED80 | 常量串 getter: 返回常量串 "NDiplomacy::EQUIPMENT_PURCHASE_ACCEPTANCE_SAME_IDEOLOGY"（高置信） |
+| 0x14073F090 | 常量串 getter: 返回常量串 "NDiplomacy::MARKET_ACCESS_ACCEPTANCE_COMPETING_FACTIONS"（高置信） |
+| 0x14073F280 | 常量串 getter: 返回常量串 "NDiplomacy::NUM_DAYS_TO_ENABLE_REINVITE_KICKED_NATIONS"（高置信） |
+| 0x14073F320 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_STACK_DEMILITARIZED_ZONE"（高置信） |
+| 0x14073F330 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_STACK_DISMANTLE_INDUSTRY"（高置信） |
+| 0x14073EC00 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_PEACE_TAKE_UNCONTROLLED_STATE_FACTOR"（高置信） |
+| 0x14073EDB0 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_LEADERSHIP_CHANGE_ALERT_THRESHOLD"（高置信） |
+| 0x14073EDC0 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_LEADERSHIP_CHANGE_COOLDOWN_WEIGHT"（高置信） |
+| 0x14073EDF0 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_LEADERSHIP_CHANGE_MANPOWER_WEIGHT"（高置信） |
+| 0x14073F440 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_SCORE_TRANSFERRED_TO_FACTION_LEADER"（高置信） |
+| 0x14073F460 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_TIMED_EFFECT_LENGTH_RESOURCE_RIGHTS"（高置信） |
+| 0x14073EBB0 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_NEGATIVE_OPINION_AFTER_BEING_KICKED"（高置信） |
+| 0x14073EDD0 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_LEADERSHIP_CHANGE_FACTORY_WEIGHT"（高置信） |
+| 0x14073F100 | 常量串 getter: 返回常量串 "NDiplomacy::MARKET_ACCESS_ACCEPTANCE_TRADE_INFLUENCE"（高置信） |
+| 0x14073F260 | 常量串 getter: 返回常量串 "NDiplomacy::NOT_READY_FOR_WAR_VAL_PER_DAY_SINCE_CALL"（高置信） |
+| 0x14073F420 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_SCORE_TOP_FACTION_INFLUENCE_AMOUNT"（高置信） |
+| 0x14073F470 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_TIMED_EFFECT_LENGTH_WAR_REPARATION"（高置信） |
+| 0x14073EA70 | 常量串 getter: 返回常量串 "NDiplomacy::ASSUME_FACTION_LEADERSHIP_COOLDOWN_DAYS"（高置信） |
+| 0x14073EB30 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_BOOST_PARTY_POPULARITY_DAILY_DRIFT"（高置信） |
+| 0x14073EE70 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_POWER_NAVAL_CAPITAL_SHIP_WEIGHT"（高置信） |
+| 0x14073F040 | 常量串 getter: 返回常量串 "NDiplomacy::LICENSE_ACCEPTANCE_TECH_DIFFERENCE_BASE"（高置信） |
+| 0x14073F0C0 | 常量串 getter: 返回常量串 "NDiplomacy::MARKET_ACCESS_ACCEPTANCE_NO_TRADE_ROUTE"（高置信） |
+| 0x14073F340 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_STACK_RESOURCE_RIGHTS"（高置信） |
+| 0x14073F6C0 | 常量串 getter: 返回常量串 "NDiplomacy::TRUCE_PERIOD_AFTER_KICKING_FROM_FACTION"（高置信） |
+| 0x14073F790 | 常量串 getter: 返回常量串 "NDiplomacy::WARGOAL_JUSTIFY_TENSION_FROM_PRODUCTION"（高置信） |
+| 0x14073F7A0 | 常量串 getter: 返回常量串 "NDiplomacy::WARGOAL_PER_JUSTIFY_AND_WAR_COST_FACTOR"（高置信） |
+| 0x14073EAB0 | 常量串 getter: 返回常量串 "NDiplomacy::ASSUME_FACTION_SPYMASTER_COOLDOWN_DAYS"（高置信） |
+| 0x14073EB60 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_CONDITIONAL_PEACE_WARESCORE_RATIO"（高置信） |
+| 0x14073F0E0 | 常量串 getter: 返回常量串 "NDiplomacy::MARKET_ACCESS_ACCEPTANCE_SAME_IDEOLOGY"（高置信） |
+| 0x14073F350 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_STACK_WAR_REPARATION"（高置信） |
+| 0x14073F380 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_UNCONTESTED_BID_STEP"（高置信） |
+| 0x1407492C0 | 常量串 getter: 返回常量串 "NPolitics::MIN_OVERTHROWN_GOVERNMENT_SUPPORT_RATIO"（高置信） |
+| 0x14073ED50 | 常量串 getter: 返回常量串 "NDiplomacy::EQUIPMENT_PURCHASE_ACCEPTANCE_EMBARGO"（高置信） |
+| 0x14073ED70 | 常量串 getter: 返回常量串 "NDiplomacy::EQUIPMENT_PURCHASE_ACCEPTANCE_OPINION"（高置信） |
+| 0x14073F360 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_UNCONTESTED_BID_MAX"（高置信） |
+| 0x14073F370 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_UNCONTESTED_BID_MIN"（高置信） |
+| 0x14073F400 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_SCORE_RESET_LOW_SCORE_THRESHOLD"（高置信） |
+| 0x14073F7C0 | 常量串 getter: 返回常量串 "NDiplomacy::WARGOAL_VERSUS_MAJOR_AT_WAR_REDUCTION"（高置信） |
+| 0x14073EB40 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_BOOST_PARTY_POPULARITY_DAILY_PP"（高置信） |
+| 0x14073ECE0 | 常量串 getter: 返回常量串 "NDiplomacy::EMBARGO_DIFFERENT_IDEOLOGY_AI_WEIGHT"（高置信） |
+| 0x14073ED10 | 常量串 getter: 返回常量串 "NDiplomacy::EMBARGO_RECIPIENT_IS_MAJOR_AI_WEIGHT"（高置信） |
+| 0x14073F060 | 常量串 getter: 返回常量串 "NDiplomacy::LL_TO_OVERLORD_AUTONOMY_DAILY_FACTOR"（高置信） |
+| 0x14073F490 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_TRIGGER_AI_MAX_INFLUENCE_VALUE"（高置信） |
+| 0x140749290 | 常量串 getter: 返回常量串 "NPolitics::INSTANT_WIN_REVOLTER_POPULARITY_RATIO"（高置信） |
+| 0x14073F290 | 常量串 getter: 返回常量串 "NDiplomacy::OPINION_FOR_DEMO_FROM_WT_GENERATION"（高置信） |
+| 0x14073F310 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_SCREENING_SHIP_IC"（高置信） |
+| 0x14073F4C0 | 常量串 getter: 返回常量串 "NDiplomacy::RESOURCE_SENT_AUTONOMY_DAILY_FACTOR"（高置信） |
+| 0x14073F700 | 常量串 getter: 返回常量串 "NDiplomacy::VICTORY_POINT_WORTH_FACTOR_WARSCORE"（高置信） |
+| 0x14073EB00 | 常量串 getter: 返回常量串 "NDiplomacy::AUTONOMY_LEVEL_CHANGE_PP_COST_BASE"（高置信） |
+| 0x14073EC90 | 常量串 getter: 返回常量串 "NDiplomacy::CAPITAL_CAPITULATE_BONUS_SCORE_MUL"（高置信） |
+| 0x14073F030 | 常量串 getter: 返回常量串 "NDiplomacy::LICENSE_ACCEPTANCE_TECH_DIFFERENCE"（高置信） |
+| 0x14073F050 | 常量串 getter: 返回常量串 "NDiplomacy::LL_TO_OVERLORD_AUTONOMY_DAILY_BASE"（高置信） |
+| 0x14073F080 | 常量串 getter: 返回常量串 "NDiplomacy::LL_TO_PUPPET_AUTONOMY_DAILY_FACTOR"（高置信） |
+| 0x14073F2E0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_COMPLIANCE_STEPS"（高置信） |
+| 0x14073F5F0 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_PEACE_FACTOR_THREAT_FACTOR"（高置信） |
+| 0x14073EAA0 | 常量串 getter: 返回常量串 "NDiplomacy::ASSUME_FACTION_LEADERSHIP_PP_COST"（高置信） |
+| 0x14073EF80 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_NEUTRAL_DIST_CONTROLLED"（高置信） |
+| 0x14073F000 | 常量串 getter: 返回常量串 "NDiplomacy::LICENSE_ACCEPTANCE_OPINION_FACTOR"（高置信） |
+| 0x14073F160 | 常量串 getter: 返回常量串 "NDiplomacy::MAX_SCORE_DIFF_TO_CHANGE_AUTONOMY"（高置信） |
+| 0x14073F2D0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_CAPITAL_SHIP_IC"（高置信） |
+| 0x14073F390 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_UNCONTESTED_MAX"（高置信） |
+| 0x14073F4B0 | 常量串 getter: 返回常量串 "NDiplomacy::RESOURCE_SENT_AUTONOMY_DAILY_BASE"（高置信） |
+| 0x14073F660 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_TIME_SCALE_MONTHLY_FACTOR"（高置信） |
+| 0x14073EAE0 | 常量串 getter: 返回常量串 "NDiplomacy::AUTONOMY_FREEDOM_FROM_CAPITULATE"（高置信） |
+| 0x14073EBC0 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_PEACE_FORCE_GOVERNMENT_COST"（高置信） |
+| 0x14073ECB0 | 常量串 getter: 返回常量串 "NDiplomacy::DIPLOMACY_HOURS_BETWEEN_REQUESTS"（高置信） |
+| 0x14073EF40 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_MAX_DIST_COST_MODIFIER"（高置信） |
+| 0x14073EF60 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_MIN_DIST_COST_MODIFIER"（高置信） |
+| 0x14073EFF0 | 常量串 getter: 返回常量串 "NDiplomacy::JOIN_FACTION_LIMIT_CHANGE_AT_WAR"（高置信） |
+| 0x14073F070 | 常量串 getter: 返回常量串 "NDiplomacy::LL_TO_PUPPET_AUTONOMY_DAILY_BASE"（高置信） |
+| 0x14073F0A0 | 常量串 getter: 返回常量串 "NDiplomacy::MARKET_ACCESS_ACCEPTANCE_EMBARGO"（高置信） |
+| 0x14073F0D0 | 常量串 getter: 返回常量串 "NDiplomacy::MARKET_ACCESS_ACCEPTANCE_OPINION"（高置信） |
+| 0x14073F3E0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_SCORE_MINOR_BOOST_FRACTION"（高置信） |
+| 0x14073F680 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_VOLUNTEER_FORCE_DIVISION"（高置信） |
+| 0x14073EB20 | 常量串 getter: 返回常量串 "NDiplomacy::AUTONOMY_LEVEL_CHANGE_SANCTUARY"（高置信） |
+| 0x14073ED20 | 常量串 getter: 返回常量串 "NDiplomacy::EMBARGO_SAME_IDEOLOGY_AI_WEIGHT"（高置信） |
+| 0x14073EE20 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_POWER_AIR_BOMBER_WEIGHT"（高置信） |
+| 0x14073EEE0 | 常量串 getter: 返回常量串 "NDiplomacy::IDEOLOGY_JOIN_FACTION_MIN_LEVEL"（高置信） |
+| 0x14073F020 | 常量串 getter: 返回常量串 "NDiplomacy::LICENSE_ACCEPTANCE_SAME_FACTION"（高置信） |
+| 0x14073F240 | 常量串 getter: 返回常量串 "NDiplomacy::NAVAL_BLOCKADE_THREAT_THRESHOLD"（高置信） |
+| 0x14073F2F0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_CONTESTED_BID"（高置信） |
+| 0x14073F300 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_COST_FACTOR_CONTESTED_MAX"（高置信） |
+| 0x14073F7D0 | 常量串 getter: 返回常量串 "NDiplomacy::WARGOAL_WORLD_TENSION_REDUCTION"（高置信） |
+| 0x14073EAF0 | 常量串 getter: 返回常量串 "NDiplomacy::AUTONOMY_LEVEL_CHANGE_PP_ANNEX"（高置信） |
+| 0x14073EB70 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_GENERATE_WARGOAL_DAILY_PP"（高置信） |
+| 0x14073EC80 | 常量串 getter: 返回常量串 "NDiplomacy::CAPITAL_CAPITULATE_BONUS_SCORE"（高置信） |
+| 0x14073EF70 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_NEUTRAL_DIST_CAPITAL"（高置信） |
+| 0x14073F010 | 常量串 getter: 返回常量串 "NDiplomacy::LICENSE_ACCEPTANCE_PUPPET_BASE"（高置信） |
+| 0x14073F730 | 常量串 getter: 返回常量串 "NDiplomacy::VOLUNTEERS_PER_TARGET_PROVINCE"（高置信） |
+| 0x14073EB10 | 常量串 getter: 返回常量串 "NDiplomacy::AUTONOMY_LEVEL_CHANGE_PP_FREE"（高置信） |
+| 0x14073EB50 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_CONDITIONAL_PEACE_MONTHS"（高置信） |
+| 0x14073ECC0 | 常量串 getter: 返回常量串 "NDiplomacy::DIPLOMACY_REQUEST_EXPIRY_DAYS"（高置信） |
+| 0x14073EE60 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_POWER_INDUSTRY_WEIGHT"（高置信） |
+| 0x14073EE90 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_POWER_RESOURCE_WEIGHT"（高置信） |
+| 0x14073EF20 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_MAX_DIST_CONTROLLED"（高置信） |
+| 0x14073F200 | 常量串 getter: 返回常量串 "NDiplomacy::NAP_FORCE_BALANCE_RULE_MONTHS"（高置信） |
+| 0x14073F640 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_TAKE_ONE_CAPITAL_SHIP"（高置信） |
+| 0x14073F670 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_TIME_SCALE_START_DATE"（高置信） |
+| 0x14073F710 | 常量串 getter: 返回常量串 "NDiplomacy::VOLUNTEERS_DIVISIONS_REQUIRED"（高置信） |
+| 0x14073F7B0 | 常量串 getter: 返回常量串 "NDiplomacy::WARGOAL_THREAT_MAX_TIME_RATIO"（高置信） |
+| 0x14073EE50 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_POWER_EFFECTS_WEIGHT"（高置信） |
+| 0x14073F110 | 常量串 getter: 返回常量串 "NDiplomacy::MASTER_BUILD_AUTONOMY_FACTOR"（高置信） |
+| 0x14073F3C0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_PLAY_SOUND_ON_NEW_TURN"（高置信） |
+| 0x140749260 | 常量串 getter: 返回常量串 "NPolitics::BASE_POLITICAL_POWER_INCREASE"（高置信） |
+| 0x14073ED00 | 常量串 getter: 返回常量串 "NDiplomacy::EMBARGO_NEIGHBOUR_AI_WEIGHT"（高置信） |
+| 0x14073EF90 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_NEUTRAL_DIST_CORE"（高置信） |
+| 0x14073F130 | 常量串 getter: 返回常量串 "NDiplomacy::MAX_OPINION_FROM_VOLUNTEERS"（高置信） |
+| 0x14073F2C0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_CONTEST_REFUND_FACTOR"（高置信） |
+| 0x14073F720 | 常量串 getter: 返回常量串 "NDiplomacy::VOLUNTEERS_PER_COUNTRY_ARMY"（高置信） |
+| 0x14073F740 | 常量串 getter: 返回常量串 "NDiplomacy::VOLUNTEERS_RETURN_EQUIPMENT"（高置信） |
+| 0x14073F760 | 常量串 getter: 返回常量串 "NDiplomacy::WARGOAL_COST_DOCKING_RIGHTS"（高置信） |
+| 0x14073EAC0 | 常量串 getter: 返回常量串 "NDiplomacy::ATTACHE_TO_OVERLORD_EFFECT"（高置信） |
+| 0x14073EB80 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_IMPROVE_RELATION_COST"（高置信） |
+| 0x14073EBD0 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_PEACE_LIBERATE_FACTOR"（高置信） |
+| 0x14073EC40 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_STAGE_COUP_TOTAL_COST"（高置信） |
+| 0x14073EC70 | 常量串 getter: 返回常量串 "NDiplomacy::BREAKING_GUARANTEE_PENALTY"（高置信） |
+| 0x14073EE80 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_POWER_NAVAL_WEIGHT"（高置信） |
+| 0x14073EED0 | 常量串 getter: 返回常量串 "NDiplomacy::IC_TO_EQUIPMENT_COUP_RATIO"（高置信） |
+| 0x14073EEF0 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_DISTANCE_DIVISOR"（高置信） |
+| 0x14073EF10 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_MAX_DIST_CAPITAL"（高置信） |
+| 0x14073EFC0 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_RATIO_CONTROLLED"（高置信） |
+| 0x14073F570 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_DISMANTLE_INDUSTRY"（高置信） |
+| 0x14073F6F0 | 常量串 getter: 返回常量串 "NDiplomacy::VICTORY_POINT_WORTH_FACTOR"（高置信） |
+| 0x14073EAD0 | 常量串 getter: 返回常量串 "NDiplomacy::ATTACHE_TO_SUBJECT_EFFECT"（高置信） |
+| 0x14073EC20 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_SEND_ATTACHE_CP_COST"（高置信） |
+| 0x14073EE40 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_POWER_ARMY_WEIGHT"（高置信） |
+| 0x14073F120 | 常量串 getter: 返回常量串 "NDiplomacy::MAX_OPINION_FOR_LEASED_IC"（高置信） |
+| 0x14073F1C0 | 常量串 getter: 返回常量串 "NDiplomacy::NAP_BREAK_FORCE_BALANCE_1"（高置信） |
+| 0x14073F1D0 | 常量串 getter: 返回常量串 "NDiplomacy::NAP_BREAK_FORCE_BALANCE_2"（高置信） |
+| 0x14073F1E0 | 常量串 getter: 返回常量串 "NDiplomacy::NAP_BREAK_FORCE_BALANCE_3"（高置信） |
+| 0x14073F230 | 常量串 getter: 返回常量串 "NDiplomacy::NAVAL_BLOCKADE_DAILY_COST"（高置信） |
+| 0x14073F560 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_DEMILITARIZE_ZONE"（高置信） |
+| 0x14073F750 | 常量串 getter: 返回常量串 "NDiplomacy::VOLUNTEERS_TRANSFER_SPEED"（高置信） |
+| 0x14073F7F0 | 常量串 getter: 返回常量串 "NDiplomacy::WAR_SCORE_AUTONOMY_FACTOR"（高置信） |
+| 0x140749280 | 常量串 getter: 返回常量串 "NPolitics::INSTANT_WIN_POPULARITY_WIN"（高置信） |
+| 0x14073EBE0 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_PEACE_PUPPET_FACTOR"（高置信） |
+| 0x14073EC30 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_STAGE_COUP_DAILY_PP"（高置信） |
+| 0x14073ED30 | 常量串 getter: 返回常量串 "NDiplomacy::EMBARGO_THREAT_THRESHOLD"（高置信） |
+| 0x14073EE30 | 常量串 getter: 返回常量串 "NDiplomacy::FACTION_POWER_AIR_WEIGHT"（高置信） |
+| 0x14073F150 | 常量串 getter: 返回常量串 "NDiplomacy::MAX_REMEMBERED_LEASED_IC"（高置信） |
+| 0x14073F1A0 | 常量串 getter: 返回常量串 "NDiplomacy::MIN_WARGOAL_JUSTIFY_COST"（高置信） |
+| 0x14073F220 | 常量串 getter: 返回常量串 "NDiplomacy::NAVAL_BLOCKADE_BASE_COST"（高置信） |
+| 0x14073F3D0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_SCORE_DISTRIBUTION"（高置信） |
+| 0x14073F410 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_SCORE_SCALE_FACTOR"（高置信） |
+| 0x14073F540 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_CIVIL_WAR_IMPACT"（高置信） |
+| 0x14073F590 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_FORCE_GOVERNMENT"（高置信） |
+| 0x140749270 | 常量串 getter: 返回常量串 "NPolitics::DEFAULT_OCCUPATION_POLICY"（高置信） |
+| 0x140749300 | 常量串 getter: 返回常量串 "NPolitics::REVOLTER_PARTY_POPULARITY"（高置信） |
+| 0x14073EF30 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_MAX_DIST_CORE"（高置信） |
+| 0x14073EFA0 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_PER_ADJACENCY"（高置信） |
+| 0x14073EFB0 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_RATIO_CAPITAL"（高置信） |
+| 0x14073EFE0 | 常量串 getter: 返回常量串 "NDiplomacy::JOINING_NAP_WAR_PENALTY"（高置信） |
+| 0x14073F1B0 | 常量串 getter: 返回常量串 "NDiplomacy::MONTHLY_LEASED_IC_DECAY"（高置信） |
+| 0x14073F610 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_RESOURCE_RIGHTS"（高置信） |
+| 0x14073F770 | 常量串 getter: 返回常量串 "NDiplomacy::WARGOAL_COST_LEND_LEASE"（高置信） |
+| 0x14073F780 | 常量串 getter: 返回常量串 "NDiplomacy::WARGOAL_COST_VOLUNTEERS"（高置信） |
+| 0x14073F7E0 | 常量串 getter: 返回常量串 "NDiplomacy::WAR_SCORE_AUTONOMY_BASE"（高置信） |
+| 0x14073EC10 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_SEND_ATTACHE_COST"（高置信） |
+| 0x14073EF00 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_MAJOR_FACTOR"（高置信） |
+| 0x14073EF50 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_MINOR_FACTOR"（高置信） |
+| 0x14073F210 | 常量串 getter: 返回常量串 "NDiplomacy::NAP_UNBREAKABLE_MONTHS"（高置信） |
+| 0x14073F250 | 常量串 getter: 返回常量串 "NDiplomacy::NOT_READY_FOR_WAR_BASE"（高置信） |
+| 0x14073F510 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_ANNEX_NO_CLAIM"（高置信） |
+| 0x14073F650 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_TIME_SCALE_MIN"（高置信） |
+| 0x14073F690 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_WAR_REPARATION"（高置信） |
+| 0x1407492F0 | 常量串 getter: 返回常量串 "NPolitics::NUM_OCCUPATION_POLICIES"（高置信） |
+| 0x14073F2A0 | 常量串 getter: 返回常量串 "NDiplomacy::OPINION_PER_VOLUNTEER"（高置信） |
+| 0x14073F2B0 | 常量串 getter: 返回常量串 "NDiplomacy::PEACE_ACTION_MAX_COST"（高置信） |
+| 0x14073F4E0 | 常量串 getter: 返回常量串 "NDiplomacy::REVOKE_GUARANTEE_COST"（高置信） |
+| 0x14073F5B0 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_JOIN_ATTACKER"（高置信） |
+| 0x14073EC50 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_SURRENDER_LEVEL"（高置信） |
+| 0x14073EFD0 | 常量串 getter: 返回常量串 "NDiplomacy::INFLUENCE_RATIO_CORE"（高置信） |
+| 0x14073F580 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_FACTION_JOIN"（高置信） |
+| 0x14073F5E0 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_PEACE_FACTOR"（高置信） |
+| 0x1407492A0 | 常量串 getter: 返回常量串 "NPolitics::LEADER_TRAITS_XP_SHOW"（高置信） |
+| 0x14073F4D0 | 常量串 getter: 返回常量串 "NDiplomacy::REVOKE_EMBARGO_COST"（高置信） |
+| 0x14073F4F0 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_ANNEX_CLAIM"（高置信） |
+| 0x14073F550 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_DECAY_DAILY"（高置信） |
+| 0x14073F620 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_SIZE_FACTOR"（高置信） |
+| 0x14073F630 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_STATE_VALUE"（高置信） |
+| 0x14073F6B0 | 常量串 getter: 返回常量串 "NDiplomacy::TRUCE_BREAK_COST_PP"（高置信） |
+| 0x140749240 | 常量串 getter: 返回常量串 "NPolitics::ARMY_LEADER_MAX_COST"（高置信） |
+| 0x1407492E0 | 常量串 getter: 返回常量串 "NPolitics::NAVY_LEADER_MAX_COST"（高置信） |
+| 0x14073EEB0 | 常量串 getter: 返回常量串 "NDiplomacy::FRONT_IS_DANGEROUS"（高置信） |
+| 0x14073F500 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_ANNEX_CORE"（高置信） |
+| 0x14073F520 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_CAPITULATE"（高置信） |
+| 0x14073EC60 | 常量串 getter: 返回常量串 "NDiplomacy::BASE_TRUCE_PERIOD"（高置信） |
+| 0x14073F140 | 常量串 getter: 返回常量串 "NDiplomacy::MAX_OPINION_VALUE"（高置信） |
+| 0x14073F180 | 常量串 getter: 返回常量串 "NDiplomacy::MIN_OPINION_VALUE"（高置信） |
+| 0x14073F1F0 | 常量串 getter: 返回常量串 "NDiplomacy::NAP_EXPIRY_MONTHS"（高置信） |
+| 0x14073F5A0 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_GUARANTEE"（高置信） |
+| 0x14073F5D0 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_NO_CB_WAR"（高置信） |
+| 0x14073F6E0 | 常量串 getter: 返回常量串 "NDiplomacy::VERY_GOOD_OPINION"（高置信） |
+| 0x140749250 | 常量串 getter: 返回常量串 "NPolitics::BASE_LEADER_TRAITS"（高置信） |
+| 0x1407492B0 | 常量串 getter: 返回常量串 "NPolitics::MAX_RANDOM_LEADERS"（高置信） |
+| 0x14073F5C0 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_LIBERATE"（高置信） |
+| 0x14073F6D0 | 常量串 getter: 返回常量串 "NDiplomacy::VERY_BAD_OPINION"（高置信） |
+| 0x14073F170 | 常量串 getter: 返回常量串 "NDiplomacy::MAX_TRUST_VALUE"（高置信） |
+| 0x14073F190 | 常量串 getter: 返回常量串 "NDiplomacy::MIN_TRUST_VALUE"（高置信） |
+| 0x140749230 | 常量串 getter: 返回常量串 "NPolitics::ARMY_LEADER_COST"（高置信） |
+| 0x1407492D0 | 常量串 getter: 返回常量串 "NPolitics::NAVY_LEADER_COST"（高置信） |
+| 0x14073EEC0 | 常量串 getter: 返回常量串 "NDiplomacy::GUARANTEE_COST"（高置信） |
+| 0x14073F530 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_CB_WAR"（高置信） |
+| 0x14073F600 | 常量串 getter: 返回常量串 "NDiplomacy::TENSION_PUPPET"（高置信） |
+| 0x14073ECD0 | 常量串 getter: 返回常量串 "NDiplomacy::EMBARGO_COST"（高置信） |
+| 0x14073EEA0 | 常量串 getter: 返回常量串 "NDiplomacy::FLEET_FEAR"（高置信） |
+| 0x14073F6A0 | 常量串 getter: 返回常量串 "NDiplomacy::TROOP_FEAR"（高置信） |
+
+#### 4.10.63 模板实例化桩结构定案（80 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BFA6C0 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141BFA690 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141BFA660 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141BFA630 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x1414775C0 | 模板桩: 模板参数类名 CFactionCountrySection（高置信） |
+| 0x1414776C0 | 模板桩: 模板参数类名 CFactionCountrySection（高置信） |
+| 0x141BFA700 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141F0ADB0 | 模板桩: 模板参数类名 CFactionMemberUpgradeButton（高置信） |
+| 0x141BFA610 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141ADFEB0 | 模板桩: 模板参数类名 CFactionCountryItem（高置信） |
+| 0x141ADFED0 | 模板桩: 模板参数类名 CFactionCountryListWindow（高置信） |
+| 0x1414775E0 | 模板桩: 模板参数类名 CFactionHeaderSection（高置信） |
+| 0x141477610 | 模板桩: 模板参数类名 CFactionRulesSection（高置信） |
+| 0x1414775A0 | 模板桩: 模板参数类名 CFactionArmySection（高置信） |
+| 0x1414776A0 | 模板桩: 模板参数类名 CFactionArmySection（高置信） |
+| 0x141E2FE30 | 模板桩: 模板参数类名 CFactionIconItem（高置信） |
+| 0x141477630 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x1414776E0 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x141477710 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x141477750 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x141477770 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x14179EA60 | 模板桩: 模板参数类名 CFactionTheaterItem（高置信） |
+| 0x14179EAC0 | 模板桩: 模板参数类名 CFactionTheaterItem（高置信） |
+| 0x141BFA7A0 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141477600 | 模板桩: 模板参数类名 CFactionResearchSection（高置信） |
+| 0x141C17010 | 模板桩: 模板参数类名 CFactionCommanderItem（高置信） |
+| 0x141C17030 | 模板桩: 模板参数类名 CFactionCommanderItem（高置信） |
+| 0x141C17050 | 模板桩: 模板参数类名 CFactionCommanderItem（高置信） |
+| 0x141E76F00 | 模板桩: 模板参数类名 CFactionButton（高置信） |
+| 0x141BFA790 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141BFA780 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141BFA770 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141477DC0 | 模板桩: 模板参数类名 CFactionResearchSection（高置信） |
+| 0x141477DA0 | 模板桩: 模板参数类名 CFactionCountrySection（高置信） |
+| 0x141477E30 | 模板桩: 模板参数类名 CFactionCountrySection（高置信） |
+| 0x141BFA7B0 | 模板桩: 模板参数类名 CFactionCommanderWindow（高置信） |
+| 0x141477DB0 | 模板桩: 模板参数类名 CFactionHeaderSection（高置信） |
+| 0x141477DD0 | 模板桩: 模板参数类名 CFactionRulesSection（高置信） |
+| 0x141477D90 | 模板桩: 模板参数类名 CFactionArmySection（高置信） |
+| 0x141477E20 | 模板桩: 模板参数类名 CFactionArmySection（高置信） |
+| 0x141477DE0 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x141477E40 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x141477E60 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x141477E80 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x141477E90 | 模板桩: 模板参数类名 CFactionTabSection（高置信） |
+| 0x141F0AF60 | 模板桩: 模板参数类名 CFactionMemberUpgradeButton（高置信） |
+| 0x141F17C30 | 模板桩: 模板参数类名 CFactionMemberScientistItem（高置信） |
+| 0x141F17C40 | 模板桩: 模板参数类名 CFactionMemberScientistItem（高置信） |
+| 0x141F17C50 | 模板桩: 模板参数类名 CFactionMemberScientistItem（高置信） |
+| 0x141C1AE20 | 模板桩: 模板参数类名 CFactionProgramItemEmpty（高置信） |
+| 0x14179EFF0 | 模板桩: 模板参数类名 CFactionTheaterItem（高置信） |
+| 0x14179F020 | 模板桩: 模板参数类名 CFactionTheaterItem（高置信） |
+| 0x141AE0220 | 模板桩: 模板参数类名 CFactionCountryItem（高置信） |
+| 0x141AE0260 | 模板桩: 模板参数类名 CFactionMemberCountriesWindow（高置信） |
+| 0x141C1AE10 | 模板桩: 模板参数类名 CFactionProgramItem（高置信） |
+| 0x141E30000 | 模板桩: 模板参数类名 CFactionIconItem（高置信） |
+| 0x141C1AE30 | 模板桩: 模板参数类名 CFactionProgramItem（高置信） |
+| 0x141AE0250 | 模板桩: 模板参数类名 CFactionCountryListWindow（高置信） |
+| 0x141E30010 | 模板桩: 模板参数类名 CFactionColorPickerWindow（高置信） |
+| 0x141E30030 | 模板桩: 模板参数类名 CFactionColorPickerWindow（高置信） |
+| 0x1418DF610 | 模板桩: 模板参数类名 CFactionPingMapIcon（高置信） |
+| 0x1418DF620 | 模板桩: 模板参数类名 CFactionPingMapIcon（高置信） |
+| 0x1418DF630 | 模板桩: 模板参数类名 CFactionPingMapIcon（高置信） |
+| 0x14179F010 | 模板桩: 模板参数类名 CFactionTheaterSwitch（高置信） |
+| 0x14179F040 | 模板桩: 模板参数类名 CFactionTheaterSwitch（高置信） |
+| 0x141828A90 | 模板桩: 模板参数类名 CFactionSetupWindow（高置信） |
+| 0x141828AC0 | 模板桩: 模板参数类名 CFactionSetupWindow（高置信） |
+| 0x141828AF0 | 模板桩: 模板参数类名 CFactionSetupWindow（高置信） |
+| 0x141828B00 | 模板桩: 模板参数类名 CFactionSetupWindow（高置信） |
+| 0x141828B10 | 模板桩: 模板参数类名 CFactionSetupWindow（高置信） |
+| 0x14179F000 | 模板桩: 模板参数类名 CFactionPingWindow（高置信） |
+| 0x14179F030 | 模板桩: 模板参数类名 CFactionPingWindow（高置信） |
+| 0x14179F050 | 模板桩: 模板参数类名 CFactionPingWindow（高置信） |
+| 0x14179F060 | 模板桩: 模板参数类名 CFactionPingWindow（高置信） |
+| 0x14179F070 | 模板桩: 模板参数类名 CFactionPingWindow（高置信） |
+| 0x141C5B360 | 模板桩: 模板参数类名 CFactionListWindow（高置信） |
+| 0x141E30020 | 模板桩: 模板参数类名 CFactionIconWindow（高置信） |
+| 0x141E30040 | 模板桩: 模板参数类名 CFactionIconWindow（高置信） |
+| 0x141C057C0 | 模板桩: 模板参数类名 CFactionPopup（高置信） |
+| 0x141C057D0 | 模板桩: 模板参数类名 CFactionPopup（高置信） |
+
+#### 4.10.64 单调用转发桩结构定案（20 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AD9F20 | 转发桩: 转发至 （无名） 被 NFactions::NUi::CFactionMemberCountriesW 调用（政治/外交）（推定） |
+| 0x1426303C0 | 转发桩: 被调者 0x1411BCC80 -> §4.10 (E:单调用转发(被调者入书))（推定） |
+| 0x140A46730 | 转发桩: 转发至 未决窗口函数 · 意识形态库析构 `TReloadableGameItemDatabase<CIdeologyDatabase>` + `TGameItemDatabase<CIdeologyDatabase>` 双 vtable 析构（推定） |
+| 0x1411BCD20 | 转发桩: 转发至 业务 类路由 CNavyRepairModeCommand ->§4.33; 串 "results_window" ->§4.30; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x142625740 | 转发桩: 转发至 域关键词匹配 sub_140A3FDA0 + 域关键词匹配（推定） |
+| 0x1411BCC80 | 转发桩: 转发至 业务 类路由 CNavyRepairModeCommand ->§4.33; 串 "results_window" ->§4.30; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x140725610 | 转发桩: 转发至 sub_140724250 CDecision 三 vtable 析构：清 a1+3344/3360 等多个成员 string（CDecision 生命周期）（推定） |
+| 0x140E49B70 | 转发桩: 转发至 和会竞标回合 "BiddingTurns.GetSize() > TurnNumber - 1"，peaceconference.cpp:1802（推定） |
+| 0x1426012B0 | 转发桩: 转发至 域关键词匹配 sub_140A3FDA0 + 域关键词匹配（推定） |
+| 0x142600E40 | 转发桩: 转发至 域关键词匹配 sub_140A3FDA0 + 域关键词匹配（推定） |
+| 0x142601190 | 转发桩: 转发至 域关键词匹配 sub_140A3FDA0 + 域关键词匹配（推定） |
+| 0x142600F60 | 转发桩: 转发至 域关键词匹配 sub_140A3FDA0 + 域关键词匹配（推定） |
+| 0x142630690 | 转发桩: 被调者 0x1411BD380 -> §4.10 (E:单调用转发(被调者入书))（推定） |
+| 0x142658420 | 转发桩: 转发至 （无名） vftable 类 NFactions::NUi::CFactionCountryListWindow::（政治/外交）（推定） |
+| 0x1411BD380 | 转发桩: 转发至 业务 类路由 CNavyRepairModeCommand ->§4.33; 串 "results_window" ->§4.30; 调用图 IDF top §4.1 frac 1.00（推定） |
+| 0x14258E310 | 转发桩: 转发至 业务 类名证据「TGameItemDatabase<COccupationModifierDatabase>」 §4.10 政治外交（推定） |
+| 0x1426306D0 | 转发桩: 被调者 0x1411BD380 -> §4.10 (E:单调用转发(被调者入书))（推定） |
+| 0x14266BF70 | 转发桩: 转发至 （无名） vftable 类 NFactions::NUi::CFactionCountryListWindow::（政治/外交）（推定） |
+| 0x142630730 | 转发桩: 被调者 0x1411BCD20 -> §4.10 (E:单调用转发(被调者入书))（推定） |
+| 0x14145B610 | 转发桩: 转发至 （无名） 调 sub_1401AD740（CDiplomaticAction::GetFirstCountryRef）+ pdx_core 内存族（异步轮询形）（推定） |
+
+#### 4.10.65 政治外交域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E404A0 | caller 14151AD80/14151AEC0/14151AFF0/14151B140 = CForceGovernmentAction::[24]/CLiberateCountryAction::[24]/CPuppetCountryAction::[24]（3/4 同槽） |
+| 0x140E4CF80 | 路径锚 source\peaceconference\peaceconference.cpp |
+| 0x141474E90 | 断言 gamestate.h:1125/1126×2 + 串 "goal_item_container" + CPdxStaticInlineBufferAllocator<H$02H>::[4](sub_140A02EC0)×3 → 战争目标条目容器构造 |
+| 0x1419FCDF0 | 路径锚 source\peaceconference\peacetelemetry.cpp |
+
+#### 4.10.66 政治外交域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411A3830 | 业务 拼装 "<name>_party"（sub_14011FFD0 + '_' 分隔）+ 邻域 political_party.cpp/operationmanager.cpp/CCountryOperationManager::Reader |
+| 0x140A84B50 | 业务 串 /categories//cost_modifiers//ai_peace + 邻域 peace_conference_database.cpp/CPeaceConferenceDatabase::[2]/CPeaceActionModifier |
+| 0x141F2C180 | 业务 邻域 diplomacylendleaseitems.cpp x6 + 断言 pdx_scoped_buffer.h:54 + gamestate.h:1125 |
+| 0x141A9DFA0 | func_names rtti 名 CAirBaseAccessAction::[59]；串 "_DESC"；vtable+184 取名 + sub_14011FFD0 拼名 |
+
+#### 4.10.67 政治外交域函数补遗（60 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14082F5D0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:100`；lua 表 `NFactions` 键 `AI_DAYS_TO_SELECT_GOAL`；sink `sub_142070630`；define 槽 `dword_143336658` |
+| 0x14082F7E0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:11`；lua 表 `NFactions` 键 `AI_FACTION_POWER_PROJECTION_TRESHOLD`；sink `sub_142072500`；define 槽 `qword_… |
+| 0x14082F9F0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:12`；lua 表 `NFactions` 键 `AI_FACTION_POWER_PROJECTION_VALUE`；sink `sub_142072500`；define 槽 `qword_143… |
+| 0x14082FE10 | defines 读取器；`source\diplomacy\factions\faction_defines.h:92`；lua 表 `NFactions` 键 `AI_FACTION_THEATER_TEMPLATE_SELECTION_RANDOMNESS`；sink `sub_142070630`；defi… |
+| 0x140830230 | defines 读取器；`source\diplomacy\factions\faction_defines.h:13`；lua 表 `NFactions` 键 `AI_MIN_POWER_PROJECTION_SCORE`；sink `sub_142072500`；define 槽 `qword_143333318` |
+| 0x140830650 | defines 读取器；`source\diplomacy\factions\faction_defines.h:31`；lua 表 `NFactions` 键 `AI_PING_AREA_PRIORITY`；sink `sub_142072500`；define 槽 `qword_143333DE0` |
+| 0x140830860 | defines 读取器；`source\diplomacy\factions\faction_defines.h:38`；lua 表 `NFactions` 键 `AI_PING_FORCE_CONCENTRATION_AGGRESSIVE_FACTOR`；sink `sub_142072500`；define … |
+| 0x140830A70 | defines 读取器；`source\diplomacy\factions\faction_defines.h:37`；lua 表 `NFactions` 键 `AI_PING_FORCE_CONCENTRATION_CAREFUL_FACTOR`；sink `sub_142072500`；define 槽 `… |
+| 0x140830C80 | defines 读取器；`source\diplomacy\factions\faction_defines.h:33`；lua 表 `NFactions` 键 `AI_PING_FORCE_CONCENTRATION_FRONT_FACTOR`；sink `sub_142072500`；define 槽 `qw… |
+| 0x140830E90 | defines 读取器；`source\diplomacy\factions\faction_defines.h:34`；lua 表 `NFactions` 键 `AI_PING_FORCE_CONCENTRATION_TARGET_WEIGHT`；sink `sub_142072500`；define 槽 `q… |
+| 0x1408312B0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:35`；lua 表 `NFactions` 键 `AI_PING_INVASION_UNIT_REQUEST`；sink `sub_142072500`；define 槽 `qword_143334060` |
+| 0x1408316D0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:54`；lua 表 `NFactions` 键 `AI_THEATER_CREATION_PENALTY`；sink `sub_142072500`；define 槽 `qword_143334D48` |
+| 0x1408318E0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:40`；lua 表 `NFactions` 键 `ASSIGN_FACILITY_TO_FACTION_INITIATIVE_COST`；sink `sub_142072500`；define 槽 `… |
+| 0x140831AF0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:49`；lua 表 `NFactions` 键 `BECOME_FACTION_LEADER_INFLUENCE_THRESHOLD`；sink `sub_142072500`；define 槽 `q… |
+| 0x140831D00 | defines 读取器；`source\diplomacy\factions\faction_defines.h:50`；lua 表 `NFactions` 键 `BECOME_FACTION_LEADER_INFLUENCE_WEIGHT`；sink `sub_142072500`；define 槽 `qwor… |
+| 0x140831F10 | defines 读取器；`source\diplomacy\factions\faction_defines.h:8`；lua 表 `NFactions` 键 `DOCTRINE_SHARING_BASE_MASTERY_GAIN_MONTHLY`；sink `sub_142072500`；define 槽 `q… |
+| 0x140832120 | defines 读取器；`source\diplomacy\factions\faction_defines.h:9`；lua 表 `NFactions` 键 `DOCTRINE_SHARING_MONTHLY_MASTERY_GAIN_PER_COMMANDER`；sink `sub_142072500`；de… |
+| 0x140832330 | defines 读取器；`source\diplomacy\factions\faction_defines.h:41`；lua 表 `NFactions` 键 `FACTION_ASSIGN_SCIENTIST_COST`；sink `sub_142072500`；define 槽 `qword_143334360` |
+| 0x140832540 | defines 读取器；`source\diplomacy\factions\faction_defines.h:27`；lua 表 `NFactions` 键 `FACTION_CONTRIBUTION_DEBT_LIMIT`；sink `sub_142072500`；define 槽 `qword_14333… |
+| 0x140832750 | defines 读取器；`source\diplomacy\factions\faction_defines.h:89`；lua 表 `NFactions` 键 `FACTION_DEFAULT_ICON`；sink `sub_142072800`；define 槽 `qword_14308FEE8` |
+| 0x140832B70 | defines 读取器；`source\diplomacy\factions\faction_defines.h:7`；lua 表 `NFactions` 键 `FACTION_DOCTRINE_SHARING_UNLOCK_COST`；sink `sub_142072500`；define 槽 `qword_1… |
+| 0x140832D80 | defines 读取器；`source\diplomacy\factions\faction_defines.h:17`；lua 表 `NFactions` 键 `FACTION_INFLUENCE_EFFECTS_FACTOR`；sink `sub_142072500`；define 槽 `qword_1433… |
+| 0x140832F90 | defines 读取器；`source\diplomacy\factions\faction_defines.h:21`；lua 表 `NFactions` 键 `FACTION_INFLUENCE_EXPEDITIONARY_FORCE_PROVIDER_FACTOR`；sink `sub_142072500`… |
+| 0x1408331A0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:22`；lua 表 `NFactions` 键 `FACTION_INFLUENCE_EXPEDITIONARY_FORCE_RECIEVER_FACTOR`；sink `sub_142072500`… |
+| 0x1408333B0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:19`；lua 表 `NFactions` 键 `FACTION_INFLUENCE_GARRISON_SUPPORT_PROVIDER_FACTOR`；sink `sub_142072500`；de… |
+| 0x1408335C0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:20`；lua 表 `NFactions` 键 `FACTION_INFLUENCE_GARRISON_SUPPORT_RECIEVER_FACTOR`；sink `sub_142072500`；de… |
+| 0x1408337D0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:18`；lua 表 `NFactions` 键 `FACTION_INFLUENCE_INDUSTRIAL_CAPACITY_FACTOR`；sink `sub_142072500`；define 槽… |
+| 0x140833BF0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:15`；lua 表 `NFactions` 键 `FACTION_INFLUENCE_LEND_LEASE_FACTOR`；sink `sub_142072500`；define 槽 `qword_1… |
+| 0x140834010 | defines 读取器；`source\diplomacy\factions\faction_defines.h:16`；lua 表 `NFactions` 键 `FACTION_INFLUENCE_WAR_SCORE_FACTOR`；sink `sub_142072500`；define 槽 `qword_14… |
+| 0x140834220 | defines 读取器；`source\diplomacy\factions\faction_defines.h:6`；lua 表 `NFactions` 键 `FACTION_INITIATIVE_CHANGE_RULE_COST`；sink `sub_142072500`；define 槽 `qword_14… |
+| 0x140834430 | defines 读取器；`source\diplomacy\factions\faction_defines.h:71`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_ALLOWED_ADVISOR_TRAIT`；sink `sub_1420711A0`；define 槽 `… |
+| 0x140834640 | defines 读取器；`source\diplomacy\factions\faction_defines.h:79`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_HEAD_OF_COUNTER_INTEL_BONUS_COUNTRY`；sink `sub_1420725… |
+| 0x140834850 | defines 读取器；`source\diplomacy\factions\faction_defines.h:80`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_HEAD_OF_COUNTER_INTEL_BONUS_OTHERS`；sink `sub_14207250… |
+| 0x140834A60 | defines 读取器；`source\diplomacy\factions\faction_defines.h:75`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_HEAD_OF_CRYPTOLOGY_BONUS_COUNTRY`；sink `sub_142072500`… |
+| 0x140834C70 | defines 读取器；`source\diplomacy\factions\faction_defines.h:76`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_HEAD_OF_CRYPTOLOGY_BONUS_OTHERS`；sink `sub_142072500`；… |
+| 0x140835090 | defines 读取器；`source\diplomacy\factions\faction_defines.h:78`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_HEAD_OF_OPERATIONS_BONUS_OTHERS`；sink `sub_142072500`；… |
+| 0x1408352A0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:73`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_SHARING_BONUS`；sink `sub_142072500`；define 槽 `qword_14… |
+| 0x1408354B0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:74`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_SHARING_SPY_SLOT_GAIN`；sink `sub_142070630`；define 槽 `… |
+| 0x1408356C0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:72`；lua 表 `NFactions` 键 `FACTION_INTELLIGENCE_UNLOCK_COST`；sink `sub_142070630`；define 槽 `dword_1433… |
+| 0x1408358D0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:25`；lua 表 `NFactions` 键 `FACTION_MANPOWER_GIVE_CONTRIBUTION_SCALAR`；sink `sub_142072500`；define 槽 `q… |
+| 0x140835AE0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:26`；lua 表 `NFactions` 键 `FACTION_MANPOWER_RECIEVE_CONTRIBUTION_SCALAR`；sink `sub_142072500`；define 槽… |
+| 0x140835CF0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:43`；lua 表 `NFactions` 键 `FACTION_REPLACE_COMMANDER_COST`；sink `sub_142072500`；define 槽 `qword_143334… |
+| 0x140835F00 | defines 读取器；`source\diplomacy\factions\faction_defines.h:44`；lua 表 `NFactions` 键 `FACTION_SUPREME_COMMANDER_EFFECTIVENESS`；sink `sub_142072500`；define 槽 `qwo… |
+| 0x140836110 | defines 读取器；`source\diplomacy\factions\faction_defines.h:55`；lua 表 `NFactions` 键 `FACTION_TAKE_OVER_RELUCTANCE_VERSUS_HUMAN_INFLUENCE`；sink `sub_142072500`；d… |
+| 0x1408365E0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:46`；lua 表 `NFactions` 键 `FACTION_THEATER_COMMANDER_COUNTRY_LIMIT_SKILL_FACTOR`；sink `sub_142070630`；… |
+| 0x1408368A0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:81`；lua 表 `NFactions` 键 `FACTION_THEATER_COMMANDER_LAND_SUPPLY_USAGE_MODIFIER_BASE`；sink `sub_142072… |
+| 0x140836AB0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:82`；lua 表 `NFactions` 键 `FACTION_THEATER_COMMANDER_LAND_SUPPLY_USAGE_MODIFIER_SKILL_FACTOR`；sink `su… |
+| 0x140836CC0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:83`；lua 表 `NFactions` 键 `FACTION_THEATER_COMMANDER_NAVY_SUPPLY_USAGE_MODIFIER_BASE`；sink `sub_142072… |
+| 0x140836ED0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:84`；lua 表 `NFactions` 键 `FACTION_THEATER_COMMANDER_NAVY_SUPPLY_USAGE_MODIFIER_SKILL_FACTOR`；sink `su… |
+| 0x140837660 | defines 读取器；`source\diplomacy\factions\faction_defines.h:85`；lua 表 `NFactions` 键 `FACTION_THEATER_COMMANDER_SECONDARY_BONUS`；sink `sub_142072500`；define 槽 `q… |
+| 0x140837870 | defines 读取器；`source\diplomacy\factions\faction_defines.h:42`；lua 表 `NFactions` 键 `FACTION_UNLOCK_COMMANDER_COST`；sink `sub_142072500`；define 槽 `qword_1433343F8` |
+| 0x140837A80 | defines 读取器；`source\diplomacy\factions\faction_defines.h:69`；lua 表 `NFactions` 键 `MAX_FACTION_THEATERS`；sink `sub_142070630`；define 槽 `dword_143335658` |
+| 0x140838000 | defines 读取器；`source\diplomacy\factions\faction_defines.h:57`；lua 表 `NFactions` 键 `MAX_NUM_MEDIUM_TERM_GOALS`；sink `sub_142070630`；define 槽 `dword_143334FA0` |
+| 0x1408382C0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:56`；lua 表 `NFactions` 键 `MAX_NUM_SHORT_TERM_GOALS`；sink `sub_142070630`；define 槽 `dword_143334EC8` |
+| 0x140838580 | defines 读取器；`source\diplomacy\factions\faction_defines.h:53`；lua 表 `NFactions` 键 `MAX_PROJECT_COUNT`；sink `sub_142070630`；define 槽 `dword_143334C58` |
+| 0x140838840 | defines 读取器；`source\diplomacy\factions\faction_defines.h:60`；lua 表 `NFactions` 键 `PASSIVE_INITIATIVE_GENERATION`；sink `sub_142072500`；define 槽 `qword_1433351D0` |
+| 0x140838A50 | defines 读取器；`source\diplomacy\factions\faction_defines.h:52`；lua 表 `NFactions` 键 `PEACE_CONFERENCE_MAX_DISCOUNT`；sink `sub_142072500`；define 槽 `qword_143334B88` |
+| 0x140839060 | defines 读取器；`source\diplomacy\factions\faction_defines.h:96`；lua 表 `NFactions` 键 `RANK_FOR_SHINY_FLAG`；sink `sub_142070630`；define 槽 `unk_143336488` |
+| 0x140839270 | defines 读取器；`source\diplomacy\factions\faction_defines.h:59`；lua 表 `NFactions` 键 `REPLACING_UNFINISHED_FACTION_GOAL_COST`；sink `sub_142072500`；define 槽 `qwor… |
+| 0x140839480 | defines 读取器；`source\diplomacy\factions\faction_defines.h:87`；lua 表 `NFactions` 键 `THEATER_COMMANDER_LAND_EXPERIENCE_SCALE`；sink `sub_142072500`；define 槽 `qwo… |
+
+#### 4.10.68 政治外交域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E467F0 | 源文件锚 emptylists.h / 类 CEmptyEntryListBase<CPeaceAvailableActionItem> |
+| 0x141AFAE90 | 自文档串 "idea_token = " (idea 令牌序列化输出) |
+| 0x141C4EE80 | 源文件锚 null_object.h / 类 CPoliticalIdeasWindow |
