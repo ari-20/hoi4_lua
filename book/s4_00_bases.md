@@ -28,6 +28,7 @@ CCommand 的 RTTI 基链均含 `CPersistent @0`, 其主vtable前 6 槽槽位语�
 | [2] | **每类 writer 本体** (纯虚/覆写) | CCountry **sub_1407191B0** / CCountryPlayerSettings **0X1414E7670** / CState sub_1409E0E90 / CProvince sub_140E81390 / CPoliticalStatus sub_140BB0520 / CCharacter sub_140FA6520 / CCommand sub_14226A110 |
 | [3] | **Load 入口** (共享 wrapper, 详下契约) | 7 类同址 **sub_1424BE690** |
 | [4] | **每类 reader/parser 本体** (纯虚/覆写) | CCountry **sub_140705CE0** / CState sub_1409DBE00 / CProvince sub_140E7F720 / CPoliticalStatus sub_140BAD850 / CCountryPlayerSettings 0X1414E7110 / CCharacter sub_140FA50B0 / CCommand sub_142269E60 |
+> ⚠ **库类族表槽序不同**: TGameItemDatabase<派生> 的 5 槽族表 ([0] CFG 桩 / [1] 标量删除析构 / [2] 装载尾重建器 / [3][4] CFG 桩) 与本节 CPersistent 序列化槽序**同位但语义完全不同** — 判库类 vtable 槽语义须先验 [1] 是否析构 (是 → 族表 [2] = 重建器, 非 writer; 详 §4.26.11b / §4.7.17)。
 | [5] | **重复键检测谓词** `TrackKey(this, token)` — 返真才把键登记进查重表; 基类恒假 (默认不查重) | 7 类同址 **sub_14011D220** |
 | [6] | **预载钩** `PreLoad(this)` — wrapper 进块前调用; 基类空桩; 仅 CFactionGoal 0x140A236E0 / CDoctrineSystem 0x140D7F080 / CFactionSystem 0x140D92C60 / CRaidSystem 0x140E862B0 四类覆写 (= System/Goal 读档前重置自身) | 基类 CFG 桩 |
 | [7] | **文件位置后验钩** `PostLoad2(this, filename, startLine, endLine)` — 块尾 PostLoad 之后调用; 基类空桩; ≥25 类覆写 (集中静态资源模板族 CTrait/CTemplate/CDatabaseEntry) | 基类 CFG 桩 |
@@ -290,7 +291,7 @@ default_confirmation_popup 专用确认窗族 (基座主vtable 0x14294C358 18 �
 | CConfirmAssignUnitsToFront | 0x142A2F7C0 | 批量指派部队到前线 (单位 CRef 向量载荷) | 命令入队 |
 | CConfirmCancelNavyActivityDialog | 0x1429DD038 | 海军行动取消 | 命令入队 |
 | CConfirmCancelShipRefittingDialog | 0x1429DD110 | 舰船改装取消 | 命令入队 |
-| CConfirmConsolidateUnits | 0x142A68548 | 整编/合并残编部队 | 命令入队 |
+| CConfirmConsolidateUnits | 0x142A68548 | 整编/合并残编部队 | 命令入队; **运行期 = §4.00.57** (正文构建器 ctor 直调, 非 vtable[14] OnInit) |
 | CConfirmDeleteAllEquipmentProductionLines | 0x142A9CCE0 | 删除全部装备生产线 (CONFIRMCANCELALLPRODUCTIONLINE loc 直证) | 命令入队 |
 | CConfirmDeleteAllOrders | 0x142A2F570 | 删除全部作战计划 | 命令入队 |
 | CConfirmDeleteEquipment | 0x142A9CFE8 | 删除装备设计/变体 | 命令入队 |
@@ -389,8 +390,8 @@ default_confirmation_popup 专用确认窗族 (基座主vtable 0x14294C358 18 �
 | [8] | **GetScopeTargetID** (按 +36 类型码从 ctx 各字段取 scope 实体, 返实体 +8 缓存 id) | 546 同址 (全继承) | sub_14054EB40 |
 | [9] | GetScopeTargetUID (推定; 同分派, 直读实体 +168 = 权威 id 源) | 546 同址 (全继承) | sub_14054F360 |
 | [10] | GetScopeTargetObject (推定; 同分派, 句柄解引用返对象指针; 0x200 位走 event_target 查表) | 546 同址 (全继承) | sub_14054F1B0 |
-| [11] | **GetTooltip** (遍历 +8 子表: 子 [21] 描述 + '\n' + 子 [3] 满足布尔交回调拼行, 递归子 [11]; 容器类 23 组覆写改头部/递归形态) | 24 | sub_14054C580 |
-| [12] | **GetTooltipText** (遍历子表调 [21]+[3], 按 Evaluate==a4 前缀本地化 TRIGGER_UNFULLFILLED_PREFIX / TRIGGER_FULLFILLED_PREFIX — 前缀 helper = sub_14054F770 / sub_14054E880, 按缩进参数重复 "   ", 递归子 [12]; 量词子类实例: any_army_leader = 0x140452910 / any_navy_leader = 0x140453F30, a1+88 tooltip 串空时回退 loc 键 TRIGGER_ANY_ARMY_LEADER_STARTS / TRIGGER_ANY_NAVY_LEADER_STARTS, tooltip 只取过滤名单首元素入 scope) | 24 | sub_14054C800 |
+| [11] | **GetTooltip** (遍历 +8 子表: 子 [21] 描述 + '\n' + 子 [3] 满足布尔交回调拼行, 递归子 [11]; 容器类 23 组覆写改头部/递归形态; and/or/not 覆写: or = 0x14054BBD0 / and = 0x14054B1A0 / not = 0x14054BB50 — 取反旗在 **a5** (非 [12] 的 a4; CNotTrigger[11] 翻 a5, COrTrigger[11] 翻 a5 后作 4 参传基)) | 24 | sub_14054C580 |
+| [12] | **GetTooltipText** (遍历子表调 [21]+[3], 按 Evaluate==a4 前缀本地化 TRIGGER_UNFULLFILLED_PREFIX / TRIGGER_FULLFILLED_PREFIX — 前缀 helper = sub_14054F770 / sub_14054E880, 按缩进参数重复 "   ", 递归子 [12]; 量词子类实例: any_army_leader = 0x140452910 / any_navy_leader = 0x140453F30, a1+88 tooltip 串空时回退 loc 键 TRIGGER_ANY_ARMY_LEADER_STARTS / TRIGGER_ANY_NAVY_LEADER_STARTS, tooltip 只取过滤名单首元素入 scope); **容器覆写: or = 0x14054BF90 / and = 0x14054B550 / not = 0x14054BBA0** — a4 = **取反旗** (0 正向 / 1 取反: NOT 内层 a4^1 翻转, OR/AND 头部键随其切换 TRIGGER_OR_STARTS ↔ TRIGGER_AND_STARTS), a6 = **前缀模式** (0 仅顶层 / 1 恒显 / 2 抑制 — 基实现递归子 [12] 硬传 2) | 24 | sub_14054C800 |
 | [13] | **ValidateLate** (基恒真; 批量校验入口遍历触发器队列逐个调本槽, 假 → 抛 "Trigger failed to validate: " trigger.cpp:117; 52 覆写 = 引用数据库条目族: 名字串查表解析 id 后绑定) | 446 同 sub_1401807B0 | 同址三用之二; 与 [7] 分名按调用点 (解析收尾即时 vs 延迟批队列), 引擎原名未决 |
 | [14] | **GetSupportedScopeMask** (文档构建器 0x14054E320 直证标签 "supported_scope"; 纯虚! 派生全常数体: 主流 return 4 国家域 / return 8 角色长域 / return 0 变量赋值类; 消费者 sub_14054F7E0 逐位探 ctx、[3] 错误串、[16] [18]) | 纯虚 | ICF 折叠组: 0x1402E30E0=return 4 等 |
 | [15] | **GetSupportedTargetMask** (文档构建器直证标签 "supported_target"; 纯虚! 派生常数体 return 0/2/316/1532, 词汇 = target 列; 唯一消费者 [17]: ==2 直接判无效, 其余按类型码映射逐位验证; 与 CEffect[20] 同构) | 纯虚 | 0x140177700=return 2 组等 |
@@ -488,7 +489,7 @@ default_confirmation_popup 专用确认窗族 (基座主vtable 0x14294C358 18 �
   空槽判定 = 全零判定 (哨兵 qword_14333D528 在 1.19.3 活体 = 0, 书记 0x02DF8CA0_0005EA66 系 1.19.2 值)。
 - **类型判别 u32 键** = sub_1405367F0 (scope → 乘数键, 逐型 {combatant 3, country 31, strategic_region 37, state 59, MIO 82, purchase_contract 113, faction 727, raid_instance 1949})。
 - 帧重置原语 = sub_140534CA0 (集合求值器首匹配访客的追加原语与之同函数): 重置 = {+8=0, +12=1, +16=1587985054, +24/+32 FROM 链拷, +72..+152 十一型句柄槽清哨兵 (十三型 = country / strategic_region / character / operation / combatant / ace / unit / MIO / purchase_contract / raid_instance / project / faction / state; +8 country 与 +168 state 另清零)} — 求值帧复用入口 (§4.00.12 求值器引)。
-- 子 scope RNG 派生 (sub_1402F17B0, 效果 wrapper — 卡归属待裁): 新建 scope 后从父 {+12 计数++, +16 种子} 经 splitmix32 族混淆链 (常数例 1255572915 / 1759714724 / 458671337 / 2126043716) 现场派生新对写子 +16/+12 — 子 scope 种子非继承父值; 随后挂 unit leader (sub_14053B8E0) + +32 ← 父 (SetFrom 形) + 尾调效果本体 sub_141393500。
+- 子 scope RNG 派生 (sub_1402F17B0, 效果 wrapper — 卡归属待裁): 新建 scope 后从父 {+12 计数++, +16 种子} 经 splitmix32 族混淆链 (常数例 1255572915 / 1759714724 / 458671337 / 2126043716) 现场派生新对写子 +16/+12 — 子 scope 种子非继承父值; 随后挂 unit leader (sub_14053B8E0) + +32 ← 父 (SetFrom 形) + 尾调效果本体 sub_141393500。**第二实例 = 作用域链解析器内联同族链** (§4.00.4c, 无 wrapper 函数): 基值按载体类型混入 — 有国 = 国对象 (sub_140BB5490(&tag)) / 有州 = state id / 有 unit leader = leader+12; 三载体皆空则不派生 (直跳链递归); 后段常数补全 -1831433054 / 282605150 / 1831007003 / 542824007 / 947560250 / -1259093227。
 - 附注: 源键位场 (+36 u32 作用域键位图 + event_target tag u16@+40) **属 effect/trigger 对象**
   (§4.00.3 [6]/[4] 行), 不在 CEventScope 上 (176B 内 +32/+40 被指针占满)。⚠ CEffect[6]
   parse (sub_14053D4C0) 与 CTrigger[4] parse (sub_14054AE70) 在 controller (0x020 vs 0x440)/
@@ -515,7 +516,7 @@ setter 全家对照 (定案, 函数→槽一一对应; 消费端构造临时 sco
 
 | setter | 槽 | 语义 | 备注 |
 |---|---|---|---|
-| sub_14053A610 | +8 | SetCountry (clear 门变体 = sub_14053B470 tag 版) | 消费端最高频 (178 调用点) |
+| sub_14053A610 | +8 | SetCountry (clear 门变体 = sub_14053B470 tag 版) | 消费端最高频 (178 调用点); 第二参 = uint32* tag_id 指针 (`*(a1+8) = *a2` — 传 &scope+8 / state+200 / state+204 / fac 成员+8 / dip+392, §4.00.4c) |
 | sub_14053B670 | +72 | strategic_region 裸指针直写 | |
 | sub_14053A400 | +80 | character CID 对直写 | 断言 "Character.IsValid()" |
 | sub_14053B8E0 | +80 | character (自 unit leader 取) | 断言 "pUnitLeader->LookupCharacter()" |
@@ -842,7 +843,7 @@ CSettings+896 内嵌 56B; SAudioContext/SSDLAudioContext = 音频后端运行时
 
 **CSong** (曲目 def 项, 104B; vtable 0x14294C030 44 槽; CPersistent 但 writer = CFG 空桩 = 解析件不入档; reader 0x140B74DD0): +8 song 名串 (token 11418) / +40 CMeanTimeToHappen 内嵌 (token 446 chance 块) / +96 u32=0; def 去向 = boot 枚举 `music/*.txt`, 顶层 music(573) 块逐条 new CSong, **playlists 键 (复数) 解析回调 = sub_140B91500** (调用方 = 音乐设置解析器 sub_1401858B0, 栈构串 "playlists" 字节级实证; 体 = 装载 a1+240 CMusicPlayerSettings 子对象 + 日志 "MusicPlayerSettings Loaded with %u available track and %u selected stations." musicplayer.cpp:366, 计数取 +44 可用曲目数 / +260 已选站点数)。**曲目列表一次性构建 sub_140B90FB0** (musicplayer.cpp:30): 一次性门 = a1+356 字节; 元数据 = *(*(sub_14222BDB0(a1,a2)+856)), 未就绪警告 "Music metadata is not ready yet, this will stall interface load!"; 两段 sub_140B90310 构建 — 可用曲目 {data@+32, count@+44} + 引擎向量 **(a1+336) (count@+12); a1 类身份推定 CMusicPlayer (TU + 与 sub_140B91500 共用 +44 计数槽互证)。**语音族** (SAPI 无障碍, 全排除): PdxSpeechToTextInterface (0x142B5D220 抽象) → PdxSpeechToTextWinSAPI (0x142B5D260, 次 vtable@+32 = SAPI COM 事件基; 三函数 {Initialize 0x1423ABBA0 / Activate 0x1423AB9C0 / Deactivate 0x1423ABAD0} 定性复核维持排除 — 实例槽 +40 ISpRecognizer / +48 ISpRecoContext / +56 ISpRecoGrammar / **+64 u8 激活旗** (Activate 置 / Deactivate 清, 主 vtable+48 = IsActivated 守门; 识别器开关 = (a1+40)vtable+136, 语法开关 = (a1+56)vtable+176, 三函数同址直证; 监听者容器 §4.00.31), 零游戏数据接触); PdxTextToSpeechInterface (0x142B5D150 抽象) → PdxTextToSpeechWinSAPI (0x142B5D1B0); SpeechInput (0x142B3FDE0, 基 SpeechRecognitionListener 0x142B3FDB8) = 语音输入单例, Activate/Deactivate 即开关; **处理器容器 = {data@+16, cap i32@+24, count i32@+28, alloc 对象@+32}** (元素 = 处理器裸指针 8B; 与 §4.00.31 同骨架异偏移 — PdxStT 容器在 +8/+16/+20/+24, SpeechInput 多一层 SpeechRecognitionListener 基): AddHandler 0x1422680B0 (空参断言 / 容器满才 1.5× 扩容 f32 中转) / RemoveHandler 0x1422683C0 (未命中 "trying to remove an unknown handler!" :78 / 命中带去重紧缩); ⚠ **AddHandler 无查重** — AddListener 有 duplicate 断言, 两族同名方法语义不同。**输入实现族** (pdx 引擎层, 全排除): CPdxEvents (0x142B3E948) / CPdxEventHandler (0x1427361E0) / CPdxSystem (0x142B51678, 基 CSystem) / CPdxKeyBoard (0x142B594D8, 多基 CKeyBoard + 键按/抬 Observable) / CPdxMouse (0x142B59550, 多基 CMouse + 5 Observable) / CPdxTouchDevice (0x142B51578)。**CTrack** (0x142B57FA8, 多基 CButton + CButtonObservable@+128) = GUI 滑轨元素, 与音频曲目无关; **CRomeBitmap** (0x1429D61E8, 基 CBitmap) = 位图实现 (装载链 §4.00.37); **CPostEffectVolumeReloader** (0x1429A7228, 基 CReloadDispatcher) = 16B 回调壳挂 owner+352, 仅 posteffectvolumes 热重载。
 
-**网格渲染族**: **CPdxMeshObject** (渲染实例; vtable 0x142B409F0 22 槽; 基 CPdx3DObjectHelper\<CPdxMeshType\> ← CPdx3DObject): +88 CPdxMeshType* / +112 渲染句柄 / +140..+160 包围盒 f32×6 / +184/+192 列表 / +200 分配器 (= off_143085170); ctor 0x142275B60 经 0x142309CC0 向 type 注册, dtor 0x14230E280 解注册。**CPdxMeshType** (网格类型 = 资产 lexer; vtable 0x142B4D7A0 15 槽; 基 CPdx3DTypeHelper\<CPdxMeshType,CPdxMeshObject\> ← CPdx3DType ← CPersistentWithToken; **writer = CFG 空桩 = 入资产库不入存档**; 槽语义: [4] reader / [9] .mesh 装载 0x14230A510 / [13] 对象工厂 — 三槽模式全族一致, 装载全机制 §4.35.16a): reader 0x14230D680 键 file(26)→+184 串 (读入 `\`→`/` 归一; "dlc/" 前缀 assert) / animation(64)→+216 SAnimationLookup vec (+8 FNV 去重, 重复 terminate) / meshsettings(677)→+96 SMeshData vec (216B; 六 std::string @+8/+40/+72/+104/+136/+168 步进 32 + 登记 id 对 @+200 u64 init −1 / +208 u32; 串语义待裁, 全布局 §4.35.16g) / variant(793)→+120 串集 / preload_textures(673)→+370 u8; 嵌套 **SAnimationLookup** (56B; vtable 0x142B4D750; reader 0x14230DAE0 键 id(11)→+8 FNV 键 / type(225)→+24 串 + +16 动画资源, 查无 terminate); 基 reader 0x1422D7A60 键 name(27)→+16 / scale(93)→+48 f32 / cull_distance(368)→+52 f32 **读入即平方**; ctor 0x142308F20 置 +160..+180 包围盒 FLT_MAX/-FLT_MAX 哨兵对。
+**网格渲染族**: **CPdxMeshObject** (渲染实例; vtable 0x142B409F0 22 槽; 基 CPdx3DObjectHelper\<CPdxMeshType\> ← CPdx3DObject): +88 CPdxMeshType* / +112 渲染句柄 / +120 通道旗 (选渲染列表表/选技术对象纹理槽/绘制过滤, 语义待裁, §4.35.64) / +140..+160 包围盒 f32×6 / +168 变长每绘制常量数据 (+176 = int 长度) / +184/+192 列表 / +200 分配器 (= off_143085170); ctor 0x142275B60 经 0x142309CC0 向 type 注册, dtor 0x14230E280 解注册。**CPdxMeshType** (网格类型 = 资产 lexer; vtable 0x142B4D7A0 15 槽; 基 CPdx3DTypeHelper\<CPdxMeshType,CPdxMeshObject\> ← CPdx3DType ← CPersistentWithToken; **writer = CFG 空桩 = 入资产库不入存档**; 槽语义: [4] reader / [9] .mesh 装载 0x14230A510 / [13] 对象工厂 — 三槽模式全族一致, 装载全机制 §4.35.16a): reader 0x14230D680 键 file(26)→+184 串 (读入 `\`→`/` 归一; "dlc/" 前缀 assert) / animation(64)→+216 SAnimationLookup vec (+8 FNV 去重, 重复 terminate) / meshsettings(677)→+96 SMeshData vec (216B; 六 std::string @+8/+40/+72/+104/+136/+168 步进 32 + 登记 id 对 @+200 u64 init −1 / +208 u32; 串语义待裁, 全布局 §4.35.16g) / variant(793)→+120 串集 / preload_textures(673)→+370 u8; +368/+369 def 旗对 (非零 → 实例分流渲染列表表 B/C, 语义待裁, §4.35.64); 嵌套 **SAnimationLookup** (56B; vtable 0x142B4D750; reader 0x14230DAE0 键 id(11)→+8 FNV 键 / type(225)→+24 串 + +16 动画资源, 查无 terminate); 基 reader 0x1422D7A60 键 name(27)→+16 / scale(93)→+48 f32 / cull_distance(368)→+52 f32 **读入即平方**; ctor 0x142308F20 置 +160..+180 包围盒 FLT_MAX/-FLT_MAX 哨兵对。
 
 **3D/2d 双系总图** (渲染对象整族 writer 空桩 = 不写存档): 3D 双系 = **CPdx3DObject** (vtable 0x142B40960, 实例基元, 非 CPersistent) ↔ **CPdx3DType** (0x142B41580, CPersistentWithToken, reader = 全族公共 0x1422D7A60 三键表见上), 业务类经 CPdx3D*Helper 模板桥接 (RTTI `?$CPdx3DObjectHelper`); 2d 双系 = **CGraphicalObject** (0x142B44120 基元) → C2dObject (0x142B3D060) → C2dVisibleObject → 实例链, Type 侧 C2dObjectType ← CObjectType ← CPersistentWithToken (其解析件并入 §4.30.31 精灵/GUI 模板族)。占位对 CPdxDummy3DObject (0x142B57DC8) / CPdxDummy3DType (0x142B57E58, reader 直通基 0x1422D7A60)。
 
@@ -850,7 +851,7 @@ CSettings+896 内嵌 56B; SAudioContext/SSDLAudioContext = 音频后端运行时
 
 **CPdxPostEffectVolumeManager** (后效 def 宿主, 0x178 (376B); vtable 0x1429A71B8, 多基 CPersistent + CLostDeviceInterface@+8; writer 空桩; reader 0x141288FE0; 宿主 = gamerendering.cpp 宿主对象 +184, ctor sub_1412849D0): +72..+100 f32 全局默认后效参数 / +128 哈希表 (装填因子 1.0) / **+280 矢量 = posteffect_values** (160B 元 SPostEffectValuesReader) / **+304 矢量 = posteffect_volume** (200B 元; 缺 posteffect_values_day 时报错不入) / **+328 = posteffect_height_volume reader 数组** {data@+328, count@+340} (112B 元 SPostEffectHeightVolumeReader) / +352 "posteffectvolumes" 名登记槽; **+192 = height vol 结果向量** {data@192, count@204} 40B 元 / **+216 = box vol 结果向量** {data@216, count@228} 40B 元 (装载后构建器 0x141288170 物化; 全案 §4.35.36)。元素 CPdxPostEffectVolume (0x1429A7140 抽象) / CPdxPostEffectVolumeBox (0x1429A7168) / CPdxPostEffectHeightVolume (0x1429A7190) 连 CPersistent 都不是 = 纯运行时几何体。**CGraphicalMap** (地图渲染根, 0x750 (1872B); vtable 0x14294ACF8, 多基 + CLostDeviceInterface@+8; reader 0x140B56AE0; 宿主 = gameapplication.cpp 宿主对象 +880, ctor sub_140B4F9C0): reader 仅自有键 type(225) → new 168B 层对象入 +312 矢量 {cap@+320, count@+324, alloc@+328}; +88 = 大渲染子对象 (malloc 0x5D30); **+96 = CWrapWorldShadowMap\* (672B, ctor sub_1422D9670, shadowblur FX 双实例; §4.35.61)**。**CTerrainGraphics** (地形图形 def; vtable 0x1429C0EF0, 多基 CPersistentWithToken + THasNullObject; reader 0x14143F220): color(86)→+64 / type(225)→+88 经 TGameItemDatabase (qword_14332F0A8) 按名取图元句柄 (句柄[16]=0 时续读块) / texture(415)→+100 f32 / perm_snow(11857)→+104 u8 / spawn_city(12109)→+105 u8。
 
-**重载器族** (8B 瘦对象 CReloadDispatcher 系 = 文件变更→[2] Reload; 注册 = sub_1422564C0(&扩展名), 文件监视器按扩展名分发): 扩展名↔类↔挂载点 = particle→CParticleReloader (0x142B3D6F8, gfx 管理器 +206256; [1] 路径谓词 0x14223C810 经纹理管理器 qword_143453090 桶遍历, [2] 0x14223C9E0 条目 +8==385 (token = pdxparticle) 者调 sub_142297540); **CPdxParticleType def 侧布局 (本批新收)**: +64 = 解析出的粒子特效对象指针 qword, +184 = type 名串 (MSVC string, cap@+208); 解析链 = sub_1423FDAE0() 特效库单例 getter → sub_1423FD4F0(db, 名) → 写 +64; type 键读入 = sub_1422973E0 (token 225 = type, 失败 :69 "Could not find particle effect [...] near line ... in file ..."); 装载后校验 = sub_142297540 (成功 → sub_142296A40(a1,1), 失败 :55 "Particle type [...] is broken. Particle effect is NULL") / mesh→CMeshReloader (+206272) / anim→**CAnimationReloader** (0x142B3D770, +206280; ⚠ 主 vtable 尾部 [6..9] 带 CPersistent 槽 = Save wrapper/writer 空桩/Load wrapper/reader 0x14223B400, 指纹按 slot1 判定故 serfam 未命中) / guianim→**CGuiAnimationReloader** (0x142B3D898 主 CReloadDispatcher + 0x142B3D8C0 次 CPersistent mdisp=8, +206288 含宿主回指 +16; reader 0x14223B0D0 经 SGfxFileReader 解析 spriteTypes(53) 门定义入 3 个 RH 集, 其余块 skip; [2] 0x14223C3C0 重解析) / defines→**CDefinesReloader** (0x14271BA70, 第一宿主 +936; [2] 0x1401A4A20 → sub_14074A9E0(1) defines 全量热重载) / countrycolors→**CCountryColorsReloader** (0x14271BA98, +944; [2] 0x1401A4900 → sub_1401CCB50(gamestate) + sub_140A66D80 刷国家颜色) / assets→**CAssetsReloader** (0x142B3C3A0, 启动器对象 +784; [2] 0x14222E6A0 → sub_14222DDC0(qword_143452450, 0/1) 双遍重载)。texture→CTextureReloader (+206264) 见 §4.30.31 注。
+**重载器族** (8B 瘦对象 CReloadDispatcher 系 = 文件变更→[2] Reload; 注册 = sub_1422564C0(&扩展名), 文件监视器按扩展名分发): 扩展名↔类↔挂载点 = particle→CParticleReloader (0x142B3D6F8, gfx 管理器 +206256; [1] 路径谓词 0x14223C810 经纹理管理器 qword_143453090 桶遍历, [2] 0x14223C9E0 条目 +8==385 (token = pdxparticle) 者调 sub_142297540); **CPdxParticleType def 侧布局 (本批新收)**: +64 = 解析出的粒子特效对象指针 qword, +184 = type 名串 (MSVC string, cap@+208); 解析链 = sub_1423FDAE0() 特效库单例 getter → sub_1423FD4F0(db, 名) → 写 +64; type 键读入 = sub_1422973E0 (token 225 = type, 失败 :69 "Could not find particle effect [...] near line ... in file ..."); 装载后校验 = sub_142297540 (成功 → sub_142296A40(a1,1), 失败 :55 "Particle type [...] is broken. Particle effect is NULL") / mesh→**CMeshReloader** (+206272; **[1] = 0x14223C5A0** = pdxmesh(384) 类型名命中 → sub_14230E0E0 释放 mesh 装载数据: sub_1423AE8B0(*(type+64)) + 置 0 + 遍历 type+72 的 24B 步记录每条内 264B 子记录 ×3) / anim→**CAnimationReloader** (0x142B3D770, +206280; **[1] = 0x14223BDA0** = 按路径重注册动画 (高置信, 排除法 + 结构孪生双证, 虚表数据未直证 — 预期 0x142B3D770+8 = 本 VA), **[2] ≈ 0x14223C270** = 无条件枚举动画库全量重注册; ⚠ 主 vtable 尾部 [6..9] 带 CPersistent 槽 = Save wrapper/writer 空桩/Load wrapper/reader 0x14223B400, 指纹按 slot1 判定故 serfam 未命中) / guianim→**CGuiAnimationReloader** (0x142B3D898 主 CReloadDispatcher + 0x142B3D8C0 次 CPersistent mdisp=8, +206288 含宿主回指 +16; reader 0x14223B0D0 经 SGfxFileReader 解析 spriteTypes(53) 门定义入 3 个 RH 集, 其余块 skip; [2] 0x14223C3C0 重解析) / defines→**CDefinesReloader** (0x14271BA70, 第一宿主 +936; [2] 0x1401A4A20 → sub_14074A9E0(1) defines 全量热重载) / countrycolors→**CCountryColorsReloader** (0x14271BA98, +944; [2] 0x1401A4900 → sub_1401CCB50(gamestate) + sub_140A66D80 刷国家颜色) / assets→**CAssetsReloader** (0x142B3C3A0, 启动器对象 +784; [2] 0x14222E6A0 → sub_14222DDC0(qword_143452450, 0/1) 双遍重载)。texture→CTextureReloader (+206264) 见 §4.30.31 注。**[1] 槽语义 (定案)** = 通用「带 std::vector<std::string> 参的按路径重载」槽, 两入口共用: ① 文件监视器完成回调 0x14224D620 → 监视条目+56 dispatcher 槽[2](ctx, 路径串) → 扩展名注册表 qword_1434531B8 分发 → reloader [1]; ② 控制台 `reload <扩展名> <参数…>` → sub_1422578B0 扩展名查表 → `(*(reloader+8))(reloader, &vector<string>)` (vtable+8 = [1]); [2] 槽 = 无参全量重载 (CParticleReloader [2] 遍历全部 385 类型调校验, 本批复核)。CAnimationReloader [1] 语义与数据链见 §4.35.34。
 
 **defines_game.h 装载器簇 (19055 行, 模式定性 + top 8 抽样; 定案)**: 540 函全部 = **纯单键 define 装载器** (C++ 模板实例化, lua → CDefines 槽单向载入一次; 零 getter/零写入器/零业务函数 — 「CDefines 槽 getter 族」系误称, 独立复核与 df97 裁定一致); 行数 ∝ 钳位复杂度 (无钳 60-90 行 → 向量长钳 198 行); 抽样 8/8 键与 ref/defines_map_1193.txt 相符, 6 键界值首次定值 (BOOST_IDEOLOGY_MAX_DRIFT_BY_OPERATIVE 仅下界 −10.0 / COMPLIANCE_FACTOR_ON_STATE_CONTROLLER_CHANGE [−10,+10] / CONTRACT_ESTIMATE_AVERAGE_CONVOY_COUNT_ALPHA 仅下界 0 / MIN_LAND_EQUIPMENT_CONVERSION 系 [0,+10] / BASE_NAVAL_EQUIPMENT_CONVERSION 系 [0,+10] / SURRENDER_LIMIT_MULT 系 [0,+10]); **非字面界构造器通道** = fx1e-5 取负 sub_1424EF6F0 / fx32k 零 sub_1424ED3F0; **引擎侧零消费 define 2 键** (BOOST_IDEOLOGY_MAX_DRIFT_BY_OPERATIVE 与 MIN_LAND_EQUIPMENT_CONVERSION 系, 全语料除装载器外零引用); 消费点 2 则 (COMPLIANCE_FACTOR… → sub_140F9B6E0 交接时 compliance×(define+1e5)/1e5 / BASE_NAVAL… → sub_140BD41D0 成本累计); **LUA_REGISTRYINDEX 常量硬证** = 4294957296 (= −10000 的 u32 视图, 引擎 Lua 取 LUAI_MAXSTACK = 9000 档, vendor lua.h 逐行核对); 装载期警告格式 = 冒号双空格 + 共享 "
 " 字面量 unk_142732CE0; 分配器伴生全局 qword_1433386D0 + LUA_NOREF(−2) 清理门; GAME_SPEED_SECONDS「截断零填」精化 = 逻辑截断 + resize helper 补齐。
@@ -889,7 +890,7 @@ CPdxArray\<T\> 版八步骨架 (定案): ①入口 '{' 门 (reader+192 值 token
 
 **字体族** (全 .gfx/.gui 解析件 writer 空桩, 不入存档): **CFont** (vtable 0x142B57ED0, 基 CPersistentWithToken; reader 0x14237E6B0): name(27)→+16 / cursor_offset(659)→+48 / selection_offset(720)→+56 ← **CBitmapFont** (0x142B41888, 附 +64 CLostDeviceInterface 虚基; reader 0x14229EC60; ctor 0x1422980C0): +72 宿主回指 / +88 color / +96 border_color / +208 fontfiles 串向量 {cap@+216, count@+220, alloc@+224} / +272 textcolors 定长阵列 / +12560 icons_add_height u8 / +12564 icon_scale f32=1.0 / +12568 起 40 个 32B 图元槽; reader 键 path(372) 追加 / fontfiles(718) 重置整表载入 (两者混用告警) / color(86) / border_color(461) / textcolors(714) / icons_add_height(595) / icon_scale(604); fontName(34)/colorcodes(297)/color_override(370) = deprecated 告警跳过 ← **CGameBitmapFont** (0x1429E6BE8, sizeof 0x3640; 脚本 `bitmapfont`(295) 块经 def 工厂钩子 0x140B410E0 malloc+ctor 0x141640D30 产出, 同钩子 a3==271 分支产 0x2C0 伴随对象); **CBitmap** (0x142B49820 无基) = **两级 BMP 装载链** (bitmap.cpp, 与字体无序列化关系): ctor 0x1422E4500 (width/height/位深白名单 {8,16,24,32}, 越界 :21 throw; 布局 +8 宽 / +12 高 / +16 字节每像素 / +20 位深 / +24 色数 (8→256 / 16→65536 / 24→16777216 / 32→0) / +28 行字节 (width·bpp 未 4 对齐) / +40 像素缓冲 / +48 就绪旗) → 高层装载 0x1422E46E0 (读 14B "BM" 头 + 40B INFOHEADER, 位深白名单 {1,8,16,24}; "BM" 不符 = 静默回卷返 0 不抛, 越界位深 :102 throw; 尾调 this vtable[3] = 底层装载 0x1422E4990, 高置信) → 底层 0x1422E4990 (重读头, 压缩仅收 RGB(0)/RLE8(1), **RLE8 全解码** = 编码运行/delta/绝对运行+奇对齐填充; +32 = 精确 BMP 行宽 (width·bpp+3)&~3 与 +28 行距分立); 高层 sizeimage 兜底口径 (width+3)&~3 不乘 bpp = 引擎 quirk, 仅本地变量无消费实害。
 
-**资产工厂族**: **CAssetFactoryAudio** (vtable 0x142B503F8, ctor 0x1423492E0, dtor 变体 0x142349050 / 0x142349870; 基 CPersistent): [1] Save wrapper 0x1424BEC50 / **[2] writer = CFG 空桩** / [3] Load wrapper 0x1424BE690 / [4] **reader 0x14234A010**; 对象 +8 资产名串 (推定) / +24 CAudio* 音频管理器句柄 / +32 soundeffect(276) 向量<SSoundEffectReader 152B> / +56 category(702) 向量<SCategoryReader 88B>; 六键分派表 + 装载后链接三段见 §4.35.16g。**CAssetFactory** (.asset 工厂基类; vtable 0x142B50890, 基 CPersistent; writer 空桩; reader 0x14234DB90): reader 开头三旗门 = `+24 != (a3==438)` 按键型二分 (实体键时 +24 须 1 / 非实体键时须 0) / `+25` 局部装载旗置位时只收 light(84)/entity(438)/particle(407) 三键 / +26 particle 待处理旗; 四键分派 animation(64)→SAnimationData / light(84)→SAnimatedLightReader / particle(407)→SParticleSystemReader / entity(438)→SEntityReader, 全链见 §4.35.16g。**CAssetFactoryParticle** (0x142B501A8): [3] = **自定义 Load wrapper 0x142331870** (全量 SParticleSystemReader 解析), [4] = 基 reader — 与 CBrowserType (0x142B53C58, [3] 自定义 Load 0x1422DE0B0, reader 0x14236DFF0) 同属「wrapper 自定类」serfam 盲区实例 (另见 §4.00.1)。**CBrowser** (0x142B46F70, 基 CGuiObject + CTextInputReceiver@+128) = 内嵌 CEF 网页窗, 排除; CBrowserContext/CBrowserInstance 抽象基实现见本表 Steam 族。**开发/调试设施族 (负定案, 整族排除出存档域)**: **CNudgerStrategy** (vtable 0x142A42FF0, 7 槽 5 纯虚, 无基非 CPersistent) = nudge 编辑器资产微调策略抽象基; 派生 CStateNudger (0x142A44BF0) / CStrategicRegionNudger (0x142A45220) / CSupplyNudger (0x142A45568); 应用函 = sub_141B6F650 (nudger+11808 = _CurrentlyEdited, :424 断言; 先清计数整表重建, 遍历选择列表 {d@+16/count@+28} 逐元 RTDynamicCast<CProvince> 取 prov+164 省 id, 追加入编辑对象 int 向量 {d@+8/cap@+16/count@+20/alloc@+24}, MT 1.5× 增长) / CUnitsNudger (0x142A45A18) / CDatabaseNudger / CWeatherNudger / CBuildingsNudger / CAmbientObjectNudger (0x142A43130) 同构 `CNudgerStrategy@0 + CReloadableInterface/CReloadDispatcher@40` 多基 (12 槽), 激活 = 编辑器 GUI `interface/nudge.gui`, 仅写 mod 文本文件零存档面; **CDBNudger** (vtable 0x142A44290 + 次 0x142A442D0, ctor 兼 dtor 0x141B504F0 / 0x141B51B40, sizeof ≥16448 — ctor 最大写偏移 16440, 上界提示; 槽 [1] 0x141B51F00 / [2] 0x141B52180 / [3] 0x141B52FF0) = 库级 nudge 器巨型对象 (~16KB)。**CCameraControlStrategy** (vtable 0x142AFDA60, 11 槽 4 纯虚, 独立抽象基与 Nudger 无继承) → CFirstPersonStrategy (0x142AFDA90) / CTurnTableStrategy (0x142AFE5F8), 部署于 assetviewer/previewer 调试查看器。**HOI4EditorInterface** (vtable 0x142727500, 基 CEditorInterface) = 启动参数 `-editor`/`--editor` 进入编辑器主循环 (sub_14209E610) 的界面根类。**sub_14209E610 = 进程主入口体** (WinMain 实现; 双角色定案: 常态分支建 CMapApplication 走游戏路, `-editor` 分支进 PdxEditor 编辑器路 — pdx_editor/startup.cpp 断言串 + mount previewer_assets/userdir 解析/日志挂载即编辑器分支段; 旧两处记载「WinMain 体」与「编辑器主循环」系同一函数的两段)。**CMapIdler** (12736B, CIdler 轻量支 +CLostDeviceInterface@8, 非 CGameIdler 支) = assetviewer/previewer 调试场景 idler (ctor 直绑 previewer_quit/record/next_asset 等 12 键); **CNudgeIdler** (3984B, CGameIdler 支 + CReloadDispatcher@1512) = nudge 编辑器场景 idler (副表邻串 interface/nudge.gui/ambient_objects/strategic_regions/buildings) — 两者与上列 Nudger/相机策略同场景。**CEvolveEquipmentImgui** (0x142A3D808, 7 纯虚) → **CEvolvePlaneImgui** (vtable 0x14299B678, ctor 0x141198770, 104B, [2] 0x141B06800 OnUpdate) / **CEvolveShipImgui** (0x14299B768, ctor 0x141198800, 112B, [2] 0x141B076E0) / **CEvolveTankImgui** (0x14299B7E0, ctor 0x141198890, 120B, [2] 0x141B08020) = "DEBUG UI" 装备演化调试器。四类**均非 CPersistent** (槽 [1..4] = `_purecall` / CFG 桩 / 0x14039DAB0 / 0x1401807B0 样板) ⇒ 纯编辑器层不可序列化。**CLogger** (vtable 0x142B91D18, 4 槽 2 纯虚抽象基) → CFileLogger (§4.00.9 文件族) / CFilterLogger (0x142B3AF58, 按类别 id 哈希路由转发, 全局表 qword_1434521A8 + OutputDebugString 旁路) / CNullLogger (0x142B91D40 空实现); **CTestLogger** (0x1429B3A68, CPersistent 壳 writer 空桩) → CEquipmentInFieldLogger / CManpowerLogger 遥测件, **CTestLoggersArray** (0x142737248) reader 0x14136E580 = 多态反序列化工厂 (tag 14054/14055); CTest/CTestBundle (0x142737148/0x142737198, writer 空桩) 与 CTestDatabase (0x142737218, 常驻装载 "tests" 目录) 同属自动化测试框架。**StackWalker** (0x142B58708) → CCustomStackWalker (0x142B5B3D8, 线程局部单例 0x1435B9F60) → CPdxCrashReportImpl (0x142B5B320 接口) → CPdxCrashReportWindows (0x142B5AA48) → CrashReporter.exe = 崩溃诊断链。**CAutotestSettings** (0x142724378, writer 空桩 reader 0x1401F8D30, 版本 tag 15531) 与 **CAnimViewerGraphics** (0x142AFD7B8, reader 0x14223B060, 版本 tag 53/55/296) 均为只读入解析件。以上整族 serfam 命中者 writer 一律 CFG 空桩 = 引擎不落盘。**调试右键菜单 (rightclickmenu.gui)** (定案): **`interface/rightclickmenu.gui` 是 -debug 模式的开发者菜单, 与玩家单位下令无关** (玩家右键下令真实入口在地图输入/选择层 sub_140DCEFD0 簇)。构建器 = **sub_1402A3730** (每次右键按名清空重建 rightClickMenu 窗内 "options" listbox): 门 = debug 旗 byte_14332EC69 (启动串 "debug"/"crash_data_log" 置位; 控制台命令可翻转) ∧ 修饰键 ∧ button==2, 三个 idler (frontend sub_140B3CA20 / ingame sub_140DD3A50 [额外门 idler+2061, 写者未定位] / nudge sub_1412D49D0) 每帧扫各自 GUI 事件队列拾取。条目 = 三类硬编码对象 × .gui 模板: CRightClickReloadItem (vtable 0x1429A9E58, 模板 right_click_entry_2, "Reload: <开窗源 .gui 文件名>") / CRightClickOpenItem (vtable 0x1429AA018, 模板 right_click_entry, "Open: <州相关串>", 门 = 地图命中省视图 → state+168 有效旗 ∧ CStateDatabase 单例 qword_14332F070 已载断言 gameidler.cpp:1382) / CRightClickCloseItem (vtable 0x1429A9C98, loc CLOSE, 仅置 +1376 关闭旗); 另 empty_right_click_entry 250x21 无按钮占位行 — 仅占位行 (count≤1) 时菜单隐藏。 **CStateNudger 导出回调 = 0x141B5A9C0** (307 行, 非虚 GUI 回调 — 不在主副两 vtable 内, 经函数指针挂接; nudger\statenudger.cpp:566): 执行序 = 取当前州 (nudger+16 → +184 → +88 州 id) → state = TGameItemDatabase 单例 qword_14332F070 元素数组[id] (取数原语 sub_140ABC450: 元素数组 @库+40 / 计数 @库+52, **越界返元素[0]** 默认对象模式; 库头 +8 = **_Paths 向量头** (读串 = _Paths[0] 别名) / +20 = **_Paths 计数** (非 0 即已载, §4.00.51)) → 装载旗/源目录门不过 → :566 `The state database has not been loaded.` (B51 消息形, 软不中止) → 相对路径 = `<库源目录>/<state+96 名串>` → **PHYSFS_getWriteDir() ≠ state+128 (州文件当前目录串) 时 VFS 读入→写出同步** (短写 throw `Failed writing file`) 并回写 state+128 → `ShellExecuteA(0, "open", <写目录>/<路径>, 0, 0, 1)` 系统默认程序打开。state 元素字段: +96 州名串 / +128 当前所在目录串。**CStrategicRegionNudger 同构回调 = 0x141B63820** (209 行, 高置信; strategicregionnudger.cpp:926 同款串 "The strategic region database has not been loaded.", 闩 byte_14338C191): 链路全同 (nudger+16 → +192 指针字段宿主 → +88 区域 id → 库单例经 sub_140163C30 取 / 装载门单例经 sub_1401DB540 — 两 getter 是否同库两入口未决) → 相对路径 = `<源目录>/<区域+96 名串>` → VFS 同步回写区域 +128 (长度 +144 / 容量 +152) → ShellExecuteA 打开; nudge 库 SStrategicRegion 元素字段与 state 元素同位 (+96 名 / +128 目录)。**CBuildingsNudger 导出回调 = 0x141B4A3F0** (292 行, 高置信; 挂接点 = GUI 构建 sub_141B41A00 注册回调 @ nudger+17056, 同窗 +18344 挂 CCheckBoxObserverGlue<CBuildingsNudger>): 链路同构, 差异仅在选中对象取数为一跳 `nudger+256 → +88` 州 id (另两族为 nudger+16 → +184/+192 → +88 两跳), 后续 sub_140ABC450 → state+96 名串 → state+128 目录串比较 → PHYSFS 同步 → ShellExecuteA 打开 `<写目录>/<州名>` 完全相同; 选中对象 (CBuildingTemplate / CBuilding 二选一) 真名待运行时 vt 校验 (其 +88 = 州 id 与 §4.13 载 CBuilding+88 = CModifier 冲突)。主 vtable 0x142A44BF0 12 槽逐槽 dump 已核 ([8] = adjustor thunk → 副表首槽; [5]/[11] = CFG 空桩; [7] 值 0x142D6B198 似邻接数据待裁)。Open/Reload 动作 = **WinExec 经 dilepad 开发者工具通道** (CLogger 名串 "dilepad"; "@FILE@"/"@LINEINFO@" 占位符命令行), 零 CCommand 投递、零引擎调用。菜单开着再右键 = memcmp 源文件名短路不重建。旁系: byte_14332F60C 门 (右键+单修饰键) 走「窗口名::元素名」调试叠字层, 不经本菜单。**Graphviz DOT 图导出族** (调试/诊断类文件导出, 零存档面; 高置信): DOT 序列化器 sub_1411BB9B0 产出 `graph G <label>; a--b c--d;` 形语法 ("graph" 串 + "--" 边符 + ";" 语句尾); 节点标签安全包装器 sub_1411B9250 (数值 → DOT 合法 ID: 查静态转义映射表 unk_14333DD30 短路, 未命中则首尾加双引号并把内嵌 `"` 转义为 `\"`; 表内容待裁); 已知落点 = 情报网图导出 sub_14029BC00 ("intel-network-of-" 文件名前缀 + std::ofstream 落盘) → sub_1411C16D0 (SRW 锁内取图数据 sub_1411BF060) → 序列化器 → 包装器 ×3 站点; 族段 = sub_1411B8xxx / B9xxx / BAxxx / BBxxx / BCxxx。
+**资产工厂族**: **CAssetFactoryAudio** (vtable 0x142B503F8, ctor 0x1423492E0, dtor 变体 0x142349050 / 0x142349870; 基 CPersistent): [1] Save wrapper 0x1424BEC50 / **[2] writer = CFG 空桩** / [3] Load wrapper 0x1424BE690 / [4] **reader 0x14234A010**; 对象 +8 资产名串 (推定) / +24 CAudio* 音频管理器句柄 / +32 soundeffect(276) 向量<SSoundEffectReader 152B> / +56 category(702) 向量<SCategoryReader 88B>; 六键分派表 + 装载后链接三段见 §4.35.16g。**CAssetFactory** (.asset 工厂基类; vtable 0x142B50890, 基 CPersistent; writer 空桩; reader 0x14234DB90): reader 开头三旗门 = `+24 != (a3==438)` 按键型二分 (实体键时 +24 须 1 / 非实体键时须 0) / `+25` 局部装载旗置位时只收 light(84)/entity(438)/particle(407) 三键 / +26 particle 待处理旗; 四键分派 animation(64)→SAnimationData / light(84)→SAnimatedLightReader / particle(407)→SParticleSystemReader / entity(438)→SEntityReader, 全链见 §4.35.16g。**CAssetFactoryParticle** (0x142B501A8): [3] = **自定义 Load wrapper 0x142331870** (全量 SParticleSystemReader 解析), [4] = 基 reader — 与 CBrowserType (0x142B53C58, [3] 自定义 Load 0x1422DE0B0, reader 0x14236DFF0) 同属「wrapper 自定类」serfam 盲区实例 (另见 §4.00.1)。**CBrowser** (0x142B46F70, 基 CGuiObject + CTextInputReceiver@+128) = 内嵌 CEF 网页窗, 排除; CBrowserContext/CBrowserInstance 抽象基实现见本表 Steam 族。**开发/调试设施族 (负定案, 整族排除出存档域)**: **CNudgerStrategy** (vtable 0x142A42FF0, 7 槽 5 纯虚, 无基非 CPersistent) = nudge 编辑器资产微调策略抽象基; 派生 CStateNudger (0x142A44BF0) / CStrategicRegionNudger (0x142A45220) / CSupplyNudger (0x142A45568); 应用函 = sub_141B6F650 (nudger+11808 = _CurrentlyEdited, :424 断言; 先清计数整表重建, 遍历选择列表 {d@+16/count@+28} 逐元 RTDynamicCast<CProvince> 取 prov+164 省 id, 追加入编辑对象 int 向量 {d@+8/cap@+16/count@+20/alloc@+24}, MT 1.5× 增长) / CUnitsNudger (0x142A45A18) / CDatabaseNudger / CWeatherNudger / CBuildingsNudger / CAmbientObjectNudger (0x142A43130) 同构 `CNudgerStrategy@0 + CReloadableInterface/CReloadDispatcher@40` 多基 (12 槽), 激活 = 编辑器 GUI `interface/nudge.gui`, 仅写 mod 文本文件零存档面; **CDBNudger** (vtable 0x142A44290 + 次 0x142A442D0, ctor 兼 dtor 0x141B504F0 / 0x141B51B40, sizeof ≥16448 — ctor 最大写偏移 16440, 上界提示; 槽 [1] 0x141B51F00 / [2] 0x141B52180 / [3] 0x141B52FF0) = 库级 nudge 器巨型对象 (~16KB)。**CCameraControlStrategy** (vtable 0x142AFDA60, 11 槽 4 纯虚, 独立抽象基与 Nudger 无继承) → CFirstPersonStrategy (0x142AFDA90) / CTurnTableStrategy (0x142AFE5F8), 部署于 assetviewer/previewer 调试查看器。**HOI4EditorInterface** (vtable 0x142727500, 基 CEditorInterface) = 启动参数 `-editor`/`--editor` 进入编辑器主循环 (sub_14209E610) 的界面根类。**sub_14209E610 = 进程主入口体** (WinMain 实现; 双角色定案: 常态分支建 CMapApplication 走游戏路, `-editor` 分支进 PdxEditor 编辑器路 — pdx_editor/startup.cpp 断言串 + mount previewer_assets/userdir 解析/日志挂载即编辑器分支段; 旧两处记载「WinMain 体」与「编辑器主循环」系同一函数的两段)。**CMapIdler** (12736B, CIdler 轻量支 +CLostDeviceInterface@8, 非 CGameIdler 支) = assetviewer/previewer 调试场景 idler (ctor 直绑 previewer_quit/record/next_asset 等 12 键); **CNudgeIdler** (3984B, CGameIdler 支 + CReloadDispatcher@1512) = nudge 编辑器场景 idler (副表邻串 interface/nudge.gui/ambient_objects/strategic_regions/buildings) — 两者与上列 Nudger/相机策略同场景。**CEvolveEquipmentImgui** (0x142A3D808, 7 纯虚) → **CEvolvePlaneImgui** (vtable 0x14299B678, ctor 0x141198770, 104B, [2] 0x141B06800 OnUpdate) / **CEvolveShipImgui** (0x14299B768, ctor 0x141198800, 112B, [2] 0x141B076E0) / **CEvolveTankImgui** (0x14299B7E0, ctor 0x141198890, 120B, [2] 0x141B08020) = "DEBUG UI" 装备演化调试器。四类**均非 CPersistent** (槽 [1..4] = `_purecall` / CFG 桩 / 0x14039DAB0 / 0x1401807B0 样板) ⇒ 纯编辑器层不可序列化。**CLogger** (vtable 0x142B91D18, 4 槽 2 纯虚抽象基) → CFileLogger (§4.00.9 文件族) / CFilterLogger (0x142B3AF58, 按类别 id 哈希路由转发, 全局表 qword_1434521A8 + OutputDebugString 旁路) / CNullLogger (0x142B91D40 空实现); **CTestLogger** (0x1429B3A68, CPersistent 壳 writer 空桩) → CEquipmentInFieldLogger / CManpowerLogger 遥测件, **CTestLoggersArray** (0x142737248) reader 0x14136E580 = 多态反序列化工厂 (tag 14054/14055); CTest/CTestBundle (0x142737148/0x142737198, writer 空桩) 与 CTestDatabase (0x142737218, 常驻装载 "tests" 目录) 同属自动化测试框架。**StackWalker** (0x142B58708) → CCustomStackWalker (0x142B5B3D8, 线程局部单例 0x1435B9F60) → CPdxCrashReportImpl (0x142B5B320 接口) → CPdxCrashReportWindows (0x142B5AA48) → CrashReporter.exe = 崩溃诊断链。**CAutotestSettings** (0x142724378, writer 空桩 reader 0x1401F8D30, 版本 tag 15531) 与 **CAnimViewerGraphics** (0x142AFD7B8, reader 0x14223B060, 版本 tag 53/55/296) 均为只读入解析件。以上整族 serfam 命中者 writer 一律 CFG 空桩 = 引擎不落盘。**调试右键菜单 (rightclickmenu.gui)** (定案): **`interface/rightclickmenu.gui` 是 -debug 模式的开发者菜单, 与玩家单位下令无关** (玩家右键下令真实入口在地图输入/选择层 sub_140DCEFD0 簇)。构建器 = **sub_1402A3730** (每次右键按名清空重建 rightClickMenu 窗内 "options" listbox): 门 = debug 旗 byte_14332EC69 (启动串 "debug"/"crash_data_log" 置位; 控制台命令可翻转) ∧ 修饰键 ∧ button==2, 三个 idler (frontend sub_140B3CA20 / ingame sub_140DD3A50 [额外门 idler+2061, 写者未定位] / nudge sub_1412D49D0) 每帧扫各自 GUI 事件队列拾取。条目 = 三类硬编码对象 × .gui 模板: CRightClickReloadItem (vtable 0x1429A9E58, 模板 right_click_entry_2, "Reload: <开窗源 .gui 文件名>") / CRightClickOpenItem (vtable 0x1429AA018, 模板 right_click_entry, "Open: <州相关串>", 门 = 地图命中省视图 → state+168 有效旗 ∧ CStateDatabase 单例 qword_14332F070 已载断言 gameidler.cpp:1382) / CRightClickCloseItem (vtable 0x1429A9C98, loc CLOSE, 仅置 +1376 关闭旗); 另 empty_right_click_entry 250x21 无按钮占位行 — 仅占位行 (count≤1) 时菜单隐藏。 **CStateNudger 导出回调 = 0x141B5A9C0** (307 行, 非虚 GUI 回调 — 不在主副两 vtable 内, 经函数指针挂接; nudger\statenudger.cpp:566): 执行序 = 取当前州 (nudger+16 → +184 → +88 州 id) → state = TGameItemDatabase 单例 qword_14332F070 元素数组[id] (取数原语 sub_140ABC450: 元素数组 @库+40 / 计数 @库+52, **越界返元素[0]** 默认对象模式; 库头 +8 = **_Paths 向量头** (读串 = _Paths[0] 别名) / +20 = **_Paths 计数** (非 0 即已载, §4.00.51)) → 装载旗/源目录门不过 → :566 `The state database has not been loaded.` (B51 消息形, 软不中止) → 相对路径 = `<库源目录>/<state+96 名串>` → **PHYSFS_getWriteDir() ≠ state+128 (州文件当前目录串) 时 VFS 读入→写出同步** (短写 throw `Failed writing file`) 并回写 state+128 → `ShellExecuteA(0, "open", <写目录>/<路径>, 0, 0, 1)` 系统默认程序打开。state 元素字段: +96 州名串 / +128 当前所在目录串。**CStrategicRegionNudger 同构回调 = 0x141B63820** (209 行, 高置信; strategicregionnudger.cpp:926 同款串 "The strategic region database has not been loaded.", 闩 byte_14338C191): 链路全同 (nudger+16 → +192 指针字段宿主 → +88 区域 id → 库单例经 sub_140163C30 取 / 装载门单例经 sub_1401DB540 — 两 getter 是否同库两入口未决) → 相对路径 = `<源目录>/<区域+96 名串>` → VFS 同步回写区域 +128 (长度 +144 / 容量 +152) → ShellExecuteA 打开; nudge 库 SStrategicRegion 元素字段与 state 元素同位 (+96 名 / +128 目录)。**CBuildingsNudger 导出回调 = 0x141B4A3F0** (292 行, 高置信; 挂接点 = GUI 构建 sub_141B41A00 注册回调 @ nudger+17056, 同窗 +18344 挂 CCheckBoxObserverGlue<CBuildingsNudger>): 链路同构, 差异仅在选中对象取数为一跳 `nudger+256 → +88` 州 id (另两族为 nudger+16 → +184/+192 → +88 两跳), 后续 sub_140ABC450 → state+96 名串 → state+128 目录串比较 → PHYSFS 同步 → ShellExecuteA 打开 `<写目录>/<州名>` 完全相同; 选中对象 (CBuildingTemplate / CBuilding 二选一) 真名待运行时 vt 校验 (其 +88 = 州 id 与 §4.13 载 CBuilding+88 = CModifier 冲突)。主 vtable 0x142A44BF0 12 槽逐槽 dump 已核 ([8] = adjustor thunk → 副表首槽; [5]/[11] = CFG 空桩; [7] 值 0x142D6B198 似邻接数据待裁)。Open/Reload 动作 = **WinExec 经 dilepad 开发者工具通道** (CLogger 名串 "dilepad"; "@FILE@"/"@LINEINFO@" 占位符命令行), 零 CCommand 投递、零引擎调用。**CWeatherNudger 校验回调 = 0x141B85170** (无参 GUI 回调, weathernudger.cpp:1783; 取天气周期校验报告 sub_140F163A0 的输出串, 非空时经通道 65540 写日志; 挂接点待裁, §4.20.9)。菜单开着再右键 = memcmp 源文件名短路不重建。旁系: byte_14332F60C 门 (右键+单修饰键) 走「窗口名::元素名」调试叠字层, 不经本菜单。**Graphviz DOT 图导出族** (调试/诊断类文件导出, 零存档面; 高置信): DOT 序列化器 sub_1411BB9B0 产出 `graph G <label>; a--b c--d;` 形语法 ("graph" 串 + "--" 边符 + ";" 语句尾); 节点标签安全包装器 sub_1411B9250 (数值 → DOT 合法 ID: 查静态转义映射表 unk_14333DD30 短路, 未命中则首尾加双引号并把内嵌 `"` 转义为 `\"`; 表内容待裁); 已知落点 = 情报网图导出 sub_14029BC00 ("intel-network-of-" 文件名前缀 + std::ofstream 落盘) → sub_1411C16D0 (SRW 锁内取图数据 sub_1411BF060) → 序列化器 → 包装器 ×3 站点; 族段 = sub_1411B8xxx / B9xxx / BAxxx / BBxxx / BCxxx。
 
 **MP 平台抽象基 ← 实现配对表** (§4.00.9 Steam 族补基座行; 基座全纯虚接口, 实现见 Steam 族/本表):
 
@@ -923,7 +924,7 @@ CPdxArray\<T\> 版八步骨架 (定案): ①入口 '{' 门 (reader+192 值 token
 | CExcelParse | 负定案 | 表格解析遗留件; 全 dump 仅自身 dtor 对, 无构造点 = 死代码 |
 | CVirtualFile | 简卡 | VFS 文件句柄封装 ≥56B: {后端句柄@+8, 路径 SSO@+16, mode@+48}; 双重载 ctor |
 | CVirtualLogFile | 简卡 | CVirtualFile 派生 (mode=1 写换表), 日志文件封装 |
-| SVirtualFile_PHYSFS / SVirtualFile_STD | 简卡 | VFS 双后端: PHYSFS {24B 句柄 {vtable, 写旗, PHYSFS_File*} 或 32B 错误串, ok 字节@+32, 锚 virtualfilesystem_physfs.cpp:1247} / CRT FILE* {FILE*@+16, dtor fclose + "Failed to close file" 断言} |
+| SVirtualFile_PHYSFS / SVirtualFile_STD | 全表 (§4.29.1d) | VFS 双后端: PHYSFS {24B 句柄 {vtable, 写旗, PHYSFS_File*} 或 32B 错误串, ok 字节@+32, 锚 virtualfilesystem_physfs.cpp:1247} / CRT FILE* {FILE*@+16, dtor fclose + "Failed to close file" 断言} |
 | CTextureHandler | 简卡 | 渲染纹位管理器: 纹理数组@+8 (步距 72B, 计数@+20) 逐一释放 |
 | CCollisionObject | 简卡 | 16B 壳 {vtable, 目标@+8}; 按 +328 旗从源数组筛碰撞目标 (碰撞查询基础设施) |
 | CThreadProfileObject | 简卡 | 每线程画像注册件 ≥48B: {+8 线程名 SSO, +40 tid}; 主线程特判 dword_1435E3BF4 (profiling 域 §4.9 配套) |
@@ -934,7 +935,7 @@ CPdxArray\<T\> 版八步骨架 (定案): ①入口 '{' 门 (reader+192 值 token
 
 **音频后端带 (0x1423B1AD0-0x1423E0000, ~430 函数; 负定案: 零 gameplay 操作面, 批量登记防误判)**: Vorbis 解码 + **SDL 设备回调 = 软件混音内核 0x1423BA890 (§4.31.134) + 限幅器 sub_1423C0E70 + 排序族 sub_1423B94A0/B9580** (原统称「Vorbis+OpenAL 输出」的 OpenAL 表述与 SDL_AudioSpec/设备句柄证据冲突, 待裁; 输出侧 sub_1423C0B90→sub_1423BF5D0 喂 STEREO16@44100, 格式码 0x8010)。⚠ 排雷: sub_1423D74A0 形似「整数 DDA 地形剖面」、sub_1423D6C80 形似「Dijkstra 寻路」, 实为 **Vorbis floor 曲线容差判定核** (Bresenham 走格 + dB 域 [-140,0] 量化 10bit, 系数 1024/140) 与 **floor 曲线→折线段贪心合并拟合器** (SIMD Σx²/Σh² 采样统计 → 线拟合 → 0x8000 插值旗)。结构 = 三张无 RTTI 类型分派表 (.rdata 0x142B64700/708/710, 全镜像唯一数据引用; floor 两型 / residue 三型各持 7-8 槽函数族) + 帧装配总核 sub_1423D9930 (0..14 逐级表 × 通道 × mag/ang 耦合); 包魔数 "vorbis" 六字节, setup 头结构序 codebook ("BCV" sync)→floor→residue→mapping(类型必须 0)→mode→framing 与规范逐项吻合; 区带两端与 Steam 浏览器/回调 + Steam Cloud (PE 名直证) 交错。⚠ dword_1430C76A8 = **CPUID SIMD 特性级** (cpuid 派发位非图形设置; 带外大量 `>=2/>=5` 读点易误判为配置项)。河流面假设已证伪 (CPdxMap 省河流点/rivers.bmp 装载器与本区带零互调)。
 
-**音频族持有关系** (补 §4.31.94 SAudioContext/SSDLAudioContext 简卡): SAudioContext 双 RH 表 (均 32B 内嵌形, 桶 48B {dist u8@+4, 名串 32B@+8, 值@+40}, FNV-1a 32 位, 哨兵 = data + 48×(mask+extra+1)) = **+2088 音效资产表 (定案**: 值 = CAudioSoundSDL* — PCM 逐出器 0x1423C1420 值对象直读 +240/+360/+252 与 SSoundReader 插入器 sub_1423BE9F0 同表双证; 原记「类目表 (推定挂 CAudioCategory)」系误判, 类目资产实走工厂 +56 向量) / **+2184 音乐名表 (直证: CAudioMusic 工厂 sub_1423B5C40 `v37 = a1+2184` 按名 FNV-1a 探测, 重名断言 pdx_audio.cpp:1294; 原记 +2160 系 2192−32 倒推误)**。SSDLAudioContext: +2372 音频使能旗 (工厂入口守卫) / +8..+72 八音乐实例槽 / +72..+2120 256 音效实例槽 (+2056 峰值) / +2384 SRWLOCK + +2400 设备句柄 (插入锁内) / **+2536 qword 上下文** (音乐实例工厂拷入实例 +32)。SAudioContext 另 **+2200 = u16 音乐 id 计数器** (资产工厂 ctor 拷入资产 +8)。资产 = CAudioMusic 240B 注册项, 分段布局 (名字 C 串@+16 ≤64B / 路径串@+80 / 音量 f32@+208 / 解码数据句柄@+216 / 时长 i64 ns@+224 / 格式 i32@+232 / 信息 i32@+236; 全表与注册链 §4.00.30) / CAudioSoundSDL ≥368B (+16 名串 / +80 源文件路径串 / +208 音量 1.0 / +220 装载有效性门 / +224 SDL_AudioCVT 内嵌 ~64B (S16 立体声目标) / +240 PCM 数据缓冲 / +248 原 PCM 字节数 / +252 缓存记账量 / +256 分配倍率 / +360 引用计数 (装载置 1 / 播放 ++ / 声部回收 −−) / +364 LRU 时戳 = dword_1435DA0C8; 原记 ≥248B 系 +240 截止误); 实例 = CAudioMusicInstanceSDL 440B {+8 源资产, +20 i32 状态 (**可听集 = {1,3,4}**, 2 = 静默不混音不推进音量, 0 = 终结; 4 推定淡出), +24 声道, +32 qword 上下文 (← SSDLAudioContext+2536), +64..+76 音量/淡入 f32 族, +80 u16 id (← 资产+8), +82 代际 (资产+10++ 回绕 255→1), +83 槽位, +88 解码对象 (848B, §4.00.30), +104 i32 双义 (ctor −1 哨兵 = **音量前值缓存**, 混音器读写), +112..+272 / +272..+432 双 160B 子对象, +432 i32 双缓冲切换索引 (自增 ≥2 回绕 0), +436 u8 就绪旗} / CAudioSoundInstanceSDL 128B {+8 源资产, +64..+76 音量族, +88 全局 tick 镜像 dword_1435DA0C8, +92 f32=1.0×3}; 两 SDL 工厂同形制 (同签名/守卫/SRW 插入), 实例音量 = 实参 × 源资产 +208 f32。
+**音频族持有关系** (补 §4.31.94 SAudioContext/SSDLAudioContext 简卡): SAudioContext **四 RH 表** (均 32B 内嵌形, 桶 48B {dist u8@+4, 名串 32B@+8, 值@+40}, FNV-1a 32 位, 哨兵 = data + 48×(mask+extra+1); 四表共享 ctor sub_1423BFA60 / dtor sub_1423BFFF0 (逐表拆解 +2088/+2120/+2152/+2184)) = **+2088 音效资产表 (定案**: 值 = CAudioSoundSDL* — PCM 逐出器 0x1423C1420 值对象直读 +240/+360/+252 与 SSoundReader 插入器 sub_1423BE9F0 同表双证; 原记「类目表 (推定挂 CAudioCategory)」系误判, 类目资产实走工厂 +56 向量) / **+2184 音乐名表 (直证: CAudioMusic 工厂 sub_1423B5C40 `v37 = a1+2184` 按名 FNV-1a 探测, 重名断言 pdx_audio.cpp:1294; 哨兵 unk_1430BF060, clear sub_1423BFC80)** / **+2120 表** (哨兵 unk_1430BF000, clear sub_1423BFE00 = 体 sub_1423BF840, Grow sub_1423B4100, Rehash sub_1423B5140, 插入 helper sub_1423B26F0; 业务身份未决) / **+2152 表** (data@+2160, 哨兵 unk_1430BF0C0, clear sub_1423BFEC0, Grow sub_1423B4420, Rehash sub_1423B52C0, 插入 helper sub_1423B2A50; 值对象含双 std::string + 双引用计数句柄, 形似类别/组表, 推定)。**勘误**: 四表非双表 — **+2160 是 +2152 表的真实 data 指针** (非 2192−32 倒推误); 四表 data = +2096 / +2128 / +2160 / +2192 (+2184 表 data 已见注册链)。SSDLAudioContext: +2372 音频使能旗 (工厂入口守卫) / +8..+72 八音乐实例槽 / +72..+2120 256 音效实例槽 (+2056 峰值) / +2384 SRWLOCK + +2400 设备句柄 (插入锁内) / **+2536 qword 上下文** (音乐实例工厂拷入实例 +32)。SAudioContext 另 **+2200 = u16 音乐 id 计数器** (资产工厂 ctor 拷入资产 +8)。资产 = CAudioMusic 240B 注册项, 分段布局 (名字 C 串@+16 ≤64B / 路径串@+80 / 音量 f32@+208 / 解码数据句柄@+216 / 时长 i64 ns@+224 / 格式 i32@+232 / 信息 i32@+236; 全表与注册链 §4.00.30) / CAudioSoundSDL ≥368B (+16 名串 / +80 源文件路径串 / +208 音量 1.0 / +220 装载有效性门 / +224 SDL_AudioCVT 内嵌 ~64B (S16 立体声目标) / +240 PCM 数据缓冲 / +248 原 PCM 字节数 / +252 缓存记账量 / +256 分配倍率 / +360 引用计数 (装载置 1 / 播放 ++ / 声部回收 −−) / +364 LRU 时戳 = dword_1435DA0C8; 原记 ≥248B 系 +240 截止误); 实例 = CAudioMusicInstanceSDL 440B {+8 源资产, +20 i32 状态 (**可听集 = {1,3,4}**, 2 = 静默不混音不推进音量, 0 = 终结; 4 推定淡出), +24 声道, +32 qword 上下文 (← SSDLAudioContext+2536), +64..+76 音量/淡入 f32 族, +80 u16 id (← 资产+8), +82 代际 (资产+10++ 回绕 255→1), +83 槽位, +88 解码对象 (848B, §4.00.30), +104 i32 双义 (ctor −1 哨兵 = **音量前值缓存**, 混音器读写), +112..+272 / +272..+432 双 160B 子对象, +432 i32 双缓冲切换索引 (自增 ≥2 回绕 0), +436 u8 就绪旗} / CAudioSoundInstanceSDL 128B {+8 源资产, +64..+76 音量族, +88 全局 tick 镜像 dword_1435DA0C8, +92 f32=1.0×3}; 两 SDL 工厂同形制 (同签名/守卫/SRW 插入), 实例音量 = 实参 × 源资产 +208 f32。
 
 **SDL 像素转换带 (0x14210 段邻位, 负定案: 零 gameplay 操作面, 批量登记防误判)**: 内嵌 SDL2 库件 — **0x14210A5B0 = SDL_ConvertPixels_ARGB8888_to_YUV 一族** (7 种 YUV 目标: 打包 4:2:2 YUY2/UYVY/YVYU + 平面 4:2:0 YV12/IYUV/NV12/NV21, 含色度 2x2 下采样; 调用链 SDL_ConvertPixels 0x142103A50 → RGB→YUV 分发 0x14210F570 → 本函, 三层全闭合 SDL 段无引擎直调); **0x14210A330 = GetYUVPlanes** (错误串自带真名; 出参恒 a7=U(Cb)/a8=V(Cr): YV12=[Y][V][U] / IYUV=[Y][U][V] / NV12 U 前 / NV21 V 前交错全直证); **dword_1430BA500 = SDL YUV conversion mode** {0=JPEG / 1=BT.601 / 2=BT.709 / 3=auto (h>576 阈值直证)}, setter/getter = 0x1421101F0/1E0/1C0; 系数表 unk_1430BA510 = 3 行×10 floats (行首低字节 = Y 偏置推定 0/16); 源格式 = ARGB8888 定案 (中转格式码 0x16362004 经 SDL_PIXELFORMAT 名串直证), 分量序 BYTE0=B/1=G/2=R 高置信 (待数据段数值终证)。IDA 失真: SSE 向量化标量展开 (>>10/>>18 = 4 像素均值, 勿当魔法常数)。同段 0x1421093C0 SDLTimer (§4.00 线程表) 邻位互证。未通读余量: YUV→RGB 双核心 0x142110200/0x1421108C0 与 fourcc→fourcc 0x14210FDB0。
 
@@ -972,7 +973,7 @@ gs+1120 (hours@1128), 载入快照 gs+152, start_date gs+1184 (§4.1.2)。
 | 纪元换算 | 总小时 43800000 = 纪元偏移; `(hours − 43800000)/24` = 总天数 (周边界 %7 判据, §4.2.5) | hourly tick 体内算式 |
 
 注: 分量读取 (年/月/日/月索引) 走 gs+1144 日期分量缓存 (hourly tick 每小时重算,
-dword_143085210 = 闰年月首累计日表), 非逐次从 hours 解析。
+dword_143085210 = **每月天数表 (非闰, 12 项 {31,28,31,30,31,30,31,31,30,31,30,31}; 累计值由消费方运行时求和 — PE 0x3085210 直读, 更正此前书载「闰年月首累计日表」)**), 非逐次从 hours 解析; **另有直接从 hours 解析的分量读器族**: 月索引 sub_140177650 (0-based) / 月内日序 sub_1401772C0 (= doy − Σ表[0..月)); 天气校验器与 SetMonth/SetDay 走此路 (§4.20.9)。
 
 #### 4.00.12 拦截层 (框架对引擎函数的两种改写形态)
 
@@ -1031,7 +1032,9 @@ dword_143085210 = 闰年月首累计日表), 非逐次从 hours 解析。
 vtable[0] deleting dtor 释放三节点 (旧「引用计数对象槽」为误读, 废))。入队
 sub_1401CAFF0 深克隆现场 scope (拷贝构造 + 链深克隆 sub_140536360);
 pending_events 元素 56B = {fire_id@+0, CEvent*@+8, scope*@+16, tag@+24,
-CGameDate@+32/+48} (⚠ gs+1376 块键 = **13793**; 13801 系 show_major)。
+内嵌 CGameDate 24B (vt1@+32 / hours i64@+40 / vt2@+48, §4.00.11 三段形;
++40 低 dword = 触发日期小时数, 顶栏警报收集器消费, §4.30.29a)}
+(⚠ gs+1376 块键 = **13793**; 13801 系 show_major)。
 消费 = **CSelectEventOptionCommand (240B) +56 内嵌第三份深克隆**; Execute
 (vtable[10] = sub_14153A110) 用它渲染事件/选项名 + 发通知 + 推进 scope RNG, 末尾
 sub_14117FA30(ev, cmd+56, idx) 跑 option CEffect[13], 再 sub_1401EBBE0 出队
@@ -1053,10 +1056,10 @@ root/from/prev/saved_event_target 等 17 键, token 名全对上); save_event_ta
 `CFixedPoint(CEventScope const&, int, CScopedVariable const*)` 的求值回调注册; leader/army
 族全集 = **sub_14006EF30** (6,040 行; number of units controlled by leader /
 num_units_in_state 等键), state 族 = **sub_140069A80** (resource@steel /
-non_damaged_building_level 等)。loc 文本 `@变量名` 的可用集以此二注册器为准。
+non_damaged_building_level 等)。作用域注册器 sub_140BC77D0 实证 **六**域 (global / country / state / unit_leader / military_industrial_organization / special_project; 产物供 "dynamic_variables" 文档 JSON 段, 生成链串 "Generation JSON object for dynamic variables" 直证); loc 文本 `@变量名` 与脚本动态变量的可用集以六域注册器为准 (global 域 = §4.00.4b)。
 
 
-**sub_14006EF30 形态与全局表 (定案)**: 本函 = **MSVC 动态初始化器** (语料零 C 级调用者, 尾 `return atexit(sub_1426FDD60)`), 直线构建 63 个注册块 {键名, stateless lambda 求值器, tooltip 描述} → 一次性 bulk-insert 全局 **std::unordered_map @ unk_14333C980** (64B: max_load 1.0f@+0 / list 哨兵@+8 / 桶向量@+24 / mask=7@+48 / maxidx=8@+56; 键 = std::string, 值 104B = {std::function 64B@+0, 描述串@+64, u8 旗@+96}; 哈希 = FNV-1a 32, 基 0x811C9DC5 素 16777619; map 节点 = {next@0, hash@8, key@16, value@48})。**消费端** = CUnitLeader::AddTriggerDynamicVariable (sub_140C0F3F0 系, 三副本 ±0x280) find-or-add — 触发器后备动态变量与内建 docvar **共用此表** (值旗候选: 0 = 内建 / 1 = 触发器后备, 待裁); CVariables 尾槽持表指针作名字解析 (§4.13 CVariables 表清单)。lambda 构造拓扑 = 39 件 0x140C06A70..F30 (0x20 步进 std::function ctor) + 24 体内直写 = 63, 与键数对齐。
+**sub_14006EF30 形态与全局表 (定案)**: 本函 = **MSVC 动态初始化器** (语料零 C 级调用者, 尾 `return atexit(sub_1426FDD60)`), 直线构建 63 个注册块 {键名, stateless lambda 求值器, tooltip 描述} → 一次性 bulk-insert 全局 **std::unordered_map @ unk_14333C980** (64B: max_load 1.0f@+0 / list 哨兵@+8 / 桶向量@+24 / mask=7@+48 / maxidx=8@+56; 键 = std::string, 值 104B = {std::function 56B@+0 + impl 指针@+56 (合 64B 信封), 描述串@+64, u8 旗@+96}; 哈希 = FNV-1a 32, 基 0x811C9DC5 素 16777619; map 节点 = {next@0, hash@8, key@16, value@48})。**消费端** = CUnitLeader::AddTriggerDynamicVariable (sub_140C0F3F0 系, 三副本 ±0x280) find-or-add — 触发器后备动态变量与内建 docvar **共用此表**; **CGameState 域对应件 = CGameState::AddTriggerDynamicVariable = sub_1401CB790** (lambda 描述符真名直证, 置 is_trigger=1, §4.00.4b) (值旗 = **is_trigger**, 定案: 0 = 内建 / 1 = 触发器动态注册 — global 域提供器工厂 sub_140BC7710 读 node+144 ≠ 0 写文档属性 "is_trigger", §4.00.4b); CVariables 尾槽持表指针作名字解析 (§4.13 CVariables 表清单)。lambda 构造拓扑 = 39 件 0x140C06A70..F30 (0x20 步进 std::function ctor) + 24 体内直写 = 63, 与键数对齐。**`std::_Func_impl_no_alloc` vtable 七槽形态** (跨域通用, 供 lambda 族速读): 槽[0]=[1] ICF 合并的 ctor helper / 槽[2] = `_Do_call` 求值体 / 槽[3] = RTTI Type Descriptor getter / 槽[4][5] = 公共析构件 (0x140129750 / 0x140129780) / 槽[6] = COL 类数据。
 
 **leader/army/operative 域 docvar 63 键全集** (高置信; 键序 = 注册序):
 
@@ -1189,6 +1192,125 @@ sub_1424C8950 + 格式化 sub_1424C8E60 + 算子名 sub_1424BC260。
 
 **输入侧全套 (script_collection_input_impl.h 簇 43 函数, 定案)**: 描述符 16B `{int type, ptr payload}`; **type 表**: 1 = `game=all_countries` (国家表过滤 cc+1156>0) / 2 = `all_possible_countries` / 3 = 全州 (键 token 19578 离线名与语义不符, 待裁) / 4 = `scope` → **13 源联合分发** / 5 = `collection=` (运行期 :228 禁嵌套) / 6 = `constant=`。**分派器三形态**: 62 行 ×8 / 234 行 ×4 (无计数模式) / 454 行 ×1 (ForEach+GetSize 双模式, 判别 = a3 容器空非空 — 上段「双模式合一」的机制补全); **381 行组 ×15** = 同模板逐域实例 (各带 13 个域独占叶函数), 与 15 个消费者 1:1 闭合 (非 ICF 克隆)。**type-6 常量对象**: +24 值类型字节 {3=单 tag, 4=单 state, 8=tag 数组{begin, count@+12}, 9=state 数组}; 双实现 = 157 组回调版 (:296) / 216-213 组链游走版 (:328)。`constant:` 前缀解析 = sub_140A1C4A0 (前缀剥离 + `.` 分段 token 化 + CConstantDatabase 查表与 §4.19.5 布局互证 + sub_140AA5BE0 链解析); 比例计数 sub_14051C360 = 阈值脚本值 ÷100000 (定点 1.0); 世界根分发器每域两变体 (0x1404 域 0x1404BA300 书已收 + 0x1404BA860; 0x14140 域 0x14040EA50 + 0x14140EFB0)。
 
+#### 4.00.4b CGameState 域 (`global` 作用域) docvar 注册器 (sub_140001380; 9 内建键, 定案)
+
+**身份**: MSVC 动态初始化器 (语料零 C 级调用者, 尾 `return atexit(sub_1426F7BF0)`); 进程启动一次性把 9 个 {键, 求值器, 描述, is_trigger=0} 块 bulk-insert (sub_1401B64F0, 元素步进 136B) 进全局 **std::unordered_map @ dword_14332F2A0** (64B = {max_load 1.0f@+0 / list 哨兵@+8 / list size@+16 / 桶向量@+24 / mask=7@+48 / maxidx=8@+56}; 节点 152B {next@+0, hash@+8, key@+16, value@+48}; 哈希 FNV-1a 32; 溢出哨 "unordered_map/set too long")。CGameState ctor sub_1401BFD30 内 malloc(0x38) → sub_140BC5BD0(cv, &dword_14332F2A0) → gs+2432 CVariables 持本表指针 (§4.13.2); 作用域名注册器 sub_140BC77D0 把本表注册为作用域 **`global`** (.rdata 串 0x142725954)。运行期写者 = **CGameState::AddTriggerDynamicVariable = 0x1401CB790** (is_trigger 置 1)。作用域提供器工厂 0x1401DB160 → sub_140BC7710 遍历本表节点链逐键注册提供器, 写 "description" (源 node+112) 与 "is_trigger" (node+144 ≠ 0) 文档属性。
+
+**9 键全集** (注册序; 描述 = 引擎原文, 用于文档 JSON):
+
+| # | 键 | 描述 (原文) | 求值体 VA | 语义 |
+|---|---|---|---|---|
+| 1 | year | current year | 0x1401F5550 | 100000 × gs+1144 (日期分量之年, hourly tick sub_1401DD370 填) |
+| 2 | num_days | current total days | 0x1401F5680 | 100000 × (gs+1128 − 43800000) / 24 = 自纪元 5000-1-1 起总天数 |
+| 3 | date | get date value that can be comparable to other date values and localized using GetDateString/GetDateStringShortMonth/GetDateStringNoHour/GetDateStringNoHourLong scripted locs (174 字符) | 0x1401F57C0 | gs+1128 原始总小时 (可直接比较, 可喂 GetDateString 系脚本 loc) |
+| 4 | countries | get array of all countries (including non existing (50 字符, 源码即截断) | 0x1401F58F0 | 数组型: −1 → 100000 × (gs+796 − 1) = 国家数; 0 ≤ i < count−1 → 国家 tag (数组@gs+784, 槽 0 哨兵故 +1) |
+| 5 | states | get array of all states | 0x1401F5A70 | 数组型: −1 → 100000 × (gs+724 − 1) = 州数; 0 ≤ i < count−1 → state_id (`id \| 0xFFFFFFFFC0000000`) |
+| 6 | majors | get array of all majors (including non existing (47 字符, 源码即截断) | 0x1401F5BE0 | 数组型: −1 → 100000 × gs+820 = major 国数; 0 ≤ i < count → major 国 tag (数组@gs+808, 0 基无哨兵) |
+| 7 | province_controllers | get array of all province controllers. Example: province_controllers^4135 | 0x1401F5D60 | 数组型: 经 gs+8 vtable2 槽[2] 取省容器 (= gs+688); −1 → 省数 (count−1); 1 ≤ i < count 且 province+392 > 0 → 该省控制国 tag_id (§4.14) |
+| 8 | global_resource_extracted_total | total amount of resources extracted by the world | 0x1401F5EF0 | Σ CFactionSystem+56 池元素 value (16B {i64 定点@+0, token@+8}, count@+20; sub_140BCC2F0) |
+| 9 | global_resource_extracted | total amount of specific resource extracted by the world, resource type is defined in target global_resource_extracted@steel (124 字符) | 0x1401F52D0 | 带参型 (`@<资源>` 语法): 资源名→索引解析 → facsys+64 池 data 16B 步进定长槽 → 该资源世界已开采量 |
+
+> 求值回调统一签名 = `CFixedPoint(CEventScope const&, int, CScopedVariable const*)` (与 §4.00.4a leader 域共用同一 std::function 类型); 9 求值体 = stateless lambda `_lambda_2_`..`_lambda_10_` 的 `_Do_call` (PE 直读 9 张 vtable 槽[2]), 统一前导 = CGameState 单例双断言 (gamestate.h:1125 `_pInstance && "gamestate unitilialized"` / :1126 `_ThreadForbidCount == 0`)。数组型键 index 取 CScopedVariable+0 (−1 = 计数模式); `^N` = 下标访问 (描述串直证); `@<资源>` = 参数语法。读侧 9 处 gs 偏移 (+724/+784/+796/+808/+820/+1016/+1128/+1144 与 gs+8 vtable2 槽[2]) 全部吻合 §4.1.1 既有定案, 零勘误。
+
+**CScopedValue setter 三件套** (scopedvariable.cpp; 新定):
+
+| VA | 方法 | 语义 |
+|---|---|---|
+| 0x140543CD0 | SetCountry | 读 country+8 → SetTag |
+| 0x140543CF0 | SetTag | :1051 断言 `( INVALID_MASK & nTag ) == 0 && "Tell Engin"`; 经 gs+856 tag 表 sub_140BB4E70 取值 |
+| 0x140543DA0 | SetState | `*out = id \| 0xFFFFFFFFC0000000`; :1039 同款断言 |
+
+> 未决: 本注册器 TU 源文件名 (函数体无 .cpp 断言, lambda 匿名命名空间, 仅能从求值体侧证推定 gamestate/variables 域); CProvinceProvider vtable2 槽[2] 方法名推定 = GetProvinces; CScopedVariable 的 param 精确槽位; 键 9 资源解析链中段语义 (sub_140544C90 / sub_1424ED730 / sub_140AC1F80+216 逐级未定案); `military_industrial_organization` / `special_project` 两域表未定位 (MIO 域线索 = NProject::CreateDynamicVariables 返 unordered_map<CString, SGameValueFunctionEntry>, 未追); 游戏内脚本/loc 文本中 `global.year` 一类写法未在语料确认。
+
+
+#### 4.00.4c CEventTarget 作用域链表达式节点 (328B; eventtarget.cpp; 解析器 0x14147DE40, 定案)
+
+sub_14147DE40 = 作用域链解析器 (推定 `CEventTarget::ResolveScope`; 源文件名 14 处断言/日志锚直证), 签名 `CEventScope* (CEventTarget* target, CEventScope* dst, CEventScope* from)`: 把链式表达式节点 (如 `prev.from.capital_scope`) 递归解析进 176B CEventScope (§4.00.4); 返 dst, 失败置 dst+172 = 0。全语料 8 调用方全在 0x14139-0x1413A effect/trigger 求值族, 两侧各一错误锚 (effectbase.cpp:324 / triggerbase.cpp:559), 调用形逐字节同构: 取载荷 +88 的 CEventTarget 解入栈上 176B 临时 scope → 查 +172 存在旗, 置位传下游求值, 清零以目标名串报「目标不存在」。
+
+CEventTarget 布局 (328B = 0x148, 无 vtable; ctor sub_14147DB70 — 拷 token/旗/名串后置 +72/+76 = 19338, +80 = 0, +88 = 0, +96 = 0, +104 = 0, +112 = 0, +114 = 0, 构造 +120, 再调解析器 sub_14147FE10; 链节点 = malloc(0x148) 同初值 + 递归, `*(a1+80) = 新节点` 挂链):
+
+| 偏移 | 类型 | 名称/语义 | 备注 |
+|---|---|---|---|
+| +0 | uint32 | 作用域步骤关键字 token | 19 分派见下表; 数字名节点 = 州 id 通道 |
+| +4 | uint8 | token 解析成功旗 | ctor 写 sub_14022EED0 查表旗; 推定 |
+| +8 | char* | 名串数据指针 | 长度 0 时消费方一律回退全局空串 Buf2 |
+| +16 | uint32 | 名串容量/保留槽 | 本函不消费; 未决 |
+| +20 | uint32 | 名串长度 | 三处 `if (*(a1+20)) v = *(char**)(a1+8); else v = &Buf2;` |
+| +72 | uint32 | 类型关键字 token | mio / sp / scope 等; ctor 默认 19338 = token "invalid" 作未置标记 |
+| +76 | uint32 | 参数 token | mio / sp / 特殊项目 / 角色的名 token; ctor 默认 19338 |
+| +80 | CEventTarget* | 链下一节点 | 作用域链 (如 `a.b.c`) 左结合递归; 尾节点 = 0 |
+| +88 | uint32 | 数值参数 (州 id) | 数字名节点经 sub_1424C4FE0 (strtol 形) 解入 |
+| +96 | int32 | 数据库名查表结果 id | sub_140BB41B0 填充 {id@+96, ptr@+104}; 判空 = id > 0 |
+| +104 | void* | 数据库名查表结果指针 | 判空 = ptr ≠ 0; sub_140BB5470 两条件取或 |
+| +112 | uint16 | saved event target 名表下标 | qword_14333D530 + 32×idx 取名 |
+| +114 | uint8 | saved/event 目标区分旗 | 置位 = saved_event_target 路径 (:759 错误) |
+| +120 | 内嵌 | scoped variable 引用 | `var:` 前缀路径 (sub_14014AFD0 构造 / sub_1401545F0 析构) |
+| +128 | uint8 | 变量路径旗 | 置位 = 走 sub_140544C90 求值 + sub_1405443F0 装入 |
+
+解析优先序 (定案): +128 变量旗 → +96 数据库查表非空 → +72 == 19338 且 +76 ≠ 19338 (按名取角色) → +72 三型 switch (mio / sp / scope) → +0 大分派。
+
+**作用域关键字分派表** (19 分支 + 四通道; token = 词法 id):
+
+| 键 | token | 解析动作 |
+|---|---|---|
+| (未命中/数值) | 12 | SetState(dst, +88 数值) — token 12 双语义 = 查表未命中默认返回值, 亦 = 数字名节点步骤 token |
+| from | 10639 | 拷 from (a3+32) 全载荷 |
+| this | 10691 | 拷 a3 全载荷 |
+| capital_scope | 10750 | 有国: cc+4120 首都州 id → SetState; 无国: a3+168 州 → owner (state+200) → 其首都; 皆空 → 三条错误 (:551 / :556 / :561) |
+| overlord | 11135 | (cc+3976 CDiplomacyStatus) + 392 宗主 tag 指针 → SetCountry |
+| root | 11412 | 拷 a3+24 (root); dst+32 ← root 的 from |
+| prev | 11413 | 拷 a3+40 (prev); dst+32 ← root 的 from (见未决) |
+| operation | 12059 | unit leader (a3+80) 且 leader_type (+3708) == 3 → sub_140C0EC00 取 operation → SetOperation |
+| opponent | 13588 | a3+96 combatant → sub_1413E1DF0 取对手 → SetCombatant |
+| faction_leader | 15424 | faction = a3+152 或 (cc+3976)+656 → members[0] (fac+88) 的 tag (+8) → SetCountry — 阵营领袖 = 成员表首国 (§4.32 is_faction_leader 同锚) |
+| occupied | 15793 | a3+168 州 → gs 州表 → state+616 占领国 → SetCountry |
+| character | 19478 | leader (a3+80) 或第二 getter 的 +3912 CID 对 → SetCharacter |
+| 类型 mio | 19767 | cc+3944 MIO 管理器按 +76 token 查 (sub_140E5D090) → SetMIO; 未找到报 :357 |
+| 类型 sp | 19768 | cc+4008 项目池按 +76 token 查 (sub_1414823B0) → SetProject; 未找到报 :379 |
+| 类型 scope | 10646 | 需 +76 == 10877 (faction): tag → CFaction → SetFaction; 否则报错 |
+| 类型 invalid 标记 | 19338 | +76 ≠ 19338 时: cc 角色表按 +76 token 查 (sub_1410EBCB0) → SetCharacter; 未找到报 :336 |
+| 通道 var: | +128 旗 | sub_140544C90 求值 +120 变量 → sub_1405443F0 装入 |
+| 通道 event_target (具名) | +96 非空 | sub_140BB4F60 → SetCountry |
+| 通道 saved_event_target | +114 旗 | +112 下标四路取 CSavedEventTarget (sub_140537D20 → sub_140537CC0 → sub_1401DBC80 → sub_1401DBC30) → 13 路分发见下 |
+
+**CSavedEventTarget → dst 的 13 路分发** (取件成功后逐槽判非空即装, 求值序):
+
+| 源槽 (§4.12.6) | 去向 setter | 条件 |
+|---|---|---|
+| +8 | SetState (+168) | state id ≠ 0 — 最高优先, 直接返回 |
+| +12 | SetCountry (+8) | tag id > 0 — 次优先 |
+| +16 leader (sub_140538140) | sub_14053B8E0 (character, 自 leader) | 非空 |
+| +16 (sub_140535C40) | sub_14053A400 (character CID 对) | 非空 |
+| +24 (sub_140537980) | sub_14053B0F0 (operation) | 非空 |
+| +32 | sub_14053B670 (strategic_region 裸指针) | 非空 |
+| +40 | sub_14053A590 (combatant 裸指针) | 非空 — 运行时读侧, writer :1422 拒写 |
+| +48 (sub_140536760) | sub_14053A250 (ace) | 非空 |
+| +56 (sub_140538110) | sub_14053B6B0 (unit) | 非空 |
+| +64 (sub_140535CC0) | sub_14053B030 (MIO) | 非空 |
+| +88 (sub_140535DB0) | sub_14053B4F0 (project) | 非空 |
+| 全空 | dst+172 = 0 (标记不存在) | — |
+
+**两分类器** (解析期校验, 定案):
+
+| VA | 语义 |
+|---|---|
+| sub_14147FB80 | 作用域类型位掩码分类器 (取链尾节点): country = 0 / state = 2 (含 capital_scope) / character = 8 / opponent = 16 / operation = 128 / MIO = 512 / Special Project = 4096 / scope:faction = 0x2000 / owner·controller·occupied·faction_leader·overlord = 4 |
+| sub_14147FD30 | 作用域关键字判定器 — 返回真的 token 恰 12 个: 12 / 10639 / 10691 / 10750 / 11135 / 11412 / 11413 / 12059 / 13588 / 15424 / 15793 / 19478, 其余一律假 |
+
+**本函精化要点** (对 §4.00.4 既有结论的补强):
+
+| 项 | 内容 |
+|---|---|
+| SetCountry 签名 | sub_14053A610 第二参 = uint32* tag_id 指针 (`*(a1+8) = *a2`), 非国对象; 传 &scope+8 / state+200 / state+204 / fac 成员+8 / dip+392 五类指针, 全部指向 u32 tag 槽 |
+| RNG 派生第二实例 | 解析器**内联**同族 splitmix32 链 (无 wrapper 函数): 基值按载体类型混入 — 有国 = 国对象 (sub_140BB5490(&tag)) / 有州 = state id / 有 unit leader = leader+12; 三载体皆空则不派生; 末段双写 dst+16 (种子) / dst+12 (计数) |
+| CEventScope vtable 双序列化入口 | vtable [1]-[4] = 主 CPersistent 四元组 (writer 0x14053BDA0); **[11]-[14] = 第二四元组**, writer = 0x14053C090 (与 CSavedEventTarget 元素 writer 同址), reader = 0x140539530 — scope 的 +160 saved target 块经本类第二入口序列化 (PE 直读 15 槽) |
+| 19338 语义 | token "invalid" 的 lexer id = 类型槽 (+72/+76) 的未置标记: ctor 填 19338; 解析器对已注册角色名 token 执行 +76 = +0 (保持 +72 = 19338) → 据此走「按名取角色」分支 |
+| 链求值序 | 左结合递归: 每步以当前 scope 为 from 解入新 176B 临时 scope, 经 sub_140538A20 回填 (拷 +8/+72/+80/+88/+96/+104/+112/+120/+168, **不拷** +12/+16 RNG 与 +24/+32/+40 链指针) + 释放旧 owned 槽 + 恢复 prev; root/prev 两支尾部合并 |
+| IsValid 直证 | CSavedEventTarget vtable[9] (+72) = sub_140538760, PE 直读; 函数体判名表项 + state/country/CID 对 (§4.12.6) |
+| 作用域 getter 两族 | CEventScope 侧 getter (sub_140535E00 等 10 件) 与 CSavedEventTarget 侧 getter (sub_140538140 等 7 件) **是不同函数集**, 同名槽跨类勿混用 |
+
+> 未决: prev (11413) 分支尾部 dst+32 ← root 的 from 而非 prev 自身的 from (引擎有意或伪码误读, 需运行时对拍); token 12 精确名 (lexer 关键词表运行时构建, 离线表无 id 12 条目); qword_14332EE58 角色名数据库类名无 RTTI 直证; +16 名串容量槽无消费点; +4 成功旗无消费点; CEventScope vtable [9] = 0x2C23B00 指向次级 vtable 区非函数 / [10] = 0x535B40 无消费点; 第二 character getter sub_1405379A0 与 sub_140535E00 分工未定; 链递归无显式深度门。
+
 #### 4.00.13 CSelectable (选择态基类; 16B 无基类多态根 — rtti bases 空, 不继承 CPersistent)
 
 ctor 唯一 = sub_140BC2AA0(this, type); 不序列化。凡带选择态的对象 (师/舰队/翼/
@@ -1262,8 +1384,9 @@ trait 条件修正表 (§4.4.23)、战术权重 (§4.22.7) 共用同一 40B 布�
 | CDecisionStatus::SDecisionRandomCountItem | {+8 决策 ptr (名取其 +288, 键 11142), +16 count (10730), +20 target (107)} (writer 0x140738F10) | 决议域 |
 | CIgnoreTargetedDecisionCommand::SDecisionData | {+8 target 串 (107), +12 target_state (14965), +16 decision 串 (11142)} (writer 0x1411713D0) | 决议命令载荷 |
 | SOptionalEquipmentAssets | {+8 model 串 (15755), +40 icon 块 (181)} (writer 0x141463C80) | 装备资产可选件 |
+| NScript::SScriptedKey (32B) | {+0 vtable, +8 vector 24B (sub_14011DF40 清零)}; ctor sub_1402CBC50; reader 经 sub_1424C0AA0 → vtable[3]; vt_rtti/serfam 均无条目 (命名空间类直查落空), 内部读形待裁 | CDecisionCategory+376 picture (key 464, §4.12.3) |
 
-**只读解析件 10 件** (PERS 但 writer 空桩 = 只载不存, 解析域入住零存档面): **CDynamicEquipmentGroup (216B; CEquipmentGroup 派生双 COL 子对象@+104; writer CFG 空桩 = def 只读解析件; reader 0x140A0B160 三键 icon (181) →+16 串 / description (15906) →+48 串 / equipment_type (16217) →+80 块; ctor 0x141915650)** / CNationalFocusStyleDatabase (PERS 壳全惰 — reader = 错误桩 0x1424BEC40, 无实读) / SNationalFocusStyle (国策风格, §4.3.15 邻) / SCriticalPart (关键部件) / SModifierStat / SNamesPool / SInitialScientistSkillLevel (科学家初始技能) / SAce (ace 读入件, §4.3.12 已载域) / CBuildingTemplate::SCountryModifier (建筑模板内嵌) / SMeshVariant (渲染解析) / CCitySettings::{SDistanceMesh, SGroup} (零独立 vftable 写点内嵌件)。**CHighlightStates** 维持负定案 (决议 highlight 块内嵌, writer 空桩; ctor 事实 {CAndTrigger@+8, CPersistentScriptTargets@+96})。
+**只读解析件 10 件** (PERS 但 writer 空桩 = 只载不存, 解析域入住零存档面): **CDynamicEquipmentGroup (216B; CEquipmentGroup 派生双 COL 子对象@+104; writer CFG 空桩 = def 只读解析件; reader 0x140A0B160 三键 icon (181) →+16 串 / description (15906) →+48 串 / equipment_type (16217) →+80 块; ctor 0x141915650)** / CNationalFocusStyleDatabase (PERS 壳全惰 — reader = 错误桩 0x1424BEC40, 无实读) / SNationalFocusStyle (国策风格, §4.3.15 邻) / SCriticalPart (关键部件) / SModifierStat / SNamesPool / SInitialScientistSkillLevel (科学家初始技能) / SAce (ace 读入件, §4.3.12 已载域) / CBuildingTemplate::SCountryModifier (建筑模板内嵌) / SMeshVariant (渲染解析) / CCitySettings::{SDistanceMesh, SGroup} (零独立 vftable 写点内嵌件)。**CHighlightStates** 维持负定案 (决议 highlight 块内嵌, writer 空桩; 挂载点 = CDecisionCategory+576, key 19920 highlight_states; ctor sub_140723E40 事实 {CAndTrigger@+8, CPersistentScriptTargets@+96, CScriptTargets 容器 ctor sub_14064BB30@+104, vector@+360, +384=−1, +392=0}; reader 由 CDecisionCategory::Load (0x1407332B0) 经 sub_1424C0AA0 → vtable[3], §4.12.3)。
 
 **语音三件** (无障碍域, 运行时件): SpeechInputHandler / PdxTextToSpeechState / PdxSpeechToTextState — 锚 CPlayerLobby+9856/+9880 内嵌与 pdx 懒单例; 简卡免布局。
 
@@ -1327,6 +1450,8 @@ CReader 主表 (≥336B; ctor sub_1424BEC90 逐字段直证; dtor sub_1424BEF30)
 错误消息族 (串直证): "Expected opening brace" / "Expected start of list" / "Expected start of list for pair of element" / "Encountered a third element while reading pair" / "Encountered less than two elements while reading pair" / "Malformed token" / "Unexpected token" / "not yet implemented" / `Expected opening bracers when reading named inlined item` (**具名内联条目 reader 模板族专用**, 5 实例化共用 — CFactionRule sub_140A2DCC0 / CFactionUpgrade sub_140A2C290 已证同形, df389; "bracers" = 引擎原文讹写)。
 
 **pdx_unordered_map_parser.h (6 实例, 断言 :43 全同)**: 骨架 = clear 目标表 → '{' 门 → 循环 pair 解析 (`{ 键 值 }` 二元子表, 键值皆裸 token 无 '='; 第三元素/不足两元素各报错) → 键哈希 → CPdxRobinHoodTable find-or-insert (32B 内嵌表头 + 24B 桶 {hash u32@+0, dist u8@+4, key u32@+8, value qword@+16}; 一实例 64B 桶串键)。键哈希三型: **tag → country 索引** (sub_140BB5490 = `*(gs+832 间接表)[tag]` — §3.2「tag id → country index 间接表」的函数级落点; gs 空则裸 tag 直返, 带 gamestate.h:1126 线程禁入断言; 与 §4.3 original-tag 恒等表同表) / **CID 雪崩** (sub_14221EF50, §3.2b 同式) / 串键内联。六实例 = sub_1411FE9B0 (f32 值) / sub_1411FE5A0 (块结构值) / sub_141005BA0 (向量值) / sub_1401E5150 (对象指针值; token 357 "none" = null — ⚠ 勿读作 "undefined", 那是 token 19479) / sub_1411FE190 (CID 键) / sub_1414DED70 (SBookmarkPlaythroughData + 计数, 64B 桶)。
+
+**std_map_parser.h 装载器 (std::map 文本块装载)**: 与上族同属 `Load(CReader&, T&)` 模板重载, **非 CPersistent、不经虚表** — 由宿主 Load 块循环 (pdx_parser.h:2222) 按 reader+48 键 token id 分发调用。骨架 = 值槽 id==3 ("{" 块头门,失败抛 "Expected start of list") → 循环 (lexer 懒读 (lexer+100 已读旗 0 → vtable[1] 取 token,失败 → token 槽 id 置 19) → 哨兵判 (id==4 "}" ∥ id==19 → break) → 推进 lexer → '@' 注解代换 (结果写回 lexer+24 槽后搬移 reader+192) → pair 解析 → 红黑树查插) → 收尾错误计数门 (`sub_1424C0050`,非 0 → `sub_1424C0060` 报 :41)。已证实例 = `sub_140DF2C40` (std::map<idpair 8B,u32>;唯一调用方 `sub_140DF06D0` = 键 17059 "levels" 分发,下游 pair = `sub_140DF2600`;节点 40B {_Left@+0, _Parent@+8, _Right@+16, _Color u8@+24, _Isnil u8@+25, key idpair@+28, value u32@+36},**槽序与 MSVC 标准序不同**;max_size 门 0x0666666666666666 = (2^64−2)/40 下取整,越限 `unknown_libname_10` 抛 "map/set too long";已存键覆写 node+36 不替换节点)。CLexer 实证项 (§4.00.9 简卡之外): vtable[1] 取下一 token / +16 结果码 (0 = 失败) / +24 当前 token 槽 72B / +100 已读旗。
 
 #### 4.00.18 pdx 写入协议 (parser.cpp 写侧八函闭环 — 写原语 token 分派 / 动态 token 区间重发 / 存盘驱动链)
 
@@ -1713,7 +1838,7 @@ RTTI 直证 CFileLogger::vftable 0x142B3AC78 (vtable[1] = Write 0x142224240 PE �
 | 偏移 | 类型 | 语义 |
 |---|---|---|
 | +0 | vtable | `CAudioMusic::`vftable`` |
-| +8 | u16 | 实例 id 基 (ctor 拷自 SAudioContext+2200; 实例工厂再拷入实例 +80) |
+| +8 | u16 | 实例 id 基 (ctor 拷自 SAudioContext+2200 低 u16; 实例工厂再拷入实例 +80) — **+2200 实为 +2184 音乐名表的 i32 count** (dtor 逐桶析构递减直证), 工厂取低 u16 作 id = count-as-id (语义自洽, 待 PE 验算) |
 | +10 | u8 | 代际 (ctor 1; 实例工厂 ++ 回绕 255→1) |
 | +12 | i32 | 计数 (ctor 1; 语义未决) |
 | +16 | char[] | **名字 C 字符串** (≤64B; 表键 — 工厂对 +16 跑 strlen + FNV-1a 32 位) |
@@ -1725,7 +1850,7 @@ RTTI 直证 CFileLogger::vftable 0x142B3AC78 (vtable[1] = Write 0x142224240 PE �
 | +232 | i32 | 格式枚举 (1 或 2, 由解码信息块 +4 派生: `(info+4 != 1) + 1`) |
 | +236 | i32 | 解码信息块 +8 (采样率/声道级, 语义待裁) |
 
-**注册链 (定案)**: assetfactory_audio.cpp 的 **music(573)** case → 栈建 **SMusicReader 240B** (vtable 符号 `&SMusicReader::`vftable``@+0, 数据区 +8..+232) → sub_1424DC920 解析路径入 +72 (串形, 镜像到资产 +80) → sub_1423B5C40(SAudioContext+24, &reader+8)。工厂内: **224B 块拷贝** (14 × oword, reader+8..+232 → 资产+16..+240, 尾正好落在对象末) → FNV-1a 32 (offset basis 0x811C9DC5 / prime 16777619) → sub_1423B2DB0 入 SAudioContext **+2184 robin_hood 表** (桶 48B {dist u8@+4, 名串 32B@+8, 值@+40}; data@表+8 = ctx+2192, mask i32@+2204, extra u8@+2208, 桶数 = mask+extra+1)。**重名处置 (新发现)**: latch byte_1435BA0AB 未置 → 告警 pdx_audio.cpp:1294 "Music with name '%s' already added" 并返 0; 已置 → **静默返回已有项**。资产 id = `*(u16*)(ctx+2200)`。
+**注册链 (定案)**: assetfactory_audio.cpp 的 **music(573)** case → 栈建 **SMusicReader 240B** (vtable 符号 `&SMusicReader::`vftable``@+0, 数据区 +8..+232) → sub_1424DC920 解析路径入 +72 (串形, 镜像到资产 +80) → sub_1423B5C40(SAudioContext+24, &reader+8)。工厂内: **224B 块拷贝** (14 × oword, reader+8..+232 → 资产+16..+240, 尾正好落在对象末) → FNV-1a 32 (offset basis 0x811C9DC5 / prime 16777619) → sub_1423B2DB0 入 SAudioContext **+2184 robin_hood 表** (桶 48B {dist u8@+4, 名串 32B@+8, 值@+40}; data@表+8 = ctx+2192, mask i32@+2204, extra u8@+2208, 桶数 = mask+extra+1)。**重名处置 (新发现)**: latch byte_1435BA0AB 未置 → 告警 pdx_audio.cpp:1294 "Music with name '%s' already added" 并返 0; 已置 → **静默返回已有项**。资产 id = `*(u16*)(ctx+2200)` (低 u16; +2200 实为 +2184 表 i32 count, count-as-id 待裁)。
 
 **音乐文件解码入口 0x1423C07C0** (224 行; 高置信): 签名 `(a1 = 资产内嵌数据基址 = CAudioMusic+16, a2 = 模式)`, 两调用点 `sub_1423C07C0(asset+16, 0/1)` 直证。路径串 = a1+64 裸 C 字符串。
 
@@ -1791,6 +1916,8 @@ RTTI 直证 CFileLogger::vftable 0x142B3AC78 (vtable[1] = Write 0x142224240 PE �
 逐条: `+112 == 0` → cpp:788 "Error in definitions array" (latch byte_143330436, once 形) + cpp:789 `序号 + " is defined but not implemented."` 风格日志; `+112 != 0` → sub_14055D110(条目, &out_std::string) 取本地化串 (推定 = 按名查 loc), 与条目名**逐字节比较**: 相等 → cpp:796 "No localization for modifier " + 名 (即落回键本身 = 无本地化)。未决: +112 已实现旗与书既有 +104 flags 的关系 (两字段并存, 正交还是联动未验) / sub_14055D110 是否确为 loc 查询 (推定)。
 
 **同表 JSON 文档导出器 0x140558CE0 (定案, 函级新定性)**: 脚本文档 JSON 导出主函 sub_140299AD0 的 "modifiers" 节生成器 (该主函 10 键 = script_concepts / loc_formatter / script_collection_input / script_collection_operator / script_math_functions / loc_objects / effects / modifiers / dynamic_variables / console_commands; 开发期文档导出通道, 与本节完整性诊断分工不同)。第一段 = **内置条目 1..665 全量逐条下发** (665 = 1.19.3 原版内置 modifier 数, 新常数; +112 token 经 sub_1424BC260 取名写 "name" 字段, 0 = 无名跳过取名仍出记录) → `sub_14060F5D0(def, 0, &rec)` 内置态附加字段。第二段 = **动态 (mod 追加) 条目自主表 667 起** (666 空档语义未决); 名池 qword_1433300B0 = 16B/条 {+0 token u32, +8 char* 名}; 名非空 → **FNV-1a 前 8 字节**哈希 → sub_140552990 本地 robin-hood 表 (48B/条 {+4 距离, +8 key, +16 u32 主表条目号, +24 vector\<string\>}) 查找/插入 → 收尾逐桶组内排序 (≤32 插排 / >32 归并) 后 `sub_14060F850` 出 JSON = **同名多定义归并展示**; 名空 → `sub_14060F5D0(def, 1, &rec)` 动态无名态。断言 pdx_robin_hood_table.h:58 `_pEntry->_DistancePlus1 != nIteratorSentinelDistance` (闩 byte_143330435, flags=1)。JSON writer 族 = sub_1424C5F00 建容器 / sub_1424C5F10 建值 / sub_1424C5DE0 挂键 / sub_1424C5E30 字段赋值 / sub_1424C5E90 数组追加。
+
+**同族并列 — 命令驱动 CSV 诊断**: 装备本地化键诊断转储器 (控制台命令 dump_equipment_loc, 处理器 0x140253910, §4.23.24) 与本节 modifier 完整性诊断 / JSON 文档导出器同属「定义但缺本地化 / 覆盖键无效」类完整性诊断器族; 通道差异 = 启动期门校验 / 开发期 JSON 文档导出 vs 运行期按命令参数 (desc / 国家 / 类别 / 路径) 过滤的 CSV 转储。
 
 #### 4.00.34 Dear ImGui 后端初始化 (pdx_dearimgui.cpp; 1 函 = 0x142081EB0 — 补 §4.26 面板族的后端契约)
 
@@ -1958,7 +2085,7 @@ sub_1424E40D0 (句柄构造器; §3.2a acquire/release 协议的线程本地实�
 
 #### 4.00.52 CStateNudger 选州处理 (主 vtable 槽 [3] = 0x141B5A410, 高置信)
 
-0x141B5A410 (nudger a1, GUI 消息 a2): 事件类型 sub_14139E9A0 **1 = 按下 / 2 = 释放** (释放且键号 ≠ 4 → 清 a1+797); 拾取链 = gs vtable+120 (槽 15) 取地图视图 → 事件对象前两 int 转鼠标 x/y → sub_140B53F00(view, &x, &y, 1, 0) → 州 id; 州对象 = gs+8 子对象 vt[1] → **有效性门 = *(state+184) 解引用 → +210 字节 & 3 非零** (字段语义待裁)。单选路 (a1+780==0 ∨ +796==0): sub_141B5D820 整表清 → 比较当前选区首元素与 *(state+192) → 相等仅 sub_141B5BD80 (高亮) / 不等加 sub_141B58680 (取消旧); 多选路 (+780 > 0 ∧ +796): gs+1288 对象 vt[5]/vt[7] 两查询 (推定修饰键) → 遍历 **a1+768/+780 第二列表** — shift 型 → 追加进选区数组 a1+16 (cap@+24, count@+28, 1.5× 增长, 分配器对象 a1+32 vt[1] alloc / vt[2] free) / ctrl 型 → 仅高亮 (BD80 族, 完整 VA 见 findings)。**CStateNudger 布局增补**: +8 gs/管理器指针 (+1288 选择/输入对象槽) / +192 命中测试缓存 / +768/+780 第二列表 / +796 多选模式旗 / +797 粘滞旗 (释放键≠4 清零)。尾事件消费 sub_142275B50。
+0x141B5A410 (nudger a1, GUI 消息 a2): 事件类型 sub_14139E9A0 **1 = 按下 / 2 = 释放** (释放且键号 ≠ 4 → 清 a1+797); 拾取链 = gs vtable+120 (槽 15) 取地图视图 → 事件对象前两 int 转鼠标 x/y → sub_140B53F00(view, &x, &y, 1, 0) → 州 id; 州对象 = gs+8 子对象 vt[1] → **有效性门 = *(state+184) 解引用 → +210 字节 & 3 非零** (字段语义待裁)。单选路 (a1+780==0 ∨ +796==0): sub_141B5D820 整表清 → 比较当前选区首元素与 *(state+192) → 相等仅 sub_141B5BD80 (高亮) / 不等加 sub_141B58680 (取消旧); 多选路 (+780 > 0 ∧ +796): gs+1288 对象 vt[5]/vt[7] 两查询 (推定修饰键) → 遍历 **a1+768/+780 第二列表** — shift 型 → 追加进选区数组 a1+16 (cap@+24, count@+28, 1.5× 增长, 分配器对象 a1+32 vt[1] alloc / vt[2] free) / ctrl 型 → 仅高亮 (BD80 族, 完整 VA 见 findings)。**CStateNudger 布局增补**: +8 gs/管理器指针 (+1288 选择/输入对象槽) / +192 命中测试缓存 / +768/+780 第二列表 / +796 多选模式旗 / +797 粘滞旗 (释放键≠4 清零)。尾事件消费 sub_142275B50。**应用例程布局增补** (§4.00.59): +80 名/令牌库对象 (vt+128 按串 + 关联值查询, "state_name" = 25965) / +88 模板向量<CStateTemplate*> {cap@+96, count@+100, alloc@+104} / +112 州对象向量<CState*> {cap@+120, count@+124, alloc@+128} (元素 0x928 = sizeof(CState); 两向量按下标配对) / +136 空闲州 id 栈 {data@+136, count@+148} / +824 省表引擎向量 (计数@+836, 重建前置 0) / +9864 州源文件相对路径去重集 {cap@+9872, count@+9876} / +9888 战略区源文件相对路径去重集 (本类不消费, 供同族战略区导出) / +9900 附加 .txt 写出门旗 (全语料无置位点 → 分支恒不执行)。
 
 #### 4.00.53 Unicode 简单大写映射表函数 (ConvertUTF.cpp 邻域; 1 函 = 0x1424FEF40, 语义定案/真名无锚)
 
@@ -1966,8 +2093,3019 @@ sub_1424E40D0 (句柄构造器; §3.2a acquire/release 协议的线程本地实�
 
 #### 4.00.54 0x14254 区 = 静态链接 UCRT (导航标注; 1 代表函 = 0x14254DE28 printf 格式分派核心, 定案)
 
-**0x14254000 起区段 = 静态链接 UCRT 代码** (0x14254DE28 = `__crt_stdio_output::stream_output_adapter` 实名直证; 同区 sub_14254B47C/B88C/B06C = 整数十/十六/八进制写出 helper, unknown_libname_43x/44x = 无符号 CRT 原语)。**上界延伸 ≥0x142584xxx**: locale 初始化四件套 __acrt_locale_initialize_{ctype=0x142571860, monetary=0x142583A74, numeric=0x142583FFC, time=0x142584760} 实名族直证 (ctype 构建器 = __crt_locale_data 五连 calloc 384 项×3 表 + GetCPInfo 门 + CP65001 前导 0xC2..0xF4 特例; 表发布带 -128 偏置, 引用计数 +256)——反编译分析可**整区跳过**, 非游戏逻辑。printf 格式状态块布局 (实测): +8 locale\* / +32 chars_written (−1 = 错误) / +40 flags 位 (0x01 '+' / 0x02 空格 / 0x04 左对齐 / 0x08 零填充 / 0x10 有符号十进制 / 0x20 '#' / 0x40 负值) / +44 width / +48 precision / +56 无输出旗 / +57 format char / +64 串数据 / +72 串长 / +76 宽串旗 / +1120 输出流。
+**0x14254000 起区段 = 静态链接 UCRT 代码** (0x14254DE28 = `__crt_stdio_output::stream_output_adapter` 实名直证; 同区 sub_14254B47C/B88C/B06C = 整数十/十六/八进制写出 helper, unknown_libname_43x/44x = 无符号 CRT 原语)。**上界延伸 ≥0x14258Axxx**: locale 初始化四件套 __acrt_locale_initialize_{ctype=0x142571860, monetary=0x142583A74, numeric=0x142583FFC, time=0x142584760} 实名族直证 (ctype 构建器 = __crt_locale_data 五连 calloc 384 项×3 表 + GetCPInfo 门 + CP65001 前导 0xC2..0xF4 特例; 表发布带 -128 偏置, 引用计数 +256); 内存原语双分派件 memset 0x14258A4C0 / memcpy 0x142589E20 = 六路 Size 分派 (≤15 标量尾部重写 / ≤0x20 双 xmm 重叠写 / 16B 对齐 SSE 循环 / rep stosb tail-jmp / 32B 对齐 AVX2 / 超大块 vmovntdq 非时间存储 + sfence + vzeroupper), 共享 __isa_available dword_1430C76A8 + __XMM_BUFFER_SIZE qword_1430C76B0 (0x8000) / __YMM_BUFFER_SIZE qword_1430C76B8 (−1), 唯一写入点 = CRT cpuid 初始化器 sub_14251AC44 (厂商串异或校验 GenuineIntel + leaf7 EBX&0x200)——反编译分析可**整区跳过**, 非游戏逻辑。printf 格式状态块布局 (实测): +8 locale\* / +32 chars_written (−1 = 错误) / +40 flags 位 (0x01 '+' / 0x02 空格 / 0x04 左对齐 / 0x08 零填充 / 0x10 有符号十进制 / 0x20 '#' / 0x40 负值) / +44 width / +48 precision / +56 无输出旗 / +57 format char / +64 串数据 / +72 串长 / +76 宽串旗 / +1120 输出流。
 
 #### 4.00.55 0x14246 区 = libpng 静态链 (导航标注; 代表函 = png_do_rgb_to_gray 0x14246F540, 定案)
 
 **0x14246 区 = vendored libpng 第三方带** (png_do_rgb_to_gray 直证: 调用者 0x14246EAE0 = **png_read_transform_row**, "png_do_rgb_to_gray found nongray pixel" 串直证) — 反编译分析可整区跳过, 非游戏逻辑。连带定案: png_struct 字段图 = 七 gamma 表族 @+720..+768 / rgb_to_gray_status@+1072; libpng 版本号待裁。
+
+#### 4.00.56 0x14216/0x14217 区 = SDL 静态链软件 blit 子系统 (导航标注; 代表族 = 0x14212F7B0 CalculateBlit 件 + 0x142177FF0 特化 blit, 定案)
+
+**0x14216/0x14217 区 = 静态链 SDL 软件位图 blit 子系统** (与 §4.00.54 UCRT / §4.00.55 libpng 并列的第三方静态链带): SDL_Surface / SDL_PixelFormat / SDL_Palette 三结构布局 + hint "SDL_BLIT_CPU_FEATURES" + 错误串 "Blit combination not supported" 多重直证; 完整分派架构与特化 blit 表见 §4.35.43a — 反编译分析可整区跳过, 非游戏逻辑。
+
+#### 4.00.56a 0x1421B/0x14222 带 = ImGui + ImPlot 静态链调试 GUI 库 (导航标注; 代表锚 = 0x1421D7E80 ImGui 调试框架 / 0x14220D530 ImPlot 绘图上下文, 定案)
+
+**0x1421B0000–0x14222FFFF = 静态链完整 ImGui + ImPlot** (与 §4.00.54 UCRT / §4.00.55 libpng / §4.00.56 SDL blit 并列的第三方静态链带): ImGui 侧串直证 = 'Debug##Default' / 'HoveredId: 0x%08X' / 'Press ESC to abort picking.' (三串同函 0x1421D7E80); **ImPlot 侧串直证** = '##PlotContext' / 'X-Axis' (0x14220D530 绘图上下文与坐标轴构建) / 'Log Scale' (0x142211000 对数刻度)。引擎调试 GUI 建在其上 — **tweaker 层 18 函** (0x14208/0x14209 带, 代表 0x1420875F0) 与**资产查看器/粒子编辑器 8 函** (0x1420A/0x1420B 带, 0x14208E690 持 36 条 'particle_editor_*' 命令注册); 亦见 §4.35.7 S15 (pdx_dearimgui 观察窗族)。反编译分析整区跳过, 非游戏逻辑。
+
+#### 4.00.57 CConfirmConsolidateUnits 整编确认窗运行期 (1 函 = 0x141D081D0 正文构建器 + ctor 0x141D07D10 / dtor 0x141D08070, 类归属定案 / 方法名推定)
+
+0x141D081D0 (CConfirmConsolidateUnits* this, 单参): **整编确认弹窗正文构建器** (方法真名无符号, 按职责推定 CreateDescription; 唯一静态调用方 = 自家 ctor, 在 ++dword_14338C64C 活体计数器之后调用 — 本族唯一带计算负担的正文构建器, 同族兄弟改走 vtable[14] OnInit 灌 TITLE/DESC, §4.00.2)。非 CPersistent writer/reader (不落存档)。业务 = 复用 CMergeArmiesCommand::Execute (0x141366400, §4.33 tok 14344) 同一套分组算法 sub_141362500 (按模板分组 + 战斗值降序插排 sub_14135F550 + 人力/装备缺口判满编), 逐组产出「满编名单」与「未满编增编明细」, 加被围人力损失系数告警与溢出人力/装备退还汇总, 九段 loc 拼成正文, 尾 sub_140B7D3D0 SetDescription。
+
+**载荷形态** (§4.00.2 统一布局 +4104 起, 新档): 单位 idpair 数组 {data@+4104, cap@+4112, count@+4116, 分配器@+4120} (ctor 自 a3 选择容器拷入; 增容 max(cap×1.5, count+1))。
+
+**正文九段 loc 发射规则** (定案):
+
+| 段 | loc 键 | 参数 | 触发 / 语义 |
+
+|---|---|---|---|
+
+| 标题 | CONFIRMCONSOLIDATEUNITS | — | SetTitle (sub_140B7D4A0), 无条件 |
+
+| 首段 | CONFIRMCONSOLIDATEUNITSTEXT | NUM = count | 无条件 |
+
+| 被围告警 | CONFIRMCONSOLIDATEUNITSAREENCIRCLED | VALUE = 损失系数 | base = 100000 − DISBAND_MANPOWER_LOSS; 有不可增援单位 (sub_140DF6D30 返 false, §4.18.5) → base = ENCIRCLED_DISBAND_MANPOWER_FACTOR × base / 1e5 (hi-mul 魔数 0x29F16B11C6D1E109 = ⌈2^78/1e5⌉ 定点式, 与 §4.18.20 删/散分叉同式同 define 组); base ≠ 100000 才发, 前缀 "\n\n" |
+
+| 满编汇总 | CONFIRMCONSOLIDATE_ARMY_INFO | NUM = 组数, ARMIES = 师名 (", " 分隔) | 分组满编旗 *(group+32) == 1; **懒刷新** — 首个满编组追名并计数, 后续仅追加名, 遇未满编组或组循环尾时刷新 |
+
+| 未满编头 | CONFIRMCONSOLIDATE_ARMY_INFO_NOT_FULL | ARMY = 师名 (vtable[13] GetName 经 army+832) | 未满编组; 先刷新积压的满编汇总 |
+
+| 人力行 | CONFIRMCONSOLIDATE_GAIN_RESULT (MANPOWER 串作 EQUIPMENT 参数) | AMOUNT = min(Σ人力, 应编), MAX = 应编 (= d+376 目标人力) | 未满编组 |
+
+| 装备行 | CONFIRMCONSOLIDATE_GAIN_RESULT | EQUIPMENT = archetype 名 (sub_140BC9B50 读 type+24), AMOUNT = min(pooled, need), MAX = need | 逐 need map 条目 |
+
+| 退还标题 | CONFIRMCONSOLIDATE_EQUIPMENT_GAIN_CONSOLIDATE_TITLE | — | 有溢出时; 无溢出时仅发人力行 |
+
+| 退还行 | CONFIRMCHANGE_UNIT_TEMPLATE_GAIN | AMOUNT / EQUIPMENT | 人力溢出 (Σ − d+376 > 0) + 逐装备溢出 (need map 余量为负 → sub_1424EF6F0 取负, 按 archetype 指针归并) |
+
+**预览算法**: 分组 sub_141362500 → 逐组 CArmyManpower 求和 (sub_140C69780 读 army+976) + 组内装备池并入累积池 (sub_14100D420(acc, army+840, 100000)) → need map 拷贝 (CDivisionTemplateData d+272 / d+284, 16B 元) → 逐条按 archetype 下标 (type+1336) 与累积池扣减, 余量 = need − pooled。⚠ 预览数值为**折扣前原值**, 被围损失仅以告警体现 (执行侧 sub_141363DA0 对不可增援单位施加系数)。
+
+**新档全局量**: dword_14338C64C = 活体 CConfirmConsolidateUnits 计数器 (ctor ++ / dtor −−, 符号侧仅此两处写)。**负定案**: loc 键 CONFIRMCONSOLIDATEUNITSAREOVERSEA 在 1.19.3 全语料零引用 = 死键 (旧版残留; 海外/被围分支只发 AREENCIRCLED)。
+
+**勘误**: §4.18.16 need map (CDivisionTemplateData+264) 元素首字段 CEquipmentVariant* → **CEquipmentType\* (archetype)** (匹配键读 type+1336; CEquipmentVariant sizeof 1208 → +1336 越界不可读; 池类名 CEquipmentArcheTypePool; 累积池排序按 type+1048 db 下标)。
+
+未决 4 项: ① 方法真名 (类归属定案但无符号); ② 弹窗构造入口 (UI 选中单位 → 本窗的链路未在语料中静态定位, 疑经视图层命令包装); ③ vtable[14]/[16] (OnInit/OnConfirm) 具体落点未逐槽核实 (OnConfirm 是否投 CMergeArmiesCommand); ④ 被围告警条件口径 — DISBAND_MANPOWER_LOSS≠0 且无被围单位时告警仍触发 (原版 define loss=0 不可见, 文案「encircled」与条件口径错位)。
+
+#### 4.00.58 定点换算与子单位名库 (2 通用件)
+
+| VA | 语义 | 体证据 | 消费点 |
+|---|---|---|---|
+| sub_1424ED580 | CFixedPoint64 → 1e-5 i64 换算 (`v3 = *a2 >> 15; *a1 = 100000 * (int)v3 + 舍入小数`; 越界断言 fixedpoint.cpp, 门 byte_1435E1B51 消息形) | 体直证 | 师设计器陆军经验 cc+5512+16 (§4.30.2b) — §4.3.17 / §4.30.69 显示源同槽 |
+| sub_1424BC260 | 子单位定义 token → 名串 (静态名库 qword_1435E1AE0, 32B 条目; 界 dword_1435E1AB4; 锁 byte_1435E1AB0) | 体直证 | 自动师名首段 = 草稿+400 首营 def+8 token (§4.30.2b); 与 CSubUnitDefinition 库单例 qword_14332F090 分属两表 (§4.18.19) |
+
+#### 4.00.59 CStateNudger 应用例程 (sub_141B5C0C0; 州定义落盘 + 州名本地化灌入, 定案)
+
+sub_141B5C0C0 (CStateNudger* this, 单参; 推定 `CStateNudger::ApplyStates`, nudger\statenudger.cpp) = nudge 编辑器「州定义落盘 + 州名本地化灌入」一体例程: 三环写盘 + loc 灌入 + 落盘回调注册 + 整表释放。纯编辑器层, 零存档面。4 调用方: sub_141B597B0 (gs 州表循环, 无省份州触发) / sub_141B59760 (选区宿主路径) / sub_141B590C0 (nudge 新建州尾调; id 弹 +136 栈, "STATE_" 前缀名, malloc(0x1D0) 模板 + malloc(0x928) 州入 +88/+112) / ctor 0x141B56FC0 内 GUI 回调挂接 (Apply 按钮, a1+7288)。布局增补见 §4.00.52。
+
+| 步 | 动作 | 置信 |
+|---|---|---|
+| 1 | 写模式守卫: CApplication 子对象 (sub_14222BDC0, ICF 折叠真身不可直读) vt+72 取旧值 → vt+32(obj, 1) 置位, 函数尾原样恢复 | 高置信 (守卫语义推定 = 文件监视/热重载挂起) |
+| 2 | 选区名同步 sub_141B5D820: "state_name" (关联值 25965) 本地化串覆盖州+56 名 + 按选中州省表 (州+24 / 计数+36) 重建 nudger+824 省表 | 高置信 |
+| 3 | CStateDatabase 单例 (qword_14332F070, getter sub_1401775C0): +8 = _Paths 源目录头 / +52 条目计数 / sub_140ABC450(db, i) 越界返元素[0] | 定案 |
+| 4 | **第一环**: walker 构造 sub_1415A21D0(10293, 11, 439) = (history 块令牌 / id 键令牌 / state 外块令牌) → 遍历 nudger+9864 源路径集 → sub_1424BB300 (CTextLexer ctor) 打开并 tokenize state 源 .txt → 收 `history = { }` 块原文 + `id = <值>` 记录 (重复捕获断言 lexerhelper.cpp:193 "Id token already saved.") | 定案 |
+| 5 | **第二环**: 遍历全库模板 (门 = +168 有效旗 ∧ +20 省份数 > 0) 收 名/键 两数组 (键 = 模板+64 脚本名 → loc 键, 值 = 州名 sub_1409D91D0); 模板+96 源路径在 +9864 命中才回写; 空路径改拼 `<srcdir>/<州名>-<n>.txt` | 定案 |
+| 6 | 第二环回写体: sub_1424DF2C0 开文件 → sub_1424BEE00 = CWriter ctor (文本模式) → 捕获记录中州 id 匹配者 → **sub_140ABF150 = nudge 专用 CStateTemplate 文本 writer** (§4.13.10) → 块收 sub_1424C3A20 | 定案 |
+| 7 | **第三环**: 遍历 nudger+112 新建州向量, 同法收集; sub_1424C2E20 嵌套对象写 → 模板 vtable[1] Save wrapper → vtable[2] = 0x140ABF5D0 正序 writer (两套 writer 分工见 §4.13.10) | 定案 |
+| 8 | 附加分支: nudger+9900 门旗 → sub_141B5DA20 (另一路 .txt 写出); 门旗全语料无置位点 → 恒不执行 | 定案 (结构) / 待裁 (门旗) |
+| 9 | **本地化灌入**: sub_14239E1C0 当前语言 → sub_14239E1F0 "l_" 归一 → 路径 `localization/l_<语言>.yml` → sub_14239D170(语言, 键数组, 值数组, 计数, **模式 3**, 0, 路径串) | 定案 (调用) / 待裁 (a7 语义) |
+| 10 | 落盘回调注册: sub_14239F140(语言, sub_141B5F0A0, 0, "state_names_") — state_names loc 文件 writer 回调 (自建 `<base>/localization/state_names_<l_语言>` 路径开文件写两段) | 定案 (注册) / 高置信 (回调体) |
+| 11 | 收尾 sub_141B5ED50: 释放 +88/+112 两向量全部模板与州 / 清 +9864/+9888 两引擎向量 / +9900 清位 / 尾 sub_141B5AF50(db, 0) 应用回库; walker 捕获表释放 sub_1415A2320; 守卫恢复 | 定案 |
+
+**关键子函数** (新件): walker 五件 = sub_1415A21D0 构造 / sub_1415A2590 驱动 (`state = {` 匹配形 = 令牌 + 类型1 + 类型3, 深度戳 walker+48) / sub_1415A2BF0 块内捕获 (40B 捕获对象 {令牌@0, 值@8, 段表@16, 分配器@32}) / sub_1415A2EE0 令牌段复刻 writer / sub_1415A2320 析构; 文本层 = sub_1424BB300 CTextLexer ctor (读盘上限 1MB) / sub_1424BEE00 + sub_1424BF090 CWriter ctor-dtor (+16 挂 CArchiveFile / +25 文本旗); loc 层 = sub_14239E1C0 / sub_14239E1F0 / sub_14239D170 / sub_14239F140 (§4.19.12); 选族 = sub_141B5D820 名同步 / sub_141B59930 州注册 (源路径去重压入 +9864, 门 = 模板+112 size ≠ 0) / sub_141B590C0 新建州 / sub_141B5ED50 整表释放。
+
+> 未决: sub_14222BDC0 守卫子对象身份 (ICF 折叠成 CRT 杂函数, 跨 CApplication/idler/gs/CFaction 四类共用); +9900 门旗置位点; sub_14239D170 第七参语义 (本点传 yml 路径串, 与书载「显式既有值」不符, 真义待汇编); walker 捕获段表与 72B 值对象布局未展开; 关联值 25965 (离线 token 表该 id = PAK_communist_guy, 疑库自维护键空间); yml 路径追加顺序 (IDA 隐参链不可全读); sub_141B5DA20 业务语义。
+
+#### 4.00.60 基类契约层函数补遗（2725 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14157A550 | （无名） 调用图传播: 60 锚点投 §4.00（57%） |
+| 0x140C053E0 | （无名） 调用图传播: 32 锚点投 §4.00（69%） |
+| 0x141D02E90 | （无名） 调用图传播: 17 锚点投 §4.00（53%） |
+| 0x141B6D6B0 | （无名） 调用图传播: 24 锚点投 §4.00（75%） |
+| 0x140F52300 | （无名） 调用图传播: 21 锚点投 §4.00（81%） |
+| 0x1410D9EA0 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x1407304F0 | （无名） 调用图传播: 28 锚点投 §4.00（71%） |
+| 0x1406E3E90 | （无名） 调用图传播: 15 锚点投 §4.00（67%） |
+| 0x14121CA70 | （无名） 调用图传播: 21 锚点投 §4.00（57%） |
+| 0x141EAAA20 | （无名） 调用图传播: 21 锚点投 §4.00（52%） |
+| 0x140E22670 | （无名） 调用图传播: 25 锚点投 §4.00（52%） |
+| 0x1422F0230 | （无名） 调用图传播: 30 锚点投 §4.00（73%） |
+| 0x142463410 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141E60C90 | （无名） 调用图传播: 27 锚点投 §4.00（52%） |
+| 0x141ECD610 | （无名） 调用图传播: 14 锚点投 §4.00（57%） |
+| 0x140A138E0 | （无名） 调用图传播: 56 锚点投 §4.00（84%） |
+| 0x140EE05D0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141721E10 | （无名） 调用图传播: 26 锚点投 §4.00（69%） |
+| 0x141030960 | （无名） 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x14162E260 | （无名） 调用图传播: 28 锚点投 §4.00（100%） |
+| 0x14053A750 | （无名） 调用图传播: 24 锚点投 §4.00（100%） |
+| 0x142008190 | （无名） 调用图传播: 12 锚点投 §4.00（50%） |
+| 0x140A164E0 | （无名） 调用图传播: 54 锚点投 §4.00（85%） |
+| 0x140A17A90 | （无名） 调用图传播: 53 锚点投 §4.00（85%） |
+| 0x1422720F0 | （无名） 调用图传播: 9 锚点投 §4.00（78%） |
+| 0x140A16FC0 | （无名） 调用图传播: 53 锚点投 §4.00（85%） |
+| 0x140A19030 | （无名） 调用图传播: 53 锚点投 §4.00（85%） |
+| 0x140A1AF00 | （无名） 调用图传播: 44 锚点投 §4.00（82%） |
+| 0x141B1A310 | （无名） 调用图传播: 16 锚点投 §4.00（50%） |
+| 0x140A143B0 | （无名） 调用图传播: 53 锚点投 §4.00（85%） |
+| 0x140A14E80 | （无名） 调用图传播: 53 锚点投 §4.00（85%） |
+| 0x140A18560 | （无名） 调用图传播: 53 锚点投 §4.00（85%） |
+| 0x140A1B9D0 | （无名） 调用图传播: 53 锚点投 §4.00（85%） |
+| 0x141C6DAC0 | （无名） 调用图传播: 32 锚点投 §4.00（50%） |
+| 0x140AAE550 | （无名） 调用图传播: 32 锚点投 §4.00（69%） |
+| 0x140729470 | （无名） 调用图传播: 18 锚点投 §4.00（94%） |
+| 0x14166A2C0 | （无名） 调用图传播: 16 锚点投 §4.00（56%） |
+| 0x140DF30F0 | （无名） 调用图传播: 54 锚点投 §4.00（54%） |
+| 0x1410E5240 | （无名） 调用图传播: 23 锚点投 §4.00（83%） |
+| 0x141ECE250 | （无名） 调用图传播: 8 锚点投 §4.00（62%） |
+| 0x1419B10E0 | （无名） 调用图传播: 20 锚点投 §4.00（75%） |
+| 0x1406D6E50 | （无名） 调用图传播: 23 锚点投 §4.00（57%） |
+| 0x141FF4040 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x141FF3840 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x142009310 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x142056060 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x140C6C630 | （无名） 调用图传播: 32 锚点投 §4.00（100%） |
+| 0x1411AFBC0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140B29D00 | （无名） 调用图传播: 16 锚点投 §4.00（50%） |
+| 0x140EA4550 | （无名） 调用图传播: 14 锚点投 §4.00（57%） |
+| 0x1404C1E10 | （无名） 调用图传播: 34 锚点投 §4.00（94%） |
+| 0x1404ED3C0 | （无名） 调用图传播: 34 锚点投 §4.00（94%） |
+| 0x1414164B0 | （无名） 调用图传播: 36 锚点投 §4.00（89%） |
+| 0x140169DC0 | （无名） 调用图传播: 22 锚点投 §4.00（50%） |
+| 0x141680730 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x1412231D0 | （无名） 调用图传播: 15 锚点投 §4.00（67%） |
+| 0x140E414E0 | （无名） 调用图传播: 18 锚点投 §4.00（61%） |
+| 0x1413DFA70 | Reader 调用图传播: 47 锚点投 §4.00（60%） |
+| 0x141B548E0 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x140EB0EB0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141B69580 | （无名） 调用图传播: 41 锚点投 §4.00（54%） |
+| 0x1415C1C40 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x140BB3090 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x14141BAC0 | （无名） 调用图传播: 18 锚点投 §4.00（72%） |
+| 0x140A5C0E0 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x140502EE0 | （无名） 调用图传播: 20 锚点投 §4.00（65%） |
+| 0x140503B00 | （无名） 调用图传播: 19 锚点投 §4.00（68%） |
+| 0x1405034F0 | （无名） 调用图传播: 20 锚点投 §4.00（65%） |
+| 0x140F7CEF0 | （无名） 调用图传播: 18 锚点投 §4.00（50%） |
+| 0x141677800 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140E4D700 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1413E1EC0 | （无名） 调用图传播: 11 锚点投 §4.00（73%） |
+| 0x141979AA0 | （无名） 调用图传播: 13 锚点投 §4.00（92%） |
+| 0x140EB43C0 | （无名） 调用图传播: 13 锚点投 §4.00（77%） |
+| 0x140DDCF90 | （无名） 调用图传播: 22 锚点投 §4.00（59%） |
+| 0x141EB9290 | （无名） 调用图传播: 11 锚点投 §4.00（55%） |
+| 0x14100B170 | Reader 调用图传播: 25 锚点投 §4.00（76%） |
+| 0x141EC23B0 | （无名） 调用图传播: 10 锚点投 §4.00（60%） |
+| 0x141BB6440 | （无名） 调用图传播: 11 锚点投 §4.00（64%） |
+| 0x141EAB820 | （无名） 调用图传播: 10 锚点投 §4.00（60%） |
+| 0x141457ED0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140E3ADD0 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x1415F1530 | （无名） 调用图传播: 16 锚点投 §4.00（62%） |
+| 0x1410E3D70 | （无名） 调用图传播: 11 锚点投 §4.00（55%） |
+| 0x1411C0C30 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140B93900 | （无名） 调用图传播: 32 锚点投 §4.00（66%） |
+| 0x141416E50 | （无名） 调用图传播: 32 锚点投 §4.00（91%） |
+| 0x141852140 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141790110 | （无名） 调用图传播: 16 锚点投 §4.00（56%） |
+| 0x1412E1D00 | （无名） 调用图传播: 25 锚点投 §4.00（64%） |
+| 0x14170D760 | （无名） 调用图传播: 11 锚点投 §4.00（55%） |
+| 0x14227DFD0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414796D0 | （无名） 调用图传播: 22 锚点投 §4.00（64%） |
+| 0x1414AB9E0 | （无名） 调用图传播: 12 锚点投 §4.00（50%） |
+| 0x140EA0A70 | （无名） 调用图传播: 14 锚点投 §4.00（50%） |
+| 0x141CA27A0 | （无名） 调用图传播: 15 锚点投 §4.00（53%） |
+| 0x141412F50 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x141414300 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x141413620 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x141412880 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x14140F510 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x1414189C0 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x141419D10 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x141419070 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x141415E00 | （无名） 调用图传播: 32 锚点投 §4.00（88%） |
+| 0x140E44840 | （无名） 调用图传播: 7 锚点投 §4.00（100%） |
+| 0x1412C4A00 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141F12E50 | （无名） 调用图传播: 22 锚点投 §4.00（59%） |
+| 0x1412E2D00 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140EF7AC0 | （无名） 调用图传播: 11 锚点投 §4.00（55%） |
+| 0x1423C51F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1404D1920 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404D6590 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E4A20 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E9690 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1403BEF70 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404DAC20 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404CD780 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404D2520 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E0A20 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E5620 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1403C12C0 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404CE8D0 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404DCF70 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E1B70 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404D2B20 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E5C20 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404CAEC0 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404D4E70 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404D9AE0 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404DE170 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E7F70 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404D6B90 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E9C90 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404CEED0 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404E2170 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404CA8C0 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404D8EE0 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x1404DDB70 | （无名） 调用图传播: 27 锚点投 §4.00（85%） |
+| 0x14229E6F0 | （无名） 调用图传播: 36 锚点投 §4.00（50%） |
+| 0x1416AE060 | （无名） 调用图传播: 17 锚点投 §4.00（76%） |
+| 0x1410D4720 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141B9B750 | （无名） 调用图传播: 36 锚点投 §4.00（64%） |
+| 0x141C2AC90 | （无名） 调用图传播: 14 锚点投 §4.00（50%） |
+| 0x1404F5FC0 | （无名） 调用图传播: 28 锚点投 §4.00（79%） |
+| 0x141171440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1404D5A00 | （无名） 调用图传播: 23 锚点投 §4.00（87%） |
+| 0x1404DA690 | （无名） 调用图传播: 24 锚点投 §4.00（83%） |
+| 0x141F618B0 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x141C638F0 | （无名） 调用图传播: 8 锚点投 §4.00（88%） |
+| 0x141F4A9B0 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x14106BCA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1411D4FC0 | （无名） 调用图传播: 25 锚点投 §4.00（60%） |
+| 0x1412A1F40 | （无名） 调用图传播: 14 锚点投 §4.00（57%） |
+| 0x140EA3C70 | （无名） 调用图传播: 16 锚点投 §4.00（69%） |
+| 0x141CA3110 | （无名） 调用图传播: 12 锚点投 §4.00（50%） |
+| 0x140B4B670 | （无名） 调用图传播: 12 锚点投 §4.00（75%） |
+| 0x1414DE8C0 | （无名） 调用图传播: 27 锚点投 §4.00（56%） |
+| 0x1404C9940 | （无名） 调用图传播: 11 锚点投 §4.00（91%） |
+| 0x140EF6B60 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140CF4E70 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x14125C2C0 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x141A3FB20 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1411FD140 | （无名） 调用图传播: 19 锚点投 §4.00（74%） |
+| 0x14065B0D0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140E4A050 | （无名） 调用图传播: 9 锚点投 §4.00（78%） |
+| 0x1423049D0 | （无名） 调用图传播: 26 锚点投 §4.00（54%） |
+| 0x140FE7900 | （无名） 调用图传播: 13 锚点投 §4.00（85%） |
+| 0x140EAB920 | （无名） 调用图传播: 20 锚点投 §4.00（75%） |
+| 0x141005640 | （无名） 调用图传播: 20 锚点投 §4.00（75%） |
+| 0x14122CD20 | （无名） 调用图传播: 20 锚点投 §4.00（75%） |
+| 0x141CFBBE0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1402B62C0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1405517E0 | （无名） 调用图传播: 17 锚点投 §4.00（94%） |
+| 0x14197A1C0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140664760 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141B87E90 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x1411DC720 | （无名） 调用图传播: 13 锚点投 §4.00（77%） |
+| 0x141A7F6D0 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x14050E1E0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140512DF0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1405197E0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140FFC650 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141B85E50 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x1411ABE90 | （无名） 调用图传播: 26 锚点投 §4.00（58%） |
+| 0x1410BA8B0 | （无名） 调用图传播: 10 锚点投 §4.00（60%） |
+| 0x14246A3F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14012BC70 | （无名） 调用图传播: 14 锚点投 §4.00（50%） |
+| 0x140C1CE70 | （无名） 调用图传播: 48 锚点投 §4.00（79%） |
+| 0x140EBCE20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141001700 | （无名） 调用图传播: 14 锚点投 §4.00（50%） |
+| 0x140DC01C0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14012B600 | （无名） 调用图传播: 14 锚点投 §4.00（50%） |
+| 0x1404FA520 | （无名） 调用图传播: 9 锚点投 §4.00（89%） |
+| 0x140F9FBF0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141AA1BC0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140EA5320 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x14165A960 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x1423B1CF0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1419F31F0 | （无名） 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x140E48980 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140C1A140 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1411FC150 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141077170 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141232900 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141666E10 | （无名） 调用图传播: 13 锚点投 §4.00（77%） |
+| 0x141B11190 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140728400 | （无名） 调用图传播: 20 锚点投 §4.00（75%） |
+| 0x142213460 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140F74120 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417FEE00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14017BF70 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x14017E170 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140180370 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140A3EA80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14130C680 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1414ECDD0 | （无名） 调用图传播: 12 锚点投 §4.00（92%） |
+| 0x1409EB030 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A3A910 | （无名） 调用图传播: 22 锚点投 §4.00（86%） |
+| 0x1424D05A0 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x1411CBF90 | （无名） 调用图传播: 11 锚点投 §4.00（91%） |
+| 0x14179F320 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x140177C10 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140179D90 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1410D82B0 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x140A05430 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x1406FC0E0 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x140260810 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140A24570 | （无名） 调用图传播: 14 锚点投 §4.00（71%） |
+| 0x140AC6A70 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140FF9120 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1410A7FD0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1412E6880 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141A09550 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141BB14C0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141EE7020 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x14067AFB0 | （无名） 调用图传播: 12 锚点投 §4.00（50%） |
+| 0x141982780 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x14176FCB0 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x141AFEC60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1411EA050 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B9A850 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141C28F40 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1405533F0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1414C9F30 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x14050B540 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140514F60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140DE5040 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141077F60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E73CE0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14102C860 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141E18BE0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14167BA80 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14118FF80 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14016CB70 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140C09160 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141553190 | （无名） 调用图传播: 9 锚点投 §4.00（67%） |
+| 0x140B05FD0 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x140C6C2A0 | （无名） 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x141963570 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1424CE1A0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141979770 | （无名） 调用图传播: 12 锚点投 §4.00（67%） |
+| 0x1405539A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A66F10 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14129C8F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415A28D0 | （无名） 调用图传播: 9 锚点投 §4.00（78%） |
+| 0x141D73D60 | （无名） 调用图传播: 10 锚点投 §4.00（70%） |
+| 0x1406685B0 | （无名） 调用图传播: 10 锚点投 §4.00（70%） |
+| 0x1417DE350 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DFB1B0 | （无名） 调用图传播: 10 锚点投 §4.00（100%） |
+| 0x140C63320 | （无名） 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x141BDCA30 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x1411DA010 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141E03320 | （无名） 调用图传播: 10 锚点投 §4.00（100%） |
+| 0x140E2EC10 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x140C093D0 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x14065AB60 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140E47AC0 | （无名） 调用图传播: 8 锚点投 §4.00（88%） |
+| 0x1415FB230 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x14070ED90 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x1412E57B0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x141C0B0E0 | （无名） 调用图传播: 9 锚点投 §4.00（89%） |
+| 0x140C91370 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x14053C900 | （无名） 调用图传播: 13 锚点投 §4.00（100%） |
+| 0x140D13C80 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x14170D350 | （无名） 调用图传播: 35 锚点投 §4.00（51%） |
+| 0x140BBFDC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401B10F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CAA580 | （无名） 调用图传播: 11 锚点投 §4.00（91%） |
+| 0x1402A7EA0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140C116F0 | （无名） 调用图传播: 16 锚点投 §4.00（75%） |
+| 0x140A962E0 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x14162DEF0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14050DEE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E3C2D0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140A671C0 | （无名） 调用图传播: 8 锚点投 §4.00（62%） |
+| 0x140F7A460 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x140E33830 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1409C9C00 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x141CD41A0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1418F1FC0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1406E5CC0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x1410AE980 | （无名） 调用图传播: 9 锚点投 §4.00（67%） |
+| 0x1403A9C20 | Parse 调用图传播: 15 锚点投 §4.00（60%） |
+| 0x1409EF290 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E6DB90 | （无名） 调用图传播: 10 锚点投 §4.00（70%） |
+| 0x140BDC410 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14050AD80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141549180 | （无名） 调用图传播: 12 锚点投 §4.00（50%） |
+| 0x140D39E10 | （无名） 调用图传播: 10 锚点投 §4.00（70%） |
+| 0x1410CE620 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141214B90 | （无名） 调用图传播: 20 锚点投 §4.00（70%） |
+| 0x141C63DF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A68B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141B00790 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E32680 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141DFD4E0 | （无名） 调用图传播: 10 锚点投 §4.00（100%） |
+| 0x140EB8DD0 | （无名） 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x141D2F470 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1411D8DC0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140C49B70 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141464180 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x140F48820 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x14155EB00 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140DFC240 | （无名） 调用图传播: 10 锚点投 §4.00（100%） |
+| 0x140555080 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14139A2C0 | Parse 调用图传播: 12 锚点投 §4.00（58%） |
+| 0x1403BB640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1414A2D50 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140DEF910 | （无名） 调用图传播: 21 锚点投 §4.00（71%） |
+| 0x14132B9E0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14203AD20 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141B88F30 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1404FC050 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1413F5930 | （无名） 调用图传播: 8 锚点投 §4.00（62%） |
+| 0x140E31530 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141A03C60 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x1403C4540 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1403C47A0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FC510 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FC770 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FD350 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FDA70 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FE650 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FEB10 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FED70 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x14021F070 | （无名） 调用图传播: 19 锚点投 §4.00（68%） |
+| 0x141C0A2C0 | （无名） 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x1404FF950 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FFE10 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140500070 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x1403C4A00 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FC9D0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1404FDCD0 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x1404FEFD0 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x1404FD810 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1411E1C90 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140DF0E00 | （无名） 调用图传播: 19 锚点投 §4.00（68%） |
+| 0x140E53EA0 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x141142270 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x1413C9B90 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x14196EE20 | （无名） 调用图传播: 12 锚点投 §4.00（58%） |
+| 0x1405589F0 | （无名） 调用图传播: 13 锚点投 §4.00（100%） |
+| 0x140689D80 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x140D00350 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x140F907B0 | （无名） 调用图传播: 12 锚点投 §4.00（58%） |
+| 0x140FDF930 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x141460910 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x1414E8D30 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x141442E50 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x1411E0430 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141670540 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1423B7B90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140727010 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141F02100 | （无名） 调用图传播: 16 锚点投 §4.00（56%） |
+| 0x140E6FF30 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x140A68830 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1411902B0 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x141869970 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140D1F8C0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141E03620 | （无名） 调用图传播: 12 锚点投 §4.00（67%） |
+| 0x14154F090 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x141E02CD0 | （无名） 调用图传播: 14 锚点投 §4.00（71%） |
+| 0x140E4E8D0 | （无名） 调用图传播: 15 锚点投 §4.00（67%） |
+| 0x14195F920 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141370180 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x1401B1F60 | （无名） 调用图传播: 19 锚点投 §4.00（63%） |
+| 0x141A5A390 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1407133D0 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x141753600 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x14182CCD0 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x1414E4000 | （无名） 调用图传播: 9 锚点投 §4.00（67%） |
+| 0x1401DD050 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1402D2F10 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1402D3550 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1402D3EB0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14055F010 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1406B8BE0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1406BC850 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140A04590 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140A42AF0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140AB6A40 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140BC8A00 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140DCD3B0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140EA7390 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140FF8E00 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141067900 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14119FB50 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1411FBE30 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1411FCBE0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14139FDA0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14180C0B0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141B06AF0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141FFE3C0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1423B9F60 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140C6C040 | （无名） 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x140FB6A00 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1414B5F10 | （无名） 调用图传播: 17 锚点投 §4.00（65%） |
+| 0x141589F20 | （无名） 调用图传播: 17 锚点投 §4.00（65%） |
+| 0x140AFACC0 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x140CA1CB0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1415B7720 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x14168A5E0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14121FF60 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x1411D7BF0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140A1FAA0 | （无名） 调用图传播: 16 锚点投 §4.00（81%） |
+| 0x141378C00 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x142253DA0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14109C180 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141A5F3D0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1414E1860 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140E03790 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140E3D410 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1403CD970 | Evaluate 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x14072F330 | （无名） 调用图传播: 12 锚点投 §4.00（83%） |
+| 0x141ACF960 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141D6A610 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1417E00B0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1413FB490 | （无名） 调用图传播: 9 锚点投 §4.00（67%） |
+| 0x141869720 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141291470 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x141E57DF0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x14161A010 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141265620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14240AF10 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140C786A0 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x1417B6570 | （无名） 调用图传播: 9 锚点投 §4.00（89%） |
+| 0x1418302A0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140D2FC30 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1417B35C0 | （无名） 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x141DC3370 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141762950 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1404F8DB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1404FAD60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1404FB7F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411DFE90 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1411CAC00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416A9C70 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140B99970 | （无名） 调用图传播: 14 锚点投 §4.00（50%） |
+| 0x1415ACA30 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141C96900 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1415513E0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x141EE1FC0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140F0EA50 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141F91E80 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14072D970 | （无名） 调用图传播: 16 锚点投 §4.00（100%） |
+| 0x1424C12B0 | （无名） 调用图传播: 20 锚点投 §4.00（100%） |
+| 0x140FC07C0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14109BC80 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x142405840 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x14072A300 | （无名） 调用图传播: 14 锚点投 §4.00（79%） |
+| 0x141E047F0 | （无名） 调用图传播: 10 锚点投 §4.00（100%） |
+| 0x141817E80 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141B7E660 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x140436880 | Parse 调用图传播: 10 锚点投 §4.00（70%） |
+| 0x1406A4B30 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1410A0DC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14186A000 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140E74980 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140EF0860 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x141FCD6B0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140FE2CE0 | （无名） 调用图传播: 8 锚点投 §4.00（88%） |
+| 0x140FFCF20 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x141A60970 | （无名） 调用图传播: 12 锚点投 §4.00（67%） |
+| 0x140AD7A10 | （无名） 调用图传播: 15 锚点投 §4.00（67%） |
+| 0x1411E6130 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F59440 | （无名） 调用图传播: 13 锚点投 §4.00（77%） |
+| 0x141214E80 | （无名） 调用图传播: 13 锚点投 §4.00（77%） |
+| 0x141A24690 | （无名） 调用图传播: 13 锚点投 §4.00（77%） |
+| 0x140B54C60 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140F2BE30 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141BDAEA0 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x14229C590 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1411DE940 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14186A780 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140727F80 | （无名） 调用图传播: 12 锚点投 §4.00（58%） |
+| 0x14186A550 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141F49900 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140C08780 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x14109E660 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141A39680 | （无名） 调用图传播: 13 锚点投 §4.00（54%） |
+| 0x140C08190 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x141C8FA60 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x140F74600 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1407122C0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x141DD9E10 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x1409D69A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F73A40 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140EA8290 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1411ACBD0 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x1403B72C0 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x141961350 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141E54BC0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1409D0A00 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1401D2160 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1404F7470 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1404F7680 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1404F8BA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1404F9EB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1404FA0C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1404FB5E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141BB5F00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A2CB20 | （无名） 调用图传播: 12 锚点投 §4.00（75%） |
+| 0x1411CE260 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140EA3940 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14065F3D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14105CB60 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140B03460 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x140EA6CD0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x1415F01F0 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x1411E2370 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141009270 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141868C00 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1417DF930 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D92FF0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1414E9B50 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1419D6150 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x141963340 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14071B2A0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140CA13C0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141B89D70 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141D375A0 | （无名） 调用图传播: 11 锚点投 §4.00（82%） |
+| 0x141551650 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x141AD0A30 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142012980 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1402970B0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x14188E060 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1419AD190 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141BCDC90 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140EA3440 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1401CAAA0 | （无名） 调用图传播: 10 锚点投 §4.00（60%） |
+| 0x141445B00 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x1417F4260 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140E31B70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141064E40 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1418C9790 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F22880 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140EB06F0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141593F70 | （无名） 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x141CFAAE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406E98E0 | （无名） 调用图传播: 18 锚点投 §4.00（61%） |
+| 0x140E4EF90 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x140B92260 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141941E60 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x141343E60 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141835740 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1411CEA20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14124E8B0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14190B630 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141E5B0C0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14198C370 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141A61F00 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1410B02E0 | （无名） 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x1410FED70 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x1415A4A00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C0A100 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x1423A8530 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C658E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141CF0CE0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140F5AF10 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AAD030 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140B14DA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140DB5C30 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1423BEE60 | （无名） 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x140BB2C60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141CF3F30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CB6470 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x141991190 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410A1710 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1407281C0 | （无名） 调用图传播: 10 锚点投 §4.00（60%） |
+| 0x140FAFBB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1411E2750 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140FF8290 | （无名） 调用图传播: 11 锚点投 §4.00（82%） |
+| 0x141922E70 | （无名） 调用图传播: 14 锚点投 §4.00（50%） |
+| 0x14121B950 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x14121B080 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140E744C0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140D378A0 | （无名） 调用图传播: 8 锚点投 §4.00（88%） |
+| 0x140C099C0 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x140C09D60 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x140C0AE80 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x14227F130 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140CA2BF0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1415CE560 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140C08DA0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1413F3C50 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141D2F700 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141A7AC50 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14242CE40 | （无名） 调用图传播: 13 锚点投 §4.00（85%） |
+| 0x1411E9B70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14064AB40 | （无名） 调用图传播: 13 锚点投 §4.00（62%） |
+| 0x142428F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D3EE30 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140E3DCE0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140629B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E3AC10 | （无名） 调用图传播: 7 锚点投 §4.00（100%） |
+| 0x1411EE2D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14154EC80 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1420AD950 | （无名） 调用图传播: 15 锚点投 §4.00（80%） |
+| 0x14193C3A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141005280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140229AD0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E8D0B0 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x141D69640 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1411EABB0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1410D5300 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x14203D760 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C20C60 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140CEEFA0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140CBD7D0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1418F3640 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x141823150 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1402BDE90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F73F20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1412D8990 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140EBFBE0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141E97260 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415DC960 | （无名） 调用图传播: 8 锚点投 §4.00（88%） |
+| 0x141972C00 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14152A7E0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141F62390 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B24D10 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x1419ACAF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14167E3E0 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x141A09190 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1415CA4C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142444D60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14103C8B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14194FE00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D34010 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140704EE0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x14109E260 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140EC9230 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140AA0510 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E32E90 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140F03130 | （无名） 调用图传播: 7 锚点投 §4.00（100%） |
+| 0x1417A0A90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14154E3F0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1410B0FE0 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x1418D2230 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1406C6D00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EAFEB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140FD3FF0 | （无名） 调用图传播: 10 锚点投 §4.00（70%） |
+| 0x141202FA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C1E7B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414B1E30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E3B1D0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1401E2690 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141DD3670 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141729600 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1400173E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B9D2D0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141213CF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14193F4B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F49590 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1418E4B20 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141047AE0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1414AC7F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141022390 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C0AD40 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141542790 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F9E580 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141038760 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141D19730 | 无名 sub_（调用图定位） 调用图传播: 3/6 锚点投 §4.00 |
+| 0x1413F8AD0 | （无名） 调用图传播: 13 锚点投 §4.00（69%） |
+| 0x14123CF80 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x142141CD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141D01340 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14158D950 | （无名） 调用图传播: 13 锚点投 §4.00（62%） |
+| 0x1411F4C40 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1403A1870 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140014B00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E2B450 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416F13E0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140EB82F0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141E077B0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1402D0FF0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140E74780 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x1417A08F0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14001E460 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14198D5E0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x14002C4F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141B588F0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1411E2BD0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140B93740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140019060 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DFCDF0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140C69B80 | （无名） 调用图传播: 9 锚点投 §4.00（67%） |
+| 0x140DFC880 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1418D2E30 | （无名） 调用图传播: 8 锚点投 §4.00（62%） |
+| 0x1414C98A0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140DC6550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14139F1F0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14158AD20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141FA1D10 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140A289E0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1412049B0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141508BA0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1410A1EB0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140E21470 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14124E670 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141E96710 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1418C4B40 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14226FB70 | 无名 sub_（调用图定位） 调用图传播: 3/6 锚点投 §4.00 |
+| 0x14112F780 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141594400 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141798B80 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x14147D760 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14235CBC0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x14068BFA0 | （无名） 调用图传播: 15 锚点投 §4.00（80%） |
+| 0x140DB5E90 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x142357A30 | （无名） 调用图传播: 10 锚点投 §4.00（60%） |
+| 0x140FEBB30 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x1415500D0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1419B0D00 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140C682D0 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x1419041B0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14002C0D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B83A20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141F4CF10 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x14001E400 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14135DCA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F491A0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14002E770 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141214350 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x14002E6B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140DC1970 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A3C000 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1416B5160 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x140DFCBB0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1401B4590 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1419825F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142280740 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413441B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411F1140 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016A20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A7CEC0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140D728A0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140E60CB0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1417FF560 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140676870 | （无名） 调用图传播: 9 锚点投 §4.00（100%） |
+| 0x140E750F0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x14047CC50 | （无名） 调用图传播: 11 锚点投 §4.00（64%） |
+| 0x141E54E50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E93F60 | （无名） 调用图传播: 10 锚点投 §4.00（80%） |
+| 0x1406600E0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141DFE250 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141E7D370 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C049B0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141643630 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001E820 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E9F390 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x141E22700 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141C0BCE0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141467B40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141BB8190 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140E377A0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140EB91A0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1410A1BF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1422966B0 | vtable/RTTI 类 CPdxParticleType sub_1422966B0 + vtable/RTTI 类 CPdxParticleType; 被 CPdxParticleType::[0] 等 1 命名函数调用 |
+| 0x14002E830 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141034110 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401B3540 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1418A2790 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14178F7B0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140325100 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E551A0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141209920 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141554E10 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140D7A7E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DC8FC0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140B16F90 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141B07560 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F90A80 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140D3F5F0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140015220 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CE9990 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14002C430 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411D43D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E9BE30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14193C8C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141D379A0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140E97FF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14186F6E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141590980 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1416ADF30 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1423EDE70 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1415AD040 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140C9D990 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415AD190 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E35760 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140D94510 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140019660 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140524790 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140525410 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14002E710 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B580 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1419B0140 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1419D5C40 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14065AEA0 | （无名） 调用图传播: 10 锚点投 §4.00（90%） |
+| 0x140DF1D20 | （无名） 调用图传播: 19 锚点投 §4.00（79%） |
+| 0x140D119A0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1406D22E0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1411AB680 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x1411ABA80 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x1406EF6C0 | （无名） 调用图传播: 10 锚点投 §4.00（100%） |
+| 0x140C544F0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14128E3F0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140E6EA50 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14186DF20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140694D10 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141AF90F0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141DB1580 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141C952D0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1401CEB90 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140019BA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14065FC10 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1412A3AF0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140016C60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141F3A330 | （无名） 调用图传播: 8 锚点投 §4.00（62%） |
+| 0x14119D7A0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1424073F0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14138A7E0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140B4C0D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14159C130 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14046A160 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1401B5FC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410CEC80 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1419C8B70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140555E10 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1415F93E0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140DDD650 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413874D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D47F60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E58EB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141228B50 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1406CF100 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CB23C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CD28E0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141E53750 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14194F2A0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14002E230 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002CD30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140FF6A70 | （无名） 调用图传播: 10 锚点投 §4.00（90%） |
+| 0x141F72870 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001E4C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A6AF70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401E9E90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410AC120 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401E9D30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406115E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1418180C0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1403BCB50 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x1407127C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141590840 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x141442190 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018760 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410A97B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14194D5F0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141034410 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C5D2C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DEDB60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140D03B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1415DF300 | （无名） 调用图传播: 13 锚点投 §4.00（100%） |
+| 0x140B51E60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140DA3600 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1410230B0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1411C18E0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140079560 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14140C2A0 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x1411859D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1404C7A80 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1404C7E70 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140A12720 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141CF1800 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141228E70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141EDA9A0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1406742C0 | （无名） 调用图传播: 9 锚点投 §4.00（100%） |
+| 0x140C53110 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140B6BE60 | （无名） 调用图传播: 9 锚点投 §4.00（67%） |
+| 0x1410B17F0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141745F40 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141BB2360 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424C42F0 | （无名） 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x141654080 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141722A60 | （无名） 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x141E0E2E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F08250 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1418F3AF0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14070C760 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14129E440 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14182D3B0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x141B7E3E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140FFCDD0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413F5670 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1402E3D00 | （无名） 调用图传播: 11 锚点投 §4.00（91%） |
+| 0x141758870 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1400198A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14129E800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410E9F00 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14072A1E0 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x141E059C0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1418610F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14184F1A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1413C6ED0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1409EF170 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EAE400 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14065D3F0 | （无名） 调用图传播: 10 锚点投 §4.00（100%） |
+| 0x140CDCC90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018880 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14106AB70 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141D34200 | （无名） 调用图传播: 9 锚点投 §4.00（67%） |
+| 0x140A07620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001BE80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411A1400 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D37880 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x141C75A90 | vtable/RTTI 类 CColor sub_141C75A90 + vtable/RTTI 类 CColor; 串 "GFX_trait_add_new" |
+| 0x14002BE30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B52000 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E55350 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1410A2940 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E3BD20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1419FB980 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1413A0560 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141FA1040 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414B4020 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1416541E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A260 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D8A820 | （无名） 调用图传播: 7 锚点投 §4.00（100%） |
+| 0x14001D680 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A3D1A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14224DAA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14072FB30 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141325A80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414BC8C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1417247B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14121ADB0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14144DE50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E691B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001ACE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140230EC0 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x140FF79F0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140D12B20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1416B5320 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1413F0390 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1414EC1A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1420042C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140D14B30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A5E800 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AF8900 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14002C3D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AB8E50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1423B7A30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140B0CCD0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1409DA8C0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1424601C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141835620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x142268590 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001E880 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401D2040 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140550970 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1419FDBC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C4CEE0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140441B10 | ParseToken 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140731EE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1423ED790 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410D4320 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1417E0810 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C6EAE0 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x1410AC350 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1411F7E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142492BD0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424CBC00 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1402D9A70 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1406BA720 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141006100 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1410D9D60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411FF650 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141407400 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1419664B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A3D0B0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141D37B00 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1410DB4B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1414C25C0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14140A4B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001DB00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410AD780 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141C81AB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E37690 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141EF7700 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x140D3E540 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x142223110 | vtable/RTTI 类 CFileLogger sub_142223110 + vtable/RTTI 类 CFileLogger; 串 "!( _Settings.HasFlag( LOGGER_CLEAR_WHEN_FI"; 源码路径 clausewitz |
+| 0x140C63B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CBC7A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D76920 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141674770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1419D5EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141EBEAE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142307E70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E1FA60 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141B992C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1423C6140 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14116E830 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002CE50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141B993A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140735F20 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140D90430 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14131A8A0 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x1400178C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E37F70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A9B810 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x14001AD40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016420 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019720 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B400 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BBB0F0 | 无名 sub_（调用图定位） 调用图传播: 5/8 锚点投 §4.00 |
+| 0x1402245B0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140AFCE50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142459F60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E69DA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140173E60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140C63960 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14016FBF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E88000 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141127DF0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14002C550 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C1B2E0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1411F8610 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x141A3A0C0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x14002BD10 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140079500 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410234A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410721D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415B1860 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002CDF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019A80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1423C2880 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140A2CA10 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x14002C130 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14158F250 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x140AA5480 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E621D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C25DB0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140305780 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140532D60 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140015B80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140532180 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141181410 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002C190 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D0D670 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E24F60 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1401B3440 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141345E30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015880 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14001AEC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D630 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A3E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1412A2790 | （无名） 调用图传播: 7 锚点投 §4.00（100%） |
+| 0x1400158E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401C64B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1419A7E80 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140171FA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1411D3DA0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1422982C0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140018D00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x142030360 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140171C80 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1417A0CB0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140EE6870 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140172DE0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401739C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14016FB50 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140170270 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401703B0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401704F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140170590 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140171DC0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140171F00 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14186DE30 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140534000 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x1400152E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A4A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A800 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A6E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001DB60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1417C2150 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E3FF00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140016720 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1422F27D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E77DD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14053A310 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B6A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001AAA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D260 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406D9930 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1400285C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416A8D00 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x1406184A0 | 无名 sub_（调用图定位） 调用图传播: 2/4 锚点投 §4.00 |
+| 0x142298380 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140B68EF0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141C27950 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1400180A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016AE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140532430 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E2AE50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D50620 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140C3B750 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424C8C60 | vtable/RTTI 类 CLogger sub_1424C8C60 + vtable/RTTI 类 CLogger; 被 CFileLogger::[0] 等 3 命名函数调用 |
+| 0x14001A500 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A560 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A7A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140015700 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400197E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016A80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A6BB80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001A620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1402B4690 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1400167E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A440 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CDAB70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424FE450 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D341D0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140028560 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416F20E0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141C0E5F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001A680 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D820E0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14001A320 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140611DE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001B220 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1403BCED0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14163F9F0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140EC9E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424C4140 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x140302060 | （无名） 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x140D12C20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406DD810 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x141A78750 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A64340 | （无名） 调用图传播: 10 锚点投 §4.00（50%） |
+| 0x140016D80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B17A70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D570 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D3A910 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140B6E3C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140015A60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413F4F60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001A5C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14194D710 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001E8E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EDF9C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001C960 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F3BE00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140019C60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413D2150 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140016300 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14195E700 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1402B4740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001B760 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406183A0 | 无名 sub_（调用图定位） 调用图传播: 2/4 锚点投 §4.00 |
+| 0x141E12650 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424BF5B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140015820 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A28C90 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141282740 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141277D40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424C3F80 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x1419DB5A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141ACD240 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406B1F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E12510 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1410B1300 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141E2CC60 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140017440 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D13920 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14122C2E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14237E700 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1413DDE70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1415CA700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140671D20 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1424C2D30 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x141EA2730 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140712700 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140BF61F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414F4BA0 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x141623690 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A39DC0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140FF53D0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14230FAB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001C180 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A380 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D90360 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1416B5B00 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x140BCB760 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1403BCA40 | Execute 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140D90550 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140F5CB60 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141DB3F80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DB4050 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14224DD30 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141F12D90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14168E9E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001B1C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BD1FE0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140015B20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A740 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D13B00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E68410 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1411C20E0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141DA4DC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C4AF50 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14066BD50 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141D44D50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14049F2C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1412A4F60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1410484C0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1400156A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001DA40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140526630 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140526A90 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140526B70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001E100 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14072D870 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x1405267F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1405269B0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A0B0C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015FA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AAFE90 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140B884D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140079860 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C57320 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x141966900 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1419A7570 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C94190 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C6A990 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1410AAE30 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14043DF40 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140526710 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142271A40 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406EB450 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140CE20D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401EB730 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14221E500 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D57E30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14047BAE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B6C710 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016000 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140E75950 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140D5A2D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140526250 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140BE1C40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C3DA90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C3DB50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1412DE410 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141C222B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D63300 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E0BDC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E17A20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E17AE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141F2FD90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D53880 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140017BC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A020 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001E1C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C04B20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C63E10 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F66F90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14135C510 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414639D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424C3020 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141443CF0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1424C2B70 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x1416F15C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C41090 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018CA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406E61F0 | （无名） 调用图传播: 8 锚点投 §4.00（62%） |
+| 0x140018A60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410DBAB0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14208F420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141C540E0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1424FB830 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015A00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D24180 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140172040 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1412194D0 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1415C64B0 | 无名 sub_（调用图定位） 调用图传播: 7/7 锚点投 §4.00 |
+| 0x14192DF10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C2DFC0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1401D7900 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140019120 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E93CE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14047BA10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140BA6060 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140F498E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141927570 | （无名） 调用图传播: 8 锚点投 §4.00（75%） |
+| 0x1423B6300 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140BFB240 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1412FB820 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141344440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141835A70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14193EF70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140016BA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416E4490 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140016120 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1427041F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E8FEB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1403C66F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001A2C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140FBE9D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001C8A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14052FB40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F28F30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1419CCFA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14109CFF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141B9A250 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140333BF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141D00FA0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1400157C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B01680 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140302380 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14237C1C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140731A50 | （无名） 调用图传播: 8 锚点投 §4.00（50%） |
+| 0x140EBFDC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002C070 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CE3110 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1410A2F50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140FEB0A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001A9E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401D32A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140328730 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14067DAB0 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x1403C3240 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140015940 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140194520 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140A4F590 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1412180C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14002AB60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1423843D0 | vtable/RTTI 类 CPdxMouse sub_1423843D0 + vtable/RTTI 类 CPdxMouse; 被 CPdxSystem::[3] 等 1 命名函数调用 |
+| 0x14002AD40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A960B0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14230A100 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015460 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C04CD0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B6D310 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015BE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401BF570 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140AEB940 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140DB6E90 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141D33C20 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14066EC40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142225430 | CFilterLogger::[0] CFilterLogger::[0] + vtable/RTTI 类 CFilterLogger; vtable/RTTI 含 CFilterLogger; 被 CFilterLogger::[0] 等 1 命名函数调用 |
+| 0x1400164E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002CCD0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14116EC30 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1417F2E70 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1418F25A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14016FC90 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140170450 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401717C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140171D20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140172E80 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140172F20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140172FC0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401735C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140173700 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401737A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140173A60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140173BA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140173FA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140554140 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001D1A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141203440 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414B22D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400163C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C57470 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140F7EE40 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140015C40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B700 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424BB070 | vtable/RTTI 类 CLexer sub_1424BB070 + vtable/RTTI 类 CLexer |
+| 0x141590530 | （无名） 调用图传播: 8 锚点投 §4.00（100%） |
+| 0x14002AB00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002ADA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401EFFA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140EFB7D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1409E94B0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1417C2B40 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001C420 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EC08E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417083D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141B73B00 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1404743C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1409C5860 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x1406D7720 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140AD5010 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F413F0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1406182D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141012700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14232B760 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140019240 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002BFB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B2E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BD6EF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140D64750 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14118EE30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140016E40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017F20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EEA240 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141EDAE60 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140018C40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001AA40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14147D8E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015EE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140DB1BB0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141AEC6A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140B6D1D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14136C3D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140017EC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EA4130 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1415BB780 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140523B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406F6E10 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141325F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1400168A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002BEF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140194BA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140019DE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DEFEA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140AD4F30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141033A60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140019B40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C681F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A3B1E0 | （无名） 调用图传播: 15 锚点投 §4.00（73%） |
+| 0x141326030 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140B8F870 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C63ED0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E5FF20 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140C2B350 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B430B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141480C20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417EA800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410D8A00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424C2710 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140015400 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14151EC30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E3A9E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C0CF20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141254A30 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141CD5840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141D377C0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x142394160 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140194230 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002CD90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EAA410 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417100D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14184C0A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14184C1F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141DD7770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140AAD5E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E1FB30 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x141A3D000 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F5E520 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1414036B0 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x140015760 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B7C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001BA00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001BE20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x142066270 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142229560 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14070E830 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1409F81F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14208F4D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140016B40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141BB0B00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001AE60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141EFDC70 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141E8FE20 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140015D60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400160C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1403A52F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141FDF1C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141FF70A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142236130 | vtable/RTTI 类 SAnimationMapData sub_142236130 + vtable/RTTI 类 SAnimationMapData; 被 CSpriteType::Reader 等 1 命名函数调用 |
+| 0x1417C3120 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1417E0440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001CCC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414C51C0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140488470 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141E35FD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14242D300 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141442CC0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x142348C20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1400187C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D510 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406F02B0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x1415CE480 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140015D00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002B1C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1403A9900 | Parse 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416E5E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141AEC740 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141AEC7E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141AEC880 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140018460 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EAE920 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14102F330 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141215DB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A920 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018100 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BDE360 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140BDE410 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E4A7B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14103BA90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410AC720 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14159AE20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141DDB140 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015CA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A980 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B160 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E74250 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EC9D90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CB6340 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DA0970 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140017E60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001CC60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1403282E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410F89E0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141BB61F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1416AB930 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14002BDD0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D70110 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14158C9B0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14002E530 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B08DE0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1411FD090 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140ACA170 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140EC0AA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140AA53F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142505D20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415B7AB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D24C80 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1402B0670 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1406EC160 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141D340A0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1400196C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410EC540 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001C600 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002C6D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A3F400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EB32E0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141F171A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140015E20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D320 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14022C520 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140C97F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EFB480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EFB530 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410A88E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410A8990 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14132AB10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141728FF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14190C120 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141BBC280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E5E7E0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141EFFFC0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142294070 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141B72BE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141656450 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D69AF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141655AE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14204B1C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14002BE90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DD70B0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1400161E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E3B0D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140720360 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AD1DE0 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x140CF07E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E24ED0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DE0940 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F0EE70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141036370 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14135AD30 | PayloadReader 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1416563A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A97850 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141AD8530 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141B5ECD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140FD3D00 | 无名 sub_（调用图定位） 调用图传播: 4/7 锚点投 §4.00 |
+| 0x14001C5A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1403DEC00 | ParseValueKeys 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1404444E0 | ParseValueKeys 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14119C970 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E23800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141DB13F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140B69850 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1416F7FA0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140DB2700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14237F600 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015340 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D6E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14064D170 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F608C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141D15D30 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14001EB20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AD20A0 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x14001E520 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D6E8F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401B13B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140523BF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140527070 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406434B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141001210 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141973300 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140611A50 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14118EEC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141DC3F70 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1410D7DD0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140FDE1D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1411DAB90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1423BF2B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C1FB40 | NProject::NUi::CScientistList::[0] NProject::NUi::CScientistList::[0] + vtable/RTTI 类 CTextBufferObserver; vtable/RTTI 含 CTextBufferObserver; 被 NProject::NUi… |
+| 0x14002C490 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A4C050 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141083480 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140B921A0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141976010 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140016060 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141200160 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140017AA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141031BE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14138E730 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142255C20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001D920 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002AC20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140015DC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016240 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B460 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002AA40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BD14E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140019D20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002AAA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002B040 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14072FA30 | 无名 sub_（调用图定位） 调用图传播: 4/7 锚点投 §4.00 |
+| 0x140124E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14197E2A0 | （无名） 调用图传播: 12 锚点投 §4.00（75%） |
+| 0x1409D9C30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001BD00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1412FB8C0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140014C20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001E580 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1402A05E0 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x14143A800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001B940 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406D3750 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140D73D00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F5F780 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413BAEE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A95890 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140018B80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018BE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002ABC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400147A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400162A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001C0C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14064B030 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410B3450 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1411DAC50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141FFF810 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140C6A270 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1402B0450 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140AEB8A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D3DF60 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x141FD21B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400150A0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x14001E760 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140683660 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140A3B470 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001B4C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002E590 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1402DCD50 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140B90A50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140018220 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B692F0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141787890 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141D6B7C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1423E5B40 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1400159A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001E700 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140194890 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14129AF70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A5E250 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001AC80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AAB880 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140161AB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140161EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401622B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401626B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140162AB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140162EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401632B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140163EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401DB640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14046A2C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1402AB4E0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1413596E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141D15E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14227FAF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141BADFF0 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141CC60A0 | （无名） 调用图传播: 7 锚点投 §4.00（100%） |
+| 0x14001A080 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141357EF0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1409C4040 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1409C52B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140017320 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D61000 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1422F30A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424E3550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F631D0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141021180 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14116CEE0 | PayloadReader 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x14224B3B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015F40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001C540 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D2D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1419C7FD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140018B20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141990F60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001EAC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EBFD40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141983F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001E5E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x142408FC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400169C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141012690 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E124A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401B3740 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E887F0 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x14061F8D0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1415DDDA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141EE7440 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001E9A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406B0660 | Reader 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x1414C1A60 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x14002D870 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001DE00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400199C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1412430B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141B47250 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140017860 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B858D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1413CA2D0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140B929E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C2CAF0 | 无名 sub_（调用图定位） 调用图传播: 4/7 锚点投 §4.00 |
+| 0x141D5F2C0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14106DC20 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1406C9C40 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140FA9A50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140018AC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140325AD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140A4A720 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x140AD1D30 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x142089F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424004E0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140713280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1409FB290 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DE0F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140FC6180 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410A98E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141200220 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A67EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A67F70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A68030 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002BCB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140686C70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140686D20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140DF6E30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E384A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DE6E70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1403C8580 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140A4B1C0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1418F7100 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14069D180 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CD95C0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x142396D70 | 无名 sub_（调用图定位） 调用图传播: 2/3 锚点投 §4.00 |
+| 0x140CEB760 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14184F2B0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1424E03A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1415939D0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140014F20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001DC80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CAEE40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CDA760 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140555F00 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14237C3E0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140019840 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001DAA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F9F010 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406DD750 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x1410A2AB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D907B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406B0B10 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A36FB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14227FB70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140194620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001CBA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411719C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140014E60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019AE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D140 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1423BF410 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F4CF80 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141466C30 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1424BE550 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14002AFE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D330 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1403005F0 | ResolveReferences 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140433A70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141F97D30 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140019FC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1419FE730 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14135B1A0 | PayloadReader 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141E90600 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14002E890 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EEBE00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141FFB640 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1422E8870 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002D810 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D8D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14029BAE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002E7D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002E8F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002B160 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D990 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BB5160 | （无名） 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x141971BF0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1424D6020 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401E3D20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401E3F10 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1402D71F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140687FD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140A27D10 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140C5B2E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D05B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EFB730 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14103BB40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14106BC00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1415B7B60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1419959B0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141A50190 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141FA0FA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1422781D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1423BF360 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D39B70 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141E125B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A69CC0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141E973D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142293D30 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001DBC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F233F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1416DA090 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406FCFB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1413AD810 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1419795D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140301540 | ResolveReferences 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141100320 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140EC8680 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1417733C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001B640 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AD4E60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424DFAB0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141850E60 | PayloadReader 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14001AC20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001CAE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BD1E90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413D4F50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415DF600 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14001C840 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14065D2C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E5FFD0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1413C14F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140014EC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141F6E6C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14209E5B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141976D10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406EC680 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1406F75B0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141537EB0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1416B5440 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416B57C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D168F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140018700 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141149D30 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14032EA50 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1403C87C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14135F7C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141FD2120 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140C4B080 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x141FDF250 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140A75590 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140B90E20 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140FB37A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C0B270 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141742420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E35020 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14129AC40 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140FA78B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14015A2C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141973400 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140017B00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401F8CB0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140ABB890 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141F1E820 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1400154C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141F16930 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1404C7760 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140C1D680 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CF37E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1423ED040 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D3E630 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141CC92E0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001C3C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E5C660 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14166F380 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141E2C980 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141E82860 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001DF80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D390 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016180 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D3F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B4ECB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D191C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14134E360 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141364C30 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141379610 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14002D450 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14054FA90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002C610 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401C6630 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401C6930 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1402E3F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14032F6B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406B4C20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406CD820 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406CDC20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140B64230 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C49A70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E37BF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E5CC10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F28800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140FD73C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410FC570 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1412783A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1412FC550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141532B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141573B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1416F7770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14177B330 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141804F70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14185C870 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1419D7B50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141CFF5A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E4C750 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142400920 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140018040 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14061FB40 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14030A1B0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140702630 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140F5B270 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C39B60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140017380 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401F9940 | （无名） 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x141F67710 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002D6F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1419D5E20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141F63CE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F62A50 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141DB1F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406C2BE0 | （无名） 调用图传播: 7 锚点投 §4.00（57%） |
+| 0x140A10EF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001DDA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141661540 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141C3C4E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D113B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14151BC80 | IsSameAction 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019EA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141265C70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A3A1C0 | （无名） 调用图传播: 9 锚点投 §4.00（78%） |
+| 0x141D5F240 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140671C90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401CB230 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1400191E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002B220 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415A14F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14184F7A0 | PayloadReader 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14002D270 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1409E9D70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140B7D060 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14161AAD0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140016480 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017DA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019F60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D380 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E470B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14194E6F0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141976CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A02370 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001C300 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F3BD80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D782D0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14001B340 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A2C620 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14137E260 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141E2C9F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002DAB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019E40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D502F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142406F50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CAEEF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14225C620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017FE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A398A0 | （无名） 调用图传播: 7 锚点投 §4.00（100%） |
+| 0x140BB5A10 | （无名） 调用图传播: 10 锚点投 §4.00（80%） |
+| 0x1420EE7D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E0E4A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417CCBA0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x141E6C2B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140014AA0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1400171A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D9F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EC0B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E6A7D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001BD60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001DCE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400174A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141339DB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141489600 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14194D400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002AC80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A0D040 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140C4BE60 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x14001D9E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140527490 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140017A40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140556630 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14225D700 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140015AC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406C8840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C1AFC0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140CD69E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D248B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E3B490 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A3AEF0 | （无名） 调用图传播: 7 锚点投 §4.00（86%） |
+| 0x141A5FC50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A5FCE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A5FD70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141FC1550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142400570 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015E80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D63E20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017F80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002C1F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D84C90 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001C000 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AEAD30 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14002B0A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14138C8C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141420530 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1400172C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001BC40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D500 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001ABC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140FEA2B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14162A9D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14002ACE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140558990 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140B92A80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141466950 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424C38A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424C39C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400149E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415BB850 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140018640 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B91F60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424D5FA0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140017CE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416AAB70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A37080 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141656320 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14198C5D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141BE46E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1400179E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14029ED50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1412FB960 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001CD20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141079C30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1414C19F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1416A9940 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001B820 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BA61D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CA0FB0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140DAA870 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1418DDF70 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14002BF50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002C310 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14135DE50 | （无名） 调用图传播: 8 锚点投 §4.00（88%） |
+| 0x1418520B0 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14001AB00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14102F3D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141D5F1B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x142283D40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401C49E0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140E25660 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141232190 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141851D00 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141BCFA70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140079620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BCC3E0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140D39390 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1423ED6F0 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140019420 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D740 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140028380 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14104E3F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001BCA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1403E2760 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140AD0110 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141FE2670 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001B880 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400176E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001C780 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F5F710 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141D61110 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x14002C2B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406561E0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E769B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DFA930 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140FC0CE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14109D0A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410F12F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411DC370 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1411DC430 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14224DE30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424060B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1419840D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141EE0B50 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14047BCB0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141984040 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E59780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140017C80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018520 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D2C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CA6270 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141208C20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1409E9DD0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140CF65E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14228A980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F5B820 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140016900 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DF9A20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E34F80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1422D3420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1422D7E00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406DAC40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140BCC670 | Reader 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14136CFA0 | PayloadReader 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14002C250 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140CB0E30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E8F730 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140079740 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D82620 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F4E260 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001CB40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141052610 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140019CC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141B23E30 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14001C060 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14185EEE0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141B6BA80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141F67610 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401592F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141805660 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141991030 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406128E0 | （无名） 调用图传播: 9 锚点投 §4.00（78%） |
+| 0x141592F40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141DB48B0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14001D5C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140028620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141950310 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406FD180 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140A68670 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14147DC20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001D560 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E9CA90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14194F780 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14001AB60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140C11AA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415CE400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140017740 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016DE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14031AF50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001EBF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400286E0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140F63170 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1416562A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A1B3C0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141DA4D10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140015040 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141F67440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141F674C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141F67590 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141F67690 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142396CF0 | 无名 sub_（调用图定位） 调用图传播: 2/3 锚点投 §4.00 |
+| 0x142429980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1400151C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140015280 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411916C0 | Reader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017920 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018400 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140473CF0 | ParseToken 调用图传播: 6 锚点投 §4.00（50%） |
+| 0x14047BC30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1417E2B50 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140BB9150 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001C480 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1403C86A0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141991100 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001C360 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1402E3EA0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1406F7800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E536D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141AD7FB0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140145F00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142308EA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1423581C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140014A40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001C4E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401E25A0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1402DCB60 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140C578E0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1400153A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D43560 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140F63260 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14183C600 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141BE6140 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413EE5F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415DF020 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141961590 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140017620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A5E730 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001BFA0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1406F0200 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14072E0B0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140BF21E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140ADE840 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140CAD510 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1415D0880 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140028680 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140BABC70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14143ABF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141D8D6C0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140014680 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B3A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001CA80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001EA60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019300 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400797A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140623520 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141B2EB70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140014CE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1402A2920 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14043E430 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14135C5C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414665D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415C2850 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14032E740 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406D95E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140016C00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A5E6B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140159240 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140A91B70 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140A2D000 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1413E3570 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1416EEC80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140F62630 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140014800 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14047BBC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C697A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001BBE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140488570 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142280660 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140016360 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14030A0D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406D9200 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141DA4490 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14001CD80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413D30A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142244340 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14239BE00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140016840 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001A860 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1416AAC30 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14022C5E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140A22110 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140E3FE60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14116BE50 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141BA45C0 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141D33DC0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001E160 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140014F80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001CDE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406FD100 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C4D9A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14121AE70 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1413F35F0 | Reader 调用图传播: 6 锚点投 §4.00（100%） |
+| 0x141A80540 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141E597E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1424D6200 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14072A520 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140BD1560 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C5B1C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140EA2F50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14199DF40 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141DDA780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141851EC0 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141969E80 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141D37540 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141973CA0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14001E6A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400283E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EE3E00 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141A34EE0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140019000 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F30120 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1418A8230 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x140018820 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001AFE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414C9CA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141B6B720 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141D00C40 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140014FE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B0A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14064B0E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140624CB0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14001EB90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002CC70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1424D6270 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140016F60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415906D0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140A6EA60 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1412160B0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14001C720 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A025C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140018FA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002B100 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D33BA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D33D40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D33E40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D33EC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D34020 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141D34180 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140015160 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D7A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141265CF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1424C31F0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14001E220 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B50620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414657F0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14001B100 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B8E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001E640 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B3B830 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140018D60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141623750 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141BE6840 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001BA60 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001BB20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140014860 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017D40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D980 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1418D7C20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1418D7CE0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141E2CA60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141E7B2D0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140EF79E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1411614B0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14001BAC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001BB80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400287A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x142409060 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14002D930 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14072E2C0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14001B9A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14047B980 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141A3A450 | （无名） 调用图传播: 7 锚点投 §4.00（71%） |
+| 0x140018340 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D3E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001DFE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410F09F0 | （无名） 调用图传播: 9 锚点投 §4.00（78%） |
+| 0x1400188E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140014920 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14145B6F0 | （无名） 调用图传播: 6 锚点投 §4.00（67%） |
+| 0x140014560 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001DEC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141447D30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019480 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140015100 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141861460 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1418614C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141861C10 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141861FB0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141B342F0 | PayloadReader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14178CE90 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140028320 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001B280 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401F99E0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1413CEB40 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14001C900 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14109AE50 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141EDAC10 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400143E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018280 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141254D40 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141B88ED0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400145C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016EA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x142505DD0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14001E280 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140014440 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400170E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140018DC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017080 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017140 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400194E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001CEA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141254C60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140F8F800 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140014500 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14030A140 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140FCE490 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140FCF5A0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141593300 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E7D840 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001A140 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140028740 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140014620 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400192A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141BA4910 | PayloadReader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400146E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140014BC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B4B100 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1410F8650 | （无名） 调用图传播: 8 锚点投 §4.00（62%） |
+| 0x141C73C30 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400144A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14047B900 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1412F0400 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141BA47A0 | PayloadReader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141EF48A0 | PayloadReader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BE2040 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001D020 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14029E6D0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1409FA630 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14001A8C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14072B370 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14184FE80 | PayloadReader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D860 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14065A2B0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1407388F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1414668E0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140016600 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016780 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140016FC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140019F00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140017260 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141079CA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14001CF00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140028440 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1400284A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14031C100 | ParseToken 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141466720 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140A7D6B0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x141493DE0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141494240 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141923C90 | （无名） 调用图传播: 12 锚点投 §4.00（75%） |
+| 0x140017560 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001D080 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140144DC0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140551730 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141466CE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141A5D920 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140014C80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401F4F80 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x1404A9690 | ParseToken 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140ABD3C0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x1417CAA00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14001CE40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A2F900 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140A9C3B0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141E7EFE0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14072AA30 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14072DEB0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14072F110 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140BB44F0 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1402A08A0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1423A0DC0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14001A1A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140738850 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140738970 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140EBBB20 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x140018580 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140DB7070 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140A22180 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140A221F0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140A22260 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1417F2C60 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140014DA0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140FFA010 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14001E340 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401F7BA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1419B8450 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1403AA330 | Parse 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406329E0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14001C660 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A2A120 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140301850 | ParseToken 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140C1D5E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x142042800 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14169C480 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x1406ABC20 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1409D1A90 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140018EE0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406AE120 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140A9A790 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1420AB140 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14224B440 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1400181C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141514960 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1416AC570 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1416EEDB0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141FAA4B0 | （无名） 调用图传播: 5 锚点投 §4.00（60%） |
+| 0x140DF3C00 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1414BAF80 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141850E00 | PayloadReader 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x140018E20 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E9D190 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141489520 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141C73920 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E2B760 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140FE6990 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141861BC0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14021E6D0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141458990 | Reader 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141DC4040 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141DB1770 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140203690 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141861A00 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141493D70 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141E3B170 | （无名） 调用图传播: 4 锚点投 §4.00（50%） |
+| 0x141063970 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406FD090 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141856330 | PayloadWriter 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x142269170 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14147FDB0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141F91880 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14072A720 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x141BDDC80 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1410A2DA0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141E72770 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141149DF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1417F0630 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140BB4A50 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140D67720 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1406ABCC0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406ABD50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D65080 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140459B70 | ParseToken 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x14208A010 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140DFDC90 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141861410 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141861F60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1415149A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1419DA9F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E00930 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1409F6C20 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141443820 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413BAE40 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141DB16F0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14068CA70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1422264A0 | （无名） 调用图传播: 9 锚点投 §4.00（56%） |
+| 0x14191B380 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140A2C7A0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x14240FA50 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140633440 | （无名） 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x1406F6EE0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141BADE30 | PayloadReader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1410282B0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141D5F350 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140521170 | ParseToken 调用图传播: 5 锚点投 §4.00（80%） |
+| 0x140674450 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141F17150 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141149CD0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14194AA10 | PayloadWriter 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140201B10 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140145F80 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141CC3480 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x142227E40 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140B68590 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140D679D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140FB7E70 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141EE49F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141FD1F80 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14065B850 | （无名） 调用图传播: 5 锚点投 §4.00（100%） |
+| 0x141099BF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141489590 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1406743E0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141BE69D0 | （无名） 调用图传播: 6 锚点投 §4.00（83%） |
+| 0x14068CA10 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406EF830 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1410D8D50 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141E2C930 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14072C440 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140C2B3F0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140C2BEF0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141AFBDE0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141B1FCF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1415D7C80 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140B691D0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141F3A670 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1425A18F0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140E869A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1419F1100 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14174AD70 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1401C7020 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140B38FD0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E86A10 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14045B0A0 | ParseToken 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1406223D0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14045CE30 | ParseToken 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x1404A3B70 | ParseToken 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x140302190 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141857E20 | PayloadWriter 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x142269040 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141582700 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14195C250 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140533350 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1419DC1A0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AE2140 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140E00090 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1414DF970 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1415EC560 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141761AF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141566E30 | Reload 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140BB51F0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A2F710 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1401BEE10 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401BEE60 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140726BF0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413A2430 | ParseValueKeys 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1415C6F00 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F28160 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140DEA000 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1415B2BA0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14133A010 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x140AA06E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x14116CBF0 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141A2C250 | PayloadReader 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141DE6EF0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140A358E0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1406AA850 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140AA0710 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1423B6570 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413FC910 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141466590 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1401BEF80 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140A3CB70 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140BB44C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x140150E10 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141A2C280 | PayloadReader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141EE4B80 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14150BBC0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141857F30 | PayloadWriter 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x14199E6E0 | PayloadWriter 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141170200 | PayloadWriter 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141857D20 | PayloadWriter 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x141BA4EB0 | PayloadWriter 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x1414373C0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14151FF90 | Writer 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140B65400 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1403AE560 | ParseToken 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x141B8E6F0 | PayloadReader 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141AF94B0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x141A2F7A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1403028A0 | （无名） 调用图传播: 4 锚点投 §4.00（75%） |
+| 0x141F60020 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140D13FD0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x14116F830 | PayloadWriter 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141170170 | PayloadWriter 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x141E545B0 | PayloadWriter 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x1413FEEE0 | （无名） 调用图传播: 4 锚点投 §4.00（100%） |
+| 0x14030A0A0 | （无名） 调用图传播: 3 锚点投 §4.00（67%） |
+| 0x140A9B050 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x1413FEEB0 | （无名） 调用图传播: 3 锚点投 §4.00（100%） |
+| 0x14032E570 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140302730 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1403C87A0 | （无名） 调用图传播: 2 锚点投 §4.00（50%） |
+| 0x1423DE280 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140A49750 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+| 0x140F140C0 | （无名） 调用图传播: 2 锚点投 §4.00（100%） |
+
+#### 4.00.61 基类契约层函数补遗（193 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142304440 | 无名 sub_（调用图定位） 调用图传播: 20/39 锚点投 §4.00 |
+| 0x141A06BF0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1423B8840 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140A3EDD0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.00 |
+| 0x141E381A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A07160 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1412E0F00 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141216710 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140D32830 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1412809B0 | 无名 sub_（调用图定位） 调用图传播: 4/8 锚点投 §4.00 |
+| 0x141FF56B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DB3060 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.00 |
+| 0x14190B880 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1412F3A60 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140AB4E50 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1417E0290 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.00 |
+| 0x140629D80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410D1A40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EC4230 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141C3E5E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140231E20 | 无名 sub_（调用图定位） 调用图传播: 4/6 锚点投 §4.00 |
+| 0x140E98CA0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1410D20F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141C0C740 | 无名 sub_（调用图定位） 调用图传播: 3/5 锚点投 §4.00 |
+| 0x1413B7EA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1402C6150 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1406B32B0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141212EA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410CF9B0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1410D1D70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1412135D0 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.00 |
+| 0x140D50150 | 无名 sub_（调用图定位） 调用图传播: 4/8 锚点投 §4.00 |
+| 0x1410CFC60 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x142428B60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E958B0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140552F50 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1415754A0 | 无名 sub_（调用图定位） 调用图传播: 3/6 锚点投 §4.00 |
+| 0x141E96310 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C33060 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140D2F820 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140518940 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.00 |
+| 0x142287EA0 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.00 |
+| 0x142288810 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141508230 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410D0420 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x14227D470 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140DBF420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406C98A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1404FBE60 | 无名 sub_（调用图定位） 调用图传播: 4/7 锚点投 §4.00 |
+| 0x140B0ED00 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x142288090 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.00 |
+| 0x141216530 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141F9DAE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141869510 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141465FE0 | 无名 sub_（调用图定位） 调用图传播: 9/15 锚点投 §4.00 |
+| 0x141216310 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140223A00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1402C1770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14240B780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DB36B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417C1F60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140ECAAF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1404B32C0 | 无名 sub_（调用图定位） 调用图传播: 2/4 锚点投 §4.00 |
+| 0x14239C8D0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.00 |
+| 0x1415770D0 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.00 |
+| 0x141CF0A10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141620420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14228A850 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140712500 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140FFCA70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14124CCB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1413F6E50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140C3F610 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140C05010 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142400B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1411E6C50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1413BB3A0 | 无名 sub_（调用图定位） 调用图传播: 2/4 锚点投 §4.00 |
+| 0x14245A4B0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140DFA9A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14227F620 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E238C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D57EF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1412668B0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1410F88D0 | 无名 sub_（调用图定位） 调用图传播: 2/4 锚点投 §4.00 |
+| 0x1401A86B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140670C10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1425073E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417F72B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14066DA90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EADE80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1405548C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1419937D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1415AA8B0 | 无名 sub_（调用图定位） 调用图传播: 2/3 锚点投 §4.00 |
+| 0x141E03920 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140EA24D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EA60B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141C6C120 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141AB2A80 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.00 |
+| 0x14066EE40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D3B030 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CEB4D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1401EC170 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1414D6760 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A50EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EC9CE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140703F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CF6CD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417F6F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14223FC30 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.00 |
+| 0x141C6C4D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141ABFE40 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141573E60 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141D62C00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142464EE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DB3A60 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141533850 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1415792A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1418F39E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141C6BF00 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x14244BF90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141A3BF50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140CEA1C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141556DA0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140EEACA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EEAFA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1414B3DC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410B1600 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1411EFBB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142356900 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.00 |
+| 0x14178CDD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14112F6E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E554B0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.00 |
+| 0x14235B470 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141E057B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14126C060 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141ABFDA0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141CF1990 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140156D90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14235F310 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x1410B0240 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140F49D70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DFC780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140AA5DB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E1FDE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EC3350 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410A3530 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1410A35D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141596FE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141C0C130 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1403078A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14185CAF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142097420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14165B2D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14165B350 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417EA8B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14165B3D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EC1CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EB9410 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140AFC8D0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141077A10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1406B0CE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EAA390 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14108EA10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141269A60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14130F310 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1414D4EC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14165B450 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1422C96F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1422F0F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14032D860 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140AD5240 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140D2FE90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141CE1CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14228A440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14228A320 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140DA1B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1411986F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140E350C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141214510 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141C096D0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x14194FFC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1411DE0D0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x141E02BF0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.00 |
+| 0x140F4E320 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x14227EE00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1413B4810 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1417E04D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x1422279D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142429830 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x141869690 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x142032410 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.00 |
+| 0x140CEB420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+| 0x140EB8130 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.00 |
+
+#### 4.00.62 基类契约层函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142203BB0 | 无名 sub_（人工读体裁定） 分配 14B 步长元素（sub_1421D49B0(14*v15)），两次 sub_142201B20 查询配对 |
+| 0x1401B6100 | 无名 sub_（人工读体裁定） 递归遍历子树（!*(BYTE*)(v3+25) 递归 v3[2]），对 v6[14] 数组按 480B 步长逐项调 sub_1401C98D0 |
+| 0x140143190 | 无名 sub_（人工读体裁定） 构造：a1 头部置 (a3, a2)，malloc(0x7D8=2008B) 工作缓冲交 sub_140A7BAB0 处理后释放，挂结果 |

@@ -1545,3 +1545,216 @@ kind 24 特质旗位映射 (特质 flags@+1448, 门字节@+1464 命中即停):
 | cb+219/cb+220/FLANKED_PROVINCES_COUNT/vt[29] 海战分支/vt[12] progress | **均不在本函** (历史 findings 误归; 通读全函数逐行确认); 写点应另定 (推定在 CLandCombat 槽[15] 步序其他环节) |
 
 > 待裁: kind 18 的 define↔qword 映射 (两 define 均为 1.0, 原版无行为差异; 推送参数序 a3←DEF_F / a4←ATK_F 与命名反向); kind 29 夜战门字段 (天气省结构 +576) 命名 — 代码极性要求其为**夜暗度** (>0.8 触发夜罚), 字段名需对 weather.cpp 结构定案。
+
+#### 4.22.18 战斗族函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E4D040 | sub_141E4D040 ACTION / PEACE_STACKED_WITH（和平/和会提议描述构建） |
+| 0x141000DC0 | （未命名）vtable `CDominanceValues` vtable `CDominanceValues`，优势度数值 |
+| 0x140CDB410 | （未命名）combatlog.cpp:140 combatlog.cpp:140；vtable `CGameDate` + `NCombatLog::COrdersGroupLogs::CPerTemplateStats`，战斗日志每模板统计 |
+| 0x1415D04C0 | sub_1415D04C0 PIERCE_VALUE / PIERCING_THRESHOLD_ENTRY / NON_PIERCING_THRESHOLD_ENTRY（穿甲阈值 UI） |
+| 0x1413E3020 | CCombat::Reader CCombat::Reader + gamestate/gameitemdatabase 断言（战斗反序列化） |
+| 0x1415D1770 | （未命名）GUI 串 PIERCE_VALUE / PIERCING_ENEMIES_TH GUI 串 PIERCE_VALUE / PIERCING_ENEMIES_THRESHOLD_ENTRY（穿甲阈值条目） |
+| 0x14026A130 | （未命名）串 "Naval Combat Logging:" 串 "Naval Combat Logging:"（海战日志输出） |
+| 0x141AE94A0 | （未命名）串 "Score breakdown"/"Total: %s" 串 "Score breakdown"/"Total: %s"（分数分解面板） |
+| 0x141665B80 | （未命名）gamestate.h:1125 门控 + 串 "defend"/"damage gamestate.h:1125 门控 + 串 "defend"/"damaged_defend"/"attack"/"damaged_attack"（战斗姿态） |
+| 0x1410007D0 | （无名） vftable 类 CDominanceValues::（战斗） |
+| 0x140CD7F90 | （无名） vftable 类 NCombatLog::CStatsObserver::（战斗） |
+
+#### 4.22.19 战斗族函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D383A0 | （无名）WARSCORE_PARTICIPATION_RESULTING_PEACE_SCORE + WAREFFORT/COUNTRY/PEACESCORE 键 WARSCORE_PARTICIPATION_RESULTING_PEACE_SCORE + WAREFFORT/COUNTRY/PEACESCORE 键 |
+| 0x1416D1D50 | （无名，按上游/loc 定性） loc "TACTIC\ ARMY_LEADER_CURRENT_PREFERRED_TACTIC\ PREFERRED_TACTIC*" → 战术选择/偏好 |
+| 0x14202EF50 | （无名，按上游/loc 定性） null_object.h:133 断言 |
+| 0x140CD9490 | vtable/RTTI 类 NCombatLog::COrdersGroupLogs sub_140CD9490 + vtable/RTTI 类 NCombatLog::COrdersGroupLogs; 被 CLandCombatant::[33] 等 1 命名函数调用 |
+| 0x1413EB870 | vtable/RTTI 类 CLandBorderWarCombatant sub_1413EB870 + vtable/RTTI 类 CLandBorderWarCombatant; 被 CLandBorderWarCombat::[6] 等 1 命名函数调用 |
+
+#### 4.22.20 战斗族函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406BF970 | 战术激活需求显示 战术激活需求显示；loc \"TACTICS_ACTIVATION_REQUIREMENTS\"+\"KEY\"/\"HEADER\"+\"\\n\"，被调 gamestate.h:1125/localize.cpp:641 |
+| 0x1419E7F90 | 和会争议行动处理 和会争议行动处理；断言 \"we should have found a peace action for this state in last turn\"/\"the found peace action should be in cancelled state\"（peaceuihelpe… |
+| 0x1414A63B0 | "attack_defense/other/attack/defens" 战斗战 "attack_defense/other/attack/defens" 战斗战术数值 §4.22 战斗 |
+| 0x1415CEC70 | "TACTIC_CURRENTLY_COUNTERED/TACTIC_DESC/ "TACTIC_CURRENTLY_COUNTERED/TACTIC_DESC/NO_TACTIC" 战斗战术 §4.22 战斗 |
+
+#### 4.22.21 战斗族函数补遗（14 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C70F60 | （无名，按证据定性） gamestate.h:1125 断言 + 键 tactics_chance（战术发动几率） |
+| 0x1419FBAA0 | （无名，按证据定性） 键 PEACE_COST_BREAKDOWN_MODIFIER_WAR_GOAL + PERC（和会代价分解文本） |
+| 0x14185E0B0 | （无名，按证据定性） 键 PEACE_BID_ACTION_DISABLED_NO_ITEM（和会出价禁用判定）；直接调用者属 CPeaceConferenceWindow |
+| 0x14185D440 | （无名，按证据定性） 键 PEACE_STACKED_WITH + ACTION（和会诉求叠加文本） |
+| 0x140C3B240 | （无名，按证据定性） 键 EXP_COMBAT_BONUS/EXP_MISSION_BONUS/EXP_TRAINING_BONUS + EFFECT（经验加成文本） |
+| 0x141AE87C0 | 目标选择 "Calculate Targets" / "%i enemies: %s" / "Reselect Target" / "Freshness: %s" |
+| 0x141972E10 | 战斗伤害统计 total_damage_received + RATIO |
+| 0x1413E2BA0 | CCombat::CreateNewId func_names 名 CCombat::CreateNewId |
+| 0x1413E07D0 | （无名） 体设 CCombat::vftable（RTTI 名） |
+| 0x1413E3D70 | CCombat::[17] vtable 槽 CCombat::[17]（func_names RTTI 名） |
+| 0x1413E1740 | CCombat::[7] vtable 槽 CCombat::[7]（func_names RTTI 名） |
+| 0x1413E0870 | CCombat::[0] vtable 槽 CCombat::[0]（func_names RTTI 名） |
+| 0x1413E2DD0 | CCombat::[13] vtable 槽 CCombat::[13]（func_names RTTI 名） |
+| 0x140F70980 | CCombat::[8] vtable 槽 CCombat::[8]（func_names RTTI 名） |
+
+#### 4.22.22 战斗族函数补遗（14 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.22.23 战斗族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413E0880 | CCombat::[0] vtable 槽 CCombat::[0]（func_names RTTI 名） |
+
+#### 4.22.24 战斗族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.22.25 战斗族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412B5460 | 战斗战术修正 tooltip（攻防伤害/组织度修正） 键 TACTICS_DAMAGE_ATTACKER/DEFENDER + TACTICS_ATTACKER_ORG_DAMAGE_MODIFIER |
+
+#### 4.22.26 战斗族函数补遗（18 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1417DD610 | （无名） 调用图传播: 6 锚点投 §4.22（67%） |
+| 0x1417DEB80 | （无名） 调用图传播: 6 锚点投 §4.22（100%） |
+| 0x141975C20 | （无名） 调用图传播: 12 锚点投 §4.22（58%） |
+| 0x141232DF0 | （无名） 调用图传播: 2 锚点投 §4.22（100%） |
+| 0x1417DFB10 | （无名） 调用图传播: 2 锚点投 §4.22（100%） |
+| 0x140EB3100 | （无名） 调用图传播: 5 锚点投 §4.22（60%） |
+| 0x140D0DF10 | （无名） 调用图传播: 4 锚点投 §4.22（75%） |
+| 0x1417E08F0 | （无名） 调用图传播: 4 锚点投 §4.22（75%） |
+| 0x14161EEB0 | （无名） 调用图传播: 2 锚点投 §4.22（50%） |
+| 0x140C32C90 | （无名） 调用图传播: 4 锚点投 §4.22（50%） |
+| 0x141C6CB90 | （无名） 调用图传播: 2 锚点投 §4.22（100%） |
+| 0x141E6D0B0 | （无名） 调用图传播: 2 锚点投 §4.22（50%） |
+| 0x14161E0D0 | （无名） 调用图传播: 2 锚点投 §4.22（100%） |
+| 0x14161E380 | （无名） 调用图传播: 2 锚点投 §4.22（50%） |
+| 0x14161E530 | （无名） 调用图传播: 2 锚点投 §4.22（100%） |
+| 0x14122AA80 | （无名） 调用图传播: 4 锚点投 §4.22（100%） |
+| 0x1417D7A50 | （无名） 调用图传播: 2 锚点投 §4.22（100%） |
+| 0x140BBA4B0 | （无名） 调用图传播: 3 锚点投 §4.22（100%） |
+
+#### 4.22.27 战斗族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1415CFD40 | 战斗值/总修正 tooltip 串 "SINGLE_COMBAT_VALUE"/"TOTAL_MODIFIER_IS" → 战斗值/总修正 tooltip |
+| 0x1406BF1E0 | 战术克制 tooltip 串 "TACTIC_COUNTERED_BY"/"TACTIC_COUNTERS" → 战术克制 tooltip |
+
+#### 4.22.28 战斗族函数补遗（27 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14202D6E0 | sub_14202D6E0 调 CCombatTactic::[9]；gamestate 单例访问（战斗战术对象操作） |
+| 0x140E3BB30 | 无名领域函数 sub_140E3BB30 断言站点 \hoi4\\source\\peaceconference\\peaceconference.cpp（和会） |
+| 0x1416E1310 | 调用图上游传播(占 100%, 1 票) sub_1416E1310 + 调用图上游传播(占 100%, 1 票) |
+| 0x14066EFA0 | 调用图上游传播(占 100%, 1 票) sub_14066EFA0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1415AA150 | 调用图上游传播(占 50%, 2 票) sub_1415AA150 + 调用图上游传播(占 50%, 2 票) |
+| 0x1422A3DC0 | 调用图上游传播(占 100%, 1 票) sub_1422A3DC0 + 调用图上游传播(占 100%, 1 票) |
+| 0x14106EBC0 | 域关键词匹配 sub_14106EBC0 + 域关键词匹配; 源码路径 clausewitz; 被 CAIFront::SpatializedDistributionOfUnassignedUnits 等 1 命名函数调用 |
+| 0x141C878D0 | 调用图上游传播(占 100%, 1 票) sub_141C878D0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1410AC450 | 调用图上游传播(占 100%, 1 票) sub_1410AC450 + 调用图上游传播(占 100%, 1 票) |
+| 0x14011CAD0 | 域关键词匹配 sub_14011CAD0 + 域关键词匹配 |
+| 0x141B11070 | 域关键词匹配 sub_141B11070 + 域关键词匹配 |
+| 0x140CA46E0 | 域关键词匹配 sub_140CA46E0 + 域关键词匹配 |
+| 0x1415CC2B0 | 域关键词匹配 sub_1415CC2B0 + 域关键词匹配 |
+| 0x141436190 | 调用图上游传播(占 100%, 1 票) sub_141436190 + 调用图上游传播(占 100%, 1 票) |
+| 0x141CD0F50 | 域关键词匹配 sub_141CD0F50 + 域关键词匹配 |
+| 0x141CD5730 | 域关键词匹配 sub_141CD5730 + 域关键词匹配 |
+| 0x140F3B0D0 | 调用图上游传播(占 100%, 1 票) sub_140F3B0D0 + 调用图上游传播(占 100%, 1 票) |
+| 0x14124E7F0 | 调用图上游传播(占 100%, 1 票) sub_14124E7F0 + 调用图上游传播(占 100%, 1 票) |
+| 0x141CC61D0 | 调用图上游传播(占 100%, 1 票) sub_141CC61D0 + 调用图上游传播(占 100%, 1 票) |
+| 0x14128BBF0 | 调用图上游传播(占 43%, 3 票) sub_14128BBF0 + 调用图上游传播(占 43%, 3 票) |
+| 0x140B56C20 | 调用图上游传播(占 60%, 2 票) sub_140B56C20 + 调用图上游传播(占 60%, 2 票) |
+| 0x14246C390 | 域关键词匹配 sub_14246C390 + 域关键词匹配 |
+| 0x140BC2400 | 调用图上游传播(占 67%, 2 票) sub_140BC2400 + 调用图上游传播(占 67%, 2 票) |
+| 0x141CC77C0 | 调用图上游传播(占 100%, 1 票) sub_141CC77C0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1414C15D0 | 调用图上游传播(占 50%, 2 票) sub_1414C15D0 + 调用图上游传播(占 50%, 2 票) |
+| 0x140B60200 | 调用图上游传播(占 100%, 1 票) sub_140B60200 + 调用图上游传播(占 100%, 1 票) |
+| 0x1412504A0 | 调用图上游传播(占 100%, 1 票) sub_1412504A0 + 调用图上游传播(占 100%, 1 票) |
+
+#### 4.22.29 战斗族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406713F0 | （无名） 调用图传播: 3 锚点投 §4.22（67%） |
+| 0x142482220 | （无名） 调用图传播: 3 锚点投 §4.22（67%） |
+| 0x14246B9D0 | （无名） 调用图传播: 2 锚点投 §4.22（100%） |
+
+#### 4.22.30 战斗族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CD9A00 | SDamageDone 造成伤害快照 (vtable类名 SDamageDone) vtable引用 SDamageDone vftable |
+
+#### 4.22.31 战斗族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1417DE020 | （无名） 调用图传播: 3 锚点投 §4.22（100%） |
+| 0x1417DD070 | （无名） 调用图传播: 2 锚点投 §4.22（100%） |
+
+#### 4.22.32 战斗族函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C77F40 | 无名 sub_（断言站点/串定位） 串字面量 "NO_COUNTER_ATTACK_IN_COMBAT" |
+| 0x1416EB6F0 | 无名 sub_（断言站点/串定位） 串字面量 "COMBAT_LOG_RATIO" |
+| 0x1416F1680 | 无名 sub_（断言站点/串定位） 串字面量 "COMBAT_LOG_BATTLE_LOST_EQUIPMENT" |
+| 0x140CDCBF0 | 无名 sub_（断言站点/串定位） 断言站点 combatlog.cpp:140 |
+| 0x140CDF110 | 无名 sub_（断言站点/串定位） 断言站点 combatlog.cpp:798 |
+| 0x14002A020 | 无名 sub_（断言站点/串定位） 串字面量 "Check that ratio of atrillery battalions in the co" |
+
+#### 4.22.33 战斗族函数补遗（22 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14246FE20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142466CF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142469150 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142472B70 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.22 |
+| 0x142482910 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142471D10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142484B90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x14246B800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142467660 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.22 |
+| 0x142467B30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x1417DFE10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x1417DE2B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x140D74B90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142471580 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142472630 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x1417DFD10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x14161EC40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x141620F30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x140C4CAE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x141C6A2F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x141C6CE40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x1416216B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+
+#### 4.22.34 战斗族函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142468CB0 | 无名 sub_（调用图定位） 调用图传播: 6/6 锚点投 §4.22 |
+| 0x142484EA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x1424862D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x142484C70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+| 0x14247E5D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.22 |
+
+#### 4.22.35 战斗族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C84840 | （无名） 串 "PREPARATION_BASE_DAILY_DECAY"/"PREPARATION_BASE_DAILY_DECAY_MANUAL_ORDER"（战斗准备衰减） |

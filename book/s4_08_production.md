@@ -875,3 +875,295 @@ sub_141932000 (资源 → 生产成本惰性构造表): vec@a1+8 {data@+8, count
 #### 4.8.24 COrganisationTemplate reader 分派器 (1 函 = 0x140A53BE0, 已收互证/增量)
 
 0x140A53BE0 (§4.8:692 字段表 25 键全对号互证零冲突): **增量** = initial_trait 对象 (模板 +176 单体槽) 载入形态 = **+8 = 键 id / +16 = 宿主回指针**; 装载走 CEffect[3]/CTrigger[5] Parse 槽偏移契约 (vt+24/vt+40); token 表还原 15373 = xp_research_type (army/navy/air → 1/2/3) / 16217 = equipment_type; 掩码 0x80004003C1 与 §4.8.21 MIO 过滤类型同值互证 (GFX_idea_slot_naval_manufacturer 域)。
+
+#### 4.8.25 生产建筑域函数补遗（28 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B46AD0 | （未命名）gamestate.h:1116 + "buildings_nudger_markers.txt" gamestate.h:1116 + "buildings_nudger_markers.txt"，建筑 nudger 调试工具 |
+| 0x1415BFE00 | （未命名）调用者持 vtable `CCustomizableBuildingItem` + listenable.h 断言 调用者持 vtable `CCustomizableBuildingItem` + listenable.h 断言，可定制建筑条目监听 |
+| 0x140495D90 | NProject::CCompleteProjectEffect::[7] NProject::CCompleteProjectEffect::[7] + PROJECT / EFFECT_COMPLETE_SPECIAL_PROJECT（项目完成效果） |
+| 0x140230370 | （未命名）gamestate.h:1125 + 调用 CProductionLine::[14] gamestate.h:1125 + 调用 CProductionLine::[14]，生产线 |
+| 0x140A91450 | NProject::CPrototypeReward::[7] NProject::CPrototypeReward::[7] + "in prototype_reward" / "at least 1 option is mandatory" / "only one option can have defaul… |
+| 0x1404A4910 | NRaids::CRaidReduceProjectProgressRatioEffect::[13] NRaids::CRaidReduceProjectProgressRatioEffect::[13] + "Can only add a progress between ... and"（袭击削减项目进度 … |
+| 0x1404582C0 | NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::GetDesc NIndustrialOrganisation::CHasIndustrialOrganisationTrigger::GetDesc + TRIGGER_MIO_(NOT_)H… |
+| 0x14173B340 | sub_14173B340 PRODUCTION_CLICK_TO_APPEND_OR_INSERT / _NO_FACTORIES / _NO_DEPLOY / _DISABLED（生产插入模式提示 UI） |
+| 0x140E64130 | sub_140E64130 ORGANIZATION_NAME / VALUE / INDUSTRIAL_ORG_PP_GENERATION_COST（MIO 政治点数生成成本 UI） |
+| 0x140F6C960 | sub_140F6C960 PRODUCTION_REPAIRING_ETA_DATE / DATE / NEVER + CGameDate（生产维修 ETA 日期 UI） |
+| 0x141C21C60 | NProject::NUi::CScientistRoster::[6] NProject::NUi::CScientistRoster::[6] + SCIENTIST_TOOLTIP_CLICK_(UN)ASSIGN / SCIENTIST_CANT_CLICK（项目科学家名册 UI） |
+| 0x141938DE0 | sub_141938DE0 生产速率单位枚举（UNITS/PRODUCTION_UNITS_PER_YEAR\ MONTH\ WEEK\ DAY） |
+| 0x140DB46E0 | （未命名）构造 NIndustrialOrganisation::SHistoryWith 构造 NIndustrialOrganisation::SHistoryWithEquipment（vftable 赋值 + a1+240 历史 appending） |
+| 0x141F2EA40 | sub_141F2EA40 CLicenseProductionEntry vtable + std::locale（许可证生产条目） |
+| 0x140A50DC0 | （无名） 军工组织 trait（断言站点 industrial_org_trait.cpp:100） |
+| 0x1419D87B0 | sub_1419D87B0 建筑速度修正（VALUE/BUILDING_SPEED_FACTOR_WITH_TRIGGER） |
+| 0x141EEA9F0 | NProject::NUi::CBreakthroughCostItem::[0] NProject::NUi::CBreakthroughCostItem::[0]，串 SPECIAL_PROJECT_BREAKTHROUGH_COST/AMOUNT/SPECIALIZATION |
+| 0x141EFB230 | sub_141EFB230 体内构造/操作 vtable 类 NIndustrialOrganisation::CTraitBonus（&NIndustrialOrganisation::CTraitBonus::vftable）→ 工业组织（特质/政策窗） |
+| 0x140ABF890 | （未命名）loc 串 STRATEGIC_LOCATION_EXTRA_LEVEL/BUI loc 串 STRATEGIC_LOCATION_EXTRA_LEVEL/BUILDING/AMOUNT（战略地点加成） |
+| 0x141B30730 | （无名） vftable 类 CBuildingReference::（生产/建筑） |
+| 0x141926EB0 | （无名） vftable 类 NIndustrialOrganisation::STraitId::（军工组织(MIO)） |
+| 0x1402FF420 | NIndustrialOrganisation::CSetTaskCapacityEffect::GetDesc GetDesc 串 EFFECT_MIO_SET_TASK_CAPACITY（MIO 任务容量效果） |
+| 0x1402FF200 | NIndustrialOrganisation::CSetSizeUpRequirementFactorEffect::GetDesc GetDesc 串 EFFECT_MIO_SET_SIZEUP_REQUIREMENT_FACTOR |
+| 0x1402FCF20 | NIndustrialOrganisation::CAddIndustrialManufacturerAssignCostEf…::[7] GetDesc 串 EFFECT_MIO_ADD_PRODUCTION_ASSIGN_COST |
+| 0x141AEE990 | sub_141AEE990 AI 视角调试视图（"Requires AI view"/"Show equipment with zero factories"/装备原型缓存） |
+| 0x141542420 | sub_141542420 体内构造/操作 vtable 类 NIndustrialOrganisation::STraitId（&NIndustrialOrganisation::STraitId::vftable）→ 工业组织（特质/政策窗） |
+| 0x141FC0AA0 | NIndustrialOrganisation::CTraitTree::[30] 技能树（MIO/学说）（断言站点 skill_tree.h:830） |
+| 0x141172840 | sub_141172840 建筑可建性检查 GUI（CONSTRUCTION_CHECK_BUILDABLE） |
+
+#### 4.8.26 生产建筑域函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D69960 | （无名）PRODUCTION_EQUIPMENT_TOTAL_NEED / ..._FILLED / ..._UPGRADE + need_state_ico PRODUCTION_EQUIPMENT_TOTAL_NEED / ..._FILLED / ..._UPGRADE + need_state_ico |
+| 0x1410A3F20 | （无名，按上游/loc 定性） gamestate.h:1116 |
+| 0x141D62C90 | （无名，按上游/loc 定性） loc "PROD_COST_VALUE\ VALUE" |
+| 0x141C3AF40 | （无名，按上游/loc 定性） 断言 "px != 0"（boost） |
+| 0x1413AC910 | （无名，按上游/loc 定性） loc "TRAIT*" |
+| 0x1409D24C0 | （无名，按上游/loc 定性） loc "RESOURCE\ RESOURCES_ADDITIONAL_TOOLTIP\ FACTOR\ RESOURCE_FACTOR*" |
+| 0x140F585D0 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x14193CE80 | 无名大函数 0x14193CE80 loc 键 INDUSTRIAL_ORG_DESIGN_TEAM（工业组织设计组） |
+| 0x14014A8D0 | vtable/RTTI 类 NProject::CNarrative sub_14014A8D0 + vtable/RTTI 类 NProject::CNarrative; 被 NProject::CPrototypeReward::[4] 等 1 命名函数调用 |
+| 0x141481C50 | vtable/RTTI 类 NProject::CProjectPool sub_141481C50 + vtable/RTTI 类 NProject::CProjectPool; 被调源码 hoi4 |
+
+#### 4.8.27 生产建筑域函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C959E0 | 生产资源/材料值显示 生产资源/材料值显示；loc \"PRODUCTION_MATERIAL_VAL\"/\"PRODUCTION_RESOURCES_PER_FACTORY\"+\"VALUE\"，被调 gameitemdatabase.h:142/localize.cpp:641 |
+| 0x141A30590 | 生产线转换订单显示 生产线转换订单显示；loc \"PRODUCTION_LINE_CONVERT_ORDER_OF_CONVERSION_ENTRY\"/\"_FREE_ENTRY\"/\"_NO_TYPE\"+\"VARIANT\"/\"TYPE\" |
+| 0x14052F2D0 | 建筑州修正格式化 建筑州修正格式化；loc \"BUILDING_STATE_MODIFIER_FORMATTER_HEADING\"+\"INDENT\"/\"BUILDING\"，被调 gameitemdatabase.h:142/gameitemdatabasehelper.h:120 |
+| 0x140CAAF80 | 国家资源/护航客户端 国家资源/护航客户端；邻 IsValid(-704B)/CCountryResources::[5](-688B 级)/CConvoyClient::[10]/CResourceExchange::[10]/CResourceOrigin::[10]，被调 gamestate.h:1116/… |
+| 0x1414B4F60 | "PRODUCTION_PRODUCING_NEVER/PRODUCTION_P "PRODUCTION_PRODUCING_NEVER/PRODUCTION_PRODUCING_ETA_DATE/PR §4.8 生产/建筑 |
+| 0x1410E2840 | "name/promotions/properties" 键 + robin h "name/promotions/properties" 键 + robin hood 迭代器：MIO 特质树 §4.8 生产/建筑 |
+| 0x141D84E20 | "CONVEYOR_MANPOWER_NEED/CONVEYOR_EQUIPME "CONVEYOR_MANPOWER_NEED/CONVEYOR_EQUIPMENT_NEED/CONVEYOR_CAN §4.8 生产/建筑 |
+| 0x1419178F0 | sub_1419178F0（无名） INDUSTRIAL_ORG_TRAIT_TOOLTIP_ORGANIZATION_AVAILABLE/NOT_AVAILABLE GUI 键，紧邻 CDynamicEquipmentGroup::[0]/CReloadableView::[0]，工业组织特质提示 UI |
+| 0x140A4AE80 | "INDUSTRIAL_ORG_POLICY_ON_ATTACH/INDUSTR "INDUSTRIAL_ORG_POLICY_ON_ATTACH/INDUSTRIAL_ORG_POLICY_ON_RE §4.8 生产/建筑 |
+| 0x141D52AA0 | 未命名业务函数 define/本地化键（串 PRODUCTION_FACTORY_SCALE_DOWN） |
+| 0x14111F4B0 | CCancelAccessToLicenseProductionAction（vtable 槽 [59]） define/本地化键（串 CANCEL_ACCESS_TO_LICENCE_PRODUCTION_DESC） |
+
+#### 4.8.28 生产建筑域函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14204DEA0 | （无名，按证据定性） 串 'PRODUCED'/'EXPECTED' 对比构建（产出/预期对比文本） |
+| 0x140E65700 | （无名，按证据定性） 键 CONSTRUCTION_MASTER_BUILDING_LEVELS/CONSTRUCTION_MASTER_BUILDING_REDUCE_LEVELS + MASTER/LVL/BUILDING（建造等级主控） |
+| 0x1414B53A0 | （无名，按证据定性） 键 PRODUCTION_PRODUCING_NONE/PRODUCTION_PRODUCING_DAILY/ETA_YEARS 等（生产线产出/预计文本） |
+| 0x14191B3E0 | 军工组织提示 INDUSTRIAL_ORG_TOOLTIP_HEADER |
+| 0x140E6A920 | CProductionStatus::[3] vtable 槽 CProductionStatus::[3]（func_names RTTI 名） |
+| 0x140E6B060 | CProductionStatus::[3] vtable 槽 CProductionStatus::[3]（func_names RTTI 名） |
+| 0x140E5CDE0 | CProductionStatus::[0] vtable 槽 CProductionStatus::[0]（func_names RTTI 名） |
+| 0x140E5CC94 | CProductionStatus::[1] vtable 槽 CProductionStatus::[1]（func_names RTTI 名） |
+| 0x140E6A910 | CProductionStatus::[4] vtable 槽 CProductionStatus::[4]（func_names RTTI 名） |
+
+#### 4.8.29 生产建筑域函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.8.30 生产建筑域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E6AA00 | CProductionStatus::[2] vtable 槽 CProductionStatus::[2]（func_names RTTI 名） |
+| 0x140E699F0 | CProductionStatus::[8] vtable 槽 CProductionStatus::[8]（func_names RTTI 名） |
+| 0x140E5CC88 | CProductionStatus::[2] vtable 槽 CProductionStatus::[2]（func_names RTTI 名） |
+
+#### 4.8.31 生产建筑域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.8.32 生产建筑域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414B8410 | 生产线/建筑产出 tooltip（合成炼油/资源/燃油 by states） 键 synthetic_refinery_amount / FUEL_GAIN_BY_STATES_FACTOR_TOOLTIP / RESOURCE_GAIN_BY_STATES_TOOLTIP / CURRNUM/MAXNUM/FA… |
+
+#### 4.8.33 生产建筑域函数补遗（48 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414BCF20 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x1404996A0 | （无名） 调用图传播: 4 锚点投 §4.8（100%） |
+| 0x140499A00 | （无名） 调用图传播: 4 锚点投 §4.8（100%） |
+| 0x1414A8940 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x140E6E7F0 | （无名） 调用图传播: 9 锚点投 §4.8（100%） |
+| 0x1410BE9B0 | （无名） 调用图传播: 3 锚点投 §4.8（100%） |
+| 0x14142DF10 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x1415067A0 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x1414FD680 | （无名） 调用图传播: 7 锚点投 §4.8（57%） |
+| 0x140E77430 | （无名） 调用图传播: 6 锚点投 §4.8（50%） |
+| 0x1415B1AA0 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x140E6F330 | （无名） 调用图传播: 4 锚点投 §4.8（50%） |
+| 0x1415B1C70 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x140EC7F90 | （无名） 调用图传播: 3 锚点投 §4.8（67%） |
+| 0x141905320 | （无名） 调用图传播: 4 锚点投 §4.8（50%） |
+| 0x1414FD520 | （无名） 调用图传播: 4 锚点投 §4.8（50%） |
+| 0x141192370 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x141D3D550 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x14158C8B0 | （无名） 调用图传播: 3 锚点投 §4.8（67%） |
+| 0x140499580 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x140E69F30 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x1419DD240 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x1419DD550 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x140FE7810 | （无名） 调用图传播: 4 锚点投 §4.8（50%） |
+| 0x140B94C00 | （无名） 调用图传播: 3 锚点投 §4.8（100%） |
+| 0x140FE6BA0 | （无名） 调用图传播: 3 锚点投 §4.8（67%） |
+| 0x140FE6CB0 | （无名） 调用图传播: 3 锚点投 §4.8（67%） |
+| 0x14049A6A0 | （无名） 调用图传播: 3 锚点投 §4.8（100%） |
+| 0x141445760 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x142051BE0 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x141502EE0 | （无名） 调用图传播: 4 锚点投 §4.8（50%） |
+| 0x14049A5B0 | （无名） 调用图传播: 3 锚点投 §4.8（100%） |
+| 0x1406894E0 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x141935FE0 | （无名） 调用图传播: 4 锚点投 §4.8（50%） |
+| 0x141D61090 | （无名） 调用图传播: 4 锚点投 §4.8（50%） |
+| 0x141937920 | （无名） 调用图传播: 3 锚点投 §4.8（67%） |
+| 0x140F71770 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x14143AB90 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x141937980 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x14144B130 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x141A988E0 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x14153B480 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x14193E7A0 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x140A53880 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x141566E70 | （无名） 调用图传播: 4 锚点投 §4.8（50%） |
+| 0x140E69300 | （无名） 调用图传播: 3 锚点投 §4.8（100%） |
+| 0x1407176C0 | （无名） 调用图传播: 3 锚点投 §4.8（67%） |
+| 0x140E5FED0 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+
+#### 4.8.34 生产建筑域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D620E0 | productionlineitems.cpp:4062 + "equipment_button"/"The variant's equipment type has no matching equipment designer." productionlineitems.cpp:4062 + "equipmen… |
+
+#### 4.8.35 生产建筑域函数补遗（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F6CC60 | sub_141F6CC60 CProductionSubUnitDefFilter + navy_view_ship_entry / highlight（生产子单位定义过滤 UI） |
+| 0x140688340 | sub_140688340 建筑解析（Missing level for building） |
+| 0x141147120 | sub_141147120 国家命令中的生产线校验（_ProductionLine.IsValid） |
+| 0x141373640 | 无名领域函数 sub_141373640 断言站点 \hoi4\\source\\production\\logistics.cpp（生产） |
+| 0x141A83B60 | sub_141A83B60 建筑可建性检查 GUI（building） |
+| 0x14007B3F0 | sub_14007B3F0 建筑可建性检查 GUI（building） |
+| 0x14007B7D0 | sub_14007B7D0 建筑可建性检查 GUI（building） |
+| 0x14172A090 | sub_14172A090 部署/升级条目 GUI（GFX_deploy_upgrades_entry） |
+| 0x141FB09E0 | sub_141FB09E0 工业组织政策窗口（industrial_organisation_policy_window） |
+| 0x141FB6C70 | 无名领域函数 sub_141FB6C70 断言站点 \hoi4\\source\\interfaces\\production\\industri（生产） |
+| 0x141B4E2E0 | sub_141B4E2E0 建筑可建性检查 GUI（Building） |
+| 0x140CA0740 | 调用图上游传播(占 40%, 3 票) sub_140CA0740 + 调用图上游传播(占 40%, 3 票) |
+| 0x141483A80 | 同区段近邻 sub_141481C50(距 0x1E30)属 4.8 族 sub_141483A80 + 同区段近邻 sub_141481C50(距 0x1E30)属 4.8 族 |
+
+#### 4.8.36 生产建筑域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419352C0 | GUI：PRODUCTION_COST_MODIFIER_ITEM equipment_production_line.cpp 断言 + loc 键 PRODUCTION_COST_MODIFIER_ITEM |
+| 0x140B67F40 | GUI：BUILDING_BOMBED loc 键 BUILDING_BOMBED/BUILDING_SABOTAGED/BUILDING_SCORCHED，建筑受损原因 |
+| 0x1419191A0 | 无名 · "INDUSTRIAL_ORGANIZATION_TOOLTIP_S "INDUSTRIAL_ORGANIZATION_TOOLTIP_SIZE" 工业组织提示键 |
+| 0x141171F30 | 无名 · "CONSTRUCTION_CHECK_WATER" 建筑水域校验键 "CONSTRUCTION_CHECK_WATER" 建筑水域校验键 |
+| 0x141B4BFA0 | （无名） 调用图传播: 3 锚点投 §4.8（67%） |
+| 0x141B48270 | （无名） 调用图传播: 4 锚点投 §4.8（75%） |
+| 0x141B4BF50 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+
+#### 4.8.37 生产建筑域函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14152EE40 | 业务逻辑（见证据锚） "Expected start of list of module slots"/"Expected start of list of module categories"（生产模块槽解析） |
+| 0x14173E300 | 业务逻辑（键 military_tab） "military_tab"/"production_win_top"（生产窗口军事页） |
+| 0x140E5AD40 | CBuildingConstructionListener::SEnqueuedOperations（vtable 槽/管理器） VT CBuildingConstructionListener::SEnqueuedOperations（建筑建造监听入队操作） |
+| 0x14177FB40 | 业务逻辑（键 SLOT） "SLOT"/"SLOT_TITLE_REQUIRED"/"MODULE_NONE_FIXED"（MIO 模块槽 UI） |
+| 0x1411A8EC0 | 业务逻辑（见证据锚） "The specified reward can not be triggered."/"No ongoing project"/"No valid program"/"A facility view needs to be open"（特殊项目奖励触发） |
+| 0x141194830 | 业务逻辑（见证据锚） "Could not find MIO with token ... in player country"（MIO 查询） |
+| 0x141918380 | 业务逻辑（键 INDUSTRIAL_ORGANIZATION_TOOLTIP_COST） "INDUSTRIAL_ORGANIZATION_TOOLTIP_COST"（MIO 成本 tooltip） |
+| 0x140B30170 | 业务逻辑（见证据锚） "SPECIAL_PROJECT_ITERATION_REWARD_ALERT[_DELAYED]_TT"（特殊项目迭代奖励警示） |
+| 0x141F1D300 | 业务逻辑（见证据锚） "INDUSTRIAL_ORG_DETAIL_TOOLTIP_FUNDS_HEADER/VALUES[_DELAYED]"（MIO 资金 tooltip） |
+| 0x141B92510 | CUnlockIndustrialOrganisationTrait MIO特质解锁 (vtable类名 CUnlockIndustrialOrganisationTrait) vtable引用 CUnlockIndustrialOrganisationTrait vftable |
+| 0x1414E9320 | CBuildingReference 建筑引用 (vtable类名 CBuildingReference) vtable引用 CBuildingReference vftable |
+
+#### 4.8.38 生产建筑域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140FE6670 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x1419DD350 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x14012A920 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+| 0x14049A8A0 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x141C3D530 | （无名） 调用图传播: 3 锚点投 §4.8（67%） |
+| 0x1413CA400 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x140499370 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+| 0x140F60720 | （无名） 调用图传播: 2 锚点投 §4.8（50%） |
+
+#### 4.8.39 生产建筑域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141583020 | （无名） 调用图传播: 2 锚点投 §4.8（100%） |
+
+#### 4.8.40 生产建筑域函数补遗（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D52D30 | 无名 sub_（断言站点/串定位） 断言站点 productionlineitems.cpp:4405 |
+| 0x140F6D510 | 无名 sub_（断言站点/串定位） 串字面量 "BUILDING" |
+| 0x140E62300 | 无名 sub_（断言站点/串定位） 串字面量 "PRODUCTION_STATE_ENERGY_EFFICIENCY" |
+| 0x141934810 | 无名 sub_（断言站点/串定位） 串字面量 "PRODUCTION_EFFICIENCY_GAIN_BASE" |
+| 0x1419384A0 | 无名 sub_（断言站点/串定位） 串字面量 "PRODUCTION_LINE_CONVERT_HEADER" |
+| 0x141459FB0 | 无名 sub_（断言站点/串定位） 串字面量 "CIC_MAX_CONSTRUCTION_BOOST" |
+| 0x142112390 | 无名 sub_（断言站点/串定位） 串字面量 "CreateDXGIFactory" |
+| 0x1415C7FB0 | 无名 sub_（断言站点/串定位） 串字面量 "POWERED_BUILDING" |
+| 0x141909400 | 无名 sub_（断言站点/串定位） 串字面量 "under_construction" |
+| 0x141172540 | 无名 sub_（断言站点/串定位） 串字面量 "BUILDING" |
+| 0x140072A80 | 无名 sub_（断言站点/串定位） 串字面量 "production_cost_max_" |
+| 0x141F6E7A0 | 无名 sub_（断言站点/串定位） 串字面量 "PRODUCTION_EQUIPMENT_ROLE_FILTER" |
+| 0x140688130 | 无名 sub_（断言站点/串定位） 串字面量 "Invalid building level" |
+| 0x14007AA00 | 无名 sub_（断言站点/串定位） 串字面量 "production_speed_" |
+| 0x14007AE20 | 无名 sub_（断言站点/串定位） 串字面量 "production_cost_" |
+| 0x140688E20 | 无名 sub_（断言站点/串定位） 串字面量 "Building" |
+| 0x1421C3C20 | 无名 sub_（断言站点/串定位） 串字面量 "items in a constructor" |
+| 0x140B67970 | 无名 sub_（断言站点/串定位） 串字面量 "building_bombed" |
+| 0x141D63B10 | 无名 sub_（断言站点/串定位） 串字面量 "close_production_line" |
+| 0x14145B4D0 | 无名 sub_（断言站点/串定位） 断言站点 production_line_names.cpp:107 |
+| 0x1402044C0 | 无名 sub_（断言站点/串定位） 串字面量 "production_lin" |
+
+#### 4.8.41 生产建筑域函数补遗（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140133EF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x1415B2400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x14198AB00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x140ED26B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x14198AC30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x14101ADF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x1419323D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x140E5B830 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x141B472D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x140E685E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x140E686D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x14063F480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x1401A8160 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x1409D8660 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x141932190 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x1415159E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x140FBFC70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x140B94CF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x14049A790 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x141511420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+| 0x141305C10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.8 |
+
+#### 4.8.42 生产建筑域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140150420 | 数据库析构 数据库析构：vtable 名 TReloadableGameItemDatabase<NIndustrialOrganisation::CPolicyDatabase> 标识工业组织政策库 |
+| 0x140DB72A0 | 事件派发 MIO 事件派发：on_mio_design_team_assigned_to_variant 事件名 + malloc 0x30 + sub_1413AE6F0 投递（a1+280 源） |
+| 0x140DB71C0 | 事件派发 MIO 事件派发：on_mio_design_team_assigned_to_tech（同 0x140DB72A0 形态，sub_140A537B0 源） |
+
+#### 4.8.43 生产建筑域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140DB70E0 | MIO事件 MIO 制造商分配事件：strcpy "on_mio_industrial_manufacturer_assigned" + 事件发射 |

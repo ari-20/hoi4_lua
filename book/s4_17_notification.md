@@ -381,6 +381,8 @@ worker 层补全 (定案): 簇实为 7 函数 (清单 6 + **sub_140B188A0 = 每�
 
 消费面 (GUI): ① `global_alerticon_window` 网格 — 每条目一窗, 定位公式 `X = +96436 + step_x×(格序 % 列数)`, `Y = +96440 + step_y×(格序 / 列数)`, 窗 vtable+416 SetPosition; red/yellow glow 按 severity 显隐。② 顶栏 `dismissed_alerts_button` — sub_140B0D980 (任一容器有条目 ∨ +100452) 显隐; tooltip = DISMISSED_ALERTS_MENU + sub_140B08E80 拼接全部条目名; 点击 → sub_140B175B0 全量重建。③ 条状管理器 (idler+1952, 72B) — 每帧 sub_1417582C0 与警报更新成对调用; 条目排活跃网格之后 (+96456+1 起); 条目类 = **CDiplomacyRequestIcon** (1384B, malloc 0x568; 主 vtable + 次 vtable@+40; +48 条状管理器回指; 窗名 global_alerticon_window; +1368 CReference 目标 + +1376 ref 内嵌件 — 与外交请求条共用类)。④ 点击链 — 相机跳转 + sub_140B11C30 大 switch 按警报 id 开对应视图 (视图号族 = §4.30.29 顶栏视图编号)。⑤ 音效 = sub_140B166A0 (冷却戳 +94464[id], define `NGame.ALERT_SFX_COOLDOWN_DAYS` 读入 dword_143336E00; 唯一调用者 = sub_140B01D40 尾)。
 
+与 CTopBar 侧第二套收集链边界: §4.30.29a sub_14188E440 (CTopBar::tick 逐帧调) = CTopBar 自有 +39280 警报列表, 与本管理器**并行存在、互不引用**; 两链共用 define `NGame.DECISION_ALERT_TIMEOUT_DAYS` (dword_143336858) 与两数据源 (gs+1376 pending_events / cc+4000 定时决策), 但本管理器侧谓词 sub_140B0D390 多查 cc+5360 决议忽略集 (sub_1414E7100) 与 def 级 tag 特例 (sub_14072B2E0), 且另收 targeted decisions 第三容器 (sub_14072A090)。
+
 与 NNotification (§4.17.1-6) 边界: alert = **条件轮询** (82 类逐帧 round-robin 重评估, 条件消失即消, common/alerts.txt 配色, 点击跳转, 挂 idler+1944); notification = **事件推送** (业务侧建对象入队, 一次性消息, 超时天数, 挂 iface+1240)。两系统零函数交叠; 海战战果类 (33/41/44) 虽名含 results 仍走 alert 通道。
 
 对拍定案: **零游戏状态写门** (update + 原语族 + 检查器群对 gs/cc 只读; 写仅落 mgr 自身字段与 GUI 元素) + **零存档面** (无 CPersistent 形态; serfam `alert` 零命中; 逐帧重评估自再生成) — sv2_export 无新增叶。风险三点: renderhide 旗置位时整体跳过 / 暂停冻结轮转 (+96432 不推进) / 单 id 82 帧采样延迟 (探针读某警报状态须等轮转位); `alert_manager_update` 出现在 profile_top/folded = 帧级常规项非异常。
@@ -388,3 +390,124 @@ worker 层补全 (定案): 簇实为 7 函数 (清单 6 + **sub_140B188A0 = 每�
 > 仍开放: id 68 门字节 (gs+1104 系逐国对象 +8) 业务名; id 10 豁免五函数与 id 14 原型表逐项业务名; +96464/+98432 休眠容器业务名; id 11 行 +24 字段业务名。
 
 **警报文案分发器 sub_140B0AB70 与 case 构建函族 (df366 补)**: a2 → 管理器 → **1128B/条的警报条目数组** (entry = base + 1128×i; +40 = std::string 文本成员); switch a3 警报类型, case 20-29 各有专属构建函 (sub_140B37230/140B1FA40/140B299B0/140B23D90/140B232F0/**140B21830**/140B22040/140B20B60/140B36210)。**case 26 = 阵营领导权转移可触发 (sub_140B21830 全案)**: 玩家阵营 (dip+656) 非空 → 领导国 = **fac+88 成员数组首元素 (推定成员序即领导序)** → CEventScope 构造 (sub_1415FFE70(scope, 玩家tag, 领导tag, gs+1128 日期), 176B; dtor sub_140302750 重置 CDiplomaticAction + 两 CGregorianDate vftable) → 双门 (sub_141138CA0 同源+FROM 环检 eventscope.h:193 ∧ sub_141615250 触发器求值, 门 byte_14332F617 + sub_1401AEB50(16)) → 写 `alert_faction_assume_leadership_possible_delayed` (FACTION = fac+24 阵营名 / LEADER = cc+80 definite name 定冠词形) + 尾附 ALERT_RIGHTCLICK。辅助定性: **sub_140129CA0 = string assign (dst ← src[0..size], size 0 = 清空)** 非 append。
+
+#### 4.17.8 通知与警报系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A34450 | （未命名）doctrine_ui_utils.cpp:90 doctrine_ui_utils.cpp:90；NOTIFICATION_MILESTONE_UNLOCKED / MILESTONE_UNLOCK_HEADER / DOCTRINE_NAME / TRACK_NAME |
+
+#### 4.17.9 通知与警报系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B1B1B0 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x140B23D90 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x140B30BC0 | （无名，按上游/loc 定性） loc "alert_raid_completed_instant\ alert_raid_completed_delayed_he*" |
+| 0x140B31210 | （无名，按上游/loc 定性） gamestate.h:1116 |
+
+#### 4.17.10 通知与警报系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B00D10 | "alert_headquarter_admiral_location" + C "alert_headquarter_admiral_location" + CGameIdler：海军上将位置警报 §4.17 音效/通知 |
+| 0x140B299B0 | "ALERT_NAVAL_COMBAT_INFO/alert_naval_com "ALERT_NAVAL_COMBAT_INFO/alert_naval_combat_instant" 海军战斗警报 §4.17 音效/通知 |
+| 0x142230D80 | CMouse（vtable 槽 [1]） 通知接口（notificationinterface.h:64 断言） |
+| 0x1422B7080 | TWindow（vtable 槽 [1]） 通知接口（notificationinterface.h:64 断言） |
+
+#### 4.17.11 通知与警报系统函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B242F0 | 驻军不足即时警报 alert_not_enough_garrison_instant + ALERT_RIGHTCLICK |
+| 0x140B25B30 | 被发现警报 alert_is_spotting_instant + ALERT_SPOTTER_INFO_REGION + ALERT_LEFTCLICK_TOGGLE_SPOTTER |
+| 0x141BBEC60 | （无名） 体设 CNotification::vftable（RTTI 名） |
+
+#### 4.17.12 通知与警报系统函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.17.13 通知与警报系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B2E550 | 港口空袭战果 alert 件（攻防标签/数值/胜负色/报告列表） 串 alert_port_strike_results、A_TAG/D_TAG/A_VALUE/D_VALUE、ALERT_RIGHTCLICK_REPORT、victory_color/defeat_color |
+
+#### 4.17.14 通知与警报系统函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DC42D0 | （无名） 调用图传播: 2 锚点投 §4.17（50%） |
+| 0x1418C8C60 | （无名） 调用图传播: 2 锚点投 §4.17（50%） |
+| 0x1410B7BD0 | （无名） 调用图传播: 2 锚点投 §4.17（50%） |
+| 0x1417AAEB0 | （无名） 调用图传播: 2 锚点投 §4.17（50%） |
+| 0x141833680 | （无名） 调用图传播: 4 锚点投 §4.17（50%） |
+| 0x14181B4E0 | （无名） 调用图传播: 2 锚点投 §4.17（50%） |
+| 0x1422CF1C0 | （无名） 调用图传播: 2 锚点投 §4.17（50%） |
+| 0x141AC91C0 | （无名） 调用图传播: 3 锚点投 §4.17（67%） |
+
+#### 4.17.15 通知与警报系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B2A610 | 燃料告警条目 串 "alert_out_of_fuel_delayed_entry_air/army/navy" + "AIR_EFFICIENCY_PENALTY" 等惩罚键 → 燃料告警条目 |
+
+#### 4.17.16 通知与警报系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DF9160 | sub_141DF9160 音乐曲目表项（music_track_entry） |
+| 0x141F8E3C0 | sub_141F8E3C0 特征串:current_track |
+| 0x14133C4C0 | 域关键词匹配 sub_14133C4C0 + 域关键词匹配 |
+| 0x1421036E0 | 域关键词匹配 sub_1421036E0 + 域关键词匹配 |
+
+#### 4.17.17 通知与警报系统函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142103440 | （无名） 调用图传播: 3 锚点投 §4.17（67%） |
+| 0x140B69220 | （无名） 调用图传播: 2 锚点投 §4.17（50%） |
+
+#### 4.17.18 通知与警报系统函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14186D070 | 业务逻辑（键 messagelogtext） "messagelogtext"×3（消息日志文本处理） |
+| 0x140B25310 | UI/数据绑定（loc alert_is_at_war_delayed_list） loc 键 "alert_is_at_war_delayed_list"/"alert_is_at_war_delayed_majors"/"NUM_MAJORS"/"COUNTRY_LIST"（宣战警示列表） |
+
+#### 4.17.19 通知与警报系统函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141806F50 | （无名） 调用图传播: 2 锚点投 §4.17（50%） |
+| 0x140B69750 | （无名） 调用图传播: 4 锚点投 §4.17（50%） |
+
+#### 4.17.20 通知与警报系统函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B1CB10 | 无名 sub_（断言站点/串定位） 串字面量 "alert_border_conflict_entry" |
+| 0x1406CE0B0 | 无名 sub_（断言站点/串定位） 串字面量 "ALERT_DIVISION_NO_EQUIPMENT" |
+| 0x14186F4E0 | 无名 sub_（断言站点/串定位） 断言站点 notificationinterface.h:64 |
+| 0x140B010E0 | 无名 sub_（断言站点/串定位） 串字面量 "alert_lack_of_power_delayed" |
+| 0x141F594F0 | 无名 sub_（断言站点/串定位） 串字面量 "message_overlay" |
+
+#### 4.17.21 通知与警报系统函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1417B0C40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.17 |
+| 0x141E6C950 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.17 |
+
+#### 4.17.22 通知与警报系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D37490 | 通知派发 通知派发：哈希查 a1+40 + 全局 qword_14332F6A0（界面管理器）vtable+200 / v4[161] vtable+40 取上下文 + sub_140F4E040 投递 |
+
+#### 4.17.23 通知与警报系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141102CA0 | 未决窗口函数 · 计数有效条目 遍历 a1+120 数组（计数 a1+132）对非空对经 sub_14221F310/sub_140BA0040/sub_140C01960 三条件计数 |

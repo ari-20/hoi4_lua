@@ -2,7 +2,7 @@
 """markdown 表格格式检查器 v2 (§0.4 机械校验)
 硬错误: 列数/分隔行/合并偏移格/+0x/删除线/findings外联/批次名/伪标题/日期戳
 警告:   plain 偏移行非升序 / 待定词表外标记 / 偏移算式
-用法: python md_table_check.py <file.md|dir> [--dir]"""
+用法: python md_table_check.py <file.md|dir> [more files...] [--dir]"""
 import io, re, sys, glob, os
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -143,13 +143,18 @@ def check_file(path):
 
 
 def main():
-    arg = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), '..', 'book',
-        'hoi4_runtime_classes.md')
-    if os.path.isdir(arg):
-        files = sorted(glob.glob(os.path.join(arg, 's4_*.md')))
-    else:
-        files = [arg]
+    # 支持多文件: 显式列出多个 .md（含 shell 通配展开的 `docs/*.md`）时逐个检查；
+    # 目录参数按 book 惯例只 glob s4_*.md（非 book 目录须显式列文件，或改用通配）。
+    args = [a for a in sys.argv[1:] if a != '--dir']
+    if not args:
+        args = [os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
+                             'book', 'hoi4_runtime_classes.md')]
+    files = []
+    for a in args:
+        if os.path.isdir(a):
+            files.extend(sorted(glob.glob(os.path.join(a, 's4_*.md'))))
+        else:
+            files.append(a)
     tot_t = tot_i = tot_w = 0
     for f in files:
         t, iss, w = check_file(f)

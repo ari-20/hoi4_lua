@@ -1158,7 +1158,7 @@
 5370767408	std::_Func_impl_no_alloc<…>::[3]		rtti	
 5370768640	boost::wrapexcept<boost::bad_lexical_cast>::[0]		rtti	
 5370768752	boost::wrapexcept<boost::uuids::entropy_error>::[0]		rtti	
-5370769056	boost::uuids::entropy_error::[2]		rtti	
+5370769056	NOperativeMissions::CStateBased::GetState		slot	
 5370769840	tbb::internal::function_invoker<CGameStateLoadThreaded>::[1]		rtti	
 5370769872	tbb::internal::function_invoker<CGameStateSaveThreaded>::[1]		rtti	
 5370769904	tbb::internal::function_invoker<CSessionUpdateThreaded>::[1]		rtti	
@@ -1185,7 +1185,7 @@
 5370772480	PdxStd::AEBUsource_location::QEAAXXZ::CGameState::??DailyUpdate…::[3]		rtti	
 5370772736	PdxStd::AEBUsource_location::QEAAXXZ::CGameState::??DailyUpdate…::[5]		rtti	
 5370772976	PdxStd::AEBUsource_location::QEAAXXZ::CGameState::??DailyUpdate…::[7]		rtti	
-5370773600	CGui::[22]		rtti	
+5370773600	NOperativeMissions::CQuietIntelNetwork::GetEstimatedDays		slot	
 5370773616	basic_stringbuf<…>::[3]		rtti	
 5370774112	basic_stringbuf<…>::[4]		rtti	
 5370774208	boost::wrapexcept<boost::bad_lexical_cast>::[1]		rtti	
@@ -1872,7 +1872,7 @@
 5371762000	CSetPortraitEffect::Execute	character_effect_implementation.cpp:2287	slot	character_effect_implementation.cpp:2287,character_effect_implementation.cpp:2294,gamestate.h:1116,gamestate.h:1117,ingameinterfacehandler.h:197
 5371763312	CSupplyUnits::Execute		slot	
 5371763792	CSwapCountryLeaderTraitsEffect::Execute	character_effect_implementation.cpp:1012	slot	character_effect_implementation.cpp:1012,character_effect_implementation.cpp:1034,character_effect_implementation.cpp:1027,character_effect_implementation.cpp:1018
-5371764624	CIcon::[51]		rtti	
+5371764624	CPeaceAction::GetStackedWithDescription		slot	
 5371764672	CAddAttackSkillEffect::GetDesc		slot	
 5371765104	CAddCoordinationSkillEffect::GetDesc		slot	
 5371765536	CAddDefenseSkillEffect::GetDesc		slot	
@@ -18568,13 +18568,13 @@
 5381364752	CArmyLeader::[19]		rtti	
 5381364960	CUnitLeader::[19]		rtti	
 5381365088		unitleader.cpp:5864		unitleader.cpp:5864,gamestate.h:1125,gamestate.h:1126,gamestate.h:1116,gamestate.h:1117,gamestate.h:1125
-5381366592	COperativeLeader::[25]		rtti	
-5381366896	CUnitLeader::[25]		rtti	
+5381366592	COperativeLeader::EndCooldown		slot	
+5381366896	CUnitLeader::EndCooldown		slot	
 5381367072	CArmyLeader::[11]		rtti	
 5381367776	CNavyLeader::[11]		rtti	
 5381368016	COperativeLeader::[11]		rtti	
-5381369296	COperativeLeader::[23]	unitleader.cpp:6372	rtti	gamestate.h:1125,gamestate.h:1126,unitleader.cpp:6372
-5381370032	CUnitLeader::[23]	eventscope.h:193	rtti	
+5381369296	COperativeLeader::DailyUpdate	unitleader.cpp:6372	slot	gamestate.h:1125,gamestate.h:1126,unitleader.cpp:6372
+5381370032	CUnitLeader::DailyUpdate	eventscope.h:193	slot	
 5381374304		unitleader.cpp:1543		pdx_scopedptr.h:124,pdx_scopedptr.h:124,pdx_scopedptr.h:124,pdx_scopedptr.h:124,pdx_scopedptr.h:124,pdx_scopedptr.h:124
 5381376336		gameitemdatabase.h:142		
 5381376640		eventscope.h:193		
@@ -18592,13 +18592,13 @@
 5381392688	CArmyLeader::[20]		rtti	
 5381392832	CNavyLeader::[20]		rtti	
 5381394688		unitleader.cpp:5739		
-5381395600	CArmyLeader::[26]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
-5381396096	CUnitLeader::[26]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
+5381395600	CArmyLeader::GetRemainingCooldownDays	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
+5381396096	CUnitLeader::GetRemainingCooldownDays	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
 5381397568		unitleader.cpp:2043		
 5381398848		pdx_robin_hood_table.h:561		pdx_robin_hood_table.h:561,pdx_robin_hood_table.h:568,pdx_robin_hood_table.h:579
-5381402704	CNavyLeader::[8]		rtti	
-5381402784	COperativeLeader::[8]		rtti	
-5381403072	CUnitLeader::[8]		rtti	
+5381402704	CNavyLeader::UpdateLocalizedName		slot	
+5381402784	COperativeLeader::UpdateLocalizedName		slot	
+5381403072	CUnitLeader::UpdateLocalizedName		slot	
 5381406368		gameitemdatabase.h:142		
 5381411856	CArmyLeader::[16]		rtti	
 5381411968	CNavyLeader::[16]		rtti	
@@ -18627,8 +18627,8 @@
 5381424432	CArmyLeader::Reader	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
 5381425504	CNavyLeader::Reader		slot	
 5381426048	COperativeLeader::Reader		slot	
-5381427104	CArmyLeader::[28]		rtti	
-5381427840	CUnitLeader::[28]		rtti	
+5381427104	CArmyLeader::RecalcSkillBonuses		slot	
+5381427840	CUnitLeader::RecalcSkillBonuses		slot	
 5381428592		pdx_scopedptr.h:134		
 5381433088		eventscope.h:193		
 5381434208		unitleader.cpp:3272		unitleader.cpp:3272,unitleader.cpp:3264
@@ -18642,11 +18642,11 @@
 5381441648		unitleader.cpp:5105		
 5381442240		unitleader.cpp:6637		unitleader.cpp:6637,unitleader.cpp:6643
 5381442672		ref.h:83		
-5381442992	COperativeLeader::[24]	unitleader.cpp:7244	rtti	unitleader.cpp:7244,gamestate.h:1125,gamestate.h:1126,unitleader.cpp:6516,unitleader.cpp:7240
-5381443920	CUnitLeader::[24]	unitleader.cpp:3126	rtti	gamestate.h:1125,gamestate.h:1126,unitleader.cpp:3126
+5381442992	COperativeLeader::SetCooldown	unitleader.cpp:7244	slot	unitleader.cpp:7244,gamestate.h:1125,gamestate.h:1126,unitleader.cpp:6516,unitleader.cpp:7240
+5381443920	CUnitLeader::SetCooldown	unitleader.cpp:3126	slot	gamestate.h:1125,gamestate.h:1126,unitleader.cpp:3126
 5381444528		unitleader.cpp:5213		
-5381444832	COperativeLeader::[21]		rtti	
-5381444976	CUnitLeader::[21]		rtti	
+5381444832	COperativeLeader::SetOwnerCountry		slot	
+5381444976	CUnitLeader::SetOwnerCountry		slot	
 5381444992		unitleader.cpp:4450		
 5381445296		unitleader.cpp:5141		
 5381446448		ref.h:83		ref.h:83,gamestate.h:1116,gamestate.h:1117
@@ -26913,22 +26913,22 @@
 5390832688	CPeaceAction::[0]		rtti	
 5390832752	CPuppetCountryAction::[0]		rtti	
 5390832816	CTakeStateAction::[0]		rtti	
-5390832880	CLiberateCountryAction::[34]		rtti	
-5390833040	CPeaceAction::[34]		rtti	
-5390833056	CTakeStateAction::[34]		rtti	
-5390833216	CTakeStateAction::[21]		rtti	
-5390833264	CTakeNavyPeaceAction::[21]		rtti	
-5390833472	Execute		slot	
-5390833536	CLiberateCountryAction::Execute	peaceactions.cpp:811	slot	
-5390833808	CStatePeaceAction::Execute	peaceactions.cpp:401	slot	peaceactions.cpp:401,peaceactions.cpp:402,peaceactions.cpp:403,peaceactions.cpp:405,peaceactions.cpp:416
-5390834688	CTakeNavyPeaceAction::Execute	peaceactions.cpp:1351	slot	peaceactions.cpp:1351,peaceactions.cpp:1352,peaceactions.cpp:1353,peaceactions.cpp:1363
+5390832880	CLiberateCountryAction::IsOverlappingAction		slot	
+5390833040	CPeaceAction::IsOverlappingAction		slot	
+5390833056	CTakeStateAction::IsOverlappingAction		slot	
+5390833216	CStatePeaceAction::GetBaseValue		slot	
+5390833264	CTakeNavyPeaceAction::GetBaseValue		slot	
+5390833472	GetCost		slot	
+5390833536	CLiberateCountryAction::GetCost	peaceactions.cpp:811	slot	
+5390833808	CStatePeaceAction::GetCost	peaceactions.cpp:401	slot	peaceactions.cpp:401,peaceactions.cpp:402,peaceactions.cpp:403,peaceactions.cpp:405,peaceactions.cpp:416
+5390834688	CTakeNavyPeaceAction::GetCost	peaceactions.cpp:1351	slot	peaceactions.cpp:1351,peaceactions.cpp:1352,peaceactions.cpp:1353,peaceactions.cpp:1363
 5390835920	CForceGovernmentAction::GetActionLabel		slot	
 5390836048	CLiberateCountryAction::GetActionLabel		slot	
 5390836160	CPeaceAction::GetActionLabel		slot	
 5390836192	CPuppetCountryAction::GetActionLabel		slot	
 5390836864	CTakeNavyPeaceAction::GetActionLabel		slot	
 5390836912	CTakeStateAction::GetActionLabel		slot	
-5390837040	CTakeStateAction::[32]		rtti	
+5390837040	CStatePeaceAction::AddStackableType		slot	
 5390839168	CForceGovernmentAction::[24]		rtti	
 5390839488	CLiberateCountryAction::[24]		rtti	
 5390839792	CPuppetCountryAction::[24]		rtti	
@@ -26940,38 +26940,38 @@
 5390841696	CTakeNavyPeaceAction::Clone		slot	
 5390841856	CTakeStateAction::Clone		slot	
 5390841952		peaceactions.cpp:309		
-5390842768	CTakeStateAction::[29]		rtti	
-5390842928	CTakeStateAction::[28]		rtti	
-5390843008	CPuppetCountryAction::[26]		rtti	
-5390843136	CPeaceAction::[26]		rtti	
-5390843200	CTakeStateAction::[26]		rtti	
-5390843296	CTakeNavyPeaceAction::[26]		rtti	
-5390843392	CForceGovernmentAction::[11]		rtti	
-5390844576	CLiberateCountryAction::[11]		rtti	
-5390846688	CPuppetCountryAction::[11]		rtti	
-5390848816	CTakeNavyPeaceAction::[11]		rtti	
-5390850528	CTakeStateAction::[11]		rtti	
+5390842768	CStatePeaceAction::IsTargetingAnyState		slot	
+5390842928	CStatePeaceAction::IsTargetingState		slot	
+5390843008	IsSameAction		slot	
+5390843136	CPeaceAction::IsSameAction		slot	
+5390843200	CStatePeaceAction::IsSameAction		slot	
+5390843296	CTakeNavyPeaceAction::IsSameAction		slot	
+5390843392	CForceGovernmentAction::GetDisplayName		slot	
+5390844576	CLiberateCountryAction::GetDisplayName		slot	
+5390846688	CPuppetCountryAction::GetDisplayName		slot	
+5390848816	CTakeNavyPeaceAction::GetDisplayName		slot	
+5390850528	CTakeStateAction::GetDisplayName		slot	
 5390851328	CPuppetCountryAction::[16]		rtti	
 5390851344	CPeaceAction::[17]		rtti	
-5390851360	CForceGovernmentAction::[12]		rtti	
-5390851712	CLiberateCountryAction::[12]		rtti	
-5390852064	CPuppetCountryAction::[12]		rtti	
-5390852416	CTakeNavyPeaceAction::[12]		rtti	
-5390853120	CTakeStateAction::[12]		rtti	
-5390853808	CTakeStateAction::[13]		rtti	
-5390853872	CTakeStateAction::[14]		rtti	
+5390851360	CForceGovernmentAction::GetDescription		slot	
+5390851712	CLiberateCountryAction::GetDescription		slot	
+5390852064	CPuppetCountryAction::GetDescription		slot	
+5390852416	CTakeNavyPeaceAction::GetDescription		slot	
+5390853120	CTakeStateAction::GetDescription		slot	
+5390853808	CStatePeaceAction::GetStackedWithDescription		slot	
+5390853872	CStatePeaceAction::GetStackedWithDescription		slot	
 5390853904		peaceactions.cpp:372		gamestate.h:1125,gamestate.h:1126,peaceactions.cpp:372
-5390854304	CStatePeaceAction::GetStateName		slot	
-5390854352	CTakeNavyPeaceAction::GetStateName		slot	
+5390854304	CStatePeaceAction::GetTargetName		slot	
+5390854352	CTakeNavyPeaceAction::GetTargetName		slot	
 5390854640	CPeaceAction::[16]		rtti	
-5390854656	CTakeStateAction::[22]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
+5390854656	CStatePeaceAction::RightClickGotoState	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
 5390855216		peaceactions.cpp:0		
-5390855376	CForceGovernmentAction::[19]	peaceactions.cpp:1104	rtti	
-5390855680	CLiberateCountryAction::[19]	peaceactions.cpp:779	rtti	
-5390856080	CPuppetCountryAction::[19]	peaceactions.cpp:933	rtti	
-5390856560	CTakeNavyPeaceAction::[19]		rtti	
-5390856736	CTakeStateAction::[19]	peaceactions.cpp:627	rtti	
-5390856944	CTakeStateAction::[23]	gamestate.h:1125	rtti	gamestate.h:1125,gamestate.h:1126
+5390855376	CForceGovernmentAction::IsValid	peaceactions.cpp:1104	slot	
+5390855680	CLiberateCountryAction::IsValid	peaceactions.cpp:779	slot	
+5390856080	CPuppetCountryAction::IsValid	peaceactions.cpp:933	slot	
+5390856560	CTakeNavyPeaceAction::IsValid		slot	
+5390856736	CTakeStateAction::IsValid	peaceactions.cpp:627	slot	
+5390856944	CStatePeaceAction::GotoState	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
 5390857296	CStatePeaceAction::IsSameTarget		slot	
 5390857376	CTakeNavyPeaceAction::IsSameTarget		slot	
 5390857536	Reader		slot	
@@ -26979,9 +26979,9 @@
 5390858048	CPeaceAction::Reader		slot	
 5390858832	CStatePeaceAction::Reader		slot	
 5390858944	CTakeNavyPeaceAction::Reader	peaceactions.cpp:1233	slot	
-5390859408	CTakeStateAction::[33]		rtti	
+5390859408	CStatePeaceAction::UpdateCachedCost		slot	
 5390859728		peaceactions.cpp:110		
-5390859920	CTakeStateAction::[31]	peaceactions.cpp:73	rtti	
+5390859920	CStatePeaceAction::IsStackableType	peaceactions.cpp:73	slot	
 5390860176	Writer		slot	
 5390860240	CLiberateCountryAction::Writer		slot	
 5390860304	CPeaceAction::Writer		slot	
@@ -31969,27 +31969,27 @@
 5395256272		ref.h:83		
 5395258496	NFactions::CFactionTheaterManager::Writer		slot	
 5395260912	NOperativeMissions::CBoostIdeology::[0]		rtti	
-5395261552	NOperativeMissions::CBoostIdeology::[17]		rtti	
-5395261648	NOperativeMissions::CBoostIdeology::[20]		rtti	
-5395261792	NOperativeMissions::CBoostIdeology::[13]		rtti	
-5395261984	NOperativeMissions::CBoostIdeology::[12]		rtti	
-5395262128	NOperativeMissions::CBoostIdeology::[15]		rtti	
-5395263680	NOperativeMissions::CBoostIdeology::[14]		rtti	
+5395261552	NOperativeMissions::CBoostIdeology::GetMissionData		slot	
+5395261648	NOperativeMissions::CBoostIdeology::Clone		slot	
+5395261792	NOperativeMissions::CBoostIdeology::GetEfficiency		slot	
+5395261984	NOperativeMissions::CBoostIdeology::GetProgress		slot	
+5395262128	NOperativeMissions::CBoostIdeology::GetTooltip		slot	
+5395263680	NOperativeMissions::CBoostIdeology::GetEstimatedDays		slot	
 5395264416	NOperativeMissions::CPropaganda::[11]		rtti	
-5395264448	NOperativeMissions::CBoostIdeology::[8]		rtti	
-5395266224	NOperativeMissions::CBoostIdeology::[18]		rtti	
+5395264448	Register		slot	
+5395266224	NOperativeMissions::CBoostIdeology::IsValid		slot	
 5395266352	NOperativeMissions::CBoostIdeology::Reader	gameitemdatabase.h:142	slot	
 5395266816	NOperativeMissions::CBoostIdeology::Writer		slot	
 5395268608	NOperativeMissions::CBuildIntelNetwork::[0]		rtti	
-5395269168	NOperativeMissions::CBuildIntelNetwork::[17]		rtti	
-5395269200	NOperativeMissions::CBuildIntelNetwork::[20]		rtti	
-5395269328	NOperativeMissions::CBuildIntelNetwork::[13]		rtti	
-5395269504	NOperativeMissions::CBuildIntelNetwork::[12]		rtti	
-5395269712	NOperativeMissions::CBuildIntelNetwork::[15]		rtti	
-5395271264	NOperativeMissions::CBuildIntelNetwork::[14]		rtti	
+5395269168	NOperativeMissions::CBuildIntelNetwork::GetMissionData		slot	
+5395269200	NOperativeMissions::CBuildIntelNetwork::Clone		slot	
+5395269328	NOperativeMissions::CBuildIntelNetwork::GetEfficiency		slot	
+5395269504	NOperativeMissions::CBuildIntelNetwork::GetProgress		slot	
+5395269712	NOperativeMissions::CBuildIntelNetwork::GetTooltip		slot	
+5395271264	NOperativeMissions::CBuildIntelNetwork::GetEstimatedDays		slot	
 5395272480		gamestate.h:1125		gamestate.h:1125,gamestate.h:1126
 5395272992	NOperativeMissions::CBuildIntelNetwork::[11]		rtti	
-5395273888	NOperativeMissions::CBuildIntelNetwork::[18]		rtti	
+5395273888	NOperativeMissions::CBuildIntelNetwork::IsValid		slot	
 5395274848	NOperativeMissions::CControlTrade::[0]		rtti	
 5395274944	NOperativeMissions::CControlTrade::[17]		rtti	
 5395275440		gamestate.h:1125		gamestate.h:1125,gamestate.h:1126
@@ -32016,9 +32016,9 @@
 5395290160	NOperativeMissions::CDiplomaticPressure::[14]		rtti	
 5395291200	NOperativeMissions::CDiplomaticPressure::[18]		rtti	
 5395291584	NOperativeMissions::CQuietIntelNetwork::[0]		rtti	
-5395291632	NOperativeMissions::CQuietIntelNetwork::[17]		rtti	
-5395291664	NOperativeMissions::CQuietIntelNetwork::[20]		rtti	
-5395291776	NOperativeMissions::CQuietIntelNetwork::[15]		rtti	
+5395291632	NOperativeMissions::CQuietIntelNetwork::GetMissionData		slot	
+5395291664	NOperativeMissions::CQuietIntelNetwork::Clone		slot	
+5395291776	NOperativeMissions::CQuietIntelNetwork::GetTooltip		slot	
 5395292560	CQuietIntelNetwork::GetProvincesInRangeOfState?	gamestate.h:1125	sym	gamestate.h:1125,gamestate.h:1126
 5395294464	CQuietIntelNetwork::GetProvincesInRangeOfState?		sym	
 5395294560	CQuietIntelNetwork::GetProvincesInRangeOfState::lambda_1		sym	
@@ -32028,14 +32028,14 @@
 5395294960	XAEBUSIntelNetworkNodeDesc::Z::_Func_impl_no_alloc<…>::[3]		rtti	
 5395294976	std::U8::_NAEBUSIntelNetworkNodeDesc::Z::_Func_impl_no_alloc<…>::[3]		rtti	
 5395295088	NOperativeMissions::CRootOutResistance::[0]		rtti	
-5395295136	NOperativeMissions::CRootOutResistance::[17]		rtti	
+5395295136	NOperativeMissions::CRootOutResistance::GetMissionData		slot	
 5395295168		gamestate.h:1125		gamestate.h:1125,gamestate.h:1126
-5395295888	NOperativeMissions::CRootOutResistance::[20]		rtti	
-5395296000	NOperativeMissions::CRootOutResistance::[13]		rtti	
-5395296192	NOperativeMissions::CRootOutResistance::[15]		rtti	
-5395297856	NOperativeMissions::CRootOutResistance::[14]		rtti	
+5395295888	NOperativeMissions::CRootOutResistance::Clone		slot	
+5395296000	NOperativeMissions::CRootOutResistance::GetEfficiency		slot	
+5395296192	NOperativeMissions::CRootOutResistance::GetTooltip		slot	
+5395297856	NOperativeMissions::CRootOutResistance::GetEstimatedDays		slot	
 5395299168		gamestate.h:1125		gamestate.h:1125,gamestate.h:1126
-5395301168	NOperativeMissions::CRootOutResistance::[18]		rtti	
+5395301168	NOperativeMissions::CRootOutResistance::IsValid		slot	
 5395304800	CRaidTargetManager::EvaluateStateTargets?	gamestate.h:1116	sym	gamestate.h:1116,gamestate.h:1117
 5395305568		pdx_parser.h:1203		pdx_parser.h:1203,pdx_parser.h:1209
 5395306145	CRaidTargetManager::EvaluateStateTargets?		sym	
@@ -32696,14 +32696,14 @@
 5395833648	CDominanceValues::Reader		slot	
 5395833840	CDominanceValues::Writer		slot	
 5395836112	NOperativeMissions::CPropaganda::[0]		rtti	
-5395836208	NOperativeMissions::CPropaganda::[17]		rtti	
-5395836848	NOperativeMissions::CPropaganda::[20]		rtti	
-5395836976	NOperativeMissions::CPropaganda::[13]		rtti	
-5395837200	NOperativeMissions::CPropaganda::[12]		rtti	
-5395837440	NOperativeMissions::CPropaganda::[15]		rtti	
-5395839616	NOperativeMissions::CPropaganda::[14]		rtti	
-5395841136	NOperativeMissions::CPropaganda::[8]		rtti	
-5395841824	NOperativeMissions::CPropaganda::[18]		rtti	
+5395836208	NOperativeMissions::CPropaganda::GetMissionData		slot	
+5395836848	NOperativeMissions::CPropaganda::Clone		slot	
+5395836976	NOperativeMissions::CPropaganda::GetEfficiency		slot	
+5395837200	NOperativeMissions::CPropaganda::GetProgress		slot	
+5395837440	NOperativeMissions::CPropaganda::GetTooltip		slot	
+5395839616	NOperativeMissions::CPropaganda::GetEstimatedDays		slot	
+5395841136	NOperativeMissions::CPropaganda::Register		slot	
+5395841824	NOperativeMissions::CPropaganda::IsValid		slot	
 5395842096		gameitemdatabase.h:142		
 5395844352		gamestate.h:1125		gamestate.h:1125,gamestate.h:1126
 5395850000		gamestate.h:1125		gamestate.h:1125,gamestate.h:1126
@@ -33110,10 +33110,10 @@
 5396166016	CConfirmAssignUnitsToFront::Update		slot	
 5396166544	CBuildingProductionLine::[11]		rtti	
 5396167184		ref.h:83		ref.h:83,ref.h:83
-5396174064	NOperativeMissions::CStateBased::[10]		rtti	
+5396174064	NOperativeMissions::CStateBased::GetTag		slot	
 5396174080	NOperativeMissions::CStateBased::Reader	gamestate.h:1125	slot	gamestate.h:1125,gamestate.h:1126
 5396174912	NOperativeMissions::CStateBased::Writer		slot	
-5396175088	NOperativeMissions::CPropaganda::[16]		rtti	
+5396175088	NOperativeMissions::CNetworkBased::GetDetectionChance		slot	
 5396178656	NOperativeMissions::CCountryBased::[16]		rtti	
 5396179040	NOperativeMissions::CCountryBased::[9]		rtti	
 5396179088	NOperativeMissions::CCountryBased::Reader		slot	

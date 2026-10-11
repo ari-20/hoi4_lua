@@ -68,7 +68,7 @@ gs+1864 = **region 数组计数** (BHU 3,789), 非省数 (定案)。
 |---|---|---|---|
 | +0 | vtable | 0X2999050 (CBuildingStatus::vftable, dtor 直读) | |
 | +8 | CBuildingListener 向量 | 32B 条数组 {data@+8, cap@+16, count@+20, alloc@+24} (**元素 = 建筑监听者登记条目, 类族 CBuildingListener** — RTTI 直证 vtable 0x142A206C0; 元素 ctor sub_141171A60, +16 挂 `CPdxHybridInlineBufferAllocator<CBuildingListener*,128,int>` (sub_141171D70); push sub_141179150; 销毁 sub_141171BA0) | 定案 |
-| +32 | uint32 向量 24B | **def→槽 index 重映射** {data@+32, cap@+40, count@+44, alloc@+48} — u32 槽号或 −1, 按 building def+736 索引 | find-or-add sub_141172EB0 |
+| +32 | uint32 向量 24B | **def→槽 index 重映射** {data@+32, cap@+40, count@+44, alloc@+48} — u32 槽号或 −1, 按 building def+736 索引 | find-or-add sub_141172EB0 (函数体实证: def+32 有效旗门 → sub_1414BAFE0 类别旗比对 → 查 +32 重映射槽 → 缺则 malloc(0x1F0)+ctor sub_1410DAB40+追加 +56 数组 (1.5×) → 返 CBuilding*) |
 | +56 | 匿名结构 (NNB 形状) 向量 24B | **CBuilding\* 元素数组** {data@+56, cap@+64, count@+68, alloc@+72} | |
 | +80 | 匿名结构 (NNB 形状) 向量 24B | **建筑修正来源数组** {data@+80, cap@+88, count@+92, alloc@+96} — 8B CBuilding\* 元 (= prov+480/+492; 州修正重建 sub_1409D54A0 逐元取 CBuilding+88 CModifier 入州 +1544 块) | 定案; **GUI: 建筑修正图标来源** (sub_14174C6F0 省侧分支 → building_modifiers_ico) |
 | +104 | uint32 | **类别旗位掩码** (= prov+504; ctor 置 5 = bit0\|bit2) | 位语义见下二表; 定案 (探针 50 样本 + 三函数直读) |
@@ -111,7 +111,7 @@ ctor sub_1410DAB40; writer 0X1410DCCA0 (修速块 + 主 writer)。
 | +480 | CProvinceBuildingItem* | building def 回指 (ctor a3) | | 定案 |
 | +488 | uint16 | 待加等级计数 (AddBuildings `+= WORD2(条)`) | | 高置信 |
 
-SetLevel = sub_1410DC4E0 (CBuilding::SetLevel, 中央级变通知器, 定案):
+SetLevel = sub_1410DC4E0 (CBuilding::SetLevel, 签名 char (CBuilding*, **i16** level, **u8 a3**); 中央级变通知器, 定案; a3 语义未决 — 供应节点装载器传 0 (§4.21.1a-4)):
 building.cpp:138 负值/145 超上限/151 陆锁港三断言; 写 +64, healthy 调整 (升
 +Δ; 降 min(healthy,new), 相等清 +72 partial_health) → sub_1410DC1C0 重建双
 CModifier (pairs +104/+296 ← def+288/def+96 × healthy) → sub_14195F510 (gs 槽[126]
@@ -366,7 +366,7 @@ grain = count/16) ⑤ InitPerPixelWeights sub_140A61F80 (**CInitMapPerPixelWeigh
 ("Straits reloaded") — **不含位图邻接重建**, desc+112 底表不重建, 重复 reload 靠
 sub_14140A360 查重免复制; `reload terrain` = sub_140A644C0 (位图重建, 非簇)。
 
-**GenerateBoundingBoxes 要点**: 像素源 = CMap+2096 聚合 +24 (u16/像素, 行主序; ⚠ **值域待裁**: §4.35 军令线总入口 sub_141258D30 单省支直接把该表值与**省 id** 比较 (== a5 首省 id), 与本处「权重表 + 经 CMap+616 二次取省」两读法冲突 — 两读法兼容当且仅当表值即省 id; 若为紧凑权重下标则军令线读法需改述为先转省, 待裁), 宽高
+**GenerateBoundingBoxes 要点**: 像素源 = CMap+2096 聚合 +24 (u16/像素, 行主序; ⚠ **值域待裁**: §4.35 军令线总入口 sub_141258D30 单省支直接把该表值与**省 id** 比较 (== a5 首省 id), 与本处「权重表 + 经 CMap+616 二次取省」两读法冲突 — 两读法兼容当且仅当表值即省 id; 若为紧凑权重下标则军令线读法需改述为先转省, 待裁; **df400 再证倾向「值即省 id」**: 建筑实例创建器 sub_14166FBA0 把权重表值直接当省 id 喂 sub_1416760F0(mgr, prov_id, x, z) — 与同函喂省图形记录+196 真·省 id 同参位, 若表值为下标则本处语义崩塌), 宽高
 @+48/+52; 行程表 desc+88 6B 元 {x,y,len} u16×3 (1.5× 增长); X 环绕修正落 bbox。诊断三级
 (门 = byte_14332EC69 = 启动选项 debug/crash_data_log): :1820 无像素 / :1830 bbox 宽或高
 ≥ ⅛ 地图 (环绕疑似) / :1842 Σrun ≤ MINIMUM_PROVINCE_SIZE_IN_PIXELS (dword_143331798)
@@ -537,3 +537,104 @@ CTerrainDatabase (单例 qword_14332F0A8, §4.26.8) 本 pass 读侧:
 #### 4.14.xb 友方控制省图 BFS 距离查询 (1 函 = 0x140BE4370, 高置信)
 
 0x140BE4370: gs+700 省数铺 visited; gs+8 vtable2 槽[1] 取省; 邻接 {data@+112, 48B/条: 邻 id@+8 (书已名)、类型 u8@+16 ≠4 过滤} (省静态描述符 §4.3:227 挂点); 通行谓词 = controller(+392) → sub_140700600 (tag/索引同源); 返回 {省id<<32 | 深度}, 未达 {−1, dword_143332E24 (= COMMS_MAX_DISTANCE 复用)}; 唯一调用者 sub_140BEB640 取距离写宿主 +460。
+
+#### 4.14.12 CProvince 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E79250 | （未命名）CProvince::vftable 赋值 + 析构链 CProvince::vftable 赋值 + 析构链（CProvince 析构） |
+
+#### 4.14.13 CProvince 域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14102BEC0 | （无名，按上游/loc 定性） gamestate.h:1125 断言 |
+| 0x140309F10 | vtable/RTTI 类 CProvinceEffect sub_140309F10 + vtable/RTTI 类 CProvinceEffect; 被 CEffectEntry<CAddStaticProvinceModifierEffect>::[1] 等 2 命名函数调用 |
+
+#### 4.14.14 CProvince 域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E7EDF0 | CProvince::[3] vtable 槽 CProvince::[3]（func_names RTTI 名） |
+| 0x140E794B0 | CProvince::[0] vtable 槽 CProvince::[0]（func_names RTTI 名） |
+| 0x140E794A0 | CProvince::[0] vtable 槽 CProvince::[0]（func_names RTTI 名） |
+
+#### 4.14.15 CProvince 域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.14.16 CProvince 域函数补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141599D10 | （无名） 调用图传播: 6 锚点投 §4.14（67%） |
+| 0x1412FC7A0 | （无名） 调用图传播: 2 锚点投 §4.14（50%） |
+| 0x1414C33D0 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+| 0x141176CB0 | （无名） 调用图传播: 3 锚点投 §4.14（67%） |
+| 0x140E2AB80 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+| 0x140E2AC60 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+| 0x141172240 | （无名） 调用图传播: 2 锚点投 §4.14（50%） |
+| 0x140CF5340 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+| 0x1411790C0 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+| 0x1409DF390 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+| 0x1411793D0 | （无名） 调用图传播: 2 锚点投 §4.14（50%） |
+| 0x141175A10 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+
+#### 4.14.17 CProvince 域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1410DB680 | （无名） 调用图传播: 6 锚点投 §4.14（50%） |
+| 0x140ABCA70 | （无名） 调用图传播: 3 锚点投 §4.14（67%） |
+
+#### 4.14.18 CProvince 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14174C2C0 | 无名 · "GFX_strategic_location_" 战略位置图标键 "GFX_strategic_location_" 战略位置图标键 |
+
+#### 4.14.19 CProvince 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419EAAA0 | CPdxHybridInlineBufferAllocator（vtable 槽/管理器） VT CPdxHybridInlineBufferAllocator<CStrategicRegion const*,16,int>（战略区缓冲分配） |
+
+#### 4.14.20 CProvince 域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414BDCD0 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+| 0x1414C0630 | （无名） 调用图传播: 3 锚点投 §4.14（100%） |
+
+#### 4.14.21 CProvince 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414BD290 | （无名） 调用图传播: 2 锚点投 §4.14（100%） |
+
+#### 4.14.22 CProvince 域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14144DF20 | 无名 sub_（断言站点/串定位） 串字面量 "HISTORY_PROVINCE_LIST_TWO_ITEMS" |
+| 0x140339F90 | 无名 sub_（断言站点/串定位） 串字面量 "Province is Impassible" |
+| 0x141A96370 | 无名 sub_（断言站点/串定位） 串字面量 "Province" |
+| 0x1418CB360 | 无名 sub_（断言站点/串定位） 串字面量 "province_required_rule" |
+| 0x141290800 | 无名 sub_（断言站点/串定位） 断言站点 provincegraphics.cpp:2650 |
+| 0x141A97260 | 无名 sub_（断言站点/串定位） 断言站点 province_text.cpp:42 |
+
+#### 4.14.23 CProvince 域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412575A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.14 |
+| 0x140E2A7C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.14 |
+| 0x141234A50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.14 |
+| 0x141174FF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.14 |
+
+#### 4.14.24 CProvince 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B547E0 | 未决窗口函数 · 地图模式绘制 串 "Painting with " + CONST 256/16440，地图绘制模式 |

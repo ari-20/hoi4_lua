@@ -388,7 +388,7 @@ request 行的发射主体 = **CArmyUpgradesRequests::CUpgradeRequestPersister**
 |---|---|---|---|
 | +24 | — | id 对.type | writer 体内不发射 (id 机制层序列化) |
 | +28 | — | id 对.id | 同上 |
-| +29..+95 | — | = id 对尾 3B + **CReferenceObject 簿记 u8@+32** + **CSupplyConsumer u32@+40** (0) + **motorization@+45 / 伴生 byte@+46 (=1)** + 三定点 100000 @+48/+56/+64 + **+72 = sub_1424EF6F0(100000)** + +80=100000 + qword 零 @+88/+96/+104 + 容器@96 头 (子对象 ctor sub_140BF8700, 基 = raw+16) | |
+| +29..+95 | — | = id 对尾 3B + **CReferenceObject 簿记 u8@+32** + **CSupplyConsumer u32@+40** (0) + **motorization@+45 / 伴生 byte@+46 (=1; sub_140DF6D30 = **可增援谓词** (返 false = 被围/断补; §4.00.57 整编弹窗据此计被围单位数 + 发 CONFIRMCONSOLIDATEUNITSAREENCIRCLED 告警); ⚠ 待裁: +46 写者未定位 — 若 ctor 置 1 后无写者置 0, 则该函数长路 (省+208 与指挥链比对 + 请求列表扫描) 永为死代码)** + 三定点 100000 @+48/+56/+64 + **+72 = sub_1424EF6F0(100000)** + +80=100000 + qword 零 @+88/+96/+104 + 容器@96 头 (子对象 ctor sub_140BF8700, 基 = raw+16) | |
 | +96 | 匿名结构 (NNB 形状) | **CSupplyConsumer 内嵌域 (consumer+80) = _DistributedSupplyInfo 分配记账表** — 48B 元 (键 u32@+0 有序二分插入, 回指@+8, 累加点 +16/+24/+32; supply_consumer.cpp:167 断言; 插入 sub_141A0ACF0 / 累加 sub_141A0AFB0) | 定案 |
 | +113..+231 | — | = 容器@96 尾 (113..119) + qword 零区 +120..+183 + **CUnit 子对象 vftable@+184** (COrdersGroupMember 视口, vtable 0x142953320) + +192..+231 (40B, CUnit 子对象前段; **+192 = _pOrdersGroup** = member+8 拥有者军群回指, 写入 COrdersGroup reader sub_140BF30A0 `*(unit+192)=this` RTDynamicCast CUnit 链定案) | |
 | +232 | 匿名结构 (元素待裁) 向量 | **死字段 (负定案)** — 四vtable全扫 + 双坐标穷举零命中 | |
@@ -514,7 +514,7 @@ writer 0X140BA6A40; vtable 0x14294F560 (RTTI: CPersistent 直接派生); ctor 0X
 | +320 | 匿名结构 (16B 形状) | forbidden_equipment_types | 块 19946 (0x4DCA), 门 计数≠0, 元素 ADFE0(19015, u32@obj+8); **GUI: 装备类别过滤** (reset_equipment_categories_filter_button 群 × D+180 可用性校验 cc+3952 → EQUIPMENT_CATEGORIES_DESC) |
 | +321..+367 | — | = 容器 {d@320, cap@328, c@332, alloc@336} + 容器 {d@344, cap@352, c@356, alloc@360} 两个 24B 容器全体 | |
 | +368 | 8B idpair {A@+368, B@+372} | [名未定; ctor 零; objects 层未消费] | 块 135 (0x87) + 0X142220180, 门 A≠0 ∨ B≠0 |
-| +369..+395 | — | = idpair@368 (qword_14333D528 初值) 尾 + **u32=0@376 + qword=0@384 + u32=0@392** (ctor 置零) | |
+| +369..+395 | — | = idpair@368 (qword_14333D528 初值) 尾 + **u32@376 = 模板目标人力 (ctor 置零, 运行期缓存, 不序列化; 消费点 = GetMaxAdditionalLines 每行人力公式与 CalculateActiveUnitStats 的 100000×*(模板+376); 整编预览侧应编值, §4.00.57)** + qword=0@384 + u32=0@392 (ctor 置零) | |
 | +396 | uint32 (存档 i32 形, 0xFFFFFFFF→−1) | priority | 恒写 (ADFE0 u32 通道收有符号值, −1→0xFFFFFFFF 原样出字节); tok 141 (0x8D) — ⚠ 与 template_counter (+424) 同形勿混; **GUI: 优先级按钮 0..3** (sub_14168DF80, clamp dword_143337338 → TEMPLATE_PRIO_0..2(_DESC)) |
 | +397..+423 | — | = priority@396 尾 + **+400 惰性缓存指针 (qword; 运行时-only, ctor 零/writer 不触) + qword 零 @408/@416** (ctor; +400 首格缓存: getter sub_140B9F5C0 = 为 0 时取 regiments 网格 (+72) 第 (0,0) 格, 网格空 → Null Object 单例 qword_14333A210 [null_object.h]) | +400 = 首格缓存 (定案读法/推定语义) |
 | +424 | int32 | template_counter (ctor = −1) | 恒写; tok 13549 (0x34ED) |
@@ -604,7 +604,7 @@ GUI 条目类:
 | +280 | CCountry* | **owner 母国指针** | 供师上限 SF cap 修正读 (cc+1464) 与国师列表 (sub_1406EB770) 双证 | §4.18.22 |
 | +192..+239 | — | = **情报估计三元组 ×2** (sub_140D14010 每日重算: 遍历 cc+656 全师对 *(师+312)+664 / +672 两统计量各算 min/max/avg, 零值师半权; **A = armor (+664) / B = piercing (+672) 定案** — 齐射乘数守卫链直证: PIERCING 乘数档除数 = 目标装甲, 装甲=0 守卫 ×1.0 ⇒ +664=装甲/+672=穿甲): {+192 min, +200 max, +208 avg}ₐ {+216 min, +224 max, +232 avg}ᵦ, 空军 → 0xFFFFFFFF; **值为直读非指针** (sub_1414318B0 读 +200 max, sub_14142FD80 读 +208 avg) | 定案 | §4.32.2 |
 | +240 | CEquipmentArcheTypePool* 向量 | initial_carrier_air_wing_deployment | **CEquipmentArcheTypePool 32B (ctor sub_14100C630)** {vtable@240, 容器@248 {d@248, cap@256, c@260, alloc@264}} (writer 键 13691); 消费 sub_141980140 = 同模板已排产行数 (add_limit 上限, >9 显 MORE_THAN_NINE) | |
-| +272 | 上下文指针 | 部署限制触发器上下文 | 启动上限检查 sub_141980310 / daily 停线复检 sub_14197FF50 / GUI 同模板计数 sub_141980140 三消费 (定案) | §4.18.14 |
+| +272 | 上下文指针 | 部署限制触发器上下文 | 启动上限检查 sub_141980310 / daily 停线复检 sub_14197FF50 / GUI 同模板计数 sub_141980140 三消费 (定案); 另经 sub_140D11820 懒取后交 sub_141980510 按 (活数据, 草稿) 查部署条目 (§4.30.2b) — 「限制触发器上下文」与「部署模板表」两读法待裁 | §4.18.14 |
 | +280 | CCountry* | 国家回指 | 全域 `*(dep+280)` 消费 (定案) | |
 
 其余区域 = 未序列化运行时容器群 (上列 #2/#4/#5/#6 与 +56 map 之外无其他容器; 对拍工具链不消费)。
@@ -1016,7 +1016,7 @@ ps+512 库存三处同型 (定案)。army+72 = 交付总时长缓存 (init −10
 探针定案: DR0 watch 2.5 游戏年零命中, 强制重建/交付直调零命中, 师链
 (ctor/重建/请求填充/交付/人力/进度/注册/日步门) 静态全链 0 写点; 写点疑在
 师部署/新建一次性计算, 未定位)。CDivisionTemplateData+264 = 装备
-需求表 need map {data@d+272, count@d+284}, 16B 元 {CEquipmentVariant*,
+需求表 need map {data@d+272, count@d+284}, 16B 元 {**CEquipmentType* (archetype)**,
 amount i64} (定案)。
 
 #### 4.18.17 师计划加成（planning）积累与消耗链
@@ -1060,7 +1060,7 @@ XP_GAIN_PER_OVERRUN_UNIT; §4.4.22 行已同步订正）。链增补: +1072 经�
 | 训练级 | — | = +1072/(1e5×师数) 按 UNIT_EXP_LEVELS 阈值表数级 | 定案 |
 
 
-#### 4.18.19 CSubUnitDefinition 全字段表 (1656B=0x678; 主 vtable 0x142789E08; Save 槽[1] = 断言桩 "Not Implemented." subunitdefinition.cpp:517 → **def 不落存档**; reader = 槽[4] sub_14101E130 38 键 (未命中键下传统计通道 sub_14142CE60 14 键 → stat 键表 sub_1413E75F0 60 token → 地形 DB 线性回退 (键集开放, 跟随 terrain DB, mod 自定义地形自动支持) → 皆未命中 sub_1424C2060 报错 "Unexpected token"); 槽[7] sub_14101C180 = 载入后校验/回填; ctor sub_141018B30 类别播种 / sub_141018080 名串; 定义库单例 qword_14332F090, 装载 = common/units 递归 per-entry malloc(0x678) → sub_141018080(名串,索引) → vtable[3] 基址直调 Load; 热重载按 +1420 DB 母本索引保位克隆覆盖)
+#### 4.18.19 CSubUnitDefinition 全字段表 (1656B=0x678; 主 vtable 0x142789E08; Save 槽[1] = 断言桩 "Not Implemented." subunitdefinition.cpp:517 → **def 不落存档**; reader = 槽[4] sub_14101E130 38 键 (未命中键下传统计通道 sub_14142CE60 14 键 → stat 键表 sub_1413E75F0 60 token → 地形 DB 线性回退 (键集开放, 跟随 terrain DB, mod 自定义地形自动支持) → 皆未命中 sub_1424C2060 报错 "Unexpected token"); 槽[7] sub_14101C180 = 载入后校验/回填; ctor sub_141018B30 类别播种 / sub_141018080 名串; 定义库单例 qword_14332F090, 装载 = common/units 递归 per-entry malloc(0x678) → sub_141018080(名串,索引) → vtable[3] 基址直调 Load; 热重载按 +1420 DB 母本索引保位克隆覆盖; **token→名串通用件 sub_1424BC260** = 静态名库 qword_1435E1AE0 (32B 条目, 界 dword_1435E1AB4, 锁 byte_1435E1AB0) — 与库单例 qword_14332F090 分属两表 (§4.00.58))
 
 | 偏移 | 类型 | 名称/语义 | 键 | 置信 |
 |---|---|---|---|---|
@@ -1193,8 +1193,8 @@ byte_143452529 打 "Deleting unit ..." (vtable+104 槽[13] 取名)。五段编�
 |---|---|---|
 | 入闸 | unit 指针压 gs+1400 数组 (计数 gs+1412; §4.2「已登记删除」去重闸, sub_1401D7460 查重同数组); 尾部对称自摘 (swap-erase) | — |
 | 远征预清理 | vtable[7] (+56) 父单位 +476 > 0 → 清 unit+476 + 从属主国 idreg (国+760/+772) 摘除 (⚠ 760/772 vs 784/796 双 idreg 分工待裁: 推定 760=收编远征 / 784=借调); 非载入态 (gs+2618 == 0) 宿主国 CCountryAI 记账 | sub_140C04370 (ClearExpeditionaryOwner) / sub_1402AB5A0 (→ CStrategicAI+8960 48B 条 {tag@+8, 计数@+12} 按原初国归并累加 = 远征人力 AI 台账) |
-| 删/散分叉 | a3=0 删除 → **名号回收**: army → cc+112 mode0 / convoy → cc+120 mode1 逐船 / railway gun → cc+128 mode2 (三 mode 表 = §4.3.9); a3=1 解散 → **人力退还**: army 走 CArmyManpower (army+976) value 容器 (data@+16, count@+28) 逐 tag 分摊 `100000×金额×value÷1e10` (sub_140BB5490 原初国归一去重) 退 cc+808; 总系数 = (100000 − DISBAND_MANPOWER_LOSS) × {1 流亡支 / ENCIRCLED_DISBAND_MANPOWER_FACTOR 常态 / NAVAL_TRANSFER_DISBAND_MANPOWER_FACTOR 海运} ÷ 100000 (**流亡支 IDA 丢支 / convoy 15 位定点式 / railway gun 128/64 除数 三处待 PE 验算**); convoy 人力输入 = Σ +840 池元素 +2056 | sub_140C8E520 / sub_140C3D900 / sub_140E8D310 / sub_140C69A30 → sub_140CFE1B0 / sub_140D65040 |
-| 引用清理 (不分删散, 序) | ① 借调单位: 门 sub_140C01960 (unit+472 ≠ unit+480 且非同原初国) → 国+784/+796 idreg 摘除 ② iface +1336 列表摘除 (门 unit+12 旗; **+1336 = SelectionList 选中列表定案** — airutil.cpp :143/:168 断言 "Invalid selectable in SelectionList" 直证, 链节点 {+0 对象, +8 u32 类型 (==2 单位), +16 next}, §4.15.16; ⚠ 全局槽差: airutil 侧读 qword_14332F6A0, 本节原记 qword_14332F698 相邻槽, 同对象两入口或两对象未核双注保留) ③ 省在场四表摘除 (主表 prov+224/+236 + 三分型表 248/272/296 系 swap-erase, §4.14) ④ 国名册三型分派 (type0 army → country.cpp:8333 / type1 舰队 cc+632/+644 扫描 / type13 railway gun) ⑤ **CCountryAI::RemoveReferences 双派发** (经 CCountry::RemoveUnit 一次 + 锚内直调一次, 同一 cc+552 目标; 订阅表逐项 vtable[23] OnUnitDeleted 级联) ⑥ gs+1600/+1612 玩家选中单位表摘除 ⑦ logical_country → cc+360/+372 战区数组 → theatre+128/+140 og 数组三级扫描, 逐 og 摘成员钩 (og+80/+92 摘除 + og+152/+164 与 +176/+188 引用表清 + og+415 脏旗 → 重算 og+452/+456; **钩节点 = &unit+184, 清 +8 置 +40 — 形状待 PE 验算**) | sub_14070FFD0 / sub_1402A00F0 / sub_140E7FA10 / sub_140710140 → sub_1406FF9F0·sub_140D597F0 族·sub_1406FFBD0 / sub_1402AC3C0 / sub_1401EBCF0 / sub_140BF29B0 |
+| 删/散分叉 | a3=0 删除 → **名号回收**: army → cc+112 (槽序 0 / mode 0) / convoy → cc+120 (槽序 1 / mode 1) 逐船 / railway gun → cc+128 (槽序 2 / **mode 3**) (四 tracker 槽序↔mode 表 = §4.3.9); a3=1 解散 → **人力退还**: army 走 CArmyManpower (army+976) value 容器 (data@+16, count@+28) 逐 tag 分摊 `100000×金额×value÷1e10` (sub_140BB5490 原初国归一去重) 退 cc+808; 总系数 = (100000 − DISBAND_MANPOWER_LOSS) × {1 流亡支 / ENCIRCLED_DISBAND_MANPOWER_FACTOR 常态 / NAVAL_TRANSFER_DISBAND_MANPOWER_FACTOR 海运} ÷ 100000 (**流亡支 IDA 丢支 / convoy 15 位定点式 / railway gun 128/64 除数 三处待 PE 验算**); convoy 人力输入 = Σ +840 池元素 +2056 | sub_140C8E520 / sub_140C3D900 / sub_140E8D310 / sub_140C69A30 → sub_140CFE1B0 / sub_140D65040 |
+| 引用清理 (不分删散, 序) | ① 借调单位: 门 sub_140C01960 (unit+472 ≠ unit+480 且非同原初国) → 国+784/+796 idreg 摘除 ② iface +1336 列表摘除 (门 unit+12 旗; **+1336 = SelectionList 选中列表定案** — airutil.cpp :143/:168 断言 "Invalid selectable in SelectionList" 直证, 链节点 {+0 对象, +8 u32 类型 (==2 单位), +16 next}, §4.15.16; ⚠ 全局槽差: airutil 侧读 qword_14332F6A0, 本节原记 qword_14332F698 相邻槽, 同对象两入口或两对象未核双注保留) ③ 省在场四表摘除 (主表 prov+224/+236 + 三分型表 248/272/296 系 swap-erase, §4.14; 新消费点 = 转移师读档内联整建后从出发省摘除, §4.10.38) ④ 国名册三型分派 (type0 army → country.cpp:8333 / type1 舰队 cc+632/+644 扫描 / type13 railway gun) ⑤ **CCountryAI::RemoveReferences 双派发** (经 CCountry::RemoveUnit 一次 + 锚内直调一次, 同一 cc+552 目标; 订阅表逐项 vtable[23] OnUnitDeleted 级联) ⑥ gs+1600/+1612 玩家选中单位表摘除 ⑦ logical_country → cc+360/+372 战区数组 → theatre+128/+140 og 数组三级扫描, 逐 og 摘成员钩 (og+80/+92 摘除 + og+152/+164 与 +176/+188 引用表清 + og+415 脏旗 → 重算 og+452/+456; **钩节点 = &unit+184, 清 +8 置 +40 — 形状待 PE 验算**) | sub_14070FFD0 / sub_1402A00F0 / sub_140E7FA10 / sub_140710140 → sub_1406FF9F0·sub_140D597F0 族·sub_1406FFBD0 / sub_1402AC3C0 / sub_1401EBCF0 / sub_140BF29B0 |
 | 尾段 | type==13 且 unit+1088 ≠ 0 → 用其 og 命令列表构造 CUnassignRailwayGunFromOrdersGroup (ctor sub_140E8E630, RTTI 直证; sizeof 72) → IsValid sub_140E8F590 → Execute sub_140E8F1F0 (§4.33 19871) → holder 复位 sub_1401C28C0; vtable[0](unit,1) 标量析构; 非载入态 iface vtable[23] 派发 + 216B UI 事件 (码 2) 入 iface+1192/+1204 队列 + sub_140B6B050 刷新 | sub_140E8E630 / sub_140E8F590 / sub_140E8F1F0 / sub_1401C28C0 |
 
 配套定案: cc+808 人力池 = {tag@+8, 常态池@+12, 流亡池@+24} (sub_140CFE1B0 =
@@ -1337,3 +1337,300 @@ a4 > size 钳位 + begin > size 抛 out_of_range。遗留: qword_1435BA038 字�
 **关联**: 调用方族同 TU 持 38 桶视图表 (种子 i32@+24, 80B/条 = +32 单位指针 / +48 u16 变化计数上限 100, 指针变化即复位; 填充 = sub_14128C8B0), 与 §4.31 地图图标排序器共用 sub_1416405D0 粗化模式旗。情报可见度档: 本函门 < 150 与 §4.35 最高档 ≥ 250 为 sub_141618DC0 的两档阈值在不同消费点。
 
 未决: TU/视图类名 (仅能定到 0x14128C–0x141294 地址族); CUnit type 1 真名 (下游 +884/+912/+976 与 §4.16 CTaskForce 域吻合 → 疑海军族); 38 类枚举完整定义 (需 sub_14128E1B0 全读 + def+164 对账); unit+488 在本函的可空 qword 读与 §4.18.5 kptr 门 0x2EDA support_attack 的关系 (两处读法不一致)。
+
+#### 4.18.28 陆军师族函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A3CA10 | （未命名）定点百分比 `a4*a3/100000` + ": "/" = " 拼行 定点百分比 `a4*a3/100000` + ": "/" = " 拼行；调用者 0x141A3D780 持 Breakthrough/Armor/Speed/Organisation/HitPoints/Defense 串 ⇒ … |
+| 0x141B75960 | （未命名）gamestate.h:1116 + "move" / "idle" gamestate.h:1116 + "move" / "idle"，单位命令状态 |
+| 0x1415AF6A0 | （未命名）HQ_DEPLOY_AND_WITHDRAW_DAYS / HQ_DEPLOY_DAYS / HQ_WITHDRAW_DAYS / HQ_DEPLOY_CP_COST + COST HQ_DEPLOY_AND_WITHDRAW_DAYS / HQ_DEPLOY_DAYS / HQ_WITHDRAW_DA… |
+| 0x141121870 | CSendVolunteerAction::[59] SEND_VOLUNTEERS_DESCRIPTION / _NO_DIVISIONS / _TOO_MANY_DIVISIONS / CAP_REASON_PROVINCES… 全族 |
+| 0x1412A8420 | （未命名）COUNTRIES / XPSHARE / EXPERIENCE_FROM_ATTACHES COUNTRIES / XPSHARE / EXPERIENCE_FROM_ATTACHES，武官经验分享 |
+| 0x141449330 | sub_141449330 MEDAL_COMBINED_NAME(_CASUALTIES) / TYPE / LOCATION（师勋章组合名 UI） |
+| 0x140BE9C10 | sub_140BE9C10 COrdersGroup/CRailwayGunAssignee 构造（正文双 vtable） |
+| 0x14102F560 | （未命名）RATIO / LIST / PARADROP_INVASION_CAN_NOT_TRANSFER RATIO / LIST / PARADROP_INVASION_CAN_NOT_TRANSFER，空降/登陆换乘 |
+| 0x14168B610 | sub_14168B610 divisiontemplatemanager.cpp:125（TEMPLATE_NAME/DESIGNER_DUPLICATE_OF_NAME+IsModifiable 断言） |
+| 0x140CE9660 | sub_140CE9660 师上限/训练告警（MISSING_SPECIAL_FORCES_CAP/TRAINING_HALTED/EXCEEDING_DIVISION_CAP） |
+| 0x140BF6FE0 | sub_140BF6FE0 COrdersGroup::UngroupAllMembers（ordersgroup.cpp:608+IsWingAttached 断言） |
+| 0x140C79AE0 | sub_140C79AE0 部队损耗告警（ATTRITION_SOME_UNITS+COUNT 计数） |
+| 0x1413CD680 | （无名） vftable 类 SArmyUnitActivityData::（陆军/单位） |
+| 0x1413CBDC0 | （未命名）GUI/loc 串 SUBDOCTRINE_COST_REDUCTION / D GUI/loc 串 SUBDOCTRINE_COST_REDUCTION / DOCTRINE_COST_REDUCTION_DUE_TO |
+| 0x14051BD50 | （未命名）串 "Not a valid unit category or unit typ 串 "Not a valid unit category or unit type in count_in_collection trigger."（count_in_collection 触发器校验） |
+| 0x14168DC50 | sub_14168DC50 陆军司令部设计器 loc 键 DESIGNER_NEW_ARMY_HQ |
+| 0x14168AB60 | （无名） divisiontemplatemanager.cpp 师模板（断言站点 divisiontemplatemanager.cpp:1431） |
+| 0x140B99770 | （无名） vftable 类 CUnitAdjuster::（陆军/单位） |
+| 0x140B9A5C0 | sub_140B9A5C0 体内构造/操作 vtable 类 CUnitAdjuster（&CUnitAdjuster::vftable）→ 陆军单位调整/升级项/地面战斗方 |
+| 0x140F67E60 | （未命名）subunitdefinition.h:150 断言 "IsAir()" subunitdefinition.h:150 断言 "IsAir()"（子单位类型判定） |
+| 0x1415093A0 | （无名） vftable 类 CArmyReinforcementRequests::（陆军/单位） |
+| 0x1404A5A30 | NRaids::CRaidAddUnitExperienceEffect::[7] GetDesc 串 EFFECT_RAID_GIVE_UNIT_EXPERIENCE（突袭给单位经验） |
+| 0x1412AA6E0 | sub_1412AA6E0 体内构造/操作 vtable 类 CLandCombatant（&CLandCombatant::vftable）→ 陆军单位调整/升级项/地面战斗方 |
+
+#### 4.18.29 陆军师族函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C2BDA0 | （无名）pdxoptional.h:180 + DEPLOYMENT_MAX_DEPLOYABLE_DIVISION_FOR_TEMPLATE + SPECIAL_FORCES_CAP_LIMIT_DESC / DIVISION_CAP_LIMIT_DESC pdxoptional.h:180 + DEPLOYM… |
+| 0x1413E4380 | （无名，按上游/loc 定性） loc "CATEGORY\ SUBUNIT_BONUS_CATEGORY_ADD\ SUBUNIT_CATEGORY_ADD_STA*" |
+| 0x1414251B0 | （无名，按上游/loc 定性） ref.h:83 断言 "GetPtr() != 0" |
+| 0x14170DDB0 | （无名）ARMY_DIVISIONS_ACTIVE / ARMY_DIVISIONS_THEATRES / BATTALIONS_COUNT + special_forces_cap 键 ARMY_DIVISIONS_ACTIVE / ARMY_DIVISIONS_THEATRES / BATTALIONS_CO… |
+| 0x14149E530 | （无名）DESIGNER_COMBATWIDTH / DESIGNER_MANPOWER / DESIGNER_TRAINING_TIME + STAT_ARMY_COMBAT_WIDTH_DIFF（师设计器） DESIGNER_COMBATWIDTH / DESIGNER_MANPOWER / DESIGNER… |
+| 0x140C8DB90 | CArmy::[52] 标签:gamestate.h:1125 |
+| 0x140C014C0 | CUnit::[5] 标签:gamestate.h:1125 |
+| 0x14149DEB0 | sub_14149DEB0 特征串:SUBUNIT_PER_BATTALION_MODIFIER_TITLE ; SUBUNIT_PER_BATTALION_MODIFIER_ |
+| 0x140E8D3A0 | sub_140E8D3A0 模块标签 railway_gun.cpp:1142 |
+| 0x14101F5F0 | vtable/RTTI 类 CSubUnitDefinitionId sub_14101F5F0 + vtable/RTTI 类 CSubUnitDefinitionId |
+| 0x14193E690 | CHqDeploymentDistributable::[0] CHqDeploymentDistributable::[0] + vtable/RTTI 类 |
+
+#### 4.18.30 陆军师族函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141449720 | 单位勋章商店/组合效果 单位勋章商店/组合效果；loc \"COMBINED_MEDAL_EFFECTS_LEADER\"，邻 CUnitMedal::[0](-12352B)/CUnitMedalStore::[0]/CUnitMedalStore::Reader(+8944B) |
+| 0x140C86810 | CArmy 槽 1 func_names 名 + 调 CArmy::[1] / CUnit::[1] |
+| 0x14150CF00 | "REQUESTED_REINFORCEMENT_COLLECTING_ENTR "REQUESTED_REINFORCEMENT_COLLECTING_ENTRY/MANPOWER" 增援征集条目 U §4.18 陆军 |
+| 0x141AEB2F0 | "Planning: %3i%%/Entrenched: %3i%%/GoTo" "Planning: %3i%%/Entrenched: %3i%%/GoTo" 陆军命令 UI §4.18 陆军 |
+| 0x14102E6C0 | sub_14102E6C0（无名） orderinstance.cpp:3523 站点 "GetOrderType() != ORDER_MOVE" 断言，COrderInstance 命令实例处理 |
+| 0x14100A100 | sub_14100A100（无名） ABILITY_TOOLTIP_DETAILED_COST_FACTOR/FACTOR/COST/VALUE/UNITS GUI 键，夹于 CNavalRegionDominance::Writer 与 CAbility::[8]，能力详细开销提示 UI |
+
+#### 4.18.31 陆军师族函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BA3DA0 | （无名，按证据定性） divisiontemplate.cpp:523 断言 'Scripting error in historical division names.'（历史师名脚本校验） |
+| 0x14226BDA0 | （无名，按证据定性） 调用者持 ACCLIMATIZATION_GAIN_ENTRY_/STAT_BASE_VALUE 键（部队适应度增益计算） |
+| 0x140C69230 | （无名，按证据定性） 键 MANPOWER_DIVISION_SIZE_DESC/MANPOWER_DIVISION_SIZE_BREAKDOWN_DESC + EQUIPMENT_DIVISION（师人力/装备规模） |
+| 0x141AD3F70 | （无名，按证据定性） 键 DETAILS_ENTRIES/DETAILS_ENTRIES_VALUE/GAINED_XP_DIVC（师经验增益明细 UI） |
+| 0x14226C750 | （无名，按证据定性） 调用者持 ACCLIMATIZATION_GAIN_ENTRY_/STAT_BASE_VALUE 键（适应度增益同族） |
+| 0x1413E9380 | （无名，按证据定性） 键 DIVISION_EXPERIENCE_TITLE_ARMY_EXPERIENCE_（师经验标题） |
+| 0x141F64640 | （无名，按证据定性） 键 CONFIRMCHANGE_UNIT_TEMPLATE_GAIN/CONFIRMCHANGE_UNIT_TEMPLATE_EQUIPMENT_NEEDED_* + STOCK（单位模板换装确认） |
+| 0x141C2C840 | 特种兵营统计键 SPECIAL_FORCES_DETAILS/SPECIAL_FORCES_DESC + CAP_MULT/MIN_MOD/OTHER_BATS |
+| 0x141C2C510 | 征兵/训练队列 USED / IN_TRAINING / TRAINABLE / SPECIAL_FORCES_CAP_DESC / DEPLOYMENT_MAX_DEPLOYABLE_DIVISION_FOR_TEMPLATE |
+| 0x1410157B0 | （无名，按证据定性） 键 MOVEMENT/ATTACK（移动/攻击命令文本构建）+ SSO 串构造 |
+| 0x140C8B5A0 | CArmy::[4] vtable 槽 CArmy::[4]（func_names RTTI 名） |
+| 0x140C89250 | CArmy::[9] vtable 槽 CArmy::[9]（func_names RTTI 名） |
+| 0x140C74ED0 | CArmy::[11] vtable 槽 CArmy::[11]（func_names RTTI 名） |
+| 0x140C82670 | CArmy::[4] vtable 槽 CArmy::[4]（func_names RTTI 名） |
+| 0x140C86C90 | CArmy::[28] vtable 槽 CArmy::[28]（func_names RTTI 名） |
+| 0x140C6E7C0 | CArmy::[0] vtable 槽 CArmy::[0]（func_names RTTI 名） |
+| 0x140C87F50 | CArmy::[36] vtable 槽 CArmy::[36]（func_names RTTI 名） |
+| 0x140C87F60 | CArmy::[31] vtable 槽 CArmy::[31]（func_names RTTI 名） |
+| 0x140C6E7B0 | CArmy::[0] vtable 槽 CArmy::[0]（func_names RTTI 名） |
+| 0x140C6E7A4 | CArmy::[0] vtable 槽 CArmy::[0]（func_names RTTI 名） |
+| 0x140C82660 | CArmy::[3] vtable 槽 CArmy::[3]（func_names RTTI 名） |
+| 0x140C8DB80 | CArmy::[6] vtable 槽 CArmy::[6]（func_names RTTI 名） |
+| 0x140C6E810 | CArmy::[5] vtable 槽 CArmy::[5]（func_names RTTI 名） |
+
+#### 4.18.32 陆军师族函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.18.33 陆军师族函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C7D880 | CArmy::[30] vtable 槽 CArmy::[30]（func_names RTTI 名） |
+| 0x140C74EF0 | CArmy::[10] vtable 槽 CArmy::[10]（func_names RTTI 名） |
+| 0x140C77B50 | CArmy::[49] vtable 槽 CArmy::[49]（func_names RTTI 名） |
+| 0x140C8AE20 | CArmy::[3] vtable 槽 CArmy::[3]（func_names RTTI 名） |
+| 0x140C82640 | CArmy::GetName func_names 名 CArmy::GetName |
+
+#### 4.18.34 陆军师族函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.18.35 陆军师族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141966FE0 | 国家匹配/流亡判定谓词（id→索引比对） 子例 sub_141966F00 调 sub_140BB5490(gamestate id→索引)；调用者 CArmy::ReturnFromExile(0x140C8DD50)、unitcontroller.cpp:4270(0x1414D9280) |
+
+#### 4.18.36 陆军师族函数补遗（44 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E94370 | （无名） 调用图传播: 8 锚点投 §4.18（100%） |
+| 0x141E964E0 | （无名） 调用图传播: 8 锚点投 §4.18（100%） |
+| 0x141E94620 | （无名） 调用图传播: 8 锚点投 §4.18（100%） |
+| 0x1401B5580 | （无名） 调用图传播: 9 锚点投 §4.18（89%） |
+| 0x141E968C0 | （无名） 调用图传播: 8 锚点投 §4.18（100%） |
+| 0x141E95CE0 | （无名） 调用图传播: 4 锚点投 §4.18（100%） |
+| 0x141E970C0 | （无名） 调用图传播: 4 锚点投 §4.18（100%） |
+| 0x140C8F990 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x14196AFA0 | （无名） 调用图传播: 4 锚点投 §4.18（50%） |
+| 0x141448EB0 | （无名） 调用图传播: 4 锚点投 §4.18（50%） |
+| 0x141B9ACB0 | （无名） 调用图传播: 4 锚点投 §4.18（50%） |
+| 0x141374000 | （无名） 调用图传播: 3 锚点投 §4.18（67%） |
+| 0x14168E750 | （无名） 调用图传播: 6 锚点投 §4.18（50%） |
+| 0x140AF2770 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x1411843F0 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x140FF5B30 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x14193D2A0 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x1412BAB70 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x140DEB2A0 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x141D21290 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x14105C200 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x140C0E0D0 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x14193EC40 | （无名） 调用图传播: 5 锚点投 §4.18（60%） |
+| 0x1410F2820 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x1412A8A20 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x14193E300 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x140C8B510 | （无名） 调用图传播: 4 锚点投 §4.18（50%） |
+| 0x14169BEA0 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x140D10C90 | （无名） 调用图传播: 4 锚点投 §4.18（100%） |
+| 0x14168DE30 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x14168E350 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x140C8EEF0 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x141D2B4B0 | （无名） 调用图传播: 2 锚点投 §4.18（50%） |
+| 0x14168BD00 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x14168DAB0 | （无名） 调用图传播: 3 锚点投 §4.18（100%） |
+| 0x14168DB90 | （无名） 调用图传播: 3 锚点投 §4.18（100%） |
+| 0x140BA6140 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x140BA5400 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x140BA5200 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x14168DA70 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x14168DB00 | （无名） 调用图传播: 3 锚点投 §4.18（100%） |
+| 0x14168DBE0 | （无名） 调用图传播: 3 锚点投 §4.18（100%） |
+| 0x14168DB50 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x14168E8F0 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+
+#### 4.18.37 陆军师族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141830BB0 | 单位能力持续时间处理 串 "ABILITY_DUR_DAYS"/"FINISHED" → 单位能力持续时间处理 |
+| 0x14100A4D0 | 单位能力周期 tick 串 "ABILITY_ON_DAILY"/"ABILITY_ON_HOURLY" → 单位能力周期 tick |
+
+#### 4.18.38 陆军师族函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140630CD0 | sub_140630CD0 紧邻 CArmy::RefreshAbilities 与 CAttachedRailwayGunTypeItem（陆军能力/列车炮区段） |
+| 0x1412FA240 | sub_1412FA240 紧邻 CArmy::RefreshAbilities 与 CAttachedRailwayGunTypeItem（陆军能力/列车炮区段） |
+| 0x141A607C0 | sub_141A607C0 紧邻 CArmy::RefreshAbilities 与 CAttachedRailwayGunTypeItem（陆军能力/列车炮区段） |
+| 0x14149EC70 | sub_14149EC70 陆军司令部下拉按钮 GUI 图名 GFX_army_hq_dropdown_button |
+| 0x14007D320 | sub_14007D320 特征串:softness_ratio_frame ; armor_softness_icon ; inf_softness_icon ; compo |
+| 0x141010E10 | 同区段近邻 sub_14101F5F0(距 0xE7E0)属 4.18 族 sub_141010E10 + 同区段近邻 sub_14101F5F0(距 0xE7E0)属 4.18 族 |
+| 0x1400813B0 | sub_1400813B0 特征串:infantry_button ; tank_button ; aircraft_button ; naval_button |
+| 0x1410260A0 | 同区段近邻 sub_14101F5F0(距 0x6AB0)属 4.18 族 sub_1410260A0 + 同区段近邻 sub_14101F5F0(距 0x6AB0)属 4.18 族 |
+| 0x14104E820 | 同区段近邻 sub_14101F5F0(距 0x2F230)属 4.18 族 sub_14104E820 + 同区段近邻 sub_14101F5F0(距 0x2F230)属 4.18 族 |
+
+#### 4.18.39 陆军师族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14104FF60 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x140BD5F30 | 无名 · stat_helper.h "Stat should be inte stat_helper.h "Stat should be integer but isn't" |
+| 0x1415AFDC0 | 无名 · "ARMY_HQ_DIVISION_NAME"/"LEADER_NA "ARMY_HQ_DIVISION_NAME"/"LEADER_NAME" 集团军群名键 |
+
+#### 4.18.40 陆军师族函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14170EB30 | 业务逻辑（键 ARMY_NAVIES_ACTIVE） "ARMY_NAVIES_ACTIVE"/"battalion_count"/"special_forces_cap"/"theatres_count"（陆军/海军概览数据） |
+| 0x141C16B50 | 业务逻辑（键 THEATER_COMMANDER_MASTERY_SKILL） "THEATER_COMMANDER_MASTERY_SKILL"（战区指挥官技能） |
+| 0x141017190 | CSubUnitDefinitionId 子单位定义id (vtable类名 CSubUnitDefinitionId) vtable引用 CSubUnitDefinitionId vftable |
+| 0x140C1BC50 | CSubUnitDefinitionId 子单位定义id (vtable类名 CSubUnitDefinitionId) vtable引用 CSubUnitDefinitionId vftable |
+| 0x140B9AB00 | CUnitAdjuster 单位调整器 (vtable类名 CUnitAdjuster) vtable引用 CUnitAdjuster vftable |
+| 0x140B9A3C0 | CUnitAdjuster 单位调整器 (vtable类名 CUnitAdjuster) vtable引用 CUnitAdjuster vftable |
+
+#### 4.18.41 陆军师族函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1410CB430 | （无名） 调用图传播: 3 锚点投 §4.18（100%） |
+| 0x14175C170 | （无名） 调用图传播: 3 锚点投 §4.18（100%） |
+| 0x141770270 | （无名） 调用图传播: 6 锚点投 §4.18（83%） |
+| 0x141E96D90 | （无名） 调用图传播: 2 锚点投 §4.18（100%） |
+| 0x141E95410 | （无名） 调用图传播: 5 锚点投 §4.18（100%） |
+| 0x140BA6980 | （无名） 调用图传播: 6 锚点投 §4.18（100%） |
+
+#### 4.18.42 陆军师族函数补遗（44 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AE3090 | 无名 sub_（断言站点/串定位） 串字面量 "AI template roles" |
+| 0x1416C13B0 | 无名 sub_（断言站点/串定位） 串字面量 "UNIT_VIEW_DIVISIONS_COUNT" |
+| 0x14166B850 | 无名 sub_（断言站点/串定位） 串字面量 "deployed_general_unit_line" |
+| 0x1416B4090 | 无名 sub_（断言站点/串定位） 串字面量 "unit_template_hq_bg" |
+| 0x141D0AF90 | 无名 sub_（断言站点/串定位） 串字面量 "CONFIRM_DIALOG_MULTI_UNITS" |
+| 0x1406DF2B0 | 无名 sub_（断言站点/串定位） 串字面量 "CANNOT_DELETE_SPECIAL_TEMPLATES" |
+| 0x1409C42E0 | 无名 sub_（断言站点/串定位） 串字面量 "DIVISION_NAMES_GROUP_LIST_HEADER" |
+| 0x142024270 | 无名 sub_（断言站点/串定位） 串字面量 "INDUSTRIAL_ORG_ARMY_XP_COST" |
+| 0x141965AD0 | 无名 sub_（断言站点/串定位） 断言站点 subunitdefinition.h:150 |
+| 0x140C7C3E0 | 无名 sub_（断言站点/串定位） 串字面量 "DIVISION" |
+| 0x14143C880 | 无名 sub_（断言站点/串定位） 串字面量 "UNIT_TERRAIN_MODIFIER" |
+| 0x140C7B4D0 | 无名 sub_（断言站点/串定位） 串字面量 "DIVISION_TEMPLATE_HEADER" |
+| 0x1414487E0 | 无名 sub_（断言站点/串定位） 串字面量 "UNIT_MODIFIER_MEDALS" |
+| 0x141E18250 | 无名 sub_（断言站点/串定位） 串字面量 "army_group_box_middle_bg" |
+| 0x140BEB000 | 无名 sub_（断言站点/串定位） 串字面量 "ARMY_GROUP_NAME_GENERIC" |
+| 0x1416BDB90 | 无名 sub_（断言站点/串定位） 串字面量 "foreign_template_fla" |
+| 0x140419330 | 无名 sub_（断言站点/串定位） 串字面量 "TRIGGER_HAS_TEMPLATE_CONTAINING_UNIT" |
+| 0x141CFC760 | 无名 sub_（断言站点/串定位） 串字面量 "CONFIRMCHANGE_HQ_TEMPLATE_CP_CHANGE" |
+| 0x1416ABC40 | 无名 sub_（断言站点/串定位） 串字面量 "divisions" |
+| 0x141C2BB60 | 无名 sub_（断言站点/串定位） 串字面量 "SPECIAL_FORCES_IN_TEMPLATE" |
+| 0x141F63DE0 | 无名 sub_（断言站点/串定位） 串字面量 "CONFIRMCHANGE_UNIT_TEMPLATE_EQUIPMENT_NEEDED_TITLE" |
+| 0x14188C0D0 | 无名 sub_（断言站点/串定位） 串字面量 "army_group_box_middle_bg" |
+| 0x14178F530 | 无名 sub_（断言站点/串定位） 串字面量 "DESIGNER_ARMY_EXPERIENCE" |
+| 0x1420434B0 | 无名 sub_（断言站点/串定位） 串字面量 "INTERNATIONAL_MARKET_DRAFT_UNIT_DELIVERY_ITEM_TT" |
+| 0x14170C3C0 | 无名 sub_（断言站点/串定位） 串字面量 "sub_units_count" |
+| 0x140C6BD40 | 无名 sub_（断言站点/串定位） 断言站点 army_functors.h:93 |
+| 0x14170A320 | 无名 sub_（断言站点/串定位） 串字面量 "army_sort_group" |
+| 0x1402357F0 | 无名 sub_（断言站点/串定位） 串字面量 "No unit selected" |
+| 0x1416F40E0 | 无名 sub_（断言站点/串定位） 串字面量 "template_nam" |
+| 0x140BA5340 | 无名 sub_（断言站点/串定位） 断言站点 divisiontemplate.cpp:562 |
+| 0x14170E460 | 无名 sub_（断言站点/串定位） 串字面量 "ARMY_ARMY_LABEL" |
+| 0x1416AD270 | 无名 sub_（断言站点/串定位） 串字面量 "template_tab_button" |
+| 0x14168DE80 | 无名 sub_（断言站点/串定位） 断言站点 divisiontemplatemanager.cpp:252 |
+| 0x1424855A0 | 无名 sub_（断言站点/串定位） 串字面量 "Unrecognized unit type for pHYs chunk" |
+| 0x140E886E0 | 铁路炮指派者 setter railway_gun.cpp:1326 "_pAssignee == nullptr" |
+| 0x14205CB70 | 无名 sub_（断言站点/串定位） 断言站点 deployment_request.cpp:22 |
+| 0x140B97150 | 无名 sub_（断言站点/串定位） 断言站点 divisiontemplate.cpp:1099 |
+| 0x140BA04F0 | 无名 sub_（断言站点/串定位） 断言站点 divisiontemplate.cpp:1083 |
+| 0x140B9EBB0 | 无名 sub_（断言站点/串定位） 断言站点 divisiontemplate.cpp:3596 |
+| 0x140F63040 | 无名 sub_（断言站点/串定位） 断言站点 subunitdefinition.h:150 |
+| 0x140C01A50 | 无名 sub_（断言站点/串定位） 断言站点 unit.cpp:3764 |
+| 0x140C019B0 | 无名 sub_（断言站点/串定位） 断言站点 unit.cpp:3758 |
+| 0x140BF95E0 | 无名 sub_（断言站点/串定位） 断言站点 unit.cpp:883 |
+| 0x140235760 | 无名 sub_（断言站点/串定位） 串字面量 "AI is now free to use army XP for anything" |
+
+#### 4.18.43 陆军师族函数补遗（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EBDCE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x14246AF00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x14103C120 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140CE8AC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140D13140 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140BEC3A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140EA3B70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140CE91A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x141761DE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140D0C650 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140EF5A40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x141370B80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140BFD1F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140BFBED0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x141370C00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+| 0x140ED1080 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+
+#### 4.18.44 陆军师族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CE9230 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.18 |
+
+#### 4.18.45 陆军师族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AEF960 | （无名） 串 " needed for divisions being recruited"/Minus /" already in stockpile"/"from recruitment"（征募库存文本） |
+
+#### 4.18.46 陆军师族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B3BD20 | 更新分派 逐元素更新分派：a1+136 数组（vtable+184 计数），+320 旗选 vtable+80/+96（与 sub_141B3Axx 统计族同域） |

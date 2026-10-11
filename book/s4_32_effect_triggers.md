@@ -31,6 +31,7 @@ Parse 列口径: 「共用」= 实例自身虚槽 [6] (CEffect 仅作用域键 0
 | 事件族骨架 | 事件类 effect (country_event / news_event / unit_leader_event 等) | 解接收国 tag (slot[25] = `*(arg+8)` 直取) 与旗 (slot[26] = `sub_140537B50` 定位解析); 按 `a1+1224` 数字 id 或 `a1+120` 名串定位 CEvent, 延时算术后排队/立即触发; 事件 id/延时/随机/排队槽 (1232/1440/1648/1856/2064) 族内共用 |
 | flag 族骨架 | 全部脚本旗标 trigger/effect | 共用 `0X1413A82C0`; 旗键 = `sub_1413A7660` (静态 token@a1+120 或动态名); 比较块 (value/date/days) 经 `sub_1413A58F0` 求得, 三通道与判定 `sub_1413A42D0` |
 | scope→country 形 | 需从 scope 取国的卡 | `sub_140BB48F0(scope+8)` 取国指针; cc→ps = `sub_1406CF890`; 国 id ≤0 回退 ctx+8 |
+| 装备类型变量求值骨架 | 载荷内嵌 CEquipmentTypeVariable 的 effect/trigger (has_license / stockpile_ratio / add_equipment_to_stockpile 等) | `sub_1413B03B0(子对象, scope)` → 装备对象: 子对象+16 已解析缓存非 0 → 直取;否则子对象+56 脚本值经 `sub_140544C90` 求值 ÷1e5 得原型 id → 原型库 (qword_14332EEC0, `sub_1409F8840`) 取对象;皆空 → null 对象单例 qword_143339BE8 (+16 字节为 0 ⇒ 调用方判无效);返回对象 +16 有效门 + +24 名串 (装备名 loc 键源) |
 | 州解析三连 | 州域 effect/trigger | scope+168 州 id → `gs+712` 州数组取 CState; 门 1 ≤ id < `*(gs+724)` |
 | 重算三连 | 理念 / modifier 变更类 effect 尾 | `sub_1406DADE0(country)` + `sub_14070BC70(country)` 等重算; 与 `CForceRecalcModifiersEffect` 同族 |
 | UI 尾通知 | 需刷界面的 effect 尾 | `qword_14332F698` 槽[23] → `sub_140224C30(ui, {code})` — 只发消息码不建对象 (见 §4.32.1 用词辨析); **第二发射器 = `sub_1402E3960(ui, &tag)`** — ui+1192 历史容器追加 216B tag-12 历史条 (char 域 effect 尾, §4.32.24) |
@@ -404,6 +405,7 @@ Parse 列口径: 「共用」= 实例自身虚槽 [6] (CEffect 仅作用域键 0
 | goto_province | CGoToProvinceEffect | 门:scope 国 tag (`*(scope+8)`) == 当前 playthrough id (gs+1312 > 0 取 +1312,否则 +1316) 或 `sub_140BB52F0` 同原初国 (书) — 仅对当前游玩国生效 (推定 = 调试/镜头类 effect)。省 id = 槽[26] (0X1413998D0,§4.32.1.1);`qword_14332F6A0` (地图/输入控制器,§4.25/§4.30 引) 槽[54] (vtable+432) 以 id 调用 → 槽[38] (vtable+304) → `sub_1412643F0` = 相机跳转/聚焦动画 (控制器 +1688..+1712 位置/缩放组缓动, 目标 = sub_1401FA5E0(…)+576, 活动 byte +1712) | — | `EFFECT_GO_TO_PROVINCE` + 标签 `STATE` (州名) | 0X141392DD0 共用 (§4.32.1.1:scope 键或立即 u32@a1+88 或表达式@a1+96) |
 | goto_state | CGoToStateEffect | 同 goto_province 门;州 = `sub_1403A13D0` (槽[26] → 0 → 槽[16] 回退,§4.32.1.1);BestVP 省 = `sub_1409D8A80(州)` (书 st+2140 getter);`qword_14332F6A0` 槽[54](`*(prov+164)` 省 id) → 槽[38] → sub_1412643F0 | — | `EFFECT_GO_TO_PROVINCE` (原版复用同串,非误读) + 标签 `STATE` | 0X141392DD0 共用 |
 | has_full_control_of_state | CFullControlsStateTrigger | 州 = 槽[23] (§4.32.1.1);逐省 (st+24 {data} / st+36 {count}, 书 §4.13):任一省 `prov+392` controller ≠ scope tag (且非「均非 0 + 同原初国」) → 0;全部匹配 (含无省州) → 1 | — | `TRIGGER_FULL_CONTROLS_STATE` / `TRIGGER_NOT_FULL_CONTROLS_STATE` + 标签 `STATE` | 0X140550030 共用 |
+| has_naval_invasion_against_state | CHasNavalInvasionAgainstStateTrigger | scope 国 = sub_140BB48F0(scope+8); 四层嵌套: 战区(cc+360/372) → 订单组(theatre+128/140) → sub_140BEEDD0(og, 3, &out, 0) 收集 type3 (ORDER_INVASION 海军入侵) COrderInstance 树 (og+152/164, 去重+递归) → 逐订单: activated 过滤 (a1+305==0 旁路 ∨ (oi+584 can_execute)!=0 == a1+304); path 省(oi+112/124) 经 gs+8 CProvinceProvider vt 首槽取省, prov+192 _pState == 载荷州 即归属命中; 准备比 v27 = 1e10×((oi+216)/1e5) ÷ (1e5×sub_14102BBE0(oi)) (1e5 = 100% 就绪; sub_14102BBE0 = 准备需求小时 = 24×((define dword_14333819C×1e5 + MODIFIER_NAVAL_INVASION_PREPARATION_DAYS[388])×(MODIFIER_NAVAL_INVASION_PREPARATION[26]+1e5))/1e10); 比较 v27 vs 阈值 a1+296 (fixed×1e-5), op a1+308: 467 → >= (含等号) / 468 → < (严格), 其他 op 永不命中; 任一订单命中 → 1, 全尽 → 0。载荷州无效 → "%s: Error state with ID %i does not exist" (triggerimplementation.cpp:18022) 返 0 | 读 a1+88 州 / a1+296 阈值 / a1+304 activated bool / a1+305 存在旗 / a1+308 算子 | TRIGGER_HAS_NAVAL_INVASION_AGAINST_STATE / TRIGGER_HAS_NO_NAVAL_INVASION_AGAINST_STATE + INVASION_CONDITION_PREP_MORE (467) / _PREP_LESS (468) + INVASION_CONDITION_ACTIVE / _NOT_ACTIVE + 标签 COUNTRY / STATE | 自有 0x1404362A0: state (439) → a1+88 (对象 vtable+24, 标量/块双形态) / preparation (10153) → 阈值 sub_1424C0A70 落 a1+296 + op 节点值 token 落 a1+308 (限 467/468, 否则 "Not a valid compare token in trigger: %s" :17996) / activated (10154) → sub_1424C4E30 bool 落 a1+304 + 存在旗 a1+305; 他键 → sub_1424C2060 |
 | has_core_occupation_modifier | CHasCoreOccupationModifier | Evaluate 0x1403D5300: a1+128 locator 解目标国 tag (两门 >0) → `sub_140FF9D60(sub_1406CF810(国) 占领数据, &目标tag, *(u32*)(a1+120) idx)` — 判定目标国是否持有指定占领修正 (与下行州侧名单判定互补); 读 a1+120 idx / a1+128 国定位 | — | `TRIGGER_HAS_CORE_OCCUPATION_MODIFIER` (名推定) + 标签 `MODIFIER` | 0X140550030 共用 |
 | has_occupation_modifier | CHasOccupationModifier | scope 州 = gs+712[scope+168] (界检查, 无效静默返 0) → `sub_140F9ABA0(st+616, *(u32*)(a1+120))`:CResistance (书 §4.13.1) 两名单直查 — cr+552 compliance_modifiers {count@+564} (书 15747) 与 cr+528 resistance_modifiers {count@+540} (书 15743),条目 `条+8 == modifier def idx` → 1;否则回退:州 controller (st+204) 之国 → sub_1406CF810 占领数据 → `sub_140FF9D60(occ, &cr+80 occupied_country_tag (书), modifier)` 同 has_core_occupation_modifier 判定 | — | `TRIGGER_HAS_OCCUPATION_MODIFIER` / `TRIGGER_HAS_NOT_OCCUPATION_MODIFIER` + 标签 `MODIFIER` / `STATE` | 0X140550030 共用 |
 | has_state_category | CHasStateCategoryTrigger | 州解析门 (§4.32.1.1) → `*(qword*)(st+2200) == *(qword*)(a1+120)` — state_category 定义指针 (书 §4.13 +2200 行: 指针→定义对象, 名 SSO@对象+24, 默认 `*(gs+360)`) 与载荷 qword 全等; 州无效 → 0 | — | `TRIGGER_HAS_STATE_CATEGORY` / `TRIGGER_HAS_NOT_STATE_CATEGORY` + 标签 `CATEGORY` | 0X140550030 共用 (§4.32.1.1) |
@@ -494,7 +496,7 @@ Parse 列口径: 「共用」= 实例自身虚槽 [6] (CEffect 仅作用域键 0
 | get_sorted_scored_countries_temp |CVariableTriggerBuilder<CGetSortedScoredCountries<CTempVariableResolver>> (vtable 0x1427B85A8; token 19073)| COMPLEX。门 `*(载荷+480)` (补给管理器指针) 非零;`sub_14047DD80(管理器, &out, scope)` = **"GetSortedTargetsAndScores"** (函数内串直名;sub_14047DF20 建列表 + 排序) → {基址, count@+12} 16B 节点条;写两个变量槽 `载荷+32` 与 `载荷+240` (writer `sub_140542280(槽, scope, 名描述符)` 返回值单元指针,槽+13 byte = temp 变量旗 → sub_14054F730 侧):总量 = `100000×count` 写两槽;逐节点 i (节点 = {int 值@+0, qword 计数@+8}):值 ≤0 → 0,否则 sub_140543CF0 取值 → `槽1[i]`;节点+8 → `槽2[i]` (名描述符 v16 = {byte@9=1, qword@24=100000×i} 即带索引后缀的数组变量名) | — | 空串 (0X1402E9F90) | 0X14053D4C0 共用;变量名/管理器键经 逐类键解析槽 |
 | has_any_license | CHasAnyLicenseTrigger | 许可表 = **CLicensedProductionStatus+56 (ps+456 owned_license) count@ps+468** (accessor 0x14143AB80 = a1+56; 原「+480 + sub_1406F2F20(+80) 链」混写订正; 挂载点§4.8);返回 `载荷 (a1+88) == (count != 0)` | — | `TRIGGER_HAS_ANY_LICENSE` / `TRIGGER_HAS_NOT_ANY_LICENSE` | 0X140550030 共用 |
 | has_damaged_buildings | CDamagedBuildingsTrigger | state = sub_140BB48F0(a2+8);州 +1120 {data} / +1132 计数 数组逐元素:元 +368 {data} / +380 计数 = 建筑实例数组,`sub_1410DB7F0(e)` (= e+64 等级 ≠ e+66 → 受损) 任一命中 → 返回载荷 `*(a1+88)` byte == 1;全部完好 → 载荷 == 0 | — | `TRIGGER_HAS_DAMAGED_BUILDINGS` / `TRIGGER_HAS_NO_DAMAGED_BUILDINGS` | 0X140550030 共用 |
-| has_license | CHasLicenseTrigger | COMPLEX。目标 tag = 载荷国 (a1+88 有效 → sub_140BB4F60) 或缺省 sub_14054EB40;变体对象线 (`*(a1+120)` = 变体槽 a1+104 内指针,或 `*(a1+160)` 变体):`v13 = sub_1413B03B0(a1+104, scope)` (+16 有效门) → `sub_14143A4F0 查询(sub_140E5D0C0(scope国), v13, &目标tag)`;无效 → 错误 "%s: Invalid equipment" (triggerimplementation.cpp:11979)。装备参考线:栈构 CEquipmentVariantReference {vtable, archetype id@+4 ← a1+176, qword@+8 ← a1+180, tagA@+12 ← a1+188 (≤0 → scope tag), tagB@+16 ← 目标 tag, byte@+20 ← a1+196, 名串@+24 ← a1+200} → `sub_14143A580(sub_140E5D0C0(tagA 国), &ref)` | — | `TRIGGER_HAS_LICENSE_FROM` / `TRIGGER_HAS_NOT_LICENSE_FROM` + 标签 EQUIPMENT (archetype id a1+176 → sub_1409F8840 名) / COUNTRY | 0X14043A120:10639=`from` → 国 (sub_14054AE70 失败 → 名串 sub_140BB4640 → a1+88,无效报错);12103=`archetype` → a1+104 (sub_1413B0970);12110=`equipment` → a1+160/168 变体 (sub_1424C0AA0);其他 → 0X140550030 |
+| has_license | CHasLicenseTrigger | COMPLEX。目标 tag = 载荷国 (a1+88 有效 → sub_140BB4F60) 或缺省 sub_14054EB40;变体对象线 (`*(a1+120)` = 子对象 a1+104 内 +16 已解析缓存,或子对象 a1+160 脚本值经 `sub_140544C90` 求值 ÷1e5 得原型 id → 原型库取对象):`v13 = sub_1413B03B0(a1+104, scope)` (+16 有效门) → `sub_14143A4F0 查询(sub_140E5D0C0(scope国), v13, &目标tag)`;无效 → 错误 "%s: Invalid equipment" (triggerimplementation.cpp:11979)。装备参考线:栈构 CEquipmentVariantReference {vtable, archetype id@+4 ← a1+176, qword@+8 ← a1+180, tagA@+12 ← a1+188 (≤0 → scope tag), tagB@+16 ← 目标 tag, byte@+20 ← a1+196, 名串@+24 ← a1+200} → `sub_14143A580(sub_140E5D0C0(tagA 国), &ref)` | — | `TRIGGER_HAS_LICENSE_FROM` / `TRIGGER_HAS_NOT_LICENSE_FROM` + 标签 EQUIPMENT / COUNTRY;**GetDesc = 0x14040ED70** (槽[21];装备名 = 变体对象+24 名经 `<TAG>_<名>` FNV-1a 查 loc `sub_140BC9CA0`,空串 → 玩家国前缀回退 `sub_140BC9B50`;archetype id a1+176 → `sub_1409F8840` 仅无效装备回退;尾追 '\n' + ctx 富文本后处理 `sub_1410E48A0` = GetDesc 族通用收尾) | 0X14043A120:10639=`from` → 国 (sub_14054AE70 失败 → 名串 sub_140BB4640 → a1+88,无效报错);12103=`archetype` → a1+104 (sub_1413B0970);12110=`equipment` → a1+160/168 变体 (sub_1424C0AA0);其他 → 0X140550030 |
 | has_market_access_with | NInternationalMarket::CHasMarketAccessWithTrigger | 载荷 tag = 自身虚槽 [23] (vtable+184;≤0 → 0);`v7 = sub_140BB48F0(a2+8) + 3976` = CDiplomacyStatus* (书 §4.3);返回 `sub_140D246C0( *( *(v7+8) + 8×sub_140BB5490(载荷tag) ) )` — 外交对象 +8 数组按目标国索引取元素,sub_140D246C0 = 布尔化 (市场访问判定) | — | `TRIGGER_HAS_MARKET_ACCESS_WITH` / `TRIGGER_HAS_NOT_MARKET_ACCESS_WITH` + 标签 COUNTRY | 0X140550030 共用 |
 | has_railway_connection | CHasRailwayConnectionTrigger | 与 can_build_railway 同体:同一查询引擎 sub_140E936F0、同一描述符装配;差异仅判定式 — `返回值 == 0` (查询出参某字段为零;can_build_railway 判 out+12 != 0,本函数判 pre-filled 槽 v14 == 0 — 两名消费出参不同字段) | — | `TRIGGER_HAS_RAILWAY_CONNECTION` + 标签 START / GOAL (三载荷形态与 can_build_railway desc 相同:脚本州对 / id 对 / path 数组首末;空态返空串) | 0X1404386F0 (与 can_build_railway 共用) |
 | has_railway_level | CHasRailwayLevelTrigger | 门 `*(byte*)(a1+96)` (载荷州解析成功旗) 非零;state id = `sub_140544C20(a1+88, scope, 0)` (脚本值→州,1..gs+724 界内);逐省 (CState+24/+36 省数组,§4.13):rail = `CRailwayManager[*(prov+164) 省 id]` (gs+992,§4.1;§4.14 §4.14.6);rail+32 等级 u32 数组 {count@+44} 中任一等级 ≥ `*(a1+296)` → 1 | — | `TRIGGER_HAS_RAILWAY_LEVEL` + 标签 LEVEL (a1+296) / STATE (州名 state+192);载荷州无效 → 空串 | 0X14043A8F0:439=`state` → a1+88 对象虚槽[3] (成功置 a1+96);10348=`level` → sub_1424C08D0 (a1+296 推定);其他 → sub_1424C2060 |
@@ -1012,7 +1014,7 @@ Parse 列口径: 「共用」= 实例自身虚槽 [6] (CEffect 仅作用域键 0
 | all_purchase_contracts | NInternationalMarket::CAllPurchaseContractTrigger | 槽[22] = 0X140459D20: 名单 = 国 (= sub_140BB48F0(ctx+8)) 采购合同: sub_1413C0530(&list, ctx) → sub_1406F01F0(国) = *(国+4024) 装备市场 → sub_1413B7B00(市场, &list) → sub_140DECB20(*(市场+112), list, *(市场+104)+8) → sub_1419D5B80(inner, list, &国idx) = inner+48 与 inner+72 两张按国索引 24B 容器表按国 idx 取出并拼接 (8B 元); 逐候选过滤槽[26] 恒 0 → 槽[25] = 0X1403085E0 (sub_14053B1B0) 置 scope+128 = 采购合同句柄 (书 §4.00 ctx+128); 量词 = 全称 (推定: inner+48/+72 两表分工未定案) | — | — | 0X14045B0A0 (子掩码 1024) |
 | all_state | CAllStateTrigger | 0x1404628E0 (vtable 0x1427B03C8): 全州 (gs+712/+724) 一假即 0, 空 → 1; count 键(10730→a1+120) = 死求值（解析接受、Evaluate 求值后丢弃, 量词族模板共码） | 读 全州数组 | 空 0x1401773F0 | 0x140473280: tooltip(146)→a1+88 / count(10730)→a1+120 / 其余→0x140550030 |
 | always | CAlwaysTrigger | 单行: `return *(u8*)(a1+88)` — 载荷字节即结果 (`always = yes/no`) | 无写 (trigger 只读): a1+88 (载荷值 byte) | `TRIGGER_ALWAYS_TRUE` / (a4 == 载荷) `TRIGGER_ALWAYS_FALSE`, 无标签 (a4 = 取反/极性旗, 由调用方给出) | 0X140550030 共用 (类无专属块键; 值 yes/no 由 CTriggerEntry<CAlwaysTrigger> 工厂落 a1+88 — 见异常清单 PENDING-1) |
-| and | CAndTrigger | 自身即 **88B 子 trigger 容器** (data@+8 / count@+20 / token@+32=10600, ctor sub_140549F40); count ≤ 0 → 1; 逐子 trigger: 子槽[3] 求值 (Evaluate 包装 → 内部转子槽[22]) 为假且子槽[2] 为假 → 0; 全过 → 1。**`and` 的 Evaluate 就是"trigger 列表 AND"通用实现** — 本册 5 个作用域迭代 trigger、hidden_trigger、custom_*_tooltip 均复用同一函数 | 读 a1+8/+20 子 trigger 表 (书 §4.00.3 基链 `CPdxArray<CTrigger*>` 同形容器); 无对象直写 | 槽[21] 置空串 (0X1401773F0) — `and` 自身无描述串, 子串由子 trigger 各自 [21] 提供 | 0X140550030 (通用 trigger 树解析器): 14573 `else_if` / 14035 `else` 特判建 CIfTrigger 并挂链; 其余键按 `qword_143330050` 注册表查 entry → entry 虚槽[1] 工厂建子 trigger → `sub_1401205A0(self+8, &obj)` 追加; 作用域不合法 → "Invalid scope type for trigger %s" (trigger.cpp:686); 未知名 → "Invalid trigger '%s' in %s line : %i" (trigger.cpp:700) |
+| and | CAndTrigger | 自身即 **88B 子 trigger 容器** (data@+8 / count@+20 / token@+32=10600, ctor sub_140549F40); count ≤ 0 → 1; 逐子 trigger: 子槽[3] 求值 (Evaluate 包装 → 内部转子槽[22]) 为假且子槽[2] 为假 → 0; 全过 → 1。**`and` 的 Evaluate 就是"trigger 列表 AND"通用实现** — 本册 5 个作用域迭代 trigger、hidden_trigger、custom_*_tooltip 均复用同一函数 | 读 a1+8/+20 子 trigger 表 (书 §4.00.3 基链 `CPdxArray<CTrigger*>` 同形容器); 无对象直写 | 槽[21] 置空串 (0X1401773F0) — `and` 自身无描述串, 子串由子 trigger 各自 [21] 提供; **tooltip**: [11] = 0x14054B1A0 / [12] = 0x14054B550 (头部键 a4 取反镜像: a4=1 → TRIGGER_OR_STARTS); CScriptedTriggerTemplate 继承同两槽 (PE vtable 全同) = 其 CAndTrigger 后代身份 PE 侧确证 | 0X140550030 (通用 trigger 树解析器): 14573 `else_if` / 14035 `else` 特判建 CIfTrigger 并挂链; 其余键按 `qword_143330050` 注册表查 entry → entry 虚槽[1] 工厂建子 trigger → `sub_1401205A0(self+8, &obj)` 追加; 作用域不合法 → "Invalid scope type for trigger %s" (trigger.cpp:686); 未知名 → "Invalid trigger '%s' in %s line : %i" (trigger.cpp:700) |
 | any_allied_country | CAnyAlliedCountryTrigger | any 形 (count 递减制): **门 slot[24] = 0X1404337F0** = `*(*(cc+3976)+656) == 0` → 本国非阵营成员直接 0; 容器 = 内联阵营成员国数组 (dip+656 CFaction* → +88/+100, §4.32.1.1); 过滤 = 0X14043D070 (跳自身/同原初国); 通过内树的成员国数达 count → 1 | 无写 (trigger 只读): `*(cc+3976)` CDiplomacyStatus (书 §4.3); dip+656 CFaction* (书 §4.10); faction+88/+100 成员国数组 (书 §4.5); a1+120 count | 空串; slot[23] = 0X1404320B0 产 `TRIGGER_ANY_ALLIED_COUNTRY_STARTS` | 0X1404379E0 共用 (tooltip → a1+88 / count → a1+120) |
 | any_collection_element | CAnyCollectionElementTrigger | `count = *sub_140544C90(a1+120,…)/100000` (默认 0), ok = 0; 集合源与 all 版同 (a1+328/+336/+352/+364); `sub_1404CA360(scope, 视图A, 视图B, {self, &count, &ok})` 逐元素: 子 trigger 列表为真 → count−1, count ≤ 0 → ok = 1 短路; 返 ok | 读同 all 版 (a1+328 集合源 / a1+88 / a1+120 / a1+8); 无对象直写 | 槽[21] 置空串; **标题串 = 槽[23] 0X140520040 → `TRIGGER_ANY_COLLECTION_ELEMENT_STARTS` + "COLLECTION"** | 0X140521170 (与 all 版同一函数: 19580/146/10730) |
 | any_controlled_state | CAnyControlledStateTrigger | 0x140462B90 (vtable 0x1427B04C8): cc+1120/+1132 count 量词 (count=eval(a1+120)/1e5, 首真即真缺省) | 同上 | 空 | 同上 |
@@ -1087,8 +1089,8 @@ Parse 列口径: 「共用」= 实例自身虚槽 [6] (CEffect 仅作用域键 0
 | set_power_balance_gfx | CSetPowerBalanceGfx | `sub_140E57EF0(*(gs+1104), a1+88, a1+128, a1+168)` = 把 side 串 (+128) 与 gfx 串 (+168) 写给指定 pb 的对应 side 的 gfx 槽 | 写 pb 侧对象 gfx 串 (helper 内部; 与书 §4.3.21 `+376 sides` 元素 CPowerBalanceSideInfo `gfx@+48` 形态相符 = 高置信对应, helper 体未展开); 载荷 id 串 a1+88 (+120 hash) / side 串 a1+128 (+160 hash) / gfx 串 a1+168 (cap@+192) | 槽[7] 置空串 (0X1401773F0) — 无本地化描述 | 槽[4] 0X1404882C0: 51 `side` → `sub_140612C40` 落 +128 (+160 hash); 12472 `gfx` → `sub_1424C0AB0` 落 +168; 11 `id` → a1+88; 其余报错。校验 槽[23] 0X140487EE0: "Please specify the side ID"(:548) / "Unable to find side with ID: %s"(:554) / "Please specify the GFX ID"(:559) |
 | set_power_balance | CSetPowerBalanceEffect | PE vtable槽 + 注册点 `CEffectEntry<CSetPowerBalanceEffect>` 三证: vtable 0x1427B97A0 / Execute 0X1404842F0 / GetDesc 0X1404866A0 (⚠ 载荷表 vtable 0x1427BA020 系 CSetPowerBalanceGfx 误配)。gamestate assert 门后 `sub_140E58100(*(gs+1104), ctx+8, a1+88, a1+128, a1+168, mode, *(qword*)(a1+216))`; mode = `*(a1+209) ? 2 : (*(a1+208) != 0)`。载荷五键 (注册串官方 schema): `id` → a1+88 / `left_side` → a1+128 / `right_side` → a1+168 / `set_default` 值旗 → a1+208/+209 双字节 / `set_value` → a1+216 qword (ctor 0X140483B70 布局互证) | CPowerBalanceSystem 写 (sub_140E58100 = 按 id 于 pbSys+8 表 {400B/条} 定位条目 → 两侧串非空时 sub_140E58330 写两侧 → mode 1 取现值 / mode 2 用载荷值 / 其余 0) | `EFFECT_REMOVE_POWER_BALANCE` + 标签 `POWER_BALANCE` (⚠ set 的 desc 亦发 REMOVE 键 — 原版键复用) | 0X14053D4C0 共用 (五块键解析不在本函数) |
 | sound_effect | CSoundEffect | 声音名 = a1+88 串 (cap a1+112);声音管理器单例 `qword_14332F6A0` 虚槽 [31] (vtable+248) 调用播放,实参 = 名串数据指针;无存在性校验、无报错 | 读 a1+88 声音名串 → 声音管理器单例 `qword_14332F6A0` 虚槽 [31] (= CInGameIdler 全局实例, 书 §4.2/§4.28 idler 双槽定案, 菜单态为 0; 虚槽[31] = 按名播声音通道, §4.28.9) | loc key `EFFECT_SOUND_DESC` + 标签 `SOUND_NAME` (0X1403864B0;与 play_song 共用同一函数) | 0X141392EB0 共用 (同 play_song) |
-| not | CNotTrigger | Evaluate 0x14054ABB0 **定案**: 88B 子触发容器 (data@+8 / count@+20 / token@+32=10602, 工厂 sub_14054CE00); 空表 → 1; 逐子: 子槽[3] Evaluate 真 **且** 子槽[2](skip 门) 假 → 立即返 0; 全过 → 1 = ¬(∃子真); 注册 token 10602 | 读 a1+8 子触发表 | 0x1401773F0 空 | 0x140550030 共用 (子 trigger 由注册表工厂递归建入 a1+8) |
-| or | COrTrigger | Evaluate 0x14054AC30 **定案**: 容器同 not (token@+32=10601); 空表 → 0; 逐子: 子槽[3] 真且子槽[2] 假 → 立即返 1; 全过 → 0 = ∃子真; 注册 token 10601 | 读 a1+8 子触发表 | 0x1401773F0 空 | 0x140550030 共用 |
+| not | CNotTrigger | Evaluate 0x14054ABB0 **定案**: 88B 子触发容器 (data@+8 / count@+20 / token@+32=10602, 工厂 sub_14054CE00); 空表 → 1; 逐子: 子槽[3] Evaluate 真 **且** 子槽[2](skip 门) 假 → 立即返 0; 全过 → 1 = ¬(∃子真); 注册 token 10602 | 读 a1+8 子触发表 | 0x1401773F0 空; **tooltip**: [11] = 0x14054BB50 (翻 a5) / [12] = 0x14054BBA0 (翻 a4) — NOT 自身无头部串, 仅翻转取反旗下发基实现 | 0x140550030 共用 (子 trigger 由注册表工厂递归建入 a1+8) |
+| or | COrTrigger | Evaluate 0x14054AC30 **定案**: 容器同 not (token@+32=10601); 空表 → 0; 逐子: 子槽[3] 真且子槽[2] 假 → 立即返 1; 全过 → 0 = ∃子真; 注册 token 10601 | 读 a1+8 子触发表 | 0x1401773F0 空; **tooltip**: [11] = 0x14054BBD0 / [12] = 0x14054BF90 (头部键 TRIGGER_OR_STARTS ↔ TRIGGER_AND_STARTS 随 a4 取反旗切换; ctor sub_140549F70 = 基 ctor sub_14054A090 + token 10601) | 0x140550030 共用 |
 | random | CRandomEffect | Execute 0x1413944A0: **门判定 sub_141399920(a1, scope)** (per-scope RNG: `*(a2+12)` 自增计数 ×1255572915 异或 + 1759714724 双轮 hash → rand31; `rand % 100 < eval(a1+88 值槽)` = chance 百分制) 过才跑子效果 0x14053E130; 注册 token 10171 | 读 a1+88 chance 值槽 | 0x1401773F0 空 | 0x14053D4C0 共用 (chance/子块键在逐类键解析槽); 本体 = 薄壳, 共用收集器 sub_1413BF960 |
 | random_list | CRandomListEffect | Execute 0x1413944D0 → **加权抽取 `sub_14139B7F0(a1, &list, &buf, scope)`**: 成员指针数组 a1+88 / 计数 int a1+100 (即 §4.32.16 载荷 random_list 行), 逐成员 `sub_140541DC0` 求权重 (变量可); a1+112 = log 旗 (置位走 effectbase.cpp:1532 日志路径); 抽中成员跑效果树; 注册 token 10172 | 读 a1+88/+100 成员表 / a1+112 log 旗 | 0x141398B10 (拼 SIZE/成员 odds) | 0x14053D4C0 共用; 成员 = CRandomListEffectMember |
 | random_state | CRandomStateEffect | Execute = **0x1402F4520 (random_state 族共用骨架)**: 收集器 槽[25]=0x1403383F0 / push 槽[26]=0x1413C3C00 / 取一 槽[27]=0x1402F7510 (scope RNG) / builder 槽[28]=0x1413C3BD0; 注册 token 12745; doc: prioritize 属性指定的州若过 limit 将优先 | 写 候选容器 (骨架同 every_state 族) | 空 | 0x14053D4C0 共用 |
@@ -1202,7 +1204,7 @@ Parse 列口径: 「共用」= 实例自身虚槽 [6] (CEffect 仅作用域键 0
 | for_loop_effect | CForEffect | COMPLEX。cur = eval(a1+88) (start,循环外一次);vm = TLS+32;break 变量 (a1+752 串) 清零;循环:每轮重求 eval(a1+296) (end) 与 cur 按 op token `*(dword*)(a1+744)` 比较 (467→cur>end / 468→cur<end / 14578→!= / 14579→<= / 14580→== / 14581→>=;其他 op 静默 return) 不成立即停;迭代数 > dword_1433368E0 → 置 broken 旗 a1+784 + 错 "non terminated loop" (17212);写 value 变量 (a1+712 串) = cur;跑子效果;break 变量非 0 → return;cur += eval(a1+504) (step,每轮重求)。入口先查 broken 旗 a1+784 → 错 "broken loop" (:17164) | — | 空串 (0X1402E9F90 置空返回) | 0X14053D4C0 共用 (块键 start/end/step/value/compare/break 在逐类键解析槽 (该类槽[4]/[6] 未展开) |
 | force_update_dynamic_modifier | CForceRecalcModifiersEffect | 无载荷直通:`return sub_1403B7C30(scope)`。该 helper:scope+8 国 id > 0 → `sub_1406CF250` 链取国 → **`sub_1406DADE0(国)`** (= 「重算三连」之首,理念/modifier 重算,类名 CForceRecalcModifiers 语义锚定);否则 `sub_140535E00(scope)` (scope 角色→单元领袖角色) 非空 → `sub_140C20F70(角色)`;再否则 scope+168 州 id ∈ [1, gs+724) 走 gs+712 州数组取址 (与书 clr_state_flag 同款;取址后调用经 dump 误符号 (_DeleteExceptionPtr thunk) 的州侧重算/清理入口 — 待机器码级复核 (维持待裁) | — | 空串 (0X1402E9F90 置空返回) | 0X140334ED0:先 0X14053D4C0 (scope 键);失败 → `sub_1424C5640(节点, a1+88)` 裸值原样存 a1+88 (Execute 不消费载荷 — 占位形态) |
 | fuel_ratio | CHasFuelRatioTrigger | 骨架 §4.32.1.1 (**本册唯一启用槽[24] 0..1 阈值门者**)。取值器 vtable[23] = sub_1403ED530 → `sub_1410F3570(*(国+5504), &out)` = **fuel / max_fuel**: `fs+16 ≤ 0` → 0, 否则 `(fs+8 << 15) / fs+16` (Q15 商) 经 `sub_1424ED580` 规整为固定×1e-5 出参 | 读 国+5504 fuel_status (书 §4.3) → fs+8 fuel / fs+16 max_fuel (均 Q15, 书 §4.3.14); 阈值 @this+96; op @this+88 | `TRIGGER_FUEL_RATIO` + 值参 (阈值表达式求值 → `sub_14226E4D0` 数值串拼接) | 0X140550030 共用 |
-| has_ability | CUnitLeaderHasAbilityTrigger | `leader = sub_140535E00(scope)` (单元领袖, 书 §4.32:67 已收); 空 → 0。能力 def = `sub_140613EE0(qword_14332EDA8 库单例, a1+88 名串)` (名串落 a1+88, 解析器槽 [4] = 0X1413A2620); 判定 = `sub_140C1A590(leader, def)`: 快捷门 `sub_140C1A610(def)` 真即真; 否则 `leader_type u32@+3708 <= 1` (书 §4.4) 且 `+4168` 8B CRef (Army HQ) 非零 → HQ = `sub_14221F310(leader+4168)` → `*(qword*)(HQ+440)` → `sub_140333D10` → `sub_140C1A610(HQobj, def)`。注册器 doc 串: "does unit leader have the abilityCheck if a unit leader has the ability. Example: has_ability = force_attack" | 读 leader+3708 (类型) / +4168 (HQ CRef, 书 §4.4) / HQ+440 → 对象; a1+88 = ability 名串 (std::string), def 名串在 def+584 (cap +608, desc 侧读) | `TRIGGER_UNIT_LEADER_HAS_ABILITY` + 标签 `LEADER` / `ABILITY` (串内换行排版) | 槽 [4] 0X1413A2620: 清 a1+88 串 → scope 键 → `sub_1424C5540(node, a1+88)` 串解析; 槽 [6] 0X140550030 树解析器; 无块键 |
+| has_ability | CUnitLeaderHasAbilityTrigger | `leader = sub_140535E00(scope)` (单元领袖, 书 §4.32:67 已收); 空 → 0。能力 def = `sub_140613EE0(qword_14332EDA8 库单例, a1+88 名串)` (名串落 a1+88, 解析器槽 [4] = 0X1413A2620); **同库全量枚举入口 = sub_140613EF0(db, a2)** = `db+8*(3*a2+8)`, a2=0 → db+64 {data, cap@+8, count@+12} (IDA 丢第二参; §4.31.143); 判定 = `sub_140C1A590(leader, def)`: 快捷门 `sub_140C1A610(def)` 真即真; 否则 `leader_type u32@+3708 <= 1` (书 §4.4) 且 `+4168` 8B CRef (Army HQ) 非零 → HQ = `sub_14221F310(leader+4168)` → `*(qword*)(HQ+440)` → `sub_140333D10` → `sub_140C1A610(HQobj, def)`。注册器 doc 串: "does unit leader have the abilityCheck if a unit leader has the ability. Example: has_ability = force_attack" | 读 leader+3708 (类型) / +4168 (HQ CRef, 书 §4.4) / HQ+440 → 对象; a1+88 = ability 名串 (std::string), def 名串在 def+584 (cap +608, desc 侧读) | `TRIGGER_UNIT_LEADER_HAS_ABILITY` + 标签 `LEADER` / `ABILITY` (串内换行排版) | 槽 [4] 0X1413A2620: 清 a1+88 串 → scope 键 → `sub_1424C5540(node, a1+88)` 串解析; 槽 [6] 0X140550030 树解析器; 无块键 |
 | has_active_mission | CHasActiveTimedDecisionTrigger | 国 = `sub_140BB48F0(scope+8)`;decision/mission 管理器 = `*(cc+4000)` (decision_status,书 §4.3 +4000);`sub_140731E90(mgr, *(a1+120))`:`sub_140729400(token, mgr+160)` 在 mgr+160 容器查条目,命中且 `*(dword*)(条目+28) == 0` → 1 (active);查无 → 0 | — | `TRIGGER_HAS_ACTIVE_MISSION` / `TRIGGER_HAS_NOT_ACTIVE_MISSION` + 标签 `MISSION` | 0X140550030 共用 |
 | has_active_rule | CFactionHasActiveRuleTrigger | 门:`*(a1+88)` (rule def 指针) 非 0;faction = `sub_141188EB0(ctx)` = `*(*(国+3976)+656)` CFaction* (书直名);空 → 0;扫 **fac+1480 rules 向量** (计数 `+1492`) 逐元素指针比对 `*(a1+88)`,命中 → 1,否则 0 | 读:**fac+1480 {data},计数 +1492 = CFaction rules 向量** (§4.5 行 376 直名);dip = 国+3976 → +656 CFaction (书 §4.3/§4.10);rule def `*(a1+88)` (slot[4] 解析);国 id 来自 scope | `TRIGGER_HAS_ACTIVE_FACTION_RULE` / `TRIGGER_HAS_NOT_ACTIVE_FACTION_RULE` + 标签 `COUNTRY_OR_FACTION` / `RULE` | slot[4] 0X1404B4020:载荷 token → `sub_141187C50(token)` = rule def 指针 → `*(a1+88)` (sub_141187C50 = faction rule 库按 token 查 def, faction_utils.cpp:148; 查无先发 "faction rule not found: <名>" 日志后返 0);payload 列 0X140550030 = slot[6] 树解析 |
 | has_any_custom_difficulty_setting | CHasAnyCustomDifficultyTrigger | 返 `*(byte*)(a1+88)` == `sub_1401DF030(gs)`:扫 gs+1064 数组任一条目 `*(条目+208) > 0` (multiplier@+208 门,书 §4.1 difficulty_settings 行逐字同款) → 1,否则 0 | — | 同上 (共用):`TRIGGER_HAS_CUSTOM_DIFFICULTY_ON` + `DIFFICULTY` + `YES`/`NO` | 0X140550030 共用 |
@@ -1578,7 +1580,7 @@ CCollection 输入描述符正典解析器 = sub_140A1EC00 (`input = <ns:value>`
 机制新事实 (定案): **can_build_railway GetToolTip = 0x1403F46A0** (831 行) 内嵌真实寻路 sub_140E936F0, 寻路成否决定 TRIGGER_CAN_(NOT_)BUILD_RAIL_SAME_STATE/DIFF_STATES 键 (州名 sub_1409D91D0; 解析失败 log-and-continue); 载荷块 +296 起布局与卡逐一吻合 + **+752 路径数组/+764 计数 = 寻路结果缓存槽** (新)。**divisions_in_border_state 计数内部** (0x1403EB750): 相邻省收集 = 遍历州1 (a1+88) 省表 (州+36 计数/+24 数组) 逐省判邻州 (sub_140E7F530/sub_140E7F3F0) `*(邻州+192) == 州2 对象` (CState+192 = 自指针槽); 计数扫省 +272/+284 驻扎单位, owner (单位+472) == ctx+8 或流亡同源判; 纯堆分配器单例 off_143085170 触发器域用例。**has_idea GetToolTip = 0x14040DB10** (820 行, 类名 CHasIdeaTrigger 由 lambda 符号直证): **第二名串槽 +96/+108** 与 Evaluate 的 +160 并存 (对应解析键待裁); 角色管理器孪生查询对 sub_1406B9540/570 (0x30 步进); 命中未关联 scope 国 → :3091 记日志后 **terminate()** (致命脚本数据错)。日期格式助函 0x1403DF020 (Y.M.D vs D.M.Y 告警双串, 日期类触发器共用)。
 
 小函簇补锚 (Evaluate/键解析/槽 22 个 VA, 函体互证全吻合; 高置信): has_army_manpower Evaluate 0x1403D2AB0 (op @a1+300) / estimated_intel_max_piercing Evaluate 0x1403D1FD0 / has_deployed_air_force_size Evaluate 0x1403D5A40 / has_navy_size Evaluate 0x1403D7830 / has_resources_in_collection Evaluate 0x1403D8420 (op @a1+92) / ic_ratio Evaluate 0x1403DA200 / naval_strength_ratio Evaluate 0x1403DCC00 (双国 国+4912 num_ships 比) / strength_ratio Evaluate 0x1403DE3E0 (师数比 + 辅助力 rec+52/+100 双门) / casualties_inflicted_by Evaluate 0x1403D0990 / can_research Evaluate 0x1403D07E0 / has_tech Evaluate 0x1403D90F0 (entry+368 == 4 已研究) / is_researching_technology Evaluate 0x1403DC1A0 (在研模板 +352→+60 名 token 比) / compare_intel_with Evaluate 0x1403D14C0 (四象限差值 = 我 ci+16 矩阵[目标] − 反向) / intel_level_over Evaluate 0x1403DA350 / can_be_country_leader Evaluate 0x1403D0420 / can_declare_war_on Evaluate 0x1403D06F0 (sub_141137F30(ctx+8, &target, 0, 1)) / num_planes_stationed_in_regions Evaluate 0x1403D1840 (**per-国军事记录 sub_1406F9600 +88 = 翼池数组 (+100 计数)**, 翼+88 = 区域 id, 独立错误串 "Unsupported comparison in …" :1519) / has_focus_tree Evaluate 0x1403D6380 (树 = 国+4976, tree+8 名串全等) / has_finished_collecting_for_operation Evaluate 0x1403DAC80 / is_preparing_operation Evaluate 0x1403DBF60 (实例+128 == 0 未开跑) / naval_strength_comparison Evaluate 0x1403DCD50 (权重表 a1+96 {16B 条} 加权, 空表 → 100000×总舰数; `(本国 > 目标×eval(a1+352)/1e5) == a1+88 取反旗`) / war_length_with Evaluate 0x1403DE730 (dip = 国+3976, war = 流亡账本表[idx]+744 _pWarRelation, 门 war+73 隐藏旗; **体内嵌 gamestate.h:1125/1126 断言对 (latch byte_14332ED00/ED01) + 现值日期 gs+1128**) / has_completed_custom_achievement Validate 0x1403D5160 (成就缺失 terminate) / has_country_leader 载荷键解析 0x1404347B0 / network_national_coverage 槽[26] 0x1403EE080 (100×全国覆盖率) / decryption_progress 槽[26] 0x1403EB4F0 (互证) / conscription_ratio 槽[23] getter 0x1403EAEA0 / ships_in_state_ports Parse 0x14043CA60 / original_tag 系键解析 0x140436AB0 (互证); **helper 新定性**: sub_140CFA840 = 征兵人力增量核 ((目标−当前)×Σ控制州 州+2104 系数/1e5) / sub_140FDD400 = usable_operative_slots getter (ag+244) / sub_140F9F9F0 = operatives 容器 getter (ag+216) / sub_140A03B30 = return a1+152 / sub_140FA4C50 = 角色在册判定; **解析期 terminate 致命 quirk 四例** = has_cosmetic_tag 空载荷 (:10533) / has_completed_custom_achievement 成就缺失 (:17933) / can_be_country_leader 角色缺失 (:11803) / has_manpower_for_recruit_change_to 非法 idea group (:6117); 引擎串笔误新例 = has_autonomy_state 解析辅函 "Failed to autonomy_state: " (缺 find, 与 Validate 的 "Failed to find autonomy_state: " 为两条不同串)。
-补锚清单 (卡已有该侧 VA 未收; 高置信): has_idea GetToolTip 0x14040DB10 / has_border_war_with Evaluate 0x1403D3FF0 + GetToolTip 0x140404330 / has_border_war_between Evaluate 0x1403D35B0 / can_build_railway GetToolTip 0x1403F46A0 / has_country_leader GetToolTip 0x140408400 / has_border_war GetToolTip 0x140403C90 / network_strength GetToolTip 0x140427100 / num_of_supply_nodes GetToolTip 0x14042C7D0 / has_mines GetToolTip 0x14040FDF0 / num_planes_stationed_in_regions GetToolTip 0x1403F9690 (兼 based_in 变体共用) / num_finished_operations GetToolTip 0x1404279B0 / has_resources_in_collection GetToolTip 0x140413F00; Validate 族: has_game_rule 0x140434D60 / has_active_mission 0x1404344C0 / has_completed_focus 0x140434640 / has_trait 0x1404348D0 / dynamic modifier 0x140434C20 / modifier 检查 0x1404353F0 (原版拼写 invaid) / has_tech_bonus 0x1404358D0 / has_autonomy_state 0x140434550 / has_war_with_wargoal_against 0x1404359D0 / has_wargoal_against 0x140435BF0 / sub_unit 族 0x140435E10 + 定义名 0x140435260; Evaluate 族: has_idea 0x1403D66B0 / has_done_agency_upgrade 0x1403D4F00 / has_operation_token 0x1403D7CA0 / has_captured_operative 0x1403D4D70 / has_resources_amount 0x1403EDCC0 / has_resources_in_country 0x1403EDAD0 / stockpile_ratio 0x1403DE200 / has_idea_with_trait 0x1403D6AE0 / has_wargoal_against 0x1403D9F40 / has_war_with_wargoal_against 0x1403D9CC0 / has_autonomy_state 解析辅函 0x1403E9D10 (⚠ 归类修正: 0x1403E2430 = has_manpower_for_recruit_change_to 的**征兵人力增量辅函** (a1,tag) 二参返 int 非布尔, 移出 Evaluate 族; 0x1403DEA80 = has_cosmetic_tag 的**载荷键解析** (空载荷 :10533 terminate), 移出 Evaluate 族); 键解析族: hidden_trigger tooltip_evaluation 0x14043B580 ("eval"/"legacy", legacy 弃用告警) / relation modifier 0x14043A930 / has_equipment 0x140439BD0 / original_tag 系 0x140436AB0 (`Expected 'original_tag_to_check' and not 'original_tag'`) / 比较符族共用 0x1404362A0。
+补锚清单 (卡已有该侧 VA 未收; 高置信): has_idea GetToolTip 0x14040DB10 / has_border_war_with Evaluate 0x1403D3FF0 + GetToolTip 0x140404330 / has_border_war_between Evaluate 0x1403D35B0 / can_build_railway GetToolTip 0x1403F46A0 / has_country_leader GetToolTip 0x140408400 / has_border_war GetToolTip 0x140403C90 / network_strength GetToolTip 0x140427100 / num_of_supply_nodes GetToolTip 0x14042C7D0 / has_mines GetToolTip 0x14040FDF0 / num_planes_stationed_in_regions GetToolTip 0x1403F9690 (兼 based_in 变体共用) / num_finished_operations GetToolTip 0x1404279B0 / has_resources_in_collection GetToolTip 0x140413F00; Validate 族: has_game_rule 0x140434D60 / has_active_mission 0x1404344C0 / has_completed_focus 0x140434640 / has_trait 0x1404348D0 / dynamic modifier 0x140434C20 / modifier 检查 0x1404353F0 (原版拼写 invaid) / has_tech_bonus 0x1404358D0 / has_autonomy_state 0x140434550 / has_war_with_wargoal_against 0x1404359D0 / has_wargoal_against 0x140435BF0 / sub_unit 族 0x140435E10 + 定义名 0x140435260; Evaluate 族: has_idea 0x1403D66B0 / has_done_agency_upgrade 0x1403D4F00 / has_operation_token 0x1403D7CA0 / has_captured_operative 0x1403D4D70 / has_resources_amount 0x1403EDCC0 / has_resources_in_country 0x1403EDAD0 / stockpile_ratio 0x1403DE200 / has_idea_with_trait 0x1403D6AE0 / has_wargoal_against 0x1403D9F40 / has_war_with_wargoal_against 0x1403D9CC0 / has_autonomy_state 解析辅函 0x1403E9D10 (⚠ 归类修正: 0x1403E2430 = has_manpower_for_recruit_change_to 的**征兵人力增量辅函** (a1,tag) 二参返 int 非布尔, 移出 Evaluate 族; 0x1403DEA80 = has_cosmetic_tag 的**载荷键解析** (空载荷 :10533 terminate), 移出 Evaluate 族); 键解析族: hidden_trigger tooltip_evaluation 0x14043B580 ("eval"/"legacy", legacy 弃用告警) / relation modifier 0x14043A930 / has_equipment 0x140439BD0 / original_tag 系 0x140436AB0 (`Expected 'original_tag_to_check' and not 'original_tag'`) / 比较符族共用 0x1404362A0。**has_naval_invasion_against_state (token 10150) 三件套新收**: Evaluate 0x1403D7290 / GetDesc 0x140410370 (TRIGGER_HAS_(NO_)NAVAL_INVASION_AGAINST_STATE + INVASION_CONDITION_PREP_MORE/PREP_LESS/ACTIVE/NOT_ACTIVE + 标签 COUNTRY/STATE) / 工厂+ctor 0x1403E6240 / vtable 0x1403CC270 / 对象 312B; 载荷 = a1+88 州 / a1+296 阈值 fixed×1e-5 (默认 0) / a1+304 activated bool / a1+305 存在旗 / a1+308 算子 (默认 467 greater_than; Parse 限 467/468); 机制详见 §4.32.5 卡。
 
 #### 4.32.23 character/unit 内建域对账增补 (两姊妹簇全读; 28 VA 补锚 + 尾通知三分定案)
 
@@ -1639,3 +1641,2277 @@ cpp 行号地图: char 簇 add_random_trait :244 / add_trait :366-425 / remove_t
 #### 4.32.26 CCountry::Load 读档路径 instant_effect 载档即执行 (1 case = 13809, 定案)
 
 country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&效果) 构造 CEffect 载荷 → sub_140540B90(&效果, ctx, 4) 解析 (CEffect Parse 族) → sub_140534FE0 + sub_14053A610(&scope, cc+8, 1) 构造国家 scope → **sub_14053D9E0(&效果, &scope) 立即执行** → 双析构。即存档 `instant_effect = {…}` 块内的效果在**读档路径上当场生效** (非存入延迟队列); scope = 该国 (cc+8 tag)。存档作者可见语义: 载档一次性效果 (与 history 块 effect 同刻执行族)。
+
+#### 4.32.27 脚本 effect/trigger 补遗卡（185 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140399A70 | CUnlockDecisionTooltipEffect::GetDesc `EFFECT_UNLOCK_DECISION_SELECT_HEADER`/`EFFECT_UNLOCK_DECISION_TIMED_HEADER`/`DECISION_WHILE_ACTIVE`，决议解锁说明 |
+| 0x14030FAF0 | CSetBuildingConstructionEffect::Execute `Incorrect province:`+state_effect_implementation.cpp:669（func_names 直名） |
+| 0x1402F5830 | CCharacterListTooltipEffect::BuildTooltip `EFFECT_CHARACTER_LIST_LAND_UNIT_LEADERS`/`..._ADMIRALS`/`..._THEORISTS` 角色清单 |
+| 0x140394F60 | CShowIdeasTooltipEffect::GetDesc `EFFECT_SHOW_IDEA_TOOLTIP`+`NAME`（effectimplementation.cpp:2068） |
+| 0x1403F2C80 | CAmountTakenIdeasTrigger::GetDesc `TRIGGER_AT_LEAST`/`TRIGGER_IDEAS_SELECTED_IN_CAT_GROUP`/`TRIGGER_IDEAS_SELECTED`+`COMPARISON`/`AMOUNT` |
+| 0x1404014C0 | CHasArmySizeTrigger::GetDesc：CHasArmySizeTrigger::GetDesc CHasArmySizeTrigger::GetDesc；串 TRIGGER_HAS_ARMY_SIZE_AT_LEAST/AT_MOST/OF_TYPE_AT_LEAST + AMOUNT |
+| 0x140437B40 | CAmountTakenIdeasTrigger::ParseToken：CAmountTakenIdeasTrigger::ParseToken CAmountTakenIdeasTrigger::ParseToken；串 "Invalid category"/"Invalid group"/"Invalid … |
+| 0x140377580 | CAddResourceEffect::GetDesc：CAddResourceEffect::GetDesc CAddResourceEffect::GetDesc；串 EFFECT_ADD/REMOVE_(TEMPORARY_)RESOURCE + "resources_strip\ " + RESOURCE… |
+| 0x14042E820 | CShipsInAreaTrigger::GetDesc：CShipsInAreaTrigger::GetDesc CShipsInAreaTrigger::GetDesc；串 TRIGGER_AT_LEAST/MOST_SHIPS(_OF_TYPE)_IN_AREA + AMOUNT |
+| 0x1404188F0 | CHasTechBonusTrigger::GetDesc：CHasTechBonusTrigger::GetDesc CHasTechBonusTrigger::GetDesc；串 TRIGGER_HAS_(NOT_)TECH_(CATEGORY_)BONUS + "ERROR: MISSING TECH OR… |
+| 0x14038DF80 | CSetAutonomyEffect::GetDesc：CSetAutonomyEffect::GetDesc CSetAutonomyEffect::GetDesc；串 EFFECT_SET_AUTONOMY/EFFECT_AUTONOMY_FREE/"Can not find autonomy name!" … |
+| 0x14035DB80 | CRemoveIdeasEffect::Execute：CRemoveIdeasEffect::Execute CRemoveIdeasEffect::Execute；断言 effectimplementation.cpp:3011 + "Character is indexed with idea token … |
+| 0x1402EE1A0 | CSwapCountryLeaderTraitsEffect::GetDesc（func_names 名） func_names 名 + 串 "EFFECT_SWAP_RULER_TRAITS_MODIFY"/"EFFECT_SWAP_RULER_TRAITS_REPLACE" + VT CModifier |
+| 0x1403760D0 | CAddOpinionModifierEffect::GetDesc：CAddOpinionModifierEffect::GetDesc CAddOpinionModifierEffect::GetDesc；串 EFFECT_ADD_OPINION/EFFECT_ADD_TRADE_OPINION/EFFECT… |
+| 0x1403930E0 | CSetPopularitiesEffect::GetDesc（func_names 名） func_names 名 + 串 "EFFECT_SET_POPULARITIES"：设置民众支持率效果 |
+| 0x1404492C0 | CIsFemaleTrigger::GetDesc：CIsFemaleTrigger::GetDesc CIsFemaleTrigger::GetDesc；串 _LEADER_ARMY/_LEADER_COUNTRY/_LEADER_NAVY/_LEADER_OPERATIVE 前缀族（+ _LEADER_COU… |
+| 0x140422640 | CIsLicensingToTrigger::GetDesc TRIGGER_IS_LICENSING_TO / TRIGGER_IS_NOT_LICENSING_TO + 调用 CTrigger::GetScopeTargetID |
+| 0x140430600 | CTagTrigger::GetDesc：CTagTrigger::GetDesc CTagTrigger::GetDesc；串 TRIGGER_COUNTRY_IS(_NOT)/TRIGGER_TAG_(NOT_)UNITLEADER + COUNTRYADJ |
+| 0x140315EC0 | CBaseStateResistanceComplianceModifierEffect::GetDesc STATE / MODIFIERDESC / MODIFIERNAME / THRESHOLD，州抵抗顺从度 modifier |
+| 0x1402E7480 | CAddUnitLeaderTraitEffect::Execute（func_names 名） func_names 名 + 断言 character_effect_implementation.cpp:1339 + 串 "Adding active trait: "/"Invalid trait: %s"/"… |
+| 0x14044E9E0 | CAllArmyLeaderTrigger::GetTooltip（func_names 名） func_names 名 + 断言 eventscope.h:193 + 串 "TRIGGER_ALL_ARMY_LEADER_STARTS" + 调 CTrigger::GetTooltip |
+| 0x14048DCF0 | CPcIsForcedGovernmentToTrigger::GetDesc（func_names 名） func_names 名 + 串 "TRIGGER_PC_IS_NOT_FORCED_GOVERNMENT_TO"/"TRIGGER_PC_IS_FORCED_GOVERNMENT_TO"/"IDEOLOG… |
+| 0x14041EA60 | CIsExiledInTrigger::GetDesc TRIGGER_IS_EXILED_IN / TRIGGER_IS_NOT_EXILED_IN + HOST |
+| 0x140351BC0 | CCreateShipEffect::Execute（func_names 名） func_names 名 + 断言 effectimplementation.cpp:21550/21557/21562/21569/21584/21594 + 串 "%s equipment_variant does not ex… |
+| 0x1404660C0 | CNumBattalionsInStatesTrigger::Evaluate（func_names 名） func_names 名 + 断言 state_trigger_implementation.cpp:2298/2314/2345 + 串 "Sub unit definition is null, thi… |
+| 0x1404477B0 | CHasUnitsTrigger::GetDesc TRIGGER_IS_ASSIGNED_ARMY/NAVY/OPERATIVE 及其 NOT 变体全族 |
+| 0x1403966F0 | CStartCivilWarEffect::GetDesc（func_names 名） func_names 名 + VT CGameDate + 串 "EFFECT_START_CIVIL_WAR"/"CIVIL_WAR_COUNTRY_EFFECT_BEGIN"/"IDEOLOGY"：内战效果 |
+| 0x14051E910 | CCollectionSizeTrigger::GetDesc TRIGGER_COLLECTION_SIZE / COLLECTION / VALUE / CONSTRAINT 键族 |
+| 0x1404C7280 | CEveryCollectionElementEffect::BuildTooltip（func_names 名） func_names 名 + 调 CEffect::BuildTooltip：集合元素效果提示构建 |
+| 0x1404AF360 | CCreateFactionFromTemplateEffect::GetDesc（func_names 名） func_names 名 + 串 "EFFECT_CREATE_FACTION"：按模板创建派系效果 |
+| 0x140367160 | CTransferNavyEffect::Execute "invalid navy owner country" / "is not in exile, but is_government_in_exile"（effectimplementation.cpp:13559） |
+| 0x1404B0320 | CRemoveFromFactionEffect::GetDesc EFFECT_REMOVE_FROM_FACTION / EFFECT_REMOVE_FROM_FACTION_NAME 键族 |
+| 0x1403E0480 | GetTooltip COUNT / TARGET_TRIGGER_COUNT_PREFIX + 调用 CTrigger::GetTooltip，触发器计数提示 |
+| 0x1402EAB90 | CAddRandomTraitEffect::GetDesc TRAITNAME / TRAITMODIFIER / EFFECT_ADD_UNIT_LEADER_TRAIT + " - " 条目格式 |
+| 0x14042B570 | CNumOfNavalFactoriesTrigger::GetDesc（func_names 名） func_names 名 + 串 "TRIGGER_NUM_OF_NAVAL_FACTORIES_MORE_THAN"/"..._LESS_THAN"：海军工厂数触发器 |
+| 0x140428440 | CNumOfAvailableCivilianFactoriesTrigger::GetDesc TRIGGER_NUM_OF_AVAILABLE_CIVILIAN_FACTORIES_MORE_THAN/LESS_THAN + NUMBER |
+| 0x14042A510 | CNumOfControlledStatesTrigger::GetDesc TRIGGER_NUM_OF_CONTROLLED_STATES_MORE_THAN/LESS_THAN + NUMBER |
+| 0x1403FEDA0 | CForeignManpowerTrigger::GetDesc TRIGGER_HAS_FOREIGN_MANPOWER_MORE_THAN/LESS_THAN + NUMBER |
+| 0x14040F280 | CHasManpowerTrigger::GetDesc（func_names 名） func_names 名 + 串 "TRIGGER_HAS_MANPOWER_MORE_THAN"/"..._LESS_THAN"：人力触发器 |
+| 0x1404ADCF0 | CAddFactionPowerProjectionEffect::GetDesc ADD_FACTION_POWER_PROJECTION_EFFECT / _NO_FACTION 键族 |
+| 0x1413985A0 | CFireEventEffect::GetDesc EFFECT_COUNTRY_EVENT + "Invalid event with id:" 校验链 |
+| 0x14035C0B0 | CRecruitCharacterEffect::Execute "Unknown character %s" / "cannot be assigned to %s as it is already a…"（effectimplementation.cpp:5544） |
+| 0x1403B5A80 | CSetPoliticsEffect::ParseToken（func_names 名） func_names 名 + 断言 effectimplementation.cpp:1740 + 串 "set_politics::parties={ was changed, please use the set_pop… |
+| 0x1402E88F0 | CRemoveUnitLeaderEffect::Execute CRemoveUnitLeaderEffect::Execute + "Couldn't find leader for remove_unit_leader effect. Related issue: AR-26311" |
+| 0x14035AFC0 | CMakePuppetEffect::Execute（effectimplementation.cpp:9607） CMakePuppetEffect::Execute（effectimplementation.cpp:9607）：STR 'Tried to puppet %s while it is alrea… |
+| 0x140319510 | CStateEventEffect::GetDesc CStateEventEffect::GetDesc + EFFECT_COUNTRY_EVENT / "Invalid event with id"（国家事件 effect 描述） |
+| 0x1404B7BF0 | CHasFactionTemplateTrigger::GetDesc TRIGGER_HAS_FACTION_TEMPLATE / TRIGGER_HAS_NOT_FACTION_TEMPLATE + COUNTRY/FACTION |
+| 0x140480C90 | CVariableEffectBuilder<CSetToRandomValue<CTempVariableResolver>>::[3] " at " / "Assigned" + 调用 CEffect::Parse（variablescripthelper.cpp:141） |
+| 0x1403AC010 | CShowIdeasTooltipEffect::Parse CShowIdeasTooltipEffect::Parse（idea tooltip effect 脚本解析） |
+| 0x140387C40 | CReleaseAutonomyEffect::GetDesc（func_names 名） func_names 名 + 断言 gameitemdatabase.h:142 + 串 "EFFECT_RELEASE_AUTONOMY"/"COUNTRY"：释放自治政府效果 |
+| 0x140362FC0 | CSetNationalityEffect::Execute（effectimplementation.cpp:23499） CSetNationalityEffect::Execute（effectimplementation.cpp:23499）：STR 'Invalid character'/'Invali… |
+| 0x1402EB220 | CAddTimedUnitLeaderTraitEffect::GetDesc CAddTimedUnitLeaderTraitEffect::GetDesc + TRAITNAME/TRAITMODIFIER/NUMDAYS/EFFECT_ADD_UNIT_LEADER_TRAIT_WITH_DURATION |
+| 0x140481110 | CVariableEffectBuilder<CSetToRandomValue<CVariableResolver>>::[3] " at " + 调用 CEffect::Parse，变量效果构造 |
+| 0x1404523F0 | CAnyArmyLeaderTrigger::GetTooltip（func_names 名） func_names 名 + 断言 eventscope.h:193 + 串 "TRIGGER_ANY_ARMY_LEADER_STARTS" + 调 CTrigger::GetTooltip |
+| 0x140454680 | CAnyOperativeLeaderTrigger::GetTooltip TRIGGER_ANY_OPERATIVE_LEADER_STARTS + 调用 CTrigger::GetTooltip（eventscope.h:193） |
+| 0x140312870 | CTransferStateToEffect::Execute "invalid state in"（state_effect_implementation.cpp:2600），州转移效果 |
+| 0x140420100 | CIsHostingExileTrigger::GetDesc（func_names 名） func_names 名 + 串 "TRIGGER_NOT_IS_HOSTING_EXILE"/"TRIGGER_IS_HOSTING_EXILE"：收容流亡政府触发器 |
+| 0x14037E690 | CCreateWargoalEffect::GetDesc CCreateWargoalEffect::GetDesc：STR 'COUNTRY'/'WARGOAL'/'TARGET'/'EFFECT_CREATE_WARGOAL' |
+| 0x140379780 | CAddToWarEffect::GetDesc COUNTRY1 / COUNTRY2 / EFFECT_ADD_TO_WAR 键族 |
+| 0x14036BB30 | CForEachScopeEffect::BuildTooltip（eventscope.h:193 作用域断言） CForEachScopeEffect::BuildTooltip（eventscope.h:193 作用域断言）：作用域链回溯拼 tooltip |
+| 0x14044C2D0 | CUnitLeaderHasAbilityTrigger::GetDesc CUnitLeaderHasAbilityTrigger::GetDesc + LEADER / ABILITY / TRIGGER_UNIT_LEADER_HAS_ABILITY |
+| 0x140368620 | CTurnOperativeLeaderEffect::Execute（effectimplementation.cpp:20258） CTurnOperativeLeaderEffect::Execute（effectimplementation.cpp:20258）：STR 'failed to turn %… |
+| 0x140453490 | CAnyCharacterTrigger::GetTooltipText（func_names 名） func_names 名 + 串 "TRIGGER_ANY_CHARACTER_STARTS" + 调 CTrigger::GetTooltipText |
+| 0x14042AFE0 | CNumOfMilitaryFactoriesTrigger::GetDesc（func_names 名） func_names 名 + 串 "TRIGGER_NUM_OF_MILITARY_FACTORIES_MORE_THAN"/"..._LESS_THAN"：军工厂数触发器 |
+| 0x140356FF0 | CForEffect::Execute（effectimplementation.cpp:17171） CForEffect::Execute（effectimplementation.cpp:17171）：STR 'broken loop'/'non terminated loop' + 流构造 |
+| 0x140429A40 | CNumOfCivilianFactoriesTrigger::GetDesc TRIGGER_NUM_OF_CIVILIAN_FACTORIES_MORE_THAN/LESS_THAN + NUMBER |
+| 0x1403D9580 | CHasTraitTrigger::Evaluate（pdx_scopedptr.h:134 内联） CHasTraitTrigger::Evaluate（pdx_scopedptr.h:134 内联）：VT CTheatre + STR 'RemoveReferences from ~CTheatre'（the… |
+| 0x140374B20 | CAddMinesEffect::GetDesc CAddMinesEffect::GetDesc + ADD_MINES_EFFECT / REMOVE_MINES_EFFECT / REGION（布雷 effect 描述） |
+| 0x14035F450 | CRemoveWargoalEffect::Execute CRemoveWargoalEffect::Execute；串「C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\effects\\effe」 |
+| 0x1403592B0 | CKillOperativeEffect::Execute CKillOperativeEffect::Execute + "The unit leader deduced is not an operative." / "failed to kill %s from %s" |
+| 0x14037D4B0 | CCreateRailwayGunEffect::GetDesc CCreateRailwayGunEffect::GetDesc + EFFECT_CREATE_RAILWAY_GUN(_LOCATION) / OWNER / STATE（列车炮 effect） |
+| 0x1403ABCA0 | CSetNationalityEffect::Parse CSetNationalityEffect::Parse + CDiplomaticAction::GetFirstCountryRef（设置国籍 effect 脚本解析） |
+| 0x140318350 | CSetBuildingConstructionEffect::GetDesc CSetBuildingConstructionEffect::GetDesc：STR 'EFFECT_SET_BUILDING_CONSTRUCTION'/'NUMBER'/'BUILDING' |
+| 0x140412CC0 | CHasOpinionTrigger::GetDesc CHasOpinionTrigger::GetDesc：STR 'TRIGGER_HAS_OPINION_AT_MOST'/'TRIGGER_HAS_OPINION_AT_LEAST'/'VALUE'/'COUNTRY' |
+| 0x1403F8D10 | CConvoyThreatTrigger::GetDesc CConvoyThreatTrigger::GetDesc + TRIGGER_NAVAL_CONVOY_DANGER_(LESS/MORE)_THAN（护航威胁触发器） |
+| 0x14040FAC0 | CHasMinedTrigger::GetDesc CHasMinedTrigger::GetDesc；串「OPPONENT」 |
+| 0x140371D30 | CAddAutonomyScoreEffect::GetDesc CAddAutonomyScoreEffect::GetDesc：STR 'ADD_AUTONOMY_SCORE_DETAILED_DESC'/'ADD_AUTONOMY_SCORE_DESC'/'COUNTRY'/'VALUE' |
+| 0x14040D4D0 | CHasGovernmentTrigger::GetDesc CHasGovernmentTrigger::GetDesc：STR 'TRIGGER_HAS_IDEOLOGY2'/'TRIGGER_HAS_NOT_IDEOLOGY2'/'IDEOLOGY'/'ERROR: MISSING PARTY NAME' |
+| 0x140374FD0 | CAddNamedThreatEffect::GetDesc CAddNamedThreatEffect::GetDesc：STR 'THREAT'/'EFFECT_ADD_THREAT'/'EFFECT_REMOVE_THREAT' + character_manager.cpp 'Several charac… |
+| 0x1403D53D0 | CHasCountryLeaderTrigger::Evaluate CHasCountryLeaderTrigger::Evaluate（国家领袖存在触发器判定） |
+| 0x1413A8DA0 | CGameVariableTrigger::GetDesc CGameVariableTrigger::GetDesc：STR 'VALUE' + 0x14043E1A0（变量触发器族） |
+| 0x140378D00 | CAddThreatEffect::GetDesc CAddThreatEffect::GetDesc：STR 'THREAT'/'EFFECT_ADD_THREAT'/'EFFECT_REMOVE_THREAT' |
+| 0x1404553A0 | CAnyUnitLeaderTrigger::GetTooltip CAnyUnitLeaderTrigger::GetTooltip + TRIGGER_ANY_UNIT_LEADER_STARTS；调 CTrigger::GetTooltip |
+| 0x140453060 | CAnyCharacterTrigger::GetTooltip CAnyCharacterTrigger::GetTooltip + TRIGGER_ANY_CHARACTER_STARTS；调 CTrigger::GetTooltip |
+| 0x1404826B0 | CVariableTriggerBuilder<…>::[5]（func_names 名） func_names 名 + 断言 variablescripthelper.cpp:78 + 调 CTrigger::Parse：变量触发器构建器 |
+| 0x1403F57E0 | CCanResearchTrigger::GetDesc CCanResearchTrigger::GetDesc；串「TRIGGER_CAN_RESEARCH」 |
+| 0x1404B8CD0 | CIsOnSameContinentAsTrigger::Evaluate CIsOnSameContinentAsTrigger::Evaluate；串「_pInstance && "gamestate unitilialized"」 |
+| 0x14039ABF0 | CUpgradeIntelligenceAgencyEffect::GetDesc CUpgradeIntelligenceAgencyEffect::GetDesc；串「EFFECT_UPGRADE_INTELLIGENCE_AGENCY」 |
+| 0x140481570 | CVariableTriggerBuilder<…>::[5] " at " / "Assigned" + 调用 CTrigger::Parse（variablescripthelper.cpp:78） |
+| 0x140477380 | CHardnessTrigger::GetDesc CHardnessTrigger::GetDesc：STR 'TRIGGER_HARDNESS_GREATER_THAN'/'TRIGGER_HARDNESS_LESS_THAN'/'VALUE' |
+| 0x14045C1A0 | CArmyHasOfficerNameTrigger::GetDesc CArmyHasOfficerNameTrigger::GetDesc；串「TRIGGER_UNIT_HAS_OFFICER_NAME」 |
+| 0x1403902A0 | CSetCapitalEffect::GetDesc CSetCapitalEffect::GetDesc；串「STATE」 |
+| 0x140398AC0 | CTransferNavyEffect::GetDesc CTransferNavyEffect::GetDesc；串「COUNTRY」 |
+| 0x1404B0C10 | CSetFactionManifestEffect::GetDesc CSetFactionManifestEffect::GetDesc：STR 'GOAL'/'FACTION'/'SET_FACTION_MANIFEST_EFFECT' |
+| 0x1403B6D70 | CVariableEffect::ParseToken CVariableEffect::ParseToken；串「invalid left side variable」 |
+| 0x1403B4860 | CRemoveRelationRuleOverrideEffect::ParseToken CRemoveRelationRuleOverrideEffect::ParseToken；串「rule'」 |
+| 0x140476F80 | CCombatPhaseTrigger::GetDesc CCombatPhaseTrigger::GetDesc；串「PHASE_DEFAULT」 |
+| 0x1403649E0 | CSetTruceEffect::Execute CSetTruceEffect::Execute；串「_pInstance && "gamestate unitilialized"」 |
+| 0x14037A0E0 | CAnnexCountryEffect::GetDesc CAnnexCountryEffect::GetDesc；串「NAME」 |
+| 0x1404754F0 | CHasUnitTypeTrigger::ParseValueKeys CHasUnitTypeTrigger::ParseValueKeys；串「_pInstance && "Instance not created."」 |
+| 0x140384D90 | CLockAllTemplateEffect::GetDesc CLockAllTemplateEffect::GetDesc；串「EFFECT_DISABLE_ALL_TEMPLATE_EDITING」 |
+| 0x140372820 | CAddCountryLeaderRoleEffect::GetDesc CAddCountryLeaderRoleEffect::GetDesc；串「EFFECT_ADD_COUNTRY_LEADER_ROLE」 |
+| 0x140413860 | CHasRailwayLevelTrigger::GetDesc CHasRailwayLevelTrigger::GetDesc；串「_pInstance && "gamestate unitilialized"」 |
+| 0x140426060 | CNavalMineDangerTrigger::GetDesc CNavalMineDangerTrigger::GetDesc：STR 'TRIGGER_NAVAL_MINE_DANGER_LESS_THAN'/'..._MORE_THAN'/'VALUE' |
+| 0x1404B5420 | CFactionGoalCompletedTrigger::GetDesc GetDesc 串 TRIGGER_HAS_COMPLETED_FACTION_GOAL/TRIGGER_HAS_NOT_COMPLETED_FACTION_GOAL + 键 COUNTRY_OR_FACTION/GOAL |
+| 0x1404170C0 | CHasShineEffectOnFocusTrigger::GetDesc CHasShineEffectOnFocusTrigger::GetDesc；串「TRIGGER_HAS_SHINE_EFFECT_ON_FOCUS」 |
+| 0x14037D910 | CCreateShipEffect::GetDesc CCreateShipEffect::GetDesc；串「VARIANT」 |
+| 0x14042D1A0 | COccupiedStatesTrigger::GetDesc COccupiedStatesTrigger::GetDesc + TRIGGER_(MORE/LESS)_THAN_X_OCCUPIED_STATES + COUNT（占领州触发器） |
+| 0x140446570 | CHasIDTrigger::GetDesc CHasIDTrigger::GetDesc + TRIGGER_HAS_(NOT_)ID（通用 id 触发器描述） |
+| 0x14038D760 | CRetireCountryLeaderEffect::GetDesc CRetireCountryLeaderEffect::GetDesc；串「NAME」 |
+| 0x14044E060 | CAnyNavyLeaderTrigger::Evaluate CAnyNavyLeaderTrigger::Evaluate；串「( pScope == this \ \ pScope->_pFrom != this ) && "Infinite c」 |
+| 0x140464E80 | CIsControlledByTrigger::Evaluate CIsControlledByTrigger::Evaluate；串「_pInstance && "gamestate unitilialized"」 |
+| 0x140412A50 | CHasOpinionModifierTrigger::GetDesc CHasOpinionModifierTrigger::GetDesc；串「TRIGGER_HAS_OPINION_MODIFIER」 |
+| 0x14040D820 | CHasGuaranteedTrigger::GetDesc CHasGuaranteedTrigger::GetDesc；串「TRIGGER_HAS_GUARANTEED」 |
+| 0x140348190 | CAddAIStrategyEffect::Execute effectimplementation.cpp 效果实现（断言站点 effectimplementation.cpp:12358） |
+| 0x140426E30 | CNetworkNationalCoverageTrigger::[27] CNetworkNationalCoverageTrigger::[27]；串「COUNTRY」 |
+| 0x14048E230 | CPcIsForcedGovernmentTrigger::GetDesc CPcIsForcedGovernmentTrigger::GetDesc；串「TRIGGER_PC_IS_NOT_FORCED_GOVERNMENT」 |
+| 0x14041BA40 | CHasWarWithMajorTrigger::GetDesc CHasWarWithMajorTrigger::GetDesc；串「TRIGGER_HAS_NOT_WAR_WITH_MAJOR」 |
+| 0x1403CDFC0 | CAllGuaranteedCountryTrigger::Evaluate 触发器求值（Evaluate）（CAllGuaranteedCountryTrigger::Evaluate） |
+| 0x140366F80 | CTeleportRailwayGunsToDeployProvinceEffect::Execute effectimplementation.cpp 效果实现（断言站点 effectimplementation.cpp:23178） |
+| 0x14044DE80 | CAnyCharacterTrigger::Evaluate CAnyCharacterTrigger::Evaluate，eventscope.h:193 + ref.h:83 断言 |
+| 0x14046D640 | CIsCoastalTrigger::GetDesc GetDesc 串 TRIGGER_IS_COASTAL/TRIGGER_IS_NOT_COASTAL（沿海触发器） |
+| 0x14048C3C0 | CPcIsStateClaimedByTrigger::Evaluate CPcIsStateClaimedByTrigger::Evaluate，peace_conference_trigger_implementation.cpp:469 + "Invalid state for pc_is_state_cl… |
+| 0x14046D2B0 | CIsCapitalTrigger::GetDesc GetDesc 串 TRIGGER_IS_CAPITAL/TRIGGER_IS_NOT_CAPITAL（首都触发器） |
+| 0x14049A9B0 | sub_14049A9B0 体内构造/操作 vtable 类 CCreateEquipmentVariantEffect（&CCreateEquipmentVariantEffect::vftable）→ 装备变体/装备类型变量/火箭生产线 |
+| 0x140356DF0 | CForEachScopeEffect::Execute 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x140381AD0 | CGiveGuaranteeEffect::GetDesc CGiveGuaranteeEffect::GetDesc；串「COUNTRY」 |
+| 0x1402EDEB0 | CRetireEffect::GetDesc CRetireEffect::GetDesc（事件/触发/效果） |
+| 0x1403F1520 | CAgencyUpgradeNumberTrigger::GetDesc 触发器/效果描述生成（GetDesc）（CAgencyUpgradeNumberTrigger::GetDesc） |
+| 0x140A027E0 | （无名） vftable 类 CAndTrigger::（装备/市场） |
+| 0x140375860 | CAddNukeEffect::GetDesc GetDesc 串 EFFECT_ADD_NUKE（添加核弹效果） |
+| 0x14042DEE0 | COwnsStateTrigger::GetDesc COwnsStateTrigger::GetDesc；串「TRIGGER_OWNS_STATE」 |
+| 0x140489820 | CHasPowerBalanceModifierTrigger::GetDesc GetDesc 串 TRIGGER_HAS_POWER_BALANCE_MODIFIER/TRIGGER_HAS_NOT_POWER_BALANCE_MODIFIER + POWER_BALANCE/MODIFIER（权力平衡修正触发器） |
+| 0x140311520 | CSetStateOwnerToEffect::Execute gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1116） |
+| 0x140323950 | CAddTechBonusEffect::ResolveReferences 触发器/效果脚本解析（ParseToken/ParseValueKeys/ResolveReferences）（CAddTechBonusEffect::ResolveReferences） |
+| 0x1404AB8B0 | CDismantleFactionEffect::Execute 脚本效果执行（Execute）（CDismantleFactionEffect::Execute） |
+| 0x14031BBE0 | CBuildingEffect::ParseToken CBuildingEffect::ParseToken（生产/建筑） |
+| 0x140477CC0 | CHasCombatModifierTrigger::GetDesc 触发器/效果描述生成（GetDesc）（CHasCombatModifierTrigger::GetDesc） |
+| 0x140381900 | CGenerateScientistRoleEffect::GetDesc CGenerateScientistRoleEffect::GetDesc（事件/触发/效果） |
+| 0x1403CF220 | CAnyOccupiedCountryTrigger::Evaluate CAnyOccupiedCountryTrigger::Evaluate，eventscope.h:193 作用域断言 |
+| 0x1403CF430 | CAnySubjectCountryTrigger::Evaluate 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x1403AB160 | CRecruitCharacterEffect::Parse effectimplementation.cpp 效果实现（断言站点 effectimplementation.cpp:5524） |
+| 0x14045B510 | CAnyStateArmyTrigger::Evaluate CAnyStateArmyTrigger::Evaluate，eventscope.h:193 作用域断言 |
+| 0x140465100 | CIsCoreOfTrigger::Evaluate 触发器求值（Evaluate）（CIsCoreOfTrigger::Evaluate） |
+| 0x14034B0D0 | CAddNationalityToOperativeEffect::Execute 脚本效果执行（Execute）（CAddNationalityToOperativeEffect::Execute） |
+| 0x140488CF0 | CIsPowerBalanceSideActiveTrigger::Evaluate gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
+| 0x1403D21F0 | CFightingArmyStrengthRatioTrigger::Evaluate CFightingArmyStrengthRatioTrigger::Evaluate（战斗） |
+| 0x1404776E0 | CHasArtilleryRatioTrigger::GetDesc 触发器/效果描述生成（GetDesc）（CHasArtilleryRatioTrigger::GetDesc） |
+| 0x14035B3C0 | CManpowerAddEffect::Execute 脚本效果执行（Execute）（CManpowerAddEffect::Execute） |
+| 0x1403CE380 | CAllOccupiedCountryTrigger::Evaluate CAllOccupiedCountryTrigger::Evaluate，eventscope.h:193 作用域断言 |
+| 0x140356BF0 | CForEachEffect::Execute CForEachEffect::Execute（事件/触发/效果） |
+| 0x140430CE0 | CTargetConscriptionAmountTrigger::GetDesc GetDesc 串 TRIGGER_TARGET_CONSCRIPTION_AMOUNT（征兵目标量触发器） |
+| 0x1403B6350 | CStartCivilWarEffect::ParseToken 触发器/效果脚本解析（ParseToken/ParseValueKeys/ResolveReferences）（CStartCivilWarEffect::ParseToken） |
+| 0x14040EB70 | CHasLegitimacyTrigger::GetDesc 触发器/效果描述生成（GetDesc）（CHasLegitimacyTrigger::GetDesc） |
+| 0x140310DC0 | CSetStateControllerToEffect::Execute 脚本效果执行（Execute）（CSetStateControllerToEffect::Execute） |
+| 0x14030D510 | CAddCoreOfEffect::Execute 脚本效果执行（Execute）（CAddCoreOfEffect::Execute） |
+| 0x14045C630 | CHasUnitOrganizationTrigger::GetDesc GetDesc 串 TRIGGER_UNIT_ORGANIZATION（单位组织度触发器） |
+| 0x140378500 | CAddStabilityEffect::GetDesc GetDesc 串 EFFECT_ADD_STABILITY（稳定度效果） |
+| 0x14045C480 | CArmyHasTemplateTrigger::GetDesc CArmyHasTemplateTrigger::GetDesc（事件/触发/效果） |
+| 0x1404673F0 | CStrategicRegionIDTrigger::Evaluate gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
+| 0x140310720 | CSetComplianceEffect::Execute 脚本效果执行（Execute）（CSetComplianceEffect::Execute） |
+| 0x140362AE0 | CSetKeyedOobEffect::Execute 脚本效果执行（Execute）（CSetKeyedOobEffect::Execute） |
+| 0x14153BF30 | COriginalChangeLeaderTrigger::GetDesc 触发器/效果描述生成（GetDesc）（COriginalChangeLeaderTrigger::GetDesc） |
+| 0x140479410 | CProvinceVpTrigger::GetDesc GetDesc 串 TRIGGER_LESS_THAN_VP/TRIGGER_MORE_THAN_VP（省份胜利点触发器） |
+| 0x140314980 | CAddResistanceEffect::GetDesc CAddResistanceEffect::GetDesc（事件/触发/效果） |
+| 0x14046D9D0 | CIsCoreOfTrigger::GetDesc CIsCoreOfTrigger::GetDesc（事件/触发/效果） |
+| 0x14034A060 | CAddDivisionTemplateEffect::Execute 脚本效果执行（Execute）（CAddDivisionTemplateEffect::Execute） |
+| 0x14030E500 | CClearStateFlagEffect::Execute 脚本效果执行（Execute）（CClearStateFlagEffect::Execute） |
+| 0x140468F00 | CComplianceTrigger::GetValue 州合规/核心/控制者/州和平行动/邻州与本土区域触发器（CComplianceTrigger::GetValue） |
+| 0x1403EC980 | CEnemyStrengthRatioTrigger::GetValue CEnemyStrengthRatioTrigger::GetValue（战斗） |
+| 0x14046C8A0 | CFreeBuildingSlotsTrigger::GetDesc 触发器/效果描述生成（GetDesc）（CFreeBuildingSlotsTrigger::GetDesc） |
+| 0x14048D9E0 | CPcDoesStateStackDismantledTrigger::GetDesc CPcDoesStateStackDismantledTrigger::GetDesc（事件/触发/效果） |
+| 0x1404053A0 | CHasCapitulatedTrigger::GetDesc CHasCapitulatedTrigger::GetDesc（事件/触发/效果） |
+| 0x140421590 | CIsIronmanTrigger::GetDesc 触发器/效果描述生成（GetDesc）（CIsIronmanTrigger::GetDesc） |
+| 0x1402EA320 | CAddDefenseSkillEffect::GetDesc 触发器/效果描述生成（GetDesc）（CAddDefenseSkillEffect::GetDesc） |
+| 0x1402EB070 | CAddSkillLevelEffect::GetDesc CAddSkillLevelEffect::GetDesc（事件/触发/效果） |
+| 0x14041BCD0 | CHasWarWithTrigger::GetDesc CHasWarWithTrigger::GetDesc（事件/触发/效果） |
+| 0x1404386F0 | CCanBuildRailwayTrigger::ParseToken 触发器/效果脚本解析（ParseToken/ParseValueKeys/ResolveReferences）（CCanBuildRailwayTrigger::ParseToken） |
+| 0x140384C10 | CLoadOOBEffect::GetDesc 触发器/效果描述生成（GetDesc）（CLoadOOBEffect::GetDesc） |
+| 0x1404A8E10 | CEnergyFullfilmentTrigger::GetDesc CEnergyFullfilmentTrigger::GetDesc（事件/触发/效果） |
+| 0x140348920 | CAddArmyExperienceEffect::Execute effectimplementation.cpp 效果实现（断言站点 effectimplementation.cpp:10141） |
+| 0x140399280 | CTurnOperativeLeaderEffect::GetDesc 触发器/效果描述生成（GetDesc）（CTurnOperativeLeaderEffect::GetDesc） |
+| 0x14048D6C0 | CPcCurrentTurnTrigger::GetDesc CPcCurrentTurnTrigger::GetDesc（事件/触发/效果） |
+| 0x1413A0EC0 | CMultipleUnitLeaderTargetEffect::ParseToken CMultipleUnitLeaderTargetEffect::ParseToken（事件/触发/效果） |
+| 0x1413A9FD0 | CCustomOverrideTooltipTrigger::Parse CCustomOverrideTooltipTrigger::Parse（事件/触发/效果） |
+
+#### 4.32.28 脚本 effect/trigger 补遗卡（160 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A7C770 | （无名）eventscope.h:193 + [Allowed]/[Available]/[Optional]/[Requirements]/[Outcome] 脚本段标签转储 eventscope.h:193 + [Allowed]/[Available]/[Optional]/[Requirements]/[… |
+| 0x1413958D0 | CIntEffect::[25] — LOSE/GAIN/VALUE/DIRECTION/WHERE 键（CIntEffect 描述槽 25） LOSE/GAIN/VALUE/DIRECTION/WHERE 键（CIntEffect 描述槽 25） |
+| 0x140485530 | CRemoveAllPowerBalanceModifiersEffect::GetDesc — func_names 名 + EFFECT_REMOVE_ALL_POWER_BALANCE_MODIFIERS + POWER_BALANCE/LIST 键 func_names 名 + EFFECT_REMOVE… |
+| 0x140470360 | COwnsAnyStateOfTrigger::GetDesc — func_names 名 + TRIGGER_OWNS_ANY_STATE_OF / TRIGGER_NOT_OWNS_ANY_STATE_OF func_names 名 + TRIGGER_OWNS_ANY_STATE_OF / TRIGGER… |
+| 0x140354810 | CDeleteUnitEffect::Execute — func_names 名 + effectimplementation.cpp:13011 + %s: state is not valid func_names 名 + effectimplementation.cpp:13011 + %s: state… |
+| 0x1403D2E80 | CHasBorderWar::Evaluate — func_names 名 + triggerimplementation.cpp:13939 + : Invalid state / : Invalid scope func_names 名 + triggerimplementation.cpp:13939 +… |
+| 0x1404ACBF0 | CAddFactionInfluenceRatioEffect::GetDesc |
+| 0x14042F080 | CShipsInStatePortTrigger::GetDesc — func_names 名 + TRIGGER_AT_LEAST/MORE_THAN/AT_MOST/LESS_THAN_SHIPS_IN_STATE / ..._OF_TYPE + AMOUNT/TYPE/AREA 键 func_names … |
+| 0x140426400 | CNavalStrengthRatioTrigger::GetDesc CNavalStrengthRatioTrigger::GetDesc（GetDesc 角色） |
+| 0x14042F710 | CStockpileRatioTrigger::GetDesc |
+| 0x1403F3C90 | CArmyManpowerInStateTrigger::GetDesc — func_names 名 + TRIGGER_ARMY_MANPOWER_IN_STATE / ..._OF_TYPE + STATE/TYPE 键 func_names 名 + TRIGGER_ARMY_MANPOWER_IN_STA… |
+| 0x14042D530 | COriginalResearchSlotsTrigger::GetDesc COriginalResearchSlotsTrigger::GetDesc（GetDesc 角色） |
+| 0x14038AC00 | CRemoveOpinionModifierEffect::GetDesc CRemoveOpinionModifierEffect::GetDesc（GetDesc 角色） |
+| 0x141411AE0 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x141417C60 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x14037DBA0 | CCreateUnitEffect::GetDesc — func_names 名 + EFFECT_CREATE_UNIT / ..._LOCATION / ..._WITH_COUNT / ..._LOCATION_WITH_COUNT func_names 名 + EFFECT_CREATE_UNIT / … |
+| 0x141B491E0 | gamestate.h:1116 断言；近邻 CCaptureOperativeEffect::Execute（§4.32）与 NFactions::CCreateFactionAction::[56]（§4.3）分属两域；无 loc、无具名上游 → 无定向证据 |
+| 0x1414150A0 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x14034ECF0 | CCaptureOperativeEffect::Execute CCaptureOperativeEffect::Execute（Execute 角色） |
+| 0x1403FD2F0 | CEstimatedMaxArmorTrigger::GetDesc |
+| 0x14041A6E0 | CHasVolunteersFromTrigger::GetDesc |
+| 0x1404CC580 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404DF820 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404D7790 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404EA890 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404CFAD0 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404E2D70 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1403BFB70 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404DB820 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404D3C70 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404E6D70 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1403BD230 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1403ACD60 | CSwapRulerTraitsEffect::Parse |
+| 0x14044D6D0 | CAllUnitLeaderTrigger::Evaluate CAllUnitLeaderTrigger::Evaluate（Evaluate 角色） |
+| 0x1404CBFF0 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x1404E8B00 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x140383D40 | CLaunchNukeEffect::GetDesc CLaunchNukeEffect::GetDesc（GetDesc 角色） |
+| 0x1404CBAC0 | （无名，按上游/loc 定性） eventscope.h:193 |
+| 0x140413010 | CHasPoliticalPowerTrigger::GetDesc |
+| 0x1404DCA20 | （无名，按上游/loc 定性） 断言 "Collection operator %s doesn't support [Parallel]ForEach" + script_collection_evaluato |
+| 0x14049C860 | CSendEquipmentEffect::Execute CSendEquipmentEffect::Execute（Execute 角色） |
+| 0x14044E4C0 | CAnyUnitLeaderTrigger::Evaluate CAnyUnitLeaderTrigger::Evaluate（Evaluate 角色） |
+| 0x140453A10 | CAnyNavyLeaderTrigger::GetTooltip |
+| 0x1403A7640 | CLegacyCreateLeaderEffect::ResolveReferences 标签:effectimplementation.cpp:5423 |
+| 0x1404A11F0 | NProject::CAllScientistsTrigger::Evaluate 标签:eventscope.h:193 |
+| 0x140487AD0 | CPowerBalanceModifierEffect::ResolveReferences 标签:power_balance_effects.cpp:404 |
+| 0x14031B2F0 | CBaseStateResistanceComplianceModifierEffect::ResolveReferences 标签:state_effect_implementation.cpp:2854 |
+| 0x1403B5210 | CRemoveWargoalEffect::ParseToken func_names 全名 + 脚本角色（ParseToken） |
+| 0x140358C80 | CGoToStateEffect::Execute 标签:gamestate.h:1125 |
+| 0x1403CF740 | CAILiberateDesireTrigger::Evaluate 标签:triggerimplementation.cpp:9000 |
+| 0x1403641E0 | CSetPopularitiesEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x1403F9370 | CCountDivisionsTrigger::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x14030F2F0 | CRemoveClaimByEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x14030F450 | CRemoveCoreOfEffect::Execute 标签:gamestate.h:1116 |
+| 0x140529670 | NDoctrines::CAddMasteryBonusEffect::Execute NDoctrines::CAddMasteryBonusEffect::Execute + 名字角色规则( |
+| 0x140464A00 | CIsCapitalTrigger::Evaluate 标签:gamestate.h:1125 |
+| 0x140432990 | CHasResourcesRightsTrigger::Validate 名:CHasResourcesRightsTrigger::Validate |
+| 0x140310C60 | CSetStateCategoryEffect::Execute CSetStateCategoryEffect::Execute + 名字角色规则(CSetStateCategoryEffect::Execute); 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x140475800 | CIsFightingInTerrainTrigger::ParseValueKeys func_names 全名 + 脚本角色（ParseValueKeys） |
+| 0x1403DB3F0 | CIsInPeaceConferenceTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x1403D7F30 | CHasRailwayConnectionTrigger::Evaluate 名:CHasRailwayConnectionTrigger::Evaluate |
+| 0x1403FAA60 | CDaysSinceCapitulatedTrigger::GetDesc 名:CDaysSinceCapitulatedTrigger::GetDesc |
+| 0x140310AF0 | CSetResistanceEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x14040A5C0 | CHasDefensiveWarWithTrigger::GetDesc 名:CHasDefensiveWarWithTrigger::GetDesc |
+| 0x1404A17B0 | NProject::CCanAssignFactionSupportiveScientistToFaction::Evaluate 标签:pdxspan.h:77 |
+| 0x14035F9D0 | CResetProvinceEffect::Execute CResetProvinceEffect::Execute + 名字角色规则(CResetProvinceEffect::Execute); 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x14048F3A0 | CPcIsStateClaimedByTrigger::GetDesc 名:CPcIsStateClaimedByTrigger::GetDesc |
+| 0x140350F60 | CCreateImportEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x140464D20 | CIsCoastalTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x140469A20 | CResistanceSpeedTrigger::GetValue func_names 全名 + 脚本角色（GetValue） |
+| 0x140469B80 | CResistanceTargetTrigger::GetValue 标签:gamestate.h:1125 |
+| 0x140469E40 | CStateAndTerrainStrategicValueTrigger::GetValue 标签:gamestate.h:1116 |
+| 0x1413A9D00 | CCountryTrigger::ValidateLate 名:CCountryTrigger::ValidateLate |
+| 0x14038DDC0 | CSaveGlobalEventTargetAsEffect::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x1404430C0 | CIsHiredAsAdvisor::Evaluate CIsHiredAsAdvisor::Evaluate + 名字角色规则(CIsHiredAsAdvisor::Evaluate); 串 "_pPtr"; 源码路径 clausewitz |
+| 0x1413969D0 | CIfEffect::BuildTooltip func_names 全名 + 脚本角色（BuildTooltip） |
+| 0x1402E5AC0 | CSetLeaderNamePortraitOrDescription<$00>::[13] CSetLeaderNamePortraitOrDescription<$00>::[13] + 域关键词匹配; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 … |
+| 0x1404648A0 | CHasStateCategoryTrigger::Evaluate CHasStateCategoryTrigger::Evaluate + 名字角色规则(CHasStateCategoryTrigger::Evaluate); 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x1403D25F0 | CGlobalFlagTrigger::Evaluate CGlobalFlagTrigger::Evaluate + 名字角色规则(CGlobalFlagTrigger::Evaluate); 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x1403D8D50 | CHasStartDateTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x140424700 | CIsStagingCoupTrigger::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x1403189C0 | CSetResistanceEffect::GetDesc 名:CSetResistanceEffect::GetDesc |
+| 0x1404A0650 | CSetEquipmentVersionNumber::ParseToken 标签:gameitemdatabase.h:142 |
+| 0x1403B4080 | CRandomCountryWithOriginalTag::ParseToken CRandomCountryWithOriginalTag::ParseToken + 名字角色规则(CRandomCountryWithOriginalTag::ParseToken); 串 "Multiple limits i… |
+| 0x14048DB70 | CPcIsForcedGovernmentByTrigger::GetDesc 名:CPcIsForcedGovernmentByTrigger::GetDesc |
+| 0x14035BED0 | CRandomizeWeatherEffect::Execute CRandomizeWeatherEffect::Execute + 名字角色规则(CRandomizeWeatherEffect::Execute); 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x140424B70 | CIsSubjectTrigger::GetDesc 名:CIsSubjectTrigger::GetDesc |
+| 0x1402EA680 | CAddManeuverSkillEffect::GetDesc 名:CAddManeuverSkillEffect::GetDesc |
+| 0x1404A9EB0 | CSetFactionUpgrade::ParseTargetToken 标签:faction_effects.cpp:932 |
+| 0x14052BCE0 | NDoctrines::CHasDoctrineTrigger::Evaluate NDoctrines::CHasDoctrineTrigger::Evaluate + 名字角色规则(NDoctrines::CHasDoctrineTrigger::Evaluate); 串 "Invalid doctrine … |
+| 0x1403A6B30 | CAddOpinionModifierEffect::ResolveReferences 标签:effectimplementation.cpp:3563 |
+| 0x1404A0500 | CSendEquipmentFractionEffect::ParseToken CSendEquipmentFractionEffect::ParseToken + 名字角色规则(CSendEquipmentFractionEffect::ParseToken); 串 "Unexpected token:"; … |
+| 0x14051C1D0 | CAllCollectionElementsTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x14054A450 | vtable/RTTI 类 CTrigger sub_14054A450 + vtable/RTTI 类 CTrigger; 被 CAdjacencyRule::[0] 等 8 命名函数调用 |
+| 0x140488940 | CHasPowerBalanceModifierTrigger::Evaluate CHasPowerBalanceModifierTrigger::Evaluate + 名字角色规则(CHasPowerBalanceModifierTrigger::Evaluate); 串 "_pInstance && \";… |
+| 0x140368A00 | CUncompleteNationalFocusEffect::Execute 标签:effectimplementation.cpp:10571 |
+| 0x140488810 | CHasAnyPowerBalanceTrigger::Evaluate 标签:gamestate.h:1125 |
+| 0x1402EC7E0 | CDemoteLeaderEffect::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x140483D10 | CAddPowerBalanceModifierEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x140483E40 | CAddPowerBalanceValueEffect::Execute 标签:gamestate.h:1116 |
+| 0x1403DC710 | CIsTutorial::Evaluate CIsTutorial::Evaluate + 名字角色规则( |
+| 0x140484090 | CRemovePowerBalanceEffect::Execute CRemovePowerBalanceEffect::Execute + 名字角色规则(CRemovePowerBalanceEffect::Execute); 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x14034FD90 | CClearGlobalEventTargetEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x140483F70 | CRemoveAllPowerBalanceModifiersEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x14030AC60 | CSetStateCategoryEffect::ParseTargetToken 标签:state_effect_implementation.cpp:1937 |
+| 0x140474900 | CHasCarrierAirWingsInOwnCombatTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x1403DEDD0 | CHasOpinionModifierTrigger::ParseValueKeys CHasOpinionModifierTrigger::ParseValueKeys + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x1403F9500 | CCountFakeDivisionsTrigger::GetDesc 名:CCountFakeDivisionsTrigger::GetDesc |
+| 0x141127ED0 | CDiplomaticAction::GetEnableTriggerOverridesGame CDiplomaticAction::GetEnableTriggerOverridesGame + 域关键词匹配; 串 "_ENABLE_TRIGGER_OVERRIDES_GAME"; 被调源码 hoi4 |
+| 0x1403B4FA0 | CRemoveOpinionModifierEffect::ParseToken func_names 全名 + 脚本角色（ParseToken） |
+| 0x14034C5D0 | CAddTimedIdeaEffect::ExecuteActual CAddTimedIdeaEffect::ExecuteActual + 域关键词匹配; vtable/RTTI 含 EBAXAEAVCEventScope>; 被调源码 hoi4 |
+| 0x140358050 | CGenerateScientistRoleEffect::Execute func_names 全名 + 脚本角色（Execute） |
+| 0x1403B7090 | CWhileEffect::ParseToken func_names 全名 + 脚本角色（ParseToken） |
+| 0x1403B3870 | CGenerateScientistRoleEffect::ParseToken func_names 全名 + 脚本角色（ParseToken） |
+| 0x1403D1EA0 | CEstimatedMaxArmorTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x14046C310 | CComplianceTrigger::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x140460330 | CMultipleUnitTargetEffect::ParseToken CMultipleUnitTargetEffect::ParseToken + 名字角色规则(CMultipleUnitTargetEffect::ParseToken); 串 "Multiple limits in target eff… |
+| 0x1403B0F50 | CBecomeExiledGovernmentEffect::ParseToken CBecomeExiledGovernmentEffect::ParseToken + 名字角色规则(CBecomeExiledGovernmentEffect::ParseToken); 被调源码 hoi4; 被 CBecome… |
+| 0x1403B61C0 | CSetTruceEffect::ParseToken CSetTruceEffect::ParseToken + 名字角色规则(CSetTruceEffect::ParseToken); 被调源码 hoi4; 被 CSetTruceEffect::ParseToken 等 1 命名函数调用 |
+| 0x140335290 | CRoundVariableEffect::ParseTargetToken func_names 全名 + 脚本角色（ParseTargetToken） |
+| 0x1403AE400 | CMultipleCountryTargetEffect::ParseToken 名:CMultipleCountryTargetEffect::ParseToken |
+| 0x14031B890 | CMultipleStateTargetEffect::ParseToken func_names 全名 + 脚本角色（ParseToken） |
+| 0x1403F9210 | CCoreResistanceTrigger::GetDesc CCoreResistanceTrigger::GetDesc + 名字角色规则(CCoreResistanceTrigger::GetDesc); 串 "TRIGGER_CORE_RESISTANCE"; 被 CCoreResistanceTrig… |
+| 0x14046E440 | CIsIslandStateTrigger::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x1404786D0 | CIsAttackerTrigger::GetDesc func_names 全名 + GetDesc 角色 |
+| 0x1403B1070 | CBuildRailwayEffect::ParseToken func_names 全名 + 脚本角色（ParseToken） |
+| 0x1404779D0 | CHasCarrierAirWingsOnMissionTrigger::GetDesc CHasCarrierAirWingsOnMissionTrigger::GetDesc + 名字角色规则(CHasCarrierAirWingsOnMissionTrigger::GetDesc); 串 "TRIGGER_… |
+| 0x1403DE0B0 | CShipsInStatePortTrigger::Evaluate 标签:triggerimplementation.cpp:1239 |
+| 0x1404787F0 | CIsFightingAirUnitsTrigger::GetDesc 名:CIsFightingAirUnitsTrigger::GetDesc |
+| 0x14046E710 | CIsOneStateIslandTrigger::GetDesc 名:CIsOneStateIslandTrigger::GetDesc |
+| 0x1403B21B0 | CCreateUnitEffect::ParseToken CCreateUnitEffect::ParseToken + 名字角色规则(CCreateUnitEffect::ParseToken); 被 CCreateUnitEffect::ParseToken 等 1 命名函数调用 |
+| 0x1403AF190 | CAddAdvisorRoleEffect::ParseToken func_names 全名 + 脚本角色（ParseToken） |
+| 0x14039DB00 | CEveryCountryWithOriginalTag::[28] effectimplementation.cpp:8820 效果迭代器 |
+| 0x141149440 | CExecuteScriptedWindowEffect::[0] func_names 全名 + UI 后缀类（CExecuteScriptedWindowEffect） |
+| 0x1403DAE80 | CIsFullyDecryptedTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x1403591B0 | CKillIdeologyLeaderEffect::Execute CKillIdeologyLeaderEffect::Execute + 名字角色规则(CKillIdeologyLeaderEffect::Execute); 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\… |
+| 0x1403B53D0 | CSetAutonomyEffect::ParseToken CSetAutonomyEffect::ParseToken + 名字角色规则(CSetAutonomyEffect::ParseToken); 被 CSetAutonomyEffect::ParseToken 等 1 命名函数调用 |
+| 0x140A82E60 | vtable/RTTI 类 CAndTrigger sub_140A82E60 + vtable/RTTI 类 CAndTrigger |
+| 0x140333120 | CSetPoliticsEffect::[0] CSetPoliticsEffect::[0] + vtable/RTTI 类 CGregorianDate; vtable/RTTI 含 CGregorianDate; 被 CSetPoliticsEffect::[0] 等 1 命名函数调用 |
+| 0x1404B3C20 | CHasEnoughInfluenceForLeadershipTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x1403EB220 | CCurrentConscriptionAmountTrigger::[23] CCurrentConscriptionAmountTrigger::[23] + 域关键词匹配; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 hoi4 |
+| 0x1403DBE00 | CIsOperationTypeTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x14045B8E0 | CArmyHasTemplateTrigger::Evaluate func_names 全名 + 脚本角色（Evaluate） |
+| 0x14045BEF0 | CHasUnitStrengthTrigger::GetValue CHasUnitStrengthTrigger::GetValue + 域关键词匹配; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 hoi4 |
+| 0x140470CC0 | CResistanceTargetTrigger::GetDesc 名:CResistanceTargetTrigger::GetDesc |
+| 0x14052B360 | NDoctrines::CAddMasteryBonusEffect::[5] NDoctrines::CAddMasteryBonusEffect::[5] + 域关键词匹配; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 hoi4 |
+| 0x1403A8380 | CTimedIdeaEffect::PostValidate CTimedIdeaEffect::PostValidate + 域关键词匹配; 串 "At least one of those parameter is mandato"; 被调源码 hoi4 |
+| 0x1402E5C00 | CSetLeaderNamePortraitOrDescription<$01>::[13] character_effect_implementation.cpp:768 角色字段效果（槽方法） |
+| 0x1403EE870 | CNumOfOperativesTrigger::GetValue func_names 全名 + 脚本角色（GetValue） |
+| 0x14031EB20 | CStealRandomTechBonusEffect::[0] CStealRandomTechBonusEffect::[0] + vtable/RTTI 类 CStealRandomTechBonusEffect; vtable/RTTI 含 CStealRandomTechBonusEffect; 被 C… |
+| 0x14151F220 | CTakeStateAction::IsValid CTakeStateAction::IsValid + 名字角色规则(CTakeStateAction::IsValid); 串 "pLoser"; 源码路径 hoi4 |
+| 0x14031B650 | CProvinceEffect::ResolveReferences CProvinceEffect::ResolveReferences + 域关键词匹配; 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 hoi4 |
+| 0x1403D6130 | CHasEquipmentTrigger::Evaluate CHasEquipmentTrigger::Evaluate + 名字角色规则(CHasEquipmentTrigger::Evaluate); 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sou"; 源码路径 … |
+| 0x1404361A0 | CHasGovernmentTrigger::Parse CHasGovernmentTrigger::Parse + 域关键词匹配; 串 "has_government only works with an = compar"; 被 CHasGovernmentTrigger::Parse 等 1 命名函数调用 |
+| 0x140330420 | CActivateMissionTooltipEffect::[0] func_names 全名 + UI 后缀类（CActivateMissionTooltipEffect） |
+| 0x14052AFE0 | NDoctrines::CAddDailyMasteryEffect::[25] NDoctrines::CAddDailyMasteryEffect::[25] + 域关键词匹配; 串 "AMOUNT"; 被调源码 clausewitz |
+| 0x140EE5750 | vtable/RTTI 类 CTechnologySharing sub_140EE5750 + vtable/RTTI 类 CTechnologySharing |
+| 0x1403D5990 | CHasDefensiveWarWithTrigger::Evaluate CHasDefensiveWarWithTrigger::Evaluate + 名字角色规则(CHasDefensiveWarWithTrigger::Evaluate); 被调源码 hoi4; 被 CHasDefensiveWarWit… |
+| 0x1403D1DE0 | CDivisionsInStateTrigger::Evaluate CDivisionsInStateTrigger::Evaluate + 名字角色规则(CDivisionsInStateTrigger::Evaluate); 串 "C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\… |
+| 0x1402E5F60 | CAddDefenseSkillEffect::Execute CAddDefenseSkillEffect::Execute + 名字角色规则(CAddDefenseSkillEffect::Execute); 被 CAddDefenseSkillEffect::Execute 等 1 命名函数调用 |
+
+#### 4.32.29 脚本 effect/trigger 补遗卡（124 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1403513E0 | CCreateRailwayGunEffect::Execute 效果执行；断言 \"railway gun feature is not active\"/\"Cannot find railway gun equipment variant for '%s'\"/\"invalid scope tag\"（e… |
+| 0x1405022C0 | 州集合运算符 州集合运算符；串 \"Failed to find state with id: %d\"，被调 script_collection_evaluator.h:230 ×5 |
+| 0x140355090 | CDeleteUnitsEffect::Execute 效果执行；断言 \"division template %s does not exist\"/\"invalid country scope\"（effectimplementation.cpp） |
+| 0x1404C27C0 | 脚本集合 ForEach 模板实例（faction） 脚本集合 ForEach 模板实例（faction）；断言 \"Collection operator %s doesn't support [Parallel]ForEach for objects of type %s\"+类型名 \"faction\"+… |
+| 0x1403AAAD0 | CPromoteCharacterToCountryLeader::Parse 脚本解析（Parse 角色）；串 \"yes\"，被调 CDiplomaticAction::GetFirstCountryRef/parser.cpp:1087 |
+| 0x140388C50 | CRemoveCountryLeaderTraitEffect::GetDesc 效果描述；loc \"EFFECT_REMOVE_COUNTRY_LEADER_TRAIT\"+\"LEADER\"/\"TRAIT\"+列表连字符模板，被调 text.cpp:491/localize.cpp:641 |
+| 0x140314B20 | CAddResistanceTargetEffect::GetDesc 效果描述；loc \"EFFECT_ADD_RESISTANCE_TARGET\"/\"_WITH_FROM\"/\"_WITH_TARGET\"/\"_WITH_FROM_AND_TARGET\"+\"VALUE\"/\"OCCUPIER\… |
+| 0x14037A950 | CBuildRailwayEffect::GetDesc 效果描述；loc \"EFFECT_BUILD_RAILWAY_IN_STATE\"/\"EFFECT_BUILD_RAILWAY\"+\"LEVEL\"/\"STATE\"/\"FROM\"/\"TO\" |
+| 0x1403E12B0 | CAnyHomeAreaNeighborCountryTrigger::GetTooltipText 触发器提示；loc \"TRIGGER_ANY_HOME_AREA_NEIGHBOR_COUNTRY_STARTS\"+\":\\n\"，被调 CTrigger::GetTooltipText |
+| 0x140451DC0 | CAllUnitLeaderTrigger::GetTooltipText 触发器提示；loc \"TRIGGER_ALL_UNIT_LEADER_STARTS\"+\":\\n\"，被调 CTrigger::GetTooltipText |
+| 0x1403BD830 | 脚本集合 ForEach 模板实例（character） 脚本集合 ForEach 模板实例（character）；同族断言+类型名+\"Target and leaf node in operator doesn't match\"，被调 eventscope.cpp:583 |
+| 0x140385310 | CManpowerAddEffect::GetDesc 效果描述；loc \"EFFECT_MANPOWER_ADD_COUNTRY\"/\"EFFECT_MANPOWER_ADD_STATE\"+\"NAME\"，被调 scopedvariable.cpp:1288 |
+| 0x1404DA0E0 | 脚本集合 ForEach 模板实例（country） 脚本集合 ForEach 模板实例（country）；同族断言+类型名\"country\"，被调 eventscope.h:193×5 |
+| 0x14040A740 | CHasDeployedAirForceSizeTrigger::GetDesc 触发器描述；loc \"TRIGGER_HAS_DEPLOYED_AIR_FORCE_SIZE_OF_TYPE_AT_LEAST/AT_MOST\"+\"TYPE\"/\"AMOUNT\"，被调 scopedvariable.cpp… |
+| 0x141413CF0 | 脚本集合 ForEach 模板实例（state） 脚本集合 ForEach 模板实例（state）；同族断言+类型名，被调 eventscope.h:193 |
+| 0x141419720 | 脚本集合 ForEach 模板实例（state） 脚本集合 ForEach 模板实例（state）；同族断言+类型名，被调 eventscope.h:193 |
+| 0x1404D0D90 | 脚本集合 ForEach 模板实例（faction） 脚本集合 ForEach 模板实例（faction）；同族断言+类型名+\"Target and leaf node in operator doesn't match\" |
+| 0x14042FCD0 | CStrengthRatioTrigger::GetDesc 触发器描述；loc \"TRIGGER_STRENGTH_RATIO_LESS_THAN\"/\"MORE_THAN\"+\"COUNTRY1\"/\"COUNTRY2\"/\"VALUE\"，被调 CTrigger::GetScopeTargetID 系 |
+| 0x1413993A0 | CRandomListEffect::GetDescWrapper / CRandomListEffect::GetDescWrapper CRandomListEffect::GetDescWrapper §4.12 事件 |
+| 0x14035D5E0 | CRemoveCountryLeaderTraitEffect::Execute 串 remove_country_leader_trait 系列诊断 |
+| 0x14044F650 | CAllCharacterTrigger::GetTooltip / "TRIGGER_ALL_CHARACTER_STARTS" + CTrigge "TRIGGER_ALL_CHARACTER_STARTS" + CTrigger::GetTooltip 调用链 §4.12 事件 |
+| 0x140431690 | CWarLengthWithTrigger::GetDesc 触发器描述；loc \"TRIGGER_HAS_WAR_LENGTH_WITH_LESS_THAN\"/\"MORE_THAN\"+\"COUNTRY2\"/\"VALUE\" |
+| 0x1403FD960 | CEstimatedMaxPiercingTrigger::GetDesc 触发器描述；loc \"TRIGGER_ESTIMATED_MAX_PIERCING_INTEL_LESS_THAN\"/\"MORE_THAN\"+\"COUNTRY2\"/\"VALUE\"，被调 CTrigger::GetScope… |
+| 0x1404AFB40 | CLeaveFactionEffect::GetDesc / "EFFECT_REMOVE_FROM_FACTION_NAME" + COUN "EFFECT_REMOVE_FROM_FACTION_NAME" + COUNTRY/FACTION §4.12 事件 |
+| 0x1403F1720 | CAllianceNavalStrengthRatioTrigger::GetDesc 串 TRIGGER_ALLIANCE_NAVAL_STRENGTH_RATIO_LESS_THAN / MORE_THAN |
+| 0x1402E66A0 | CAddTimedUnitLeaderTraitEffect::Execute 串 `Adding active trait: … for days:` + character_effect_implementation.cpp |
+| 0x1404B1580 | CSetFactionNameEffect::GetDesc 串 EFFECT_SET_FACTION_NAME / OLDNAME / NEWNAME |
+| 0x140391420 | CSetDivisionTemplateLockEffect::GetDesc / "EFFECT_DISABLE_TEMPLATE_EDITTING/EFFECT "EFFECT_DISABLE_TEMPLATE_EDITTING/EFFECT_ENABLE_TEMPLATE_EDI §4.12 事件 |
+| 0x1404025F0 | CHasAutonomyStateTrigger::GetDesc / "TRIGGER_HAS_AUTONOMY_STATE/TRIGGER_HAS_ "TRIGGER_HAS_AUTONOMY_STATE/TRIGGER_HAS_NOT_AUTONOMY_STATE" §4.12 事件 |
+| 0x140348470 | CAddAdvisorRoleEffect::Execute / "Character does not exist/has been retir "Character does not exist/has been retired. Can't Update." §4.32 脚本系统 |
+| 0x1403273E0 | sub_1403273E0（无名） TRAIT_NAME / EFFECT_GENERATE_SCIENTIST_CHARACTER_TRAIT GUI 键，夹于 CStealRandomTechBonusEffect::ParseToken 与 boost::wrapexcept，生成科学家特质效果 UI |
+| 0x140389B90 | CRemoveIdeasWithTraitEffect::GetDesc 串 EFFECT_REMOVE_IDEAS_WITH_TRAIT / TRAIT |
+| 0x14021F360 | "Expected only %d elements" 解析校验 + GetFi "Expected only %d elements" 解析校验 + GetFirstCountryRef §4.32 脚本系统 |
+| 0x1403C2D10 | "Constant value is not a country tag or "Constant value is not a country tag or array of country tag §4.32 脚本系统 |
+| 0x1404F8570 | "Constant value is not a country tag or "Constant value is not a country tag or array of country tag §4.32 脚本系统 |
+| 0x1413A3400 | "Checks if the current scope has the spe "Checks if the current scope has the specified amount of the §4.32 脚本系统 |
+| 0x140406990 | CHasCompletedAgencyUpgradeTrigger::GetDesc / "TRIGGER_HAS_COMPLETED_AGENCY_UPGRADE/is "TRIGGER_HAS_COMPLETED_AGENCY_UPGRADE/is not a valid intelli §4.12 事件 |
+| 0x140353260 | CCreateUnitLeaderEffect::Execute 串 `Unable to create unit leader with id %i` + effectimplementation.cpp |
+| 0x140396C60 | CStartPeaceConferenceEffect::GetDesc 串 EFFECT_START_PEACE_CONFERENCE_WITH / COUNTRY |
+| 0x14046FD70 | COccupationLawTrigger::GetDesc / "TRIGGER_OCCUPATION_LAW/TRIGGER_OCCUPATI "TRIGGER_OCCUPATION_LAW/TRIGGER_OCCUPATION_LAW_NOT" + STATE §4.12 事件 |
+| 0x1403838A0 | CKillIdeologyLeaderEffect::GetDesc EFFECT_KILL_COUNTRY_LEADER loc 键 |
+| 0x1403828D0 | CGoToProvinceEffect::GetDesc / "EFFECT_GO_TO_PROVINCE" + STATE "EFFECT_GO_TO_PROVINCE" + STATE §4.12 事件 |
+| 0x14047F2B0 | CVariableEffectBuilder 槽 3 variablescripthelper.cpp + 调 CEffect::Parse + 串 `Assigned` |
+| 0x140481E10 | CVariableTriggerBuilder 槽 5 variablescripthelper.cpp + 调 CTrigger::Parse + 串 `Assigned` |
+| 0x140615720 | "gain_when requires a left curly bracket "gain_when requires a left curly bracket on it's right side" §4.32 脚本系统 |
+| 0x14038B2A0 | CRemoveRelationModifierEffect::GetDesc / "EFFECT_REMOVE_RELATION_MODIFIER" + TARG "EFFECT_REMOVE_RELATION_MODIFIER" + TARGET/NAME/DESC §4.12 事件 |
+| 0x1403FFF40 | CHasActiveTimedDecisionTrigger::GetDesc TRIGGER_HAS_ACTIVE_MISSION / TRIGGER_HAS_NOT_ACTIVE_MISSION loc 键 |
+| 0x140461440 | sub_140461440（无名） "an array of state ids" / "is not" 脚本类型校验串，夹于 CReseedDivisionCommanderEffect::ParseToken 与 CAnyStateOfTrigger::[0]，trigger/effect 参数校验 |
+| 0x14035C6C0 | CReleaseAutonomyEffect::Execute "%s: cant have a relation to yourself" + effectimplementation.cpp:9713 |
+| 0x141399FE0 | CFlagEffect::Parse CFlagEffect::Parse 类名（旗帜效果脚本解析） |
+| 0x1403B2FA0 | CForEachEffect::ParseToken "^num" 迭代变量串 + CForEachEffect 类名（foreach 效果解析） |
+| 0x141958210 | "MODIFIER_SCALED_BY" 修饰符缩放 tooltip "MODIFIER_SCALED_BY" 修饰符缩放 tooltip §4.32 脚本系统 |
+| 0x14048C820 | CPcIsStateOutsideInfluenceForWinnerTrigger::Evaluate "%s: Invalid state for pc_is_state_outside_influence_for_winner" + peace_conference_trigger_implementati… |
+| 0x14031AFE0 | CProvinceEffect::[27] "%s had an invalid 'limit_to_victory_point' comparator" + state_effect_implementation.cpp:1552 |
+| 0x141953D40 | "MODIFIER_SCALED_BY" 修饰符缩放 tooltip "MODIFIER_SCALED_BY" 修饰符缩放 tooltip §4.32 脚本系统 |
+| 0x14141DE00 | "Too many constants and/or variables in "Too many constants and/or variables in math expression" 脚本数 §4.32 脚本系统 |
+| 0x14044D270 | CAllNavyLeaderTrigger::Evaluate "Infinite cycle in event FROM scope" + eventscope.h:193（全海军将领触发器评估） |
+| 0x14046DB70 | CIsDemilitarizedTrigger::GetDesc / "TRIGGER_IS_DEMILITARIZED/TRIGGER_IS_NOT "TRIGGER_IS_DEMILITARIZED/TRIGGER_IS_NOT_DEMILITARIZED" + ST §4.12 事件 |
+| 0x1403B4B90 | CReleaseAutonomyEffect::ParseToken "Wrong autonous state name: %s!!!" + effectimplementation.cpp:9685 |
+| 0x1403146A0 | CAddExtraSharedBuildingSlotsEffect::GetDesc EFFECT_ADD/REMOVE_EXTRA_STATE_SHARED_BUILDING_SLOTS loc 键 |
+| 0x1404B6890 | CFactionManifestFulfillmentTrigger::GetDesc / "FACTION_MANIFEST_FULFILLMENT_LESS_THAN/ "FACTION_MANIFEST_FULFILLMENT_LESS_THAN/MORE_THAN" + VALUE §4.12 事件 |
+| 0x140405530 | CHasCapturedOperativeTrigger::GetDesc OPERATIVE_HAS_CAPTURED + "[debug] invalid target"/"[debug] invalid tag" loc 键 |
+| 0x140487C60 | CSetPowerBalanceEffect::ResolveReferences "%s: Invalid side ID: %s"/"both set_default and set_value are specified, will use set_value!" + power_balance_effec… |
+| 0x14037F0C0 | CDeclareWarEffect::GetDesc EFFECT_DECLARE_WAR loc 键 |
+| 0x14043AB40 | CHasResourcesInCollectionTrigger::ParseToken "Not a valid compare token in trigger" + triggerimplementation.cpp:10996 |
+| 0x1403AD650 | CWhitePeaceEffect::Parse CWhitePeaceEffect::Parse 类名（白和效果脚本解析） |
+| 0x140435610 | CHasResourcesRightsTrigger::ValidateLate "Both state and receiver can't be undefined"/"Undefined Resource:" + triggerimplementation.cpp:11198 |
+| 0x140314120 | CAddCoreOfEffect::GetDesc EFFECT_ADD_CORE_OF loc 键 |
+| 0x1403D6FB0 | CHasMinedTrigger::Evaluate "Unknown operator token found: %s" + triggerimplementation.cpp:15251（已布雷触发器） |
+| 0x140367900 | CTransferStateEffect::Execute "%s invalid state in transfer_state" + effectimplementation.cpp:4150 |
+| 0x14049EC50 | CSendEquipmentFractionEffect::GetDesc EFFECT_SEND_EQUIPMENT_FRACTION loc 键 |
+| 0x140316480 | CConstructBuildingInRandomProvinceEffect::GetDesc "CONSTRUCT_BUILDING_IN_STATE"/"BUILDING"/"STATE" loc 键 |
+| 0x140381D40 | CGiveMilitaryAccessEffect::GetDesc EFFECT_GIVE_MILITARY_ACCESS loc 键 |
+| 0x1404135A0 | CHasRailwayConnectionTrigger::GetDesc TRIGGER_HAS_RAILWAY_CONNECTION + START/GOAL loc 键 |
+| 0x140364360 | CSetProvinceControllerEffect::Execute 类名（设置省份控制者效果）+ gamestate.h:1116 |
+| 0x140366C50 | CSwapIdeasEffect::ExecuteActual CSwapIdeasEffect::ExecuteActual 类名（交换内阁提案执行） |
+| 0x140393F60 | CSetStateOwnerEffect::GetDesc EFFECT_SET_STATE_OWNER loc 键 |
+| 0x140378A10 | CAddStateCoreEffect::GetDesc EFFECT_ADD_STATE_CORE loc 键 |
+| 0x140422360 | CIsLicensingAnyToTrigger::GetDesc TRIGGER_IS_LICENSING_ANY_TO / TRIGGER_IS_NOT_LICENSING_ANY_TO loc 键 |
+| 0x14041E1A0 | CIsDecryptingTrigger::GetDesc TRIGGER_IS_DECRYPTING / TRIGGER_IS_NOT_DECRYPTING loc 键 |
+| 0x14041E770 | CIsEmbargoingTrigger::GetDesc TRIGGER_IS_EMBARGOING / TRIGGER_IS_NOT_EMBARGOING loc 键 |
+| 0x14036FD70 | CActivateMissionEffect::GetDesc EFFECT_ACTIVATES_MISSION loc 键 |
+| 0x140382C30 | CGoToStateEffect::GetDesc EFFECT_GO_TO_PROVINCE + STATE loc 键 |
+| 0x1404903D0 | CAddOffsiteBuildingEffect（vtable 槽 [13]） 生产效果实现（production_effect_implementation.cpp 断言） |
+| 0x140420680 | CIsHostingGovernmentInExileTrigger::GetDesc TRIGGER_IS_HOSTING_GOVERNMENT_IN_EXILE loc 键 |
+| 0x140409730 | CHasCreateIntelligenceAgencyTrigger::GetDesc TRIGGER_HAS_CREATED_AGENCY / TRIGGER_HAS_NOT_CREATED_AGENCY loc 键 |
+| 0x14048EF70 | CPcIsPuppetedTrigger::GetDesc TRIGGER_PC_IS_PUPPETED / TRIGGER_PC_IS_NOT_PUPPETED loc 键 |
+| 0x14112E9D0 | CBoostPartyPopularityAction（vtable 槽 [53]） 业务类 CBoostPartyPopularityAction（类名/调用链证据） |
+| 0x141C98810 | CDiplomacyRequestExpeditionaryForcesController（vtable 槽 [2]） 业务类 CDiplomacyRequestExpeditionaryForcesController（类名/调用链证据） |
+| 0x140318B50 | CSetStateCategoryEffect::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CSetStateCategoryEffect |
+| 0x140347B00 | CActivateAdvisorEffect::Execute 效果/触发求值执行（方法角色 \1）；类属 CActivateAdvisorEffect |
+| 0x140350470 | CCreateColonialDivisionTemplateEffect::Execute 效果/触发求值执行（方法角色 \1）；类属 CCreateColonialDivisionTemplateEffect |
+| 0x140467230 | CStateFlagTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CStateFlagTrigger |
+| 0x1404A8480 | CAllCountryOfTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CAllCountryOfTrigger |
+| 0x140463D70 | CIsOnContinentTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CIsOnContinentTrigger |
+| 0x1404A7410 | CHasContestedOwner（vtable 槽 [21]） 效果/触发本地化键（TRIGGER_IS_CONTESTED_OWNER / TRIGGER_IS_NOT_CONTESTED_OWNER） |
+| 0x1413F3E70 | CEveryCountryEffect（vtable 槽 [27]） 效果/触发本地化键（COUNTRY / EFFECT_LIST_COUNTRY） |
+| 0x140470F20 | 未命名业务函数 效果/触发本地化键（TRIGGER_STATE_STRATEGIC_VALUE） |
+| 0x14046E830 | CIsOwnedAndControlledByTrigger::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CIsOwnedAndControlledByTrigger |
+| 0x140A0A600 | CAnonymousEquipmentGroup（vtable 槽 [9]） 业务类 CAnonymousEquipmentGroup（类名/调用链证据） |
+| 0x14031FBA0 | CRemoveFromTechnologySharingGroupEffect::Execute 效果/触发求值执行（方法角色 \1）；类属 CRemoveFromTechnologySharingGroupEffect |
+| 0x1404ABCE0 | CSetFactionNameEffect::Execute 效果/触发求值执行（方法角色 \1）；类属 CSetFactionNameEffect |
+| 0x140318820 | CSetGarrisonStrengthEffect::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CSetGarrisonStrengthEffect |
+| 0x140465A20 | CIsOneStateIslandTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CIsOneStateIslandTrigger |
+| 0x1402F71C0 | CMultipleCharacterTargetEffect::ParseToken 效果/触发求值执行（方法角色 \1）；类属 CMultipleCharacterTargetEffect |
+| 0x14040B840 | CHasElectionsTrigger::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CHasElectionsTrigger |
+| 0x1403D5BF0 | CHasDesignBasedOnTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CHasDesignBasedOnTrigger |
+| 0x1414C9DB0 | CPendingStratNavyTransfer（vtable 槽 [3]） 业务类 CPendingStratNavyTransfer（类名/调用链证据） |
+| 0x1404354E0 | CHasResourcesInCollectionTrigger::ValidateLate 触发实现（triggerimplementation.cpp 断言） |
+| 0x1402F8E40 | CHasAnyCapturedGeneralTrigger::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CHasAnyCapturedGeneralTrigger |
+| 0x1403D57D0 | CHasCustomDifficultyTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CHasCustomDifficultyTrigger |
+| 0x1403DB5C0 | CIsIronmanTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CIsIronmanTrigger |
+| 0x141C8EF90 | CDiplomacyStandardController（vtable 槽 [20]） 业务类 CDiplomacyStandardController（类名/调用链证据） |
+| 0x1403D2950 | CHasAnyCustomDifficultyTrigger::Evaluate 效果/触发求值执行（方法角色 \1）；类属 CHasAnyCustomDifficultyTrigger |
+| 0x1402F15B0 | CReplaceUnitLeaderTraitEffect::ParseToken 效果/触发求值执行（方法角色 \1）；类属 CReplaceUnitLeaderTraitEffect |
+| 0x14048FA90 | CPcTotalScoreTrigger::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CPcTotalScoreTrigger |
+| 0x1403457E0 | CFindHighestLowestInArrayEffect<$0A>（vtable 槽 [13]） 业务类 CFindHighestLowestInArrayEffect（类名/调用链证据） |
+| 0x1412D5810 | CNudgeIdler（vtable 槽 [29]） 脚本/序列化键（串 garamond_12） |
+| 0x14046C1E0 | CComplianceSpeedTrigger::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CComplianceSpeedTrigger |
+| 0x140477E60 | CHasFlankedOpponentTrigger::GetDesc 效果/触发描述（方法角色 GetDesc）；类属 CHasFlankedOpponentTrigger |
+| 0x1403B6730 | CTransferNavyEffect::ParseToken 效果/触发求值执行（方法角色 \1）；类属 CTransferNavyEffect |
+| 0x1403EF220 | CTargetConscriptionAmountTrigger（vtable 槽 [23]） 触发实现（triggerimplementation.cpp 断言） |
+| 0x140AB5D80 | CScriptedTriggerTemplateDatabase（vtable 槽 [1]） 业务类 CScriptedTriggerTemplateDatabaseCScriptedTriggerTemplateDatabase（类名/调用链证据） |
+| 0x140483770 | CSetPowerBalanceEffect（vtable 槽 [0]） 业务类 CSetPowerBalanceEffect（类名/调用链证据） |
+
+#### 4.32.30 脚本 effect/trigger 补遗卡（790 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B7DEB0 | （无名，按证据定性） 读计数 a1+36 + 令牌常量 1587985054（sub_1424F0E30(1,token)）+ FLT_MAX 钳位（脚本值构造） |
+| 0x140401E20 | CHasAttacheFromTrigger::GetDesc func_names 全名 CHasAttacheFromTrigger::GetDesc，GetDesc 角色定 §4.12 |
+| 0x140370790 | CActivateTargetedDecisionEffect::GetDesc eventscope.h:193 断言 + func_names CActivateTargetedDecisionEffect::GetDesc，GetDesc 角色定 §4.12 |
+| 0x1403D86B0 | CHasResourcesRightsTrigger::Evaluate func_names 全名 |
+| 0x140484590 | CAddPowerBalanceModifierEffect::GetDesc func_names 全名 CAddPowerBalanceModifierEffect::GetDesc，GetDesc 角色定 §4.12 |
+| 0x140374490 | CAddIntelEffect::GetDesc func_names 全名 CAddIntelEffect::GetDesc，GetDesc 角色定 §4.12 |
+| 0x1404CE380 | （无名，按证据定性） script_collection_evaluator.h:230 断言（'Collection operator %s doesn't support [Parallel]ForEach'） |
+| 0x1404E1620 | （无名，按证据定性） script_collection_evaluator.h:230 断言（'Collection operator %s doesn't support [Parallel]ForEach'） |
+| 0x14035E580 | CRemoveMilitaryRoleEffect::Execute func_names 全名 |
+| 0x140419600 | CHasTemplateTrigger::GetDesc CHasTemplateTrigger |
+| 0x140358680 | CGiveResourceRightsEffect::Execute func_names 全名 |
+| 0x1403666E0 | CStartPeaceConferenceEffect::Execute func_names 全名 |
+| 0x140450000 | CAllNavyLeaderTrigger::GetTooltip func_names 全名 CAllNavyLeaderTrigger::GetTooltip，GetTooltip 同 GetDesc 角色 |
+| 0x140317E90 | CSetBorderWarEffect::GetDesc func_names 全名 CSetBorderWarEffect::GetDesc，GetDesc 角色定 §4.12 |
+| 0x140420D20 | CIsInPeaceConferenceTrigger::GetDesc func_names 全名 CIsInPeaceConferenceTrigger::GetDesc，GetDesc 角色定 §4.12 |
+| 0x1403A4DB0 | 效果分布参数校验 "lambda parameter not set but required for poisson distribution"，effectimplementation.cpp:15712 |
+| 0x1403CA350 | （无名，按证据定性） eventscope.h:193 断言（事件作用域触发器/效果同族，见 0x14050C700/0x140510260/0x140515F60/0x14051AFC0） |
+| 0x14050C700 | （无名，按证据定性） eventscope.h:193 断言（事件作用域同族） |
+| 0x140515F60 | （无名，按证据定性） eventscope.h:193 断言（事件作用域同族） |
+| 0x140510260 | （无名，按证据定性） eventscope.h:193 断言（事件作用域同族） |
+| 0x14051AFC0 | （无名，按证据定性） eventscope.h:193 断言（事件作用域同族） |
+| 0x140376CA0 | CAddRelationModifierEffect::GetDesc func_names 全名 CAddRelationModifierEffect::GetDesc，GetDesc 角色定 §4.12 |
+| 0x1403FF700 | CGarrisonManpowerNeedTrigger::GetDesc func_names 全名 CGarrisonManpowerNeedTrigger::GetDesc，GetDesc 角色定 §4.12 |
+| 0x1403439D0 | CDestroyShipsEffect::ExecuteChecked CDestroyShipsEffect |
+| 0x1404099C0 | CHasCustomDifficultyTrigger::GetDesc CHasCustomDifficultyTrigger |
+| 0x1414BA740 | （无名，按证据定性） 键 TRIGGER_UNFULLFILLED_PREFIX（触发器未满足前缀文本） |
+| 0x1403AF7A0 | CAddResourceEffect::ParseToken CAddResourceEffect |
+| 0x140413B60 | CHasRelationModifierTrigger::GetDesc CHasRelationModifierTrigger |
+| 0x1403924C0 | CSetNationalityEffect::GetDesc CSetNationalityEffect |
+| 0x1413A3C60 | （无名，按证据定性） gameitemdatabase.h:142 断言 + 串 'Checks if the current scope has the specified amount of the specified resource.'（resource_count_trigger 说明） |
+| 0x14034AB20 | CAddMinesEffect::Execute CAddMinesEffect，布雷 |
+| 0x1404AF800 | CDismantleFactionEffect::GetDesc CDismantleFactionEffect |
+| 0x1402E9C50 | CSwapCountryLeaderTraitsEffect::Execute CSwapCountryLeaderTraitsEffect，character_effect_implementation.cpp:1012 |
+| 0x1403F1BD0 | CAllianceStrengthRatioTrigger::GetDesc func_names 全名 CAllianceStrengthRatioTrigger::GetDesc，GetDesc 角色定 §4.12 |
+| 0x140361D20 | CSetEntityMovementEffect::Execute func_names 全名 |
+| 0x141571F30 | （无名，按证据定性） func_names CAddRelationModifierEffect::GetDesc，GetDesc 角色定 §4.12 |
+| 0x140471670 | CAllClaimantTrigger::[23] CAllClaimantTrigger 槽 23，state_trigger_implementation.cpp:747 |
+| 0x1403E18F0 | CCountTriggersTrigger::GetTooltip CCountTriggersTrigger |
+| 0x140399770 | CUnlockDecisionCategoryTooltipEffect::GetDesc CUnlockDecisionCategoryTooltipEffect |
+| 0x140466AC0 | CNumOwnedNeighbourStatesTrigger::Evaluate CNumOwnedNeighbourStatesTrigger |
+| 0x1404A65C0 | CStateAndCountryEffect<CAddContestedOwner>::[13] CStateAndCountryEffect<CAddContestedOwner> 槽 13，contested_owner_effect_implementation.cpp:106 |
+| 0x14036FA90 | CActivateDecisionEffect::GetDesc CActivateDecisionEffect |
+| 0x14046CB40 | CHasBorderConflictTrigger::GetDesc CHasBorderConflictTrigger |
+| 0x14039B1A0 | CWhitePeaceEffect::GetDesc CWhitePeaceEffect |
+| 0x141174C60 | 触发器未满足前缀 TRIGGER_UNFULLFILLED_PREFIX |
+| 0x1403AB9D0 | CSetNameEffect::Parse CSetNameEffect |
+| 0x140426B00 | CNavyStrengthComparisonTrigger::GetDesc CNavyStrengthComparisonTrigger |
+| 0x14037B6C0 | CCaptureOperativeEffect::GetDesc CCaptureOperativeEffect |
+| 0x1404A8FA0 | CHasTruceWithTrigger::GetDesc CHasTruceWithTrigger |
+| 0x1404B64F0 | CFactionInfluenceScoreTrigger::GetDesc CFactionInfluenceScoreTrigger |
+| 0x14037EAC0 | CDeactivateAdvisorEffect::GetDesc CDeactivateAdvisorEffect |
+| 0x14037E360 | CCreateUnitLeaderEffect::GetDesc CCreateUnitLeaderEffect |
+| 0x140377E80 | CAddScaledPoliticalPowerEffect::GetDesc CAddScaledPoliticalPowerEffect |
+| 0x1403936A0 | CSetProvinceControllerEffect::GetDesc CSetProvinceControllerEffect |
+| 0x140424890 | CIsSubjectOfTrigger::GetDesc CIsSubjectOfTrigger |
+| 0x1403FFC50 | CGivesMilitaryAccessToTrigger::GetDesc CGivesMilitaryAccessToTrigger |
+| 0x140422070 | CIsLendLeasingTrigger::GetDesc CIsLendLeasingTrigger |
+| 0x14038A330 | CRemoveMissionEffect::GetDesc CRemoveMissionEffect |
+| 0x1403A4670 | CAddScientistRoleEffect::[5] vtable 槽 CAddScientistRoleEffect::[5]（func_names RTTI 名） |
+| 0x14031B440 | CBuildingConstructionEffect::ResolveReferences func_names 名 CBuildingConstructionEffect::ResolveReferences |
+| 0x14053CF00 | （无名） 体设 CEffect::vftable（RTTI 名） |
+| 0x140368B20 | CUnlockNationalFocusEffect::Execute func_names 名 CUnlockNationalFocusEffect::Execute |
+| 0x14035F8D0 | CReserveDynamicCountryEffect::Execute func_names 名 CReserveDynamicCountryEffect::Execute |
+| 0x1403E9F60 | CAIWantsDivisionsTrigger::GetValue func_names 名 CAIWantsDivisionsTrigger::GetValue |
+| 0x140360100 | CRetireIdeologyLeaderEffect::Execute func_names 名 CRetireIdeologyLeaderEffect::Execute |
+| 0x14045B710 | CArmyHasBattalionInTemplateTrigger::Evaluate func_names 名 CArmyHasBattalionInTemplateTrigger::Evaluate |
+| 0x1413A2390 | CScriptedTrigger::[20] vtable 槽 CScriptedTrigger::[20]（func_names RTTI 名） |
+| 0x14035DA00 | CRemoveDecisionEffect::Execute func_names 名 CRemoveDecisionEffect::Execute |
+| 0x1403EEAA0 | CNumOperativeSlotsTrigger::GetValue func_names 名 CNumOperativeSlotsTrigger::GetValue |
+| 0x140353600 | CCreateWargoalEffect::Execute func_names 名 CCreateWargoalEffect::Execute |
+| 0x1403C75C0 | （无名） 体设 CCanBuildRailwayTrigger::vftable（RTTI 名） |
+| 0x1403B4EE0 | CRemoveCountryLeaderRoleEffect::ParseToken func_names 名 CRemoveCountryLeaderRoleEffect::ParseToken |
+| 0x1403B3A30 | CLaunchNukeEffect::ParseToken func_names 名 CLaunchNukeEffect::ParseToken |
+| 0x14031BAB0 | CAddStateModifierEffect::ParseToken func_names 名 CAddStateModifierEffect::ParseToken |
+| 0x1403D9A40 | CHasVolunteersFromTrigger::Evaluate func_names 名 CHasVolunteersFromTrigger::Evaluate |
+| 0x140347C90 | CActivateDecisionEffect::Execute func_names 名 CActivateDecisionEffect::Execute |
+| 0x1403A69D0 | CAddDaysMissionTimeoutEffect::ResolveReferences func_names 名 CAddDaysMissionTimeoutEffect::ResolveReferences |
+| 0x1404ABAB0 | CRemoveFromFactionEffect::Execute func_names 名 CRemoveFromFactionEffect::Execute |
+| 0x1403E2250 | CMetaTrigger::GetTooltip func_names 名 CMetaTrigger::GetTooltip |
+| 0x14030F230 | CRemoveBuildingEffect::Execute func_names 名 CRemoveBuildingEffect::Execute |
+| 0x140330140 | CForEachScopeEffect::[0] vtable 槽 CForEachScopeEffect::[0]（func_names RTTI 名） |
+| 0x1403CFBA0 | CAllianceNavalStrengthRatioTrigger::Evaluate func_names 名 CAllianceNavalStrengthRatioTrigger::Evaluate |
+| 0x1403DD0E0 | COriginalTagTrigger::Evaluate func_names 名 COriginalTagTrigger::Evaluate |
+| 0x14045CCB0 | CArmyHasBattalionInTemplateTrigger::ValidateLate func_names 名 CArmyHasBattalionInTemplateTrigger::ValidateLate |
+| 0x140333A60 | CWhitePeaceEffect::[0] vtable 槽 CWhitePeaceEffect::[0]（func_names RTTI 名） |
+| 0x1403B6510 | CTargetedDecisionEffect::ParseToken func_names 名 CTargetedDecisionEffect::ParseToken |
+| 0x1403B3AD0 | CLegacyCreateCountryLeaderEffect::ParseToken func_names 名 CLegacyCreateCountryLeaderEffect::ParseToken |
+| 0x140356170 | CEndPuppetEffect::Execute func_names 名 CEndPuppetEffect::Execute |
+| 0x140309D90 | （无名） 体设 CBuildingConstructionEffect::vftable（RTTI 名） |
+| 0x1403E9EA0 | CAIIrrationalityTrigger::GetValue func_names 名 CAIIrrationalityTrigger::GetValue |
+| 0x1402E4490 | CReplaceUnitLeaderTraitEffect::[0] vtable 槽 CReplaceUnitLeaderTraitEffect::[0]（func_names RTTI 名） |
+| 0x14035ED50 | CRemoveRelationRuleOverrideEffect::Execute func_names 名 CRemoveRelationRuleOverrideEffect::Execute |
+| 0x1403314D0 | CAddHistoryEntryEffect::[0] vtable 槽 CAddHistoryEntryEffect::[0]（func_names RTTI 名） |
+| 0x1403A82D0 | CTargetedDecisionEffect::ResolveReferences func_names 名 CTargetedDecisionEffect::ResolveReferences |
+| 0x1402F1710 | CSetPortraitEffect::ParseToken func_names 名 CSetPortraitEffect::ParseToken |
+| 0x1403CC7B0 | CNavyStrengthComparisonTrigger::[0] vtable 槽 CNavyStrengthComparisonTrigger::[0]（func_names RTTI 名） |
+| 0x1403A6A80 | CAddDaysRemoveDecisionEffect::ResolveReferences func_names 名 CAddDaysRemoveDecisionEffect::ResolveReferences |
+| 0x1403DE000 | CShipsInAreaTrigger::Evaluate func_names 名 CShipsInAreaTrigger::Evaluate |
+| 0x140323840 | CStealRandomTechBonusEffect::[5] vtable 槽 CStealRandomTechBonusEffect::[5]（func_names RTTI 名） |
+| 0x1404643A0 | CFreeBuildingSlotsTrigger::Evaluate func_names 名 CFreeBuildingSlotsTrigger::Evaluate |
+| 0x1403D8600 | CHasResourcesInCountryTrigger::Evaluate func_names 名 CHasResourcesInCountryTrigger::Evaluate |
+| 0x140460600 | CAddRandomValidUnitLeaderTraitEffect::ParseToken func_names 名 CAddRandomValidUnitLeaderTraitEffect::ParseToken |
+| 0x1403D8C10 | CHasResourcesTrigger::Evaluate func_names 名 CHasResourcesTrigger::Evaluate |
+| 0x1403A8530 | CUnlockDecisionTooltipEffect::ResolveReferences func_names 名 CUnlockDecisionTooltipEffect::ResolveReferences |
+| 0x140439280 | CDivisionsInStateBorderTrigger::ParseToken func_names 名 CDivisionsInStateBorderTrigger::ParseToken |
+| 0x14139C050 | CRandomListEffect::[24] vtable 槽 CRandomListEffect::[24]（func_names RTTI 名） |
+| 0x1403D7B90 | CHasOffensiveWarWithTrigger::Evaluate func_names 名 CHasOffensiveWarWithTrigger::Evaluate |
+| 0x140476C60 | CSkillAdvantageTrigger::GetValue func_names 名 CSkillAdvantageTrigger::GetValue |
+| 0x1413AAF00 | CIntTrigger::AddTriggerDynamicVariable func_names 名 CIntTrigger::AddTriggerDynamicVariable |
+| 0x1413AAFB0 | CValueTrigger::AddTriggerDynamicVariable func_names 名 CValueTrigger::AddTriggerDynamicVariable |
+| 0x1403A8240 | CSwapRulerTraitsEffect::ResolveReferences func_names 名 CSwapRulerTraitsEffect::ResolveReferences |
+| 0x14049F390 | CAddDesignTemplateBonusEffect::ResolveReferences func_names 名 CAddDesignTemplateBonusEffect::ResolveReferences |
+| 0x1403AC450 | CShowUnitLeadersTooltipEffect::Parse func_names 名 CShowUnitLeadersTooltipEffect::Parse |
+| 0x140355C70 | CDivideVariableEffect::Execute func_names 名 CDivideVariableEffect::Execute |
+| 0x14043A060 | CHasGameRuleTrigger::ParseToken func_names 名 CHasGameRuleTrigger::ParseToken |
+| 0x1413961D0 | CSoundEffect::[25] vtable 槽 CSoundEffect::[25]（func_names RTTI 名） |
+| 0x1403618C0 | CSetCountryNationalFocusTreeEffect::Execute func_names 名 CSetCountryNationalFocusTreeEffect::Execute |
+| 0x1403B22E0 | CCreateUnitLeaderEffect::ParseToken func_names 名 CCreateUnitLeaderEffect::ParseToken |
+| 0x1403DECA0 | CHasDLCTrigger::ParseValueKeys func_names 名 CHasDLCTrigger::ParseValueKeys |
+| 0x1403A7F70 | CSetCountryNationalFocusTreeEffect::ResolveReferences func_names 名 CSetCountryNationalFocusTreeEffect::ResolveReferences |
+| 0x14048BEC0 | CPcIsOnSameSideAsTrigger::Evaluate func_names 名 CPcIsOnSameSideAsTrigger::Evaluate |
+| 0x14036BF70 | CMetaEffect::BuildTooltip func_names 名 CMetaEffect::BuildTooltip |
+| 0x140474B60 | CHasMaxPlanningTrigger::Evaluate func_names 名 CHasMaxPlanningTrigger::Evaluate |
+| 0x1404B3070 | CCreateFactionFromTemplateEffect::ParseToken func_names 名 CCreateFactionFromTemplateEffect::ParseToken |
+| 0x1403CC0F0 | CHasIdeaTrigger::[0] vtable 槽 CHasIdeaTrigger::[0]（func_names RTTI 名） |
+| 0x1403DB900 | CIsLicensingAnyToTrigger::Evaluate func_names 名 CIsLicensingAnyToTrigger::Evaluate |
+| 0x140476430 | CDiginTrigger::GetValue func_names 名 CDiginTrigger::GetValue |
+| 0x14035B890 | CModifyTimedIdeaEffect::ExecuteActual func_names 名 CModifyTimedIdeaEffect::ExecuteActual |
+| 0x1413A2540 | CIntTrigger::ParseValueKeys func_names 名 CIntTrigger::ParseValueKeys |
+| 0x1403B62E0 | CStartBorderWarEffect::ParseToken func_names 名 CStartBorderWarEffect::ParseToken |
+| 0x1404327F0 | CGlobalFlagTrigger::[23] vtable 槽 CGlobalFlagTrigger::[23]（func_names RTTI 名） |
+| 0x1403CBE50 | CHasCountryLeaderTrigger::[0] vtable 槽 CHasCountryLeaderTrigger::[0]（func_names RTTI 名） |
+| 0x1403A84A0 | CUnlockDecisionCategoryTooltipEffect::ResolveReferences func_names 名 CUnlockDecisionCategoryTooltipEffect::ResolveReferences |
+| 0x1404671A0 | COwnsAnyStateOfTrigger::Evaluate func_names 名 COwnsAnyStateOfTrigger::Evaluate |
+| 0x14031BA20 | CAddResistanceTargetEffect::ParseToken func_names 名 CAddResistanceTargetEffect::ParseToken |
+| 0x1402E7E20 | CModifyCharacterFlagEffect::Execute func_names 名 CModifyCharacterFlagEffect::Execute |
+| 0x1404B3F20 | CHasIndustryToBecomeLeaderTrigger::Evaluate func_names 名 CHasIndustryToBecomeLeaderTrigger::Evaluate |
+| 0x140330E90 | CBuildRailwayEffect::[0] vtable 槽 CBuildRailwayEffect::[0]（func_names RTTI 名） |
+| 0x1404B3F90 | CHasManpowerToBecomeLeaderTrigger::Evaluate func_names 名 CHasManpowerToBecomeLeaderTrigger::Evaluate |
+| 0x14139BFB0 | CIfEffect::[24] vtable 槽 CIfEffect::[24]（func_names RTTI 名） |
+| 0x1403AB6B0 | CRetireCharacterEffect::Parse func_names 名 CRetireCharacterEffect::Parse |
+| 0x14031B790 | CAddResistanceTargetEffect::[25] vtable 槽 CAddResistanceTargetEffect::[25]（func_names RTTI 名） |
+| 0x140474C30 | CHasUnitTypeTrigger::Evaluate func_names 名 CHasUnitTypeTrigger::Evaluate |
+| 0x1404ABB50 | CSetFactionLeaderEffect::Execute func_names 名 CSetFactionLeaderEffect::Execute |
+| 0x1403AF100 | CAddAceEffect::ParseToken func_names 名 CAddAceEffect::ParseToken |
+| 0x140472BE0 | CHasStateCategoryTrigger::ValidateLate func_names 名 CHasStateCategoryTrigger::ValidateLate |
+| 0x1402E9470 | CSetCharacterFlagEffect::Execute func_names 名 CSetCharacterFlagEffect::Execute |
+| 0x1413A3160 | CIfTrigger::GetTooltipText func_names 名 CIfTrigger::GetTooltipText |
+| 0x1404B4B10 | CFactionInfluenceScoreTrigger::GetValue func_names 名 CFactionInfluenceScoreTrigger::GetValue |
+| 0x1403DB350 | CIsInFactionWithTrigger::Evaluate func_names 名 CIsInFactionWithTrigger::Evaluate |
+| 0x141537140 | （无名） 体设 CAndTrigger::vftable（RTTI 名） |
+| 0x14031FB10 | CModifyTechnologySharingBonusEffect::Execute func_names 名 CModifyTechnologySharingBonusEffect::Execute |
+| 0x14114ED50 | （无名） 体设 CExecuteScriptedWindowEffect::vftable（RTTI 名） |
+| 0x1403B39E0 | CGiveResourceRightsEffect::ParseToken func_names 名 CGiveResourceRightsEffect::ParseToken |
+| 0x14051C040 | CCollectionSizeTrigger::[0] vtable 槽 CCollectionSizeTrigger::[0]（func_names RTTI 名） |
+| 0x1403EB040 | CCoreComplianceTrigger::GetValue func_names 名 CCoreComplianceTrigger::GetValue |
+| 0x1413AAE70 | CCountryTargetedValueTrigger::AddTriggerDynamicVariable func_names 名 CCountryTargetedValueTrigger::AddTriggerDynamicVariable |
+| 0x14159FEB0 | （无名） 体设 CAndTrigger::vftable（RTTI 名） |
+| 0x14035B7D0 | CModifyCountryFlagEffect::Execute func_names 名 CModifyCountryFlagEffect::Execute |
+| 0x1404AAB20 | CAddFactionInitiativeEffect::Execute func_names 名 CAddFactionInitiativeEffect::Execute |
+| 0x140476BA0 | CReconAdvantageTrigger::GetValue func_names 名 CReconAdvantageTrigger::GetValue |
+| 0x141399290 | CHiddenEffect::GetDescWrapper func_names 名 CHiddenEffect::GetDescWrapper |
+| 0x1403B17A0 | CCreateColonialDivisionTemplateEffect::ParseToken func_names 名 CCreateColonialDivisionTemplateEffect::ParseToken |
+| 0x141396950 | CHiddenEffect::BuildTooltip func_names 名 CHiddenEffect::BuildTooltip |
+| 0x141397160 | CHiddenEffect::[10] vtable 槽 CHiddenEffect::[10]（func_names RTTI 名） |
+| 0x14034B5C0 | CAddPoliticalPowerEffect::Execute func_names 名 CAddPoliticalPowerEffect::Execute |
+| 0x1404A0170 | CCreateEquipmentVariantEffect::ParseToken func_names 名 CCreateEquipmentVariantEffect::ParseToken |
+| 0x1402E3C20 | （无名） 体设 CFlagEffect::vftable（RTTI 名） |
+| 0x1403646A0 | CSetStateOwnerEffect::Execute func_names 名 CSetStateOwnerEffect::Execute |
+| 0x1403B1230 | CCaptureOperativeEffect::ParseToken func_names 名 CCaptureOperativeEffect::ParseToken |
+| 0x14034AA80 | CAddLegitimacyEffect::Execute func_names 名 CAddLegitimacyEffect::Execute |
+| 0x1403A3FC0 | CEveryEnemyCountryEffect::[32] vtable 槽 CEveryEnemyCountryEffect::[32]（func_names RTTI 名） |
+| 0x1402F8C10 | CHasAnyGeneralCapturedByTrigger::Evaluate func_names 名 CHasAnyGeneralCapturedByTrigger::Evaluate |
+| 0x1403CF640 | CAIHasRoleDivisionTrigger::Evaluate func_names 名 CAIHasRoleDivisionTrigger::Evaluate |
+| 0x1404B3AB0 | CFactionGoalCompletedTrigger::Evaluate func_names 名 CFactionGoalCompletedTrigger::Evaluate |
+| 0x1404B3B20 | CFactionHasActiveRuleTrigger::Evaluate func_names 名 CFactionHasActiveRuleTrigger::Evaluate |
+| 0x14153BC60 | COriginalChangeLeaderTrigger::Evaluate func_names 名 COriginalChangeLeaderTrigger::Evaluate |
+| 0x140330B90 | CAddToWarEffect::[0] vtable 槽 CAddToWarEffect::[0]（func_names RTTI 名） |
+| 0x1403CB450 | CAmountTakenIdeasTrigger::[0] vtable 槽 CAmountTakenIdeasTrigger::[0]（func_names RTTI 名） |
+| 0x1403DC3E0 | CIsSpyMasterTrigger::Evaluate func_names 名 CIsSpyMasterTrigger::Evaluate |
+| 0x1403617A0 | CSetCountryFlagEffect::Execute func_names 名 CSetCountryFlagEffect::Execute |
+| 0x1403DABF0 | CIsFactionLeaderTrigger::Evaluate func_names 名 CIsFactionLeaderTrigger::Evaluate |
+| 0x1403B2970 | CDeleteUnitEffect::ParseToken func_names 名 CDeleteUnitEffect::ParseToken |
+| 0x1413A1BB0 | CGameVariableTrigger::[0] vtable 槽 CGameVariableTrigger::[0]（func_names RTTI 名） |
+| 0x140331A80 | CDeleteUnitEffect::[0] vtable 槽 CDeleteUnitEffect::[0]（func_names RTTI 名） |
+| 0x14045BAE0 | CArmyHasOfficerNameTrigger::ParseValueKeys func_names 名 CArmyHasOfficerNameTrigger::ParseValueKeys |
+| 0x1403338E0 | CUncompleteNationalFocusEffect::[0] vtable 槽 CUncompleteNationalFocusEffect::[0]（func_names RTTI 名） |
+| 0x140474F20 | CIsFightingInWeatherTrigger::Evaluate func_names 名 CIsFightingInWeatherTrigger::Evaluate |
+| 0x1404B3D60 | CHasFactionGoalTrigger::Evaluate func_names 名 CHasFactionGoalTrigger::Evaluate |
+| 0x1402F31E0 | （无名） 体设 CMultipleCharacterTargetEffect::vftable（RTTI 名） |
+| 0x140333810 | CTransferUnitsFractionEffect::[0] vtable 槽 CTransferUnitsFractionEffect::[0]（func_names RTTI 名） |
+| 0x14034B770 | CAddRelationModifierEffect::Execute func_names 名 CAddRelationModifierEffect::Execute |
+| 0x14035ECE0 | CRemoveRelationModifierEffect::Execute func_names 名 CRemoveRelationModifierEffect::Execute |
+| 0x1413A8160 | CCountryTargetedValueTrigger::GetDesc func_names 名 CCountryTargetedValueTrigger::GetDesc |
+| 0x140364710 | CSetTempVariableEffect::Execute func_names 名 CSetTempVariableEffect::Execute |
+| 0x1403C7740 | （无名） 体设 CFlagTrigger::vftable（RTTI 名） |
+| 0x1403DADD0 | CIsFriendTrigger::Evaluate func_names 名 CIsFriendTrigger::Evaluate |
+| 0x1403EB180 | CCountFakeDivisionsTrigger::GetValue func_names 名 CCountFakeDivisionsTrigger::GetValue |
+| 0x140362C80 | CSetLegitimacyEffect::Execute func_names 名 CSetLegitimacyEffect::Execute |
+| 0x1403D9C40 | CHasWarWithTrigger::Evaluate func_names 名 CHasWarWithTrigger::Evaluate |
+| 0x1403CBF50 | CHasDynamicModifierTrigger::[0] vtable 槽 CHasDynamicModifierTrigger::[0]（func_names RTTI 名） |
+| 0x1403D8390 | CHasRelationModifierTrigger::Evaluate func_names 名 CHasRelationModifierTrigger::Evaluate |
+| 0x1404A8320 | （无名） 体设 CAnyCountryOfTrigger::vftable（RTTI 名） |
+| 0x141538200 | （无名） 体设 CAndTrigger::vftable（RTTI 名） |
+| 0x14032D0B0 | （无名） 体设 CSetPoliticalPartyEffect::vftable（RTTI 名） |
+| 0x140330890 | CSetNameEffect::[0] vtable 槽 CSetNameEffect::[0]（func_names RTTI 名） |
+| 0x140330C30 | CAddUnitBonusEffect::[0] vtable 槽 CAddUnitBonusEffect::[0]（func_names RTTI 名） |
+| 0x14044CD50 | CAllOperativeLeaderTrigger::[0] vtable 槽 CAllOperativeLeaderTrigger::[0]（func_names RTTI 名） |
+| 0x1403310C0 | CCompleteNationalFocusEffect::[0] vtable 槽 CCompleteNationalFocusEffect::[0]（func_names RTTI 名） |
+| 0x140332D20 | CSetCountryNationalFocusTreeEffect::[0] vtable 槽 CSetCountryNationalFocusTreeEffect::[0]（func_names RTTI 名） |
+| 0x1403CC400 | CHasResourcesInCollectionTrigger::[0] vtable 槽 CHasResourcesInCollectionTrigger::[0]（func_names RTTI 名） |
+| 0x14034CA50 | CAddUnitBonusEffect::Execute func_names 名 CAddUnitBonusEffect::Execute |
+| 0x14048C100 | CPcIsPuppetedTrigger::Evaluate func_names 名 CPcIsPuppetedTrigger::Evaluate |
+| 0x140322310 | CSetResearchSlotsEffect::GetDesc func_names 名 CSetResearchSlotsEffect::GetDesc |
+| 0x140363F80 | CSetPoliticalPowerEffect::Execute func_names 名 CSetPoliticalPowerEffect::Execute |
+| 0x1403B2140 | CCreateShipEffect::ParseToken func_names 名 CCreateShipEffect::ParseToken |
+| 0x14034DC10 | CBecomeExiledGovernmentEffect::Execute func_names 名 CBecomeExiledGovernmentEffect::Execute |
+| 0x1403D4E30 | CHasCharacterTrigger::Evaluate func_names 名 CHasCharacterTrigger::Evaluate |
+| 0x1403D7C40 | CHasOffensiveWarWithoutFriendTrigger::Evaluate func_names 名 CHasOffensiveWarWithoutFriendTrigger::Evaluate |
+| 0x140472EC0 | CIsOnContinentTrigger::Parse func_names 名 CIsOnContinentTrigger::Parse |
+| 0x1403EE3E0 | CNumOfAvailableCivilianFactoriesTrigger::GetValue func_names 名 CNumOfAvailableCivilianFactoriesTrigger::GetValue |
+| 0x14031B810 | CForceEnableResistanceEffect::[25] vtable 槽 CForceEnableResistanceEffect::[25]（func_names RTTI 名） |
+| 0x1404834F0 | （无名） 体设 CPowerBalanceEffect::vftable（RTTI 名） |
+| 0x14035C010 | CRecallAttacheEffect::Execute func_names 名 CRecallAttacheEffect::Execute |
+| 0x1403A81D0 | CSwapIdeasEffect::PostValidate func_names 名 CSwapIdeasEffect::PostValidate |
+| 0x140528A50 | CHasNavalControlTrigger::Evaluate func_names 名 CHasNavalControlTrigger::Evaluate |
+| 0x1402E41E0 | CSwapCountryLeaderTraitsEffect::[0] vtable 槽 CSwapCountryLeaderTraitsEffect::[0]（func_names RTTI 名） |
+| 0x1404885F0 | CHasPowerBalanceModifierTrigger::[0] vtable 槽 CHasPowerBalanceModifierTrigger::[0]（func_names RTTI 名） |
+| 0x140488690 | CIsPowerBalanceInRangeTrigger::[0] vtable 槽 CIsPowerBalanceInRangeTrigger::[0]（func_names RTTI 名） |
+| 0x140488730 | CIsPowerBalanceSideActiveTrigger::[0] vtable 槽 CIsPowerBalanceSideActiveTrigger::[0]（func_names RTTI 名） |
+| 0x1401609B0 | CRenameProvinceEffect::[0] vtable 槽 CRenameProvinceEffect::[0]（func_names RTTI 名） |
+| 0x14030AAD0 | CDeleteUnitsEffect::[0] vtable 槽 CDeleteUnitsEffect::[0]（func_names RTTI 名） |
+| 0x140331030 | CLogScriptEffect::[0] vtable 槽 CLogScriptEffect::[0]（func_names RTTI 名） |
+| 0x140366BC0 | CSubtractFromVariableEffect::Execute func_names 名 CSubtractFromVariableEffect::Execute |
+| 0x1403CB4E0 | CHasTraitTrigger::[0] vtable 槽 CHasTraitTrigger::[0]（func_names RTTI 名） |
+| 0x1403CBBE0 | CHasDecisionTrigger::[0] vtable 槽 CHasDecisionTrigger::[0]（func_names RTTI 名） |
+| 0x1403CC720 | CNationalFocusProgressTrigger::[0] vtable 槽 CNationalFocusProgressTrigger::[0]（func_names RTTI 名） |
+| 0x1403DDF60 | CSetVariableTrigger::Evaluate func_names 名 CSetVariableTrigger::Evaluate |
+| 0x140349250 | CAddCommandPowerEffect::Execute func_names 名 CAddCommandPowerEffect::Execute |
+| 0x1403AA2C0 | CCreateOperativeLeaderEffect::Parse func_names 名 CCreateOperativeLeaderEffect::Parse |
+| 0x1403D19A0 | CCountTriggersTrigger::Evaluate func_names 名 CCountTriggersTrigger::Evaluate |
+| 0x141391EF0 | （无名） 体设 CContextEffect::vftable（RTTI 名） |
+| 0x1405289E0 | CHasEnemyNavalControlTrigger::Evaluate func_names 名 CHasEnemyNavalControlTrigger::Evaluate |
+| 0x14043B540 | CHasVolunteersFromTrigger::ParseToken func_names 名 CHasVolunteersFromTrigger::ParseToken |
+| 0x140347A70 | CAIMessageEffect::Execute func_names 名 CAIMessageEffect::Execute |
+| 0x1403D9BC0 | CHasWarWithMajorTrigger::Evaluate func_names 名 CHasWarWithMajorTrigger::Evaluate |
+| 0x1403EE560 | CNumOfCivilianFactoriesTrigger::GetValue func_names 名 CNumOfCivilianFactoriesTrigger::GetValue |
+| 0x1403EE720 | CNumOfMilitaryFactoriesTrigger::GetValue func_names 名 CNumOfMilitaryFactoriesTrigger::GetValue |
+| 0x140349E10 | CAddDaysRemoveDecisionEffect::Execute func_names 名 CAddDaysRemoveDecisionEffect::Execute |
+| 0x1404B4A90 | CFactionInfluenceRatioTrigger::GetValue func_names 名 CFactionInfluenceRatioTrigger::GetValue |
+| 0x1402E6620 | CAddSkillLevelEffect::Execute func_names 名 CAddSkillLevelEffect::Execute |
+| 0x140333370 | CShowUnitLeadersTooltipEffect::[0] vtable 槽 CShowUnitLeadersTooltipEffect::[0]（func_names RTTI 名） |
+| 0x1403EE5D0 | CNumOfControlledFactoriesTrigger::GetValue func_names 名 CNumOfControlledFactoriesTrigger::GetValue |
+| 0x1403EE940 | CNumOfOwnedFactoriesTrigger::GetValue func_names 名 CNumOfOwnedFactoriesTrigger::GetValue |
+| 0x1403AF0A0 | CAddAIStrategyEffect::ParseToken func_names 名 CAddAIStrategyEffect::ParseToken |
+| 0x1403D9420 | CHasTemplateWithAIMajorityUnitTrigger::Evaluate func_names 名 CHasTemplateWithAIMajorityUnitTrigger::Evaluate |
+| 0x1403DC460 | CIsStagingCoupTrigger::Evaluate func_names 名 CIsStagingCoupTrigger::Evaluate |
+| 0x1403CF6C0 | CAIHasRoleTemplateTrigger::Evaluate func_names 名 CAIHasRoleTemplateTrigger::Evaluate |
+| 0x1403EA3C0 | CAmountManpowerInDeploymentQueueTrigger::GetValue func_names 名 CAmountManpowerInDeploymentQueueTrigger::GetValue |
+| 0x1404360E0 | CHasCapturedOperativeTrigger::Parse func_names 名 CHasCapturedOperativeTrigger::Parse |
+| 0x140348870 | CAddAirExperienceEffect::Execute func_names 名 CAddAirExperienceEffect::Execute |
+| 0x14034B280 | CAddNavyExperienceEffect::Execute func_names 名 CAddNavyExperienceEffect::Execute |
+| 0x1402E5EF0 | CAddCoordinationSkillEffect::Execute func_names 名 CAddCoordinationSkillEffect::Execute |
+| 0x1402E6080 | CAddManeuverSkillEffect::Execute func_names 名 CAddManeuverSkillEffect::Execute |
+| 0x1402E62F0 | CAddPlanningSkillEffect::Execute func_names 名 CAddPlanningSkillEffect::Execute |
+| 0x14043C9F0 | CShipsInAreaTrigger::ParseToken func_names 名 CShipsInAreaTrigger::ParseToken |
+| 0x1403D8E90 | CHasSubjectTrigger::Evaluate func_names 名 CHasSubjectTrigger::Evaluate |
+| 0x1403EAAC0 | CCasualtiesInThousandsTrigger::GetValue func_names 名 CCasualtiesInThousandsTrigger::GetValue |
+| 0x1403B2A20 | CDestroyShipsEffect::ParseToken func_names 名 CDestroyShipsEffect::ParseToken |
+| 0x1403EE7F0 | CNumOfNukesTrigger::GetValue func_names 名 CNumOfNukesTrigger::GetValue |
+| 0x14043CE50 | CWarLengthWithTrigger::ParseToken func_names 名 CWarLengthWithTrigger::ParseToken |
+| 0x1403DB560 | CIsInTechnologySharingGroupTrigger::Evaluate func_names 名 CIsInTechnologySharingGroupTrigger::Evaluate |
+| 0x140439740 | CFightingArmyStrengthRatioTrigger::ParseToken func_names 名 CFightingArmyStrengthRatioTrigger::ParseToken |
+| 0x140474F90 | CIsWinningTrigger::Evaluate func_names 名 CIsWinningTrigger::Evaluate |
+| 0x1403D1AA0 | CCountryHasCosmeticTagTrigger::Evaluate func_names 名 CCountryHasCosmeticTagTrigger::Evaluate |
+| 0x1404B4BB0 | CFactionManifestFulfillmentTrigger::GetValue func_names 名 CFactionManifestFulfillmentTrigger::GetValue |
+| 0x1413A1400 | （无名） 体设 CContextTrigger::vftable（RTTI 名） |
+| 0x14030A9C0 | CRemoveBuildingEffect::[0] vtable 槽 CRemoveBuildingEffect::[0]（func_names RTTI 名） |
+| 0x140319F40 | CRemoveStateResistanceComplianceModifierEffect::[26] vtable 槽 CRemoveStateResistanceComplianceModifierEffect::[26]（func_names RTTI 名） |
+| 0x14032D110 | （无名） 体设 CTimedIdeaEffect::vftable（RTTI 名） |
+| 0x1404676C0 | CHasStateCategoryTrigger::ParseValueKeys func_names 名 CHasStateCategoryTrigger::ParseValueKeys |
+| 0x14048BFC0 | CPcIsOnWinningSideTrigger::Evaluate func_names 名 CPcIsOnWinningSideTrigger::Evaluate |
+| 0x140319EE0 | CAddStateResistanceComplianceModifierEffect::[26] vtable 槽 CAddStateResistanceComplianceModifierEffect::[26]（func_names RTTI 名） |
+| 0x1403DC4D0 | CIsSubjectOfTrigger::Evaluate func_names 名 CIsSubjectOfTrigger::Evaluate |
+| 0x1403D17F0 | CControlsStateTrigger::Evaluate func_names 名 CControlsStateTrigger::Evaluate |
+| 0x1403D2D90 | CHasAttacheFromTrigger::Evaluate func_names 名 CHasAttacheFromTrigger::Evaluate |
+| 0x1403DD1D0 | COwnsStateTrigger::Evaluate func_names 名 COwnsStateTrigger::Evaluate |
+| 0x1403DAB80 | CIsExiledInTrigger::Evaluate func_names 名 CIsExiledInTrigger::Evaluate |
+| 0x140520220 | CCollectionContainsTrigger::Validate func_names 名 CCollectionContainsTrigger::Validate |
+| 0x1413A9B70 | CValue64Trigger::GetDesc func_names 名 CValue64Trigger::GetDesc |
+| 0x1403D9B20 | CHasWarTogetherTrigger::Evaluate func_names 名 CHasWarTogetherTrigger::Evaluate |
+| 0x14043D120 | CAnyOtherCountryTrigger::[26] vtable 槽 CAnyOtherCountryTrigger::[26]（func_names RTTI 名） |
+| 0x1413999C0 | CRandomEffect::[5] vtable 槽 CRandomEffect::[5]（func_names RTTI 名） |
+| 0x1404AA9C0 | CAddFactionGoalSlotEffect::Execute func_names 名 CAddFactionGoalSlotEffect::Execute |
+| 0x1404C7030 | CEveryCollectionElementEffect::[0] vtable 槽 CEveryCollectionElementEffect::[0]（func_names RTTI 名） |
+| 0x14048B670 | CIsPowerBalanceInRangeTrigger::ValidateLate func_names 名 CIsPowerBalanceInRangeTrigger::ValidateLate |
+| 0x1403D2590 | CGivesMilitaryAccessToTrigger::Evaluate func_names 名 CGivesMilitaryAccessToTrigger::Evaluate |
+| 0x1403DAAC0 | CIsEmbargoedByTrigger::Evaluate func_names 名 CIsEmbargoedByTrigger::Evaluate |
+| 0x1403DAB20 | CIsEmbargoingTrigger::Evaluate func_names 名 CIsEmbargoingTrigger::Evaluate |
+| 0x1403DAFA0 | CIsGuaranteedByTrigger::Evaluate func_names 名 CIsGuaranteedByTrigger::Evaluate |
+| 0x1415372B0 | （无名） 体设 CAndTrigger::vftable（RTTI 名） |
+| 0x140333240 | CSetPopularitiesEffect::[0] vtable 槽 CSetPopularitiesEffect::[0]（func_names RTTI 名） |
+| 0x140528B40 | CHasEnemyNavalControlTrigger::[23] vtable 槽 CHasEnemyNavalControlTrigger::[23]（func_names RTTI 名） |
+| 0x1403F6030 | CCasualtiesInThousandsTrigger::GetDesc func_names 名 CCasualtiesInThousandsTrigger::GetDesc |
+| 0x14030A7B0 | CBuildingEffect::[0] vtable 槽 CBuildingEffect::[0]（func_names RTTI 名） |
+| 0x14030A870 | CDamageBuildingEffect::[0] vtable 槽 CDamageBuildingEffect::[0]（func_names RTTI 名） |
+| 0x14030A940 | CProvinceEffect::[0] vtable 槽 CProvinceEffect::[0]（func_names RTTI 名） |
+| 0x14035AF70 | CLockAllTemplateEffect::Execute func_names 名 CLockAllTemplateEffect::Execute |
+| 0x1403D6650 | CHasGuaranteedTrigger::Evaluate func_names 名 CHasGuaranteedTrigger::Evaluate |
+| 0x1403DBEF0 | CIsOwnerNeighborOfTrigger::Evaluate func_names 名 CIsOwnerNeighborOfTrigger::Evaluate |
+| 0x140528B90 | CHasNavalControlTrigger::[23] vtable 槽 CHasNavalControlTrigger::[23]（func_names RTTI 名） |
+| 0x14043D160 | CAnyEnemyCountryTrigger::[26] vtable 槽 CAnyEnemyCountryTrigger::[26]（func_names RTTI 名） |
+| 0x1403D6F50 | CHasMilitaryAccessToTrigger::Evaluate func_names 名 CHasMilitaryAccessToTrigger::Evaluate |
+| 0x1403AF3F0 | CAddDaysMissionTimeoutEffect::ParseToken func_names 名 CAddDaysMissionTimeoutEffect::ParseToken |
+| 0x14048B790 | CIsPowerBalanceInRangeTrigger::ParseToken func_names 名 CIsPowerBalanceInRangeTrigger::ParseToken |
+| 0x1403A4D50 | CUncompleteNationalFocusEffect::[5] vtable 槽 CUncompleteNationalFocusEffect::[5]（func_names RTTI 名） |
+| 0x1403ECF40 | CHasCasualtiesWarSupportModifierTrigger::GetValue func_names 名 CHasCasualtiesWarSupportModifierTrigger::GetValue |
+| 0x1403A9ED0 | CAddDivisionTemplateEffect::Parse func_names 名 CAddDivisionTemplateEffect::Parse |
+| 0x1404A8390 | （无名） 体设 CAnyCountryWithOriginalTagOfTrigger::vftable（RTTI 名） |
+| 0x14153BD10 | COriginalGovernmentInExileTrigger::Evaluate func_names 名 COriginalGovernmentInExileTrigger::Evaluate |
+| 0x1403D60C0 | CHasEnoughManpowerForRecruitChangeTrigger::Evaluate func_names 名 CHasEnoughManpowerForRecruitChangeTrigger::Evaluate |
+| 0x140469F90 | CStatePopulationInThousandsTrigger::GetValue func_names 名 CStatePopulationInThousandsTrigger::GetValue |
+| 0x141393D90 | CIfEffect::Execute func_names 名 CIfEffect::Execute |
+| 0x140361860 | CSetCountryLeaderIdeologyEffect::Execute func_names 名 CSetCountryLeaderIdeologyEffect::Execute |
+| 0x1403D8CF0 | CHasShineEffectOnFocusTrigger::Evaluate func_names 名 CHasShineEffectOnFocusTrigger::Evaluate |
+| 0x1404747F0 | CIsFightingInWeatherTrigger::[0] vtable 槽 CIsFightingInWeatherTrigger::[0]（func_names RTTI 名） |
+| 0x14032CD60 | （无名） 体设 CMultipleUnitLeaderTargetEffect::vftable（RTTI 名） |
+| 0x1403B6140 | CSetTemplateDivisionCapEffect::ParseToken func_names 名 CSetTemplateDivisionCapEffect::ParseToken |
+| 0x1415A76F0 | （无名） 体设 CDemilitarizedZoneTimedEffect::vftable（RTTI 名） |
+| 0x140474870 | CCombatPhaseTrigger::Evaluate func_names 名 CCombatPhaseTrigger::Evaluate |
+| 0x1403AF470 | CAddDecryptionEffect::ParseToken func_names 名 CAddDecryptionEffect::ParseToken |
+| 0x140439B60 | CHasDynamicModifierTrigger::ParseToken func_names 名 CHasDynamicModifierTrigger::ParseToken |
+| 0x1415A7790 | （无名） 体设 CResourceRightsTimedEffect::vftable（RTTI 名） |
+| 0x1402F8B80 | CTagTrigger::[0] vtable 槽 CTagTrigger::[0]（func_names RTTI 名） |
+| 0x1403317E0 | CCreateUnitLeaderEffect::[0] vtable 槽 CCreateUnitLeaderEffect::[0]（func_names RTTI 名） |
+| 0x1404B3020 | CAddFactionGoalSlotEffect::ParseToken func_names 名 CAddFactionGoalSlotEffect::ParseToken |
+| 0x1403B5A40 | CSetPoliticalPartyEffect::ParseToken func_names 名 CSetPoliticalPartyEffect::ParseToken |
+| 0x140334F50 | CRemoveIdeasWithTraitEffect::ParseTargetToken func_names 名 CRemoveIdeasWithTraitEffect::ParseTargetToken |
+| 0x140476B50 | CProvinceVpTrigger::GetValue func_names 名 CProvinceVpTrigger::GetValue |
+| 0x140439140 | CCompareIntelWithTrigger::ParseToken func_names 名 CCompareIntelWithTrigger::ParseToken |
+| 0x1403329F0 | CRetireCharacterEffect::[0] vtable 槽 CRetireCharacterEffect::[0]（func_names RTTI 名） |
+| 0x14043D0D0 | CAllEnemyCountryTrigger::[26] vtable 槽 CAllEnemyCountryTrigger::[26]（func_names RTTI 名） |
+| 0x14031BBA0 | CBaseStateResistanceComplianceModifierEffect::ParseToken func_names 名 CBaseStateResistanceComplianceModifierEffect::ParseToken |
+| 0x1403B5670 | CSetCapitalEffect::ParseToken func_names 名 CSetCapitalEffect::ParseToken |
+| 0x1403AA260 | CCompleteNationalFocusEffect::Parse func_names 名 CCompleteNationalFocusEffect::Parse |
+| 0x1404422A0 | CCharacterFlagTrigger::Evaluate func_names 名 CCharacterFlagTrigger::Evaluate |
+| 0x1403B1750 | CCompleteNationalFocusEffect::ParseToken func_names 名 CCompleteNationalFocusEffect::ParseToken |
+| 0x1403EEC90 | CPoliticalPowerGrowthTrigger::GetValue func_names 名 CPoliticalPowerGrowthTrigger::GetValue |
+| 0x140332EC0 | CSetEntityPositionEffect::[0] vtable 槽 CSetEntityPositionEffect::[0]（func_names RTTI 名） |
+| 0x1403C7F20 | （无名） 体设 CVariableTrigger::vftable（RTTI 名） |
+| 0x14032D260 | （无名） 体设 CVariableEffect::vftable（RTTI 名） |
+| 0x1403DC140 | CIsPuppetTrigger::Evaluate func_names 名 CIsPuppetTrigger::Evaluate |
+| 0x140475020 | CLessCombatWidthThanOpponentTrigger::Evaluate func_names 名 CLessCombatWidthThanOpponentTrigger::Evaluate |
+| 0x14032CCF0 | （无名） 体设 CMultipleCountryTargetEffect::vftable（RTTI 名） |
+| 0x14043BC10 | CNationalFocusProgressTrigger::ParseToken func_names 名 CNationalFocusProgressTrigger::ParseToken |
+| 0x1404B4C30 | CFactionPowerProjectionTrigger::GetValue func_names 名 CFactionPowerProjectionTrigger::GetValue |
+| 0x1403330C0 | CSetPoliticalPartyEffect::[0] vtable 槽 CSetPoliticalPartyEffect::[0]（func_names RTTI 名） |
+| 0x140333300 | CShowIdeasTooltipEffect::[0] vtable 槽 CShowIdeasTooltipEffect::[0]（func_names RTTI 名） |
+| 0x140362820 | CSetFuelEffect::Execute func_names 名 CSetFuelEffect::Execute |
+| 0x14045CE80 | （无名） 体设 CMultipleUnitTargetEffect::vftable（RTTI 名） |
+| 0x1413A7900 | CCountryTrigger::GetTargetTag func_names 名 CCountryTrigger::GetTargetTag |
+| 0x1403ECB30 | CForeignManpowerTrigger::GetValue func_names 名 CForeignManpowerTrigger::GetValue |
+| 0x1403ECB80 | CGarrisonManpowerNeedTrigger::GetValue func_names 名 CGarrisonManpowerNeedTrigger::GetValue |
+| 0x141399A10 | CIfEffect::HasMultipleTooltipVars func_names 名 CIfEffect::HasMultipleTooltipVars |
+| 0x1413A1C60 | CIfTrigger::Evaluate func_names 名 CIfTrigger::Evaluate |
+| 0x1402E7C80 | CClearCharacterFlagEffect::Execute func_names 名 CClearCharacterFlagEffect::Execute |
+| 0x1403698C0 | CRemoveCountryLeaderTraitEffect::[25] vtable 槽 CRemoveCountryLeaderTraitEffect::[25]（func_names RTTI 名） |
+| 0x1403EE4C0 | CNumOfAvailableNavalFactoriesTrigger::GetValue func_names 名 CNumOfAvailableNavalFactoriesTrigger::GetValue |
+| 0x14035C070 | CRecallVolunteersFromEffect::Execute func_names 名 CRecallVolunteersFromEffect::Execute |
+| 0x14053D450 | CIfEffect::[0] vtable 槽 CIfEffect::[0]（func_names RTTI 名） |
+| 0x140436150 | CHasDynamicModifierTrigger::Parse func_names 名 CHasDynamicModifierTrigger::Parse |
+| 0x140330280 | CRandomStateEffect::[0] vtable 槽 CRandomStateEffect::[0]（func_names RTTI 名） |
+| 0x140332780 | CRecruitCharacterEffect::[0] vtable 槽 CRecruitCharacterEffect::[0]（func_names RTTI 名） |
+| 0x1403CB9E0 | CCountPlanesStationedInRegionTrigger::[0] vtable 槽 CCountPlanesStationedInRegionTrigger::[0]（func_names RTTI 名） |
+| 0x140461D90 | CAnyProvinceBuildingLevelTrigger::[0] vtable 槽 CAnyProvinceBuildingLevelTrigger::[0]（func_names RTTI 名） |
+| 0x140461F70 | CNumOwnedNeighbourStatesTrigger::[0] vtable 槽 CNumOwnedNeighbourStatesTrigger::[0]（func_names RTTI 名） |
+| 0x140461FE0 | COwnsAnyStateOfTrigger::[0] vtable 槽 COwnsAnyStateOfTrigger::[0]（func_names RTTI 名） |
+| 0x1404A8410 | CAnyCountryWithOriginalTagOfTrigger::[0] vtable 槽 CAnyCountryWithOriginalTagOfTrigger::[0]（func_names RTTI 名） |
+| 0x1404AABC0 | CAddFactionPowerProjectionEffect::Execute func_names 名 CAddFactionPowerProjectionEffect::Execute |
+| 0x14031C670 | CSetStateProvincesControllerEffect::ParseToken func_names 名 CSetStateProvincesControllerEffect::ParseToken |
+| 0x140369930 | CSetCountryLeaderIdeologyEffect::[25] vtable 槽 CSetCountryLeaderIdeologyEffect::[25]（func_names RTTI 名） |
+| 0x14048B620 | CHasPowerBalanceModifierTrigger::ValidateLate func_names 名 CHasPowerBalanceModifierTrigger::ValidateLate |
+| 0x1404AAAC0 | CAddFactionInfluenceScoreEffect::Execute func_names 名 CAddFactionInfluenceScoreEffect::Execute |
+| 0x140332570 | CSetEntityMovementEffect::CPersistentPositionSetter::[0] vtable 槽 CSetEntityMovementEffect::CPersistentPositionSetter::[0]（func_names RTTI 名） |
+| 0x1403EDF40 | CHasWarSupportTrigger::GetValue func_names 名 CHasWarSupportTrigger::GetValue |
+| 0x1413A9BF0 | CValueTrigger::GetDesc func_names 名 CValueTrigger::GetDesc |
+| 0x1403AF4C0 | CAddIntelEffect::ParseToken func_names 名 CAddIntelEffect::ParseToken |
+| 0x1413A94A0 | CIntTrigger::GetDesc func_names 名 CIntTrigger::GetDesc |
+| 0x1403AD390 | CUnlockDecisionCategoryTooltipEffect::Parse func_names 名 CUnlockDecisionCategoryTooltipEffect::Parse |
+| 0x1403EDA70 | CHasPoliticalPowerTrigger::GetValue func_names 名 CHasPoliticalPowerTrigger::GetValue |
+| 0x1404A8AE0 | CEnergyFullfilmentTrigger::GetValue func_names 名 CEnergyFullfilmentTrigger::GetValue |
+| 0x1413A1460 | （无名） 体设 CCountryTrigger::vftable（RTTI 名） |
+| 0x1403B5A10 | CSetPartyRuleEffect::ParseToken func_names 名 CSetPartyRuleEffect::ParseToken |
+| 0x1403D7230 | CHasMinesTrigger::Evaluate func_names 名 CHasMinesTrigger::Evaluate |
+| 0x140488110 | CAddPowerBalanceValueEffect::ParseToken func_names 名 CAddPowerBalanceValueEffect::ParseToken |
+| 0x1413AAB90 | CCustomOverrideTooltipTrigger::ParseToken func_names 名 CCustomOverrideTooltipTrigger::ParseToken |
+| 0x14031FD40 | CSetResearchSlotsEffect::Execute func_names 名 CSetResearchSlotsEffect::Execute |
+| 0x140330770 | CAddDivisionTemplateEffect::[0] vtable 槽 CAddDivisionTemplateEffect::[0]（func_names RTTI 名） |
+| 0x1403311A0 | CCreateColonialDivisionTemplateEffect::[0] vtable 槽 CCreateColonialDivisionTemplateEffect::[0]（func_names RTTI 名） |
+| 0x140361470 | CSetCapitalEffect::Execute func_names 名 CSetCapitalEffect::Execute |
+| 0x1404AA980 | CAddFactionGoalEffect::Execute func_names 名 CAddFactionGoalEffect::Execute |
+| 0x1404AC040 | CSetFactionSpyMasterEffect::Execute func_names 名 CSetFactionSpyMasterEffect::Execute |
+| 0x141395860 | CFlagEffect::[25] vtable 槽 CFlagEffect::[25]（func_names RTTI 名） |
+| 0x1413A3290 | CScriptedTrigger::GetTooltipText func_names 名 CScriptedTrigger::GetTooltipText |
+| 0x1403B5810 | CSetEntityAnimationEffect::ParseToken func_names 名 CSetEntityAnimationEffect::ParseToken |
+| 0x140476D10 | CSkillTrigger::GetValue func_names 名 CSkillTrigger::GetValue |
+| 0x140444490 | CUnitLeaderHasAbilityTrigger::Evaluate func_names 名 CUnitLeaderHasAbilityTrigger::Evaluate |
+| 0x1403B3F90 | COperativeAndCountryBaseEffect::ParseToken func_names 名 COperativeAndCountryBaseEffect::ParseToken |
+| 0x1403EE510 | CNumOfCivilianFactoriesAvailableForProjectsTrigger::GetValue func_names 名 CNumOfCivilianFactoriesAvailableForProjectsTrigger::GetValue |
+| 0x1403AFD90 | CAddUnitBonusEffect::ParseToken func_names 名 CAddUnitBonusEffect::ParseToken |
+| 0x1404ABA70 | CRemoveFactionGoalEffect::Execute func_names 名 CRemoveFactionGoalEffect::Execute |
+| 0x1404605B0 | CAddHistoryEntryEffect::ParseToken func_names 名 CAddHistoryEntryEffect::ParseToken |
+| 0x140333060 | CSetPartyRuleEffect::[0] vtable 槽 CSetPartyRuleEffect::[0]（func_names RTTI 名） |
+| 0x1403EDEF0 | CHasStabilityTrigger::GetValue func_names 名 CHasStabilityTrigger::GetValue |
+| 0x1403333F0 | CStartBorderWarEffect::[0] vtable 槽 CStartBorderWarEffect::[0]（func_names RTTI 名） |
+| 0x140360200 | CRoundTempVariableEffect::Execute func_names 名 CRoundTempVariableEffect::Execute |
+| 0x1403AF530 | CAddMinesEffect::ParseToken func_names 名 CAddMinesEffect::ParseToken |
+| 0x1403ECEF0 | CHasBombingWarSupportModifierTrigger::GetValue func_names 名 CHasBombingWarSupportModifierTrigger::GetValue |
+| 0x1403ED0A0 | CHasConvoysWarSupportModifierTrigger::GetValue func_names 名 CHasConvoysWarSupportModifierTrigger::GetValue |
+| 0x14039DC70 | CEverySubjectCountryEffect::[28] vtable 槽 CEverySubjectCountryEffect::[28]（func_names RTTI 名） |
+| 0x1403ED630 | CHasManpowerTrigger::GetValue func_names 名 CHasManpowerTrigger::GetValue |
+| 0x141399230 | CContextEffect::GetDescWrapper func_names 名 CContextEffect::GetDescWrapper |
+| 0x1403AFB60 | CAddScaledPoliticalPowerEffect::ParseToken func_names 名 CAddScaledPoliticalPowerEffect::ParseToken |
+| 0x1403ED5D0 | CHasLegitimacyTrigger::GetValue func_names 名 CHasLegitimacyTrigger::GetValue |
+| 0x1403EE790 | CNumOfNavalFactoriesTrigger::GetValue func_names 名 CNumOfNavalFactoriesTrigger::GetValue |
+| 0x14043CC30 | CStockpileRatioTrigger::ParseToken func_names 名 CStockpileRatioTrigger::ParseToken |
+| 0x140330980 | CAddPopularityEffect::[0] vtable 槽 CAddPopularityEffect::[0]（func_names RTTI 名） |
+| 0x140364660 | CSetStateControllerEffect::Execute func_names 名 CSetStateControllerEffect::Execute |
+| 0x1404B3ED0 | CHasFactionTemplateTrigger::Evaluate func_names 名 CHasFactionTemplateTrigger::Evaluate |
+| 0x141397100 | CContextEffect::[10] vtable 槽 CContextEffect::[10]（func_names RTTI 名） |
+| 0x1403AF570 | CAddNamedThreatEffect::ParseToken func_names 名 CAddNamedThreatEffect::ParseToken |
+| 0x14043B500 | CHasTechBonusTrigger::ParseToken func_names 名 CHasTechBonusTrigger::ParseToken |
+| 0x14034B330 | CAddNukeEffect::Execute func_names 名 CAddNukeEffect::Execute |
+| 0x140473DA0 | CNumOwnedNeighbourStatesTrigger::ParseToken func_names 名 CNumOwnedNeighbourStatesTrigger::ParseToken |
+| 0x1403B59B0 | CSetPartyNameEffect::ParseToken func_names 名 CSetPartyNameEffect::ParseToken |
+| 0x1413A13A0 | （无名） 体设 CIntTrigger::vftable（RTTI 名） |
+| 0x1413A1790 | （无名） 体设 CIntTrigger::vftable（RTTI 名） |
+| 0x14035B780 | CModifyBuildingEffect::Execute func_names 名 CModifyBuildingEffect::Execute |
+| 0x14039DBF0 | CEveryNeighborCountryEffect::[28] vtable 槽 CEveryNeighborCountryEffect::[28]（func_names RTTI 名） |
+| 0x1404391E0 | CCountPlanesStationedInRegionTrigger::ParseToken func_names 名 CCountPlanesStationedInRegionTrigger::ParseToken |
+| 0x1403B20F0 | CCreateRailwayGunEffect::ParseToken func_names 名 CCreateRailwayGunEffect::ParseToken |
+| 0x1413A14C0 | （无名） 体设 CDateTrigger::vftable（RTTI 名） |
+| 0x1403300D0 | CArrayEffect::[0] vtable 槽 CArrayEffect::[0]（func_names RTTI 名） |
+| 0x1403CB0E0 | CArrayTrigger::[0] vtable 槽 CArrayTrigger::[0]（func_names RTTI 名） |
+| 0x1403D2E30 | CHasAutonomyStateTrigger::Evaluate func_names 名 CHasAutonomyStateTrigger::Evaluate |
+| 0x1403D6070 | CHasElectionsTrigger::Evaluate func_names 名 CHasElectionsTrigger::Evaluate |
+| 0x140474B10 | CHasCombatModifierTrigger::Evaluate func_names 名 CHasCombatModifierTrigger::Evaluate |
+| 0x14045CA30 | CIsUnitReservesTrigger::GetDesc func_names 名 CIsUnitReservesTrigger::GetDesc |
+| 0x1413A8200 | CCustomOverrideTooltipTrigger::GetDesc func_names 名 CCustomOverrideTooltipTrigger::GetDesc |
+| 0x1403EE620 | CNumOfControlledStatesTrigger::GetValue func_names 名 CNumOfControlledStatesTrigger::GetValue |
+| 0x1403D1A50 | CCountryFlagTrigger::Evaluate func_names 名 CCountryFlagTrigger::Evaluate |
+| 0x14030ABB0 | CTeleportArmiesEffect::[0] vtable 槽 CTeleportArmiesEffect::[0]（func_names RTTI 名） |
+| 0x140330810 | CAddIntelEffect::[0] vtable 槽 CAddIntelEffect::[0]（func_names RTTI 名） |
+| 0x1404673B0 | CStateIDTrigger::Evaluate func_names 名 CStateIDTrigger::Evaluate |
+| 0x1413A1AA0 | CContextTrigger::[0] vtable 槽 CContextTrigger::[0]（func_names RTTI 名） |
+| 0x1404881B0 | CPowerBalanceModifierEffect::ParseToken func_names 名 CPowerBalanceModifierEffect::ParseToken |
+| 0x141392370 | CContextEffect::[0] vtable 槽 CContextEffect::[0]（func_names RTTI 名） |
+| 0x1403D5380 | CHasCountryLeaderIdeologyTrigger::Evaluate func_names 名 CHasCountryLeaderIdeologyTrigger::Evaluate |
+| 0x140332270 | CKillIdeologyLeaderEffect::[0] vtable 槽 CKillIdeologyLeaderEffect::[0]（func_names RTTI 名） |
+| 0x1403AF730 | CAddPopularityEffect::ParseToken func_names 名 CAddPopularityEffect::ParseToken |
+| 0x1403CC0A0 | CHasGovernmentTrigger::[0] vtable 槽 CHasGovernmentTrigger::[0]（func_names RTTI 名） |
+| 0x140364CF0 | CSetWarSupportEffect::Execute func_names 名 CSetWarSupportEffect::Execute |
+| 0x14038DD80 | CSaveEventTargetAsEffect::GetDesc func_names 名 CSaveEventTargetAsEffect::GetDesc |
+| 0x1403336B0 | CSwapIdeasEffect::[0] vtable 槽 CSwapIdeasEffect::[0]（func_names RTTI 名） |
+| 0x1413A1700 | （无名） 体设 CValueTrigger::vftable（RTTI 名） |
+| 0x1413A15B0 | （无名） 体设 CValueTrigger::vftable（RTTI 名） |
+| 0x140331360 | CCreateImportEffect::[0] vtable 槽 CCreateImportEffect::[0]（func_names RTTI 名） |
+| 0x1403D2A70 | CHasAnyLicenseTrigger::Evaluate func_names 名 CHasAnyLicenseTrigger::Evaluate |
+| 0x140364D50 | CSoundEffect::Execute func_names 名 CSoundEffect::Execute |
+| 0x140360250 | CRoundVariableEffect::Execute func_names 名 CRoundVariableEffect::Execute |
+| 0x14031F710 | CAddResearchSlotEffect::Execute func_names 名 CAddResearchSlotEffect::Execute |
+| 0x1403CB6C0 | CCasualtiesInflictedByInThousandsTrigger::[0] vtable 槽 CCasualtiesInflictedByInThousandsTrigger::[0]（func_names RTTI 名） |
+| 0x1403D6600 | CHasGovernmentTrigger::Evaluate func_names 名 CHasGovernmentTrigger::Evaluate |
+| 0x140379BB0 | CAddUnitBonusEffect::GetDesc func_names 名 CAddUnitBonusEffect::GetDesc |
+| 0x140368C30 | CUpgradeIntelligenceAgencyEffect::Execute func_names 名 CUpgradeIntelligenceAgencyEffect::Execute |
+| 0x1403CCA90 | CReceivedExpeditionaryForcesTrigger::[0] vtable 槽 CReceivedExpeditionaryForcesTrigger::[0]（func_names RTTI 名） |
+| 0x14034C2F0 | CAddStabilityEffect::Execute func_names 名 CAddStabilityEffect::Execute |
+| 0x140364600 | CSetStabilityEffect::Execute func_names 名 CSetStabilityEffect::Execute |
+| 0x140439240 | CCountTriggersTrigger::ParseToken func_names 名 CCountTriggersTrigger::ParseToken |
+| 0x14043D070 | CAnyAlliedCountryTrigger::[26] vtable 槽 CAnyAlliedCountryTrigger::[26]（func_names RTTI 名） |
+| 0x1403D1A20 | CCountryExistsTrigger::Evaluate func_names 名 CCountryExistsTrigger::Evaluate |
+| 0x1404ABBE0 | CSetFactionManifestEffect::Execute func_names 名 CSetFactionManifestEffect::Execute |
+| 0x1413A1860 | （无名） 体设 CStrategicRegionTrigger::vftable（RTTI 名） |
+| 0x1403B1B90 | CCreateIntelligenceAgencyEffect::ParseToken func_names 名 CCreateIntelligenceAgencyEffect::ParseToken |
+| 0x1403D9540 | CHasTerrainTrigger::Evaluate func_names 名 CHasTerrainTrigger::Evaluate |
+| 0x14048B800 | CIsPowerBalanceSideActiveTrigger::ParseToken func_names 名 CIsPowerBalanceSideActiveTrigger::ParseToken |
+| 0x141399FC0 | CFireEventEffect::Parse func_names 名 CFireEventEffect::Parse |
+| 0x1403EDF90 | CLandDoctrineLevelTrigger::GetValue func_names 名 CLandDoctrineLevelTrigger::GetValue |
+| 0x1403AF430 | CAddDaysRemoveDecisionEffect::ParseToken func_names 名 CAddDaysRemoveDecisionEffect::ParseToken |
+| 0x140330AE0 | CTimedIdeaEffect::[0] vtable 槽 CTimedIdeaEffect::[0]（func_names RTTI 名） |
+| 0x140461E00 | CAnyStateInTrigger::[0] vtable 槽 CAnyStateInTrigger::[0]（func_names RTTI 名） |
+| 0x14049B060 | CAddEquipmentToStockpileEffect::[0] vtable 槽 CAddEquipmentToStockpileEffect::[0]（func_names RTTI 名） |
+| 0x14031C0C0 | CDamageBuildingEffect::ParseToken func_names 名 CDamageBuildingEffect::ParseToken |
+| 0x1403B5970 | CSetKeyedOobEffect::ParseToken func_names 名 CSetKeyedOobEffect::ParseToken |
+| 0x1403D5760 | CHasCountryLeaderWithTraitTrigger::Evaluate func_names 名 CHasCountryLeaderWithTraitTrigger::Evaluate |
+| 0x1403B57D0 | CSetDivisionTemplateLockEffect::ParseToken func_names 名 CSetDivisionTemplateLockEffect::ParseToken |
+| 0x1403B6180 | CSetTemplateDivisionForceRecruitingEffect::ParseToken func_names 名 CSetTemplateDivisionForceRecruitingEffect::ParseToken |
+| 0x1403B3BC0 | CLockAllTemplateEffect::ParseToken func_names 名 CLockAllTemplateEffect::ParseToken |
+| 0x14049B1F0 | CSendEquipmentEffect::[0] vtable 槽 CSendEquipmentEffect::[0]（func_names RTTI 名） |
+| 0x1403CC210 | CHasMinedTrigger::[0] vtable 槽 CHasMinedTrigger::[0]（func_names RTTI 名） |
+| 0x14031B740 | CBaseStateResistanceComplianceModifierEffect::Parse func_names 名 CBaseStateResistanceComplianceModifierEffect::Parse |
+| 0x1403628D0 | CSetFuelRatioEffect::Execute func_names 名 CSetFuelRatioEffect::Execute |
+| 0x1403D5920 | CHasDecisionTrigger::Evaluate func_names 名 CHasDecisionTrigger::Evaluate |
+| 0x1404424E0 | CHasUnitsTrigger::Evaluate func_names 名 CHasUnitsTrigger::Evaluate |
+| 0x1402F8A90 | CCaptureGeneralEffect::ParseToken func_names 名 CCaptureGeneralEffect::ParseToken |
+| 0x1403EB000 | CConvoyThreatTrigger::GetValue func_names 名 CConvoyThreatTrigger::GetValue |
+| 0x1403EE040 | CNavalMineDangerTrigger::GetValue func_names 名 CNavalMineDangerTrigger::GetValue |
+| 0x140439BA0 | CHasEnoughManpowerForRecruitChangeTrigger::ParseToken func_names 名 CHasEnoughManpowerForRecruitChangeTrigger::ParseToken |
+| 0x1402E7EF0 | CPromoteLeaderEffect::Execute func_names 名 CPromoteLeaderEffect::Execute |
+| 0x14034FD50 | CClearCountryFlagEffect::Execute func_names 名 CClearCountryFlagEffect::Execute |
+| 0x1402E7CE0 | CDemoteLeaderEffect::Execute func_names 名 CDemoteLeaderEffect::Execute |
+| 0x14035F0F0 | CRemoveStateClaimEffect::Execute func_names 名 CRemoveStateClaimEffect::Execute |
+| 0x14049B0D0 | CCreateEquipmentVariantEffect::[0] vtable 槽 CCreateEquipmentVariantEffect::[0]（func_names RTTI 名） |
+| 0x1413A7750 | CScriptedTrigger::GetName func_names 名 CScriptedTrigger::GetName |
+| 0x140439A80 | CHasCompletedCustomAchievementTrigger::ParseToken func_names 名 CHasCompletedCustomAchievementTrigger::ParseToken |
+| 0x141399830 | CScriptedEffect::GetName func_names 名 CScriptedEffect::GetName |
+| 0x1403D8CC0 | CHasRuleTrigger::Evaluate func_names 名 CHasRuleTrigger::Evaluate |
+| 0x1402E7F30 | CRemoveExileTagEffect::Execute func_names 名 CRemoveExileTagEffect::Execute |
+| 0x140474EE0 | CIsFightingInTerrainTrigger::Evaluate func_names 名 CIsFightingInTerrainTrigger::Evaluate |
+| 0x140335420 | CSetCountryLeaderIdeologyEffect::ParseTargetToken func_names 名 CSetCountryLeaderIdeologyEffect::ParseTargetToken |
+| 0x1403A3F80 | CEveryOtherCountryEffect::[32] vtable 槽 CEveryOtherCountryEffect::[32]（func_names RTTI 名） |
+| 0x140444580 | COperativeLeaderMissionTrigger::ParseValueKeys func_names 名 COperativeLeaderMissionTrigger::ParseValueKeys |
+| 0x1403243B0 | CModifyTechnologySharingBonusEffect::ParseToken func_names 名 CModifyTechnologySharingBonusEffect::ParseToken |
+| 0x140361760 | CSetCosmeticTagEffect::Execute func_names 名 CSetCosmeticTagEffect::Execute |
+| 0x1403D2730 | CHasActiveTimedDecisionTrigger::Evaluate func_names 名 CHasActiveTimedDecisionTrigger::Evaluate |
+| 0x1404B3A70 | CCountryHasCompletedGoalTrigger::Evaluate func_names 名 CCountryHasCompletedGoalTrigger::Evaluate |
+| 0x140330710 | CClampVariableEffect::[0] vtable 槽 CClampVariableEffect::[0]（func_names RTTI 名） |
+| 0x1403322C0 | CLaunchNukeEffect::[0] vtable 槽 CLaunchNukeEffect::[0]（func_names RTTI 名） |
+| 0x14034D820 | CAddWarSupportEffect::Execute func_names 名 CAddWarSupportEffect::Execute |
+| 0x1403CB080 | CAnyCountryWithOriginalTagTrigger::[0] vtable 槽 CAnyCountryWithOriginalTagTrigger::[0]（func_names RTTI 名） |
+| 0x1403CB7D0 | CClampVariableTrigger::[0] vtable 槽 CClampVariableTrigger::[0]（func_names RTTI 名） |
+| 0x1403CC8A0 | CNetworkStrengthTrigger::[0] vtable 槽 CNetworkStrengthTrigger::[0]（func_names RTTI 名） |
+| 0x1403BCB20 | CMarkTechnologyTreeLayoutDirtyEffect::[26] vtable 槽 CMarkTechnologyTreeLayoutDirtyEffect::[26]（func_names RTTI 名） |
+| 0x1413991F0 | CWithTooltipOverrideEffect::GetDesc func_names 名 CWithTooltipOverrideEffect::GetDesc |
+| 0x140461D50 | CIsOnContinentTrigger::[0] vtable 槽 CIsOnContinentTrigger::[0]（func_names RTTI 名） |
+| 0x141398310 | CCustomEffectTooltipEffect::GetDesc func_names 名 CCustomEffectTooltipEffect::GetDesc |
+| 0x1403F0080 | CHasRelationModifierTrigger::[23] vtable 槽 CHasRelationModifierTrigger::[23]（func_names RTTI 名） |
+| 0x14048B6D0 | CIsPowerBalanceSideActiveTrigger::ValidateLate func_names 名 CIsPowerBalanceSideActiveTrigger::ValidateLate |
+| 0x1404A96F0 | CAnyOtherCountryOfTrigger::[26] vtable 槽 CAnyOtherCountryOfTrigger::[26]（func_names RTTI 名） |
+| 0x1402EF0E0 | COperativeLeaderEventEffect::[26] vtable 槽 COperativeLeaderEventEffect::[26]（func_names RTTI 名） |
+| 0x1402EF3D0 | COperativeLeaderEventEffect::[25] vtable 槽 COperativeLeaderEventEffect::[25]（func_names RTTI 名） |
+| 0x14139B520 | CWithTooltipOverrideEffect::ParseToken func_names 名 CWithTooltipOverrideEffect::ParseToken |
+| 0x1413A1B60 | CDateTrigger::[0] vtable 槽 CDateTrigger::[0]（func_names RTTI 名） |
+| 0x140332960 | CRemoveIdeasEffect::[0] vtable 槽 CRemoveIdeasEffect::[0]（func_names RTTI 名） |
+| 0x140475930 | CMinPlanningTrigger::ParseValueKeys func_names 名 CMinPlanningTrigger::ParseValueKeys |
+| 0x1403B29E0 | CDeleteUnitsEffect::ParseToken func_names 名 CDeleteUnitsEffect::ParseToken |
+| 0x14048CB20 | CPcIsWinnerTrigger::Evaluate func_names 名 CPcIsWinnerTrigger::Evaluate |
+| 0x1403AF2A0 | CAddAutonomyScoreEffect::ParseToken func_names 名 CAddAutonomyScoreEffect::ParseToken |
+| 0x1403D9B90 | CHasWarTrigger::Evaluate func_names 名 CHasWarTrigger::Evaluate |
+| 0x1402F8AD0 | CReleaseCapturedGeneralsEffect::ParseToken func_names 名 CReleaseCapturedGeneralsEffect::ParseToken |
+| 0x1403CB570 | CArmyManpowerInStateTrigger::[0] vtable 槽 CArmyManpowerInStateTrigger::[0]（func_names RTTI 名） |
+| 0x1403D52C0 | CHasCompletedNationalFocusTrigger::Evaluate func_names 名 CHasCompletedNationalFocusTrigger::Evaluate |
+| 0x1403EEC50 | CPoliticalPowerDailyTrigger::GetValue func_names 名 CPoliticalPowerDailyTrigger::GetValue |
+| 0x14031BB80 | CAddStaticProvinceModifierEffect::ParseToken func_names 名 CAddStaticProvinceModifierEffect::ParseToken |
+| 0x1403B2C90 | CDivideTempVariableEffect::ParseToken func_names 名 CDivideTempVariableEffect::ParseToken |
+| 0x14048BE20 | CPcIsLiberatedTrigger::Evaluate func_names 名 CPcIsLiberatedTrigger::Evaluate |
+| 0x1403B5390 | CRenameProvinceEffect::ParseToken func_names 名 CRenameProvinceEffect::ParseToken |
+| 0x14048BE70 | CPcIsLoserTrigger::Evaluate func_names 名 CPcIsLoserTrigger::Evaluate |
+| 0x14048BDD0 | CPcIsForcedGovernmentTrigger::Evaluate func_names 名 CPcIsForcedGovernmentTrigger::Evaluate |
+| 0x14139B090 | CRandomEffect::ParseToken func_names 名 CRandomEffect::ParseToken |
+| 0x1403A1FA0 | CTransferNavyEffect::[25] vtable 槽 CTransferNavyEffect::[25]（func_names RTTI 名） |
+| 0x1403A2000 | CAddRelationModifierEffect::[25] vtable 槽 CAddRelationModifierEffect::[25]（func_names RTTI 名） |
+| 0x140474CC0 | CIsAmphibiousInvasionTrigger::Evaluate func_names 名 CIsAmphibiousInvasionTrigger::Evaluate |
+| 0x1413A1750 | （无名） 体设 CIntTrigger::vftable（RTTI 名） |
+| 0x1403306C0 | CAddCountryLeaderRoleEffect::[0] vtable 槽 CAddCountryLeaderRoleEffect::[0]（func_names RTTI 名） |
+| 0x140488180 | CPowerBalanceEffect::ParseToken func_names 名 CPowerBalanceEffect::ParseToken |
+| 0x141399810 | CNewsEventEffect::[26] vtable 槽 CNewsEventEffect::[26]（func_names RTTI 名） |
+| 0x140330A90 | CAddScientistRoleEffect::[0] vtable 槽 CAddScientistRoleEffect::[0]（func_names RTTI 名） |
+| 0x14144FEA0 | CRandomArmyEffect::[28] vtable 槽 CRandomArmyEffect::[28]（func_names RTTI 名） |
+| 0x1404423A0 | CHasIDTrigger::Evaluate func_names 名 CHasIDTrigger::Evaluate |
+| 0x1402F8BF0 | CHasAnyCapturedGeneralTrigger::Evaluate func_names 名 CHasAnyCapturedGeneralTrigger::Evaluate |
+| 0x1404ABCB0 | CSetFactionMilitaryUnlockedEffect::Execute func_names 名 CSetFactionMilitaryUnlockedEffect::Execute |
+| 0x1404ABE20 | CSetFactionResearhUnlockedEffect::Execute func_names 名 CSetFactionResearhUnlockedEffect::Execute |
+| 0x1404C7740 | CEveryCollectionElementEffect::ParseToken func_names 名 CEveryCollectionElementEffect::ParseToken |
+| 0x14032FFD0 | CAddCorpsRoleEffect::[0] vtable 槽 CAddCorpsRoleEffect::[0]（func_names RTTI 名） |
+| 0x140474C10 | CHasReservesTrigger::Evaluate func_names 名 CHasReservesTrigger::Evaluate |
+| 0x1403A4530 | CResizeTempArrayTrigger::ValidateLate func_names 名 CResizeTempArrayTrigger::ValidateLate |
+| 0x1403CC1C0 | CHasLicenseTrigger::[0] vtable 槽 CHasLicenseTrigger::[0]（func_names RTTI 名） |
+| 0x1402E4580 | CSetPortraitEffect::[0] vtable 槽 CSetPortraitEffect::[0]（func_names RTTI 名） |
+| 0x1402F7C80 | CAddMinesEffect::[0] vtable 槽 CAddMinesEffect::[0]（func_names RTTI 名） |
+| 0x14030AB60 | CSetStateProvincesControllerEffect::[0] vtable 槽 CSetStateProvincesControllerEffect::[0]（func_names RTTI 名） |
+| 0x1403305D0 | CAddAdvisorRoleEffect::[0] vtable 槽 CAddAdvisorRoleEffect::[0]（func_names RTTI 名） |
+| 0x140330F60 | CCaptureOperativeEffect::[0] vtable 槽 CCaptureOperativeEffect::[0]（func_names RTTI 名） |
+| 0x140331FB0 | CKillOperativeEffect::[0] vtable 槽 CKillOperativeEffect::[0]（func_names RTTI 名） |
+| 0x1403323A0 | CMetaEffect::[0] vtable 槽 CMetaEffect::[0]（func_names RTTI 名） |
+| 0x140332860 | CReleaseAutonomyEffect::[0] vtable 槽 CReleaseAutonomyEffect::[0]（func_names RTTI 名） |
+| 0x1403CB300 | CAnyStateTrigger::[0] vtable 槽 CAnyStateTrigger::[0]（func_names RTTI 名） |
+| 0x1403CB990 | CCoreResistanceTrigger::[0] vtable 槽 CCoreResistanceTrigger::[0]（func_names RTTI 名） |
+| 0x1403CBA90 | CDivisionsInStateBorderTrigger::[0] vtable 槽 CDivisionsInStateBorderTrigger::[0]（func_names RTTI 名） |
+| 0x1403CC6D0 | CMetaTrigger::[0] vtable 槽 CMetaTrigger::[0]（func_names RTTI 名） |
+| 0x1403CCAF0 | CShipsInStatePortTrigger::[0] vtable 槽 CShipsInStatePortTrigger::[0]（func_names RTTI 名） |
+| 0x1403D2E00 | CHasAttacheTrigger::Evaluate func_names 名 CHasAttacheTrigger::Evaluate |
+| 0x1403D4ED0 | CHasCivilWarTrigger::Evaluate func_names 名 CHasCivilWarTrigger::Evaluate |
+| 0x1403D5960 | CHasDefensiveWarTrigger::Evaluate func_names 名 CHasDefensiveWarTrigger::Evaluate |
+| 0x1403D7B60 | CHasOffensiveWarTrigger::Evaluate func_names 名 CHasOffensiveWarTrigger::Evaluate |
+| 0x1404B3650 | CCompareIdeologyWithFactionTrigger::[0] vtable 槽 CCompareIdeologyWithFactionTrigger::[0]（func_names RTTI 名） |
+| 0x1413926E0 | CWithTooltipOverrideEffect::[0] vtable 槽 CWithTooltipOverrideEffect::[0]（func_names RTTI 名） |
+| 0x1413A1B10 | CCustomOverrideTooltipTrigger::[0] vtable 槽 CCustomOverrideTooltipTrigger::[0]（func_names RTTI 名） |
+| 0x1403A4780 | CCreateUnitLeaderEffect::[5] vtable 槽 CCreateUnitLeaderEffect::[5]（func_names RTTI 名） |
+| 0x140476C40 | CReservesTrigger::GetValue func_names 名 CReservesTrigger::GetValue |
+| 0x140474D00 | CIsAttackerTrigger::Evaluate func_names 名 CIsAttackerTrigger::Evaluate |
+| 0x140474D20 | CIsDefenderTrigger::Evaluate func_names 名 CIsDefenderTrigger::Evaluate |
+| 0x1402F0970 | CAddRandomTraitEffect::Parse func_names 名 CAddRandomTraitEffect::Parse |
+| 0x140460690 | CAddUnitMedalEffect::ParseToken func_names 名 CAddUnitMedalEffect::ParseToken |
+| 0x14139AA40 | CFireEventLegacyEffect::ParseToken func_names 名 CFireEventLegacyEffect::ParseToken |
+| 0x140359180 | CKillCountryLeaderEffect::Execute func_names 名 CKillCountryLeaderEffect::Execute |
+| 0x1403600D0 | CRetireCountryLeaderEffect::Execute func_names 名 CRetireCountryLeaderEffect::Execute |
+| 0x140362D20 | CSetMajorEffect::Execute func_names 名 CSetMajorEffect::Execute |
+| 0x1403EA010 | CAgencyUpgradeNumberTrigger::GetValue func_names 名 CAgencyUpgradeNumberTrigger::GetValue |
+| 0x14048B8A0 | CPcCurrentTurnTrigger::Evaluate func_names 名 CPcCurrentTurnTrigger::Evaluate |
+| 0x14030AA90 | CSetBorderWarEffect::[0] vtable 槽 CSetBorderWarEffect::[0]（func_names RTTI 名） |
+| 0x1403CC5C0 | CHasTechBonusTrigger::[0] vtable 槽 CHasTechBonusTrigger::[0]（func_names RTTI 名） |
+| 0x1404606B0 | CReseedDivisionCommanderEffect::ParseToken func_names 名 CReseedDivisionCommanderEffect::ParseToken |
+| 0x141399310 | CIfEffect::GetDescWrapper func_names 名 CIfEffect::GetDescWrapper |
+| 0x1403CC640 | CIsDateTrigger::[0] vtable 槽 CIsDateTrigger::[0]（func_names RTTI 名） |
+| 0x1413A18A0 | （无名） 体设 CValue64Trigger::vftable（RTTI 名） |
+| 0x1403307D0 | CAddIdeasEffect::[0] vtable 槽 CAddIdeasEffect::[0]（func_names RTTI 名） |
+| 0x1413A18E0 | （无名） 体设 CValueTrigger::vftable（RTTI 名） |
+| 0x1403EB160 | CCountDivisionsTrigger::GetValue func_names 名 CCountDivisionsTrigger::GetValue |
+| 0x1403EF880 | CHasAirExperienceTrigger::[24] vtable 槽 CHasAirExperienceTrigger::[24]（func_names RTTI 名） |
+| 0x1403D57A0 | CHasCreateIntelligenceAgencyTrigger::Evaluate func_names 名 CHasCreateIntelligenceAgencyTrigger::Evaluate |
+| 0x1403EADD0 | CCommandPowerDailyTrigger::GetValue func_names 名 CCommandPowerDailyTrigger::GetValue |
+| 0x1404ABA40 | CLeaveFactionEffect::Execute func_names 名 CLeaveFactionEffect::Execute |
+| 0x140331B60 | CDivideTempVariableEffect::[0] vtable 槽 CDivideTempVariableEffect::[0]（func_names RTTI 名） |
+| 0x14035BB10 | CPrintVariablesEffect::Execute func_names 名 CPrintVariablesEffect::Execute |
+| 0x1403CB350 | CIntTrigger::[0] vtable 槽 CIntTrigger::[0]（func_names RTTI 名） |
+| 0x1403CB410 | CArmorTrigger::[0] vtable 槽 CArmorTrigger::[0]（func_names RTTI 名） |
+| 0x1403CC600 | CWarLengthWithTrigger::[0] vtable 槽 CWarLengthWithTrigger::[0]（func_names RTTI 名） |
+| 0x1403DB320 | CIsInFactionTrigger::Evaluate func_names 名 CIsInFactionTrigger::Evaluate |
+| 0x14048FC50 | CAddCICEffect::[0] vtable 槽 CAddCICEffect::[0]（func_names RTTI 名） |
+| 0x1403D5910 | CHasDLCTrigger::Evaluate func_names 名 CHasDLCTrigger::Evaluate |
+| 0x1403DB1D0 | CIsHostingGovernmentInExileTrigger::Evaluate func_names 名 CIsHostingGovernmentInExileTrigger::Evaluate |
+| 0x140438440 | CAnyHomeAreaNeighborCountryTrigger::ParseToken func_names 名 CAnyHomeAreaNeighborCountryTrigger::ParseToken |
+| 0x14048B720 | CPowerBalanceTargetedValueTrigger::ValidateLate func_names 名 CPowerBalanceTargetedValueTrigger::ValidateLate |
+| 0x14139A7D0 | CSimpleAssignOrBlockEffect::Parse func_names 名 CSimpleAssignOrBlockEffect::Parse |
+| 0x14030A6E0 | CAddStateModifierEffect::[0] vtable 槽 CAddStateModifierEffect::[0]（func_names RTTI 名） |
+| 0x14030A760 | CAddStaticProvinceModifierEffect::[0] vtable 槽 CAddStaticProvinceModifierEffect::[0]（func_names RTTI 名） |
+| 0x140330E50 | CBecomeExiledGovernmentEffect::[0] vtable 槽 CBecomeExiledGovernmentEffect::[0]（func_names RTTI 名） |
+| 0x140461E70 | CBuildingCountTrigger::[0] vtable 槽 CBuildingCountTrigger::[0]（func_names RTTI 名） |
+| 0x1402E4100 | CValueEffect::[0] vtable 槽 CValueEffect::[0]（func_names RTTI 名） |
+| 0x1402E4450 | CIntEffect::[0] vtable 槽 CIntEffect::[0]（func_names RTTI 名） |
+| 0x14031EAE0 | CSetTechnologyEffect::[0] vtable 槽 CSetTechnologyEffect::[0]（func_names RTTI 名） |
+| 0x140330940 | CSetCapitalEffect::[0] vtable 槽 CSetCapitalEffect::[0]（func_names RTTI 名） |
+| 0x140330FF0 | CSetRuleEffect::[0] vtable 槽 CSetRuleEffect::[0]（func_names RTTI 名） |
+| 0x140331B20 | CDestroyShipsEffect::[0] vtable 槽 CDestroyShipsEffect::[0]（func_names RTTI 名） |
+| 0x1403332C0 | CSetTruceEffect::[0] vtable 槽 CSetTruceEffect::[0]（func_names RTTI 名） |
+| 0x1403AF770 | CAddRelationRuleOverrideEffect::ParseToken func_names 名 CAddRelationRuleOverrideEffect::ParseToken |
+| 0x1403CB680 | CHasTechTrigger::[0] vtable 槽 CHasTechTrigger::[0]（func_names RTTI 名） |
+| 0x1403CBAE0 | CHasArmySizeTrigger::[0] vtable 槽 CHasArmySizeTrigger::[0]（func_names RTTI 名） |
+| 0x1403EF8E0 | CHasNavyExperienceTrigger::[24] vtable 槽 CHasNavyExperienceTrigger::[24]（func_names RTTI 名） |
+| 0x140474B40 | CHasFlankedOpponentTrigger::Evaluate func_names 名 CHasFlankedOpponentTrigger::Evaluate |
+| 0x140474D40 | CIsFightingAirUnitsTrigger::Evaluate func_names 名 CIsFightingAirUnitsTrigger::Evaluate |
+| 0x1413923E0 | CCustomEffectTooltipEffect::[0] vtable 槽 CCustomEffectTooltipEffect::[0]（func_names RTTI 名） |
+| 0x1403EB200 | CCountTechnologySharingGroupsTrigger::GetValue func_names 名 CCountTechnologySharingGroupsTrigger::GetValue |
+| 0x140521450 | CCollectionSizeTrigger::ParseToken func_names 名 CCollectionSizeTrigger::ParseToken |
+| 0x1413970E0 | CScriptedEffect::BuildTooltip func_names 名 CScriptedEffect::BuildTooltip |
+| 0x1413A3230 | CScriptedTrigger::GetTooltip func_names 名 CScriptedTrigger::GetTooltip |
+| 0x1403D7E00 | CHasOpinionModifierTrigger::Evaluate func_names 名 CHasOpinionModifierTrigger::Evaluate |
+| 0x1403EF1F0 | CSurrenderProgressTrigger::GetValue func_names 名 CSurrenderProgressTrigger::GetValue |
+| 0x1403DED50 | CHasDesignBasedOnTrigger::ParseValueKeys func_names 名 CHasDesignBasedOnTrigger::ParseValueKeys |
+| 0x1403EADB0 | CCasualtiesTrigger::GetValue func_names 名 CCasualtiesTrigger::GetValue |
+| 0x14045CE70 | CEveryArmyEffect::[26] vtable 槽 CEveryArmyEffect::[26]（func_names RTTI 名） |
+| 0x140473E40 | CAllClaimantTrigger::[25] vtable 槽 CAllClaimantTrigger::[25]（func_names RTTI 名） |
+| 0x1404B4020 | CFactionHasActiveRuleTrigger::ParseValueKeys func_names 名 CFactionHasActiveRuleTrigger::ParseValueKeys |
+| 0x1413A1190 | CEveryUnitLeaderEffect::[26] vtable 槽 CEveryUnitLeaderEffect::[26]（func_names RTTI 名） |
+| 0x14048BD90 | CPcIsForcedGovernmentToTrigger::Evaluate func_names 名 CPcIsForcedGovernmentToTrigger::Evaluate |
+| 0x1403DAF70 | CIsGovernmentInExileTrigger::Evaluate func_names 名 CIsGovernmentInExileTrigger::Evaluate |
+| 0x1403DC540 | CIsSubjectTrigger::Evaluate func_names 名 CIsSubjectTrigger::Evaluate |
+| 0x14048B760 | CPowerBalanceTrigger::ValidateLate func_names 名 CPowerBalanceTrigger::ValidateLate |
+| 0x1403D4D40 | CHasCapitulatedTrigger::Evaluate func_names 名 CHasCapitulatedTrigger::Evaluate |
+| 0x1403645D0 | CSetRuleEffect::Execute func_names 名 CSetRuleEffect::Execute |
+| 0x1413A1A80 | （无名） 体设 CDateTrigger::vftable（RTTI 名） |
+| 0x14015F220 | CTrigger::[0] vtable 槽 CTrigger::[0]（func_names RTTI 名） |
+| 0x14030A580 | CBuildingConstructionEffect::[0] vtable 槽 CBuildingConstructionEffect::[0]（func_names RTTI 名） |
+| 0x140332360 | CLegacyCreateCountryLeaderEffect::[0] vtable 槽 CLegacyCreateCountryLeaderEffect::[0]（func_names RTTI 名） |
+| 0x1404748D0 | CFrontageFullTrigger::Evaluate func_names 名 CFrontageFullTrigger::Evaluate |
+| 0x1415A8230 | CWarReparationTimedEffect::[9] vtable 槽 CWarReparationTimedEffect::[9]（func_names RTTI 名） |
+| 0x1413A1830 | （无名） 体设 CStateTrigger::vftable（RTTI 名） |
+| 0x140330590 | CAddAceEffect::[0] vtable 槽 CAddAceEffect::[0]（func_names RTTI 名） |
+| 0x1404887D0 | CPowerBalanceValueTrigger::[0] vtable 槽 CPowerBalanceValueTrigger::[0]（func_names RTTI 名） |
+| 0x1403AA2B0 | CCreateIntelligenceAgencyEffect::Parse func_names 名 CCreateIntelligenceAgencyEffect::Parse |
+| 0x1403BCB00 | CMarkFocusTreeLayoutDirtyEffect::[26] vtable 槽 CMarkFocusTreeLayoutDirtyEffect::[26]（func_names RTTI 名） |
+| 0x1403EA440 | CAmountResearchSlotsTrigger::GetValue func_names 名 CAmountResearchSlotsTrigger::GetValue |
+| 0x1403F6450 | CCasualtiesTrigger::GetDesc func_names 名 CCasualtiesTrigger::GetDesc |
+| 0x140432080 | CAllSubjectCountryTrigger::[23] vtable 槽 CAllSubjectCountryTrigger::[23]（func_names RTTI 名） |
+| 0x1404713D0 | CStatePopulationTrigger::GetDesc func_names 名 CStatePopulationTrigger::GetDesc |
+| 0x140471B10 | CAnyCountryWithCoreStateTrigger::[23] vtable 槽 CAnyCountryWithCoreStateTrigger::[23]（func_names RTTI 名） |
+| 0x14049F120 | CAddDesignTemplateBonusEffect::[5] vtable 槽 CAddDesignTemplateBonusEffect::[5]（func_names RTTI 名） |
+| 0x1403EB1E0 | CCountSubjectsTrigger::GetValue func_names 名 CCountSubjectsTrigger::GetValue |
+| 0x140432020 | CAllOccupiedCountryTrigger::[23] vtable 槽 CAllOccupiedCountryTrigger::[23]（func_names RTTI 名） |
+| 0x140432170 | CAnyOccupiedCountryTrigger::[23] vtable 槽 CAnyOccupiedCountryTrigger::[23]（func_names RTTI 名） |
+| 0x1404719C0 | CAllControlledStateTrigger::[23] vtable 槽 CAllControlledStateTrigger::[23]（func_names RTTI 名） |
+| 0x140471AB0 | CAnyControlledStateTrigger::[23] vtable 槽 CAnyControlledStateTrigger::[23]（func_names RTTI 名） |
+| 0x140471B40 | CAnyNeighborCountryTrigger::[23] vtable 槽 CAnyNeighborCountryTrigger::[23]（func_names RTTI 名） |
+| 0x1402E3020 | CRetireEffect::[0] vtable 槽 CRetireEffect::[0]（func_names RTTI 名） |
+| 0x1402F7CD0 | CEffect::[0] vtable 槽 CEffect::[0]（func_names RTTI 名） |
+| 0x14030A830 | CScriptedEffect::[0] vtable 槽 CScriptedEffect::[0]（func_names RTTI 名） |
+| 0x1403303E0 | CAIMessageEffect::[0] vtable 槽 CAIMessageEffect::[0]（func_names RTTI 名） |
+| 0x1403329B0 | CRemoveRelationRuleOverrideEffect::[0] vtable 槽 CRemoveRelationRuleOverrideEffect::[0]（func_names RTTI 名） |
+| 0x1403CB390 | CHasOpinionTrigger::[0] vtable 槽 CHasOpinionTrigger::[0]（func_names RTTI 名） |
+| 0x1403CBFF0 | CScriptedTrigger::[0] vtable 槽 CScriptedTrigger::[0]（func_names RTTI 名） |
+| 0x1404321D0 | CAnySubjectCountryTrigger::[23] vtable 槽 CAnySubjectCountryTrigger::[23]（func_names RTTI 名） |
+| 0x140461D10 | CAnyStateOfTrigger::[0] vtable 槽 CAnyStateOfTrigger::[0]（func_names RTTI 名） |
+| 0x1415A8260 | CResourceRightsTimedEffect::[9] vtable 槽 CResourceRightsTimedEffect::[9]（func_names RTTI 名） |
+| 0x1402EF460 | CGainXpEffect::[26] vtable 槽 CGainXpEffect::[26]（func_names RTTI 名） |
+| 0x1404320B0 | CAnyAlliedCountryTrigger::[23] vtable 槽 CAnyAlliedCountryTrigger::[23]（func_names RTTI 名） |
+| 0x140471A20 | CAllNeighborStateTrigger::[23] vtable 槽 CAllNeighborStateTrigger::[23]（func_names RTTI 名） |
+| 0x140471B70 | CAnyNeighborStateTrigger::[23] vtable 槽 CAnyNeighborStateTrigger::[23]（func_names RTTI 名） |
+| 0x1403D2100 | CExistsTrigger::Evaluate func_names 名 CExistsTrigger::Evaluate |
+| 0x140431FC0 | CAllGuaranteedCountryTrigger::[23] vtable 槽 CAllGuaranteedCountryTrigger::[23]（func_names RTTI 名） |
+| 0x140432110 | CAnyEnemyCountryTrigger::[23] vtable 槽 CAnyEnemyCountryTrigger::[23]（func_names RTTI 名） |
+| 0x1404321A0 | CAnyOtherCountryTrigger::[23] vtable 槽 CAnyOtherCountryTrigger::[23]（func_names RTTI 名） |
+| 0x1403EAE00 | CCommandPowerTrigger::GetValue func_names 名 CCommandPowerTrigger::GetValue |
+| 0x140432140 | CAnyGuaranteedCountryTrigger::[23] vtable 槽 CAnyGuaranteedCountryTrigger::[23]（func_names RTTI 名） |
+| 0x140471A50 | CAllOwnedStateTrigger::[23] vtable 槽 CAllOwnedStateTrigger::[23]（func_names RTTI 名） |
+| 0x141399FB0 | CCustomEffectTooltipEffect::Parse func_names 名 CCustomEffectTooltipEffect::Parse |
+| 0x1402E43D0 | CFlagEffect::[0] vtable 槽 CFlagEffect::[0]（func_names RTTI 名） |
+| 0x1402E4410 | CFireEventEffect::[0] vtable 槽 CFireEventEffect::[0]（func_names RTTI 名） |
+| 0x1402F3780 | CEveryArmyEffect::[0] vtable 槽 CEveryArmyEffect::[0]（func_names RTTI 名） |
+| 0x1402F8A60 | CReleaseFromCaptivityEffect::GetDesc func_names 名 CReleaseFromCaptivityEffect::GetDesc |
+| 0x1402F95B0 | CEveryUnitLeaderEffect::[0] vtable 槽 CEveryUnitLeaderEffect::[0]（func_names RTTI 名） |
+| 0x14030A720 | CAddStateResistanceComplianceModifierEffect::[0] vtable 槽 CAddStateResistanceComplianceModifierEffect::[0]（func_names RTTI 名） |
+| 0x14030AA50 | CStaticProvinceModifierEffect::[0] vtable 槽 CStaticProvinceModifierEffect::[0]（func_names RTTI 名） |
+| 0x140330510 | CTargetedDecisionEffect::[0] vtable 槽 CTargetedDecisionEffect::[0]（func_names RTTI 名） |
+| 0x1403309E0 | CSetRelationRuleEffect::[0] vtable 槽 CSetRelationRuleEffect::[0]（func_names RTTI 名） |
+| 0x140330B50 | CVariableEffect::[0] vtable 槽 CVariableEffect::[0]（func_names RTTI 名） |
+| 0x140332320 | CLegacyCreateLeaderEffect::[0] vtable 槽 CLegacyCreateLeaderEffect::[0]（func_names RTTI 名） |
+| 0x140332B90 | CSetOobEffect::[0] vtable 槽 CSetOobEffect::[0]（func_names RTTI 名） |
+| 0x1403CB3D0 | CVariableTrigger::[0] vtable 槽 CVariableTrigger::[0]（func_names RTTI 名） |
+| 0x1403CB5C0 | CAverageStatTrigger::[0] vtable 槽 CAverageStatTrigger::[0]（func_names RTTI 名） |
+| 0x1403CB640 | CCanBuildRailwayTrigger::[0] vtable 槽 CCanBuildRailwayTrigger::[0]（func_names RTTI 名） |
+| 0x1403CBA50 | CFlagTrigger::[0] vtable 槽 CFlagTrigger::[0]（func_names RTTI 名） |
+| 0x1403CC3C0 | CPowerBalanceTrigger::[0] vtable 槽 CPowerBalanceTrigger::[0]（func_names RTTI 名） |
+| 0x14045CAA0 | CAnyStateArmyTrigger::[23] vtable 槽 CAnyStateArmyTrigger::[23]（func_names RTTI 名） |
+| 0x1404719F0 | CAllCoreStateTrigger::[23] vtable 槽 CAllCoreStateTrigger::[23]（func_names RTTI 名） |
+| 0x140471AE0 | CAnyCoreStateTrigger::[23] vtable 槽 CAnyCoreStateTrigger::[23]（func_names RTTI 名） |
+| 0x140483650 | CPowerBalanceModifierEffect::[0] vtable 槽 CPowerBalanceModifierEffect::[0]（func_names RTTI 名） |
+| 0x140483730 | CPowerBalanceEffect::[0] vtable 槽 CPowerBalanceEffect::[0]（func_names RTTI 名） |
+| 0x14048FD60 | CAddOffsiteBuildingEffect::[0] vtable 槽 CAddOffsiteBuildingEffect::[0]（func_names RTTI 名） |
+| 0x14051BF40 | CAnyCollectionElementTrigger::[0] vtable 槽 CAnyCollectionElementTrigger::[0]（func_names RTTI 名） |
+| 0x1403DBC20 | CIsMajorTrigger::Evaluate func_names 名 CIsMajorTrigger::Evaluate |
+| 0x1404320E0 | CAnyCountryTrigger::[23] vtable 槽 CAnyCountryTrigger::[23]（func_names RTTI 名） |
+| 0x1403DAAA0 | CIsDynamicCountryTrigger::Evaluate func_names 名 CIsDynamicCountryTrigger::Evaluate |
+| 0x140471A80 | CAllStateTrigger::[23] vtable 槽 CAllStateTrigger::[23]（func_names RTTI 名） |
+| 0x14045CA70 | CAnyCountryArmyTrigger::[23] vtable 槽 CAnyCountryArmyTrigger::[23]（func_names RTTI 名） |
+| 0x1402E3BF0 | （无名） 体设 CFireEventLegacyEffect::vftable（RTTI 名） |
+| 0x140360280 | CSaveEventTargetAsEffect::Execute func_names 名 CSaveEventTargetAsEffect::Execute |
+| 0x1413997E0 | CFireEventEffect::[26] vtable 槽 CFireEventEffect::[26]（func_names RTTI 名） |
+| 0x141399850 | CFireEventEffect::[25] vtable 槽 CFireEventEffect::[25]（func_names RTTI 名） |
+| 0x1403EF940 | CHasArmyExperienceTrigger::[23] vtable 槽 CHasArmyExperienceTrigger::[23]（func_names RTTI 名） |
+| 0x1403EF970 | CHasNavyExperienceTrigger::[23] vtable 槽 CHasNavyExperienceTrigger::[23]（func_names RTTI 名） |
+| 0x1403EEC30 | COriginalResearchSlotsTrigger::GetValue func_names 名 COriginalResearchSlotsTrigger::GetValue |
+| 0x1403EF910 | CHasAirExperienceTrigger::[23] vtable 槽 CHasAirExperienceTrigger::[23]（func_names RTTI 名） |
+| 0x1413A5560 | CGameVariableTrigger::GetValue func_names 名 CGameVariableTrigger::GetValue |
+| 0x1403A81A0 | CStartBorderWarEffect::ResolveReferences func_names 名 CStartBorderWarEffect::ResolveReferences |
+| 0x14043D0B0 | CAnyCountryTrigger::[26] vtable 槽 CAnyCountryTrigger::[26]（func_names RTTI 名） |
+| 0x140334940 | CCreateUnitLeaderEffect::[25] vtable 槽 CCreateUnitLeaderEffect::[25]（func_names RTTI 名） |
+| 0x1413A0EA0 | CRandomUnitLeaderEffect::[28] vtable 槽 CRandomUnitLeaderEffect::[28]（func_names RTTI 名） |
+| 0x1403E2730 | CHasStabilityTrigger::IsThresholdInRange func_names 名 CHasStabilityTrigger::IsThresholdInRange |
+| 0x1413F4010 | CRandomCountryEffect::[28] vtable 槽 CRandomCountryEffect::[28]（func_names RTTI 名） |
+| 0x1403DDF50 | CScopeExistTrigger::Evaluate func_names 名 CScopeExistTrigger::Evaluate |
+| 0x14045CF70 | CEveryArmyEffect::[25] vtable 槽 CEveryArmyEffect::[25]（func_names RTTI 名） |
+| 0x14045CF90 | CEveryStateArmyEffect::[25] vtable 槽 CEveryStateArmyEffect::[25]（func_names RTTI 名） |
+| 0x140338F30 | CEveryOperativeLeaderEffect::[25] vtable 槽 CEveryOperativeLeaderEffect::[25]（func_names RTTI 名） |
+| 0x1402F39A0 | CEveryCharacterEffect::[25] vtable 槽 CEveryCharacterEffect::[25]（func_names RTTI 名） |
+| 0x140479E50 | CIsFightingInWeatherTrigger::CIsMud::[2] vtable 槽 CIsFightingInWeatherTrigger::CIsMud::[2]（func_names RTTI 名） |
+| 0x140479E70 | CIsFightingInWeatherTrigger::CIsHeavyRain::[1] vtable 槽 CIsFightingInWeatherTrigger::CIsHeavyRain::[1]（func_names RTTI 名） |
+| 0x140479E80 | CIsFightingInWeatherTrigger::CIsLightRain::[1] vtable 槽 CIsFightingInWeatherTrigger::CIsLightRain::[1]（func_names RTTI 名） |
+| 0x140479E90 | CIsFightingInWeatherTrigger::CIsSandStorm::[1] vtable 槽 CIsFightingInWeatherTrigger::CIsSandStorm::[1]（func_names RTTI 名） |
+| 0x140479EA0 | CIsFightingInWeatherTrigger::CIsSnow::[1] vtable 槽 CIsFightingInWeatherTrigger::CIsSnow::[1]（func_names RTTI 名） |
+| 0x14030AC40 | CResetStateNameEffect::ParseTargetToken func_names 名 CResetStateNameEffect::ParseTargetToken |
+| 0x140472F20 | COwnsAnyStateOfTrigger::Parse func_names 名 COwnsAnyStateOfTrigger::Parse |
+| 0x1404757F0 | CIsFightingInStrategicRegionTrigger::[4] vtable 槽 CIsFightingInStrategicRegionTrigger::[4]（func_names RTTI 名） |
+| 0x1403DA9A0 | CIsDebugTrigger::Evaluate func_names 名 CIsDebugTrigger::Evaluate |
+| 0x14043D060 | CAnyOccupiedCountryTrigger::[26] vtable 槽 CAnyOccupiedCountryTrigger::[26]（func_names RTTI 名） |
+| 0x140350240 | CClearVariableEffect::Execute func_names 名 CClearVariableEffect::Execute |
+| 0x14039DAE0 | CEveryCountryEffect::[28] vtable 槽 CEveryCountryEffect::[28]（func_names RTTI 名） |
+| 0x14039DC50 | CEveryOccupiedCountryEffect::[28] vtable 槽 CEveryOccupiedCountryEffect::[28]（func_names RTTI 名） |
+| 0x1403E2750 | CValueTrigger::IsThresholdInRange func_names 名 CValueTrigger::IsThresholdInRange |
+| 0x1403575B0 | CForceRecalcModifiersEffect::Execute func_names 名 CForceRecalcModifiersEffect::Execute |
+| 0x14046A000 | CStatePopulationTrigger::GetValue func_names 名 CStatePopulationTrigger::GetValue |
+| 0x141160980 | CExecuteScriptedWindowEffect::GetTypeId func_names 名 CExecuteScriptedWindowEffect::GetTypeId |
+| 0x1403A4C50 | CReleaseAutonomyEffect::[5] vtable 槽 CReleaseAutonomyEffect::[5]（func_names RTTI 名） |
+| 0x1403A4DA0 | CWhileEffect::[5] vtable 槽 CWhileEffect::[5]（func_names RTTI 名） |
+| 0x14139BAE0 | CFireEventEffect::[14] vtable 槽 CFireEventEffect::[14]（func_names RTTI 名） |
+| 0x1403A1D40 | CForceRecalcModifiersEffect::GetSupportedScopeMask func_names 名 CForceRecalcModifiersEffect::GetSupportedScopeMask |
+| 0x1403F0040 | CStateTrigger::GetSupportedTargetMask func_names 名 CStateTrigger::GetSupportedTargetMask |
+| 0x1403F0070 | CTagTrigger::GetSupportedScopeMask func_names 名 CTagTrigger::GetSupportedScopeMask |
+| 0x140445590 | CIsFemaleTrigger::GetSupportedScopeMask func_names 名 CIsFemaleTrigger::GetSupportedScopeMask |
+| 0x1413A78F0 | CGameVariableTrigger::GetSupportedScopeMask func_names 名 CGameVariableTrigger::GetSupportedScopeMask |
+
+#### 4.32.31 脚本 effect/trigger 补遗卡（790 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.32.32 脚本 effect/trigger 补遗卡（576 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140415870 | CHasResourcesTrigger::GetDesc func_names 名 CHasResourcesTrigger::GetDesc |
+| 0x1404866A0 | CSetPowerBalanceEffect::GetDesc func_names 名 CSetPowerBalanceEffect::GetDesc |
+| 0x140352140 | CCreateUnitEffect::Execute func_names 名 CCreateUnitEffect::Execute |
+| 0x14034CAC0 | CAddUnitsToDivisionTemplateEffect::Execute func_names 名 CAddUnitsToDivisionTemplateEffect::Execute |
+| 0x1404AE180 | CAddToFactionEffect::GetDesc func_names 名 CAddToFactionEffect::GetDesc |
+| 0x14051EEC0 | CCountInCollectionTrigger::GetDesc func_names 名 CCountInCollectionTrigger::GetDesc |
+| 0x140484A10 | CAddPowerBalanceValueEffect::GetDesc func_names 名 CAddPowerBalanceValueEffect::GetDesc |
+| 0x140359800 | CLegacyCreateCountryLeaderEffect::Execute func_names 名 CLegacyCreateCountryLeaderEffect::Execute |
+| 0x14030C550 | CAddBuildingConstructionEffect::Execute func_names 名 CAddBuildingConstructionEffect::Execute |
+| 0x1403AFDC0 | CAddUnitsToDivisionTemplateEffect::ParseToken func_names 名 CAddUnitsToDivisionTemplateEffect::ParseToken |
+| 0x140367B90 | CTransferUnitsFractionEffect::Execute func_names 名 CTransferUnitsFractionEffect::Execute |
+| 0x1403907E0 | CSetCosmeticTagEffect::GetDesc func_names 名 CSetCosmeticTagEffect::GetDesc |
+| 0x1403F7770 | CCompareIntelWithTrigger::GetDesc func_names 名 CCompareIntelWithTrigger::GetDesc |
+| 0x1403FBFB0 | CDivisionsInStateTrigger::GetDesc func_names 名 CDivisionsInStateTrigger::GetDesc |
+| 0x14040BBF0 | CHasEquipmentTrigger::GetDesc func_names 名 CHasEquipmentTrigger::GetDesc |
+| 0x1413A82C0 | CFlagTrigger::GetDesc func_names 名 CFlagTrigger::GetDesc |
+| 0x1404AAC20 | CAddToFactionEffect::Execute func_names 名 CAddToFactionEffect::Execute |
+| 0x140315570 | CAddStaticProvinceModifierEffect::GetDesc func_names 名 CAddStaticProvinceModifierEffect::GetDesc |
+| 0x140410C80 | CHasNavySizeTrigger::GetDesc func_names 名 CHasNavySizeTrigger::GetDesc |
+| 0x140312EF0 | CMultipleStateTargetEffect::BuildTooltip func_names 名 CMultipleStateTargetEffect::BuildTooltip |
+| 0x1403981C0 | CSwapRulerTraitsEffect::GetDesc func_names 名 CSwapRulerTraitsEffect::GetDesc |
+| 0x1403FB4C0 | CDivisionsInStateBorderTrigger::GetDesc func_names 名 CDivisionsInStateBorderTrigger::GetDesc |
+| 0x1403175E0 | CRemoveStaticProvinceModifierEffect::GetDesc func_names 名 CRemoveStaticProvinceModifierEffect::GetDesc |
+| 0x1403F2410 | CAmountResearchSlotsTrigger::GetDesc func_names 名 CAmountResearchSlotsTrigger::GetDesc |
+| 0x140382020 | CGiveResourceRightsEffect::GetDesc func_names 名 CGiveResourceRightsEffect::GetDesc |
+| 0x14037CA00 | CCreateImportEffect::GetDesc func_names 名 CCreateImportEffect::GetDesc |
+| 0x1404057E0 | CHasCasualtiesWarSupportModifierTrigger::GetDesc func_names 名 CHasCasualtiesWarSupportModifierTrigger::GetDesc |
+| 0x141395220 | CRetireEffect::[25] vtable 槽 CRetireEffect::[25]（func_names RTTI 名） |
+| 0x140402950 | CHasBombingWarSupportModifierTrigger::GetDesc func_names 名 CHasBombingWarSupportModifierTrigger::GetDesc |
+| 0x140417370 | CHasStabilityTrigger::GetDesc func_names 名 CHasStabilityTrigger::GetDesc |
+| 0x14046B530 | CAnyProvinceBuildingLevelTrigger::GetDesc func_names 名 CAnyProvinceBuildingLevelTrigger::GetDesc |
+| 0x1403F82B0 | CControlsProvinceTrigger::GetDesc func_names 名 CControlsProvinceTrigger::GetDesc |
+| 0x1403FE160 | CExperienceTrigger::GetDesc func_names 名 CExperienceTrigger::GetDesc |
+| 0x140395AA0 | CShowUnitLeadersTooltipEffect::GetDesc func_names 名 CShowUnitLeadersTooltipEffect::GetDesc |
+| 0x14049D400 | CAddEquipmentToStockpileEffect::GetDesc func_names 名 CAddEquipmentToStockpileEffect::GetDesc |
+| 0x1404511E0 | CAllOperativeLeaderTrigger::GetTooltipText func_names 名 CAllOperativeLeaderTrigger::GetTooltipText |
+| 0x14040AFC0 | CHasDynamicModifierTrigger::GetDesc func_names 名 CHasDynamicModifierTrigger::GetDesc |
+| 0x141396260 | CContextEffect::BuildTooltip func_names 名 CContextEffect::BuildTooltip |
+| 0x140334240 | CCreateOperativeLeaderEffect::[25] vtable 槽 CCreateOperativeLeaderEffect::[25]（func_names RTTI 名） |
+| 0x140400D00 | CHasArmyManpowerTrigger::GetDesc func_names 名 CHasArmyManpowerTrigger::GetDesc |
+| 0x14049DBD0 | CCreateEquipmentVariantEffect::GetDesc func_names 名 CCreateEquipmentVariantEffect::GetDesc |
+| 0x1403492D0 | CAddCountryLeaderRoleEffect::Execute func_names 名 CAddCountryLeaderRoleEffect::Execute |
+| 0x14044EF00 | CAllArmyLeaderTrigger::GetTooltipText func_names 名 CAllArmyLeaderTrigger::GetTooltipText |
+| 0x140450520 | CAllNavyLeaderTrigger::GetTooltipText func_names 名 CAllNavyLeaderTrigger::GetTooltipText |
+| 0x140417C60 | CHasStartDateTrigger::GetDesc func_names 名 CHasStartDateTrigger::GetDesc |
+| 0x1404090A0 | CHasCountryLeaderWithTraitTrigger::GetDesc func_names 名 CHasCountryLeaderWithTraitTrigger::GetDesc |
+| 0x140478C30 | CIsFightingInWeatherTrigger::GetDesc func_names 名 CIsFightingInWeatherTrigger::GetDesc |
+| 0x1403245E0 | CStealRandomTechBonusEffect::ParseToken func_names 名 CStealRandomTechBonusEffect::ParseToken |
+| 0x14034A1D0 | CAddIdeasEffect::Execute func_names 名 CAddIdeasEffect::Execute |
+| 0x140338F70 | CGlobalEveryArmyLeaderEffect::[25] vtable 槽 CGlobalEveryArmyLeaderEffect::[25]（func_names RTTI 名） |
+| 0x14046ED40 | CNonDamagedBuildingLevelTrigger::GetDesc func_names 名 CNonDamagedBuildingLevelTrigger::GetDesc |
+| 0x14051E220 | CCollectionContainsTrigger::GetDesc func_names 名 CCollectionContainsTrigger::GetDesc |
+| 0x14030ADB0 | CProvinceEffect::[26] vtable 槽 CProvinceEffect::[26]（func_names RTTI 名） |
+| 0x140425A50 | CNationalFocusProgressTrigger::GetDesc func_names 名 CNationalFocusProgressTrigger::GetDesc |
+| 0x14034F750 | CClampVariableEffect::Execute func_names 名 CClampVariableEffect::Execute |
+| 0x140419C90 | CHasTraitTrigger::GetDesc func_names 名 CHasTraitTrigger::GetDesc |
+| 0x1404123D0 | CHasOperationTokenTrigger::GetDesc func_names 名 CHasOperationTokenTrigger::GetDesc |
+| 0x1404AC560 | CAddFactionGoalSlotEffect::GetDesc func_names 名 CAddFactionGoalSlotEffect::GetDesc |
+| 0x1403F0D20 | CAILiberateDesireTrigger::GetDesc func_names 名 CAILiberateDesireTrigger::GetDesc |
+| 0x140407310 | CHasConvoysWarSupportModifierTrigger::GetDesc func_names 名 CHasConvoysWarSupportModifierTrigger::GetDesc |
+| 0x14041AD40 | CHasWarSupportTrigger::GetDesc func_names 名 CHasWarSupportTrigger::GetDesc |
+| 0x140372AC0 | CAddCountryLeaderTraitEffect::GetDesc func_names 名 CAddCountryLeaderTraitEffect::GetDesc |
+| 0x1413A29E0 | CContextTrigger::GetTooltipText func_names 名 CContextTrigger::GetTooltipText |
+| 0x140370EA0 | CAddAdvisorRoleEffect::GetDesc func_names 名 CAddAdvisorRoleEffect::GetDesc |
+| 0x1403F71B0 | CCompareAutonomyTrigger::GetDesc func_names 名 CCompareAutonomyTrigger::GetDesc |
+| 0x14037FE40 | CDiplomaticRelationEffect::GetDesc func_names 名 CDiplomaticRelationEffect::GetDesc |
+| 0x140375A80 | CAddOperationTokenEffect::GetDesc func_names 名 CAddOperationTokenEffect::GetDesc |
+| 0x14037BEC0 | CCompleteNationalFocusEffect::GetDesc func_names 名 CCompleteNationalFocusEffect::GetDesc |
+| 0x14035FB20 | CRetireCharacterEffect::Execute func_names 名 CRetireCharacterEffect::Execute |
+| 0x140322890 | CStealRandomTechBonusEffect::GetDescWrapper func_names 名 CStealRandomTechBonusEffect::GetDescWrapper |
+| 0x14041C5B0 | CICRatioTrigger::GetDesc func_names 名 CICRatioTrigger::GetDesc |
+| 0x1403731A0 | CAddDaysMissionTimeoutEffect::GetDesc func_names 名 CAddDaysMissionTimeoutEffect::GetDesc |
+| 0x14038A610 | CRemoveOperationTokenEffect::GetDesc func_names 名 CRemoveOperationTokenEffect::GetDesc |
+| 0x14030E660 | CConstructBuildingInRandomProvinceEffect::Execute func_names 名 CConstructBuildingInRandomProvinceEffect::Execute |
+| 0x140450C70 | CAllOperativeLeaderTrigger::GetTooltip func_names 名 CAllOperativeLeaderTrigger::GetTooltip |
+| 0x140373730 | CAddDaysRemoveDecisionEffect::GetDesc func_names 名 CAddDaysRemoveDecisionEffect::GetDesc |
+| 0x140438870 | CCasualtiesInflictedByInThousandsTrigger::ParseToken func_names 名 CCasualtiesInflictedByInThousandsTrigger::ParseToken |
+| 0x14043A260 | CHasMinedTrigger::ParseToken func_names 名 CHasMinedTrigger::ParseToken |
+| 0x1404183F0 | CHasSubjectTrigger::GetDesc func_names 名 CHasSubjectTrigger::GetDesc |
+| 0x14049BA90 | CAddEquipmentToStockpileEffect::Execute func_names 名 CAddEquipmentToStockpileEffect::Execute |
+| 0x140454BF0 | CAnyOperativeLeaderTrigger::GetTooltipText func_names 名 CAnyOperativeLeaderTrigger::GetTooltipText |
+| 0x14044FA80 | CAllCharacterTrigger::GetTooltipText func_names 名 CAllCharacterTrigger::GetTooltipText |
+| 0x140489CF0 | CIsPowerBalanceInRangeTrigger::GetDesc func_names 名 CIsPowerBalanceInRangeTrigger::GetDesc |
+| 0x1403E1BD0 | CCountTriggersTrigger::GetTooltipText func_names 名 CCountTriggersTrigger::GetTooltipText |
+| 0x1403536F0 | CDamageUnitsEffect::Execute func_names 名 CDamageUnitsEffect::Execute |
+| 0x140485D70 | CRemovePowerBalanceEffect::GetDesc func_names 名 CRemovePowerBalanceEffect::GetDesc |
+| 0x1403948C0 | CSetTruceEffect::GetDesc func_names 名 CSetTruceEffect::GetDesc |
+| 0x140428F60 | CNumOfAvailableNavalFactoriesTrigger::GetDesc func_names 名 CNumOfAvailableNavalFactoriesTrigger::GetDesc |
+| 0x14034B7E0 | CAddRelationRuleOverrideEffect::Execute func_names 名 CAddRelationRuleOverrideEffect::Execute |
+| 0x1403AC7E0 | CSwapIdeasEffect::Parse func_names 名 CSwapIdeasEffect::Parse |
+| 0x1404AD260 | CAddFactionInfluenceScoreEffect::GetDesc func_names 名 CAddFactionInfluenceScoreEffect::GetDesc |
+| 0x140466610 | CNumDivisionsInStatesTrigger::Evaluate func_names 名 CNumDivisionsInStatesTrigger::Evaluate |
+| 0x14042BAF0 | CNumOfNukesTrigger::GetDesc func_names 名 CNumOfNukesTrigger::GetDesc |
+| 0x140429FD0 | CNumOfControlledFactoriesTrigger::GetDesc func_names 名 CNumOfControlledFactoriesTrigger::GetDesc |
+| 0x14049E7D0 | CSendEquipmentEffect::GetDesc func_names 名 CSendEquipmentEffect::GetDesc |
+| 0x1415A7E00 | CWarReparationTimedEffect::[10] vtable 槽 CWarReparationTimedEffect::[10]（func_names RTTI 名） |
+| 0x14031C150 | CProvinceEffect::ParseToken func_names 名 CProvinceEffect::ParseToken |
+| 0x140421170 | CIsInTechnologySharingGroupTrigger::GetDesc func_names 名 CIsInTechnologySharingGroupTrigger::GetDesc |
+| 0x14116AB20 | CExecuteScriptedWindowEffect::PayloadReader func_names 名 CExecuteScriptedWindowEffect::PayloadReader |
+| 0x1402EE7E0 | CUnitLeaderEventEffect::GetDesc func_names 名 CUnitLeaderEventEffect::GetDesc |
+| 0x1404AC180 | CAddFactionGoalEffect::GetDesc func_names 名 CAddFactionGoalEffect::GetDesc |
+| 0x1402E8D70 | CRemoveUnitLeaderTraitEffect::Execute func_names 名 CRemoveUnitLeaderTraitEffect::Execute |
+| 0x1402ED620 | CRemoveUnitLeaderTraitEffect::GetDesc func_names 名 CRemoveUnitLeaderTraitEffect::GetDesc |
+| 0x1403961F0 | CStartBorderWarEffect::GetDesc func_names 名 CStartBorderWarEffect::GetDesc |
+| 0x14043C2B0 | CReceivedExpeditionaryForcesTrigger::ParseToken func_names 名 CReceivedExpeditionaryForcesTrigger::ParseToken |
+| 0x1403944F0 | CSetTemplateDivisionForceRecruitingEffect::GetDesc func_names 名 CSetTemplateDivisionForceRecruitingEffect::GetDesc |
+| 0x140389F40 | CRemoveMilitaryRoleEffect::GetDesc func_names 名 CRemoveMilitaryRoleEffect::GetDesc |
+| 0x1404557D0 | CAnyUnitLeaderTrigger::GetTooltipText func_names 名 CAnyUnitLeaderTrigger::GetTooltipText |
+| 0x1404294D0 | CNumOfCivilianFactoriesAvailableForProjectsTrigger::GetDesc func_names 名 CNumOfCivilianFactoriesAvailableForProjectsTrigger::GetDesc |
+| 0x14042AA70 | CNumOfFactoriesTrigger::GetDesc func_names 名 CNumOfFactoriesTrigger::GetDesc |
+| 0x1404060E0 | CHasCharacterTrigger::GetDesc func_names 名 CHasCharacterTrigger::GetDesc |
+| 0x14042C290 | CNumOfOwnedFactoriesTrigger::GetDesc func_names 名 CNumOfOwnedFactoriesTrigger::GetDesc |
+| 0x140355810 | CDiplomaticRelationEffect::Execute func_names 名 CDiplomaticRelationEffect::Execute |
+| 0x1403F6DA0 | CCompareAutonomyProgressRatioTrigger::GetDesc func_names 名 CCompareAutonomyProgressRatioTrigger::GetDesc |
+| 0x14040C8D0 | CHasFocusTreeTrigger::GetDesc func_names 名 CHasFocusTreeTrigger::GetDesc |
+| 0x140423BE0 | CIsResearchingTechnologyTrigger::GetDesc func_names 名 CIsResearchingTechnologyTrigger::GetDesc |
+| 0x140313880 | CAddBuildingConstructionEffect::GetDesc func_names 名 CAddBuildingConstructionEffect::GetDesc |
+| 0x140391100 | CSetCountryNationalFocusTreeEffect::GetDesc func_names 名 CSetCountryNationalFocusTreeEffect::GetDesc |
+| 0x1404B08C0 | CSetFactionLeaderEffect::GetDesc func_names 名 CSetFactionLeaderEffect::GetDesc |
+| 0x14038B6C0 | CRemoveRelationRuleOverrideEffect::GetDesc func_names 名 CRemoveRelationRuleOverrideEffect::GetDesc |
+| 0x14038C670 | CRemoveTargetedDecisionEffect::GetDesc func_names 名 CRemoveTargetedDecisionEffect::GetDesc |
+| 0x1404B20C0 | CSetFactionSpyMasterEffect::GetDesc func_names 名 CSetFactionSpyMasterEffect::GetDesc |
+| 0x14043BC90 | CNavyStrengthComparisonTrigger::ParseToken func_names 名 CNavyStrengthComparisonTrigger::ParseToken |
+| 0x140344070 | CAddNavalRoleEffect::Execute func_names 名 CAddNavalRoleEffect::Execute |
+| 0x14046DEA0 | CIsFullyControlledByTrigger::GetDesc func_names 名 CIsFullyControlledByTrigger::GetDesc |
+| 0x1403443B0 | CAddFieldMarshallRoleEffect::Execute func_names 名 CAddFieldMarshallRoleEffect::Execute |
+| 0x14035E220 | CRemoveIdeasWithTraitEffect::Execute func_names 名 CRemoveIdeasWithTraitEffect::Execute |
+| 0x14041A370 | CHasUnitLeaderTrigger::GetDesc func_names 名 CHasUnitLeaderTrigger::GetDesc |
+| 0x14036F710 | CActivateAdvisorEffect::GetDesc func_names 名 CActivateAdvisorEffect::GetDesc |
+| 0x1415A7B10 | CResourceRightsTimedEffect::[10] vtable 槽 CResourceRightsTimedEffect::[10]（func_names RTTI 名） |
+| 0x1403FABF0 | CDecryptionRatioTrigger::[27] vtable 槽 CDecryptionRatioTrigger::[27]（func_names RTTI 名） |
+| 0x140448840 | CIsCharacterTrigger::GetDesc func_names 名 CIsCharacterTrigger::GetDesc |
+| 0x1403835A0 | CKillCountryLeaderEffect::GetDesc func_names 名 CKillCountryLeaderEffect::GetDesc |
+| 0x1403510D0 | CCreateIntelligenceAgencyEffect::Execute func_names 名 CCreateIntelligenceAgencyEffect::Execute |
+| 0x14038D200 | CResetProvinceEffect::GetDesc func_names 名 CResetProvinceEffect::GetDesc |
+| 0x140406CD0 | CHasCompletedCustomAchievementTrigger::GetDesc func_names 名 CHasCompletedCustomAchievementTrigger::GetDesc |
+| 0x140378210 | CAddScientistRoleEffect::GetDesc func_names 名 CAddScientistRoleEffect::GetDesc |
+| 0x1403FA2E0 | CCountryExistsTrigger::GetDesc func_names 名 CCountryExistsTrigger::GetDesc |
+| 0x14041DDC0 | CIsDateTrigger::GetDesc func_names 名 CIsDateTrigger::GetDesc |
+| 0x1403921C0 | CSetMajorEffect::GetDesc func_names 名 CSetMajorEffect::GetDesc |
+| 0x1403DD260 | CReceivedExpeditionaryForcesTrigger::Evaluate func_names 名 CReceivedExpeditionaryForcesTrigger::Evaluate |
+| 0x1403F5500 | CCanDeclareWarOnTrigger::GetDesc func_names 名 CCanDeclareWarOnTrigger::GetDesc |
+| 0x1404199C0 | CHasTerrainTrigger::GetDesc func_names 名 CHasTerrainTrigger::GetDesc |
+| 0x140409D80 | CHasDLCTrigger::GetDesc func_names 名 CHasDLCTrigger::GetDesc |
+| 0x1404B5CE0 | CFactionHasActiveRuleTrigger::GetDesc func_names 名 CFactionHasActiveRuleTrigger::GetDesc |
+| 0x1404AFF40 | CRemoveFactionGoalEffect::GetDesc func_names 名 CRemoveFactionGoalEffect::GetDesc |
+| 0x1403AA810 | COperativeAndCountryBaseEffect::Parse func_names 名 COperativeAndCountryBaseEffect::Parse |
+| 0x140471BD0 | CAnyStateInTrigger::[23] vtable 槽 CAnyStateInTrigger::[23]（func_names RTTI 名） |
+| 0x1404797A0 | CSkillAdvantageTrigger::GetDesc func_names 名 CSkillAdvantageTrigger::GetDesc |
+| 0x1403D5D70 | CHasDynamicModifierTrigger::Evaluate func_names 名 CHasDynamicModifierTrigger::Evaluate |
+| 0x1413A2730 | CContextTrigger::GetTooltip func_names 名 CContextTrigger::GetTooltip |
+| 0x140368C60 | CWhileEffect::Execute func_names 名 CWhileEffect::Execute |
+| 0x1403D0020 | CAnyHomeAreaNeighborCountryTrigger::Evaluate func_names 名 CAnyHomeAreaNeighborCountryTrigger::Evaluate |
+| 0x1403AC500 | CStartPeaceConferenceEffect::Parse func_names 名 CStartPeaceConferenceEffect::Parse |
+| 0x141396BC0 | CRandomEffect::BuildTooltip func_names 名 CRandomEffect::BuildTooltip |
+| 0x14153C0C0 | COriginalSameIdeologyGroupTrigger::GetDesc func_names 名 COriginalSameIdeologyGroupTrigger::GetDesc |
+| 0x14034C030 | CAddScientistRoleEffect::Execute func_names 名 CAddScientistRoleEffect::Execute |
+| 0x14030DF70 | CAddStaticProvinceModifierEffect::Execute func_names 名 CAddStaticProvinceModifierEffect::Execute |
+| 0x1403FA7D0 | CDamagedBuildingsTrigger::GetDesc func_names 名 CDamagedBuildingsTrigger::GetDesc |
+| 0x1403AD3E0 | CUnlockDecisionTooltipEffect::Parse func_names 名 CUnlockDecisionTooltipEffect::Parse |
+| 0x1404B5150 | CCountryHasCompletedGoalTrigger::GetDesc func_names 名 CCountryHasCompletedGoalTrigger::GetDesc |
+| 0x1403FCBB0 | CEnemyNavalStrengthRatioTrigger::GetDesc func_names 名 CEnemyNavalStrengthRatioTrigger::GetDesc |
+| 0x1413F3690 | CEveryCountryEffect::[25] vtable 槽 CEveryCountryEffect::[25]（func_names RTTI 名） |
+| 0x1403FCF50 | CEnemyStrengthRatioTrigger::GetDesc func_names 名 CEnemyStrengthRatioTrigger::GetDesc |
+| 0x14049D0B0 | CAddDesignTemplateBonusEffect::GetDesc func_names 名 CAddDesignTemplateBonusEffect::GetDesc |
+| 0x1403A99C0 | CActivateMissionTooltipEffect::Parse func_names 名 CActivateMissionTooltipEffect::Parse |
+| 0x140361A90 | CSetEntityAnimationEffect::Execute func_names 名 CSetEntityAnimationEffect::Execute |
+| 0x1403A73B0 | CLegacyCreateCountryLeaderEffect::ResolveReferences func_names 名 CLegacyCreateCountryLeaderEffect::ResolveReferences |
+| 0x1403D80D0 | CHasRailwayLevelTrigger::Evaluate func_names 名 CHasRailwayLevelTrigger::Evaluate |
+| 0x14049FB60 | CAddDesignTemplateBonusEffect::ParseToken func_names 名 CAddDesignTemplateBonusEffect::ParseToken |
+| 0x14035EE80 | CRemoveScientistRoleEffect::Execute func_names 名 CRemoveScientistRoleEffect::Execute |
+| 0x140362120 | CSetEntityPositionEffect::Execute func_names 名 CSetEntityPositionEffect::Execute |
+| 0x14034C7F0 | CAddToWarEffect::Execute func_names 名 CAddToWarEffect::Execute |
+| 0x14038C9D0 | CRemoveWargoalEffect::GetDesc func_names 名 CRemoveWargoalEffect::GetDesc |
+| 0x140424E90 | CLandDoctrineLevelTrigger::GetDesc func_names 名 CLandDoctrineLevelTrigger::GetDesc |
+| 0x14043AE10 | CHasResourcesInCountryTrigger::ParseToken func_names 名 CHasResourcesInCountryTrigger::ParseToken |
+| 0x1404B8340 | CHasManpowerToBecomeLeaderTrigger::GetDesc func_names 名 CHasManpowerToBecomeLeaderTrigger::GetDesc |
+| 0x14139AC00 | CIfEffect::ParseToken func_names 名 CIfEffect::ParseToken |
+| 0x14040E820 | CHasIdeaWithTraitTrigger::GetDesc func_names 名 CHasIdeaWithTraitTrigger::GetDesc |
+| 0x1404B80A0 | CHasIndustryToBecomeLeaderTrigger::GetDesc func_names 名 CHasIndustryToBecomeLeaderTrigger::GetDesc |
+| 0x14038DA60 | CRetireIdeologyLeaderEffect::GetDesc func_names 名 CRetireIdeologyLeaderEffect::GetDesc |
+| 0x140310890 | CSetGarrisonStrengthEffect::Execute func_names 名 CSetGarrisonStrengthEffect::Execute |
+| 0x1403AB790 | CSetCountryNationalFocusTreeEffect::Parse func_names 名 CSetCountryNationalFocusTreeEffect::Parse |
+| 0x140387070 | CRecallVolunteersFromEffect::GetDesc func_names 名 CRecallVolunteersFromEffect::GetDesc |
+| 0x14044DBF0 | CAnyArmyLeaderTrigger::Evaluate func_names 名 CAnyArmyLeaderTrigger::Evaluate |
+| 0x140391C90 | CSetKeyedOobEffect::GetDesc func_names 名 CSetKeyedOobEffect::GetDesc |
+| 0x140317090 | CRemoveClaimByEffect::GetDesc func_names 名 CRemoveClaimByEffect::GetDesc |
+| 0x140412110 | CHasOffensiveWarWithoutFriendTrigger::GetDesc func_names 名 CHasOffensiveWarWithoutFriendTrigger::GetDesc |
+| 0x1403AA380 | CMakePuppetEffect::Parse func_names 名 CMakePuppetEffect::Parse |
+| 0x1403DCEE0 | CNetworkStrengthTrigger::Evaluate func_names 名 CNetworkStrengthTrigger::Evaluate |
+| 0x140465B80 | CIsOwnedAndControlledByTrigger::Evaluate func_names 名 CIsOwnedAndControlledByTrigger::Evaluate |
+| 0x14038C090 | CRemoveStateClaimEffect::GetDesc func_names 名 CRemoveStateClaimEffect::GetDesc |
+| 0x14038C380 | CRemoveStateCoreEffect::GetDesc func_names 名 CRemoveStateCoreEffect::GetDesc |
+| 0x140398D90 | CTransferStateEffect::GetDesc func_names 名 CTransferStateEffect::GetDesc |
+| 0x14048A180 | CIsPowerBalanceSideActiveTrigger::GetDesc func_names 名 CIsPowerBalanceSideActiveTrigger::GetDesc |
+| 0x140390590 | CSetCollaborationEffect::GetDesc func_names 名 CSetCollaborationEffect::GetDesc |
+| 0x1404236A0 | CIsPuppetOfTrigger::GetDesc func_names 名 CIsPuppetOfTrigger::GetDesc |
+| 0x140463EE0 | CAnyProvinceBuildingLevelTrigger::Evaluate func_names 名 CAnyProvinceBuildingLevelTrigger::Evaluate |
+| 0x14042DC00 | COriginalTagTrigger::GetDesc func_names 名 COriginalTagTrigger::GetDesc |
+| 0x14041F8A0 | CIsFullyDecryptedTrigger::GetDesc func_names 名 CIsFullyDecryptedTrigger::GetDesc |
+| 0x14041FE10 | CIsGuaranteedByTrigger::GetDesc func_names 名 CIsGuaranteedByTrigger::GetDesc |
+| 0x1404781C0 | CHasUnitTypeTrigger::GetDesc func_names 名 CHasUnitTypeTrigger::GetDesc |
+| 0x1403893B0 | CRemoveDecisionEffect::GetDesc func_names 名 CRemoveDecisionEffect::GetDesc |
+| 0x1403F8A90 | CControlsStateTrigger::GetDesc func_names 名 CControlsStateTrigger::GetDesc |
+| 0x140375370 | CAddNationalityToOperativeEffect::GetDesc func_names 名 CAddNationalityToOperativeEffect::GetDesc |
+| 0x14036D100 | CAddNavalRoleEffect::GetDesc func_names 名 CAddNavalRoleEffect::GetDesc |
+| 0x14038D500 | CRetireCharacterEffect::GetDesc func_names 名 CRetireCharacterEffect::GetDesc |
+| 0x14045F950 | CDestroyUnitEffect::GetDesc func_names 名 CDestroyUnitEffect::GetDesc |
+| 0x14036CEA0 | CAddCorpsRoleEffect::GetDesc func_names 名 CAddCorpsRoleEffect::GetDesc |
+| 0x14040A050 | CHasDecisionTrigger::GetDesc func_names 名 CHasDecisionTrigger::GetDesc |
+| 0x14036D360 | CAddFieldMarshallRoleEffect::GetDesc func_names 名 CAddFieldMarshallRoleEffect::GetDesc |
+| 0x1403808F0 | CEndPuppetEffect::GetDesc func_names 名 CEndPuppetEffect::GetDesc |
+| 0x1403B2370 | CCreateWargoalEffect::ParseToken func_names 名 CCreateWargoalEffect::ParseToken |
+| 0x1403CEBD0 | CAnyCountryWithOriginalTagTrigger::Evaluate func_names 名 CAnyCountryWithOriginalTagTrigger::Evaluate |
+| 0x140392CA0 | CSetPartyRuleEffect::GetDesc func_names 名 CSetPartyRuleEffect::GetDesc |
+| 0x1404AF100 | CCreateFactionEffect::GetDesc func_names 名 CCreateFactionEffect::GetDesc |
+| 0x1403CEDF0 | CAnyEnemyCountryTrigger::Evaluate func_names 名 CAnyEnemyCountryTrigger::Evaluate |
+| 0x1403CF010 | CAnyGuaranteedCountryTrigger::Evaluate func_names 名 CAnyGuaranteedCountryTrigger::Evaluate |
+| 0x1404A85F0 | CAnyCountryWithOriginalTagOfTrigger::Evaluate func_names 名 CAnyCountryWithOriginalTagOfTrigger::Evaluate |
+| 0x1403F0630 | CAIHasRoleDivisionTrigger::GetDesc func_names 名 CAIHasRoleDivisionTrigger::GetDesc |
+| 0x1404B90D0 | CIsOnSameContinentAsTrigger::GetDesc func_names 名 CIsOnSameContinentAsTrigger::GetDesc |
+| 0x1403DC830 | CMetaTrigger::Evaluate func_names 名 CMetaTrigger::Evaluate |
+| 0x14040C620 | CHasEventTargetTrigger::GetDesc func_names 名 CHasEventTargetTrigger::GetDesc |
+| 0x140438470 | CArmyManpowerInStateTrigger::ParseToken func_names 名 CArmyManpowerInStateTrigger::ParseToken |
+| 0x14048B8E0 | CPcDoesStateStackDemilitarizedTrigger::Evaluate func_names 名 CPcDoesStateStackDemilitarizedTrigger::Evaluate |
+| 0x140380700 | CEndExileEffect::GetDesc func_names 名 CEndExileEffect::GetDesc |
+| 0x1403B5F00 | CSetPopularitiesEffect::ParseToken func_names 名 CSetPopularitiesEffect::ParseToken |
+| 0x1404B7800 | CHasFactionGoalTrigger::GetDesc func_names 名 CHasFactionGoalTrigger::GetDesc |
+| 0x1404B75C0 | CHasEnoughInfluenceForLeadershipTrigger::GetDesc func_names 名 CHasEnoughInfluenceForLeadershipTrigger::GetDesc |
+| 0x14035B590 | CMetaEffect::Execute func_names 名 CMetaEffect::Execute |
+| 0x14040A330 | CHasDefensiveWarTrigger::GetDesc func_names 名 CHasDefensiveWarTrigger::GetDesc |
+| 0x140411D00 | CHasOffensiveWarTrigger::GetDesc func_names 名 CHasOffensiveWarTrigger::GetDesc |
+| 0x14048E4C0 | CPcIsLiberatedTrigger::GetDesc func_names 名 CPcIsLiberatedTrigger::GetDesc |
+| 0x140420910 | CIsInFactionTrigger::GetDesc func_names 名 CIsInFactionTrigger::GetDesc |
+| 0x140424470 | CIsSpyMasterTrigger::GetDesc func_names 名 CIsSpyMasterTrigger::GetDesc |
+| 0x14048F800 | CPcIsWinnerTrigger::GetDesc func_names 名 CPcIsWinnerTrigger::GetDesc |
+| 0x140422BE0 | CIsMajorTrigger::GetDesc func_names 名 CIsMajorTrigger::GetDesc |
+| 0x14041B7B0 | CHasWarTrigger::GetDesc func_names 名 CHasWarTrigger::GetDesc |
+| 0x1403B26F0 | CDeclareWarEffect::ParseToken func_names 名 CDeclareWarEffect::ParseToken |
+| 0x14048C180 | CPcIsStateClaimedAndTakenByTrigger::Evaluate func_names 名 CPcIsStateClaimedAndTakenByTrigger::Evaluate |
+| 0x1403CDC00 | CAllCountryWithOriginalTagTrigger::Evaluate func_names 名 CAllCountryWithOriginalTagTrigger::Evaluate |
+| 0x1403D6D10 | CHasLicenseTrigger::Evaluate func_names 名 CHasLicenseTrigger::Evaluate |
+| 0x1403CDDE0 | CAllEnemyCountryTrigger::Evaluate func_names 名 CAllEnemyCountryTrigger::Evaluate |
+| 0x14034BBD0 | CAddResourceEffect::Execute func_names 名 CAddResourceEffect::Execute |
+| 0x1403DB9C0 | CIsLicensingToTrigger::Evaluate func_names 名 CIsLicensingToTrigger::Evaluate |
+| 0x14044D090 | CAllCharacterTrigger::Evaluate func_names 名 CAllCharacterTrigger::Evaluate |
+| 0x14040B9D0 | CHasEnoughManpowerForRecruitChangeTrigger::GetDesc func_names 名 CHasEnoughManpowerForRecruitChangeTrigger::GetDesc |
+| 0x1403B14E0 | CClampVariableEffect::ParseToken func_names 名 CClampVariableEffect::ParseToken |
+| 0x14040CDC0 | CHasFuelTrigger::GetDesc func_names 名 CHasFuelTrigger::GetDesc |
+| 0x140399080 | CTransferUnitsFractionEffect::GetDesc func_names 名 CTransferUnitsFractionEffect::GetDesc |
+| 0x140471430 | CStrategicRegionIDTrigger::GetDesc func_names 名 CStrategicRegionIDTrigger::GetDesc |
+| 0x1403F0AF0 | CAIIrrationalityTrigger::GetDesc func_names 名 CAIIrrationalityTrigger::GetDesc |
+| 0x1403FA5D0 | CCurrentConscriptionAmountTrigger::GetDesc func_names 名 CCurrentConscriptionAmountTrigger::GetDesc |
+| 0x1403F80B0 | CConscriptionRatioTrigger::GetDesc func_names 名 CConscriptionRatioTrigger::GetDesc |
+| 0x140318CF0 | CSetStateControllerToEffect::GetDesc func_names 名 CSetStateControllerToEffect::GetDesc |
+| 0x140439320 | CDivisionsInStateTrigger::ParseToken func_names 名 CDivisionsInStateTrigger::ParseToken |
+| 0x140319210 | CSetStateOwnerToEffect::GetDesc func_names 名 CSetStateOwnerToEffect::GetDesc |
+| 0x140319920 | CTransferStateToEffect::GetDesc func_names 名 CTransferStateToEffect::GetDesc |
+| 0x140317380 | CRemoveCoreOfEffect::GetDesc func_names 名 CRemoveCoreOfEffect::GetDesc |
+| 0x1403243F0 | CSetTechnologyEffect::ParseToken func_names 名 CSetTechnologyEffect::ParseToken |
+| 0x140383330 | CHoldElectionEffect::GetDesc func_names 名 CHoldElectionEffect::GetDesc |
+| 0x14037A6E0 | CBreakEmbargoEffect::GetDesc func_names 名 CBreakEmbargoEffect::GetDesc |
+| 0x14037B9C0 | CChangeTagEffect::GetDesc func_names 名 CChangeTagEffect::GetDesc |
+| 0x140380490 | CEmbargoEffect::GetDesc func_names 名 CEmbargoEffect::GetDesc |
+| 0x14046F370 | CNumBattalionsInStatesTrigger::GetDesc func_names 名 CNumBattalionsInStatesTrigger::GetDesc |
+| 0x14048C600 | CPcIsStateClaimedTrigger::Evaluate func_names 名 CPcIsStateClaimedTrigger::Evaluate |
+| 0x140324130 | CAddTechBonusEffect::ParseToken func_names 名 CAddTechBonusEffect::ParseToken |
+| 0x140423160 | CIsOperationTypeTrigger::GetDesc func_names 名 CIsOperationTypeTrigger::GetDesc |
+| 0x140347F90 | CActivateTargetedDecisionEffect::Execute func_names 名 CActivateTargetedDecisionEffect::Execute |
+| 0x1404325F0 | CCountryFlagTrigger::[23] vtable 槽 CCountryFlagTrigger::[23]（func_names RTTI 名） |
+| 0x140389980 | CRemoveIdeasEffect::GetDesc func_names 名 CRemoveIdeasEffect::GetDesc |
+| 0x1403F69A0 | CCommandPowerDailyTrigger::GetDesc func_names 名 CCommandPowerDailyTrigger::GetDesc |
+| 0x14034C3B0 | CAddThreatEffect::Execute func_names 名 CAddThreatEffect::Execute |
+| 0x1403FF2F0 | CFullControlsStateTrigger::GetDesc func_names 名 CFullControlsStateTrigger::GetDesc |
+| 0x14044D500 | CAllOperativeLeaderTrigger::Evaluate func_names 名 CAllOperativeLeaderTrigger::Evaluate |
+| 0x1404B1380 | CSetFactionMilitaryUnlockedEffect::GetDesc func_names 名 CSetFactionMilitaryUnlockedEffect::GetDesc |
+| 0x14051FE60 | CAllCollectionElementsTrigger::[23] vtable 槽 CAllCollectionElementsTrigger::[23]（func_names RTTI 名） |
+| 0x1403EB320 | CDaysSinceCapitulatedTrigger::GetValue func_names 名 CDaysSinceCapitulatedTrigger::GetValue |
+| 0x14045BFF0 | CArmyHasBattalionInTemplateTrigger::GetDesc func_names 名 CArmyHasBattalionInTemplateTrigger::GetDesc |
+| 0x14030DB80 | CAddResistanceTargetEffect::Execute func_names 名 CAddResistanceTargetEffect::Execute |
+| 0x1403A49F0 | CGiveResourceRightsEffect::[5] vtable 槽 CGiveResourceRightsEffect::[5]（func_names RTTI 名） |
+| 0x1403F0890 | CAIHasRoleTemplateTrigger::GetDesc func_names 名 CAIHasRoleTemplateTrigger::GetDesc |
+| 0x1403742C0 | CAddIdeasEffect::GetDesc func_names 名 CAddIdeasEffect::GetDesc |
+| 0x14035F290 | CRemoveTargetedDecisionEffect::Execute func_names 名 CRemoveTargetedDecisionEffect::Execute |
+| 0x140465420 | CIsFullyControlledByTrigger::Evaluate func_names 名 CIsFullyControlledByTrigger::Evaluate |
+| 0x14037F600 | CDeleteUnitsEffect::GetDesc func_names 名 CDeleteUnitsEffect::GetDesc |
+| 0x1403CFE50 | CAnyClaimTrigger::Evaluate func_names 名 CAnyClaimTrigger::Evaluate |
+| 0x140322100 | CRemoveFromTechnologySharingGroupEffect::GetDesc func_names 名 CRemoveFromTechnologySharingGroupEffect::GetDesc |
+| 0x14035EAD0 | CRemoveOperationTokenEffect::Execute func_names 名 CRemoveOperationTokenEffect::Execute |
+| 0x14046D4A0 | CIsClaimedByTrigger::GetDesc func_names 名 CIsClaimedByTrigger::GetDesc |
+| 0x14046E560 | CIsOnContinentTrigger::GetDesc func_names 名 CIsOnContinentTrigger::GetDesc |
+| 0x140487960 | CPowerBalanceEffect::ResolveReferences func_names 名 CPowerBalanceEffect::ResolveReferences |
+| 0x140478AA0 | CIsFightingInTerrainTrigger::GetDesc func_names 名 CIsFightingInTerrainTrigger::GetDesc |
+| 0x1404AB6F0 | CCreateFactionFromTemplateEffect::Execute func_names 名 CCreateFactionFromTemplateEffect::Execute |
+| 0x1403CE1A0 | CAllNeighborCountryTrigger::Evaluate func_names 名 CAllNeighborCountryTrigger::Evaluate |
+| 0x1403CE560 | CAllSubjectCountryTrigger::Evaluate func_names 名 CAllSubjectCountryTrigger::Evaluate |
+| 0x140464B70 | CIsClaimedByTrigger::Evaluate func_names 名 CIsClaimedByTrigger::Evaluate |
+| 0x14045B350 | CAnyCountryArmyTrigger::Evaluate func_names 名 CAnyCountryArmyTrigger::Evaluate |
+| 0x1403DBC50 | CIsNeighborOfTrigger::Evaluate func_names 名 CIsNeighborOfTrigger::Evaluate |
+| 0x140313F80 | CAddComplianceEffect::GetDesc func_names 名 CAddComplianceEffect::GetDesc |
+| 0x14044E2F0 | CAnyOperativeLeaderTrigger::Evaluate func_names 名 CAnyOperativeLeaderTrigger::Evaluate |
+| 0x1403DC570 | CIsTargetOfCoupTrigger::Evaluate func_names 名 CIsTargetOfCoupTrigger::Evaluate |
+| 0x14030F060 | CModifyStateFlagEffect::Execute func_names 名 CModifyStateFlagEffect::Execute |
+| 0x140348C90 | CAddAutonomyScoreEffect::Execute func_names 名 CAddAutonomyScoreEffect::Execute |
+| 0x140316C00 | CForceEnableResistanceEffect::GetDesc func_names 名 CForceEnableResistanceEffect::GetDesc |
+| 0x1403CE740 | CAnyAlliedCountryTrigger::Evaluate func_names 名 CAnyAlliedCountryTrigger::Evaluate |
+| 0x140358AE0 | CGoToProvinceEffect::Execute func_names 名 CGoToProvinceEffect::Execute |
+| 0x1403D1630 | CControlsProvinceTrigger::Evaluate func_names 名 CControlsProvinceTrigger::Evaluate |
+| 0x14042E360 | CPoliticalPowerGrowthTrigger::GetDesc func_names 名 CPoliticalPowerGrowthTrigger::GetDesc |
+| 0x14034B380 | CAddOperationTokenEffect::Execute func_names 名 CAddOperationTokenEffect::Execute |
+| 0x1404795E0 | CReservesTrigger::GetDesc func_names 名 CReservesTrigger::GetDesc |
+| 0x14139A7F0 | CFireEventEffect::ParseToken func_names 名 CFireEventEffect::ParseToken |
+| 0x14040CC20 | CHasFuelRatioTrigger::GetDesc func_names 名 CHasFuelRatioTrigger::GetDesc |
+| 0x140318690 | CSetComplianceEffect::GetDesc func_names 名 CSetComplianceEffect::GetDesc |
+| 0x1402E9170 | CReplaceUnitLeaderTraitEffect::Execute func_names 名 CReplaceUnitLeaderTraitEffect::Execute |
+| 0x1403CD7E0 | CAllAlliedCountryTrigger::Evaluate func_names 名 CAllAlliedCountryTrigger::Evaluate |
+| 0x1402E9300 | CRetireEffect::Execute func_names 名 CRetireEffect::Execute |
+| 0x140467000 | COccupiedTagTrigger::Evaluate func_names 名 COccupiedTagTrigger::Evaluate |
+| 0x140472400 | CStateFlagTrigger::[23] vtable 槽 CStateFlagTrigger::[23]（func_names RTTI 名） |
+| 0x1403FA0B0 | CCountTechnologySharingGroupsTrigger::GetDesc func_names 名 CCountTechnologySharingGroupsTrigger::GetDesc |
+| 0x14030D160 | CAddClaimByEffect::Execute func_names 名 CAddClaimByEffect::Execute |
+| 0x140431460 | CWarLengthTrigger::GetDesc func_names 名 CWarLengthTrigger::GetDesc |
+| 0x14035F120 | CRemoveStateCoreEffect::Execute func_names 名 CRemoveStateCoreEffect::Execute |
+| 0x14037D2F0 | CCreateIntelligenceAgencyEffect::GetDesc func_names 名 CCreateIntelligenceAgencyEffect::GetDesc |
+| 0x1404A0330 | CSendEquipmentEffect::ParseToken func_names 名 CSendEquipmentEffect::ParseToken |
+| 0x14030ED10 | CForceDisableResistanceEffect::Execute func_names 名 CForceDisableResistanceEffect::Execute |
+| 0x140362930 | CSetGlobalFlagEffect::Execute func_names 名 CSetGlobalFlagEffect::Execute |
+| 0x14042E160 | CPoliticalPowerDailyTrigger::GetDesc func_names 名 CPoliticalPowerDailyTrigger::GetDesc |
+| 0x14045C830 | CHasUnitStrengthTrigger::GetDesc func_names 名 CHasUnitStrengthTrigger::GetDesc |
+| 0x140432B40 | CNetworkStrengthTrigger::Validate func_names 名 CNetworkStrengthTrigger::Validate |
+| 0x14046F550 | CNumDivisionsInStatesTrigger::GetDesc func_names 名 CNumDivisionsInStatesTrigger::GetDesc |
+| 0x140435090 | CHasIdeaTrigger::PostValidate func_names 名 CHasIdeaTrigger::PostValidate |
+| 0x1403605A0 | CScopedSoundEffect::Execute func_names 名 CScopedSoundEffect::Execute |
+| 0x140465890 | CIsIslandStateTrigger::Evaluate func_names 名 CIsIslandStateTrigger::Evaluate |
+| 0x1403F2210 | CAmountManpowerInDeploymentQueueTrigger::GetDesc func_names 名 CAmountManpowerInDeploymentQueueTrigger::GetDesc |
+| 0x14042CE10 | CNumOperativeSlotsTrigger::GetDesc func_names 名 CNumOperativeSlotsTrigger::GetDesc |
+| 0x14042C090 | CNumOfOperativesTrigger::GetDesc func_names 名 CNumOfOperativesTrigger::GetDesc |
+| 0x140490580 | CAddCICEffect::[7] vtable 槽 CAddCICEffect::[7]（func_names RTTI 名） |
+| 0x1402E9FC0 | CAddAttackSkillEffect::GetDesc func_names 名 CAddAttackSkillEffect::GetDesc |
+| 0x140376760 | CAddPoliticalPowerEffect::GetDesc func_names 名 CAddPoliticalPowerEffect::GetDesc |
+| 0x140375640 | CAddNavyExperienceEffect::GetDesc func_names 名 CAddNavyExperienceEffect::GetDesc |
+| 0x1403714E0 | CAddAirExperienceEffect::GetDesc func_names 名 CAddAirExperienceEffect::GetDesc |
+| 0x140372600 | CAddCommandPowerEffect::GetDesc func_names 名 CAddCommandPowerEffect::GetDesc |
+| 0x140379EC0 | CAddWarSupportEffect::GetDesc func_names 名 CAddWarSupportEffect::GetDesc |
+| 0x140394D40 | CSetWarSupportEffect::GetDesc func_names 名 CSetWarSupportEffect::GetDesc |
+| 0x140391FA0 | CSetLegitimacyEffect::GetDesc func_names 名 CSetLegitimacyEffect::GetDesc |
+| 0x140393A50 | CSetStabilityEffect::GetDesc func_names 名 CSetStabilityEffect::GetDesc |
+| 0x14043B0C0 | CHasResourcesRightsTrigger::ParseToken func_names 名 CHasResourcesRightsTrigger::ParseToken |
+| 0x14036F4F0 | AddFuelEffect::GetDesc func_names 名 AddFuelEffect::GetDesc |
+| 0x140391850 | CSetFuelEffect::GetDesc func_names 名 CSetFuelEffect::GetDesc |
+| 0x140476D50 | CTemperatureTrigger::GetValue func_names 名 CTemperatureTrigger::GetValue |
+| 0x14034BDF0 | CAddScaledPoliticalPowerEffect::Execute func_names 名 CAddScaledPoliticalPowerEffect::Execute |
+| 0x14030D7C0 | CAddExtraSharedBuildingSlotsEffect::Execute func_names 名 CAddExtraSharedBuildingSlotsEffect::Execute |
+| 0x140334FC0 | CRemoveScientistRoleEffect::ParseTargetToken func_names 名 CRemoveScientistRoleEffect::ParseTargetToken |
+| 0x14030F5B0 | CRemoveResistanceTargetEffect::Execute func_names 名 CRemoveResistanceTargetEffect::Execute |
+| 0x14035F780 | CRenameProvinceEffect::Execute func_names 名 CRenameProvinceEffect::Execute |
+| 0x14153BD70 | COriginalSameIdeologyGroupTrigger::Evaluate func_names 名 COriginalSameIdeologyGroupTrigger::Evaluate |
+| 0x1403D0560 | CCanBuildRailwayTrigger::Evaluate func_names 名 CCanBuildRailwayTrigger::Evaluate |
+| 0x1404B4920 | CFactionInfluenceRankTrigger::GetValue func_names 名 CFactionInfluenceRankTrigger::GetValue |
+| 0x1403D9900 | CHasUnitLeaderTrigger::Evaluate func_names 名 CHasUnitLeaderTrigger::Evaluate |
+| 0x1403D6230 | CHasEventTargetTrigger::Evaluate func_names 名 CHasEventTargetTrigger::Evaluate |
+| 0x140475230 | CNightTrigger::Evaluate func_names 名 CNightTrigger::Evaluate |
+| 0x140477AF0 | CHasCavalryRatioTrigger::GetDesc func_names 名 CHasCavalryRatioTrigger::GetDesc |
+| 0x140479C80 | CTemperatureTrigger::GetDesc func_names 名 CTemperatureTrigger::GetDesc |
+| 0x1403DA840 | CIsDateTrigger::Evaluate func_names 名 CIsDateTrigger::Evaluate |
+| 0x14048F200 | CPcIsStateClaimedAndTakenByTrigger::GetDesc func_names 名 CPcIsStateClaimedAndTakenByTrigger::GetDesc |
+| 0x14048F660 | CPcIsStateOutsideInfluenceForWinnerTrigger::GetDesc func_names 名 CPcIsStateOutsideInfluenceForWinnerTrigger::GetDesc |
+| 0x1404655C0 | CIsImpassableTrigger::Evaluate func_names 名 CIsImpassableTrigger::Evaluate |
+| 0x14114B610 | CExecuteScriptedWindowEffect::Clone func_names 名 CExecuteScriptedWindowEffect::Clone |
+| 0x14046D830 | CIsControlledByTrigger::GetDesc func_names 名 CIsControlledByTrigger::GetDesc |
+| 0x14046E9D0 | CIsOwnedByTrigger::GetDesc func_names 名 CIsOwnedByTrigger::GetDesc |
+| 0x1403B3C00 | CMetaEffect::ParseToken func_names 名 CMetaEffect::ParseToken |
+| 0x140472D70 | COccupationLawTrigger::ValidateLate func_names 名 COccupationLawTrigger::ValidateLate |
+| 0x140476570 | CHardnessTrigger::GetValue func_names 名 CHardnessTrigger::GetValue |
+| 0x14045E4C0 | CDestroyUnitEffect::Execute func_names 名 CDestroyUnitEffect::Execute |
+| 0x1404842F0 | CSetPowerBalanceEffect::Execute func_names 名 CSetPowerBalanceEffect::Execute |
+| 0x140468DA0 | CComplianceSpeedTrigger::GetValue func_names 名 CComplianceSpeedTrigger::GetValue |
+| 0x140469CE0 | CResistanceTrigger::GetValue func_names 名 CResistanceTrigger::GetValue |
+| 0x1403B65E0 | CTimedIdeaEffect::ParseToken func_names 名 CTimedIdeaEffect::ParseToken |
+| 0x14144FD00 | CEveryArmyEffect::[27] vtable 槽 CEveryArmyEffect::[27]（func_names RTTI 名） |
+| 0x1403A4560 | CAddAdvisorRoleEffect::[5] vtable 槽 CAddAdvisorRoleEffect::[5]（func_names RTTI 名） |
+| 0x1404645E0 | CHasBorderConflictTrigger::Evaluate func_names 名 CHasBorderConflictTrigger::Evaluate |
+| 0x1404652C0 | CIsDemilitarizedTrigger::Evaluate func_names 名 CIsDemilitarizedTrigger::Evaluate |
+| 0x14139AA70 | CFlagEffect::ParseToken func_names 名 CFlagEffect::ParseToken |
+| 0x1403D0D10 | CCivilwarTargetTrigger::Evaluate func_names 名 CCivilwarTargetTrigger::Evaluate |
+| 0x1404A9290 | CAllCountryOfTrigger::[23] vtable 槽 CAllCountryOfTrigger::[23]（func_names RTTI 名） |
+| 0x14046A010 | CStateStrategicValueTrigger::GetValue func_names 名 CStateStrategicValueTrigger::GetValue |
+| 0x14048D850 | CPcDoesStateStackDemilitarizedTrigger::GetDesc func_names 名 CPcDoesStateStackDemilitarizedTrigger::GetDesc |
+| 0x1403A43A0 | CAddToTempArrayTrigger::ValidateLate func_names 名 CAddToTempArrayTrigger::ValidateLate |
+| 0x1413A0CE0 | CEveryUnitLeaderEffect::[27] vtable 槽 CEveryUnitLeaderEffect::[27]（func_names RTTI 名） |
+| 0x14034FFD0 | CClearGlobalFlagEffect::Execute func_names 名 CClearGlobalFlagEffect::Execute |
+| 0x140489690 | CHasAnyPowerBalanceTrigger::GetDesc func_names 名 CHasAnyPowerBalanceTrigger::GetDesc |
+| 0x1403556D0 | CDestroyEntityEffect::Execute func_names 名 CDestroyEntityEffect::Execute |
+| 0x140353C50 | CDeactivateAdvisorEffect::Execute func_names 名 CDeactivateAdvisorEffect::Execute |
+| 0x1403D64C0 | CHasGameRuleTrigger::Evaluate func_names 名 CHasGameRuleTrigger::Evaluate |
+| 0x140424D00 | CIsTargetOfCoupTrigger::GetDesc func_names 名 CIsTargetOfCoupTrigger::GetDesc |
+| 0x140400B70 | CHasAnyLicenseTrigger::GetDesc func_names 名 CHasAnyLicenseTrigger::GetDesc |
+| 0x1402EA4D0 | CAddLogisticsSkillEffect::GetDesc func_names 名 CAddLogisticsSkillEffect::GetDesc |
+| 0x140411F90 | CHasOffensiveWarWithTrigger::GetDesc func_names 名 CHasOffensiveWarWithTrigger::GetDesc |
+| 0x1402EA9E0 | CAddPlanningSkillEffect::GetDesc func_names 名 CAddPlanningSkillEffect::GetDesc |
+| 0x1402EA170 | CAddCoordinationSkillEffect::GetDesc func_names 名 CAddCoordinationSkillEffect::GetDesc |
+| 0x14041B630 | CHasWarTogetherTrigger::GetDesc func_names 名 CHasWarTogetherTrigger::GetDesc |
+| 0x14048E9E0 | CPcIsOnSameSideAsTrigger::GetDesc func_names 名 CPcIsOnSameSideAsTrigger::GetDesc |
+| 0x140420BA0 | CIsInFactionWithTrigger::GetDesc func_names 名 CIsInFactionWithTrigger::GetDesc |
+| 0x14048EDF0 | CPcIsPuppetedByTrigger::GetDesc func_names 名 CPcIsPuppetedByTrigger::GetDesc |
+| 0x140383BC0 | CKillOperativeEffect::GetDesc func_names 名 CKillOperativeEffect::GetDesc |
+| 0x1404A93D0 | CAnyCountryOfTrigger::[23] vtable 槽 CAnyCountryOfTrigger::[23]（func_names RTTI 名） |
+| 0x1403DA4E0 | CIsAITrigger::Evaluate func_names 名 CIsAITrigger::Evaluate |
+| 0x140488BB0 | CIsPowerBalanceInRangeTrigger::Evaluate func_names 名 CIsPowerBalanceInRangeTrigger::Evaluate |
+| 0x14034FEB0 | CClearGlobalEventTargetsEffect::Execute func_names 名 CClearGlobalEventTargetsEffect::Execute |
+| 0x1403F90B0 | CCoreComplianceTrigger::GetDesc func_names 名 CCoreComplianceTrigger::GetDesc |
+| 0x1403AF5F0 | CAddOpinionModifierEffect::ParseToken func_names 名 CAddOpinionModifierEffect::ParseToken |
+| 0x140488A70 | CHasPowerBalanceTrigger::Evaluate func_names 名 CHasPowerBalanceTrigger::Evaluate |
+| 0x140479AF0 | CSkillTrigger::GetDesc func_names 名 CSkillTrigger::GetDesc |
+| 0x1402F8F60 | CHasAnyGeneralCapturedByTrigger::GetDesc func_names 名 CHasAnyGeneralCapturedByTrigger::GetDesc |
+| 0x141392420 | CRandomListEffect::[0] vtable 槽 CRandomListEffect::[0]（func_names RTTI 名） |
+| 0x1404841C0 | CRemovePowerBalanceModifierEffect::Execute func_names 名 CRemovePowerBalanceModifierEffect::Execute |
+| 0x1403D2820 | CHasAnyCountryCustomDifficultyTrigger::Evaluate func_names 名 CHasAnyCountryCustomDifficultyTrigger::Evaluate |
+| 0x1403602A0 | CSaveGlobalEventTargetAsEffect::Execute func_names 名 CSaveGlobalEventTargetAsEffect::Execute |
+| 0x1403ECBD0 | CHasAddedTensionAmountTrigger::GetValue func_names 名 CHasAddedTensionAmountTrigger::GetValue |
+| 0x140549FA0 | （无名） 体设 CTrigger::vftable（RTTI 名） |
+| 0x14043A7B0 | CHasNavySizeTrigger::ParseToken func_names 名 CHasNavySizeTrigger::ParseToken |
+| 0x1402EC9F0 | CPromoteLeaderEffect::GetDesc func_names 名 CPromoteLeaderEffect::GetDesc |
+| 0x140363E20 | CSetPoliticalPartyEffect::Execute func_names 名 CSetPoliticalPartyEffect::Execute |
+| 0x14048D0D0 | CPcCurrentScoreTrigger::GetValue func_names 名 CPcCurrentScoreTrigger::GetValue |
+| 0x14048D530 | CPcCurrentScoreTrigger::GetDesc func_names 名 CPcCurrentScoreTrigger::GetDesc |
+| 0x14043A120 | CHasLicenseTrigger::ParseToken func_names 名 CHasLicenseTrigger::ParseToken |
+| 0x14043BAD0 | CIsLicensingToTrigger::ParseToken func_names 名 CIsLicensingToTrigger::ParseToken |
+| 0x1403AFBA0 | CAddScientistRoleEffect::ParseToken func_names 名 CAddScientistRoleEffect::ParseToken |
+| 0x140335150 | CRoundTempVariableEffect::ParseTargetToken func_names 名 CRoundTempVariableEffect::ParseTargetToken |
+| 0x140331C70 | CForEachEffect::[0] vtable 槽 CForEachEffect::[0]（func_names RTTI 名） |
+| 0x1404A87F0 | CHasTruceWithTrigger::Evaluate func_names 名 CHasTruceWithTrigger::Evaluate |
+| 0x14048D1F0 | CPcTotalScoreTrigger::GetValue func_names 名 CPcTotalScoreTrigger::GetValue |
+| 0x1403B56B0 | CSetCountryNationalFocusTreeEffect::ParseToken func_names 名 CSetCountryNationalFocusTreeEffect::ParseToken |
+| 0x1403DCAD0 | CNationalFocusProgressTrigger::Evaluate func_names 名 CNationalFocusProgressTrigger::Evaluate |
+| 0x140330CE0 | CAddUnitsToDivisionTemplateEffect::[0] vtable 槽 CAddUnitsToDivisionTemplateEffect::[0]（func_names RTTI 名） |
+| 0x1404778B0 | CHasCarrierAirWingsInOwnCombatTrigger::GetDesc func_names 名 CHasCarrierAirWingsInOwnCombatTrigger::GetDesc |
+| 0x1403AEF80 | CAIMessageEffect::ParseToken func_names 名 CAIMessageEffect::ParseToken |
+| 0x140386C60 | CRandomizeWeatherEffect::GetDesc func_names 名 CRandomizeWeatherEffect::GetDesc |
+| 0x1403D9210 | CHasTemplateContainingUnitTrigger::Evaluate func_names 名 CHasTemplateContainingUnitTrigger::Evaluate |
+| 0x140439840 | CHasArmySizeTrigger::ParseToken func_names 名 CHasArmySizeTrigger::ParseToken |
+| 0x1403325F0 | CPrintVariablesEffect::[0] vtable 槽 CPrintVariablesEffect::[0]（func_names RTTI 名） |
+| 0x1403B3520 | CForEffect::ParseToken func_names 名 CForEffect::ParseToken |
+| 0x1404792F0 | CLessCombatWidthThanOpponentTrigger::GetDesc func_names 名 CLessCombatWidthThanOpponentTrigger::GetDesc |
+| 0x140331200 | CCreateEntityEffect::[0] vtable 槽 CCreateEntityEffect::[0]（func_names RTTI 名） |
+| 0x140521070 | CCollectionSizeTrigger::ValidateLate func_names 名 CCollectionSizeTrigger::ValidateLate |
+| 0x140473BD0 | CNonDamagedBuildingLevelTrigger::ParseToken func_names 名 CNonDamagedBuildingLevelTrigger::ParseToken |
+| 0x140477F80 | CHasMaxPlanningTrigger::GetDesc func_names 名 CHasMaxPlanningTrigger::GetDesc |
+| 0x140477260 | CFrontageFullTrigger::GetDesc func_names 名 CFrontageFullTrigger::GetDesc |
+| 0x14116F860 | CExecuteScriptedWindowEffect::PayloadWriter func_names 名 CExecuteScriptedWindowEffect::PayloadWriter |
+| 0x1404780A0 | CHasReservesTrigger::GetDesc func_names 名 CHasReservesTrigger::GetDesc |
+| 0x14046E1A0 | CIsImpassableTrigger::GetDesc func_names 名 CIsImpassableTrigger::GetDesc |
+| 0x1403D9310 | CHasTemplateTrigger::Evaluate func_names 名 CHasTemplateTrigger::Evaluate |
+| 0x14051C6C0 | CCountInCollectionTrigger::Evaluate func_names 名 CCountInCollectionTrigger::Evaluate |
+| 0x1403ECFA0 | CHasCollaborationTrigger::[26] vtable 槽 CHasCollaborationTrigger::[26]（func_names RTTI 名） |
+| 0x1403AF310 | CAddCountryLeaderRoleEffect::ParseToken func_names 名 CAddCountryLeaderRoleEffect::ParseToken |
+| 0x14051C510 | CCollectionSizeTrigger::Evaluate func_names 名 CCollectionSizeTrigger::Evaluate |
+| 0x1403316D0 | CCreateUnitEffect::[0] vtable 槽 CCreateUnitEffect::[0]（func_names RTTI 名） |
+| 0x14048F540 | CPcIsStateClaimedTrigger::GetDesc func_names 名 CPcIsStateClaimedTrigger::GetDesc |
+| 0x1403DA630 | CIsActiveDecryptionBonusesEnabledTrigger::Evaluate func_names 名 CIsActiveDecryptionBonusesEnabledTrigger::Evaluate |
+| 0x1403DA9B0 | CIsDecryptingTrigger::Evaluate func_names 名 CIsDecryptingTrigger::Evaluate |
+| 0x14035E9F0 | CRemoveMissionEffect::Execute func_names 名 CRemoveMissionEffect::Execute |
+| 0x1404727F0 | CAnyProvinceBuildingLevelTrigger::ValidateLate func_names 名 CAnyProvinceBuildingLevelTrigger::ValidateLate |
+| 0x1403DE650 | CTagTrigger::Evaluate func_names 名 CTagTrigger::Evaluate |
+| 0x14045BE00 | CHasUnitOrganizationTrigger::GetValue func_names 名 CHasUnitOrganizationTrigger::GetValue |
+| 0x140333470 | CStartCivilWarEffect::[0] vtable 槽 CStartCivilWarEffect::[0]（func_names RTTI 名） |
+| 0x140347D50 | CActivateMissionEffect::Execute func_names 名 CActivateMissionEffect::Execute |
+| 0x14045B800 | CArmyHasOfficerNameTrigger::Evaluate func_names 名 CArmyHasOfficerNameTrigger::Evaluate |
+| 0x14049B740 | CAddDesignTemplateBonusEffect::Execute func_names 名 CAddDesignTemplateBonusEffect::Execute |
+| 0x1403A4C60 | CTransferUnitsFractionEffect::[5] vtable 槽 CTransferUnitsFractionEffect::[5]（func_names RTTI 名） |
+| 0x1403D7E30 | CHasOpinionTrigger::Evaluate func_names 名 CHasOpinionTrigger::Evaluate |
+| 0x140349D40 | CAddDaysMissionTimeoutEffect::Execute func_names 名 CAddDaysMissionTimeoutEffect::Execute |
+| 0x1413C3A30 | CEveryStateEffect::[27] vtable 槽 CEveryStateEffect::[27]（func_names RTTI 名） |
+| 0x140470DF0 | CResistanceTrigger::GetDesc func_names 名 CResistanceTrigger::GetDesc |
+| 0x140470B90 | CResistanceSpeedTrigger::GetDesc func_names 名 CResistanceSpeedTrigger::GetDesc |
+| 0x1403D0320 | CArmyManpowerInStateTrigger::Evaluate func_names 名 CArmyManpowerInStateTrigger::Evaluate |
+| 0x1404A9B70 | CCreateFactionFromTemplateEffect::[0] vtable 槽 CCreateFactionFromTemplateEffect::[0]（func_names RTTI 名） |
+| 0x140431E10 | CAnyCountryWithOriginalTagTrigger::[23] vtable 槽 CAnyCountryWithOriginalTagTrigger::[23]（func_names RTTI 名） |
+| 0x14051C630 | CCollectionContainsTrigger::Evaluate func_names 名 CCollectionContainsTrigger::Evaluate |
+| 0x1403315C0 | CCreateShipEffect::[0] vtable 槽 CCreateShipEffect::[0]（func_names RTTI 名） |
+| 0x1403CC2B0 | CHasNavySizeTrigger::[0] vtable 槽 CHasNavySizeTrigger::[0]（func_names RTTI 名） |
+| 0x1403CFC90 | CAllianceStrengthRatioTrigger::Evaluate func_names 名 CAllianceStrengthRatioTrigger::Evaluate |
+| 0x1403D2C90 | CHasArmySizeTrigger::Evaluate func_names 名 CHasArmySizeTrigger::Evaluate |
+| 0x14045B9C0 | CIsUnitReservesTrigger::Evaluate func_names 名 CIsUnitReservesTrigger::Evaluate |
+| 0x140393970 | CSetRuleEffect::GetDesc func_names 名 CSetRuleEffect::GetDesc |
+| 0x14030EC20 | CDamageBuildingEffect::Execute func_names 名 CDamageBuildingEffect::Execute |
+| 0x14045CD70 | CArmyHasTemplateTrigger::ValidateLate func_names 名 CArmyHasTemplateTrigger::ValidateLate |
+| 0x1403D1380 | CCompareAutonomyTrigger::Evaluate func_names 名 CCompareAutonomyTrigger::Evaluate |
+| 0x140366ED0 | CSwapRulerTraitsEffect::Execute func_names 名 CSwapRulerTraitsEffect::Execute |
+| 0x1403CBD20 | CHasCompletedCustomAchievementTrigger::[0] vtable 槽 CHasCompletedCustomAchievementTrigger::[0]（func_names RTTI 名） |
+| 0x140363D60 | CSetPartyRuleEffect::Execute func_names 名 CSetPartyRuleEffect::Execute |
+| 0x140476360 | CArmorTrigger::GetValue func_names 名 CArmorTrigger::GetValue |
+| 0x14040AF00 | CHasDesignBasedOnTrigger::GetDesc func_names 名 CHasDesignBasedOnTrigger::GetDesc |
+| 0x1403D1D20 | CDivisionsInStateBorderTrigger::Evaluate func_names 名 CDivisionsInStateBorderTrigger::Evaluate |
+| 0x140381590 | CFreeOperativeEffect::GetDesc func_names 名 CFreeOperativeEffect::GetDesc |
+| 0x140335470 | CUpgradeIntelligenceAgencyEffect::ParseTargetToken func_names 名 CUpgradeIntelligenceAgencyEffect::ParseTargetToken |
+| 0x1403B4E30 | CRemoveAdvisorRoleEffect::ParseToken func_names 名 CRemoveAdvisorRoleEffect::ParseToken |
+| 0x140474A50 | CHasCarrierAirWingsOnMissionTrigger::Evaluate func_names 名 CHasCarrierAirWingsOnMissionTrigger::Evaluate |
+| 0x1413A2470 | CDateTrigger::ParseValueKeys func_names 名 CDateTrigger::ParseValueKeys |
+| 0x140473B30 | CFreeBuildingSlotsTrigger::ParseToken func_names 名 CFreeBuildingSlotsTrigger::ParseToken |
+| 0x14044AC50 | CIsOperativeCapturedTrigger::GetDesc func_names 名 CIsOperativeCapturedTrigger::GetDesc |
+| 0x1403EC890 | CEnemyNavalStrengthRatioTrigger::GetValue func_names 名 CEnemyNavalStrengthRatioTrigger::GetValue |
+| 0x14041E0C0 | CIsDebugTrigger::GetDesc func_names 名 CIsDebugTrigger::GetDesc |
+| 0x1403CFD90 | CAmountTakenIdeasTrigger::Evaluate func_names 名 CAmountTakenIdeasTrigger::Evaluate |
+| 0x140348390 | CAddAceEffect::Execute func_names 名 CAddAceEffect::Execute |
+| 0x1402EC920 | CGainXpEffect::GetDesc func_names 名 CGainXpEffect::GetDesc |
+| 0x1403E2340 | CMetaTrigger::GetTooltipText func_names 名 CMetaTrigger::GetTooltipText |
+| 0x140461EB0 | CNumDivisionsInStatesTrigger::[0] vtable 槽 CNumDivisionsInStatesTrigger::[0]（func_names RTTI 名） |
+| 0x14031EA00 | CAddTechBonusEffect::[0] vtable 槽 CAddTechBonusEffect::[0]（func_names RTTI 名） |
+| 0x1403E20E0 | CHiddenTrigger::GetTooltip func_names 名 CHiddenTrigger::GetTooltip |
+| 0x1403B1870 | CCreateEntityEffect::ParseToken func_names 名 CCreateEntityEffect::ParseToken |
+| 0x1403E21A0 | CHiddenTrigger::GetTooltipText func_names 名 CHiddenTrigger::GetTooltipText |
+| 0x1402E3AF0 | （无名） 体设 CFireEventEffect::vftable（RTTI 名） |
+| 0x14035BA90 | CPlaySongEffect::Execute func_names 名 CPlaySongEffect::Execute |
+| 0x140488200 | CSetPowerBalanceEffect::ParseToken func_names 名 CSetPowerBalanceEffect::ParseToken |
+| 0x1403DEB50 | CExperienceTrigger::ParseValueKeys func_names 名 CExperienceTrigger::ParseValueKeys |
+| 0x1404B8FE0 | CIsOnSameContinentAsTrigger::ParseValueKeys func_names 名 CIsOnSameContinentAsTrigger::ParseValueKeys |
+| 0x140355D50 | CDropCosmeticTagEffect::Execute func_names 名 CDropCosmeticTagEffect::Execute |
+| 0x14035B9E0 | CMultiplyVariableEffect::Execute func_names 名 CMultiplyVariableEffect::Execute |
+| 0x1402E5E40 | CAddAttackSkillEffect::Execute func_names 名 CAddAttackSkillEffect::Execute |
+| 0x14049AE60 | CAddDesignTemplateBonusEffect::[0] vtable 槽 CAddDesignTemplateBonusEffect::[0]（func_names RTTI 名） |
+| 0x1403DB870 | CIsLendLeasingTrigger::Evaluate func_names 名 CIsLendLeasingTrigger::Evaluate |
+| 0x1403D1B10 | CDamagedBuildingsTrigger::Evaluate func_names 名 CDamagedBuildingsTrigger::Evaluate |
+| 0x14041C510 | CHiddenTrigger::GetDesc func_names 名 CHiddenTrigger::GetDesc |
+| 0x1403318F0 | CDamageUnitsEffect::[0] vtable 槽 CDamageUnitsEffect::[0]（func_names RTTI 名） |
+| 0x1403B5850 | CSetEntityMovementEffect::ParseToken func_names 名 CSetEntityMovementEffect::ParseToken |
+| 0x14051C100 | CCountInCollectionTrigger::[0] vtable 槽 CCountInCollectionTrigger::[0]（func_names RTTI 名） |
+| 0x1402E4140 | CAddRandomTraitEffect::[0] vtable 槽 CAddRandomTraitEffect::[0]（func_names RTTI 名） |
+| 0x140434BA0 | CHasDesignBasedOnTrigger::ValidateLate func_names 名 CHasDesignBasedOnTrigger::ValidateLate |
+| 0x140332DC0 | CSetEntityMovementEffect::[0] vtable 槽 CSetEntityMovementEffect::[0]（func_names RTTI 名） |
+| 0x1404764D0 | CFastestTrigger::GetValue func_names 名 CFastestTrigger::GetValue |
+| 0x14030A600 | CAddResistanceTargetEffect::[0] vtable 槽 CAddResistanceTargetEffect::[0]（func_names RTTI 名） |
+| 0x1403DC0A0 | CIsPuppetOfTrigger::Evaluate func_names 名 CIsPuppetOfTrigger::Evaluate |
+| 0x14048C040 | CPcIsPuppetedByTrigger::Evaluate func_names 名 CPcIsPuppetedByTrigger::Evaluate |
+| 0x1403DB130 | CIsHostingExileTrigger::Evaluate func_names 名 CIsHostingExileTrigger::Evaluate |
+| 0x1403321C0 | CGiveResourceRightsEffect::[0] vtable 槽 CGiveResourceRightsEffect::[0]（func_names RTTI 名） |
+| 0x1404A9D90 | CCreateFactionEffect::ParseTargetToken func_names 名 CCreateFactionEffect::ParseTargetToken |
+| 0x140363CC0 | CSetPartyNameEffect::Execute func_names 名 CSetPartyNameEffect::Execute |
+| 0x14032CA80 | （无名） 体设 CAddRelationRuleOverrideEffect::vftable（RTTI 名） |
+| 0x14034B520 | CAddOpinionModifierEffect::Execute func_names 名 CAddOpinionModifierEffect::Execute |
+| 0x1403EEB90 | COccupiedStatesTrigger::GetValue func_names 名 COccupiedStatesTrigger::GetValue |
+| 0x140364C60 | CSetVariableEffect::Execute func_names 名 CSetVariableEffect::Execute |
+| 0x1403D23D0 | CFullControlsStateTrigger::Evaluate func_names 名 CFullControlsStateTrigger::Evaluate |
+| 0x1404A0100 | CAddEquipmentToStockpileEffect::ParseToken func_names 名 CAddEquipmentToStockpileEffect::ParseToken |
+| 0x140332BD0 | CSetAutonomyEffect::[0] vtable 槽 CSetAutonomyEffect::[0]（func_names RTTI 名） |
+| 0x1403328B0 | CRemoveAdvisorRoleEffect::[0] vtable 槽 CRemoveAdvisorRoleEffect::[0]（func_names RTTI 名） |
+| 0x1403339C0 | CWhileEffect::[0] vtable 槽 CWhileEffect::[0]（func_names RTTI 名） |
+| 0x14034B660 | CAddPopularityEffect::Execute func_names 名 CAddPopularityEffect::Execute |
+| 0x14034C760 | CAddToVariableEffect::Execute func_names 名 CAddToVariableEffect::Execute |
+| 0x140483690 | CAddPowerBalanceValueEffect::[0] vtable 槽 CAddPowerBalanceValueEffect::[0]（func_names RTTI 名） |
+| 0x140331840 | CCreateWargoalEffect::[0] vtable 槽 CCreateWargoalEffect::[0]（func_names RTTI 名） |
+| 0x1403EE450 | CNumOfAvailableMilitaryFactoriesTrigger::GetValue func_names 名 CNumOfAvailableMilitaryFactoriesTrigger::GetValue |
+| 0x1403319E0 | CDeclareWarEffect::[0] vtable 槽 CDeclareWarEffect::[0]（func_names RTTI 名） |
+| 0x1402E6010 | CAddLogisticsSkillEffect::Execute func_names 名 CAddLogisticsSkillEffect::Execute |
+| 0x1403D94B0 | CHasTemplateWithMajorityUnitTrigger::Evaluate func_names 名 CHasTemplateWithMajorityUnitTrigger::Evaluate |
+| 0x1402ECB40 | CRemoveExileTagEffect::GetDesc func_names 名 CRemoveExileTagEffect::GetDesc |
+| 0x1403AFD00 | CAddToWarEffect::ParseToken func_names 名 CAddToWarEffect::ParseToken |
+| 0x140369840 | CAddCountryLeaderTraitEffect::[25] vtable 槽 CAddCountryLeaderTraitEffect::[25]（func_names RTTI 名） |
+| 0x140471300 | CStatePopulationInThousandsTrigger::GetDesc func_names 名 CStatePopulationInThousandsTrigger::GetDesc |
+| 0x1404AAA30 | CAddFactionInfluenceRatioEffect::Execute func_names 名 CAddFactionInfluenceRatioEffect::Execute |
+| 0x1402F1440 | CAddTimedUnitLeaderTraitEffect::ParseToken func_names 名 CAddTimedUnitLeaderTraitEffect::ParseToken |
+| 0x1403EAE30 | CCompareAutonomyProgressRatioTrigger::GetValue func_names 名 CCompareAutonomyProgressRatioTrigger::GetValue |
+| 0x14035EC70 | CRemoveOpinionModifierEffect::Execute func_names 名 CRemoveOpinionModifierEffect::Execute |
+| 0x14036C7A0 | CSetPoliticsEffect::[7] vtable 槽 CSetPoliticsEffect::[7]（func_names RTTI 名） |
+| 0x14048BD20 | CPcIsForcedGovernmentByTrigger::Evaluate func_names 名 CPcIsForcedGovernmentByTrigger::Evaluate |
+| 0x140439AF0 | CHasCountryLeaderTrigger::ParseToken func_names 名 CHasCountryLeaderTrigger::ParseToken |
+| 0x1403CBCB0 | CHasCompletedAgencyUpgradeTrigger::[0] vtable 槽 CHasCompletedAgencyUpgradeTrigger::[0]（func_names RTTI 名） |
+| 0x14054AA60 | CIfTrigger::[0] vtable 槽 CIfTrigger::[0]（func_names RTTI 名） |
+| 0x141399330 | CRandomEffect::GetDescWrapper func_names 名 CRandomEffect::GetDescWrapper |
+| 0x1403CC030 | CHasEquipmentTrigger::[0] vtable 槽 CHasEquipmentTrigger::[0]（func_names RTTI 名） |
+| 0x140330A20 | CAddResourceEffect::[0] vtable 槽 CAddResourceEffect::[0]（func_names RTTI 名） |
+| 0x1413950F0 | CWithTooltipOverrideEffect::Execute func_names 名 CWithTooltipOverrideEffect::Execute |
+| 0x141399880 | CNewsEventEffect::[25] vtable 槽 CNewsEventEffect::[25]（func_names RTTI 名） |
+| 0x140479E60 | CIsFightingInWeatherTrigger::CIsBlizzard::[1] vtable 槽 CIsFightingInWeatherTrigger::CIsBlizzard::[1]（func_names RTTI 名） |
+| 0x1403F0060 | CScriptedEffect::GetSupportedScopeMask func_names 名 CScriptedEffect::GetSupportedScopeMask |
+| 0x1403A1D30 | COperativeAndCountryBaseEffect::GetSupportedTargetMask func_names 名 COperativeAndCountryBaseEffect::GetSupportedTargetMask |
+
+#### 4.32.33 脚本 effect/trigger 补遗卡（576 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.32.34 脚本 effect/trigger 补遗卡（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14061E530 | 成就资格触发评估（铁人/难度/mod/自定义规则 + 日期触发） 串 TRIGGER_IS_IRONMAN/TRIGGER_START_DATE_EQUALS/ACHIEVEMENTS_*/MODS_ALLOW_ACHIEVEMENTS |
+| 0x1415A03D0 | （无名） 体设 CAndTrigger::vftable（RTTI 名） |
+| 0x141286DF0 | （无名） 断言站点 posteffectvolumes.cpp:1019 |
+| 0x141536800 | （无名） 体设 CAndTrigger::vftable（RTTI 名） |
+| 0x1415363C0 | （无名） 体设 CAndTrigger::vftable（RTTI 名） |
+
+#### 4.32.35 脚本 effect/trigger 补遗卡（88 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411D3A20 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1401BD950 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x1412ADEC0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140AF0A30 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x140B4A770 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x141645630 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x140651E70 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x1417953B0 | （无名） 调用图传播: 12 锚点投 §4.32（67%） |
+| 0x140E964D0 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x140AF0E60 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x1415EA750 | （无名） 调用图传播: 4 锚点投 §4.32（75%） |
+| 0x141795710 | （无名） 调用图传播: 6 锚点投 §4.32（67%） |
+| 0x140BA17D0 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x1413A06E0 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x140494240 | （无名） 调用图传播: 6 锚点投 §4.32（50%） |
+| 0x140F0ED00 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x140BA19C0 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x140154490 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141794E00 | （无名） 调用图传播: 6 锚点投 §4.32（67%） |
+| 0x140C62BF0 | （无名） 调用图传播: 6 锚点投 §4.32（50%） |
+| 0x140A386A0 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x140BFBB40 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x140A369E0 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x1403A5DC0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140151970 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x140BA24D0 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x140F431A0 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x1410ACB30 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x140FEC5C0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140151380 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x141F7F360 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x14047CDE0 | （无名） 调用图传播: 5 锚点投 §4.32（60%） |
+| 0x140645A00 | （无名） 调用图传播: 7 锚点投 §4.32（86%） |
+| 0x1403AE060 | ParseToken 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140439780 | ParseToken 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x140FDD730 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x140C64BD0 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x1403A1320 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140FA07B0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140EDEBF0 | （无名） 调用图传播: 4 锚点投 §4.32（75%） |
+| 0x141011EC0 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x140151100 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140151850 | （无名） 调用图传播: 9 锚点投 §4.32（67%） |
+| 0x1402C1870 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x14101CA10 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x141ACBE70 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141F96650 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140154740 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x140D8DDA0 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x140A0A550 | （无名） 调用图传播: 4 锚点投 §4.32（75%） |
+| 0x1409D3AF0 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x141B498D0 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x1410A44A0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141B4BEC0 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x140B96C80 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x141464FA0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140459950 | ValidateLate 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x14100D4B0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x14129E580 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x140EAE210 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141A01CF0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x14047C970 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x1401EBA10 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1418BB8F0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141AC92E0 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x141AC9290 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x141F37910 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x1410A3EA0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140154DC0 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x141481F10 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x140FA3070 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x14043BA90 | ParseToken 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1413CF6B0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141185B80 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x141184340 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x141441270 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x1406D9A20 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x1406D9A70 | （无名） 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x1414E7090 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141EDABD0 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x140459B50 | Parse 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x14045BAA0 | ParseValueKeys 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141A86610 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x141723B70 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1406D9AC0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1406DAD60 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1403DEF00 | ParseValueKeys 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1413F87E0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+
+#### 4.32.36 脚本 effect/trigger 补遗卡（62 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BC57C0 | sub_140BC57C0 紧邻 CSetPoliticsEffect::Execute 与 CAIMilitaryMinister（政治效应/AI 部长区段），重字符串/内存操作 |
+| 0x140129FD0 | 域关键词匹配 sub_140129FD0 + 域关键词匹配; 被 CAbilityDatabase::[2] 等 8 命名函数调用 |
+| 0x1403B9110 | 调用图上游传播(占 100%, 1 票) sub_1403B9110 + 调用图上游传播(占 100%, 1 票) |
+| 0x140FD1880 | sub_140FD1880 特征串:_instant_desc |
+| 0x140EA8880 | 调用图上游传播(占 100%, 1 票) sub_140EA8880 + 调用图上游传播(占 100%, 1 票) |
+| 0x1424C5C60 | 域关键词匹配 sub_1424C5C60 + 域关键词匹配; 被 CEffect::GetName 等 2 命名函数调用 |
+| 0x140499110 | 域关键词匹配 sub_140499110 + 域关键词匹配; 被 CAddEquipmentToStockpileEffect::GetDesc 等 1 命名函数调用 |
+| 0x1404C9310 | 调用图上游传播(占 100%, 1 票) sub_1404C9310 + 调用图上游传播(占 100%, 1 票); 源码路径 hoi4; 被调源码 hoi4 |
+| 0x140EB1F80 | 调用图上游传播(占 57%, 3 票) sub_140EB1F80 + 调用图上游传播(占 57%, 3 票) |
+| 0x1404C8EC0 | sub_1404C8EC0 特征串:It shouldn't be possible to have a named collection as a compiled inpu |
+| 0x1409C8920 | 调用图上游传播(占 64%, 3 票) sub_1409C8920 + 调用图上游传播(占 64%, 3 票) |
+| 0x140536180 | 域关键词匹配 sub_140536180 + 域关键词匹配; 被调源码 clausewitz; 被 CFireEventEffect::Execute 等 2 命名函数调用 |
+| 0x140A3A190 | 调用图上游传播(占 100%, 1 票) sub_140A3A190 + 调用图上游传播(占 100%, 1 票) |
+| 0x1403C37E0 | 域关键词匹配 sub_1403C37E0 + 域关键词匹配; 被 CFactionGoalFulfillment::GetDesc 等 2 命名函数调用 |
+| 0x1416B5C10 | 调用图上游传播(占 62%, 3 票) sub_1416B5C10 + 调用图上游传播(占 62%, 3 票) |
+| 0x140F8CF70 | 调用图上游传播(占 75%, 2 票) sub_140F8CF70 + 调用图上游传播(占 75%, 2 票) |
+| 0x14047AB00 | 调用图上游传播(占 100%, 1 票) sub_14047AB00 + 调用图上游传播(占 100%, 1 票) |
+| 0x140F00890 | 调用图上游传播(占 100%, 1 票) sub_140F00890 + 调用图上游传播(占 100%, 1 票) |
+| 0x1424BE3E0 | 调用图上游传播(占 40%, 3 票) sub_1424BE3E0 + 调用图上游传播(占 40%, 3 票) |
+| 0x141287CC0 | 域关键词匹配 sub_141287CC0 + 域关键词匹配; 被调源码 clausewitz; 被 CPostEffectVolumeReloader::Reload 等 1 命名函数调用 |
+| 0x140660240 | 调用图上游传播(占 100%, 1 票) sub_140660240 + 调用图上游传播(占 100%, 1 票) |
+| 0x14022BC70 | 调用图上游传播(占 50%, 2 票) sub_14022BC70 + 调用图上游传播(占 50%, 2 票) |
+| 0x14143B3F0 | 调用图上游传播(占 50%, 3 票) sub_14143B3F0 + 调用图上游传播(占 50%, 3 票) |
+| 0x14032C0E0 | 调用图上游传播(占 83%, 2 票) sub_14032C0E0 + 调用图上游传播(占 83%, 2 票) |
+| 0x141404920 | 调用图上游传播(占 83%, 2 票) sub_141404920 + 调用图上游传播(占 83%, 2 票) |
+| 0x140BD1F20 | 调用图上游传播(占 37%, 9 票) sub_140BD1F20 + 调用图上游传播(占 37%, 9 票) |
+| 0x1403C36B0 | 域关键词匹配 sub_1403C36B0 + 域关键词匹配; 被 CCountTriggersTrigger::GetTooltip 等 3 命名函数调用 |
+| 0x14032A7E0 | 调用图上游传播(占 100%, 1 票) sub_14032A7E0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1403C3960 | 域关键词匹配 sub_1403C3960 + 域关键词匹配; 被 CHasNavalInvasionAgainstStateTrigger::GetDesc 等 1 命名函数调用 |
+| 0x140C8B1B0 | 调用图上游传播(占 68%, 4 票) sub_140C8B1B0 + 调用图上游传播(占 68%, 4 票) |
+| 0x140EA5FA0 | 调用图上游传播(占 100%, 1 票) sub_140EA5FA0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1406C9B40 | 域关键词匹配 sub_1406C9B40 + 域关键词匹配; 被 CRandomListEffect::Execute 等 2 命名函数调用 |
+| 0x142446DF0 | 调用图上游传播(占 100%, 1 票) sub_142446DF0 + 调用图上游传播(占 100%, 1 票) |
+| 0x14032D770 | 域关键词匹配 sub_14032D770 + 域关键词匹配 |
+| 0x140E9A2E0 | 调用图上游传播(占 67%, 3 票) sub_140E9A2E0 + 调用图上游传播(占 67%, 3 票) |
+| 0x140558640 | 调用图上游传播(占 41%, 9 票) sub_140558640 + 调用图上游传播(占 41%, 9 票) |
+| 0x140C4F400 | 调用图上游传播(占 62%, 3 票) sub_140C4F400 + 调用图上游传播(占 62%, 3 票) |
+| 0x140C13400 | 调用图上游传播(占 100%, 1 票) sub_140C13400 + 调用图上游传播(占 100%, 1 票) |
+| 0x140545390 | 域关键词匹配 sub_140545390 + 域关键词匹配; 被 CClearArrayEffectImp<$00>::[13] 等 5 命名函数调用 |
+| 0x140E784D0 | 调用图上游传播(占 81%, 3 票) sub_140E784D0 + 调用图上游传播(占 81%, 3 票) |
+| 0x140B927D0 | 调用图上游传播(占 55%, 3 票) sub_140B927D0 + 调用图上游传播(占 55%, 3 票) |
+| 0x140BDF340 | 调用图上游传播(占 100%, 1 票) sub_140BDF340 + 调用图上游传播(占 100%, 1 票) |
+| 0x1403BAD10 | 调用图上游传播(占 49%, 9 票) sub_1403BAD10 + 调用图上游传播(占 49%, 9 票) |
+| 0x1411749E0 | 域关键词匹配 sub_1411749E0 + 域关键词匹配; 被 CBuildingConstructionEffect::[27] 等 1 命名函数调用 |
+| 0x141047E60 | 调用图上游传播(占 100%, 1 票) sub_141047E60 + 调用图上游传播(占 100%, 1 票) |
+| 0x1407355B0 | 调用图上游传播(占 62%, 2 票) sub_1407355B0 + 调用图上游传播(占 62%, 2 票) |
+| 0x140F09DE0 | 调用图上游传播(占 100%, 1 票) sub_140F09DE0 + 调用图上游传播(占 100%, 1 票) |
+| 0x140CFE4C0 | 调用图上游传播(占 100%, 1 票) sub_140CFE4C0 + 调用图上游传播(占 100%, 1 票) |
+| 0x140ED25F0 | 调用图上游传播(占 100%, 1 票) sub_140ED25F0 + 调用图上游传播(占 100%, 1 票) |
+| 0x140545C60 | 调用图上游传播(占 83%, 5 票) sub_140545C60 + 调用图上游传播(占 83%, 5 票) |
+| 0x141856260 | 调用图上游传播(占 100%, 1 票) sub_141856260 + 调用图上游传播(占 100%, 1 票) |
+| 0x1403324A0 | 调用图上游传播(占 62%, 3 票) sub_1403324A0 + 调用图上游传播(占 62%, 3 票) |
+| 0x1403077E0 | 调用图上游传播(占 50%, 3 票) sub_1403077E0 + 调用图上游传播(占 50%, 3 票) |
+| 0x140EAE680 | 调用图上游传播(占 50%, 4 票) sub_140EAE680 + 调用图上游传播(占 50%, 4 票) |
+| 0x14109A710 | 域关键词匹配 sub_14109A710 + 域关键词匹配 |
+| 0x1419D6950 | 调用图上游传播(占 67%, 2 票) sub_1419D6950 + 调用图上游传播(占 67%, 2 票) |
+| 0x1420E27A0 | 域关键词匹配 sub_1420E27A0 + 域关键词匹配 |
+| 0x142286BD0 | 调用图上游传播(占 56%, 4 票) sub_142286BD0 + 调用图上游传播(占 56%, 4 票) |
+| 0x140D79C90 | 调用图上游传播(占 88%, 2 票) sub_140D79C90 + 调用图上游传播(占 88%, 2 票) |
+| 0x140D4F9E0 | 调用图上游传播(占 100%, 1 票) sub_140D4F9E0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1410275B0 | 调用图上游传播(占 80%, 4 票) sub_1410275B0 + 调用图上游传播(占 80%, 4 票) |
+| 0x140DC0E30 | 调用图上游传播(占 100%, 1 票) sub_140DC0E30 + 调用图上游传播(占 100%, 1 票) |
+
+#### 4.32.37 脚本 effect/trigger 补遗卡（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401AF980 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x14024DD90 | 串 "Sleep requires a time parameter."/" seconds." 串 "Sleep requires a time parameter."/" seconds."，脚本 sleep 命令 |
+| 0x141448130 | GUI：ADD_DIVISIONAL_COMMANDER_XP loc 键 ADD_DIVISIONAL_COMMANDER_XP，effect 描述 |
+| 0x14184CD80 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x14130EF50 | scope 校验 + vtable(+104,+32, token 62) + 100000 比率比较 scope 校验 + vtable(+104,+32, token 62) + 100000 比率比较，疑 trigger 评估 |
+| 0x14054E8B0 | 无名 · "TRIGGER_FULLFILLED_PREFIX" 触发器描述前 "TRIGGER_FULLFILLED_PREFIX" 触发器描述前缀键 |
+| 0x1403032A0 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x14047AA10 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x141403200 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+
+#### 4.32.38 脚本 effect/trigger 补遗卡（30 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1404D1320 | 业务逻辑（键 operation_instance） 同上，类型串 "operation_instance" |
+| 0x1404E4420 | 业务逻辑（键 operation_instance） 同上，类型串 "operation_instance" |
+| 0x1403C0770 | 业务逻辑（键 raid_instance） 同上，类型串 "raid_instance" |
+| 0x1404DC420 | 业务逻辑（键 raid_instance） 同上，类型串 "raid_instance" |
+| 0x1403BDE30 | 业务逻辑（键 combatant） 脚本集合算子："Collection operator %s doesn't support [Parallel]ForEach for objects of type %s" + 类型串 "combatant" + eventscope.h 断言 |
+| 0x1404D4870 | 业务逻辑（键 character） 同上，类型串 "character" |
+| 0x1404E7970 | 业务逻辑（键 character） 同上，类型串 "character" |
+| 0x1404CD180 | 业务逻辑（键 project） 同上，类型串 "project" |
+| 0x1404E0420 | 业务逻辑（键 project） 同上，类型串 "project" |
+| 0x1404D88E0 | 业务逻辑（键 unit） 同上，类型串 "unit" |
+| 0x1404EB9E0 | 业务逻辑（键 unit） 同上，类型串 "unit" |
+| 0x1404B9E40 | 业务逻辑（见证据锚） "Constant value is not a country tag or array of country tags"（脚本国家标签常量解析） |
+| 0x14141AF90 | 业务逻辑（见证据锚） "' as argument in argument block"（脚本参数块解析报错） |
+| 0x14030D930 | CAddResistanceEffect::Execute |
+| 0x1403A7C90 | CRemoveCountryLeaderRoleEffect::ResolveReferences |
+| 0x1403D8EF0 | CHasTechBonusTrigger::Evaluate |
+| 0x14036C840 | CEveryStateEffect::[10] CEveryStateEffect 槽[10] |
+| 0x14048BB00 | CPcDoesStateStackDismantledTrigger::Evaluate CPcDoesStateStackDismantledTrigger::Evaluate（和会触发器族） |
+| 0x1403B3D50 | CModifyBuildingEffect::ParseToken |
+| 0x140400220 | CHasAddedTensionAmountTrigger::GetDesc |
+| 0x1403B2AA0 | CDiplomaticRelationEffect::ParseToken |
+| 0x1403EF440 | CWarLengthTrigger::GetValue |
+| 0x140463110 | CAnyNeighborCountryTrigger::Evaluate |
+| 0x14043B810 | ParseToken ParseToken：token id 694/10754 分支（紧邻 CResizeTempArrayTrigger::ParseToken） |
+| 0x1403F12F0 | CAIWantsDivisionsTrigger::GetDesc |
+| 0x1403F6BA0 | CCommandPowerTrigger::GetDesc |
+| 0x140392EC0 | CSetPoliticalPowerEffect::GetDesc |
+| 0x140374900 | CAddLegitimacyEffect::GetDesc |
+| 0x1404B19E0 | CSetFactionResearhUnlockedEffect::GetDesc |
+| 0x14225EBC0 | CScopedVariable 作用域变量(脚本临时数组族) (vtable类名 CScopedVariable) vtable引用 CScopedVariable vftable |
+
+#### 4.32.39 脚本 effect/trigger 补遗卡（32 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140144260 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140BA1FD0 | （无名） 调用图传播: 14 锚点投 §4.32（50%） |
+| 0x140A5BEC0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x14015B1B0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x14012A2D0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1401C4DD0 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x142410070 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1401B9900 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x141536A60 | （无名） 调用图传播: 4 锚点投 §4.32（100%） |
+| 0x1403C94D0 | （无名） 调用图传播: 3 锚点投 §4.32（100%） |
+| 0x140A03590 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x1404AA040 | ParseTargetToken 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140D90670 | （无名） 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x140334DF0 | ParseTargetToken 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x1413A2690 | ParseValueKeys 调用图传播: 3 锚点投 §4.32（67%） |
+| 0x140ED7B30 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1404A9E50 | ParseTargetToken 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140EDA280 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1403DED80 | ParseValueKeys 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140724D00 | （无名） 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x1403353D0 | ParseTargetToken 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140334E90 | ParseTargetToken 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x1404391B0 | ParseToken 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x1402E4800 | ParseTargetToken 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x14030AD70 | ParseTargetToken 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x140301870 | ParseToken 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x141392EB0 | ParseTargetToken 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x1413F8E80 | （无名） 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1413A2620 | ParseValueKeys 调用图传播: 4 锚点投 §4.32（50%） |
+| 0x1404B4000 | ParseValueKeys 调用图传播: 2 锚点投 §4.32（100%） |
+| 0x1404A9E30 | ParseTargetToken 调用图传播: 2 锚点投 §4.32（50%） |
+| 0x1402F9740 | ParseTargetToken 调用图传播: 2 锚点投 §4.32（100%） |
+
+#### 4.32.40 脚本 effect/trigger 补遗卡（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14162BB60 | 无名 sub_（断言站点/串定位） 串字面量 "tooltip_raid_modifier_effect_improvement" |
+| 0x140639CA0 | 无名 sub_（断言站点/串定位） 串字面量 "TRIGGER_UNFULLFILLED_PREFIX" |
+| 0x1402F19B0 | 无名 sub_（断言站点/串定位） 串字面量 "EFFECT_LIST_OTHERS" |
+| 0x1403A85E0 | 无名 sub_（断言站点/串定位） 断言站点 effectimplementation.cpp:17786 |
+| 0x141399A80 | 无名 sub_（断言站点/串定位） 断言站点 effectbase.cpp:1722 |
+| 0x140422E70 | 无名 sub_（断言站点/串定位） 串字面量 "TRIGGER_IS_NEIGHBOR_OF" |
+| 0x140439530 | ParseToken func_names 名「ParseToken」 |
+| 0x1403B4650 | 无名 sub_（断言站点/串定位） 断言站点 effectimplementation.cpp:13913 |
+| 0x1412A1710 | 无名 sub_（断言站点/串定位） 串字面量 "EFFECT_SHOW_IDEA_TOOLTIP_DETAILED" |
+| 0x140022B00 | CHasRailwayConnectionTrigger 注册工厂（token 10552） vtable `CTriggerEntry<CHasRailwayConnectionTrigger>::vftable` + docstring "has_railway_connection"（path→provin… |
+| 0x140023700 | CIntelLevelOver 触发器注册工厂（token 19292） vtable `CTriggerEntry<CIntelLevelOver>::vftable` + docstring "intel_level_over" |
+| 0x14002D090 | CAnyCountryWithOriginalTagOfTrigger 注册工厂（token 18906） vtable 名 + docstring "any_country_with_original_tag_of" |
+| 0x140024C00 | CNetworkStrengthTrigger 注册工厂 vtable 名 + docstring "network_strength" |
+| 0x140026D00 | CIsInStateTrigger 注册工厂 vtable 名 + docstring "is_in_state"（character/operative 任务位置） |
+| 0x1413A1040 | 无名 sub_（断言站点/串定位） 串字面量 "Multiple limits in target effect" |
+| 0x140460490 | 无名 sub_（断言站点/串定位） 串字面量 "Multiple limits in target effect" |
+| 0x14117FB20 | 无名 sub_（断言站点/串定位） 串字面量 "geteffectdesc" |
+| 0x14001F200 | CForEachTriggerImp\<1\>（all_of）注册工厂 vtable 名 + docstring "all_of = { array = array_name ... }" |
+| 0x1403A6D30 | 无名 sub_（断言站点/串定位） 断言站点 effectimplementation.cpp:14335 |
+| 0x1403A77C0 | 无名 sub_（断言站点/串定位） 断言站点 effectimplementation.cpp:14469 |
+| 0x140027C00 | 无名 sub_（断言站点/串定位） 串字面量 "Checks if the available AND visible triggers in th" |
+
+#### 4.32.41 脚本 effect/trigger 补遗卡（59 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14032DC90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140508980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14136FE80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140509280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140509B80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14050A480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140EA0250 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1409BC7F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140153BA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1403299C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14047AFE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x142446EC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14168D170 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1423DE510 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140A9AA50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14102BE00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140027900 | CCheckNumberOfUnlockedTraitsTrigger 注册工厂（MIO） vtable `CTriggerEntry<NIndustrialOrganisation::CCheckNumberOfUnlockedTraitsTrigger>::vftable` + docstring "has_… |
+| 0x14002E290 | CAllCollectionElementsTrigger 注册工厂 vtable 名 + docstring "all_collection_elements" |
+| 0x140525D70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1405260B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1412AD1B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140026700 | CCharacterFlagTrigger 注册工厂 vtable 名 + docstring "has_unit_leader_flag"（flag/value/days_since_set） |
+| 0x140027600 | CAnyNavyLeaderTrigger 注册工厂 vtable 名 + docstring "any_navy_leader" |
+| 0x140029660 | CIsIslandStateTrigger 注册工厂 vtable 名 + docstring "is_island_state"（省份无陆邻/仅海峡） |
+| 0x14105CA90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x141AC9330 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140022E00 | CHasShineEffectOnFocusTrigger 注册工厂 vtable 名 + docstring "has_shine_effect_on_focus" |
+| 0x140523300 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140523720 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140523880 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14001FE00 | CCasualtiesInflictedByInThousandsTrigger 注册工厂 vtable 名 + docstring "casualties_inflicted_by"（opponent + 阈值） |
+| 0x14002E650 | CHasNavalControlTrigger 注册工厂 vtable 名 + docstring "has_naval_control"（战略海域） |
+| 0x14002C850 | CAnyScientistTrigger 注册工厂（NProject） vtable `CTriggerEntry<NProject::CAnyScientistTrigger>::vftable` + docstring "any_scientist" |
+| 0x14002EBF0 | CHasCombatTacticTrigger 注册工厂（NDoctrines） vtable `CTriggerEntry<NDoctrines::CHasCombatTacticTrigger>::vftable` + docstring "has_combat_tactic" |
+| 0x1406B1BB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1405233B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1405237D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140523930 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140526C50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140526E60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140526F10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14011E980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14032A9F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1419ADF80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14100E900 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140736020 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1401BA400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140C57840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140E695B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1401534B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140A078E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1415A1EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x141176F60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140154250 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x14043D570 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x141F362C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140BCC9D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140682730 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x140ED6AB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+
+#### 4.32.42 脚本 effect/trigger 补遗卡（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406B21B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x141010A30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1406B1B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1406B1E10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+| 0x1406B0D80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.32 |
+
+#### 4.32.43 脚本 effect/trigger 补遗卡（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C82710 | （无名） 串 "name"；调 sub_1403A5A50（effectimplementation 族）+ sub_140BACA80 |
+
+#### 4.32.44 脚本 effect/trigger 补遗卡（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DD73B0 | 无名 sub_（人工读体裁定） 条目分派：遍历 a2[0..1] 的无符号对，按 +4 标签（-1 或非零）分别 sub_140722EC0 执行或计数 |
+
+#### 4.32.45 脚本 effect/trigger 补遗卡（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AB3760 | 阈值判定 多条件阈值判定：a1+800 与 a1+1008 双查值（sub_140544C90）+ 国家 +224/+496 上限比较 + vtable+24 兜底 |
+| 0x14132A9D0 | 触发器校验 递归触发器校验：sub_140AB97F0 查对象 + 递归 +112 父链 + token 14962/14963/19373/19794 黑名单 + +164 域判定 |
+
+#### 4.32.46 脚本 effect/trigger 补遗卡（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141592670 | 脚本值 脚本值限值解析（"value_limit_exact" / "value_limit_min_max" / "value_limit_invalid"） |
+
+#### 4.32.47 脚本 effect/trigger 补遗卡（18 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414351A0 | 未决窗口函数 · trigger 比例判定 sub_140BB5490（gamestate id→索引）+ sub_140D045C0 计数 + `100000*v/v2 >= qword_1433325B0` 比例判定 |
+| 0x1401504D0 | 未决窗口函数 · NRaids 库析构 `TReloadableGameItemDatabase<NRaids::CRaidDatabase>` + `TGameItemDatabase<NRaids::CRaidDatabase>` 双 vtable 析构 |
+| 0x1414FC050 | 未决窗口函数 · 定点计算 `*(a1+120) * (dword_143337218 << 15) >> 15` 定点乘 + sub_1424ED580 + sub_14196B850 |
+| 0x140A9B820 | 未决窗口函数 · 定点计数器计算 sub_140BB48F0(gamestate) + 索引 +3056 + 数组 +610/72 + 定点 100000/10^13 + vt+72 |
+| 0x1419533E0 | 未决窗口函数 · gamestate 查表+阈值比较 sub_140BB48F0(gamestate) + sub_1406F98C0/1411FB040/1411D4840 查表 + qword_143331440 阈值比较 |
+| 0x1419ADEC0 | 未决窗口函数 · 按索引表应用 逐项取 uint16 索引（*(v5+40)）+ *(v5[2]+8*v7) 表查值 + sub_140E86A80 应用 |
+| 0x141BCDEE0 | 未决窗口函数 · 库条目按名解析 标签比较 + +3976 库 sub_140D3DF60/3F440 + sub_1406EA240(0x1A=26 类型) + sub_140D246C0 取值 |
+| 0x140D54360 | 未决窗口函数 · 国家条件判定 sub_140EA61C0 + 两次 sub_140BB5490(id→索引) + sub_140700600 范围检查 + +672 非空判定 |
+| 0x141ADD6C0 | 未决窗口函数 · 加锁状态变更+通知 vt+648/656 分派 + sub_140B44AC0(qword_14332F698+1272,...) + sub_140BB48F0(gamestate) + get_srw_lock 加锁 |
+| 0x1421AF240 | 未决窗口函数 · 脚本类型错误上报 串 "attempt to %s %s '%s' (a %s value)" 脚本类型错误，STRIDE 16 |
+| 0x14100C900 | 未决窗口函数 · 定点值累加+钳位 16B 对数组逐项 sub_141010360 查表 + 累加入 +8 + 钳位 ±92233720200000（=2^63/100000） |
+| 0x1413F8440 | 未决窗口函数 · trigger 条件判定 56B 记录遍历 + sub_140BB48F0(gamestate) + 修饰 528 + 定点 100000 阈值比较 |
+| 0x14070ECC0 | 未决窗口函数 · 标签项移除+后续处理 a1[497] +400 数组按 sub_140BB52F0 标签匹配尾部交换移除 + 三个后续 sub_ 调用 |
+| 0x1413F6D80 | 未决窗口函数 · trigger 计数 56B 记录遍历 + sub_140BB48F0(gamestate) + 修饰 528 + 计数低于阈值者 |
+| 0x1410210C0 | 未决窗口函数 · 求和+定点取整 数组逐项 sub_140BFEF90 取值求和 + 100000 倍数进位取整（v4>0 进位） |
+| 0x141C33990 | 未决窗口函数 · 位掩码修饰逐位累加 遍历 a2+1032 的 64 位掩码，sub_141C337C0 查槽，*v8 += a3 逐位累加 |
+| 0x141DBB680 | 未决窗口函数 · 三级回退取值 sub_14173B240/270/2A0 三级查找 (a1+3960, a1+3992)，取 +13176/+15760/+13184 |
+| 0x141C94010 | 未决窗口函数 · 标志掩码批量写 a1[2]+2640 + 四次 sub_141C96760(v6, a1[1139..1142], a2, 掩码常量) |

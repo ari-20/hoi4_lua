@@ -52,7 +52,7 @@
 | +736 | uint8 | **capitulated** | writer 键 0x3549 ↔ `capitulated=yes`; uncapitulate 0X140D45D80 置 0; GUI: 战争盟友行显示 (CWarAllyItem Refresh sub_141E7B700) |
 | +744 | CGregorianDate 24B | **capitulated_date** {vtable@+744, hours@+752, greg vtable@+760} | writer 键 0x3CB2 (定案; +736 门控) |
 | +768 | 匿名结构 (40B) | 待处理外交行动 容器数据 {data@+768, cap@+776, count@+780, alloc@+784} — (proposed), 40B 条 | 布局见 §4.10.8; 插入 0X140D34C80 |
-| +792 | CWarOverView 向量 | **当前战争一览缓存** {data@+792, cap@+800, count@+804, alloc@+808} — **48B 元 = {side1: u32 tag 向量 24B, side2: u32 tag 向量 24B}** (构建器 0X140D3C3E0(dip, out=dip+792): 从 dip+32 滤 war 关系取战争双方阵营, 无序去重插入; **四直接调用点** (0X1415D6FF0 外交视图 + CWarOverView populate 两点 + RebuildDipCaches sub_140D46650 内重建 +792); RTTI 无 CIncomingDiplomaticAction 类 — 无独立 RTTI 类) | 定案; GUI 见下方 GUI 消费表 |
+| +792 | CWarOverView 向量 | **当前战争一览缓存** {data@+792, cap@+800, count@+804, alloc@+808} — **48B 元 = {side1: u32 tag 向量 24B, side2: u32 tag 向量 24B}** (构建器 0X140D3C3E0(dip, out=dip+792): 从 dip+32 滤 war 关系取战争双方阵营, 无序去重插入; **六直接调用点** (0X1415D6FF0 外交视图 + CWarOverView populate 两点 + RebuildDipCaches sub_140D46650 内重建 +792 + 外交视图两填充器 sub_141CA4F00 CallAlly / sub_141CA54B0 JoinAlly, df365 + df403); RTTI 无 CIncomingDiplomaticAction 类 — 无独立 RTTI 类) | 定案; GUI 见下方 GUI 消费表 |
 | +816 | CRelationStatus** | **脏关系缓存** {data@+816, cap@+824, count@+828, alloc@+832} | daily 重建并逐元 attitude 刷新 (0X140D3B920; 高置信) |
 | +840 | uint8 | 脏关系缓存重建旗 | 高置信 |
 | +848 | CCurrentAutonomyStatus* | 自治 CCurrentAutonomyStatus | 见 §4.10.9; writer 0X14067AA30 |
@@ -606,6 +606,7 @@ fac 侧落点 (fac+96/+1120/+1152/+1344) 见 §4.5.7。
 | +8 | token id | **组名 token** (CPersistentWithToken 基座; 基 ctor 先置 357=none, 本类 ctor 覆写 = a2) |
 | +20 | token id | **组名 token** (ctor 同参 a2 双写, 与 +8 同命名空间同值 — 定案) |
 | +24 | SSO 串 | 组名串 = token_name(a2) |
+| +56 | u32 | 组 id 候选 (loc 取值 GetPartySupport 比对键; 语义待裁, §4.19.2a) |
 | +64 | int32 | 装载序 (ctor −1; 装载后循环赋 0..n) |
 | +1536 | uint32 | **`<ideology>_drift` 的 modifier def 索引** (该意识形态每日支持率变化; 探针 totalist=844 … national_populist=871) |
 | +1544 | uint32 | **`<ideology>_drift_from_guarantees` 的 modifier def 索引** (846/849/852/855/858/861/864/867/870/873) |
@@ -1055,7 +1056,7 @@ AI 装备分配器 (sub_1414FBC00; a4 = 目标池或 0 干跑):
 | 类 | vtable | sizeof | +8 token | ctor | writer / reader | 扩展字段 |
 |---|---|---|---|---|---|---|
 | NFactions::CAssumeFactionLeadershipAction | 0x1429E2518 | 120 | 15097 assume_faction_leadership | 0x1415FFE70 | 基类直通 0x141141470 / 0x14113E7A0 | 无 (零扩展) |
-| NFactions::CCreateFactionAction | 0x1429E2738 | 152 | 12659 create_faction | 0x1415FFFA0 | 0x141617A30 / 0x1416178C0 | +120 std::string 32B = 阵营名 (键 27 name) |
+| NFactions::CCreateFactionAction | 0x1429E2738 | 152 | 12659 create_faction | 0x1415FFFA0 | 0x141617A30 / 0x1416178C0 | +120 std::string 32B = 阵营名 (键 27 name); **[65] = 0x1416040B0 (create 接受度因子装配器, §4.10.38n); [56] = 0x1416027C0 (Apply); [64] = 0x14160C360 (AI 决策分)** |
 | NFactions::CJoinFactionAction | 0x1429E2958 | 128 | 12243 join_faction | 0x141600240 | 基类直通 | +120 u8 (不序列化, AI 瞬态旗); **[65] = 0x1416061A0 = join 接受度因子装配器 (§4.10.38l, 19 因子 + 4 委托组); [64] = 0x14160CB10 (DR_PREFER_OTHER_FACTION 扫描评估分)** |
 | NFactions::COfferJoinFactionAction | 0x1429E2B78 | 136 | 12244 offer_join_faction | 0x1416005D0 | 0x141617A80 / 0x1416178F0 | +120 u8 (键 10260 confirm; [65] 行为 = DR_STRATEGIC_ALLIANCE +10000 门, 语义推定「已结盟直邀」) / +124 i32 war_with tag (键 10800, 门 >0; 本函未消费) / +128 u8 (不序列化; [65] 行为 = 跳过 DR_PREFER_OTHER_FACTION 扫描门) |
 | NFactions::CKickFromFactionAction | 0x1429E2D98 | 120 | 14426 kick_from_faction | 0x141600380 | 基类直通 | 无 |
@@ -1914,11 +1915,11 @@ MINOR/MAJOR_FACTOR (0x143333FF0/F20) / COMPLIANCE_STEPS (0x143338620) / REFUND_F
 
 | 函数 | 行数 | 体内锚 | 定性 |
 |---|---|---|---|
-| sub_141522170 | 288 | :95 断言 "Bad army" (B51, 闩 byte_14338A84B) + ref.h:83 + gamestate.h:1116/1117 | CVolunteerForceTransfer 读档字段分发器 (CPersistent 槽[4] 型) |
+| sub_141522170 | 288 | :95 断言 "Bad army" (B51, 闩 byte_14338A84B) + ref.h:83 + gamestate.h:1116/1117 | CVolunteerForceTransfer 读档字段分发器 (CPersistent 槽[4] 型; **func_names sym 直证 = CVolunteerForceTransfer::Reader**) |
 | sub_141522750 | 112 | :409/:418 断言 | 志愿军移交接管执行体 |
 | sub_141522BE0 | 514 | :793/:851/:888 日志 + :799 断言 (闩 byte_14338A84E) | StartTransfer 本体 |
 
-**读档 11 键互证** (§4.10.19 writer 表全符): to→T+8 / from→T+12 (名串经 gs+856 名表查 tag) / days→T+40 / sender→T+44 / group→T+52 / force→T+144 / target_provinces→T+48 / group_color→T+80 / group_name→T+112 / leader→T+56/+60 / leader_unit→T+64/+68。**division (471) 新定案 = 读档侧内联整建 CArmy**: malloc 1672 → **ctor sub_140C6D470 = CArmy ctor** (四基表; +840 起装备/人力子块); **owner = sender (T+44) 非 0 → from 国, 否则 to 国**; 嵌套块经 CArmy 槽[3] Load wrapper Parse; vtable 槽[23] 假 = 空军 → :95 "Bad army" 断言 → DeleteUnit (sub_1401D6690) 立删; 真 → division CRef 写 T+16 + 军注册属主 (army+496) + 入战区。
+**读档 12 键互证** (§4.10.19 writer 表全符, token id 数值逐一咬合): to→T+8 / from→T+12 (名串经**国家库 qword_143330D98** 的 FNV-1a 还原 tag — sub_14071BC80 名→索引 + sub_14071BD10 取条目首 u32; 读档早期 gs+856 `_CountryLinkTags` 串表未构建, 故绕过正规串→link 入口 sub_1401DA870 直调国家库 — 与 writer 侧 `rp(gs+856)+32*tid` 取串路径**不对称**) / days→T+40 / sender→T+44 / group→T+52 / force→T+144 / target_provinces→T+48 / group_color→T+80 / group_name→T+112 / leader→T+56/+60 / leader_unit→T+64/+68。**division (471) 新定案 = 读档侧内联整建 CArmy**: malloc 1672 → **ctor sub_140C6D470 = CArmy ctor** (四基表; 基 ctor sub_140BF8B50 类型号 0; +840 起装备/人力子块); **owner = sender (T+44) 非 0 → from 国, 否则 to 国**; 嵌套块经 **CArmy+16 子对象 (第二基, vtable 0x14295A490) vtable[3] Load wrapper** Parse; **主 vtable (0x14295A2B0) 槽[23]** 假 = 空军 → :95 "Bad army" 断言 → DeleteUnit (sub_1401D6690) 立删; 真 → division CRef 写 T+16 + **从 *(army+496) 的省在场四表摘除该师 (sub_140E7FA10 = CProvince::RemoveUnit; 主表 data@+224/count@+236 + 分型 +248/+272/+296, §4.18.20)** + **取件器 sub_140BF9660 = *(army+672) 非空时 sub_140F00A60 从该宿主军数组 (data@+104/count@+116) swap-tail 移除** ( ctor 默认归属地摘出, 保持“转移中”纯容器态; 真正入战区在 StartTransfer 本节 / 到期交接 sub_141522750)。
 
 **编组接管** (sub_141522750; 门 = group 旗 ∧ count > 0): 首军战区空 → :409 断言 → **sub_140EF1180(theatre, 0, 组名, 组色, 0) = 东道侧新建编组** (承 §4.10.19 快照) → 逐军同战区并入 (异战区 :418 断言) → 新组非空 ∧ leader 解析成功 ∧ **leader 无现任 HQ** (+4168/+4172 全零) → 栈构 64B → **sub_14184B2E0 = CSetArmyLeaderCommand::Execute** 派令 → leader_unit 解析 ≠16 → sub_140BF5BC0; 新组空 → 释放。唯一调用方 = sub_141520DE0 到期日 tick (days 每日 −1; 失效条目 swap-删; 到期走省查找交接 (失败回退 (from,to)→(from,from)) → 逐军 vtable[29] 传送 + vtable[22] 重算 → 本函; 失败次日重试)。
 
@@ -1932,7 +1933,7 @@ MINOR/MAJOR_FACTOR (0x143333FF0/F20) / COMPLIANCE_STEPS (0x143338620) / REFUND_F
 | 0x141513480 | 157 | :126 空表前置 / :138 查重 "Division already in transfer." | _DivisionsInTransfer 追加器 (AddDivisions) |
 | 0x1415137F0 | 75 | :485/:502 日志 (byte_143452529 门) | StartTransfer 转隶执行 |
 
-reader 六键 (与 §4.10.19 writer 表咬合): to 10640 → +8 / from 10639 → +12 / days 10605 → +40 / is_to_host 15042 → +44 / target_provinces 11541 → +48 / division 471 → 逐条; 其余落基类分发 sub_1424BEC40。布局 56B 恰满: _DivisionsInTransfer = CRef<CArmy> CID 8B 元数组 {data@+16, cap@+24, count@+28, allocator*@+32} (writer 只写 {count, data} 对) / +52..+55 填充。**division 装载 = CArmy 内联整建** (与 §4.10.38 志愿军同构): malloc 1672 → ctor sub_140C6D470 → 槽[3] Parse → 槽[23] 校验, 失败 debug_assert "Bad army" (:84) + sub_1401D6690 删除; **归属 tag 由 is_to_host 选择 (≠0 → from, ==0 → to)** — 志愿军侧用 sender (+44), 两族分叉点。通过 → CID push + army+496 属主注册 (sub_140E7FA10) + sub_140BF9660 非零时 sub_140F00A60 入战区。
+reader 六键 (与 §4.10.19 writer 表咬合): to 10640 → +8 / from 10639 → +12 / days 10605 → +40 / is_to_host 15042 → +44 / target_provinces 11541 → +48 / division 471 → 逐条; 其余落基类分发 sub_1424BEC40。布局 56B 恰满: _DivisionsInTransfer = CRef<CArmy> CID 8B 元数组 {data@+16, cap@+24, count@+28, allocator*@+32} (writer 只写 {count, data} 对) / +52..+55 填充。**division 装载 = CArmy 内联整建** (与 §4.10.38 志愿军同构): malloc 1672 → ctor sub_140C6D470 → 槽[3] Parse → 槽[23] 校验, 失败 debug_assert "Bad army" (:84) + sub_1401D6690 删除; **归属 tag 由 is_to_host 选择 (≠0 → from, ==0 → to)** — 志愿军侧用 sender (+44), 两族分叉点。通过 → CID push + 从 *(army+496) 的省在场四表摘除 (sub_140E7FA10) + *(army+672) 非空时 sub_140F00A60 从该宿主军数组 (data@+104/count@+116) swap-tail 移除 (§4.10.38 同构)。
 
 StartTransfer (0x1415137F0): target_provinces(+48) ← a2+164 (上游字段未决); from tag → 国对象; 人机日志文案 (AI/NOAI × humanai/nohumanai — human_ai 全局旗 byte_14332F639 再证); 逐 CID 解析 (失败置 0 跳过) → sub_140BFB4A0 + 属主挂接 + **sub_140710140(from国, army) 转隶**; sub_1406FFDB0(from国) 真 → 日志 "RemoveReferences" (:502) → sub_1406CF0E0 → sub_1402AC3C0 引用清除 (门条件未决)。
 
@@ -2023,7 +2024,7 @@ CU = `hoi4\source\peaceconference\peacewinnerai.cpp`。操作对象 = CConferenc
 | DR_PREFER_OTHER_FACTION | 被邀无阵营 ∧ !a1+128: 扫 gs+1016 阵营管理器 mgr+32/+44, 栈构 CJoinFactionAction (120B, token 12243) 评估 vtable[64] 分 (= 0x14160CB10; 0x14160D180 属 COfferJoinFactionAction[64], PE 双 vtable 直证), po 异减半 / 领袖关系 +656/+664 非零倍增, 取最大 ≠ 邀请方阵营才发 | dword_143335868 | DIPLO_PREFER_OTHER_FACTION |
 | DR_DISTANCE_BETWEEN_CAPITALS | sub_141600C90 装配器 | 计算值 | — |
 
-**对象偏移组 (消费形态定案)**: country **+3984** = 外交/政治包装指针 (sub_1406CF890 直读; 链 +3984→+208→+24 = 意识形态对象) / **+1464** = 意识形态接受度矩阵 (按对方 po+1540 索引, 1e-5 定点) / +5210 major 旗 / **+4872** = 政变协助国 tag; 意识形态旗 +1540 id / +1568 (DR_MAJOR −50) / +1570 (DR_MAJOR −30 与 SCARED_MINOR 资格) / +1571 (中立块); dip +32/+44 在战关系向量 (元素+8 == token 14346, sub_140D3FD60) / +152/+164 tag|war 列表 / +176/+188 战 id 数组 / +656/+664 关系条目旗; faction +88 领袖载体→+8 tag / **+2072** 实力投影 raw; gs+1016 阵营管理器。哨兵 43808760 (CGameDate ctor) 再添被踢日期消费例。
+**对象偏移组 (消费形态定案)**: country **+3984** = 外交/政治包装指针 (sub_1406CF890 直读; 链 +3984→+208→+24 = 意识形态对象) / **+1464** = 意识形态接受度矩阵 (按对方 po+1540 索引, 1e-5 定点) / +5210 major 旗 / **+4872** = 政变协助国 tag; 意识形态旗 +1540 id / +1568 (DR_MAJOR −50) / +1570 (DR_MAJOR −30 与 SCARED_MINOR 资格) / +1571 (中立块); dip +32/+44 在战关系向量 (元素+8 == token 14346, sub_140D3FD60) / +152/+164 tag|war 列表 / +176/+188 tag 数组 (sub_1401B0250 按 tag + 原初归一查) / +656/+664 关系条目旗; faction +88 领袖载体→+8 tag / **+2072** 实力投影 raw; gs+1016 阵营管理器。哨兵 43808760 (CGameDate ctor) 再添被踢日期消费例。
 
 #### 4.10.38i 派遣志愿军威胁发射执行器 (1 函 = 0x1411095F0, 结构定案)
 
@@ -2128,7 +2129,7 @@ define 配对 (defines_map_1193 逐项核):
 | 0x143332FD0 | DIPLOMACY_COMMUNIST_NOT_NEIGHBOUR | DR_COMMUNIST_NOT_NEIGHBOUR | 负 |
 | 0x143331170 | JOIN_FACTION_BOTH_LOSING | DR_FACTION_BOTH_LOSING_WAR | 负 |
 
-> 待裁: DR_FACTION_TENSION 的 100000 量化段舍入方向 (对正值看似 no-op, 疑伪码失真); sub_14160E250 参数方向 (本处 (recipient, actor) vs [64] 处 (actor, recipient)); po+1568/+1569 旗的意识形态归属; sub_141600820 尾参语义差 (join 1 / offer 10)。未决: define 槽 PE 静态读值与游戏值不符 (疑运行期 CDefines 解析 00_defines.lua 填入, 静态槽不持值)。
+> 待裁: sub_14160E250 参数方向 (本处 (recipient, actor) vs [64] 处 (actor, recipient)); po+1568/+1569 旗的意识形态归属; sub_141600820 尾参语义差 (join 1 / offer 10)。未决: define 槽 PE 静态读值与游戏值不符 (疑运行期 CDefines 解析 00_defines.lua 填入, 静态槽不持值)。
 
 #### 4.10.38m 未交战相关国家 tag 收集器 (sub_141957200, 定案)
 
@@ -2184,3 +2185,774 @@ define 配对 (defines_map_1193 逐项核):
 | sub_140E157F0 | if (a3 == 8) 分支, 结果经 sub_140157780 转赋 | 调用者 B; a3 == 12 的姐妹件 = sub_141955EB0 (体未读) |
 
 > 待裁: 两调用者的 a3 枚举语义 (8/12 两档 = 哪两种外交视图/地图模式); 姐妹件 sub_141955EB0 本体; 排序族四件的算法细节; unk_143334850 是否 define 槽。
+
+#### 4.10.38n CCreateFactionAction AI 接受度因子装配 (1 函 = 0x1416040B0 = slot[65], 类归属高置信 / 因子链定案)
+
+0x1416040B0 (CCreateFactionAction* a1, 因子条目出表 a2, 带文案旗 a3): 计算「被邀国是否接受共建新阵营」因子清单, 尾 `return vtable[35](a1, a2)` (基实现 0x1410FFB40 关系累加求和); 首调基座 sub_14110DC10 (DR_AI_CHEAT / DR_AI_UNABLE_TO_ACCEPT / DR_BASE_RELUCTANCE, §4.10.13 [65] 行)。**类归属 = 高置信** (PE vtable 第三方记录 0x1429E2738+520 + 语料内 ctor 0x1415FFFA0 / Apply 0x1416027C0 / clone 152B 同簇佐证; dump 无 vtable 数据段, 语料内无 [65] 槽位直证); **因子链 = 定案** (体直证 + 与 §4.10.38h/§4.10.38l 逐项对上)。Apply 0x1416027C0: type==2 (ACCEPT) ∧ 被邀国无阵营 (dip(recipient)+656 == 0) ∧ 有 OwnedStates (cc(recipient)+1156 > 0) → CreateFaction sub_140D91E00(facsys, a1+24 原初发起国 tag, a1+120 阵营名) → sub_14118BA30(被邀国, faction, 1) 加入 → 发 on_faction_formed + X_JOINS_FACTION_THREAT。
+
+四国句柄同 §4.10.38l (+20 actor / +24 original_actor / +28 recipient / +32 original_recipient); 全函只读四 tag, **从不读 a1+120** (与族表 +120 = 阵营名串相容; join/offer 的 +120 是 u8 旗, 其 [65] 会消费)。
+
+**20 步因子表** (步序 = 体序):
+
+| 因子 | 条件 | 分值 |
+
+|---|---|---|
+
+| (基座) DR_AI_CHEAT / DR_AI_UNABLE_TO_ACCEPT / DR_BASE_RELUCTANCE | 无条件 (sub_14110DC10) | 基座定义 |
+
+| DR_THEM_PUPPET | sub_140D25830(relation(orig_recipient → orig_actor)) 傀儡关系 | +1000 |
+
+| DR_US_PUPPET | sub_140D25830(relation(orig_actor → orig_recipient)) 傀儡关系 | **−100** (offer = +20, 字面量 0xFFFFFF9C) |
+
+| DR_US_HELPED_THEM_WITH_COUP | country(orig_recipient)+4872 == orig_actor tag (∨ 双非空 ∧ 同原初国 sub_140BB52F0) | dword_143337B30 |
+
+| DR_IDEOLOGICAL_ACCEPTANCE | 见公式; 值 ≠ 0 才发 | 计算值 |
+
+| DR_STRATEGIC_HOSTILITY | 策略查询 id 1 (recipient 侧) −max(0, v) ≠ 0 | −max(0, q(1)) |
+
+| DR_STRATEGIC_ALLIANCE / DR_STRATEGIC_NOT_ALLIANCE | 策略查询 id 6 ≠ 0 | q(6) 原值 (>0 / ≤0 分发) |
+
+| (组) DR_STRATEGIC_CONTAIN 族 | actor ∨ recipient 为本阵营领袖 (dip+656→faction+88→+8 tag 等于本国 tag ∨ 同原初国) | sub_141600820(actor 国, recipient 国, a2, dip(actor)+152, dip(recipient)+152, a3, **1**) |
+
+| (组) DR_OPINION | opinion(recipient → actor) / 10 ≠ 0 (sub_1406F4490 读 rs+768 cached_sum) | opinion / 10 |
+
+| (组) DR_OPINION_DIPLOMATIC_PRESSURE | 同组, 无领袖短路 (本函直调 sub_141600FC0 传 a4=0) | 压力值 >> 15 (sub_1424ED3F0) |
+
+| DR_FACTION_TENSION | po(orig_actor) == po(orig_recipient) ∧ 紧张度 × 100 > 0 | 量化(qword_143333E98 × 100 × 紧张度 / 1e5), **向零取整** |
+
+| DR_FACTION_WRONG_IDEOLOGY | po 异 ∧ ¬中立旗 | −(量化(2 × 紧张度包) + dword_143333CA8) |
+
+| DR_FACTION_NEUTRALITY | 立中立旗 po(orig_recipient)+1571 (同 po / 异 po 皆可) | −(dword_143333DF8 + min(100, 量化(紧张度包))) |
+
+| DR_STRATEGIC_NEUTRALITY_THREAT | 步 13 落点 ∧ 策略查询 id 13 (orig_recipient 对 orig_actor) > 0 ∧ ¬休战 sub_140D24990 | +min(100, q(13)) |
+
+| DR_ATTITUDE (单对) | relation(orig_recipient → orig_actor): ¬vt[10] ∧ ¬vt[11] ∧ vt[12] (WantsAlly) | **+20** |
+
+| DR_ATTITUDE (逐敌循环) | 遍历 dip(orig_actor)+152/+164 交战国, 取 relation(orig_recipient → 第三国) 态度 | vt[10] **+20 并中断扫描** / vt[11] +20 / vt[12] −50 / vt[14] −10 |
+
+| DR_FACTION_NEITHER_AT_WAR | 双方均和平 (sub_140D3FD60) | −30 |
+
+| DR_FACTION_SAME_WAR | 双方在战 ∧ dip(recipient)+176 同战数组命中 ∧ ¬直接互战 (sub_140700570) | +100 |
+
+| DR_FACTION_BOTH_LOSING_WAR | 双方在战 ∧ 非同战 ∧ 战局分 sub_140D36020 双侧均 < 50000 | dword_143331170 (负) |
+
+步 12/13 分支: po 同 ∧ ¬中立 → 两因子皆跳; po 同 ∧ 立中立 → 仅 13; po 异 ∧ ¬中立 → 仅 12; po 异 ∧ 立中立 → 仅 13。步 14 只从 13 的落点进入。
+
+**关键公式** (量化与取数链):
+
+| 因子 | 公式 |
+
+|---|---|
+
+| DR_IDEOLOGICAL_ACCEPTANCE | 基值 = sub_14055E360(cc(recipient)+1464 矩阵, po(orig_actor)+1540 id) / 1e5; po(cur actor) ≠ po(cur recipient) → −1000; cc+1640+75 旗 (sub_1406F8410(actor)) 置 → 豁免第一罚; recipient 同旗未置 → 再 −1000; 非 0 才发 |
+
+| DR_FACTION_TENSION | v = 100 × 世界紧张度 (sub_1401DBE50); v > 0 → hi-mul 魔数 0x29F16B11C6D1E109 (ceil(2^78/1e5), 总移位 78) 后 `v112 = v111 + (v111>>63)`, 余数非 0 则截断 = **向零取整** (正支截断丢弃 sub-1e5 余数, 负支进位; 与 sub_1424ED730 的就近量化不同); 同式同系数见 §4.10.38h/§4.10.38l |
+
+| 紧张度包 (步 12/13) | sub_1401DB350(gs, out, &cc(orig_recipient)+8) = **原初被邀国已添加的世界紧张度** (gs+1712 CWorldThreat → +40 数组按 tag 下标 qword, 钳 0..10000000; §4.32 has_added_tension_amount 同入口) |
+
+| 策略链 (步 6/7/14) | cc(recipient) → vt[+72] (slot 9, 推定 identity getter 返 country 本身) → sub_1406CF0E0(*(+552) = CCountryAI*) → +104 对象 vtable slot[4] (+32) → fn(obj+104, id, idx(对侧 tag), 0); ids = 1 敌意 / 6 结盟 / 13 中立威胁; 步 14 链与 idx 均用原初双侧 |
+
+**三变体定位** (对 §4.10.38h offer / §4.10.38l join): 共用 THEM_PUPPET(+1000) / US_HELPED_THEM_WITH_COUP / IDEOLOGICAL_ACCEPTANCE / STRATEGIC 族 / CONTAIN 组 (尾参 1 = join 同) / FACTION_TENSION / WRONG_IDEOLOGY / NEUTRALITY / NEUTRALITY_THREAT / ATTITUDE 双形 / SAME_WAR / BOTH_LOSING / NEITHER_AT_WAR; **本族差异**: DR_US_PUPPET = −100 (offer +20) / 无 DR_STRATEGIC_ALLIANCE +10000 门 / 无 DR_PREFER_OTHER_FACTION / 无 offer 专属 UNSTABLE / MAJOR / KICKED / SURRENDER / CIVIL_WAR / AT_WAR_WITH_ALLY / WAR_RELUCTANCE_WAR / MODIFIER / DISTANCE_BETWEEN_CAPITALS / POWER_PROJECTION; **新增 DR_OPINION 组** (经 sub_141600FC0, join 侧经 wrapper sub_141600F40 发射)。
+
+**US/THEM loc 标签方向 (逐键非统一, 体直证)**: 傀儡/政变类 (DR_THEM_PUPPET / DR_US_PUPPET / DR_US_HELPED_THEM_WITH_COUP) US = 发起国、THEM = 被邀国; 立场类 (DR_OPINION / 压力 / DR_STRATEGIC_HOSTILITY / _ALLIANCE / _NOT_ALLIANCE / DR_IDEOLOGICAL_ACCEPTANCE / DR_STRATEGIC_NEUTRALITY_THREAT) US = 被邀国 (评估视角)、THEM = 发起国; DR_ATTITUDE US = 被邀国形容词 (cc+48), THEM = 态度目标国 (单形 = 发起国 definite 名 cc+80; 循环形 = 第三国名)。
+
+**新档函数**: sub_141600FC0 = DR_OPINION + DR_OPINION_DIPLOMATIC_PRESSURE 组本体 (opinion/10 ≠ 0 发 DR_OPINION; a4==0 时再发压力 >>15) / sub_141600F40 = 其 wrapper (领袖短路门, §4.10.38l 委托组) / sub_140D22030 = rs+792 CAIAttitude* getter / 外交压力链三件 (sub_1406F98C0 = gs+212 管理器宿主 sub_140EB2E80(mgr, &cc+8); sub_1411F6210 / sub_1411F6240 = 压力计算两形; sub_1424ED3F0 = fixed→整型)。
+
+未决 6 项: ① 类归属语料内直证 (需 PE 侧 0x1429E2738+520 复读或运行时 vtable dump 升定案); ② 外交压力链层级语义与 >>15 量纲未逐层展开 (推定 = 国别意见修正 + fixed→整型); ③ CCountry vt[+72] (slot 9) 真身 (推定 identity getter, 未排除等布局包装对象); ④ sub_141600820 (CONTAIN 组) 内部因子未展开 (§4.10.38l 亦未展开); ⑤ 态度循环 vt[10] 命中即 break 的跨族差异是否有意设计 (join 同 break 形但分值异 +10/+10/−50/−20); ⑥ 步 4 门用原初双侧 / 文案用当前双侧 (跨族同形, 语义 = 原初关系判定 + 当前名显示, 未运行时验证)。
+
+#### 4.10.39 政治外交域函数补遗（25 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406C1AE0 | （未命名）NATIONAL_FOCUS_NO_CURRENT_EFFECT NATIONAL_FOCUS_NO_CURRENT_EFFECT，国家焦点当前效果 |
+| 0x1403F01A0 | CHasAvailableOrAllowedIdeaWithTraitsTrigger<$00>::[21] CHasAvailableOrAllowedIdeaWithTraitsTrigger<$00>::[21] + TRIGGER_HAS_(NOT_)AVAILABLE_IDEA_WITH_TRAITS … |
+| 0x141C178E0 | NFactions::NUi::CGoalItem::[0] NFactions::NUi::CGoalItem::[0] + CATEGORY / FACTION_ADD_GOAL / FACTION_GOAL / FACTION_GOAL_ITEM_TOOLTIP（阵营目标项） |
+| 0x1401474B0 | sub_1401474B0 NFactions::CFactionGoal 构造（正文 vtable+CProgress 子对象） |
+| 0x140344A00 | CAddRemoveDynamicModifierEffect<$0A>::[13] CAddRemoveDynamicModifierEffect<$0A>::[13] + "modifier does not exist" / "invalid scope"（动态修正增删 effect） |
+| 0x141191720 | Reader ideology.cpp:84；"no random ideology available for group %s"，意识形态反序列化 |
+| 0x140724250 | sub_140724250 CDecision 三 vtable 析构：清 a1+3344/3360 等多个成员 string（CDecision 生命周期） |
+| 0x14160EAE0 | NFactions::CJoinFactionAction::[17] NFactions::CJoinFactionAction::[17] + COUNTRY / DIPLOMACY_MESSAGE_OTHERS_TITLE / FACTION（加入阵营动作） |
+| 0x1413A3830 | sub_1413A3830 ideology_support_trigger + "Usage: <Ideology> < <float>"（意识形态支持度触发器） |
+| 0x1411F9540 | （未命名）调用链含 vtable `CModifier` + MODIFIER_IDEOLOGY_DRIFT_FROM_BOOST_IDEOLOGY_OPERATIVE_MISSION 调用链含 vtable `CModifier` + MODIFIER_IDEOLOGY_DRIFT_FROM_BOOST_IDE… |
+| 0x141BA6EB0 | （未命名）NFactions::CCreateFactionTheater 构造 NFactions::CCreateFactionTheater 构造（vftable 赋值 + a1+48 串构造） |
+| 0x140D8CD90 | sub_140D8CD90 faction.cpp:1190（on_become_faction_member 派系成员事件） |
+| 0x140E33B00 | sub_140E33B00 和平会议（peaceconference.cpp:2787，Conference.HasWinner/ConflictingClaim 谈判定案） |
+| 0x1411862F0 | sub_1411862F0 派系创建外交规则（DIPLOMACY_FACTION_UNAVAILABLE_US_PUPPET/DIPLOMACY_CREATE_FACTION_NOT_RULE） |
+| 0x140C17B80 | （无名） modifier.h 修正器（断言站点 modifier.h:1191） |
+| 0x14204A5B0 | （未命名）gamestate.h:1125 门控 + loc 串 REPLY_YES/RE gamestate.h:1125 门控 + loc 串 REPLY_YES/REPLY_NO（外交请求应答） |
+| 0x14118D4C0 | （未命名）串 "Invalid faction upgrade" 串 "Invalid faction upgrade"（派系升级校验） |
+| 0x1413F3140 | CReducedFocusCost::[2] CReducedFocusCost::[2]，pdx_robin_hood_table.h:58（国策成本降低容器） |
+| 0x141C4F030 | （无名） vftable 类 CIdeaFolder::（政治/外交） |
+| 0x141C61FE0 | （未命名）GUI 串 "autonomy_country_name"/"autonomy_ GUI 串 "autonomy_country_name"/"autonomy_country_flag"（自治附庸名/旗） |
+| 0x14118A2B0 | （未命名）loc 串 FACTION_LEADER_BONUS_INFLUENCE/CON loc 串 FACTION_LEADER_BONUS_INFLUENCE/CONTRIBUTION_INFLUENCE/INDUSTRIAL_CAPACITY_INFLUENCE/WAR_SCORE_INFLUENCE（派… |
+| 0x1414E80C0 | CDiplomaticMessage::[1] CDiplomaticMessage::[1]，串 "DECLINE_"/"START_"/"STOP_"（外交消息模板） |
+| 0x1406C2960 | （未命名）loc 串 CONTINUOUS_FOCUS_LOCKED_DESC/CONTI loc 串 CONTINUOUS_FOCUS_LOCKED_DESC/CONTINUOUS_FOCUS_UNLOCKED_DESC/LEFT（连续国策锁定） |
+| 0x141132AB0 | CGiveStateControlAction::CanExecute CGiveStateControlAction::CanExecute，串 DIPLOMACY_GIVESTATECONTROL_NOT_SAME_FACTION/_NOT_SAME_WAR（移交州控制权） |
+| 0x141ADB010 | （无名） vftable 类 NFactions::NUi::CFactionCountryListWindow::（政治/外交） |
+
+#### 4.10.40 政治外交域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413F1230 | （无名）character_template.cpp:299 + is not a valid ideology. + tries to cumulate 2 times the same ideology character_template.cpp:299 + is not a valid ideology.… |
+| 0x141C48750 | （无名，按上游/loc 定性） loc "name\ leading_pol_party_bg" |
+| 0x1411A47D0 | （无名）POLITICS_ELECTION_FREQUENCY + MONTHS 键 POLITICS_ELECTION_FREQUENCY + MONTHS 键 |
+| 0x1410DD970 | （无名，按上游/loc 定性） civilwar.cpp:247 断言 |
+| 0x141585C20 | （无名，按上游/loc 定性） loc "continuous_small_glow\ pol_power_icon\ drop_continuo*" |
+| 0x140A481D0 | vtable/RTTI 类 CIdeologyGroup sub_140A481D0 + vtable/RTTI 类 CIdeologyGroup |
+| 0x140E550F0 | vtable/RTTI 类 CPowerBalanceSystem sub_140E550F0 + vtable/RTTI 类 CPowerBalanceSystem; 被调源码 hoi4 |
+
+#### 4.10.41 政治外交域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140ADC7D0 | sub_140ADC7D0（无名） gamestate.h:1125 + "ThreadIsMainThread()" ingameinterfacehandler.h 断言，紧邻 CTimedWargoalActivity::Reader/CBaseTimedActivity::Writer，定时战争目标活动 … |
+
+#### 4.10.42 政治外交域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F15440 | （无名，按证据定性） 键 FACTION_CHANGE_RULE_ITEM_COST + VALUE（阵营规则代价） |
+| 0x140E33560 | 和会冲突声明裁决 peaceconference.cpp:2787 + "Conference.HasWinner( ConflictingClaim._Action->GetNegotiator() )" 断言 |
+| 0x140E32980 | 和会竞标回合 "BiddingTurns.GetSize() > TurnNumber - 1"，peaceconference.cpp:1802 |
+| 0x140D34290 | CDiplomacyStatus::[0] vtable 槽 CDiplomacyStatus::[0]（func_names RTTI 名） |
+
+#### 4.10.43 政治外交域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.10.44 政治外交域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D33640 | （无名） 体设 CDiplomacyStatus::vftable（RTTI 名） |
+
+#### 4.10.45 政治外交域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.10.46 政治外交域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413B5C90 | 市场准入权外交动作 vtable=NInternationalMarket::CRequestMarketAccessRightsAction + diplomaticaction.h 断言 |
+
+#### 4.10.47 政治外交域函数补遗（319 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14024ADC0 | （无名） 调用图传播: 82 锚点投 §4.10（51%） |
+| 0x140E3E700 | （无名） 调用图传播: 82 锚点投 §4.10（51%） |
+| 0x141AE0280 | （无名） 调用图传播: 94 锚点投 §4.10（59%） |
+| 0x141AEFE20 | （无名） 调用图传播: 76 锚点投 §4.10（54%） |
+| 0x141988080 | （无名） 调用图传播: 89 锚点投 §4.10（53%） |
+| 0x14158B3C0 | （无名） 调用图传播: 40 锚点投 §4.10（50%） |
+| 0x140076440 | （无名） 调用图传播: 71 锚点投 §4.10（59%） |
+| 0x141544F90 | （无名） 调用图传播: 48 锚点投 §4.10（54%） |
+| 0x140529D70 | GetDesc 调用图传播: 51 锚点投 §4.10（53%） |
+| 0x1417F7390 | （无名） 调用图传播: 62 锚点投 §4.10（50%） |
+| 0x141B550B0 | （无名） 调用图传播: 40 锚点投 §4.10（55%） |
+| 0x141B65C20 | （无名） 调用图传播: 36 锚点投 §4.10（58%） |
+| 0x14130A740 | （无名） 调用图传播: 86 锚点投 §4.10（55%） |
+| 0x141B19630 | （无名） 调用图传播: 60 锚点投 §4.10（58%） |
+| 0x141B4A950 | （无名） 调用图传播: 60 锚点投 §4.10（53%） |
+| 0x140F1BB10 | （无名） 调用图传播: 54 锚点投 §4.10（50%） |
+| 0x141AE7380 | （无名） 调用图传播: 24 锚点投 §4.10（50%） |
+| 0x140290EC0 | （无名） 调用图传播: 40 锚点投 §4.10（52%） |
+| 0x140EDA380 | （无名） 调用图传播: 48 锚点投 §4.10（50%） |
+| 0x140BC0DD0 | （无名） 调用图传播: 67 锚点投 §4.10（52%） |
+| 0x140536A10 | （无名） 调用图传播: 98 锚点投 §4.10（51%） |
+| 0x140B49A40 | （无名） 调用图传播: 72 锚点投 §4.10（60%） |
+| 0x1413BD100 | （无名） 调用图传播: 33 锚点投 §4.10（52%） |
+| 0x141AE7D60 | （无名） 调用图传播: 22 锚点投 §4.10（50%） |
+| 0x1419420E0 | （无名） 调用图传播: 41 锚点投 §4.10（54%） |
+| 0x1419F6AA0 | （无名） 调用图传播: 27 锚点投 §4.10（56%） |
+| 0x141B0EBE0 | （无名） 调用图传播: 30 锚点投 §4.10（53%） |
+| 0x141F691A0 | （无名） 调用图传播: 73 锚点投 §4.10（51%） |
+| 0x140278650 | （无名） 调用图传播: 34 锚点投 §4.10（59%） |
+| 0x141B67320 | （无名） 调用图传播: 21 锚点投 §4.10（62%） |
+| 0x1419F5F20 | （无名） 调用图传播: 32 锚点投 §4.10（50%） |
+| 0x141AE1A10 | （无名） 调用图传播: 22 锚点投 §4.10（68%） |
+| 0x141AF3970 | （无名） 调用图传播: 30 锚点投 §4.10（63%） |
+| 0x141D537B0 | （无名） 调用图传播: 24 锚点投 §4.10（50%） |
+| 0x140B2C3A0 | （无名） 调用图传播: 33 锚点投 §4.10（52%） |
+| 0x140B431F0 | （无名） 调用图传播: 52 锚点投 §4.10（60%） |
+| 0x141917BB0 | （无名） 调用图传播: 30 锚点投 §4.10（60%） |
+| 0x1417DA6D0 | （无名） 调用图传播: 15 锚点投 §4.10（73%） |
+| 0x1410F1390 | （无名） 调用图传播: 36 锚点投 §4.10（64%） |
+| 0x140A56730 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141ECEAD0 | （无名） 调用图传播: 29 锚点投 §4.10（52%） |
+| 0x14029A2A0 | （无名） 调用图传播: 35 锚点投 §4.10（51%） |
+| 0x140B394B0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14133B0C0 | （无名） 调用图传播: 20 锚点投 §4.10（50%） |
+| 0x141EFD530 | （无名） 调用图传播: 23 锚点投 §4.10（52%） |
+| 0x140BD9800 | （无名） 调用图传播: 19 锚点投 §4.10（53%） |
+| 0x141873530 | （无名） 调用图传播: 11 锚点投 §4.10（64%） |
+| 0x141EAA2D0 | （无名） 调用图传播: 20 锚点投 §4.10（50%） |
+| 0x140FB5270 | （无名） 调用图传播: 17 锚点投 §4.10（53%） |
+| 0x140C155A0 | （无名） 调用图传播: 25 锚点投 §4.10（52%） |
+| 0x141D37C20 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x140B89710 | （无名） 调用图传播: 16 锚点投 §4.10（50%） |
+| 0x141AEA7F0 | （无名） 调用图传播: 21 锚点投 §4.10（52%） |
+| 0x141FC8DC0 | （无名） 调用图传播: 11 锚点投 §4.10（55%） |
+| 0x1420779F0 | （无名） 调用图传播: 16 锚点投 §4.10（50%） |
+| 0x14177E4F0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x1416DA320 | （无名） 调用图传播: 12 锚点投 §4.10（75%） |
+| 0x141B0C160 | （无名） 调用图传播: 16 锚点投 §4.10（50%） |
+| 0x1424EEFE0 | （无名） 调用图传播: 9 锚点投 §4.10（56%） |
+| 0x141AEE250 | （无名） 调用图传播: 10 锚点投 §4.10（60%） |
+| 0x1401DBE80 | （无名） 调用图传播: 16 锚点投 §4.10（56%） |
+| 0x141951CA0 | （无名） 调用图传播: 17 锚点投 §4.10（53%） |
+| 0x141CD92C0 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x141BCCE20 | （无名） 调用图传播: 22 锚点投 §4.10（64%） |
+| 0x141F6A950 | （无名） 调用图传播: 10 锚点投 §4.10（60%） |
+| 0x141CD9840 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x14061B810 | （无名） 调用图传播: 12 锚点投 §4.10（50%） |
+| 0x141E90BF0 | （无名） 调用图传播: 10 锚点投 §4.10（50%） |
+| 0x1402BA430 | （无名） 调用图传播: 6 锚点投 §4.10（67%） |
+| 0x14191B6C0 | （无名） 调用图传播: 13 锚点投 §4.10（77%） |
+| 0x141F57540 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x141D88BC0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1409C9EE0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x1402E29C0 | （无名） 调用图传播: 9 锚点投 §4.10（56%） |
+| 0x14128D650 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x1415EFCE0 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x14226FDB0 | （无名） 调用图传播: 14 锚点投 §4.10（79%） |
+| 0x140BC0A40 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x14052DC90 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x141E70370 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x140A0F200 | （无名） 调用图传播: 10 锚点投 §4.10（70%） |
+| 0x14209E210 | （无名） 调用图传播: 10 锚点投 §4.10（50%） |
+| 0x141C11820 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140C53CC0 | （无名） 调用图传播: 13 锚点投 §4.10（54%） |
+| 0x141589600 | （无名） 调用图传播: 10 锚点投 §4.10（50%） |
+| 0x14025ABA0 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x140078490 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141876070 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x14145C8D0 | （无名） 调用图传播: 12 锚点投 §4.10（50%） |
+| 0x14006B170 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x141E4E8E0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x141EB9DA0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x1420B3650 | （无名） 调用图传播: 7 锚点投 §4.10（71%） |
+| 0x141BCD350 | （无名） 调用图传播: 10 锚点投 §4.10（60%） |
+| 0x141E4E570 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x141EA38D0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x1402C3F90 | （无名） 调用图传播: 6 锚点投 §4.10（67%） |
+| 0x1424EACF0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x14071D0D0 | （无名） 调用图传播: 11 锚点投 §4.10（55%） |
+| 0x1413BDF40 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x140AF82F0 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x14023FB50 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x141FC4880 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1416C2320 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141CE6F00 | （无名） 调用图传播: 6 锚点投 §4.10（67%） |
+| 0x1413E97D0 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x1418740F0 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x140ACE260 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140FD3890 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x140E345B0 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x1415289E0 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x1418721D0 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x141C5E640 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141871DD0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x141BCC640 | （无名） 调用图传播: 9 锚点投 §4.10（56%） |
+| 0x1402CE580 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x1424E7950 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x1414A5EC0 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x141E4CDA0 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x14176B090 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x14006BD80 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x141952390 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141713330 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x1419ED810 | （无名） 调用图传播: 6 锚点投 §4.10（67%） |
+| 0x141C81D00 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x141E488C0 | （无名） 调用图传播: 8 锚点投 §4.10（62%） |
+| 0x1422F2190 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x141872F90 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x1424BF970 | （无名） 调用图传播: 9 锚点投 §4.10（56%） |
+| 0x140F04760 | （无名） 调用图传播: 12 锚点投 §4.10（67%） |
+| 0x14186E090 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x14231B040 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14204A120 | （无名） 调用图传播: 12 锚点投 §4.10（67%） |
+| 0x1406924B0 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x14039C9D0 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x141C36850 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x140339D60 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x140075540 | （无名） 调用图传播: 4 锚点投 §4.10（100%） |
+| 0x1415B5F10 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x140710B60 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x1416BA520 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x1410B8FD0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x141FE3AC0 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x1402C43F0 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141FE3D40 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141753E30 | （无名） 调用图传播: 8 锚点投 §4.10（62%） |
+| 0x140FD03F0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140BD9F40 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x141C94F40 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x1420B1BB0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x140A10F80 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x141EFB3E0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x14029A090 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x141B92270 | （无名） 调用图传播: 10 锚点投 §4.10（60%） |
+| 0x141859AE0 | （无名） 调用图传播: 4 锚点投 §4.10（100%） |
+| 0x1419C8D20 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x14022CAA0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x14240A8B0 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x1401AF560 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x140FD2700 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x1419B8A70 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x1410FE1B0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x141F701D0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x14178FA80 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141A8D890 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A8D660 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A8DCE0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x140FEB510 | （无名） 调用图传播: 4 锚点投 §4.10（100%） |
+| 0x141A95D00 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141952650 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141A89270 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x1402C1C10 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141A87240 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141683370 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x141B65A20 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141A84740 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A992C0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A990B0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x1402C1E10 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x140144AE0 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x141A84550 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A95B10 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A89640 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A8BB10 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141FAD970 | （无名） 调用图传播: 6 锚点投 §4.10（67%） |
+| 0x140B6CB00 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x141A96D70 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141AE2DF0 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141CD5EB0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x141495D30 | （无名） 调用图传播: 7 锚点投 §4.10（57%） |
+| 0x141A81BC0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A96570 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A9A020 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A994C0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x1413FF2D0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x1424DE4C0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x141A81010 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A854B0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A97CA0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141C8EB00 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141528460 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x141A852C0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A99E40 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x14168D750 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141D903B0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141A82540 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A850F0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A99870 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A93A50 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A82AE0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A81FB0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A82910 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A92840 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A817F0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A94E70 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A92300 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A92C00 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141A110E0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x1419DFBA0 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141F8A780 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141A95040 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141959920 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x14239C9E0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x14027D510 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x140532E60 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x141D3E6D0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141FDE990 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140A8B080 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140AF2590 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x141BC2330 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14168D330 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141DD1AB0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141958930 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141573F30 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141953210 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x1413BC4C0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x141C27760 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x14011AAD0 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x141954460 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141955CE0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x1415306F0 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x142054750 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x14022CD90 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14192AC80 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x141483B50 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x142282EF0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x1402C42B0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141667CC0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1402B3320 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14162B310 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x142327710 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140129960 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x1423702D0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x1415FFB30 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140FEB6C0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141046120 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x140E6E5E0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x141545B20 | （无名） 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x141927D50 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x14146C970 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x14201B9D0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140EF1760 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x140AE6790 | （无名） 调用图传播: 4 锚点投 §4.10（100%） |
+| 0x142358650 | （无名） 调用图传播: 8 锚点投 §4.10（75%） |
+| 0x142348E40 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x140E3CFA0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1402B5370 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x142015F40 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14113B530 | （无名） 调用图传播: 6 锚点投 §4.10（67%） |
+| 0x1419C24D0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x14151E4A0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14195A0A0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x141169340 | PayloadReader 调用图传播: 8 锚点投 §4.10（50%） |
+| 0x14151E5B0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14022C9A0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14072A790 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14128AC10 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x14226E3B0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14140BB60 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x140AEF000 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x1424CCC20 | （无名） 调用图传播: 5 锚点投 §4.10（60%） |
+| 0x1425282F0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x141380D20 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x14111F030 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x1415819F0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141955160 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140A458F0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140FD8D70 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1410246D0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1413B7520 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x14029DB10 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x142359CA0 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x142022750 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x1416745A0 | （无名） 调用图传播: 4 锚点投 §4.10（75%） |
+| 0x141E508C0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140483440 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x140D43460 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140D3EA00 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x140D43200 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140D433E0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140D434E0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x14031E650 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x1401F0A30 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140476ED0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x1410FF400 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x14031E6E0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140EF16F0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141DC8A20 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x1419E4BA0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x1417F7120 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140F009E0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x141E509C0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x141E50980 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x1415EC030 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x1406F7100 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1410DC270 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x142238140 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140631650 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141B14CA0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+
+#### 4.10.48 政治外交域函数补遗（22 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402DC240 | sub_1402DC240 uncomplete / focus + AcquireSRWLockExclusive/Release（国家焦点取消/完成操作，写锁） |
+| 0x141A87E70 | sub_141A87E70 国家上次选举日期文本函数 GetLastElection（![MD] 文档串） |
+| 0x14195E530 | sub_14195E530 调用 CRaidTargetManager::UpdateListsFor → 突袭目标管理器列表更新 |
+| 0x1411BA4F0 | 同区段近邻 CPoliticalParty::[8](距 0x15620)属 4.10 族 sub_1411BA4F0 + 同区段近邻 CPoliticalParty::[8](距 0x15620)属 4.10 族 |
+| 0x1411B3610 | 同区段近邻 CPoliticalParty::[8](距 0xE740)属 4.10 族 sub_1411B3610 + 同区段近邻 CPoliticalParty::[8](距 0xE740)属 4.10 族 |
+| 0x1411F7980 | 同区段近邻 CPoliticalParty::[8](距 0x52AB0)属 4.10 族 sub_1411F7980 + 同区段近邻 CPoliticalParty::[8](距 0x52AB0)属 4.10 族 |
+| 0x140A9E350 | sub_140A9E350 突袭（Raids）GUI/触发器（raid_tooltip） |
+| 0x1411F0D00 | 同区段近邻 CPoliticalParty::[8](距 0x4BE30)属 4.10 族 sub_1411F0D00 + 同区段近邻 CPoliticalParty::[8](距 0x4BE30)属 4.10 族 |
+| 0x1414E9940 | sub_1414E9940 突袭（Raids）GUI/触发器（tooltip_raid） |
+| 0x1411E47D0 | 同区段近邻 CPoliticalParty::[8](距 0x3F900)属 4.10 族 sub_1411E47D0 + 同区段近邻 CPoliticalParty::[8](距 0x3F900)属 4.10 族 |
+| 0x141197AC0 | 同区段近邻 CPoliticalParty::[8](距 0xD410)属 4.10 族 sub_141197AC0 + 同区段近邻 CPoliticalParty::[8](距 0xD410)属 4.10 族 |
+| 0x141192090 | 同区段近邻 CPoliticalParty::[8](距 0x12E40)属 4.10 族 sub_141192090 + 同区段近邻 CPoliticalParty::[8](距 0x12E40)属 4.10 族 |
+| 0x140A3FDA0 | 域关键词匹配 sub_140A3FDA0 + 域关键词匹配 |
+| 0x1411E6690 | 同区段近邻 CPoliticalParty::[8](距 0x417C0)属 4.10 族 sub_1411E6690 + 同区段近邻 CPoliticalParty::[8](距 0x417C0)属 4.10 族 |
+| 0x141C41380 | 域关键词匹配 sub_141C41380 + 域关键词匹配; 被调源码 hoi4 |
+| 0x1411B3780 | 同区段近邻 CPoliticalParty::[8](距 0xE8B0)属 4.10 族 sub_1411B3780 + 同区段近邻 CPoliticalParty::[8](距 0xE8B0)属 4.10 族 |
+| 0x1416E3C70 | 域关键词匹配 sub_1416E3C70 + 域关键词匹配 |
+| 0x1411FCF00 | 同区段近邻 CPoliticalParty::[8](距 0x58030)属 4.10 族 sub_1411FCF00 + 同区段近邻 CPoliticalParty::[8](距 0x58030)属 4.10 族 |
+| 0x1411CA730 | 同区段近邻 CPoliticalParty::[8](距 0x25860)属 4.10 族 sub_1411CA730 + 同区段近邻 CPoliticalParty::[8](距 0x25860)属 4.10 族 |
+| 0x1411DDEF0 | 同区段近邻 CPoliticalParty::[8](距 0x39020)属 4.10 族 sub_1411DDEF0 + 同区段近邻 CPoliticalParty::[8](距 0x39020)属 4.10 族 |
+| 0x1411DD770 | 同区段近邻 CPoliticalParty::[8](距 0x388A0)属 4.10 族 sub_1411DD770 + 同区段近邻 CPoliticalParty::[8](距 0x388A0)属 4.10 族 |
+| 0x1411E5060 | 同区段近邻 CPoliticalParty::[8](距 0x40190)属 4.10 族 sub_1411E5060 + 同区段近邻 CPoliticalParty::[8](距 0x40190)属 4.10 族 |
+
+#### 4.10.49 政治外交域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A8C990 | 串 "Gets the name of the active side of ... power balance" 串 "Gets the name of the active side of ... power balance"，GetActiveSideName |
+| 0x1411BD8F0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140B48B30 | 无名 · "GFX_rule_unknown" 规则图标键 "GFX_rule_unknown" 规则图标键 |
+| 0x1411E4660 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x1411EFCC0 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+
+#### 4.10.50 政治外交域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C9DE50 | UI/数据绑定（loc autonomy_score_icon） loc 键 "autonomy_score_icon"/"MONTHLY_LL_FREEDOM_TO_PUPPET"/"MONTHLY_LL_FREEDOM_TO_MASTER"（自治度/租借自由度数据） |
+| 0x141588A60 | 业务逻辑（键 ruling_party_info） "ruling_party_info"/"leader"/"pol_faction_icon"/"elections"/"POLITICS_NEXT_ELECTION"（政治面板数据） |
+| 0x14023EA50 | 业务逻辑（见证据锚） "Please specify country tag to annex"/"Country tag does not exist!"（吞并控制台命令） |
+| 0x141C82250 | 业务逻辑（键 opinion_bg） "opinion_bg"/"our_opinion"/"their_opinion"（外交关系意见 UI） |
+
+#### 4.10.51 政治外交域函数补遗（22 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14039FB20 | （无名） 调用图传播: 13 锚点投 §4.10（54%） |
+| 0x1402B0BB0 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x14137CA70 | （无名） 调用图传播: 6 锚点投 §4.10（83%） |
+| 0x14209D5D0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x141CA1530 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x140A588C0 | （无名） 调用图传播: 9 锚点投 §4.10（89%） |
+| 0x141C510F0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1420B32C0 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x140C4F1A0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140C4F2D0 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x14151F540 | Reader 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x1420399F0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x140FC3690 | （无名） 调用图传播: 6 锚点投 §4.10（67%） |
+| 0x140B39D60 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1419D26B0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x1419C3680 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x1411EF550 | （无名） 调用图传播: 2 锚点投 §4.10（100%） |
+| 0x1416D9DA0 | （无名） 调用图传播: 4 锚点投 §4.10（50%） |
+| 0x1402E1B80 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140079F70 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+| 0x140080240 | （无名） 调用图传播: 3 锚点投 §4.10（67%） |
+| 0x1406F7140 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+
+#### 4.10.52 政治外交域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C95D90 | （无名） 调用图传播: 6 锚点投 §4.10（50%） |
+| 0x141FE38C0 | （无名） 调用图传播: 6 锚点投 §4.10（100%） |
+| 0x141FE3450 | （无名） 调用图传播: 3 锚点投 §4.10（100%） |
+| 0x141C50C20 | （无名） 调用图传播: 2 锚点投 §4.10（50%） |
+
+#### 4.10.53 政治外交域函数补遗（19 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E47300 | 无名 sub_（断言站点/串定位） 串字面量 "PEACE_STACK_WITH" |
+| 0x140D22670 | 无名 sub_（断言站点/串定位） 串字面量 "DIPLOMACY_SUPPORT_ENEMIES" |
+| 0x140D23150 | 无名 sub_（断言站点/串定位） 串字面量 "DIPLOMACY_RELATION_IMPROVEMENT_INVALID" |
+| 0x140D3FE60 | 无名 sub_（断言站点/串定位） 串字面量 "DIPLOMACY_WAR_NO_WAR_NO_WARGOAL" |
+| 0x141C81F80 | 无名 sub_（断言站点/串定位） 串字面量 "diplo_actions_entry_bg" |
+| 0x141757E00 | 无名 sub_（断言站点/串定位） 串字面量 "global_diplorequesticon_window" |
+| 0x141864110 | 无名 sub_（断言站点/串定位） 串字面量 "peaceconference_top_window" |
+| 0x140E49B90 | 无名 sub_（断言站点/串定位） 断言站点 peaceconference.cpp:4828 |
+| 0x140E38D80 | 无名 sub_（断言站点/串定位） 断言站点 peaceconference.cpp:1155 |
+| 0x141F2BD90 | 无名 sub_（断言站点/串定位） 串字面量 "DIPLOMACY_INCOMING_LEND_LEASE_DEAL_DESC" |
+| 0x141F2DA30 | 无名 sub_（断言站点/串定位） 串字面量 "DIPLOMACY_INCOMING_LEND_LEASE_DEAL_DESC" |
+| 0x140E40BA0 | 无名 sub_（断言站点/串定位） 串字面量 "PEACE_CONFERENCE_COST_TOO_HIGH" |
+| 0x141C94CD0 | 无名 sub_（断言站点/串定位） 断言站点 diplomacyviewcontrollers.cpp:5466 |
+| 0x1417AEB80 | check_accept 触发器评估 构造 "check_accept" + sub_1422C9F20 |
+| 0x140A849A0 | 无名 sub_（断言站点/串定位） 断言站点 peace_conference_database.cpp:212 |
+| 0x141C51060 | 无名 sub_（断言站点/串定位） 断言站点 politicalideaswindow.cpp:485 |
+| 0x141C94E90 | 无名 sub_（断言站点/串定位） 串字面量 "DIPLOMACY_NO_WARGOAL" |
+| 0x1426358F0 | 无名 sub_（断言站点/串定位） 断言站点 ai_political_minister.cpp:2059 |
+| 0x141514CF0 | 无名 sub_（断言站点/串定位） 串字面量 "DIPLOMACY_NO_AT_WAR" |
+
+#### 4.10.54 政治外交域函数补遗（148 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14221D5E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x142220C00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141DA4EC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1409FD630 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x142520D7C | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141C4C890 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141F47880 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141BC3A00 | 无名 sub_（调用图定位） 调用图传播: 2/4 锚点投 §4.10 |
+| 0x1411B9FD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1415D0910 | 无名 sub_（调用图定位） 调用图传播: 5/9 锚点投 §4.10 |
+| 0x141C80AD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141D751C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14006C470 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.10 |
+| 0x141C99060 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14007EFA0 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.10 |
+| 0x14007C550 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.10 |
+| 0x141DEBED0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14007BE60 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.10 |
+| 0x14007BC10 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.10 |
+| 0x1416A9040 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x142256290 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1415EA9C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140B39280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141A8B050 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8CFF0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8B4B0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8AE30 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8AA30 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8B280 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8CDC0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A87A50 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8AC30 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A87620 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A87840 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8C120 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8E2D0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A85690 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A86640 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A86A50 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A87420 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A8C570 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A84360 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x142255220 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141A84B30 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A86E40 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A91B50 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141BC75C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141A815F0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141A953B0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x141F49210 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141A972E0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.10 |
+| 0x14007C0B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14007C300 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1400747E0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.10 |
+| 0x142018740 | 无名 sub_（调用图定位） 调用图传播: 2/4 锚点投 §4.10 |
+| 0x141F49060 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14007F480 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.10 |
+| 0x140530000 | 无名 sub_（调用图定位） 调用图传播: 3/5 锚点投 §4.10 |
+| 0x14228AA90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14006B7F0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.10 |
+| 0x140075990 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.10 |
+| 0x1418CC1F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141CA0400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1411B7AD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140ABF5E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140A449C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141E6E0A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1411F2AD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14225BF50 | 无名 sub_（调用图定位） 调用图传播: 2/3 锚点投 §4.10 |
+| 0x14002F330 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14194F800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1424CB1E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14174ADB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141F48F50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1411E4400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14235B7F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1413BCC10 | 无名 sub_（调用图定位） 调用图传播: 2/3 锚点投 §4.10 |
+| 0x142526358 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141C83840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140EAE840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14201D280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1419B8E10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14201D180 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1419B8740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1424ED280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1412A18C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141EA34A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14205DDB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140AF4A40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1418E92D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14145E0D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140B47820 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1410C8380 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14145CBF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140E522A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141F47BF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140A57160 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1411C9BC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1419CA1E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140FD28F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1417AAF70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1410E26E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141092020 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141A11E00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1416A8F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141589550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141CDFAA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141EDAD70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1414A6730 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140A4F620 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1414A2FF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1422F75E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1419FA510 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141B44F20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140BBBB10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1412FB760 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140A90A70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140D89180 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14204C8B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140BBBC80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140BBBBD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140A03A50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140FEB1A0 | 无名 sub_（调用图定位） 调用图传播: 2/3 锚点投 §4.10 |
+| 0x14071E6A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14071E750 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140A44B30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14053D930 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140E84B00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141CD6120 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141290510 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140B5C780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14194F980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141FA1610 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1414DE830 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1401F8570 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140DA0DC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x140B95740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x142705C60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141195700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14192A8D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x142281D60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14239C000 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141E48660 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141195F20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14137CC20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141AF9440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141F9FD80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1426F8360 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+
+#### 4.10.55 政治外交域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411BAD60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x141761700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x14204CD40 | 无名 sub_（调用图定位） 调用图传播: 5/10 锚点投 §4.10 |
+| 0x141195590 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x1417674E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+| 0x142358F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.10 |
+
+#### 4.10.56 政治外交域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141546FE0 | （无名） 串 "SUBMARINES"/"TRADE"/"PERMISSION_DESC"（许可描述键） |
+| 0x1413DF240 | （无名） 串 "_research"/"POLITICAL_RESEARCH_BONUS_ENTRY"（CATEGORY/FACTOR 键） |
+| 0x1410E0B20 | （无名） civilwar.cpp；断言 "Transferring into a war against a country the revolter is already at war against."/"Failed to create war." |
+| 0x140B46E40 | （无名） 串 "GFX_ideology_" 前缀拼接（意识形态图标） |
+| 0x14145ADD0 | （无名） 调 sub_1401AD740（CDiplomaticAction::GetFirstCountryRef）+ pdx_core 内存族（异步轮询形） |
+
+#### 4.10.57 政治外交域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D38FA0 | 关系判定 关系/功能判定：a1+656 目标 + sub_1401AEB50(18/16) 功能门 + sub_1406CF890 国家 + sub_141191500(*(+208)+24) 链校验 |
+| 0x141BB5E60 | 关系判定 关系判定：a2+184+210 旗（位 1 置且位 2 未置）门控 + sub_140BB5490(a2+392) 国家索引 + a1+224 表比对 |
+
+#### 4.10.58 政治外交域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14052FA50 | 未决窗口函数 · 顾问描述格式化 FILE formatted_localization.h + 串 "advisor_desc" 顾问描述格式化 |
+| 0x140A45CD0 | 未决窗口函数 · 意识形态库析构 `TReloadableGameItemDatabase<CIdeologyDatabase>` + `TGameItemDatabase<CIdeologyDatabase>` 双 vtable 析构 |

@@ -554,15 +554,36 @@ civilian_factories 条适配器 (非 GUI 类, 匿名 ns 函子 parse/serialize �
 | CNetworkBased | 32 | 0x142a1f538 | 0X141A31840 | CBuildIntelNetwork / CQuietIntelNetwork / CBoostIdeology / CPropaganda (零新增字段, 仅覆 vtable) |
 | CCountryBased | 24 | 0x142a1fa50 | 0X141A328B0 (只发 target) | CControlTrade / CCounterIntelligence / CDiplomaticPressure |
 
-**全族vtable槽表** (12 类):
+**全族vtable槽表** (基表 0x142A1F488 PE 直读 21 槽; 槽 1-4 = CPersistent
+契约扇出 Save/Writer/Load/Reader; 槽 11-20 基表全为 `_purecall` 0x14253C3B8,
+语义一律按派生覆写行为定; 方法名 = 基族槽契约):
 
-| 槽 | 函数 | 语义 |
+| 槽 | 基表值 | 语义 |
 |---|---|---|
-| slot1 | 各类 dtor | — |
-| slot2 | 各类 writer | 见 per-impl 表 |
-| slot3 | 0X1424BE690 (共享) | — |
-| slot10 | 0X141A314F0 (共享; CNoMission 单用 0X140FC37F0) | 名 token getter |
-| slot17 | 各 impl 独立实现 (基类 purecall 0X14253C3B8) | 填 COperativeMissionData 快照 |
+| 0 | 0x14015F320 | scalar deleting dtor (全族共享; 带注册器者覆写先经 sub_141E903B0/sub_141E8FF90 注销 +32 处理器) |
+| 1 | 0x1424BEC50 | CPersistent::Save (全族共享; 头尾包裹槽 2, 二分写盘) |
+| 2 | _purecall | Writer 落盘字段 — CNetworkBased 系共用 0x141A31840 (发 key 107 target / 439 state), CBoostIdeology 覆写 0x141953D00 补 11838 ideology; CCountryBased 系 0x141A328B0 只发 target; 详 per-impl 表 |
+| 3 | 0x1424BE690 | CPersistent::Load (全族共享; 重复键报 `Duplicate "..." in file`, pdx_parser/persistent.cpp) |
+| 4 | 0x141A31500 | Reader — key 107 经 countrytag 解析写 +16 tag (失败报 `... - is not in the tag list`), 439 经 gamestate 州数组写 +24 州指针; CBoostIdeology 覆写 0x141953B30 补 11838 → 组库查表写 +64 (未命中报 `Invalid ideology group`) |
+| 5 | 0x14011D220 stub_ret0 | IsKeyUnique 谓词 (推定; 全树恒返 0 = 实不查重, 被槽 3 在每 key 前问) |
+| 6 | 0x14012A2C0 nop | 空虚钩子 (槽 3 在解析入口调 vtable+48; 全树空实现, 不赋语义) |
+| 7 | 0x14012A2C0 nop | 空虚钩子 (无任何派生覆写, 无直接消费者, 不赋语义) |
+| 8 | 0x14012A2C0 nop | Register — 仅 CBuildIntelNetwork/CBoostIdeology (共用 0x1419533C0) 与 CPropaganda (0x1419E0070) 覆写, 形态 `sub_141E90170(a1+32, a1+16)` 委托注册器 (注册器表见上) |
+| 9 | 0x1401F6EA0 | GetState — `return *(_QWORD*)(a1+24)`; 全树无覆写 |
+| 10 | 0x141A314F0 | GetTag — 出参式 `*a2 = *(_DWORD*)(a1+16); return a2` 取目标国 tag; 全树无覆写; CNoMission 单用 0x140FC37F0 |
+| 11 | _purecall | GetCountry (推定) — CBoostIdeology/CPropaganda 共用 0x1419533A0 透传槽 10; CBuildIntelNetwork/CQuietIntelNetwork/CRootOutResistance 共用 0x141955520 → 0x141A31480 取州+616 国家引用 id, 无效回落 +16 tag; 两读法在州所有者≠任务 tag 时不等价, 见本册未决 |
+| 12 | _purecall | GetProgress — 满额尺度 10000000; CBoostIdeology 0x141952A20 = 目标国对目标组支持度, CBuildIntelNetwork 0x141954780 = 目标州情报网进度 (无州断言 `This should never happen!`), CPropaganda 0x1419DF110 = min(稳定度缺口比, 战支缺口比) 缩放; CQuietIntelNetwork/CRootOutResistance 共用 0x140FC2D10 恒 fixed(100000) |
+| 13 | _purecall | GetEfficiency — 原始值 × define 因子 / 100000 后钳 [0, 10000000], 无效输入回落 fixed(100000); 因子 = OPERATIVE_BOOST_IDEOLOGY_DRIFT_TO_EFFICIENCY_FACTOR (qword_143337B40) / OPERATIVE_NETWORK_STRENGTH_GAIN_TO_EFFICIENCY_FACTOR (qword_143337A50) / OPERATIVE_ROOT_OUT_RESISTANCE_EFFICIENCY_TO_EFFICIENCY_FACTOR (qword_143337C40) / OPERATIVE_PROPAGANDA_DRIFT_TO_EFFICIENCY_FACTOR (qword_143338040); CQuietIntelNetwork 用槽 12 的 0x140FC2D10 同址 |
+| 14 | _purecall | GetEstimatedDays — (满额 − 进度) / 日变化率, 不可计算返 0xFFFFFFFF; CBoostIdeology 0x1419530C0 / CBuildIntelNetwork 0x141954E60 / CRootOutResistance 0x14195B640 (州+632/+640/+656 目标-当前-变化率) / CPropaganda 0x1419DFA80; CQuietIntelNetwork 0x1401F8060 恒返 0xFFFFFFFF |
+| 15 | _purecall | GetTooltip — 各类格式化本类 loc 键: OPERATIVE_MISSION_PROPAGANDA_TT (0x1419DF200) / BUILD_INTEL_NETWORK_TT (0x141954850) / QUIET_INTEL_NETWORK_TT (0x141959E80) / ROOT_OUT_RESISTANCE_TT (0x14195AFC0) / BOOST_IDEOLOGY_TT (0x141952AB0); 均先取槽 11 作国家参数 |
+| 16 | _purecall | GetDetectionChance — CNetworkBased 系共用 0x141A318F0: 校验 tag>0 / 州非空 / **经 +8 owner 句柄取 strategic operative 并推导其源国** (失败串 `#~ No operative ?` / `#~ Could not deduce the operative's country` / `#~ No strategic operative for the source country`) / 情报网与子网存在 + 四阈值 (`#~ Network size (N) lower than threshold (M)` / `#~ National coverage` / `#~ Sub network national coverage` / `#~ Sub network strength`), 首因子 = define INTEL_NETWORK_INTELLIGENCE_AGENCY_DEFENSE_TO_DETECTION_FACTOR (qword_1433371180); CQuietIntelNetwork/CRootOutResistance 覆写 0x140634170 恒写 0 (静默任务不计算检测几率) |
+| 17 | _purecall | GetMissionData — 填 COperativeMissionData 快照: 4 类经 0x141A313D0 (assert `pState not set`) → 0x14194D880, CBoostIdeology 0x141952870 直调 0x14194D810 另填 +24 意识形态组; 类型常量表见 per-impl 表 type 列 |
+| 18 | _purecall | IsValid — 州非空 && tag>0 && 州所有者 (州+204) 与任务 tag 同国判定 (sub_140BB52F0) && 特工国可推导, 各类追加任务条件 |
+| 19 | _purecall | 无任何派生覆写 (全树无实现, 不赋业务语义) |
+| 20 | _purecall | Clone — 按类尺寸 malloc → 拷三要件 (+8 owner / +16 tag / +24 州) → 写本类 vftable; 带注册器者另拷 +32..+63 (CBoostIdeology 0x48 另拷 +64 意识形态组); 各类 clone 地址见 per-impl 表 |
+
+注: +8 = COperativeMission* owner 句柄 (全参 ctor 0x141A313B0 形参 a2 = Set* 创建的
+h 参数, 双证); 槽 16 的 operative 取值经该句柄间接进行, 非 +8 直接存 COperative*。
 
 **CStateBased (32B) 字段表** (ctor 0X141A31390 默认 / 0X141A313B0 全参):
 
@@ -675,6 +696,7 @@ register 流程: 国 id>0 → gs+1696 operatives mgr per-country 项 (sub_140EB2
 - CState 侧 mission 反向引用维护者 (**未决维持**): 全 dump 未找到 CState 持有 COperativeMission*/COperativeMissionData 的写点; mission 侧仅单向 pState (COperativeMissionData+16)。
 - CPropaganda ideology 不落盘 — 定案 (以 writer 为准): 共享 impl writer 只发 target(107)/state(439), 无 11838 — 读侧接受写侧不落盘的非对称 (mod 注入兼容), 非漏发。
 - COperativeMissionData **从不落盘** (负定案): writer sub_14194E520 全 dump 引用数 = 1 (仅定义行), 其 vtable 0x142955B40 不被任何 Save wrapper 入口调用 ⇒ 纯运行时快照。
+- 槽 11 GetCountry **两读法不等价** (推定, 待裁): CBoostIdeology/CPropaganda 透传槽 10 = 目标国 tag, CBuildIntelNetwork/CQuietIntelNetwork/CRootOutResistance 取州+616 国家引用 id (无效回落 tag)。两类实现分裂意味着槽契约的「国家」在 Build/Quiet/Root 上可能是「任务所在国」而非「目标国」 (州所有者可与任务 tag 不同); 已确认该值被槽 15 tooltip 当国家标识、被槽 16 塞进任务数据结构第二项, 但未找到只依赖本槽的决定性消费者。
 
 #### 4.11.13a COperativeMissionData 读侧与组库查表 (operativemissiondata.cpp; reader 0x14194DFD0 263 行 + GetDesc 0x14194D8B0 393 行)
 
@@ -1463,3 +1485,231 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 | sub_141E96A90 / sub_141E96EA0 | ≤32 元插入排序 / >32 元归并 (std::stable_sort 两臂) |
 
 未决: ① 消费端 sub_140D05260 memcpy 展开 464B (29 OWORD) vs 生产端 448B (28 OWORD) 的 16B 差 — IDA 展开失真 or 真 16B 尾, 待 PE 侧汇编复核; ② sub_140129C10 单参语义使各 loc 串拼接顺序为推定 (键与参数清单不受影响); ③ 静态段 2 默认槽填充值 (0 / 哨兵 / 继承缺省 100000, 未超门时消费端不区分); ④ 民用 / 海军 / 空军阈值 define↔loc 映射表 (同构未抄录); ⑤ 阈值表出参 {+8 表基址, +16 维度, +24 字节, +28 float 0.9} 中两维度语义与 0.9f 用途 (推定 = sub_141E99240 上限缩放比, tooltip 内未消费)。
+
+#### 4.11.32 情报间谍域函数补遗（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14028E980 | （未命名）"Selected Phases:" / "Failed to seed all phases" / "an operation id" "Selected Phases:" / "Failed to seed all phases" / "an operation id"，特工行动阶段 seed 命令 |
+| 0x1419564E0 | NOperativeMissions::CControlTrade::[15] OPERATIVE_MISSION_CONTROL_TRADE_TT / _PROGRESS + MODIFIER_OPERATIVE_STACKING_FACTOR + EFFECTIVE |
+| 0x1413F5DD0 | sub_1413F5DD0 CCountryDecryptionState vtable + CGameDate（国家破译状态更新） |
+| 0x14025AF90 | sub_14025AF90 "has been detected"/"has not been detected. His he/she on an offensive mission?"/"No operative selected"（特工/干员 UI） |
+| 0x141A1B490 | sub_141A1B490 特工行动视图（PREPARE/OPERATION_VIEW_PROGRESS/OPERATION_VIEW_COMPLETED/PREPARED） |
+| 0x140A7C3A0 | sub_140A7C3A0 特工行动（operation.cpp:412，Instance not created. 断言） |
+| 0x140D01CC0 | （无名） vftable 类 CCountryIntel::（情报/间谍/行动） |
+| 0x140AF1430 | CUnitNamesDatabase::GenerateCodenameForOperative CUnitNamesDatabase::GenerateCodenameForOperative，串 "OPERATIVE_GENERIC_CODENAME_PATTERN"（特工代号生成） |
+| 0x140FD7020 | （无名） vftable 类 CIntelligenceAgency::（情报/间谍/行动） |
+| 0x140D030E0 | （无名） vftable 类 CDynamicIntelSourcePool::（情报/间谍/行动） |
+| 0x140CFED10 | （无名） vftable 类 CDynamicIntelSourcePool::（情报/间谍/行动） |
+| 0x1411F1F20 | sub_1411F1F20 体内构造/操作 vtable 类 CStrategicOperative（&CStrategicOperative::vftable）→ 战略特工 |
+| 0x140428240 | CNumFreeOperativeSlots::GetDesc GetDesc 串 TRIGGER_NUM_FREE_OPERATIVE_SLOTS（空闲特工槽位触发器） |
+
+#### 4.11.33 情报间谍域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141400C70 | （无名）OPERATION_ONMAP_STATUS_COMPLETED/READY/NOT_READY/IN_PROGRESS + DATE 键 OPERATION_ONMAP_STATUS_COMPLETED/READY/NOT_READY/IN_PROGRESS + DATE 键 |
+| 0x141A13C70 | （无名，按上游/loc 定性） loc "upgrade_branch_entry\ upgrade_branch_name\ selection*" |
+| 0x14146BE60 | （无名，按上游/loc 定性） loc "intelligence_slots\ intelligence_sharing_bonus\ opac*" |
+| 0x141E82A00 | （无名，按上游/loc 定性） loc "portrait_btn\ operation_completed_overlay\ operation_completed*" |
+| 0x141A21440 | （无名，按上游/loc 定性） loc "crypto_not_active\ active_crypto_items\ country_list*" |
+| 0x1419555A0 | 无名大函数 0x1419555A0 loc 键 OPERATIVE_INVALID_MISSION_REASON_*（特工任务理由） |
+
+#### 4.11.34 情报间谍域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141EB87D0 | 情报台账陆军面板槽 情报台账陆军面板槽；CIntelLedgerArmyPanelController::[2] 距 -560B，仅 gamestate.h 断言 + gamestate.h:1125 被调 |
+| 0x141959190 | NOperativeMissions::CDiplomaticPressure::[15] 特工任务（外交施压）槽；loc \"OPERATIVE_MISSION_DIPLOMATIC_PRESSURE_TT\"/\"DIPLOMATIC_PRESSURE_OPINION_REQUIREMENTS_DRIFT\"… |
+| 0x14195BB60 | 特工任务槽 特工任务槽；邻 NOperativeMissions::CRootOutResistance::GetTooltip(-2976B)/GetEstimatedDays(-1312B)/IsValid(+2000B)，仅 gamestate.h:1125 被调 ×2 |
+| 0x140C20B80 | COperativeLeader::Reader（存档反序列化） 串 `Invalid token for operative state` |
+| 0x1419D9DC0 | "_panel/_tab_frame/intel" 情报面板 UI "_panel/_tab_frame/intel" 情报面板 UI §4.11 情报/间谍 |
+| 0x141972570 | "SCREENING_VALUE" + NOperativeMissions:: "SCREENING_VALUE" + NOperativeMissions::CStateBased::GetStat §4.11 情报/间谍 |
+| 0x141EA68A0 | CIntelLedgerAirPanelController::CIdeasTooltipHandler::[0] / "CURRENT_AIR_INTEL/MIN_INTEL_REQUIRED_FO "CURRENT_AIR_INTEL/MIN_INTEL_REQUIRED_FOR_IDEAS" §4.11 情… |
+
+#### 4.11.35 情报间谍域函数补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E42700 | （无名，按证据定性） 键 OPERATIVE_CAPTURED_BY + CAPTURER/DURATION_DAYS（特工被俘） |
+| 0x1413F4C10 | 合作状态 _CollaboratedCountriesArray / _CollaborationsOnUs 空校验，countrycollaborationstatus.cpp:75 |
+| 0x140FC2E10 | （无名，按证据定性） operativemission.cpp:210 断言 'No localization key for operative mission'（特工任务本地化） |
+| 0x141E3E430 | 特工任务命令栏 OPERATIVE_INVALID_MISSION_REASON_NO_INTEL_NETWORK_AGAINST_TARGET + "Invalid mission type"，operativesorderbar.cpp |
+| 0x140C0D1B0 | （无名） 体设 COperativeLeader::vftable（RTTI 名） |
+| 0x140C128D0 | COperativeLeader::[11] vtable 槽 COperativeLeader::[11]（func_names RTTI 名） |
+| 0x140C1D510 | COperativeLeader::[16] vtable 槽 COperativeLeader::[16]（func_names RTTI 名） |
+| 0x140C1FFA0 | COperativeLeader::[2] vtable 槽 COperativeLeader::[2]（func_names RTTI 名） |
+| 0x140C0EAE0 | COperativeLeader::[0] vtable 槽 COperativeLeader::[0]（func_names RTTI 名） |
+| 0x140C202A0 | COperativeLeader::[4] vtable 槽 COperativeLeader::[4]（func_names RTTI 名） |
+| 0x140C0E9F8 | COperativeLeader::[0] vtable 槽 COperativeLeader::[0]（func_names RTTI 名） |
+| 0x140C1D5B0 | COperativeLeader::[29] vtable 槽 COperativeLeader::[29]（func_names RTTI 名） |
+
+#### 4.11.36 情报间谍域函数补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.11.37 情报间谍域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C1D720 | COperativeLeader::[5] vtable 槽 COperativeLeader::[5]（func_names RTTI 名） |
+| 0x140C1B0A0 | COperativeLeader::UpdateLocalizedName func_names 名 COperativeLeader::UpdateLocalizedName |
+| 0x140C10D40 | COperativeLeader::[10] vtable 槽 COperativeLeader::[10]（func_names RTTI 名） |
+
+#### 4.11.38 情报间谍域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.11.39 情报间谍域函数补遗（38 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1418F7860 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x140717700 | （无名） 调用图传播: 4 锚点投 §4.11（50%） |
+| 0x140C3F2D0 | （无名） 调用图传播: 3 锚点投 §4.11（100%） |
+| 0x140242F10 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141D8EB10 | （无名） 调用图传播: 5 锚点投 §4.11（80%） |
+| 0x141D8EE80 | （无名） 调用图传播: 5 锚点投 §4.11（80%） |
+| 0x1411F4900 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x14036A730 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141D8E6E0 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x141D8F180 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x141D8F5F0 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x141D8F440 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x1410E0F10 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x14197EAA0 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x14142DC40 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x140A7E6E0 | （无名） 调用图传播: 4 锚点投 §4.11（50%） |
+| 0x140717A80 | （无名） 调用图传播: 4 锚点投 §4.11（50%） |
+| 0x141D285D0 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x14022FE90 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x1416F8B90 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x140CFABB0 | （无名） 调用图传播: 4 锚点投 §4.11（50%） |
+| 0x140FF7CB0 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x141C74130 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x14012A820 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x14012A7A0 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x140A7C680 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x141401410 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141E01630 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x140E169E0 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x140E16A70 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141FB5FF0 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141E0FEB0 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x140A7C710 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x140A66D30 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x140D05D40 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x140A67750 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141D9F320 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x140D04D30 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+
+#### 4.11.40 情报间谍域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CC6E50 | 疑特工行动/任务名校验 串 "nuclear_facility"/"rescue_captured_general" + a1+152→+32→+8 token 比较 → 疑特工行动/任务名校验 |
+
+#### 4.11.41 情报间谍域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413FFC10 | sub_1413FFC10 特工/行动窗口与文本函数（the operation） |
+| 0x141C6C1E0 | sub_141C6C1E0 调用 NOperativeMissions::CStateBased::GetState → 特工任务状态查询 |
+| 0x1413FFA30 | sub_1413FFA30 特工/行动窗口与文本函数（the fourth operative） |
+| 0x141A23FE0 | sub_141A23FE0 情报机构升级 GUI（agency_upgrade_anim） |
+| 0x14006BBC0 | sub_14006BBC0 特征串:_risk ; Operation risk modifier. |
+| 0x141ABEC10 | sub_141ABEC10 特工/行动窗口与文本函数（operativeleaderwindow） |
+| 0x141E30980 | sub_141E30980 特征串:operation_phases_view_entry |
+
+#### 4.11.42 情报间谍域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411FAF20 | 无名 · "COUNTERINTELLIGENCE_ACTIVITY_LEVE "COUNTERINTELLIGENCE_ACTIVITY_LEVEL_" 反情报等级键 |
+| 0x1418E1980 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+
+#### 4.11.43 情报间谍域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411F7380 | 业务逻辑（键 propaganda） "build intel network"/"boost ideology"/"propaganda"/"control trade"/"diplomatic pressure"/"from intel network size:"（情报来源权重） |
+
+#### 4.11.44 情报间谍域函数补遗（15 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419EEF10 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x1419EF140 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x1419F0410 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x141A1B080 | （无名） 调用图传播: 10 锚点投 §4.11（50%） |
+| 0x1419EF360 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x140FDB340 | （无名） 调用图传播: 3 锚点投 §4.11（67%） |
+| 0x140F25D80 | （无名） 调用图传播: 4 锚点投 §4.11（100%） |
+| 0x141DA2420 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x140A67580 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x140A675F0 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141BBB3B0 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141A9B730 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x140FDE550 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x141A9B750 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x141A9B770 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+
+#### 4.11.45 情报间谍域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BB8DA0 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x1419EEBA0 | （无名） 调用图传播: 2 锚点投 §4.11（100%） |
+| 0x1410E6590 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+| 0x141DA4D80 | （无名） 调用图传播: 2 锚点投 §4.11（50%） |
+
+#### 4.11.46 情报间谍域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14162C5B0 | 无名 sub_（断言站点/串定位） 串字面量 "raid_intel_tooltip_header" |
+
+#### 4.11.47 情报间谍域函数补遗（20 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140133590 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x14100E510 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141F90070 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x1419EFD60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x1419F0D50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141C742F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141E17C70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141401920 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141578F70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141F28AB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x1419F0990 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141CEDC50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x140FD8E80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x1415C4B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x1414012F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141DB0F10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141DF9660 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x14175D7E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141C467A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+| 0x141D8E640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+
+#### 4.11.48 情报间谍域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C740D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.11 |
+
+#### 4.11.49 情报间谍域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1421E06C0 | （无名） 串 "MILESTONE_SUMMARY_HEADER"/"TOOLTIP_SUCCESS_CHANCE_MODIFIER"（特工行动里程碑/成功率） |
+
+#### 4.11.50 情报间谍域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413FBF50 | 未决窗口函数 · 特工/情报界面 串 "OPERATIONS"/"CRYPTOLOGY"/"SPYMASTER" 情报界面键 |

@@ -23,10 +23,14 @@
 | qword_1435E3C00 | zone 条目数组基址 |
 | dword_1435E3C08 | 数组容量 (满时 ×1.5 扩容, 下限 128) |
 | dword_1435E3C0C | 数组计数 |
-| TLS +2104 | 当前 zone 指针槽 (线程本地推入链) |
-| qword_1435E3C58 | i64 采样数组基址 (与 zone 条目表独立; 入账 = 弹出 sub_1424CFE50) |
-| dword_1435E3C60 / dword_1435E3C64 | 采样数组容量 / 计数 (满时 ×1.5 扩容, 下限 = 计数+1) |
-| qword_1435E3C68 | 采样数组分配器 (虚槽[1] allocate(8×n, 8) / 虚槽[2] deallocate) |
+| TLS +2104 | 每线程 context 指针槽 (context 24B: +0 = 当前节点 / +8 = 线程 profiler 对象 / +16 = 节点池) |
+| qword_1435E3C58 | **节点池空闲表基址** (元素 = 24B 节点池对象指针; 线程退出时 context 回收入表, sub_1424CFE50) |
+| dword_1435E3C60 / dword_1435E3C64 | 空闲表容量 / 计数 |
+| qword_1435E3C68 | 空闲表分配器 (虚槽[1] allocate / 虚槽[2] deallocate) |
+| qword_1435E3C40 | 主线程静态节点池 (主线程节点不经空闲表回收) |
+| qword_1435E3C28 / dword_1435E3C30 / dword_1435E3C34 / qword_1435E3C38 | 每线程 profiler 对象数组 (48B/对象, +40 = 线程 id) / 容量 / 计数 / 分配器 |
+| qword_1435E3CA8 | 当前 zone 条目指针 (条目栈顶; 推入存 RAII+8, 薄形弹出恢复) |
+| dword_1430C721C | **merge 模式旗** (0 = 按名归并 + 导出降序 by 节点+32 累计时长; 非 0 = 逐次新建节点 + 导出升序 by 节点+24 起始 ticks + 不建条目; 定案) |
 | stru_1435E3C18 | SRWLock (推入/弹出锁) |
 
 zone 条目布局 (56 字节/条, 无独立 RTTI 类（负定案）; 数组元素按偏移升序):
@@ -35,10 +39,24 @@ zone 条目布局 (56 字节/条, 无独立 RTTI 类（负定案）; 数组元�
 |---|---|---|
 | +0 | char* | zone 名 |
 | +8 | uint32 | 累计命中数 (GUI 计数列读此) |
-| +16 | uint32 | 未用槽 (全语料无写者无读者; 推入深度计数在 72B 堆子节点 +16) |
+| +16 | uint32 | 导出期按 qword 读: 非 0 时刷新为 Xtime_get_ticks() (sub_1424D20C0); 写者未见 (待裁) |
 | +24 | uint64 | 累计耗时 (QPC ticks; 显示毫秒 = 值/10000) |
-| +32 | 匿名结构 (NNB 形状) 向量 24B | 子 zone 表 (元素 = 72B 堆节点, malloc 0x48, 推入构造 sub_14011DF40, 推入深度@节点+16, **起始 QPC ticks@节点+24** — push 写 / pop 读出入账) |
+| +32 | 匿名结构 (NNB 形状) 向量 24B | 子 zone 表 (引擎向量 {begin@+32, 容量@+40, 计数@+44, 分配器@+48}; 元素 = 72B 堆节点指针; push = sub_1401205A0; 节点布局见下表) |
 | +44 | uint32 | 子 zone 计数 (即 +32 容器 count 槽) |
+
+72B 堆采样节点 (malloc 0x48, 无独立 RTTI 类; 池化回收):
+
+| 偏移 | 类型 | 语义 | 写者 / 读者 |
+|---|---|---|---|
+| +0 | 对象指针 | 所属线程 profiler 对象 (48B, 其 +40 = 线程 id); 归并键 1 | 构造 sub_1424D03C0 写 / 归并查 sub_1424D0310 比对 |
+| +8 | char* | zone 名串指针; 归并键 2 | 构造写 / 归并查比对 / 导出期作 zone 名 |
+| +16 | uint32 | **进入计数** (两形推入各 ++) | sub_1424CF260 / sub_1424CF380 |
+| +24 | uint64 | 起始 QPC ticks | 两形推入写 Xtime_get_ticks / 弹出读作出账 |
+| +32 | uint64 | **累计 QPC 时长** (导出排序键) | 两形弹出各 `+= now − start` (sub_1424CF9B0 / sub_1424CFA60) |
+| +40 | 节点指针 | 父节点 | 构造写 / 弹出恢复 current |
+| +48 | 节点指针 | 首子节点 (新子节点前插到此) | 构造写 / 导出递归入口 sub_1424D35D0 |
+| +56 | 节点指针 | 下一兄弟 (兄弟链) | 构造写 / **导出排序重排此链** |
+| +64 | 对象指针 | 所属节点池 (24B 引擎向量, 回收用) | 构造写 |
 
 生命周期 (定案):
 
@@ -47,12 +65,15 @@ zone 条目布局 (56 字节/条, 无独立 RTTI 类（负定案）; 数组元�
 | 启动 | sub_1424D3730 | 断言主线程且未在采样; 置 g_IsProfiling; 建表; 推 "non_assigned" 根桶 |
 | 推入 (薄形) | sub_1424CF260 | RAII 构造; 记起点击入 TLS 链与条目 |
 | 推入 (层级形) | sub_1424CF380 | 第 4 参 = zone 层级, `层级 <= dword_1430C7218` 才记录; 同表同链 |
-| 弹出 | sub_1424CFE50 | RAII 析构 (推入的对偶); SRWLock stru_1435E3C18 内复查; **仅主线程**时把推入记录的起始 ticks (节点 +24) 追加采样数组 qword_1435E3C58; 清对象 +0/+16; a2 bit0 → j_free |
+| 弹出 (薄形) | sub_1424CF9B0 | RAII 析构 (推入 sub_1424CF260 的对偶): 节点+32 += now − start; 恢复 current = 父节点(+40); merge 模式另累计条目+24 / ++条目+8 / 恢复条目栈 qword_1435E3CA8 |
+| 弹出 (层级形) | sub_1424CFA60 | RAII 析构 (推入 sub_1424CF380 的对偶): 节点+32 += now − start; 恢复 current = 父节点 |
+| 线程退出回收 | sub_1424CFE50 | **非 RAII 弹出** — 每线程 context (TLS+2104) 析构期经 _tlregdtor 注册调用: context+16 节点池归还空闲表 qword_1435E3C58; 清 context+0/+16 |
 | 按名查/建 | sub_1424D0310 / sub_1424D3360 | 同串归并同条目; 新条目追加表尾 |
 | 分段重启 | sub_1401DF400 开头 | hourly 模式 (模式值 2) 下每次 HourlyUpdate 先重启采样 = 逐小时分段快照 |
+| 停止导出 | sub_1424D39D0 → sub_1424D20C0 → sub_1424D35D0 | JSON 落盘 (字段 type / start / duration / duration_in_ms / entry); 递归后序排序各节点子链: merge 旗 dword_1430C721C = 0 → sub_1424CEAB0 (std::sort **降序** by 节点+32 累计时长), 非 0 → sub_1424CEEB0 (**升序** by 节点+24 起始 ticks); 排序后重写节点+56 兄弟链 |
 
 > 备注: 两形推入共用同一条目表与 TLS 链, 层级形仅多一道层级过滤。
-> 备注: profiler 只记录主线程 (IsMainThread 断言), 并行 worker 与渲染线程不入表。
+> 备注: 薄形推入有 IsMainThread 断言; **层级形推入无线程断言** (仅 g_IsProfiling ∧ 层级 <= dword_1430C7218), 可由 worker 线程经 TLS context + 池空闲表独立建树 (与 §4.2.7 daily 并行段层级 zone 名单相符)。
 
 #### 4.9.3 内置 zone 名单
 
@@ -91,7 +112,7 @@ zone 条目布局 (56 字节/条, 无独立 RTTI 类（负定案）; 数组元�
 
 | 入口 | 形态 | 语义/产物 |
 |---|---|---|
-| 控制台 `profile` | 命令 (handler sub_140277780; 登记帮助 "profile options", 参数提示 "<on> <off> <print> <clear>") | 函数内逐字比对可识别修饰词 (定案): "hourly" = 逐小时分段模式, 缺省 = total sums; "merge" / "level" / "file" 已确认参与比对, 语义待裁; 非法组合回显 "invalid args"; dump 落 logs/profiler.log |
+| 控制台 `profile` | 命令 (handler sub_140277780; 登记帮助 "profile options", 参数提示 "<on> <off> <print> <clear>") | 函数内逐字比对可识别修饰词 (定案): "hourly" = 逐小时分段模式, 缺省 = total sums; "merge" = merge 旗 dword_1430C721C (0 = 按名归并 + 导出降序 by 累计时长, 非 0 = 逐次新建节点 + 升序 by 起始 ticks + 不建条目; 定案); "level" / "file" 已确认参与比对, 语义待裁; 非法组合回显 "invalid args"; dump 落 logs/profiler.log |
 | 控制台 `gamestate_timer` (别名 `gstimer`) | 命令 (handler sub_14025D910; 提示 "on / off"; 帮助 "Enable / Disable recording of how long an hour / day / week etc takes to process.") | 开关日期采样器 (§4.2.5); on 建文件并回显 "Game state timer enabled." |
 | 启动参数 `-gamestatetimer` | launcher 直通旗 (启动参数解析器置 byte_14332EC5E) | gamestate 就绪后自动启用日期采样器 (高置信) |
 | debug GUI "Profiler" 窗口 | -debug 窗口清单成员 (与 pid_controller_editor / event_graph 等同列) | Timings / Script 两 tab, 见下表 |
@@ -105,3 +126,14 @@ GUI 两 tab 内容 (定案):
 
 > 备注: logs/profiler.log dump 完成回显 "Profiling data dumped. It can be opened by the profile viewer in the game folder."
 > 备注: zone 统计粒度 = 子系统级, 不含逐函数细分; 逐函数热点需采样式 profiler (桥内自建或外部 ETW)。
+
+#### 4.9.5 性能分析域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412E19D0 | 无名 sub_（调用图定位） 调用图传播: 3/4 锚点投 §4.9 |
+| 0x140666460 | （无名） 调用图传播: 2 锚点投 §4.9（100%） |
+| 0x141009B50 | （无名） 调用图传播: 2 锚点投 §4.9（100%） |
+| 0x141009AE0 | （无名） 调用图传播: 3 锚点投 §4.9（100%） |
+| 0x1411803D0 | （无名） 调用图传播: 3 锚点投 §4.9（100%） |
+| 0x141009BC0 | （无名） 调用图传播: 2 锚点投 §4.9（100%） |

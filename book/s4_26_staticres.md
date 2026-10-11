@@ -50,7 +50,7 @@
 | 5 | GetLexerString (sub_1424BC260) | 有效判据 = id ≤ dword_1435E1AB4 (**含端最大已命名 id** — §4.26.2 #1 上限语义精确化, 与容量槽 dword_1435E1AEC 是两个界); 越界 assert + 返全局空串 (RVA 0x30C71F8) |
 | 6 | _TokenTree (unk_1430C6DD8) | 关键词→token 反查 RH 表 {data@+8, mask@+20}; 桶元 48B {链计数 u8@+4, MSVC string 键@+8, token u32@+40}; 查找/插入 = sub_1424BAE40/sub_1424BA400 |
 | 7 | 保留 token id | 单字符/操作符名硬写: 1"=" / 2"\\"" / 3"{" / 4"}" / 5"(" / 6")" / 9"#" / 16"\n" / 17"\t" / 18" " / 467">" / 468"<" / 792"?="; 二进制流载荷 id 359=long_float / 668=unum64 / 791=num64 |
-| 8 | lexerhelper (sub_1415A2BF0 族) | token 流后处理助手 (与词法表无关): `id = <值>` 赋值捕获 walker (重复捕获 assert; 驱动 sub_1415A2590; 典型消费 = 存档/配置块 id 提取) |
+| 8 | lexerhelper (sub_1415A2BF0 族) | token 流后处理助手 (与词法表无关): `id = <值>` 赋值捕获 walker (重复捕获 assert; 驱动 sub_1415A2590; 典型消费 = 存档/配置块 id 提取; walker 构造 sub_1415A21D0 三令牌参数定案 = (块令牌 10293 history / 键令牌 11 id / 外块令牌 439 state), 驱动器匹配形 = 令牌 + 类型1 + 类型3 (`state = {`), 捕获记录 40B {令牌@0, 值@8, 段表@16, 分配器@32} — §4.00.59) |
 
 > 其余全局槽位 (断言门/锁/动态数组容量等) 不影响访问器语义, 不逐项列。
 
@@ -465,6 +465,9 @@ NIntel / NDiplomacy 抽样键消费面 (装载器侧反查, 7 点定案):
 |---|---|---|
 | qword_143335398 (RAID_MIN_INTEL_FOR_WARNING_ON_LAUNCH) | sub_140FEF770 | 齐射预警门: `10000000×define/100000` 把 1e-5 基重标到 1e-7 基; a1+56 类型==2 → 门限 + (100000−情报系数)×(10000000−门限)/100000 插值; 类型 3/4 直接 ≥ 比较; 结果锁存 a1+400; 次消费 sub_141E98CB0 (HALFWAY_TO_LAUNCH / EARLY_PREPARATION 同族, 消费点未逐函反查) |
 | dword_1433376D8 (OLD_TECH_COUNT_NUM_DAYS) | sub_141EA0FD0 | 旧科技计数日检: (当前时刻 − 43800000)/24 − v37 ≥ define (43800000 = 时基哨兵, /24 转天) |
+| dword_143334988 (ARMY_UNIT_LEADER_ICON_SPRITE_ID) | sub_141D1F900 | 陆军将领图标帧 (leader_type ≤1 时 SetFrame(+1504), §4.31.86a) |
+| dword_143334A30 (NAVY_UNIT_LEADER_ICON_SPRITE_ID) | sub_141D1F900 | 海军将领图标帧 (leader_type ==2 时 SetFrame) |
+| dword_143334AD4 (POLITICAL_UNIT_LEADER_ICON_SPRITE_ID) | sub_141D1F900 | 政治领袖图标帧 (+1408 旗门时 SetFrame) |
 | xmmword_1433356E0 (ENCRYPTION_DECRYPTION_INTEL_FACTORS) | sub_1401D3420 | 加解密情报因子 32B 四元组整读 (双 xmm) |
 | off_143089568 (TENSION_TIME_SCALE_START_DATE) | sub_141897AB0 | 紧张度时间缩放起点 (sub_140533660 日期比较) |
 | byte_143330F46 (PEACE_PLAY_SOUND_ON_NEW_TURN) | sub_140E4AA10 | 和谈回合音效开关门 (`if (!槽)`) |
@@ -1037,11 +1040,11 @@ idb 四库 + building 库的元素 def 布局 (全部 vtable[2]=空桩 = 只读 
 
 **脚本化值/文本/模板族 (三库已挂, 布局全录)**: CScriptableValue (脚本值求值对象, 248B; vtable 0x1429DAFC8; writer=CFG; reader 0x1415945D0): +8 CScopedVariable 208B 基值 (base 11398) / +216 CPdxArray<CScriptableValueModifier*> modifier 表 (10597, 逐条 504B) / +240 上下文 id; **CScriptableValueModifier** (504B; vtable 0x1429DAF08; CAndTrigger 后代): +88 CScopedVariable factor (种子 1.0) / +296 CScopedVariable add (种子 0) + 基条件表全 AND。**SModifierDefinitonReader** (modifier_definitions 行解析器, 32B 栈件; vtable 0x1427DDA50; reader 0x140610B80): +8 precision (19052) / +12 显示格式位包 (color_type 19042: good→bit1 / neutral→bit2; value_type 19043: percentage→bit0 / yes_no→bit5 / percentage_in_hundred→bit7) / +16 postfix 枚 (19049: 1 days / 2 hours / 4 daily) / **+24 category 位掩** (state=0x10 / country=0x8 / army=0x20 / ai=0x100 / naval=0x1 / air=0x2 / politics=0x80 / unit_leader=0x4 / intelligence_agency=0x10000 / scientist=0x40000 / peace=0x40 / defensive=0x200 / aggressive=0x400 / war_production=0x800 / military_advancements=0x1000 / military_equipment=0x2000 / autonomy=0x4000 / government_in_exile=0x8000; all=0xFFFFFF)。**CScriptableLocalization** (defined_text 条目, 64B; vtable 0x142942470; writer = 死断言 "Should not happen!" 永不写盘; reader 0x140AAC7A0): +8 name / +40 STriggerKeyPair 数组 (元素 24B {vtable@0, loc 载荷*@8 (localization_key 799 或 random_list 10172 二选一, 同文件互斥), CAndTrigger*@16})。**CScriptableLocalizationDatabase** = umap 哨兵@48/size@56/cs-FNV/node+48 值槽 + reload 钩 (dword_14333A0A0) — 「链表走反」修复族的第三例代码级证据。**CScriptedTriggerTemplate** (模板 and-trigger 树, 136B; vtable 0x142942C50; 基类 CAndTrigger — 基 ctor sub_140549F40): THasNullObject@88 + 名 sso@+96 + idx@+128; [1] GetName 覆写 0x1401776D0。**CScriptedTriggerTemplateDatabase**: vec@64/cnt@76 (槽 0 = TNullObject 0x88B) + 双 RH 表 (LF 0.9)。**CScriptedEffectTemplateDatabase**: 条目 vec@80/cnt@92 (条目 128B, 名 sso@+96) + **[2] = "d_" 前缀依赖收集器** (0x140AB4AC0) → +128 reload vec。
 
-#### 4.26.11a 地图建筑装载域 (mapbuildings.cpp 5 函; map/buildings.txt 与 72B 实例)
+#### 4.26.11a 地图建筑装载域 (mapbuildings.cpp 5+6 函; map/buildings.txt 与 72B 实例)
 
 清册 (5/5 函体内含 mapbuildings.cpp 路径锚): LoadBuildings sub_141671C10 (1409, 全 throw 组) /
 SaveBuildings sub_1416748D0 (818, `;` CSV 写回) / LoadMeshHandles sub_141675750 (569) /
-UpdateInstanceEntity sub_141676450 (302) / SetOrder sub_1416756C0 (28)。
+UpdateInstanceEntity sub_141676450 (302) / SetOrder sub_1416756C0 (28)。**运行时创建域另 6 函** (df400: 均零路径锚/零业务串, 域归属按地址紧邻 + 行为链推定) = **实例创建器 sub_14166FBA0** / 浮动港口支 sub_14166F7B0 / 校验门 sub_1416717C0 / 位置选择三支 sub_141670A80 (哈希随机) + sub_141670890 (省建) + sub_141671220 (州建) — 见下「运行时创建域」。
 
 **map/buildings.txt 行格式** (定案, 解析器断言 + 原盘逐列对拍双证): `州id;建筑名;x;y;z;rotation;海域id`
 7 字段分号 CSV; 像素坐标对 = (x, z)。is_port 行 f6 = 海域 id → 省图形记录+200; 湖泊 = 同记录+210
@@ -1051,13 +1054,13 @@ bit1; 特例行 f6 = 输出省 id 存实例+52 (SaveBuildings 写回前解析)�
 
 | 偏移 | 类型 | 语义 |
 |---|---|---|
-| +0 | u32 | def id (spawn def +88 自身 id, 1-based) |
-| +4 | u32 | 群组 id (357 = null 哨兵, 与 SLevelMax group_by 同源) |
+| +0 | u32 | def id (spawn def +88 qword 对低半, 1-based; 创建器一次 qword 读同填 +4, df400) |
+| +4 | u32 | 群组 id (357 = null 哨兵, 与 SLevelMax group_by 同源; 源 = spawn def +92 高半, df400) |
 | +8 | 句柄 | 网格缓存 |
 | +16 | 实体 | 3D 实体句柄 |
-| +24 | u8 | 特例旗 (floating_harbor) |
+| +24 | u32 | **特例种类索引** (0 = 普通 / 1 = floating_harbor; 创建器 dword 写, a2 作 1-based 索引入管理器+72 特例表 — df400 精化: 非 u8 旗) |
 | +28 | u8 | Order = 同州/省同 def 堆叠序号 (装载计数直写; :513 上限断言) |
-| +32..+44 | f32×5 | xyz + rotation |
+| +32..+44 | f32×4 | x / **y = CMap+376 高度场双线性采样值 (sub_140A60F10, 非脚本/存档给定, df400 新)** / z / rotation |
 | +48 | u32 | 所属省 id |
 | +52 | u32 | 特例输出省 id (SaveBuildings 写回前解析) |
 | +56 | u16 | 州 id |
@@ -1074,7 +1077,32 @@ dword_143334EB8 = MESH_POPUP_SCALE_UP_SPEED / def+801 = disable_grow_animation�
 +136 名查表 (40B, hash+stricmp) / +148/+1000 群组旗; 群组记录 {+8 group, +88 defid};
 群组解析 group==357 → null 对象, 群组模式线性扫 +112。**spawn def 形状** (消费点定案):
 +16 有地图网格旗 / +17 is_port / +20 max 实例上限 / +24 show_on_map_meshes / +28 type
-(1=省建/0=州建) / +40 MSVC 串名称 / +88 自身 id。
+(1=省建/0=州建) / +40 MSVC 串名称 / **+18 水域/港口旗 (置位 → 校验门走 (省图形记录+210 & 9)==9 水位校验 + 创建器朝向走面朝相邻水域省支, df400 新)** / **+19 位置模式旗 (0 = 哈希随机扫描州内省 / 1 = 定位, df400 新)** / **+88 = {id u32, 群组 id u32} qword 对 (df400 精化: 创建器一次 qword 读同填实例 +0/+4)**。
+
+**运行时创建域** (df400; 6 函零路径锚零业务串, 域归属按地址紧邻 + 行为链推定):
+
+| VA | 定性 | 档 |
+|---|---|---|
+| 0x14166FBA0 | **建筑地图实例创建器** (推定 CMapBuildingManager::CreateInstance; a1 = 管理器 = 省地图对象+1760, 调用方经 idler qword_14332F698 vtable+128 (槽 16) 取省地图对象后取 +1760, §4.14.4) | 定案 (行为链: malloc 72B → 逐字段初始化 → SetOrder → 三链注册 → 返回实例) |
+| 0x14166F7B0 | 浮动港口 (种类 1) 专用创建器: 扫州容器找 (省图形记录+210 & 9)==9 的省 → per-省表查种类==1 实例 → 复用/创建 | 高置信 |
+| 0x1416717C0 | 创建校验门 (与 LoadBuildings 同款双门) | 高置信 |
+| 0x141670A80 | 位置选择 A (def+19==0 哈希随机扫描州内省) | 高置信 |
+| 0x141670890 | 位置选择 B (省建: 省图形记录+184 + per-省表+24×prov) | 高置信 |
+| 0x141671220 | 位置选择 C (州建: CState+48→+328 位置 qword + 高度图边界校验) | 高置信 |
+
+创建器主流程 (定案): 门禁 (a2≠0 → a1+72 特例表 (a2−1) 项空即拒创; a2==1 转发 0x14166F7B0; a2==0 → a1+36 门 ∧ per-def 计数门双关) → 哈希种子 = 州 id + 实例序号 a5 (6 步 mul-xor-shift 确定性链, 同种子同位置) → 三支选位 (def+19 位置模式旗: 0 → sub_141670A80; 1 → 省建 (def+28==1) 走州省列表 + sub_141670890, 州建走 sub_141671220) → sub_140A60F10(CMap+376 高度场, x, z) 采 y → 朝向: def+18 水域旗置位 = atan2(省中心 − 槽位) − π/2 (面朝相邻水域省), 否则哈希随机朝向 → qword 读 def+88 同填实例 +0/+4 → SetOrder(inst, 0) → 注册管理器总表 + per-省链 (省 id≠0 时) + per-州链。三调用方 = sub_141B47E30 (单创建) / sub_141B4E460 (批创建循环, 1.5× vector) / sub_141B44FD0 (计数门后循环)。
+
+**建筑实例管理器布局** (省地图对象 +1760; 新档):
+
+| 偏移 | 类型 | 语义 | 档 |
+|---|---|---|---|
+| +24 | 结构指针 | per-def 记录数组基 (24B 步按 def id 索引; 元素 +12 = 计数门, 0 即拒创) | 定案 |
+| +36 | u32 | 创建可用性门 (a2==0 支首关; 语义推定 = 建筑系统已注册) | 推定 |
+| +72 | 指针数组 | 特例 def 表 (8B 步, **1-based**: a2−1 下标; a2==1 项 = floating_harbor; 空指针拒创) | 定案 |
+| +96 | 表头数组 | per-州 实例链 (24B {data@+0, cap@+8, count@+12, alloc@+16}, 按 state id 索引) | 定案 |
+| +120 | 表头数组 | per-省 实例链 (24B 表头, 按省 id 索引) | 定案 |
+
+另: 省图形记录 +112 = 槽位数组 (经 sub_14140A320 线性查找, +112 data / +124 count / 12B 步比 u32 key; 条内 +8 int / +32 位置 qword, 跨距矛盾待裁); sub_1416760F0 = 水域省/槽位解析 (4 参 = mgr, prov_id, x, z); sub_1401205A0 = 1.5× 扩容 vector 追加器 (8B 元, 三链共用)。
 
 未决: SaveBuildings 写回行列序 (asm 级) / 网格变体打分与 mgr+24/db+40 双句柄表关系 /
 E2 双容器活体对拍 / aEntity_0 串本体。
@@ -1088,10 +1116,12 @@ E2 双容器活体对拍 / aEntity_0 串本体。
 
 **类别面全景** (定案): 25 张内联类别表 (谓词→偏移逐项成表, §4.34.21 AI 八表全在其内) +
 6 wrapper 表 (PE 机器码单谓词直证, 5 张与内联镜像) + +904 未裁 + +40 链桶。**六特名槽**:
-+928 supply_node (token 0x4CBE) / +936 rail_way (0x4CC1) / +944 infrastructure (0x2FAB) /
++928 supply_node (token 0x4CBE; **装载期用途定案** = `map/supply_nodes.txt` 节点建筑类型硬编码取本槽模板作 def, 不经脚本解析, §4.21.1a-4) / +936 rail_way (0x4CC1) / +944 infrastructure (0x2FAB) /
 +952 naval_base (0x31F6) 按 token; +960 arms_factory / +968 industrial_complex 按 stricmp。
 缺省告警 (:584-:609) + null 模板兜底 (null_object.h 单例 sub_140686BF0; dockyard/bunker/
 coastal_bunker/synthetic_refinery 串锚)。
+
+**同构第二例 (CTechnologyDatabase, §4.7.17)**: vtable 0x142944150 同为 TGameItemDatabase 5 槽族表, 槽[2] = 装载尾重建器 sub_140ACE570 (科技库 parent 继承合并 + 反向索引登记 + XOR 路径树坐标 + root-key 传播); 调用者同为家族 Load 包装 sub_14018B330 的 `(*vt+16)(a1)` (boot sub_14018BB20 → sub_140163E30 → "common/technologies"), 无直接调用者 — 纯虚表驱动模式跨库一致。
 
 **spawn point 合成链** (定案): null sp 占 index 0 → 逐有效模板生成自动 sp (assert :294 钉死
 GetIndex 对位) → 命名 sp 撞 token 则销毁 (:312, 建筑赢) → CIBTD 回填模板+1200/+80 (具名覆盖
@@ -1504,3 +1534,836 @@ NIndustrialOrganisation::CPolicyTemplate 808B 全布局 (ctor 0x14014A2F0, 形�
 > 3×CAndTrigger (+304/+392/+480) / 2×CEffect (+568/+656) / 公式块 (+744) 各对应哪个 MIO 政策脚本键 (allowed / visible / complete_effect / ai_will_do …) 未定案 (待裁)。
 
 > +96 的 CModifier 是内嵌成员还是多继承基类未定案 (ctor 构造序倾向成员; 两形布局同)。
+
+#### 4.26.27 静态资源访问层函数补遗（33 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AE73D0 | （未命名）NAME / DETAILS / ABILITY_DESC + gameitemdatabase.h:142 断言 NAME / DETAILS / ABILITY_DESC + gameitemdatabase.h:142 断言，能力描述查询 |
+| 0x141ECF280 | （未命名）仅 gameitemdatabase.h:142 单例断言 仅 gameitemdatabase.h:142 单例断言；TGameItemDatabase 查询型函数 |
+| 0x141EABE10 | （未命名）仅 gameitemdatabase.h:142 单例断言 仅 gameitemdatabase.h:142 单例断言，TGameItemDatabase 查询型 |
+| 0x140AC5CB0 | （未命名）subunit_definition_database.cpp:58 subunit_definition_database.cpp:58；"Invalid sub unit/category in modifier:"，子单位定义数据库校验 |
+| 0x1401A10B0 | sub_1401A10B0 gameitemdatabase.h:281 "!_Paths.IsEmpty() && \"Cant reload when not loaded\""（数据库重载门 + "=====" 分隔日志） |
+| 0x140F15390 | sub_140F15390 gameitemdatabasehelper.h "Array should be at least 1 element ... Null Object as Array[0]?" + SIMD（数据库数组空对象保护） |
+| 0x1409C8510 | sub_1409C8510 "Error reading division names tracker - unknown division names group tag:"（静态库装载：师名 tracker） |
+| 0x141BB8560 | sub_141BB8560 TGameItemDatabase 条目查找（gameitemdatabase.h:142+robin hood 迭代断言） |
+| 0x140A6E150 | sub_140A6E150 脚本块解析（「Expected opening brace」，pdx_parser.h:2222 站点） |
+| 0x1409750D0 | NDefines::CDefineRegistryHelper_NOperativesINTEL_NETWORK_MIN_ST…::[0] NDefines::CDefineRegistryHelper_NOperatives... + "is not a lua table" / "clamping to ma… |
+| 0x141441560 | sub_141441560 脚本块解析（「Expected opening brace」，pdx_parser.h:2222 站点） |
+| 0x140073980 | （未命名）modifier 注册文档串 "_cost_factor"/"Idea grou modifier 注册文档串 "_cost_factor"/"Idea group cost factor." |
+| 0x1406470E0 | （未命名）gameitemdatabasehelper.h:22 断言 "forget t gameitemdatabasehelper.h:22 断言 "forget to add the Null Object as Array[0]?"（库 Null Object 约定） |
+| 0x1409C9080 | sub_1409C9080 体内构造/操作 vtable 类 CNameGroupMember（&CNameGroupMember::vftable）→ 名称组/单位名/AI 态度数据库 |
+| 0x141FA6050 | （无名） vftable 类 NCareerProfile::SCareerProfileMedalData::（静态资源/库装载） |
+| 0x141E95AC0 | （未命名）串 "gfx/loadingscreens"/".dds" 串 "gfx/loadingscreens"/".dds"（载入图资源枚举） |
+| 0x140192FC0 | （无名） GameItemDatabase 单例（断言站点 gameitemdatabase.h:226） |
+| 0x140187600 | TReloadableGameItemDatabase::InitFromDirectory? TReloadableGameItemDatabase::InitFromDirectory? 克隆体，gameitemdatabase.h:179 + "DB already loaded when loading" |
+| 0x140AAFF40 | CScriptedMapMode::Reader CScriptedMapMode::Reader，串 "invalid map text type" |
+| 0x140A8DC00 | （未命名）null_object.h:133 断言 "_pInstance" null_object.h:133 断言 "_pInstance"（Null Object 门控包装） |
+| 0x1400745F0 | （无名） 脚本资源/修正器注册（自文档串 "_mission_factor"） |
+| 0x14007AC00 | （无名） 脚本资源/修正器注册（自文档串 "state_production_speed_"） |
+| 0x14007B9D0 | （未命名）modifier 注册文档串 "_max_level_terrain_limit modifier 注册文档串 "_max_level_terrain_limit"/"Maximum allowed building level for terrain." |
+| 0x14006E730 | （未命名）modifier 注册文档串 "state_resources_"/"State modifier 注册文档串 "state_resources_"/"State resource factor." |
+| 0x14007B000 | （未命名）modifier 注册文档串 "repair_speed_"/"Country modifier 注册文档串 "repair_speed_"/"Country building repair speed factor." |
+| 0x14006C900 | （无名） 脚本资源/修正器注册（自文档串 "_xp_gain_factor"） |
+| 0x1401711C0 | （无名） GameItemDatabase 单例（断言站点 gameitemdatabase.h:127） |
+| 0x14062A300 | sub_14062A300 数据库空对象数组断言（gameitemdatabasehelper.h "Array should be at least 1 element"） |
+| 0x141FA5650 | （无名） vftable 类 NCareerProfile::SCareerProfileMedalData::（静态资源/库装载） |
+| 0x1409CA620 | （无名） vftable 类 NDLC::CMetadata::（静态资源/库装载） |
+| 0x14068F9B0 | （无名） vftable 类 NCareerProfile::SProfileData::（静态资源/库装载） |
+| 0x14206F620 | sub_14206F620 构造 "script\…\.lua" 路径并读取脚本文件（扩展名 .lua） |
+| 0x14088B490 | 467431（合计） NDefines::CDefineRegistryHelper 读取器族（205 个模板实例，逐 define 从 Lua 表读值；错误路径含 std::ios_base vftable） sub_14088B490 体含串 "NIntel"+"CIVILIAN_SUPPLY_INTEL_R… |
+
+#### 4.26.28 静态资源访问层函数补遗（30 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142262F00 | （无名，按上游/loc 定性） loc "material\ shader" |
+| 0x14148B760 | （无名）gameitemdatabase.h:142 + Invalid module name for module slot specification. gameitemdatabase.h:142 + Invalid module name for module slot specification. |
+| 0x140B4C3A0 | （无名，按上游/loc 定性） loc "GFX_*" |
+| 0x14019EBC0 | （无名，按上游/loc 定性） 断言 "!_Paths.IsEmpty() && Cant reload when not loaded" |
+| 0x141B9C180 | （无名）gameitemdatabase.h:149 + infantry_equipment（默认装备查询） gameitemdatabase.h:149 + infantry_equipment（默认装备查询） |
+| 0x141B86650 | （无名，按上游/loc 定性） gameitemdatabase.h:149 断言 + byte_14332F1C6/qword_14332F080 单例初始化 |
+| 0x140170D40 | sub_140170D40 模块标签 gameitemdatabase.h:127 |
+| 0x1401728B0 | sub_1401728B0 模块标签 gameitemdatabase.h:127 |
+| 0x140637890 | sub_140637890 模块标签 gameitemdatabasehelper.h:137 |
+| 0x140AC79B0 | sub_140AC79B0 模块标签 gameitemdatabasehelper.h:137 |
+| 0x140172300 | sub_140172300 模块标签 gameitemdatabase.h:127 |
+| 0x14178EC30 | 无名大函数 0x14178EC30 令牌 MODIFIER_NONE（修正系统表） |
+| 0x140A53A40 | NIndustrialOrganisation::COrganisationDatabase::[0] NIndustrialOrganisation::COrganisationDatabase::[0] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x140628DC0 | 域关键词匹配 sub_140628DC0 + 域关键词匹配; 源码路径 hoi4; 断言站点 gameitemdatabase.h:149 |
+| 0x1409BFB00 | vtable/RTTI 类 CNameGroupDatabase sub_1409BFB00 + vtable/RTTI 类 CNameGroupDatabase |
+| 0x140D73B00 | sub_140D73B00 模块标签 gameitemdatabase.h:149 |
+| 0x14014F7A0 | vtable/RTTI 类 NDatabaseConfig::SDefaultLexerTokenConfig<NScript::CNamedCollectio sub_14014F7A0 + vtable/RTTI 类 NDatabaseConfig::SDefaultLexerTokenConfig<NScr… |
+| 0x14067F310 | 域关键词匹配 sub_14067F310 + 域关键词匹配; 源码路径 hoi4; 断言站点 gameitemdatabasehelper.h:35 |
+| 0x140AC28B0 | 域关键词匹配 sub_140AC28B0 + 域关键词匹配; 源码路径 hoi4; 断言站点 gameitemdatabasehelper.h:35 |
+| 0x14014F120 | vtable/RTTI 类 NDatabaseConfig::SDefaultLexerTokenConfig<NFactions::CFactionRule> sub_14014F120 + vtable/RTTI 类 NDatabaseConfig::SDefaultLexerTokenConfig<NFac… |
+| 0x1402ADB20 | CTestDatabase::[1] CTestDatabase::[1] + 名字角色规则(CTestDatabase::[1]); vtable/RTTI 含 CGregorianDate; 被 CTestDatabase::[1] 等 1 命名函数调用 |
+| 0x140A690D0 | vtable/RTTI 类 CNameDatabase sub_140A690D0 + vtable/RTTI 类 CNameDatabase |
+| 0x140A47BD0 | CIdeologyGroupDatabase::[5] CIdeologyGroupDatabase::[5] + 名字角色规则(CIdeologyGroupDatabase::[5]); 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x14065A1F0 | 域关键词匹配 sub_14065A1F0 + 域关键词匹配; 源码路径 hoi4; 断言站点 gameitemdatabasehelper.h:120 |
+| 0x140F13E60 | vtable/RTTI 类 CModifier sub_140F13E60 + vtable/RTTI 类 CModifier |
+| 0x140637E70 | CAIRoleDatabase::[1] CAIRoleDatabase::[1] + 名字角色规则(CAIRoleDatabase::[1]); vtable/RTTI 含 CAIRoleDatabase; 被 CAIRoleDatabase::[1] 等 1 命名函数调用 |
+| 0x140AE1B70 | CUnitMedalDatabase::[1] CUnitMedalDatabase::[1] + 名字角色规则(CUnitMedalDatabase::[1]); vtable/RTTI 含 TGameItemDatabase<CUnitMedalDatabase>; 被 CUnitMedalDatabase:… |
+| 0x140646250 | CAIStrategyPlanDatabase::[1] CAIStrategyPlanDatabase::[1] + 名字角色规则(CAIStrategyPlanDatabase::[1]); vtable/RTTI 含 CAIStrategyPlanDatabase; 被 CAIStrategyPlanDat… |
+| 0x1409BFF60 | vtable/RTTI 类 CNameGroupTracker sub_1409BFF60 + vtable/RTTI 类 CNameGroupTracker |
+| 0x140160220 | CPeaceConferenceDatabase::[1] CPeaceConferenceDatabase::[1] + 名字角色规则(CPeaceConferenceDatabase::[1]); vtable/RTTI 含 TGameItemDatabase<CPeaceConferenceDatabase… |
+
+#### 4.26.29 静态资源访问层函数补遗（46 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14178D300 | 数据库空对象数组守卫 数据库空对象数组守卫；断言 \"Array should be at least 1 element, did you forget to add the Null Object as Array[0]?\"（gameitemdatabasehelper.h），被调 gameitemdata… |
+| 0x1413C4410 | 州分类数据库装载 州分类数据库装载；断言 \"Array should be 1 element bigger than Lookup, did you forget to add the Null Object as Array[0]?\"（state_categories.cpp）+串 \"State cat… |
+| 0x140A47170 | 意识形态数据库装载 意识形态数据库装载；串 \"Duplicate database id \"，被调 lexer.cpp:241/381+parser.cpp:1087，邻 CIdeologyDatabase::[1](-2496B)/CIdeologyGroupDatabase::[1]/CIdeologyD… |
+| 0x142383860 | 资源/格式装载 资源/格式装载；串 \".asset\" 扩展，邻 CFormat::[0](-1296B)/[2]/CPdxTouchDevice |
+| 0x140AB5E70 | 脚本模板数据库装载 脚本模板数据库装载；被调 gameitemdatabasehelper.h:35/149/163+parser.cpp:1087+CDiplomaticAction::GetFirstCountryRef，邻 CScriptedTriggerTemplate::[0](-304B)/CScri… |
+| 0x141460BE0 | 装备模块定义校验 装备模块定义校验；串 \"Assigning module '\"+\"' which is not present on type '\"，被调 lexer.cpp:381 |
+| 0x14029AAC0 | 数据库热重载（同族） 数据库热重载（同族）；同上断言+串，被调 gameitemdatabase.h:281 |
+| 0x14019F280 | 数据库热重载 数据库热重载；断言 \"!_Paths.IsEmpty() && \\\"Cant reload when not loaded\\\"\"+串 \"Reloading Database:\"（gameitemdatabase.h:281），被调 occupationlawdatabase.cpp:186 |
+| 0x140AED730 | 单位领袖类别令牌解析 单位领袖类别令牌解析；串 \"Invalid token for Unit leader Category\"/\"Empty list for Unit leader Category\"/\"Invalid List token for Unit leader Category\"，被调… |
+| 0x14140D1F0 | CScientistTemplate::[7] / "Invalid scientist trait/does not exist "Invalid scientist trait/does not exist in scientist trait D §4.26 静态资源/库装载 |
+| 0x1401315F0 | gameitemdatabase.h:882 + CDiplomaticActi gameitemdatabase.h:882 + CDiplomaticAction::GetFirstCountryR §4.26 静态资源/库装载 |
+| 0x14012D940 | gameitemdatabase.h:882 + CDiplomaticActi gameitemdatabase.h:882 + CDiplomaticAction::GetFirstCountryR §4.26 静态资源/库装载 |
+| 0x1409B8540 | CDifficultySetting vtable + gameitemdata CDifficultySetting vtable + gameitemdatabasehelper 查询 §4.26 静态资源/库装载 |
+| 0x140A83EA0 | gameitemdatabasehelper.h:149 + GetFirstC gameitemdatabasehelper.h:149 + GetFirstCountryRef：库查询 §4.26 静态资源/库装载 |
+| 0x14083F6E0 | NDefines::CDefineRegistryHelper_NGameGAME_SPEED_SECONDS::[0] / define 注册表读取：NGame/GAME_SPEED_SECONDS + define 注册表读取：NGame/GAME_SPEED_SECONDS + "is not a lua … |
+| 0x140615EF0 | "Error reading the acclimatization file "Error reading the acclimatization file - there is no such s §4.26 静态资源/库装载 |
+| 0x140198610 | sub_140198610（无名） gameitemdatabase.h:281 站点 "!_Paths.IsEmpty() && Cant reload when not loaded" + "=====" 分隔日志，夹于 CDatabaseReloader<CTrainGfxDatabase>::[2] 与 … |
+| 0x1401A0D80 | sub_1401A0D80（无名） gameitemdatabase.h:281 站点同上（CDatabaseReloader 另一实例化，d=45120） |
+| 0x1407CAA50 | NDefines::CDefineRegistryHelper_NAITheatreAI_THEATRE_DISTRIBUTI…::[0] / define 注册表：NAITheatre/AI_THEATRE_DISTRIB define 注册表：NAITheatre/AI_THEATRE_DISTRIBUTIO… |
+| 0x1408FFC10 | NDefines::CDefineRegistryHelper_NMilitaryARMY_HQ_REQUISITION_MI…::[0] / define 注册表：NMilitary/ARMY_HQ_REQUISITION define 注册表：NMilitary/ARMY_HQ_REQUISITION_MIN… |
+| 0x14098D830 | NDefines::CDefineRegistryHelper_NProjectMINIMUM_PROJECT_SPEED_F…::[0] / define 注册表：NProject/MINIMUM_PROJECT_SPEE define 注册表：NProject/MINIMUM_PROJECT_SPEED_FA… |
+| 0x140825200 | NDefines::CDefineRegistryHelper_NDiplomacyPEACE_SCORE_TRANSFERR…::[0] / define 注册表：NDiplomacy/PEACE_SCORE_TRANSF define 注册表：NDiplomacy/PEACE_SCORE_TRANSFERRE… |
+| 0x140939BC0 | NDefines::CDefineRegistryHelper_NNavyCHANCE_TO_DAMAGE_PART_ON_C…::[0] / define 注册表：NNavy/CHANCE_TO_DAMAGE_PART_O define 注册表：NNavy/CHANCE_TO_DAMAGE_PART_ON_CR… |
+| 0x1409479D0 | NDefines::CDefineRegistryHelper_NNavyINTEL_LEVEL_MEDIUM_HALF_RA…::[0] / define 注册表：NNavy/INTEL_LEVEL_MEDIUM_HALF define 注册表：NNavy/INTEL_LEVEL_MEDIUM_HALF_RAN… |
+| 0x1408A13A0 | NDefines::CDefineRegistryHelper_NInterfaceCONVOY_ESCORT_PRESENC…::[0] / define 注册表：NInterface/CONVOY_ESCORT_PRES define 注册表：NInterface/CONVOY_ESCORT_PRESENCE… |
+| 0x140758EF0 | NDefines::CDefineRegistryHelper_NAIAI_FRACTION_OF_FIGHTERS_RESE…::[0] / define 注册表：NAI/AI_FRACTION_OF_FIGHTERS_R define 注册表：NAI/AI_FRACTION_OF_FIGHTERS_RESER… |
+| 0x1408F4500 | NDefines::CDefineRegistryHelper_NMapModeOCCUPATION_MAP_MODE_COU…::[0] / define 注册表读取：NMapMode/OCCUPATION_MAP_MOD define 注册表读取：NMapMode/OCCUPATION_MAP_MODE_CO… |
+| 0x140984B90 | NDefines::CDefineRegistryHelper_NProductionENERGY_SCALE_PER_TRA…::[0] / define 注册表：NProduction/ENERGY_SCALE_PER_ define 注册表：NProduction/ENERGY_SCALE_PER_TRAD… |
+| 0x1408050C0 | NDefines::CDefineRegistryHelper_NCountryMAX_INTELLIGENCE_MANPOW…::[0] / define 注册表：NCountry/MAX_INTELLIGENCE_MAN define 注册表：NCountry/MAX_INTELLIGENCE_MANPOWE… |
+| 0x1407FC410 | NDefines::CDefineRegistryHelper_NCountryGIE_CAPITULATE_MIN_LEGI…::[0] / define 注册表：NCountry/GIE_CAPITULATE_MIN_L define 注册表：NCountry/GIE_CAPITULATE_MIN_LEGIT… |
+| 0x1409648F0 | NDefines::CDefineRegistryHelper_NNavySUBMARINE_BASE_TORPEDO_REV…::[0] / define 注册表：NNavy/SUBMARINE_BASE_TORPEDO_ define 注册表：NNavy/SUBMARINE_BASE_TORPEDO_REVE… |
+| 0x140785AE0 | NDefines::CDefineRegistryHelper_NAIEQUIPMENT_MARKET_WANTED_CONV…::[0] / define 注册表：NAI/EQUIPMENT_MARKET_WANTED_C define 注册表：NAI/EQUIPMENT_MARKET_WANTED_CONVO… |
+| 0x1409AB580 | NDefines::CDefineRegistryHelper_NSupplyMIN_TRAIN_SUPPLY_FACTOR::[0] / define 注册表：NSupply/MIN_TRAIN_SUPPLY_FACT define 注册表：NSupply/MIN_TRAIN_SUPPLY_FACTOR §4.… |
+| 0x14094CBE0 | NDefines::CDefineRegistryHelper_NNavyMIN_ORG_ON_MANUAL_MOVE::[0] / define 注册表：NNavy/MIN_ORG_ON_MANUAL_MOVE define 注册表：NNavy/MIN_ORG_ON_MANUAL_MOVE §4.26 静态资源… |
+| 0x1407B49F0 | NDefines::CDefineRegistryHelper_NAIPEACE_TIME_NAVY_FUEL_FACTOR::[0] / define 注册表：NAI/PEACE_TIME_NAVY_FUEL_FACT define 注册表：NAI/PEACE_TIME_NAVY_FUEL_FACTOR §4.… |
+| 0x140176230 | "array of objects in ... database" 库装载校验 "array of objects in ... database" 库装载校验 §4.26 静态资源/库装载 |
+| 0x1412A0990 | 未命名业务函数 define/本地化键（串 CHARACTER_ADVISOR_CANT_BE_FIRED） |
+| 0x140D450E0 | 未命名业务函数 define/本地化键（串 DONATIONS_FROM_EXILE） |
+| 0x141A17790 | 未命名业务函数 define/本地化键（串 AGENCY_UPGRADES_DURATION） |
+| 0x141F604F0 | NAirSelectionUI::CConsolidateWingsOption::[2] define/本地化键（串 AIRWING_MERGE） |
+| 0x142156AF0 | 未命名业务函数 define/本地化键（串 EGL_SUCCESS） |
+| 0x141C92120 | CDiplomacyRequestLicensedProductionController（vtable 槽 [0]） define/本地化键（串 DIPLOMACY_SEND） |
+| 0x1420EB0C0 | 未命名业务函数 define/本地化键（串 SDL_DISPLAY_USABLE_BOUNDS） |
+| 0x14211D0A0 | 未命名业务函数 define/本地化键（串 DISP_CHANGE_BADPARAM） |
+| 0x142271300 | 未命名业务函数 define/本地化键（串 DURATION_HOURS） |
+| 0x14052B0D0 | NDoctrines::CAddMasteryBonusEffect::[25] define/本地化键（串 ADD_MASTERY_BONUS_EFFECT） |
+
+#### 4.26.30 静态资源访问层函数补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AA96B0 | （无名，按证据定性） gameitemdatabase.h:142 断言 _pInstance（数据库条目读取） |
+| 0x140613580 | （无名，按证据定性） gameitemdatabasehelper.h:149 断言（数据库条目 helper） |
+| 0x14012D0E0 | （无名，按证据定性） gameitemdatabase.h:882 断言站点（数据库条目装载） |
+| 0x14012FE10 | （无名，按证据定性） gameitemdatabase.h:882 断言站点（数据库条目装载） |
+| 0x140CB9810 | （无名，按证据定性） gameitemdatabase.h:149 断言 + 串 'Unknown building when reading modify_building_resources'（建筑资源修正读取） |
+| 0x14019C8D0 | （无名，按证据定性） gameitemdatabase.h:281 断言 !_Paths.IsEmpty()（数据库模板路径校验，同族 0x1401A3AC0/0x140198DB0） |
+| 0x140198DB0 | （无名，按证据定性） gameitemdatabase.h:281 断言 !_Paths.IsEmpty()（数据库模板路径校验同族） |
+| 0x14175AA70 | TGameItemDatabase 库访问 gameitemdatabase.h:142 + pdx_core 单例断言 |
+| 0x140193370 | TReloadableGameItemDatabase::InitFromDirectory? TReloadableGameItemDatabase::InitFromDirectory，gameitemdatabase.h:226 |
+| 0x140B91660 | 音乐播放器轨道索引校验 musicplayer.cpp:226 + "Invalid enum"，a1+108 索引 vs a1+336 计数 |
+| 0x14015B810 | TGameItemDatabase gameitemdatabase.h:780 + 源路径串 |
+| 0x1401EA7A0 | TGameItemDatabase 库访问 gameitemdatabase.h:142 + pdx_core 单例断言 ×3 |
+| 0x1413D9200 | TGameItemDatabase gameitemdatabase.h:142 + "_tab" 表访问 + 单例断言 |
+| 0x1416BC430 | TGameItemDatabase 库访问 gameitemdatabase.h:142 + "( Array.GetSize() > 0 )" 断言 |
+| 0x1422D2930 | GUI FX 定义文件装载 "gfx/FX/text.lua" ×2 |
+| 0x1401A45D0 | TGameItemDatabase 路径装载 gameitemdatabase.h:281 + "!_Paths.IsEmpty()" + 分隔线串 |
+| 0x140175EB0 | 库解析错误输出 "array of objects in ... database"，数据库装载族 |
+
+#### 4.26.31 静态资源访问层函数补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.26.32 静态资源访问层函数补遗（22 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C668B0 | （无名） 断言站点 gfx_railway.cpp:194 |
+| 0x1415ECD70 | 游戏物品数据库成员方法 gameitemdatabase.h:142 断言 |
+| 0x141461C00 | 游戏物品数据库成员方法 gameitemdatabase.h:142 断言 |
+| 0x14079A8B0 | NDefines::CDefineRegistryHelper_NAIMAX_AIR_REGIONS_TO_CARE_ABOUT::[0] MAX_AIR_REGIONS_TO_CARE_ABOUT；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\defines_ai… |
+| 0x140768B50 | NDefines::CDefineRegistryHelper_NAICALL_ALLY_LOSING_WAR_THRESHO…::[0] CALL_ALLY_LOSING_WAR_THRESHOLD；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\defines_a… |
+| 0x140989080 | NDefines::CDefineRegistryHelper_NProductionMIN_NAVAL_EQUIPMENT_…::[0] NProduction；MIN_NAVAL_EQUIPMENT_CONVERSION_RESOURCE_COST_FACTOR；C:\\mnt\\gsg\\hoi4\\hoi… |
+| 0x1408FAC10 | NDefines::CDefineRegistryHelper_NMarketCONTRACT_ESTIMATE_AVERAG…::[0] NMarket；CONTRACT_ESTIMATE_AVERAGE_CONVOY_SUNK_MULTIPLIER_ALPHA；C:\\mnt\\gsg\\hoi4\\hoi4… |
+| 0x140838D10 | NDefines::CDefineRegistryHelper_NFactionsPEACE_CONFERENCE_MINIM…::[0] NFactions；PEACE_CONFERENCE_MINIMAL_REQUIREMENT；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\s… |
+| 0x140815630 | NDefines::CDefineRegistryHelper_NDiplomacyFACTION_LEADERSHIP_CH…::[0] NDiplomacy；FACTION_LEADERSHIP_CHANGE_ALERT_THRESHOLD；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\h… |
+| 0x140946CD0 | NDefines::CDefineRegistryHelper_NNavyINTEL_LEVEL_LOW_HALF_RANGE…::[0] NNavy；INTEL_LEVEL_LOW_HALF_RANGE_MIN_CAPITALS；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\so… |
+| 0x14096FBD0 | NDefines::CDefineRegistryHelper_NOperativesCOUNTER_INTELLIGENCE…::[0] NOperatives；COUNTER_INTELLIGENCE_STACKING_FACTOR；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\… |
+| 0x140760F00 | NDefines::CDefineRegistryHelper_NAIARMY_LEADER_ASSIGN_DONT_STEA…::[0] ARMY_LEADER_ASSIGN_DONT_STEAL_OTHER_FACTOR；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\sourc… |
+| 0x140804170 | NDefines::CDefineRegistryHelper_NCountryMAX_INTELLIGENCE_CONVOY…::[0] NCountry；MAX_INTELLIGENCE_CONVOY_DATA_DEVIATION；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\… |
+| 0x1407A3B90 | NDefines::CDefineRegistryHelper_NAIMIN_CONVOY_EFFICIENCY_TO_CAN…::[0] MIN_CONVOY_EFFICIENCY_TO_CANCEL_TRADES；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\d… |
+| 0x140956A30 | NDefines::CDefineRegistryHelper_NNavyNAVAL_HEADQUARTER_ADJACENCY::[0] NNavy；NAVAL_HEADQUARTER_ADJACENCY；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\define… |
+| 0x14098EAF0 | NDefines::CDefineRegistryHelper_NProjectPROJECT_LOSS_FACTOR_ON_…::[0] NProject；PROJECT_LOSS_FACTOR_ON_CAPTURE；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\… |
+| 0x1407C15A0 | NDefines::CDefineRegistryHelper_NAIRESEARCH_WEIGHT_TRUNCATION_T…::[0] RESEARCH_WEIGHT_TRUNCATION_THRESHOLD；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\def… |
+| 0x1409370F0 | NDefines::CDefineRegistryHelper_NNavyBASE_SPOTTING_FROM_DECRYPT…::[0] NNavy；BASE_SPOTTING_FROM_DECRYPTION；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\defi… |
+| 0x14099C6C0 | NDefines::CDefineRegistryHelper_NResistanceINITIAL_STATE_RESIST…::[0] NResistance；INITIAL_STATE_RESISTANCE；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\def… |
+| 0x140942AF0 | NDefines::CDefineRegistryHelper_NNavyDOMINANCE_DAILY_LOSS_FACTOR::[0] NNavy；DOMINANCE_DAILY_LOSS_FACTOR；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\define… |
+| 0x140962030 | NDefines::CDefineRegistryHelper_NNavySHIP_SUPPORT_NEED_FACTOR::[0] NNavy；SHIP_SUPPORT_NEED_FACTOR；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\defines_mili… |
+| 0x1407E75C0 | NDefines::CDefineRegistryHelper_NAirINTERCEPTION_DAMAGE_SCALE::[0] INTERCEPTION_DAMAGE_SCALE；C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\defines_military.… |
+
+#### 4.26.33 静态资源访问层函数补遗（129 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AF1E10 | （无名） 调用图传播: 55 锚点投 §4.26（60%） |
+| 0x141AE60A0 | （无名） 调用图传播: 30 锚点投 §4.26（60%） |
+| 0x141AF6280 | （无名） 调用图传播: 34 锚点投 §4.26（94%） |
+| 0x141B18100 | （无名） 调用图传播: 25 锚点投 §4.26（64%） |
+| 0x140E72FE0 | （无名） 调用图传播: 9 锚点投 §4.26（56%） |
+| 0x141B72000 | （无名） 调用图传播: 10 锚点投 §4.26（50%） |
+| 0x1421F2C60 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421D72D0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421E7650 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x141C65120 | （无名） 调用图传播: 7 锚点投 §4.26（57%） |
+| 0x140CCC1D0 | （无名） 调用图传播: 5 锚点投 §4.26（80%） |
+| 0x140612F90 | （无名） 调用图传播: 9 锚点投 §4.26（56%） |
+| 0x1421D6F70 | （无名） 调用图传播: 6 锚点投 §4.26（100%） |
+| 0x141AF7970 | （无名） 调用图传播: 12 锚点投 §4.26（83%） |
+| 0x1421BEE50 | （无名） 调用图传播: 6 锚点投 §4.26（100%） |
+| 0x141BB43D0 | （无名） 调用图传播: 4 锚点投 §4.26（50%） |
+| 0x141267670 | （无名） 调用图传播: 4 锚点投 §4.26（75%） |
+| 0x1401A9780 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1412659D0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x141C2B890 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421E8230 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421E8480 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1401596D0 | （无名） 调用图传播: 13 锚点投 §4.26（92%） |
+| 0x140174440 | （无名） 调用图传播: 10 锚点投 §4.26（90%） |
+| 0x1421BE0F0 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x141BB4180 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x140194930 | （无名） 调用图传播: 7 锚点投 §4.26（71%） |
+| 0x1421C0D30 | （无名） 调用图传播: 14 锚点投 §4.26（100%） |
+| 0x14071FAC0 | （无名） 调用图传播: 4 锚点投 §4.26（50%） |
+| 0x140ADA320 | （无名） 调用图传播: 4 锚点投 §4.26（50%） |
+| 0x1406AE190 | （无名） 调用图传播: 4 锚点投 §4.26（50%） |
+| 0x1409B8AF0 | （无名） 调用图传播: 4 锚点投 §4.26（50%） |
+| 0x140AB7080 | （无名） 调用图传播: 4 锚点投 §4.26（50%） |
+| 0x140155320 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421C0F80 | （无名） 调用图传播: 14 锚点投 §4.26（100%） |
+| 0x140AAC1A0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x14139E8A0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1415AA990 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x140A8EA30 | （无名） 调用图传播: 8 锚点投 §4.26（62%） |
+| 0x141243630 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421CE550 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421C9930 | （无名） 调用图传播: 14 锚点投 §4.26（100%） |
+| 0x14128C150 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x140738F70 | （无名） 调用图传播: 11 锚点投 §4.26（100%） |
+| 0x14128FC00 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x140A8BE80 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140739090 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x1406BC700 | （无名） 调用图传播: 4 锚点投 §4.26（100%） |
+| 0x14015A4F0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140C95760 | （无名） 调用图传播: 5 锚点投 §4.26（60%） |
+| 0x1413F1A10 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x14206F480 | （无名） 调用图传播: 4 锚点投 §4.26（100%） |
+| 0x1406BCB70 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421B0950 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140A75E60 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x14060C5D0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x1421AC5C0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x141B04BD0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x141664F90 | （无名） 调用图传播: 5 锚点投 §4.26（80%） |
+| 0x1409B8980 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140BABC00 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140159450 | （无名） 调用图传播: 5 锚点投 §4.26（60%） |
+| 0x1421B9080 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x140AA9B10 | （无名） 调用图传播: 5 锚点投 §4.26（80%） |
+| 0x1421BAA50 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x1421BB530 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x14154A4A0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421AC280 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1410E10C0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x1421AD300 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BB630 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1405541D0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x14128C430 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x140154D10 | （无名） 调用图传播: 10 锚点投 §4.26（60%） |
+| 0x1421BC010 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x14167E710 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140A8BDD0 | （无名） 调用图传播: 3 锚点投 §4.26（67%） |
+| 0x1416623B0 | （无名） 调用图传播: 4 锚点投 §4.26（100%） |
+| 0x1421BBD80 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421ACAF0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421B9490 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140611ED0 | （无名） 调用图传播: 3 锚点投 §4.26（67%） |
+| 0x140A9A940 | （无名） 调用图传播: 4 锚点投 §4.26（75%） |
+| 0x1421AD0D0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421ACF70 | （无名） 调用图传播: 6 锚点投 §4.26（100%） |
+| 0x141BB5A70 | （无名） 调用图传播: 3 锚点投 §4.26（67%） |
+| 0x1421BA860 | （无名） 调用图传播: 8 锚点投 §4.26（100%） |
+| 0x1421C9680 | （无名） 调用图传播: 4 锚点投 §4.26（100%） |
+| 0x1407391E0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421C0960 | （无名） 调用图传播: 4 锚点投 §4.26（100%） |
+| 0x1421BE2D0 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x1421ADE90 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BA3D0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421C0C90 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BAB20 | （无名） 调用图传播: 6 锚点投 §4.26（100%） |
+| 0x141BB1930 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x1421BB730 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421C8C40 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x1421C08D0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421C0A30 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BB250 | （无名） 调用图传播: 6 锚点投 §4.26（100%） |
+| 0x1421BA930 | （无名） 调用图传播: 5 锚点投 §4.26（100%） |
+| 0x1421AB690 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421C98B0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x14015A630 | （无名） 调用图传播: 4 锚点投 §4.26（75%） |
+| 0x1421AD5C0 | （无名） 调用图传播: 4 锚点投 §4.26（100%） |
+| 0x1421B92C0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421B97F0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421C7A50 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421BCF60 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1422DE010 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1422DE040 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421ACB90 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421ADCD0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421C11D0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421B98D0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421C1510 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421B9970 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BAD50 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421B9C10 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421BA360 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421B9BB0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421ADDA0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421B9750 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BD680 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421B9790 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421BA460 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421BA5B0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421BA9D0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+
+#### 4.26.34 静态资源访问层函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140672320 | CGameItemDatabase 表操作 pdx_robin_hood_table.h:58 + gameitemdatabase.h:142 双断言 → CGameItemDatabase 表操作 |
+| 0x141CC8880 | 资源库查询 gameitemdatabase.h:142 + 串 "gfx/loadingscreens/"/"GFX_frontend_bg" → 资源库查询 |
+| 0x142256880 | 控制台 reload 命令 串 "' reloaded!"/"Failed to reload '"/"No such reload target that takes arguments" → 控制台 reload 命令 |
+| 0x140AA5ED0 | 类型化数组常量解析 串 "expects an array of "/"Unsupported array data type for constants" → 类型化数组常量解析 |
+| 0x140DE5490 | 脚本解析错误信息 串 "Expected '=' after"/"Expected a number after '/'"/"Expected block" → 脚本解析错误信息 |
+
+#### 4.26.35 静态资源访问层函数补遗（54 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A92E30 | sub_140A92E30 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x141932B40 | sub_141932B40 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x141992FF0 | sub_141992FF0 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x140EE22F0 | sub_140EE22F0 TGameItemDatabase 条目查找（断言「Instance not created.」） |
+| 0x141915740 | sub_141915740 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x14118CA50 | sub_14118CA50 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x14101DA90 | sub_14101DA90 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x14068A050 | sub_14068A050 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x140DF1A50 | sub_140DF1A50 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x141025D30 | sub_141025D30 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x1413C95F0 | sub_1413C95F0 pdx_parser 读循环调用族（sub_14014B4E0/sub_1401516C0/sub_140158B40/sub_1424C04A0），脚本数据库 Reader::Parse |
+| 0x140A8F620 | sub_140A8F620 数据库条目缺失（Entry doesn't exist in database:） |
+| 0x14060D320 | sub_14060D320 动态修正脚本加载（.txt 文件读取+CDynamicModifierContainer 邻域） |
+| 0x14206F210 | sub_14206F210 lua 表读取调用族+luabind 调用族，define 注册邻域 |
+| 0x14011A4B0 | sub_14011A4B0 可绑定本地化文档/解析（Bindable localization） |
+| 0x141B66A60 | 无名领域函数 sub_141B66A60 调用传播: 9 个窗口内 callee 多数属 §4.26（权重 1.00） |
+| 0x1419DCC40 | sub_1419DCC40 游戏物品数据库单例访问（gameitemdatabase.h 断言） |
+| 0x141EC0260 | 无名领域函数 sub_141EC0260 断言站点 \hoi4\\source\\gameitemdatabase.h（物品数据库） |
+| 0x140D83920 | sub_140D83920 游戏物品数据库单例访问（gameitemdatabase.h 断言） |
+| 0x140172590 | sub_140172590 游戏物品数据库单例访问（gameitemdatabase.h 断言） |
+| 0x1402DCBE0 | 同区段近邻 CTestDatabase::[1](距 0x2F0C0)属 4.26 族 sub_1402DCBE0 + 同区段近邻 CTestDatabase::[1](距 0x2F0C0)属 4.26 族 |
+| 0x141B61E30 | 无名领域函数 sub_141B61E30 断言站点 \hoi4\\source\\gameitemdatabase.h（物品数据库） |
+| 0x141ED0010 | sub_141ED0010 游戏物品数据库单例访问（gameitemdatabase.h 断言） |
+| 0x140AC76C0 | 无名领域函数 sub_140AC76C0 断言站点 \hoi4\\source\\gameitemdatabasehelper.h（物品数据库） |
+| 0x140644470 | 无名领域函数 sub_140644470 断言站点 \hoi4\\source\\gameitemdatabasehelper.h（物品数据库） |
+| 0x140AE2CF0 | 无名领域函数 sub_140AE2CF0 断言站点 \hoi4\\source\\gameitemdatabasehelper.h（物品数据库） |
+| 0x1410EEA30 | 域关键词匹配 sub_1410EEA30 + 域关键词匹配; 源码路径 hoi4; 被调源码 hoi4 |
+| 0x141DBFE50 | sub_141DBFE50 串:state_resource_entry |
+| 0x141A3ACD0 | 无名领域函数 sub_141A3ACD0 断言站点 \hoi4\\source\\gameitemdatabase.h（物品数据库） |
+| 0x141FDD9B0 | 域关键词匹配 sub_141FDD9B0 + 域关键词匹配; 源码路径 hoi4; 被调源码 clausewitz |
+| 0x140ADF910 | sub_140ADF910 列车 gfx 数据库装载（train_gfx_database） |
+| 0x141CF4A10 | sub_141CF4A10 游戏物品数据库单例访问（gameitemdatabase.h 断言） |
+| 0x1406485A0 | sub_1406485A0 特征串:.txt |
+| 0x140A6B1E0 | sub_140A6B1E0 特征串:.txt |
+| 0x140E89FE0 | 无名领域函数 sub_140E89FE0 断言站点 \hoi4\\source\\gameitemdatabase.h（物品数据库） |
+| 0x141B48830 | sub_141B48830 特征串:buildings_nudger_markers.txt |
+| 0x140301EC0 | 同区段近邻 CTestDatabase::[1](距 0x543A0)属 4.26 族 sub_140301EC0 + 同区段近邻 CTestDatabase::[1](距 0x543A0)属 4.26 族 |
+| 0x1402B2A40 | 同区段近邻 CTestDatabase::[1](距 0x4F20)属 4.26 族 sub_1402B2A40 + 同区段近邻 CTestDatabase::[1](距 0x4F20)属 4.26 族 |
+| 0x141D68CB0 | 域关键词匹配 sub_141D68CB0 + 域关键词匹配; 源码路径 hoi4; 被调源码 hoi4 |
+| 0x140ACA030 | 调用图上游传播(占 100%, 1 票) sub_140ACA030 + 调用图上游传播(占 100%, 1 票) |
+| 0x140A82F70 | 域关键词匹配 sub_140A82F70 + 域关键词匹配; 被调源码 clausewitz |
+| 0x1402F2FD0 | 调用图上游传播(占 67%, 7 票) sub_1402F2FD0 + 调用图上游传播(占 67%, 7 票) |
+| 0x140AC99B0 | 调用图上游传播(占 100%, 1 票) sub_140AC99B0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1409F8880 | 域关键词匹配 sub_1409F8880 + 域关键词匹配; 源码路径 hoi4; 被 CEquipmentType::[4] 等 1 命名函数调用 |
+| 0x1401576A0 | 调用图上游传播(占 100%, 1 票) sub_1401576A0 + 调用图上游传播(占 100%, 1 票) |
+| 0x140143250 | 调用图上游传播(占 100%, 1 票) sub_140143250 + 调用图上游传播(占 100%, 1 票) |
+| 0x140A45830 | 调用图上游传播(占 50%, 2 票) sub_140A45830 + 调用图上游传播(占 50%, 2 票) |
+| 0x140A02D20 | 调用图上游传播(占 100%, 1 票) sub_140A02D20 + 调用图上游传播(占 100%, 1 票) |
+| 0x1409C01A0 | 域关键词匹配 sub_1409C01A0 + 域关键词匹配 |
+| 0x140A3FFC0 | 域关键词匹配 sub_140A3FFC0 + 域关键词匹配 |
+| 0x1401F91C0 | 调用图上游传播(占 33%, 3 票) sub_1401F91C0 + 调用图上游传播(占 33%, 3 票) |
+| 0x1409CA550 | 域关键词匹配 sub_1409CA550 + 域关键词匹配 |
+| 0x140A25A60 | 调用图上游传播(占 38%, 3 票) sub_140A25A60 + 调用图上游传播(占 38%, 3 票) |
+| 0x1402CAD70 | 调用图上游传播(占 100%, 1 票) sub_1402CAD70 + 调用图上游传播(占 100%, 1 票) |
+
+#### 4.26.36 静态资源访问层函数补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140232A10 | 串 "localisation/ignored_loc_keys.txt" 串 "localisation/ignored_loc_keys.txt"，本地化加载 |
+| 0x14027B1B0 | 断言 "Technology database reloaded." 断言 "Technology database reloaded."，科技数据库重载 |
+| 0x140073BD0 | 串 "_category_type_cost_factor"/"IdeaCategory" 串 "_category_type_cost_factor"/"IdeaCategory"，idea 类别因子注册 |
+| 0x140CFC490 | GUI：EXILE_COUNTRY_NORMAL_MANPOWER_DAILY_GROWTH loc 键 EXILE_COUNTRY_NORMAL_MANPOWER_DAILY_GROWTH/AMOUNT，define 注册 |
+| 0x140A1D6C0 | 断言 "Named collection not found" 断言 "Named collection not found"，script_collection_input_impl.h |
+| 0x140A98F30 | （无名） 调用图传播: 4 锚点投 §4.26（100%） |
+| 0x141F493D0 | 无名 · gameitemdatabase.h "Instance not c gameitemdatabase.h "Instance not created." + idb 项查找 |
+| 0x140A99990 | （无名） 调用图传播: 6 锚点投 §4.26（100%） |
+| 0x140193A50 | 无名 · gameitemdatabase.h "DB already loa gameitemdatabase.h "DB already loaded when loading" |
+| 0x140193880 | 无名 · gameitemdatabase.h "DB already loa gameitemdatabase.h "DB already loaded when loading" |
+| 0x14167F210 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x140ACDDD0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+
+#### 4.26.37 静态资源访问层函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14066F600 | 业务逻辑（见证据锚） 路径拼接 + '/'(47) 分隔 + sub_1424DC600(…, ".txt", 0, 0)（.txt 文件清单载入） |
+| 0x140A94840 | 业务逻辑（见证据锚） "Special project is not allowed to have Oil as a resource cost"（idb 特殊项目资源成本校验） |
+| 0x1409F0C30 | TGameItemDatabase 游戏物品库模板(析构清理链) (vtable类名 TGameItemDatabase<CEquipmentDatabase>) vtable引用 TGameItemDatabase<CEquipmentDatabase> vftable |
+| 0x1409C0250 | CNameGroup 名称组静态库 (vtable类名 CNameGroup) vtable引用 CNameGroup vftable |
+| 0x140A347F0 | CGameRule 游戏规则 (vtable类名 CGameRule) vtable引用 CGameRule vftable |
+
+#### 4.26.38 静态资源访问层函数补遗（24 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1421D7B70 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x140A32AD0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x141AF5970 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x1421AD1C0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BD020 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x141661A10 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1416615E0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x14012A9A0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x1401590F0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x141B17E40 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140B565E0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x141B73A80 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x1421ADE10 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x14209CDF0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x1417842E0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+| 0x1421C0B30 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421C0AD0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BC7F0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421BB4D0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BC8C0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BC7A0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421B95F0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140A9AA10 | （无名） 调用图传播: 4 锚点投 §4.26（100%） |
+| 0x1421BCFF0 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+
+#### 4.26.39 静态资源访问层函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B74780 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BCED0 | （无名） 调用图传播: 3 锚点投 §4.26（100%） |
+| 0x1421B9870 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x1421BC760 | （无名） 调用图传播: 2 锚点投 §4.26（100%） |
+| 0x140E72FA0 | （无名） 调用图传播: 2 锚点投 §4.26（50%） |
+
+#### 4.26.40 静态资源访问层函数补遗（223 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413150B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1419FA600 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1415DFA30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141AF0ED0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1419E3ED0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1402949E0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140C9B9B0 | 无名 sub_（断言站点/串定位） 串字面量 "Module slot name alreadly defined" |
+| 0x14147AB70 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141BDCE50 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1406E0AE0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14148AF10 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141E16620 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14242B320 | 无名 sub_（断言站点/串定位） 断言站点 gfx_glsl_builder.cpp:415 |
+| 0x141EE12C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x141CC0190 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1401ECE70 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140BA6630 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140193C30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:259 |
+| 0x141C057E0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1409FA3D0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140BCBA10 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140725310 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1401931A0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:198 |
+| 0x141683790 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140E77C60 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140AC5AF0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14006E530 | 无名 sub_（断言站点/串定位） 串字面量 "local_resources_" |
+| 0x140AC7520 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:137 |
+| 0x140ABB540 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:137 |
+| 0x140644310 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:137 |
+| 0x140A3E280 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:137 |
+| 0x140AE2B90 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:137 |
+| 0x1407225C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:137 |
+| 0x1401936A0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:198 |
+| 0x141D61A00 | 无名 sub_（断言站点/串定位） 串字面量 "resource_icon" |
+| 0x141C0C9D0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140683A50 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140633AF0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x1406AF590 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x140722DC0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x1409E92E0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x140A67920 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x140A80020 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x140AC7FE0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x140AE1730 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x140AE2EF0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x1413C3C10 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:35 |
+| 0x141B54000 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x141097BD0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141C8FD00 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140172A40 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:127 |
+| 0x140173DC0 | CTrainGfxDatabase 单例创建器（0xE0B，槽 qword_14332F0C0） 构造器 sub_140ADE8C0 装 `TGameItemDatabase<CTrainGfxDatabase>::vftable`；gameitemdatabase.h:127 |
+| 0x140186FE0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x1401864D0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x141D9B760 | 无名 sub_（断言站点/串定位） 串字面量 "resources_grid" |
+| 0x140150630 | CSpecializationDatabase（NProject）可重载数据库构造 vtable `TReloadableGameItemDatabase<NProject::CSpecializationDatabase>::vftable` |
+| 0x1409E93E0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:69 |
+| 0x140A423C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:120 |
+| 0x140AD0370 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:120 |
+| 0x140AD0930 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:120 |
+| 0x1403F00E0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:120 |
+| 0x140A79350 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:120 |
+| 0x140AA2530 | CCountryScorerDatabase 可重载数据库构造 vtable `TReloadableGameItemDatabase<CCountryScorerDatabase>::vftable` |
+| 0x140A80120 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:120 |
+| 0x140AC19E0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:120 |
+| 0x140AE2FF0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:120 |
+| 0x1401871A0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x140188870 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x140188150 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x14018A790 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140188230 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x1401886A0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140186850 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140187440 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140188E50 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018A1C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018B880 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140186BD0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140187C60 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140188070 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x140189420 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018A870 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x14018B410 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018A6B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x1401883F0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x1401885B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x1401884D0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:179 |
+| 0x140683970 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140A42170 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140A425C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140A42710 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140186AF0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140187B80 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140189260 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140189340 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14072B9F0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140ABD440 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140186770 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140187360 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018AD60 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x1402319E0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x14067D280 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x1409B8A30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140A3B510 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140AC4F00 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x140186A10 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140187AA0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018A5D0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018B000 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018B6B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140186690 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140187280 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x140188A40 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x1401896C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018AA30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x14018B5D0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:160 |
+| 0x141D9B9D0 | 无名 sub_（断言站点/串定位） 串字面量 "resources_grid" |
+| 0x140644F90 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:98 |
+| 0x140172260 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:127 |
+| 0x140644EF0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabasehelper.h:22 |
+| 0x1415A8290 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141D9B6B0 | 无名 sub_（断言站点/串定位） 串字面量 "resources_grid" |
+| 0x140F9C850 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1421089F0 | 无名 sub_（断言站点/串定位） 串字面量 "Not enough resources to create thread" |
+| 0x142260990 | GFX/FX 脚本资源懒加载 strcpy "gfx/FX/pdxmesh.lua" + sub_14011D740 |
+| 0x140162CB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1406B8AE0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140161530 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161630 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401616B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161730 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401617B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161830 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401618B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161930 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161A30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161B30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161BB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161CB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161DB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161F30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140161FB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162030 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401620B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162130 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401621B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162230 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162330 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401623B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162430 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401624B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162530 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401625B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162630 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401627B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162830 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401628B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401629B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162A30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162BB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162C30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162DB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140162E30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163030 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401630B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163130 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401631B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163230 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163330 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401633B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163430 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401634B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163530 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163630 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401637B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401638B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163B30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163D30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163DB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163F30 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140163FB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401640B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401641B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140164230 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x1401774C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14022F890 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14022FC10 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14022FD10 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140319E60 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14039DE40 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14039DFC0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14039E140 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14039E1C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14043F4C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14043F540 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140462050 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140487790 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1404B2EE0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14052AD80 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140631F10 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14065A8C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14065A940 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1406B8B60 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140A2A580 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140A46890 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:149 |
+| 0x140A7B1C0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140AB2BB0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140B3C300 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140B4B170 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140D55DC0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140DB8C50 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x140F99C70 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141128250 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1414E61D0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x1414E6250 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14169C590 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141C640B0 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141F89A90 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x141F57A60 | 无名 sub_（断言站点/串定位） 断言站点 gameitemdatabase.h:142 |
+| 0x14001EF60 | 无名 sub_（断言站点/串定位） 串字面量 "ey can be defined to override title" |
+| 0x140028AC0 | 无名 sub_（断言站点/串定位） 串字面量 "be defined to override title" |
+| 0x14001F5C0 | 无名 sub_（断言站点/串定位） 串字面量 "y can be defined to override title" |
+| 0x1400288E0 | 无名 sub_（断言站点/串定位） 串字面量 "be defined to override title" |
+
+#### 4.26.41 静态资源访问层函数补遗（75 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1421E2BE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421E8CF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421E6FA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421D1500 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x141FA5430 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B0430 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BC0E0 | 无名 sub_（调用图定位） 调用图传播: 8/8 锚点投 §4.26 |
+| 0x1421CE0A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1401461D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x140ABD290 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x140082160 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B0800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B3CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421C1570 | 无名 sub_（调用图定位） 调用图传播: 8/8 锚点投 §4.26 |
+| 0x1421AC3D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421ABA20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B37C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421C0340 | 无名 sub_（调用图定位） 调用图传播: 5/7 锚点投 §4.26 |
+| 0x1421ABE60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B9F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x14032E680 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AB890 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x14148E9E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421C9340 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.26 |
+| 0x1421B1490 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BFE40 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.26 |
+| 0x1421C2070 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1423A5D00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1406874F0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.26 |
+| 0x1421C9420 | 无名 sub_（调用图定位） 调用图传播: 7/7 锚点投 §4.26 |
+| 0x1421BA4B0 | 无名 sub_（调用图定位） 调用图传播: 8/8 锚点投 §4.26 |
+| 0x1421BC5F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AC4C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BBB80 | 无名 sub_（调用图定位） 调用图传播: 6/6 锚点投 §4.26 |
+| 0x140A05C10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BD0E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x14124A980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BECF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BA270 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.26 |
+| 0x1421B1530 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BD270 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421CE480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B0750 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.26 |
+| 0x141C65080 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AE450 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BC520 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421F3720 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AB910 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421ACCF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AC550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1415AAAB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x14186C750 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BC3F0 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.26 |
+| 0x140A400A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1424D7990 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421ABAB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AB980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B9B00 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.26 |
+| 0x141FA4FD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x141290490 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421C1420 | 无名 sub_（调用图定位） 调用图传播: 5/5 锚点投 §4.26 |
+| 0x1421AC970 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AB540 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BBE50 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.26 |
+| 0x1402D7090 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1424E0B30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B9DB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x14102A650 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x140A34610 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x142154E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421ABC80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x142156CE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x14032E3A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BB300 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421BA1B0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.26 |
+
+#### 4.26.42 静态资源访问层函数补遗（19 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1421DE250 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421EFF70 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.26 |
+| 0x1421C4D60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AF0E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B1AA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B0A50 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.26 |
+| 0x1423A3990 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.26 |
+| 0x141C628E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421D1440 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.26 |
+| 0x1421CF770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421C4C50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421B5340 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1415AA3B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421CE3F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x141FA5F40 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.26 |
+| 0x1421AEFE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421CDFF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421DD8E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+| 0x1421AD3C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.26 |
+
+#### 4.26.43 静态资源访问层函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14012E5A0 | （无名） gameitemdatabase.h:882 断言（静态资源库成员） |
+| 0x141D636F0 | （无名） gameitemdatabase.h:142 + pdx_scopedptr.h 断言（静态资源库成员） |
+
+#### 4.26.44 静态资源访问层函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140531C30 | 无名 sub_（人工读体裁定） 本地化格式化器（formatter.cpp "country_culture" + "Formatter %s requires a localization context"） |
+| 0x140BE1470 | 无名 sub_（人工读体裁定） 数据库条目遍历（null_object.h "_pInstance" 断言 + a2+12 计数数组） |
+
+#### 4.26.45 静态资源访问层函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14014F870 | 数据库析构 数据库析构：vtable 名 CPersistentReloadableGameItemDatabase<NProject::CProjectDatabase,CProjectTemplate> 标识项目模板库 |
+| 0x1414528B0 | 描述串读写 描述串写入：按 "_DESC" 键查表（sub_14011FFD0）并写入 a2，含 std::string SSO 释放模式 |
+| 0x14190D600 | 键解析 定义解析：strcpy "modifiers_list" 经 sub_1422BDA50(a1[2], 键, 1, 1) 解析，结果存 a1[17] |
+| 0x140AB5C00 | 数据库析构 TGameItemDatabase<CScriptedTriggerTemplateDatabase> 析构：+8 表 sub_140120CE0 清空 + 分配器 vtable+16 释放 |
+| 0x1406459B0 | 数据库析构 TGameItemDatabase<CAIStrategyPlanDatabase> 析构：+8 表 sub_140120CE0 清空 + 分配器 vtable+16 释放 |
+| 0x140AEF740 | 数据库析构 TGameItemDatabase<CUnitNamesDatabase> 析构：+8 表 sub_140120CE0 清空 + 分配器 vtable+16 释放 |
+| 0x140A3A020 | 数据库析构 TGameItemDatabase<CWarGoalDatabase> 析构：+8 表 sub_140120CE0 清空 + 分配器 vtable+16 释放 |
+
+#### 4.26.46 静态资源访问层函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14014FF50 | TAG别名数据库 TReloadableGameItemDatabase<CCountryTagAliasDatabase> 析构：表项释放 + 基类 vtable 回退 |
+| 0x140150210 | 行动令牌数据库 TReloadableGameItemDatabase<COperationTokensDatabase> 析构：表项释放 + 基类 vtable 回退 |
+
+#### 4.26.47 静态资源访问层函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14002F120 | 本地化 本地化格式器文档（"country_culture formatter" / "custom_effect_tooltip = country_culture&#124;generic_tank_organisation"） |
+| 0x142248E40 | 本地化 "localisation" / "localisation_import" 串 + do 计数循环（0x100000 上限） |
+| 0x140533570 | 日期格式化 日期格式化：sub_142269220/1772C0 + sub_140534F0(Buffer, "%d %s %d") + SSO 串 |
+
+#### 4.26.48 静态资源访问层函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14071BBA0 | 未决窗口函数 · 静态库管理器析构 qword_143330D98 全局库析构：三组 vector（vt+16/sub_140120CE0）+ sub_1401C1F90 |
+| 0x141E54280 | 未决窗口函数 · 静态库名称解析 a3==12518 分支取 a2+200 串 → 哈希 → qword_143330D98 库 sub_14071BC80/BD10 查值写 +40 |
+| 0x1424DC970 | 未决窗口函数 · 脚本名注册表装载 遍历 qword_1435E3E70 链表，逐串哈希（sub_14011D970）后 sub_14011D740 注册 |
+| 0x1403DE9E0 | 未决窗口函数 · 查表+本地化串构造 sub_14054AE70(a1,a2) 查表后经 sub_140545D50(a1+88, a2, &v7) 构造 SSO 串并释放 |
+| 0x14167D820 | 未决窗口函数 · 重载监听器注销（TReloadListener<0>） TReloadListener<0> vtable + 从全局 qword_143339AF8 数组移除自身并修正 dword_143339B04 计数 |
+| 0x14072B950 | 未决窗口函数 · 串键插入查找表 由 a2 构 SSO 串视图，sub_140BC96D0 转换，sub_140722DC0 插入 a1+88..a1+112 容器 |
+| 0x142422440 | 未决窗口函数 · 查表+缺省 60 回退写入 sub_1420BD660(*(a1+384)) + sub_1420BD5A0(v5, a2, v7) → 写 a3 双字与结果，缺省回退 60 |
+| 0x140E56F00 | 未决窗口函数 · 400B 记录按索引取拷 sub_140E56690 取索引 → 400B 步长表项(*(a1+8)+80) 按双字计数 memcpy 拷出 |

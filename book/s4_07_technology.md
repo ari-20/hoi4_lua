@@ -193,28 +193,31 @@ CTechnology per-key loader (0X140EE16F0) 的六个数值键
 
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
+| +48 | uint32 | **名串大小写折叠 FNV-1a32 hash** (基 0x811C9DC5 × 16777619, A−Z+32; 命名 ctor sub_140ACAFE0 从规格化名键 +32 拷入; ctor −1 哨兵) | §4.7.17 查找键 / 自引用门 |
 | +56 | uint32 | 1 基库序 | tech+352 行互证 |
 | +60 | token | 名 token | 非数字 id |
 | +64 | uint8 | 有效旗 | lub loader 按之过滤 |
-| +72 | 匿名结构 (NNB 形状) | **allow 触发器** (ReadMember case 11138 定名) | §4.7.15 ctor 三触发器形块 (+72/+160/+248) 之一 |
-| +160 | 匿名结构 (NNB 形状) | **allow_branch 触发器** (ReadMember case 14260 定名) | §4.7.15 ctor 三触发器形块之一 |
-| +248 | 匿名结构 (NNB 形状) | **unlock 触发器** (ReadMember case 12260 定名) | §4.7.15 ctor 三触发器形块之一 |
+| +72 | CAndTrigger 88B | **allow 触发器** (ReadMember case 11138 定名) | §4.7.15 ctor 三触发器形块之一; 块内 +8 = 子触发器向量 (= 模板 +80) — parent 继承把 parent 块地址压入此向量 = 链式 AND (§4.7.17) |
+| +160 | CAndTrigger 88B | **allow_branch 触发器** (ReadMember case 14260 定名) | §4.7.15 ctor 三触发器形块之一; 块内 +8 = 子触发器向量 (= 模板 +168), parent 继承压入点 (§4.7.17) |
+| +248 | CAndTrigger 88B | **unlock 触发器** (ReadMember case 12260 定名) | §4.7.15 ctor 三触发器形块之一; 块内 +8 = 子触发器向量 (= 模板 +256) |
 | +336 | CSubUnitStatBonus 内嵌 56B | **科技直挂加成容器** {vtable@+336, subunit 克隆向量@+344, 装备加成对向量@+368} (ctor sub_1406419E0(a1+336); 336+56=392 与 +392 CModifier 紧随咬合) | subunit/装备原型·装备类别直挂块落点 = ReadMember 默认分支第一级 sub_1406431D0: subunit 库命中 (sub_140AC4FA0) → malloc 1656B 统计克隆 (sub_141018080) + 块内容解析进克隆统计 (sub_1424C0AA0) → 入 +344 向量; 装备原型/类别库命中 (sub_140AC4C70) → 16B 对 {CEquipmentArchetype*, 统计克隆} 入 +368 向量; 直挂块不进 CSpecificEquipmentBonus (无名字无 instant 概念, 恒生效) |
 | +392 | CModifier 内嵌 | **modifier 容器** (科技块 modifier 块键 + modifier 直挂标量键共用 — 前者 ReadMember case 10597 串写入, 后者默认分支第二级经 vtable+32 槽 reader) | ctor 直写 CModifier vtable (§4.7.15) |
 | +408 | u32 数组容器 data 槽 | = +392 内嵌 CModifier 的 +16 向量 data 槽 (§4.13:58 形状); 修正 id 清单 → 研究 tooltip 修正清单段 (sub_14055AB90, dg053); 解 §4.31:1279 未决「修正容器是否即 template+392」 | 新消费点 (dg053) |
 | +584 | 48B 条列表 | 建筑 max_level 加成列表 | tech+56 源 |
 | +608 | 40B 条列表 | 战术列表 (计数@+620) | tech+80 源 |
-| +632 | CEquipmentArchetype* 向量 | 生产解锁列表 A — **装备原型指针** (元素 +1365 = 已解锁旗门) (计数@+644) | tech+104 源 |
-| +656 | 装备原型/变体指针向量 | 生产解锁列表 B (prod 双表 sub_140E5E220 注册) (计数@+668) | tech+128 源 |
+| +632 | 24B 容器 (40B 条) | 生产解锁列表 A — **40B 名键条目表** {SSO 串@+0, FNV hash@+32} (本表以名键查库 db+216 装备解锁反向索引, §4.7.17; 元素 +1365 = 已解锁旗门; **指针向量在 CTechnology 层 §4.7.1 +104, 非本表**) (计数@+644) | tech+104 源 |
+| +656 | 24B 容器 (40B 条) | 生产解锁列表 B — **40B 名键条目表** (同 +632 形; prod 双表 sub_140E5E220 注册) (计数@+668) | tech+128 源; 指针向量在 §4.7.1 +128 |
 | +680 | 24B 条列表 {目标指针@0, 触发器@8} (计数@+692) | **子单位解锁 (带触发器门)** — 逐条触发器求值 (对象 vtable+24 槽) 为真 ∨ … 且目标+16 有效 | tech+152 源 (ctor 0x140ED2DD0) |
-| +704 | 40B 条列表 (计数@+716) | **科技 categories 类别表** — 元素 = 类别 def* (sub_140ACBD90 解析; def+48 有效门; 无效报 "Technology \"X\" has invalid category \"Y\"" technology.cpp:199) | **tech+248 源** (tech+248 = categories 类别指针表, 非 path 引用) |
-| +752 | 152B 条列表 {名串@+8, research_cost_coeff@+48, ignore_for_layout@+144} (计数@+764) | **path 条目表** (前驱视角出边; ReadMember case 372, 条内 reader sub_140AD2BC0: leads_to_tech → 名 / research_cost_coeff → +48 / ignore_for_layout (token 14640) → +144) | UI 树连线 + 后继 research_cost 缩放 (coeff×本科技成本基准); GUI 研究栏消费 sub_140EE2F80/0x140EE2FE0 递归计数; 多块并列 = 多条出边 |
-| +776 | 匿名结构 (元素待裁) 向量 | 前置列表 (计数@+788) | tech+200 源; GUI 需求行消费 (研究 tooltip 步 B: 逐条查国家科技状态, 未满级 (level < max_level) 者收集名称, **任一前置满级则整段跳过**; 措辞由 +1033 选, dg053) |
+| +704 | 40B 条列表 (计数@+716) | **科技 categories 类别表** — 40B 名键条目 {SSO 串@+0, hash@+32}, 经库 db+120 FindByName (sub_140AC7EE0) 解析到类别 def (sub_140ACBD90; def+48 有效门; 反向索引 = def+56 模板向量, §4.7.17; 无效报 "Technology \"X\" has invalid category \"Y\"" technology.cpp:199) | **tech+248 源** (tech+248 = categories 类别指针表, 非 path 引用) |
+| +752 | 152B 条列表 {名串@+8, research_cost_coeff@+48, ignore_for_layout@+144} (计数@+764) | **path 条目表** (前驱视角出边; ReadMember case 372, 条内 reader sub_140AD2BC0: leads_to_tech → 名 / research_cost_coeff → +48 / ignore_for_layout (token 14640) → +144) | UI 树连线 + 后继 research_cost 缩放 (coeff×本科技成本基准); GUI 研究栏消费 sub_140EE2F80/0x140EE2FE0 递归计数; 多块并列 = 多条出边; **装载尾重建期另写两域** (§4.7.17): +56 源科技名串 (hash 现算落 +88) + **+96 有序 56B per-folder 位置对表** {folder 名串@+0, hash@+32, 16B 位置对@+40} (二分维护 sub_140AC9350) |
+| +776 | 8B 指针向量 | 前置列表 (元素 = 8B 指针 → 对象+56 = 40B 名键, 经 sub_140ACBF30 查库; 元素类待裁) (计数@+788) | tech+200 源; GUI 需求行消费 (研究 tooltip 步 B: 逐条查国家科技状态, 未满级 (level < max_level) 者收集名称, **任一前置满级则整段跳过**; 措辞由 +1033 选, dg053) |
 | +800 | 48B 条列表 {名串, 所需等级@+40} | **dependencies 等级依赖表** (ReadMember case 373 循环 push; 等级门 — 前置科技须达该 level 才可研究, **全条 AND**; 资格判定 0x140ED7CE0/0x140ED8F00 **现读模板不缓存**) | 前置列表 +776 = **OR 语义**; 无独立 prerequisites 脚本键 (前置 = path 反向边 + 本表); tech+248 ≠ 本行源 (tech+248 实为 categories, 见 +704 行); GUI: 科技树 tooltip 需求列表消费 (逐条 level vs ts 条目 +372, 未满灰显, dg038) |
 | +824 | hash 表 | **互斥科技表** (脚本键 XOR — ReadMember case 12043, 大小写不敏感同 token; 无 mutually_exclusive 脚本键, 负定案; 重复入表报 "Duplicate technology" 栈上串); GUI: tooltip 互斥清单消费 (+1033 学说旗选标题变体, dg038) | tech+224 源 |
-| +848 | 匿名结构 (40B 元素待裁) 向量 | **sub_technologies** (ReadMember case 12044) 被门控后继列表 {d@848, cap@856, count@860, alloc@864} | tech+176 源; 元素 40B 模板键结构 |
+| +848 | 24B 容器 (40B 条) | **sub_technologies** (ReadMember case 12044) 被门控后继列表 {d@848, cap@856, count@860, alloc@864} | tech+176 源; 元素 = 40B 名键 {SSO 串@+0, hash@+32}, 经 sub_140AC80E0 解析到后继模板 (§4.7.17 遍 C2) |
 | +872 | u32 数组 | **特殊项目 id 表** {data@+872, count@+884} — AddResearchPoints sub_140ED5690 notify 时逐 id 调 sub_140E75C40 推进 cc+4008 program_status; GUI: tooltip breakthrough 键族 TECHNOLOGY_RESEARCH_BREAKTHROUGH_* (AMOUNT = dword_1433331B8 基值, dg038) | 定案 |
 | +896 | 匿名结构 (NNB 形状) 向量 24B | **folder 关联条目列表** (键 11873 folder; 元素 56B = CFolderPosition, 下表) | 消费器 sub_140ED6CD0 doctrine 四军种 folder 名 memcmp 源 (§4.7 已载) |
+| +920 | 24B 容器 (80B 条) | **root-key 有序向量** (科技树布局用) {data@+920, cap@+928, count@+932, alloc@+936} — 有序 vector<SRootKey 80B> (元素 {root 名串@+0, 名 hash@+32, folder 名串@+40, folder hash@+72}; 比较器 sub_140AC9870 = hash 优先 → stricmp 名 → 第二串) | §4.7.17 遍 B: root 判定 + BFS 下游传播写 |
+| +976 | uint32 | **parent 名 FNV-1a32 折叠 hash** (ctor −1 哨兵; ReadMember case 135 经 sub_140459C70 现算落 +944+32) | §4.7.17 自引用门 + 子科技 parent 定案 |
 | +984 | uint32 | start_year (token 11874; 「科技可用年」系语义释义) | >0 门 |
 | +988 | uint32 | max_level | |
 | +992 | uint32 | **research_cost** (ReadMember case 11876; 基准成本, 完成门 = BASE_TECH_COST × 本值 / 1e5) | 进度条分母: ×qword_143332BA0/1e5 ∨ 空槽 qword_143332A38 |
@@ -261,7 +264,7 @@ CFG 空桩不落档; reader 0x140AD2A80 键 27 name / 76 position):
 
 | 键 | → 偏移 | 落到 |
 |---|---|---|
-| parent (135) | +944 | 串表 |
+| parent (135) | +944 | 串表 (经 sub_140459C70 写串并现算 FNV-1a32 落 +976) |
 | path (372) | +752 | 152B 条 (§4.7.7 +752 行) |
 | dependencies (373) | +800 | 48B 条 (§4.7.7 +800 行) |
 | special_project_specialization (10122) | +872 | id 表 |
@@ -698,3 +701,211 @@ SProjectHistory 条目 (a2, 88B):
 | ③ 通用叙事 | 其余 | a3+856 容器 (16B 元, count@+868) 按 token 查对象 → 其 +264 叙事定义表 (156B/元, count@+276, 表内按元+8 == a2+12 匹配; 三 SSO 串 @元+116/+124/+132); 同容器按 a2+8 查第二对象取 +276 计数 > 1 作多实例旗; 栈建 CNarrative + CGameDate → 构造 |
 
 > 待裁: a3 容器 (+856) 元素类与 CProjectPool/CProgram 的 RTTI 对应关系 (§4.3 cc+4008 域锚点未反查); 静态叙事槽逐槽语义; 分支 ③ 第二实参具名 (反编译省略)。
+
+#### 4.7.17 CTechnologyDatabase 装载尾重建器 (sub_140ACE570 = vtable[2]; technologytemplate.cpp; 定案)
+
+**身份**: CTechnologyDatabase (RTTI `.?AVCTechnologyDatabase@@`, TD 0x143228010 / 基 TD 0x143228040 = `.?AV?$TGameItemDatabase@VCTechnologyDatabase@@@@` / COL 0x142CC69B0); 主 vtable 0x142944150 = **TGameItemDatabase 5 槽族表**: [0] 0x14012A2C0 CFG 桩 / [1] 0x140ACBD10 标量删除析构 / **[2] = 本函数 (装载尾重建器)** / [3][4] 0x14012A2C0 CFG 桩。⚠ 该 [2] **不是** §4.00.1 的 CPersistent writer 槽 (族表 [1] 是析构非 Save wrapper; 库不落盘, 模板 = 只读 def)。调用链 = boot `sub_14018BB20 → sub_140163E30` (取单例 qword_14332F0A0) `→ sub_14018B330(db, "common/technologies")` (家族 Load 包装: 目录解析 → `(*vt+16)(a1)` = 本函数 → `(*vt+32)(a1)` = CFG 空桩); 语料零直接调用者 (PE 唯一 VA 交叉引用 = vtable 槽); 重复装载被 db+20 已载旗拒绝 ("DB already loaded when loading")。同构先例 = CBuildingDatabase (§4.26.11b)。
+
+**三遍扫描** (模板主数组 db+72 {data, cap@+80, count@+84}; null object 占 array[0], 循环从下标 1 起):
+
+| 遍 | 动作 |
+|---|---|
+| A1 | 自 parent 跳过门: parent 名 hash (+976) == 自身名 hash (+48) 且 stricmp(parent, name)==0 → 跳过本模板 (防自引用) |
+| A2 | 查 parent 模板: sub_140AC80E0 (FindByName, 40B 键) → 未中 = null object |
+| A3/A4 | allow / allow_branch 继承: 把 parent 触发器块地址压入**子块内 +8 的子触发器向量** (模板 +80 / +168) = 链式 AND |
+| A5 | 六列表尾插继承: +584 (48B) / +632 / +656 / +704 (40B 名键) / +680 (24B) / +848 (40B 名键); +728 hash 表经 sub_1401E1640 合并 |
+| A6 | 三标量空值兜底: +984 start_year / +1033 豁免旗 / +992 research_cost 为 0 ← parent |
+| A7/A8 | 特化校验: +884 计数 > 2 → "Technology has more than two specializations." (:865); 逐 +872 id 在 CSpecializationDatabase (qword_14332F068) 查, 未中 → "Technology has an invalid specialization \"%s\"" (:874) |
+| A9/A10 | 反向索引登记: +704 名键 → db+120 类别对象 (有效门 +48, 模板向量 +56); +896 CFolderPosition 条目 → db+168 folder 对象 (有效门 +56, 模板向量 +64, 位置向量 +88) |
+| A11 | XOR 路径树坐标: 逐 +752 path 边查后继模板 → 配对共享 folder (hash+stricmp) → path 条目 +56 记源名 (hash@+88) + +96 有序 56B per-folder 位置对表更新 → folder→边有序映射聚合 → sub_140AD5330 定案 (≥2 对; 两后继互在对方 +824 互斥表 → 判 XOR 对, 建 152B 树坐标对象挂 path 条目 +120; >2 对警告 :780; 缺坐标警告 :803; 非对称断言 :786 "Mutual exclusive paths are not symmetric") |
+| B | root-key 计算与 BFS 下游传播: 模板无前置 (+776 空) ∨ 前置不含本 folder → 建 SRootKey 入 +920 有序向量; 仅当有新增才沿 +752 path 边 (跳过 ignore_for_layout@+144) 压后继入工作栈 |
+| C1 | 装备解锁反向索引: 逐 +632 名键 → db+216 24B 条目 {vector<模板*>@+0, vtable@+16}; 未中 → malloc(0x18) 建对象入数组 + 键入 db+240 查表 |
+| C2 | 子科技 parent 定案: 逐 +848 名键查子模板; parent 名空 → 拷本模板名 + hash; 冲突 → 警告 "Subtechnology %s has two parents…" (:1036) + 断言 "Subtechnology has two different parents" (:1037) |
+| C3 | 子科技 folder 继承: 子 +908 folder 计数 0 → 拷本模板 +896 的 56B CFolderPosition 条目 |
+
+**CTechnologyDatabase 库布局** (ctor sub_140ACA4A0 + 本函数双证; 四对 array+lookup 容器):
+
+| 偏移 | 类型 | 名称/语义 |
+|---|---|---|
+| +0 | vtable | CTechnologyDatabase 主表 0x142944150 (5 槽族表) |
+| +20 | uint32 | 已载旗 (重复装载门) |
+| +72 | 24B 容器 | 模板主数组 (元素 = CTechnologyTemplate*; array[0] = null object 0x143339CD8) |
+| +96 | 24B 容器 | 模板名 lookup (40B 键 {SSO 串@+0, hash@+32}) |
+| +120 | 24B 容器 | 类别对象数组 (推定 CTechnologyCategory; array[0] = null) |
+| +144 | 24B 容器 | 类别 lookup (40B 键) |
+| +168 | 24B 容器 | folder 对象数组 (CTechnologyFolder 208B, null 0x14333A228) |
+| +192 | 24B 容器 | folder lookup (40B 键) |
+| +216 | 24B 容器 | 装备解锁条目数组 (元素 24B = {vector<模板*>@+0, vtable@+16}) |
+| +240 | 24B 容器 | 装备解锁 lookup (40B 键) |
+
+> FindByName 族不变量 = Array.GetSize() == Lookup.GetSize() + 1 (gameitemdatabasehelper.h:35, null object 占 array[0]); 四实例化闩 = byte_14333A23E (模板) / 23F (类别) / 241 (folder) / 242 (装备解锁)。
+
+**path 条目 (152B) 装载尾新增两域**: +56 源科技名串 (hash 现算落 +88) + **+96 有序 56B per-folder 位置对表** {folder 名串@+0, hash@+32, 16B 位置对@+40} (二分维护 sub_140AC9350)。
+
+> 未决: 类别对象 / folder 对象全布局 (仅见有效门 + 模板向量 + 位置向量); db+216 条目语义名 (推定 = 装备→解锁科技反向索引, 消费方未闭环); +776 前置表元素类 (8B 指针 → 对象+56 名键, 构造点未定位); sub_140AD5330 坐标取整数学; +920 root-key 消费方 (推定 = 科技树布局渲染层); db+40 标签装载参数槽; XOR >2 对的降级选择逻辑。
+
+#### 4.7.18 科技域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140ED3E80 | sub_140ED3E80 CTechnologyStatus vtable + tbb 并行初始化（科技状态对象） |
+| 0x141BE2770 | sub_141BE2770 CConfirmResearchTechnology vtable（确认研究科技） |
+| 0x141F0DDD0 | sub_141F0DDD0 BREAKTHROUGH_PROGRESS / TECHNOLOGY_BONUS / SPECIALIZATION / EXP / PROGRAM_BASIC_RESEARCH（科技研究进度 UI） |
+| 0x1413CA460 | sub_1413CA460 学说经验不足（country_doctrine_status.cpp:263，DOCTRINE_ARMY_XP_INSUFFICIENT） |
+| 0x1413C7670 | （无名） vftable 类 NDoctrines::STemporaryMasteryGain::（学说） |
+
+#### 4.7.19 科技域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141CC4120 | （无名，按上游/loc 定性） loc "GRAND_DOCTRINE_SELECTION_TITLE" |
+| 0x1415FA720 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x1409CC8A0 | sub_1409CC8A0 特征串:DOCTRINE_UNLOCK_REWARD_TITLE |
+| 0x140AC6890 | CTechnologySharingGroupTemplate::[0] CTechnologySharingGroupTemplate::[0] + vtable/RTTI 类 CTechnologySharingGroupTemplate; vtable/RTTI 含 CTechnologySharingGr… |
+| 0x141F3A4D0 | sub_141F3A4D0 特征串:doctrine_list_item ; SUBDOCTRINE_DESCRIPTION |
+
+#### 4.7.20 科技域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EE1B60 | CTechnologyStatus::Reader 序列化 Reader 角色；loc \"RESEARCH_NO_RESEARCH\"，被调 pdx_scopedptr.h:124/Reader/parser.cpp:1087/localize.cpp:641 |
+| 0x140ACD580 | 研究提前惩罚显示 研究提前惩罚显示；loc \"RESEARCH_YEAR_AHEAD_PENALTY\"/\"RESEARCH_YEAR_AHEAD_PENALTY_RED\"+\"VALUE\"/\"YEARS\"/\"REDUCED_YEARS\"/\"RED\" |
+| 0x141CB1050 | "BREAKTHROUGH_BONUS_TECHNOLOGY_RESEARCH/ "BREAKTHROUGH_BONUS_TECHNOLOGY_RESEARCH/TECHNOLOGY/PROGRESS" §4.7 科技 |
+| 0x1415FA300 | "slots_window/research_slots_grid" 研究槽 U "slots_window/research_slots_grid" 研究槽 UI §4.7 科技 |
+| 0x14145FB20 | sub_14145FB20（无名） scientist_skill_levels.cpp:292 站点，"Define SCIENTIST_SKILL_LEVEL_SPEED_MODIFIER size must be ... THREHOLDS size + 1" + SCIENTIST_SKILL_LEVEL… |
+| 0x141A05B20 | sub_141A05B20（无名） VALUE / PROGRAM_SCIENTIST_BREAKTHROUGH / SPECIALIZATION GUI 键，夹于 NProject::CProgramConsumer::Writer(d=80) 与 CWeatherChancePeriod::[7]，项目科学家… |
+
+#### 4.7.21 科技域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BDC380 | （无名，按证据定性） 键 RESEARCH_DESIGN_TEAM_IS_BUSY + NAME（科研设计团队忙碌状态） |
+| 0x1414BA2C0 | 科技键 "TECH" + gamestate.h:1125 站点 + pdx_core 单例断言 |
+| 0x140ED4EF0 | CTechnologyStatus::[0] vtable 槽 CTechnologyStatus::[0]（func_names RTTI 名） |
+
+#### 4.7.22 科技域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.7.23 科技域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140ED4860 | （无名） 体设 CTechnologyStatus::vftable（RTTI 名） |
+
+#### 4.7.24 科技域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.7.25 科技域函数补遗（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1415985B0 | （无名） 调用图传播: 3 锚点投 §4.7（67%） |
+| 0x141BA5ED0 | （无名） 调用图传播: 3 锚点投 §4.7（67%） |
+| 0x141EE8860 | （无名） 调用图传播: 8 锚点投 §4.7（100%） |
+| 0x140ED5140 | （无名） 调用图传播: 4 锚点投 §4.7（50%） |
+| 0x140EE2910 | （无名） 调用图传播: 4 锚点投 §4.7（50%） |
+| 0x141178730 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+| 0x141EE7CE0 | （无名） 调用图传播: 4 锚点投 §4.7（100%） |
+| 0x1409E78E0 | （无名） 调用图传播: 2 锚点投 §4.7（100%） |
+| 0x140550F30 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+| 0x142275720 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+| 0x141EF05E0 | （无名） 调用图传播: 4 锚点投 §4.7（100%） |
+| 0x141A35880 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+| 0x141EE9110 | （无名） 调用图传播: 6 锚点投 §4.7（100%） |
+| 0x141A371B0 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+| 0x140324D00 | （无名） 调用图传播: 4 锚点投 §4.7（50%） |
+| 0x140305AC0 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+| 0x1412192B0 | （无名） 调用图传播: 2 锚点投 §4.7（100%） |
+| 0x140FE57A0 | （无名） 调用图传播: 6 锚点投 §4.7（83%） |
+| 0x140EE11D0 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+| 0x141EF08B0 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+| 0x14145E080 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+
+#### 4.7.26 科技域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F073B0 | 科技部署将领修正 串 "TECHNOLOGY_DEPLOYED_GENERAL_MODIFIERS_HEADER"/"leader_bonuses_grid" → 科技部署将领修正 |
+
+#### 4.7.27 科技域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AD0580 | sub_140AD0580 special_forces_doctrine_folder（特种部队学说文件夹 UI） |
+| 0x140D81710 | 无名领域函数 sub_140D81710 被调用者定名: CTechnologySharing::GetFullTooltip? 等命中 §4.7（占 100%，共 2 callee） |
+| 0x141F41FE0 | sub_141F41FE0 特征串:spirit_grid_over_defined |
+| 0x140A08DC0 | 调用图上游传播(占 57%, 2 票) sub_140A08DC0 + 调用图上游传播(占 57%, 2 票) |
+| 0x1401548B0 | 域关键词匹配 sub_1401548B0 + 域关键词匹配 |
+| 0x140AD25D0 | 调用图上游传播(占 50%, 2 票) sub_140AD25D0 + 调用图上游传播(占 50%, 2 票) |
+| 0x140AD2920 | 域关键词匹配 sub_140AD2920 + 域关键词匹配 |
+
+#### 4.7.28 科技域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AD1660 | （无名） 调用图传播: 3 锚点投 §4.7（100%） |
+| 0x140AD1890 | （无名） 调用图传播: 6 锚点投 §4.7（100%） |
+| 0x1413D0A00 | （无名） 调用图传播: 3 锚点投 §4.7（100%） |
+
+#### 4.7.29 科技域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140323140 | 业务逻辑（见证据锚） "Invalid target for CStealRandomTechBonusEffect"（科技窃取效果实现） |
+| 0x14197F410 | 业务逻辑（键 MODIFIER_DOCTRINE_PREFIX） "MODIFIER_DOCTRINE_PREFIX"×2（学说修正前缀，idb 断言） |
+| 0x14140AA30 | 业务逻辑（键 SCIENTIST_TOOLTIP_NAME） "SCIENTIST_TOOLTIP_NAME"/"SCIENTIST_TOOLTIP_SUPPORTIVE"/"PROG"/"CONT"/"LORE"（科学家 tooltip） |
+| 0x140CCCA20 | CDoctrineSystem 学说系统 (vtable类名 CDoctrineSystem) vtable引用 CDoctrineSystem vftable |
+
+#### 4.7.30 科技域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D84580 | （无名） 调用图传播: 4 锚点投 §4.7（50%） |
+| 0x140D846A0 | （无名） 调用图传播: 4 锚点投 §4.7（50%） |
+| 0x141EE9370 | （无名） 调用图传播: 3 锚点投 §4.7（100%） |
+| 0x140D83AE0 | （无名） 调用图传播: 4 锚点投 §4.7（50%） |
+
+#### 4.7.31 科技域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14140CEB0 | （无名） 调用图传播: 2 锚点投 §4.7（50%） |
+
+#### 4.7.32 科技域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F0CF10 | 无名 sub_（断言站点/串定位） 串字面量 "PROGRAM_ITEM_BASIC_RESEARCH_TOOLTIP" |
+| 0x141A36590 | 无名 sub_（断言站点/串定位） 串字面量 "SPECIAL_PROJECT_RESEARCH_TIME_TOOLTIP_TOTAL" |
+| 0x141BD8380 | 无名 sub_（断言站点/串定位） 串字面量 "GFX_research_folder_strip" |
+| 0x140EE3B70 | 无名 sub_（断言站点/串定位） 断言站点 technology.cpp:2565 |
+
+#### 4.7.33 科技域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409E97B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.7 |
+| 0x1414E3B70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.7 |
+| 0x141BB0700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.7 |
+| 0x1414E3EC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.7 |
+| 0x1410488F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.7 |
+| 0x140EE4A50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.7 |
+| 0x141A357B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.7 |
+| 0x1424C4EA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.7 |
+
+#### 4.7.34 科技域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411AB140 | 科技隐藏切换 控制台命令"Toggle all hidden technologies"（0x1F 长度）+ vtable+184 作用域 |
+
+#### 4.7.35 科技域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141FA37F0 | 科技UI "ONGOING_PROJECT_GO_TO_NEXT/PREVIOUS_BREAKTHROUGH" 按方向选择 + vtable+520 条件分支；科研突破导航 UI |
+| 0x140DB7460 | 科研完成回调 "on_mio_tech_reseach_completed" 回调注册（sub_140A53810 + sub_1413AE5C0 + malloc(0x20)） |

@@ -634,7 +634,7 @@ sub_140C38740 → 归队; 在修理目标省且任务=8 也跑一次状态机) /
 | 4 | CONVOY_ESCORT | sub_140FBBF00 | 扫区域→省→省 +368/+380 客户在场表: 客户 × tf+1856 目标舰型 × mission+16 国别匹配, 敌我强度比择优 → **sub_140BB85D0 接敌** |
 | 5 | MINES_PLANTING | 内联 | 有海权国 ∧ +212 区域数>0: 布雷量 = NAVAL_MINES_PLANTING_SPEED_MULT × sub_140D6F120(tf); 确定性 RNG (种子=小时) 遍历 +200 区域, sub_141003F50 海权优势方==我 → × (NAVAL_DOMINANCE_MINES_PLANTING_BONUS+1e5)/1e5; 查现存上限 NAVAL_MINES_IN_REGION_MAX → sub_140E9F1D0 布雷 |
 | 6 | MINES_SWEEPING | sub_140FB8840 | 对称: NAVAL_MINES_SWEEPING_SPEED_MULT × sub_140D6F1F0(tf); 海权加成 NAVAL_DOMINANCE_MINES_SWEEPING_BONUS; sub_140E9F1D0 负量扫除 |
-| 7 | TRAINING | sub_140FB97C0 | 门: 训练区存在 ∧ (+69==0 ∨ sub_140D700A0); 在区 → +56 递增 (≥24 归零+日报); 逐舰训练推进 = TRAINING_EXPERIENCE_FACTOR × 燃料比缩放, XP/组织度/强度恢复 (0.15/0.6 经验加权) |
+| 7 | TRAINING | sub_140FB97C0 | 门: 训练区存在 ∧ (+69==0 ∨ sub_140D700A0); **sub_140D700A0 = 训练余量谓词 (定案)**: 逐 tf+840 舰, 存在 sub_140C36400(ship) < UNIT_EXP_LEVELS[TRAINING_MAX_LEVEL−1] (= 30000 fixed5, 取值 sub_140C37E50) 即返 1; 空舰队/全舰不达标返 0; **sub_140C36400 = 舰本级进度%** = 100000 × clamp≥0(ship+1800) / (ship+1808), 除数 0 → 0xFFFFFFFF 哨兵 (已满级, 永不达标); 在区 → +56 递增 (≥24 归零+日报); 逐舰训练推进 = TRAINING_EXPERIENCE_FACTOR × 燃料比缩放, XP/组织度/强度恢复 (0.15/0.6 经验加权) |
 | 8 | reserve | 内联 | 未战斗 ∧ 无路径 (tf+524≤0) ∧ 有海权区域 → sub_140FB8FF0; 否则 sub_140D69BB0(tf,0) 母港省 → **+24 = 省 id** + sub_140FB95F0 回港令 |
 | 9 | NAVAL_INVASION_SUPPORT | 内联 | +96 轰炸区在 +200 内 → 校验 (navalmission.cpp:4051 断言); 不在 → 清 +96; 无 +96: 订单引用 (+72) 有效 → sub_140FBDD60 从登陆订单战斗列表 (order+528/+540) 的省选轰炸区; 否则跟随舰队目标省 → +24 = 省 id |
 
@@ -1229,3 +1229,313 @@ sub_14197D770 (a1 = 交火成员侧对象): a1+8 = 父交火对象 / a1+28 = 载
 #### 4.16.27 海军舰船条目面板刷新 (维修/改装队列 UI 簇; 1 函 = 0x141F98820, 高置信)
 
 0x141F98820 (面板 a1, **CShip\* a2**, a2+1832 = CTaskForce\*): 维修/改装进度三态条 + 舰名着色 + 装备角色徽章 + 计时文本。谓词全复用书定案符号: sub_140C00000 在战中 (unit+436) / sub_140C3B130 在改 (§4.16) / sub_140C3B170 维修中 (§4.33:843 同域) / sub_14221F310 idpair 解析 / sub_1401AEB50(n) DLC 特性开关。流程: ① 逐子件显隐归位 (elem+117 & 8; vt+120 Show / vt+128 Hide) 对 +64/+88/+96/+160/+72/+104/+216/+184; ② **tf+1200/+1204 idpair** 解析 (失败 ∨ 类型 ≠16 ∨ tf+1208 维修态码 ≠1 → 隐藏 +200 进度条收尾); ③ `sub_140C3AC60(a2)` ≥ 100000 (fixed 1e5 满进度) 早退; ④ 三态 = 维修 2 / sub_141E2C7F0 3 / 否则 1 → +200 slot22 SetState; ⑤ 进度条: `+1612 = +1608` 进度镜像复位 → slot96 宽扣减 → slot19 位置 = 当前进度 → slot85 新宽 → sub_140D6B480(tf) 分流 slot81/82; ⑥ 舰名着色 = sub_140C3B0E0 二选一 CColor 常量 (xmmword_143338AA0 / xmmword_1430BDF00, 色值待裁) → +64 slot30 SetColor; ⑦ a2+2340 支路 = +216 第二条 Show + sub_140C35480 格式化文本 + 同 ⑤ 宽/位序列; ⑧ **徽章** = DLC 开关 sub_1401AEB50(20) ∧ 装备定义 (+64 容器经 sub_14100FF30 取首, +1068 > 0) → **sub_140A56330(qword_14332EF50 = CInsigniaGraphicsDatabase 单例, 装备定义, a1+184 图标, 0)** (§4.30:2748/2796 kind 4 徽章入口消费点); 否则 +184 Hide。
+
+#### 4.16.28 海军域函数补遗（15 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F99D10 | sub_141F99D10 ref.h:83 + NAVY_MERGE_PARENT_STATUS / NAVY_DETACHED_PARENT_STATUS（海军合并/脱离母舰状态 UI） |
+| 0x14198F6B0 | sub_14198F6B0 NAVAL_SPOTTING_LEVEL_(NONE/LOW/MEDIUM/DETAILED_UNITS)_DESC + NAVAL_SPOTTING_SEARCHED_BY（海军索敌等级 UI） |
+| 0x1415BA930 | （未命名）GUI 串 NAVAL_ACCIDENT_DISPATCH_TITLE/_DES GUI 串 NAVAL_ACCIDENT_DISPATCH_TITLE/_DESC + "default_confirmation_popup"（海损事故弹窗） |
+| 0x141E29870 | （未命名）GUI 串 TASK_FORCE_UNDERWAY_REPLENISHMENT_ GUI 串 TASK_FORCE_UNDERWAY_REPLENISHMENT_DESC / FACTOR_BONUS（舰队补给） |
+| 0x1410141C0 | （未命名）串 "Unrecognized mission type" 串 "Unrecognized mission type"（任务类型解析） |
+| 0x140528BE0 | GetDesc 海军触发器（断言站点 naval_triggers.cpp:30） |
+| 0x140FB43C0 | （未命名）loc 串 SHIP_ENGAGEMENT_BUTTON_AGGRESSIVEN loc 串 SHIP_ENGAGEMENT_BUTTON_AGGRESSIVENESS_（舰队交战积极度按钮） |
+| 0x1418FA990 | （未命名）loc 串 CURRENT_ALL_ACTIVE_TASK_FORCE_FOR_ loc 串 CURRENT_ALL_ACTIVE_TASK_FORCE_FOR_MISSION / CURRENT_ACTIVE_TASK_FORCE_FOR_MISSION |
+| 0x141E0A920 | sub_141E0A920 体内构造/操作 vtable 类 CNavyTheaterNavyItemBase（&CNavyTheaterNavyItemBase::vftable）→ 海军报告/联队项/海军命令 |
+| 0x140D77C70 | CTaskForce::[29] CTaskForce::[29]（舰队 vtable 槽方法） |
+| 0x141ED65D0 | sub_141ED65D0 海军 task force/海军上将司令部逻辑（ADMIRAL_THRESHOLD_REACHED_NAVAL_HEADQUARTER CHANGE_ADMIRAL_I） |
+| 0x140D57CA0 | CFleet::[5] gamestate 访问器（gamestate.h 线程/实例断言）（断言站点 gamestate.h:1125） |
+| 0x1418FCFF0 | （未命名）loc 串 CURRENT_ACTIVE_TASK_FORCE_FOR_NAVA loc 串 CURRENT_ACTIVE_TASK_FORCE_FOR_NAVAL_INVASION_SUPPORT_WARNING（登陆支援舰队警告） |
+| 0x1418FABA0 | sub_1418FABA0 海军 task force/海军上将司令部逻辑（TASK_FORCE） |
+| 0x141D436F0 | sub_141D436F0 海军装备总量 GUI（NAVY_EQUIPMENT_TOTAL） |
+
+#### 4.16.29 海军域函数补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1416255A0 | （无名）TOOLTIP_POTENTIAL_TARGET_RAID_HEADER_ALLOWED/NOT_ALLOWED + RAID_RANGE_FACTOR_TOOLTIP + raid_type_rescue_captured_general_captive_line TOOLTIP_POTENTIAL_T… |
+| 0x141298D40 | （无名）tooltip_raid_source_map_hover + WHAT/LOCATION 键 tooltip_raid_source_map_hover + WHAT/LOCATION 键 |
+| 0x141801F90 | （无名，按上游/loc 定性） loc "aggressiveness_item\ icon\ name\ SHIP_ENGAGEMENT_BUTT*" |
+| 0x1418FDEA0 | （无名，按上游/loc 定性） loc "PROGRESS\ NAVAL_SPOTTING_PROGRESS\ SPEED\ NAVAL_SPOTT*" → 海上索敌进度提示 |
+| 0x141803FA0 | （无名，按上游/loc 定性） loc "repair_priority_item\ icon\ name\ NAVY_DOCKYARD_REPAI*" |
+| 0x14197B380 | （无名，按上游/loc 定性） naval_fire_exchange_air.cpp:637 断言 |
+| 0x140A2EEC0 | vtable/RTTI 类 NFactions::CFactionGoal sub_140A2EEC0 + vtable/RTTI 类 NFactions::CFactionGoal; 被 SUniformReader<…>::[1] 等 1 命名函数调用 |
+| 0x140A2F020 | vtable/RTTI 类 NFactions::CFactionGoal sub_140A2F020 + vtable/RTTI 类 NFactions::CFactionGoal; 被 SUniformReader<…>::[2] 等 1 命名函数调用 |
+| 0x140A2BEE0 | SUniformReader<…>::[1] SUniformReader<…>::[1] + vtable/RTTI 类 NFactions::CFactionUpgrade; vtable/RTTI 含 NFactions::CFactionUpgrade; 被 SUniformReader<…>::[1] … |
+| 0x141D435E0 | CShipsOverview::[0] CShipsOverview::[0] + 域关键词匹配; 串 "total_ships_icon"; 被 CShipsOverview::[0] 等 1 命名函数调用 |
+| 0x140EEB5D0 | CFrontSection::[0] CFrontSection::[0] + vtable/RTTI 类 CFrontSection; vtable/RTTI 含 CFrontSection; 被 CFrontSection::[0] 等 1 命名函数调用 |
+| 0x140A69010 | vtable/RTTI 类 CCountryNames sub_140A69010 + vtable/RTTI 类 CCountryNames |
+
+#### 4.16.30 海军域函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141665430 | 舰艇战斗读取器槽 舰艇战斗读取器槽；邻 CShipCombatReader::[0](-14640B)/CShipCombatReader::Reader(-1952B)，被调 pdx_entity.cpp:2523 |
+| 0x141BEABA0 | 舰队荣耀加成 舰队荣耀加成；loc \"PRIDE_OF_THE_FLEET_COUNTRY_BONUS\"/\"PRIDE_OF_THE_FLEET_SHIP_BONUS\"/\"PRIDE_OF_THE_FLEET_TEMP_BONUS\"+\"BONUS\"，被调 pdx_robin_hood_table.… |
+| 0x141BF2C60 | 海军战史条目 海军战史条目；loc \"NAVAL_HISTORY_ASSISTED_KILL\"/\"NAVAL_HISTORY_KILLED\"+\"NAME\"/\"SHIPCLASS\"+\"assisted_kill_icon\"+\"GFX_navalcombat_ship_icon_unknown\" |
+| 0x140C31980 | 舰队任务燃料效率提示 舰队任务燃料效率提示；loc \"FLEET_HAS_FUEL_INEFFICIENT_SHIP_FOR_MISSION\"，被调 localize.cpp:641/text.cpp:491 |
+| 0x1418C85C0 | 海军战果图标 海军战果图标；loc \"GFX_naval_combat_result_navalstrikes\"/\"GFX_naval_combat_result\"/\"_convoys\"/\"_portstrikes\"，被调 gamestate.h:1125×2 |
+| 0x14197AC80 | 海军空袭火力交换 海军空袭火力交换；断言 \"!\\\"how can both be false? bail! /dan\\\"\"（naval_fire_exchange_air.cpp），被调 naval_utility.cpp:457/naval_fire_exchange_member.cpp:756/… |
+| 0x140C3DC50 | sub_140C3DC50（无名） FUEL_DAILY / AMOUNT GUI 键，夹于 CShip::Reader(d=5808) 与 CShip::Writer(d=2672)，舰船燃料 UI |
+| 0x1417F94C0 | "sunk_by_training/damage_by_mines/equipm "sunk_by_training/damage_by_mines/equipment_ic" 舰船损失统计 §4.16 海军 |
+| 0x1417CEE80 | "naval_mission_ships/naval_missions_grid "naval_mission_ships/naval_missions_grid/select_all" 海军任务 UI §4.16 海军 |
+| 0x14118A790 | "CONFIRMCHANGE_NAVY_LEADER_FLEET_TEXT/HE "CONFIRMCHANGE_NAVY_LEADER_FLEET_TEXT/HEADQUARTER/SUPREME_CO §4.16 海军 |
+
+#### 4.16.31 海军域函数补遗（25 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14197A700 | （无名，按证据定性） naval_fire_exchange_air.cpp:1087 断言站点（海空交战火力交换） |
+| 0x141ED7670 | （无名，按证据定性） 键 NAVAL_EXPERIENCE_HQ_GAIN/NAVAL_HEADQUARTER_NO_ADMIRAL（海军司令部经验/无提督） |
+| 0x140D6C2B0 | （无名，按证据定性） 键 NAVY_DETACHED_ACTIVITY_STATUS_REFITTING_ONE_SHIP/REPAIRING_MANY_SHIPS 等（分舰队活动状态） |
+| 0x1415C2B40 | （无名，按证据定性） 键 NAVAL_PORT_STRIKE_TITLE/NAVAL_BATTLE_TITLE + NAME（海军战斗/港口打击标题文本） |
+| 0x140D6A7C0 | 舰队活动描述 TASK_FORCE_ACTIVITY_DESC_MOVING_TO_AREA / STRIKE_FORCE_INTERCEPTING 等 ×11 |
+| 0x1419694A0 | 海军转运 NAVAL_TRANSFER_MOVING + VALUE/BASE |
+| 0x141D61B90 | 舰船设计器制海权 SHIP_DESIGNER_NAVAL_DOMINANCE_VALUE + dominance_icon/value |
+| 0x140D71A70 | CTaskForce::[8] func_names CTaskForce::[8]（特遣舰队方法）+ gamestate.h:1125 断言 |
+| 0x1418FD1E0 | 海军巡逻区域 CURRENT_ASSIGNED_TASK_FORCE_FOR_PATROL + REGION_WITH_NO_PATROL |
+| 0x140C361F0 | CShip::[11] vtable 槽 CShip::[11]（func_names RTTI 名） |
+| 0x140D581C0 | CFleet::[4] vtable 槽 CFleet::[4]（func_names RTTI 名） |
+| 0x140C3B070 | CShip::[9] vtable 槽 CShip::[9]（func_names RTTI 名） |
+| 0x140EB2AF0 | CStrategicNavy::GetEstimatedEnemyConvoysInRegion? func_names 名 CStrategicNavy::GetEstimatedEnemyConvoysInRegion? |
+| 0x140EADE30 | CStrategicNavy::SRegionalConvoyData::[4] vtable 槽 CStrategicNavy::SRegionalConvoyData::[4]（func_names RTTI 名） |
+| 0x140C394F0 | CShip::[4] vtable 槽 CShip::[4]（func_names RTTI 名） |
+| 0x140D57FC0 | CFleet::[3] vtable 槽 CFleet::[3]（func_names RTTI 名） |
+| 0x140D581A0 | CFleet::[2] vtable 槽 CFleet::[2]（func_names RTTI 名） |
+| 0x140EB2140 | CStrategicNavy::SRegionalConvoyData::[1] vtable 槽 CStrategicNavy::SRegionalConvoyData::[1]（func_names RTTI 名） |
+| 0x140C30CC0 | CShip::[0] vtable 槽 CShip::[0]（func_names RTTI 名） |
+| 0x140D50EA0 | CFleet::[0] vtable 槽 CFleet::[0]（func_names RTTI 名） |
+| 0x140E9EF60 | CStrategicNavy::[2] vtable 槽 CStrategicNavy::[2]（func_names RTTI 名） |
+| 0x140C394D0 | CShip::[3] vtable 槽 CShip::[3]（func_names RTTI 名） |
+| 0x140D50E8C | CFleet::[0] vtable 槽 CFleet::[0]（func_names RTTI 名） |
+| 0x140E9EF08 | CStrategicNavy::[0] vtable 槽 CStrategicNavy::[0]（func_names RTTI 名） |
+| 0x140C30D20 | CShip::[7] vtable 槽 CShip::[7]（func_names RTTI 名） |
+
+#### 4.16.32 海军域函数补遗（25 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.16.33 海军域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EABE80 | CStrategicNavy::USRegionalConvoyData::U?$SDefaultSetSize::NPdx:鈥�::[3] func_names 名 CStrategicNavy::USRegionalConvoyData::U?$SDefaultSetSize::NPdx:鈥�::[3] |
+| 0x140EB2250 | CStrategicNavy::Writer func_names 名 CStrategicNavy::Writer |
+| 0x140EA5BD0 | CStrategicNavy::GetEstimatedEnemyConvoysInRegion? func_names 名 CStrategicNavy::GetEstimatedEnemyConvoysInRegion? |
+| 0x140C3AD50 | CShip::[8] vtable 槽 CShip::[8]（func_names RTTI 名） |
+| 0x140C30C3C | CShip::[0] vtable 槽 CShip::[0]（func_names RTTI 名） |
+| 0x140C30D10 | CShip::[1] vtable 槽 CShip::[1]（func_names RTTI 名） |
+
+#### 4.16.34 海军域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.16.35 海军域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14161CCB0 | 舰队掩护/定位 tooltip 生成（舰种计数与 box 布局） 串 SCREENING_TOOLTIP_* 全族 + NUM_CAPI/CARR/CONV/SCRE/NEED + POSITIONING_VALUE |
+| 0x140E03A40 | 海军水雷区域统计 tooltip（按敌/友/中立/己方分类） 键 NAVAL_MINES_IN_REGION_BY_ENEMIES/FRIENDS/NEUTRAL/US + COUNT_DAMAGED/COUNT_SUNK |
+| 0x14161B960 | CNavalCombatant 定位/修正 tooltip（海军战斗定位罚项） 键 POSITIONING_PENALTY_INFO / CONVOY_ESCORT_POSITIONING_BONUS / SCREENING_VALUE / STAT_NAVY_SUB_VISIBILITY；邻接 CNavalCo… |
+
+#### 4.16.36 海军域函数补遗（40 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D5D7E0 | （无名） 调用图传播: 5 锚点投 §4.16（60%） |
+| 0x141D2C860 | （无名） 调用图传播: 3 锚点投 §4.16（67%） |
+| 0x140E9CD90 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x140D0A2F0 | （无名） 调用图传播: 6 锚点投 §4.16（100%） |
+| 0x140FB2980 | （无名） 调用图传播: 8 锚点投 §4.16（50%） |
+| 0x140D09770 | （无名） 调用图传播: 4 锚点投 §4.16（100%） |
+| 0x140D08620 | （无名） 调用图传播: 4 锚点投 §4.16（100%） |
+| 0x140FB01C0 | （无名） 调用图传播: 5 锚点投 §4.16（60%） |
+| 0x141E8C910 | （无名） 调用图传播: 8 锚点投 §4.16（50%） |
+| 0x141B05E90 | （无名） 调用图传播: 3 锚点投 §4.16（67%） |
+| 0x141971440 | （无名） 调用图传播: 7 锚点投 §4.16（57%） |
+| 0x1412326B0 | （无名） 调用图传播: 4 锚点投 §4.16（50%） |
+| 0x140D71E70 | （无名） 调用图传播: 4 锚点投 §4.16（50%） |
+| 0x14002EC60 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x1416A9810 | （无名） 调用图传播: 3 锚点投 §4.16（67%） |
+| 0x140C37B50 | （无名） 调用图传播: 4 锚点投 §4.16（100%） |
+| 0x140C37000 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x140D66220 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140FB15B0 | （无名） 调用图传播: 5 锚点投 §4.16（80%） |
+| 0x140D59D50 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140FBA740 | （无名） 调用图传播: 4 锚点投 §4.16（100%） |
+| 0x141A0E8F0 | （无名） 调用图传播: 4 锚点投 §4.16（50%） |
+| 0x140C33570 | （无名） 调用图传播: 3 锚点投 §4.16（100%） |
+| 0x140FB1740 | （无名） 调用图传播: 4 锚点投 §4.16（75%） |
+| 0x140D59750 | （无名） 调用图传播: 3 锚点投 §4.16（67%） |
+| 0x141B06770 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140D6B120 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140D69D10 | （无名） 调用图传播: 5 锚点投 §4.16（80%） |
+| 0x1424EC9A0 | （无名） 调用图传播: 3 锚点投 §4.16（67%） |
+| 0x1415B01F0 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140D5A3B0 | （无名） 调用图传播: 3 锚点投 §4.16（100%） |
+| 0x140EB2C70 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x140C39D60 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x140C3A470 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x140A59200 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140D6E800 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x140D76A90 | （无名） 调用图传播: 3 锚点投 §4.16（67%） |
+| 0x140D650F0 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140D778B0 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x140D76690 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+
+#### 4.16.37 海军域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E04BA0 | 海军事故 串 "NAVAL_ACCIDENTS_ENEMY"/"NAVAL_ACCIDENTS_MINES"/"NAVAL_ACCIDENTS_TRAINING" → 海军事故 |
+
+#### 4.16.38 海军域函数补遗（31 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BA6130 | sub_141BA6130 调 CNavalBaseConvoyClient::[15]；unknown_libname_10 + malloc(0x20) 节点构造（海军基地护航客户端数据结构） |
+| 0x141F95D30 | sub_141F95D30 SSpriteFramePair + GFX_ship_activity_(retrofitting/repairing/docked)（舰船活动精灵状态视图） |
+| 0x141233980 | sub_141233980 海军任务编队类型（Wolfpack/CarrierTaskForce/SurfaceActionGroup/MineLayers/PatrolTaskForce/ConvoyEscort） |
+| 0x1417F5540 | 域关键词匹配 sub_1417F5540 + 域关键词匹配; 源码路径 hoi4; 被 CEmptyEntryListBase<CShipArchetypeItem>::[0] 等 1 命名函数调用 |
+| 0x14161F620 | 调用图上游传播(占 100%, 1 票) sub_14161F620 + 调用图上游传播(占 100%, 1 票) |
+| 0x141709E40 | sub_141709E40 特征串:destroyed_ships_open |
+| 0x140F7EEE0 | 调用图上游传播(占 100%, 1 票) sub_140F7EEE0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1414DB520 | 同区段近邻 CPendingStratNavyTransfer::[4](距 0x4F30)属 4.16 族 sub_1414DB520 + 同区段近邻 CPendingStratNavyTransfer::[4](距 0x4F30)属 4.16 族 |
+| 0x14158D360 | 调用图上游传播(占 80%, 2 票) sub_14158D360 + 调用图上游传播(占 80%, 2 票) |
+| 0x140E97050 | 同区段近邻 CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaidTarget>::[11](距 0x10 sub_140E97050 + 同区段近邻 CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaid… |
+| 0x141232C90 | 域关键词匹配 sub_141232C90 + 域关键词匹配; 被 CRestructureShipsToTaskforceCompositions::Execute 等 2 命名函数调用 |
+| 0x141C6C3D0 | 调用图上游传播(占 100%, 1 票) sub_141C6C3D0 + 调用图上游传播(占 100%, 1 票) |
+| 0x14170A520 | sub_14170A520 特征串:navy_sort_size |
+| 0x141B1F580 | 调用图上游传播(占 100%, 1 票) sub_141B1F580 + 调用图上游传播(占 100%, 1 票) |
+| 0x141E22270 | sub_141E22270 海军战斗 GUI 图标（GFX_navalcombat_ship_icon） |
+| 0x141975150 | 域关键词匹配 sub_141975150 + 域关键词匹配; 源码路径 hoi4; 被调源码 clausewitz |
+| 0x140E87130 | 同区段近邻 CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaidTarget>::[11](距 0x22 sub_140E87130 + 同区段近邻 CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaid… |
+| 0x14129BDC0 | 域关键词匹配 sub_14129BDC0 + 域关键词匹配; 被调源码 clausewitz |
+| 0x1410040C0 | 域关键词匹配 sub_1410040C0 + 域关键词匹配; 源码路径 hoi4; 被调源码 clausewitz |
+| 0x140C324F0 | 域关键词匹配 sub_140C324F0 + 域关键词匹配 |
+| 0x140E7AEA0 | 同区段近邻 CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaidTarget>::[11](距 0xC0 sub_140E7AEA0 + 同区段近邻 CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaid… |
+| 0x140FEA670 | 调用图上游传播(占 100%, 1 票) sub_140FEA670 + 调用图上游传播(占 100%, 1 票) |
+| 0x14158DC00 | 域关键词匹配 sub_14158DC00 + 域关键词匹配; 被调源码 clausewitz; 被 NRaids::NUi::CRaidList::[6] 等 1 命名函数调用 |
+| 0x140C333E0 | 调用图上游传播(占 55%, 3 票) sub_140C333E0 + 调用图上游传播(占 55%, 3 票) |
+| 0x140CE31E0 | 调用图上游传播(占 100%, 1 票) sub_140CE31E0 + 调用图上游传播(占 100%, 1 票) |
+| 0x14145B400 | 域关键词匹配 sub_14145B400 + 域关键词匹配; 被 CNavalProductionLine::[30] 等 3 命名函数调用 |
+| 0x14158C390 | 调用图上游传播(占 67%, 2 票) sub_14158C390 + 调用图上游传播(占 67%, 2 票) |
+| 0x140C27EF0 | 调用图上游传播(占 50%, 2 票) sub_140C27EF0 + 调用图上游传播(占 50%, 2 票) |
+| 0x140FEAFF0 | 域关键词匹配 sub_140FEAFF0 + 域关键词匹配 |
+| 0x140E9A680 | 同区段近邻 CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaidTarget>::[11](距 0x13 sub_140E9A680 + 同区段近邻 CPdxHybridInlineBufferAllocator<H::$0BJ::NRaids::CRaid… |
+| 0x141E1C720 | 调用图上游传播(占 100%, 1 票) sub_141E1C720 + 调用图上游传播(占 100%, 1 票) |
+
+#### 4.16.39 海军域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E9A930 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x141973170 | 无名 · loc 键 "SHIP_AND_TYPE" loc 键 "SHIP_AND_TYPE" |
+| 0x141D43480 | 无名 · "SERVICE_MANPOWER_HEADER" 海军人力键 "SERVICE_MANPOWER_HEADER" 海军人力键 |
+| 0x1412D9570 | 无名 · "CONVOY_DOMINANCE_COST_REDUCTION" "CONVOY_DOMINANCE_COST_REDUCTION" 护航统治力键 |
+| 0x140D6C130 | 无名 · "NAVY_DETACHED_ACTIVITY_STATUS_" 脱 "NAVY_DETACHED_ACTIVITY_STATUS_" 脱离舰队状态键 |
+| 0x141287F00 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x141E1D1E0 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+
+#### 4.16.40 海军域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140270370 | 业务逻辑（见证据锚） "Added … naval mines to the selected region(s)."/"Please select some regions first."（布雷控制台命令） |
+| 0x1417DAFF0 | 业务逻辑（键 NAVAL_COMBAT_RESULT_DEFEAT） "NAVAL_COMBAT_RESULT_DEFEAT"/"NAVAL_COMBAT_RESULT_VICTORY"/"outcome"（海战结果） |
+| 0x140E281F0 | 业务逻辑（见证据锚） "pUnit &&"/"Unhandled unit type."（海军运输单位类型） |
+| 0x141004A70 | 业务逻辑（键 SEAZONE_MINIMUM_DOMINANCE） "SEAZONE_MINIMUM_DOMINANCE"/"NAVAL_DOMINANCE_RATIO[_HEADER]"（海区控制度） |
+| 0x1412A9000 | SNavalUnitActivityData 海军单位活动数据 (vtable类名 SNavalUnitActivityData) vtable引用 SNavalUnitActivityData vftable |
+
+#### 4.16.41 海军域函数补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BB8AA0 | （无名） 调用图传播: 8 锚点投 §4.16（62%） |
+| 0x140D790A0 | （无名） 调用图传播: 8 锚点投 §4.16（62%） |
+| 0x140D64D40 | （无名） 调用图传播: 3 锚点投 §4.16（67%） |
+| 0x140652840 | （无名） 调用图传播: 4 锚点投 §4.16（50%） |
+| 0x1400826D0 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x1402B48F0 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x14196FCA0 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x14101B1B0 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140D0C540 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x1424E36A0 | （无名） 调用图传播: 2 锚点投 §4.16（50%） |
+| 0x140D55E40 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+| 0x140D547F0 | （无名） 调用图传播: 2 锚点投 §4.16（100%） |
+
+#### 4.16.42 海军域函数补遗（19 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E069D0 | 无名 sub_（断言站点/串定位） 串字面量 "NAVAL_COMBAT_RESULT_SURVIVOR_COUNT_UNDAMAGED" |
+| 0x140C37180 | 无名 sub_（断言站点/串定位） 串字面量 "STAT_NAVY_HIT_PROFILE" |
+| 0x140D56740 | 无名 sub_（断言站点/串定位） 串字面量 "FLEET_NAME" |
+| 0x140CE3470 | 无名 sub_（断言站点/串定位） 串字面量 "NAVAL_COMBAT_RESULT_HEADER" |
+| 0x141E6E1E0 | 无名 sub_（断言站点/串定位） 串字面量 "naval_access_rule" |
+| 0x141BBCF40 | 无名 sub_（断言站点/串定位） 串字面量 "ship_name" |
+| 0x1417D89B0 | 无名 sub_（断言站点/串定位） 串字面量 "NAVAL_HEADQUARTERS_COMBAT_TT" |
+| 0x141DFF2B0 | 无名 sub_（断言站点/串定位） 串字面量 "NAVAL_COMBAT_RESULT_SURVIVOR_TYPE" |
+| 0x141F96170 | 无名 sub_（断言站点/串定位） 串字面量 "SHIP_REFIT_CANCEL_TOOLTIP" |
+| 0x140D74220 | 无名 sub_（断言站点/串定位） 串字面量 "NAVAL_BASE" |
+| 0x1406E5F90 | 无名 sub_（断言站点/串定位） 串字面量 "SCORE_CALC_NAVY" |
+| 0x141F7D010 | 无名 sub_（断言站点/串定位） 串字面量 "CONFIRM_DISBAND_FLEET_TITLE" |
+| 0x141F6D2B0 | 无名 sub_（断言站点/串定位） 串字面量 "GFX_navalcombat_ship_icon_" |
+| 0x140FB6710 | 无名 sub_（断言站点/串定位） 串字面量 "GFX_mapicon_naval_mission_patrol" |
+| 0x14158C6D0 | 无名 sub_（断言站点/串定位） 串字面量 "naval_base" |
+| 0x140241720 | 无名 sub_（断言站点/串定位） 串字面量 "Naval invasion order are now ignoring superiority " |
+| 0x140C39420 | 无名 sub_（断言站点/串定位） 串字面量 "GFX_navy_icon_" |
+| 0x140C317B0 | 无名 sub_（断言站点/串定位） 串字面量 "FUEL_DAILY_REQUIRED_MAX_DESC_NAVY" |
+| 0x141BBD4F0 | 无名 sub_（断言站点/串定位） 串字面量 "ALL_SHIPS" |
+
+#### 4.16.43 海军域函数补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EBE580 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x140E9AFA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x140D6FFF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x1415B9A50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x1417DAF40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x14161E2C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x141666790 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x14181E220 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x141972B60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x140D6F3B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x1412AD090 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x14134B550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x140ED0D10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x140D65C60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x140D6B490 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x140D6E870 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x140D701C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+
+#### 4.16.44 海军域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EBAE10 | 无名 sub_（调用图定位） 调用图传播: 3/3 锚点投 §4.16 |
+| 0x140E9AC50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.16 |
+| 0x1415C4FD0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.16 |
+
+#### 4.16.45 海军域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1421A6ED0 | （无名） 调 sub_1415934A0（raid_source.cpp:410）+ sub_1424C8080 |
+| 0x140D6AB60 | （无名） 串 "TASK_FORCE_ACTIVITY_DESC_SPOTTING_ENEMY_TASK_FORCE"/"TASK_FORCE_ACTIVITY_DESC_PERFORMING_MISSION_IN_REGION" |
+
+#### 4.16.46 海军域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E29780 | 舰队补给描述 特混舰队航行中补给描述：TASK_FORCE_UNDERWAY_REPLENISHMENT_DESC + FACTOR_BONUS + eh vector 构造 |
+
+#### 4.16.47 海军域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14158DD60 | 未决窗口函数 · 海上突袭类别 串 "raid_category_" 前缀构造 + stringop |

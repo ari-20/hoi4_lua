@@ -82,7 +82,7 @@ CDLCManager (+104 容器) 逐条 DLC 挂载 sub_142078210 → mod 向量逐条 s
 | sub_1424F70D0 | createDirHandle | openDirectory + 填 dirName/mountPoint (尾随 '/') |
 | sub_1424F9220 | verifyPath (路径越界/symlink 防线) | 挂点前缀校验 + 逐组件 stat; symlink 拒绝 = +249 旗=0 时 (错误码 12); stat/openRead/enumerate/mkdir/delete 五导出共用 |
 | sub_1424F6AE0 | createNativeIo | 'r'/'w'/'a' 三模式 + 80B io 对象 24B 句柄 {io@+0, path 副本@+8, mode@+16}; 原生 Io 80B 10 槽分发表; 'r'/'w'/'a' 三打开原语 = sub_142514720/142514750/142514690 |
-| sub_1424F8410 | 枚举桥 (挂点影子条目) | 请求目录是 mountPoint 严格前缀时发射挂载点组件名, filetype 恒 4 (vendored 扩展标记「挂载点影子目录」, 值域外) |
+| sub_1424F8410 | 枚举桥 (挂点影子条目) | 请求目录是 mountPoint 严格前缀时发射挂载点组件名, filetype 恒 4 (vendored 扩展标记「挂载点影子目录」, 值域外; 消费侧 = 回调 0x1424DAEC0 先 PHYSFS_stat 定真伪再分派, §4.29.1d) |
 | sub_1424F2740 / 2610 / 24F0 | memoryIo destroy/dup/read 三件套 | 48B MemoryIoInfo {buf, len, pos, parent, refcount, destruct}; PHYSFS_mountMemory 后端; refcount 原子, 减 0 才 destruct dup/destroy 尾调槽 = vtable+56/+72 (非上游 PHYSFS_Io 标准序, vendored 魔改, 勿按上游序读槽) |
 | sub_1424F68F0 / 6440 / 6D90 / 6590 | DirTree init/add/free | 64 哈希桶; add 两函数互递归建中间目录; zip (sub_1425189D0) 与 7z (sub_142512FA0) 条目装载共用 DirTree {+0 root, +8 哈希桶数组, +24 entrylen}; 条目 {+0 name, +8 哈希链, +16 子目录链头, +24 兄弟链, +32 isdir} (entrylen ≥ 40; addMkdir 中间目录恒 isdir=1, add 显式 isdir 参) |
 | sub_1424F8630 / 75F0 | archiver 注销两型 | deinit 全注销 (仍有挂载 → 错误码 8 + "nothing should be mounted during shutdown" 断言) / 单注销 |
@@ -101,6 +101,58 @@ insecure / 24 tried to modify a file the OS needs / 25 directory isn't empty /
 26 OS reported an error / 27 duplicate resource / 28 bad password /
 29 app callback reported error。每线程错误码槽 = tls[TlsIndex]+2140。
 
+#### 4.29.1d SVirtualFile 双后端与 VFS 文件 API (virtualfilesystem_physfs.cpp; 17 函族 + 同 TU 14 vtable 实现定案)
+
+双后端文件句柄 (24B; 由打开工厂按 64B 路径对第二串选择后端):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | vtable | 主虚表 (8 槽, 见下表) |
+| +8 | uint8 | 写模式旗 (mode≠0 置 1) |
+| +16 | 后端句柄 | PHYSFS_File* (PHYSFS 后端) / FILE* (CRT 后端) |
+
+| 后端 | 类 (RTTI) | vtable RVA | COL |
+|---|---|---|---|
+| PHYSFS | SVirtualFile_PHYSFS | 0x2B92718 | 0x142DEFDB0 |
+| CRT | SVirtualFile_STD | 0x2B92760 | 0x142DEFE30 |
+
+vtable 八槽 (两表同序; 包装器对空句柄返 0 并断言 "Invalid file", 唯 Eof 空句柄返 1):
+
+| 槽 | 语义 | PHYSFS | STD |
+|---|---|---|---|
+| [0] | 析构 (close/fclose + 按 free 旗释放) | 0x1424D9FC0 | 0x1424DA070 |
+| [1] | Read(buf, size) → 字节数 | 0x1424DB5B0 | 0x1424DB5D0 |
+| [2] | Write(buf, size) → 全写返 size 否则 0 | 0x1424DE790 | 0x1424DE7C0 |
+| [3] | Flush → bool | 0x1424DACE0 | 0x1424DAD00 |
+| [4] | GetSize → 长度 | 0x1424DAD20 | 0x1424DAD40 |
+| [5] | Seek(pos) → bool | 0x1424DB660 | 0x1424DB680 |
+| [6] | Tell → 位置 (失败 −1) | 0x1424DB6A0 | 0x1424DB6C0 |
+| [7] | Eof → bool | 0x1424DAE80 | 0x1424DAEA0 |
+
+⚠ **Seek 槽极性反转 (定案)**: PHYSFS 版 0x1424DB660 返非零 = 成功; STD 版 0x1424DB680 (fseeki64) 返非零 = 失败 — 同为 `test eax,eax; setne al` 但被调 API 语义相反; 包装器 0x1424DE400 对 origin=SET 直透该返回值, 调用方按成功义消费时 STD 后端下行为反转 (影响面未裁)。
+
+打开工厂 0x1424DD880 (双后端) 按路径对第二串 (+32 物理路径) 长度选后端 — 空 → 0x1424DDBD0 (PHYSFS: openRead / openWrite (前置 sub_1424DBA40 确保目录树) / openAppend); 非空 → CRT (L"rb"/L"wb"/L"ab" + wfopen); mode 契约 0=读 / 1=写 / 2=追加 / 其他 = "Not implemented" (:1247 / :1303)。出参 33B = {+0 错误串 (成功时首 8B 被句柄指针覆盖) / +32 成功旗}; 失败错误串 = PHYSFS 错误码文本 (回落 "unknown") 或 "fopen() failed: " + errno。唯一调用方 = CVirtualFile 构造 0x1424DF480 (virtualfilesystem.cpp TU): 句柄挂 this+8, a5=1 时错误串经 sub_1424E07A0 抛 CFileException。
+
+VFS 文件操作包装族 (空句柄守卫): GetSize 0x1424DD310 (:1426) / Eof 0x1424DD610 (:1501, 空句柄返 1) / Read 0x1424DDF40 (:1364) / Write 0x1424DE700 (:1402) / Seek 0x1424DE400 (:1467, 三 origin)。
+
+重命名 0x1424DDFC0 = PHYSFS_getRealDir 取物理根 → 反斜杠归一正斜杠 + 按 '/' 切组件 → 反向拼 newName 组件得目标物理全路径 → CRT rename; 失败日志 :778 (含 errno)。删除: 文件 0x1424DBFB0 / 递归目录 0x1424DBCC0 (列子目录 + 共享枚举器 + 逐文件删 + 自递归 + 尾删目录本身, 失败日志 :793 / :821)。
+
+列子目录名 0x1424DC020 = 清出向量 (预扩容 ≥1024 槽, 1.5× 增长) → PHYSFS_enumerateFiles 逐条拼 `<dir>/<name>` → PHYSFS_stat, **只收 filetype==1 (目录)** 且名内含 ≥0x80 字节时告警 :899 不入表; filetype≠1 一律不入。枚举回调 0x1424DAEC0 = filetype 1 (目录) 入收集向量 / filetype 4 (挂点影子) 先 PHYSFS_stat 定真伪 (真目录入向量, 常规入树, 符号链接及其他丢弃, stat 失败告警 :94) / filetype 0·2·3 入收集红黑树 (节点 96B = {父/左/右 +24 颜色, +32 键 = 全 VFS 路径, +64 值}) / ≥5 跳过。递归枚举主链 0x1424DA110 = 深度守卫 (maxDepth, :915) → 扫挂载点表求命中记录最小搜索路径索引 → PHYSFS_enumerate → 条目经后缀 (a3) / 子串 (a4) 两级匹配 → getRealDir 取物理源求搜索路径表索引, 大于最小索引即丢弃 (replace_path 过滤, §4.29.5) → 逐子目录自递归; 入口 0x1424DC380 (64B 条目向量, 预扩容 ≥1024)。
+
+vendored PHYSFS_Stat 布局 (填充者 0x1425148B0 = GetFileAttributesExW; 符号链接判定 = 属性含 0x400 且 FindFirstFileW dwReserved0 == 0xA000000C):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | uint64 | 文件长度 (目录 / 符号链接恒 0) |
+| +8 | int64 | 最后写入时间 (FILETIME → Unix 秒) |
+| +16 | int64 | 创建时间 |
+| +24 | int64 | 最后访问时间 |
+| +32 | int32 | 文件类型: 0 常规 / 1 目录 / 2 符号链接 / 3 其他 |
+| +36 | int32 | 只读旗 (dwFileAttributes & 1) |
+
+⚠ 与上游 PHYSFS_Stat 字段序**不同** (上游 filetype@+0 / filesize@+32) — 本族全部 filetype 判定读 +32, 勿按上游序读; 0x1424DD390 = 取最后写入时间 (stat+8) 非文件长度。
+
+> 未决: 64B 路径对结构类名 (无 RTTI 的 POD); 0x1424DA110 的 a3/a4 过滤极性 (反编译控制流显示不匹配条目仍入表, 与「过滤器」直觉相反, 疑 SEH 状态机花括号错位); 回调 0x1424DAEC0 第五参来源 (寄存器透传, 推定物理源串); STD Seek 极性反转的调用方影响面; 枚举收集器树与向量的最终出表链路; "fopen() failed: " 的 errno 文本链; PHYSFS_FileType 枚举名 (0..3 按上游推得, 无源码直证)。
 #### 4.29.1b zip 归档元数据解析链 (physfs_archiver_zip.cpp; 4 函闭环 — 书未收簇)
 
 `clausewitz\pdx_core\physfs\` 第三方静态链入层 (§4.29.1a 只覆盖库本体与封装层, 不涉本簇); openArchive = sub_142515B30 (§4.29.1a 表末行)。归档句柄公共骨架: `a1+32` = seek 虚槽 / `a1+48` = filelength 虚槽 / sub_1424F6D00 = 顺序读 n 字节。三签名常量 (定案):
@@ -121,9 +173,66 @@ insecure / 24 tried to modify a file the OS needs / 25 directory isn't empty /
 > 出参契约 (两路径一致): `*a2` = 数据起始绝对偏移 / `*a3` = 中央目录绝对偏移 / `*a4` = 条目总数。IO 失败一律返 0 (静默), 结构不符经 sub_1424F9450 错误通道返 0, 签名不符返 0xFFFFFFFF。字段对应按 PKWARE APPNOTE 结构形状推得 (PHYSFS 源码未含于语料, 无独立佐证, 待裁)。
 
 
-#### 4.29.1c clausewitzlib ZIP 中央目录头解析 (zip.cpp; 1 函 = 0x1422E3C30, 定案)
+#### 4.29.1c clausewitzlib ZIP 归档读/写层 (zip.cpp; 15 函闭环 — CZipArchive 自管 POD)
 
-读取器原语 = `(*(*a1)+32)(a1, buf, len)` (vtable+32 = Read); 读 46 字节头后校验签名 `*(dword*)a2 == 0x02014B50` ("PK\x01\x02"), 不符 → :1202 纯日志 (flags=0, 闩 byte_14348138D; B51 域门) + 返 0; 三变长字段: a2+28 u16 文件名长 → malloc(n+1) 挂 **a2+48**; a2+30 u16 扩展长 → **a2+56**; a2+32 u16 注释长 → **a2+64**; 各读后补 null 终止。与 §4.29.1b 的 physfs_archiver_zip.cpp 族为不同 TU (本节 = clausewitzlib 自有 zip.cpp)。未决: 读取器所属类 (推定 CZipArchive 游标) 与三指针字段释放责任 (本函只分配+读入)。
+读取器原语 = `(*(*a1)+32)(a1, buf, len)` (vtable+32 = Read); 读 46 字节头后校验签名 `*(dword*)a2 == 0x02014B50` ("PK\x01\x02"), 不符 → :1202 纯日志 (flags=0, 闩 byte_14348138D; B51 域门) + 返 0; 三变长字段: a2+28 u16 文件名长 → malloc(n+1) 挂 **a2+48**; a2+30 u16 扩展长 → **a2+56**; a2+32 u16 注释长 → **a2+64**; 各读后补 null 终止。与 §4.29.1b 的 physfs_archiver_zip.cpp 族为不同 TU (本节 = clausewitzlib 自有 zip.cpp)。**已解 (整族定案)**: a1 = CZipArchive 归档对象本身 (非游标), +96 = 开档结果; 三指针 (+48/+56/+64) 在解析失败时由调用方 0x1422E3590 释放 (含条目本身), 成功时归条目数组随归档对象生命周期。整族 15 函闭环, 见下。
+CZipArchive (无独立 RTTI 的 POD; 读/写共用):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | CMemoryFile* | 底层流 (虚表槽契约见下) |
+| +8 | uint32 | 位置/偏移: 构造初值 = GetSize(流); 开档后 = EOCD 的中央目录偏移; 写者 = 本地头写入点 (close 时 Seek 目标) |
+| +16 | CDirEntry** | 条目指针数组 |
+| +24 | uint32 | 数组容量 |
+| +28 | uint32 | 数组计数 |
+| +32 | CAllocator* | 分配器 (off_143085170 共享静态; +8 allocate / +16 deallocate) |
+| +40 | uint8[22] | EOCD 缓冲 (构造置签名 0x06054B50) |
+| +48 | uint16 | EOCD 本盘条目数 (写者每条目 ++) |
+| +50 | uint16 | EOCD 总条目数 (写者 ++ / 读者 = 循环上界) |
+| +52 | uint32 | EOCD 中央目录总大小 (每条目 += 46 + 名长 + 扩展长 + 注释长) |
+| +56 | uint32 | EOCD 中央目录偏移 (落盘前 = +8) |
+| +60 | uint16 | EOCD 注释长度 (构造置 0; 开档不读真值 → 不支持 zip 注释) |
+| +64 | char* | 归档注释缓冲 (恒不分配) |
+| +72 | uint8 | 模式旗 (观测调用点恒 0; 非 0 时每条目后自动全量重写中央目录) |
+| +73 | uint8 | 自有工作缓冲旗 |
+| +80 | uint8* | 工作缓冲 (缺省 malloc 50000000) |
+| +88 | uint64 | 工作缓冲大小 (缺省 50000000; 压缩/解压前后半对分为输入/输出区) |
+| +96 | uint8 | 开档结果 |
+
+函数身份 (全族非 CPersistent — 自管 POD + 落盘字节序, 不走 token 流序列化):
+
+| VA | 功能身份 |
+|---|---|
+| 0x1422E2560 | 构造 (挂流 / EOCD 缓冲置签名 / 缺省 50MB 工作缓冲 / 调开档) |
+| 0x1422E3590 | 开档: GetSize < 22 → 空档成功; 定位末 22B → 校验签名 → 预扩容条目数组 (max(总条目, 容量×1.5)) → 循环解析挂入 → SeekToEnd 追加就位 |
+| 0x1422E3C30 | 中央目录条目头解析 (上文) |
+| 0x1422E2790 | 中央目录条目构造并追加 (本地头 30B → 46B 定头 + 偏移, 挂入数组, 累加 EOCD 计数) |
+| 0x1422E2970 | 写入一个文件条目 (本地头 + 数据 + 头回填或数据描述符) |
+| 0x1422E2D20 | 按名解压单个条目 (查表 → 定位本地头 → 五字段校验 → 方法分派 → CRC 验) |
+| 0x1422E3960 | inflate 解压流 (raw deflate) + CRC32 验 |
+| 0x1422E32C0 | bzip2 解压流 + CRC32 验 |
+| 0x1422E41D0 | deflate 压缩流 (raw) + CRC32 累积 |
+| 0x1422E3D90 | bzip2 压缩流 + CRC32 累积 |
+| 0x1422E40E0 | 落盘全部中央目录 (逐条目 46B + 名 + 扩展 + 注释) + 22B EOCD |
+| 0x1422E44D0 | close: Seek(当前位) → 0x1422E40E0 |
+| 0x1422E2760 / 0x1422E2750 | SEH 清理 (本地头文件名/扩展缓冲; 归档注释缓冲) |
+| 0x1422E2480 | 序列化辅助 (语料无调用点, 归属按地址推定) |
+
+压缩方法契约: 0 = 存储 / 8 = raw deflate (zlib 版本串 "1.2.3", windowBits −15, memLevel 9; 存档调用点 level 7) / 12 = bzip2 (blockSize100k, workFactor 30); 其他 → :674。CRC-32 = 标准查表 dword_142B49120 (1024 项, 多项式 0xEDB88320 反射), 初值 0xFFFFFFFF 终翻转; 压缩路径按**新消费输入字节**累 CRC, 解压路径对**解压后明文**累 CRC, 收尾比对 ~CRC == 条目+16。不支持 zip64 与 zip 注释。
+
+写入条目链 (0x1422E2970): 本地头 30B (签名 0x04034B50 / 版本需要 = 方法 0→10 · 8→20 · 12→46 / 旗 |= 8 / CRC 占位 0xFFFFFFFF / 未压缩大小 = GetSize(源)) + 文件名 → 方法分派 → 可寻址判定 = Seek 返回非 0: 成功 → 旗清 8 + 回填真 CRC/压缩大小; 不可寻址 → 追加 16B 数据描述符 (签名 0x08074B50) → 0x1422E2790 追加中央目录条目 → +8 前进 (有描述符时 +16)。
+
+按名解压链 (0x1422E2D20): 遍历条目数组 strcmp(entry+48 文件名) → Seek(entry+42 本地头偏移) → 读 30B 本地头验签名 → 跳文件名/扩展 → 五字段校验 (版本 / 旗+方法 / 时间+日期 / 名长 / 扩展长; 无描述符旗时含 CRC 与两大小), 不符 → :750 → 方法分派 → 旗 & 8 时读 16B 描述符: 签名须 0x08074B50 且 CRC/压缩/未压缩须与目录头一致。
+
+CDirEntry 72B 写侧补全: +4 版本制作 = 63 / +6..+30 逐字段从本地头拷 / +12·+14 时间日期恒 0 / +34 盘号 ← 归档+44 / +36·+38 内外属性恒 0 / +42 = 本地头相对偏移 ← 归档+8; 三指针 +48/+56/+64 读时 malloc(长+1) 并 null 终止。
+
+LocalHeader 本地文件头工作结构 (落盘仅 +0..+29): +0 签名 0x04034B50 / +4 版本需要 / +6 通用旗 / +8 压缩方法 / +10·+12 时间日期 (恒 0) / +14 CRC32 / +18 压缩大小 / +22 未压缩大小 / +26 文件名长 / +28 扩展长 (恒 0); 工作态 +32 文件名缓冲 / +40 扩展缓冲 / +48 拥有旗。数据描述符 16B = {+0 签名 0x08074B50 / +4 CRC32 / +8 压缩大小 / +12 未压缩大小}。z_stream (本构建 sizeof = 88, uLong 为 4B, zlib wrapper 硬校验 88): +0 next_in / +8 avail_in / +12 total_in / +16 next_out / +24 avail_out / +28 total_out / +32 msg / +40 state / +48 zalloc / +56 zfree / +64 opaque。
+
+CMemoryFile 虚表槽 (vtable 0x142B934E0; 本族依赖的流层契约): +32 Read (越界返 0) / +64 Write / +80 Seek (越界返 0, 否则置位返 1) / +88 SeekToEnd (位置 = GetSize) / +112 GetSize。
+
+调用方: 存档/配置写入 = 0x140DC7790 / 0x140D9AB00 / 0x141C35570 (方法 8 / level 7 → 0x1422E2970 → 0x1422E44D0); 解压 = 0x141C35250 / 0x140DA3F20 / 0x142079E00 (Workshop 安装器, §4.29.10 附近) → 0x1422E2D20。21 个一次性日志闩 byte_14348137D..byte_143481391 与 zip.cpp 行号 674..1390 单调对应, 为 TU 归属的独立佐证。
+
+> 未决: 0x1422E2970 可寻址判定与 0x1422E3590 中央目录定位的 Seek 第二实参 (寄存器透传, 目标位按上下文推定); 0x1422E2480 归属 (无调用点); +72 自动落盘模式触发条件 (观测恒 0); 追加模式覆写旧中央目录的边界 (新条目少于旧目录长度时尾部残留旧字节, 靠末尾新 EOCD 仍可解析); 解压缓冲半长划分边界; bz_stream 精确布局 (仅确认 +48 state / +64 bzfree / +72 opaque)。
 #### 4.29.2 descriptor 解析 (dlc.cpp)
 
 `.mod`/`.dlc` 文件为 PDX 脚本格式, 由 token 派发器 **sub_14207AE90** 按 key 落槽。
@@ -229,7 +338,7 @@ sub_142076450 对启用集合建 16 字节条目表 `{int 权重 @+0, CDLCDescri
 | 建表 | sub_1424DB6E0 | `(物理路径, 挂载点前缀)` 追加进挂载点表 |
 | 触发 | sub_142076450 | 遍历 +192 容器逐条建表 (每个 replace_path 一条记录) |
 | 判定 | sub_1424DA110 | 对请求目录求挂载点表命中记录的最小搜索路径索引 `v11`; 枚举条目经 `PHYSFS_getRealDir` 得物理源, 求其在搜索路径表的索引 `v36`; **`v36 > v11` 即丢弃** |
-| 枚举 | sub_1424DC020 | `PHYSFS_enumerateFiles` + `PHYSFS_stat` 按目录/文件类型分派 |
+| 枚举 | sub_1424DC020 | `PHYSFS_enumerateFiles` + `PHYSFS_stat` **只收 filetype==1 (目录) 名**; 名含 ≥0x80 字节告警 :899 不入表 (filetype 判定读 vendored stat+32, §4.29.1d) |
 
 > 判定读法: 枚举条目经 `PHYSFS_getRealDir` 得物理源, 在搜索路径表定位其索引 `v36`; `v36 > v11` 即不收录 (LABEL_62)。`v11` 初值 `0x7FFFFFFF` (= 无命中), 仅当请求目录命中挂载点表记录时被压到该记录的搜索路径索引。
 > 备注: 目录级独占, 非文件级覆盖 — 声明者缺的文件不会由低优先级源补位。
@@ -290,3 +399,215 @@ sub_142514C60 (目录归档 open): 目录存在性/类型判定 sub_1425148B0 (�
 
 
 **largefile.cpp 联机大文件传输协议 (clausewitzlib 层, 书未收新域)**: 消息三件套 + ctor — **CStartFileTransfer 执行 0x1422E1000** (载荷 {+16 文件名, +40 size, +56 checksum, +44..+51 句柄槽}; 新建/复用 240B 句柄 sub_1422DFD20 → 按名+checksum+size 开档 sub_1422E19F0) / **CSendChunk 执行 0x1422E0E90** ({+40 块数据, +64 chunk 序号, +68 发送句柄}; 有句柄 sub_1422E0520 发出 / 无则 "CSendChunk Execute FAIL" :131) / **CChunkReceived ctor 0x1422DFBE0** (vtable 名直证; {+40 chunk, +44 id, +48 progress 定点 round(a4×1e5)}) / **执行 0x1422E0D00** (管理器缺位断言 "missing large file handle (chunk received)" :199)。管理器单例 = unk_1430B1DF8 (解引用经 sub_14221F310; **槽[10] = 收块/开档契约位**, ctor+apply 同槽互证; 槽[12] 取参), 日志类别码 769。类名 unk_1430B1DF8 挂载链未决。
+
+#### 4.29.11 mod 装载与虚拟文件系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141CDE520 | （未命名）OLD_SAVEGAME_POPUP OLD_SAVEGAME_POPUP，旧存档兼容弹窗 |
+| 0x140CDE340 | NCombatLog::COrdersGroupLogs::Reader NCombatLog::COrdersGroupLogs::Reader + CGameDate/CLoss/CManpowerLoss/CPerTemplateStats/SCombatStats vtable（战斗日志反序列化） |
+| 0x141A7C640 | NDoctrines::CUnlockGrandDoctrineCommand::PayloadReader NDoctrines::CUnlockGrandDoctrineCommand::PayloadReader；串「_pInstance && "Instance not created."」 |
+| 0x140BD20A0 | （未命名）串 "version_name"/"(selecting latest vers 串 "version_name"/"(selecting latest version)"，存档/模组版本选择逻辑 |
+
+#### 4.29.12 mod 装载与虚拟文件系统函数补遗（12 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140FFF910 | CCountryOccupationData::Writer — func_names 名 + pdx_robin_hood_table.h:58 断言 func_names 名 + pdx_robin_hood_table.h:58 断言 |
+| 0x141922740 | （无名，按上游/loc 定性） 断言 "Expected start of block" |
+| 0x14142D5F0 | （无名，按上游/loc 定性） gameitemdatabase.h:142 |
+| 0x141921E00 | （无名，按上游/loc 定性） 断言 "Expected start of block" |
+| 0x141401DE0 | （无名，按上游/loc 定性） std_pair_parser.h:71 |
+| 0x1419640E0 | CAirRegionCombatData::Reader CAirRegionCombatData::Reader + 名字角色规则(CAirRegionCombatData::Reader); vtable/RTTI 含 SAirWingCombatData; 被 CAirRegionCombatData::R… |
+| 0x1411A2690 | CCountryOperationManager::Writer 标签:pdx_scopedptr.h:134 |
+| 0x1412852D0 | vtable/RTTI 类 SPostEffectVolumeReader sub_1412852D0 + vtable/RTTI 类 SPostEffectVolumeReader; 被 CPdxPostEffectVolumeManager::Reader 等 1 命名函数调用 |
+| 0x14144CFC0 | CUnitHistory::Writer 标签:pdx_scopedptr.h:129 |
+| 0x140B74390 | SNavalHitMissDataReader::Reader SNavalHitMissDataReader::Reader + 名字角色规则(SNavalHitMissDataReader::Reader); 串 "small"; 被 SNavalHitMissDataReader::Reader 等 1 命… |
+| 0x142330790 | vtable/RTTI 类 SForceReader sub_142330790 + vtable/RTTI 类 SForceReader |
+| 0x1404986F0 | STraitReader::[2] STraitReader::[2] + 域关键词匹配; 串 "simple statements are not allowed in this "; 被 STraitReader::[2] 等 1 命名函数调用 |
+
+#### 4.29.13 mod 装载与虚拟文件系统函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AADA20 | 可本地化文本/触发键对写入族 可本地化文本/触发键对写入族；邻 CScriptableLocalization::Writer(-3088B)/STriggerKeyPair::Writer(-2992B)，被调 gamestate.h:1125/1126 |
+| 0x1423A1E80 | 字符串转义表（\\\\/\\\\\"/\\n/\\r/\\t 双向转义），邻 CFormat::[0](-1296B)/[2]，疑存档/文本输出转义 |
+| 0x1411AC330 | 键值清单格式化 键值清单格式化；串 \":\"/\"<\"/\">\" ×5+\" = <PAYLOAD>\"，被调 lexer.cpp:381，邻 CPoliticalParty::Reader/Writer+CIntelSource::Reader/CStaticIntelSourcePool::Reader |
+| 0x1414DA910 | SBookmarkPlaythroughData vtable SBookmarkPlaythroughData vtable §4.29 存档/序列化 |
+| 0x1414855F0 | "Tried to write a mod achievement who wa "Tried to write a mod achievement who was not completed" + C §4.29 存档/序列化 |
+
+#### 4.29.14 mod 装载与虚拟文件系统函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A6B770 | SNamesPool::Reader SNamesPool 名字池，namedatabase.cpp:56 |
+| 0x14140D680 | SInitialScientistSkillLevel::Reader SInitialScientistSkillLevel，scientist_template.cpp:75 |
+
+#### 4.29.15 mod 装载与虚拟文件系统函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.29.16 mod 装载与虚拟文件系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14232FEA0 | SVectorParamReader::Writer — func_names 名 + =/{ /空格/回车 四分量序列化四件套 x4 func_names 名 + =/{ /空格/回车 四分量序列化四件套 x4 |
+
+#### 4.29.17 mod 装载与虚拟文件系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.29.18 mod 装载与虚拟文件系统函数补遗（49 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1420743E0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141800500 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1415541C0 | （无名） 调用图传播: 3 锚点投 §4.29（100%） |
+| 0x142515780 | （无名） 调用图传播: 3 锚点投 §4.29（100%） |
+| 0x1418F8970 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x140FF2290 | （无名） 调用图传播: 4 锚点投 §4.29（100%） |
+| 0x1418007F0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1418F9420 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141552200 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141552450 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142514040 | （无名） 调用图传播: 3 锚点投 §4.29（100%） |
+| 0x140FF2060 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141551AF0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x14154F580 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1424F87E0 | （无名） 调用图传播: 3 锚点投 §4.29（67%） |
+| 0x140FF1CF0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x14154EE90 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x140228910 | （无名） 调用图传播: 4 锚点投 §4.29（50%） |
+| 0x141DAB840 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1415508D0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141550A70 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142073290 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x14068AC50 | （无名） 调用图传播: 4 锚点投 §4.29（100%） |
+| 0x141684D40 | （无名） 调用图传播: 2 锚点投 §4.29（50%） |
+| 0x140C9FCD0 | （无名） 调用图传播: 7 锚点投 §4.29（57%） |
+| 0x140C43DA0 | （无名） 调用图传播: 5 锚点投 §4.29（80%） |
+| 0x1422576F0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141DACA60 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1416855B0 | （无名） 调用图传播: 2 锚点投 §4.29（50%） |
+| 0x142515390 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142519340 | （无名） 调用图传播: 11 锚点投 §4.29（100%） |
+| 0x14225E8A0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1424E2020 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141556750 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141550430 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142256170 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142513D70 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x140FF26E0 | （无名） 调用图传播: 3 锚点投 §4.29（100%） |
+| 0x142515120 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1425198E0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141F7DCC0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142079B40 | （无名） 调用图传播: 3 锚点投 §4.29（67%） |
+| 0x14061C290 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142078E30 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1424E1A40 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142514690 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x140C49AF0 | （无名） 调用图传播: 4 锚点投 §4.29（100%） |
+| 0x141AEA6E0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x142519D50 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+
+#### 4.29.19 mod 装载与虚拟文件系统函数补遗（37 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B67DC0 | sub_141B67DC0 CArchiveFile::[8] + strategic_region_names（存档写入战略区域名表） |
+| 0x141485940 | sub_141485940 成就/游玩统计存取（achievements_mod_storage.cpp） |
+| 0x14007A000 | sub_14007A000 堆分配+strcpy 构造路径串（语料字符串抽取失真） |
+| 0x141FE4BB0 | sub_141FE4BB0 成就/游玩统计存取（playthrough_stats） |
+| 0x140F3F1D0 | 同区段近邻 CBuildingProductionLine::Reader(距 0x2EFF0)属 4.29 族 sub_140F3F1D0 + 同区段近邻 CBuildingProductionLine::Reader(距 0x2EFF0)属 4.29 族 |
+| 0x1413FD9F0 | 调用图上游传播(占 100%, 1 票) sub_1413FD9F0 + 调用图上游传播(占 100%, 1 票) |
+| 0x141A443F0 | 同区段近邻 NProject::SProjectContext::Reader(距 0xBB50)属 4.29 族 sub_141A443F0 + 同区段近邻 NProject::SProjectContext::Reader(距 0xBB50)属 4.29 族 |
+| 0x14054A8A0 | 调用图上游传播(占 54%, 7 票) sub_14054A8A0 + 调用图上游传播(占 54%, 7 票) |
+| 0x140BC5980 | 调用图上游传播(占 50%, 3 票) sub_140BC5980 + 调用图上游传播(占 50%, 3 票) |
+| 0x14032B900 | 域关键词匹配 sub_14032B900 + 域关键词匹配 |
+| 0x1413FE270 | 调用图上游传播(占 100%, 1 票) sub_1413FE270 + 调用图上游传播(占 100%, 1 票) |
+| 0x1409C61B0 | 调用图上游传播(占 100%, 1 票) sub_1409C61B0 + 调用图上游传播(占 100%, 1 票) |
+| 0x141428320 | 域关键词匹配 sub_141428320 + 域关键词匹配; 源码路径 clausewitz; 被 CPoliticalParty::Writer 等 1 命名函数调用 |
+| 0x1402D70F0 | 调用图上游传播(占 67%, 3 票) sub_1402D70F0 + 调用图上游传播(占 67%, 3 票) |
+| 0x1413B5560 | 调用图上游传播(占 100%, 1 票) sub_1413B5560 + 调用图上游传播(占 100%, 1 票) |
+| 0x1424CD560 | 调用图上游传播(占 78%, 5 票) sub_1424CD560 + 调用图上游传播(占 78%, 5 票) |
+| 0x14129A2D0 | 同区段近邻 SPostEffectVolumeReader::Reader(距 0x10A80)属 4.29 族 sub_14129A2D0 + 同区段近邻 SPostEffectVolumeReader::Reader(距 0x10A80)属 4.29 族 |
+| 0x140A9A810 | 调用图上游传播(占 42%, 3 票) sub_140A9A810 + 调用图上游传播(占 42%, 3 票) |
+| 0x140F3CFA0 | 同区段近邻 CBuildingProductionLine::Reader(距 0x31220)属 4.29 族 sub_140F3CFA0 + 同区段近邻 CBuildingProductionLine::Reader(距 0x31220)属 4.29 族 |
+| 0x14227F340 | 调用图上游传播(占 100%, 1 票) sub_14227F340 + 调用图上游传播(占 100%, 1 票) |
+| 0x140E9D250 | 调用图上游传播(占 60%, 2 票) sub_140E9D250 + 调用图上游传播(占 60%, 2 票) |
+| 0x1424C36C0 | 域关键词匹配 sub_1424C36C0 + 域关键词匹配; 被 CAirBase::Writer 等 6 命名函数调用 |
+| 0x1414E6E90 | 域关键词匹配 sub_1414E6E90 + 域关键词匹配 |
+| 0x142295B10 | 域关键词匹配 sub_142295B10 + 域关键词匹配 |
+| 0x140F67050 | 同区段近邻 CBuildingProductionLine::Reader(距 0x7170)属 4.29 族 sub_140F67050 + 同区段近邻 CBuildingProductionLine::Reader(距 0x7170)属 4.29 族 |
+| 0x140AEB7F0 | 调用图上游传播(占 100%, 1 票) sub_140AEB7F0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1406C20B0 | 域关键词匹配 sub_1406C20B0 + 域关键词匹配 |
+| 0x14128A2C0 | 同区段近邻 SPostEffectVolumeReader::Reader(距 0xA70)属 4.29 族 sub_14128A2C0 + 同区段近邻 SPostEffectVolumeReader::Reader(距 0xA70)属 4.29 族 |
+| 0x141622A40 | 调用图上游传播(占 100%, 1 票) sub_141622A40 + 调用图上游传播(占 100%, 1 票) |
+| 0x1411A17D0 | 调用图上游传播(占 100%, 1 票) sub_1411A17D0 + 调用图上游传播(占 100%, 1 票) |
+| 0x141923570 | 调用图上游传播(占 100%, 1 票) sub_141923570 + 调用图上游传播(占 100%, 1 票) |
+| 0x1424CDB60 | 调用图上游传播(占 85%, 6 票) sub_1424CDB60 + 调用图上游传播(占 85%, 6 票) |
+| 0x140F8CE60 | 调用图上游传播(占 75%, 2 票) sub_140F8CE60 + 调用图上游传播(占 75%, 2 票) |
+| 0x14119D550 | 域关键词匹配 sub_14119D550 + 域关键词匹配 |
+| 0x140549C30 | 域关键词匹配 sub_140549C30 + 域关键词匹配 |
+| 0x141295020 | 同区段近邻 SPostEffectVolumeReader::Reader(距 0xB7D0)属 4.29 族 sub_141295020 + 同区段近邻 SPostEffectVolumeReader::Reader(距 0xB7D0)属 4.29 族 |
+| 0x141A43380 | 同区段近邻 NProject::SProjectContext::Reader(距 0xAAE0)属 4.29 族 sub_141A43380 + 同区段近邻 NProject::SProjectContext::Reader(距 0xAAE0)属 4.29 族 |
+
+#### 4.29.20 mod 装载与虚拟文件系统函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141295200 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141400910 | （无名） 调用图传播: 2 锚点投 §4.29（50%） |
+| 0x140F8E3C0 | （无名） 调用图传播: 2 锚点投 §4.29（50%） |
+| 0x1419491C0 | PayloadReader func_names 名 PayloadReader（序列化读写器角色） |
+| 0x1413FE350 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141A457B0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+
+#### 4.29.21 mod 装载与虚拟文件系统函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C4A060 | 业务逻辑（见证据锚） null_object 绑定：null_object.h:133 断言 + 遍历 a1+56/a2 双数组置 qword_14332FB10 空对象指针 |
+| 0x140B74170 | SNavalHitMissDataReader 海战命中未中读段 (vtable类名 SNavalHitMissDataReader) vtable引用 SNavalHitMissDataReader vftable |
+
+#### 4.29.22 mod 装载与虚拟文件系统函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141684B70 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x1415570D0 | （无名） 调用图传播: 4 锚点投 §4.29（100%） |
+| 0x141557510 | （无名） 调用图传播: 4 锚点投 §4.29（100%） |
+| 0x1418F95F0 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x141DACD00 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x14154DD60 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+| 0x14154E120 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+
+#### 4.29.23 mod 装载与虚拟文件系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141685730 | （无名） 调用图传播: 2 锚点投 §4.29（100%） |
+
+#### 4.29.24 mod 装载与虚拟文件系统函数补遗（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1405492D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x142514580 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x140BC4BE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x142514BA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x142514780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x142518920 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x1425144B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x142073DF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x141801300 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x142513CB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x1402CCA30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x141F7DDC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x142514B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x142514840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x141684CB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |
+| 0x1420757B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.29 |

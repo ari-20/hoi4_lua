@@ -1617,7 +1617,7 @@ ctor 三变体自身，全部外部引用 = 工厂注册槽写入；本地零业
 | 14257 | CDropCurrentNationalFocusCommand | 0x142996520 | 48 | 0x141156920 | 0x141164490 | +40 str(10394) 目标国家 |
 | 14301 | CSetProductionLineConvertCommand | 0x142993E10 | 56 | 0x14115CFE0 | 0x141166B90 | +40 id对 目标生产线 / +48 u8(10376) 转换开关(线是否参与军转民/民转军转换) |
 | 14312 | CSetAirWingNameCommand | 0x142A1E128 | 80 | 0x1419462E0 | 0x140E8F550 | +40 id对 待改名联队 id / +48 str(27) 新联队名 |
-| 14344 | CMergeArmiesCommand | 0x1429B2F50 | 72 | 0x141366400 | 0x141369630 | +40 id对 保留(合并目标)集团军 |
+| 14344 | CMergeArmiesCommand | 0x1429B2F50 | 72 | 0x141366400 | 0x141369630 | +40 id对 保留(合并目标)集团军; **+48 id对 待整编成员数组 {data@+48, count@+60}** (Execute 0x141366400 以 +48 调分组算法 sub_141362500; 整编预览侧 §4.00.57 复用同算法) |
 | 14345 | CSelectDecisionCommand | 0x142996908 | 56 | 0x14115ADE0 | 0x141165F10 | +40 str(10394) 执行国 / +48 u32(11142) 决议定义 |
 | 14350 | CSendPingCommand | 0x14296A498 | 120 | 0x140DE9A20 | 0x140DE9E70 | +40 obj24(14351) ping 位置 X(定点) / +64 str(10394) 发起国家 / +72 i64(10925) ping 持续时间 / +80 u8(14352) 是否进攻性 ping / +88 str(27) 附带文本/名称 |
 | 14372 | CSetProductionLinePriorityCommand | 0x142994CE8 | 64 | 0x14115D190 | 0x141164440 | — |
@@ -1888,3 +1888,2163 @@ BECOME_SPYMASTER_PP_COST; 派系领袖 +2104 写 tag。
 
 0x141B96880 (out map*, country_ai_ctx, 请求树) — 调用链 = sub_141B98EC0 (命令 13859 行 AI 调用点; :311 断言「Non-tradable equipment!」闩 byte_14338C1AF) → 本函逐装备变体算购买量 → sub_141B96250 撮合 → 产出 CEquipmentVariantPool (0xB0)。out = std::map<u32 装备 id, i64 fx1e-5 量>。**逐变体**: 原型 = sub_1409F87A0(qword_14332EEC0, id) (TGameItemDatabase 单例; gameitemdatabase.h:142 `_pInstance` 断言, 闩 byte_14332F582); 粒度/批量 g = **CountryAI+104 对象 vtable[4] 统一 getter(code, 原型hash, 0)** — code 30 = 已购量 (fx1e-5) / 31 = 千分比加成 / 32 = 上限 / 33 = 批量粒度 (枚举名待裁); g == 0 → 由报价表加权均价补算 (变体单价 = *(变体+976) fx1e-5; 均价 Q15 = (Σvalue<<15)/Σ计数, Σ=0 → 1.0; 经 sub_1424ED580/730 Q15→fixed 换算, g = 100000 × qword_143334868 ÷ 均价, <1 → 1); 缺口 = max(0, req − 已购); 放大系数 = qword_143334750 × (1000×code31 + 100000)/100000 钳 [0, 100000]; 量 = 缺口×系数/1e5 (负支 floor 修正) 对齐粒度 (量 − 量%g), 上限 code 32 取 min; **护航类装备** (原型旗 sub_140C95730&1) → req = 100000 × sub_141B97D40(ctx)。**sub_141B97D40 = 护航池可用量**: cc+4728 缓存旗置位 → 总量直取 *(cc+4736), 未置 → sub_14100DCB0(cc+4624, ·, 1) 取量写回 cc+4736 并置旗; 返 = (int)(总量/1e5) − Σallocated(cc+4716) − (uint32)sub_1424ED730(qword_143334AD8 × 100000 × ((int)(总量/1e5)) / 100000) (全局比例预留尾项, 系数乘在已截断的 1e5 整数位上); ⚠ 与 §4.3 k15 / §4.34 原型路径 0x1414EDDA0 的唯一差别即此尾项 — 0x1414EDDA0 源码核验仅 `100000LL × ((int)*(cc+4736)/100000 − cc+4716)`, 无尾项, 该两处无需回填补正。ai_equipment_market.cpp:220 `TotalCount > 0` 断言闩 byte_14338C1AB。
 未决：a2 所属类未定（其 +1469 旗与详情页本体字段 +3896/+3912/+3920 不对齐；疑为焦点条目/def 侧对象）。
+#### 4.33.25 命令子类补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140DE7670 | 断言 ingamempcommands.cpp:368/382/397/404 + 串 "CPostHotJoinCommand::DebugLogging()_START"/"Variant: %s, %lli" 断言 ingamempcommands.cpp:368/382/397/404 + 串 "CPos… |
+| 0x141349EC0 | sub_141349EC0 体内构造/操作 vtable 类 CSetFleetCommand（&CSetFleetCommand::vftable）→ 海军报告/联队项/海军命令 |
+| 0x14116D380 | CSetResearchCommand::PayloadReader 序列化 Reader/Writer 或网络命令载荷读写（CSetResearchCommand::PayloadReader） |
+| 0x14132CBE0 | sub_14132CBE0 体内构造/操作 vtable 类 CChatSyncAllCommand::SChannelInfo（&CChatSyncAllCommand::SChannelInfo::vftable）→ 聊天/系统消息/玩家标识/大文件传输 |
+| 0x14114C6E0 | CReplaceBuildingCommand::Clone CReplaceBuildingCommand::Clone（生产/建筑） |
+| 0x141EF2AE0 | sub_141EF2AE0 体内构造/操作 vtable 类 CAttachScientistCommand（&CAttachScientistCommand::vftable）→ 角色模板/顾问槽信息/科学家任命命令 |
+| 0x14116C090 | CReplaceIdeaCommand::PayloadReader 序列化 Reader/Writer 或网络命令载荷读写（CReplaceIdeaCommand::PayloadReader） |
+| 0x14136C670 | CDeleteUnitCommand::PayloadReader 序列化 Reader/Writer 或网络命令载荷读写（CDeleteUnitCommand::PayloadReader） |
+| 0x141343210 | CChatSyncAllCommand::PayloadWriter 序列化 Reader/Writer 或网络命令载荷读写（CChatSyncAllCommand::PayloadWriter） |
+| 0x1419A7D00 | CUpdateEquipmentVariantCommand::PayloadWriter 序列化 Reader/Writer 或网络命令载荷读写（CUpdateEquipmentVariantCommand::PayloadWriter） |
+
+#### 4.33.26 命令子类补遗（63 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141850C40 | COrderInsertFrontCommand::PayloadReader 名:COrderInsertFrontCommand::PayloadReader |
+| 0x14116BBE0 | CRemoveAllConstructionCommand::PayloadReader 名:CRemoveAllConstructionCommand::PayloadReader |
+| 0x14135BE00 | CSetTaskForceAutoReinforcementCommand::PayloadReader 名:CSetTaskForceAutoReinforcementCommand::PayloadReader |
+| 0x14183CF50 | CArmyGroupCommand::Clone CArmyGroupCommand::Clone + 名字角色规则(CArmyGroupCommand::Clone); vtable/RTTI 含 CArmyGroupCommand; 被 CArmyGroupCommand::Clone 等 1 命名函数调用 |
+| 0x14114B100 | CCreateFactionCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x141BA0530 | CCreateDivisionTemplateCommand::PayloadReader 名:CCreateDivisionTemplateCommand::PayloadReader |
+| 0x14134BD60 | CCreateFleetCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x141997380 | CAddPlayerCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x14199E1E0 | CSetDesignTeamCommand::PayloadReader func_names 全名 + 序列化角色 |
+| 0x141948EA0 | CDeleteAirWingCommand::PayloadReader func_names 全名 + 序列化角色 |
+| 0x14135C790 | CCreateFleetCommand::PayloadWriter CCreateFleetCommand::PayloadWriter + 名字角色规则(CCreateFleetCommand::PayloadWriter); 被调源码 hoi4; 被 CCreateFleetCommand::Payload… |
+| 0x1411691F0 | CAddConstructionCommand::PayloadReader CAddConstructionCommand::PayloadReader + 名字角色规则(CAddConstructionCommand::PayloadReader); 被调源码 hoi4; 被 CAddConstruction… |
+| 0x14135BCC0 | CSetPrideOfTheFleetCommand::PayloadReader CSetPrideOfTheFleetCommand::PayloadReader + 名字角色规则(CSetPrideOfTheFleetCommand::PayloadReader); 被调源码 hoi4; 被 CSetPri… |
+| 0x14116CD20 | CSetFuelPriorityCommand::PayloadReader 名:CSetFuelPriorityCommand::PayloadReader |
+| 0x141949090 | CMoreGroundCrewsCommand::PayloadReader 名:CMoreGroundCrewsCommand::PayloadReader |
+| 0x141336160 | CChatCommand::Clone CChatCommand::Clone + 名字角色规则(CChatCommand::Clone); vtable/RTTI 含 CChatCommand; 被 CChatCommand::Clone 等 1 命名函数调用 |
+| 0x14116C630 | CSelectDecisionCommand::PayloadReader func_names 全名 + 序列化角色 |
+| 0x14194A250 | CToggleBombingPriorityCommand::PayloadReader func_names 全名 + 序列化角色 |
+| 0x14183E470 | COrderNewRootCommand::Clone COrderNewRootCommand::Clone + 名字角色规则(COrderNewRootCommand::Clone); vtable/RTTI 含 CCommand; 被 COrderNewRootCommand::Clone 等 1 命名函数调用 |
+| 0x141943000 | CMoveAirGroupAndAirTheatreToFreeCommand::Clone CMoveAirGroupAndAirTheatreToFreeCommand::Clone + 名字角色规则(CMoveAirGroupAndAirTheatreToFreeCommand::Clone); vtabl… |
+| 0x141169540 | CAddMassProductionsLineCommand::PayloadReader CAddMassProductionsLineCommand::PayloadReader + 名字角色规则(CAddMassProductionsLineCommand::PayloadReader); 被调源码 hoi… |
+| 0x140F29C10 | CCreateOperationCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x14114A6B0 | CAddMassProductionsLineCommand::Clone CAddMassProductionsLineCommand::Clone + 名字角色规则(CAddMassProductionsLineCommand::Clone); vtable/RTTI 含 CAddMassProduction… |
+| 0x1411705B0 | CSelectionGroupCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x141336230 | CChatNewChannelCommand::Clone CChatNewChannelCommand::Clone + 名字角色规则(CChatNewChannelCommand::Clone); vtable/RTTI 含 CChatNewChannelCommand; 被 CChatNewChannelC… |
+| 0x14183EBA0 | COrderSetParadropSourceCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x14183C9B0 | COrderInsertFrontCommand::[0] COrderInsertFrontCommand::[0] + 名字角色规则(COrderInsertFrontCommand::[0]); vtable/RTTI 含 CCommand; 被 COrderInsertFrontCommand::[0] … |
+| 0x141943E00 | CStratAirSetMissionCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x14116D0B0 | CSetPlayerAiPrefsCommand::PayloadReader func_names 全名 + 序列化角色 |
+| 0x14134D7C0 | CSetNavalRegionAccessCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x140DB67B0 | CSetIndustrialOrgTraitsInQueueCommand::Clone CSetIndustrialOrgTraitsInQueueCommand::Clone + 名字角色规则(CSetIndustrialOrgTraitsInQueueCommand::Clone); vtable/RTTI… |
+| 0x141997190 | CAddPlayerCommand::[0] func_names 全名 + Command 类（槽方法 [N]） |
+| 0x1411708F0 | CSetNavalDeploymentTargetCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x141E740E0 | CSetPinnedStrategicRegionCommand::Clone CSetPinnedStrategicRegionCommand::Clone + 名字角色规则(CSetPinnedStrategicRegionCommand::Clone); vtable/RTTI 含 CCommand; 被 … |
+| 0x14134CB70 | CNavyDetachShipsAndRepairCommand::Clone CNavyDetachShipsAndRepairCommand::Clone + 名字角色规则(CNavyDetachShipsAndRepairCommand::Clone); vtable/RTTI 含 CCommand; 被 … |
+| 0x141942C50 | CAttachAirWingToArmyCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x14183D620 | CMoveArmiesInTheaterCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x1419437B0 | CSetWingReinforcementPreferenceCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x141362FA0 | CMergeArmiesCommand::Clone func_names 全名 + Command 类（Clone） |
+| 0x14134C860 | CNavyCancelRepairCommand::Clone CNavyCancelRepairCommand::Clone + 名字角色规则(CNavyCancelRepairCommand::Clone); vtable/RTTI 含 CCommand; 被 CNavyCancelRepairCommand… |
+| 0x140442FD0 | CIsHighCommand::Evaluate CIsHighCommand::Evaluate + 名字角色规则(CIsHighCommand::Evaluate); 串 "high_command"; 被 CIsHighCommand::Evaluate 等 1 命名函数调用 |
+| 0x1401CC460 | vtable/RTTI 类 SControlGroupData sub_1401CC460 + vtable/RTTI 类 SControlGroupData; 被 CSelectionGroupCommand::Execute 等 1 命名函数调用 |
+| 0x141943F70 | CStratAirTransferCommand::Clone CStratAirTransferCommand::Clone + 名字角色规则(CStratAirTransferCommand::Clone); vtable/RTTI 含 CCommand; 被 CStratAirTransferCommand… |
+| 0x141943A30 | CStratAirConsolidateCommand::Clone CStratAirConsolidateCommand::Clone + 名字角色规则(CStratAirConsolidateCommand::Clone); vtable/RTTI 含 CCommand; 被 CStratAirConsol… |
+| 0x14135D070 | CNavyDetachShipsAndRefitCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x1418571B0 | COrderInsertFrontCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x141857390 | COrderNewFrontCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x140DC39E0 | vtable/RTTI 类 CPdxSocialPlayerId sub_140DC39E0 + vtable/RTTI 类 CPdxSocialPlayerId; 被调源码 clausewitz; 被 CAddHumanCommand::Clone 等 5 命名函数调用 |
+| 0x14135AA70 | CNavyCancelRefitCommand::PayloadReader CNavyCancelRefitCommand::PayloadReader + 名字角色规则(CNavyCancelRefitCommand::PayloadReader); 被 CNavyCancelRefitCommand::Pa… |
+| 0x1413334D0 | CChatNewChannelCommand::[0] CChatNewChannelCommand::[0] + 名字角色规则(CChatNewChannelCommand::[0]); vtable/RTTI 含 CCommand; 被 CChatNewChannelCommand::[0] 等 1 命名函数调用 |
+| 0x141857490 | COrderNewRootCommand::PayloadWriter COrderNewRootCommand::PayloadWriter + 名字角色规则(COrderNewRootCommand::PayloadWriter); 被 COrderNewRootCommand::PayloadWriter … |
+| 0x141850F20 | COrderNewFrontCommand::PayloadReader COrderNewFrontCommand::PayloadReader + 名字角色规则(COrderNewFrontCommand::PayloadReader); 被 COrderNewFrontCommand::PayloadRea… |
+| 0x14116FA10 | CGiveMedalCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x1413430F0 | CChatCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x14135CBA0 | CNavalMissionSetTargetCommand::PayloadWriter CNavalMissionSetTargetCommand::PayloadWriter + 名字角色规则(CNavalMissionSetTargetCommand::PayloadWriter); 被 CNavalMis… |
+| 0x141851140 | COrderReconnectCommand::PayloadReader COrderReconnectCommand::PayloadReader + 名字角色规则(COrderReconnectCommand::PayloadReader); 被 COrderReconnectCommand::Payloa… |
+| 0x141A80660 | CAssignToTheaterGroupCommand::PayloadWriter CAssignToTheaterGroupCommand::PayloadWriter + 名字角色规则( |
+| 0x1411710E0 | CTriggerAbilityCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x14135CE10 | CNavyCancelRefitCommand::PayloadWriter func_names 全名 + 序列化角色 |
+| 0x141851510 | COrderSetInvasionSourceCommand::PayloadReader func_names 全名 + 序列化角色 |
+| 0x14136CB30 | CMergeArmiesCommand::PayloadReader CMergeArmiesCommand::PayloadReader + 名字角色规则(CMergeArmiesCommand::PayloadReader); 被 CMergeArmiesCommand::PayloadReader 等 1 … |
+| 0x141A2C9D0 | CSetOperativeCodenameCommand::PayloadReader CSetOperativeCodenameCommand::PayloadReader + 名字角色规则( |
+| 0x14135CA90 | CNavalMissionMoveCommand::PayloadWriter CNavalMissionMoveCommand::PayloadWriter + 名字角色规则(CNavalMissionMoveCommand::PayloadWriter); 被调源码 clausewitz; 被 CNavalM… |
+
+#### 4.33.27 命令子类补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419A0690 | sub_1419A0690（无名） equipmentcommands.cpp 断言站 + Variant.GetType() 判空 + 紧邻 CCreateEquipmentVariantCommand::[0](d=5968)，装备命令族 |
+| 0x1411684E0 | CAddIdeaCommand::IsValid 串 `CAddIdeaCommand::IsValid() …` 系列（countrycommands.cpp） |
+| 0x14116A0E0 | CCreateFactionCommand::PayloadReader func_names 名 + VT CColor + `Instance not created.` 断言 |
+| 0x141856AF0 | COrderBlockSectionsCommand::PayloadWriter / COrderBlockSectionsCommand::PayloadWrite COrderBlockSectionsCommand::PayloadWriter §4.29 存档/序列化 |
+| 0x14136C8A0 | CMassMoveCommand::PayloadReader 类名（批量移动命令负载反序列化） |
+| 0x141949740 | CSetQuickDeployPreferenceCommand::PayloadReader 类名（快速部署偏好命令负载反序列化）+ gameitemdatabase.h:142 |
+| 0x14116D570 | CSetScorchedStateCommand::PayloadReader 序列化 Reader/Writer（方法角色 PayloadReader/PayloadWriter）；类属 CSetScorchedStateCommand |
+| 0x14183DFA0 | COrderInsertFrontCommand::Clone 效果/触发求值执行（方法角色 \1）；类属 COrderInsertFrontCommand |
+| 0x14114D140 | CSetNavalProductionLineAirWingCompositionCommand::Clone 效果/触发求值执行（方法角色 \1）；类属 CSetNavalProductionLineAirWingCompositionCommand |
+| 0x14134CFD0 | CReorganizeShipsCommand::Clone 效果/触发求值执行（方法角色 \1）；类属 CReorganizeShipsCommand |
+| 0x14134D1A0 | CSetAsReserveFleetCommand::Clone 效果/触发求值执行（方法角色 \1）；类属 CSetAsReserveFleetCommand |
+| 0x141943100 | CMoveAirWingAndAirGroupToAirTheatreCommand::Clone 效果/触发求值执行（方法角色 \1）；类属 CMoveAirWingAndAirGroupToAirTheatreCommand |
+| 0x14116B290 | CIgnoreDecisionCommand::PayloadReader 序列化 Reader/Writer（方法角色 PayloadReader/PayloadWriter）；类属 CIgnoreDecisionCommand |
+| 0x14183E250 | COrderNewFallbackCommand::Clone 效果/触发求值执行（方法角色 \1）；类属 COrderNewFallbackCommand |
+| 0x141A2CB70 | CCreateOperationCommand::PayloadWriter 序列化 Reader/Writer（方法角色 PayloadReader/PayloadWriter）；类属 CCreateOperationCommand |
+| 0x141851030 | COrderNewRootCommand::PayloadReader 序列化 Reader/Writer（方法角色 PayloadReader/PayloadWriter）；类属 COrderNewRootCommand |
+| 0x141850B30 | COrderGroupCommand::PayloadReader 序列化 Reader/Writer（方法角色 PayloadReader/PayloadWriter）；类属 COrderGroupCommand |
+
+#### 4.33.28 命令子类补遗（1468 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A7D6D0 | （无名） 体设 CSetNavyTheaterGroupForCommand::vftable（RTTI 名） |
+| 0x141A252A0 | （无名） 体设 CReserveOperativeForOperationCommand::vftable（RTTI 名） |
+| 0x141348D60 | （无名） 体设 CNavyDetachShipsAndRepairCommand::vftable（RTTI 名） |
+| 0x141BA1C60 | （无名） 体设 CSetDeploymentLineNameCommand::vftable（RTTI 名） |
+| 0x141147F90 | （无名） 体设 CSetStateGarrisonTemplateCommand::vftable（RTTI 名） |
+| 0x141147480 | （无名） 体设 CSetNavalProductionLineAirWingCompositionCommand::vftable（RTTI 名） |
+| 0x141BA72A0 | （无名） 体设 CFactionSetCommanderCommand::vftable（RTTI 名） |
+| 0x14134C3D0 | CNavalMissionSetTargetCommand::Clone func_names 名 CNavalMissionSetTargetCommand::Clone |
+| 0x141346EB0 | （无名） 体设 CNavalMissionRemoveRegionCommand::vftable（RTTI 名） |
+| 0x141146EA0 | （无名） 体设 CSetMainGarrisonTemplateCommand::vftable（RTTI 名） |
+| 0x141146350 | （无名） 体设 CRemoveProductionLineCommand::vftable（RTTI 名） |
+| 0x141940B20 | （无名） 体设 CMoveAirWingToAirGroupCommand::vftable（RTTI 名） |
+| 0x1413468C0 | （无名） 体设 CMarkSunkShipInfoAsReadCommand::vftable（RTTI 名） |
+| 0x14183AF60 | （无名） 体设 COrderSetParadropTargetCommand::vftable（RTTI 名） |
+| 0x14163CA50 | （无名） 体设 CSelectBookmarkCommand::vftable（RTTI 名） |
+| 0x141997660 | （无名） 体设 CAddPlayerCommand::vftable（RTTI 名） |
+| 0x140E8E550 | （无名） 体设 CRailwayGunSetNameCommand::vftable（RTTI 名） |
+| 0x141A7E150 | CSetNavyTheaterGroupForCommand::Clone func_names 名 CSetNavyTheaterGroupForCommand::Clone |
+| 0x14114DD20 | CTriggerAbilityCommand::Clone func_names 名 CTriggerAbilityCommand::Clone |
+| 0x14114AB50 | CAmendIncomingLendLeaseActionCommand::Clone func_names 名 CAmendIncomingLendLeaseActionCommand::Clone |
+| 0x1419A15A0 | （无名） 体设 CSetUseDynamicVersionPositioningVariantCommand::vftable（RTTI 名） |
+| 0x14183C350 | （无名） 体设 CSetOrderGroupOrdersInstanceNamesCommand::vftable（RTTI 名） |
+| 0x1413472F0 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x141143CE0 | （无名） 体设 CChangeRailwayConstructionLeveLCommand::vftable（RTTI 名） |
+| 0x1419A1680 | （无名） 体设 CStockpiledEquipmentDeleteCommand::vftable（RTTI 名） |
+| 0x14183C0A0 | （无名） 体设 CSetOrderGroupLeaderProximityCommand::vftable（RTTI 名） |
+| 0x141B9E710 | （无名） 体设 CSetObsoleteDivisionTemplateCommand::vftable（RTTI 名） |
+| 0x14183BF70 | （无名） 体设 CSetOrderGroupExecutionTypeCommand::vftable（RTTI 名） |
+| 0x14183C180 | （无名） 体设 CSetOrderGroupMotorizationCommand::vftable（RTTI 名） |
+| 0x141A7D480 | （无名） 体设 CReorderNavyTheaterGroupCommand::vftable（RTTI 名） |
+| 0x141BA0EA0 | （无名） 体设 CChangeConveyorPositionCommand::vftable（RTTI 名） |
+| 0x1413469A0 | （无名） 体设 CNavalMissionAddRegionCommand::vftable（RTTI 名） |
+| 0x141A24E60 | （无名） 体设 CDismissOperativeCommand::vftable（RTTI 名） |
+| 0x141BA53D0 | （无名） 体设 CCreateTradeCommand::vftable（RTTI 名） |
+| 0x141B9E550 | （无名） 体设 CReorderTemplateListCommand::vftable（RTTI 名） |
+| 0x141361970 | （无名） 体设 CSetShipNameCommand::vftable（RTTI 名） |
+| 0x141943B90 | CStratAirEnableMissionCommand::Clone func_names 名 CStratAirEnableMissionCommand::Clone |
+| 0x141349DD0 | （无名） 体设 CSetFleetCommand::vftable（RTTI 名） |
+| 0x14114B920 | CIgnoreDecisionCommand::Clone func_names 名 CIgnoreDecisionCommand::Clone |
+| 0x141146460 | （无名） 体设 CRemoveShipRefitProductionLineCommand::vftable（RTTI 名） |
+| 0x141EF2A10 | （无名） 体设 CAbortDismantleFacilityCommand::vftable（RTTI 名） |
+| 0x141A7D3B0 | （无名） 体设 CDisbandTheaterGroupCommand::vftable（RTTI 名） |
+| 0x141BA1600 | （无名） 体设 CRemoveConveyorLineCommand::vftable（RTTI 名） |
+| 0x141360E50 | （无名） 体设 CPromoteUnitLeaderCommand::vftable（RTTI 名） |
+| 0x141BA10E0 | （无名） 体设 CCollapseConveyorCommand::vftable（RTTI 名） |
+| 0x141BA1390 | （无名） 体设 CDeployConveyorCommand::vftable（RTTI 名） |
+| 0x14134C760 | CNavyCancelRefitCommand::Clone func_names 名 CNavyCancelRefitCommand::Clone |
+| 0x140DE6F00 | CSendPingCommand::Clone func_names 名 CSendPingCommand::Clone |
+| 0x14183D4A0 | CEditAreaDefenseStateCommand::Clone func_names 名 CEditAreaDefenseStateCommand::Clone |
+| 0x141539D70 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x141145140 | （无名） 体设 CIgnoreTargetedDecisionCommand::vftable（RTTI 名） |
+| 0x14114F7C0 | （无名） 体设 CReplaceBuildingCommand::vftable（RTTI 名） |
+| 0x1413631E0 | CMoveShipsCommand::Clone func_names 名 CMoveShipsCommand::Clone |
+| 0x141940E10 | （无名） 体设 CSetQuickDeployPreferenceCommand::vftable（RTTI 名） |
+| 0x14114A5C0 | CAddMassFactoryAssignmentCommand::Clone func_names 名 CAddMassFactoryAssignmentCommand::Clone |
+| 0x14183F790 | CSetOrdersLinkCommand::Clone func_names 名 CSetOrdersLinkCommand::Clone |
+| 0x141336460 | CChatUserJoinedCommand::Clone func_names 名 CChatUserJoinedCommand::Clone |
+| 0x1413038A0 | CCreateDivisionTemplateCommand::Clone func_names 名 CCreateDivisionTemplateCommand::Clone |
+| 0x14114D270 | CSetOccupationPolicyCommand::Clone func_names 名 CSetOccupationPolicyCommand::Clone |
+| 0x14134CA90 | CNavyDetachShipsAndRefitCommand::Clone func_names 名 CNavyDetachShipsAndRefitCommand::Clone |
+| 0x14114C620 | CReplaceAdvisorCommand::Clone func_names 名 CReplaceAdvisorCommand::Clone |
+| 0x14114ACA0 | CBuildRailwayCommand::Clone func_names 名 CBuildRailwayCommand::Clone |
+| 0x1419972D0 | CAddHumanCommand::Clone func_names 名 CAddHumanCommand::Clone |
+| 0x14183D8A0 | COrderAssignCommand::Clone func_names 名 COrderAssignCommand::Clone |
+| 0x14114A3B0 | CAddAdvisorRoleToCharacterCommand::Clone func_names 名 CAddAdvisorRoleToCharacterCommand::Clone |
+| 0x14134C4D0 | CNavalMissionSetTypeCommand::Clone func_names 名 CNavalMissionSetTypeCommand::Clone |
+| 0x141943200 | CMoveAirWingToAirGroupCommand::Clone func_names 名 CMoveAirWingToAirGroupCommand::Clone |
+| 0x141996FE0 | （无名） 体设 CAddPlayerCommand::vftable（RTTI 名） |
+| 0x14183D1C0 | CAssignToArmyGroupCommand::Clone func_names 名 CAssignToArmyGroupCommand::Clone |
+| 0x14114CBB0 | CSelectionGroupCommand::Clone func_names 名 CSelectionGroupCommand::Clone |
+| 0x141997470 | CRemovePlayerCommand::Clone func_names 名 CRemovePlayerCommand::Clone |
+| 0x14134BAF0 | CAddTaskForceTemplateCommand::Clone func_names 名 CAddTaskForceTemplateCommand::Clone |
+| 0x141943610 | CSetQuickDeployPreferenceCommand::Clone func_names 名 CSetQuickDeployPreferenceCommand::Clone |
+| 0x140DE6920 | CCheckSyncResponseCommand::Clone func_names 名 CCheckSyncResponseCommand::Clone |
+| 0x141B324A0 | （无名） 体设 CCreateRaidCommand::vftable（RTTI 名） |
+| 0x14114A300 | CAddAdvisorCommand::Clone func_names 名 CAddAdvisorCommand::Clone |
+| 0x141B1B890 | （无名） 体设 COverrideMarketEquipmentPriceLevelsCommand::vftable（RTTI 名） |
+| 0x14114BD20 | CProductionLineInterfaceFactoriesScaleCommand::Clone func_names 名 CProductionLineInterfaceFactoriesScaleCommand::Clone |
+| 0x14114B420 | CDispatchNavalCombatResultsCommand::Clone func_names 名 CDispatchNavalCombatResultsCommand::Clone |
+| 0x14134C230 | CNavalMissionRemoveRegionCommand::Clone func_names 名 CNavalMissionRemoveRegionCommand::Clone |
+| 0x140E8EA90 | CRailwayGunManualOrderCommand::Clone func_names 名 CRailwayGunManualOrderCommand::Clone |
+| 0x1413633F0 | CSetArmyFakeTemplateCommand::Clone func_names 名 CSetArmyFakeTemplateCommand::Clone |
+| 0x14134CDB0 | CNavySetUnderwayReplenishmentCommand::Clone func_names 名 CNavySetUnderwayReplenishmentCommand::Clone |
+| 0x14134D930 | CSetTaskForceAutoReinforcementCommand::Clone func_names 名 CSetTaskForceAutoReinforcementCommand::Clone |
+| 0x14134D340 | CSetFleetCommand::Clone func_names 名 CSetFleetCommand::Clone |
+| 0x141942DC0 | CDeleteAirWingCommand::Clone func_names 名 CDeleteAirWingCommand::Clone |
+| 0x141333350 | CChatCommand::[0] vtable 槽 CChatCommand::[0]（func_names RTTI 名） |
+| 0x140DB6530 | CMoveIndustrialOrgTraitInQueueCommand::Clone func_names 名 CMoveIndustrialOrgTraitInQueueCommand::Clone |
+| 0x141BA2030 | CCreateConveyorExtendedCommand::Clone func_names 名 CCreateConveyorExtendedCommand::Clone |
+| 0x14134E3F0 | （无名） 体设 CAddTaskForceTemplateCommand::vftable（RTTI 名） |
+| 0x141362B70 | CCancelMovementCommand::Clone func_names 名 CCancelMovementCommand::Clone |
+| 0x14183DB00 | COrderConnectCommand::Clone func_names 名 COrderConnectCommand::Clone |
+| 0x140DB65E0 | CRemoveIndustrialOrgTraitFromQueueCommand::Clone func_names 名 CRemoveIndustrialOrgTraitFromQueueCommand::Clone |
+| 0x14114DC70 | CSetXORResearchCommand::Clone func_names 名 CSetXORResearchCommand::Clone |
+| 0x14114BFE0 | CReleaseCountryCommand::Clone func_names 名 CReleaseCountryCommand::Clone |
+| 0x14114BC50 | CMassRemoveProductionsLineCommand::Clone func_names 名 CMassRemoveProductionsLineCommand::Clone |
+| 0x141363B80 | CToggleStrategicDeploymentCommand::Clone func_names 名 CToggleStrategicDeploymentCommand::Clone |
+| 0x14184FC90 | CAssignToArmyGroupCommand::PayloadReader func_names 名 CAssignToArmyGroupCommand::PayloadReader |
+| 0x140DE6D80 | CRequestGameStateSynchCommand::Clone func_names 名 CRequestGameStateSynchCommand::Clone |
+| 0x14183F010 | CRemoveFromArmyGroupCommand::Clone func_names 名 CRemoveFromArmyGroupCommand::Clone |
+| 0x14114BB80 | CMassCancelMovementCommand::Clone func_names 名 CMassCancelMovementCommand::Clone |
+| 0x14114DEB0 | CUpdateSupplyNodeCountrySettingsCommand::Clone func_names 名 CUpdateSupplyNodeCountrySettingsCommand::Clone |
+| 0x14114BAE0 | CIncomingDiplomaticActionActingCommand::Clone func_names 名 CIncomingDiplomaticActionActingCommand::Clone |
+| 0x14114CB10 | CSelectTargetedDecisionCommand::Clone func_names 名 CSelectTargetedDecisionCommand::Clone |
+| 0x14114D0A0 | CSetNavalDeploymentTargetCommand::Clone func_names 名 CSetNavalDeploymentTargetCommand::Clone |
+| 0x141363360 | CQueueUnitActionCommand::Clone func_names 名 CQueueUnitActionCommand::Clone |
+| 0x14183E110 | COrderMembersFairSplitCommand::Clone func_names 名 COrderMembersFairSplitCommand::Clone |
+| 0x14183E570 | COrderReconnectCommand::Clone func_names 名 COrderReconnectCommand::Clone |
+| 0x14114A7B0 | CAddProductionLineCommand::Clone func_names 名 CAddProductionLineCommand::Clone |
+| 0x14163E360 | CSelectBookmarkCommand::PayloadReader func_names 名 CSelectBookmarkCommand::PayloadReader |
+| 0x141333580 | CChatSyncAllCommand::[0] vtable 槽 CChatSyncAllCommand::[0]（func_names RTTI 名） |
+| 0x14114B060 | CConvertFactoryCommand::Clone func_names 名 CConvertFactoryCommand::Clone |
+| 0x14114C870 | CReplaceIdeaCommand::Clone func_names 名 CReplaceIdeaCommand::Clone |
+| 0x1419416B0 | （无名） 体设 CStratAirSetMissionCommand::vftable（RTTI 名） |
+| 0x14183F470 | CSetOrderGroupIconAndColorCommand::Clone func_names 名 CSetOrderGroupIconAndColorCommand::Clone |
+| 0x14114C2A0 | CRemoveBuildingLevelCommand::Clone func_names 名 CRemoveBuildingLevelCommand::Clone |
+| 0x141942D20 | CChangeAirGroupInsigniaCommand::Clone func_names 名 CChangeAirGroupInsigniaCommand::Clone |
+| 0x14114E070 | ShowScriptedDiplomaticActionSendPopupCommand::Clone func_names 名 ShowScriptedDiplomaticActionSendPopupCommand::Clone |
+| 0x14183DE10 | COrderExecuteCommand::Clone func_names 名 COrderExecuteCommand::Clone |
+| 0x141A73D20 | CAiDiscardForceConcentrationTargetCommand::Clone func_names 名 CAiDiscardForceConcentrationTargetCommand::Clone |
+| 0x14114AAB0 | CAmendForeignManpowerActionCommand::Clone func_names 名 CAmendForeignManpowerActionCommand::Clone |
+| 0x14199C530 | CSetIndustrialManufacturerCommand::Clone func_names 名 CSetIndustrialManufacturerCommand::Clone |
+| 0x141E74050 | CReorderPinnedStrategicRegionCommand::Clone func_names 名 CReorderPinnedStrategicRegionCommand::Clone |
+| 0x140DB6490 | CAttachPolicyToIndustrialOrgCommand::Clone func_names 名 CAttachPolicyToIndustrialOrgCommand::Clone |
+| 0x140F2A030 | CSetOperationTargetCommand::Clone func_names 名 CSetOperationTargetCommand::Clone |
+| 0x14183F0E0 | CRemoveNavalInvasionTargetCommand::Clone func_names 名 CRemoveNavalInvasionTargetCommand::Clone |
+| 0x14114D8D0 | CSetStateGarrisonTemplateCommand::Clone func_names 名 CSetStateGarrisonTemplateCommand::Clone |
+| 0x141B1BEB0 | （无名） 体设 CMarketStockpileEquipmentTransferCommand::vftable（RTTI 名） |
+| 0x1419969A0 | CUpdateProfileBadgeCommand::Clone func_names 名 CUpdateProfileBadgeCommand::Clone |
+| 0x14183CEB0 | CAddNavalInvasionTargetCommand::Clone func_names 名 CAddNavalInvasionTargetCommand::Clone |
+| 0x14134D720 | CSetNavalBaseDisabledForRepairsStateCommand::Clone func_names 名 CSetNavalBaseDisabledForRepairsStateCommand::Clone |
+| 0x14134B020 | CCreateFleetCommand::[0] vtable 槽 CCreateFleetCommand::[0]（func_names RTTI 名） |
+| 0x141150600 | （无名） 体设 CTriggerAbilityCommand::vftable（RTTI 名） |
+| 0x14114CEF0 | CSetFuelPriorityCommand::Clone func_names 名 CSetFuelPriorityCommand::Clone |
+| 0x141BA2310 | CSetConveyorGroupCommand::Clone func_names 名 CSetConveyorGroupCommand::Clone |
+| 0x141150580 | （无名） 体设 CSetXORResearchCommand::vftable（RTTI 名） |
+| 0x1413637B0 | CSetPendingReassignTargetCommand::Clone func_names 名 CSetPendingReassignTargetCommand::Clone |
+| 0x141EF33F0 | CAttachScientistCommand::Clone func_names 名 CAttachScientistCommand::Clone |
+| 0x141851B70 | CSetArmyLeaderCommand::PayloadReader func_names 名 CSetArmyLeaderCommand::PayloadReader |
+| 0x14134D410 | CSetFleetHomeBaseCommand::Clone func_names 名 CSetFleetHomeBaseCommand::Clone |
+| 0x141942F60 | CMoreGroundCrewsCommand::Clone func_names 名 CMoreGroundCrewsCommand::Clone |
+| 0x140F29D00 | CDeleteOperationCommand::Clone func_names 名 CDeleteOperationCommand::Clone |
+| 0x14183F220 | CSetArmyLeaderCommand::Clone func_names 名 CSetArmyLeaderCommand::Clone |
+| 0x14114A520 | CAddIdeaCommand::Clone func_names 名 CAddIdeaCommand::Clone |
+| 0x14134DA00 | CSetTaskForceCompositionRequirementsCommand::Clone func_names 名 CSetTaskForceCompositionRequirementsCommand::Clone |
+| 0x14114E450 | （无名） 体设 CAddProductionLineCommand::vftable（RTTI 名） |
+| 0x141941570 | （无名） 体设 CStratAirSetMissionCommand::vftable（RTTI 名） |
+| 0x14183F8E0 | CUpdateLeaderSeenAdvisorRolesCountCommand::Clone func_names 名 CUpdateLeaderSeenAdvisorRolesCountCommand::Clone |
+| 0x14022E4E0 | CSetCountryReinforcementPriorityCommand::Clone func_names 名 CSetCountryReinforcementPriorityCommand::Clone |
+| 0x14114D470 | CSetProductionLineAmountToProduceCommand::Clone func_names 名 CSetProductionLineAmountToProduceCommand::Clone |
+| 0x1419A2860 | CStockpiledEquipmentDeleteCommand::Clone func_names 名 CStockpiledEquipmentDeleteCommand::Clone |
+| 0x14114DAB0 | CSetSupplyReinforcementPriorityCommand::Clone func_names 名 CSetSupplyReinforcementPriorityCommand::Clone |
+| 0x141A25B10 | CIntelligenceAgencyCancelUpgradeCommand::Clone func_names 名 CIntelligenceAgencyCancelUpgradeCommand::Clone |
+| 0x14114AFD0 | CChangeRailwayConstructionLeveLCommand::Clone func_names 名 CChangeRailwayConstructionLeveLCommand::Clone |
+| 0x141303A90 | CUpdateDivisionTemplateCommand::Clone func_names 名 CUpdateDivisionTemplateCommand::Clone |
+| 0x14134D690 | CSetMaxAllowedRepairFactoriesCommand::Clone func_names 名 CSetMaxAllowedRepairFactoriesCommand::Clone |
+| 0x14114AF40 | CChangeProductionLinePriorityCommand::Clone func_names 名 CChangeProductionLinePriorityCommand::Clone |
+| 0x14183F510 | CSetOrderGroupLeaderProximityCommand::Clone func_names 名 CSetOrderGroupLeaderProximityCommand::Clone |
+| 0x141943880 | CSetWingReinforcementPriorityCommand::Clone func_names 名 CSetWingReinforcementPriorityCommand::Clone |
+| 0x1419A2540 | CSetEquipmentVariantNicheIconCommand::Clone func_names 名 CSetEquipmentVariantNicheIconCommand::Clone |
+| 0x141E741B0 | CTogglePinnedStrategicRegionCommand::Clone func_names 名 CTogglePinnedStrategicRegionCommand::Clone |
+| 0x14022E330 | CSetCountryGarrisonPriorityCommand::Clone func_names 名 CSetCountryGarrisonPriorityCommand::Clone |
+| 0x14183F970 | CUpdateLeaderSeenTraitsCountCommand::Clone func_names 名 CUpdateLeaderSeenTraitsCountCommand::Clone |
+| 0x1419439A0 | CStratAirChangeAggressivnessCommand::Clone func_names 名 CStratAirChangeAggressivnessCommand::Clone |
+| 0x14022E2A0 | COnRulingPartyChangeActionCommand::Clone func_names 名 COnRulingPartyChangeActionCommand::Clone |
+| 0x14022E570 | CSetCountryUpgradePriorityCommand::Clone func_names 名 CSetCountryUpgradePriorityCommand::Clone |
+| 0x14114A850 | CAddProductionLineFactoriesCommand::Clone func_names 名 CAddProductionLineFactoriesCommand::Clone |
+| 0x14183F3E0 | CSetOrderGroupExecutionTypeCommand::Clone func_names 名 CSetOrderGroupExecutionTypeCommand::Clone |
+| 0x140CEC0F0 | CSetCountryControllerTypeCommand::Clone func_names 名 CSetCountryControllerTypeCommand::Clone |
+| 0x14114DB40 | CSetSupplyTruckBufferRatioCommand::Clone func_names 名 CSetSupplyTruckBufferRatioCommand::Clone |
+| 0x14183F350 | CSetOrderGroupCohesionTypeCommand::Clone func_names 名 CSetOrderGroupCohesionTypeCommand::Clone |
+| 0x14114BDF0 | CProductionLineInterfaceToggleExpandAllCommand::Clone func_names 名 CProductionLineInterfaceToggleExpandAllCommand::Clone |
+| 0x14114F850 | （无名） 体设 CReplaceIdeaCommand::vftable（RTTI 名） |
+| 0x1419A27D0 | CSetUseDynamicVersionPositioningVariantCommand::Clone func_names 名 CSetUseDynamicVersionPositioningVariantCommand::Clone |
+| 0x141A7E030 | CReorderNavyTheaterGroupCommand::Clone func_names 名 CReorderNavyTheaterGroupCommand::Clone |
+| 0x140DB6400 | CAddTaskCapacityCommand::Clone func_names 名 CAddTaskCapacityCommand::Clone |
+| 0x1413363D0 | CChatUserJoinedChannelCommand::Clone func_names 名 CChatUserJoinedChannelCommand::Clone |
+| 0x14134BF40 | CMarkSunkShipInfoAsReadCommand::Clone func_names 名 CMarkSunkShipInfoAsReadCommand::Clone |
+| 0x140A0D910 | （无名） 体设 CSelectEventOptionCommand::vftable（RTTI 名） |
+| 0x140CEC060 | CSetCountryControllerCommand::Clone func_names 名 CSetCountryControllerCommand::Clone |
+| 0x140DB6680 | CSetAutoUpdateDesignsForIndustrialOrgCommand::Clone func_names 名 CSetAutoUpdateDesignsForIndustrialOrgCommand::Clone |
+| 0x14114DA20 | CSetSupplyCapitalNodeCommand::Clone func_names 名 CSetSupplyCapitalNodeCommand::Clone |
+| 0x141336510 | CChatUserLeftChannelCommand::Clone func_names 名 CChatUserLeftChannelCommand::Clone |
+| 0x141944020 | CToggleBombingPriorityCommand::Clone func_names 名 CToggleBombingPriorityCommand::Clone |
+| 0x141A73DB0 | CAiOnFailedInvasionCommand::Clone func_names 名 CAiOnFailedInvasionCommand::Clone |
+| 0x141B9E900 | CReorderTemplateListCommand::Clone func_names 名 CReorderTemplateListCommand::Clone |
+| 0x141BA23B0 | CSetConveyorLocationCommand::Clone func_names 名 CSetConveyorLocationCommand::Clone |
+| 0x14114C340 | CRemoveConstructionCommand::Clone func_names 名 CRemoveConstructionCommand::Clone |
+| 0x14114CD10 | CSetContinuousFocusCommand::Clone func_names 名 CSetContinuousFocusCommand::Clone |
+| 0x14114D3E0 | CSetPreferredTacticCommand::Clone func_names 名 CSetPreferredTacticCommand::Clone |
+| 0x14134D8A0 | CSetPrideOfTheFleetCommand::Clone func_names 名 CSetPrideOfTheFleetCommand::Clone |
+| 0x14134AC00 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x1419A2370 | CSetAutoUpgradedEquipmentVariantCommand::Clone func_names 名 CSetAutoUpgradedEquipmentVariantCommand::Clone |
+| 0x141A25960 | CDismissOperativeCommand::Clone func_names 名 CDismissOperativeCommand::Clone |
+| 0x140F29DA0 | CLaunchOperationCommand::Clone func_names 名 CLaunchOperationCommand::Clone |
+| 0x14183D2A0 | CAutoMergeOrdersCommand::Clone func_names 名 CAutoMergeOrdersCommand::Clone |
+| 0x1418412E0 | （无名） 体设 CSetOrdersLinkCommand::vftable（RTTI 名） |
+| 0x141A7E0C0 | CReorderTheatersCommand::Clone func_names 名 CReorderTheatersCommand::Clone |
+| 0x141BA1D60 | CAddConveyorLineCommand::Clone func_names 名 CAddConveyorLineCommand::Clone |
+| 0x14114CA80 | CSelectDecisionCommand::Clone func_names 名 CSelectDecisionCommand::Clone |
+| 0x141BA1FA0 | CCreateConveyorCommand::Clone func_names 名 CCreateConveyorCommand::Clone |
+| 0x1419A2400 | CSetEquipmentVariantHighlightCommand::Clone func_names 名 CSetEquipmentVariantHighlightCommand::Clone |
+| 0x141A7E260 | CSetNavyTheaterGroupImportantCommand::Clone func_names 名 CSetNavyTheaterGroupImportantCommand::Clone |
+| 0x1411501B0 | （无名） 体设 CSetResearchCommand::vftable（RTTI 名） |
+| 0x141B9E990 | CSetObsoleteDivisionTemplateCommand::Clone func_names 名 CSetObsoleteDivisionTemplateCommand::Clone |
+| 0x141940ED0 | （无名） 体设 CSetWingEquipmentNicheCommand::vftable（RTTI 名） |
+| 0x14183F5A0 | CSetOrderGroupMotorizationCommand::Clone func_names 名 CSetOrderGroupMotorizationCommand::Clone |
+| 0x14114D590 | CSetProductionLineConvertCommand::Clone func_names 名 CSetProductionLineConvertCommand::Clone |
+| 0x141362CD0 | CDeleteShipCommand::Clone func_names 名 CDeleteShipCommand::Clone |
+| 0x141363900 | CSetTheatreCommand::Clone func_names 名 CSetTheatreCommand::Clone |
+| 0x1418410D0 | （无名） 体设 CSetOrderGroupIconAndColorCommand::vftable（RTTI 名） |
+| 0x1418577E0 | COrderSetInvasionSourceCommand::PayloadWriter func_names 名 COrderSetInvasionSourceCommand::PayloadWriter |
+| 0x14114AC10 | CAssignAceCommand::Clone func_names 名 CAssignAceCommand::Clone |
+| 0x1411506A0 | （无名） 体设 CUnlockResearchCommand::vftable（RTTI 名） |
+| 0x141997710 | （无名） 体设 CRemovePlayerCommand::vftable（RTTI 名） |
+| 0x141948D20 | CAttachAirWingToArmyCommand::PayloadReader func_names 名 CAttachAirWingToArmyCommand::PayloadReader |
+| 0x1418570D0 | COrderGroupCommand::PayloadWriter func_names 名 COrderGroupCommand::PayloadWriter |
+| 0x141336900 | （无名） 体设 CChatUserJoinedCommand::vftable（RTTI 名） |
+| 0x141349520 | （无名） 体设 CReorganizeShipsCommand::vftable（RTTI 名） |
+| 0x14114FE60 | （无名） 体设 CSetNavalProductionLineAirWingCompositionCommand::vftable（RTTI 名） |
+| 0x141A25EB0 | CSetIntelligenceAgencyRandomHistoricalNameCommand::Clone func_names 名 CSetIntelligenceAgencyRandomHistoricalNameCommand::Clone |
+| 0x14114D970 | CSetStateOverrideOccupationPolicyCommand::Clone func_names 名 CSetStateOverrideOccupationPolicyCommand::Clone |
+| 0x14114C590 | CRemoveShipRefitProductionLineCommand::Clone func_names 名 CRemoveShipRefitProductionLineCommand::Clone |
+| 0x14114B890 | CIgnoreAllAvailableDecisionCommand::Clone func_names 名 CIgnoreAllAvailableDecisionCommand::Clone |
+| 0x141A25BA0 | CIntelligenceAgencyCreationCommand::Clone func_names 名 CIntelligenceAgencyCreationCommand::Clone |
+| 0x14134F5C0 | （无名） 体设 CSetTaskForceCompositionRequirementsCommand::vftable（RTTI 名） |
+| 0x14114C210 | CRemoveAllProductionLineCommand::Clone func_names 名 CRemoveAllProductionLineCommand::Clone |
+| 0x14114EFA0 | （无名） 体设 CIgnoreDecisionCommand::vftable（RTTI 名） |
+| 0x14134BC40 | CAutomateHomebaseForFleetCommand::Clone func_names 名 CAutomateHomebaseForFleetCommand::Clone |
+| 0x140CEBFD0 | CPromoteToCountryLeaderCommand::Clone func_names 名 CPromoteToCountryLeaderCommand::Clone |
+| 0x14134F4E0 | （无名） 体设 CSetPrideOfTheFleetCommand::vftable（RTTI 名） |
+| 0x141303970 | CRemoveDivisionTemplateCommand::Clone func_names 名 CRemoveDivisionTemplateCommand::Clone |
+| 0x141EF3360 | CAbortDismantleFacilityCommand::Clone func_names 名 CAbortDismantleFacilityCommand::Clone |
+| 0x1419412F0 | （无名） 体设 CStratAirConsolidateCommand::vftable（RTTI 名） |
+| 0x14114C470 | CRemoveProductionLineCommand::Clone func_names 名 CRemoveProductionLineCommand::Clone |
+| 0x14184FDC0 | CCreateAreaDefenseCommand::PayloadReader func_names 名 CCreateAreaDefenseCommand::PayloadReader |
+| 0x141E53880 | CDonePeaceConferenceCommand::Clone func_names 名 CDonePeaceConferenceCommand::Clone |
+| 0x141E539E0 | CPassPeaceConferenceCommand::Clone func_names 名 CPassPeaceConferenceCommand::Clone |
+| 0x14114DFE0 | CUpgradeShipCaptainCommand::Clone func_names 名 CUpgradeShipCaptainCommand::Clone |
+| 0x141BA2160 | CDeployConveyorLineCommand::Clone func_names 名 CDeployConveyorLineCommand::Clone |
+| 0x141EF3490 | CDismantleFacilityCommand::Clone func_names 名 CDismantleFacilityCommand::Clone |
+| 0x14183D410 | CDeleteOrderGroupCommand::Clone func_names 名 CDeleteOrderGroupCommand::Clone |
+| 0x141A25E00 | CSetIntelligenceAgencyNameCommand::Clone func_names 名 CSetIntelligenceAgencyNameCommand::Clone |
+| 0x141BA1F10 | CCollapseConveyorCommand::Clone func_names 名 CCollapseConveyorCommand::Clone |
+| 0x14114BF50 | CReinstateExileCommand::Clone func_names 名 CReinstateExileCommand::Clone |
+| 0x1412EEB60 | CRemoveAutonomyCommand::Clone func_names 名 CRemoveAutonomyCommand::Clone |
+| 0x141363D10 | CWithdrawArmyHqCommand::Clone func_names 名 CWithdrawArmyHqCommand::Clone |
+| 0x14163C3F0 | CSelectBookmarkCommand::Clone func_names 名 CSelectBookmarkCommand::Clone |
+| 0x14183DBA0 | COrderDeleteAllCommand::Clone func_names 名 COrderDeleteAllCommand::Clone |
+| 0x141BA20D0 | CDeployConveyorCommand::Clone func_names 名 CDeployConveyorCommand::Clone |
+| 0x141BA21F0 | CRemoveConveyorCommand::Clone func_names 名 CRemoveConveyorCommand::Clone |
+| 0x1413365A0 | CChatUserLeftCommand::Clone func_names 名 CChatUserLeftCommand::Clone |
+| 0x14134F260 | （无名） 体设 CSetFleetIconAndColorCommand::vftable（RTTI 名） |
+| 0x1418515E0 | COrderSetParadropSourceCommand::PayloadReader func_names 名 COrderSetParadropSourceCommand::PayloadReader |
+| 0x14114E200 | （无名） 体设 CAddAdvisorRoleToCharacterCommand::vftable（RTTI 名） |
+| 0x14114EAF0 | （无名） 体设 CCreateUnitLeaderCommand::vftable（RTTI 名） |
+| 0x141997520 | CSetDLCsCommand::Clone func_names 名 CSetDLCsCommand::Clone |
+| 0x141EF4B30 | CStartProjectCommand::PayloadReader func_names 名 CStartProjectCommand::PayloadReader |
+| 0x141943390 | CRenameAirTheatreCommand::Clone func_names 名 CRenameAirTheatreCommand::Clone |
+| 0x1413656F0 | （无名） 体设 CTransportUnitCommand::vftable（RTTI 名） |
+| 0x14153B310 | CSelectEventOptionCommand::PayloadReader func_names 名 CSelectEventOptionCommand::PayloadReader |
+| 0x14183F6E0 | CSetOrderGroupOrdersInstanceNamesCommand::Clone func_names 名 CSetOrderGroupOrdersInstanceNamesCommand::Clone |
+| 0x1419A25D0 | CSetEquipmentVariantOverrideModelCommand::Clone func_names 名 CSetEquipmentVariantOverrideModelCommand::Clone |
+| 0x14114EA60 | （无名） 体设 CCreateFactionCommand::vftable（RTTI 名） |
+| 0x141361640 | （无名） 体设 CSetDivisionNameCommand::vftable（RTTI 名） |
+| 0x1419A2490 | CSetEquipmentVariantNameListCommand::Clone func_names 名 CSetEquipmentVariantNameListCommand::Clone |
+| 0x140DE6E50 | CRequestGameStateTransferCommand::Clone func_names 名 CRequestGameStateTransferCommand::Clone |
+| 0x141169AA0 | CAssignAceCommand::PayloadReader func_names 名 CAssignAceCommand::PayloadReader |
+| 0x14134A690 | （无名） 体设 CSetTaskForceAutoReinforcementCommand::vftable（RTTI 名） |
+| 0x14136C7E0 | CDeployArmyHqCommand::PayloadReader func_names 名 CDeployArmyHqCommand::PayloadReader |
+| 0x1418519F0 | CRemoveFromArmyGroupCommand::PayloadReader func_names 名 CRemoveFromArmyGroupCommand::PayloadReader |
+| 0x141360230 | （无名） 体设 CMergeArmiesCommand::vftable（RTTI 名） |
+| 0x1419A22C0 | CRenameEquipmentVariantCommand::Clone func_names 名 CRenameEquipmentVariantCommand::Clone |
+| 0x141850280 | CMoveArmyGroupInTheaterCommand::PayloadReader func_names 名 CMoveArmyGroupInTheaterCommand::PayloadReader |
+| 0x141A7E3A0 | CSetTheaterGroupNameCommand::Clone func_names 名 CSetTheaterGroupNameCommand::Clone |
+| 0x14183F630 | CSetOrderGroupNameCommand::Clone func_names 名 CSetOrderGroupNameCommand::Clone |
+| 0x140DE6000 | （无名） 体设 CPostHotJoinCommand::vftable（RTTI 名） |
+| 0x141BA2440 | CSetConveyorNameCommand::Clone func_names 名 CSetConveyorNameCommand::Clone |
+| 0x1419434D0 | CSetAirWingNameCommand::Clone func_names 名 CSetAirWingNameCommand::Clone |
+| 0x14114C090 | CRemoveAdvisorCommand::Clone func_names 名 CRemoveAdvisorCommand::Clone |
+| 0x14116EF30 | CAddMassProductionsLineCommand::PayloadWriter func_names 名 CAddMassProductionsLineCommand::PayloadWriter |
+| 0x14134D550 | CSetFleetNameCommand::Clone func_names 名 CSetFleetNameCommand::Clone |
+| 0x140CEC180 | （无名） 体设 CAskToCoopWithCountryCommand::vftable（RTTI 名） |
+| 0x1413655D0 | （无名） 体设 CStrategicRedeploymentCommand::vftable（RTTI 名） |
+| 0x1418565C0 | CAssignToArmyGroupCommand::PayloadWriter func_names 名 CAssignToArmyGroupCommand::PayloadWriter |
+| 0x14114F9A0 | （无名） 体设 CSelectDecisionCommand::vftable（RTTI 名） |
+| 0x14114FA20 | （无名） 体设 CSelectTargetedDecisionCommand::vftable（RTTI 名） |
+| 0x140DE60F0 | （无名） 体设 CSendPingCommand::vftable（RTTI 名） |
+| 0x141149060 | CAddMassFactoryAssignmentCommand::[0] vtable 槽 CAddMassFactoryAssignmentCommand::[0]（func_names RTTI 名） |
+| 0x141A7DCE0 | CSetNavyTheaterGroupForCommand::[0] vtable 槽 CSetNavyTheaterGroupForCommand::[0]（func_names RTTI 名） |
+| 0x14113D2D0 | CDiplomaticActionCommand::PayloadReader func_names 名 CDiplomaticActionCommand::PayloadReader |
+| 0x141365020 | （无名） 体设 CMoveCommand::vftable（RTTI 名） |
+| 0x14134A400 | （无名） 体设 CSetNavalRegionAccessCommand::vftable（RTTI 名） |
+| 0x14183FF90 | （无名） 体设 COrderAddNewCompletePlanCommand::vftable（RTTI 名） |
+| 0x141150500 | （无名） 体设 CSetTimedActivityDistributionPriorityCommand::vftable（RTTI 名） |
+| 0x141851F50 | CSetOrdersLinkCommand::PayloadReader func_names 名 CSetOrdersLinkCommand::PayloadReader |
+| 0x141851210 | COrderReorderChildFrontCommand::PayloadReader func_names 名 COrderReorderChildFrontCommand::PayloadReader |
+| 0x1418516C0 | COrderSetPathCommand::PayloadReader func_names 名 COrderSetPathCommand::PayloadReader |
+| 0x140F05990 | CDecreaseGameSpeedCommand::Clone func_names 名 CDecreaseGameSpeedCommand::Clone |
+| 0x14135BFE0 | CSetTaskForceIconAndColorCommand::PayloadReader func_names 名 CSetTaskForceIconAndColorCommand::PayloadReader |
+| 0x1411450A0 | （无名） 体设 CIgnoreDecisionCommand::vftable（RTTI 名） |
+| 0x141840750 | （无名） 体设 COrderNewRootCommand::vftable（RTTI 名） |
+| 0x140DE7520 | （无名） 体设 CSendPingCommand::vftable（RTTI 名） |
+| 0x14114E860 | （无名） 体设 CChangeCountryControllerCommand::vftable（RTTI 名） |
+| 0x14135C9F0 | CNavalMissionMassMoveCommand::PayloadWriter func_names 名 CNavalMissionMassMoveCommand::PayloadWriter |
+| 0x141999C30 | CAddPlayerCommand::PayloadReader func_names 名 CAddPlayerCommand::PayloadReader |
+| 0x140F2A220 | （无名） 体设 CReserveOperativeForOperationCommand::vftable（RTTI 名） |
+| 0x140D635C0 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x140BEA610 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x140FA9DA0 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x14199E080 | CMoveIndustrialOrgTraitInQueueCommand::PayloadReader func_names 名 CMoveIndustrialOrgTraitInQueueCommand::PayloadReader |
+| 0x14135A5A0 | CNavalMissionMassMoveCommand::PayloadReader func_names 名 CNavalMissionMassMoveCommand::PayloadReader |
+| 0x141E73F60 | （无名） 体设 CReorderPinnedStrategicRegionCommand::vftable（RTTI 名） |
+| 0x140DE7230 | （无名） 体设 CClientOutOfSyncCommand::vftable（RTTI 名） |
+| 0x14116CC30 | CSetCountryGarrisonTemplateCommand::PayloadReader func_names 名 CSetCountryGarrisonTemplateCommand::PayloadReader |
+| 0x141840B10 | （无名） 体设 COrderSetInvasionSourceCommand::vftable（RTTI 名） |
+| 0x141944360 | （无名） 体设 CMoveAirWingAndAirGroupToAirTheatreCommand::vftable（RTTI 名） |
+| 0x141146A00 | （无名） 体设 CSelectionGroupCommand::vftable（RTTI 名） |
+| 0x1418406B0 | （无名） 体设 COrderNewFrontCommand::vftable（RTTI 名） |
+| 0x14134F0A0 | （无名） 体设 CSetAsReserveFleetCommand::vftable（RTTI 名） |
+| 0x1418578B0 | COrderSetParadropSourceCommand::PayloadWriter func_names 名 COrderSetParadropSourceCommand::PayloadWriter |
+| 0x141BA2CA0 | （无名） 体设 CSetDeploymentLineNameCommand::vftable（RTTI 名） |
+| 0x141362360 | CMoveCommand::[0] vtable 槽 CMoveCommand::[0]（func_names RTTI 名） |
+| 0x141942B50 | CStratAirMoveEquipmentCommand::[0] vtable 槽 CStratAirMoveEquipmentCommand::[0]（func_names RTTI 名） |
+| 0x14194B210 | CStratAirSetMissionCommand::PayloadWriter func_names 名 CStratAirSetMissionCommand::PayloadWriter |
+| 0x141A7E6A0 | （无名） 体设 CSetNavyTheaterGroupForCommand::vftable（RTTI 名） |
+| 0x14183CB00 | COrderNewFrontCommand::[0] vtable 槽 COrderNewFrontCommand::[0]（func_names RTTI 名） |
+| 0x14114F740 | （无名） 体设 CReplaceAdvisorCommand::vftable（RTTI 名） |
+| 0x14134B250 | CNavyCancelRefitCommand::[0] vtable 槽 CNavyCancelRefitCommand::[0]（func_names RTTI 名） |
+| 0x14134B450 | CSetAsReserveFleetCommand::[0] vtable 槽 CSetAsReserveFleetCommand::[0]（func_names RTTI 名） |
+| 0x141365320 | （无名） 体设 CSetDivisionNameCommand::vftable（RTTI 名） |
+| 0x14183CA80 | COrderNewFallbackCommand::[0] vtable 槽 COrderNewFallbackCommand::[0]（func_names RTTI 名） |
+| 0x1418509D0 | COrderEditRootCommand::PayloadReader func_names 名 COrderEditRootCommand::PayloadReader |
+| 0x141942AD0 | CMoveAirGroupAndAirTheatreToFreeCommand::[0] vtable 槽 CMoveAirGroupAndAirTheatreToFreeCommand::[0]（func_names RTTI 名） |
+| 0x14199E340 | CSetIndustrialManufacturerCommand::PayloadReader func_names 名 CSetIndustrialManufacturerCommand::PayloadReader |
+| 0x1418513D0 | COrderReshapeCommand::PayloadReader func_names 名 COrderReshapeCommand::PayloadReader |
+| 0x141840420 | （无名） 体设 COrderGroupCommand::vftable（RTTI 名） |
+| 0x14116FF90 | CReinstateExileCommand::PayloadWriter func_names 名 CReinstateExileCommand::PayloadWriter |
+| 0x14199E3F0 | CSetIndustrialOrgTraitsInQueueCommand::PayloadReader func_names 名 CSetIndustrialOrgTraitsInQueueCommand::PayloadReader |
+| 0x1419A2060 | CSetEquipmentVariantOverrideModelCommand::[0] vtable 槽 CSetEquipmentVariantOverrideModelCommand::[0]（func_names RTTI 名） |
+| 0x1419442E0 | （无名） 体设 CMoveAirGroupAndAirTheatreToFreeCommand::vftable（RTTI 名） |
+| 0x141996F70 | （无名） 体设 CAddHumanCommand::vftable（RTTI 名） |
+| 0x141840630 | （无名） 体设 COrderNewFallbackCommand::vftable（RTTI 名） |
+| 0x1419A1FC0 | CSetEquipmentVariantNameListCommand::[0] vtable 槽 CSetEquipmentVariantNameListCommand::[0]（func_names RTTI 名） |
+| 0x141336740 | （无名） 体设 CChatNewChannelCommand::vftable（RTTI 名） |
+| 0x1419A6EE0 | CSetEquipmentVariantOverrideSpriteCommand::PayloadReader func_names 名 CSetEquipmentVariantOverrideSpriteCommand::PayloadReader |
+| 0x140DB6B50 | （无名） 体设 CRemoveIndustrialOrgTraitFromQueueCommand::vftable（RTTI 名） |
+| 0x140DE65F0 | CRequestGameStateTransferCommand::[0] vtable 槽 CRequestGameStateTransferCommand::[0]（func_names RTTI 名） |
+| 0x14135D3A0 | CReorganizeShipsCommand::PayloadWriter func_names 名 CReorganizeShipsCommand::PayloadWriter |
+| 0x140DB6AE0 | （无名） 体设 CMoveIndustrialOrgTraitInQueueCommand::vftable（RTTI 名） |
+| 0x140DB6940 | （无名） 体设 CAddIndustrialOrgTraitToQueueCommand::vftable（RTTI 名） |
+| 0x141A7DE10 | CSetTheaterGroupNameCommand::[0] vtable 槽 CSetTheaterGroupNameCommand::[0]（func_names RTTI 名） |
+| 0x140DE6260 | CCheckSyncResponseCommand::[0] vtable 槽 CCheckSyncResponseCommand::[0]（func_names RTTI 名） |
+| 0x141A7E4E0 | （无名） 体设 CAssignToTheaterGroupCommand::vftable（RTTI 名） |
+| 0x14136DAA0 | CMergeArmiesCommand::PayloadWriter func_names 名 CMergeArmiesCommand::PayloadWriter |
+| 0x141149880 | CRemoveAdvisorCommand::[0] vtable 槽 CRemoveAdvisorCommand::[0]（func_names RTTI 名） |
+| 0x141148F70 | CAddAdvisorCommand::[0] vtable 槽 CAddAdvisorCommand::[0]（func_names RTTI 名） |
+| 0x141169900 | CAmendForeignManpowerActionCommand::PayloadReader func_names 名 CAmendForeignManpowerActionCommand::PayloadReader |
+| 0x141169B60 | CBuildRailwayCommand::PayloadReader func_names 名 CBuildRailwayCommand::PayloadReader |
+| 0x14134ECA0 | （无名） 体设 CNavyDetachShipsAndRefitCommand::vftable（RTTI 名） |
+| 0x141A265F0 | （无名） 体设 CSetOperativeCodenameCommand::vftable（RTTI 名） |
+| 0x141B325B0 | （无名） 体设 CRemoveRaidCommand::vftable（RTTI 名） |
+| 0x141365080 | （无名） 体设 CMoveShipsCommand::vftable（RTTI 名） |
+| 0x14136DB40 | CMergeNaviesCommand::PayloadWriter func_names 名 CMergeNaviesCommand::PayloadWriter |
+| 0x141840C60 | （无名） 体设 COrderSetPathCommand::vftable（RTTI 名） |
+| 0x14134EFC0 | （无名） 体设 CReorganizeShipsCommand::vftable（RTTI 名） |
+| 0x14183FDC0 | （无名） 体设 CEditAreaDefenseStateCommand::vftable（RTTI 名） |
+| 0x140DB6C80 | （无名） 体设 CSetIndustrialOrgTraitsInQueueCommand::vftable（RTTI 名） |
+| 0x141346120 | （无名） 体设 CAddTaskForceTemplateCommand::vftable（RTTI 名） |
+| 0x141150290 | （无名） 体设 CSetShipRefitDeploymentTargetCommand::vftable（RTTI 名） |
+| 0x141856870 | CMoveArmiesInTheaterCommand::PayloadWriter func_names 名 CMoveArmiesInTheaterCommand::PayloadWriter |
+| 0x141E73FE0 | （无名） 体设 CTogglePinnedStrategicRegionCommand::vftable（RTTI 名） |
+| 0x141333630 | CChatUserJoinedCommand::[0] vtable 槽 CChatUserJoinedCommand::[0]（func_names RTTI 名） |
+| 0x14134AF80 | CAddTaskForceTemplateCommand::[0] vtable 槽 CAddTaskForceTemplateCommand::[0]（func_names RTTI 名） |
+| 0x14114E790 | （无名） 体设 CBuildRailwayCommand::vftable（RTTI 名） |
+| 0x14114FDE0 | （无名） 体设 CSetNavalDeploymentTargetCommand::vftable（RTTI 名） |
+| 0x141840B90 | （无名） 体设 COrderSetParadropSourceCommand::vftable（RTTI 名） |
+| 0x141E756C0 | CSetPinnedStrategicRegionCommand::[24] vtable 槽 CSetPinnedStrategicRegionCommand::[24]（func_names RTTI 名） |
+| 0x141E75740 | CSetPinnedStrategicRegionCommand::[26] vtable 槽 CSetPinnedStrategicRegionCommand::[26]（func_names RTTI 名） |
+| 0x141E757C0 | CSetPinnedStrategicRegionCommand::[28] vtable 槽 CSetPinnedStrategicRegionCommand::[28]（func_names RTTI 名） |
+| 0x141841270 | （无名） 体设 CSetOrderGroupOrdersInstanceNamesCommand::vftable（RTTI 名） |
+| 0x1419A2DD0 | （无名） 体设 CSetEquipmentVariantOverrideModelCommand::vftable（RTTI 名） |
+| 0x1411495F0 | CIgnoreDecisionCommand::[0] vtable 槽 CIgnoreDecisionCommand::[0]（func_names RTTI 名） |
+| 0x141840340 | （无名） 体设 COrderEditRootCommand::vftable（RTTI 名） |
+| 0x1419443E0 | （无名） 体设 CMoveAirWingToAirGroupCommand::vftable（RTTI 名） |
+| 0x141A2C7E0 | CReserveOperativeForOperationCommand::PayloadReader func_names 名 CReserveOperativeForOperationCommand::PayloadReader |
+| 0x14114E180 | （无名） 体设 CAddAdvisorCommand::vftable（RTTI 名） |
+| 0x1411703D0 | CRequestExpeditionariesCommand::PayloadWriter func_names 名 CRequestExpeditionariesCommand::PayloadWriter |
+| 0x14135AB80 | CNavyCancelRepairCommand::PayloadReader func_names 名 CNavyCancelRepairCommand::PayloadReader |
+| 0x14135B0C0 | CNavySetUnderwayReplenishmentCommand::PayloadReader func_names 名 CNavySetUnderwayReplenishmentCommand::PayloadReader |
+| 0x14136C490 | CCancelMovementCommand::PayloadReader func_names 名 CCancelMovementCommand::PayloadReader |
+| 0x141B32700 | （无名） 体设 CSetRaidRiskLevelCommand::vftable（RTTI 名） |
+| 0x141170C00 | CSetProductionLinePriorityCommand::PayloadWriter func_names 名 CSetProductionLinePriorityCommand::PayloadWriter |
+| 0x1401D2C60 | （无名） 体设 CClientPingCommand::vftable（RTTI 名） |
+| 0x140DE71C0 | （无名） 体设 CCheckSyncResponseCommand::vftable（RTTI 名） |
+| 0x141839780 | （无名） 体设 COrderMembersFairSplitCommand::vftable（RTTI 名） |
+| 0x14183FC10 | （无名） 体设 CAssignToArmyGroupCommand::vftable（RTTI 名） |
+| 0x141840A40 | （无名） 体设 COrderReshapeCommand::vftable（RTTI 名） |
+| 0x140F2A0D0 | （无名） 体设 CCreateOperationCommand::vftable（RTTI 名） |
+| 0x141A256A0 | （无名） 体设 CSetOperativeMissionCommand::vftable（RTTI 名） |
+| 0x141A7E780 | （无名） 体设 CSetNavyTheaterGroupNameCommand::vftable（RTTI 名） |
+| 0x1419A2BD0 | （无名） 体设 CRenameEquipmentVariantCommand::vftable（RTTI 名） |
+| 0x14199E150 | CSetAutoUpdateDesignsForIndustrialOrgCommand::PayloadReader func_names 名 CSetAutoUpdateDesignsForIndustrialOrgCommand::PayloadReader |
+| 0x14114FC50 | （无名） 体设 CSetDefaultCountryOccupationPolicyCommand::vftable（RTTI 名） |
+| 0x141997090 | （无名） 体设 CRemovePlayerCommand::vftable（RTTI 名） |
+| 0x141A7E7F0 | （无名） 体设 CSetTheaterGroupNameCommand::vftable（RTTI 名） |
+| 0x1418397E0 | （无名） 体设 COrderMergeRootsCommand::vftable（RTTI 名） |
+| 0x141840D30 | （无名） 体设 COrderUnassignCommand::vftable（RTTI 名） |
+| 0x141B32540 | （无名） 体设 CExecuteRaidCommand::vftable（RTTI 名） |
+| 0x140E8EDB0 | （无名） 体设 CRailwayGunSetNameCommand::vftable（RTTI 名） |
+| 0x141364ED0 | （无名） 体设 CMassMoveCommand::vftable（RTTI 名） |
+| 0x141841200 | （无名） 体设 CSetOrderGroupNameCommand::vftable（RTTI 名） |
+| 0x1419444C0 | （无名） 体设 CRenameAirTheatreCommand::vftable（RTTI 名） |
+| 0x141B32430 | （无名） 体设 CCancelRaidCommand::vftable（RTTI 名） |
+| 0x141BA2B70 | （无名） 体设 CSetConveyorNameCommand::vftable（RTTI 名） |
+| 0x141944450 | （无名） 体设 CRenameAirGroupCommand::vftable（RTTI 名） |
+| 0x141944590 | （无名） 体设 CSetAirWingNameCommand::vftable（RTTI 名） |
+| 0x140DE74B0 | （无名） 体设 CRequestGameStateTransferCommand::vftable（RTTI 名） |
+| 0x14114F3D0 | （无名） 体设 CRemoveAdvisorCommand::vftable（RTTI 名） |
+| 0x141A264C0 | （无名） 体设 CSetIntelligenceAgencyLogoCommand::vftable（RTTI 名） |
+| 0x140DE6690 | CSendPingCommand::[0] vtable 槽 CSendPingCommand::[0]（func_names RTTI 名） |
+| 0x14134F470 | （无名） 体设 CSetNavalRegionAccessCommand::vftable（RTTI 名） |
+| 0x141365490 | （无名） 体设 CSetShipNameCommand::vftable（RTTI 名） |
+| 0x141365560 | （无名） 体设 CSetUnitNameCommand::vftable（RTTI 名） |
+| 0x1419A2E40 | （无名） 体设 CSetEquipmentVariantOverrideSpriteCommand::vftable（RTTI 名） |
+| 0x14134EEE0 | （无名） 体设 CRemoveTaskForceTemplateCommand::vftable（RTTI 名） |
+| 0x14114F010 | （无名） 体设 CIgnoreTargetedDecisionCommand::vftable（RTTI 名） |
+| 0x1418404B0 | （无名） 体设 COrderInsertFrontCommand::vftable（RTTI 名） |
+| 0x140E8E930 | CSetUnitNameCommand::[0] vtable 槽 CSetUnitNameCommand::[0]（func_names RTTI 名） |
+| 0x140F05890 | CDecreaseGameSpeedCommand::[0] vtable 槽 CDecreaseGameSpeedCommand::[0]（func_names RTTI 名） |
+| 0x141362440 | CSetDivisionNameCommand::[0] vtable 槽 CSetDivisionNameCommand::[0]（func_names RTTI 名） |
+| 0x140DE7390 | （无名） 体设 CReadyAfterHotJoinCommand::vftable（RTTI 名） |
+| 0x141336810 | （无名） 体设 CChatSyncAllCommand::vftable（RTTI 名） |
+| 0x1413615D0 | （无名） 体设 CSetDivisionNameCommand::vftable（RTTI 名） |
+| 0x141BA28C0 | （无名） 体设 CCreateConveyorExtendedCommand::vftable（RTTI 名） |
+| 0x14114EEC0 | （无名） 体设 CGiveMedalCommand::vftable（RTTI 名） |
+| 0x1413651D0 | （无名） 体设 CSetArmyFakeTemplateCommand::vftable（RTTI 名） |
+| 0x14114F5B0 | （无名） 体设 CRemoveIdeaCommand::vftable（RTTI 名） |
+| 0x14114F080 | （无名） 体设 CIncomingDiplomaticActionActingCommand::vftable（RTTI 名） |
+| 0x14134E840 | （无名） 体设 CNavalMissionRemoveRegionCommand::vftable（RTTI 名） |
+| 0x14114F1B0 | （无名） 体设 CProductionLineInterfaceFactoriesScaleCommand::vftable（RTTI 名） |
+| 0x14134E8B0 | （无名） 体设 CNavalMissionSetRegionsCommand::vftable（RTTI 名） |
+| 0x14134ED20 | （无名） 体设 CNavyDetachShipsAndRepairCommand::vftable（RTTI 名） |
+| 0x141940290 | （无名） 体设 CChangeAirGroupInsigniaCommand::vftable（RTTI 名） |
+| 0x1419A6D30 | CSetEquipmentVariantNameListCommand::PayloadReader func_names 名 CSetEquipmentVariantNameListCommand::PayloadReader |
+| 0x14134EC30 | （无名） 体设 CNavyDetachShipsAndMergeCommand::vftable（RTTI 名） |
+| 0x141170520 | CSelectTargetedDecisionCommand::PayloadWriter func_names 名 CSelectTargetedDecisionCommand::PayloadWriter |
+| 0x1413493D0 | （无名） 体设 CRemoveTaskForceTemplateCommand::vftable（RTTI 名） |
+| 0x14135A510 | CNavalMissionAddRegionCommand::PayloadReader func_names 名 CNavalMissionAddRegionCommand::PayloadReader |
+| 0x14135BF50 | CSetTaskForceCompositionRequirementsCommand::PayloadReader func_names 名 CSetTaskForceCompositionRequirementsCommand::PayloadReader |
+| 0x1419496B0 | CSetCarrierStickyMissionAreaCommand::PayloadReader func_names 名 CSetCarrierStickyMissionAreaCommand::PayloadReader |
+| 0x141949AD0 | CStratAirCancelTransferCommand::PayloadReader func_names 名 CStratAirCancelTransferCommand::PayloadReader |
+| 0x1419A6DC0 | CSetEquipmentVariantNicheIconCommand::PayloadReader func_names 名 CSetEquipmentVariantNicheIconCommand::PayloadReader |
+| 0x1419A6F70 | CSetObsoleteEquipmentVariantCommand::PayloadReader func_names 名 CSetObsoleteEquipmentVariantCommand::PayloadReader |
+| 0x141A800B0 | CReorderNavyTheaterGroupCommand::PayloadReader func_names 名 CReorderNavyTheaterGroupCommand::PayloadReader |
+| 0x141BA4810 | CCreateConveyorCommand::PayloadReader func_names 名 CCreateConveyorCommand::PayloadReader |
+| 0x14135B8E0 | CSetFleetIconAndColorCommand::PayloadReader func_names 名 CSetFleetIconAndColorCommand::PayloadReader |
+| 0x1419440B0 | （无名） 体设 CAttachAirWingToArmyCommand::vftable（RTTI 名） |
+| 0x141148590 | （无名） 体设 CUpgradeDivisionOfficerCommand::vftable（RTTI 名） |
+| 0x14134ED90 | （无名） 体设 CNavyRepairModeCommand::vftable（RTTI 名） |
+| 0x141850940 | COrderDeleteCommand::PayloadReader func_names 名 COrderDeleteCommand::PayloadReader |
+| 0x141169FC0 | CChangeRailwayConstructionLeveLCommand::PayloadReader func_names 名 CChangeRailwayConstructionLeveLCommand::PayloadReader |
+| 0x141857B40 | CRemoveFromArmyGroupCommand::PayloadWriter func_names 名 CRemoveFromArmyGroupCommand::PayloadWriter |
+| 0x141A804B0 | CSetNavyTheaterGroupImportantCommand::PayloadReader func_names 名 CSetNavyTheaterGroupImportantCommand::PayloadReader |
+| 0x141BA8870 | （无名） 体设 CAddFactionGoalCommand::vftable（RTTI 名） |
+| 0x14134EAF0 | （无名） 体设 CNavyCancelRefitCommand::vftable（RTTI 名） |
+| 0x14199C670 | （无名） 体设 CSetIndustrialManufacturerCommand::vftable（RTTI 名） |
+| 0x141365240 | （无名） 体设 CSetArmyTemplateCommand::vftable（RTTI 名） |
+| 0x141840040 | （无名） 体设 COrderAssignCommand::vftable（RTTI 名） |
+| 0x141148280 | （无名） 体设 CSetTimedActivityDistributionPriorityCommand::vftable（RTTI 名） |
+| 0x141840EC0 | （无名） 体设 CSetAreaDefenseSettingCommand::vftable（RTTI 名） |
+| 0x141851480 | COrderSetCollapseCommand::PayloadReader func_names 名 COrderSetCollapseCommand::PayloadReader |
+| 0x14194A7A0 | CAttachAirWingToArmyCommand::PayloadWriter func_names 名 CAttachAirWingToArmyCommand::PayloadWriter |
+| 0x141364F40 | （无名） 体设 CMergeArmiesCommand::vftable（RTTI 名） |
+| 0x1418408B0 | （无名） 体设 COrderReorderChildFrontCommand::vftable（RTTI 名） |
+| 0x141944760 | （无名） 体设 CSetWingReinforcementPreferenceCommand::vftable（RTTI 名） |
+| 0x141146110 | （无名） 体设 CRemoveBuildingLevelCommand::vftable（RTTI 名） |
+| 0x141840550 | （无名） 体设 COrderMembersFairSplitCommand::vftable（RTTI 名） |
+| 0x14114F280 | （无名） 体设 CProductionLineInterfaceToggleExpandCommand::vftable（RTTI 名） |
+| 0x141840140 | （无名） 体设 COrderChildFrontRatioCommand::vftable（RTTI 名） |
+| 0x141BA8B30 | （无名） 体设 CFactionSetCommanderCommand::vftable（RTTI 名） |
+| 0x140DB6A70 | （无名） 体设 CAttachPolicyToIndustrialOrgCommand::vftable（RTTI 名） |
+| 0x14114E360 | （无名） 体设 CAddMassFactoryAssignmentCommand::vftable（RTTI 名） |
+| 0x14183FCE0 | （无名） 体设 CCreateAreaDefenseCommand::vftable（RTTI 名） |
+| 0x141361AD0 | （无名） 体设 CStrategicRedeploymentCommand::vftable（RTTI 名） |
+| 0x141BA6DA0 | （无名） 体设 CAddFactionGoalCommand::vftable（RTTI 名） |
+| 0x14114E6C0 | （无名） 体设 CAmendIncomingLendLeaseActionCommand::vftable（RTTI 名） |
+| 0x14134E920 | （无名） 体设 CNavalMissionSetTargetCommand::vftable（RTTI 名） |
+| 0x1418405C0 | （无名） 体设 COrderMergeRootsCommand::vftable（RTTI 名） |
+| 0x14136DEA0 | CSetDivisionNameCommand::PayloadWriter func_names 名 CSetDivisionNameCommand::PayloadWriter |
+| 0x141B1BAF0 | （无名） 体设 CSetMarketRequestAutomationOptionsCommand::vftable（RTTI 名） |
+| 0x1411700F0 | CRemoveAllConstructionCommand::PayloadWriter func_names 名 CRemoveAllConstructionCommand::PayloadWriter |
+| 0x14134F550 | （无名） 体设 CSetTaskForceAutoReinforcementCommand::vftable（RTTI 名） |
+| 0x141361A60 | （无名） 体设 CSetUnitNameCommand::vftable（RTTI 名） |
+| 0x141A73CD0 | （无名） 体设 CAiStoreTotalWantedNrDivisionsCommand::vftable（RTTI 名） |
+| 0x141BA8F70 | （无名） 体设 CUpdateIntelligenceAdvisorSlotCommand::vftable（RTTI 名） |
+| 0x141306100 | （无名） 体设 CUpdateDivisionTemplateCommand::vftable（RTTI 名） |
+| 0x14134EE70 | （无名） 体设 CNavySetUnderwayReplenishmentCommand::vftable（RTTI 名） |
+| 0x141142A60 | （无名） 体设 CAddConstructionCommand::vftable（RTTI 名） |
+| 0x141365420 | （无名） 体设 CSetPendingReassignTargetCommand::vftable（RTTI 名） |
+| 0x140F05C10 | （无名） 体设 CDecreaseGameSpeedCommand::vftable（RTTI 名） |
+| 0x141150720 | （无名） 体设 CUpdateSupplyNodeCountrySettingsCommand::vftable（RTTI 名） |
+| 0x14134E990 | （无名） 体设 CNavalMissionSetTypeCommand::vftable（RTTI 名） |
+| 0x14116BB50 | CRemoveAdvisorCommand::PayloadReader func_names 名 CRemoveAdvisorCommand::PayloadReader |
+| 0x14114E8E0 | （无名） 体设 CChangeProductionLineNamePriorityCommand::vftable（RTTI 名） |
+| 0x141A2CE20 | CReserveOperativeForOperationCommand::PayloadWriter func_names 名 CReserveOperativeForOperationCommand::PayloadWriter |
+| 0x140DE7320 | （无名） 体设 CPostHotJoinCommand::vftable（RTTI 名） |
+| 0x141A2C750 | CRecruitOperativeCommand::PayloadReader func_names 名 CRecruitOperativeCommand::PayloadReader |
+| 0x141A74040 | （无名） 体设 CAiStoreForceConcentrationTargetCommand::vftable（RTTI 名） |
+| 0x141BA8BA0 | （无名） 体设 CFactionUnattachScientistCommand::vftable（RTTI 名） |
+| 0x141E74240 | （无名） 体设 CReorderPinnedStrategicRegionCommand::vftable（RTTI 名） |
+| 0x14114FAB0 | （无名） 体设 CSelectionGroupCommand::vftable（RTTI 名） |
+| 0x141949C20 | CStratAirDayNightCommand::PayloadReader func_names 名 CStratAirDayNightCommand::PayloadReader |
+| 0x141BA2AB0 | （无名） 体设 CSetConveyorGroupCommand::vftable（RTTI 名） |
+| 0x141EF38F0 | （无名） 体设 CAttachScientistCommand::vftable（RTTI 名） |
+| 0x141BA4650 | CChangeConveyorPositionCommand::PayloadReader func_names 名 CChangeConveyorPositionCommand::PayloadReader |
+| 0x14134EB60 | （无名） 体设 CNavyCancelRepairCommand::vftable（RTTI 名） |
+| 0x1418407F0 | （无名） 体设 COrderReconnectCommand::vftable（RTTI 名） |
+| 0x140DB6C20 | （无名） 体设 CSetDesignTeamCommand::vftable（RTTI 名） |
+| 0x141171050 | CSetXORResearchCommand::PayloadWriter func_names 名 CSetXORResearchCommand::PayloadWriter |
+| 0x141840F30 | （无名） 体设 CSetArmyLeaderCommand::vftable（RTTI 名） |
+| 0x141364CC0 | （无名） 体设 CCancelMovementCommand::vftable（RTTI 名） |
+| 0x1418403B0 | （无名） 体设 COrderExecuteCommand::vftable（RTTI 名） |
+| 0x14134F630 | （无名） 体设 CSetTaskForceIconAndColorCommand::vftable（RTTI 名） |
+| 0x1418401B0 | （无名） 体设 COrderConnectCommand::vftable（RTTI 名） |
+| 0x140E8ED50 | （无名） 体设 CRailwayGunManualOrderCommand::vftable（RTTI 名） |
+| 0x14134EA10 | （无名） 体设 CNavalMoveCommand::vftable（RTTI 名） |
+| 0x14114EF30 | （无名） 体设 CIgnoreAllAvailableDecisionCommand::vftable（RTTI 名） |
+| 0x1411467A0 | （无名） 体设 CReplaceIdeaCommand::vftable（RTTI 名） |
+| 0x140EEA640 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x14114F150 | （无名） 体设 CMassRemoveProductionsLineCommand::vftable（RTTI 名） |
+| 0x141150150 | （无名） 体设 CSetProductionLinePriorityCommand::vftable（RTTI 名） |
+| 0x141365690 | （无名） 体设 CToggleStrategicDeploymentCommand::vftable（RTTI 名） |
+| 0x14134E7C0 | （无名） 体设 CNavalMissionMoveCommand::vftable（RTTI 名） |
+| 0x141150020 | （无名） 体设 CSetProductionLineAmountToProduceCommand::vftable（RTTI 名） |
+| 0x140DE7450 | （无名） 体设 CRequestGameStateSynchCommand::vftable（RTTI 名） |
+| 0x14114F440 | （无名） 体设 CRemoveAllConstructionCommand::vftable（RTTI 名） |
+| 0x141944220 | （无名） 体设 CDetachAirWingFromArmyCommand::vftable（RTTI 名） |
+| 0x14114EC30 | （无名） 体设 CDispatchNavalCombatResultsCommand::vftable（RTTI 名） |
+| 0x141A25550 | （无名） 体设 CSetOperationTargetCommand::vftable（RTTI 名） |
+| 0x14114E9A0 | （无名） 体设 CChangeRailwayConstructionLeveLCommand::vftable（RTTI 名） |
+| 0x141150080 | （无名） 体设 CSetProductionLineCommand::vftable（RTTI 名） |
+| 0x141840E00 | （无名） 体设 CRemoveFromArmyGroupCommand::vftable（RTTI 名） |
+| 0x1419448F0 | （无名） 体设 CStratAirConsolidateCommand::vftable（RTTI 名） |
+| 0x14114E940 | （无名） 体设 CChangeProductionLinePriorityCommand::vftable（RTTI 名） |
+| 0x14114F0F0 | （无名） 体设 CMassCancelMovementCommand::vftable（RTTI 名） |
+| 0x14134EA90 | （无名） 体设 CNavyCancelActivityCommand::vftable（RTTI 名） |
+| 0x1419A2D70 | （无名） 体设 CSetEquipmentVariantNicheIconCommand::vftable（RTTI 名） |
+| 0x140F2A2A0 | （无名） 体设 CSetOperationAutoCommenceCommand::vftable（RTTI 名） |
+| 0x141364E00 | （无名） 体设 CDeleteUnitCommand::vftable（RTTI 名） |
+| 0x141841140 | （无名） 体设 CSetOrderGroupLeaderProximityCommand::vftable（RTTI 名） |
+| 0x1419447D0 | （无名） 体设 CSetWingReinforcementPriorityCommand::vftable（RTTI 名） |
+| 0x141BA88D0 | （无名） 体设 CAddFactionProgramCommand::vftable（RTTI 名） |
+| 0x14114E660 | （无名） 体设 CAmendForeignManpowerActionCommand::vftable（RTTI 名） |
+| 0x14114FB30 | （无名） 体设 CSetArmyLeaderPreferredTacticCommand::vftable（RTTI 名） |
+| 0x141840FA0 | （无名） 体设 CSetFleetLeaderCommand::vftable（RTTI 名） |
+| 0x141944890 | （无名） 体设 CStratAirChangeAggressivnessCommand::vftable（RTTI 名） |
+| 0x141996A40 | （无名） 体设 CUpdateProfileBadgeCommand::vftable（RTTI 名） |
+| 0x140F2A300 | （无名） 体设 CSetOperationAutoRepeatCommand::vftable（RTTI 名） |
+| 0x14114E4D0 | （无名） 体设 CAddProductionLineFactoriesCommand::vftable（RTTI 名） |
+| 0x141841070 | （无名） 体设 CSetOrderGroupExecutionTypeCommand::vftable（RTTI 名） |
+| 0x1419446E0 | （无名） 体设 CSetWingEquipmentNicheCommand::vftable（RTTI 名） |
+| 0x1419A2F70 | （无名） 体设 CStockpiledEquipmentDeleteCommand::vftable（RTTI 名） |
+| 0x14114FBF0 | （无名） 体设 CSetCountryGarrisonTemplateCommand::vftable（RTTI 名） |
+| 0x14116CE50 | CSetMainGarrisonTemplateCommand::PayloadReader func_names 名 CSetMainGarrisonTemplateCommand::PayloadReader |
+| 0x14116D2E0 | CSetProductionLineConvertCommand::PayloadReader func_names 名 CSetProductionLineConvertCommand::PayloadReader |
+| 0x14135B030 | CNavyRepairNowCommand::PayloadReader func_names 名 CNavyRepairNowCommand::PayloadReader |
+| 0x14135B990 | CSetFleetNameCommand::PayloadReader func_names 名 CSetFleetNameCommand::PayloadReader |
+| 0x141364E60 | （无名） 体设 CDeployArmyHqCommand::vftable（RTTI 名） |
+| 0x14136D0F0 | CSetDivisionNameCommand::PayloadReader func_names 名 CSetDivisionNameCommand::PayloadReader |
+| 0x14136D280 | CSetShipNameCommand::PayloadReader func_names 名 CSetShipNameCommand::PayloadReader |
+| 0x14136D3A0 | CSetUnitNameCommand::PayloadReader func_names 名 CSetUnitNameCommand::PayloadReader |
+| 0x141841010 | （无名） 体设 CSetOrderGroupCohesionTypeCommand::vftable（RTTI 名） |
+| 0x141949470 | CRenameAirGroupCommand::PayloadReader func_names 名 CRenameAirGroupCommand::PayloadReader |
+| 0x141949500 | CRenameAirTheatreCommand::PayloadReader func_names 名 CRenameAirTheatreCommand::PayloadReader |
+| 0x141949620 | CSetAirWingNameCommand::PayloadReader func_names 名 CSetAirWingNameCommand::PayloadReader |
+| 0x1419A7090 | CStockpiledEquipmentDeleteCommand::PayloadReader func_names 名 CStockpiledEquipmentDeleteCommand::PayloadReader |
+| 0x141BA0870 | CSetObsoleteDivisionTemplateCommand::PayloadReader func_names 名 CSetObsoleteDivisionTemplateCommand::PayloadReader |
+| 0x141BA49D0 | CSetConveyorLocationCommand::PayloadReader func_names 名 CSetConveyorLocationCommand::PayloadReader |
+| 0x141BA4A60 | CSetConveyorNameCommand::PayloadReader func_names 名 CSetConveyorNameCommand::PayloadReader |
+| 0x141EF3AF0 | （无名） 体设 CStartProjectCommand::vftable（RTTI 名） |
+| 0x14114FD20 | （无名） 体设 CSetMainGarrisonTemplateCommand::vftable（RTTI 名） |
+| 0x141150310 | （无名） 体设 CSetStateGarrisonTemplateCommand::vftable（RTTI 名） |
+| 0x141840E60 | （无名） 体设 CRemoveNavalInvasionTargetCommand::vftable（RTTI 名） |
+| 0x1419A2F10 | （无名） 体设 CSetUseDynamicVersionPositioningVariantCommand::vftable（RTTI 名） |
+| 0x141BA8F10 | （无名） 体设 CUnlockFolderDoctrineSharingCommand::vftable（RTTI 名） |
+| 0x141143BC0 | （无名） 体设 CChangeProductionLineNamePriorityCommand::vftable（RTTI 名） |
+| 0x14134E690 | （无名） 体设 CMarkSunkShipInfoAsReadCommand::vftable（RTTI 名） |
+| 0x141364D90 | （无名） 体设 CDeleteShipCommand::vftable（RTTI 名） |
+| 0x141949A40 | CSetWingReinforcementPriorityCommand::PayloadReader func_names 名 CSetWingReinforcementPriorityCommand::PayloadReader |
+| 0x1419A7000 | CSetUseDynamicVersionPositioningVariantCommand::PayloadReader func_names 名 CSetUseDynamicVersionPositioningVariantCommand::PayloadReader |
+| 0x141A7E5E0 | （无名） 体设 CReorderNavyTheaterGroupCommand::vftable（RTTI 名） |
+| 0x141A805D0 | CSetTheaterGroupPriorityCommand::PayloadReader func_names 名 CSetTheaterGroupPriorityCommand::PayloadReader |
+| 0x14114E720 | （无名） 体设 CAssignAceCommand::vftable（RTTI 名） |
+| 0x141150780 | （无名） 体设 CUpgradeDivisionOfficerCommand::vftable（RTTI 名） |
+| 0x141150840 | （无名） 体设 ShowScriptedDiplomaticActionSendPopupCommand::vftable（RTTI 名） |
+| 0x14116FAE0 | CIgnoreDecisionCommand::PayloadWriter func_names 名 CIgnoreDecisionCommand::PayloadWriter |
+| 0x1413653A0 | （无名） 体设 CSetNavyEngagementCommand::vftable（RTTI 名） |
+| 0x14136D310 | CSetTheatreCommand::PayloadReader func_names 名 CSetTheatreCommand::PayloadReader |
+| 0x14183FF30 | （无名） 体设 CMoveArmyGroupInTheaterCommand::vftable（RTTI 名） |
+| 0x141A80140 | CReorderTheatersCommand::PayloadReader func_names 名 CReorderTheatersCommand::PayloadReader |
+| 0x141BA2730 | （无名） 体设 CChangeConveyorPositionCommand::vftable（RTTI 名） |
+| 0x14134E6F0 | （无名） 体设 CNavalMissionAddRegionCommand::vftable（RTTI 名） |
+| 0x14136D430 | CSupportAttackCommand::PayloadReader func_names 名 CSupportAttackCommand::PayloadReader |
+| 0x14183FA00 | （无名） 体设 CAddNavalInvasionTargetCommand::vftable（RTTI 名） |
+| 0x141840C00 | （无名） 体设 COrderSetParadropTargetCommand::vftable（RTTI 名） |
+| 0x14194A0B0 | CStratAirSplitCommand::PayloadReader func_names 名 CStratAirSplitCommand::PayloadReader |
+| 0x141A2C510 | CDismissOperativeCommand::PayloadReader func_names 名 CDismissOperativeCommand::PayloadReader |
+| 0x141A7B9F0 | （无名） 体设 CUnlockSubDoctrineCommand::vftable（RTTI 名） |
+| 0x140DE7160 | （无名） 体设 CCheckSyncCommand::vftable（RTTI 名） |
+| 0x141143B80 | （无名） 体设 CChangeCountryControllerCommand::vftable（RTTI 名） |
+| 0x141150230 | （无名） 体设 CSetScorchedStateCommand::vftable（RTTI 名） |
+| 0x14136D4E0 | CTransportUnitCommand::PayloadReader func_names 名 CTransportUnitCommand::PayloadReader |
+| 0x141944C70 | （无名） 体设 CToggleBombingPriorityCommand::vftable（RTTI 名） |
+| 0x140F2A160 | （无名） 体设 CDeleteOperationCommand::vftable（RTTI 名） |
+| 0x14114EA00 | （无名） 体设 CConvertFactoryCommand::vftable（RTTI 名） |
+| 0x141A73F80 | （无名） 体设 CAiDiscardForceConcentrationTargetCommand::vftable（RTTI 名） |
+| 0x141B9EA20 | （无名） 体设 CReorderTemplateListCommand::vftable（RTTI 名） |
+| 0x141BA2B10 | （无名） 体设 CSetConveyorLocationCommand::vftable（RTTI 名） |
+| 0x141BA2BE0 | （无名） 体设 CSetConveyorPriorityCommand::vftable（RTTI 名） |
+| 0x141BA4AF0 | CSetConveyorPriorityCommand::PayloadReader func_names 名 CSetConveyorPriorityCommand::PayloadReader |
+| 0x14114F550 | （无名） 体设 CRemoveConstructionCommand::vftable（RTTI 名） |
+| 0x141170CA0 | CSetResearchCommand::PayloadWriter func_names 名 CSetResearchCommand::PayloadWriter |
+| 0x14135CC70 | CNavalMissionSetTypeCommand::PayloadWriter func_names 名 CNavalMissionSetTypeCommand::PayloadWriter |
+| 0x1419441A0 | （无名） 体设 CDeleteAirWingCommand::vftable（RTTI 名） |
+| 0x141944530 | （无名） 体设 CReorderAirTheatersCommand::vftable（RTTI 名） |
+| 0x141949590 | CReorderAirTheatersCommand::PayloadReader func_names 名 CReorderAirTheatersCommand::PayloadReader |
+| 0x14134E530 | （无名） 体设 CChangeNavalBaseRepairPriorityCommand::vftable（RTTI 名） |
+| 0x1419A2C40 | （无名） 体设 CSetAutoUpgradedEquipmentVariantCommand::vftable（RTTI 名） |
+| 0x141A26350 | （无名） 体设 CIntelligenceAgencyCancelUpgradeCommand::vftable（RTTI 名） |
+| 0x141A26460 | （无名） 体设 CRecruitOperativeCommand::vftable（RTTI 名） |
+| 0x141BA2C40 | （无名） 体设 CSetConveyorSeriesCommand::vftable（RTTI 名） |
+| 0x140DB6A10 | （无名） 体设 CAddTaskCapacityCommand::vftable（RTTI 名） |
+| 0x14134F200 | （无名） 体设 CSetFleetHomeBaseCommand::vftable（RTTI 名） |
+| 0x14134F3B0 | （无名） 体设 CSetMaxAllowedRepairFactoriesCommand::vftable（RTTI 名） |
+| 0x14183FC80 | （无名） 体设 CAutoMergeOrdersCommand::vftable（RTTI 名） |
+| 0x141944950 | （无名） 体设 CStratAirDayNightCommand::vftable（RTTI 名） |
+| 0x141A26240 | （无名） 体设 CDismissOperativeCommand::vftable（RTTI 名） |
+| 0x141EF3A30 | （无名） 体设 CRecruitScientistCommand::vftable（RTTI 名） |
+| 0x14116A050 | CConvertFactoryCommand::PayloadReader func_names 名 CConvertFactoryCommand::PayloadReader |
+| 0x141840CD0 | （无名） 体设 COrderSetTrainingCommand::vftable（RTTI 名） |
+| 0x141BA26D0 | （无名） 体设 CAddConveyorLineCommand::vftable（RTTI 名） |
+| 0x141E74310 | （无名） 体设 CTogglePinnedStrategicRegionCommand::vftable（RTTI 名） |
+| 0x141148500 | （无名） 体设 CUnlockResearchCommand::vftable（RTTI 名） |
+| 0x141365170 | （无名） 体设 CQueueUnitActionCommand::vftable（RTTI 名） |
+| 0x141949000 | CDetachAirWingFromArmyCommand::PayloadReader func_names 名 CDetachAirWingFromArmyCommand::PayloadReader |
+| 0x1419A2CA0 | （无名） 体设 CSetEquipmentVariantHighlightCommand::vftable（RTTI 名） |
+| 0x141A740A0 | （无名） 体设 CAiStoreTotalWantedNrDivisionsCommand::vftable（RTTI 名） |
+| 0x141A7E720 | （无名） 体设 CSetNavyTheaterGroupImportantCommand::vftable（RTTI 名） |
+| 0x141BA2860 | （无名） 体设 CCreateConveyorCommand::vftable（RTTI 名） |
+| 0x141BC0210 | CExecuteButtonCommand::PayloadReader func_names 名 CExecuteButtonCommand::PayloadReader |
+| 0x14134EE10 | （无名） 体设 CNavyRepairNowCommand::vftable（RTTI 名） |
+| 0x141944600 | （无名） 体设 CSetCarrierStickyMissionAreaCommand::vftable（RTTI 名） |
+| 0x141944BA0 | （无名） 体设 CStratAirSplitCommand::vftable（RTTI 名） |
+| 0x1419A2EB0 | （无名） 体设 CSetObsoleteEquipmentVariantCommand::vftable（RTTI 名） |
+| 0x141B9EA80 | （无名） 体设 CSetObsoleteDivisionTemplateCommand::vftable（RTTI 名） |
+| 0x14116FCE0 | CMassCancelMovementCommand::PayloadWriter func_names 名 CMassCancelMovementCommand::PayloadWriter |
+| 0x14116FD60 | CMassRemoveProductionsLineCommand::PayloadWriter func_names 名 CMassRemoveProductionsLineCommand::PayloadWriter |
+| 0x14194A930 | CDetachAirWingFromArmyCommand::PayloadWriter func_names 名 CDetachAirWingFromArmyCommand::PayloadWriter |
+| 0x14114F220 | （无名） 体设 CProductionLineInterfaceToggleExpandAllCommand::vftable（RTTI 名） |
+| 0x1411504A0 | （无名） 体设 CSetSupplyTruckBufferRatioCommand::vftable（RTTI 名） |
+| 0x14116F000 | CAddProductionLineCommand::PayloadWriter func_names 名 CAddProductionLineCommand::PayloadWriter |
+| 0x1418402E0 | （无名） 体设 COrderDeleteCommand::vftable（RTTI 名） |
+| 0x141A26400 | （无名） 体设 CIntelligenceAgencyUpgradeCommand::vftable（RTTI 名） |
+| 0x1411500F0 | （无名） 体设 CSetProductionLineConvertCommand::vftable（RTTI 名） |
+| 0x14134E630 | （无名） 体设 CDisengageFromNavalCombatCommand::vftable（RTTI 名） |
+| 0x141365500 | （无名） 体设 CSetTheatreCommand::vftable（RTTI 名） |
+| 0x140DB69B0 | （无名） 体设 CAddSizeCommand::vftable（RTTI 名） |
+| 0x141944830 | （无名） 体设 CStratAirCancelTransferCommand::vftable（RTTI 名） |
+| 0x141E53AC0 | （无名） 体设 CEndTurnPeaceConferenceCommand::vftable（RTTI 名） |
+| 0x14134F410 | （无名） 体设 CSetNavalBaseDisabledForRepairsStateCommand::vftable（RTTI 名） |
+| 0x141940880 | （无名） 体设 CMoreGroundCrewsCommand::vftable（RTTI 名） |
+| 0x1411497A0 | CProductionLineInterfaceFactoriesScaleCommand::[0] vtable 槽 CProductionLineInterfaceFactoriesScaleCommand::[0]（func_names RTTI 名） |
+| 0x140F05750 | （无名） 体设 CDecreaseGameSpeedCommand::vftable（RTTI 名） |
+| 0x14114E800 | （无名） 体设 CBypassNationalFocusCommand::vftable（RTTI 名） |
+| 0x140DB6BC0 | （无名） 体设 CSetAutoUpdateDesignsForIndustrialOrgCommand::vftable（RTTI 名） |
+| 0x141149810 | CProductionLineInterfaceToggleExpandCommand::[0] vtable 槽 CProductionLineInterfaceToggleExpandCommand::[0]（func_names RTTI 名） |
+| 0x14114F4F0 | （无名） 体设 CRemoveBuildingLevelCommand::vftable（RTTI 名） |
+| 0x14114FB90 | （无名） 体设 CSetContinuousFocusCommand::vftable（RTTI 名） |
+| 0x14114FFC0 | （无名） 体设 CSetPreferredTacticCommand::vftable（RTTI 名） |
+| 0x140F2A360 | （无名） 体设 CSetOperationTargetCommand::vftable（RTTI 名） |
+| 0x14114FD80 | （无名） 体设 CSetNationalFocusCommand::vftable（RTTI 名） |
+| 0x1419A6E50 | CSetEquipmentVariantOverrideModelCommand::PayloadReader func_names 名 CSetEquipmentVariantOverrideModelCommand::PayloadReader |
+| 0x141EF3A90 | （无名） 体设 CResetUnreadPrototypeRewardsCounterCommand::vftable（RTTI 名） |
+| 0x140F2A1C0 | （无名） 体设 CLaunchOperationCommand::vftable（RTTI 名） |
+| 0x14114FCC0 | （无名） 体设 CSetFuelPriorityCommand::vftable（RTTI 名） |
+| 0x1418413C0 | （无名） 体设 CUpdateLeaderSeenAdvisorRolesCountCommand::vftable（RTTI 名） |
+| 0x14136DDB0 | CSetArmyTemplateCommand::PayloadWriter func_names 名 CSetArmyTemplateCommand::PayloadWriter |
+| 0x141999CC0 | CRemovePlayerCommand::PayloadReader func_names 名 CRemovePlayerCommand::PayloadReader |
+| 0x141BA8CB0 | （无名） 体设 CRemoveFactionProgramCommand::vftable（RTTI 名） |
+| 0x14116B590 | CMassCancelMovementCommand::PayloadReader func_names 名 CMassCancelMovementCommand::PayloadReader |
+| 0x14114F6E0 | （无名） 体设 CRemoveShipRefitProductionLineCommand::vftable（RTTI 名） |
+| 0x14136DF40 | CSetNavyEngagementCommand::PayloadWriter func_names 名 CSetNavyEngagementCommand::PayloadWriter |
+| 0x14205C2E0 | （无名） 体设 CMarketStockpileClearCommand::vftable（RTTI 名） |
+| 0x141146310 | （无名） 体设 CRemoveIdeaCommand::vftable（RTTI 名） |
+| 0x141A265A0 | （无名） 体设 CSetIntelligenceAgencyRandomHistoricalNameCommand::vftable（RTTI 名） |
+| 0x141841420 | （无名） 体设 CUpdateLeaderSeenTraitsCountCommand::vftable（RTTI 名） |
+| 0x141149730 | CMassRemoveProductionsLineCommand::[0] vtable 槽 CMassRemoveProductionsLineCommand::[0]（func_names RTTI 名） |
+| 0x141149B30 | CSetProductionLinePriorityCommand::[0] vtable 槽 CSetProductionLinePriorityCommand::[0]（func_names RTTI 名） |
+| 0x14116B620 | CMassRemoveProductionsLineCommand::PayloadReader func_names 名 CMassRemoveProductionsLineCommand::PayloadReader |
+| 0x14135A9E0 | CNavyCancelActivityCommand::PayloadReader func_names 名 CNavyCancelActivityCommand::PayloadReader |
+| 0x140DB4620 | CSetIndustrialOrgTraitsInQueueCommand::[0] vtable 槽 CSetIndustrialOrgTraitsInQueueCommand::[0]（func_names RTTI 名） |
+| 0x141145890 | （无名） 体设 CProductionLineInterfaceToggleExpandAllCommand::vftable（RTTI 名） |
+| 0x141149A70 | CSelectionGroupCommand::[0] vtable 槽 CSelectionGroupCommand::[0]（func_names RTTI 名） |
+| 0x1418411A0 | （无名） 体设 CSetOrderGroupMotorizationCommand::vftable（RTTI 名） |
+| 0x14134E4D0 | （无名） 体设 CAutomateHomebaseForFleetCommand::vftable（RTTI 名） |
+| 0x141A254B0 | （无名） 体设 CSetOperationAutoCommenceCommand::vftable（RTTI 名） |
+| 0x14199E850 | CSetDesignTeamCommand::PayloadWriter func_names 名 CSetDesignTeamCommand::PayloadWriter |
+| 0x141A7E860 | （无名） 体设 CSetTheaterGroupPriorityCommand::vftable（RTTI 名） |
+| 0x140DE6580 | CRequestGameStateSynchCommand::[0] vtable 槽 CRequestGameStateSynchCommand::[0]（func_names RTTI 名） |
+| 0x141149920 | CRemoveAllConstructionCommand::[0] vtable 槽 CRemoveAllConstructionCommand::[0]（func_names RTTI 名） |
+| 0x14116D1B0 | CSetPreferredTacticCommand::PayloadReader func_names 名 CSetPreferredTacticCommand::PayloadReader |
+| 0x141306040 | （无名） 体设 CRemoveDivisionTemplateCommand::vftable（RTTI 名） |
+| 0x141A24FC0 | （无名） 体设 CIntelligenceAgencyCancelUpgradeCommand::vftable（RTTI 名） |
+| 0x141A25500 | （无名） 体设 CSetOperationAutoRepeatCommand::vftable（RTTI 名） |
+| 0x141EF3890 | （无名） 体设 CAbortDismantleFacilityCommand::vftable（RTTI 名） |
+| 0x140E8F6A0 | CRailwayGunSetNameCommand::PayloadReader func_names 名 CRailwayGunSetNameCommand::PayloadReader |
+| 0x141148770 | （无名） 体设 ShowScriptedDiplomaticActionSendPopupCommand::vftable（RTTI 名） |
+| 0x14114F620 | （无名） 体设 CRemoveProductionLineCommand::vftable（RTTI 名） |
+| 0x141339FA0 | CChatSyncAllCommand::PayloadReader func_names 名 CChatSyncAllCommand::PayloadReader |
+| 0x141A74E60 | CAiStoreTotalWantedNrDivisionsCommand::PayloadReader func_names 名 CAiStoreTotalWantedNrDivisionsCommand::PayloadReader |
+| 0x1411496C0 | CMassCancelMovementCommand::[0] vtable 槽 CMassCancelMovementCommand::[0]（func_names RTTI 名） |
+| 0x14135D910 | CSetNavalRegionAccessCommand::PayloadWriter func_names 名 CSetNavalRegionAccessCommand::PayloadWriter |
+| 0x141944280 | （无名） 体设 CMoreGroundCrewsCommand::vftable（RTTI 名） |
+| 0x141A26300 | （无名） 体设 CIntelligenceAgencyCancelCreationCommand::vftable（RTTI 名） |
+| 0x141A7E580 | （无名） 体设 CDisbandTheaterGroupCommand::vftable（RTTI 名） |
+| 0x14022EA00 | （无名） 体设 CSetCountryReinforcementPriorityCommand::vftable（RTTI 名） |
+| 0x140CEC2A0 | （无名） 体设 CSetCountryControllerCommand::vftable（RTTI 名） |
+| 0x1411507E0 | （无名） 体设 CUpgradeShipCaptainCommand::vftable（RTTI 名） |
+| 0x141A7BB70 | （无名） 体设 CUnlockGrandDoctrineCommand::vftable（RTTI 名） |
+| 0x141BA2990 | （无名） 体设 CDeployConveyorLineCommand::vftable（RTTI 名） |
+| 0x141BA2A50 | （无名） 体设 CRemoveConveyorLineCommand::vftable（RTTI 名） |
+| 0x141148200 | （无名） 体设 CSetSupplyReinforcementPriorityCommand::vftable（RTTI 名） |
+| 0x141364D30 | （无名） 体设 CCancelRunningAwayCommand::vftable（RTTI 名） |
+| 0x141365110 | （无名） 体设 CPromoteUnitLeaderCommand::vftable（RTTI 名） |
+| 0x141EF3960 | （无名） 体设 CDismantleFacilityCommand::vftable（RTTI 名） |
+| 0x141148240 | （无名） 体设 CSetSupplyTruckBufferRatioCommand::vftable（RTTI 名） |
+| 0x141150440 | （无名） 体设 CSetSupplyReinforcementPriorityCommand::vftable（RTTI 名） |
+| 0x14183FD60 | （无名） 体设 CDeleteOrderGroupCommand::vftable（RTTI 名） |
+| 0x141840AB0 | （无名） 体设 COrderSetCollapseCommand::vftable（RTTI 名） |
+| 0x141A7BBC0 | （无名） 体设 CUnlockSubDoctrineCommand::vftable（RTTI 名） |
+| 0x141BA2800 | （无名） 体设 CCollapseConveyorCommand::vftable（RTTI 名） |
+| 0x14134A380 | （无名） 体设 CSetMaxAllowedRepairFactoriesCommand::vftable（RTTI 名） |
+| 0x141A7E640 | （无名） 体设 CReorderTheatersCommand::vftable（RTTI 名） |
+| 0x141BA8A60 | （无名） 体设 CEraseFactionRuleCommand::vftable（RTTI 名） |
+| 0x14022E940 | （无名） 体设 CSetCountryOperationsPriorityCommand::vftable（RTTI 名） |
+| 0x141365760 | （无名） 体设 CWithdrawArmyHqCommand::vftable（RTTI 名） |
+| 0x141840210 | （无名） 体设 COrderDeleteAllCommand::vftable（RTTI 名） |
+| 0x141BA2930 | （无名） 体设 CDeployConveyorCommand::vftable（RTTI 名） |
+| 0x141BA29F0 | （无名） 体设 CRemoveConveyorCommand::vftable（RTTI 名） |
+| 0x141146BB0 | （无名） 体设 CSetCountryGarrisonPriorityCommand::vftable（RTTI 名） |
+| 0x141365630 | （无名） 体设 CSupportAttackCommand::vftable（RTTI 名） |
+| 0x14136C540 | CCancelRunningAwayCommand::PayloadReader func_names 名 CCancelRunningAwayCommand::PayloadReader |
+| 0x141A263B0 | （无名） 体设 CIntelligenceAgencyCreationCommand::vftable（RTTI 名） |
+| 0x141BA8DF0 | （无名） 体设 CSetFactionRuleCommand::vftable（RTTI 名） |
+| 0x141EF4BF0 | CStopProjectCommand::PayloadReader func_names 名 CStopProjectCommand::PayloadReader |
+| 0x14022E890 | （无名） 体设 COnRulingPartyChangeActionCommand::vftable（RTTI 名） |
+| 0x14022E8E0 | （无名） 体设 CSetCountryGarrisonPriorityCommand::vftable（RTTI 名） |
+| 0x141146D90 | （无名） 体设 CSetCountryUpgradePriorityCommand::vftable（RTTI 名） |
+| 0x14022EA50 | （无名） 体设 CSetCountryUpgradePriorityCommand::vftable（RTTI 名） |
+| 0x140CEBE80 | （无名） 体设 CSetCountryControllerTypeCommand::vftable（RTTI 名） |
+| 0x14114ED00 | （无名） 体设 CDropCurrentNationalFocusCommand::vftable（RTTI 名） |
+| 0x141EF3B60 | （无名） 体设 CStopProjectCommand::vftable（RTTI 名） |
+| 0x140CEC320 | （无名） 体设 CSetCountryControllerTypeCommand::vftable（RTTI 名） |
+| 0x140DE61F0 | CCheckSyncCommand::[0] vtable 槽 CCheckSyncCommand::[0]（func_names RTTI 名） |
+| 0x141146D10 | （无名） 体设 CSetCountryRaidsPriorityCommand::vftable（RTTI 名） |
+| 0x14114F4A0 | （无名） 体设 CRemoveAllProductionLineCommand::vftable（RTTI 名） |
+| 0x14134EBD0 | （无名） 体设 CNavyClearAccidentReportsCommand::vftable（RTTI 名） |
+| 0x14183FE50 | （无名） 体设 CLearnTraitCommand::vftable（RTTI 名） |
+| 0x14022E9A0 | （无名） 体设 CSetCountryRaidsPriorityCommand::vftable（RTTI 名） |
+| 0x140CEC250 | （无名） 体设 CPromoteToCountryLeaderCommand::vftable（RTTI 名） |
+| 0x141147610 | （无名） 体设 CSetPreferredTacticCommand::vftable（RTTI 名） |
+| 0x1413368A0 | （无名） 体设 CChatUserJoinedChannelCommand::vftable（RTTI 名） |
+| 0x141856FD0 | COrderEditRootCommand::PayloadWriter func_names 名 COrderEditRootCommand::PayloadWriter |
+| 0x141857960 | COrderSetPathCommand::PayloadWriter func_names 名 COrderSetPathCommand::PayloadWriter |
+| 0x140CEBDC0 | （无名） 体设 CAskToCoopWithCountryCommand::vftable（RTTI 名） |
+| 0x141145750 | （无名） 体设 COnRulingPartyChangeActionCommand::vftable（RTTI 名） |
+| 0x1411481C0 | （无名） 体设 CSetSupplyCapitalNodeCommand::vftable（RTTI 名） |
+| 0x141348CE0 | （无名） 体设 CNavyDetachShipsAndRepairCommand::vftable（RTTI 名） |
+| 0x14114ECB0 | （无名） 体设 CDropContinuousFocusCommand::vftable（RTTI 名） |
+| 0x1411503E0 | （无名） 体设 CSetSupplyCapitalNodeCommand::vftable（RTTI 名） |
+| 0x1413369A0 | （无名） 体设 CChatUserLeftChannelCommand::vftable（RTTI 名） |
+| 0x141E53A70 | （无名） 体设 CDonePeaceConferenceCommand::vftable（RTTI 名） |
+| 0x141E53B20 | （无名） 体设 CPassPeaceConferenceCommand::vftable（RTTI 名） |
+| 0x141A266A0 | （无名） 体设 CStartStopDecryptionCommand::vftable（RTTI 名） |
+| 0x141940C80 | （无名） 体设 CReorderAirTheatersCommand::vftable（RTTI 名） |
+| 0x141A73FE0 | （无名） 体设 CAiOnFailedInvasionCommand::vftable（RTTI 名） |
+| 0x141102D40 | （无名） 体设 CDiplomaticActionCommand::vftable（RTTI 名） |
+| 0x1412EF030 | （无名） 体设 CPromoteAutonomyCommand::vftable（RTTI 名） |
+| 0x1418371E0 | （无名） 体设 CAutoMergeOrdersCommand::vftable（RTTI 名） |
+| 0x141837230 | （无名） 体设 CAutoMergeOrdersCommand::vftable（RTTI 名） |
+| 0x141A261F0 | （无名） 体设 CBecomeSpyMasterCommand::vftable（RTTI 名） |
+| 0x14114F2F0 | （无名） 体设 CReinstateExileCommand::vftable（RTTI 名） |
+| 0x1412EF080 | （无名） 体设 CRemoveAutonomyCommand::vftable（RTTI 名） |
+| 0x141336A00 | （无名） 体设 CChatUserLeftCommand::vftable（RTTI 名） |
+| 0x141A262A0 | （无名） 体设 CHideDecryptionCommand::vftable（RTTI 名） |
+| 0x141BA4B80 | CSetDeploymentLineNameCommand::PayloadReader func_names 名 CSetDeploymentLineNameCommand::PayloadReader |
+| 0x141BBFC80 | （无名） 体设 CExecuteButtonCommand::vftable（RTTI 名） |
+| 0x140F05D30 | （无名） 体设 CSetGameSpeedCommand::vftable（RTTI 名） |
+| 0x141170D80 | CSetShipRefitDeploymentTargetCommand::PayloadWriter func_names 名 CSetShipRefitDeploymentTargetCommand::PayloadWriter |
+| 0x14194A040 | CStratAirSetMissionCommand::PayloadReader func_names 名 CStratAirSetMissionCommand::PayloadReader |
+| 0x141850820 | COrderConnectCommand::PayloadReader func_names 名 COrderConnectCommand::PayloadReader |
+| 0x141997790 | （无名） 体设 CSetDLCsCommand::vftable（RTTI 名） |
+| 0x14116E4E0 | CUpgradeShipCaptainCommand::PayloadReader func_names 名 CUpgradeShipCaptainCommand::PayloadReader |
+| 0x14136D560 | CWithdrawArmyHqCommand::PayloadReader func_names 名 CWithdrawArmyHqCommand::PayloadReader |
+| 0x141BA48A0 | CCreateConveyorExtendedCommand::PayloadReader func_names 名 CCreateConveyorExtendedCommand::PayloadReader |
+| 0x14116C5C0 | CRetireCharacterCommand::PayloadReader func_names 名 CRetireCharacterCommand::PayloadReader |
+| 0x14135A0B0 | CAutomateHomebaseForFleetCommand::PayloadReader func_names 名 CAutomateHomebaseForFleetCommand::PayloadReader |
+| 0x141A80040 | CDisbandTheaterGroupCommand::PayloadReader func_names 名 CDisbandTheaterGroupCommand::PayloadReader |
+| 0x1413622F0 | CMassMoveCommand::[0] vtable 槽 CMassMoveCommand::[0]（func_names RTTI 名） |
+| 0x141348580 | （无名） 体设 CNavyClearAccidentReportsCommand::vftable（RTTI 名） |
+| 0x14205C210 | （无名） 体设 CMarketStockpileClearCommand::vftable（RTTI 名） |
+| 0x14134A710 | （无名） 体设 CSetTaskForceCompositionRequirementsCommand::vftable（RTTI 名） |
+| 0x1419411E0 | （无名） 体设 CSetWingReinforcementPriorityCommand::vftable（RTTI 名） |
+| 0x141BA7880 | （无名） 体设 CRemoveFactionProgramCommand::vftable（RTTI 名） |
+| 0x141999D60 | CAddHumanCommand::PayloadWriter func_names 名 CAddHumanCommand::PayloadWriter |
+| 0x141A7B9B0 | （无名） 体设 CUnlockGrandDoctrineCommand::vftable（RTTI 名） |
+| 0x140CEC200 | （无名） 体设 CClearAllControllersCommand::vftable（RTTI 名） |
+| 0x14135D6D0 | CSetFleetCommand::PayloadWriter func_names 名 CSetFleetCommand::PayloadWriter |
+| 0x140F05CE0 | （无名） 体设 CIncreaseGameSpeedCommand::vftable（RTTI 名） |
+| 0x141A253B0 | （无名） 体设 CSetIntelligenceAgencyLogoCommand::vftable（RTTI 名） |
+| 0x141A25410 | （无名） 体设 CSetIntelligenceAgencyNameCommand::vftable（RTTI 名） |
+| 0x14194A8A0 | CDeleteAirWingCommand::PayloadWriter func_names 名 CDeleteAirWingCommand::PayloadWriter |
+| 0x1413367C0 | （无名） 体设 CChatRequestSyncCommand::vftable（RTTI 名） |
+| 0x141BA70E0 | （无名） 体设 CEraseFactionRuleCommand::vftable（RTTI 名） |
+| 0x141E75660 | CSetPinnedStrategicRegionCommand::[29] vtable 槽 CSetPinnedStrategicRegionCommand::[29]（func_names RTTI 名） |
+| 0x141A74E00 | CAiStoreForceConcentrationTargetCommand::PayloadReader func_names 名 CAiStoreForceConcentrationTargetCommand::PayloadReader |
+| 0x140DE7400 | （无名） 体设 CReopenLobbyCommand::vftable（RTTI 名） |
+| 0x141941290 | （无名） 体设 CStratAirChangeAggressivnessCommand::vftable（RTTI 名） |
+| 0x14163CE20 | （无名） 体设 CStartGameCommand::vftable（RTTI 名） |
+| 0x14116F7B0 | CDispatchNavalCombatResultsCommand::PayloadWriter func_names 名 CDispatchNavalCombatResultsCommand::PayloadWriter |
+| 0x1419418F0 | （无名） 体设 CToggleBombingPriorityCommand::vftable（RTTI 名） |
+| 0x141940C30 | （无名） 体设 CRenameAirTheatreCommand::vftable（RTTI 名） |
+| 0x141BA59B0 | CCreateTradeCommand::PayloadWriter func_names 名 CCreateTradeCommand::PayloadWriter |
+| 0x141A24F40 | （无名） 体设 CHideDecryptionCommand::vftable（RTTI 名） |
+| 0x141940BE0 | （无名） 体设 CRenameAirGroupCommand::vftable（RTTI 名） |
+| 0x14116FF00 | CProductionLineInterfaceToggleExpandCommand::PayloadWriter func_names 名 CProductionLineInterfaceToggleExpandCommand::PayloadWriter |
+| 0x14135CEE0 | CNavyCancelRepairCommand::PayloadWriter func_names 名 CNavyCancelRepairCommand::PayloadWriter |
+| 0x140E8E8C0 | CNavalMoveCommand::[0] vtable 槽 CNavalMoveCommand::[0]（func_names RTTI 名） |
+| 0x140F05920 | CHourlyTickCommand::[0] vtable 槽 CHourlyTickCommand::[0]（func_names RTTI 名） |
+| 0x140F28E30 | CCreateOperationCommand::[0] vtable 槽 CCreateOperationCommand::[0]（func_names RTTI 名） |
+| 0x141149270 | CBuildRailwayCommand::[0] vtable 槽 CBuildRailwayCommand::[0]（func_names RTTI 名） |
+| 0x14134B140 | CSetFleetCommand::[0] vtable 槽 CSetFleetCommand::[0]（func_names RTTI 名） |
+| 0x14134B2D0 | CMoveShipsCommand::[0] vtable 槽 CMoveShipsCommand::[0]（func_names RTTI 名） |
+| 0x14134B340 | COrderAssignCommand::[0] vtable 槽 COrderAssignCommand::[0]（func_names RTTI 名） |
+| 0x14183C850 | COrderSetPathCommand::[0] vtable 槽 COrderSetPathCommand::[0]（func_names RTTI 名） |
+| 0x14183C940 | COrderGroupCommand::[0] vtable 槽 COrderGroupCommand::[0]（func_names RTTI 名） |
+| 0x14183CB80 | COrderNewRootCommand::[0] vtable 槽 COrderNewRootCommand::[0]（func_names RTTI 名） |
+| 0x14183CBF0 | COrderReshapeCommand::[0] vtable 槽 COrderReshapeCommand::[0]（func_names RTTI 名） |
+| 0x141941370 | （无名） 体设 CStratAirDayNightCommand::vftable（RTTI 名） |
+| 0x141A257D0 | CSetOperativeMissionCommand::[0] vtable 槽 CSetOperativeMissionCommand::[0]（func_names RTTI 名） |
+| 0x141360F20 | （无名） 体设 CQueueUnitActionCommand::vftable（RTTI 名） |
+| 0x141940CC0 | （无名） 体设 CSetAirWingNameCommand::vftable（RTTI 名） |
+| 0x140DEA390 | CSendPingCommand::PayloadWriter func_names 名 CSendPingCommand::PayloadWriter |
+| 0x141170350 | CReplaceIdeaCommand::PayloadWriter func_names 名 CReplaceIdeaCommand::PayloadWriter |
+| 0x141857E70 | CSetOrdersLinkCommand::PayloadWriter func_names 名 CSetOrdersLinkCommand::PayloadWriter |
+| 0x1419970F0 | （无名） 体设 CSetDLCsCommand::vftable（RTTI 名） |
+| 0x141941780 | （无名） 体设 CStratAirSplitCommand::vftable（RTTI 名） |
+| 0x141170E90 | CSetStateOverrideOccupationPolicyCommand::PayloadWriter func_names 名 CSetStateOverrideOccupationPolicyCommand::PayloadWriter |
+| 0x1411493D0 | CDeployAirWingCommand::[0] vtable 槽 CDeployAirWingCommand::[0]（func_names RTTI 名） |
+| 0x141A25470 | （无名） 体设 CSetIntelligenceAgencyRandomHistoricalNameCommand::vftable（RTTI 名） |
+| 0x141A808F0 | CSetNavyTheaterGroupImportantCommand::PayloadWriter func_names 名 CSetNavyTheaterGroupImportantCommand::PayloadWriter |
+| 0x141949CB0 | CStratAirEnableMissionCommand::PayloadReader func_names 名 CStratAirEnableMissionCommand::PayloadReader |
+| 0x14116F1D0 | CAmendIncomingLendLeaseActionCommand::PayloadWriter func_names 名 CAmendIncomingLendLeaseActionCommand::PayloadWriter |
+| 0x141170010 | CReleaseCountryCommand::PayloadWriter func_names 名 CReleaseCountryCommand::PayloadWriter |
+| 0x14116BDF0 | CRemoveBuildingLevelCommand::PayloadReader func_names 名 CRemoveBuildingLevelCommand::PayloadReader |
+| 0x141170FD0 | CSetTimedActivityDistributionPriorityCommand::PayloadWriter func_names 名 CSetTimedActivityDistributionPriorityCommand::PayloadWriter |
+| 0x141857BC0 | CSetAreaDefenseSettingCommand::PayloadWriter func_names 名 CSetAreaDefenseSettingCommand::PayloadWriter |
+| 0x141941240 | （无名） 体设 CStratAirCancelTransferCommand::vftable（RTTI 名） |
+| 0x141A24F80 | （无名） 体设 CIntelligenceAgencyCancelCreationCommand::vftable（RTTI 名） |
+| 0x141E536F0 | CEndTurnPeaceConferenceCommand::[0] vtable 槽 CEndTurnPeaceConferenceCommand::[0]（func_names RTTI 名） |
+| 0x141169150 | CAddAdvisorCommand::PayloadReader func_names 名 CAddAdvisorCommand::PayloadReader |
+| 0x1410FC8E0 | CDiplomaticActionCommand::[0] vtable 槽 CDiplomaticActionCommand::[0]（func_names RTTI 名） |
+| 0x141144E60 | （无名） 体设 CIgnoreAllAvailableDecisionCommand::vftable（RTTI 名） |
+| 0x140F05700 | （无名） 体设 CDecreaseGameSpeedCommand::vftable（RTTI 名） |
+| 0x1413623E0 | CQueueUnitActionCommand::[0] vtable 槽 CQueueUnitActionCommand::[0]（func_names RTTI 名） |
+| 0x141144800 | （无名） 体设 CDropCurrentNationalFocusCommand::vftable（RTTI 名） |
+| 0x14199E8D0 | CSetIndustrialManufacturerCommand::PayloadWriter func_names 名 CSetIndustrialManufacturerCommand::PayloadWriter |
+| 0x1411460D0 | （无名） 体设 CRemoveAllProductionLineCommand::vftable（RTTI 名） |
+| 0x140F05820 | （无名） 体设 CIncreaseGameSpeedCommand::vftable（RTTI 名） |
+| 0x1410FC250 | （无名） 体设 CDiplomaticActionCommand::vftable（RTTI 名） |
+| 0x141147970 | （无名） 体设 CSetProductionLinePriorityCommand::vftable（RTTI 名） |
+| 0x141E536B0 | （无名） 体设 CPassPeaceConferenceCommand::vftable（RTTI 名） |
+| 0x14116B6B0 | COnRulingPartyChangeActionCommand::PayloadReader func_names 名 COnRulingPartyChangeActionCommand::PayloadReader |
+| 0x141331550 | （无名） 体设 CChatRequestSyncCommand::vftable（RTTI 名） |
+| 0x141A2C990 | CSetOperationTargetCommand::PayloadReader func_names 名 CSetOperationTargetCommand::PayloadReader |
+| 0x141B8E420 | （无名） 体设 CPromoteAutonomyCommand::vftable（RTTI 名） |
+| 0x140DE60C0 | （无名） 体设 CReopenLobbyCommand::vftable（RTTI 名） |
+| 0x141B8E460 | （无名） 体设 CRemoveAutonomyCommand::vftable（RTTI 名） |
+| 0x14116FC60 | CIncomingDiplomaticActionActingCommand::PayloadWriter func_names 名 CIncomingDiplomaticActionActingCommand::PayloadWriter |
+| 0x141A80960 | CSetNavyTheaterGroupNameCommand::PayloadWriter func_names 名 CSetNavyTheaterGroupNameCommand::PayloadWriter |
+| 0x14135A660 | CNavalMissionMoveCommand::PayloadReader func_names 名 CNavalMissionMoveCommand::PayloadReader |
+| 0x14135CDB0 | CNavyCancelActivityCommand::PayloadWriter func_names 名 CNavyCancelActivityCommand::PayloadWriter |
+| 0x14116D710 | CSetStateGarrisonTemplateCommand::PayloadReader func_names 名 CSetStateGarrisonTemplateCommand::PayloadReader |
+| 0x141359F90 | CAddTaskForceTemplateCommand::PayloadReader func_names 名 CAddTaskForceTemplateCommand::PayloadReader |
+| 0x1419A7BB0 | CSetEquipmentVariantOverrideSpriteCommand::PayloadWriter func_names 名 CSetEquipmentVariantOverrideSpriteCommand::PayloadWriter |
+| 0x141A74D90 | CAiDiscardForceConcentrationTargetCommand::PayloadReader func_names 名 CAiDiscardForceConcentrationTargetCommand::PayloadReader |
+| 0x14116EDD0 | CAddConstructionCommand::PayloadWriter func_names 名 CAddConstructionCommand::PayloadWriter |
+| 0x14116C970 | CSelectionGroupCommand::PayloadReader func_names 名 CSelectionGroupCommand::PayloadReader |
+| 0x14116AFB0 | CGenerateAdvisorCommand::PayloadReader func_names 名 CGenerateAdvisorCommand::PayloadReader |
+| 0x14116F2B0 | CBuildRailwayCommand::PayloadWriter func_names 名 CBuildRailwayCommand::PayloadWriter |
+| 0x1411711B0 | CUnlockResearchCommand::PayloadWriter func_names 名 CUnlockResearchCommand::PayloadWriter |
+| 0x141A74F20 | CAiStoreForceConcentrationTargetCommand::PayloadWriter func_names 名 CAiStoreForceConcentrationTargetCommand::PayloadWriter |
+| 0x141A2CA80 | CSetOperativeMissionCommand::PayloadReader func_names 名 CSetOperativeMissionCommand::PayloadReader |
+| 0x141E749D0 | CReorderPinnedStrategicRegionCommand::PayloadReader func_names 名 CReorderPinnedStrategicRegionCommand::PayloadReader |
+| 0x140F07280 | CClientPingCommand::PayloadReader func_names 名 CClientPingCommand::PayloadReader |
+| 0x14116FEB0 | CProductionLineInterfaceToggleExpandAllCommand::PayloadWriter func_names 名 CProductionLineInterfaceToggleExpandAllCommand::PayloadWriter |
+| 0x1418566D0 | CCreateAreaDefenseCommand::PayloadWriter func_names 名 CCreateAreaDefenseCommand::PayloadWriter |
+| 0x14194B130 | CStratAirMoveEquipmentCommand::PayloadWriter func_names 名 CStratAirMoveEquipmentCommand::PayloadWriter |
+| 0x14153B400 | CSelectEventOptionCommand::PayloadWriter func_names 名 CSelectEventOptionCommand::PayloadWriter |
+| 0x1411691A0 | CAddAdvisorRoleToCharacterCommand::PayloadReader func_names 名 CAddAdvisorRoleToCharacterCommand::PayloadReader |
+| 0x1411707E0 | CSetDefaultCountryOccupationPolicyCommand::PayloadWriter func_names 名 CSetDefaultCountryOccupationPolicyCommand::PayloadWriter |
+| 0x1419A2280 | CCreateEquipmentVariantCommand::Clone func_names 名 CCreateEquipmentVariantCommand::Clone |
+| 0x1418579E0 | COrderSetTrainingCommand::PayloadWriter func_names 名 COrderSetTrainingCommand::PayloadWriter |
+| 0x141999E00 | CAddPlayerCommand::PayloadWriter func_names 名 CAddPlayerCommand::PayloadWriter |
+| 0x141171360 | ShowScriptedDiplomaticActionSendPopupCommand::PayloadWriter func_names 名 ShowScriptedDiplomaticActionSendPopupCommand::PayloadWriter |
+| 0x140DE9F20 | CClientOutOfSyncCommand::PayloadReader func_names 名 CClientOutOfSyncCommand::PayloadReader |
+| 0x14116F370 | CChangeCountryControllerCommand::PayloadWriter func_names 名 CChangeCountryControllerCommand::PayloadWriter |
+| 0x14135BB30 | CSetNavalBaseDisabledForRepairsStateCommand::PayloadReader func_names 名 CSetNavalBaseDisabledForRepairsStateCommand::PayloadReader |
+| 0x14116D060 | CSetOccupationPolicyCommand::PayloadReader func_names 名 CSetOccupationPolicyCommand::PayloadReader |
+| 0x1419499F0 | CSetWingReinforcementPreferenceCommand::PayloadReader func_names 名 CSetWingReinforcementPreferenceCommand::PayloadReader |
+| 0x141169EE0 | CChangeProductionLineNamePriorityCommand::PayloadReader func_names 名 CChangeProductionLineNamePriorityCommand::PayloadReader |
+| 0x140DE9ED0 | CCheckSyncResponseCommand::PayloadReader func_names 名 CCheckSyncResponseCommand::PayloadReader |
+| 0x14116D760 | CSetStateOverrideOccupationPolicyCommand::PayloadReader func_names 名 CSetStateOverrideOccupationPolicyCommand::PayloadReader |
+| 0x14135D260 | CNavySetUnderwayReplenishmentCommand::PayloadWriter func_names 名 CNavySetUnderwayReplenishmentCommand::PayloadWriter |
+| 0x141A2C4C0 | CDeleteOperationCommand::PayloadReader func_names 名 CDeleteOperationCommand::PayloadReader |
+| 0x141A2C8F0 | CSetOperationAutoCommenceCommand::PayloadReader func_names 名 CSetOperationAutoCommenceCommand::PayloadReader |
+| 0x141BA4980 | CSetConveyorGroupCommand::PayloadReader func_names 名 CSetConveyorGroupCommand::PayloadReader |
+| 0x141149220 | CAmendIncomingLendLeaseActionCommand::[0] vtable 槽 CAmendIncomingLendLeaseActionCommand::[0]（func_names RTTI 名） |
+| 0x14116ED00 | CAddAdvisorCommand::PayloadWriter func_names 名 CAddAdvisorCommand::PayloadWriter |
+| 0x14116F4D0 | CConvertFactoryCommand::PayloadWriter func_names 名 CConvertFactoryCommand::PayloadWriter |
+| 0x1418575F0 | COrderReorderChildFrontCommand::PayloadWriter func_names 名 COrderReorderChildFrontCommand::PayloadWriter |
+| 0x141A2C940 | CSetOperationAutoRepeatCommand::PayloadReader func_names 名 CSetOperationAutoRepeatCommand::PayloadReader |
+| 0x14135B890 | CSetFleetHomeBaseCommand::PayloadReader func_names 名 CSetFleetHomeBaseCommand::PayloadReader |
+| 0x14135D210 | CNavyRepairNowCommand::PayloadWriter func_names 名 CNavyRepairNowCommand::PayloadWriter |
+| 0x141A2CAD0 | CStartStopDecryptionCommand::PayloadReader func_names 名 CStartStopDecryptionCommand::PayloadReader |
+| 0x14136D780 | CCancelMovementCommand::PayloadWriter func_names 名 CCancelMovementCommand::PayloadWriter |
+| 0x14133A370 | CChatSyncAllCommand::SChannelInfo::Reader func_names 名 CChatSyncAllCommand::SChannelInfo::Reader |
+| 0x14136D890 | CDeleteUnitCommand::PayloadWriter func_names 名 CDeleteUnitCommand::PayloadWriter |
+| 0x14136E190 | CTransportUnitCommand::PayloadWriter func_names 名 CTransportUnitCommand::PayloadWriter |
+| 0x141170A50 | CSetOccupationPolicyCommand::PayloadWriter func_names 名 CSetOccupationPolicyCommand::PayloadWriter |
+| 0x14116F170 | CAmendForeignManpowerActionCommand::PayloadWriter func_names 名 CAmendForeignManpowerActionCommand::PayloadWriter |
+| 0x14135DAB0 | CSetTaskForceIconAndColorCommand::PayloadWriter func_names 名 CSetTaskForceIconAndColorCommand::PayloadWriter |
+| 0x141170BB0 | CSetProductionLineConvertCommand::PayloadWriter func_names 名 CSetProductionLineConvertCommand::PayloadWriter |
+| 0x14194A9B0 | CMoreGroundCrewsCommand::PayloadWriter func_names 名 CMoreGroundCrewsCommand::PayloadWriter |
+| 0x141BA5030 | CCreateConveyorExtendedCommand::PayloadWriter func_names 名 CCreateConveyorExtendedCommand::PayloadWriter |
+| 0x14135B170 | CRemoveTaskForceTemplateCommand::PayloadReader func_names 名 CRemoveTaskForceTemplateCommand::PayloadReader |
+| 0x141E75620 | CSetPinnedStrategicRegionCommand::[25] vtable 槽 CSetPinnedStrategicRegionCommand::[25]（func_names RTTI 名） |
+| 0x141149AE0 | CSetNavalProductionLineAirWingCompositionCommand::[0] vtable 槽 CSetNavalProductionLineAirWingCompositionCommand::[0]（func_names RTTI 名） |
+| 0x14135D8B0 | CSetNavalBaseDisabledForRepairsStateCommand::PayloadWriter func_names 名 CSetNavalBaseDisabledForRepairsStateCommand::PayloadWriter |
+| 0x140DEA160 | CCheckSyncResponseCommand::PayloadWriter func_names 名 CCheckSyncResponseCommand::PayloadWriter |
+| 0x141170E30 | CSetStateGarrisonTemplateCommand::PayloadWriter func_names 名 CSetStateGarrisonTemplateCommand::PayloadWriter |
+| 0x141997130 | CAddHumanCommand::[0] vtable 槽 CAddHumanCommand::[0]（func_names RTTI 名） |
+| 0x141141230 | CDiplomaticActionCommand::PayloadWriter func_names 名 CDiplomaticActionCommand::PayloadWriter |
+| 0x141A74EC0 | CAiDiscardForceConcentrationTargetCommand::PayloadWriter func_names 名 CAiDiscardForceConcentrationTargetCommand::PayloadWriter |
+| 0x141170840 | CSetFuelPriorityCommand::PayloadWriter func_names 名 CSetFuelPriorityCommand::PayloadWriter |
+| 0x14194B1B0 | CStratAirMoveEquipmentToReservesCommand::PayloadWriter func_names 名 CStratAirMoveEquipmentToReservesCommand::PayloadWriter |
+| 0x141A2CFB0 | CSetOperationAutoRepeatCommand::PayloadWriter func_names 名 CSetOperationAutoRepeatCommand::PayloadWriter |
+| 0x1411704D0 | CSelectDecisionCommand::PayloadWriter func_names 名 CSelectDecisionCommand::PayloadWriter |
+| 0x141160D70 | CDeployAirWingCommand::[8] vtable 槽 CDeployAirWingCommand::[8]（func_names RTTI 名） |
+| 0x141A74DD0 | CAiOnFailedInvasionCommand::PayloadReader func_names 名 CAiOnFailedInvasionCommand::PayloadReader |
+| 0x14194B0C0 | CStratAirEnableMissionCommand::PayloadWriter func_names 名 CStratAirEnableMissionCommand::PayloadWriter |
+| 0x14136DFD0 | CSetPendingReassignTargetCommand::PayloadWriter func_names 名 CSetPendingReassignTargetCommand::PayloadWriter |
+| 0x1412FC6D0 | CCreateDivisionTemplateCommand::[0] vtable 槽 CCreateDivisionTemplateCommand::[0]（func_names RTTI 名） |
+| 0x1412FC720 | CUpdateDivisionTemplateCommand::[0] vtable 槽 CUpdateDivisionTemplateCommand::[0]（func_names RTTI 名） |
+| 0x14194AA90 | CMoveAirWingToAirGroupCommand::PayloadWriter func_names 名 CMoveAirWingToAirGroupCommand::PayloadWriter |
+| 0x14199E790 | CMoveIndustrialOrgTraitInQueueCommand::PayloadWriter func_names 名 CMoveIndustrialOrgTraitInQueueCommand::PayloadWriter |
+| 0x141857CB0 | CSetFleetLeaderCommand::PayloadWriter func_names 名 CSetFleetLeaderCommand::PayloadWriter |
+| 0x141149010 | CAddAdvisorRoleToCharacterCommand::[0] vtable 槽 CAddAdvisorRoleToCharacterCommand::[0]（func_names RTTI 名） |
+| 0x141A2CC90 | CDeleteOperationCommand::PayloadWriter func_names 名 CDeleteOperationCommand::PayloadWriter |
+| 0x1419A2100 | CSetEquipmentVariantOverrideSpriteCommand::[0] vtable 槽 CSetEquipmentVariantOverrideSpriteCommand::[0]（func_names RTTI 名） |
+| 0x14116C050 | CReplaceBuildingCommand::PayloadReader func_names 名 CReplaceBuildingCommand::PayloadReader |
+| 0x1419499B0 | CSetWingEquipmentNicheCommand::PayloadReader func_names 名 CSetWingEquipmentNicheCommand::PayloadReader |
+| 0x141E74A60 | CTogglePinnedStrategicRegionCommand::PayloadReader func_names 名 CTogglePinnedStrategicRegionCommand::PayloadReader |
+| 0x141A2D010 | CSetOperationTargetCommand::PayloadWriter func_names 名 CSetOperationTargetCommand::PayloadWriter |
+| 0x14116D7B0 | CSetSupplyCapitalNodeCommand::PayloadReader func_names 名 CSetSupplyCapitalNodeCommand::PayloadReader |
+| 0x14135A120 | CChangeNavalBaseRepairPriorityCommand::PayloadReader func_names 名 CChangeNavalBaseRepairPriorityCommand::PayloadReader |
+| 0x141E74A20 | CSetPinnedStrategicRegionCommand::PayloadReader func_names 名 CSetPinnedStrategicRegionCommand::PayloadReader |
+| 0x141997280 | CRemovePlayerCommand::[0] vtable 槽 CRemovePlayerCommand::[0]（func_names RTTI 名） |
+| 0x141EF4DF0 | CAttachScientistCommand::PayloadWriter func_names 名 CAttachScientistCommand::PayloadWriter |
+| 0x141E545E0 | CEndTurnPeaceConferenceCommand::PayloadWriter func_names 名 CEndTurnPeaceConferenceCommand::PayloadWriter |
+| 0x14135D750 | CSetFleetHomeBaseCommand::PayloadWriter func_names 名 CSetFleetHomeBaseCommand::PayloadWriter |
+| 0x141EF4E50 | CPrototypeRewardOptionCommand::PayloadWriter func_names 名 CPrototypeRewardOptionCommand::PayloadWriter |
+| 0x141857580 | COrderReconnectCommand::PayloadWriter func_names 名 COrderReconnectCommand::PayloadWriter |
+| 0x141A2CF50 | CSetOperationAutoCommenceCommand::PayloadWriter func_names 名 CSetOperationAutoCommenceCommand::PayloadWriter |
+| 0x141857060 | COrderExecuteCommand::PayloadWriter func_names 名 COrderExecuteCommand::PayloadWriter |
+| 0x1411701A0 | CRemoveBuildingLevelCommand::PayloadWriter func_names 名 CRemoveBuildingLevelCommand::PayloadWriter |
+| 0x140E8F660 | CRailwayGunManualOrderCommand::PayloadReader func_names 名 CRailwayGunManualOrderCommand::PayloadReader |
+| 0x14135C630 | CAddTaskForceTemplateCommand::PayloadWriter func_names 名 CAddTaskForceTemplateCommand::PayloadWriter |
+| 0x1411706D0 | CSetArmyLeaderPreferredTacticCommand::PayloadWriter func_names 名 CSetArmyLeaderPreferredTacticCommand::PayloadWriter |
+| 0x14116CCE0 | CSetDefaultCountryOccupationPolicyCommand::PayloadReader func_names 名 CSetDefaultCountryOccupationPolicyCommand::PayloadReader |
+| 0x141A2C870 | CSetIntelligenceAgencyLogoCommand::PayloadReader func_names 名 CSetIntelligenceAgencyLogoCommand::PayloadReader |
+| 0x14184FD80 | CAutoMergeOrdersCommand::PayloadReader func_names 名 CAutoMergeOrdersCommand::PayloadReader |
+| 0x141A2C8B0 | CSetIntelligenceAgencyNameCommand::PayloadReader func_names 名 CSetIntelligenceAgencyNameCommand::PayloadReader |
+| 0x14116D830 | CSetSupplyTruckBufferRatioCommand::PayloadReader func_names 名 CSetSupplyTruckBufferRatioCommand::PayloadReader |
+| 0x141339F60 | CChatNewChannelCommand::PayloadReader func_names 名 CChatNewChannelCommand::PayloadReader |
+| 0x141857730 | COrderReshapeCommand::PayloadWriter func_names 名 COrderReshapeCommand::PayloadWriter |
+| 0x14199E730 | CAttachPolicyToIndustrialOrgCommand::PayloadWriter func_names 名 CAttachPolicyToIndustrialOrgCommand::PayloadWriter |
+| 0x141A2C720 | CLaunchOperationCommand::PayloadReader func_names 名 CLaunchOperationCommand::PayloadReader |
+| 0x140DE9FC0 | CPostHotJoinCommand::PayloadReader func_names 名 CPostHotJoinCommand::PayloadReader |
+| 0x14136D160 | CSetNavyEngagementCommand::PayloadReader func_names 名 CSetNavyEngagementCommand::PayloadReader |
+| 0x1411708A0 | CSetMainGarrisonTemplateCommand::PayloadWriter func_names 名 CSetMainGarrisonTemplateCommand::PayloadWriter |
+| 0x141BA50F0 | CSetConveyorGroupCommand::PayloadWriter func_names 名 CSetConveyorGroupCommand::PayloadWriter |
+| 0x14116D7F0 | CSetSupplyReinforcementPriorityCommand::PayloadReader func_names 名 CSetSupplyReinforcementPriorityCommand::PayloadReader |
+| 0x14136DD10 | CQueueUnitActionCommand::PayloadWriter func_names 名 CQueueUnitActionCommand::PayloadWriter |
+| 0x14116F3E0 | CChangeProductionLineNamePriorityCommand::PayloadWriter func_names 名 CChangeProductionLineNamePriorityCommand::PayloadWriter |
+| 0x14135D7B0 | CSetFleetIconAndColorCommand::PayloadWriter func_names 名 CSetFleetIconAndColorCommand::PayloadWriter |
+| 0x14135D990 | CSetPrideOfTheFleetCommand::PayloadWriter func_names 名 CSetPrideOfTheFleetCommand::PayloadWriter |
+| 0x14194A840 | CChangeAirGroupInsigniaCommand::PayloadWriter func_names 名 CChangeAirGroupInsigniaCommand::PayloadWriter |
+| 0x1419A7CB0 | CStockpiledEquipmentDeleteCommand::PayloadWriter func_names 名 CStockpiledEquipmentDeleteCommand::PayloadWriter |
+| 0x140F07330 | CClientPingCommand::PayloadWriter func_names 名 CClientPingCommand::PayloadWriter |
+| 0x14135CF70 | CNavyClearAccidentReportsCommand::PayloadWriter func_names 名 CNavyClearAccidentReportsCommand::PayloadWriter |
+| 0x141857D70 | CSetOrderGroupIconAndColorCommand::PayloadWriter func_names 名 CSetOrderGroupIconAndColorCommand::PayloadWriter |
+| 0x141170B10 | CSetPreferredTacticCommand::PayloadWriter func_names 名 CSetPreferredTacticCommand::PayloadWriter |
+| 0x141170D20 | CSetScorchedStateCommand::PayloadWriter func_names 名 CSetScorchedStateCommand::PayloadWriter |
+| 0x141BC0DC0 | CExecuteButtonCommand::PayloadWriter func_names 名 CExecuteButtonCommand::PayloadWriter |
+| 0x141149A30 | CReplaceBuildingCommand::[0] vtable 槽 CReplaceBuildingCommand::[0]（func_names RTTI 名） |
+| 0x141999E90 | CRemovePlayerCommand::PayloadWriter func_names 名 CRemovePlayerCommand::PayloadWriter |
+| 0x141343490 | CChatSyncAllCommand::SChannelInfo::Writer func_names 名 CChatSyncAllCommand::SChannelInfo::Writer |
+| 0x14116ED70 | CAddAdvisorRoleToCharacterCommand::PayloadWriter func_names 名 CAddAdvisorRoleToCharacterCommand::PayloadWriter |
+| 0x14194B3E0 | CToggleBombingPriorityCommand::PayloadWriter func_names 名 CToggleBombingPriorityCommand::PayloadWriter |
+| 0x141A2D070 | CSetOperativeCodenameCommand::PayloadWriter func_names 名 CSetOperativeCodenameCommand::PayloadWriter |
+| 0x14116F9C0 | CGenerateAdvisorCommand::PayloadWriter func_names 名 CGenerateAdvisorCommand::PayloadWriter |
+| 0x14135D2E0 | CRemoveTaskForceTemplateCommand::PayloadWriter func_names 名 CRemoveTaskForceTemplateCommand::PayloadWriter |
+| 0x141170AC0 | CSetPlayerAiPrefsCommand::PayloadWriter func_names 名 CSetPlayerAiPrefsCommand::PayloadWriter |
+| 0x141A2CD80 | CLaunchOperationCommand::PayloadWriter func_names 名 CLaunchOperationCommand::PayloadWriter |
+| 0x141BA4F50 | CChangeConveyorTemplateCommand::PayloadWriter func_names 名 CChangeConveyorTemplateCommand::PayloadWriter |
+| 0x141149670 | CIgnoreTargetedDecisionCommand::[0] vtable 槽 CIgnoreTargetedDecisionCommand::[0]（func_names RTTI 名） |
+| 0x14116B920 | CReinstateExileCommand::PayloadReader func_names 名 CReinstateExileCommand::PayloadReader |
+| 0x14134B3B0 | CReorganizeShipsCommand::[0] vtable 槽 CReorganizeShipsCommand::[0]（func_names RTTI 名） |
+| 0x14134B500 | CSetTaskForceCompositionRequirementsCommand::[0] vtable 槽 CSetTaskForceCompositionRequirementsCommand::[0]（func_names RTTI 名） |
+| 0x140DE9EB0 | CCheckSyncCommand::PayloadReader func_names 名 CCheckSyncCommand::PayloadReader |
+| 0x141857DD0 | CSetOrderGroupMotorizationCommand::PayloadWriter func_names 名 CSetOrderGroupMotorizationCommand::PayloadWriter |
+| 0x141170B60 | CSetProductionLineCommand::PayloadWriter func_names 名 CSetProductionLineCommand::PayloadWriter |
+| 0x14136E120 | CSupportAttackCommand::PayloadWriter func_names 名 CSupportAttackCommand::PayloadWriter |
+| 0x14194B2F0 | CStratAirSplitCommand::PayloadWriter func_names 名 CStratAirSplitCommand::PayloadWriter |
+| 0x14199E800 | CSetAutoUpdateDesignsForIndustrialOrgCommand::PayloadWriter func_names 名 CSetAutoUpdateDesignsForIndustrialOrgCommand::PayloadWriter |
+| 0x1419A7A70 | CSetEquipmentVariantHighlightCommand::PayloadWriter func_names 名 CSetEquipmentVariantHighlightCommand::PayloadWriter |
+| 0x141BA4FE0 | CCreateConveyorCommand::PayloadWriter func_names 名 CCreateConveyorCommand::PayloadWriter |
+| 0x141EF4F00 | CStartProjectCommand::PayloadWriter func_names 名 CStartProjectCommand::PayloadWriter |
+| 0x1419A7C60 | CSetUseDynamicVersionPositioningVariantCommand::PayloadWriter func_names 名 CSetUseDynamicVersionPositioningVariantCommand::PayloadWriter |
+| 0x14116F0A0 | CAddProductionLineFactoriesCommand::PayloadWriter func_names 名 CAddProductionLineFactoriesCommand::PayloadWriter |
+| 0x14116F430 | CChangeProductionLinePriorityCommand::PayloadWriter func_names 名 CChangeProductionLinePriorityCommand::PayloadWriter |
+| 0x14116F480 | CChangeRailwayConstructionLeveLCommand::PayloadWriter func_names 名 CChangeRailwayConstructionLeveLCommand::PayloadWriter |
+| 0x14135C950 | CMarkSunkShipInfoAsReadCommand::PayloadWriter func_names 名 CMarkSunkShipInfoAsReadCommand::PayloadWriter |
+| 0x14135C9A0 | CNavalMissionAddRegionCommand::PayloadWriter func_names 名 CNavalMissionAddRegionCommand::PayloadWriter |
+| 0x141856900 | CMoveArmyGroupInTheaterCommand::PayloadWriter func_names 名 CMoveArmyGroupInTheaterCommand::PayloadWriter |
+| 0x1419A7B10 | CSetEquipmentVariantNicheIconCommand::PayloadWriter func_names 名 CSetEquipmentVariantNicheIconCommand::PayloadWriter |
+| 0x141A80750 | CReorderNavyTheaterGroupCommand::PayloadWriter func_names 名 CReorderNavyTheaterGroupCommand::PayloadWriter |
+| 0x141BA5150 | CSetConveyorLocationCommand::PayloadWriter func_names 名 CSetConveyorLocationCommand::PayloadWriter |
+| 0x141857790 | COrderSetCollapseCommand::PayloadWriter func_names 名 COrderSetCollapseCommand::PayloadWriter |
+| 0x141A807A0 | CReorderTheatersCommand::PayloadWriter func_names 名 CReorderTheatersCommand::PayloadWriter |
+| 0x140A0D450 | CSelectEventOptionCommand::[0] vtable 槽 CSelectEventOptionCommand::[0]（func_names RTTI 名） |
+| 0x1411712D0 | CUpgradeDivisionOfficerCommand::PayloadWriter func_names 名 CUpgradeDivisionOfficerCommand::PayloadWriter |
+| 0x141856830 | CLearnTraitCommand::PayloadWriter func_names 名 CLearnTraitCommand::PayloadWriter |
+| 0x14194AF60 | CSetWingReinforcementPriorityCommand::PayloadWriter func_names 名 CSetWingReinforcementPriorityCommand::PayloadWriter |
+| 0x14194B070 | CStratAirDayNightCommand::PayloadWriter func_names 名 CStratAirDayNightCommand::PayloadWriter |
+| 0x1419A7B60 | CSetEquipmentVariantOverrideModelCommand::PayloadWriter func_names 名 CSetEquipmentVariantOverrideModelCommand::PayloadWriter |
+| 0x141A80A20 | CSetTheaterGroupPriorityCommand::PayloadWriter func_names 名 CSetTheaterGroupPriorityCommand::PayloadWriter |
+| 0x141BA51F0 | CSetConveyorPriorityCommand::PayloadWriter func_names 名 CSetConveyorPriorityCommand::PayloadWriter |
+| 0x141E74BC0 | CTogglePinnedStrategicRegionCommand::PayloadWriter func_names 名 CTogglePinnedStrategicRegionCommand::PayloadWriter |
+| 0x141856F80 | COrderDeleteCommand::PayloadWriter func_names 名 COrderDeleteCommand::PayloadWriter |
+| 0x1419A7A20 | CSetAutoUpgradedEquipmentVariantCommand::PayloadWriter func_names 名 CSetAutoUpgradedEquipmentVariantCommand::PayloadWriter |
+| 0x141BA0C30 | CReorderTemplateListCommand::PayloadWriter func_names 名 CReorderTemplateListCommand::PayloadWriter |
+| 0x141BA0CD0 | CSetObsoleteDivisionTemplateCommand::PayloadWriter func_names 名 CSetObsoleteDivisionTemplateCommand::PayloadWriter |
+| 0x141BA4F00 | CChangeConveyorPositionCommand::PayloadWriter func_names 名 CChangeConveyorPositionCommand::PayloadWriter |
+| 0x141E74AA0 | CReorderPinnedStrategicRegionCommand::PayloadWriter func_names 名 CReorderPinnedStrategicRegionCommand::PayloadWriter |
+| 0x1401C9460 | CClientPingCommand::[0] vtable 槽 CClientPingCommand::[0]（func_names RTTI 名） |
+| 0x14135C750 | CChangeNavalBaseRepairPriorityCommand::PayloadWriter func_names 名 CChangeNavalBaseRepairPriorityCommand::PayloadWriter |
+| 0x14136E0D0 | CSetUnitNameCommand::PayloadWriter func_names 名 CSetUnitNameCommand::PayloadWriter |
+| 0x14194AB90 | CReorderAirTheatersCommand::PayloadWriter func_names 名 CReorderAirTheatersCommand::PayloadWriter |
+| 0x14194ABE0 | CSetAirWingNameCommand::PayloadWriter func_names 名 CSetAirWingNameCommand::PayloadWriter |
+| 0x14194B000 | CStratAirChangeAggressivnessCommand::PayloadWriter func_names 名 CStratAirChangeAggressivnessCommand::PayloadWriter |
+| 0x141999D40 | CSetDLCsCommand::PayloadReader func_names 名 CSetDLCsCommand::PayloadReader |
+| 0x140DEA2F0 | CPostHotJoinCommand::PayloadWriter func_names 名 CPostHotJoinCommand::PayloadWriter |
+| 0x140F072F0 | CHourlyTickCommand::PayloadReader func_names 名 CHourlyTickCommand::PayloadReader |
+| 0x141170F90 | CSetSupplyTruckBufferRatioCommand::PayloadWriter func_names 名 CSetSupplyTruckBufferRatioCommand::PayloadWriter |
+| 0x14133A350 | CChatUserLeftCommand::PayloadReader func_names 名 CChatUserLeftCommand::PayloadReader |
+| 0x1411700A0 | CRemoveAdvisorCommand::PayloadWriter func_names 名 CRemoveAdvisorCommand::PayloadWriter |
+| 0x141949C00 | CStratAirConsolidateCommand::PayloadReader func_names 名 CStratAirConsolidateCommand::PayloadReader |
+| 0x14194AF20 | CSetWingReinforcementPreferenceCommand::PayloadWriter func_names 名 CSetWingReinforcementPreferenceCommand::PayloadWriter |
+| 0x1419A7AC0 | CSetEquipmentVariantNameListCommand::PayloadWriter func_names 名 CSetEquipmentVariantNameListCommand::PayloadWriter |
+| 0x141A2D1A0 | CStartStopDecryptionCommand::PayloadWriter func_names 名 CStartStopDecryptionCommand::PayloadWriter |
+| 0x14135D810 | CSetFleetNameCommand::PayloadWriter func_names 名 CSetFleetNameCommand::PayloadWriter |
+| 0x141A809D0 | CSetTheaterGroupNameCommand::PayloadWriter func_names 名 CSetTheaterGroupNameCommand::PayloadWriter |
+| 0x140DEA030 | CRequestGameStateSynchCommand::PayloadReader func_names 名 CRequestGameStateSynchCommand::PayloadReader |
+| 0x140F072D0 | CDecreaseGameSpeedCommand::PayloadReader func_names 名 CDecreaseGameSpeedCommand::PayloadReader |
+| 0x140F07310 | CSetGameSpeedCommand::PayloadReader func_names 名 CSetGameSpeedCommand::PayloadReader |
+| 0x14136D4C0 | CToggleStrategicDeploymentCommand::PayloadReader func_names 名 CToggleStrategicDeploymentCommand::PayloadReader |
+| 0x141996F30 | CUpdateProfileBadgeCommand::PayloadReader func_names 名 CUpdateProfileBadgeCommand::PayloadReader |
+| 0x140CEE900 | CPromoteToCountryLeaderCommand::PayloadReader func_names 名 CPromoteToCountryLeaderCommand::PayloadReader |
+| 0x140E8F840 | CRailwayGunSetNameCommand::PayloadWriter func_names 名 CRailwayGunSetNameCommand::PayloadWriter |
+| 0x141170A00 | CSetNavalProductionLineAirWingCompositionCommand::PayloadWriter func_names 名 CSetNavalProductionLineAirWingCompositionCommand::PayloadWriter |
+| 0x14135DA60 | CSetTaskForceCompositionRequirementsCommand::PayloadWriter func_names 名 CSetTaskForceCompositionRequirementsCommand::PayloadWriter |
+| 0x14136DD60 | CSetArmyFakeTemplateCommand::PayloadWriter func_names 名 CSetArmyFakeTemplateCommand::PayloadWriter |
+| 0x14136E030 | CSetShipNameCommand::PayloadWriter func_names 名 CSetShipNameCommand::PayloadWriter |
+| 0x14194AAF0 | CRenameAirGroupCommand::PayloadWriter func_names 名 CRenameAirGroupCommand::PayloadWriter |
+| 0x14194AB40 | CRenameAirTheatreCommand::PayloadWriter func_names 名 CRenameAirTheatreCommand::PayloadWriter |
+| 0x1419A79D0 | CRenameEquipmentVariantCommand::PayloadWriter func_names 名 CRenameEquipmentVariantCommand::PayloadWriter |
+| 0x141A2CCF0 | CDismissOperativeCommand::PayloadWriter func_names 名 CDismissOperativeCommand::PayloadWriter |
+| 0x141A2CDD0 | CRecruitOperativeCommand::PayloadWriter func_names 名 CRecruitOperativeCommand::PayloadWriter |
+| 0x141BA51A0 | CSetConveyorNameCommand::PayloadWriter func_names 名 CSetConveyorNameCommand::PayloadWriter |
+| 0x141EF4EB0 | CRecruitScientistCommand::PayloadWriter func_names 名 CRecruitScientistCommand::PayloadWriter |
+| 0x140E8F800 | CRailwayGunManualOrderCommand::PayloadWriter func_names 名 CRailwayGunManualOrderCommand::PayloadWriter |
+| 0x14116FDE0 | COnRulingPartyChangeActionCommand::PayloadWriter func_names 名 COnRulingPartyChangeActionCommand::PayloadWriter |
+| 0x14136E080 | CSetTheatreCommand::PayloadWriter func_names 名 CSetTheatreCommand::PayloadWriter |
+| 0x141856690 | CAutoMergeOrdersCommand::PayloadWriter func_names 名 CAutoMergeOrdersCommand::PayloadWriter |
+| 0x14194AEE0 | CSetWingEquipmentNicheCommand::PayloadWriter func_names 名 CSetWingEquipmentNicheCommand::PayloadWriter |
+| 0x14194AC30 | CSetCarrierStickyMissionAreaCommand::PayloadWriter func_names 名 CSetCarrierStickyMissionAreaCommand::PayloadWriter |
+| 0x14194AFB0 | CStratAirCancelTransferCommand::PayloadWriter func_names 名 CStratAirCancelTransferCommand::PayloadWriter |
+| 0x1419A7C10 | CSetObsoleteEquipmentVariantCommand::PayloadWriter func_names 名 CSetObsoleteEquipmentVariantCommand::PayloadWriter |
+| 0x141170F50 | CSetSupplyReinforcementPriorityCommand::PayloadWriter func_names 名 CSetSupplyReinforcementPriorityCommand::PayloadWriter |
+| 0x14163E640 | CSelectBookmarkCommand::PayloadWriter func_names 名 CSelectBookmarkCommand::PayloadWriter |
+| 0x141A2CED0 | CSetIntelligenceAgencyLogoCommand::PayloadWriter func_names 名 CSetIntelligenceAgencyLogoCommand::PayloadWriter |
+| 0x141170310 | CReplaceBuildingCommand::PayloadWriter func_names 名 CReplaceBuildingCommand::PayloadWriter |
+| 0x14136D900 | CDeployArmyHqCommand::PayloadWriter func_names 名 CDeployArmyHqCommand::PayloadWriter |
+| 0x141A2CF10 | CSetIntelligenceAgencyNameCommand::PayloadWriter func_names 名 CSetIntelligenceAgencyNameCommand::PayloadWriter |
+| 0x140DB4520 | CGiveMedalCommand::[0] vtable 槽 CGiveMedalCommand::[0]（func_names RTTI 名） |
+| 0x140DB4580 | COrderEditRootCommand::[0] vtable 槽 COrderEditRootCommand::[0]（func_names RTTI 名） |
+| 0x1413431D0 | CChatNewChannelCommand::PayloadWriter func_names 名 CChatNewChannelCommand::PayloadWriter |
+| 0x14134B4D0 | CSetFleetIconAndColorCommand::[0] vtable 槽 CSetFleetIconAndColorCommand::[0]（func_names RTTI 名） |
+| 0x1413624D0 | CTransportUnitCommand::[0] vtable 槽 CTransportUnitCommand::[0]（func_names RTTI 名） |
+| 0x14183CCD0 | CSetOrdersLinkCommand::[0] vtable 槽 CSetOrdersLinkCommand::[0]（func_names RTTI 名） |
+| 0x141149C90 | CIgnoreTargetedDecisionCommand::SDecisionData::[0] vtable 槽 CIgnoreTargetedDecisionCommand::SDecisionData::[0]（func_names RTTI 名） |
+| 0x141333780 | CChatSyncAllCommand::SChannelInfo::[0] vtable 槽 CChatSyncAllCommand::SChannelInfo::[0]（func_names RTTI 名） |
+| 0x14136DCD0 | CPromoteUnitLeaderCommand::PayloadWriter func_names 名 CPromoteUnitLeaderCommand::PayloadWriter |
+| 0x141A80710 | CDisbandTheaterGroupCommand::PayloadWriter func_names 名 CDisbandTheaterGroupCommand::PayloadWriter |
+| 0x141170490 | CRetireCharacterCommand::PayloadWriter func_names 名 CRetireCharacterCommand::PayloadWriter |
+| 0x141171320 | CUpgradeShipCaptainCommand::PayloadWriter func_names 名 CUpgradeShipCaptainCommand::PayloadWriter |
+| 0x14135C710 | CAutomateHomebaseForFleetCommand::PayloadWriter func_names 名 CAutomateHomebaseForFleetCommand::PayloadWriter |
+| 0x14136D800 | CCancelRunningAwayCommand::PayloadWriter func_names 名 CCancelRunningAwayCommand::PayloadWriter |
+| 0x141BA0BF0 | CRemoveDivisionTemplateCommand::PayloadWriter func_names 名 CRemoveDivisionTemplateCommand::PayloadWriter |
+| 0x141EF4F50 | CStopProjectCommand::PayloadWriter func_names 名 CStopProjectCommand::PayloadWriter |
+| 0x141999EE0 | CSetDLCsCommand::PayloadWriter func_names 名 CSetDLCsCommand::PayloadWriter |
+| 0x14136E1F0 | CWithdrawArmyHqCommand::PayloadWriter func_names 名 CWithdrawArmyHqCommand::PayloadWriter |
+| 0x140CEF1F0 | CPromoteToCountryLeaderCommand::PayloadWriter func_names 名 CPromoteToCountryLeaderCommand::PayloadWriter |
+| 0x140F07450 | CSetGameSpeedCommand::PayloadWriter func_names 名 CSetGameSpeedCommand::PayloadWriter |
+| 0x141343470 | CChatUserLeftCommand::PayloadWriter func_names 名 CChatUserLeftCommand::PayloadWriter |
+| 0x140F07380 | CDecreaseGameSpeedCommand::PayloadWriter func_names 名 CDecreaseGameSpeedCommand::PayloadWriter |
+| 0x14136E170 | CToggleStrategicDeploymentCommand::PayloadWriter func_names 名 CToggleStrategicDeploymentCommand::PayloadWriter |
+| 0x14194B050 | CStratAirConsolidateCommand::PayloadWriter func_names 名 CStratAirConsolidateCommand::PayloadWriter |
+| 0x141996F50 | CUpdateProfileBadgeCommand::PayloadWriter func_names 名 CUpdateProfileBadgeCommand::PayloadWriter |
+| 0x140DEA370 | CRequestGameStateSynchCommand::PayloadWriter func_names 名 CRequestGameStateSynchCommand::PayloadWriter |
+| 0x14116D370 | CSetProductionLinePriorityCommand::PayloadReader func_names 名 CSetProductionLinePriorityCommand::PayloadReader |
+| 0x140DEA140 | CCheckSyncCommand::PayloadWriter func_names 名 CCheckSyncCommand::PayloadWriter |
+| 0x142269C40 | CCommand::SetTmpA func_names 名 CCommand::SetTmpA |
+| 0x140231A80 | COnRulingPartyChangeActionCommand::GetTypeId func_names 名 COnRulingPartyChangeActionCommand::GetTypeId |
+| 0x140231AA0 | CSetCountryOperationsPriorityCommand::GetTypeId func_names 名 CSetCountryOperationsPriorityCommand::GetTypeId |
+| 0x140231AB0 | CSetCountryRaidsPriorityCommand::GetTypeId func_names 名 CSetCountryRaidsPriorityCommand::GetTypeId |
+| 0x140231AC0 | CSetCountryReinforcementPriorityCommand::GetTypeId func_names 名 CSetCountryReinforcementPriorityCommand::GetTypeId |
+| 0x140231AD0 | CSetCountryUpgradePriorityCommand::GetTypeId func_names 名 CSetCountryUpgradePriorityCommand::GetTypeId |
+| 0x140A0DEF0 | CSelectEventOptionCommand::GetTypeId func_names 名 CSelectEventOptionCommand::GetTypeId |
+| 0x140CEE270 | CAskToCoopWithCountryCommand::GetTypeId func_names 名 CAskToCoopWithCountryCommand::GetTypeId |
+| 0x140CEE290 | CPromoteToCountryLeaderCommand::GetTypeId func_names 名 CPromoteToCountryLeaderCommand::GetTypeId |
+| 0x140CEE2A0 | CSetCountryControllerCommand::GetTypeId func_names 名 CSetCountryControllerCommand::GetTypeId |
+| 0x140CEE2B0 | CSetCountryControllerTypeCommand::GetTypeId func_names 名 CSetCountryControllerTypeCommand::GetTypeId |
+| 0x140DB98C0 | CAddIndustrialOrgTraitToQueueCommand::GetTypeId func_names 名 CAddIndustrialOrgTraitToQueueCommand::GetTypeId |
+| 0x140DB98D0 | CAddSizeCommand::GetTypeId func_names 名 CAddSizeCommand::GetTypeId |
+| 0x140DB98E0 | CAddTaskCapacityCommand::GetTypeId func_names 名 CAddTaskCapacityCommand::GetTypeId |
+| 0x140DB98F0 | CAttachPolicyToIndustrialOrgCommand::GetTypeId func_names 名 CAttachPolicyToIndustrialOrgCommand::GetTypeId |
+| 0x140DB9900 | CMoveIndustrialOrgTraitInQueueCommand::GetTypeId func_names 名 CMoveIndustrialOrgTraitInQueueCommand::GetTypeId |
+| 0x140DB9910 | CRemoveIndustrialOrgTraitFromQueueCommand::GetTypeId func_names 名 CRemoveIndustrialOrgTraitFromQueueCommand::GetTypeId |
+| 0x140DB9930 | CSetDesignTeamCommand::GetTypeId func_names 名 CSetDesignTeamCommand::GetTypeId |
+| 0x140DB9940 | CSetIndustrialOrgTraitsInQueueCommand::GetTypeId func_names 名 CSetIndustrialOrgTraitsInQueueCommand::GetTypeId |
+| 0x140DE9D60 | CCheckSyncCommand::GetTypeId func_names 名 CCheckSyncCommand::GetTypeId |
+| 0x140DE9D70 | CCheckSyncResponseCommand::GetTypeId func_names 名 CCheckSyncResponseCommand::GetTypeId |
+| 0x140DE9D80 | CClientOutOfSyncCommand::GetTypeId func_names 名 CClientOutOfSyncCommand::GetTypeId |
+| 0x140DE9DA0 | CPostHotJoinCommand::GetTypeId func_names 名 CPostHotJoinCommand::GetTypeId |
+| 0x140DE9DB0 | CReadyAfterHotJoinCommand::GetTypeId func_names 名 CReadyAfterHotJoinCommand::GetTypeId |
+| 0x140DE9DE0 | CRequestGameStateTransferCommand::GetTypeId func_names 名 CRequestGameStateTransferCommand::GetTypeId |
+| 0x140DE9DF0 | CSendPingCommand::GetTypeId func_names 名 CSendPingCommand::GetTypeId |
+| 0x140E8F320 | CRailwayGunSetNameCommand::GetTypeId func_names 名 CRailwayGunSetNameCommand::GetTypeId |
+| 0x140F07230 | CDecreaseGameSpeedCommand::GetTypeId func_names 名 CDecreaseGameSpeedCommand::GetTypeId |
+| 0x140F07240 | CHourlyTickCommand::GetTypeId func_names 名 CHourlyTickCommand::GetTypeId |
+| 0x140F07250 | CIncreaseGameSpeedCommand::GetTypeId func_names 名 CIncreaseGameSpeedCommand::GetTypeId |
+| 0x140F2A580 | CCreateOperationCommand::GetTypeId func_names 名 CCreateOperationCommand::GetTypeId |
+| 0x140F2A590 | CDeleteOperationCommand::GetTypeId func_names 名 CDeleteOperationCommand::GetTypeId |
+| 0x140F2A5A0 | CLaunchOperationCommand::GetTypeId func_names 名 CLaunchOperationCommand::GetTypeId |
+| 0x140F2A5B0 | CReserveOperativeForOperationCommand::GetTypeId func_names 名 CReserveOperativeForOperationCommand::GetTypeId |
+| 0x140F2A5C0 | CSetOperationAutoCommenceCommand::GetTypeId func_names 名 CSetOperationAutoCommenceCommand::GetTypeId |
+| 0x140F2A5D0 | CSetOperationAutoRepeatCommand::GetTypeId func_names 名 CSetOperationAutoRepeatCommand::GetTypeId |
+| 0x14112F0A0 | CDiplomaticActionCommand::GetTypeId func_names 名 CDiplomaticActionCommand::GetTypeId |
+| 0x1411607D0 | CAddAdvisorCommand::GetTypeId func_names 名 CAddAdvisorCommand::GetTypeId |
+| 0x1411607E0 | CAddAdvisorRoleToCharacterCommand::GetTypeId func_names 名 CAddAdvisorRoleToCharacterCommand::GetTypeId |
+| 0x1411607F0 | CAddConstructionCommand::GetTypeId func_names 名 CAddConstructionCommand::GetTypeId |
+| 0x141160800 | CAddIdeaCommand::GetTypeId func_names 名 CAddIdeaCommand::GetTypeId |
+| 0x141160820 | CAddMassProductionsLineCommand::GetTypeId func_names 名 CAddMassProductionsLineCommand::GetTypeId |
+| 0x141160830 | CAddProductionLineCommand::GetTypeId func_names 名 CAddProductionLineCommand::GetTypeId |
+| 0x141160840 | CAddProductionLineFactoriesCommand::GetTypeId func_names 名 CAddProductionLineFactoriesCommand::GetTypeId |
+| 0x141160880 | CAmendForeignManpowerActionCommand::GetTypeId func_names 名 CAmendForeignManpowerActionCommand::GetTypeId |
+| 0x1411608A0 | CAssignAceCommand::GetTypeId func_names 名 CAssignAceCommand::GetTypeId |
+| 0x1411608B0 | CBuildRailwayCommand::GetTypeId func_names 名 CBuildRailwayCommand::GetTypeId |
+| 0x1411608C0 | CBypassNationalFocusCommand::GetTypeId func_names 名 CBypassNationalFocusCommand::GetTypeId |
+| 0x1411608D0 | CChangeCountryControllerCommand::GetTypeId func_names 名 CChangeCountryControllerCommand::GetTypeId |
+| 0x1411608E0 | CChangeProductionLineNamePriorityCommand::GetTypeId func_names 名 CChangeProductionLineNamePriorityCommand::GetTypeId |
+| 0x1411608F0 | CChangeProductionLinePriorityCommand::GetTypeId func_names 名 CChangeProductionLinePriorityCommand::GetTypeId |
+| 0x141160900 | CChangeRailwayConstructionLeveLCommand::GetTypeId func_names 名 CChangeRailwayConstructionLeveLCommand::GetTypeId |
+| 0x141160920 | CCreateFactionCommand::GetTypeId func_names 名 CCreateFactionCommand::GetTypeId |
+| 0x141160930 | CCreateUnitLeaderCommand::GetTypeId func_names 名 CCreateUnitLeaderCommand::GetTypeId |
+| 0x141160940 | CDeployAirWingCommand::GetTypeId func_names 名 CDeployAirWingCommand::GetTypeId |
+| 0x141160950 | CDispatchNavalCombatResultsCommand::GetTypeId func_names 名 CDispatchNavalCombatResultsCommand::GetTypeId |
+| 0x141160960 | CDropContinuousFocusCommand::GetTypeId func_names 名 CDropContinuousFocusCommand::GetTypeId |
+| 0x141160970 | CDropCurrentNationalFocusCommand::GetTypeId func_names 名 CDropCurrentNationalFocusCommand::GetTypeId |
+| 0x1411609A0 | CGiveMedalCommand::GetTypeId func_names 名 CGiveMedalCommand::GetTypeId |
+| 0x1411609B0 | CIgnoreAllAvailableDecisionCommand::GetTypeId func_names 名 CIgnoreAllAvailableDecisionCommand::GetTypeId |
+| 0x1411609C0 | CIgnoreDecisionCommand::GetTypeId func_names 名 CIgnoreDecisionCommand::GetTypeId |
+| 0x1411609D0 | CIgnoreTargetedDecisionCommand::GetTypeId func_names 名 CIgnoreTargetedDecisionCommand::GetTypeId |
+| 0x1411609E0 | CIncomingDiplomaticActionActingCommand::GetTypeId func_names 名 CIncomingDiplomaticActionActingCommand::GetTypeId |
+| 0x1411609F0 | CMassCancelMovementCommand::GetTypeId func_names 名 CMassCancelMovementCommand::GetTypeId |
+| 0x141160A00 | CMassRemoveProductionsLineCommand::GetTypeId func_names 名 CMassRemoveProductionsLineCommand::GetTypeId |
+| 0x141160A20 | CProductionLineInterfaceToggleExpandAllCommand::GetTypeId func_names 名 CProductionLineInterfaceToggleExpandAllCommand::GetTypeId |
+| 0x141160A30 | CProductionLineInterfaceToggleExpandCommand::GetTypeId func_names 名 CProductionLineInterfaceToggleExpandCommand::GetTypeId |
+| 0x141160A40 | CReinstateExileCommand::GetTypeId func_names 名 CReinstateExileCommand::GetTypeId |
+| 0x141160A50 | CReleaseCountryCommand::GetTypeId func_names 名 CReleaseCountryCommand::GetTypeId |
+| 0x141160A60 | CRemoveAdvisorCommand::GetTypeId func_names 名 CRemoveAdvisorCommand::GetTypeId |
+| 0x141160A70 | CRemoveAllConstructionCommand::GetTypeId func_names 名 CRemoveAllConstructionCommand::GetTypeId |
+| 0x141160A80 | CRemoveAllProductionLineCommand::GetTypeId func_names 名 CRemoveAllProductionLineCommand::GetTypeId |
+| 0x141160AA0 | CRemoveConstructionCommand::GetTypeId func_names 名 CRemoveConstructionCommand::GetTypeId |
+| 0x141160AB0 | CRemoveIdeaCommand::GetTypeId func_names 名 CRemoveIdeaCommand::GetTypeId |
+| 0x141160AC0 | CRemoveProductionLineCommand::GetTypeId func_names 名 CRemoveProductionLineCommand::GetTypeId |
+| 0x141160AE0 | CRemoveShipRefitProductionLineCommand::GetTypeId func_names 名 CRemoveShipRefitProductionLineCommand::GetTypeId |
+| 0x141160AF0 | CReplaceAdvisorCommand::GetTypeId func_names 名 CReplaceAdvisorCommand::GetTypeId |
+| 0x141160B00 | CReplaceBuildingCommand::GetTypeId func_names 名 CReplaceBuildingCommand::GetTypeId |
+| 0x141160B20 | CRequestExpeditionariesCommand::GetTypeId func_names 名 CRequestExpeditionariesCommand::GetTypeId |
+| 0x141160B30 | CRetireCharacterCommand::GetTypeId func_names 名 CRetireCharacterCommand::GetTypeId |
+| 0x141160B40 | CSelectDecisionCommand::GetTypeId func_names 名 CSelectDecisionCommand::GetTypeId |
+| 0x141160B50 | CSelectTargetedDecisionCommand::GetTypeId func_names 名 CSelectTargetedDecisionCommand::GetTypeId |
+| 0x141160B60 | CSelectionGroupCommand::GetTypeId func_names 名 CSelectionGroupCommand::GetTypeId |
+| 0x141160B70 | CSetArmyLeaderPreferredTacticCommand::GetTypeId func_names 名 CSetArmyLeaderPreferredTacticCommand::GetTypeId |
+| 0x141160B80 | CSetContinuousFocusCommand::GetTypeId func_names 名 CSetContinuousFocusCommand::GetTypeId |
+| 0x141160BA0 | CSetDefaultCountryOccupationPolicyCommand::GetTypeId func_names 名 CSetDefaultCountryOccupationPolicyCommand::GetTypeId |
+| 0x141160BB0 | CSetFuelPriorityCommand::GetTypeId func_names 名 CSetFuelPriorityCommand::GetTypeId |
+| 0x141160BC0 | CSetMainGarrisonTemplateCommand::GetTypeId func_names 名 CSetMainGarrisonTemplateCommand::GetTypeId |
+| 0x141160BD0 | CSetNationalFocusCommand::GetTypeId func_names 名 CSetNationalFocusCommand::GetTypeId |
+| 0x141160BE0 | CSetNavalDeploymentTargetCommand::GetTypeId func_names 名 CSetNavalDeploymentTargetCommand::GetTypeId |
+| 0x141160BF0 | CSetNavalProductionLineAirWingCompositionCommand::GetTypeId func_names 名 CSetNavalProductionLineAirWingCompositionCommand::GetTypeId |
+| 0x141160C00 | CSetOccupationPolicyCommand::GetTypeId func_names 名 CSetOccupationPolicyCommand::GetTypeId |
+| 0x141160C20 | CSetPreferredTacticCommand::GetTypeId func_names 名 CSetPreferredTacticCommand::GetTypeId |
+| 0x141160C30 | CSetProductionLineAmountToProduceCommand::GetTypeId func_names 名 CSetProductionLineAmountToProduceCommand::GetTypeId |
+| 0x141160C40 | CSetProductionLineCommand::GetTypeId func_names 名 CSetProductionLineCommand::GetTypeId |
+| 0x141160C50 | CSetProductionLineConvertCommand::GetTypeId func_names 名 CSetProductionLineConvertCommand::GetTypeId |
+| 0x141160C60 | CSetProductionLinePriorityCommand::GetTypeId func_names 名 CSetProductionLinePriorityCommand::GetTypeId |
+| 0x141160C70 | CSetResearchCommand::GetTypeId func_names 名 CSetResearchCommand::GetTypeId |
+| 0x141160C80 | CSetScorchedStateCommand::GetTypeId func_names 名 CSetScorchedStateCommand::GetTypeId |
+| 0x141160CA0 | CSetStateGarrisonTemplateCommand::GetTypeId func_names 名 CSetStateGarrisonTemplateCommand::GetTypeId |
+| 0x141160CB0 | CSetStateOverrideOccupationPolicyCommand::GetTypeId func_names 名 CSetStateOverrideOccupationPolicyCommand::GetTypeId |
+| 0x141160CC0 | CSetSupplyCapitalNodeCommand::GetTypeId func_names 名 CSetSupplyCapitalNodeCommand::GetTypeId |
+| 0x141160CD0 | CSetSupplyReinforcementPriorityCommand::GetTypeId func_names 名 CSetSupplyReinforcementPriorityCommand::GetTypeId |
+| 0x141160CE0 | CSetSupplyTruckBufferRatioCommand::GetTypeId func_names 名 CSetSupplyTruckBufferRatioCommand::GetTypeId |
+| 0x141160CF0 | CSetTimedActivityDistributionPriorityCommand::GetTypeId func_names 名 CSetTimedActivityDistributionPriorityCommand::GetTypeId |
+| 0x141160D00 | CSetXORResearchCommand::GetTypeId func_names 名 CSetXORResearchCommand::GetTypeId |
+| 0x141160D20 | CUnlockResearchCommand::GetTypeId func_names 名 CUnlockResearchCommand::GetTypeId |
+| 0x141160D30 | CUpdateSupplyNodeCountrySettingsCommand::GetTypeId func_names 名 CUpdateSupplyNodeCountrySettingsCommand::GetTypeId |
+| 0x141160D40 | CUpgradeDivisionOfficerCommand::GetTypeId func_names 名 CUpgradeDivisionOfficerCommand::GetTypeId |
+| 0x141160D50 | CUpgradeShipCaptainCommand::GetTypeId func_names 名 CUpgradeShipCaptainCommand::GetTypeId |
+| 0x141160D60 | ShowScriptedDiplomaticActionSendPopupCommand::GetTypeId func_names 名 ShowScriptedDiplomaticActionSendPopupCommand::GetTypeId |
+| 0x1412EF130 | CPromoteAutonomyCommand::GetTypeId func_names 名 CPromoteAutonomyCommand::GetTypeId |
+| 0x1412EF140 | CRemoveAutonomyCommand::GetTypeId func_names 名 CRemoveAutonomyCommand::GetTypeId |
+| 0x14130BDF0 | CCreateDivisionTemplateCommand::GetTypeId func_names 名 CCreateDivisionTemplateCommand::GetTypeId |
+| 0x14130BE00 | CRemoveDivisionTemplateCommand::GetTypeId func_names 名 CRemoveDivisionTemplateCommand::GetTypeId |
+| 0x14130BE20 | CUpdateDivisionTemplateCommand::GetTypeId func_names 名 CUpdateDivisionTemplateCommand::GetTypeId |
+| 0x141357160 | CAddTaskForceTemplateCommand::GetTypeId func_names 名 CAddTaskForceTemplateCommand::GetTypeId |
+| 0x141357180 | CAutomateHomebaseForFleetCommand::GetTypeId func_names 名 CAutomateHomebaseForFleetCommand::GetTypeId |
+| 0x141357190 | CChangeNavalBaseRepairPriorityCommand::GetTypeId func_names 名 CChangeNavalBaseRepairPriorityCommand::GetTypeId |
+| 0x1413571A0 | CCreateFleetCommand::GetTypeId func_names 名 CCreateFleetCommand::GetTypeId |
+| 0x1413571B0 | CDisengageFromNavalCombatCommand::GetTypeId func_names 名 CDisengageFromNavalCombatCommand::GetTypeId |
+| 0x1413571D0 | CNavalMissionAddRegionCommand::GetTypeId func_names 名 CNavalMissionAddRegionCommand::GetTypeId |
+| 0x1413571E0 | CNavalMissionMassMoveCommand::GetTypeId func_names 名 CNavalMissionMassMoveCommand::GetTypeId |
+| 0x1413571F0 | CNavalMissionMoveCommand::GetTypeId func_names 名 CNavalMissionMoveCommand::GetTypeId |
+| 0x141357200 | CNavalMissionRemoveRegionCommand::GetTypeId func_names 名 CNavalMissionRemoveRegionCommand::GetTypeId |
+| 0x141357210 | CNavalMissionSetRegionsCommand::GetTypeId func_names 名 CNavalMissionSetRegionsCommand::GetTypeId |
+| 0x141357220 | CNavalMissionSetTargetCommand::GetTypeId func_names 名 CNavalMissionSetTargetCommand::GetTypeId |
+| 0x141357230 | CNavalMissionSetTypeCommand::GetTypeId func_names 名 CNavalMissionSetTypeCommand::GetTypeId |
+| 0x141357250 | CNavyCancelActivityCommand::GetTypeId func_names 名 CNavyCancelActivityCommand::GetTypeId |
+| 0x141357260 | CNavyCancelRefitCommand::GetTypeId func_names 名 CNavyCancelRefitCommand::GetTypeId |
+| 0x141357270 | CNavyCancelRepairCommand::GetTypeId func_names 名 CNavyCancelRepairCommand::GetTypeId |
+| 0x141357280 | CNavyClearAccidentReportsCommand::GetTypeId func_names 名 CNavyClearAccidentReportsCommand::GetTypeId |
+| 0x141357290 | CNavyDetachShipsAndMergeCommand::GetTypeId func_names 名 CNavyDetachShipsAndMergeCommand::GetTypeId |
+| 0x1413572A0 | CNavyDetachShipsAndRefitCommand::GetTypeId func_names 名 CNavyDetachShipsAndRefitCommand::GetTypeId |
+| 0x1413572B0 | CNavyDetachShipsAndRepairCommand::GetTypeId func_names 名 CNavyDetachShipsAndRepairCommand::GetTypeId |
+| 0x1413572D0 | CNavyRepairNowCommand::GetTypeId func_names 名 CNavyRepairNowCommand::GetTypeId |
+| 0x1413572E0 | CNavySetUnderwayReplenishmentCommand::GetTypeId func_names 名 CNavySetUnderwayReplenishmentCommand::GetTypeId |
+| 0x1413572F0 | CRemoveTaskForceTemplateCommand::GetTypeId func_names 名 CRemoveTaskForceTemplateCommand::GetTypeId |
+| 0x141357310 | CReorganizeShipsCommand::GetTypeId func_names 名 CReorganizeShipsCommand::GetTypeId |
+| 0x141357330 | CSetAsReserveFleetCommand::GetTypeId func_names 名 CSetAsReserveFleetCommand::GetTypeId |
+| 0x141357350 | CSetFleetCommand::GetTypeId func_names 名 CSetFleetCommand::GetTypeId |
+| 0x141357360 | CSetFleetHomeBaseCommand::GetTypeId func_names 名 CSetFleetHomeBaseCommand::GetTypeId |
+| 0x141357370 | CSetFleetIconAndColorCommand::GetTypeId func_names 名 CSetFleetIconAndColorCommand::GetTypeId |
+| 0x141357380 | CSetFleetNameCommand::GetTypeId func_names 名 CSetFleetNameCommand::GetTypeId |
+| 0x1413573A0 | CSetMaxAllowedRepairFactoriesCommand::GetTypeId func_names 名 CSetMaxAllowedRepairFactoriesCommand::GetTypeId |
+| 0x1413573B0 | CSetNavalBaseDisabledForRepairsStateCommand::GetTypeId func_names 名 CSetNavalBaseDisabledForRepairsStateCommand::GetTypeId |
+| 0x1413573D0 | CSetPrideOfTheFleetCommand::GetTypeId func_names 名 CSetPrideOfTheFleetCommand::GetTypeId |
+| 0x1413573E0 | CSetTaskForceAutoReinforcementCommand::GetTypeId func_names 名 CSetTaskForceAutoReinforcementCommand::GetTypeId |
+| 0x1413573F0 | CSetTaskForceCompositionRequirementsCommand::GetTypeId func_names 名 CSetTaskForceCompositionRequirementsCommand::GetTypeId |
+| 0x141357400 | CSetTaskForceIconAndColorCommand::GetTypeId func_names 名 CSetTaskForceIconAndColorCommand::GetTypeId |
+| 0x141368340 | CCancelMovementCommand::GetTypeId func_names 名 CCancelMovementCommand::GetTypeId |
+| 0x141368350 | CCancelRunningAwayCommand::GetTypeId func_names 名 CCancelRunningAwayCommand::GetTypeId |
+| 0x141368370 | CDeleteUnitCommand::GetTypeId func_names 名 CDeleteUnitCommand::GetTypeId |
+| 0x141368380 | CDeployArmyHqCommand::GetTypeId func_names 名 CDeployArmyHqCommand::GetTypeId |
+| 0x141368390 | CMassMoveCommand::GetTypeId func_names 名 CMassMoveCommand::GetTypeId |
+| 0x1413683A0 | CMergeArmiesCommand::GetTypeId func_names 名 CMergeArmiesCommand::GetTypeId |
+| 0x1413683B0 | CMergeNaviesCommand::GetTypeId func_names 名 CMergeNaviesCommand::GetTypeId |
+| 0x1413683C0 | CMoveCommand::GetTypeId func_names 名 CMoveCommand::GetTypeId |
+| 0x1413683D0 | CMoveShipsCommand::GetTypeId func_names 名 CMoveShipsCommand::GetTypeId |
+| 0x1413683F0 | CQueueUnitActionCommand::GetTypeId func_names 名 CQueueUnitActionCommand::GetTypeId |
+| 0x141368400 | CSetArmyFakeTemplateCommand::GetTypeId func_names 名 CSetArmyFakeTemplateCommand::GetTypeId |
+| 0x141368410 | CSetArmyTemplateCommand::GetTypeId func_names 名 CSetArmyTemplateCommand::GetTypeId |
+| 0x141368430 | CSetDivisionNameCommand::GetTypeId func_names 名 CSetDivisionNameCommand::GetTypeId |
+| 0x141368440 | CSetNavyEngagementCommand::GetTypeId func_names 名 CSetNavyEngagementCommand::GetTypeId |
+| 0x141368450 | CSetPendingReassignTargetCommand::GetTypeId func_names 名 CSetPendingReassignTargetCommand::GetTypeId |
+| 0x141368470 | CSetTheatreCommand::GetTypeId func_names 名 CSetTheatreCommand::GetTypeId |
+| 0x141368480 | CSetUnitNameCommand::GetTypeId func_names 名 CSetUnitNameCommand::GetTypeId |
+| 0x141368490 | CStrategicRedeploymentCommand::GetTypeId func_names 名 CStrategicRedeploymentCommand::GetTypeId |
+| 0x1413684A0 | CSupportAttackCommand::GetTypeId func_names 名 CSupportAttackCommand::GetTypeId |
+| 0x1413684B0 | CToggleStrategicDeploymentCommand::GetTypeId func_names 名 CToggleStrategicDeploymentCommand::GetTypeId |
+| 0x1413684C0 | CTransportUnitCommand::GetTypeId func_names 名 CTransportUnitCommand::GetTypeId |
+| 0x1413684D0 | CWithdrawArmyHqCommand::GetTypeId func_names 名 CWithdrawArmyHqCommand::GetTypeId |
+| 0x14163DD00 | CSelectBookmarkCommand::GetTypeId func_names 名 CSelectBookmarkCommand::GetTypeId |
+| 0x14184C9D0 | CAddNavalInvasionTargetCommand::GetTypeId func_names 名 CAddNavalInvasionTargetCommand::GetTypeId |
+| 0x14184C9E0 | CArmyGroupCommand::GetTypeId func_names 名 CArmyGroupCommand::GetTypeId |
+| 0x14184CA10 | CAssignToArmyGroupCommand::GetTypeId func_names 名 CAssignToArmyGroupCommand::GetTypeId |
+| 0x14184CA20 | CAutoMergeOrdersCommand::GetTypeId func_names 名 CAutoMergeOrdersCommand::GetTypeId |
+| 0x14184CA40 | CDeleteOrderGroupCommand::GetTypeId func_names 名 CDeleteOrderGroupCommand::GetTypeId |
+| 0x14184CA50 | CEditAreaDefenseStateCommand::GetTypeId func_names 名 CEditAreaDefenseStateCommand::GetTypeId |
+| 0x14184CA60 | CLearnTraitCommand::GetTypeId func_names 名 CLearnTraitCommand::GetTypeId |
+| 0x14184CA70 | CMoveArmiesInTheaterCommand::GetTypeId func_names 名 CMoveArmiesInTheaterCommand::GetTypeId |
+| 0x14184CA80 | CMoveArmyGroupInTheaterCommand::GetTypeId func_names 名 CMoveArmyGroupInTheaterCommand::GetTypeId |
+| 0x14184CA90 | COrderAddNewCompletePlanCommand::GetTypeId func_names 名 COrderAddNewCompletePlanCommand::GetTypeId |
+| 0x14184CAA0 | COrderAssignCommand::GetTypeId func_names 名 COrderAssignCommand::GetTypeId |
+| 0x14184CAC0 | COrderChildFrontRatioCommand::GetTypeId func_names 名 COrderChildFrontRatioCommand::GetTypeId |
+| 0x14184CAD0 | COrderConnectCommand::GetTypeId func_names 名 COrderConnectCommand::GetTypeId |
+| 0x14184CAE0 | COrderDeleteAllCommand::GetTypeId func_names 名 COrderDeleteAllCommand::GetTypeId |
+| 0x14184CB00 | COrderDeleteCommand::GetTypeId func_names 名 COrderDeleteCommand::GetTypeId |
+| 0x14184CB10 | COrderEditRootCommand::GetTypeId func_names 名 COrderEditRootCommand::GetTypeId |
+| 0x14184CB20 | COrderExecuteCommand::GetTypeId func_names 名 COrderExecuteCommand::GetTypeId |
+| 0x14184CB40 | COrderInsertFrontCommand::GetTypeId func_names 名 COrderInsertFrontCommand::GetTypeId |
+| 0x14184CB50 | COrderMembersFairSplitCommand::GetTypeId func_names 名 COrderMembersFairSplitCommand::GetTypeId |
+| 0x14184CB60 | COrderMergeRootsCommand::GetTypeId func_names 名 COrderMergeRootsCommand::GetTypeId |
+| 0x14184CB70 | COrderNewFallbackCommand::GetTypeId func_names 名 COrderNewFallbackCommand::GetTypeId |
+| 0x14184CB80 | COrderNewFrontCommand::GetTypeId func_names 名 COrderNewFrontCommand::GetTypeId |
+| 0x14184CB90 | COrderNewRootCommand::GetTypeId func_names 名 COrderNewRootCommand::GetTypeId |
+| 0x14184CBA0 | COrderReconnectCommand::GetTypeId func_names 名 COrderReconnectCommand::GetTypeId |
+| 0x14184CBC0 | COrderReorderChildFrontCommand::GetTypeId func_names 名 COrderReorderChildFrontCommand::GetTypeId |
+| 0x14184CBF0 | COrderReshapeCommand::GetTypeId func_names 名 COrderReshapeCommand::GetTypeId |
+| 0x14184CC00 | COrderSetCollapseCommand::GetTypeId func_names 名 COrderSetCollapseCommand::GetTypeId |
+| 0x14184CC10 | COrderSetInvasionSourceCommand::GetTypeId func_names 名 COrderSetInvasionSourceCommand::GetTypeId |
+| 0x14184CC20 | COrderSetParadropSourceCommand::GetTypeId func_names 名 COrderSetParadropSourceCommand::GetTypeId |
+| 0x14184CC40 | COrderSetPathCommand::GetTypeId func_names 名 COrderSetPathCommand::GetTypeId |
+| 0x14184CC50 | COrderSetTrainingCommand::GetTypeId func_names 名 COrderSetTrainingCommand::GetTypeId |
+| 0x14184CC60 | COrderUnassignCommand::GetTypeId func_names 名 COrderUnassignCommand::GetTypeId |
+| 0x14184CC80 | CRemoveFromArmyGroupCommand::GetTypeId func_names 名 CRemoveFromArmyGroupCommand::GetTypeId |
+| 0x14184CC90 | CRemoveNavalInvasionTargetCommand::GetTypeId func_names 名 CRemoveNavalInvasionTargetCommand::GetTypeId |
+| 0x14184CCA0 | CSetAreaDefenseSettingCommand::GetTypeId func_names 名 CSetAreaDefenseSettingCommand::GetTypeId |
+| 0x14184CCC0 | CSetFleetLeaderCommand::GetTypeId func_names 名 CSetFleetLeaderCommand::GetTypeId |
+| 0x14184CCD0 | CSetOrderGroupCohesionTypeCommand::GetTypeId func_names 名 CSetOrderGroupCohesionTypeCommand::GetTypeId |
+| 0x14184CCE0 | CSetOrderGroupExecutionTypeCommand::GetTypeId func_names 名 CSetOrderGroupExecutionTypeCommand::GetTypeId |
+| 0x14184CCF0 | CSetOrderGroupIconAndColorCommand::GetTypeId func_names 名 CSetOrderGroupIconAndColorCommand::GetTypeId |
+| 0x14184CD00 | CSetOrderGroupLeaderProximityCommand::GetTypeId func_names 名 CSetOrderGroupLeaderProximityCommand::GetTypeId |
+| 0x14184CD10 | CSetOrderGroupMotorizationCommand::GetTypeId func_names 名 CSetOrderGroupMotorizationCommand::GetTypeId |
+| 0x14184CD20 | CSetOrderGroupNameCommand::GetTypeId func_names 名 CSetOrderGroupNameCommand::GetTypeId |
+| 0x14184CD40 | CSetOrdersLinkCommand::GetTypeId func_names 名 CSetOrdersLinkCommand::GetTypeId |
+| 0x14184CD60 | CUpdateLeaderSeenAdvisorRolesCountCommand::GetTypeId func_names 名 CUpdateLeaderSeenAdvisorRolesCountCommand::GetTypeId |
+| 0x14184CD70 | CUpdateLeaderSeenTraitsCountCommand::GetTypeId func_names 名 CUpdateLeaderSeenTraitsCountCommand::GetTypeId |
+| 0x141947E30 | CAttachAirWingToArmyCommand::GetTypeId func_names 名 CAttachAirWingToArmyCommand::GetTypeId |
+| 0x141947E40 | CChangeAirGroupInsigniaCommand::GetTypeId func_names 名 CChangeAirGroupInsigniaCommand::GetTypeId |
+| 0x141947E60 | CDetachAirWingFromArmyCommand::GetTypeId func_names 名 CDetachAirWingFromArmyCommand::GetTypeId |
+| 0x141947E70 | CMoreGroundCrewsCommand::GetTypeId func_names 名 CMoreGroundCrewsCommand::GetTypeId |
+| 0x141947E80 | CMoveAirGroupAndAirTheatreToFreeCommand::GetTypeId func_names 名 CMoveAirGroupAndAirTheatreToFreeCommand::GetTypeId |
+| 0x141947E90 | CMoveAirWingAndAirGroupToAirTheatreCommand::GetTypeId func_names 名 CMoveAirWingAndAirGroupToAirTheatreCommand::GetTypeId |
+| 0x141947EA0 | CMoveAirWingToAirGroupCommand::GetTypeId func_names 名 CMoveAirWingToAirGroupCommand::GetTypeId |
+| 0x141947EB0 | CRenameAirGroupCommand::GetTypeId func_names 名 CRenameAirGroupCommand::GetTypeId |
+| 0x141947EC0 | CRenameAirTheatreCommand::GetTypeId func_names 名 CRenameAirTheatreCommand::GetTypeId |
+| 0x141947EE0 | CSetAirWingNameCommand::GetTypeId func_names 名 CSetAirWingNameCommand::GetTypeId |
+| 0x141947EF0 | CSetCarrierStickyMissionAreaCommand::GetTypeId func_names 名 CSetCarrierStickyMissionAreaCommand::GetTypeId |
+| 0x141947F00 | CSetQuickDeployPreferenceCommand::GetTypeId func_names 名 CSetQuickDeployPreferenceCommand::GetTypeId |
+| 0x141947F10 | CSetWingEquipmentNicheCommand::GetTypeId func_names 名 CSetWingEquipmentNicheCommand::GetTypeId |
+| 0x141947F20 | CSetWingReinforcementPreferenceCommand::GetTypeId func_names 名 CSetWingReinforcementPreferenceCommand::GetTypeId |
+| 0x141947F30 | CSetWingReinforcementPriorityCommand::GetTypeId func_names 名 CSetWingReinforcementPriorityCommand::GetTypeId |
+| 0x141947F40 | CStratAirCancelTransferCommand::GetTypeId func_names 名 CStratAirCancelTransferCommand::GetTypeId |
+| 0x141947F60 | CStratAirConsolidateCommand::GetTypeId func_names 名 CStratAirConsolidateCommand::GetTypeId |
+| 0x141947F70 | CStratAirDayNightCommand::GetTypeId func_names 名 CStratAirDayNightCommand::GetTypeId |
+| 0x141947F80 | CStratAirEnableMissionCommand::GetTypeId func_names 名 CStratAirEnableMissionCommand::GetTypeId |
+| 0x141947F90 | CStratAirMoveEquipmentCommand::GetTypeId func_names 名 CStratAirMoveEquipmentCommand::GetTypeId |
+| 0x141947FA0 | CStratAirMoveEquipmentToReservesCommand::GetTypeId func_names 名 CStratAirMoveEquipmentToReservesCommand::GetTypeId |
+| 0x141947FB0 | CStratAirSetMissionCommand::GetTypeId func_names 名 CStratAirSetMissionCommand::GetTypeId |
+| 0x141947FC0 | CStratAirSplitCommand::GetTypeId func_names 名 CStratAirSplitCommand::GetTypeId |
+| 0x141947FE0 | CToggleBombingPriorityCommand::GetTypeId func_names 名 CToggleBombingPriorityCommand::GetTypeId |
+| 0x141996C00 | CUpdateProfileBadgeCommand::GetTypeId func_names 名 CUpdateProfileBadgeCommand::GetTypeId |
+| 0x141998FB0 | CAddHumanCommand::GetTypeId func_names 名 CAddHumanCommand::GetTypeId |
+| 0x141998FC0 | CAddPlayerCommand::GetTypeId func_names 名 CAddPlayerCommand::GetTypeId |
+| 0x141998FD0 | CRemovePlayerCommand::GetTypeId func_names 名 CRemovePlayerCommand::GetTypeId |
+| 0x141998FE0 | CSetDLCsCommand::GetTypeId func_names 名 CSetDLCsCommand::GetTypeId |
+| 0x14199D210 | CSetIndustrialOrganisationTaskCommand::GetTypeId func_names 名 CSetIndustrialOrganisationTaskCommand::GetTypeId |
+| 0x1419A5990 | CCreateEquipmentVariantCommand::GetTypeId func_names 名 CCreateEquipmentVariantCommand::GetTypeId |
+| 0x1419A59A0 | CRenameEquipmentVariantCommand::GetTypeId func_names 名 CRenameEquipmentVariantCommand::GetTypeId |
+| 0x1419A59B0 | CSetAutoUpgradedEquipmentVariantCommand::GetTypeId func_names 名 CSetAutoUpgradedEquipmentVariantCommand::GetTypeId |
+| 0x1419A59C0 | CSetEquipmentVariantHighlightCommand::GetTypeId func_names 名 CSetEquipmentVariantHighlightCommand::GetTypeId |
+| 0x1419A59D0 | CSetEquipmentVariantNameListCommand::GetTypeId func_names 名 CSetEquipmentVariantNameListCommand::GetTypeId |
+| 0x1419A59E0 | CSetEquipmentVariantNicheIconCommand::GetTypeId func_names 名 CSetEquipmentVariantNicheIconCommand::GetTypeId |
+| 0x1419A5A00 | CSetEquipmentVariantOverrideSpriteCommand::GetTypeId func_names 名 CSetEquipmentVariantOverrideSpriteCommand::GetTypeId |
+| 0x1419A5A10 | CSetObsoleteEquipmentVariantCommand::GetTypeId func_names 名 CSetObsoleteEquipmentVariantCommand::GetTypeId |
+| 0x1419A5A20 | CSetUseDynamicVersionPositioningVariantCommand::GetTypeId func_names 名 CSetUseDynamicVersionPositioningVariantCommand::GetTypeId |
+| 0x1419A5A30 | CStockpiledEquipmentDeleteCommand::GetTypeId func_names 名 CStockpiledEquipmentDeleteCommand::GetTypeId |
+| 0x1419A5A40 | CUpdateEquipmentVariantCommand::GetTypeId func_names 名 CUpdateEquipmentVariantCommand::GetTypeId |
+| 0x141A28E30 | CBecomeSpyMasterCommand::GetTypeId func_names 名 CBecomeSpyMasterCommand::GetTypeId |
+| 0x141A28E40 | CDismissOperativeCommand::GetTypeId func_names 名 CDismissOperativeCommand::GetTypeId |
+| 0x141A28E50 | CHideDecryptionCommand::GetTypeId func_names 名 CHideDecryptionCommand::GetTypeId |
+| 0x141A28E60 | CIntelligenceAgencyCancelCreationCommand::GetTypeId func_names 名 CIntelligenceAgencyCancelCreationCommand::GetTypeId |
+| 0x141A28E70 | CIntelligenceAgencyCancelUpgradeCommand::GetTypeId func_names 名 CIntelligenceAgencyCancelUpgradeCommand::GetTypeId |
+| 0x141A28E80 | CIntelligenceAgencyCreationCommand::GetTypeId func_names 名 CIntelligenceAgencyCreationCommand::GetTypeId |
+| 0x141A28E90 | CIntelligenceAgencyUpgradeCommand::GetTypeId func_names 名 CIntelligenceAgencyUpgradeCommand::GetTypeId |
+| 0x141A28EB0 | CSetIntelligenceAgencyLogoCommand::GetTypeId func_names 名 CSetIntelligenceAgencyLogoCommand::GetTypeId |
+| 0x141A28EC0 | CSetIntelligenceAgencyNameCommand::GetTypeId func_names 名 CSetIntelligenceAgencyNameCommand::GetTypeId |
+| 0x141A28ED0 | CSetIntelligenceAgencyRandomHistoricalNameCommand::GetTypeId func_names 名 CSetIntelligenceAgencyRandomHistoricalNameCommand::GetTypeId |
+| 0x141A28EE0 | CSetOperativeCodenameCommand::GetTypeId func_names 名 CSetOperativeCodenameCommand::GetTypeId |
+| 0x141A28EF0 | CSetOperativeMissionCommand::GetTypeId func_names 名 CSetOperativeMissionCommand::GetTypeId |
+| 0x141A28F00 | CStartStopDecryptionCommand::GetTypeId func_names 名 CStartStopDecryptionCommand::GetTypeId |
+| 0x141A74770 | CAiDiscardForceConcentrationTargetCommand::GetTypeId func_names 名 CAiDiscardForceConcentrationTargetCommand::GetTypeId |
+| 0x141A74790 | CAiStoreForceConcentrationTargetCommand::GetTypeId func_names 名 CAiStoreForceConcentrationTargetCommand::GetTypeId |
+| 0x141A747A0 | CAiStoreTotalWantedNrDivisionsCommand::GetTypeId func_names 名 CAiStoreTotalWantedNrDivisionsCommand::GetTypeId |
+| 0x141A7F640 | CAssignToTheaterGroupCommand::GetTypeId func_names 名 CAssignToTheaterGroupCommand::GetTypeId |
+| 0x141A7F650 | CDisbandTheaterGroupCommand::GetTypeId func_names 名 CDisbandTheaterGroupCommand::GetTypeId |
+| 0x141A7F660 | CReorderNavyTheaterGroupCommand::GetTypeId func_names 名 CReorderNavyTheaterGroupCommand::GetTypeId |
+| 0x141A7F680 | CSetNavyTheaterGroupForCommand::GetTypeId func_names 名 CSetNavyTheaterGroupForCommand::GetTypeId |
+| 0x141A7F690 | CSetNavyTheaterGroupImportantCommand::GetTypeId func_names 名 CSetNavyTheaterGroupImportantCommand::GetTypeId |
+| 0x141A7F6A0 | CSetNavyTheaterGroupNameCommand::GetTypeId func_names 名 CSetNavyTheaterGroupNameCommand::GetTypeId |
+| 0x141A7F6B0 | CSetTheaterGroupNameCommand::GetTypeId func_names 名 CSetTheaterGroupNameCommand::GetTypeId |
+| 0x141A7F6C0 | CSetTheaterGroupPriorityCommand::GetTypeId func_names 名 CSetTheaterGroupPriorityCommand::GetTypeId |
+| 0x141B9FFC0 | CReorderTemplateListCommand::GetTypeId func_names 名 CReorderTemplateListCommand::GetTypeId |
+| 0x141B9FFD0 | CSetObsoleteDivisionTemplateCommand::GetTypeId func_names 名 CSetObsoleteDivisionTemplateCommand::GetTypeId |
+| 0x141BA37C0 | CAddConveyorLineCommand::GetTypeId func_names 名 CAddConveyorLineCommand::GetTypeId |
+| 0x141BA37D0 | CChangeConveyorPositionCommand::GetTypeId func_names 名 CChangeConveyorPositionCommand::GetTypeId |
+| 0x141BA37E0 | CChangeConveyorTemplateCommand::GetTypeId func_names 名 CChangeConveyorTemplateCommand::GetTypeId |
+| 0x141BA37F0 | CCollapseConveyorCommand::GetTypeId func_names 名 CCollapseConveyorCommand::GetTypeId |
+| 0x141BA3810 | CCreateConveyorExtendedCommand::GetTypeId func_names 名 CCreateConveyorExtendedCommand::GetTypeId |
+| 0x141BA3820 | CDeployConveyorCommand::GetTypeId func_names 名 CDeployConveyorCommand::GetTypeId |
+| 0x141BA3830 | CDeployConveyorLineCommand::GetTypeId func_names 名 CDeployConveyorLineCommand::GetTypeId |
+| 0x141BA3840 | CRemoveConveyorCommand::GetTypeId func_names 名 CRemoveConveyorCommand::GetTypeId |
+| 0x141BA3850 | CRemoveConveyorLineCommand::GetTypeId func_names 名 CRemoveConveyorLineCommand::GetTypeId |
+| 0x141BA3860 | CSetConveyorGroupCommand::GetTypeId func_names 名 CSetConveyorGroupCommand::GetTypeId |
+| 0x141BA3870 | CSetConveyorLocationCommand::GetTypeId func_names 名 CSetConveyorLocationCommand::GetTypeId |
+| 0x141BA3890 | CSetConveyorPriorityCommand::GetTypeId func_names 名 CSetConveyorPriorityCommand::GetTypeId |
+| 0x141BA38A0 | CSetConveyorSeriesCommand::GetTypeId func_names 名 CSetConveyorSeriesCommand::GetTypeId |
+| 0x141BA38B0 | CSetDeploymentLineNameCommand::GetTypeId func_names 名 CSetDeploymentLineNameCommand::GetTypeId |
+| 0x141BA56C0 | CCreateTradeCommand::GetTypeId func_names 名 CCreateTradeCommand::GetTypeId |
+| 0x141BBFE50 | CExecuteButtonCommand::GetTypeId func_names 名 CExecuteButtonCommand::GetTypeId |
+| 0x141E53BE0 | CDonePeaceConferenceCommand::GetTypeId func_names 名 CDonePeaceConferenceCommand::GetTypeId |
+| 0x141E53BF0 | CEndTurnPeaceConferenceCommand::GetTypeId func_names 名 CEndTurnPeaceConferenceCommand::GetTypeId |
+| 0x141E53C00 | CPassPeaceConferenceCommand::GetTypeId func_names 名 CPassPeaceConferenceCommand::GetTypeId |
+| 0x141E74860 | CReorderPinnedStrategicRegionCommand::GetTypeId func_names 名 CReorderPinnedStrategicRegionCommand::GetTypeId |
+| 0x141E74880 | CTogglePinnedStrategicRegionCommand::GetTypeId func_names 名 CTogglePinnedStrategicRegionCommand::GetTypeId |
+| 0x141EF4080 | CAbortDismantleFacilityCommand::GetTypeId func_names 名 CAbortDismantleFacilityCommand::GetTypeId |
+| 0x141EF4090 | CAttachScientistCommand::GetTypeId func_names 名 CAttachScientistCommand::GetTypeId |
+| 0x141EF40A0 | CDismantleFacilityCommand::GetTypeId func_names 名 CDismantleFacilityCommand::GetTypeId |
+| 0x141EF40B0 | CPrototypeRewardOptionCommand::GetTypeId func_names 名 CPrototypeRewardOptionCommand::GetTypeId |
+| 0x141EF40D0 | CResetUnreadPrototypeRewardsCounterCommand::GetTypeId func_names 名 CResetUnreadPrototypeRewardsCounterCommand::GetTypeId |
+| 0x141EF40E0 | CStartProjectCommand::GetTypeId func_names 名 CStartProjectCommand::GetTypeId |
+| 0x141EF40F0 | CStopProjectCommand::GetTypeId func_names 名 CStopProjectCommand::GetTypeId |
+| 0x141EF4100 | CUnattachScientistCommand::GetTypeId func_names 名 CUnattachScientistCommand::GetTypeId |
+| 0x141337AF0 | CChatCommand::GetTypeId func_names 名 CChatCommand::GetTypeId |
+| 0x141337B00 | CChatNewChannelCommand::GetTypeId func_names 名 CChatNewChannelCommand::GetTypeId |
+| 0x141337B20 | CChatSyncAllCommand::GetTypeId func_names 名 CChatSyncAllCommand::GetTypeId |
+| 0x141337B30 | CChatUserJoinedChannelCommand::GetTypeId func_names 名 CChatUserJoinedChannelCommand::GetTypeId |
+| 0x141337B40 | CChatUserJoinedCommand::GetTypeId func_names 名 CChatUserJoinedCommand::GetTypeId |
+| 0x141337B60 | CChatUserLeftCommand::GetTypeId func_names 名 CChatUserLeftCommand::GetTypeId |
+| 0x14072DE80 | CCommand::GetTmpA func_names 名 CCommand::GetTmpA |
+| 0x14226A100 | CCommand::GetTmpB func_names 名 CCommand::GetTmpB |
+| 0x141236960 | CCommand::SetTmpB func_names 名 CCommand::SetTmpB |
+
+#### 4.33.29 命令子类补遗（1468 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.33.30 命令子类补遗（404 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419A09F0 | （无名） 体设 CCreateEquipmentVariantCommand::vftable（RTTI 名） |
+| 0x14116C200 | CRequestExpeditionariesCommand::PayloadReader func_names 名 CRequestExpeditionariesCommand::PayloadReader |
+| 0x14116DD00 | CTriggerAbilityCommand::PayloadReader func_names 名 CTriggerAbilityCommand::PayloadReader |
+| 0x14135B270 | CReorganizeShipsCommand::PayloadReader func_names 名 CReorganizeShipsCommand::PayloadReader |
+| 0x141A801D0 | CSetNavyTheaterGroupForCommand::PayloadReader func_names 名 CSetNavyTheaterGroupForCommand::PayloadReader |
+| 0x14183B250 | （无名） 体设 COrderUnassignCommand::vftable（RTTI 名） |
+| 0x141144450 | （无名） 体设 CDispatchNavalCombatResultsCommand::vftable（RTTI 名） |
+| 0x1411458D0 | （无名） 体设 CProductionLineInterfaceToggleExpandCommand::vftable（RTTI 名） |
+| 0x141838F80 | （无名） 体设 COrderGroupCommand::vftable（RTTI 名） |
+| 0x14133A040 | CChatUserJoinedCommand::PayloadReader func_names 名 CChatUserJoinedCommand::PayloadReader |
+| 0x141BA5730 | CCreateTradeCommand::PayloadReader func_names 名 CCreateTradeCommand::PayloadReader |
+| 0x14116DA60 | CSetXORResearchCommand::PayloadReader func_names 名 CSetXORResearchCommand::PayloadReader |
+| 0x14183AD70 | （无名） 体设 COrderSetParadropSourceCommand::vftable（RTTI 名） |
+| 0x141837770 | （无名） 体设 CMoveArmiesInTheaterCommand::vftable（RTTI 名） |
+| 0x14116B000 | CGiveMedalCommand::PayloadReader func_names 名 CGiveMedalCommand::PayloadReader |
+| 0x1419A0FF0 | （无名） 体设 CSetEquipmentVariantNameListCommand::vftable（RTTI 名） |
+| 0x14116E080 | CUnlockResearchCommand::PayloadReader func_names 名 CUnlockResearchCommand::PayloadReader |
+| 0x14116A670 | CDeployAirWingCommand::PayloadReader func_names 名 CDeployAirWingCommand::PayloadReader |
+| 0x14135A160 | CCreateFleetCommand::PayloadReader func_names 名 CCreateFleetCommand::PayloadReader |
+| 0x1411440C0 | （无名） 体设 CDeployAirWingCommand::vftable（RTTI 名） |
+| 0x141147C30 | （无名） 体设 CSetShipRefitDeploymentTargetCommand::vftable（RTTI 名） |
+| 0x1418391A0 | （无名） 体设 COrderGroupCommand::vftable（RTTI 名） |
+| 0x141349A50 | （无名） 体设 CSetAsReserveFleetCommand::vftable（RTTI 名） |
+| 0x1419A04B0 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x141348B40 | （无名） 体设 CNavyDetachShipsAndRefitCommand::vftable（RTTI 名） |
+| 0x14184F850 | CArmyGroupCommand::PayloadReader func_names 名 CArmyGroupCommand::PayloadReader |
+| 0x141145210 | （无名） 体设 CIgnoreTargetedDecisionCommand::vftable（RTTI 名） |
+| 0x14116C760 | CSelectTargetedDecisionCommand::PayloadReader func_names 名 CSelectTargetedDecisionCommand::PayloadReader |
+| 0x141838720 | （无名） 体设 COrderChildFrontRatioCommand::vftable（RTTI 名） |
+| 0x14116D870 | CSetTimedActivityDistributionPriorityCommand::PayloadReader func_names 名 CSetTimedActivityDistributionPriorityCommand::PayloadReader |
+| 0x141FB5030 | （无名） 体设 CSetIndustrialOrgTraitsInQueueCommand::vftable（RTTI 名） |
+| 0x14136CCC0 | CMoveShipsCommand::PayloadReader func_names 名 CMoveShipsCommand::PayloadReader |
+| 0x1419A28F0 | CUpdateEquipmentVariantCommand::Clone func_names 名 CUpdateEquipmentVariantCommand::Clone |
+| 0x140DE5E70 | （无名） 体设 CClientOutOfSyncCommand::vftable（RTTI 名） |
+| 0x141331580 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x141A7FEC0 | CAssignToTheaterGroupCommand::PayloadReader func_names 名 CAssignToTheaterGroupCommand::PayloadReader |
+| 0x1419402E0 | （无名） 体设 CDeleteAirWingCommand::vftable（RTTI 名） |
+| 0x141850460 | COrderAssignCommand::PayloadReader func_names 名 COrderAssignCommand::PayloadReader |
+| 0x141BA0F80 | （无名） 体设 CChangeConveyorTemplateCommand::vftable（RTTI 名） |
+| 0x141EF3200 | （无名） 体设 CUnattachScientistCommand::vftable（RTTI 名） |
+| 0x141169D10 | CChangeCountryControllerCommand::PayloadReader func_names 名 CChangeCountryControllerCommand::PayloadReader |
+| 0x1419A7120 | CUpdateEquipmentVariantCommand::PayloadReader func_names 名 CUpdateEquipmentVariantCommand::PayloadReader |
+| 0x1411483D0 | （无名） 体设 CTriggerAbilityCommand::vftable（RTTI 名） |
+| 0x14116CA60 | CSetContinuousFocusCommand::PayloadReader func_names 名 CSetContinuousFocusCommand::PayloadReader |
+| 0x141146840 | （无名） 体设 CRequestExpeditionariesCommand::vftable（RTTI 名） |
+| 0x141850600 | COrderBlockSectionsCommand::PayloadReader func_names 名 COrderBlockSectionsCommand::PayloadReader |
+| 0x14199E4A0 | CSetIndustrialOrganisationTaskCommand::PayloadReader func_names 名 CSetIndustrialOrganisationTaskCommand::PayloadReader |
+| 0x141949D10 | CStratAirMoveEquipmentCommand::PayloadReader func_names 名 CStratAirMoveEquipmentCommand::PayloadReader |
+| 0x14183A210 | （无名） 体设 COrderReconnectCommand::vftable（RTTI 名） |
+| 0x141837450 | （无名） 体设 CEditAreaDefenseStateCommand::vftable（RTTI 名） |
+| 0x140449AF0 | CIsHighCommand::GetDesc func_names 名 CIsHighCommand::GetDesc |
+| 0x141940780 | （无名） 体设 CDetachAirWingFromArmyCommand::vftable（RTTI 名） |
+| 0x141837570 | （无名） 体设 CEditAreaDefenseStateCommand::vftable（RTTI 名） |
+| 0x1411446C0 | （无名） 体设 CDispatchNavalCombatResultsCommand::vftable（RTTI 名） |
+| 0x14183A980 | （无名） 体设 COrderReshapeCommand::vftable（RTTI 名） |
+| 0x141838D70 | （无名） 体设 COrderEditRootCommand::vftable（RTTI 名） |
+| 0x141169660 | CAddProductionLineCommand::PayloadReader func_names 名 CAddProductionLineCommand::PayloadReader |
+| 0x1419A77C0 | CCreateEquipmentVariantCommand::PayloadWriter func_names 名 CCreateEquipmentVariantCommand::PayloadWriter |
+| 0x141949300 | CMoveAirWingToAirGroupCommand::PayloadReader func_names 名 CMoveAirWingToAirGroupCommand::PayloadReader |
+| 0x141949ED0 | CStratAirMoveEquipmentToReservesCommand::PayloadReader func_names 名 CStratAirMoveEquipmentToReservesCommand::PayloadReader |
+| 0x141E53910 | CEndTurnPeaceConferenceCommand::Clone func_names 名 CEndTurnPeaceConferenceCommand::Clone |
+| 0x141346FA0 | （无名） 体设 CNavalMissionSetRegionsCommand::vftable（RTTI 名） |
+| 0x14134A150 | （无名） 体设 CSetFleetIconAndColorCommand::vftable（RTTI 名） |
+| 0x14136D940 | CMassMoveCommand::PayloadWriter func_names 名 CMassMoveCommand::PayloadWriter |
+| 0x141146BF0 | （无名） 体设 CSetCountryGarrisonTemplateCommand::vftable（RTTI 名） |
+| 0x14135B590 | CSetAsReserveFleetCommand::PayloadReader func_names 名 CSetAsReserveFleetCommand::PayloadReader |
+| 0x14134A050 | （无名） 体设 CSetFleetHomeBaseCommand::vftable（RTTI 名） |
+| 0x141362E90 | CMassMoveCommand::Clone func_names 名 CMassMoveCommand::Clone |
+| 0x14183E350 | COrderNewFrontCommand::Clone func_names 名 COrderNewFrontCommand::Clone |
+| 0x14183D780 | COrderAddNewCompletePlanCommand::Clone func_names 名 COrderAddNewCompletePlanCommand::Clone |
+| 0x14116E390 | CUpgradeDivisionOfficerCommand::PayloadReader func_names 名 CUpgradeDivisionOfficerCommand::PayloadReader |
+| 0x1419A1DE0 | CCreateEquipmentVariantCommand::[0] vtable 槽 CCreateEquipmentVariantCommand::[0]（func_names RTTI 名） |
+| 0x14135BB80 | CSetNavalRegionAccessCommand::PayloadReader func_names 名 CSetNavalRegionAccessCommand::PayloadReader |
+| 0x141856390 | CArmyGroupCommand::PayloadWriter func_names 名 CArmyGroupCommand::PayloadWriter |
+| 0x14114B2F0 | CDeployAirWingCommand::Clone func_names 名 CDeployAirWingCommand::Clone |
+| 0x141146A90 | （无名） 体设 CSetArmyLeaderPreferredTacticCommand::vftable（RTTI 名） |
+| 0x1411438C0 | （无名） 体设 CAssignAceCommand::vftable（RTTI 名） |
+| 0x14183B9A0 | （无名） 体设 CRemoveNavalInvasionTargetCommand::vftable（RTTI 名） |
+| 0x1419A2150 | CUpdateEquipmentVariantCommand::[0] vtable 槽 CUpdateEquipmentVariantCommand::[0]（func_names RTTI 名） |
+| 0x141339E20 | CChatCommand::PayloadReader func_names 名 CChatCommand::PayloadReader |
+| 0x14183FA60 | （无名） 体设 CArmyGroupCommand::vftable（RTTI 名） |
+| 0x14114BA00 | CIgnoreTargetedDecisionCommand::Clone func_names 名 CIgnoreTargetedDecisionCommand::Clone |
+| 0x141941470 | （无名） 体设 CStratAirEnableMissionCommand::vftable（RTTI 名） |
+| 0x1419A12B0 | （无名） 体设 CSetEquipmentVariantOverrideModelCommand::vftable（RTTI 名） |
+| 0x141A25FF0 | CSetOperativeMissionCommand::Clone func_names 名 CSetOperativeMissionCommand::Clone |
+| 0x1419A0E30 | （无名） 体设 CSetAutoUpgradedEquipmentVariantCommand::vftable（RTTI 名） |
+| 0x1419A0F10 | （无名） 体设 CSetEquipmentVariantHighlightCommand::vftable（RTTI 名） |
+| 0x141A7D8C0 | （无名） 体设 CSetNavyTheaterGroupNameCommand::vftable（RTTI 名） |
+| 0x1419A0D40 | （无名） 体设 CRenameEquipmentVariantCommand::vftable（RTTI 名） |
+| 0x141A7DEB0 | CAssignToTheaterGroupCommand::Clone func_names 名 CAssignToTheaterGroupCommand::Clone |
+| 0x141A7DAA0 | （无名） 体设 CSetTheaterGroupPriorityCommand::vftable（RTTI 名） |
+| 0x141837970 | （无名） 体设 CMoveArmyGroupInTheaterCommand::vftable（RTTI 名） |
+| 0x141145D50 | （无名） 体设 CRemoveAdvisorCommand::vftable（RTTI 名） |
+| 0x141146230 | （无名） 体设 CRemoveConstructionCommand::vftable（RTTI 名） |
+| 0x14134A250 | （无名） 体设 CSetFleetNameCommand::vftable（RTTI 名） |
+| 0x141A7D560 | （无名） 体设 CReorderTheatersCommand::vftable（RTTI 名） |
+| 0x14116B3B0 | CIgnoreTargetedDecisionCommand::PayloadReader func_names 名 CIgnoreTargetedDecisionCommand::PayloadReader |
+| 0x14116E710 | CIgnoreTargetedDecisionCommand::SDecisionData::Reader func_names 名 CIgnoreTargetedDecisionCommand::SDecisionData::Reader |
+| 0x141EF2F00 | （无名） 体设 CResetUnreadPrototypeRewardsCounterCommand::vftable（RTTI 名） |
+| 0x1411485F0 | （无名） 体设 CUpgradeShipCaptainCommand::vftable（RTTI 名） |
+| 0x141EF2C60 | （无名） 体设 CDismantleFacilityCommand::vftable（RTTI 名） |
+| 0x14183EAB0 | COrderSetInvasionSourceCommand::Clone func_names 名 COrderSetInvasionSourceCommand::Clone |
+| 0x140DE69D0 | CClientOutOfSyncCommand::Clone func_names 名 CClientOutOfSyncCommand::Clone |
+| 0x14135AE00 | CNavyDetachShipsAndRefitCommand::PayloadReader func_names 名 CNavyDetachShipsAndRefitCommand::PayloadReader |
+| 0x1411699A0 | CAmendIncomingLendLeaseActionCommand::PayloadReader func_names 名 CAmendIncomingLendLeaseActionCommand::PayloadReader |
+| 0x1419413D0 | （无名） 体设 CStratAirEnableMissionCommand::vftable（RTTI 名） |
+| 0x1419A2680 | CSetEquipmentVariantOverrideSpriteCommand::Clone func_names 名 CSetEquipmentVariantOverrideSpriteCommand::Clone |
+| 0x14134C060 | CNavalMissionMassMoveCommand::Clone func_names 名 CNavalMissionMassMoveCommand::Clone |
+| 0x140DE6B60 | CPostHotJoinCommand::Clone func_names 名 CPostHotJoinCommand::Clone |
+| 0x1419A2AA0 | （无名） 体设 CCreateEquipmentVariantCommand::vftable（RTTI 名） |
+| 0x14183DEB0 | COrderGroupCommand::Clone func_names 名 COrderGroupCommand::Clone |
+| 0x14116F650 | CDeployAirWingCommand::PayloadWriter func_names 名 CDeployAirWingCommand::PayloadWriter |
+| 0x14135A8D0 | CNavalMoveCommand::PayloadReader func_names 名 CNavalMoveCommand::PayloadReader |
+| 0x141363620 | CSetDivisionNameCommand::Clone func_names 名 CSetDivisionNameCommand::Clone |
+| 0x140CEE920 | CSetCountryControllerTypeCommand::PayloadReader func_names 名 CSetCountryControllerTypeCommand::PayloadReader |
+| 0x141E53600 | （无名） 体设 CEndTurnPeaceConferenceCommand::vftable（RTTI 名） |
+| 0x14135AC30 | CNavyClearAccidentReportsCommand::PayloadReader func_names 名 CNavyClearAccidentReportsCommand::PayloadReader |
+| 0x14183ED20 | COrderSetPathCommand::Clone func_names 名 COrderSetPathCommand::Clone |
+| 0x141363C50 | CTransportUnitCommand::Clone func_names 名 CTransportUnitCommand::Clone |
+| 0x140F29E30 | CReserveOperativeForOperationCommand::Clone func_names 名 CReserveOperativeForOperationCommand::Clone |
+| 0x14134CC40 | CNavyRepairModeCommand::Clone func_names 名 CNavyRepairModeCommand::Clone |
+| 0x14183EEA0 | COrderUnassignCommand::Clone func_names 名 COrderUnassignCommand::Clone |
+| 0x14134C5B0 | CNavalMoveCommand::Clone func_names 名 CNavalMoveCommand::Clone |
+| 0x14116B790 | CProductionLineInterfaceToggleExpandAllCommand::PayloadReader func_names 名 CProductionLineInterfaceToggleExpandAllCommand::PayloadReader |
+| 0x141A25F40 | CSetOperativeCodenameCommand::Clone func_names 名 CSetOperativeCodenameCommand::Clone |
+| 0x1411492E0 | CCreateFactionCommand::[0] vtable 槽 CCreateFactionCommand::[0]（func_names RTTI 名） |
+| 0x14114A460 | CAddConstructionCommand::Clone func_names 名 CAddConstructionCommand::Clone |
+| 0x14183E940 | COrderReshapeCommand::Clone func_names 名 COrderReshapeCommand::Clone |
+| 0x141363A40 | CStrategicRedeploymentCommand::Clone func_names 名 CStrategicRedeploymentCommand::Clone |
+| 0x14134C150 | CNavalMissionMoveCommand::Clone func_names 名 CNavalMissionMoveCommand::Clone |
+| 0x14183D330 | CCreateAreaDefenseCommand::Clone func_names 名 CCreateAreaDefenseCommand::Clone |
+| 0x14116BD10 | CRemoveAllProductionLineCommand::PayloadReader func_names 名 CRemoveAllProductionLineCommand::PayloadReader |
+| 0x14114CE40 | CSetDefaultCountryOccupationPolicyCommand::Clone func_names 名 CSetDefaultCountryOccupationPolicyCommand::Clone |
+| 0x140E8EB60 | CRailwayGunSetNameCommand::Clone func_names 名 CRailwayGunSetNameCommand::Clone |
+| 0x14134C300 | CNavalMissionSetRegionsCommand::Clone func_names 名 CNavalMissionSetRegionsCommand::Clone |
+| 0x14134C9C0 | CNavyDetachShipsAndMergeCommand::Clone func_names 名 CNavyDetachShipsAndMergeCommand::Clone |
+| 0x14114BE80 | CProductionLineInterfaceToggleExpandCommand::Clone func_names 名 CProductionLineInterfaceToggleExpandCommand::Clone |
+| 0x1419436E0 | CSetWingEquipmentNicheCommand::Clone func_names 名 CSetWingEquipmentNicheCommand::Clone |
+| 0x1413636E0 | CSetNavyEngagementCommand::Clone func_names 名 CSetNavyEngagementCommand::Clone |
+| 0x1413634C0 | CSetArmyTemplateCommand::Clone func_names 名 CSetArmyTemplateCommand::Clone |
+| 0x14184FEF0 | CEditAreaDefenseStateCommand::PayloadReader func_names 名 CEditAreaDefenseStateCommand::PayloadReader |
+| 0x141363070 | CMergeNaviesCommand::Clone func_names 名 CMergeNaviesCommand::Clone |
+| 0x1401D26D0 | CClientPingCommand::Clone func_names 名 CClientPingCommand::Clone |
+| 0x14114B7E0 | CGiveMedalCommand::Clone func_names 名 CGiveMedalCommand::Clone |
+| 0x14183DD60 | COrderEditRootCommand::Clone func_names 名 COrderEditRootCommand::Clone |
+| 0x140DB62D0 | CAddIndustrialOrgTraitToQueueCommand::Clone func_names 名 CAddIndustrialOrgTraitToQueueCommand::Clone |
+| 0x14194A140 | CStratAirTransferCommand::PayloadReader func_names 名 CStratAirTransferCommand::PayloadReader |
+| 0x14114D620 | CSetProductionLinePriorityCommand::Clone func_names 名 CSetProductionLinePriorityCommand::Clone |
+| 0x14114C140 | CRemoveAllConstructionCommand::Clone func_names 名 CRemoveAllConstructionCommand::Clone |
+| 0x141942E90 | CDetachAirWingFromArmyCommand::Clone func_names 名 CDetachAirWingFromArmyCommand::Clone |
+| 0x14114DBD0 | CSetTimedActivityDistributionPriorityCommand::Clone func_names 名 CSetTimedActivityDistributionPriorityCommand::Clone |
+| 0x14134C690 | CNavyCancelActivityCommand::Clone func_names 名 CNavyCancelActivityCommand::Clone |
+| 0x141A73E40 | CAiStoreForceConcentrationTargetCommand::Clone func_names 名 CAiStoreForceConcentrationTargetCommand::Clone |
+| 0x14135D580 | CSetAsReserveFleetCommand::PayloadWriter func_names 名 CSetAsReserveFleetCommand::PayloadWriter |
+| 0x141A73EE0 | CAiStoreTotalWantedNrDivisionsCommand::Clone func_names 名 CAiStoreTotalWantedNrDivisionsCommand::Clone |
+| 0x140DE6850 | CCheckSyncCommand::Clone func_names 名 CCheckSyncCommand::Clone |
+| 0x14134DAB0 | CSetTaskForceIconAndColorCommand::Clone func_names 名 CSetTaskForceIconAndColorCommand::Clone |
+| 0x141850350 | COrderAddNewCompletePlanCommand::PayloadReader func_names 名 COrderAddNewCompletePlanCommand::PayloadReader |
+| 0x14114D830 | CSetShipRefitDeploymentTargetCommand::Clone func_names 名 CSetShipRefitDeploymentTargetCommand::Clone |
+| 0x14199C5D0 | CSetIndustrialOrganisationTaskCommand::Clone func_names 名 CSetIndustrialOrganisationTaskCommand::Clone |
+| 0x14183E6A0 | COrderReorderChildFrontCommand::Clone func_names 名 COrderReorderChildFrontCommand::Clone |
+| 0x14183DA60 | COrderChildFrontRatioCommand::Clone func_names 名 COrderChildFrontRatioCommand::Clone |
+| 0x14183E1B0 | COrderMergeRootsCommand::Clone func_names 名 COrderMergeRootsCommand::Clone |
+| 0x141347660 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x141A7DB80 | （无名） 体设 CAssignToTheaterGroupCommand::vftable（RTTI 名） |
+| 0x141BA5330 | CCreateTradeCommand::Clone func_names 名 CCreateTradeCommand::Clone |
+| 0x14183F180 | CSetAreaDefenseSettingCommand::Clone func_names 名 CSetAreaDefenseSettingCommand::Clone |
+| 0x14114D6F0 | CSetResearchCommand::Clone func_names 名 CSetResearchCommand::Clone |
+| 0x1419975B0 | （无名） 体设 CAddHumanCommand::vftable（RTTI 名） |
+| 0x14116BF50 | CReplaceAdvisorCommand::PayloadReader func_names 名 CReplaceAdvisorCommand::PayloadReader |
+| 0x14134D4B0 | CSetFleetIconAndColorCommand::Clone func_names 名 CSetFleetIconAndColorCommand::Clone |
+| 0x14114AEA0 | CChangeProductionLineNamePriorityCommand::Clone func_names 名 CChangeProductionLineNamePriorityCommand::Clone |
+| 0x14116F530 | CCreateFactionCommand::PayloadWriter func_names 名 CCreateFactionCommand::PayloadWriter |
+| 0x1418501B0 | CMoveArmiesInTheaterCommand::PayloadReader func_names 名 CMoveArmiesInTheaterCommand::PayloadReader |
+| 0x141A807F0 | CSetNavyTheaterGroupForCommand::PayloadWriter func_names 名 CSetNavyTheaterGroupForCommand::PayloadWriter |
+| 0x14114CDA0 | CSetCountryGarrisonTemplateCommand::Clone func_names 名 CSetCountryGarrisonTemplateCommand::Clone |
+| 0x14114AE10 | CChangeCountryControllerCommand::Clone func_names 名 CChangeCountryControllerCommand::Clone |
+| 0x14183EC80 | COrderSetParadropTargetCommand::Clone func_names 名 COrderSetParadropTargetCommand::Clone |
+| 0x141EF3520 | CPrototypeRewardOptionCommand::Clone func_names 名 CPrototypeRewardOptionCommand::Clone |
+| 0x141BBFBF0 | CExecuteButtonCommand::Clone func_names 名 CExecuteButtonCommand::Clone |
+| 0x141148320 | （无名） 体设 CTriggerAbilityCommand::vftable（RTTI 名） |
+| 0x14114DE10 | CUnlockResearchCommand::Clone func_names 名 CUnlockResearchCommand::Clone |
+| 0x140DB6710 | CSetDesignTeamCommand::Clone func_names 名 CSetDesignTeamCommand::Clone |
+| 0x140F29EF0 | CSetOperationAutoCommenceCommand::Clone func_names 名 CSetOperationAutoCommenceCommand::Clone |
+| 0x140F29F90 | CSetOperationAutoRepeatCommand::Clone func_names 名 CSetOperationAutoRepeatCommand::Clone |
+| 0x141A260F0 | CStartStopDecryptionCommand::Clone func_names 名 CStartStopDecryptionCommand::Clone |
+| 0x14114D790 | CSetScorchedStateCommand::Clone func_names 名 CSetScorchedStateCommand::Clone |
+| 0x14114C3D0 | CRemoveIdeaCommand::Clone func_names 名 CRemoveIdeaCommand::Clone |
+| 0x141362D60 | CDeleteUnitCommand::Clone func_names 名 CDeleteUnitCommand::Clone |
+| 0x140DE6300 | CClientOutOfSyncCommand::[0] vtable 槽 CClientOutOfSyncCommand::[0]（func_names RTTI 名） |
+| 0x141149BA0 | CTriggerAbilityCommand::[0] vtable 槽 CTriggerAbilityCommand::[0]（func_names RTTI 名） |
+| 0x141BA2610 | CSetDeploymentLineNameCommand::Clone func_names 名 CSetDeploymentLineNameCommand::Clone |
+| 0x141A7DC20 | CAssignToTheaterGroupCommand::[0] vtable 槽 CAssignToTheaterGroupCommand::[0]（func_names RTTI 名） |
+| 0x14136D1A0 | CSetPendingReassignTargetCommand::PayloadReader func_names 名 CSetPendingReassignTargetCommand::PayloadReader |
+| 0x141EF4910 | CAttachScientistCommand::PayloadReader func_names 名 CAttachScientistCommand::PayloadReader |
+| 0x14114CF80 | CSetMainGarrisonTemplateCommand::Clone func_names 名 CSetMainGarrisonTemplateCommand::Clone |
+| 0x14134BCD0 | CChangeNavalBaseRepairPriorityCommand::Clone func_names 名 CChangeNavalBaseRepairPriorityCommand::Clone |
+| 0x14022E3C0 | CSetCountryOperationsPriorityCommand::Clone func_names 名 CSetCountryOperationsPriorityCommand::Clone |
+| 0x14114CC80 | CSetArmyLeaderPreferredTacticCommand::Clone func_names 名 CSetArmyLeaderPreferredTacticCommand::Clone |
+| 0x14134C930 | CNavyClearAccidentReportsCommand::Clone func_names 名 CNavyClearAccidentReportsCommand::Clone |
+| 0x141A25C30 | CIntelligenceAgencyUpgradeCommand::Clone func_names 名 CIntelligenceAgencyUpgradeCommand::Clone |
+| 0x14022E450 | CSetCountryRaidsPriorityCommand::Clone func_names 名 CSetCountryRaidsPriorityCommand::Clone |
+| 0x141EF49F0 | CPrototypeRewardOptionCommand::PayloadReader func_names 名 CPrototypeRewardOptionCommand::PayloadReader |
+| 0x141A25CC0 | CRecruitOperativeCommand::Clone func_names 名 CRecruitOperativeCommand::Clone |
+| 0x141A7E450 | CSetTheaterGroupPriorityCommand::Clone func_names 名 CSetTheaterGroupPriorityCommand::Clone |
+| 0x14114DF50 | CUpgradeDivisionOfficerCommand::Clone func_names 名 CUpgradeDivisionOfficerCommand::Clone |
+| 0x14183D6F0 | CMoveArmyGroupInTheaterCommand::Clone func_names 名 CMoveArmyGroupInTheaterCommand::Clone |
+| 0x141BA1DF0 | CChangeConveyorPositionCommand::Clone func_names 名 CChangeConveyorPositionCommand::Clone |
+| 0x140CEBEC0 | CAskToCoopWithCountryCommand::Clone func_names 名 CAskToCoopWithCountryCommand::Clone |
+| 0x14134BFD0 | CNavalMissionAddRegionCommand::Clone func_names 名 CNavalMissionAddRegionCommand::Clone |
+| 0x141BA1E80 | CChangeConveyorTemplateCommand::Clone func_names 名 CChangeConveyorTemplateCommand::Clone |
+| 0x14114AD80 | CBypassNationalFocusCommand::Clone func_names 名 CBypassNationalFocusCommand::Clone |
+| 0x141BA24F0 | CSetConveyorPriorityCommand::Clone func_names 名 CSetConveyorPriorityCommand::Clone |
+| 0x141943440 | CReorderAirTheatersCommand::Clone func_names 名 CReorderAirTheatersCommand::Clone |
+| 0x14114B260 | CCreateUnitLeaderCommand::Clone func_names 名 CCreateUnitLeaderCommand::Clone |
+| 0x141BA2580 | CSetConveyorSeriesCommand::Clone func_names 名 CSetConveyorSeriesCommand::Clone |
+| 0x14114D010 | CSetNationalFocusCommand::Clone func_names 名 CSetNationalFocusCommand::Clone |
+| 0x14114D500 | CSetProductionLineCommand::Clone func_names 名 CSetProductionLineCommand::Clone |
+| 0x141941610 | （无名） 体设 CStratAirSetMissionCommand::vftable（RTTI 名） |
+| 0x141943B00 | CStratAirDayNightCommand::Clone func_names 名 CStratAirDayNightCommand::Clone |
+| 0x141EF35C0 | CRecruitScientistCommand::Clone func_names 名 CRecruitScientistCommand::Clone |
+| 0x141EF3800 | CUnattachScientistCommand::Clone func_names 名 CUnattachScientistCommand::Clone |
+| 0x141A259F0 | CHideDecryptionCommand::Clone func_names 名 CHideDecryptionCommand::Clone |
+| 0x140DB6370 | CAddSizeCommand::Clone func_names 名 CAddSizeCommand::Clone |
+| 0x14134CD20 | CNavyRepairNowCommand::Clone func_names 名 CNavyRepairNowCommand::Clone |
+| 0x141363AF0 | CSupportAttackCommand::Clone func_names 名 CSupportAttackCommand::Clone |
+| 0x14183F2C0 | CSetFleetLeaderCommand::Clone func_names 名 CSetFleetLeaderCommand::Clone |
+| 0x141943EE0 | CStratAirSplitCommand::Clone func_names 名 CStratAirSplitCommand::Clone |
+| 0x141943580 | CSetCarrierStickyMissionAreaCommand::Clone func_names 名 CSetCarrierStickyMissionAreaCommand::Clone |
+| 0x1419A2740 | CSetObsoleteEquipmentVariantCommand::Clone func_names 名 CSetObsoleteEquipmentVariantCommand::Clone |
+| 0x141362E00 | CDeployArmyHqCommand::Clone func_names 名 CDeployArmyHqCommand::Clone |
+| 0x14183DCD0 | COrderDeleteCommand::Clone func_names 名 COrderDeleteCommand::Clone |
+| 0x141EF36E0 | CStartProjectCommand::Clone func_names 名 CStartProjectCommand::Clone |
+| 0x14134BEB0 | CDisengageFromNavalCombatCommand::Clone func_names 名 CDisengageFromNavalCombatCommand::Clone |
+| 0x14183D590 | CLearnTraitCommand::Clone func_names 名 CLearnTraitCommand::Clone |
+| 0x14116FB90 | CIgnoreTargetedDecisionCommand::PayloadWriter func_names 名 CIgnoreTargetedDecisionCommand::PayloadWriter |
+| 0x141943910 | CStratAirCancelTransferCommand::Clone func_names 名 CStratAirCancelTransferCommand::Clone |
+| 0x14135B7C0 | CSetFleetCommand::PayloadReader func_names 名 CSetFleetCommand::PayloadReader |
+| 0x14183EA20 | COrderSetCollapseCommand::Clone func_names 名 COrderSetCollapseCommand::Clone |
+| 0x141305FB0 | （无名） 体设 CCreateDivisionTemplateCommand::vftable（RTTI 名） |
+| 0x14114E3D0 | （无名） 体设 CAddMassProductionsLineCommand::vftable（RTTI 名） |
+| 0x141EF3650 | CResetUnreadPrototypeRewardsCounterCommand::Clone func_names 名 CResetUnreadPrototypeRewardsCounterCommand::Clone |
+| 0x141A25A80 | CIntelligenceAgencyCancelCreationCommand::Clone func_names 名 CIntelligenceAgencyCancelCreationCommand::Clone |
+| 0x141856950 | COrderAddNewCompletePlanCommand::PayloadWriter func_names 名 COrderAddNewCompletePlanCommand::PayloadWriter |
+| 0x1413491E0 | （无名） 体设 CNavyRepairModeCommand::vftable（RTTI 名） |
+| 0x14114E2F0 | （无名） 体设 CAddIdeaCommand::vftable（RTTI 名） |
+| 0x14114B580 | CDropCurrentNationalFocusCommand::Clone func_names 名 CDropCurrentNationalFocusCommand::Clone |
+| 0x14135AF40 | CNavyRepairModeCommand::PayloadReader func_names 名 CNavyRepairModeCommand::PayloadReader |
+| 0x14114B4F0 | CDropContinuousFocusCommand::Clone func_names 名 CDropContinuousFocusCommand::Clone |
+| 0x141A7DFA0 | CDisbandTheaterGroupCommand::Clone func_names 名 CDisbandTheaterGroupCommand::Clone |
+| 0x141BA2280 | CRemoveConveyorLineCommand::Clone func_names 名 CRemoveConveyorLineCommand::Clone |
+| 0x141362C40 | CCancelRunningAwayCommand::Clone func_names 名 CCancelRunningAwayCommand::Clone |
+| 0x1413632D0 | CPromoteUnitLeaderCommand::Clone func_names 名 CPromoteUnitLeaderCommand::Clone |
+| 0x1412EEAD0 | CPromoteAutonomyCommand::Clone func_names 名 CPromoteAutonomyCommand::Clone |
+| 0x141A258D0 | CBecomeSpyMasterCommand::Clone func_names 名 CBecomeSpyMasterCommand::Clone |
+| 0x140F05B80 | CSetGameSpeedCommand::Clone func_names 名 CSetGameSpeedCommand::Clone |
+| 0x141363140 | CMoveCommand::Clone func_names 名 CMoveCommand::Clone |
+| 0x141EF3770 | CStopProjectCommand::Clone func_names 名 CStopProjectCommand::Clone |
+| 0x1413366B0 | （无名） 体设 CChatCommand::vftable（RTTI 名） |
+| 0x14116C9B0 | CSetArmyLeaderPreferredTacticCommand::PayloadReader func_names 名 CSetArmyLeaderPreferredTacticCommand::PayloadReader |
+| 0x140DEA1C0 | CClientOutOfSyncCommand::PayloadWriter func_names 名 CClientOutOfSyncCommand::PayloadWriter |
+| 0x14134B1B0 | CNavalMissionSetTargetCommand::[0] vtable 槽 CNavalMissionSetTargetCommand::[0]（func_names RTTI 名） |
+| 0x141A25D50 | CSetIntelligenceAgencyLogoCommand::Clone func_names 名 CSetIntelligenceAgencyLogoCommand::Clone |
+| 0x141851840 | COrderUnassignCommand::PayloadReader func_names 名 COrderUnassignCommand::PayloadReader |
+| 0x14134CE80 | CRemoveTaskForceTemplateCommand::Clone func_names 名 CRemoveTaskForceTemplateCommand::Clone |
+| 0x141A7E2F0 | CSetNavyTheaterGroupNameCommand::Clone func_names 名 CSetNavyTheaterGroupNameCommand::Clone |
+| 0x14116D220 | CSetProductionLineCommand::PayloadReader func_names 名 CSetProductionLineCommand::PayloadReader |
+| 0x14136C5B0 | CDeleteShipCommand::PayloadReader func_names 名 CDeleteShipCommand::PayloadReader |
+| 0x141851C40 | CSetFleetLeaderCommand::PayloadReader func_names 名 CSetFleetLeaderCommand::PayloadReader |
+| 0x141BA46E0 | CChangeConveyorTemplateCommand::PayloadReader func_names 名 CChangeConveyorTemplateCommand::PayloadReader |
+| 0x140DE6C50 | CReadyAfterHotJoinCommand::Clone func_names 名 CReadyAfterHotJoinCommand::Clone |
+| 0x1419432E0 | CRenameAirGroupCommand::Clone func_names 名 CRenameAirGroupCommand::Clone |
+| 0x14116B870 | CProductionLineInterfaceToggleExpandCommand::PayloadReader func_names 名 CProductionLineInterfaceToggleExpandCommand::PayloadReader |
+| 0x14114F340 | （无名） 体设 CReleaseCountryCommand::vftable（RTTI 名） |
+| 0x141363850 | CSetShipNameCommand::Clone func_names 名 CSetShipNameCommand::Clone |
+| 0x141363990 | CSetUnitNameCommand::Clone func_names 名 CSetUnitNameCommand::Clone |
+| 0x14136DBF0 | CMoveShipsCommand::PayloadWriter func_names 名 CMoveShipsCommand::PayloadWriter |
+| 0x140F05B00 | CIncreaseGameSpeedCommand::Clone func_names 名 CIncreaseGameSpeedCommand::Clone |
+| 0x14199EA00 | CSetIndustrialOrganisationTaskCommand::PayloadWriter func_names 名 CSetIndustrialOrganisationTaskCommand::PayloadWriter |
+| 0x14183C7B0 | CArmyGroupCommand::[0] vtable 槽 CArmyGroupCommand::[0]（func_names RTTI 名） |
+| 0x14135A7F0 | CNavalMissionSetTypeCommand::PayloadReader func_names 名 CNavalMissionSetTypeCommand::PayloadReader |
+| 0x141E74AF0 | CSetPinnedStrategicRegionCommand::PayloadWriter func_names 名 CSetPinnedStrategicRegionCommand::PayloadWriter |
+| 0x1411490F0 | CAddMassProductionsLineCommand::[0] vtable 槽 CAddMassProductionsLineCommand::[0]（func_names RTTI 名） |
+| 0x140DE6450 | CPostHotJoinCommand::[0] vtable 槽 CPostHotJoinCommand::[0]（func_names RTTI 名） |
+| 0x141169480 | CAddMassFactoryAssignmentCommand::PayloadReader func_names 名 CAddMassFactoryAssignmentCommand::PayloadReader |
+| 0x141851AA0 | CSetAreaDefenseSettingCommand::PayloadReader func_names 名 CSetAreaDefenseSettingCommand::PayloadReader |
+| 0x141850A60 | COrderExecuteCommand::PayloadReader func_names 名 COrderExecuteCommand::PayloadReader |
+| 0x14199DFD0 | CAttachPolicyToIndustrialOrgCommand::PayloadReader func_names 名 CAttachPolicyToIndustrialOrgCommand::PayloadReader |
+| 0x141850750 | COrderChildFrontRatioCommand::PayloadReader func_names 名 COrderChildFrontRatioCommand::PayloadReader |
+| 0x141360730 | （无名） 体设 CMoveCommand::vftable（RTTI 名） |
+| 0x141A2D0D0 | CSetOperativeMissionCommand::PayloadWriter func_names 名 CSetOperativeMissionCommand::PayloadWriter |
+| 0x14135D160 | CNavyRepairModeCommand::PayloadWriter func_names 名 CNavyRepairModeCommand::PayloadWriter |
+| 0x14116E2E0 | CUpdateSupplyNodeCountrySettingsCommand::PayloadReader func_names 名 CUpdateSupplyNodeCountrySettingsCommand::PayloadReader |
+| 0x14116B6E0 | CProductionLineInterfaceFactoriesScaleCommand::PayloadReader func_names 名 CProductionLineInterfaceFactoriesScaleCommand::PayloadReader |
+| 0x141856770 | CEditAreaDefenseStateCommand::PayloadWriter func_names 名 CEditAreaDefenseStateCommand::PayloadWriter |
+| 0x141949B60 | CStratAirChangeAggressivnessCommand::PayloadReader func_names 名 CStratAirChangeAggressivnessCommand::PayloadReader |
+| 0x141857A50 | COrderUnassignCommand::PayloadWriter func_names 名 COrderUnassignCommand::PayloadWriter |
+| 0x14134B0C0 | CNavalMissionMassMoveCommand::[0] vtable 槽 CNavalMissionMassMoveCommand::[0]（func_names RTTI 名） |
+| 0x14183C8C0 | COrderAddNewCompletePlanCommand::[0] vtable 槽 COrderAddNewCompletePlanCommand::[0]（func_names RTTI 名） |
+| 0x140F073A0 | CHourlyTickCommand::PayloadWriter func_names 名 CHourlyTickCommand::PayloadWriter |
+| 0x14134E590 | （无名） 体设 CCreateFleetCommand::vftable（RTTI 名） |
+| 0x141851790 | COrderSetTrainingCommand::PayloadReader func_names 名 COrderSetTrainingCommand::PayloadReader |
+| 0x141BA5240 | CSetDeploymentLineNameCommand::PayloadWriter func_names 名 CSetDeploymentLineNameCommand::PayloadWriter |
+| 0x141851D90 | CSetOrderGroupIconAndColorCommand::PayloadReader func_names 名 CSetOrderGroupIconAndColorCommand::PayloadReader |
+| 0x141A7DD70 | CSetNavyTheaterGroupNameCommand::[0] vtable 槽 CSetNavyTheaterGroupNameCommand::[0]（func_names RTTI 名） |
+| 0x1419A1F20 | CRenameEquipmentVariantCommand::[0] vtable 槽 CRenameEquipmentVariantCommand::[0]（func_names RTTI 名） |
+| 0x140DE64E0 | CReadyAfterHotJoinCommand::[0] vtable 槽 CReadyAfterHotJoinCommand::[0]（func_names RTTI 名） |
+| 0x141149990 | CReplaceAdvisorCommand::[0] vtable 槽 CReplaceAdvisorCommand::[0]（func_names RTTI 名） |
+| 0x14199C6E0 | （无名） 体设 CSetIndustrialOrganisationTaskCommand::vftable（RTTI 名） |
+| 0x14136CC00 | CMergeNaviesCommand::PayloadReader func_names 名 CMergeNaviesCommand::PayloadReader |
+| 0x1419A2D00 | （无名） 体设 CSetEquipmentVariantNameListCommand::vftable（RTTI 名） |
+| 0x14134A4B0 | （无名） 体设 CSetNavalRegionAccessCommand::vftable（RTTI 名） |
+| 0x141851E30 | CSetOrderGroupMotorizationCommand::PayloadReader func_names 名 CSetOrderGroupMotorizationCommand::PayloadReader |
+| 0x14199E940 | CSetIndustrialOrgTraitsInQueueCommand::PayloadWriter func_names 名 CSetIndustrialOrgTraitsInQueueCommand::PayloadWriter |
+| 0x141150370 | （无名） 体设 CSetStateOverrideOccupationPolicyCommand::vftable（RTTI 名） |
+| 0x14134F2E0 | （无名） 体设 CSetFleetNameCommand::vftable（RTTI 名） |
+| 0x141A26530 | （无名） 体设 CSetIntelligenceAgencyNameCommand::vftable（RTTI 名） |
+| 0x14114FED0 | （无名） 体设 CSetOccupationPolicyCommand::vftable（RTTI 名） |
+| 0x1413433D0 | CChatUserJoinedCommand::PayloadWriter func_names 名 CChatUserJoinedCommand::PayloadWriter |
+| 0x14135A740 | CNavalMissionSetTargetCommand::PayloadReader func_names 名 CNavalMissionSetTargetCommand::PayloadReader |
+| 0x141BA8AC0 | （无名） 体设 CFactionAttachScientistCommand::vftable（RTTI 名） |
+| 0x141948DF0 | CChangeAirGroupInsigniaCommand::PayloadReader func_names 名 CChangeAirGroupInsigniaCommand::PayloadReader |
+| 0x14116CFD0 | CSetNavalProductionLineAirWingCompositionCommand::PayloadReader func_names 名 CSetNavalProductionLineAirWingCompositionCommand::PayloadReader |
+| 0x14135A480 | CMarkSunkShipInfoAsReadCommand::PayloadReader func_names 名 CMarkSunkShipInfoAsReadCommand::PayloadReader |
+| 0x1419A6C10 | CSetAutoUpgradedEquipmentVariantCommand::PayloadReader func_names 名 CSetAutoUpgradedEquipmentVariantCommand::PayloadReader |
+| 0x1419A6CA0 | CSetEquipmentVariantHighlightCommand::PayloadReader func_names 名 CSetEquipmentVariantHighlightCommand::PayloadReader |
+| 0x14134F190 | （无名） 体设 CSetFleetCommand::vftable（RTTI 名） |
+| 0x1419449B0 | （无名） 体设 CStratAirEnableMissionCommand::vftable（RTTI 名） |
+| 0x141944B20 | （无名） 体设 CStratAirSetMissionCommand::vftable（RTTI 名） |
+| 0x141EF39C0 | （无名） 体设 CPrototypeRewardOptionCommand::vftable（RTTI 名） |
+| 0x14134E750 | （无名） 体设 CNavalMissionMassMoveCommand::vftable（RTTI 名） |
+| 0x14116EEA0 | CAddMassFactoryAssignmentCommand::PayloadWriter func_names 名 CAddMassFactoryAssignmentCommand::PayloadWriter |
+| 0x141364FB0 | （无名） 体设 CMergeNaviesCommand::vftable（RTTI 名） |
+| 0x141BA2790 | （无名） 体设 CChangeConveyorTemplateCommand::vftable（RTTI 名） |
+| 0x141EF3BC0 | （无名） 体设 CUnattachScientistCommand::vftable（RTTI 名） |
+| 0x141944660 | （无名） 体设 CSetQuickDeployPreferenceCommand::vftable（RTTI 名） |
+| 0x141944120 | （无名） 体设 CChangeAirGroupInsigniaCommand::vftable（RTTI 名） |
+| 0x14183FEB0 | （无名） 体设 CMoveArmiesInTheaterCommand::vftable（RTTI 名） |
+| 0x1411697F0 | CAddProductionLineFactoriesCommand::PayloadReader func_names 名 CAddProductionLineFactoriesCommand::PayloadReader |
+| 0x141169F30 | CChangeProductionLinePriorityCommand::PayloadReader func_names 名 CChangeProductionLinePriorityCommand::PayloadReader |
+| 0x14135A3F0 | CDisengageFromNavalCombatCommand::PayloadReader func_names 名 CDisengageFromNavalCombatCommand::PayloadReader |
+| 0x1419A6B80 | CRenameEquipmentVariantCommand::PayloadReader func_names 名 CRenameEquipmentVariantCommand::PayloadReader |
+| 0x141BA0750 | CReorderTemplateListCommand::PayloadReader func_names 名 CReorderTemplateListCommand::PayloadReader |
+| 0x141EF4AA0 | CRecruitScientistCommand::PayloadReader func_names 名 CRecruitScientistCommand::PayloadReader |
+| 0x14135D9E0 | CSetTaskForceAutoReinforcementCommand::PayloadWriter func_names 名 CSetTaskForceAutoReinforcementCommand::PayloadWriter |
+| 0x14116FE20 | CProductionLineInterfaceFactoriesScaleCommand::PayloadWriter func_names 名 CProductionLineInterfaceFactoriesScaleCommand::PayloadWriter |
+| 0x14136CEB0 | CPromoteUnitLeaderCommand::PayloadReader func_names 名 CPromoteUnitLeaderCommand::PayloadReader |
+| 0x141BA06E0 | CRemoveDivisionTemplateCommand::PayloadReader func_names 名 CRemoveDivisionTemplateCommand::PayloadReader |
+| 0x14135CD10 | CNavalMoveCommand::PayloadWriter func_names 名 CNavalMoveCommand::PayloadWriter |
+| 0x14194B340 | CStratAirTransferCommand::PayloadWriter func_names 名 CStratAirTransferCommand::PayloadWriter |
+| 0x14183CC60 | COrderSetInvasionSourceCommand::[0] vtable 槽 COrderSetInvasionSourceCommand::[0]（func_names RTTI 名） |
+| 0x141BA0D20 | CUpdateDivisionTemplateCommand::PayloadWriter func_names 名 CUpdateDivisionTemplateCommand::PayloadWriter |
+| 0x141170770 | CSetCountryGarrisonTemplateCommand::PayloadWriter func_names 名 CSetCountryGarrisonTemplateCommand::PayloadWriter |
+| 0x141856E30 | COrderChildFrontRatioCommand::PayloadWriter func_names 名 COrderChildFrontRatioCommand::PayloadWriter |
+| 0x141170290 | CReplaceAdvisorCommand::PayloadWriter func_names 名 CReplaceAdvisorCommand::PayloadWriter |
+| 0x141856EA0 | COrderConnectCommand::PayloadWriter func_names 名 COrderConnectCommand::PayloadWriter |
+| 0x141A74F90 | CAiStoreTotalWantedNrDivisionsCommand::PayloadWriter func_names 名 CAiStoreTotalWantedNrDivisionsCommand::PayloadWriter |
+| 0x14116F240 | CAssignAceCommand::PayloadWriter func_names 名 CAssignAceCommand::PayloadWriter |
+| 0x1401C1500 | （无名） 体设 CCommand::vftable（RTTI 名） |
+| 0x1401DBDF0 | CClientPingCommand::GetTypeId func_names 名 CClientPingCommand::GetTypeId |
+| 0x140231A90 | CSetCountryGarrisonPriorityCommand::GetTypeId func_names 名 CSetCountryGarrisonPriorityCommand::GetTypeId |
+| 0x140DB9920 | CSetAutoUpdateDesignsForIndustrialOrgCommand::GetTypeId func_names 名 CSetAutoUpdateDesignsForIndustrialOrgCommand::GetTypeId |
+| 0x140DE9DD0 | CRequestGameStateSynchCommand::GetTypeId func_names 名 CRequestGameStateSynchCommand::GetTypeId |
+| 0x140E8F310 | CRailwayGunManualOrderCommand::GetTypeId func_names 名 CRailwayGunManualOrderCommand::GetTypeId |
+| 0x140F07260 | CSetGameSpeedCommand::GetTypeId func_names 名 CSetGameSpeedCommand::GetTypeId |
+| 0x140F2A5E0 | CSetOperationTargetCommand::GetTypeId func_names 名 CSetOperationTargetCommand::GetTypeId |
+| 0x141160810 | CAddMassFactoryAssignmentCommand::GetTypeId func_names 名 CAddMassFactoryAssignmentCommand::GetTypeId |
+| 0x141160890 | CAmendIncomingLendLeaseActionCommand::GetTypeId func_names 名 CAmendIncomingLendLeaseActionCommand::GetTypeId |
+| 0x141160910 | CConvertFactoryCommand::GetTypeId func_names 名 CConvertFactoryCommand::GetTypeId |
+| 0x141160990 | CGenerateAdvisorCommand::GetTypeId func_names 名 CGenerateAdvisorCommand::GetTypeId |
+| 0x141160A10 | CProductionLineInterfaceFactoriesScaleCommand::GetTypeId func_names 名 CProductionLineInterfaceFactoriesScaleCommand::GetTypeId |
+| 0x141160A90 | CRemoveBuildingLevelCommand::GetTypeId func_names 名 CRemoveBuildingLevelCommand::GetTypeId |
+| 0x141160B10 | CReplaceIdeaCommand::GetTypeId func_names 名 CReplaceIdeaCommand::GetTypeId |
+| 0x141160B90 | CSetCountryGarrisonTemplateCommand::GetTypeId func_names 名 CSetCountryGarrisonTemplateCommand::GetTypeId |
+| 0x141160C10 | CSetPlayerAiPrefsCommand::GetTypeId func_names 名 CSetPlayerAiPrefsCommand::GetTypeId |
+| 0x141160C90 | CSetShipRefitDeploymentTargetCommand::GetTypeId func_names 名 CSetShipRefitDeploymentTargetCommand::GetTypeId |
+| 0x141160D10 | CTriggerAbilityCommand::GetTypeId func_names 名 CTriggerAbilityCommand::GetTypeId |
+| 0x1413571C0 | CMarkSunkShipInfoAsReadCommand::GetTypeId func_names 名 CMarkSunkShipInfoAsReadCommand::GetTypeId |
+| 0x141357240 | CNavalMoveCommand::GetTypeId func_names 名 CNavalMoveCommand::GetTypeId |
+| 0x1413572C0 | CNavyRepairModeCommand::GetTypeId func_names 名 CNavyRepairModeCommand::GetTypeId |
+| 0x1413573C0 | CSetNavalRegionAccessCommand::GetTypeId func_names 名 CSetNavalRegionAccessCommand::GetTypeId |
+| 0x141368360 | CDeleteShipCommand::GetTypeId func_names 名 CDeleteShipCommand::GetTypeId |
+| 0x1413683E0 | CPromoteUnitLeaderCommand::GetTypeId func_names 名 CPromoteUnitLeaderCommand::GetTypeId |
+| 0x141368460 | CSetShipNameCommand::GetTypeId func_names 名 CSetShipNameCommand::GetTypeId |
+| 0x14184CA30 | CCreateAreaDefenseCommand::GetTypeId func_names 名 CCreateAreaDefenseCommand::GetTypeId |
+| 0x14184CAB0 | COrderBlockSectionsCommand::GetTypeId func_names 名 COrderBlockSectionsCommand::GetTypeId |
+| 0x14184CB30 | COrderGroupCommand::GetTypeId func_names 名 COrderGroupCommand::GetTypeId |
+| 0x14184CC30 | COrderSetParadropTargetCommand::GetTypeId func_names 名 COrderSetParadropTargetCommand::GetTypeId |
+| 0x14184CCB0 | CSetArmyLeaderCommand::GetTypeId func_names 名 CSetArmyLeaderCommand::GetTypeId |
+| 0x14184CD30 | CSetOrderGroupOrdersInstanceNamesCommand::GetTypeId func_names 名 CSetOrderGroupOrdersInstanceNamesCommand::GetTypeId |
+| 0x141947E50 | CDeleteAirWingCommand::GetTypeId func_names 名 CDeleteAirWingCommand::GetTypeId |
+| 0x141947ED0 | CReorderAirTheatersCommand::GetTypeId func_names 名 CReorderAirTheatersCommand::GetTypeId |
+| 0x141947F50 | CStratAirChangeAggressivnessCommand::GetTypeId func_names 名 CStratAirChangeAggressivnessCommand::GetTypeId |
+| 0x141947FD0 | CStratAirTransferCommand::GetTypeId func_names 名 CStratAirTransferCommand::GetTypeId |
+| 0x14199D200 | CSetIndustrialManufacturerCommand::GetTypeId func_names 名 CSetIndustrialManufacturerCommand::GetTypeId |
+| 0x1419A59F0 | CSetEquipmentVariantOverrideModelCommand::GetTypeId func_names 名 CSetEquipmentVariantOverrideModelCommand::GetTypeId |
+| 0x141A28EA0 | CRecruitOperativeCommand::GetTypeId func_names 名 CRecruitOperativeCommand::GetTypeId |
+| 0x141A74780 | CAiOnFailedInvasionCommand::GetTypeId func_names 名 CAiOnFailedInvasionCommand::GetTypeId |
+| 0x141A7F670 | CReorderTheatersCommand::GetTypeId func_names 名 CReorderTheatersCommand::GetTypeId |
+| 0x141BA3800 | CCreateConveyorCommand::GetTypeId func_names 名 CCreateConveyorCommand::GetTypeId |
+| 0x141BA3880 | CSetConveyorNameCommand::GetTypeId func_names 名 CSetConveyorNameCommand::GetTypeId |
+| 0x141E74870 | CSetPinnedStrategicRegionCommand::GetTypeId func_names 名 CSetPinnedStrategicRegionCommand::GetTypeId |
+| 0x141EF40C0 | CRecruitScientistCommand::GetTypeId func_names 名 CRecruitScientistCommand::GetTypeId |
+| 0x141337B50 | CChatUserLeftChannelCommand::GetTypeId func_names 名 CChatUserLeftChannelCommand::GetTypeId |
+
+#### 4.33.31 命令子类补遗（404 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.33.32 命令子类补遗（15 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140235B30 | 控制台命令实现 ConsoleCmdImpl.cpp:2894 |
+| 0x1402551A0 | 控制台命令实现 ConsoleCmdImpl.cpp:8121 |
+| 0x14133CDB0 | （无名） 体设 CChatNewChannelCommand::vftable（RTTI 名） |
+| 0x141836810 | （无名） 体设 CArmyGroupCommand::vftable（RTTI 名） |
+| 0x14133C860 | （无名） 体设 CChatNewChannelCommand::vftable（RTTI 名） |
+| 0x14193FF90 | （无名） 体设 CAttachAirWingToArmyCommand::vftable（RTTI 名） |
+| 0x141348820 | （无名） 体设 CNavyDetachShipsAndRefitCommand::vftable（RTTI 名） |
+| 0x141838260 | （无名） 体设 COrderAssignCommand::vftable（RTTI 名） |
+| 0x141940F50 | （无名） 体设 CSetWingReinforcementPreferenceCommand::vftable（RTTI 名） |
+| 0x141145E40 | （无名） 体设 CRemoveAllConstructionCommand::vftable（RTTI 名） |
+| 0x141347CE0 | （无名） 体设 CNavyCancelRefitCommand::vftable（RTTI 名） |
+| 0x141361B90 | （无名） 体设 CToggleStrategicDeploymentCommand::vftable（RTTI 名） |
+| 0x141348210 | （无名） 体设 CNavyCancelRepairCommand::vftable（RTTI 名） |
+| 0x141B31B70 | （无名） 体设 CRemoveRaidCommand::vftable（RTTI 名） |
+| 0x141BA7A00 | （无名） 体设 CCommand::vftable（RTTI 名） |
+
+#### 4.33.33 命令子类补遗（35 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141841480 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x141E2E740 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141CF7E40 | （无名） 调用图传播: 4 锚点投 §4.33（50%） |
+| 0x141302020 | （无名） 调用图传播: 7 锚点投 §4.33（57%） |
+| 0x1410B7D70 | （无名） 调用图传播: 4 锚点投 §4.33（50%） |
+| 0x141DBB220 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x1406FFAF0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141CEEB00 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x14072B8A0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x140B6E110 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1410973B0 | （无名） 调用图传播: 6 锚点投 §4.33（67%） |
+| 0x141966870 | （无名） 调用图传播: 3 锚点投 §4.33（67%） |
+| 0x1417A06A0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141E3F710 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x1416DCFB0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1415771E0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1416DD470 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1416DD630 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1416DD4E0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1416DD400 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141A5E490 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x140F4B490 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1417A18C0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1416DD5E0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141D2AD70 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x140F4CA70 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x140BEBE50 | （无名） 调用图传播: 4 锚点投 §4.33（50%） |
+| 0x141DC9180 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141E2CE60 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x141A11660 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x141D2B520 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x141E2CEA0 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x140BEC2F0 | （无名） 调用图传播: 3 锚点投 §4.33（67%） |
+| 0x141DE6F20 | （无名） 调用图传播: 3 锚点投 §4.33（67%） |
+| 0x141E234B0 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+
+#### 4.33.34 命令子类补遗（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EAF7E0 | 域关键词匹配 sub_140EAF7E0 + 域关键词匹配; 被 CSetNavalRegionAccessCommand::Execute 等 1 命名函数调用 |
+| 0x140EA61C0 | 域关键词匹配 sub_140EA61C0 + 域关键词匹配; 源码路径 hoi4; 被 CCreateFleetCommand::Execute 等 4 命名函数调用 |
+| 0x14137A0C0 | 同区段近邻 CMergeArmiesCommand::PayloadReader(距 0xD590)属 4.29 族 sub_14137A0C0 + 同区段近邻 CMergeArmiesCommand::PayloadReader(距 0xD590)属 4.29 族 |
+| 0x140731B80 | 域关键词匹配 sub_140731B80 + 域关键词匹配; 被 CIgnoreAllAvailableDecisionCommand::Execute 等 2 命名函数调用 |
+| 0x14117FE30 | 域关键词匹配 sub_14117FE30 + 域关键词匹配; 被 CSelectEventOptionCommand::Execute 等 1 命名函数调用 |
+| 0x141856150 | 域关键词匹配 sub_141856150 + 域关键词匹配; 被 COrderUnassignCommand::Execute 等 1 命名函数调用 |
+| 0x140DB3F90 | 同区段近邻 CSetIndustrialOrgTraitsInQueueCommand::Clone(距 0x2820)属 4.32 族 sub_140DB3F90 + 同区段近邻 CSetIndustrialOrgTraitsInQueueCommand::Clone(距 0x2820)属 4.32 族 |
+| 0x140DC1770 | 同区段近邻 CSetIndustrialOrgTraitsInQueueCommand::Clone(距 0xAFC0)属 4.32 族 sub_140DC1770 + 同区段近邻 CSetIndustrialOrgTraitsInQueueCommand::Clone(距 0xAFC0)属 4.32 族 |
+| 0x140DC1870 | 同区段近邻 CSetIndustrialOrgTraitsInQueueCommand::Clone(距 0xB0C0)属 4.32 族 sub_140DC1870 + 同区段近邻 CSetIndustrialOrgTraitsInQueueCommand::Clone(距 0xB0C0)属 4.32 族 |
+| 0x140BF5960 | 域关键词匹配 sub_140BF5960 + 域关键词匹配; 源码路径 clausewitz; 被 CSetArmyTemplateCommand::Execute 等 1 命名函数调用 |
+| 0x14137CDF0 | 同区段近邻 CMergeArmiesCommand::PayloadReader(距 0x102C0)属 4.29 族 sub_14137CDF0 + 同区段近邻 CMergeArmiesCommand::PayloadReader(距 0x102C0)属 4.29 族 |
+| 0x14112EFC0 | 域关键词匹配 sub_14112EFC0 + 域关键词匹配; 源码路径 clausewitz; 被 ShowScriptedDiplomaticActionSendPopupCommand::Execute 等 2 命名函数调用 |
+| 0x14119F2D0 | 域关键词匹配 sub_14119F2D0 + 域关键词匹配; 源码路径 clausewitz; 被 CLaunchOperationCommand::IsValid 等 3 命名函数调用 |
+| 0x141030180 | 域关键词匹配 sub_141030180 + 域关键词匹配; 源码路径 hoi4; 被 COrderNewRootCommand::Execute 等 2 命名函数调用 |
+| 0x14137C740 | 同区段近邻 CMergeArmiesCommand::PayloadReader(距 0xFC10)属 4.29 族 sub_14137C740 + 同区段近邻 CMergeArmiesCommand::PayloadReader(距 0xFC10)属 4.29 族 |
+| 0x1419A7710 | 域关键词匹配 sub_1419A7710 + 域关键词匹配; 被 CCreateEquipmentVariantCommand::Execute 等 2 命名函数调用 |
+
+#### 4.33.35 命令子类补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140262B10 | 串 DISABLED/ENABLED/"Instant army training " 串 DISABLED/ENABLED/"Instant army training "，控制台命令 |
+| 0x140D54A30 | （无名） 调用图传播: 4 锚点投 §4.33（50%） |
+| 0x141379A80 | （无名） 调用图传播: 2 锚点投 §4.33（100%） |
+| 0x141592EA0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+
+#### 4.33.36 命令子类补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14199C2F0 | CSetIndustrialOrganisationTaskCommand MIO任务指令 (vtable类名 CSetIndustrialOrganisationTaskCommand) vtable引用 CSetIndustrialOrganisationTaskCommand vftable |
+| 0x14183A780 | COrderReplaceRootCommands 替换根命令组 (vtable类名 COrderReplaceRootCommands) vtable引用 COrderReplaceRootCommands vftable |
+| 0x141144EA0 | CIgnoreDecisionCommand 忽略决议指令 (vtable类名 CIgnoreDecisionCommand) vtable引用 CIgnoreDecisionCommand vftable |
+| 0x14116B940 | CReleaseCountryCommand::PayloadReader CReleaseCountryCommand::PayloadReader（Command 后缀优先） |
+| 0x14116A490 | CCreateUnitLeaderCommand::PayloadReader CCreateUnitLeaderCommand::PayloadReader（Command 后缀优先） |
+
+#### 4.33.37 命令子类补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141968F70 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141A26B30 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141A26EF0 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141A26D10 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141A26E00 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x1416DDA40 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+| 0x141577360 | （无名） 调用图传播: 2 锚点投 §4.33（50%） |
+
+#### 4.33.38 命令子类补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140245D90 | 无名 sub_（断言站点/串定位） 串字面量 "Command takes at most one argument" |
+| 0x1406F1CF0 | 无名 sub_（断言站点/串定位） 串字面量 "COMMAND_POWER_TOOLTIP_PREFIX" |
+| 0x1402F34B0 | 无名 sub_（断言站点/串定位） 串字面量 "high_command" |
+| 0x140A9B660 | 无名 sub_（断言站点/串定位） 串字面量 "raid_insufficient_command_power" |
+| 0x14027D6D0 | 控制台命令：科技即时研究切换 byte_14332F616 toggle + "Tech will be instantly researched…" |
+| 0x1414E7000 | 无名 sub_（断言站点/串定位） 断言站点 commandpowerallocator.cpp:17 |
+
+#### 4.33.39 命令子类补遗（18 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412C74B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x1410C7900 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x141A271D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x141F47CC0 | 控制台命令 ironman_cb 开关 构造 "ironman_cb" 串 → a1+1760 vt+168 取分派器 → 按 a2 调 sub_1422C9310（开）/sub_1422C9320（关） |
+| 0x14173FA00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x14173FAD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x141F45FF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x141C75100 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x14173A700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x141735690 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x141735700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x1412F9D20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x140DC68A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x141E3E3D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x140F4B3D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x140F4B320 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x140F4E1F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+| 0x140F4B370 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+
+#### 4.33.40 命令子类补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141833D40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.33 |
+
+#### 4.33.41 命令子类补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1417AE710 | 命令执行 控制台命令 check_decline：aCheckDecline 全局 + vtable+168 取对象 + sub_1422C9F20 执行 |
+
+#### 4.33.42 命令子类补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140291BA0 | 控制台命令 控制台命令："Reset and started" / "Command doesn't need any arguments" 回显 |

@@ -118,7 +118,7 @@ Execute 步骤 (定案):
 | 2 | 每小时 | `gs+1216 = 1` (tick 进行中) |
 | 3 | 每小时 | 保存旧日期分量 (旧日/旧月/旧年积日/旧年) |
 | 4 | 每小时 | `CGameDate vtable槽[1] (gs+1120, 参数 1)` = **Advance 1 小时** |
-| 5 | 每小时 | 重算日期分量缓存 gs+1144/+1148/+1152/+1156/+1160 (dword_143085210 = 闰年月首累计日表) |
+| 5 | 每小时 | 重算日期分量缓存 gs+1144/+1148/+1152/+1156/+1160 (dword_143085210 = 每月天数表, 非闰 12 项) |
 | 6 | 边界 | 计算四布尔: 换日 (日分量变) / 换周 (换日且总天数 %7==0) / 换月 (月索引变) / 换年 (年积日变) |
 | 7 | 边界 | profiler 日期粒度采样 sub_140BBBEA0 (gs+2008): 五槽打点 "Hour"/"Day"/"Week"/"Month"/"Year" (性能采样, 非游戏逻辑; 见 §4.2.5) |
 | 8 | 联机 | checksum 对比: sub_140DB1830 算本地 vs 载荷 → OUT_OF_SYNCH 判定与日志 (gamestate.cpp:4744-4795); CNetworkServer/CProxyServer 或 debug 旗才走; 本端 checksum 计算 = sub_140DB1740, 哈希核 = **MurmurHash3 x86_32** (sub_1424ED930 update / sub_1424EDA70 finalize, 全常量直证)。**OOS checksum 全貌 (定案)**: 命名空间 NGameSynchronizationHelper; **91 槽定长校验和** (快照 = 91×u32 逐槽与主机对拍), MurmurHash 流式 (每逻辑校验项一个 12B 哈希状态); 双变体 = Logging 变体 (91×12B 槽数组建立者 = **sub_140DB1560** gamesynchronizationmanager.cpp:1129, 填充后逐槽打 "Checksum: <i> <hash>"; 核心填充器 sub_140DA5C80/140DAB4C0 — **a2 位掩码**: bit0 = CGameState::Save 主块 writer a3=1 整态进流 → 槽 2 + 日志 "Full Persisted Game State" / bit1 = playthrough writer sub_1401F2DD0 → 槽 87 + "Playthrough Stats" / 恒执行 "Global Game State" 文本段; 仅 OOS 报告窗 sub_140DD8D60 用; **现役调用图恒串行** (DB1560 恒传并行旗 0), 但 DA5C80 体内含完整 TBB 并行支路 (a3 选路: 分裂器 sub_140DAAC10 + 叶 sub_140DB1AB0, lambda 符号直证) = 现役死码)) 与 PdxHasher 静默变体 (sub_140DA8A40/140DAE720, hourly tick 生产路径, tbb 并行; 静默族 5 函数在簇外); 周期 = 每小时对拍一次 (CHourlyTickCommand 载荷携主机 91 槽 → sub_140DB1830 比较 → 差槽/OOS 标签上行 → sub_140DB1740 重算本地; **human_ai 旗置位也强制对拍**); 覆盖面 = 全局段 (槽 0/1 = multiplayer_random_seed/count 与 §4.28.13 随机流闭环; 槽 2/87 = 全持久态/playthrough 摘要 [后者 byte_143468B46 门控] / 槽 55 = debug_current_ref_id dword_1434520E0) + 省/前线/州/区天气/战斗走访 + 逐国 21 具名分区; **与存档 #checksum 无关** (存档 = MD5(文件+盐), 本簇 = 活体 gamestate 结构化分槽 MurmurHash) |
@@ -145,7 +145,7 @@ Execute 步骤 (定案):
 
 边界计算 (定案): 旧日/旧月取自 Advance 前的 CGameDate 分量读数; 总天数 =
 `(hours − 43800000) / 24`; 换周 = 换日且 `总天数 % 7 == 0`; 年积日 = 总天数 % 365;
-月索引经 dword_143085210 累计表折算。
+月索引经 dword_143085210 每月天数表 (非闰 12 项; 累计由消费方求和) 折算。
 
 profiler 日期采样器 sub_140BBBEA0(a1=gs+2008, 日期, 日/周/月/年布尔):
 
@@ -446,7 +446,7 @@ profiler 域 **"gamestate.monthly"**。触发: 月边界 (骨架 §4.2.4 步骤 
 |---|---|---|
 | 1 | **CCountry::MonthlyUpdate** (sub_140703490) | 门 = owned_states>0 (cc+1156); 十段: dip 月更 (MONTHLY_LEASED_IC_DECAY 衰减 + 限时好恶刷新 + 脏表重建) / **major 全量重算** (判定谓词 sub_14070C1C0: 无宗主 && (is_major cc+5209 ∨ is_top_ic cc+5211 ∧ 工厂 ≥ MAJOR_MIN_FACTORIES=35) ∨ 阵营主 → cc+5210; 在阵营内不自动降级; 同谓词亦用于 SetLeader/投降流亡) / "country.calc_modifier" pass (§4.2.7 备注) / 州征兵 + **阵营人力上缴** (token 10476, faction+2288 按 tag 记原人力 (不缩放); mdef648 = MODIFIER_FACTION_SUBJECT_CONTRIBUTION_GAIN 只缩放贡献分 ×(1+mdef648), 取条目+104 比率 × 州月征兵增量, 向零截断) / 逐国改善关系月更 / **on_monthly 派发** (§4.2.9) / 玩家专属 tag 管理器引用计数 / **季度舰队重整** sub_140218EB0 (触发月 = 4/8/12 月, 绝对月 %4==0; **玩家国专属门**); 十段细化: ① dip 月更 sub_140D409D0 (dip+804 租借 IC 按 NDiplomacy::MONTHLY_LEASED_IC_DECAY 衰减 + 限时好恶刷新 + 待定外交动作定时容器刷新) ② major 重算 (谓词内无 0.7 补判, 补判归段⑥) ⑥ **无阵营国晋升通道** (均值 = hourly 级 sub_1401F1190 写 gs+2168; 补判门 = 工厂 ≥ 0.7×均值 **且** ≥35 双条件 AND) ⑧ sub_1406CF380 = 返回值弃置无副作用取用器 (疑残留) ⑨ sub_140CD1500 = playthrough 统计月计数器 (+524 递增, 玩家国比较后置 +984 bit2, 单人限定) |
 | 2 | 阵营月更 (+1016) | sub_140D92DF0: 门 = `当前绝对月 == abs_month(gs+1192 起始日期)+1 且同年` (gs+1192 = playthrough 起始日期 "PLAYTHROUGH_STATS_STARTING_DATE" 串直证, 非滚动记录月; 阵营 faction goal 「月更」实为**开局后第 2 个自然月一次性重放** — 12 月开局永不触发); 主体 = **仅含玩家阵营**的每条 faction goal 以玩家国为 scope 重放效果 (AI-only 阵营不跑) |
-| 3 | 学说月更 (+1024) | sub_140D7F220: sub_140D7F220 = 玩家国 doctrine status (160B 元素) 访问器, 尾调 mastery_snapshot writer sub_14020E490 (存档同 writer, §4.28); 无效 tag 断言 doctrine_system.cpp:80 后兜底元素 0; AI 国不经此路径 |
+| 3 | 学说月更 (+1024) | sub_140D7F220: sub_140D7F220 = 玩家国 doctrine status (160B 元素) 访问器, 尾调 mastery_snapshot 遥测事件发射器 sub_14020E490 (PDX::SDK::Model::TelemetryEvent; 非存档 writer, §4.28 遥测表); 无效 tag 断言 doctrine_system.cpp:80 后兜底元素 0; AI 国不经此路径 |
 | 4 | 三个 "Short Task" | lambda_1 = **sub_1401C7460** power_balance 玩家侧月更 / lambda_2 = **sub_1401F7B00** SRW 锁下月度 history log (门 = 控制台 `history_logger` [PE 字符串对 "history_logger"+"Toggle history logger", 命令体 sub_140292DE0: 参数 = tag 掩码, "none" = 清空, 0 参 = 全选记录], nlohmann/json 写 **相对 CWD 的 history_dump/** [簇内目录创建/写盘均无 "logs/" 前缀拼接], historylogger.cpp:594); **逐国链定案**: sub_1401F7B00 → sub_1402C0BE0 (门 byte_14332F625) → sub_1402B6A00 (建 history_dump 目录 + prov_<日期>.png + JSON 根 {"date","logs"}) → 逐国 (gs+784 数组; cc+1156 ≤ 0 写 {"exists":false} (JSON 布尔 — nlohmann boolean ctor 类型码 4 直证, dg035 修正原「:0」值形误读)) → **sub_1402BE1D0** (json 数组, CCountry, logger+56 tag 表) 八段 (convoy 10 行 / crypto 逐 tag / strat 激活+反转 / manpower 三口径 / equipment 六量 / garrison 合计+逐州+state_on_法名 / operative_mission 逐特工 / agency 单值) / lambda_3 = **sub_1402168D0** GameTelemetry 占领快照 (tbb 逐国, 国数≥2 门直证); 另 5 处帧泵 + Short Task join 形态 (旧表漏行) |
 
 #### 4.2.11 yearly (CGameState 年边界, gs+784 国家数组)
@@ -559,7 +559,7 @@ CAirWing::HourlyUpdate 逐翼要点: other_combats 死引用压缩 / 无效任�
 | gs+1212 | 速度档 (键 110) | §4.1 |
 | gs+1216 | tick 进行中标志 (u8) | §4.1 |
 | gs+1248 | CPeaceConferenceManager 头 (hourly 处理) | §4.1 |
-| dword_143085210 | 闰年月首累计日表 | 本册 |
+| dword_143085210 | 每月天数表 (非闰, 12 项; 累计由消费方求和) | 本册 |
 | dword_1433386CC / qword_1433386C0 | 自定义速度表长度/指针 | 本册 |
 | qword_14333CEA8 / dword_14333CEB4 | GS checksum 数组/长度 | 本册 |
 | session+72 | CSession 联机状态枚举 (19 值全表) | §4.28.16 |
@@ -650,10 +650,12 @@ gs+2617 总门清 0 sub_1401EDFF0(gs,0) → maintheme) / **[110] = getter idler+
 容器 160B 元对非本机 **machine id** (元素+152 vs session+164 getter sub_140B54190) 投 CSetReadyStatus 48B) / [112] OnSaveGameLoaded (tag→国→槽[58]
 相机定位)。0x140B3FBC0 = byte_14333C1B0×143085000×1430B0820 三旗联动收尾 (调用方 7 处)。
 
+**启动控制器 sub_14163F2B0 增补** (df395): API 八口末位 = CFrontEndMainView::Update sub_141CE5310 的宿主口 — 控制器 **+88 = CFrontEndMainView\*** (本视图) / +96 = 前端背景管理器 (§4.35) / +112 = handler idx (§4.2.10b); 调用门 = sub_141CE1410 (主菜单窗 byte+165 bit3 可见, 否则第二窗回退)。**+1590/+1591 闩闭环补**: idler **+1590 = 前端进入请求位** (sub_140B3D400 读) / +1591 = 完成位; **写点 = sub_140B3D410** (置 1 + sub_140B4B4B0(*(idler+1272)) 渲染管理器收尾 + settings 单例 +192/+200 > 0 → 奏 "start_game_02"); StartNewGame 每帧经 Idle 读闩, 未置 → 走启动控制器, 置后主菜单点亮。
+
 **方法论补正** (错误形态辨析第五注): 判 throw 与否的判据 = 体内有无 **_CxxThrowException**,
 非只看 89E0+ios_base+terminate 尾块 — 本簇体内零 throw, 该尾块 = CLogStream 析构链
 (与 §4.12.9b 三家族、§4.16.20 throw 组并读; throw 组判据补强 = 89E0 前必有 CxxThrow)。
-gs 断言对存在两套 inline 实例 (gamestate.h:1116/1117 与 :1125/1126, 独立一次性旗)。
+gs 断言对存在两套 inline 实例 (gamestate.h:1116/1117 与 :1125/1126, 独立一次性旗; **df395 归属**: :1116/1117 = sub_141CE1510 (主菜单 Update 待办队列段调) / :1125/1126 = sub_141CE12A0 (Play 链); 一次性闩分别 byte_14332EDF9/EDFA 与 byte_14332ED00/ED01)。
 
 sub_1401A8B10 = E9 thunk → sub_140B711F0 (三步 = `(manager+48)->vt+128` 显隐槽 → `manager->vt+64` 刷新 → `status->+48->vt+120`; qword_14333C590 = 装载屏管理器单例 = load_screen 根窗口, §4.35.63; 调用点 StartNewGame)。未决: idler+1568 类名 / byte_14332F6A9 与 +1580/+1584 键旗
 下游读者 / gs+248 容器 160B 元全布局与「同步校验对象」命名合并。
@@ -662,3 +664,284 @@ sub_1401A8B10 = E9 thunk → sub_140B711F0 (三步 = `(manager+48)->vt+128` 显�
 
 日志 "Session change" (frontendinterfacehandler.cpp:271, 级 0x10000) → sub_140B3FBC0(*(this+80)) 刷新当前界面对象 → idx = *(int*)(this+112), idx<9 → handler = *(this + 8×idx + 8) (**+8..+72 = 9 个 handler 槽**), handler 非空 → handler vtable 槽 [12] (+96) 回执 sessionType; sessionType ∈ {1,9,10,13} → mode 3 / == 14 → mode 1 → sub_14163EF70(this, mode) 模式切换/界面重组; 重读 +112 (可能已被上一步改写), handler 变 → 新 handler 同槽 [12] 回执。
 
+
+#### 4.2.21 游戏时序与控制台通道补遗（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14209C650 | （未命名）"Spawns a tweaker GUI" / "reload" / "Reloads assets" / "What time is it?" "Spawns a tweaker GUI" / "reload" / "Reloads assets" / "What time is it?"，调试 t… |
+| 0x141EF9D80 | sub_141EF9D80 虚调度封装（多 vtable 指针），无业务串；_Func_impl 邻域 |
+| 0x14028E4E0 | sub_14028E4E0 控制台/测试命令："Must have 2 arguments: From and To Province IDs" / "Naval Danger is:" / "use human_ai"；调 CProductionLine::[14] |
+| 0x140256010 | sub_140256010 "checksums/" + "synchronized-" + "Command takes no arguments"（控制台同步/校验和命令） |
+| 0x14027C840 | （未命名）gamestate.h:1116 gamestate.h:1116；"Usage: bop_rmmod <ID> <ModID>" / "Failed to add power balance modifier"，bop 控制台命令 |
+| 0x140282160 | sub_140282160 "Invalid province id" / "now controls TODO" / "Invalid country tag" / "Specify a tag and a province id"（控制台 setcontroller 类命令） |
+| 0x14024C170 | sub_14024C170 "Interpolated fronts debug is now ENABLED/DISABLED"（战线插值调试控制台命令） |
+| 0x140261D10 | sub_140261D10 控制台命令（ConsoleCmdImpl.cpp:11952，Invalid arguments count.+HELP LOG） |
+| 0x1411AA210 | sub_1411AA210 控制台开关（All Special Projects available ENABLED/DISABLED） |
+| 0x14026A920 | sub_14026A920 控制台开关（Map names are now ENABLED/DISABLED） |
+| 0x14023DE30 | sub_14023DE30 控制台开关（All diplomatic actions are now ALLOWED/NOT ALLOWED） |
+| 0x140262D90 | sub_140262D90 控制台开关（Instant constructions DISABLED/ENABLED） |
+| 0x140260CF0 | （未命名）gamestate.h:1116 门控 + 串 "Invalid argumen gamestate.h:1116 门控 + 串 "Invalid arguments count."/"Invalid state id."/"Centering to state."（居中至州命令） |
+| 0x140D54AA0 | （未命名）调用者持 vtable `COrderInstance::SOrderInstanceRef` 调用者持 vtable `COrderInstance::SOrderInstanceRef`，命令实例引用 |
+| 0x140276C30 | sub_140276C30 随机种子/计数日志（"RandomCount = … RandomSeed = …"） |
+| 0x140291E40 | （未命名）串 "Command does not need any arguments"/ 串 "Command does not need any arguments"/"Stopped"（控制台命令 arity 校验） |
+
+#### 4.2.22 游戏时序与控制台通道补遗（55 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14026EB00 | （无名，按上游/loc 定性） 串 "political power to" + "Invalid arguments count." → 控制台命令（政治点数） |
+| 0x140238FD0 | （无名，按上游/loc 定性） 串 "Invalid number of arguments. add_exile_manpower <TAG> <value>\ Is not in exile*" → 控制台命令 |
+| 0x1402417A0 | （无名，按上游/loc 定性） 串 "Granted ... CP to ..." + "Invalid arguments count.\ Invalid argument type." → 控制台命令（指挥点数 |
+| 0x14167DB20 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x14024CDB0 | （无名，按上游/loc 定性） ConsoleCmdImpl.cpp:1360 |
+| 0x1415AE0F0 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x141B16F70 | （无名，按上游/loc 定性） 串 "Ticks compared: %d/%d\ %s: %dus vs %dus (%.2f%% faster)\ Hourl*" |
+| 0x140236D80 | （无名，按上游/loc 定性） 串 "added ... compliance to ...\ select a state" → 控制台命令（add_compliance） |
+| 0x141B15AC0 | （无名，按上游/loc 定性） 调试转储串 "Winner status -\ Player can play : %s\ Still playing :\ Ended turn :\ Done" |
+| 0x1406D8B30 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x14026BEE0 | （无名，按上游/loc 定性） 串 "Please specify the amount of humans\ Humans added" → 控制台命令（人类玩家数 |
+| 0x141B14740 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x142258BD0 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x141838AA0 | vtable/RTTI 类 COrderDeleteChildFront sub_141838AA0 + vtable/RTTI 类 COrderDeleteChildFront; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x14183BB90 | vtable/RTTI 类 CSetArmyLeaderCommand sub_14183BB90 + vtable/RTTI 类 CSetArmyLeaderCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x141146FB0 | vtable/RTTI 类 CSetNavalDeploymentTargetCommand sub_141146FB0 + vtable/RTTI 类 CSetNavalDeploymentTargetCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x14167E820 | 域关键词匹配 sub_14167E820 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1125 |
+| 0x141C02C80 | NFactions::NUi::CFactionIntelligencePopup::[14] NFactions::NUi::CFactionIntelligencePopup::[14] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x141C21FD0 | NProject::NUi::CScientistRoster::[8] NProject::NUi::CScientistRoster::[8] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x140AAD8A0 | 域关键词匹配 sub_140AAD8A0 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1125 |
+| 0x1418388A0 | vtable/RTTI 类 COrderConnectCommand sub_1418388A0 + vtable/RTTI 类 COrderConnectCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x1412D4520 | CNudgeIdler::[54] CNudgeIdler::[54] + 域关键词匹配; 串 "_pInstance && \"; 源码路径 hoi4 |
+| 0x140BFCF70 | 域关键词匹配 sub_140BFCF70 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1125 |
+| 0x141145790 | vtable/RTTI 类 CProductionLineInterfaceFactoriesScaleCommand sub_141145790 + vtable/RTTI 类 CProductionLineInterfaceFactoriesScaleCommand; 串 "GetPtr() != 0 && … |
+| 0x141145B40 | vtable/RTTI 类 CProductionLineInterfaceToggleExpandCommand sub_141145B40 + vtable/RTTI 类 CProductionLineInterfaceToggleExpandCommand; 串 "GetPtr() != 0 && \"; … |
+| 0x1411020E0 | CSendExpeditionaryForceAction::[24] CSendExpeditionaryForceAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 CSendExpedition… |
+| 0x141361340 | vtable/RTTI 类 CSetArmyTemplateCommand sub_141361340 + vtable/RTTI 类 CSetArmyTemplateCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x141DD8D60 | 域关键词匹配 sub_141DD8D60 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1125 |
+| 0x140C04EF0 | 域关键词匹配 sub_140C04EF0 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1125 |
+| 0x1411437D0 | vtable/RTTI 类 CAmendIncomingLendLeaseActionCommand sub_1411437D0 + vtable/RTTI 类 CAmendIncomingLendLeaseActionCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x141BA16D0 | vtable/RTTI 类 CSetConveyorGroupCommand sub_141BA16D0 + vtable/RTTI 类 CSetConveyorGroupCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x141BA1B70 | vtable/RTTI 类 CSetDeploymentLineNameCommand sub_141BA1B70 + vtable/RTTI 类 CSetDeploymentLineNameCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x14135FDB0 | vtable/RTTI 类 CCancelMovementCommand sub_14135FDB0 + vtable/RTTI 类 CCancelMovementCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x14183BA90 | vtable/RTTI 类 CSetAreaDefenseSettingCommand sub_14183BA90 + vtable/RTTI 类 CSetAreaDefenseSettingCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x1416023F0 | NFactions::CKickFromFactionAction::[24] NFactions::CKickFromFactionAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 NFactio… |
+| 0x1411012F0 | CImproveRelationAction::[24] CImproveRelationAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 CImproveRelationAction::[24] … |
+| 0x141A9ED50 | CDockingRightsAction::[24] CDockingRightsAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 CDockingRightsAction::[24] 等 1 命名… |
+| 0x141101FF0 | CSendAttacheAction::[24] CSendAttacheAction::[24] + vtable/RTTI 类 CDiplomaticAction; vtable/RTTI 含 CDiplomaticAction; 被 CSendAttacheAction::[24] 等 1 命名函数调用 |
+| 0x1411207C0 | CReduceAutonomyAction::[59] CReduceAutonomyAction::[59] + 域关键词匹配; 串 "AUTONOMY_CHANGE_TO_DESC"; 被调源码 hoi4 |
+| 0x1419A14C0 | vtable/RTTI 类 CSetObsoleteEquipmentVariantCommand sub_1419A14C0 + vtable/RTTI 类 CSetObsoleteEquipmentVariantCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x1410FBF00 | vtable/RTTI 类 CDiplomaticAction sub_1410FBF00 + vtable/RTTI 类 CDiplomaticAction; 被 CTransferHeadOfCounterIntelAction::[24] 等 4 命名函数调用 |
+| 0x14183BE90 | vtable/RTTI 类 CSetOrderGroupCohesionTypeCommand sub_14183BE90 + vtable/RTTI 类 CSetOrderGroupCohesionTypeCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x141BA19B0 | vtable/RTTI 类 CSetConveyorPriorityCommand sub_141BA19B0 + vtable/RTTI 类 CSetConveyorPriorityCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x14183AAA0 | vtable/RTTI 类 COrderSetCollapseCommand sub_14183AAA0 + vtable/RTTI 类 COrderSetCollapseCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x141145C80 | vtable/RTTI 类 CReleaseCountryCommand sub_141145C80 + vtable/RTTI 类 CReleaseCountryCommand; 串 "Owner != Subject"; 源码路径 hoi4 |
+| 0x141346280 | vtable/RTTI 类 CAutomateHomebaseForFleetCommand sub_141346280 + vtable/RTTI 类 CAutomateHomebaseForFleetCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x141B9E480 | vtable/RTTI 类 CRemoveDivisionTemplateCommand sub_141B9E480 + vtable/RTTI 类 CRemoveDivisionTemplateCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x141EF3130 | vtable/RTTI 类 CStopProjectCommand sub_141EF3130 + vtable/RTTI 类 CStopProjectCommand; 串 "GetPtr() != 0 && \"; 源码路径 clausewitz |
+| 0x1410F9460 | vtable/RTTI 类 CCallAllyAction sub_1410F9460 + vtable/RTTI 类 CCallAllyAction; 被调源码 hoi4; 被 NFactions::COfferJoinFactionAction::[56] 等 1 命名函数调用 |
+| 0x14053D0B0 | 域关键词匹配 sub_14053D0B0 + 域关键词匹配; 源码路径 hoi4; 断言站点 gamestate.h:1126 |
+| 0x141914A70 | vtable/RTTI 类 CAutomaticPause sub_141914A70 + vtable/RTTI 类 CAutomaticPause |
+| 0x1417987E0 | NFactions::NUi::CFactionTheaterSwitch::[0] NFactions::NUi::CFactionTheaterSwitch::[0] + 域关键词匹配; 串 "FACTION_THEATER_SWITCH_TO_FACTION_VIEW_TOO"; 被调源码 clausewitz |
+| 0x141BF8C80 | NFactions::NUi::CFactionCommanderWindow::[0] NFactions::NUi::CFactionCommanderWindow::[0] + 名字角色规则(NFactions::NUi::CFactionCommanderWindow::[0]); vtable/RTTI… |
+| 0x141038F20 | 域关键词匹配 sub_141038F20 + 域关键词匹配; 源码路径 hoi4; 断言站点 orderinstance.cpp:3459 |
+| 0x1410F99A0 | vtable/RTTI 类 CCancelLicensedProductionAction sub_1410F99A0 + vtable/RTTI 类 CCancelLicensedProductionAction; 被调源码 hoi4 |
+
+#### 4.2.23 游戏时序与控制台通道补遗（15 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140293190 | 控制台命令（角色校验） 控制台命令（角色校验）；串 \"character with advisor role but not corresponding unit leader trait %s\"/\"Unit leader advisor trait errors for scripted characte… |
+| 0x14209CE60 | 控制台 reloadfx 命令 控制台 reloadfx 命令；串 \"Call ApplicationUtilsInit first\"/\"Please specify effect name. Or: \\\"reloadfx all\\\"\"/\" reloaded! \"/\"Reload failed\" |
+| 0x140075D30 | 控制台 MIO 命令组 控制台 MIO 命令组；串 \"mio.AddFunds\"/\"mio.AddTaskCapacity\"/\"mio.AddSize\"+完整用法帮助文本（IndustrialOrganisation 命名空间） |
+| 0x1402652F0 | 标志位调试转储 标志位调试转储；串 \"No flags set\\n\"+\" = \"，被调 gamestate.h:1116+lexer.cpp:381 |
+| 0x1419A1750 | CUpdateEquipmentVariantCommand + "varian CUpdateEquipmentVariantCommand + "variant command does not y §4.2 游戏循环/命令 |
+| 0x140294670 | sub_140294670（无名） "Toggled unit controller weights tracking: " 控制台调试切换，写 byte_14332EDF9/EDFA 全局旗并回显 |
+| 0x140286050 | "RandomCount set to/RANDOMCOUNT RESET" "RandomCount set to/RANDOMCOUNT RESET" §4.2 游戏循环/命令 |
+| 0x14222B850 | CApplication/CApplicationObservable vtab CApplication/CApplicationObservable vtable + "assets"：应用资源装载 §4.2 游戏循环/命令 |
+| 0x140249680 | sub_140249680（无名） "GRADIENT_BORDERS" / "Borders enabled/disabled" 控制台地图边框渲染切换 |
+| 0x14023A400 | sub_14023A400（无名） "Invalid number of arguments. add_legitimacy <TAG> <value>" / "Invalid tag for the command" / "Is not in exile" 控制台 add_legitimacy 命令 |
+| 0x140283860 | sub_140283860（无名） "Expected a ratio argument" / "Energy Ratio set to: " 控制台能量比例设置命令 |
+| 0x14026D270 | sub_14026D270（无名） "Night OFF." / "Night ON." 控制台地图夜晚渲染切换（与 0x140249680/0x14024D6E0 同族） |
+| 0x14024D6E0 | sub_14024D6E0（无名） "Rivers enabled" / "Rivers disabled" 控制台地图河流渲染切换（与 0x140249680 同族） |
+| 0x140261490 | sub_140261490（无名） "HDR ON." / "HDR ON" / "HDR OFF." 控制台 HDR 显示切换（与 0x140249680/0x14024D6E0/0x14026D270 同族） |
+| 0x1411AA4B0 | sub_1411AA4B0（无名） "DISABLED" / "ENABLED" / "All Special Projects unlocked " 串，夹于 CPoliticalParty::Writer 与 CStaticIntelSourcePool::[8]，特种项目全解锁切换命令 |
+
+#### 4.2.24 游戏时序与控制台通道补遗（62 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C67BA0 | （无名） 调用图传播: 33 锚点投 §4.2（55%） |
+| 0x1401BCD30 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x1401BD340 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x141654730 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x141054B40 | （无名） 调用图传播: 4 锚点投 §4.2（75%） |
+| 0x141655290 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140C45AC0 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140A5A170 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140ED9530 | （无名） 调用图传播: 3 锚点投 §4.2（67%） |
+| 0x141A56210 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x1419DB680 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x1401B91D0 | （无名） 调用图传播: 3 锚点投 §4.2（100%） |
+| 0x14199AE10 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140500D50 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140500F10 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140501290 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x1405017D0 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140C446A0 | （无名） 调用图传播: 3 锚点投 §4.2（100%） |
+| 0x140F9FF10 | （无名） 调用图传播: 16 锚点投 §4.2（69%） |
+| 0x140DAA630 | （无名） 调用图传播: 10 锚点投 §4.2（100%） |
+| 0x141A5E2F0 | （无名） 调用图传播: 3 锚点投 §4.2（67%） |
+| 0x1406DFDB0 | （无名） 调用图传播: 3 锚点投 §4.2（67%） |
+| 0x141D90660 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x14199BCE0 | （无名） 调用图传播: 7 锚点投 §4.2（57%） |
+| 0x141A088E0 | （无名） 调用图传播: 4 锚点投 §4.2（100%） |
+| 0x140ECAE30 | （无名） 调用图传播: 5 锚点投 §4.2（60%） |
+| 0x1416557B0 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x141BAFF40 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x141A08820 | （无名） 调用图传播: 3 锚点投 §4.2（100%） |
+| 0x1410CE8D0 | （无名） 调用图传播: 6 锚点投 §4.2（67%） |
+| 0x141FDD8E0 | （无名） 调用图传播: 5 锚点投 §4.2（80%） |
+| 0x1424C8DA0 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140257830 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140294320 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140C338A0 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140FF4110 | （无名） 调用图传播: 3 锚点投 §4.2（67%） |
+| 0x140E5E3A0 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140F10500 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x14102A2C0 | （无名） 调用图传播: 3 锚点投 §4.2（100%） |
+| 0x1410FE3C0 | （无名） 调用图传播: 3 锚点投 §4.2（100%） |
+| 0x14208BF00 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x141CE7890 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x1410ED160 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140D79D70 | （无名） 调用图传播: 4 锚点投 §4.2（50%） |
+| 0x141FFF2B0 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x141FFF320 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x1409DABA0 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x1401CC340 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140726D10 | （无名） 调用图传播: 6 锚点投 §4.2（67%） |
+| 0x1409B9420 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x1413F8E30 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x1406DF240 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x141407960 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x14205EF10 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140735330 | （无名） 调用图传播: 5 锚点投 §4.2（80%） |
+| 0x140BD2F30 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140ABC4D0 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x14173E0E0 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x141CE2050 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x14072FE70 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140B554B0 | （无名） 调用图传播: 4 锚点投 §4.2（100%） |
+| 0x14163EF30 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+
+#### 4.2.25 游戏时序与控制台通道补遗（56 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140252990 | sub_140252990 时间缩放（「Please specify a positive value as argument」+Scaling delta time） |
+| 0x140294010 | sub_140294010 控制台开关（Test logs ON./Test logs Off.） |
+| 0x140289780 | sub_140289780 控制台开关（Simplified naval transports are now …） |
+| 0x140212BF0 | sub_140212BF0 调试统计输出（peace_conference_turns/in_game_date/nr_turn/elapsed_time） |
+| 0x14134E200 | 域关键词匹配 sub_14134E200 + 域关键词匹配 |
+| 0x141A49EC0 | 域关键词匹配 sub_141A49EC0 + 域关键词匹配; 源码路径 hoi4; 被调源码 hoi4 |
+| 0x141147E20 | sub_141147E20 串:_ProductionLine.IsValid() |
+| 0x140B6D040 | sub_140B6D040 游戏内界面 idler 帧更新门（_Idler.CanUpdateGui） |
+| 0x141AEC4D0 | 域关键词匹配 sub_141AEC4D0 + 域关键词匹配; 源码路径 hoi4; 被调源码 hoi4 |
+| 0x141045FB0 | 域关键词匹配 sub_141045FB0 + 域关键词匹配 |
+| 0x140C0E260 | 同区段近邻 COrdersGroupMember::[1](距 0x1B640)属 4.2 族 sub_140C0E260 + 同区段近邻 COrdersGroupMember::[1](距 0x1B640)属 4.2 族 |
+| 0x14011B6E0 | 域关键词匹配 sub_14011B6E0 + 域关键词匹配 |
+| 0x1411439B0 | sub_1411439B0 串:Valid |
+| 0x14129A1C0 | 域关键词匹配 sub_14129A1C0 + 域关键词匹配; 源码路径 hoi4; 被 NRaids::NUi::CRaidTargetMapIconData::[1] 等 1 命名函数调用 |
+| 0x1401C40E0 | 调用图上游传播(占 100%, 1 票) sub_1401C40E0 + 调用图上游传播(占 100%, 1 票) |
+| 0x140E38C50 | 域关键词匹配 sub_140E38C50 + 域关键词匹配; 源码路径 hoi4; 被调源码 clausewitz |
+| 0x141C1AE40 | 域关键词匹配 sub_141C1AE40 + 域关键词匹配; 被 NFactions::NUi::CRequestManpowerWindow::[6] 等 1 命名函数调用 |
+| 0x1419FCD10 | 同区段近邻 CTutOffensiveOrder::[9](距 0x2C220)属 4.2 族 sub_1419FCD10 + 同区段近邻 CTutOffensiveOrder::[9](距 0x2C220)属 4.2 族 |
+| 0x140671310 | 域关键词匹配 sub_140671310 + 域关键词匹配 |
+| 0x1410FB9C0 | 域关键词匹配 sub_1410FB9C0 + 域关键词匹配 |
+| 0x141A95240 | 域关键词匹配 sub_141A95240 + 域关键词匹配; 源码路径 hoi4 |
+| 0x141950060 | 域关键词匹配 sub_141950060 + 域关键词匹配 |
+| 0x140BB2680 | 同区段近邻 COrdersGroupMember::[1](距 0x405A0)属 4.2 族 sub_140BB2680 + 同区段近邻 COrdersGroupMember::[1](距 0x405A0)属 4.2 族 |
+| 0x140BC3650 | 同区段近邻 COrdersGroupMember::[1](距 0x2F5D0)属 4.2 族 sub_140BC3650 + 同区段近邻 COrdersGroupMember::[1](距 0x2F5D0)属 4.2 族 |
+| 0x1419E9F70 | 同区段近邻 CTutOffensiveOrder::[9](距 0x19480)属 4.2 族 sub_1419E9F70 + 同区段近邻 CTutOffensiveOrder::[9](距 0x19480)属 4.2 族 |
+| 0x140A3A070 | 域关键词匹配 sub_140A3A070 + 域关键词匹配; 被 CWarGoalType::[0] 等 1 命名函数调用 |
+| 0x140BF9ED0 | 域关键词匹配 sub_140BF9ED0 + 域关键词匹配 |
+| 0x1410F8BC0 | 域关键词匹配 sub_1410F8BC0 + 域关键词匹配; 被 CCallAllyAction::GetAiAcceptanceFactors 等 4 命名函数调用 |
+| 0x140D3D680 | 域关键词匹配 sub_140D3D680 + 域关键词匹配; 源码路径 hoi4; 被调源码 hoi4 |
+| 0x1419EDFB0 | 同区段近邻 CTutOffensiveOrder::[9](距 0x1D4C0)属 4.2 族 sub_1419EDFB0 + 同区段近邻 CTutOffensiveOrder::[9](距 0x1D4C0)属 4.2 族 |
+| 0x140D9AC10 | 域关键词匹配 sub_140D9AC10 + 域关键词匹配 |
+| 0x140BB5CB0 | 同区段近邻 COrdersGroupMember::[1](距 0x3CF70)属 4.2 族 sub_140BB5CB0 + 同区段近邻 COrdersGroupMember::[1](距 0x3CF70)属 4.2 族 |
+| 0x140282540 | 域关键词匹配 sub_140282540 + 域关键词匹配; 被调源码 hoi4 |
+| 0x1410B1A40 | 同区段近邻 sub_1410F9460(距 0x47A20)属 4.2 族 sub_1410B1A40 + 同区段近邻 sub_1410F9460(距 0x47A20)属 4.2 族 |
+| 0x1410F8AB0 | 域关键词匹配 sub_1410F8AB0 + 域关键词匹配; 被 CPeaceProposalAction::[59] 等 1 命名函数调用 |
+| 0x140D245C0 | 域关键词匹配 sub_140D245C0 + 域关键词匹配 |
+| 0x1413B1350 | 域关键词匹配 sub_1413B1350 + 域关键词匹配; 被 NInternationalMarket::CRequestMarketAccessRightsAction::[57] 等 1 命名函数调用 |
+| 0x1423B7680 | 调用图上游传播(占 100%, 1 票) sub_1423B7680 + 调用图上游传播(占 100%, 1 票) |
+| 0x142269220 | sub_142269220 月份名表（January/February/…）→ 日期格式化 |
+| 0x14102EF20 | 域关键词匹配 sub_14102EF20 + 域关键词匹配 |
+| 0x1401D1F40 | 域关键词匹配 sub_1401D1F40 + 域关键词匹配; 源码路径 hoi4; 被调源码 clausewitz |
+| 0x140309760 | 域关键词匹配 sub_140309760 + 域关键词匹配; 被 CCallAllyAction::GetAiAcceptanceFactors 等 8 命名函数调用 |
+| 0x1419D3D40 | 同区段近邻 CTutOffensiveOrder::[9](距 0x3250)属 4.2 族 sub_1419D3D40 + 同区段近邻 CTutOffensiveOrder::[9](距 0x3250)属 4.2 族 |
+| 0x140BFDE50 | 调用图上游传播(占 60%, 3 票) sub_140BFDE50 + 调用图上游传播(占 60%, 3 票) |
+| 0x1410C79F0 | 同区段近邻 sub_1410F9460(距 0x31A70)属 4.2 族 sub_1410C79F0 + 同区段近邻 sub_1410F9460(距 0x31A70)属 4.2 族 |
+| 0x1410E3730 | 同区段近邻 sub_1410F9460(距 0x15D30)属 4.2 族 sub_1410E3730 + 同区段近邻 sub_1410F9460(距 0x15D30)属 4.2 族 |
+| 0x1410A2390 | 同区段近邻 sub_1410F9460(距 0x570D0)属 4.2 族 sub_1410A2390 + 同区段近邻 sub_1410F9460(距 0x570D0)属 4.2 族 |
+| 0x1410C3550 | 同区段近邻 sub_1410F9460(距 0x35F10)属 4.2 族 sub_1410C3550 + 同区段近邻 sub_1410F9460(距 0x35F10)属 4.2 族 |
+| 0x141100250 | 域关键词匹配 sub_141100250 + 域关键词匹配; 被 CSendAttacheAction::CanExecute 等 2 命名函数调用 |
+| 0x141442810 | 域关键词匹配 sub_141442810 + 域关键词匹配 |
+| 0x1414C1190 | 调用图上游传播(占 100%, 1 票) sub_1414C1190 + 调用图上游传播(占 100%, 1 票) |
+| 0x141AA7750 | 同区段近邻 CDockingRightsAction::[24](距 0x8A00)属 4.2 族 sub_141AA7750 + 同区段近邻 CDockingRightsAction::[24](距 0x8A00)属 4.2 族 |
+| 0x141AA7660 | 同区段近邻 CDockingRightsAction::[24](距 0x8910)属 4.2 族 sub_141AA7660 + 同区段近邻 CDockingRightsAction::[24](距 0x8910)属 4.2 族 |
+| 0x141AA8290 | 同区段近邻 CDockingRightsAction::[24](距 0x9540)属 4.2 族 sub_141AA8290 + 同区段近邻 CDockingRightsAction::[24](距 0x9540)属 4.2 族 |
+| 0x1410ADF30 | 同区段近邻 sub_1410F9460(距 0x4B530)属 4.2 族 sub_1410ADF30 + 同区段近邻 sub_1410F9460(距 0x4B530)属 4.2 族 |
+| 0x140BE5440 | 同区段近邻 COrdersGroupMember::[1](距 0xD7E0)属 4.2 族 sub_140BE5440 + 同区段近邻 COrdersGroupMember::[1](距 0xD7E0)属 4.2 族 |
+
+#### 4.2.26 游戏时序与控制台通道补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AAE010 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x141AAC060 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x1419E9BF0 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140BE5620 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x140BC34D0 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+| 0x1413B78F0 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+
+#### 4.2.27 游戏时序与控制台通道补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A5C320 | （无名） 调用图传播: 8 锚点投 §4.2（50%） |
+| 0x140500810 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x140500490 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x141A08AB0 | （无名） 调用图传播: 3 锚点投 §4.2（67%） |
+| 0x14153F9E0 | （无名） 调用图传播: 2 锚点投 §4.2（50%） |
+| 0x141731A90 | （无名） 调用图传播: 2 锚点投 §4.2（100%） |
+
+#### 4.2.28 游戏时序与控制台通道补遗（19 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141820C30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x1401B5250 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x140D750B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x140F14E00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x1412E0770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x1423B8250 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x140540AA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x141AAB690 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x140F0A580 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x140BC3A60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x1419EDB50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x140541730 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x141BDAD90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x142271FE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x1401C9F30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x141CB04F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x1401DB8E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x140F5E800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+| 0x1401DF390 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |
+
+#### 4.2.29 游戏时序与控制台通道补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419EA400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.2 |

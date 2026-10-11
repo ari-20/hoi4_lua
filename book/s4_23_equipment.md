@@ -220,7 +220,7 @@ contract_definition (def = c+24; 表行序 = 偏移升序, 括注 = 合同绝对
 | +136 (+160) | uint64 | 补贴 CIC 总额 (ctor = 0 从 draft 拷贝; 不序列化; IsComplete ⇔ factory_cic_progress == +208−+200) |
 | +144 (+168) | 匿名结构 (48B 形状) 向量 | contract_draft.subsidies {data@144, count@156}, stride 48 (元素布局见下表) |
 | +168 (+192) | uint32 | contract_draft.speed |
-| +176 (+200) | std::map | price_levels → levels: head@176, size@184; **节点 key = idpair 8B {type@+28, id@+32}** = **CEquipmentVariant 自身 CReferenceObject idpair** (L2 门 = 全局 CIdentifier 注册表可解析 sub_14221F310, 不可解析静默丢弃; 读侧 sub_1419D3FD0 / 写侧 sub_1419D40F0 双证), value 枚举 u32@+36 (**落盘 token 实证 = 0→19365 low / 1→119 normal / 2→19367 high**, writer sub_140DF4390 值发射直证; 档因子映射 sub_1413B8CC0 链: 0→LOW_PRICE_LEVEL_FACTOR 0.75 (qword_143331BA8) / 1→标准 100000 / 2→HIGH_PRICE_LEVEL_FACTOR 1.25 (qword_143331CE8) / ≥3→断言后落标准**); 中序 = 写序 (map 形态定案: 收集 sub_1419D3E00 → 写 sub_140DF4390); **文本装载链 = sub_140DF2C40 (std_map 装载器) → sub_140DF2600 pair** (first = CID 列表跳读 0x14221F970, second = 内联 token 开关 low/normal/high→0/1/2, 断言 international_market_serializer.cpp:378; 已存键覆写 value — §4.00 std_pair_parser 段) |
+| +176 (+200) | std::map | price_levels → levels: head@176, size@184; **节点 key = idpair 8B {type@+28, id@+32}** = **CEquipmentVariant 自身 CReferenceObject idpair** (L2 门 = 全局 CIdentifier 注册表可解析 sub_14221F310, 不可解析静默丢弃; 读侧 sub_1419D3FD0 / 写侧 sub_1419D40F0 双证), value 枚举 u32@+36 (**落盘 token 实证 = 0→19365 low / 1→119 normal / 2→19367 high**, writer sub_140DF4390 值发射直证; 档因子映射 sub_1413B8CC0 链: 0→LOW_PRICE_LEVEL_FACTOR 0.75 (qword_143331BA8) / 1→标准 100000 / 2→HIGH_PRICE_LEVEL_FACTOR 1.25 (qword_143331CE8) / ≥3→断言后落标准**); 中序 = 写序 (map 形态定案: 收集 sub_1419D3E00 → 写 sub_140DF4390); **文本装载链 = 宿主 Load (token 14150 "price_levels" 块) → sub_140DF06D0 (pdx_parser.h:2222 块循环,token 17059 "levels" 分发,非该键 → `sub_1424C2060` 跳过) → sub_140DF2C40 (std_map_parser.h 装载器,:41 断言) → sub_140DF2600 pair** (first = CID 列表跳读 0x14221F970, second = 内联 token 开关 low/normal/high→0/1/2, 断言 international_market_serializer.cpp:378; 已存键覆写 value — §4.00.17 std_pair_parser 段);**节点指针槽序 = _Left@+0 / _Parent@+8 / _Right@+16** (三互证: 查找自 head+8=root 起 + 新节点父指针写 +8 + 空树插入 head 三槽全指新节点;**与 MSVC 2015+ 标准序不同,树遍历须按本序**;max_size 门 0x0666666666666666,越限 unknown_libname_10 抛 "map/set too long") |
 | +192 (+216) | uint8 | 懒计算完成标志 (ctor = 0) |
 | +200 (+224) | int64×1e-5 | 补贴抵扣 = min(+136, 总价×F/(F+1e5)) (F = PURCHASE_CONTRACT_SUBSIDY_BONUS_SPEED_FACTOR; 不序列化) |
 | +208 (+232) | int64×1e-5 | 合同总 CIC 价 (Σ variant IC×价格档因子×IC_TO_CIC_FACTOR, market_core.cpp 断言锚; 不序列化) |
@@ -572,6 +572,42 @@ rs+1784 = origin / rs+1808 = export 扁平表 / rs+1832 = 按资源桶数组 (wr
 ANTI_MONOPOLY_TRADE_FACTOR_THRESHOLD (全局 0x3334F98) → 因子 =
 ANTI_MONOPOLY_TRADE_FACTOR (全局 0x3335038), 否则 0; mdef274/mdef376 双向修正。
 
+#### 4.23.3c AI 采购评分链 (ai/international_market/ai_equipment_market.cpp)
+
+两支调用链: 调试 UI 支 `sub_141B0E840` → `sub_141B0E2D0` → `sub_141B0DA80`;
+AI 执行支 `sub_141B98BB0` → `sub_141B985D0`。均以自文档断言/输出串直证,
+函数体在 func_names 无名 (纯数字地址), 本节为书内首次落位。
+
+| 函数 | 尺寸 | 角色 | 证据 |
+|---|---|---|---|
+| sub_141B0E840 | 4723 | 国际市场调试 UI 总入口 (调试视图, 非正式游戏窗口) | 串 `International Market debug UI` / `International Market of %s (%s)` / `Add 500 CIC` (调试加钱按钮) / `Country market` / `Market Stockpile` / `Market Subsidies` / `Subsidies` |
+| sub_141B0E2D0 | 7259 | 预算与装备需求输出段 (UI 的 AI info 子段) | 串 `AI info` / `Available equipment (%s)` / `Civs to use for purchases:  %s / %s / %s` / `Convoys to use for purchases:  %s / %s / %s` / `Equipment needs (%s archetypes)` / `Equipment needs` |
+| sub_141B0DA80 | 6957 | 逐变体评分输出段 — 表头 `(%s) %s [prio=%s]` (国家/变体/优先级), 逐行 = malloc(0x20) SSO 标签串 + `sub_141B0E710(标签, 值, 表)` 追加 (行追加器 1573B) | 评分行标签表见下 |
+| sub_141B0E710 | 1573 | 调试表行追加器 (标签-值对入表; 上三段共用) | 调用形态直证 |
+| sub_141B98BB0 | 3189 | AI 采购上层 (AI 线程域入口) | 断言 `!_pStrategy || _pStrategy->IsValidThreadedAccess()` (ai/ai_country.h) |
+| sub_141B985D0 | 8222 | 采购成本执行体 — 逐变体算钱并断言不溢出 | 断言 `Out._MarketCost > 0 && "Overflow"` (ai_equipment_market.cpp:112); 变体行取值 = sub_141B96E10 (1015B), 变体 id = 元素 +8 的 u32 |
+| sub_141B96E10 | 1015 | 市场变体行取值 (按国 + 变体 id 查可售行) | 被 sub_141B985D0 调用形态直证 |
+
+**评分行标签表** (sub_141B0DA80 输出列, 定案):
+
+| 标签 | 语义 |
+|---|---|
+| Total prio score | 总优先级分 (采购排序主键) |
+| Equipment variant score | 装备变体分 |
+| CIC value needed | 所需 CIC (民用工厂代价) |
+| Subsidy value | 补贴值 (卖方补贴, §4.23.3 补贴池相关) |
+| AI strategy weight | AI 战略权重 (战略 desire 侧) |
+| Diplo opinion | 外交好感 (关系修正) |
+| Amount wanted of archetype | 该原型需求量 |
+| Available on market | 市场可售量 |
+| From | 来源国 |
+| No data | 无数据占位 |
+
+> 注: 两支的 6 函数 + 2 辅助均落在 0x141B0E2D0..0x141B985D0 两个连编区
+> (ai_equipment_market.cpp 调试输出族 + 执行族); 调试 UI 三段的串即引擎自身的
+> AI 决策分解项, 可作运行期采购行为取证入口 (标签-值表, sub_141B0E710 为
+> 唯一追加器)。具体评分公式系数未决 (定点乘除在函数体内, 无 define 名直证)。
+
 #### 4.23.9b CEquipmentDatabase 全布局 (equipment_database.cpp 装载链)
 
 **CEquipmentDatabase** (488B; vtable 0x142937FC0, 基 TGameItemDatabase; ctor 0x1409EF930; vtable[7]/[8] = Save wrapper/CFG 空桩 — **库不落盘**; §4.23.7a 「modules 库单例」实为本整库, modules 仅 +224 子容器):
@@ -592,7 +628,7 @@ ANTI_MONOPOLY_TRADE_FACTOR (全局 0x3335038), 否则 0; mdef274/mdef376 双向�
 | +432 | limit 触发器向量 | (见 +688 行); 写者定位 = 分发器 equipment_modules 块级 limit(10762): CAndTrigger(88B) shared_ptr → sub_1401AFF20 推入 |
 | +456 | search_filters 注册表 | 平铺分簇哈希 {桶数组@+8, 计数@+16, 掩码@+20, 深度上限@+24, 载荷因子@+28}; 节点 56B = 16B 哈希头 {链字节@+4, key@+8} + 内嵌 CEquipmentFilter 40B 本体 @+16 (书 40B 布局为对象本体相对, 成立) |
 
-装载链 (0x1409F1FC0 per-file 分发器): 五顶层块 equipments(12122)/upgrades(12393)/equipment_modules(15210)/search_filters(19320)/duplicate_archetypes(19503) 逐条建 def、查重覆盖 ("Overriding old")、注册; 重名覆盖处理器 sub_1409F6990 (逐别名 token → 名哈希 → db+40 哈希开链摘除、腾空 archetype 槽 db+128、0x140C93F80 原位 reset; **a3 出参 = {腾出槽下标 u32, 有效旗 u8}** 由 sub_1409F9D80 消费实现腾槽复用); equipments 新建 = malloc(1480)+ctor → push db+104 → 哈希节点 → vtable[3] Load → sub_1409F9D80 → archetype 且 interface category == 357(none) 警告; 尾部三连加载日志 :564/:570/:576 + gameitemdatabasehelper.h Null Object 断言族 (Array == Lookup+1)。**Load (0x1409F9F00) 尾钩**: db+32 > 0 → vtable[2](db) 装载完成通知 (推定; 注意与 PostLoad 同槽复用 = 装载期/后置两语义, 待裁)。db PostLoad (vtable 槽[2] 0x1409F7DF0) = 逐 type 0x140C949D0 + convoy 唯一性 (:597/:605; 检查 = 类别位掩码聚合 getter sub_140C95730 的 **bit0 = convoy 旗**, type+1365 区分 archetype/type 两类) + 逐模块 0x14152E8C0 (模块数组 {data@+224, count@+236}) + +320 回注 0x1409F4940 + **尾部另有 sub_1409F45B0 / sub_1409F5780 两步 (语义未决)**。**CEquipmentType 增补** (sizeof **1480B**; ctor 0x140C924B0 双点复现): +1048 db 下标 / **+112 槽数组 80B/条 {+8 槽 token, +24 脚本类别向量, +36 计数}, +124 槽计数** / +992 interface category token (取值链 sub_140C95830: !=357 或自身 archetype 或无基原型则返回, 否则沿 +1240 递归) / **+1344/+1352 类别位掩码低/高半字** / +1248 派生母指针 (self 哨兵; **+1240 初值 = 0x1409F8570 Null 原型单例**) / +1280 别名向量 / +1312 内嵌开地址表 / +1336 archetype 下标 / **+1360 u32 主类别序号** (ctor 清 0; PostLoad 0x140C949D0 未设时 = sub_140659D70(首类目位) 位→序号转换; getter sub_140C956E0 沿 +1240 走根原型读; 位→序号全表: 0→0 / 0x4→1 / 0x8→2 / 0x10→3 / 0x20→4 / 0x40→5 / 0x80→6 / 0x100→7 / 0x1→8 / 0x400→11 / 0x4000→12 / 0x800→13 / 0x1000→14 / 0x2000→15 / 0x8000→16 / 0x200000→17 / 0x100000→18 / 0x400000→19 / 0x20000→22 / 0x40000→23 / 0x8000000→24 / 0x10000000→25 / 0x20000000→26 / 0x40000000→27 / 0x2000000→28 / 0x80000000→32 / 0x200→33 / 0x80000→34 / 0x100000000→40 / default→0) / **+1365 IsArchetype 旗** / +1366 IsDuplicate / **+964 i32 与 +976 u32** (getter sub_140C96180; 生产装备窗五键排序第 3/4 键消费, 业务语义未决)。**bonus 枚举双向校验报错桩** = sub_1409FB5B0 (:649 枚举有而类型/类别无) / sub_1409FB650 (:656 反向), 触发站未决 (语料零调用点)。
+装载链 (0x1409F1FC0 per-file 分发器): 五顶层块 equipments(12122)/upgrades(12393)/equipment_modules(15210)/search_filters(19320)/duplicate_archetypes(19503) 逐条建 def、查重覆盖 ("Overriding old")、注册; 重名覆盖处理器 sub_1409F6990 (逐别名 token → 名哈希 → db+40 哈希开链摘除、腾空 archetype 槽 db+128、0x140C93F80 原位 reset; **a3 出参 = {腾出槽下标 u32, 有效旗 u8}** 由 sub_1409F9D80 消费实现腾槽复用); equipments 新建 = malloc(1480)+ctor → push db+104 → 哈希节点 → vtable[3] Load → sub_1409F9D80 → archetype 且 interface category == 357(none) 警告; 尾部三连加载日志 :564/:570/:576 + gameitemdatabasehelper.h Null Object 断言族 (Array == Lookup+1)。**Load (0x1409F9F00) 尾钩**: db+32 > 0 → vtable[2](db) 装载完成通知 (推定; 注意与 PostLoad 同槽复用 = 装载期/后置两语义, 待裁)。db PostLoad (vtable 槽[2] 0x1409F7DF0) = 逐 type 0x140C949D0 + convoy 唯一性 (:597/:605; 检查 = 类别位掩码聚合 getter sub_140C95730 的 **bit0 = convoy 旗**, type+1365 区分 archetype/type 两类) + 逐模块 0x14152E8C0 (模块数组 {data@+224, count@+236}) + +320 回注 0x1409F4940 + **尾部另有 sub_1409F45B0 / sub_1409F5780 两步 (语义未决)**。**CEquipmentType 增补** (sizeof **1480B**; ctor 0x140C924B0 双点复现): **+24 名/键串对象 (≥36B; ctor sub_140BC96A0 = 串拷贝 + 尾 u32@+32 拷贝, 附加 u32 语义未决; 转储器 0x140253910 作 Key 列直写, §4.23.24)** / +1048 db 下标 / **+112 槽数组 80B/条 {+8 槽 token, +24 脚本类别向量, +36 计数}, +124 槽计数** / +992 interface category token (取值链 sub_140C95830: !=357 或自身 archetype 或无基原型则返回, 否则沿 +1240 递归) / **+1088 variant_name std::string (命名 loc 键; 后 −1 i32@+1120 成对)** / **+1128 derived_variant_name std::string (命名 loc 键; 后 −1 i32@+1160 成对; 两串 ctor SSO cap 15, §4.23.24)** / **+1344/+1352 类别位掩码低/高半字** / +1248 派生母指针 (self 哨兵; **+1240 初值 = 0x1409F8570 Null 原型单例**) / +1280 别名向量 / +1312 内嵌开地址表 / +1336 archetype 下标 / **+1360 u32 主类别序号** (ctor 清 0; PostLoad 0x140C949D0 未设时 = sub_140659D70(首类目位) 位→序号转换; getter sub_140C956E0 沿 +1240 走根原型读; 位→序号全表: 0→0 / 0x4→1 / 0x8→2 / 0x10→3 / 0x20→4 / 0x40→5 / 0x80→6 / 0x100→7 / 0x1→8 / 0x400→11 / 0x4000→12 / 0x800→13 / 0x1000→14 / 0x2000→15 / 0x8000→16 / 0x200000→17 / 0x100000→18 / 0x400000→19 / 0x20000→22 / 0x40000→23 / 0x8000000→24 / 0x10000000→25 / 0x20000000→26 / 0x40000000→27 / 0x2000000→28 / 0x80000000→32 / 0x200→33 / 0x80000→34 / 0x100000000→40 / default→0) / **+1365 IsArchetype 旗** / +1366 IsDuplicate (转储器消费语义: 置位 → 警告直挂 sub_14117C870, 否则 → "_chassis" 子串特判, §4.23.24) / **+964 i32 与 +976 u32** (getter sub_140C96180; 生产装备窗五键排序第 3/4 键消费, 业务语义未决)。**bonus 枚举双向校验报错桩** = sub_1409FB5B0 (:649 枚举有而类型/类别无) / sub_1409FB650 (:656 反向), 触发站未决 (语料零调用点)。
 
 #### 4.23.10 equipmentdesignerview.cpp 簇对账增补 (CEquipmentDesignerView; 13 函数闭环)
 
@@ -874,3 +910,449 @@ CU = `hoi4\source\equipment\equipment_module_requirements.cpp`; 宿主类 **CEqu
 `(消息/串累加器 Src, 映射甲 a2, 映射乙 a3)` — 逐 TGameItemDatabase 条目 (单例 qword_14332EEC0, 自身断言 gameitemdatabase.h:142; db+128 条目数组 / db+140 计数) 比对两份「按装备类别的数量映射」, 生成 **DEPLOYMENT_EQUIPMENT_CHANGE** 本地化消息。
 
 比对: 映射形 = {data@+8, count@+20, 16B/条 (类别指针键 + qword 值)}; sub_14100EA10(映射, &out, 条目) 按 `*(条目+1240)` (装备 def 类别指针, 与 §4.23 +1240 基原型链同槽) 查数量, 未命中写 0; 差 d = 甲−乙, q = d/100000 (fixed 1e-5), q ≠ 0 才处理 (不等除时按符号上取整回写 d)。装配: 参数组 1 = {类型 5, q, 键 `STAT_VALUE_DIFF_NEUTRAL`} → sub_142245E60; 参数组 2 = 条目名 (sub_140BC9E70 取 def+24 SSO 串) 键 `NAME` + q 键 `VALUE`; 主串 sub_142245E60(Src, `DEPLOYMENT_EQUIPMENT_CHANGE`, 2 参) 追加 + 换行。调用点 3 处 (sub_1414A0930 内), 语义 = 两份快照比对 (映射真名未决)。
+
+#### 4.23.24 装备本地化键诊断 CSV 转储器 (equipment_loc 工具族; 控制台命令 dump_equipment_loc 的执行处理器 = 0x140253910)
+
+`char* (char *a1_result, CPdxArray<std::string> *a2_argv)` — IDA 丢第二参 (rdx 透传给参数解析器); 非序列化函数, 不经 CPersistent 虚表槽。经**静态命令注册表**启动期挂入 (注册点 lea @ 0x140012F2F, PE 全扫描唯一引用, 语料零 call 站点), 与运行期 383 条命令表 (§4.28) 为两条通道。命令名 / 描述 / 4 条参数档均 .rdata 串 (0x14272CEF8 起; 参数档 = desc / country_tag / type / path=)。出参 a1 = {+0 u8 成功旗 / +8 std::string 结果消息}; 成功 = "Wrote N rows to 路径" (N = 各分组记录累加), 失败捕 CFileException 取异常消息 (exc+48)。
+
+主流程:
+
+| 步 | 动作 |
+|---|---|
+| 1 | 参数解析 sub_14117CC30 → 配置结构 (desc 旗 / 国家 tag 数组 / generic / 类别掩码 / path= 路径); 无 path= 时默认 "logs/equipment_loc.csv" |
+| 2 | 记录收集 sub_14117D4B0: 遍历 CEquipmentDatabase 单例 qword_14332EEC0, 掩码门 (mask & sub_140C95730(原型)) == mask (全包含语义), 逐原型经 sub_1409F8180 取 db+272 子类型区间并集 |
+| 3 | 逐配置国家建分组 (sub_14117BE20), 逐 CEquipmentType 建 208B 记录 (ctor sub_14117C1B0), 填七字段 |
+| 4 | 开流: 0x48 流对象 sub_1424DF2C0(路径, 1, 1) + 0x20 写入器 sub_1424BEE00 |
+| 5 | 表头: desc 模式 5 列 Archetype,Key,Warnings,Tag,Description; 命名模式 8 列, 追加 1a. Name / 1b. Short name / 2. Design / 3. Derived design |
+| 6 | 逐分组逐记录写数据行 (sub_1424C2AD0 字面量 / sub_1424C2700 std::string), 字段间逗号, 末列以引号包裹 |
+| 7 | 注记段: desc 模式声明警告未实现; 命名模式追加 5 条列说明 + 警告图例 |
+| 8 | 刷流 (流 vtable 槽 13) → *a1 = 1 → 结果消息; 清理 = 写入器 / 流 / 注记数组 / 各分组记录数组 / 国家过滤数组 / 路径串, SEH 六级 unwind 状态机兜底 |
+
+命令配置结构 (sub_14117CC30 填充; 亦为收集器第二参):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | uint8 | desc 旗 (1 = 描述模式 5 列 / 0 = 命名模式 8 列) |
+| +8 | CPdxArray (24B) | 国家 tag id 过滤数组 (无 tag 参数时含 generic) |
+| +32 | uint64 | 装备类别位掩码 (位语义同 sub_140C95730, §4.23.9b; 0 = 不过滤) |
+| +40 | std::string (32B) | 输出路径 (默认 logs/equipment_loc.csv) |
+
+记录结构 (208B; ctor sub_14117C1B0 / move sub_14117C030 / dtor sub_14022BEE0):
+
+| 偏移 | 类型 | CSV 列 | 语义 |
+|---|---|---|---|
+| +0 | uint8 | Archetype | 是否定格旗 (源 CEquipmentType+1365; 1 = "Yes" / 0 = "No") |
+| +8 | 对象指针 | Key | CEquipmentType+24 名/键串对象 |
+| +16 | std::string | Warnings | 警告码拼接串 (列号+码) |
+| +48 | std::string | 1a. Name | 名 loc 解析结果 |
+| +80 | std::string | 1b. Short name | 短名 loc (键后缀 _short) |
+| +112 | std::string | 2. Design | variant_name loc 键 (CEquipmentType+1088) 解析结果 |
+| +144 | std::string | 3. Derived design | derived_variant_name loc 键 (CEquipmentType+1128) 解析结果 |
+| +176 | std::string | Description | 描述 loc (键后缀 _desc; desc 模式) |
+
+警告码 (图例 .rdata 串 0x142999970 起; 拼接器 sub_14117C870 按列空缺 + 国别 major 旗 cc+5210 分支):
+
+| 码 | 语义 |
+|---|---|
+| m | required loc key is missing |
+| mi | required loc string is missing as the override key is invalid |
+| oi | optional loc string is missing as the override key is invalid |
+| r | a loc string is available but redundant |
+| ri | a redundant and invalid loc key is set |
+
+子函数:
+
+| VA | 语义 |
+|---|---|
+| 0x14117CC30 | 参数解析器 → 配置结构 (desc 旗 / 国家数组 / 类别掩码 / 路径) |
+| 0x14117D4B0 | 记录收集器 (DB 遍历 + 掩码过滤 + 逐国逐类型建记录 + 注记数组) |
+| 0x14117C1B0 | 208B 记录 ctor (旗 + qword + 6×std::string SSO cap 15) |
+| 0x14117C030 | 记录 move (数组扩容搬运) |
+| 0x14117C2C0 | 名 / 描述列 loc 解析 |
+| 0x14117C410 | variant_name / derived_variant_name loc 解析 (Design / Derived design 列) |
+| 0x14117C870 | 警告码拼接器 |
+
+> 未决: CEquipmentType+24 串对象尾 u32@+32 语义; "No" 字面量 VA; 注记行 CSV 对齐 (逗号数 = 列数−1, 经寄存器透传, 未反汇编确认); "_chassis" / "_hull" 特判分支体; 警告码与列号精确拼装序; 静态注册表宿主类名与记录定长 (§4.28); generic 分组 Tag 列呈现; sub_14117C2C0 / sub_14117C410 的解析语义 (推定 = loc 查找)。
+
+#### 4.23.25 装备市场域函数补遗（29 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BD0F40 | （未命名）vtable `CEquipmentVariant` + `CEquipmentUpgradesInstance` + `CTraitBonus` vtable `CEquipmentVariant` + `CEquipmentUpgradesInstance` + `CTraitBonus`，装备变体构造 |
+| 0x140303AF0 | NInternationalMarket::CAddEquipmentSubsidyEffect::Execute "Valid seller country tags…" / "Target equipment archetype is not an archetype." / "CIC amount shou… |
+| 0x1415379A0 | （未命名）LEVEL / EQUIPMENT_UPGRADE_LEVEL_AND_UP LEVEL / EQUIPMENT_UPGRADE_LEVEL_AND_UP，装备升级等级显示 |
+| 0x141A2FBB0 | （未命名）"Equipment variant to convert from or to is null" "Equipment variant to convert from or to is null"（equipment_to_convert.cpp），装备变体转换 |
+| 0x140BD8700 | （未命名）vtable `CPdxHybridInlineBufferAllocator<bool,32,int>` vtable `CPdxHybridInlineBufferAllocator<bool,32,int>`；调用者持 equipmentvariantbuilder.cpp "Failed to … |
+| 0x141B04150 | sub_141B04150 evolve_equipment_imgui.cpp:167 "StatWeightings missing value"（imgui 装备演化调试视图） |
+| 0x140BDFC80 | （未命名）stat_helper.h:119 stat_helper.h:119；"Stat should be integer but isn't" + vtable `CEquipmentStats`，装备统计 |
+| 0x14148DE00 | （未命名）"Invalid operator for module slot specification." / "Invalid module name…" / "Invalid empty restriction operator…" "Invalid operator for module slot spe… |
+| 0x140DB3C80 | sub_140DB3C80 NIndustrialOrganisation::COrganisation 构造（正文 vtable+56 类型码 357） |
+| 0x142046960 | sub_142046960 CGregorianDate vtable + INTERNATIONAL_MARKET_DRAFT_(REQUIRED_)CONVOYS_TT + COUNTRY / CONVOYS（国际市场护航租用 UI） |
+| 0x1403C7F90 | sub_1403C7F90 CEquipmentArcheTypePool / CUnitAdjuster / SSubUnitStats vtable（装备原型池/子单位统计调整） |
+| 0x140458000 | NIndustrialOrganisation::CHasEquipmentTypeTrigger::GetDesc NIndustrialOrganisation::CHasEquipmentTypeTrigger::GetDesc；串「TRIGGER_MIO_HAS_EQUIPMENT_TYPE」 |
+| 0x141FFD2C0 | NInternationalMarket::CPurchaseEquipmentItem::[21] NInternationalMarket::CPurchaseEquipmentItem::[21]；串「INTERNATIONAL_MARKET_SOLD_BY」 |
+| 0x14100EFD0 | sub_14100EFD0 装备 archetype 表项（COUNT/NAME/ARCHETYPE_DESC_ENTRY） |
+| 0x14192BA30 | sub_14192BA30 装备变体默认模型（USE_DEFAULT_MODEL） |
+| 0x1413BC070 | （未命名）loc 串 INTERNATIONAL_MARKET_DELIVERY_COUN loc 串 INTERNATIONAL_MARKET_DELIVERY_COUNT_TITLE/DELIVERED/TOTAL（市场交割计数） |
+| 0x140296C60 | （未命名）gameitemdatabase.h:349 断言 + 串 "Equipment gameitemdatabase.h:349 断言 + 串 "Equipment database updated."/"Invalid arguments count"（装备库热重载） |
+| 0x1417B98F0 | NInternationalMarket::CCountryInternationalMarketView::[0] NInternationalMarket::CCountryInternationalMarketView（SELL/BUY_EQUIPMENT_TOOLTIP） |
+| 0x1409EEF90 | （无名） 装备数据库（断言站点 equipment_database.cpp:1042） |
+| 0x14049EF00 | CSetEquipmentFraction::GetDesc GetDesc 串 EFFECT_EQUIPMENT_FRACTION（装备份额效果） |
+| 0x140F71120 | sub_140F71120 体内构造/操作 vtable 类 CRocketProductionLine（&CRocketProductionLine::vftable）→ 装备变体/装备类型变量/火箭生产线 |
+| 0x140325700 | （无名） vftable 类 CEquipmentStats::（装备/市场） |
+| 0x14191EA00 | （无名） vftable 类 SPotentialDesign::（装备/市场） |
+| 0x14045ABD0 | NInternationalMarket::CHasMarketAccessWithTrigger::GetDesc GetDesc 串 TRIGGER_HAS_MARKET_ACCESS_WITH/TRIGGER_HAS_NOT_MARKET_ACCESS_WITH |
+| 0x14203DE20 | （未命名）loc 串 INTERNATIONAL_MARKET_SUBSIDIES_OVE loc 串 INTERNATIONAL_MARKET_SUBSIDIES_OVERVIEW_ENTRY_NAME/ARCHETYPE（市场补贴总览） |
+| 0x1402C07A0 | （未命名）串 "infantry_equipment" 串 "infantry_equipment"（步兵装备引用） |
+| 0x14205C980 | sub_14205C980 体内构造/操作 vtable 类 CEquipmentVariantPool（&CEquipmentVariantPool::vftable）→ 装备变体/装备类型变量/火箭生产线 |
+| 0x141514F60 | （未命名）loc 串 embargo_initiator_extended_desc/CO loc 串 embargo_initiator_extended_desc/COUNTRY1/COUNTRY2（禁运发起方描述） |
+| 0x1410173E0 | sub_1410173E0 体内构造/操作 vtable 类 CModifier（&CModifier::vftable）→ 通用修正对象（跨域） |
+
+#### 4.23.26 装备市场域函数补遗（19 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BD64A0 | （无名）EQUIPMENT_VERSION 键 + TANK/PLANE/SHIP 分支 + sub_140BCE550(...,VERSION,...) EQUIPMENT_VERSION 键 + TANK/PLANE/SHIP 分支 + sub_140BCE550(...,VERSION,...) |
+| 0x141C36B90 | CEquipmentOverview::[0] — MANPOWER_IN_USE / EQUIPMENT_IN_USE(+_GARRISON) + HEADER/KEY/DESC + current_manpower 键 MANPOWER_IN_USE / EQUIPMENT_IN_USE(+_GARRISON… |
+| 0x142003C60 | （无名）INTERNATIONAL_MARKET_CANCEL_POPUP_DESC / ..._GAIN + INTERNATIONAL_MARKET_EQUIPMENT_AMOUNT + COUNTRY/GAIN 键 INTERNATIONAL_MARKET_CANCEL_POPUP_DESC / ..._G… |
+| 0x141BCC8B0 | （无名，按上游/loc 定性） loc "DR_TRADE_EMBARGO" |
+| 0x142046320 | （无名，按上游/loc 定性） loc "INTERNATIONAL_MARKET_DRAFT_TOTAL_CONTRACT_COST_TT\ INTERNATIO*" |
+| 0x1406317F0 | （无名，按上游/loc 定性） loc "EQUIPMENT_MODULE_STAT_AVERAGED" |
+| 0x1418A2900 | sub_1418A2900 特征串:ui_insufficient_delivery ; INTERNATIONAL_MARKET_TOPBAR_BUTTON_INEFFICI |
+| 0x140F8D040 | vtable/RTTI 类 CEquipmentUpgradesInstance sub_140F8D040 + vtable/RTTI 类 CEquipmentUpgradesInstance |
+| 0x141F6ADA0 | sub_141F6ADA0 特征串:CONFIRMCANCELALLPRODUCTIONLINE_TITLE ; CONFIRMCANCELALLPRODUCTIONLINE_ |
+| 0x140E5F600 | 域关键词匹配 sub_140E5F600 + 域关键词匹配; 源码路径 hoi4; 断言站点 equipmentvariant.h:623 |
+| 0x1411003A0 | sub_1411003A0 特征串:CAN_NOT_SEND_LICENSE_NO_ACTIONS ; CAN_NOT_SEND_LICENSE_NO_FACTORIES |
+| 0x141BE1AE0 | NIndustrialOrganisation::XPEAVCOrganisation::Z::_Func_impl_no_a…::[2] NIndustrialOrganisation::XPEAVCOrganisation::Z::_Func_impl_no_a…::[2] + 域关键词匹配; 串 "GetP… |
+| 0x141F8C100 | AEAVCToolTip::_NPEAVCGuiObject::Z::_Func_impl_no_alloc<…>::[2] AEAVCToolTip::_NPEAVCGuiObject::Z::_Func_impl_no_alloc<…>::[2] + 域关键词匹配; 串 "INTERNATIONAL_MARK… |
+| 0x140E5BD20 | vtable/RTTI 类 CNamedEquipmentBonus sub_140E5BD20 + vtable/RTTI 类 CNamedEquipmentBonus |
+| 0x1401511C0 | vtable/RTTI 类 CAnonymousEquipmentGroup sub_1401511C0 + vtable/RTTI 类 CAnonymousEquipmentGroup; 被 CAnonymousEquipmentGroup::[0] 等 6 命名函数调用 |
+| 0x141645820 | vtable/RTTI 类 CEquipmentModuleSlot sub_141645820 + |
+| 0x140DBBA20 | vtable/RTTI 类 NIndustrialOrganisation::STraitId sub_140DBBA20 + vtable/RTTI 类 NIndustrialOrganisation::STraitId; 被 CSetIndustrialOrgTraitsInQueueCommand::Exe… |
+| 0x1409E9E30 | vtable/RTTI 类 CEquipmentFilter sub_1409E9E30 + vtable/RTTI 类 CEquipmentFilter |
+| 0x1415416F0 | vtable/RTTI 类 NIndustrialOrganisation::STraitId sub_1415416F0 + vtable/RTTI 类 NIndustrialOrganisation::STraitId |
+
+#### 4.23.27 装备市场域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CE80A0 | 支援装备处理 支援装备处理；串 \"support_equipment\"，被调 gamestate.cpp:2202/gamestate.h:1116/1125×3 |
+| 0x14101DD50 | "Needed equipment module ... does not ma "Needed equipment module ... does not match any module or mo §4.23 装备/市场 |
+| 0x1409FD250 | CEquipmentGraphicPoolTypeMap vtable CEquipmentGraphicPoolTypeMap vtable §4.23 装备/市场 |
+| 0x140237E20 | "Done/Part not found"：装备模块/部件装配查询 "Done/Part not found"：装备模块/部件装配查询 §4.23 装备/市场 |
+| 0x140BDA180 | sub_140BDA180（无名） "SERVICE_MANPOWER" GUI 键，夹于 CEquipmentVariant::CreateNewId(d=8912) 与 CEquipmentVariant::[8](d=12464)，装备变体/服务人力族 |
+| 0x14200C190 | "market_equipment_stockpile_entry/GFX_na "market_equipment_stockpile_entry/GFX_naval_equipment_market §4.23 装备/市场 |
+| 0x14204CA70 | sub_14204CA70（无名） "IsValid()" contract_delivery_state.h 断言 + PURCHASE_CONTRACT_PROGRESS_TOTAL_PAYMENT_VALUE/DELIVERED/TOTAL GUI 键，紧邻 NInternationalMarket::CP… |
+| 0x141530440 | sub_141530440（无名） "Equipment module mission type stats with the same limit is already defined" / "does not define a limit" 校验串，紧邻 CMissionStatsReadHelper::Re… |
+
+#### 4.23.28 装备市场域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141645A80 | （无名，按证据定性） 键 EQ_MOD_SLOT_*/_TITLE（装备模块槽位标题） |
+| 0x1413BDA80 | （无名，按证据定性） 键 EQUIPMENT/TYPE/AMOUNT；直接调用者为 NInternationalMarket::CCreatePurchaseContractEffect::GetDesc / CCancelPurchaseContractEffect::GetDesc（市场合同装备量） |
+
+#### 4.23.29 装备市场域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.23.30 装备市场域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B04C80 | ImGui 装备演变调试页（开发工具） evolve_equipment_imgui.cpp:23 |
+| 0x14063F600 | 命名装备奖励按类别查表（switch 逐类别扫 token-value 对数组） 调用方断言 "Failed to find named equipment bonus by handle."（equipmentvariant.cpp）；switch case 常量 11950/10836/11956 等 |
+| 0x1409ED730 | 装备层级校验 equipment_database.cpp "Cyclic equipment hierarchy" ×2 |
+| 0x1409EDD60 | 装备层级校验 equipment_database.cpp "Cyclic equipment hierarchy" ×2 |
+
+#### 4.23.31 装备市场域函数补遗（61 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142067850 | （无名） 调用图传播: 16 锚点投 §4.23（100%） |
+| 0x14203B600 | （无名） 调用图传播: 16 锚点投 §4.23（100%） |
+| 0x141EE6480 | （无名） 调用图传播: 6 锚点投 §4.23（67%） |
+| 0x142067520 | （无名） 调用图传播: 4 锚点投 §4.23（100%） |
+| 0x142068010 | （无名） 调用图传播: 4 锚点投 §4.23（100%） |
+| 0x141DB71F0 | （无名） 调用图传播: 8 锚点投 §4.23（100%） |
+| 0x141DB8600 | （无名） 调用图传播: 8 锚点投 §4.23（100%） |
+| 0x1420672D0 | （无名） 调用图传播: 4 锚点投 §4.23（100%） |
+| 0x141492350 | （无名） 调用图传播: 4 锚点投 §4.23（100%） |
+| 0x1413B39F0 | （无名） 调用图传播: 8 锚点投 §4.23（100%） |
+| 0x142069B90 | （无名） 调用图传播: 5 锚点投 §4.23（60%） |
+| 0x1413B35C0 | （无名） 调用图传播: 4 锚点投 §4.23（100%） |
+| 0x14203DB70 | （无名） 调用图传播: 9 锚点投 §4.23（89%） |
+| 0x141422B00 | （无名） 调用图传播: 10 锚点投 §4.23（60%） |
+| 0x141DB8190 | （无名） 调用图传播: 4 锚点投 §4.23（100%） |
+| 0x1406410E0 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x14117D2F0 | （无名） 调用图传播: 6 锚点投 §4.23（100%） |
+| 0x140FE06D0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x141624500 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x140F8DB80 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x140B41600 | （无名） 调用图传播: 4 锚点投 §4.23（50%） |
+| 0x140726DC0 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x1411FFA20 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140302510 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140A873E0 | （无名） 调用图传播: 5 锚点投 §4.23（60%） |
+| 0x14199FE00 | （无名） 调用图传播: 4 锚点投 §4.23（50%） |
+| 0x140DEB050 | （无名） 调用图传播: 3 锚点投 §4.23（67%） |
+| 0x140C908B0 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x141EDC650 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x14203C9F0 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x140659C80 | （无名） 调用图传播: 7 锚点投 §4.23（57%） |
+| 0x14116EAF0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x141F1D210 | （无名） 调用图传播: 7 锚点投 §4.23（86%） |
+| 0x140DED7F0 | （无名） 调用图传播: 3 锚点投 §4.23（67%） |
+| 0x141DE08A0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x1417841B0 | （无名） 调用图传播: 4 锚点投 §4.23（50%） |
+| 0x141D6D4E0 | （无名） 调用图传播: 3 锚点投 §4.23（67%） |
+| 0x140BE23C0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140DB6E00 | （无名） 调用图传播: 4 锚点投 §4.23（50%） |
+| 0x141491170 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x141D50490 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x141492EC0 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x14117EEE0 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x1413BB010 | （无名） 调用图传播: 3 锚点投 §4.23（67%） |
+| 0x140EF83D0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140C94430 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x1419D7420 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x14178ED90 | （无名） 调用图传播: 4 锚点投 §4.23（50%） |
+| 0x1419D76E0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x1413BB0B0 | （无名） 调用图传播: 3 锚点投 §4.23（67%） |
+| 0x141492E30 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x1418E7D60 | （无名） 调用图传播: 4 锚点投 §4.23（100%） |
+| 0x141492DA0 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x141372E00 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140E60070 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x142054D40 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140AA2630 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140B473B0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140F882F0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x14130F1E0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x141579D70 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+
+#### 4.23.32 装备市场域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F8D340 | 装备升级实例 equipment_upgrades_instance.cpp:65 + "LICENSED_EQUIPMENT_UPGRADE_XP_COST_MODIFIER" → 装备升级实例 |
+| 0x141F73DB0 | 装备变体设计器 串 "DESIGNER_AIR/ARMY/NAVY_EXPERIENCE"/"DESIGNER_RENAME"/"variant_name" → 装备变体设计器 |
+
+#### 4.23.33 装备市场域函数补遗（29 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14176A950 | sub_14176A950 equipment_categories_grid + file_name（装备类别网格 UI） |
+| 0x1417907E0 | sub_1417907E0 referenced_variant_name（装备变体引用名解析/序列化） |
+| 0x141FB4A80 | sub_141FB4A80 MIO 解锁队列窗口（industrial_organisation_queue_to_unlock_window） |
+| 0x141DC95D0 | sub_141DC95D0 装备市场交易（equipment_name/deal_description） |
+| 0x141FB4D60 | sub_141FB4D60 MIO 队列 GUI（name/different_mio_warning/delete_queue） |
+| 0x141C379F0 | sub_141C379F0（无名） equipment_name / equipment_ic / equipment_amount GUI 键，紧邻 CEquipmentOverview::Reload(d=1504)，装备概览 UI |
+| 0x14152E260 | sub_14152E260 装备模块转换（Invalid critical part in module conversion specification） |
+| 0x141B1C140 | 无名领域函数 sub_141B1C140 断言站点 \hoi4\\source\\international_market\\market_stockpile_equipment_transfer_command.cpp（市场） |
+| 0x1413B5850 | 无名领域函数 sub_1413B5850 被调用者定名: CMarketRequestAutomation::HandleSendingMarketAccessRequest? 等命中 §4.23（占 100%，共 2 callee） |
+| 0x1413E56C0 | sub_1413E56C0 stat modifier 差值/数值 GUI 文本（_MOD_DIFF） |
+| 0x140074210 | sub_140074210 装备设计成本因子定义读取（_design_cost_factor） |
+| 0x14177F130 | 域关键词匹配 sub_14177F130 + 域关键词匹配; 源码路径 hoi4; 被 CEmptyEntryListBase<NEquipmentDesigner::CEquipmentNameGroupItem>::[0] 等 1 命名函数调用 |
+| 0x1413E6F80 | sub_1413E6F80 stat modifier 差值/数值 GUI 文本（_MOD_VALUE） |
+| 0x1415353A0 | 调用图上游传播(占 100%, 1 票) sub_1415353A0 + 调用图上游传播(占 100%, 1 票) |
+| 0x141D68DD0 | sub_141D68DD0 串:outdated_equipment_overlay |
+| 0x140BD22F0 | 调用图上游传播(占 100%, 1 票) sub_140BD22F0 + 调用图上游传播(占 100%, 1 票) |
+| 0x14177D150 | sub_14177D150 特征串:equipment_blueprint |
+| 0x14173E210 | 域关键词匹配 sub_14173E210 + 域关键词匹配 |
+| 0x142058670 | 域关键词匹配 sub_142058670 + 域关键词匹配 |
+| 0x141F6E110 | sub_141F6E110 特征串:equipment_role_selection_window |
+| 0x1419D86A0 | 调用图上游传播(占 50%, 2 票) sub_1419D86A0 + 调用图上游传播(占 50%, 2 票) |
+| 0x142052A00 | 域关键词匹配 sub_142052A00 + 域关键词匹配 |
+| 0x14204C7B0 | 域关键词匹配 sub_14204C7B0 + 域关键词匹配; 被调源码 clausewitz; 被 NInternationalMarket::CPurchaseContractEntry::[0] 等 1 命名函数调用 |
+| 0x1413BF240 | 调用图上游传播(占 79%, 2 票) sub_1413BF240 + 调用图上游传播(占 79%, 2 票) |
+| 0x140C9CC60 | 调用图上游传播(占 100%, 1 票) sub_140C9CC60 + 调用图上游传播(占 100%, 1 票) |
+| 0x141375530 | 调用图上游传播(占 100%, 1 票) sub_141375530 + 调用图上游传播(占 100%, 1 票) |
+| 0x141BCD8F0 | 调用图上游传播(占 62%, 2 票) sub_141BCD8F0 + 调用图上游传播(占 62%, 2 票) |
+| 0x1414B4BD0 | 域关键词匹配 sub_1414B4BD0 + 域关键词匹配 |
+| 0x140A2A600 | 调用图上游传播(占 100%, 1 票) sub_140A2A600 + 调用图上游传播(占 100%, 1 票) |
+
+#### 4.23.34 装备市场域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C85760 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x140C98B30 | equipment.cpp 断言 "Expected start of block" equipment.cpp 断言 "Expected start of block"，装备解析 |
+| 0x141F7ABF0 | 无名 · "EQUIPMENT_DESIGNER_REMOVE_" 装备设计师 "EQUIPMENT_DESIGNER_REMOVE_" 装备设计师键 |
+| 0x141374E90 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+
+#### 4.23.35 装备市场域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414615D0 | 业务逻辑（见证据锚） "Type '...' does not support upgrades"（装备改装支持判定） |
+| 0x14204D3D0 | 业务逻辑（键 PURCHASE_CONTRACT_PROGRESS_BASE_PAYMENT_PER_DAY） "PURCHASE_CONTRACT_PROGRESS_BASE_PAYMENT_PER_DAY"/"EXPECTED_PAYMENT_VALUE"/"SUBSIDY_PAYMENT_PER_DAY"（… |
+| 0x14175EF40 | 业务逻辑（键 EQUIPMENT） "DIVISION_MODIFICATION_NEED_FILLED/NOT_FILLED"/"EQUIPMENT"/"STOCK_AMOUNT"（师改装装备需求） |
+| 0x140A08750 | CEquipmentGroupDatabaseListener::SEnqueuedOperations（vtable 槽/管理器） VT CEquipmentGroupDatabaseListener::SEnqueuedOperations（装备组数据库监听入队） |
+| 0x141C37CB0 | 业务逻辑（键 equipment_overview_window） "equipment_overview_window"/"current_manpower"/"equipment_ratio"/"template_title[_garrison]"（装备概览窗口） |
+| 0x140C9C440 | 业务逻辑（见证据锚） "Expected start of block"/"First string in find_and_replace must be non-empty"（find_and_replace 解析） |
+| 0x14205EA70 | CEquipmentEntry 装备条目 (vtable类名 CEquipmentEntry) vtable引用 CEquipmentEntry vftable |
+| 0x140170820 | CEquipmentGroupDatabase 装备组库 (vtable类名 CEquipmentGroupDatabase) vtable引用 CEquipmentGroupDatabase vftable |
+
+#### 4.23.36 装备市场域函数补遗（20 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409E8DD0 | （无名） 调用图传播: 8 锚点投 §4.23（62%） |
+| 0x1413B33C0 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x140DED4D0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x1415399A0 | （无名） 调用图传播: 6 锚点投 §4.23（50%） |
+| 0x141D457E0 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x14203B540 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x1409FB350 | （无名） 调用图传播: 4 锚点投 §4.23（75%） |
+| 0x140BE1F20 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x1414928C0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x140BD9020 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x141DB6AF0 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x14117BFB0 | （无名） 调用图传播: 3 锚点投 §4.23（67%） |
+| 0x141784430 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x1401542D0 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x14117C250 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x140BE1ED0 | （无名） 调用图传播: 3 锚点投 §4.23（100%） |
+| 0x140E6DB10 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x1414445A0 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+| 0x141539950 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+| 0x141784260 | （无名） 调用图传播: 2 锚点投 §4.23（50%） |
+
+#### 4.23.37 装备市场域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AA8DE0 | （无名） 调用图传播: 7 锚点投 §4.23（57%） |
+| 0x141405A20 | （无名） 调用图传播: 13 锚点投 §4.23（54%） |
+| 0x1409E8040 | （无名） 调用图传播: 8 锚点投 §4.23（62%） |
+| 0x1413B4590 | （无名） 调用图传播: 2 锚点投 §4.23（100%） |
+
+#### 4.23.38 装备市场域函数补遗（30 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F01230 | 无名 sub_（断言站点/串定位） 串字面量 "infantry_equipment" |
+| 0x142017100 | 无名 sub_（断言站点/串定位） 串字面量 "unlocked_equipment_modules" |
+| 0x141DDE540 | 无名 sub_（断言站点/串定位） 串字面量 "EQUIPMENT_UPGRADE_RESOURCE_CHANGE" |
+| 0x1417B91F0 | 无名 sub_（断言站点/串定位） 串字面量 "INTERNATIONAL_MARKET_CIV_AND_CONVOY_ALLOCATION_TOO" |
+| 0x140C96610 | 无名 sub_（断言站点/串定位） 断言站点 equipment.cpp:1162 |
+| 0x141F2A3D0 | 无名 sub_（断言站点/串定位） 串字面量 "equipment_name" |
+| 0x141BEF150 | 无名 sub_（断言站点/串定位） 串字面量 "equipment_ic" |
+| 0x14007C7B0 | 无名 sub_（断言站点/串定位） 串字面量 "EquipmentModule" |
+| 0x140E6A020 | 无名 sub_（断言站点/串定位） 串字面量 "ILLEGAL_EQUIPMENT_CATEGORY" |
+| 0x140C937B0 | 无名 sub_（断言站点/串定位） 断言站点 equipment.cpp:1745 |
+| 0x1409ECF60 | 无名 sub_（断言站点/串定位） 断言站点 equipment_database.cpp:1042 |
+| 0x1413BBBC0 | 无名 sub_（断言站点/串定位） 串字面量 "INTERNATIONAL_MARKET_CIC_COST_WITH_DECIMALS" |
+| 0x141F2ADF0 | 无名 sub_（断言站点/串定位） 串字面量 "equipment_name" |
+| 0x1409EE2B0 | 无名 sub_（断言站点/串定位） 断言站点 equipment_database.cpp:1042 |
+| 0x141F8B920 | 无名 sub_（断言站点/串定位） 串字面量 "INTERNATIONAL_MARKET_OPEN_MARKET_VIEW_TOOLTIP_NO_A" |
+| 0x1417BA190 | 无名 sub_（断言站点/串定位） 串字面量 "INTERNATIONAL_MARKET_SELL_EQUIPMENT_TAB" |
+| 0x1413B1180 | 无名 sub_（断言站点/串定位） 串字面量 "DR_MARKET_NO_TRADE_ROUTE" |
+| 0x141F8C7D0 | 无名 sub_（断言站点/串定位） 串字面量 "market_stockpile_window_container" |
+| 0x141DBDDE0 | 无名 sub_（断言站点/串定位） 串字面量 "equipments" |
+| 0x141E1AF90 | 无名 sub_（断言站点/串定位） 串字面量 "equipments" |
+| 0x140BDB870 | 无名 sub_（断言站点/串定位） 断言站点 equipmentvariant.cpp:2049 |
+| 0x141DBCE40 | 无名 sub_（断言站点/串定位） 串字面量 "equipments" |
+| 0x141E1A8B0 | 无名 sub_（断言站点/串定位） 串字面量 "equipments" |
+| 0x1419A5A50 | 无名 sub_（断言站点/串定位） 断言站点 equipmentcommands.cpp:56 |
+| 0x14206CBF0 | 无名 sub_（断言站点/串定位） 串字面量 "INTERNATIONAL_MARKET_PRICE_LEVEL_LABEL_MIXED" |
+| 0x1413BE4D0 | 无名 sub_（断言站点/串定位） 串字面量 "INTERNATIONAL_MARKET_NEXT_DELIVERY_DATE_TITLE" |
+| 0x141537F60 | 无名 sub_（断言站点/串定位） 断言站点 equipmentupgrade.cpp:173 |
+| 0x14206A280 | 市场补贴条目金额格式化 "INTERNATIONAL_MARKET_SUBSIDIES_ENTRY_DRAFT_APPLIED_AMOUNT_TT" |
+| 0x140204600 | 无名 sub_（断言站点/串定位） 串字面量 "equipment_variant" |
+| 0x140082940 | 无名 sub_（断言站点/串定位） 串字面量 "equipment_grid_container" |
+
+#### 4.23.39 装备市场域函数补遗（64 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140261740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141EE67E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141194160 | 无名 sub_（调用图定位） 调用图传播: 2/3 锚点投 §4.23 |
+| 0x1411943A0 | 无名 sub_（调用图定位） 调用图传播: 2/3 锚点投 §4.23 |
+| 0x141535240 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140302C10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1415308B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140BE2770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140A89890 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140A07B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14049ABF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140289A00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14022C280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140B4B540 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141D456C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14026F2F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140E6A5B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141CFAD40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140A896E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141EE1180 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1424081A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141544EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140AA2680 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140DB43E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141A302C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1403A5D00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1424D0240 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141A30200 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140A05D80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141EDB100 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140E6FDC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x142406BA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140A88D30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1410C60D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1401940B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141515BD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141BCF640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141BCFB30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14148F1A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14061C5A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1412FAAC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14148A0B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141D458D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140E679B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140631740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140AA44A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140DECAA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1406316A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14117EDC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140A9E500 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141EDC320 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141B535A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141EDB2E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14032D6F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14014CD60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1410B2980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14022B0C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x141EDB010 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140250340 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x142703AB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x1409EC860 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140A86590 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140F8DB00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x14100FEA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+
+#### 4.23.40 装备市场域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141EDB3D0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.23 |
+| 0x1403A5840 | 无名 sub_（调用图定位） 调用图传播: 3/5 锚点投 §4.23 |
+| 0x1420A4750 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.23 |
+| 0x141EDBA60 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.23 |
+| 0x14117EE50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.23 |
+| 0x140A02AB0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.23 |
+
+#### 4.23.41 装备市场域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14124C860 | （无名） 串 "IC_COST"/"SOFT_ATTACK"（装备/模板战斗数据键） |
+
+#### 4.23.42 装备市场域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1415FD490 | 列表移除 从 a1+7920 id 列表交换移除 v4 + 固定串 "trade" 经 vtable+440 查找 + vtable+72 刷新 |
+| 0x142051CD0 | 合约UI 采购合约进度图标切换：a2 分支选 "GFX_purchase_contract_progress" / "GFX_purchase_contract_stalled_progress" + vtable 728/736 |

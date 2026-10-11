@@ -957,3 +957,411 @@ UpdateCharacterScientistStatus 0x1410EFCD0 (104) / DailyUpdate 0x1410EB430 (54) 
 #### 4.4.29 CUnitLeaderTraitsDB 库装载器 (unitleadertraits.cpp; 1 函 = 0x140AE6950, 定案)
 
 0x140AE6950: token 门 **12276 = leader_traits** 主循环 + 14533-14536/15152 五技能桶 (全对 ref token 表); 条目 **'@' 写回**; ctor sub_140AE3C60 / 重载 sub_140AE6E10 书已收互证; 唯一调用方 sub_140AEA720 = §4.4 装载本体 (s4_04:734 邻域)。
+
+#### 4.4.30 角色族函数补遗（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141463CD0 | sub_141463CD0 ref.h:83 断言 + CHARACTER / PROJECT / SPECIAL_PROJECT_SCIENTIST_ALREADY_ASSIGNED（角色-项目科学家分配检查） |
+| 0x1413F0E70 | sub_1413F0E70 character_template.cpp:279 "tries to cumulate 2 times the same advisor type (...). Last occurrence will override."（角色模板顾问类型累积检查） |
+| 0x140AE7940 | sub_140AE7940 gameitemdatabase.h:142 + NAME / ENABLES_ABILITY（角色特质启用能力条目） |
+| 0x14179C9F0 | sub_14179C9F0 gamestate.h:1125 + ref.h:83 + THEATER_COMMANDER_MASTERY_SKILL（将领/战区指挥官技能） |
+| 0x141C73CE0 | sub_141C73CE0 CUnitLeaderTraitItem vtable + unit_leader_(exile_)trait_entry（将领特质条目 UI） |
+| 0x1410E8870 | sub_1410E8870 体内构造/操作 vtable 类 CCountryCharacters::SAdvisorSlotInfo（&CCountryCharacters::SAdvisorSlotInfo::vftable）→ 角色模板/顾问槽信息/科学家任命命令 |
+| 0x141447A30 | （未命名）pdx_scopedptr.h:134 断言 + 串 "NO_AWARDABLE pdx_scopedptr.h:134 断言 + 串 "NO_AWARDABLE_HISTORY_ENTRIES"/"CANNOT_AWARD_TO_EXPEDITIONARY"（勋章/远征授奖历史） |
+| 0x141697600 | （未命名）loc 串 OPEN_ARMY_LEADER_PREFERRED_TACTIC_ loc 串 OPEN_ARMY_LEADER_PREFERRED_TACTIC_SELECTION（将领偏好战术） |
+| 0x14145FE80 | sub_14145FE80 科学家技能等级系统（SCIENTIST_SKILL_LEVEL） |
+| 0x1417BC120 | sub_1417BC120 将领偏好战术选择 loc 键 OPEN_ARMY_LEADER_PREFERRED_TACTIC_SELECTION |
+| 0x1413F0B50 | sub_1413F0B50 体内构造/操作 vtable 类 CCharacterTemplate（&CCharacterTemplate::vftable）→ 角色模板/顾问槽信息/科学家任命命令 |
+| 0x141528CC0 | sub_141528CC0 将领经验类型错误路径（"unexpected XP type"） |
+| 0x140C28550 | CUnitLeader::AddTriggerDynamicVariable? 陆军师模板/将领经验与技能/单位领袖/OOB/部署（CUnitLeader::AddTriggerDynamicVariable?） |
+
+#### 4.4.31 角色族函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AE6070 | （无名）TRAIT_MODIFIER_FOR_ADVISOR_RANK + RANK/TEXT 键 x3（顾问特质 rank 描述） TRAIT_MODIFIER_FOR_ADVISOR_RANK + RANK/TEXT 键 x3（顾问特质 rank 描述） |
+| 0x140C16430 | 无名大函数 0x140C16430 loc 键 UNITLEADER_IS_EN_ROUTE（单位领袖途中状态） |
+| 0x1414466E0 | CUnitMedal::[0] CUnitMedal::[0] + vtable/RTTI 类 CUnitMedal; vtable/RTTI 含 CUnitMedal; 被 CUnitMedal::[0] 等 1 命名函数调用 |
+| 0x141BE68D0 | vtable/RTTI 类 COperativeMissionData sub_141BE68D0 + vtable/RTTI 类 COperativeMissionData |
+| 0x1406B4DE0 | CCharacterManager::[0] CCharacterManager::[0] + vtable/RTTI 类 CCharacterManager; vtable/RTTI 含 CCharacterManager; 被 CCharacterManager::[0] 等 1 命名函数调用 |
+
+#### 4.4.32 角色族函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414E64F0 | 顾问生成数据校验 顾问生成数据校验；断言 \"Advisor data contains invalid trait names %s\"（character_advisor_generation_entry.cpp） |
+| 0x1402F63B0 | "high command/political_advisor" 顾问角色 "high command/political_advisor" 顾问角色 §4.4 角色/将领/特工 |
+| 0x140FD1190 | "POLITICS_ADVISOR_NAME_PATTERN/NAME/SURN "POLITICS_ADVISOR_NAME_PATTERN/NAME/SURNAME" 顾问姓名生成 §4.4 角色/将领/特工 |
+| 0x141F18D80 | "SCIENTIST_RECRUIT_COST_NOT_ENOUGH/SCIEN "SCIENTIST_RECRUIT_COST_NOT_ENOUGH/SCIENTIST_RECRUIT_COST/AM §4.4 角色/将领/特工 |
+| 0x1411A5ED0 | （未具名） "Trying to call CCharacter::GetUnitLeaderRole on a nonexisting character" + AR-26311 + political_party.cpp:287 |
+| 0x141449000 | "MEDAL_COMBINED_DESCRIPTION/LOCATION/TYP "MEDAL_COMBINED_DESCRIPTION/LOCATION/TYPE/DESC" 勋章 §4.4 角色/将领/特工 |
+| 0x1411A9470 | "Invalid trait token:/Needs 1 trait toke "Invalid trait token:/Needs 1 trait token as argument" + CGu §4.4 角色/将领/特工 |
+
+#### 4.4.33 角色族函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412A11D0 | （无名，按证据定性） 键 COMMAND_POWER_CAP_ADD_ADVISOR + VALUE（指挥点上限/顾问）+ SSO 串构造 |
+| 0x141160390 | （无名，按证据定性） 键 UNIT_LEADER_ADD_ADVISOR_DESC + NAME/ROLE/COST（长官/顾问描述） |
+| 0x1402F3EA0 | 角色列表提示角色类型 "character has an unrecognized role type in character_list_tooltip." + political_advisor，country_character_effect_implementation.cpp:82 |
+| 0x141443FC0 | （无名，按证据定性） program.cpp:444 断言 Scientist.GetScientistRole()（科学家角色判定） |
+| 0x140C18AA0 | 特质学习 LEARNING_TRAITS + NAME/PERC |
+| 0x140C10AB0 | CUnitLeader::[17] vtable 槽 CUnitLeader::[17]（func_names RTTI 名） |
+| 0x140C0D2A0 | （无名） 体设 CUnitLeader::vftable（RTTI 名） |
+| 0x140C11CE0 | CUnitLeader::[19] vtable 槽 CUnitLeader::[19]（func_names RTTI 名） |
+| 0x140C1D550 | CUnitLeader::[16] vtable 槽 CUnitLeader::[16]（func_names RTTI 名） |
+| 0x1406B4DA0 | CCharacter::[0] vtable 槽 CCharacter::[0]（func_names RTTI 名） |
+| 0x140C0EB90 | CUnitLeader::[0] vtable 槽 CUnitLeader::[0]（func_names RTTI 名） |
+
+#### 4.4.34 角色族函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.4.35 角色族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C0F8F0 | CUnitLeader::AddTriggerDynamicVariable? func_names 名 CUnitLeader::AddTriggerDynamicVariable? |
+| 0x140C1B1C0 | CUnitLeader::UpdateLocalizedName func_names 名 CUnitLeader::UpdateLocalizedName |
+
+#### 4.4.36 角色族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.4.37 角色族函数补遗（124 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14137BDE0 | （无名） 调用图传播: 11 锚点投 §4.4（73%） |
+| 0x1411CAF00 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x14225F450 | （无名） 调用图传播: 9 锚点投 §4.4（100%） |
+| 0x141928320 | （无名） 调用图传播: 8 锚点投 §4.4（100%） |
+| 0x1406B36B0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x1402C66A0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140BC4600 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x1402C6350 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140AF5CC0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141FF6200 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x14203EBC0 | （无名） 调用图传播: 4 锚点投 §4.4（75%） |
+| 0x141EDE6F0 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x141EDF2A0 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x141773C30 | （无名） 调用图传播: 6 锚点投 §4.4（67%） |
+| 0x140A90090 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x140CA3200 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x14203F3F0 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x141774B70 | （无名） 调用图传播: 9 锚点投 §4.4（89%） |
+| 0x141DE1DE0 | （无名） 调用图传播: 8 锚点投 §4.4（100%） |
+| 0x141EDD8D0 | （无名） 调用图传播: 7 锚点投 §4.4（86%） |
+| 0x140A90250 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x1417D47B0 | （无名） 调用图传播: 5 锚点投 §4.4（100%） |
+| 0x1417D4D60 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x14203EF40 | （无名） 调用图传播: 9 锚点投 §4.4（89%） |
+| 0x141DFC9B0 | （无名） 调用图传播: 8 锚点投 §4.4（100%） |
+| 0x140AFBA40 | （无名） 调用图传播: 5 锚点投 §4.4（100%） |
+| 0x141283730 | （无名） 调用图传播: 18 锚点投 §4.4（100%） |
+| 0x14203EA00 | （无名） 调用图传播: 6 锚点投 §4.4（83%） |
+| 0x141EDD1C0 | （无名） 调用图传播: 5 锚点投 §4.4（80%） |
+| 0x140AFBFC0 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x1417D49E0 | （无名） 调用图传播: 6 锚点投 §4.4（100%） |
+| 0x1424E23A0 | （无名） 调用图传播: 11 锚点投 §4.4（91%） |
+| 0x1417D50D0 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x1402F7960 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141929220 | （无名） 调用图传播: 13 锚点投 §4.4（92%） |
+| 0x141AE5210 | （无名） 调用图传播: 6 锚点投 §4.4（100%） |
+| 0x14137BA20 | （无名） 调用图传播: 13 锚点投 §4.4（92%） |
+| 0x141AE5620 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x141774070 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x140AFBC20 | （无名） 调用图传播: 6 锚点投 §4.4（100%） |
+| 0x141EDF7A0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141774470 | （无名） 调用图传播: 8 锚点投 §4.4（100%） |
+| 0x141AE5810 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x14137B860 | （无名） 调用图传播: 9 锚点投 §4.4（89%） |
+| 0x140AFC540 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x141283560 | （无名） 调用图传播: 12 锚点投 §4.4（100%） |
+| 0x141EDCBB0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141DE16D0 | （无名） 调用图传播: 10 锚点投 §4.4（80%） |
+| 0x1412833C0 | （无名） 调用图传播: 6 锚点投 §4.4（100%） |
+| 0x14230E550 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x14137B570 | （无名） 调用图传播: 5 锚点投 §4.4（80%） |
+| 0x14225F9D0 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x141624A40 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x1417D4BC0 | （无名） 调用图传播: 6 锚点投 §4.4（100%） |
+| 0x141DE1A90 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x1424E2580 | （无名） 调用图传播: 14 锚点投 §4.4（86%） |
+| 0x1409CA450 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x1402DCE30 | （无名） 调用图传播: 4 锚点投 §4.4（50%） |
+| 0x140543640 | （无名） 调用图传播: 3 锚点投 §4.4（67%） |
+| 0x14139F020 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x1409D3980 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140A342B0 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x140A34700 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x140A34170 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x140E7ADD0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140A92800 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x140A8EBB0 | （无名） 调用图传播: 4 锚点投 §4.4（50%） |
+| 0x140C1A950 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x140C2D490 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141DFE710 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x1423A9A80 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x1417CBDA0 | （无名） 调用图传播: 4 锚点投 §4.4（75%） |
+| 0x141B03F00 | （无名） 调用图传播: 4 锚点投 §4.4（50%） |
+| 0x140A35480 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x140A373F0 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x1402F3410 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x1412AA190 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141DFFF10 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x1423A9890 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141923660 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x140CBC6B0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x1414A61E0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x14235B2C0 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x140A05CE0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141774E70 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x14192DE70 | （无名） 调用图传播: 3 锚点投 §4.4（67%） |
+| 0x141339020 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140C1A0C0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x140C10C10 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x140C1A830 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141774DD0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x14196A3F0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141B04B70 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140E573E0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x142282350 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x14066DEC0 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x141284050 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x141DE20C0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141DE2030 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141283FD0 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x141761A00 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140C0F0E0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141BD8AD0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140A0ADB0 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x142289DF0 | （无名） 调用图传播: 3 锚点投 §4.4（67%） |
+| 0x1410E6520 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x14137C160 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x14137C1F0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x1406815B0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x140A35580 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x140C8B140 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140FA5060 | （无名） 调用图传播: 3 锚点投 §4.4（67%） |
+| 0x14052E6E0 | （无名） 调用图传播: 3 锚点投 §4.4（67%） |
+| 0x141929D40 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140FA64C0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141929CE0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x14225F780 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x14225F7F0 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x14052EE40 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x1424E2E50 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x1424E2EB0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140C14E80 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141A2CD40 | PayloadWriter 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141A2CB10 | PayloadWriter 调用图传播: 2 锚点投 §4.4（100%） |
+
+#### 4.4.38 角色族函数补遗（20 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402499E0 | sub_1402499E0 角色立绘分析（character portraits） |
+| 0x141A84940 | sub_141A84940 角色意识形态文本函数（![MD] 文档串） |
+| 0x141A99A60 | sub_141A99A60 单位将领技能文本函数 GetLeaderSkill（![MD] 文档串） |
+| 0x141E394C0 | 域关键词匹配 sub_141E394C0 + 域关键词匹配; 被调源码 clausewitz |
+| 0x141832E30 | 域关键词匹配 sub_141832E30 + 域关键词匹配; 源码路径 hoi4; 被 CEmptyEntryListBase<COperativeBottomBarItem>::[0] 等 1 命名函数调用 |
+| 0x141A9A410 | sub_141A9A410 将领性别代词文本函数 GetHerHimCap（![MD] 文档串） |
+| 0x141A84F10 | sub_141A84F10 角色姓名文本函数（![MD] 文档串） |
+| 0x1411EC940 | 调用图上游传播(占 100%, 1 票) sub_1411EC940 + 调用图上游传播(占 100%, 1 票) |
+| 0x1419DEA90 | 域关键词匹配 sub_1419DEA90 + 域关键词匹配; 被 NOperativeMissions::CPropaganda::GetTooltip 等 1 命名函数调用 |
+| 0x1406B5D60 | sub_1406B5D60 串:Failed to generate a portrait for divisional commander or sh |
+| 0x1411F57A0 | 域关键词匹配 sub_1411F57A0 + 域关键词匹配; 被 NOperativeMissions::CBoostIdeology::GetEstimatedDays 等 1 命名函数调用 |
+| 0x1406C77E0 | 同区段近邻 CCharacterManager::[0](距 0x12A00)属 4.4 族 sub_1406C77E0 + 同区段近邻 CCharacterManager::[0](距 0x12A00)属 4.4 族 |
+| 0x141441F20 | 同区段近邻 CUnitMedal::[0](距 0x47C0)属 4.4 族 sub_141441F20 + 同区段近邻 CUnitMedal::[0](距 0x47C0)属 4.4 族 |
+| 0x1406BABC0 | 域关键词匹配 sub_1406BABC0 + 域关键词匹配; 源码路径 clausewitz; 被 CCharacterManager::[2] 等 1 命名函数调用 |
+| 0x141C6B4A0 | 域关键词匹配 sub_141C6B4A0 + 域关键词匹配 |
+| 0x1410D32A0 | 调用图上游传播(占 100%, 1 票) sub_1410D32A0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1411EF220 | 调用图上游传播(占 100%, 1 票) sub_1411EF220 + 调用图上游传播(占 100%, 1 票) |
+| 0x1410E8590 | 调用图上游传播(占 38%, 4 票) sub_1410E8590 + 调用图上游传播(占 38%, 4 票) |
+| 0x1410D33B0 | 调用图上游传播(占 100%, 1 票) sub_1410D33B0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1411EF770 | 调用图上游传播(占 67%, 2 票) sub_1411EF770 + 调用图上游传播(占 67%, 2 票) |
+
+#### 4.4.39 角色族函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141955710 | 无名 · "OPERATIVE_INVALID_MISSION_REASON_ "OPERATIVE_INVALID_MISSION_REASON_INELIGIBLE_STATE" |
+| 0x14007FD40 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140080680 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140A078A0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+
+#### 4.4.40 角色族函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402994B0 | 业务逻辑（见证据锚） "Consumed/Granted XP of all kinds to"（单位领袖经验授予） |
+| 0x14071DF20 | 业务逻辑（见证据锚） "Leader traits loaded '…' #"（国家领袖特质 DB 载入） |
+| 0x14157B600 | 业务逻辑（键 on_operative_recruited） "on_operative_recruited"/"%s: Cannot recruit operative %s (%i:%i)"（特工招募事件） |
+| 0x141E841C0 | COperativeMapIconEntry 特工地图图标条目 (vtable类名 COperativeMapIconEntry) vtable引用 COperativeMapIconEntry vftable |
+
+#### 4.4.41 角色族函数补遗（25 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14139E460 | （无名） 调用图传播: 13 锚点投 §4.4（54%） |
+| 0x140AF5970 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x14066CCA0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x140A32D10 | （无名） 调用图传播: 7 锚点投 §4.4（86%） |
+| 0x14191E140 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x14191DD40 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x141EE0BF0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x14203E820 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x140687C10 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x141335E10 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141773870 | （无名） 调用图传播: 6 锚点投 §4.4（100%） |
+| 0x140A32410 | （无名） 调用图传播: 7 锚点投 §4.4（57%） |
+| 0x141460580 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141773F20 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x140AFB280 | （无名） 调用图传播: 4 锚点投 §4.4（100%） |
+| 0x141774F10 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x14006EEA0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x1424E2290 | （无名） 调用图传播: 4 锚点投 §4.4（75%） |
+| 0x141EDC430 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+| 0x140A34680 | （无名） 调用图传播: 3 锚点投 §4.4（67%） |
+| 0x14145F520 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141460690 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x141DFF560 | （无名） 调用图传播: 3 锚点投 §4.4（67%） |
+| 0x14145F4E0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+| 0x1414600A0 | （无名） 调用图传播: 2 锚点投 §4.4（100%） |
+
+#### 4.4.42 角色族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14203F620 | （无名） 调用图传播: 3 锚点投 §4.4（100%） |
+| 0x140A02DD0 | （无名） 调用图传播: 2 锚点投 §4.4（50%） |
+
+#### 4.4.43 角色族函数补遗（42 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F547F0 | 无名 sub_（断言站点/串定位） 串字面量 "hover_operative_build_network_target" |
+| 0x1402F6840 | 无名 sub_（断言站点/串定位） 串字面量 "EFFECT_CHARACTER_LIST_SKILL" |
+| 0x1416F1780 | 无名 sub_（断言站点/串定位） 串字面量 "LEADER_SKILL_AT_CAP" |
+| 0x141E3F7A0 | 无名 sub_（断言站点/串定位） 断言站点 operativesorderbar.cpp:80 |
+| 0x140B49230 | 无名 sub_（断言站点/串定位） 串字面量 "GFX_leader_unknown" |
+| 0x141AC2230 | 无名 sub_（断言站点/串定位） 串字面量 "UNIT_LEADER_ADD_ADVISOR_HAS_ROLES" |
+| 0x140D8AE00 | 无名 sub_（断言站点/串定位） 串字面量 "FACTION_LEADER" |
+| 0x140B2CBD0 | 无名 sub_（断言站点/串定位） 串字面量 "ALERT_OPERATIVE_READY_TO_RECRUIT_INSTANT" |
+| 0x14123ABE0 | 无名 sub_（断言站点/串定位） 串字面量 "leader_details_container" |
+| 0x141C708F0 | 无名 sub_（断言站点/串定位） 串字面量 "PREFERRED_TACTIC_CHARACTER_SELECTION_LIST_HEADER" |
+| 0x141A33830 | 无名 sub_（断言站点/串定位） 串字面量 "LEADER_NAME" |
+| 0x1406B5670 | 无名 sub_（断言站点/串定位） 断言站点 character_manager.cpp:180 |
+| 0x141A8B6E0 | 无名 sub_（断言站点/串定位） 串字面量 "GetCommunistLeader" |
+| 0x141A8B8F0 | 无名 sub_（断言站点/串定位） 串字面量 "GetDemocraticLeader" |
+| 0x1416DA110 | 无名 sub_（断言站点/串定位） 串字面量 "LEADER_PROXIMITY_MODIFIER_PCT" |
+| 0x140B48950 | 无名 sub_（断言站点/串定位） 串字面量 "GFX_leader_unknown" |
+| 0x1419534C0 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_NO_INTEL_NETWORK_" |
+| 0x14123AED0 | 无名 sub_（断言站点/串定位） 串字面量 "leader_picture_container" |
+| 0x1402AAF60 | 无名 sub_（断言站点/串定位） 串字面量 "REQUEST_EXP_NOT_LEADER" |
+| 0x1419E01F0 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_NO_INTEL_NETWORK_" |
+| 0x14002CA30 | 无名 sub_（断言站点/串定位） 串字面量 "Checks if the scientist of the character in scope " |
+| 0x141478E20 | 无名 sub_（断言站点/串定位） 串字面量 "DIPLOMACY_ASSUME_FACTION_LEADERSHIP_NOT_SUBJECT_PR" |
+| 0x1419E0100 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_INTEL_NETWORK_TOO" |
+| 0x141DF3810 | 无名 sub_（断言站点/串定位） 断言站点 leadergroupsview_attachmentitems.cpp:55 |
+| 0x141DF2E50 | 无名 sub_（断言站点/串定位） 断言站点 leadergroupsview_attachmentitems.cpp:108 |
+| 0x141DF2DA0 | 无名 sub_（断言站点/串定位） 断言站点 leadergroupsview_attachmentitems.cpp:91 |
+| 0x141AC2520 | 无名 sub_（断言站点/串定位） 断言站点 unitleaderwindow.cpp:4055 |
+| 0x141956DA0 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_CANNOT_TARGET_SEL" |
+| 0x140FC3FD0 | 无名 sub_（断言站点/串定位） 断言站点 operativemission.cpp:293 |
+| 0x1413F02F0 | 无名 sub_（断言站点/串定位） 断言站点 character_enums.cpp:24 |
+| 0x141956CE0 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_CANNOT_TARGET_SEL" |
+| 0x14195C2A0 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_NOT_A_CONTROLLER_" |
+| 0x14195A840 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_INTEL_NETWORK_TOO" |
+| 0x140C1FFC0 | 无名 sub_（断言站点/串定位） 串字面量 "LEADER_DEPLOYMENT_COMMAND_POWER_ALLOCATOR" |
+| 0x141ACA180 | 无名 sub_（断言站点/串定位） 串字面量 "UNIT_LEADER_SEARCH" |
+| 0x1402715B0 | 无名 sub_（断言站点/串定位） 串字面量 "Operatives are now avoiding detection" |
+| 0x1419580E0 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_NOT_AN_ALLY" |
+| 0x141ACA210 | 无名 sub_（断言站点/串定位） 串字面量 "UNIT_LEADER_SEARCH" |
+| 0x141AC9EB0 | 无名 sub_（断言站点/串定位） 串字面量 "UNIT_LEADER_SEARCH" |
+| 0x141958050 | 无名 sub_（断言站点/串定位） 串字面量 "OPERATIVE_INVALID_MISSION_REASON_NOT_AN_ALLY" |
+| 0x141AC9F40 | 无名 sub_（断言站点/串定位） 串字面量 "UNIT_LEADER_SEARCH" |
+| 0x140C1B260 | 无名 sub_（断言站点/串定位） 串字面量 "LEADER_DEPLOYMENT_COMMAND_POWER_ALLOCATOR" |
+
+#### 4.4.44 角色族函数补遗（56 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402C6D60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1401FE3A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140EC9480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1409ECA40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141AA8CC0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.4 |
+| 0x141AE4DF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x142283090 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140D19C20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141B17ED0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141AB22D0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.4 |
+| 0x14191DF80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140EBB8F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141AB3210 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.4 |
+| 0x141EDFA40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141EDFB60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1413CF130 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140C14EB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141EDBE50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140A72220 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141EDBF70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140ED27F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140A929C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140D7F670 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1411CAE40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141338F50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140AB3DB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140CB6280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1423AA050 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140C19A00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1423B3220 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1402C87F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140FC3F20 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.4 |
+| 0x14225FB30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141EDF9B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140A88C70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140CA3FE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1411EF440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1411DC4A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141EDF910 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140C91FD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141EDC7D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140A32FE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1417D54A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140D7F5E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140EE2B00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141DE2130 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140622330 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140B00C60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140EC3D20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140C27BD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140EC3E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140A71800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x14148EC50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140BE1FD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x141332F30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x14240BCE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+
+#### 4.4.45 角色族函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A6F530 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.4 |
+| 0x1413412C0 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.4 |
+| 0x1411C8F50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x14122EB30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x1412302C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+| 0x140D18990 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.4 |
+
+#### 4.4.46 角色族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140293ED0 | 肖像设置 剪影肖像开关："Silhouette portraits ENABLED"/"DISABLED" + "An error occurred" |
+| 0x140A7FB50 | 特工调试 特工调试信息：a1+1416 容器查询 + "[debug] no strategic operative" |

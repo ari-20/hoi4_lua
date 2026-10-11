@@ -195,7 +195,7 @@ tbb lambda 族 (细粒度)。网络条目 (232B) 字段: +56 = `Node._TotalSuppl
 | sub_141230D40 (36 行) | lam7 每国每日重置编排 (清 css+504/+516/+528 + 护航订户重建 sub_141021F90(css+232,…,32,dword_1433343D0) + 流缓存重建) | 阶段 8 |
 | sub_141230E50 (95 行) | 节点构建主编排 (type1 空补→各源构建器; 尾扫 css+168 桶懒清 used==0) | 阶段 8 尾 |
 
-**静态数据源 (定案)**: 供应节点静态数据 = `map/supply_nodes.txt` (vanilla 727 节点全 land 省, 遍 513 州; 首列恒 1 非战略区 id), 游戏侧装载 = sub_140EB6340, nudger 编辑器对 = sub_141B6E4A0 + sub_141B69210; **`map/supplyareas/` = 死数据** (dump 全语料 "supply_area/supplyareas" 零命中, 引擎不装载, 仅存 1 个样例文件); 节点节点容量基数另受满级铁路常数 (NODE_FLOW_BONUS_PER_RAIL_LEVEL×MAX_RAILWAY_LEVEL) 与州 local_supplies (type0 州注入源)。
+**静态数据源 (定案)**: 供应节点静态数据 = `map/supply_nodes.txt` (vanilla 727 节点全 land 省, 遍 513 州; 每行两列 = **首列 = 建筑等级 (vanilla 恒 1) + 次列 = 省 id**), 游戏侧装载 = sub_140EB6340 (**CSupplySystem 静态供应节点装载器**, 定案: 存在门 PHYSFS_exists → CTextLexer/CReader → **双 token 循环**逐行消费 ('@' 注解代换支持) → (gs+8 CProvinceProvider) vt[1] 按省 id 取 CProvince → sub_141172EB0 (prov+400, db+928 supply_node 模板) find-or-add → CBuilding::SetLevel (建筑, level, 0); 等级 ≤ 0 的行只取省不建; vt[1] 返 0 无空指针检查 = 依赖省 id 全合法), nudger 编辑器对 = sub_141B6E4A0 + sub_141B69210; **`map/supplyareas/` = 死数据** (dump 全语料 "supply_area/supplyareas" 零命中, 引擎不装载, 仅存 1 个样例文件); 节点节点容量基数另受满级铁路常数 (NODE_FLOW_BONUS_PER_RAIL_LEVEL×MAX_RAILWAY_LEVEL) 与州 local_supplies (type0 州注入源)。
 
 **传播五联族** = 同一 Dijkstra 泛洪模板五实例 (两两逐字级孪生, 仅断言守卫字节异): sub_141209CA0 (调者 141220E00) / sub_14120AA10 (调者 141220690) / sub_14120C4F0 (调者 1412231D0) / sub_14120D260 (调者 141223990) — 门 = calc+208 位图[起省控制国 idx]; **sub_14120B780 变体** (调者 1412220B0) = 海外过境型 (门 = 起省控制国 ≠ 本国 ∧ 节点 type==5, 「控制国==本国 ∨ type≠5」省置 3 不再扩)。共同骨架 (断言 :1971 InfraRatio ≤1e5 / :2039 flow 严格递减):
 
@@ -487,3 +487,143 @@ helper B (sub_1414E2EB0, 书原完全未收): sys = *(gs+984) CSupplySystem → 
 **48B 订阅者记录字段语义 (高置信)**: +24 = NEEDED (初值 0) / +28 = ALLOCATED (初值 100000 = 满) / +32 = 所需火车数 / +40 = 显示门求和分量 — 与 §4.21.2 条目 +184 初值表互证。
 
 未决: 真名 (是否为 mapmode tooltip 回调/vtable 槽, 无导出符号); idler+1960 对象 +16 语义 (推定当前悬停省 id); entry+32/+72 两分量各自语义 (推定空袭 vs 海上/铁路阻断拆分); 144B 记录类名与「SNodeConnection 72B」的关系 (72B 是否单条连接, 144B = 连接+回溯元组); 浮港记录宿主容器; sub_1416399A0() 默认国 id 指针身份; 着色富文本色码 72/82 的色名映射。
+
+#### 4.21.7 补给系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14158AF90 | sub_14158AF90 raid_unit_requirements_battalion + NAME / LIMIT（袭击单位需求表） |
+| 0x141D95B60 | sub_141D95B60 CLogisticsOverviewOtherItem vtable + gameitemdatabase（后勤概览「其他」条目） |
+| 0x140E922A0 | sub_140E922A0 railway_manager.cpp:26（IsValidTemplateInLocation(RailwayTemplate) 断言） |
+| 0x1413739F0 | （无名） logistics.cpp 后勤（断言站点 logistics.cpp:948） |
+
+#### 4.21.8 补给系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A0C3E0 | （无名）supply_network_utils.cpp:361 + gamestate 访问门 supply_network_utils.cpp:361 + gamestate 访问门 |
+| 0x141D93A50 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x14122C6F0 | CCountrySupplySystem::[2] 标签:ref.h:83 |
+| 0x141F90420 | sub_141F90420 特征串:HOME_BASE_NONE |
+
+#### 4.21.9 补给系统函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141027E00 | COrderInstance+CConvoySubscriber+CGameDa COrderInstance+CConvoySubscriber+CGameDate vtable：订单/护航订阅者更新 §4.21 补给 |
+| 0x141027A10 | COrderInstance+CConvoySubscriber vtable： COrderInstance+CConvoySubscriber vtable：订单/护航订阅者 §4.21 补给 |
+| 0x140C32B10 | 未命名业务函数 define/本地化键（串 FUEL_TITLE） |
+
+#### 4.21.10 补给系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141679BE0 | 玩家补给流计算（消费者→节点请求/接入校验） `Consumer._AskedFromNode != 0_fixed` + `HasAccess( Tag )` 断言，player_supply.cpp:564 |
+| 0x140D66810 | （无名，按证据定性） 键 NAVY_SUPPLY_USAGE_DESC_SUPPLY_HUB_REDUCTION（海军补给枢纽消耗描述） |
+| 0x141AEB6E0 | 补给诊断输出 "Cached Max Supply:" / "Actual Supply Use:" / "Recalc Supply" |
+| 0x140EC46D4 | CSupplySystem::[0] vtable 槽 CSupplySystem::[0]（func_names RTTI 名） |
+
+#### 4.21.11 补给系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.21.12 补给系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EBC2E0 | CSupplySystem::UpdateSupply? func_names 名 CSupplySystem::UpdateSupply? |
+
+#### 4.21.13 补给系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.21.14 补给系统函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EBF2C0 | （无名） 调用图传播: 2 锚点投 §4.21（100%） |
+| 0x140E24A70 | （无名） 调用图传播: 3 锚点投 §4.21（100%） |
+| 0x140EB9B60 | （无名） 调用图传播: 3 锚点投 §4.21（100%） |
+| 0x140AF99D0 | （无名） 调用图传播: 4 锚点投 §4.21（100%） |
+| 0x140AFC1C0 | （无名） 调用图传播: 4 锚点投 §4.21（100%） |
+| 0x140ECAC10 | （无名） 调用图传播: 2 锚点投 §4.21（100%） |
+| 0x141566EE0 | （无名） 调用图传播: 2 锚点投 §4.21（50%） |
+| 0x1419AF680 | （无名） 调用图传播: 2 锚点投 §4.21（50%） |
+| 0x141636BC0 | （无名） 调用图传播: 3 锚点投 §4.21（67%） |
+| 0x140CB9CB0 | （无名） 调用图传播: 2 锚点投 §4.21（100%） |
+
+#### 4.21.15 补给系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14150B290 | 增援请求物流窗口 串 "REQUESTED_REINFORCEMENT_COLLECTING_AND_DELIVERY"/"_BLOCKED"/"_HEADER" → 增援请求物流窗口 |
+| 0x141659460 | 铁路/水路连接 tooltip 串 "RAILWAY_CONNECTION_TOOLTIP_*"/"RIVER_CONNECTION_TOOLTIP_*"/"PLACE1/2" → 铁路/水路连接 tooltip |
+| 0x14169AA40 | 燃料后勤面板 串 "FUEL_DAILY_REQUIRED_MAX"/"LOGISTICS_FUEL_PERCENTAGE"/"FUEL_TITLE" → 燃料后勤面板 |
+| 0x14120EE10 | （无名） 调用图传播: 3 锚点投 §4.21（67%） |
+
+#### 4.21.16 补给系统函数补遗（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B31740 | sub_140B31740 alert_raid_launchable_(instant/delayed_header/delayed_entry) + RAID（袭击可发起预警 UI） |
+| 0x141D95070 | sub_141D95070 后勤条目 GUI 元素名 logistics_entry_resource_item |
+| 0x140EB9CD0 | 无名领域函数 sub_140EB9CD0 被调用者定名: CSupplySystem::UpdateSupply? 等命中 §4.21（占 100%，共 2 callee） |
+| 0x140F4E040 | 域关键词匹配 sub_140F4E040 + 域关键词匹配 |
+| 0x141373840 | sub_141373840 后勤/装备原型校验（ArcheType.IsArchetype） |
+| 0x140EBB6B0 | 调用图上游传播(占 100%, 1 票) sub_140EBB6B0 + 调用图上游传播(占 100%, 1 票) |
+| 0x140DF6EC0 | 调用图上游传播(占 100%, 1 票) sub_140DF6EC0 + 调用图上游传播(占 100%, 1 票) |
+| 0x141F01130 | 域关键词匹配 sub_141F01130 + 域关键词匹配 |
+| 0x1412D8B90 | 调用图上游传播(占 38%, 4 票) sub_1412D8B90 + 调用图上游传播(占 38%, 4 票) |
+| 0x1414E0C30 | 调用图上游传播(占 29%, 5 票) sub_1414E0C30 + 调用图上游传播(占 29%, 5 票) |
+| 0x141B690D0 | 调用图上游传播(占 100%, 1 票) sub_141B690D0 + |
+| 0x1415AE030 | 调用图上游传播(占 100%, 1 票) sub_1415AE030 + 调用图上游传播(占 100%, 1 票) |
+| 0x14121EE50 | 域关键词匹配 sub_14121EE50 + 域关键词匹配 |
+
+#### 4.21.17 补给系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C9EE10 | 业务逻辑（键 convoys_icon） "convoys_icon"/"LEND_LEASE_CONVOYS_REQUIREMENT"/"USED"/"NEEDED"（租借运输船需求） |
+| 0x140CA8280 | 业务逻辑（键 RESOURCE_DETAILS_FUEL） "RESOURCE_DETAILS_FUEL"/"ACTIVE_FUEL"/"POTENTIAL_FUEL"/"RESOURCE_DETAILS_NET_DEFICIT/SURPLUS"（燃料资源详情） |
+| 0x14167B580 | 业务逻辑（见证据锚） "ToNodeIndex >= 0 &&"/"FromNodeIndex >= 0 &&"（补给节点连接） |
+| 0x140B25E80 | 业务逻辑（键 COAL） "COAL"/"PERCENTAGE"/"alert_lack_of_power_delayed_header"/"_civ"/"_mil"/"_nav"（缺电警示：民/军/海军工厂用电） |
+
+#### 4.21.18 补给系统函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14167C320 | （无名） 调用图传播: 2 锚点投 §4.21（50%） |
+| 0x140AF8B50 | （无名） 调用图传播: 2 锚点投 §4.21（100%） |
+| 0x140AFC7C0 | （无名） 调用图传播: 2 锚点投 §4.21（100%） |
+| 0x141B6E450 | （无名） 调用图传播: 2 锚点投 §4.21（50%） |
+
+#### 4.21.19 补给系统函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141911110 | 无名 sub_（断言站点/串定位） 断言站点 supply_node_map_icon.cpp:326 |
+
+#### 4.21.20 补给系统函数补遗（18 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EBCB50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140EBDA00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140EB4DE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140EBC5B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140EC11C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140ED12D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x14194CF70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x141630FB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140EB6810 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140EC3DA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140FF4570 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140EC10A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140EC1030 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140ED0D90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x1401ECBF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140ED0CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140ED1000 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |
+| 0x140ED0F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.21 |

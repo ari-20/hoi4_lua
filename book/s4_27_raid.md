@@ -317,6 +317,14 @@ per-target (writer 0X141A3B1E0; t = target 元素):
 > 经 0x1424BC260 取名; 缺键 → raid_tooltip_utils.cpp:636 (通道 4096) "Missing loc key for
 > success chance modifier improvement description. Add a loc key for: %s" + 兜底 = 裸 token 名。
 
+> 名称侧对应物 = **0x14162ADB0 成功率修正器名称 loc 键构造器** (同 TU, 高置信):
+> 键 = `success_modifier_<token>` + (`_positive` / `_negative`, 按修正器计算值**符号**分派; 零值无后缀),
+> token 取法同 B610 (修正器 +8 经 0x1424BC260); 经 sub_142244840 键存在性查表 (FNV-1a → 本地化
+> DB qword_1435BA038), 命中 → sub_142245E60 本地化; 未命中或零值 → 回退裸名键
+> `success_modifier_<token>` (回退为设计必需: 原版 military_raids_l_english.yml 有裸键与 `_negative`
+> 变体, 零 `_positive` 变体 ⇒ 正支路恒走回退)。唯一调用方 = 0x14162A590 (成功率 tooltip 条目
+> 串接器, 名称侧出口; 值侧 = sub_14162B460)。
+
 **Std 输入值取值表** ([9] 无单位 / [10] 带单位两变体; token 分派全表):
 
 | token | 取值 |
@@ -910,7 +918,7 @@ vtable 0x142A18050 全槽 PE 直证 (基 = NRaids::NUi::CRaidMapIconVariant 0x14
 
 #### 4.27.11 raid 成功率 modifier 聚合提示行 (raids 域; 1 函 = 0x1416265A0 + tooltip 构建对 0x141625DF0/0x141626B10, 机制定案/真名待裁)
 
-0x1416265A0 (raid, modifiers_head, out) — 把 factors modifier 表分成「逐条列出」与「聚合行」两类渲染进成功率 tooltip: 逐元取值 = modifier 对象 vtable 槽[7] (+56) → 0 跳过; 谓词槽[6] (+48) 真 → 直接入条; 假时 `(槽[3](+24)==0 ∨ 槽[4](+32)!=0)` → {obj, 值} 16B 对收集 (sub_14162A590 串接) 否则并入聚合和; 聚合和 ≠ 0 → localize `success_modifier_enemy_defense_aggregate` + 值格式化 sub_14162B460, 条目类型 "MODIFIER" (码 1) + `TOOLTIP_SUCCESS_CHANCE_MODIFIER`。**调用对**: 0x141625DF0 (risk tooltip: `tooltip_raid_disaster_risk_header` 参 = sub_14158C2C0(*(raid+152)+2472) 三组聚合和 + `tooltip_success_chance_risk`, 本函收 factors+2544) / 0x141626B10 (大 tooltip, switch 4 分支, 本函收 factors+2480); 三函地址相邻同 TU (NRaids 域, 确切 cpp 未决)。modifiers_head 容器 = {begin@+8, count@+20}, 元 = 8B 对象指针; factors+2472/+2480/+2544 = CRaidType modifier 组区。
+0x1416265A0 (raid, modifiers_head, out) — 把 factors modifier 表分成「逐条列出」与「聚合行」两类渲染进成功率 tooltip: 逐元取值 = modifier 对象 vtable 槽[7] (+56) → 0 跳过; 谓词槽[6] (+48) 真 → 直接入条; 假时 `(槽[3](+24)==0 ∨ 槽[4](+32)!=0)` → {obj, 值} 16B 对收集 (sub_14162A590 串接 → 名称侧 0x14162ADB0 + 值侧 sub_14162B460) 否则并入聚合和; 聚合和 ≠ 0 → localize `success_modifier_enemy_defense_aggregate` + 值格式化 sub_14162B460, 条目类型 "MODIFIER" (码 1) + `TOOLTIP_SUCCESS_CHANCE_MODIFIER`。**调用对**: 0x141625DF0 (risk tooltip: `tooltip_raid_disaster_risk_header` 参 = sub_14158C2C0(*(raid+152)+2472) 三组聚合和 + `tooltip_success_chance_risk`, 本函收 factors+2544) / 0x141626B10 (大 tooltip, switch 4 分支, 本函收 factors+2480); 三函地址相邻同 TU (NRaids 域, 确切 cpp 未决)。modifiers_head 容器 = {begin@+8, count@+20}, 元 = 8B 对象指针; factors+2472/+2480/+2544 = CRaidType modifier 组区。
 
 CU = `hoi4\source\raids\ui\raid_instance_view.cpp`。**NRaids::NUi::CRaidInstanceView** (RTTI 直证; 11296B = 0x2C20; ctor 0x141B2B1E0 簇外, **mgr+280 懒构造缓存** — §4.27.4 原「发射/反馈宿主」行实为本类指针, 该节已同步落卡)。三 vtable: +0 主基 4 槽 ([2] = Reload 壳 0x141B2CF20, 置 view+89 重入门闩 → Reload 体 0x141B2D210 → 清闩, 与 §4.31.34 CRaidSetupView 同形) / +40 第二基 10 槽 (**[9] = 0x141B2EE50 刷新总入口**; [8] = 0x1414D4CD0 共享 reload 通知桩与 §4.27.7 CRaidArrow 同 VA) / +64 CTooltipHandler ([0] = **BuildTooltip 0x141B2B7F0** 868 行, 14 widget 分支全案)。另挂 CCheckBoxObserverGlue (@+9704) 与 CButtonObserverGlue (@+10008)。
 
@@ -942,3 +950,64 @@ CU = `hoi4\source\raids\ui\raid_instance_view.cpp`。**NRaids::NUi::CRaidInstanc
 
 0x140E7D730 (省\*, out): 胜利点显示名双 key 回退解析。tag 链 = `rp = *(省+192)` → rp+200 tag (缺省走 sub_140BB3E00 默认槽) → sub_140BB48F0 (tag→CCountry\*, gs+784 指针表) → **sub_1406EC3E0 显示 tag 选择器** (默认 cc+8, `*(int*)(cc+4876) > 0` 取 +4876 = **m_OriginalTag 优先**, 与 s4_03:25 名称缓存规则同款) → sub_140BB4E70 (gs+856 _CountryLinkTags 串表 [tag] 直下标; 表空/tag 0 回退 sub_14071BDA0 国家库静态解析)。**key1 = `<TAG>_VICTORY_POINTS_<N>`** (N = sub_1424CA600 = std::to_string(uint), 隐藏实参推定 = 省 id, 待汇编定案) → 命中 (sub_142244840 存在校验) 无参本地化收工; 未命中 → **key2 = `VICTORY_POINTS_<N>`** (insert(0, …, 15) 前插); 双未命中 → **SSO 空串** (调用方以 size==0 判「无 VP 名」, 上节 GetDisplayName 基名源消费点)。配套工具件: **sub_1403A1540 = 州显示名构建器** (州名 sub_1409D91D0 + " (" + tag 串 + ")", tag 源 = state+204, 拼序推定/首段字面 18 待裁) / **sub_140BB48F0 + sub_140BB4E70 + sub_14071BDA0** = tag→国对象/串表/库回退三件套 / sub_1424CCF80 = to_string 邻座 int 版 (推定) / sub_1410E48A0 = tooltip 上下文包装器 (包装 + 尾 "
 ", 推定)。
+
+#### 4.27.15 突袭族函数补遗（43 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1416672E0 | （无名） 调用图传播: 2 锚点投 §4.27（100%） |
+| 0x14125C6F0 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x1416687F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x140E81DB0 | （无名） 调用图传播: 3 锚点投 §4.27（67%） |
+| 0x141E8C080 | （无名） 调用图传播: 6 锚点投 §4.27（67%） |
+| 0x141665080 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x1415AECC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141E6C040 | （无名） 调用图传播: 4 锚点投 §4.27（50%） |
+| 0x140E865D0 | （无名） 调用图传播: 5 锚点投 §4.27（100%） |
+| 0x140E85DC0 | （无名） 调用图传播: 5 锚点投 §4.27（60%） |
+| 0x141674410 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x1416769F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141254850 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x140A9E690 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141AC1290 | （无名） 调用图传播: 3 锚点投 §4.27（67%） |
+| 0x140C8DF60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x140E86760 | （无名） 调用图传播: 3 锚点投 §4.27（67%） |
+| 0x141C94DD0 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x141254900 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x1415B8130 | （无名） 调用图传播: 3 锚点投 §4.27（67%） |
+| 0x1414E97E0 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x14129D4B0 | （无名） 调用图传播: 2 锚点投 §4.27（100%） |
+| 0x141250EC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x140DFDDC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x1413E1CC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141EF1140 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x140E86C40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141667C40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141E5E890 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x1414E8640 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x1404A9880 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141593260 | （无名） 调用图传播: 4 锚点投 §4.27（75%） |
+| 0x14129A830 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x140FEAF50 | （无名） 调用图传播: 3 锚点投 §4.27（100%） |
+| 0x1415656D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141565730 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x14129A8C0 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x1417AA5C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141172E20 | （无名） 调用图传播: 4 锚点投 §4.27（50%） |
+| 0x140FEE2B0 | （无名） 调用图传播: 3 锚点投 §4.27（100%） |
+| 0x14129AAC0 | （无名） 调用图传播: 2 锚点投 §4.27（100%） |
+| 0x1418EBEC0 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+| 0x140FEB250 | （无名） 调用图传播: 2 锚点投 §4.27（50%） |
+
+#### 4.27.16 突袭族函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141A6D1E0 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.27 |
+| 0x141A6E280 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.27 |
+| 0x141A6E080 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.27 |
+| 0x141A6FC40 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.27 |
+| 0x141A6FD80 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.27 |
+| 0x141250D90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.27 |
+| 0x141668410 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.27 |
+| 0x141668510 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.27 |

@@ -118,7 +118,20 @@ GetTrackMasteryDetails 增益合成式: `sum = track.daily_mastery(+40) + Σ act
 
 | 偏移 | 类型 | 名称/语义 | 置信 |
 |---|---|---|---|
-| +16 | 元素 (80B) 数组数据 | 学说状态条目表; 计数 @+28; 条目+16 → 级数 @子对象+804; 状态对象+24 = 已选 doctrine 槽 | 推定 |
+| +8 | uint32 | nation tag id (经 sub_140BB4E70 → gs+856 国家名数组 32B/元, 下标取) | 定案 |
+| +16 | CFolderStatus* | 学说 folder 状态数组数据; 计数 @+28 (80B 元, 步长 80) | 定案 |
+| +28 | uint32 | folder 状态数组计数 | 定案 |
+
+CFolderStatus 条目 (80B; 推定真名 NDoctrines::CFolderStatus, 文件域 folder_status.cpp, 无 RTTI 直证):
+
+| 偏移 | 类型 | 名称/语义 | 置信 |
+|---|---|---|---|
+| +8 | CFolderTemplate* | folder 定义指针 (def+8 = name token → folder 名; 仅 air/land/naval/special_forces 四名触发遥测发射, §4.28) | 定案 |
+| +16 | CGrandDoctrineTemplate* | 该国在此 folder 选中的大学说定义 (其 tracks 计数 @+804, §4.6.4); NULL → const 兜底值 | 定案 |
+| +24 | 匿名结构 (96B)* | track 状态数组数据 (计数 @+36 = ValidTrackIndex sub_140FC8730 上界, 断言 folder_status.cpp:281) | 定案 |
+| +36 | uint32 | track 状态数组计数 | 定案 |
+
+track-status 元素 (96B): +8 非空门 (为 0 → 取值器 sub_140FC7FE0 返 0 → 串 "0") / +24 uint64 该 track 数值 (低 32 位 itoa 十进制串; 语义单位未决, 推定 mastery 值)。
 
 **CDoctrineListItem / CDoctrineSharingFolderItem (学说行件, GUI)**: CDoctrineListItem = CDoctrineSelectionList 学说行: **def 本体 @+1440** (assert 直证); **def 侧三偏移定案: def+40 = name / def+104 = gfx / def+36 = XP 类别**; 选中帧由宿主 0X141F3AC50 管理 (dynamic_cast 钉死共享基 = CStandardGridBoxItem)。CDoctrineSharingFolderItem = 学说共享文件夹行: **folder def @+2776 (def+96 = icon gfx)**; 共享态 @+2784 驱动 lock_icon/unlock_button 显隐 + 成本着色 (FACTION_UNLOCK_BUTTON); 命令出口 = **CUnlockFolderDoctrineSharingCommand {+40 / +48}**。
 
@@ -506,3 +519,37 @@ CU = `hoi4\source\doctrines\ui\track_item.cpp` (5/5 函断言串一致); RTTI �
 #### 4.6.17 NDoctrines 域 Parse 键分派 (1 函 = 0x141A7C940, 键映射定案/归属类待裁)
 
 0x141A7C940 (对象 a1, 脚本值 a2, token a3): 四键学说指派/过滤 spec 对象解析。**键表 (token 对离线基准定案)**: 139 track → sub_1424C08D0 整数读 → **a1+56** (int) / 10394 country → sub_140BB5560 tag 串解析 → **a1+60** (tag_id) / 11873 folder → **CFolderDatabase** (qword_14332EEA0) RH 名查表 → **a1+40** def 指针 / 16778 sub_doctrine → **CSubDoctrineDatabase** (qword_14332EEB0) RH 名查表 → **a1+48** def 指针 / 默认 → sub_1424C2060 静默读弃。RH 查表几何与 §4.6.1 逐项一致 (桶基 db+56 / stride 24 / 探测 u8@+4 / token@+8 / def@+16 / mask db+68 / 溢出桶 db+72; 哈希 0x45D9F3B 双轮乘加 xor-fold)。未命中 → malloc(0x20) 拼 "Invalid database item: " + 名 → sub_1424C1CA0 解析报错。归属类待裁 (非 CDoctrineBaseTemplate 非 STrackFilter; a1 ≥ 64B 持双 def 指针 + track + tag = 四键 spec 对象形态)。
+
+#### 4.6.18 学说族函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F4EC40 | （无名） 调用图传播: 7 锚点投 §4.6（57%） |
+| 0x141F55960 | （无名） 调用图传播: 3 锚点投 §4.6（67%） |
+| 0x141F8E880 | （无名） 调用图传播: 6 锚点投 §4.6（50%） |
+| 0x14179CE90 | （无名） 调用图传播: 4 锚点投 §4.6（50%） |
+| 0x141A328F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.6 |
+| 0x141887BD0 | （无名） 调用图传播: 3 锚点投 §4.6（67%） |
+| 0x141C20E70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.6 |
+| 0x141F902D0 | （无名） 调用图传播: 4 锚点投 §4.6（50%） |
+| 0x141CC5010 | （无名） 调用图传播: 5 锚点投 §4.6（60%） |
+| 0x14162B560 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.6 |
+| 0x141577AA0 | （无名） 调用图传播: 3 锚点投 §4.6（67%） |
+| 0x141C20F50 | （无名） 调用图传播: 2 锚点投 §4.6（50%） |
+| 0x1413BE440 | （无名） 调用图传播: 2 锚点投 §4.6（50%） |
+| 0x1401A8200 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.6 |
+| 0x141E0C8F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.6 |
+| 0x141D68A70 | 无名 sub_（调用图定位） 调用图传播: 2/4 锚点投 §4.6 |
+| 0x141CC4F90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.6 |
+| 0x140327E90 | （无名） 调用图传播: 2 锚点投 §4.6（50%） |
+| 0x141F36FF0 | （无名） 调用图传播: 2 锚点投 §4.6（100%） |
+| 0x141EBB040 | （无名） 调用图传播: 3 锚点投 §4.6（67%） |
+| 0x14147C600 | （无名） 调用图传播: 2 锚点投 §4.6（100%） |
+| 0x1413C6720 | （无名） 调用图传播: 4 锚点投 §4.6（50%） |
+| 0x141CC5100 | （无名） 调用图传播: 3 锚点投 §4.6（100%） |
+
+#### 4.6.19 学说族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141F469C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.6 |

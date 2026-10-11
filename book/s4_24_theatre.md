@@ -145,8 +145,8 @@ writer 绑定总表:
 | +400 | uint32 | target_template.type | 门 双 dword 非零且 A3D0(+400) 校验; B320; tok 13959/0x3687 |
 | +404 | uint32 | target_template.id | 同上 |
 | +408 | uint8 | expeditionaries | 真才写 yes; tok 13730/0x35A2 |
-| +409 | uint8 | deployed | 真才写; tok 16839/0x41C7 |
-| +410 | uint8 | deploy_queued | 真才写; tok 10751/0x29FF |
+| +409 | uint8 | deployed | 真才写; tok 16839/0x41C7; **运行期 = 部署中旗** — 令侧 sub_140BF6370 置位, 推进体 sub_140BF67C0 建成或中止 sub_140BEBCE0 即清 (WORD 写连带清 +410), 非「已部署」终态 |
+| +410 | uint8 | deploy_queued | 真才写; tok 10751/0x29FF; **运行期 = 等将领冷却排队态** — 冷却结束时 +410→+409 (og 日更 sub_140BEC460) |
 | +411 | uint8 | withdrawing | 真才写; tok 16843/0x41CB 撤 HQ 双函 0x140BEB4B0/0x140BF6620 两运行时置 1 写点 |
 | +412 | uint8 | unassign_on_withdraw | 真才写; tok 10752/0x2A00 |
 | +413 | uint8 | training | 真才写; tok 12218/0x2FBA |
@@ -241,7 +241,7 @@ vtable 0x142952348 直继 COrdersGroup; 自有键写在基类全键**之前**; �
 | +168 | 匿名结构 (NNB 形状)* | enemy_controller_area 链 (**实名 _pCachedEnemyArea** :1559) — ca = *(oi+168), 值 = ru32(rp(rp(ca+40)+164)) 两跳 (锚 445); 断言串 orderinstance.cpp; **载入链 = +176 暂存省 id → post-load sub_14103BCA0 → 省+208 区 → +168 区指针并清 +176** (失败日志 :1986 "Error loading defensive line. Enemy area not found.") | 门 = 指针非零 且 计数@ca+60>0 且 (ru8(rp(rp(ca+40)+184)+210)&1)==1 (陆省旗); tok 13717/0x3595 |
 | +176 | uint32 | **敌区锚省 id 载入暂存** (reader 13717 读入; post-load sub_14103BCA0 消费后清 0) | 运行期归零 |
 | +184 | uint32 | invasion_source | 门 ≠0; tok 12662/0x3176 |
-| +216 | fixed×1e-5 (int64) | time | 门 i64≠0; tok 424/0x1A8 |
+| +216 | fixed×1e-5 (int64) | time (海军入侵准备进度; 判定侧消费 = §4.32.5 has_naval_invasion_against_state) | 门 i64≠0; tok 424/0x1A8 |
 | +224 | uint32 向量 | **states** (_AreaDefenseStates; 断言 orderinstance.cpp:1800) — 州 id 直存 (同 path 形态, reader 11835 直入) | 门 计数@+236>0; tok 11835/0x2E3B |
 | +248 | uint32 | area_defense_settings 枚举 (锚 68) | 门 ≠0; tok 14073/0x36F9 |
 | +256 | 匿名结构 (32B 形状) 向量 | area_defense_state_assignment 数组数据 — stride 32 元 {state_id u32@+0, 内层数据指针@+8, 内层计数 u32@+20}; 行 = state_id + 内层 8B 对 {type, id} 逐对平铺 (重复不编号; 锚 `{55}` / `{56 51 22}`); 每元独立一行 | 门 计数@+268>0; tok 14373/0x3825 |
@@ -385,7 +385,7 @@ ctor 0X141639B00; vtable 0x1429E5C50。
 
 | 载体 | 存储 | 读法 |
 |---|---|---|
-| og+80 member 元素 / oi+528 scheduled_member 元素 | CUnit+184 子对象视口 (非裸 unit 指针; vtable 0x142953320 = CUnit 三 vtable 之一) | vtable[32] = 0X140BF95D0 = `return a1-184` (标准 owner thunk) → unit 本体, ref 对在 unit+24; 读侧终式 `base = elem − 184; type = ru32(base+24); id = ru32(base+28)` |
+| og+80 member 元素 / oi+528 scheduled_member 元素 | CUnit+184 子对象视口 (非裸 unit 指针; vtable 0x142953320 = CUnit 三 vtable 之一) | vtable+32 (槽[4]) = 0X140BF95D0 = `return a1-184` (标准 owner thunk) → unit 本体; **vtable+40 (槽[5]) 亦返 CUnit 本体** (HQ 部署链海运扫描 + leader_unit 摘挂 sub_140BF5BC0 两消费点直证; 方法名待裁), ref 对在 unit+24; 读侧终式 `base = elem − 184; type = ru32(base+24); id = ru32(base+28)` |
 | og+104 leader_unit | unit+184 视口 (同 member) | 同上 |
 | og+136 leader | CArmyLeader 本体 | B320(p+8) → `id=ru32(p+12) type=ru32(p+8)` (标准 CReferenceObject 位) |
 
@@ -422,6 +422,8 @@ ctor 0X141639B00; vtable 0x1429E5C50。
 | +148 | uint8 | hq_requisitioned_from_army → yes/no | 恒写 |
 
 **GUI 读出面 (部署 tooltip 侧, 定案; 详 §4.30.5 槽分派表)**: 三个进度 getter — sub_14193E8A0 (装备进度) / sub_14193E900 (人力进度) / sub_14193E9C0 (就绪 bool), 均返 fixed×1e-5, 门 <100000 = 未满; 另一消费域 = 军队视图部署头块 0x1416B6110 (人力/装备取短板 ×100, 标签 DEPLOYING_HQ_PROGRESS_MANPOWER/EQUIPMENT 择路, 空进度 'R'82 色码; §4.31.27); 装备枚举上界 = 全局 archetype 注册表 sub_14022FA10() {指针数组@+128, 计数@+140}; 请求数读 hq+104 池 (sub_14100EA10), 已装配读 hq+40 池 (sub_14100EA70, 值 ÷1e5); 人力进度条 = +136 cur / +140 req (色码 71 = 达标绿 / 89 = 未达黄)。
+
+**hq_deploy 执行链增补 (4 件新定名)**: **sub_140BF49E0 = 向军团征用装备/人力** (RequisitionFromArmy<COrdersGroup> 仿函数体 — 内联分配器符号 `CPdxHybridInlineBufferAllocator<SDivisionInfo,1,RequisitionFromArmy<COrdersGroup>>` 直证; 门 = distributable 存在 ∧ !obj+148 (未征用) ∧ !就绪; 一次性) / **sub_14193E820 = 物资过继三连** (sub_140C6DF60(out, obj+40) 池过继 + *a3 = obj+136 人力 + sub_14100D9A0(obj+40) 清源 + obj+136 = 0) / **sub_140B99C30 = 模板装备 IC 成本** (模板+264 块 + cc+3944 生产状态 → 聚合核 sub_140B9AD70 → i64 fixed5; 系数未 PE 侧验算, 待裁) / **sub_140CC8740 = deployed_division_hq_ic_cost 统计写入器** (每国 profile +520 单调取大 = sub_1414E6350 原子 CAS; 达门推生涯码 161)。
 
 #### 4.24.11 CNavyTheater (40B, cc+352; writer 0X141518C70)
 
@@ -516,8 +518,8 @@ sub_141036640 route_is_ok tick ② leader 根 OI 路径镜像缓存 (+472/+484/+
 ③ type3 时 oi+184 invasion_source 变化 → sub_140BEB640 重算 og+460/+464 ④
 og+136 leader 非零 → **sub_140C21BC0 距离通讯衰减** (type2 取 og+452 / type3 取
 og+460 / 否则 100000; 钳 [0, dword_143339704) 后查 qword_1433396F8 =
-LEADER_MOD_COMMS_SCALING 表, 对 leader+2096/+2480 两对象各应用一次
-sub_14060FBD0) ⑤ +415 脏旗 → plan_value 重算 ⑥ +417 → sub_140BF3C20 leader
+LEADER_MOD_COMMS_SCALING 表, 对 **leader+1048 (b2) / leader+1240 (b3)** 两修正阵块各应用一次
+sub_14060FBD0; 此前书载 +2096/+2480 系 _DWORD* 按 8B 误算 (262×8 / 310×8), 与 §4.4.3 修正阵块锚 (b2 权重@+1220 / b3 权重@+1412) 逐项吻合) ⑤ +415 脏旗 → plan_value 重算 ⑥ +417 → sub_140BF3C20 leader
 三档传播 ⑦ **sub_1414D40E0(*(og+72)) 索引器主执行** ⑧ og+44 铁路炮计数非零 →
 og+448 倒计时递减, 到 0 → sub_1414C55D0 重挂 + 重置 (定案)。
 
@@ -737,7 +739,7 @@ CUnit+224 = 成员订单脏旗 (定案存在); CUnit+488 = 当前移动目的地
 **theatre.daily_serial = sub_140EF1410** (sub_140718850 后逐 CTheatre, 定案):
 orders_group (+128) + field_marshal_group (+152) 逐 og **sub_140BEC460 = og
 日更** — B→A 快照 (512/528 → 312/328) + 逐实例 faction_theaters 份额刷新 +
-旗清理 + hq_deploy 分发 (§4.24.10 域)。division_names.update =
+旗清理 + hq_deploy 分发 — **执行体 = sub_140BF67C0 = COrdersGroup::UpdateHqDeployment (定案)**: 部署链三段闭合 = 令侧 sub_140BF6370 (CDeployArmyHqCommand 下游, 绑模板 + 建 distributable + 置旗; 将领无冷却时即时直调本件) → 本件 (og+409 部署中旗总门 → 征用 → 人资双池就绪门 → 建师 sub_1415B10B0 → 挂 leader_unit → 排前线 → 清旗) → 中止 sub_140BEBCE0; 本日更另含冷却结束 (+410→+409) 后尾部无条件再推进一轮。division_names.update =
 sub_1409C9680 (divisionnamesdatabase.cpp:447 断言): 每国**四个命名库
 (cc+112/120/128/136)** × 两步 (步 1 = 可用性降级扫描 [自 tracker+64 恒可用前缀之后
 正扫 available_groups, 求值假者 swap-remove 出 _AllAvailableGroups 批量回不可用表,
@@ -894,3 +896,150 @@ sub_140F3FF80 (a1 = COrdersGroup, a2 = 待入组单位数组 {data@+0, count@+12
 **areas.cpp 区省表四函细化 (书互证全过)**: 区对象 +40 主省 / +48{c@+60} 省表 (**按省 id 升序**) / +144 邻接链 (条目 {邻区*, 权重 u32@+8})。RemoveProvince 0x140CF84C0 = **保序压缩** (非 swap-last) + 主省重选 (省+184 解引用 →+210 bit0 资格旗, 空则回落首元素)。SortProvinceList 0x140CF8640 = ≤32 插入排序 / stable_sort, 比较器 sub_140CF9C00 = 省 id(+164) 升序 (全函直证), 缓冲 = min(count−count/2, 512) 元素。AddProvince 0x140CF1170 = 上界二分有序插 + 去重 + 主省提升 (共用 vtable 槽[4])。Merge 0x140CF67D0 = 逐省 vtable[4] + **边权迁移三步** (a1←邻 += w / 邻←a1 += w / 邻→a2 以负增量撤边 sub_140CF6BD0(邻, a2, −w)) + 清 a2 邻接。
 
 **CCF10 (sub_1414CCF10) 全量重析增补 (2297 行两窗; 定案)**: **N1 前置 claim-map 预扫描** (书未收最大空白面) = order_children ≤1 早出门内, 子实例 (+888 _pAttachedChildGroup 门) × OI+592 区段省组表 × 省+184 子对象关联省表 → gs+700 省数 claim 图 + per-路径省对手实例列, 喂 C87B0 第 5 参; +376/+380 子军 section 界 CCF10 消费点。**N2/N3 可达性门** = 省+208 CControllerArea 面级寻路 (sub_140CF3B20 + CVerySafeAreaCostCallback 书已收家族) → 批准写 unit vtable[7] 对象 +1196 = 2 / 拒绝写 6 并二分插入 og 索引器 +248 排除集; sub_1414C2CF0 (同段判定) 新函数。**N5/N6 metrics 细化**: 路径 = `logs/metrics/unit_controller_` (书未收路径) / 0xB8 ctor sub_140F08E40 存 og 索引器 +360 scopedptr / +357 一次性头旗 / CFileException 复位链 / row0-col0 = 日期串。**投递四命令 ctor 新验** = CAssignToArmyGroup / CArmyGroup sub_141836CB0 / CRemoveFromArmyGroup sub_14183B7A0 / COrderDeleteAll sub_1418389D0 (vtable 符号直证)。
+
+#### 4.24.21 战区前线族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F025C0 | CTheatre::Writer 调用基 Writer（0x142220340），战区序列化写盘 |
+| 0x141025130 | sub_141025130 体内构造/操作 vtable 类 COrderInstance::SChildFrontData（&COrderInstance::SChildFrontData::vftable）→ 命令实例前线子数据 |
+
+#### 4.24.22 战区前线族函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BE4910 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x141031CA0 | （无名，按上游/loc 定性） gamestate.h:1125 |
+| 0x140F0BC60 | （无名）Dumping metrics for + ORDERS GROUPS / UNITS 表头 + orders groups and Dumping metrics for + ORDERS GROUPS / UNITS 表头 + orders groups and |
+| 0x140EFE2B0 | CTheatre::Reader CTheatre::Reader（Reader 角色） |
+| 0x140CE7850 | （无名，按上游/loc 定性） loc "DEPLOYMENT_NOT_ALLOWED_REASON_EQUIPMENT\ DEPLOYMENT*" |
+
+#### 4.24.23 战区前线族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141253880 | CColor + "blitz/withdraw/move_thick/virt CColor + "blitz/withdraw/move_thick/virtual_line/fallback_li §4.24 集结区/战线 |
+
+#### 4.24.24 战区前线族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F01A60 | CFront::Writer func_names 全名 CFront::Writer，Reader/Writer 角色定 §4.29 |
+| 0x140EEB590 | CFront::[0] vtable 槽 CFront::[0]（func_names RTTI 名） |
+| 0x140EEB680 | CTheatre::[0] vtable 槽 CTheatre::[0]（func_names RTTI 名） |
+
+#### 4.24.25 战区前线族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.24.26 战区前线族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EFCF10 | CFront::Reader func_names 名 CFront::Reader |
+
+#### 4.24.27 战区前线族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.24.28 战区前线族函数补遗（33 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406905D0 | （无名） 调用图传播: 46 锚点投 §4.24（100%） |
+| 0x14069C590 | （无名） 调用图传播: 140 锚点投 §4.24（100%） |
+| 0x141311C90 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+| 0x140E9FC80 | （无名） 调用图传播: 3 锚点投 §4.24（67%） |
+| 0x140EE9260 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x140EE8B20 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x14125BDB0 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+| 0x141047320 | （无名） 调用图传播: 6 锚点投 §4.24（50%） |
+| 0x14102D250 | （无名） 调用图传播: 4 锚点投 §4.24（50%） |
+| 0x140EE82D0 | （无名） 调用图传播: 3 锚点投 §4.24（100%） |
+| 0x140EE74B0 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x141032EE0 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+| 0x14103C6B0 | （无名） 调用图传播: 4 锚点投 §4.24（50%） |
+| 0x140BEE910 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x1410212D0 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+| 0x141033280 | （无名） 调用图传播: 3 锚点投 §4.24（67%） |
+| 0x140BF44E0 | （无名） 调用图传播: 5 锚点投 §4.24（80%） |
+| 0x140F414C0 | （无名） 调用图传播: 3 锚点投 §4.24（100%） |
+| 0x140BEC6C0 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x140EEC940 | （无名） 调用图传播: 3 锚点投 §4.24（67%） |
+| 0x140BF2830 | （无名） 调用图传播: 3 锚点投 §4.24（67%） |
+| 0x140BF6730 | （无名） 调用图传播: 3 锚点投 §4.24（100%） |
+| 0x1418AA550 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x141639F40 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x140BF1FC0 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x141AC8E40 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x140BF7510 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x14102BB10 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x141AEC970 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+| 0x140EA40A0 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x140BF2BB0 | （无名） 调用图传播: 3 锚点投 §4.24（67%） |
+| 0x14103DEF0 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x140B536F0 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+
+#### 4.24.29 战区前线族函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141251490 | sub_141251490（无名） ag_defence_line / ag_defence_line_no_child / defence_line / root GUI 键，防线（AI 战线）UI 条目 |
+| 0x1416E1480 | sub_1416E1480 作战计划工具贴图 GFX_BPT_proximity_mixed（BPT=battle plan tool） |
+
+#### 4.24.30 战区前线族函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EE7E80 | （无名） 调用图传播: 3 锚点投 §4.24（100%） |
+| 0x141033660 | （无名） 调用图传播: 2 锚点投 §4.24（100%） |
+| 0x1416D9BF0 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+| 0x1418DB500 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+| 0x140BFF7E0 | （无名） 调用图传播: 2 锚点投 §4.24（50%） |
+
+#### 4.24.31 战区前线族函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14163EAD0 | 无名 sub_（断言站点/串定位） 断言站点 frontendgamesetupview.h:200 |
+| 0x141BB0BB0 | 无名 sub_（断言站点/串定位） 断言站点 ai_theatre_graph.cpp:95 |
+| 0x141BB20B0 | 无名 sub_（断言站点/串定位） 断言站点 ai_theatre_graph.cpp:134 |
+| 0x141BB0FC0 | 无名 sub_（断言站点/串定位） 断言站点 ai_theatre_graph.cpp:190 |
+| 0x141BB09C0 | 无名 sub_（断言站点/串定位） 断言站点 ai_theatre_graph.cpp:134 |
+| 0x141BB0F30 | 无名 sub_（断言站点/串定位） 断言站点 ai_theatre_graph.cpp:196 |
+
+#### 4.24.32 战区前线族函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141EE1BC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x141039DA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x141FFCDB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x141039C10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140D4F680 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140EFCBD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x1424D56E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x142394030 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140E70E60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140F01830 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140EEBB60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140BEF490 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x141BB5BE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140BEF550 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x14102A580 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140BEC770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140F419C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x142515D40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x1424EDDD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x14163F140 | 无名 sub_（调用图定位） 调用图传播: 4/4 锚点投 §4.24 |
+| 0x1416B59C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x140BBB080 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+| 0x141038930 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |
+
+#### 4.24.33 战区前线族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1424D4390 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.24 |

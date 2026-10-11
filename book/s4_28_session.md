@@ -822,7 +822,7 @@ CGameState::PostLoad; ② 驱动尾 humans 同步; ③ 装载 lambda 第 9 步�
 | 3' | sub_140D9F9C0 | 二进制档驱动 (save-info+680≠0 分支): 流构造走 sub_1424DF2C0/sub_142231850, 校验和经流 vtable+136; 其余同构 (gamelobby.cpp:2367) | 定案 |
 | 4 | sub_1401E2AC0 | CCurrentGameState::Load: 日志 "CCurrentGameState::Load_START" (gamestate.cpp:1611) → gs+2613 (构建期门) 置 1 → gs+2612 (HasGameStarted) 置 1 → dword_14332F284 = 0 → gs+2600 = 默认书签 sub_1401DBBB0() → tbb parallel_invoke { CSessionUpdateThreaded, CGameStateLoadThreaded } → "Load_END" (gamestate.cpp:1640, 尾清 gs+2613) | 定案 |
 | 5 | sub_1401C8A60 | CGameStateLoadThreaded lambda 体 (根装载编排器, 十步进度 62/N/10, gamestate.cpp:1587): ① appmgr vtable+200 → sub_140F41B30(x,1) ② sub_1401EA1B0(gs) 世界重置/预清场 (自带 13 步进度: 州重建/settings 载入等) ③ sub_1401E13E0(gs,1) 重建 gs+1680 容器 (264B 对象 sub_140C48180) ④ sub_140A3CF40/sub_140A3D210 ⑤ sub_140CF31E0/sub_140CF33A0/sub_140CF2E40(1) ⑥ [appmgr vtable+720 && humans>0] sub_1401EE7F0(gs,humans) ⑦ sub_1406212F0 = **读档 checksum 校验** (MD5 盐 "I_am_such_a_cheater" 直证, sub_142231720 比对; 全函数不触随机流状态 — 原定性「随机流播种」翻案, 播种实际入口推定 = ⑧ 根读入 random={a b} 经 sub_142234600 直写, 待读链根段精读) ⑧ sub_142232930(stream,gs,回调 sub_1401F1430) 根读入 ⑨ sub_1401DA490(gs) 读后全局重挂波 ⑩ dword_14332F284=1 (装载完成事件旗) | 定案 |
-| 6 | sub_142232930 | 读引擎: 流 vtable+80 复位 → magic/codec 判定 (0x6E6962="bin" 二进制等三形态) → 构造 parser (栈 336B) → sub_1424C0AA0(parser, gs) | 定案 |
+| 6 | sub_142232930 | 读引擎: 流 vtable+80 复位 → magic/codec 判定 (**6 形态** = "bin" / "txt" / 33 bin+BOM / 49 txt+BOM / 17 有 BOM 但头非 HOI4 / -1 无效; 读取件 sub_1422325A0, lexer 工厂 sub_142231FD0, codec 跟随魔法, 与流模式冲突发 6 条告警之一) → 尾部校验和读取 (sub_142231D70) → 构造 parser (栈 336B) → **选路: 尾部校验和非空 → sub_142232730 (带进度回调且跳 checksum 键) / 空 → sub_1424C0AA0(parser, gs)** (§4.28.35) | 定案 |
 | 7 | sub_1424C0AA0 | `return obj->vtable[3](obj, parser)` — 根对象与一切嵌套对象进共享 wrapper 的统一入口 thunk | 定案 |
 | 8 | sub_1424BE690 | 共享 CPersistent Load wrapper (PostLoad 唯一派发点; 调用序见 §4.00.1) | 定案 |
 | 9 | sub_1401E0520 | CGameState::PostLoad (根块尾触发, gamestate.cpp:4352): ① 遍历 gs+784 国家数组 (count gs+796): sub_1406FE1C0(cc) = sub_140FFE6D0(cc+4048 占领状态, 1) ② 遍历 gs+1800 装备变体数组 (count gs+1812): sub_140BE2450(variant) (MIO trait bonus 重建, 尾挂 NIndustrialOrganisation::CTraitBonus); 调用者 = 语料零直调, 疑 CCurrentGameState vtable 槽目标 (待裁) | 定案 |
@@ -1117,7 +1117,7 @@ NCareerProfile 生涯档案管理器堆目标 (约 2024B; 奖项 SCareerProfileA
 | [16] | checksum 有效旗 getter (读 +929) |
 | [17]/[18] | GetSession/SetSession (+896; Set 旧 session 先 vtable[0](old,1) 删除再写) |
 
-新偏移 (CGameApplication 本体): **+872 = 加载屏对象** (0xCC8, ctor sub_140B429A0; InitLoadScreen sub_140184B30 建并装 load_screen.gui — 三 .gfx 存在性检查缺一告警 :1075 + **interface/load_screen.gui 第四检查 :1097** (同款 "Missing %s"); InitBase reinit=0 时与 +864 CGameGraphics 一起销毁重建; **reinit=1 分支语料全文本 0 调用点 = 负定案高置信**, 唯一调用 = Init 传 0) / **+929 u8 = checksum 与出厂期望一致旗** (CreateChecksum 步 sub_14016F1C0: **+348 = 已算旗**; sub_14222BDE0 首调时把 checksum_manifest.txt 计算写入 **+352 = 版本指纹串 32 hex 位** (定案 — :1503 "Version: " 日志直证, InitMap 的 manifest 校验同读此串), +352 比对硬编码 "92f2d45a861ba7599f5b05e849e05632" → 写旗 + checksum 结果单例 qword_143330460 (0xA8B) +162) / +880 CGraphicalMap\* 懒建门 (InitMap sub_140185170, 调用者 = frontend.cpp 图形初始化链 sub_140B3D9B0, 不在 Init 直调链) / **CGameGraphics 尺寸 = 0x32A00 (定案**, InitBase reinit=0 malloc)。**ShowErrorLog sub_1401758A0 门 = error.log 增量判定** (非绝对尺寸: dword_14332ED60 = 上次已弹尺寸, 增长才弹并更新); 调用点 = Init 尾段且整段在 byte_14332EC69 (-debug) 门内。**LoadAssets 热重载 = sub_14222DDC0(app, mode 0/1, flush=1, path) 双遍通道** (watcher 回调 sub_14222E6A0/E620 对每路径跑 mode=0 + mode=1 两遍)。**TGameItemDatabase 通用 DB 装载包装 sub_14018B0E0** (+20 已载旗 / +16 名字 / vtable[+48] 逐文件解析槽; 单例守卫断言 gameitemdatabase.h:127/142/**149**/179 — :149 "_pInstance && \"Instance not created.\"" 为补列)。**InitBase sub_140181110 全形 (新定形, reinit 形参)**: 17 步 = 基类 CApplication::InitBase → **39 项硬编码光标表** (38 唯一路径; gfx/cursors/assign_air.ani 重复登记 = 引擎怪癖; sub_14222BDC0 vtable[+80]) → 销毁重建 +872 加载屏/+864 CGameGraphics (先 872 后 864) → InitLoadScreen → **+856 = 渲染器句柄槽 (双重解引, 四连初始化)** + 主菜单音乐 maintheme → **byte_143085000 = 装载异步门** (LoadAssets 异步/同步形态 + .gfx 等待 + 第二 Long Task; LoadAssets 双函数名 = Init :849 处 sub_140B39270 vs InitBase :1438 处 sub_14222E1B0(app, mode 1 先行遍/0 后遍), 两处日志均 "LoadAssets takes") → LOADING_GUI → InitGUI → LOADING_MAP_SPRITES → .gfx 逐文件装载 (进度组 7) → AddMapShaderDefines (**仅 reinit=0 门内**; InitLoadScreen 调用**不在** reinit 门内, 两模式都调) → **CGraphicalCultureTypeDataBase** (common/graphicalculturetype.txt, malloc 336+104)。**主vtable槽[12] sub_140195420 节流判式 (定案)**: **四析取** = force ∥ 完成态 ∥ **戳在未来 (stamp > now — qword_14332ED40 清 0/时钟回退兜底)** ∥ ≥50ms 戳差 (double 秒戳 qword_14332ED40) → 走 CGameGraphics(+864) 两分支 (**mode 1 = 空串过滤** — 实参 xmmword_1427179A0 {0,15} = MSVC 空 std::string 常量, 非具名串 / mode 0 = 整帧刷新 sub_140B70FF0); 断言 = "ThreadIsMainThread()" (:2091, 门 byte_1435E1B52 + **本函数专属一次性闩 byte_14332F0E8**); 兜底 = CSdlEvents vtable[+16] 次级消息泵。**ShowErrorLog 第二道门 byte_14332ED48 = suppress_error_log 设置键旗** (assertsdialog=no 同路置位; 邻键 debug_smooth/render_thread)。**gs 访问前置断言对 (原文)**: gamestate.h:1116 `_pInstance && "gamestate unitilialized"` (引擎 typo) / :1117 `_ThreadForbidCount == 0 && "Current thread is forbidden to access gamestate"`; gs 单例 = qword_14332F260。⚠ `xmmword_1427179A0` = MSVC 空 std::string 常量 {0,15} 非真串 (语料百处级, 防误读)。
+新偏移 (CGameApplication 本体): **+872 = 加载屏对象** (0xCC8, ctor sub_140B429A0; InitLoadScreen sub_140184B30 建并装 load_screen.gui — 三 .gfx 存在性检查缺一告警 :1075 + **interface/load_screen.gui 第四检查 :1097** (同款 "Missing %s"); InitBase reinit=0 时与 +864 CGameGraphics 一起销毁重建; **reinit=1 分支语料全文本 0 调用点 = 负定案高置信**, 唯一调用 = Init 传 0) / **+929 u8 = checksum 与出厂期望一致旗** (CreateChecksum 步 sub_14016F1C0: **+348 = 已算旗**; sub_14222BDE0 首调时把 checksum_manifest.txt 计算写入 **+352 = 版本指纹串 32 hex 位** (定案 — :1503 "Version: " 日志直证, InitMap 的 manifest 校验同读此串), +352 比对硬编码 "92f2d45a861ba7599f5b05e849e05632" → 写旗 + checksum 结果单例 qword_143330460 (0xA8B) +162) / +880 CGraphicalMap\* 懒建门 (InitMap sub_140185170, 调用者 = frontend.cpp 图形初始化链 sub_140B3D9B0, 不在 Init 直调链) / **CGameGraphics 尺寸 = 0x32A00 (定案**, InitBase reinit=0 malloc)。**ShowErrorLog sub_1401758A0 门 = error.log 增量判定** (非绝对尺寸: dword_14332ED60 = 上次已弹尺寸, 增长才弹并更新); 调用点 = Init 尾段且整段在 byte_14332EC69 (-debug) 门内。**LoadAssets 热重载 = sub_14222DDC0(app, mode 0/1, flush=1, path) 双遍通道** (watcher 回调 sub_14222E6A0/E620 对每路径跑 mode=0 + mode=1 两遍)。**TGameItemDatabase 通用 DB 装载包装 sub_14018B0E0** (+20 已载旗 / +16 名字 / vtable[+48] 逐文件解析槽; 单例守卫断言 gameitemdatabase.h:127/142/**149**/179 — :149 "_pInstance && \"Instance not created.\"" 为补列)。**InitBase sub_140181110 全形 (新定形, reinit 形参)**: 17 步 = 基类 CApplication::InitBase → **39 项硬编码光标表** (38 唯一路径; gfx/cursors/assign_air.ani 重复登记 = 引擎怪癖; sub_14222BDC0 vtable[+80]) → 销毁重建 +872 加载屏/+864 CGameGraphics (先 872 后 864) → InitLoadScreen → **+856 = 引擎子系统根对象槽 (双重解引, 四连初始化; X = *(app+856): X+0 = 音频管理器 (§4.00.9 音乐元数据 / 声音事件查表 sub_1423B7110 同址) / X+8 = 动画库 (§4.35.34) / X+16 = environment strings — 多子系统共用根, 类身份待裁)** + 主菜单音乐 maintheme → **byte_143085000 = 装载异步门** (LoadAssets 异步/同步形态 + .gfx 等待 + 第二 Long Task; LoadAssets 双函数名 = Init :849 处 sub_140B39270 vs InitBase :1438 处 sub_14222E1B0(app, mode 1 先行遍/0 后遍), 两处日志均 "LoadAssets takes") → LOADING_GUI → InitGUI → LOADING_MAP_SPRITES → .gfx 逐文件装载 (进度组 7) → AddMapShaderDefines (**仅 reinit=0 门内**; InitLoadScreen 调用**不在** reinit 门内, 两模式都调) → **CGraphicalCultureTypeDataBase** (common/graphicalculturetype.txt, malloc 336+104)。**主vtable槽[12] sub_140195420 节流判式 (定案)**: **四析取** = force ∥ 完成态 ∥ **戳在未来 (stamp > now — qword_14332ED40 清 0/时钟回退兜底)** ∥ ≥50ms 戳差 (double 秒戳 qword_14332ED40) → 走 CGameGraphics(+864) 两分支 (**mode 1 = 空串过滤** — 实参 xmmword_1427179A0 {0,15} = MSVC 空 std::string 常量, 非具名串 / mode 0 = 整帧刷新 sub_140B70FF0); 断言 = "ThreadIsMainThread()" (:2091, 门 byte_1435E1B52 + **本函数专属一次性闩 byte_14332F0E8**); 兜底 = CSdlEvents vtable[+16] 次级消息泵。**ShowErrorLog 第二道门 byte_14332ED48 = suppress_error_log 设置键旗** (assertsdialog=no 同路置位; 邻键 debug_smooth/render_thread)。**gs 访问前置断言对 (原文)**: gamestate.h:1116 `_pInstance && "gamestate unitilialized"` (引擎 typo) / :1117 `_ThreadForbidCount == 0 && "Current thread is forbidden to access gamestate"`; gs 单例 = qword_14332F260。⚠ `xmmword_1427179A0` = MSVC 空 std::string 常量 {0,15} 非真串 (语料百处级, 防误读)。
 
 **InitGame (sub_1401835A0) 16 子步步序全图** (bar 组 40): LoadDatabases → LOAD_EVENTS → stateDef → achievements/event/onactions → INIT_GAMESTATE (gs 创建 ×3) → AI 省份查找表 ×2 → LOAD_FLAGS → 地图图标管理器 → **步 12: malloc 0x640 CFrontEndIdler ctor sub_140B3B290(idler, \*(+864) gfx, \*(+872) 加载屏, app) + SetIdler — 帧→tick 唯一衔接点** → 步 13 CREATING_CHKSUM (byte_143085000 时 "Long Task" 异步) → CButtonMenu/DumpMissing → **步 15 InitFileWatchers (门 = byte_14332EC69 即 -debug)** → 收尾。**本簇负定案: 不含帧循环/暂停位/速度档** — tick 通电仍按 §4.2.1 (CInGameIdler::OnEnter 填 qword_14332F6A0)。
 
@@ -1306,8 +1306,8 @@ ResettingGame (sub_1401A5630) 八步 (进度组 49 / 总 8; 全部计时日志�
 | T3 | sub_140DA25E0 (gamelobby.cpp:2400/2416) | **新档写出器**: 文件名构造 sub_140D9BEA0 (与读链步 3 同函数) → 拼 **"_temp" 后缀** → 开流 sub_1424DF2C0 → sub_1401ECC50 → 关流 → exists→delete 旧 → **rename `_temp`→名 (sub_1424E14B0, virtualfilesystem_physfs.cpp:778)** = 原子落盘 | 定案 |
 | T3' | sub_140DA2E80 | **续档同名重写器** (meta+85=续局旗): 同名截断重写 (流 sub_1422CD210), 无 _temp 中转 — 铁人档被持续覆写的根因 | 定案 |
 | T4 | **sub_1401ECC50** | **CCurrentGameState::Save** (Load sub_1401E2AC0 镜像): ① [idler+1508 门] 逐国 pre-save 钩 sub_140713040+sub_140713090 (areas.cpp:437 战略区域表排序 "Sorting list %i.") ② dword_14332F284=0 (互斥旗) ③ tbb parallel_invoke { CSessionUpdateThreaded, **CGameStateSaveThreaded** } 同步阻塞 | 定案 |
-| T6 | **sub_1401C8C70** (gamestate.cpp:1498) | **保存 lambda**: ① 取校验盐 sub_14061CD20 → sub_14061FBF0 ② humans 写前同步 (gs+248 数组 × 160B 循环, 读链步 10 镜像) ③ **sub_142232D10(stream, gs, 盐, 盐长)** ④ 刷浏览器条目 sub_1422330F0 (title=玩家名+ctime) ⑤ 异常 → "Failed to load save file " + 互斥旗=1; 尾旗=1 | 定案 |
-| T7 | **sub_142232D10** (savegamehelper.cpp:348/363/386) | **保存引擎** (读引擎 sub_142232930 镜像): ① 写 "HOI4" (boot 全局 qword_1430BDE30) ② 三字节魔法: binary → "bin" / 否则 "txt" (binary 分支多写 token 16) ③ **sub_1424C4880 = 根保存** (thunk: 流+8=−1 → gs->vtable[1]) ④ token 377 空值 + token 1 **校验和占位** ⑤ **sub_142231AF0 计 MD5** ⑥ **sub_1424C44F0 回填** ⑦ flush | 定案 |
+| T6 | **sub_1401C8C70** (gamestate.cpp:1498) | **保存 lambda**: ① 取校验盐 sub_14061CD20 → sub_14061FBF0 ② humans 写前同步 (gs+248 数组 × 160B 循环, 读链步 10 镜像) ③ **sub_142232D10(stream, gs, 盐, 盐长)** ④ 刷浏览器条目 sub_1422330F0 (title = 国家显示名 + 游戏日期, date = ctime; 载荷 130B CContinueGameData, §4.28.35) ⑤ 异常 → "Failed to load save file " + 互斥旗=1; 尾旗=1 | 定案 |
+| T7 | **sub_142232D10** (savegamehelper.cpp:348/363/386) | **保存引擎** (读引擎 sub_142232930 镜像): ① 写 "HOI4" (boot 全局 qword_1430BDE30) ② 三字节魔法: 文本 → "txt" 且多写 token 16 (="\r\n"; 二进制 → "bin", token 16/17/18 在 sub_1424BFBB0 早退不写; 实档头 HOI4txt\r\n) ③ **sub_1424C4880 = 根保存** (thunk: 流+8=−1 → gs->vtable[1]) ④ token 377 (checksum) 空值 + token 1 (=) **尾部占位** ⑤ **sub_142231AF0 计 MD5** (窗口 = 文件大小 − 34 文本 / − 36 二进制, 排除尾部校验和自身) ⑥ **sub_1424C44F0 回填** = **文件末尾追加** (文本 43B = 9B 键 + 34B 值 / 二进制 40B = 4B 键 + 36B 值) ⑦ flush | 定案 |
 | T9 | **sub_1401F29A0** (gs vtable1 槽[2] CGameState writer) | 根块落盘序: **sub_140BC2710 (gs+16 元数据 writer: player/ideology/date/difficulty/version/tutorial/player_countries/save_version/minor_save_version/dlcs/mods) → sub_1401F27F0 (随机域 + session) → 全 gs 管理器键序**; gs+2216≠0 才写 token 16067 (all_playthrough_data 门); 读侧对应件 = sub_140D9B3B0 (键集 = player/ideology/ironman/dlcs/tutorial/players_countries/save_version/minor_save_version/cooperative_game/cosmetic_tag/mods; launcher `-start_save` 头解析同源) | 定案 |
 
 读/存对称对照: 分派壳/驱动/gs 入口/tbb 并臂/引擎/根 thunk/wrapper **全镜像**;
@@ -1346,6 +1346,22 @@ autosave 调度与轮换 (定案):
 
 **控制台命令条目 456B 布局增补** (§4.28 命令表 383 条姊妹): 条目 +0 = **available_in_release_build** (0 = dev-only, JSON 仅 0 时写 false 键); **+40 别名计数 / +48 别名 char\*\* 数组 (null 结尾) / +72 描述串 / +112 参数补全支持旗 / +128 参数说明计数 / +136 参数说明串数组 (32B 跨距)**; 注册双轨 = 4 张 .rdata 静态表 (取值器 sub_14119A840/0x141194820/0x1411A8820/0x14117B270) → 合并容器 qword_14332F4F8/count dword_14332F504 → 去重 bulk-register sub_1424B4920 注入管理器 (主注册点 = 启动序 sub_140126E50); 新式单命令走独立注册器 (crash 例 sub_1423927F0)。**控制台随机 = Random::Get(file,line) (sub_142233FA0) 独立流, 不动存档种子流 — 对拍安全**; random_seed 无参 = 状态×地址哈希重播种 (handler 0x14027D780); SetRandomCount = sub_1422345C0; `oos` 命令 = Random::Get(file,8657) 仅本端调用 → RNG 流单侧偏移失步机制直证; 新全局: qword_14332F540[3] 舰队行动区三色槽 / qword_143330000 效果文档库 / qword_143330050 触发器文档库 / qword_14332F5A8+F5C0 两组 fired 计数器 (debug_dumpevents/debug_dumpdiploactions)。
 
+**静态命令注册表记录形态 (启动期另一通道, 与 456B 条目并列)**: 部分控制台命令不经 4 张 .rdata 静态表 bulk-register, 而在启动期构造函数内逐条建记录入表 (反汇编 0x140012E00–0x140012F90 六记录同形; 例 dump_equipment_loc 注册点 lea @ 0x140012F2F, 处理器 §4.23.24):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | std::string (32B) | 命令名 |
+| +32 | i32 | 常置 0 (语义未决) |
+| +36 | 16B 零 | 填充 (语义未决) |
+| +56 | qword | 常置 0 (语义未决) |
+| +64 | std::string (32B) | 描述 |
+| +96 | 函数指针 | 处理器 |
+| +104 | qword | 常置 0 (语义未决) |
+| +112 | qword | 常置 0 (语义未决) |
+| +120 | i32 | 参数档条数 |
+| +128 | 串数组 | 参数档条目 (32B/条) |
+
+> 与运行期 456B 条目字段位置不同 (描述 @+64 vs +72 / 参数档 @+128 vs +136); 两条通道的记录是否最终归并同一管理器、宿主对象类名与记录是否定长均未决。
 #### 4.28.22 NCareerProfile 生涯档案管理器 (持久化/同步/奖项核心层; career_profile.cpp)
 
 单例指针链 (定案): `qword_143452450` (CApplication 单例, §4.28.21) → **+912 scopedptr** → 本管理器 (约 2024B; 获取包装 sub_14068F870)。总尺寸推定 2024B (布局止于 +2017, ctor 逐成员核验未决)。
@@ -1386,7 +1402,7 @@ GUI 取数族: 前端统计视图 141FACA40→sub_140695F50 (拷 1000B 记录) /
 
 **CCareerProfileView (NCareerProfile 生涯档案视图 GUI 层; career_profile_view.cpp — 真文件名非断片; 定案)**: 宿主巨型视图 (偏移使用至 +31928); lambda 符号 `SetupHeader_CCareerProfileView_NCareerProfile` 直证宿主类。**头部刷新 = 0x141EF8BB0** (321 行): name 文本 (ctx = +26088 → 其 vtable+120 按 "name" 查) / profile_picture (图库 id +28904 → sub_1414E6310 取名, 无效回落 id 1; 元素 vtable+728 设贴图) / profile_background_bg (id +28908 → sub_1414E62D0, 名拼 "_no_disable" 后缀) / 显隐切换 (**+28952 状态旗** → 两按钮包装 +5480/+6848 各调 vtable+656/+648 Show/Hide 对, 具体向推定) / 隐私文本 (+28912 ∈ {0,1,2} → CAREER_PROFILE_SWITCHER_{PUBLIC,PRIVATE,FRIENDS} 本地化; 其他 → :527 断言 latch byte_14338C9DF 后空串继续)。**隐私状态→串 = 0x141EF7C20**: 0 = "public" / 1 = "private" / 2 = "friends_only" (:73 断言同 latch 族); 消费 = 遥测事件 `profile_privacy_state_changed` {state} 发射器 sub_140215DD0。配套链: SetupHeader 0x141EF7D60 (privacy_information 容器绑 privacy_left/right_button → +26104/+27472, career_point 文本 → +26096) / 左右切换回调 0x141EF97C0 + 0x141EF9840 (循环索引 +28840 查 unk_142A911E8 成对 dword 表写回 +28840/+28912 → CFriendsHandler getter vtable+48 刷新) / 视图构建 0x141FAB540 (窗名 "career_profile_view" + 子视图 "career_profile_statistics_view")。宿主偏移: +5480/+6848 按钮包装 A/B / +8224 privacy 根窗 / +26088 GUI 上下文 / +26096 career_point / +26104/+27472 左右按钮 / +28840 切换索引 / +28864 玩家名 / +28904/+28908 图库 id / +28912 隐私态 / +28952 状态旗。零存档面 (纯 GUI + 遥测), 与 §4.28.22 管理器数据层互补。
 
-**CCareerProfileStatisticsView (career_profile_statistics_view.cpp — 簇名 _profile_ 系 career|_profile 断片; 刷新 = 0x141FACA40, 351 行; 定案, 前记取数族的全貌扩展)**: 三过滤器文本回写 = country (+6368 ≤0 → CAREER_PROFILE_ALL_COUNTRIES 本地化 / >0 → sub_140BB4BB0 国名) / data_set (+9128 ∈ {0 = CAREER_PROFILE_DROPDOWN_BASEGAME, 1 = 动态文本 sub_141FAC3A0 推定 mod 组名, 2 = …_MODS}; 其他 → :214 断言 latch byte_14338CD24) / game_mode (+11888 ∈ {0 单机, 1 联机, 2 全部}; 其他 → :234 断言 byte_14338CD25) → 查子窗链 (+3584 窗管理器虚槽 [55] "country_header" → 虚槽 [15] 三个 *_filter_text) SetText。国旗刷新 = country_header 虚槽 [67] 取盾徽子对象 → 虚槽 [91] 设图形 (+6368 ≤0 → TGameItemDatabase 单例 qword_14332EE70 +72 回退图形 / >0 → sub_140720730 国家对象 +16)。**记录装配 (1000B/条)**: 主记录源 +3568 (空 → malloc 1000 清零 + sub_14068E960 默认初始化); +6368 > 0 → sub_140695F50 单国条目拷贝 / ≤0 → **sub_140694E90 全聚合计算器** (逐槽 u32 聚合, 新定性); sub_141F895A0 = malloc 1000 逐 __int128 拷贝出堆记录; 对比记录源 +3576 (分支条件与主记录相反, 门 = `*(int*)(宿主+176) == 1` sub_1422C96A0); 尾 sub_141FEEE30(+11896 行装配器, 主记录, 对比记录, 0, **(+1456)) 变参装配 (对比记录可空)。视图偏移族: +1440 谓词宿主 / +1456 模式 int* / +3568/+3576 双统计宿主 / +3584 窗管理器 / +6368 国家过滤器 / +9128 数据集 / +11888 模式 / +11896 行装配器。装配器 sub_141FEEE30 全案 (1945 行, career_profile_components.cpp): 97 行 = 59 单指标 + 11 特殊换算行 (hours = +520÷3600 / time_at_war 年 = +536÷8760 / 每年省份 = 8760×(+80−+84)÷+536 / 每周伤亡 = 168×(+552+568)÷+536 / most_used_combat_width = +764..972 直方图 argmax, >50 走 MORE_THAN 文本) + 27 分组行 (10 组, 30 位定点份额, "bar" 条填充 = 3276800×份额>>30); 行发射 = 行查找创建 (sub_1422BA420) → "value" 子件四格式 (PLAIN_NUMBER / NO_SI_PREFIX / PERCENTAGE / YEARS_MONTHS) → 比较着色 0/1/2/3 → best_in_career_icon (mode==1 ∧ 位集位 ∧ 非联机 RTTI); own-profile 页 sub_141F89B80 = 玩家 tag → 页虚槽[20] 取被查看 tag → 对账 sub_1406A5DB0 → 双 1000B 堆拷贝 → 装配 mode=1 (联机 RTTI 隐 hours_played)。
+**CCareerProfileStatisticsView (career_profile_statistics_view.cpp — 簇名 _profile_ 系 career|_profile 断片; 刷新 = 0x141FACA40, 351 行; 定案, 前记取数族的全貌扩展)**: 三过滤器文本回写 = country (+6368 ≤0 → CAREER_PROFILE_ALL_COUNTRIES 本地化 / >0 → sub_140BB4BB0 国名) / data_set (+9128 ∈ {0 = CAREER_PROFILE_DROPDOWN_BASEGAME, 1 = 动态文本 sub_141FAC3A0 推定 mod 组名, 2 = …_MODS}; 其他 → :214 断言 latch byte_14338CD24) / game_mode (+11888 ∈ {0 单机, 1 联机, 2 全部}; 其他 → :234 断言 byte_14338CD25) → 查子窗链 (+3584 窗管理器虚槽 [55] "country_header" → 虚槽 [15] 三个 *_filter_text) SetText。国旗刷新 = country_header 虚槽 [67] 取盾徽子对象 → 虚槽 [91] 设图形 (+6368 ≤0 → TGameItemDatabase 单例 qword_14332EE70 +72 回退图形 / >0 → sub_140720730 国家对象 +16)。**记录装配 (1000B/条)**: 主记录源 +3568 (空 → malloc 1000 清零 + sub_14068E960 默认初始化); +6368 > 0 → sub_140695F50 单国条目拷贝 / ≤0 → **sub_140694E90 全聚合计算器** (逐槽 u32 聚合, 新定性); sub_141F895A0 = malloc 1000 逐 __int128 拷贝出堆记录; 对比记录源 +3576 (分支条件与主记录相反, 门 = `*(int*)(宿主+176) == 1` sub_1422C96A0); 尾 sub_141FEEE30(+11896 行装配器, 主记录, 对比记录, 0, **(+1456)) 变参装配 (对比记录可空)。视图偏移族: +1440 谓词宿主 / +1456 模式 int* / +3568/+3576 双统计宿主 (**页面消费端** = CCareerProfilePages+2808/+2816, BuildTooltip VALUE ← +2816、DIFFERENCE ← +2816−+2808, 六项换算坐标与公式逐项对账, §4.31.142) / +3584 窗管理器 / +6368 国家过滤器 / +9128 数据集 / +11888 模式 / +11896 行装配器。装配器 sub_141FEEE30 全案 (1945 行, career_profile_components.cpp): 97 行 = 59 单指标 + 11 特殊换算行 (hours = +520÷3600 / time_at_war 年 = +536÷8760 / 每年省份 = 8760×(+80−+84)÷+536 / 每周伤亡 = 168×(+552+568)÷+536 / most_used_combat_width = +764..972 直方图 argmax, >50 走 MORE_THAN 文本) + 27 分组行 (10 组, 30 位定点份额, "bar" 条填充 = 3276800×份额>>30); 行发射 = 行查找创建 (sub_1422BA420) → "value" 子件四格式 (PLAIN_NUMBER / NO_SI_PREFIX / PERCENTAGE / YEARS_MONTHS) → 比较着色 0/1/2/3 → best_in_career_icon (mode==1 ∧ 位集位 ∧ 非联机 RTTI); own-profile 页 sub_141F89B80 = 玩家 tag → 页虚槽[20] 取被查看 tag → 对账 sub_1406A5DB0 → 双 1000B 堆拷贝 → 装配 mode=1 (联机 RTTI 隐 hours_played)。
 #### 4.28.23 CGameApplication Run 主循环与退出链 / LoadDatabases 102 步骨架 (定案)
 
 **Run = sub_14222E7E0** (noreturn, §4.2.1 互证): UpdateWindow → **主线程钉核** = GetProcessAffinityMask 数逻辑核 n, n>1 时目标 = n/2+1 (后半段第一个置位核) → SetThreadAffinityMask → vtable+80 槽[10] (游戏表 = 空桩无操作) → while(!+132): ① byte_14345244C 高亮请求 → CPdxWindow vtable[+16] 判 "highlight_window_when_ready" → FlashWindowEx 任务栏闪烁 ② +776 置位 break ③ HCURSOR 槽非空 SetCursor 逐帧重贴 ④ **每帧一步 sub_14222EEB0** ⑤ +131 → +132 → 退栈 = vtable+88 槽[11] Shutdown flush → idler 容器收尾 → SteamAPI_Shutdown → exit(0)。**退出三旗** (定案): +131 = 请求退出 (setter sub_14222CAC0 单行体; 全语料唯一调用 = main docs 模式 dump "script_documentation.json" 后) / +776 = 本帧事件泵判定退出 (CSdlEvents vtable[+8] 返回值, 循环顶 break) / +132 = 退出进行中 (循环条件)。**进程内重启链不存在** (exit(0) 一去不返; "Resetting game" 是书签级世界重建非进程重启; 控制台 quit 落点未决)。
@@ -1742,7 +1758,7 @@ sub_1424BC260; join = `\|`/`,` 连接; variant = 构建变体串。
 | agency_upgrade | sub_14020D7A0 | upgrade → a1; prior_upgrades; level; in_game_date; playthrough_id/variant | sub_140FD78D0 |
 | spy_master | sub_140204F90 | (仅上下文: in_game_date/playthrough_id/variant) | sub_1413FB9C0 / sub_1413FC040 |
 | operation | sub_140210F70 | operation → a1; target; in_game_date; playthrough_id/variant | sub_141400170 |
-| mastery_snapshot | sub_14020E490 | nation; 每 mastery 条目: 键 = id-name (特定类别跳过: 名长 3/4/5/14 的 skip 表, 含 "special_…" 前缀比对), 值 = 子项 join 或 const "0\|0\|0\|0"/"0\|0"; in_game_date; playthrough_id | sub_140D7F220 ×2 |
+| mastery_snapshot | sub_14020E490 | nation; 逐学说 folder 条目: **白名单**只发射 folder 名 == air/land/naval/special_forces 四条 (名取自 CFolderTemplate+8 name token 经 lexer, 名长 3/4/5/14 比对), 其余条目整个丢弃; 值 = 该 folder 逐 track 数值 itoa 十进制串以 '\|' join (循环上界 = 选中大学说 CGrandDoctrineTemplate+804 tracks 计数, §4.6.4), 无大学说时 const "0\|0\|0\|0"/"0\|0"; in_game_date; playthrough_id | sub_140D7F220 ×2 |
 
 生涯档案 / UI / 前端 (列: 事件 topic | 发射器 | 属性键 → 值源 | 发射时机):
 
@@ -1837,7 +1853,7 @@ qword_143453090 与设置单例 qword_14332F408 类名。
 
 sub_14207F520 (PDX SDK; RTTI 符号直证 PDX::SDK::Model::CacheData / PDX::SDK::Api::Cache_GetData): app (sub_14222BDB0 单例) +856 → 子对象 +80 = cache handle → Cache_GetData → GetTelemetryEnabled 允许旗; 允许 → 互斥量 unk_14344A580 (lock sub_1424EDD60 / unlock sub_1424EDEB0) → 排队计数 dword_1430B660C 非零 → sub_14207F210 flush + 格式化日志 0x2000 :308「[telemetry] Waiting for queued telemetry.」; 两路 CacheData 析构 (EH 标志分次)。与 §4.2 另一遥测件 sub_140207890 不同件。
 
-sub_142231800: a1+129 = 操作成功旗 (前置清 0, 成功置 1); 存在门 sub_1424DC920 = PHYSFS_exists 包装 (`a1 && *a1 && PHYSFS_exists(a1)`); 删除 sub_1424DBFB0 = PHYSFS_delete 包装 (失败 → CLog 0x2000 virtualfilesystem_physfs.cpp:793「Failed to delete file '%s': %s」+ PHYSFS 错误码链); 删除或存在检查抛异常 → CLog 4096 :576「failed to write to disc: 」+ 异常对象 vtable+8 文案 → 返成功旗。同域已收: 保存引擎 sub_142232D10 (本节 T7) / continue_game.json 装载 sub_142232A90 (§4.35.15)。
+sub_142231800: a1+129 = 操作成功旗 (前置清 0, 成功置 1); 存在门 sub_1424DC920 = PHYSFS_exists 包装 (`a1 && *a1 && PHYSFS_exists(a1)`); 删除 sub_1424DBFB0 = PHYSFS_delete 包装 (失败 → CLog 0x2000 virtualfilesystem_physfs.cpp:793「Failed to delete file '%s': %s」+ PHYSFS 错误码链); 删除或存在检查抛异常 → CLog 4096 :576「failed to write to disc: 」+ 异常对象 vtable+8 文案 → 返成功旗。同域已收: 保存引擎 sub_142232D10 (本节 T7) / continue_game.json 装载 sub_142232A90 (§4.35.15); 本件与写出器 sub_1422330F0 / 装载器三件套共用 130B CContinueGameData (§4.28.35)。
 
 簇清册 (体内 cpp 锚 3/3; Load/ExecuteHistory 两函 §4.28.18/19 已收互证, 本批细化):
 
@@ -1860,3 +1876,863 @@ sub_142231800: a1+129 = 操作成功旗 (前置清 0, 成功置 1); 存在门 su
 #### 4.28.34 CHistoryDatabase::Load 三段细化 (1 函 = 0x140A3D640, 定案)
 
 0x140A3D640 (histdb, a2, a3) (上表 :279 日志行互证): **装载闩 = byte_143339CC8 (单例+8)**。库布局 = 双向量头 {+0/+24 data, 计数@+12/+36, 分配器@+16/+40}; 条目 0x48B (1163B), ctor = sub_14153FB90。**缺文件检查上界 = min(库+12, 国家库 qword_143330D98+136)** (静态国数上界互证, §4.26 动态国阈值行同源)。门分派: a2 门 = **sub_140538B50 共享后处理** (checksum 尾链同件); a3 门 = 路径前缀 **history/general** vs history/countries 分流。
+
+#### 4.28.35 savegamehelper.cpp 存档辅助层 (6 函族 + 头尾格式定案)
+
+族 = 语料引用 `clausewitzlib/savegamehelper.cpp` 的 11 个 0x142 段函数中 6 个业务函数; 另 5 个 = EH catch funclet, 与父函数内联 catch 体逐行同形 (行号 348/363/386/521/576 + 闩 byte_1434524F0/F1/F2 对应), 负定案勿入书。TU 内另 5 个同源相邻函数 (0x142231A50 头开启器 / 0x142231A10 校验和薄包装 / 0x142231720 读侧比对 / 0x142231AF0 MD5 计算器 / 0x1422325A0 魔法读取器) 一并核对。
+
+| VA | 功能身份 | 签名真形 | 返回值语义 |
+|---|---|---|---|
+| 0x142232D10 | 存档写出引擎 (= §4.28.20 T7) | char (CFileStream* stream, CGameState* gs, void const* salt, u64 saltLen) | 1 = 完整落盘并 flush; 0 = CFileException 或位置/模式失败 |
+| 0x142231FD0 | 存档 lexer 工厂 (text/bin codec + 魔法判定) | CLexer* (CFileStream* stream, u32 magic) | 新建 lexer (malloc 104B + ctor); 0 = 魔法无效且无 BOM |
+| 0x142231D70 | 尾部 checksum 读取器 | std::string* (std::string* out, CFileStream* stream, u32 magic) | 返 out; 空串 = 校验和 token 未注册 / 无 trailer / 读取失败 |
+| 0x142232730 | checksum 感知块读取器 (带进度回调, 跳 checksum 键) | char (CReader* reader, CBlockConsumer* consumer, void (*progress)(CReader*)) | 1 = 根块闭合; 0 = 解析错误 (:307 日志) |
+| 0x1422330F0 | continue_game.json 写出器 (temp + 原子换名) | void (CContinueGameData* data) | 无; 成功旗 data+129 |
+| 0x142231800 | continue_game.json 删除器 (= §4.28.31) | void (CContinueGameData* data) | 无; 成功旗 data+129 |
+
+lexer 工厂魔法表 (magic = 文件头三字节小端 u32, 由 0x1422325A0 读出):
+
+| 魔法 | 语义 | 选 lexer | 冲突告警 |
+|---|---|---|---|
+| 7235938 ("bin") | 二进制 | CBinLexer (ctor 0x1424BB040) | — |
+| 7633012 ("txt") | 文本 | CTextLexer (ctor 0x1424BB330) | — |
+| 33 | "bin" + UTF8 BOM | CBinLexer | :184 has UTF8 bom and BINARY magix |
+| 49 | "txt" + UTF8 BOM | CTextLexer | — |
+| 17 | 有 BOM 但 "HOI4" 头不匹配 | CTextLexer | :140 defaulting to TEXT |
+| −1 | 无有效魔法 | 按流模式 (stream+16) | :153 / :159 (两文案与各自 ctor 交叉错配, 待裁) |
+
+codec 与流模式交叉冲突另有两条告警: 文本臂遇二进制流 → :174 magix says TEXT but file says BINARY; 二进制臂遇文本流 → :196 magix says BINARY but file says TEXT; 两路均按魔法走并先调 vt+24 改流模式。
+
+存档文件格式 (本族定案):
+
+| 位置 | 文本 | 二进制 |
+|---|---|---|
+| 头 +0 | "HOI4" (长度取全局串 size, 缺省不写) | 同左 |
+| 头 +4 | "txt" + token 16 (= "\r\n") | "bin" (token 16/17/18 在 sub_1424BFBB0 早退不写) |
+| 头跳过量 | 7 (len "HOI4" + 3); 33/49 形态 = 10 (含 3B BOM); 17 形态 = 3 (仅 BOM) | 7 |
+| 尾部键 | end−43: `checksum=` (token 377 名 + token 1 名, 9B) | end−40: token 377 + token 1 (各 2B, 4B) |
+| 尾部值 | end−34: `"` + 32 hex 小写 + `"` (34B) | end−36: token 15 开引号 + 长度域 + 32 hex (36B) |
+
+尾部偏移交叉验证: 读取器 (end−43 / end−40) 与 MD5 计算器 (skip 34 / 36) 两处独立推出同一划分。尾部校验和读取流程: 校验和 token 未注册 (dword_1430BDE50 == −1) → 空串直返; 建 lexer → 定位尾部 → CReader (336B, ctor 0x1424BED40) 循环 GetKeyEqualsValue (0x1424C1540) 取 token 377 的值; 值长度 0 → :270 「Savegame is truncated, the game will likely crash!」(通道 4096)。
+
+CContinueGameData (130B; 写出器 / 删除器 / 装载器 sub_142232A90 (§4.35.15) 三件套共用, 装载侧按键名逐字段回填同偏移):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | std::string (32B) | title = 国家显示名 + 游戏日期 (实测 "德意志国 1936.7.1.3") |
+| +32 | std::string (32B) | desc (实测恒空) |
+| +64 | std::string (32B) | date = ctime() 墙钟串 (含尾换行) |
+| +96 | std::string (32B) | filename = 存档文件名 |
+| +128 | uint8 | is_remote 云端档旗 |
+| +129 | uint8 | 操作成功旗 (前置清 0, 成功置 1) |
+
+写出链 (0x1422330F0): 建 JSON 文档 (0x1424C5F10) → 写 title/desc/date/filename 四串键 + is_remote 布尔键 → 序列化 (0x1424C5F80) → 开 "continue_game.temp" 流 (0x1424DF2C0, 1MB 缓冲, 失败抛 CFileException virtualfilesystem.cpp:510) → 写入 (0x1424E17E0, 不完整抛 :665) → 关流 → 旧 json 存在则删 → 原子换名 0x1424DDFC0 (PHYSFS_getRealDir 取实路径 → 逐分量拼目标 → rename(); 失败日志 virtualfilesystem_physfs.cpp:778; 0x1424E14B0 = 其 SSO 双解引用包装) → data+129 置 1; CException → :521 「failed to write to disc: 」+ 异常文案 (通道 4096)。
+
+CFileStream vtable 增补 (本族读出; vt+80 已载「复位 = Seek」):
+
+| 槽 | 类型 | 语义 |
+|---|---|---|
+| vt+8 | int64 () | 取当前 token id (0 → 读者侧置 19 EOF 哨兵) |
+| vt+24 | void (u32, u32) | 位置/模式设置 (codec 切换与 checksum 定位前; (0,0)/(1,0)/(mode,2) 三型, 语义未决) |
+| vt+32 | void (void*, u64) | 读字节流 (魔法 3B / 全文读取) |
+| vt+48 | void (char const*) | 写文本串 (文本路径) |
+| vt+64 | void (void*, u64) | 写字节流 (二进制路径) |
+| vt+72 | char () | flush/关闭, 返成功旗 |
+| vt+112 | uint64 () | 取文件大小 (非当前位置) |
+| vt+136 | void (u32) | MD5 计算前定位 (checksum 窗口设置) |
+
+CReader 增补 (336B): +24 = 错误旗 (== 0 成功, :307 日志门) / +40 = CLexer* (块读取循环的 token 源) / +304 = '@' 引用别名表基 (条目 112B, 键 = 名 FNV-1a @+32, 推定) / +316 = 别名表条目数 (<= 0 跳过查表)。CWriter (ctor 0x1424BEE00, 26B): +8 根保存时由 0x1424C4880 置 −1 (块深度哨兵) / +16 宿主流 / +24 二进制旗 = (stream+16 == 0)。CLexer (104B): +16 当前 token id / +24 token 第二槽 (id==0 时置 19) / +100 已缓存旗 (§4.00)。
+
+存档头 token boot 注册块 (基 0x1430BDE30; 注册点 = InitMap 尾, §4.28.21a):
+
+| 偏移 | 类型 | 语义 |
+|---|---|---|
+| +0 | std::string (32B) | "HOI4" 文件头串 (PE 文件值 = 空 SSO, boot 写入) |
+| +32 | uint32 (0x1430BDE50) | 校验和键 token id (PE 文件值 = 0xFFFFFFFF; boot 由 0x142233080 置 377) |
+| +40 | std::string (32B) (0x1430BDE58) | 校验和键名 "checksum" (同注册点写入) |
+
+> 未决: CFileStream vt+24 是 Seek 还是 SetMode (vt+80 已定 Seek); 二进制尾部值内层切分 (来自一段恒不可达的折叠代码, 推定); CReader+304 '@' 别名表无第二消费点互证 (推定); 0x142231FD0 的 −1 分支两日志文案与各自 ctor 交叉错配 (IDA 同形块错配还是源码笔误, 待裁); title 组成链中段是否含本地化国名转换 (实测为国名+日期, 高置信)。
+
+#### 4.28.36 会话与身份注册块函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142297630 | 粒子子系统统计转储 粒子子系统统计转储；串 "Total active particles:"/"Total active subsystems:"/"Active instances:"/"Deactivated instances:"；邻域 CPdxParticleType::[9]/::Reader |
+| 0x1411A6360 | CPoliticalParty 方法 `CPoliticalParty::Reader`/`CPoliticalParty::Writer`/political_party.cpp:287 邻接，6 参+多助手调用 |
+| 0x141375F20 | 后勤状态序列化容器（"!full()" 扩容断言） 后勤状态序列化容器（"!full()" 扩容断言）；邻域 CLogisticsStatus::Reader/Writer |
+| 0x141187370 | "Desire" 调试转储（27 次字符串拼装 + ":::::: "/" Desire: "） "Desire" 调试转储（27 次字符串拼装 + ":::::: "/" Desire: "）；邻域 CDelayedEvent::Writer/SPersist::Write（序列化区） |
+| 0x1411A3ED0 | 政党描述生成 政党描述生成；串 "_desc"/"_party"；邻域 CPoliticalParty::[0]/[8]/Reader、CCountryOperationManager::Writer |
+| 0x14139EB20 | CCharacterPortraits::Reader（func_names 名） func_names 名 + 断言 character_portraits.cpp:76 + 串 "The list of token does not match the ones accepted by TokenToPort… |
+| 0x1410ED980 | CCountryCharacters::Reader（func_names 名） func_names 名 + gamestate.h:1116 门控 + 调通用 Reader：国家角色表 Reader |
+
+#### 4.28.37 会话与身份注册块函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141182400 | （未具名） FACTION_THEATER_TOOLTIP_REGION / FACTION_THEATER_TOOLTIP_NO_REGIONS loc 键；邻域 CDelayedEvent::Writer |
+| 0x140EB3380 | CStrategicOperativeManager::Reader "Expected block" + "Invalid country index, strategic operative for that country will be lost" |
+| 0x140AB0170 | CScriptedMapModeLayer::Reader "invalid type"/"specify type first" + CPersistentScriptTargets/CScriptTargets（地图模式层反序列化） |
+
+#### 4.28.38 会话与身份注册块函数补遗（299 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E4ADA0 | CPeaceConference::Reader func_names 名 CPeaceConference::Reader |
+| 0x14159ECB0 | CScriptedWindowTemplate::Reader func_names 名 CScriptedWindowTemplate::Reader |
+| 0x1411A19A0 | CCountryFinishedOperations::Writer func_names 名 CCountryFinishedOperations::Writer |
+| 0x140CB82A0 | CResourceDeliveryRoute::Reader func_names 名 CResourceDeliveryRoute::Reader |
+| 0x14104B570 | COrderInstance::Writer func_names 名 COrderInstance::Writer |
+| 0x140D75470 | CTaskForce::Reader func_names 名 CTaskForce::Reader |
+| 0x140A06210 | CEquipmentGraphicPool::Reader func_names 名 CEquipmentGraphicPool::Reader |
+| 0x14122D890 | CCountrySupplySystem::Reader func_names 名 CCountrySupplySystem::Reader |
+| 0x141458A80 | CConferenceWinnerParticipant::Reader func_names 名 CConferenceWinnerParticipant::Reader |
+| 0x140A06CF0 | CEquipmentGraphicPoolTypeMap::Reader func_names 名 CEquipmentGraphicPoolTypeMap::Reader |
+| 0x140E527D0 | CPeaceConference::Writer func_names 名 CPeaceConference::Writer |
+| 0x14235DEE0 | SGfxShaderFileReader::Reader func_names 名 SGfxShaderFileReader::Reader |
+| 0x140D2BAD0 | CWarRelation::Reader func_names 名 CWarRelation::Reader |
+| 0x1413EF3C0 | CLandBorderWarCombatant::Reader func_names 名 CLandBorderWarCombatant::Reader |
+| 0x1414FAF60 | CCountryReportsManager::Reader func_names 名 CCountryReportsManager::Reader |
+| 0x141208490 | CSubIntelNetwork::Writer func_names 名 CSubIntelNetwork::Writer |
+| 0x140627840 | CAIArea::Reader func_names 名 CAIArea::Reader |
+| 0x142332EB0 | SParticleSystemReader::Reader func_names 名 SParticleSystemReader::Reader |
+| 0x140F01FD0 | CFrontSection::Writer func_names 名 CFrontSection::Writer |
+| 0x140CBE8D0 | CResourceDeliveryRoute::Writer func_names 名 CResourceDeliveryRoute::Writer |
+| 0x140A63300 | CMap::Reader func_names 名 CMap::Reader |
+| 0x140BF7630 | COrdersGroup::Writer func_names 名 COrdersGroup::Writer |
+| 0x140FBEA80 | CNavalMission::Writer func_names 名 CNavalMission::Writer |
+| 0x141000120 | CCountryOccupationStatus::Writer func_names 名 CCountryOccupationStatus::Writer |
+| 0x1419748F0 | CFEXMember::Reader func_names 名 + VT CFEXMember::CLastTargetInfo |
+| 0x140C2E300 | CSunkShipInfo::Reader func_names 名 CSunkShipInfo::Reader |
+| 0x140C06540 | CUnit::Writer func_names 名 CUnit::Writer |
+| 0x14113EC90 | CJoinAllyAction::Reader func_names 名 CJoinAllyAction::Reader |
+| 0x140D7AFA0 | CTaskForce::Writer func_names 名 CTaskForce::Writer |
+| 0x140CE5790 | CNavalCombatResultSide::Reader func_names 名 CNavalCombatResultSide::Reader |
+| 0x140E954B0 | CRailwayManager::Reader func_names 名 CRailwayManager::Reader |
+| 0x1406100E0 | CDynamicModifier::Reader func_names 名 CDynamicModifier::Reader |
+| 0x140F20330 | SWeatherPerProvince::Reader func_names 名 SWeatherPerProvince::Reader |
+| 0x140A6CF10 | CFocusInlayWindowInstance::Reader func_names 名 CFocusInlayWindowInstance::Reader |
+| 0x14152FD50 | CMissionStatsReadHelper::Reader func_names 名 CMissionStatsReadHelper::Reader |
+| 0x1413F53C0 | CCountryCollaborationStatus::Reader func_names 名 CCountryCollaborationStatus::Reader |
+| 0x14197F080 | CStaticIntelSourceReference::Reader func_names 名 CStaticIntelSourceReference::Reader |
+| 0x1416532D0 | CCitySettings::Reader func_names 名 CCitySettings::Reader |
+| 0x141B1EF70 | CTaskForceIdentity::Reader func_names 名 CTaskForceIdentity::Reader |
+| 0x14063BC30 | CRuleOverrides::Reader func_names 名 CRuleOverrides::Reader |
+| 0x14150ECD0 | CArmyUpgradesRequests::Reader func_names 名 CArmyUpgradesRequests::Reader |
+| 0x1411A0EA0 | CCountryFinishedOperations::Reader func_names 名 CCountryFinishedOperations::Reader |
+| 0x140C61360 | CCountryAirContainer::Reader func_names 名 CCountryAirContainer::Reader |
+| 0x1402D8760 | CNationalFocusPosition::Reader func_names 名 CNationalFocusPosition::Reader |
+| 0x1413D2240 | CTechnologySharingGroupTemplate::Reader func_names 名 CTechnologySharingGroupTemplate::Reader |
+| 0x141C6C970 | CFEXGroup::Reader func_names 名 CFEXGroup::Reader |
+| 0x1409C8330 | CNameGroupTracker::Reader func_names 名 CNameGroupTracker::Reader |
+| 0x1401F2BE0 | CSelectionGroupWriter::Writer func_names 名 CSelectionGroupWriter::Writer |
+| 0x1419F51E0 | CPeaceBiddingTurn::Writer func_names 名 CPeaceBiddingTurn::Writer |
+| 0x141548F60 | CAdjacencyRule::Reader func_names 名 CAdjacencyRule::Reader |
+| 0x141289590 | SPostEffectValuesReader::Reader func_names 名 SPostEffectValuesReader::Reader |
+| 0x140A6B500 | CCountryNames::Reader func_names 名 CCountryNames::Reader |
+| 0x140F22D40 | SWeatherPerProvince::Writer func_names 名 SWeatherPerProvince::Writer |
+| 0x1423333D0 | SParticleTextureReader::Reader func_names 名 SParticleTextureReader::Reader |
+| 0x142350A90 | SEntityEventReader::Reader func_names 名 SEntityEventReader::Reader |
+| 0x14234B1F0 | SSoundReader::Reader func_names 名 SSoundReader::Reader |
+| 0x140FDF3A0 | CIntelligenceAgency::Writer func_names 名 CIntelligenceAgency::Writer |
+| 0x1422E6F00 | CCountryChatMessage::Reader func_names 名 CCountryChatMessage::Reader |
+| 0x140F8F410 | CEquipmentUpgradesInstance::Reader func_names 名 CEquipmentUpgradesInstance::Reader |
+| 0x1409C80E0 | CNameGroupMember::Reader func_names 名 CNameGroupMember::Reader |
+| 0x141178AB0 | CBuildingStatus::Reader func_names 名 CBuildingStatus::Reader |
+| 0x1423508C0 | SEntityAttachmentReader::Reader func_names 名 SEntityAttachmentReader::Reader |
+| 0x141463770 | CCreateEquipmentVariantSpec::Reader func_names 名 CCreateEquipmentVariantSpec::Reader |
+| 0x140A75610 | COccupationLaw::Reader func_names 名 COccupationLaw::Reader |
+| 0x140C20960 | CNavyLeader::Reader func_names 名 CNavyLeader::Reader |
+| 0x14234B380 | SSoundsReader::Reader func_names 名 SSoundsReader::Reader |
+| 0x140C2E7D0 | CSunkShipInfo::Writer func_names 名 CSunkShipInfo::Writer |
+| 0x1401FC070 | SCVAASettings::Reader func_names 名 SCVAASettings::Reader |
+| 0x1415B9B20 | CNavyTheaterGroup::Writer func_names 名 CNavyTheaterGroup::Writer |
+| 0x1415189D0 | CNavyTheater::Reader func_names 名 CNavyTheater::Reader |
+| 0x140C283F0 | CNavyLeader::Writer func_names 名 CNavyLeader::Writer |
+| 0x140F87820 | CAirMission::Writer func_names 名 CAirMission::Writer |
+| 0x141923E70 | SPotentialDesign::Writer func_names 名 SPotentialDesign::Writer |
+| 0x140E8DE80 | CRailwayGun::Writer func_names 名 CRailwayGun::Writer |
+| 0x141375A30 | CLogisticsStatus::Writer func_names 名 CLogisticsStatus::Writer |
+| 0x1410F8710 | CCountryFuelStatus::Writer func_names 名 CCountryFuelStatus::Writer |
+| 0x141510430 | CArmyUpgradesRequests::Writer func_names 名 CArmyUpgradesRequests::Writer |
+| 0x1410DBF60 | CBuilding::Reader func_names 名 CBuilding::Reader |
+| 0x1413CFB70 | CLimitedUseTechBonus::Writer func_names 名 CLimitedUseTechBonus::Writer |
+| 0x140A6EAD0 | CAiFleetTemplate::Reader func_names 名 CAiFleetTemplate::Reader |
+| 0x140ADC6D0 | CTimedWargoalActivity::Reader func_names 名 CTimedWargoalActivity::Reader |
+| 0x142350D60 | SEntityLocatorReader::Reader func_names 名 SEntityLocatorReader::Reader |
+| 0x14184FAC0 | CAssignAdmiralToNavyHeadquarter::PayloadReader func_names 名 CAssignAdmiralToNavyHeadquarter::PayloadReader |
+| 0x140CE5AF0 | CNavalCombatResults::Reader func_names 名 CNavalCombatResults::Reader |
+| 0x142344DF0 | SParticleTextureReader::Writer func_names 名 SParticleTextureReader::Writer |
+| 0x14196EB30 | CLendLeaseExchange::Writer func_names 名 CLendLeaseExchange::Writer |
+| 0x14150EB90 | CArmyReinforcementRequests::Reader func_names 名 CArmyReinforcementRequests::Reader |
+| 0x14135D460 | CRestructureShipsToTaskforceCompositions::PayloadWriter func_names 名 CRestructureShipsToTaskforceCompositions::PayloadWriter |
+| 0x14113EBC0 | CGenerateWarGoalAction::Reader func_names 名 CGenerateWarGoalAction::Reader |
+| 0x1407345B0 | CHighlightStates::Reader func_names 名 CHighlightStates::Reader |
+| 0x141961960 | SNavalUnitActivityData::Reader func_names 名 SNavalUnitActivityData::Reader |
+| 0x140F20260 | SWeatherEffectsReader::Reader func_names 名 SWeatherEffectsReader::Reader |
+| 0x140F8F870 | CEquipmentUpgradesInstance::Writer func_names 名 CEquipmentUpgradesInstance::Writer |
+| 0x14136E490 | CEquipmentInFieldLogger::Reader func_names 名 CEquipmentInFieldLogger::Reader |
+| 0x1413D00A0 | CLimitedUseTechCostReduction::Writer func_names 名 CLimitedUseTechCostReduction::Writer |
+| 0x1414284F0 | CEquipmentVariantReference::Reader func_names 名 CEquipmentVariantReference::Reader |
+| 0x14234A870 | SCategoryReader::Reader func_names 名 SCategoryReader::Reader |
+| 0x14197FA10 | CSubunitBonusPersistent::Writer func_names 名 CSubunitBonusPersistent::Writer |
+| 0x1411A6D00 | CPoliticalParty::Writer func_names 名 CPoliticalParty::Writer |
+| 0x141851920 | CRemoveAdmiralFromNavyHeadquarter::PayloadReader func_names 名 CRemoveAdmiralFromNavyHeadquarter::PayloadReader |
+| 0x1413F9060 | CCountryDecryptionState::Writer func_names 名 CCountryDecryptionState::Writer |
+| 0x14234A920 | SCompressorReader::Reader func_names 名 SCompressorReader::Reader |
+| 0x14113F3A0 | CSendVolunteerAction::Reader func_names 名 CSendVolunteerAction::Reader |
+| 0x141518C70 | CNavyTheater::Writer func_names 名 CNavyTheater::Writer |
+| 0x141961BB0 | SNavalUnitActivityData::Writer func_names 名 SNavalUnitActivityData::Writer |
+| 0x140D12530 | CNavalDeploymentTarget::Reader func_names 名 CNavalDeploymentTarget::Reader |
+| 0x140D2B050 | CBoostPartyPopularityRelation::Reader func_names 名 CBoostPartyPopularityRelation::Reader |
+| 0x1401FCED0 | SCVAASettings::Writer func_names 名 SCVAASettings::Writer |
+| 0x141518230 | CLoopHistoryContainerQueue::Writer func_names 名 CLoopHistoryContainerQueue::Writer |
+| 0x1413F9120 | CCryptology::Writer func_names 名 CCryptology::Writer |
+| 0x140CE6B20 | CNavalCombatResults::Writer func_names 名 CNavalCombatResults::Writer |
+| 0x140C668B0 | CCountryAirContainer::Writer func_names 名 CCountryAirContainer::Writer |
+| 0x14163A850 | CTheaterGroup::Reader func_names 名 CTheaterGroup::Reader |
+| 0x14139F170 | CCharacterPortraits::Writer func_names 名 CCharacterPortraits::Writer |
+| 0x140CFE610 | CCountryManpower::Reader func_names 名 CCountryManpower::Reader |
+| 0x14136D030 | CSetArmyToConsolidateForUnit::PayloadReader func_names 名 CSetArmyToConsolidateForUnit::PayloadReader |
+| 0x14113F2F0 | CSendExpeditionaryForceAction::Reader func_names 名 CSendExpeditionaryForceAction::Reader |
+| 0x141922670 | SPotentialDesign::Reader func_names 名 SPotentialDesign::Reader |
+| 0x141359FE0 | CAddToOrRemoveShipFromNavalRepairQueue::PayloadReader func_names 名 CAddToOrRemoveShipFromNavalRepairQueue::PayloadReader |
+| 0x141857660 | COrderReplaceRootCommands::PayloadWriter func_names 名 COrderReplaceRootCommands::PayloadWriter |
+| 0x14150EF40 | CGarrisonReinforcementRequests::Reader func_names 名 CGarrisonReinforcementRequests::Reader |
+| 0x141961890 | SArmyUnitActivityData::Reader func_names 名 SArmyUnitActivityData::Reader |
+| 0x140F04C10 | CThreatSource::Reader func_names 名 CThreatSource::Reader |
+| 0x1413F8CA0 | CCountryDecryptionState::Reader func_names 名 CCountryDecryptionState::Reader |
+| 0x141459A10 | CConferenceLiberatedParticipant::Writer func_names 名 CConferenceLiberatedParticipant::Writer |
+| 0x141850890 | COrderDeleteChildFront::PayloadReader func_names 名 COrderDeleteChildFront::PayloadReader |
+| 0x14184FBE0 | CAssignArmyToArmyGroupFront::PayloadReader func_names 名 CAssignArmyToArmyGroupFront::PayloadReader |
+| 0x1419617E0 | SAirUnitActivityData::Reader func_names 名 SAirUnitActivityData::Reader |
+| 0x1422E15A0 | CSendChunk::PayloadReader func_names 名 CSendChunk::PayloadReader |
+| 0x1412894E0 | SPostEffectHeightVolumeReader::Reader func_names 名 SPostEffectHeightVolumeReader::Reader |
+| 0x140BBF000 | CPeaceConferenceManager::Reader func_names 名 CPeaceConferenceManager::Reader |
+| 0x141377670 | SNationalFocusStyle::Reader func_names 名 SNationalFocusStyle::Reader |
+| 0x140F201E0 | SWeatherEffectListReader::Reader func_names 名 SWeatherEffectListReader::Reader |
+| 0x141011320 | CEquipmentArcheTypePool::Reader func_names 名 CEquipmentArcheTypePool::Reader |
+| 0x142357430 | C2dCircularProgressBarType::Reader func_names 名 C2dCircularProgressBarType::Reader |
+| 0x1414285C0 | CEquipmentVariantReference::Writer func_names 名 CEquipmentVariantReference::Writer |
+| 0x1419DE330 | CDominanceValues::Reader func_names 名 CDominanceValues::Reader |
+| 0x140AACE10 | CScriptableLocalization::Writer func_names 名 CScriptableLocalization::Writer |
+| 0x140AACE70 | STriggerKeyPair::Writer func_names 名 STriggerKeyPair::Writer |
+| 0x1411417D0 | CSendExpeditionaryForceAction::Writer func_names 名 CSendExpeditionaryForceAction::Writer |
+| 0x140CFE9D0 | CCountryManpower::Writer func_names 名 CCountryManpower::Writer |
+| 0x140D2C2A0 | SLendLeaseHistory::Reader func_names 名 SLendLeaseHistory::Reader |
+| 0x1413EF310 | CLandBorderWarCombat::Reader func_names 名 CLandBorderWarCombat::Reader |
+| 0x140A6B6F0 | SAce::Reader func_names 名 SAce::Reader |
+| 0x141852020 | CSetSelectedArmyGroupFallback::PayloadReader func_names 名 CSetSelectedArmyGroupFallback::PayloadReader |
+| 0x14163AA40 | CTheaterGroup::Writer func_names 名 CTheaterGroup::Writer |
+| 0x142350CE0 | SEntityEventSoundReader::Reader func_names 名 SEntityEventSoundReader::Reader |
+| 0x1414E8300 | CPlayerAiPrefs::Reader func_names 名 CPlayerAiPrefs::Reader |
+| 0x140C9D930 | CDuplicateArchetypeDefinition::Writer func_names 名 CDuplicateArchetypeDefinition::Writer |
+| 0x1406A1A70 | SStatsReadingAdapterV2::Reader func_names 名 SStatsReadingAdapterV2::Reader |
+| 0x140610460 | CDynamicModifierContainer::Reader func_names 名 CDynamicModifierContainer::Reader |
+| 0x1411A5700 | CPoliticalParty::Reader func_names 名 CPoliticalParty::Reader |
+| 0x141964630 | CAirRegionCombatData::Writer func_names 名 CAirRegionCombatData::Writer |
+| 0x140A88EE0 | CCountryPortraits::Reader func_names 名 CCountryPortraits::Reader |
+| 0x140BC3450 | SControlGroupData::Writer func_names 名 SControlGroupData::Writer |
+| 0x1414E6B80 | SAdvisorData::Reader func_names 名 SAdvisorData::Reader |
+| 0x140632AB0 | CNamedEquipmentBonus::Reader func_names 名 CNamedEquipmentBonus::Reader |
+| 0x141961AB0 | SAirUnitActivityData::Writer func_names 名 SAirUnitActivityData::Writer |
+| 0x141961B30 | SArmyUnitActivityData::Writer func_names 名 SArmyUnitActivityData::Writer |
+| 0x14197F390 | CStaticIntelSourceReference::Writer func_names 名 CStaticIntelSourceReference::Writer |
+| 0x140A56280 | SInsigniaIconInfo::Reader func_names 名 SInsigniaIconInfo::Reader |
+| 0x141012D40 | CEquipmentArcheTypePool::Writer func_names 名 CEquipmentArcheTypePool::Writer |
+| 0x140E58E30 | CPowerBalanceSystem::Writer func_names 名 CPowerBalanceSystem::Writer |
+| 0x1416235E0 | CNavyLeaderModule::Reader func_names 名 CNavyLeaderModule::Reader |
+| 0x141511720 | CCustomizableBuildingCollection::Writer func_names 名 CCustomizableBuildingCollection::Writer |
+| 0x140BC3200 | SControlGroupData::Reader func_names 名 SControlGroupData::Reader |
+| 0x14226A070 | SInternalData::Reader func_names 名 SInternalData::Reader |
+| 0x14193EED0 | CHqDeploymentDistributable::Writer func_names 名 CHqDeploymentDistributable::Writer |
+| 0x140D12630 | CShipRefitDeployment::Reader func_names 名 CShipRefitDeployment::Reader |
+| 0x1422E1650 | CStartFileTransfer::PayloadReader func_names 名 CStartFileTransfer::PayloadReader |
+| 0x140CE6590 | CNavalAccidentReport::Writer func_names 名 CNavalAccidentReport::Writer |
+| 0x140F055E0 | CThreatSource::Writer func_names 名 CThreatSource::Writer |
+| 0x14135B740 | CSetCarrierDefensiveStance::PayloadReader func_names 名 CSetCarrierDefensiveStance::PayloadReader |
+| 0x140552320 | CAIMTTHChance::Reader func_names 名 CAIMTTHChance::Reader |
+| 0x14142DD90 | CNavyStrengthCache::Writer func_names 名 CNavyStrengthCache::Writer |
+| 0x1419D8ED0 | CConstructionSpeedFactor::Reader func_names 名 CConstructionSpeedFactor::Reader |
+| 0x140AAC760 | CRandomLocListMember::Reader func_names 名 CRandomLocListMember::Reader |
+| 0x1412BD780 | CAirInLandCombat::Writer func_names 名 CAirInLandCombat::Writer |
+| 0x141016B50 | CUnitAdjuster::Writer func_names 名 CUnitAdjuster::Writer |
+| 0x140BF75A0 | CArmyGroup::Writer func_names 名 CArmyGroup::Writer |
+| 0x14163E740 | CSetGameRuleOption::PayloadWriter func_names 名 CSetGameRuleOption::PayloadWriter |
+| 0x1414E83E0 | CPlayerAiPrefs::Writer func_names 名 CPlayerAiPrefs::Writer |
+| 0x1413EAA00 | SUnitOfficerData::Reader func_names 名 SUnitOfficerData::Reader |
+| 0x140CC00C0 | CScriptFlag::Writer func_names 名 CScriptFlag::Writer |
+| 0x1422E1540 | CChunkReceived::PayloadReader func_names 名 CChunkReceived::PayloadReader |
+| 0x1413C0940 | CBuildingReference::Reader func_names 名 CBuildingReference::Reader |
+| 0x141517670 | CLoopHistory::Reader func_names 名 CLoopHistory::Reader |
+| 0x14229F130 | SBitmapFontOverride::Reader func_names 名 SBitmapFontOverride::Reader |
+| 0x141961C70 | SUnitActivityData::Writer func_names 名 SUnitActivityData::Writer |
+| 0x1419CA560 | CHintOpener::Reader func_names 名 CHintOpener::Reader |
+| 0x1409C9B80 | CNameGroupTracker::Writer func_names 名 CNameGroupTracker::Writer |
+| 0x141022160 | CConvoys::Reader func_names 名 CConvoys::Reader |
+| 0x1410169F0 | CUnitAdjuster::Reader func_names 名 CUnitAdjuster::Reader |
+| 0x140D427D0 | SLeadsToWarReader::Reader func_names 名 SLeadsToWarReader::Reader |
+| 0x14135C690 | CAddToOrRemoveShipFromNavalRepairQueue::PayloadWriter func_names 名 CAddToOrRemoveShipFromNavalRepairQueue::PayloadWriter |
+| 0x141459AB0 | CConferenceLoserParticipant::Writer func_names 名 CConferenceLoserParticipant::Writer |
+| 0x141A00EC0 | CProductionResourceCost::Writer func_names 名 CProductionResourceCost::Writer |
+| 0x141179440 | CBuildingStatus::Writer func_names 名 CBuildingStatus::Writer |
+| 0x14226A1B0 | SInternalData::Writer func_names 名 SInternalData::Writer |
+| 0x140F05690 | CWorldThreat::Writer func_names 名 CWorldThreat::Writer |
+| 0x140C6A300 | CArmyManpower::Reader func_names 名 CArmyManpower::Reader |
+| 0x1416237C0 | CNavyLeaderModule::Writer func_names 名 CNavyLeaderModule::Writer |
+| 0x141536390 | CEquipmentFilter::Reader func_names 名 CEquipmentFilter::Reader |
+| 0x14163E4C0 | CSetDifficulty::PayloadReader func_names 名 CSetDifficulty::PayloadReader |
+| 0x140CBFE10 | CScriptFlag::Reader func_names 名 CScriptFlag::Reader |
+| 0x14150EC80 | CArmyRequests::Reader func_names 名 CArmyRequests::Reader |
+| 0x140633010 | CNamedEquipmentBonus::Writer func_names 名 CNamedEquipmentBonus::Writer |
+| 0x140ECA2E0 | CSupplyConsumer::Reader func_names 名 CSupplyConsumer::Reader |
+| 0x1413EB480 | CStateManpower::Reader func_names 名 CStateManpower::Reader |
+| 0x1406125E0 | CDynamicModifierContainer::Writer func_names 名 CDynamicModifierContainer::Writer |
+| 0x140BBF150 | CPeaceConferenceManager::Writer func_names 名 CPeaceConferenceManager::Writer |
+| 0x140DE9F70 | CPauseGame::PayloadReader func_names 名 CPauseGame::PayloadReader |
+| 0x1413EADA0 | SUnitOfficerData::Writer func_names 名 SUnitOfficerData::Writer |
+| 0x140CDECC0 | SCombatDataPersistence::Reader func_names 名 SCombatDataPersistence::Reader |
+| 0x1422E2420 | CChunkReceived::PayloadWriter func_names 名 CChunkReceived::PayloadWriter |
+| 0x1419DE3F0 | CDominanceValues::Writer func_names 名 CDominanceValues::Writer |
+| 0x1422E24E0 | CStartFileTransfer::PayloadWriter func_names 名 CStartFileTransfer::PayloadWriter |
+| 0x140D47DC0 | SLeadsToWarReader::Writer func_names 名 SLeadsToWarReader::Writer |
+| 0x141463980 | SOptionalEquipmentAssets::Reader func_names 名 SOptionalEquipmentAssets::Reader |
+| 0x140E57A50 | CPowerBalanceSideInfo::Reader func_names 名 CPowerBalanceSideInfo::Reader |
+| 0x140DF9AA0 | CTreeSeasonType::Reader func_names 名 CTreeSeasonType::Reader |
+| 0x141459B10 | CConferenceSubjectParticipant::Writer func_names 名 CConferenceSubjectParticipant::Writer |
+| 0x140ED0400 | CSupplyConsumer::Writer func_names 名 CSupplyConsumer::Writer |
+| 0x1422E7240 | CStandardChatMessage::Reader func_names 名 CStandardChatMessage::Reader |
+| 0x141169880 | CAddProductionLineName::PayloadReader func_names 名 CAddProductionLineName::PayloadReader |
+| 0x1413F8D40 | CCryptology::Reader func_names 名 CCryptology::Reader |
+| 0x14163E440 | CSetCoopHotJoinOptions::PayloadReader func_names 名 CSetCoopHotJoinOptions::PayloadReader |
+| 0x14163E480 | CSetCustomDifficultyMultiplier::PayloadReader func_names 名 CSetCustomDifficultyMultiplier::PayloadReader |
+| 0x140620A20 | SRibbonForAchievement::Reader func_names 名 SRibbonForAchievement::Reader |
+| 0x141856F20 | COrderDeleteChildFront::PayloadWriter func_names 名 COrderDeleteChildFront::PayloadWriter |
+| 0x141517940 | CLoopHistoryContainerQueue::Reader func_names 名 CLoopHistoryContainerQueue::Reader |
+| 0x14235EC80 | SGfxShaderStageReader::Reader func_names 名 SGfxShaderStageReader::Reader |
+| 0x1414E6C80 | SAdvisorData::Writer func_names 名 SAdvisorData::Writer |
+| 0x14135B550 | CRestructureShipsToTaskforceCompositions::PayloadReader func_names 名 CRestructureShipsToTaskforceCompositions::PayloadReader |
+| 0x14230DC80 | SMeshVariant::Reader func_names 名 SMeshVariant::Reader |
+| 0x1415103C0 | CArmyRequests::Writer func_names 名 CArmyRequests::Writer |
+| 0x1406AF550 | SProfileMeta::Reader func_names 名 SProfileMeta::Reader |
+| 0x140DEA290 | CPauseGame::PayloadWriter func_names 名 CPauseGame::PayloadWriter |
+| 0x14113E2A0 | CAddWarGoalAction::Reader func_names 名 CAddWarGoalAction::Reader |
+| 0x14234B1B0 | SSoundInstanceReader::Reader func_names 名 SSoundInstanceReader::Reader |
+| 0x140CDEC90 | SCombatDataIndexPersistence::Reader func_names 名 SCombatDataIndexPersistence::Reader |
+| 0x1414599B0 | CConferenceForceGovernmentParticipant::Writer func_names 名 CConferenceForceGovernmentParticipant::Writer |
+| 0x141022120 | CConvoySubscriber::Reader func_names 名 CConvoySubscriber::Reader |
+| 0x1414589F0 | CConferenceLiberatedParticipant::Reader func_names 名 CConferenceLiberatedParticipant::Reader |
+| 0x14163E610 | CSetReadyStatus::PayloadReader func_names 名 CSetReadyStatus::PayloadReader |
+| 0x141961A70 | SUnitActivityData::Reader func_names 名 SUnitActivityData::Reader |
+| 0x140A7AFF0 | COperationResourcesEntryCivilian::Reader func_names 名 COperationResourcesEntryCivilian::Reader |
+| 0x140CDEB80 | LeaderHoursPersistence::Reader func_names 名 LeaderHoursPersistence::Reader |
+| 0x140CE0CD0 | SCombatDataPersistence::Writer func_names 名 SCombatDataPersistence::Writer |
+| 0x140BA3D80 | CReferencedDivisionTemplate::Reader func_names 名 CReferencedDivisionTemplate::Reader |
+| 0x140D2E170 | SLendLeaseHistory::Writer func_names 名 SLendLeaseHistory::Writer |
+| 0x141856560 | CAssignArmyToArmyGroupFront::PayloadWriter func_names 名 CAssignArmyToArmyGroupFront::PayloadWriter |
+| 0x140E58DE0 | CPowerBalanceSideInfo::Writer func_names 名 CPowerBalanceSideInfo::Writer |
+| 0x140734650 | CPersistentScriptTargets::Reader func_names 名 CPersistentScriptTargets::Reader |
+| 0x14142CA50 | SSubUnitStats::Reader func_names 名 SSubUnitStats::Reader |
+| 0x140BB9E50 | CCombatHistory::Reader func_names 名 CCombatHistory::Reader |
+| 0x14136E560 | CManpowerLogger::Reader func_names 名 CManpowerLogger::Reader |
+| 0x14163E5F0 | CSetMPDebugSettings::PayloadReader func_names 名 CSetMPDebugSettings::PayloadReader |
+| 0x14136DE50 | CSetArmyToConsolidateForUnit::PayloadWriter func_names 名 CSetArmyToConsolidateForUnit::PayloadWriter |
+| 0x141856510 | CAssignAdmiralToNavyHeadquarter::PayloadWriter func_names 名 CAssignAdmiralToNavyHeadquarter::PayloadWriter |
+| 0x14135D680 | CSetCarrierDefensiveStance::PayloadWriter func_names 名 CSetCarrierDefensiveStance::PayloadWriter |
+| 0x14163E680 | CSetCoopHotJoinOptions::PayloadWriter func_names 名 CSetCoopHotJoinOptions::PayloadWriter |
+| 0x140BA6EC0 | CReferencedDivisionTemplate::Writer func_names 名 CReferencedDivisionTemplate::Writer |
+| 0x140CE0C90 | SCombatDataIndexPersistence::Writer func_names 名 SCombatDataIndexPersistence::Writer |
+| 0x1413EB7B0 | CStateManpower::Writer func_names 名 CStateManpower::Writer |
+| 0x14157BE20 | COperativeRecruitment::Writer func_names 名 COperativeRecruitment::Writer |
+| 0x141857EE0 | CSetSelectedArmyGroupFallback::PayloadWriter func_names 名 CSetSelectedArmyGroupFallback::PayloadWriter |
+| 0x140A7B130 | COperationResourcesEntryCivilian::Writer func_names 名 COperationResourcesEntryCivilian::Writer |
+| 0x14151FFD0 | CLiberateCountryAction::Writer func_names 名 CLiberateCountryAction::Writer |
+| 0x141022CB0 | CConvoySubscriber::Writer func_names 名 CConvoySubscriber::Writer |
+| 0x14163E790 | CSetMPDebugSettings::PayloadWriter func_names 名 CSetMPDebugSettings::PayloadWriter |
+| 0x1410A8FD0 | CRadarsPool::Reader func_names 名 CRadarsPool::Reader |
+| 0x14163E500 | CSetGamePlayOptions::PayloadReader func_names 名 CSetGamePlayOptions::PayloadReader |
+| 0x140DEA0C0 | CSetGameUniqueId::PayloadReader func_names 名 CSetGameUniqueId::PayloadReader |
+| 0x141511280 | CCustomizableBuildingCollection::Reader func_names 名 CCustomizableBuildingCollection::Reader |
+| 0x1422E6EE0 | CChatMessage::Reader func_names 名 CChatMessage::Reader |
+| 0x140E57AA0 | CPowerBalanceSystem::Reader func_names 名 CPowerBalanceSystem::Reader |
+| 0x140EE5E40 | CTechnologySharingGroup::Writer func_names 名 CTechnologySharingGroup::Writer |
+| 0x140CE5D30 | CNavalMineReport::Reader func_names 名 CNavalMineReport::Reader |
+| 0x140DE9E90 | CAutosave::PayloadReader func_names 名 CAutosave::PayloadReader |
+| 0x14163E420 | CSetAchievementsOK::PayloadReader func_names 名 CSetAchievementsOK::PayloadReader |
+| 0x140CE0B80 | LeaderHoursPersistence::Writer func_names 名 LeaderHoursPersistence::Writer |
+| 0x14142D5D0 | CNavyStrengthCache::Reader func_names 名 CNavyStrengthCache::Reader |
+| 0x14163E6C0 | CSetCustomDifficultyMultiplier::PayloadWriter func_names 名 CSetCustomDifficultyMultiplier::PayloadWriter |
+| 0x1414DF6B0 | SBookmarkPlaythroughData::Reader func_names 名 SBookmarkPlaythroughData::Reader |
+| 0x14163E7D0 | CSetReadyStatus::PayloadWriter func_names 名 CSetReadyStatus::PayloadWriter |
+| 0x14116F0F0 | CAddProductionLineName::PayloadWriter func_names 名 CAddProductionLineName::PayloadWriter |
+| 0x140C6AD10 | CArmyManpower::Writer func_names 名 CArmyManpower::Writer |
+| 0x141857B00 | CRemoveAdmiralFromNavyHeadquarter::PayloadWriter func_names 名 CRemoveAdmiralFromNavyHeadquarter::PayloadWriter |
+| 0x14163E700 | CSetDifficulty::PayloadWriter func_names 名 CSetDifficulty::PayloadWriter |
+| 0x1414DF8B0 | SBookmarkPlaythroughData::Writer func_names 名 SBookmarkPlaythroughData::Writer |
+| 0x1410AABC0 | CRadarsPool::Writer func_names 名 CRadarsPool::Writer |
+| 0x140DEA410 | CSetGameUniqueId::PayloadWriter func_names 名 CSetGameUniqueId::PayloadWriter |
+| 0x14163E720 | CSetGamePlayOptions::PayloadWriter func_names 名 CSetGamePlayOptions::PayloadWriter |
+| 0x141022CF0 | CConvoys::Writer func_names 名 CConvoys::Writer |
+| 0x141517EA0 | CLoopHistory::Writer func_names 名 CLoopHistory::Writer |
+| 0x140DEA120 | CAutosave::PayloadWriter func_names 名 CAutosave::PayloadWriter |
+| 0x14163E660 | CSetAchievementsOK::PayloadWriter func_names 名 CSetAchievementsOK::PayloadWriter |
+| 0x1406104E0 | CModifier::Reader func_names 名 CModifier::Reader |
+
+#### 4.28.39 会话与身份注册块函数补遗（299 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.28.40 会话与身份注册块函数补遗（54 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406A53A0 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x140217A00 | （无名） 调用图传播: 14 锚点投 §4.28（64%） |
+| 0x140D954C0 | （无名） 调用图传播: 3 锚点投 §4.28（100%） |
+| 0x14015B5B0 | （无名） 调用图传播: 9 锚点投 §4.28（56%） |
+| 0x1420AF480 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x142257080 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x140D959F0 | （无名） 调用图传播: 7 锚点投 §4.28（100%） |
+| 0x140D9ADA0 | （无名） 调用图传播: 7 锚点投 §4.28（57%） |
+| 0x1409BF1D0 | （无名） 调用图传播: 6 锚点投 §4.28（50%） |
+| 0x142255CF0 | （无名） 调用图传播: 6 锚点投 §4.28（50%） |
+| 0x140EA1FB0 | （无名） 调用图传播: 3 锚点投 §4.28（67%） |
+| 0x140DA3780 | （无名） 调用图传播: 4 锚点投 §4.28（100%） |
+| 0x142275890 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x14024A990 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x1406120B0 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x140268390 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x1424BBE10 | （无名） 调用图传播: 3 锚点投 §4.28（67%） |
+| 0x140268750 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x14060CAB0 | （无名） 调用图传播: 3 锚点投 §4.28（67%） |
+| 0x1416FAAF0 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1416FA7C0 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x142079D50 | （无名） 调用图传播: 4 锚点投 §4.28（100%） |
+| 0x1406206D0 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x140A35330 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x1416FB040 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1422CE040 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x1401EF460 | （无名） 调用图传播: 3 锚点投 §4.28（67%） |
+| 0x1401E1490 | （无名） 调用图传播: 5 锚点投 §4.28（60%） |
+| 0x1420A4450 | （无名） 调用图传播: 3 锚点投 §4.28（67%） |
+| 0x14133C0E0 | （无名） 调用图传播: 3 锚点投 §4.28（67%） |
+| 0x14167DA40 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x140BEF3A0 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x140204570 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x140D97390 | （无名） 调用图传播: 5 锚点投 §4.28（100%） |
+| 0x142275820 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x1413FB400 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1422759E0 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x1413360F0 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1401E0BF0 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x14177FA20 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1424E43A0 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x1424E43F0 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x140200E40 | （无名） 调用图传播: 5 锚点投 §4.28（100%） |
+| 0x142275A40 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x14177F9B0 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1413FA340 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1413FB980 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x142076410 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1401FA6E0 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x141927300 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x141927620 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+| 0x1424E4440 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x140CCB4C0 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x140DA1F90 | （无名） 调用图传播: 2 锚点投 §4.28（100%） |
+
+#### 4.28.41 会话与身份注册块函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401EAF40 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+
+#### 4.28.42 会话与身份注册块函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140200F10 | （无名） 调用图传播: 3 锚点投 §4.28（67%） |
+| 0x140145500 | （无名） 调用图传播: 2 锚点投 §4.28（50%） |
+| 0x140D97410 | （无名） 调用图传播: 3 锚点投 §4.28（67%） |
+| 0x140231DA0 | （无名） 调用图传播: 4 锚点投 §4.28（100%） |
+
+#### 4.28.43 会话与身份注册块函数补遗（369 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140079A10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FC20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E410 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028D00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E2F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002CEB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002D150 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028E20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022C80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FEC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002D0F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400259E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400205E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400271E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002CFD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002D030 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14228FAB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022CE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400299C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14225D540 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028DC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025A40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E3B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E350 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024AE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029900 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400298A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400278A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400201C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027C60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020A60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002C9D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1416FA8D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F8C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024240 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002AE60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002AF80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400249C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002EB30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E1D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14068F6E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022680 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020AC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400212A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020EE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002EA70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025920 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027720 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DB70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F260 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025C20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F920 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14163F200 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020760 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024A80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002C910 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002EAD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028880 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001ECC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025860 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021720 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027540 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400276C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E9B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027360 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022D40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400258C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400274E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022C20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DB10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027CC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DED0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400235E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140015580 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002CBB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002AEC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1424116A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027DE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027A80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027D80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023580 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002A500 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F560 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002EB90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027AE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E170 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400219C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E950 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400264C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400290C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002CC10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001EC60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021960 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029720 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002C790 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400221A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400270C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002AE00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029240 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002EA10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020820 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400225C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DF30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E5F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140015520 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E110 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140612200 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DCF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FAA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400155E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002C7F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400203A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002C730 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002CAF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140015640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DE70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DC90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E0B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DD50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DF90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DFF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400279C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DDB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DC30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B520 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DBD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027D20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002DE10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F020 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F6E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002A5C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002E050 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B460 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022BC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027BA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B3A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026E80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B340 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027960 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028EE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B4C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400216C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026160 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021840 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027A20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B400 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145BE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021FC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025B00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400245A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024D80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002CB50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140079A70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022FE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400261C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023E20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002AF20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022140 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002BB30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x142410AB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002C970 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145DC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145C80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145A00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145820 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1401458C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145D20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1401456E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024420 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400253E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145960 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002A800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B9B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022B60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145AA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140145E60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FBC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024BA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1401455A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B770 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B2E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024DE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B710 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002A140 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x141CD60A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B890 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027EA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140214500 | 无名 sub_（调用图定位） 调用图传播: 9/10 锚点投 §4.28 |
+| 0x14001F0E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B590 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14222E210 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026640 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002BBF0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022620 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F7A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B5F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023820 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002A320 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x141DEBA40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B650 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002BA70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400281A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B6B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024A20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025140 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B950 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025B60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FC80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020340 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023760 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B8F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1419C8CB0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023FA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024540 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020460 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002BAD0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1419C8B10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024060 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B7D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400230A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025080 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027300 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FA40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021AE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002CF70 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024960 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028B80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140D94780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021540 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024C60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025320 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F2C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002BB90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F980 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400272A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020100 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026340 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028940 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025E00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400265E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021A80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021060 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400263A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400200A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027F60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024CC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400226E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026580 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020E80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002BA10 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400231C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020040 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400209A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023340 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400215A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020940 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022800 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002D1B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140D972B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026E20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F4A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400217E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024660 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F380 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024780 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F860 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FE60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020DC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027060 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020160 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029000 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021300 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027660 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F1A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400218A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027F00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F140 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F3E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025020 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028BE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F320 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020A00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B830 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F9E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400262E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001ED20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400241E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026DC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400289A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029C00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002B280 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400236A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028C40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028FA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029BA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F080 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140022500 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029A20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029D80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F740 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026D60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140027480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400257A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021240 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021600 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400248A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140024D20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025BC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028A00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025EC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020B80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400256E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400268E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021900 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400273C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028020 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028260 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140020220 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400275A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400206A0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400207C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140021DE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026A60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026B20 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028080 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001EFC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140028F40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140029B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14002D210 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001F500 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1400210C0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023DC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FB00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FB60 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x14001FFE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023CA0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140025FE0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140023B80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026460 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x140026C40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+| 0x1401498B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |
+
+#### 4.28.44 会话与身份注册块函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142411990 | 无名 sub_（调用图定位） 调用图传播: 2/2 锚点投 §4.28 |
+| 0x142415480 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.28 |

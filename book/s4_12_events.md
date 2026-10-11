@@ -102,7 +102,7 @@ GUI 绑定全表见 §4.33 (id 14345 / 14383 / 14768 / 14769)。
 | 偏移 | 名称/语义 |
 |---|---|
 | +288 | 名 (行名/图标; ignored 集 cc+5360 名键查询 → 状态元 1/2) |
-| +368 | CDecisionCategory* (定案; 类别对象 1016B = 0x3F8: 双 vtable 0x1427eb330/0x1427eb380, ctor 0X140723750, 装载器 sub_140726190 "Duplicate category" 断言, key 派发器 0X1407332B0 全 key 落名 available/allowed/visible/icon/picture/priority/scripted_gui/custom_icon/on_map_area/visibility_type/highlight_states; def ctor 初值 = TNullObject 单例 qword_143330DD8) |
+| +368 | CDecisionCategory* (定案; 类别对象 1016B = 0x3F8: 双 vtable 0x1427eb330/0x1427eb380, ctor 0X140723750, 装载器 sub_140726190 "Duplicate category" 断言, key 派发器 0X1407332B0 = **CPersistent reader 槽 [4]** (主虚表 0x1427eb330; writer 槽 = CFG 空桩 ⇒ 类别 def 不入存档; serfam_1193 直证), 12 key 全部落名 available/allowed/visible/icon/picture/priority/scripted_gui/custom_icon/on_map_area/visible_when_empty/visibility_type/highlight_states; def ctor 初值 = TNullObject 单例 qword_143330DD8) |
 | +376 | **available trigger 体** (存在旗 u32@+396; 求值 sub_1407313C0: bypass byte_14332F632 → 1, 否则类别门 ∧ (!旗 ∥ Eval(体))) |
 | +464 | **allowed trigger 体** (旗@+484; 求值点 = 采纳命令路径 CSelectDecisionCommand, 点击时) |
 | +552 | **visible trigger 体** (旗@+572; 求值 sub_1407367D0→sub_140736830 = 类别 visible ∧ def visible; profiler "should_show") |
@@ -133,7 +133,7 @@ GUI 绑定全表见 §4.33 (id 14345 / 14383 / 14768 / 14769)。
 | +3032 | should_activate trigger 体 (推定: 脚本键 activation ↔ 槽) |
 | +3120 | timeout_effect |
 | +3240 | ai_will_do trigger (+2404 预求值旗; decision.cpp:425 " has a ai_will_do pre-evaluated to zero" 警告) |
-| +3296 | on_map_mode 枚举 (key 15414; 定案): 0=map_only / 1=decision_view_only / 2=map_and_decisions_view (默认 2; Finalize 0X140730250 无目标字段时压 1); 行门 {1,2} = 决议视图可见 (sub_1407313A0 = (v−1)<=1), {0,2} = 地图呈现门 (sub_1407313B0 = (v & 0xFFFFFFFD)==0) |
+| +3296 | on_map_mode 枚举 (key 15414; 定案): 0=map_only / 1=decision_view_only / 2=map_and_decisions_view (默认 2; Finalize 0X140730250 无目标字段时压 1); 行门 {1,2} = 决议视图可见 (sub_1407313A0 = (v−1)<=1), {0,2} = 地图呈现门 (sub_1407313B0 = (v & 0xFFFFFFFD)==0); ⚠ 数值序不同于类别级 visibility_type (类别对象+568, 两表勿混) |
 
 决议求值时机: 引擎侧 decision.hourly (sub_14072FC90, §4.2.6) 每小时入口但核心评估/冷却递减带**日错峰门 sub_140731CF0**: `(gs+1128 − 43800000) % 24 == country_idx % 24` — 即每国每天一次; GUI 侧 = 决议视图列表重建时 (sub_14171D370 五态: taken → 3/4; visible ∧ available → 2−成本判定 sub_140726C20; 否则 0 隐藏)。冷却递减双通道: re_enable (ds+88) 主循环内 `--cd+16 days < 1` swap-remove; remove (ds+112) = sub_140737480 `--cd+16` 到期 → 从 decisions_taken (ds+64) 移除名 + swap-remove。
 
@@ -152,18 +152,29 @@ targeted / timed entry:
 
 | 偏移 | 名称/语义 |
 |---|---|
-| +72 | available trigger (ReadKey sub_1407332B0) |
+| +72 | available trigger (类别 reader 槽 [4] sub_1407332B0 → CAndTrigger vt[5] Parse) |
 | +160 | allowed trigger (旗@+180) |
 | +248 | visible trigger (旗@+268; 消费 sub_140736830 类别 visible 门) |
 | +344 | icon 串 |
-| +376 | picture |
-| +408 | priority |
+| +376 | picture = NScript::SScriptedKey 32B (新类 {vtable@+0, vector@+8}; ctor sub_1402CBC50; reader 经 sub_1424C0AA0 → vtable[3], §4.00.16) |
+| +408 | priority = CMeanTimeToHappen 56B (ctor sub_1405516A0: +16=4 / +24=100000 / vector@+32) — 双形态: 块 = MTTH 表达式 (sub_1424C0AA0 → CMeanTimeToHappen::Parse) / 整数字面量 → +432 = 100000×值 (§4.26.11 MTTH 族同标度) |
 | +464 | scripted_gui 名串本体 (MSVC SSO: 缓冲@+464 / **size@+480** / cap@+488); ReadKey case 14961 写 +464; 门 = size ≠0 → EventCategoryHeader / =0 → InfoItem (定案) |
+| +520 | custom_icon 数组 = CCustomIcon* 容器 {data@+520, cap@+528, count@+532, alloc@+536}; key 14311; 1.5× 扩容 (元素布局见下表) |
 | +544 | SOnMapLocator vector (304B 元素, key 15048 on_map_area; pass F 逐 locator 求 CScriptTargets 命中 → OnMapLocatorItem) |
 | +544 | SOnMapLocator vector 尾 (304B 元素, 见 §4.30.12) |
-| +568 | 可见门 |
-| +568 | visibility_type 枚举 (0x2BEF/0x3C37/0x3C38/0x3C39 四子 token; ReadKey) ⚠ 同偏移双文档行待裁 |
+| +568 | visibility_type u32 枚举 (唯一字段; 0x2BEF/0x3C37/0x3C38/0x3C39 四子 token → 0 decision_view_only / 1 map_only / 2 map_and_decisions_view / 3 always; ctor 默认 0) — ⚠ 数值序不同于条目级 on_map_mode (def+3296), 两表勿混 |
+| +576 | highlight_states = CHighlightStates ≥400B (key 19920; ctor sub_140723E40 {CAndTrigger@+8, CPersistentScriptTargets@+96, CScriptTargets 容器 ctor sub_14064BB30@+104, vector@+360, +384=−1, +392=0}; writer 空桩 = def 不入档, §4.00.16) |
 | +976 | power-balance 类别名副本串 (缓冲@+976 / **size@+992** / cap@+1000); +1008 = 类别值 i32 (默认 −1) |
+
+CCustomIcon (176B; vtable 0x1427EB290; reader 0x1407326C0 三键 + 一 trigger; custom_icon 数组元素, key 14311):
+
+| 偏移 | 类型 | 键 token | 语义 |
+|---|---|---|---|
+| +0 | vtable | — | CDecisionCategory::CCustomIcon |
+| +8 | 16B 值 | 10754 tag | sub_140BB41B0(token 文本) 返回件, 语义待裁 |
+| +24 | std::string 32B | 776 value | 串 |
+| +56 | std::string 32B | 10644 desc | 串 |
+| +88 | CAndTrigger 88B | 11562 visible | vt[5] Parse |
 
 #### 4.12.4 定时活动族 (CBaseTimedActivity 系 + 活动库)
 
@@ -280,7 +291,7 @@ CCombatant" (:0x58E); +106..+111 = 112B 对齐尾 pad。⚠ 该 writer/reader �
 | +24 | uint32 | operation id 对.type | 双非零 (对) | id@+28 |
 | +28 | uint32 | operation id 对.id | 双非零 (对) | |
 | +32 | CStrategicRegion* | strategic_region | ptr≠0 | = *(obj)+88 |
-| +40 | CCombatant* | combatant | 引擎断言永不持久化 | 指针 (+40..+47) |
+| +40 | CCombatant* | combatant | 引擎断言永不持久化 | 指针 (+40..+47); 运行时读侧 = 作用域链解析器经 sub_14053A590 装入 CEventScope+96 (saved 13 路分发之一, §4.00.4c) |
 | +48 | uint32 | ace id 对.type | 双非零 (对) | id@+52 |
 | +52 | uint32 | ace id 对.id | 双非零 (对) | |
 | +56 | uint32 | unit id 对.type | 双非零 (对) | id@+60 |
@@ -499,3 +510,250 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 #### 4.12.10 事件域引用本地化键收集器 (1 函 = 0x1402256B0, 推定)
 
 0x1402256B0: CEventManager 单例两向量喂入 → 三容器 (串@+8/+376) → set\<string\>; 过滤 = 全空白 (sub_1424CCBC0) ∧ FNV 键存在性 (sub_14239D0F0 → 本地化 DB qword_1435BA038)。用途推定 = 事件本地化键引用清查 (开发期工具通道), 宿主与调用侧待裁。
+
+#### 4.12.11 事件决议域函数补遗（39 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140445730 | CCanFireAdvisor::GetDesc TRIGGER_CAN_BE_FIRED / TRIGGER_CANT_BE_FIRED / SLOT |
+| 0x14065EA70 | （未命名）eventscope.h:193 eventscope.h:193；pScope 域归属断言（pScope == this 或 pScope->_pFrom != this）×3，事件域校验 |
+| 0x140C22700 | （未命名）eventscope.h:193 eventscope.h:193；pScope 域校验断言，事件域 |
+| 0x142304D70 | （未命名）"Unexpected token" + 调用 CDiplomaticAction::GetFirstCountryRef "Unexpected token" + 调用 CDiplomaticAction::GetFirstCountryRef，脚本化外交行动解析报错 |
+| 0x1412A1980 | （未命名）COUNTRY / EFFECT_CONTEXT_COUNTRY COUNTRY / EFFECT_CONTEXT_COUNTRY，effect 上下文 |
+| 0x1403464D0 | CRemoveFromArrayEffectImp<$00>::[13] "Invalid index to remove:" + vtable `CScopedVariable`（effectimplementation.cpp:16366） |
+| 0x14051CD00 | （未命名）TRIGGER_COLLECTION_CONTAINS_MANY_VALUE + VALUE TRIGGER_COLLECTION_CONTAINS_MANY_VALUE + VALUE，集合包含触发器 |
+| 0x1403C0D70 | （未命名）script_collection_evaluator.h:230："Collection operator %s doesn't support [Parallel]ForEach for…state" ×4 script_collection_evaluator.h:230："Collection … |
+| 0x1404D3120 | （未命名）同上 script_collection_evaluator.h:230 断言族 同上 script_collection_evaluator.h:230 断言族，集合算子求值 |
+| 0x14051C810 | （未命名）TRIGGER_VALUE_EQUAL/NOT_EQUAL/GREATER_THAN/LESS_THAN…全比较族 TRIGGER_VALUE_EQUAL/NOT_EQUAL/GREATER_THAN/LESS_THAN…全比较族 |
+| 0x140501B90 | （未命名）"Not a valid unit category or unit type in count_in_collection" + 调用 CDiplomaticAction::GetFirstCountryRef "Not a valid unit category or unit type in co… |
+| 0x141A30D50 | （未命名）仅重复 ", " 分隔符 仅重复 ", " 分隔符，列表拼接器；无 vtable/命名调用者 |
+| 0x14050D940 | sub_14050D940 eventscope.h:193 "Infinite cycle in event FROM scope" + tbb flag_task（事件 FROM 作用域并行遍历克隆 A） |
+| 0x14050E780 | （未命名）eventscope.h:193 + vtable `tbb::interface9::internal::flag_task` eventscope.h:193 + vtable `tbb::interface9::internal::flag_task`，事件域并行任务 |
+| 0x1405139C0 | （未命名）eventscope.h:193 + vtable `tbb::interface9::internal::flag_task` eventscope.h:193 + vtable `tbb::interface9::internal::flag_task`，事件域并行任务 |
+| 0x140519EF0 | （未命名）eventscope.h:193 + vtable `tbb::interface9::internal::flag_task` eventscope.h:193 + vtable `tbb::interface9::internal::flag_task`，事件域并行任务 |
+| 0x14050B110 | （未命名）eventscope.h:193 + vtable `tbb::interface9::internal::flag_task` eventscope.h:193 + vtable `tbb::interface9::internal::flag_task`，事件域并行任务 |
+| 0x1420D8E50 | sub_1420D8E50 "The event system has been shut down" / "Couldn't lock event queue" / "Event queue is full (%d events)"（事件队列投递） |
+| 0x1404FAFB0 | （未命名）gamestate.h:1125 gamestate.h:1125；"Constant value is not a country tag or array of country tags"，脚本常量解析 |
+| 0x1420D9CA0 | sub_1420D9CA0 "The event system has been shut down" / "Couldn't lock event queue"（事件队列投递） |
+| 0x1404803F0 | CVariableEffectBuilder<CModuloVariable<CTempVariableResolver>>::[3] CVariableEffectBuilder<CModuloVariable<CTempVariableResolver>>::[3] + variablescripthelpe… |
+| 0x140309240 | （未命名）LIST / NUMBER / EFFECT_LIST_OTHERS LIST / NUMBER / EFFECT_LIST_OTHERS，列表效果描述 |
+| 0x1413A0890 | sub_1413A0890 事件作用域遍历（eventscope.h:193+ref.h 断言） |
+| 0x1402D2C10 | CNationalFocus::[13] CNationalFocus::[13]；串「NATIONAL_FOCUS_NO_CURRENT_EFFECT」 |
+| 0x14047E3F0 | sub_14047E3F0 variablescripthelper.cpp:174（sorted_country_list/country_list_scores；invalid country scorer） |
+| 0x140F97E60 | sub_140F97E60 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
+| 0x1404564D0 | NIndustrialOrganisation::CAllIndustrialOrgTrigger::Evaluate 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x1404A13B0 | NProject::CAnyActiveScientistTrigger::Evaluate 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x140FA45E0 | sub_140FA45E0 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
+| 0x140433830 | sub_140433830 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
+| 0x140C2CCF0 | （无名） 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x14043D950 | sub_14043D950 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
+| 0x140523E30 | （无名） 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x1405242E0 | sub_1405242E0 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
+| 0x140524AB0 | （无名） 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x140524F60 | sub_140524F60 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
+| 0x140525730 | （无名） 事件作用域遍历（"Infinite cycle in event FROM scope" 断言）（断言站点 eventscope.h:193） |
+| 0x140525BE0 | sub_140525BE0 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
+| 0x14072AAC0 | sub_14072AAC0 事件作用域链回溯（"Infinite cycle in event FROM scope" 断言） |
+
+#### 4.12.12 事件决议域函数补遗（28 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140B263A0 | （无名）告警延迟描述：sub_142245E60(...,alert_lack_of_resources_delayed,v73,1) + RESOURCES/ALERT_RIGHTCLICK 键 告警延迟描述：sub_142245E60(...,alert_lack_of_resources_delayed,v… |
+| 0x141613D60 | （无名）RELATION_FACTION_MEMBERS_NEAR_ASSUMING_LEADERSHIP_HEADER + FACTION_MEMBER_ABLE_TO_ASSUME_LEADERSHIP + COUNTRY/PROGRESS 键 RELATION_FACTION_MEMBERS_NEAR_AS… |
+| 0x140EDF040 | （无名）RESEARCH_TIME_TOOLTIP_WITH_XP_COST_FACTOR / RESEARCH_BONUS_COST_REDUCTION + COST/VALUE/BASE 键 RESEARCH_TIME_TOOLTIP_WITH_XP_COST_FACTOR / RESEARCH_BONUS_… |
+| 0x140FE19E0 | （无名）HAS_ALL_PREREQUISITES / NOT_HAS_ALL_PREREQUISITES + PROJECT 键 HAS_ALL_PREREQUISITES / NOT_HAS_ALL_PREREQUISITES + PROJECT 键 |
+| 0x141AA5DC0 | NInternationalMarket::CRequestEquipmentPurchaseAction::GetRequestDescText — func_names 名 + DIPLOMACY_REQUEST_EQUIPMENT_PURCHASE_DESCRIPTION + REQUESTER/EQUIP… |
+| 0x140B20F80 | （无名）alert_external_influences_delayed_entry/list + alert_external_influences_stage_coup + COUNTRY/ACTIONS/LIST 键 alert_external_influences_delayed_entry/list… |
+| 0x140B1F270 | （无名）DOCTRINE + ALERT_RIGHTCLICK（学说告警延迟描述） DOCTRINE + ALERT_RIGHTCLICK（学说告警延迟描述） |
+| 0x140B2CEA0 | （无名）alert_outdated_equipment_delayed + ALERT_RIGHTCLICK + LIST 键 alert_outdated_equipment_delayed + ALERT_RIGHTCLICK + LIST 键 |
+| 0x140C68470 | （无名）FLAG/COUNTRY/CURRENT 三键（描述构造，键数不足） FLAG/COUNTRY/CURRENT 三键（描述构造，键数不足） |
+| 0x14037B010 | CCancelBorderWar::GetDesc — func_names 名 + effectimplementation.cpp:18460 + EFFECT_CANCEL_BORDER_WAR + STATE1/STATE2 键 func_names 名 + effectimplementation.cp… |
+| 0x14113F7C0 | sub_14113F7C0 模块标签 eventscope.h:193 |
+| 0x14052CAD0 | NDoctrines::CHasCompletedSubdoctrineTrigger::GetDesc NDoctrines::CHasCompletedSubdoctrineTrigger::GetDesc + 名字角色规则(NDoctrines::CHasCompletedSubdoctrineTrigge… |
+| 0x14043DC70 | sub_14043DC70 模块标签 eventscope.h:193 |
+| 0x140524600 | sub_140524600 模块标签 eventscope.h:193 |
+| 0x140525280 | sub_140525280 模块标签 eventscope.h:193 |
+| 0x14072F1A0 | sub_14072F1A0 模块标签 eventscope.h:193 |
+| 0x140A7D0E0 | sub_140A7D0E0 模块标签 eventscope.h:193 |
+| 0x1413AE5C0 | sub_1413AE5C0 模块标签 eventscope.h:193 |
+| 0x140FFA080 | sub_140FFA080 模块标签 eventscope.h:193 |
+| 0x1404B96B0 | 域关键词匹配 sub_1404B96B0 + 域关键词匹配; 源码路径 hoi4; 断言站点 eventscope.h:193 |
+| 0x1404C7D20 | sub_1404C7D20 模块标签 eventscope.h:193 |
+| 0x1404C8110 | 域关键词匹配 sub_1404C8110 + 域关键词匹配; 源码路径 hoi4; 断言站点 eventscope.h:193 |
+| 0x14140D9C0 | 域关键词匹配 sub_14140D9C0 + 域关键词匹配; 源码路径 hoi4; 断言站点 eventscope.h:193 |
+| 0x141129C10 | sub_141129C10 模块标签 eventscope.h:193 |
+| 0x1402EC6D0 | CBoostPlanning::GetDesc CBoostPlanning::GetDesc + 名字角色规则(CBoostPlanning::GetDesc); 串 "EFFECT_IMPROVE_PLANNING"; 被调源码 clausewitz |
+| 0x1404A2BB0 | NProject::CHasBreakthroughPointsTrigger::GetDesc NProject::CHasBreakthroughPointsTrigger::GetDesc + 名字角色规则(NProject::CHasBreakthroughPointsTrigger::GetDesc);… |
+| 0x14052A9F0 | NDoctrines::CSetGrandDoctrineEffect::GetDesc NDoctrines::CSetGrandDoctrineEffect::GetDesc + 名字角色规则(NDoctrines::CSetGrandDoctrineEffect::GetDesc); 串 "SET_GRAN… |
+| 0x140A7D030 | 域关键词匹配 sub_140A7D030 + 域关键词匹配; 源码路径 hoi4; 断言站点 eventscope.h:193 |
+
+#### 4.12.13 事件决议域函数补遗（18 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1404B23E0 | CSetFactionUpgrade::GetDesc 效果描述；loc \"SET_FACTION_\"×5+\"UPGRADENAME\"/\"COUNTRYNAME\"/\"FACTIONNAME\"/\"INDEX\"/\"_NO_FACTION\" |
+| 0x14038FBE0 | CSetCanBeFiredToAdvisorRole::GetDesc 效果描述；loc \"EFFECT_SET_CANNOT_BE_FIRED\"/\"EFFECT_SET_CAN_BE_FIRED\"+\"CHARACTER\"/\"SLOT\"+括号片段 |
+| 0x1420DA020 | 事件系统队列锁/关闭 事件系统队列锁/关闭；串 \"The event system has been shut down\"×2/\"Couldn't lock event queue\"×3 |
+| 0x14050CB30 | CEventScope 作用域链断言 "pScope == this pS CEventScope 作用域链断言 "pScope == this pScope->_pFrom != this §4.12 事件 |
+| 0x140C74A20 | "NAVAL_INVASION_PLANNING_BONUS_MALUS"+VA "NAVAL_INVASION_PLANNING_BONUS_MALUS"+VALUE：define 引用的脚本描述/t §4.12 事件 |
+| 0x140407C00 | CHasCoreOccupationModifier::GetDesc / "TRIGGER_HAS_CORE_OCCUPATION_MODIFIER/TR "TRIGGER_HAS_CORE_OCCUPATION_MODIFIER/TRIGGER_HAS_NOT_..." §4.12 事件 |
+| 0x140457CD0 | NIndustrialOrganisation::CCheckSizeTrigger::GetDesc / "TRIGGER_MIO_CURRENT_SIZE" "TRIGGER_MIO_CURRENT_SIZE" §4.12 事件 |
+| 0x14072BA90 | sub_14072BA90（无名） eventscope.h:193 站点 "Infinite cycle in event FROM scope" + gamestate.h:1125，紧邻 CInstantSprite::[87]/CDecision::[1]，事件作用域遍历（与 0x140728A40 同族） |
+| 0x140728A40 | sub_140728A40（无名） eventscope.h:193 站点 "Infinite cycle in event FROM scope" + remove_effect 串，事件作用域遍历（与 0x14072BA90 同族） |
+| 0x140AE9550 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+| 0x140523FC0 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+| 0x140524C40 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+| 0x1405258C0 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+| 0x1404C77E0 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+| 0x1404C8260 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+| 0x14140DB10 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+| 0x140D8ABA0 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+| 0x140B454D0 | 未命名业务函数 事件作用域（eventscope.h:193 断言 pScope == this // pScope->_pFrom != this） |
+
+#### 4.12.14 事件决议域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140728D60 | 事件域超时效果 "timeout_effect" + "pScope == this 或 pScope->_pFrom != this" 父子域断言，eventscope.h:193 |
+| 0x14138CE60 | （无名，按证据定性） 直接调用者持键 NATIONAL_FOCUS_TITLE/FOCUS_TREE_VIEW_HEADER/COUNTRY（国策焦点树视图同族） |
+| 0x1414A6CD0 | 修饰容器初始化 "MODIFIER_NONE" 默认值，a1+1336 修饰指针 |
+| 0x140725880 | CDecisionStatus::[0] vtable 槽 CDecisionStatus::[0]（func_names RTTI 名） |
+| 0x14117F7A0 | CEventOption::[0] vtable 槽 CEventOption::[0]（func_names RTTI 名） |
+
+#### 4.12.15 事件决议域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.12.16 事件决议域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140734C80 | CDecisionStatus::SDecisionRandomCountItem::Reader func_names 名 CDecisionStatus::SDecisionRandomCountItem::Reader |
+
+#### 4.12.17 事件决议域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.12.18 事件决议域函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401C7740 | （无名） 调用图传播: 3 锚点投 §4.12（67%） |
+| 0x1401C7FF0 | （无名） 调用图传播: 3 锚点投 §4.12（67%） |
+| 0x141B022F0 | （无名） 调用图传播: 2 锚点投 §4.12（100%） |
+| 0x140DC1490 | （无名） 调用图传播: 2 锚点投 §4.12（100%） |
+| 0x1401B8090 | （无名） 调用图传播: 3 锚点投 §4.12（100%） |
+| 0x140DE5400 | （无名） 调用图传播: 2 锚点投 §4.12（100%） |
+| 0x141399780 | （无名） 调用图传播: 2 锚点投 §4.12（50%） |
+| 0x141723E80 | （无名） 调用图传播: 2 锚点投 §4.12（50%） |
+| 0x1402F7BF0 | （无名） 调用图传播: 5 锚点投 §4.12（60%） |
+| 0x141723D50 | （无名） 调用图传播: 2 锚点投 §4.12（50%） |
+| 0x141723C40 | （无名） 调用图传播: 2 锚点投 §4.12（50%） |
+
+#### 4.12.19 事件决议域函数补遗（18 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140512240 | sub_140512240 同 0x14050D940 三胞胎（事件 FROM 作用域并行遍历克隆 B，尺寸同为 6011B） |
+| 0x140519240 | sub_140519240 同 0x14050D940 三胞胎（事件 FROM 作用域并行遍历克隆 C，尺寸同为 6011B） |
+| 0x14072C630 | sub_14072C630 事件作用域遍历（「Infinite cycle in event FROM scope」断言） |
+| 0x140A84430 | sub_140A84430 遍历+1480/+1492 指针数组并比较 token 19607，无业务串 |
+| 0x141BCB180 | sub_141BCB180 前置条件键（prerequisite） |
+| 0x1404A7B70 | sub_1404A7B70 脚本类型校验错误串（「an array of country tags … is not …」） |
+| 0x140728720 | sub_140728720 事件作用域执行（execute_effect+「Infinite cycle in event FROM scope」断言） |
+| 0x141A924C0 | sub_141A924C0 根作用域文本函数（![MD] 文档串） |
+| 0x140074400 | 无名领域函数 sub_140074400 脚本变量名串 _combat_factor |
+| 0x140075B40 | 无名领域函数 sub_140075B40 脚本变量名串 _drift_from_guarantees |
+| 0x141A913D0 | sub_141A913D0 作用域战斗方文本函数（![MD] 文档串） |
+| 0x140FF6BA0 | 域关键词匹配 sub_140FF6BA0 + 域关键词匹配; 源码路径 hoi4; 被调源码 hoi4 |
+| 0x141A93160 | sub_141A93160 玩家国家作用域文本函数（![MD] 文档串） |
+| 0x1404C8BE0 | sub_1404C8BE0 脚本集合输入编译（named collection as a compiled input） |
+| 0x140292CF0 | 域关键词匹配 sub_140292CF0 + 域关键词匹配 |
+| 0x140DF52B0 | 调用图上游传播(占 43%, 4 票) sub_140DF52B0 + 调用图上游传播(占 43%, 4 票) |
+| 0x141381C90 | 域关键词匹配 sub_141381C90 + 域关键词匹配 |
+| 0x14052EE80 | 同区段近邻 NDoctrines::CHasCompletedSubdoctrineTrigger::GetDesc(距 0x23B0)属 4.12 族 sub_14052EE80 + 同区段近邻 NDoctrines::CHasCompletedSubdoctrineTrigger::GetDesc(距 0x2… |
+
+#### 4.12.20 事件决议域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401E9AD0 | gamestate.cpp 断言 "unhandled pending event scope" |
+| 0x141A9E120 | GetRequestDescText func_names 名 GetRequestDescText（GetDesc 描述串） |
+| 0x141FECCB0 | CCareerProfilePages::CreateTooltipHandlers::lambda_64 func_names 名 |
+| 0x1418A2020 | 无名 · "player_decision_check" 玩家决议检查 "player_decision_check" 玩家决议检查 |
+| 0x1402684B0 | 无名 · " in decisions" 校验日志 " in decisions" 校验日志 |
+| 0x141FEC840 | CCareerProfilePages::CreateTooltipHandlers::lambda_60 func_names 名 |
+
+#### 4.12.21 事件决议域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1419E8770 | CNegotiatorFlagEntry 和会谈判旗标条目 (vtable类名 CNegotiatorFlagEntry) vtable引用 CNegotiatorFlagEntry vftable |
+| 0x1405341E0 | CSavedEventTarget 存档事件目标(112B元素vector增长插入) (vtable类名 CSavedEventTarget) vtable引用 CSavedEventTarget vftable |
+| 0x140AD71B0 | CBaseTimedActivity 定时活动基类 (vtable类名 CBaseTimedActivity) vtable引用 CBaseTimedActivity vftable |
+
+#### 4.12.22 事件决议域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401EA670 | （无名） 调用图传播: 2 锚点投 §4.12（50%） |
+| 0x141723BE0 | （无名） 调用图传播: 2 锚点投 §4.12（50%） |
+
+#### 4.12.23 事件决议域函数补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14171CAF0 | 无名 sub_（断言站点/串定位） 串字面量 "DECISION_FOR_AMOUNT_DAYS_MODIFIER" |
+| 0x14171C2A0 | 无名 sub_（断言站点/串定位） 串字面量 "DECISION_FOR_AMOUNT_DAYS_MODIFIER" |
+| 0x141D78AD0 | 无名 sub_（断言站点/串定位） 串字面量 "TIMED_DECISION_COMPLETED" |
+| 0x1406769C0 | 无名 sub_（断言站点/串定位） 串字面量 "EVENT_AUTONOMY_EFFECTS" |
+| 0x141D7A160 | 无名 sub_（断言站点/串定位） 串字面量 "TIMED_DECISION_COMPLETED" |
+| 0x141F6A630 | 无名 sub_（断言站点/串定位） 串字面量 "EQUIPMENT_DESCRIPTION" |
+| 0x141C31B30 | 无名 sub_（断言站点/串定位） 串字面量 "descriptio" |
+| 0x1418952C0 | 无名 sub_（断言站点/串定位） 串字面量 "DECISIONVIEW_AMOUNT_CAN_TAKE_ITEMS" |
+| 0x141D787E0 | 无名 sub_（断言站点/串定位） 串字面量 "DECISION_COST_COMPACT" |
+| 0x141D7A840 | 无名 sub_（断言站点/串定位） 串字面量 "TIMED_DECISION_COMPLETED" |
+| 0x140B44F40 | 无名 sub_（断言站点/串定位） 串字面量 "GFX_decision_cat_picture" |
+| 0x142018910 | 无名 sub_（断言站点/串定位） 串字面量 "scientist_effect_reward_description" |
+| 0x140C2CB90 | 无名 sub_（断言站点/串定位） 断言站点 eventscope.h:193 |
+| 0x142108AF0 | 无名 sub_（断言站点/串定位） 串字面量 "SetThreadDescription" |
+| 0x1418CCB90 | 无名 sub_（断言站点/串定位） 串字面量 "decisions_gridbox" |
+| 0x140A4BFC0 | 无名 sub_（断言站点/串定位） 断言站点 eventscope.h:193 |
+| 0x140021F60 | 无名 sub_（断言站点/串定位） 串字面量 "checks if current scope or global scope has the sp" |
+
+#### 4.12.24 事件决议域函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140517510 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x1403C7070 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x1405346E0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x1401C58B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x1420C5090 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x14043DE00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x140525E40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x14138A670 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x14043E020 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+| 0x140526D00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.12 |
+
+#### 4.12.25 事件决议域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A10C50 | 无名 sub_（人工读体裁定） 路径串 "events/"（0x2F73746E657665）+ 目录列举回调 + sub_1424BB300/4BEC90 装载事件 |
+
+#### 4.12.26 事件决议域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141395100 | 事件查找 事件 id 查找失败提示："Invalid event with id: " / "Invalid event with id# " |
+
+#### 4.12.27 事件决议域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401F7C80 | 未决窗口函数 · ProcessDeferredTargetedDecisions 类型萃取 a3 switch(1..4) 类型萃取：_std_type_info_compare + lambda vtable "ProcessDeferredTargetedDecisions_CGameState" |
+| 0x140F8E030 | 未决窗口函数 · 遍历收集条目到输出对象 sub_140BCAFB0(a2) 后遍历 a1+8 数组（16B 步长，计数 a1+20），经 sub_141538080(elem, byte+8) 取值 sub_140BCB530 写入 a2 |

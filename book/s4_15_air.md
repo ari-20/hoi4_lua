@@ -588,3 +588,221 @@ CU = `hoi4\source\airutil.cpp`。八函身份表:
 #### 4.15.20 集团按剧场分组核 (strategicaircommands.cpp; 1 函 = 0x1419478B0, 定案)
 
 0x1419478B0 (集群数组 a1 {data, count@+12}, out 剧场表 a2 {data, cap@+8, count@+12, alloc}, out 散集团表 a3): air 迁移三段 helper 第 2 段 (sub_1419473D0 联队×集团划分 → **本函** 集团×剧场分组 → sub_14193F1B0 集团摘场); 调用方 = CMoveAirWingAndAirGroupToAirTheatreCommand 14863 / CMoveAirGroupAndAirTheatreToFreeCommand 14864 / CMoveAirWingToAirGroupCommand 14865 / CDeleteAirWingCommand 13651 四 Execute。执行序: 局部 std::map (0x40B 节点: rb 链 +0/+8/+16, nil 旗@+25, key 8B@+32, 值向量 {data@+40, cap@+48, count@+52, 分配器@+56}; 溢出 → std::length_error 抛出桩) → 逐集群 (16B idpair, **{0,0} 哨兵跳过**) resolve 后以**集团+112 = 剧场 idpair** 为 key 入 map, 集团 id 追加值向量 (×1.5 增长) → 逐 map 节点: 断言 :101 `AirTheatre.IsValid() && "AirTheatre has to be valid on an AirGroup"` (闩 byte_14338B3A6) + :104 `"The AirGroup has to be connected to the same AirTheatre"` (集团+112 == 节点 key; 闩 byte_14338B3AF), 均在主门 byte_1435E1B52 内; a2 去重 = **O(n²) 线性扫** (idpair 双 DWORD 逐对比较); **整剧场判据 = 剧场+76 集团数 == 节点收集数** → 剧场 idpair 入 a2, 否则该批集团 idpair 经 sub_1402BE050 追加进 a3 (散集团)。尾: rb 树后序清理 (逐节点释放值向量 + free 节点 + free 头哨兵)。
+
+#### 4.15.21 空军域函数补遗（14 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C61640 | CStrategicAir::Reader "Not a valid strategic air type." + 调用 CDiplomaticAction::GetFirstCountryRef |
+| 0x140F80F60 | （未命名）airmission.cpp:2898 站点 airmission.cpp:2898 站点；调用日期/任务工具子链 |
+| 0x140F7CAC0 | （未命名）gamestate.h:1116 + vtable `CAirMission::SAirSupplyTarget` / `CAirMission::STargetPriority` gamestate.h:1116 + vtable `CAirMission::SAirSupplyTarget` / `… |
+| 0x140F814A0 | （未命名）airmission.cpp:4086 站点 airmission.cpp:4086 站点；调用空中任务相关子链 |
+| 0x140F83AA0 | （未命名）airmission.cpp:4119 airmission.cpp:4119；NGameDLC::HasFeature(NAVAL_MINES) 门 + ThreadIsMainThread 断言，水雷任务 |
+| 0x141AF5DF0 | （未命名）"Province %d" / "Superiority: %s%%" / "Radar efficiency" / "No air vs air combat" "Province %d" / "Superiority: %s%%" / "Radar efficiency" / "No air vs … |
+| 0x141FCF4E0 | sub_141FCF4E0 VALUE / AIRWING_STR / AMOUNT / AIRWING_STR_MISSING（舰载机联队强度 UI） |
+| 0x14202F720 | sub_14202F720 空军联队人力（MANPOWER_AIR_WING_CREATION_VALUE/VALUE） |
+| 0x1404695F0 | CLastStrategicBombingOnStateStrigger::GetValue CLastStrategicBombingOnStateStrigger::GetValue；串「_pInstance && "gamestate unitilialized"」 |
+| 0x140AF1610 | CUnitNamesDatabase::GenerateNameForAirGroup CUnitNamesDatabase::GenerateNameForAirGroup，串 "AIR_GROUP_NAME_PATTERN" |
+| 0x141CF31D0 | （未命名）GUI 串 "air_groups_view"/"air_group_view_ GUI 串 "air_groups_view"/"air_group_view_entries"（空军编组视图） |
+| 0x14202F550 | （未命名）GUI 串 "plane_filters"/"plane_type_grid" GUI 串 "plane_filters"/"plane_type_grid"（飞机筛选/机型网格） |
+| 0x141013C50 | sub_141013C50 空军联队/飞机窗口与任务类型（AIRWING_MISSION_TYPE） |
+| 0x141D3F8C0 | （未命名）GUI/loc 串 AIR_EQUIPMENT_TOTAL/_DESC GUI/loc 串 AIR_EQUIPMENT_TOTAL/_DESC（空军装备总量条目） |
+
+#### 4.15.22 空军域函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BB0860 | （无名）air_update_tracer.cpp:130 + GetAirWing/GetSize 方法调用 air_update_tracer.cpp:130 + GetAirWing/GetSize 方法调用 |
+| 0x140F674E0 | （无名，按上游/loc 定性） ref.h:83 断言 |
+| 0x141AF7C30 | （无名，按上游/loc 定性） 串 "nav. patrol\ recon\ logi. strike\ air supply\ mine pla*" |
+| 0x14202C320 | sub_14202C320 特征串:AIRWING_CREATE_EMPTY ; AIRWING_CREATE_NO_MANPOWER |
+| 0x142230C80 | CMouse::[1] CMouse::[1] + 域关键词匹配; 串 "_ObserverList.Contains( Observer ) == fals"; 源码路径 clausewitz |
+
+#### 4.15.23 空军域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1418828D0 | 空军任务类型显示 空军任务类型显示；loc \"AIRWING_MISSION_TYPE_AIR_SUPERIORITY\"/\"AIRWING_MISSION_TYPE_INTERCEPTION\"/\"AIR_VIEW_GROUND_MISSION\"+\"KEY\"/\"HEADER\"，被调 locali… |
+| 0x140BB2750 | "air mission missing from AIR_MISSION_SP "air mission missing from AIR_MISSION_SPOTTING_FACTORS" + ai §4.15 空战 |
+| 0x141E07FD0 | "number/plane" 空军数据 "number/plane" 空军数据 §4.15 空战 |
+| 0x140C648B0 | sub_140C648B0（无名） strategicair.cpp:3891 站点 "pShip && Carrier without ship when transferring wings to base."，航母联队转场至基地 |
+| 0x140C5D240 | sub_140C5D240（无名） pdx_scoped_buffer "_Position + NeededSize <= _BufferSize" 写断言 + gamestate.h:1125，夹于 CStrategicAir::[3]/CStrategicAirManager::[2]，战略空军序列化写入 |
+| 0x141887650 | "PLANE_COUNTS_IN_REGION/PLANE_COUNTS_PAS "PLANE_COUNTS_IN_REGION/PLANE_COUNTS_PASSING_THROUGH_REGION" §4.15 空战 |
+| 0x140FEA9E0 | sub_140FEA9E0（无名） RAID_INST_PHASE_ASSEMBLING/PREPARING/PREPARED/IN_PROGRESS/ENDED/NONE + PHASE/PROGRESS/raid_inst_progress_desc GUI 键，紧邻 NRaids::CRaidInstanc… |
+
+#### 4.15.24 空军域函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F59760 | （无名，按证据定性） airwing.cpp:260 断言 'Expected non-empty variant pool.' + IsAllMatchingMissionTypes + CAirWing/CModifier vtable（舰载机联队任务类型匹配） |
+| 0x140C4B1C0 | 航空联队任务状态 AIRWING_MISSION_WING_STATUS_MISSION + MIS |
+| 0x1406E5110 | 国家空军基地访问校验 "Country thinks it has access to an airbase that it should not have access to." country.cpp:11830 + AIR_SUP/SCORE_CALC_AIR |
+| 0x140C5E820 | OOB 航母航空基地装载校验 "has no carrier air base with name ... Is the OOB file containing the carrier loaded after this file?" |
+| 0x142039340 | 航空联队快速部署 QUICK_DEPLOY_WING_ENABLE_DESC / DISABLE_NO_MAN_DESC / DISABLE_NO_EQUIP_DESC + PLANE_TYPE |
+| 0x140C66FB0 | H::CStrategicAir::USIntermediateAirBaseStatuses::QEBAXAEAV?$CPd鈥�::[1] func_names 名 H::CStrategicAir::USIntermediateAirBaseStatuses::QEBAXAEAV?$CPd鈥�::[1] |
+| 0x140F64340 | CAirWing::[2] vtable 槽 CAirWing::[2]（func_names RTTI 名） |
+| 0x140C4AE90 | CStrategicAir::[0] vtable 槽 CStrategicAir::[0]（func_names RTTI 名） |
+| 0x140F5A9A0 | CAirWing::[0] vtable 槽 CAirWing::[0]（func_names RTTI 名） |
+| 0x140F5A988 | CAirWing::[0] vtable 槽 CAirWing::[0]（func_names RTTI 名） |
+| 0x140C4AD4C | CStrategicAir::[2] vtable 槽 CStrategicAir::[2]（func_names RTTI 名） |
+
+#### 4.15.25 空军域函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.15.26 空军域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C47E80 | （无名） 体设 CStrategicAir::vftable（RTTI 名） |
+| 0x140C48FF0 | （无名） 体设 CStrategicAir::vftable（RTTI 名） |
+| 0x140F5A5B0 | （无名） 体设 CAirWing::vftable（RTTI 名） |
+
+#### 4.15.27 空军域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.15.28 空军域函数补遗（26 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412C93F0 | （无名） 调用图传播: 10 锚点投 §4.15（80%） |
+| 0x140FAA260 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x140F796E0 | （无名） 调用图传播: 3 锚点投 §4.15（100%） |
+| 0x141E7DE50 | （无名） 调用图传播: 8 锚点投 §4.15（50%） |
+| 0x140641AE0 | （无名） 调用图传播: 4 锚点投 §4.15（50%） |
+| 0x140BE8B70 | （无名） 调用图传播: 4 锚点投 §4.15（100%） |
+| 0x14100D7A0 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x140F66DD0 | （无名） 调用图传播: 3 锚点投 §4.15（67%） |
+| 0x14100D670 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x140BE7D10 | （无名） 调用图传播: 6 锚点投 §4.15（100%） |
+| 0x141039000 | （无名） 调用图传播: 2 锚点投 §4.15（100%） |
+| 0x140C4D3D0 | （无名） 调用图传播: 3 锚点投 §4.15（67%） |
+| 0x140EDECD0 | （无名） 调用图传播: 4 锚点投 §4.15（50%） |
+| 0x140F5E400 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x1419625D0 | （无名） 调用图传播: 2 锚点投 §4.15（100%） |
+| 0x140C5D750 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x141039120 | （无名） 调用图传播: 2 锚点投 §4.15（100%） |
+| 0x141FD1EE0 | （无名） 调用图传播: 4 锚点投 §4.15（75%） |
+| 0x14100D550 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x140E689C0 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x140CDA2C0 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x140F66890 | （无名） 调用图传播: 3 锚点投 §4.15（67%） |
+| 0x140F877B0 | （无名） 调用图传播: 3 锚点投 §4.15（100%） |
+| 0x140F784B0 | （无名） 调用图传播: 3 锚点投 §4.15（67%） |
+| 0x140F776D0 | （无名） 调用图传播: 2 锚点投 §4.15（100%） |
+| 0x140F80B10 | （无名） 调用图传播: 2 锚点投 §4.15（100%） |
+
+#### 4.15.29 空军域函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141668E10 | 空军任务方向 串 "air_mission_direction"（pdx_scoped_buffer 仅断言站点）→ 空军任务方向 |
+| 0x140B05320 | 战略空军进驻权 strategicair.h + 断言 "HasAccess( Tag )" → 战略空军进驻权 |
+| 0x141886DD0 | 空中详情频道 UI 串 "AIRVIEW_DETAILS_CHANNEL_" → 空中详情频道 UI |
+| 0x141013340 | 联队任务 tooltip 串 "AIRWING_MISSION_TYPE_*_DESC"/"AIRWING_MISSION_NIGHT_BOMBING_DESC" → 联队任务 tooltip |
+
+#### 4.15.30 空军域函数补遗（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DFF5E0 | sub_141DFF5E0 空军联队/飞机窗口与任务类型（lost_air_grid） |
+| 0x140F5C500 | 无名领域函数 sub_140F5C500 断言站点 \hoi4\\source\\airwing.cpp（空军联队） |
+| 0x141A81DB0 | sub_141A81DB0 王牌飞行员（ace）数据/文本函数（the ace） |
+| 0x140C44250 | 无名领域函数 sub_140C44250 被调用者定名: CStrategicAirManager::UpdatePortStrikeLimitPerRegion? 等命中 §4.15（占 56%，共 2 callee） |
+| 0x141A81200 | sub_141A81200 王牌飞行员（ace）数据/文本函数（the ace） |
+| 0x141A82730 | sub_141A82730 王牌飞行员（ace）数据/文本函数（the ace） |
+| 0x140C4BFA0 | sub_140C4BFA0 串:CPdxIteratorRange( pPool->GetAirWings() ) .AllOf( SHasAllowe |
+| 0x1402B31C0 | 域关键词匹配 sub_1402B31C0 + 域关键词匹配 |
+| 0x141D3E870 | 域关键词匹配 sub_141D3E870 + 域关键词匹配; 源码路径 hoi4; 被 CPlanesOverview::[0] 等 1 命名函数调用 |
+| 0x1421B23B0 | 调用图上游传播(占 100%, 1 票) sub_1421B23B0 + 调用图上游传播(占 100%, 1 票) |
+| 0x141D3E330 | sub_141D3E330 空军联队/飞机窗口与任务类型（planeswindow） |
+| 0x1415DF090 | 调用图上游传播(占 100%, 1 票) sub_1415DF090 + 调用图上游传播(占 100%, 1 票) |
+| 0x14205FAB0 | 域关键词匹配 sub_14205FAB0 + 域关键词匹配; 源码路径 hoi4; 被调源码 clausewitz |
+| 0x14247FD20 | 域关键词匹配 sub_14247FD20 + 域关键词匹配 |
+| 0x141CBFAF0 | 同区段近邻 NCareerProfile::CFrontendCareerProfileView::[4](距 0xC250)属 4.15 族 sub_141CBFAF0 + 同区段近邻 NCareerProfile::CFrontendCareerProfileView::[4](距 0xC250)属 4.15 族 |
+| 0x14247E4C0 | 域关键词匹配 sub_14247E4C0 + 域关键词匹配 |
+| 0x14203D630 | 域关键词匹配 sub_14203D630 + 域关键词匹配; 源码路径 hoi4; 被 NInternationalMarket::CSubsidyOverview::CListController::[2] 等 1 命名函数调用 |
+| 0x14255FEF8 | 域关键词匹配 sub_14255FEF8 + 域关键词匹配 |
+| 0x1421C9230 | 调用图上游传播(占 100%, 1 票) sub_1421C9230 + 调用图上游传播(占 100%, 1 票) |
+| 0x140616AC0 | 同区段近邻 CAce::[0](距 0x1280)属 4.15 族 sub_140616AC0 + 同区段近邻 CAce::[0](距 0x1280)属 4.15 族 |
+| 0x140E34EC0 | 调用图上游传播(占 67%, 2 票) sub_140E34EC0 + 调用图上游传播(占 67%, 2 票) |
+
+#### 4.15.31 空军域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D3ECC0 | SERVICE_MANPOWER_HEADER（例程） loc 键 SERVICE_MANPOWER_HEADER/AIR_SERVICE_MANPOWER_DESC |
+| 0x140C4CE30 | （无名） 调用图传播: 2 锚点投 §4.15（100%） |
+| 0x1421AE640 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+
+#### 4.15.32 空军域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141964A20 | NAir::NQuickWingDeployment（vtable 槽/管理器） VT NAir::NQuickWingDeployment + SOnSelectionChanged 监听入队（快速机翼部署选择） |
+
+#### 4.15.33 空军域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140C53C80 | （无名） 调用图传播: 2 锚点投 §4.15（50%） |
+| 0x140F5D240 | （无名） 调用图传播: 2 锚点投 §4.15（100%） |
+
+#### 4.15.34 空军域函数补遗（29 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BB1070 | 无名 sub_（断言站点/串定位） 断言站点 air_update_tracer.cpp:130 |
+| 0x141E5A3F0 | 无名 sub_（断言站点/串定位） 串字面量 "AIR_SUPERIORITY_AA_REDUCTION_ENEMY" |
+| 0x1415B4730 | 无名 sub_（断言站点/串定位） 串字面量 "AIR_BASE_RIGHT_CLICK" |
+| 0x140C52150 | 无名 sub_（断言站点/串定位） 断言站点 strategicair.cpp:116 |
+| 0x14170CD00 | 无名 sub_（断言站点/串定位） 串字面量 "ARMY_AIR_WINGS_ACTIVE" |
+| 0x141688630 | 无名 sub_（断言站点/串定位） 串字面量 "air_selection_view" |
+| 0x1415DB9A0 | 无名 sub_（断言站点/串定位） 串字面量 "defender_air_icon" |
+| 0x1415B8F20 | 无名 sub_（断言站点/串定位） 串字面量 "order_airwing_effect" |
+| 0x1415C6610 | 无名 sub_（断言站点/串定位） 串字面量 "NAVAL_COMBAT_DEFENSE_AIRWING_TOOLTIP_SHOT_DOWN" |
+| 0x141F6FBC0 | 无名 sub_（断言站点/串定位） 串字面量 "DESIGNER_AIR_SAVE" |
+| 0x140F63AF0 | 无名 sub_（断言站点/串定位） 断言站点 airwing.cpp:644 |
+| 0x142508460 | 无名（证据推断） 类名/模板：ESide::RIGHT |
+| 0x141D3EA70 | 无名 sub_（断言站点/串定位） 串字面量 "AIR_EQUIPMENT_IN_USE" |
+| 0x141FD3690 | 无名 sub_（断言站点/串定位） 串字面量 "AIRWING_MISSION_TRAINING" |
+| 0x14007B1F0 | 无名 sub_（断言站点/串定位） 串字面量 "state_repair_speed_" |
+| 0x141F96470 | 无名 sub_（断言站点/串定位） 串字面量 "NAVY_REPAIR_NOW_CANCEL" |
+| 0x141FD7420 | 无名 sub_（断言站点/串定位） 串字面量 "START_SAM_WINGS" |
+| 0x140FCE030 | 无名 sub_（断言站点/串定位） 串字面量 "airforce" |
+| 0x140C4E9C0 | 无名 sub_（断言站点/串定位） 断言站点 strategicair.cpp:1975 |
+| 0x142061120 | 无名 sub_（断言站点/串定位） 串字面量 "AIRWING_MANPOWER_TEXT" |
+| 0x141D3FD00 | 无名 sub_（断言站点/串定位） 串字面量 "planeswindow" |
+| 0x140F70A00 | 无名 sub_（断言站点/串定位） 串字面量 "REPAIR_SPEED_RAILWAY_GUN" |
+| 0x141965170 | 无名 sub_（断言站点/串定位） 断言站点 wing_deploy_controller.cpp:179 |
+| 0x1419650C0 | 无名 sub_（断言站点/串定位） 断言站点 wing_deploy_controller.cpp:154 |
+| 0x141F5FAC0 | 无名 sub_（断言站点/串定位） 串字面量 "AIRWING_NEW_BASE" |
+| 0x140C57740 | 无名 sub_（断言站点/串定位） 断言站点 strategicair.cpp:3480 |
+| 0x1419472E0 | 无名 sub_（断言站点/串定位） 串字面量 "AIR_DELETE_WING" |
+| 0x1415BF910 | 无名 sub_（断言站点/串定位） 串字面量 "NAVY_REPAIR_CANCEL_DESC_REUNITE" |
+| 0x14002A080 | 无名 sub_（断言站点/串定位） 串字面量 "Check if carrier has airplanes that are part of th" |
+
+#### 4.15.35 空军域函数补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142546174 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x141753230 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140AF0870 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x141012410 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x141A089D0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140C4D050 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x141534260 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140E61B80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140FD6F80 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140E61F30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140F5C700 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140C67B40 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x141883250 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140C5B160 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x140CDB040 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x141A06B30 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |
+| 0x1418862B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.15 |

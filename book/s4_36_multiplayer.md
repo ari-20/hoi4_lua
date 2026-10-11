@@ -1017,3 +1017,148 @@ sub_1423E5D00 (getaddrinfo 包装): hints = {flags=0, family=AF_INET(2), socktyp
 流程: ① 门 = a2+16 消息文本为空直退; ② a5 真 → 墙钟 localtime64 → strftime `[%H:%M]` → 拼 ` ([HH:MM])` 前缀串; ③ 频道代码 = `*(u8*)(a4 + *(*a1+152))` (主模型读偏移量, a4 为基址取字节); ④ 构两字节富文本控制串 = `0x11 | (频道代码 << 8)` (与 §4.19 色逃逸 0x11+字母同族; 常量 8465 = 0x2111 = "!" 复位) → sub_141343CF0(a1+72) 写入频道前缀串; ⑤ a6+16 附加文本为空 → 退回 a3; ⑥ sub_141334AE0(a1, 文本, a2) 消息注入核心 (开头 `*(*a1+96)` 虚方法校验); ⑦ sub_141342140(*a1, a1) 刷新 UI; ⑧ 通知旗: `*(*a1+200) == a1+68` (活动频道 == 当前频道) 且 `*(*(*(a1+80))+165) & 8` → a1+112 清 0, 否则置 1 并调 sub_141341F20。
 
 未决: ""+byte 富文本频道代码含义 (频道图标/颜色代码/前缀标记); 通知旗四字段 (a1+68 当前频道 / *a1+200 活动频道 / a1+112 通知旗 / *(*(a1+80))+165 bit2 通知门) 命名与状态机; sub_141341F20 副作用。
+
+#### 4.36.21 联机模式函数补遗（13 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14231AB60 | （未命名）MATCHMAKING_SERVERS_NOSERVERS MATCHMAKING_SERVERS_NOSERVERS，多人匹配服务器 |
+| 0x14130FD30 | 断言 gameitemdatabase.h:142 + 调 CServer::[19]/CDiplomaticAction::GetSecondCountryRef 断言 gameitemdatabase.h:142 + 调 CServer::[19]/CDiplomaticAction::GetSecondCo… |
+| 0x1423E48E0 | CSteamMatchmakingContext::[34] STARTING / status，Steam 匹配上下文 |
+| 0x141CE7620 | sub_141CE7620 匹配服务器窗口（matchmaking_servers_window/MATCHMAKING_REFRESH_LAN） |
+| 0x1422E5A60 | sub_1422E5A60 体内构造/操作 vtable 类 CCountryChatMessage（&CCountryChatMessage::vftable）→ 聊天/系统消息/玩家标识/大文件传输 |
+| 0x1418724B0 | sub_1418724B0 多人/存档确认界面与流程（HOTJOIN_LOBBY） |
+| 0x142398860 | （无名） vftable 类 CSteamAchievementsContext::（多人/Steam） |
+| 0x141CD7680 | （未命名）loc 串 HOST_LOADING_SAVEGAME/NAME loc 串 HOST_LOADING_SAVEGAME/NAME（多人主机载档提示） |
+| 0x141340EA0 | （未命名）GUI/loc 串 CHAT_CVAA_MESSAGE/NAME/MESSAGE GUI/loc 串 CHAT_CVAA_MESSAGE/NAME/MESSAGE（多人聊天无障碍消息） |
+| 0x141FCA250 | sub_141FCA250 多人/存档确认界面与流程（CONFIRM_SAVEGAME） |
+| 0x14132CD70 | sub_14132CD70 体内构造/操作 vtable 类 CPdxSocialPlayerId（&CPdxSocialPlayerId::vftable）→ 聊天/系统消息/玩家标识/大文件传输 |
+| 0x1411AB480 | sub_1411AB480 网络命令载荷日志（"= <PAYLOAD>" + 字符串拼接） |
+| 0x1411ABC80 | sub_1411ABC80 网络命令载荷日志（"= <PAYLOAD>" + 字符串拼接） |
+
+#### 4.36.22 联机模式函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14061D1B0 | （无名，按上游/loc 定性） achievements.cpp:785 断言 "_pPtr" |
+| 0x1423E53C0 | （无名，按上游/loc 定性） 自文档串 "No NetContexts Exist\ ...Use net_debuginfo <index> instead.\ Invalid NetContext index" |
+| 0x142397610 | vtable/RTTI 类 CDummyAchievementsContext sub_142397610 + vtable/RTTI 类 CDummyAchievementsContext; 被 CDummyAchievementsContext::[0] 等 1 命名函数调用 |
+| 0x14153E780 | CFriendsHandlerSteam::[5] CFriendsHandlerSteam::[5] + 域关键词匹配; 串 "Long Task"; 被 CFriendsHandlerSteam::[5] 等 1 命名函数调用 |
+| 0x142398720 | vtable/RTTI 类 CSteamAchievementsContext sub_142398720 + |
+| 0x1418701F0 | 无名大函数 0x1418701F0 loc 键 MULTIPLAYER_MESSAGES/number_chatmessage（多人消息） |
+| 0x141E688C0 | 域关键词匹配 sub_141E688C0 + 域关键词匹配; 源码路径 hoi4; 断言站点 emptylists.h:44 |
+| 0x142616B90 | sub_142616B90 模块标签 gamelobby.cpp:699 |
+
+#### 4.36.23 联机模式函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1418835D0 | 聊天频道 UI 聊天频道 UI；loc \"btn_channel_\"+\"channel_checkbox\" |
+| 0x14153F250 | CFriendsHandlerSteam::[18] Steam 好友/档案槽；loc \"CAREER_PROFILE_FAILED_UPDATE_MSG\"/\"_TITLE\"+\"career_profile_v1\"，被调 friends_handler_steam.cpp:562 |
+| 0x140B36210 | 定时活动警报 定时活动警报；loc \"TIMED_ACTIVITY_ALERT_TITLE\"/\"alert_timed_activity_low_equipment_delayed_base\"+\"ACTIVITIES\"/\"NAME\"/\"COUNTRY\"，被调 timedactivity.cpp… |
+| 0x14133C170 | sub_14133C170（无名） "kick" 串 + 紧邻 CChat::CChatItem::[7](d=384) 与 CChat::[5](d=1184)，聊天踢人命令 |
+| 0x141873D00 | "lobby_chat_edit/playerlobby_chat/chatlo "lobby_chat_edit/playerlobby_chat/chatlog_window" + CIcon §4.36 多人 |
+| 0x1417BA640 | "ASSIGN_TARGET_LATE_JOINER_NAME" "ASSIGN_TARGET_LATE_JOINER_NAME" §4.36 多人 |
+| 0x1418718B0 | "CHAT_ERROR_MUTEUNMUTE_SELF/CHAT_ERROR_U "CHAT_ERROR_MUTEUNMUTE_SELF/CHAT_ERROR_UNKNOWNUSER/CHAT_ERRO §4.36 多人 |
+| 0x14231FC40 | sub_14231FC40（无名） "join" / "host" 串，夹于 CMatchmakingGui::[4](d=8720)，匹配大厅 UI（加入/主机按钮） |
+
+#### 4.36.24 联机模式函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141335180 | 多人聊天 CHAT_USERJOINEDCHANNEL |
+| 0x1414848F0 | 成就路径串 "achievements/v..." + 内联串拼装 |
+
+#### 4.36.25 联机模式函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+
+#### 4.36.26 联机模式函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141677DD0 | 多人服务器游戏态序列化/广播（CServer→CNetworkServer/CProxyServer 分支 + 30× 网络写 + 递归×2） `_RTDynamicCast` CServer→CNetworkServer/CProxyServer；qword_14332F6A0 vtable+136；30× s… |
+
+#### 4.36.27 联机模式函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140DAAA90 | （无名） 调用图传播: 3 锚点投 §4.36（100%） |
+| 0x14231B370 | （无名） 调用图传播: 3 锚点投 §4.36（67%） |
+
+#### 4.36.28 联机模式函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141877980 | 多人大厅 UI 串 "playerlobby_chat"/"MULTIPLAYER_PLAYERS"/"start_button" → 多人大厅 UI |
+
+#### 4.36.29 联机模式函数补遗（16 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1403B8D80 | sub_1403B8D80 CServer::[20] + 字符串构建（网络/存档服务端处理） |
+| 0x141F5AA70 | sub_141F5AA70 多人信息窗口（multiplayer_info_window） |
+| 0x14191CEF0 | sub_14191CEF0 多人/存档确认界面与流程（session_persistence） |
+| 0x1415B9C70 | sub_1415B9C70 多人/存档确认界面与流程（default_confirmation_popup） |
+| 0x1424D98E0 | sub_1424D98E0 多人/存档确认界面与流程（Could not find all files） |
+| 0x141A2D800 | sub_141A2D800 多人/存档确认界面与流程（default_confirmation_popup） |
+| 0x1415BA000 | sub_1415BA000 多人/存档确认界面与流程（default_confirmation_popup） |
+| 0x14153DF10 | 域关键词匹配 sub_14153DF10 + 域关键词匹配; 被调源码 clausewitz; 被 CFriendsHandlerSteam::[18] 等 1 命名函数调用 |
+| 0x141F083D0 | sub_141F083D0 多人/存档确认界面与流程（default_confirmation_popup） |
+| 0x14239B970 | 同区段近邻 sub_142398720(距 0x3250)属 4.36 族 sub_14239B970 + 同区段近邻 sub_142398720(距 0x3250)属 4.36 族 |
+| 0x1423AFDF0 | 同区段近邻 sub_142398720(距 0x176D0)属 4.36 族 sub_1423AFDF0 + 同区段近邻 sub_142398720(距 0x176D0)属 4.36 族 |
+| 0x1411B4910 | 调用图上游传播(占 100%, 1 票) sub_1411B4910 + 调用图上游传播(占 100%, 1 票) |
+| 0x1423AE700 | 同区段近邻 sub_142398720(距 0x15FE0)属 4.36 族 sub_1423AE700 + 同区段近邻 sub_142398720(距 0x15FE0)属 4.36 族 |
+| 0x1423B7E30 | 同区段近邻 sub_142398720(距 0x1F710)属 4.36 族 sub_1423B7E30 + 同区段近邻 sub_142398720(距 0x1F710)属 4.36 族 |
+| 0x1411CA2E0 | 调用图上游传播(占 100%, 1 票) sub_1411CA2E0 + 调用图上游传播(占 100%, 1 票) |
+| 0x1423B8C60 | 同区段近邻 sub_142398720(距 0x20540)属 4.36 族 sub_1423B8C60 + 同区段近邻 sub_142398720(距 0x20540)属 4.36 族 |
+
+#### 4.36.30 联机模式函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1423B8E50 | （无名） 调用图传播: 2 锚点投 §4.36（100%） |
+| 0x141868150 | GUI：PEACE_WAITING_FOR_PLAYERS loc 键 PEACE_WAITING_FOR_PLAYERS/PLAYERS，和会等待玩家 |
+| 0x1402626E0 | 串 "IP: " 串 "IP: "，多人联机显示 |
+| 0x141302480 | CServer（例程） 调用 CServer::[19]，服务器槽方法 |
+| 0x1402DF400 | 无名 · "OLD_SAVEGAME"/"FE_IRONMAN_MP_BLOC "OLD_SAVEGAME"/"FE_IRONMAN_MP_BLOCKED" 存档校验键 |
+
+#### 4.36.31 联机模式函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141CE6E40 | （无名） 调用图传播: 2 锚点投 §4.36（50%） |
+| 0x141339D20 | （无名） 调用图传播: 3 锚点投 §4.36（100%） |
+
+#### 4.36.32 联机模式函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142318BE0 | 无名 sub_（断言站点/串定位） 串字面量 "MATCHMAKING_SERVER_NAME" |
+| 0x1426F2820 | 无名 sub_（断言站点/串定位） 断言站点 proxy_server.cpp:328 |
+| 0x142615EE0 | 无名 sub_（断言站点/串定位） 断言站点 gamelobby.cpp:1779 |
+| 0x142317FD0 | 无名 sub_（断言站点/串定位） 串字面量 "MATCHMAKING_SERVER_STATUS_STOPPED" |
+| 0x14231B2D0 | 无名 sub_（断言站点/串定位） 串字面量 "servers_tab" |
+
+#### 4.36.33 联机模式函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1415FFC90 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x1423B8D50 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x1423E27B0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x1423E1F00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x140526180 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x140D9AD00 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x1413AD6F0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x140526FC0 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x142369450 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x14231A150 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+| 0x1411BE410 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
+
+#### 4.36.34 联机模式函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1411B0440 | 无名 sub_（调用图定位） 调用图传播: 单锚点投 §4.36 |
