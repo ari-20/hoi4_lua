@@ -1267,3 +1267,22 @@ sub_1423E5D00 (getaddrinfo 包装): hints = {flags=0, family=AF_INET(2), socktyp
 | 0x1423EE1B0 | 业务 邻域 pdx_net_steam.cpp/CSteamNetContext::[4]/[8]/[3] x6 + (a1+1584) 4x0x48 注册 + sub_14022BD20 |
 | 0x14133E270 | 业务 串 CHAT_ERROR_UNKNOWNUSER/CHAT_ERROR_MUTEUNMUTE_SELF/CHAT_ERROR_MUTE_MISSINGARGS + NAME |
 | 0x1409B99F0 | 业务 divisionnamesdatabase.cpp:1369 x5 + CServer::[20]（0x1409BA730 孪生，同被调用集） |
+
+#### 4.36.43 联机模式函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142363210 | sub_142363210 业务 0x142 段 · 体级 vtable CServer 直证 |
+
+#### 4.36.44 联机模式函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142616050 | 游戏大厅云存档读取错误处理（gamelobby.cpp:2065）；路径锚: C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\gamelobby.cpp；vtable: std::ios_base；串: C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\… |
+
+#### 4.36.45 联机模式函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A31A00 | §4.36 多人 vftable: NFriendsHandler::CFriend |
+| 0x14132DFB0 | §4.36 多人 vftable: CPdxSocialPlayerId |

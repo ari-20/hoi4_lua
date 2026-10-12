@@ -2676,3 +2676,25 @@ SVertex (28B; PE 符号 `CPdxHybridInlineBufferAllocator<CBitmapFont::SVertex,51
 |---|---|
 | 0x1408519C0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:67`；lua 表 `NGraphics` 键 `FACTION_PING_MAP_GRADIENT`；sink `sub_142070630`；define 槽 `word_1433355D0` |
 | 0x140851DE0 | defines 读取器；`source\diplomacy\factions\faction_defines.h:65`；lua 表 `NGraphics` 键 `FACTION_PING_MAP_UNAVAILABLE_COLOR`；sink `sub_14074B2C0`；define 槽 `unk_1433… |
+
+#### 4.35.81 渲染 UI 体系函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402C7350 | 传播: 调用者链 2-3 跳内命名类 CMapSymbolDefinitionInstance(6), CSpriteType(5), CTextSprite(5) |
+
+#### 4.35.82 渲染 UI 体系函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141284F30 | sub_141284F30 业务 vtable: SPostEffectValuesReader |
+| 0x1416418B0 | sub_1416418B0 业务 vtable: CMaskedSpriteType |
+| 0x141646690 | sub_141646690 业务 vtable: CAmbientObjectType |
+| 0x1417B8490 | sub_1417B8490 业务 §4.35 渲染 CColor 颜色值类型 |
+| 0x141287DE0 | sub_141287DE0 业务 vtable: SPostEffectHeightVolumeReader |
+
+#### 4.35.83 渲染 UI 体系函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141277F00 | §4.35 渲染 vftable: CPdxMap; CLostDeviceInterface |

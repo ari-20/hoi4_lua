@@ -2905,3 +2905,25 @@ CReader 增补 (336B): +24 = 错误旗 (== 0 成功, :307 日志门) / +40 = CLe
 | VA | 语义/证据 |
 |---|---|
 | 0x14191F650 | 源文件锚 pdx_scoped_singleton.h / 类 CPersistedDesignsDb |
+
+#### 4.28.53 会话与身份注册块函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A336D0 | sub_140A336D0 业务 调用链类名 CGameRuleGroupView -> §4.28 |
+| 0x140A36940 | 传播: 调用者链 2-3 跳内命名类 CGameRuleGroupView(6), Reader(3), CInGameIdler(1) |
+| 0x140A369C0 | 传播: 调用者链 2-3 跳内命名类 ValidateLate(3), CGameRuleGroupView(2) |
+
+#### 4.28.54 会话与身份注册块函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140CE63F0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+
+#### 4.28.55 会话与身份注册块函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1402145C0 | sub_1402145C0 业务 §4.28 会话存档 对局统计键 playthrough_stats/checksum |
+| 0x140C93550 | ??_Gcritical_section@Concurrency@@QEAAPEAXI@Z_5 业务 同类方法定域 §4.28（类 CModuleCountLimit，1 件锚点） |
+| 0x14011D260 | unknown_libname_1 业务 游戏类 CPersistedDb vtable 槽（无同类定域）（类名关键词→§4.28） |

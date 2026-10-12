@@ -7033,3 +7033,127 @@ sub_1417C39E0(a1 视图, a2 COrdersGroup*, a3 横幅态 u8, a4 分组边界 u8) 
 | 0x142320470 | func_names 符号名 CLineChartType::[9] + VTABLE RTTI .?AVCLineChartType@@[slot9] |
 | 0x14232BB70 | func_names 符号名 CCurveGraph::[2] + VTABLE RTTI .?AVCCurveGraph@@[slot2] |
 | 0x14237BDB0 | VTNAME CScrollbarType\ CTernary\ CGuiType |
+
+#### 4.30.106 GUI 主视图与地图函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B231A0 | hop2: hop2 0x141B204A0 cpp:pdxmapborders.cpp |
+
+#### 4.30.107 GUI 主视图与地图函数补遗（21 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141AB0EE0 | sub_141AB0EE0 业务 调用链类名 CHeldOfficerWindow -> §4.30 |
+| 0x141AB3CC0 | sub_141AB3CC0 业务 调用链类名 CHeldOfficerWindow -> §4.30 |
+| 0x141FED2F0 | CCareerProfilePages::CreateTooltipHandlers::lambda_69 业务 CCareerProfilePages::CreateTooltipHandlers::lambda_69 |
+| 0x141E94A60 | sub_141E94A60 业务 调用链类名 CIntelLedgerResourceEntry -> §4.30 |
+| 0x141FE8C90 | CCareerProfilePages::CreateTooltipHandlers::lambda_10 业务 CCareerProfilePages::CreateTooltipHandlers::lambda_10 |
+| 0x141FEB050 | CCareerProfilePages::CreateTooltipHandlers::lambda_40 业务 CCareerProfilePages::CreateTooltipHandlers::lambda_40 |
+| 0x141FEB5A0 | CCareerProfilePages::CreateTooltipHandlers::lambda_45 业务 CCareerProfilePages::CreateTooltipHandlers::lambda_45 |
+| 0x141FEB6B0 | CCareerProfilePages::CreateTooltipHandlers::lambda_46 业务 CCareerProfilePages::CreateTooltipHandlers::lambda_46 |
+| 0x141FEBAF0 | CCareerProfilePages::CreateTooltipHandlers::lambda_4 业务 CCareerProfilePages::CreateTooltipHandlers::lambda_4 |
+| 0x141FEA5B0 | CCareerProfilePages::CreateTooltipHandlers::lambda_31 业务 CCareerProfilePages::CreateTooltipHandlers::lambda_31 |
+| 0x141FEAE30 | CCareerProfilePages::CreateTooltipHandlers::lambda_39 业务 CCareerProfilePages::CreateTooltipHandlers::lambda_39 |
+| 0x14159D950 | sub_14159D950 业务 调用链类名 CScriptedWindowTemplate -> §4.30 |
+| 0x14061CA90 | SRibbonForAchievement::[0] 业务 SRibbonForAchievement::[0] |
+| 0x1413BE5A0 | sub_1413BE5A0 业务 调用链类名 CPurchaseContractEntry -> §4.30 |
+| 0x1402F3370 | 传播: 调用者链 2-3 跳内命名类 GetDesc(53), BuildTooltip(9), CSubDoctrineTemplate(3) |
+| 0x1409E2830 | 传播: 调用者链 2-3 跳内命名类 CTopBar(3), CLandBorderWarCombat(2), CSetPinnedStrategicRegionCommand(2) |
+| 0x1411DACF0 | 传播: 调用者链 2-3 跳内命名类 CCountryIntelligenceAgencyView(1), CControlTrade(1) |
+| 0x14138C200 | 传播: 调用者链 2-3 跳内命名类 CNationalFocusView(7), ClearContents(2), Setup(2) |
+| 0x141436900 | 传播: 调用者链 2-3 跳内命名类 CIntelLedgerResourceEntry(3), CIntelLedgerCivilianPanelController(2) |
+| 0x141AAF130 | 传播: 调用者链 2-3 跳内命名类 CHeldOfficerWindow(2), CDivisionCommanderWindow(1), CShipCaptainWindow(1) |
+| 0x141F868B0 | 传播: 调用者链 2-3 跳内命名类 Reload(3), CEndGameView(3), CPlaythroughOverviewWindow(2) |
+
+#### 4.30.108 GUI 主视图与地图函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C26380 | sub_141C26380 业务 §4.30-§4.31 类方法(EAVCGui…) |
+| 0x141EF0A70 | sub_141EF0A70 业务 §4.30-§4.31 类方法(EAVCContainerWindow…) |
+| 0x141B3A060 | sub_141B3A060 业务 §4.30-§4.31 类方法(EAVCGameGui…) |
+| 0x141C18480 | sub_141C18480 业务 §4.30-§4.31 类方法(EAVCGameGui…) |
+| 0x141AD78D0 | sub_141AD78D0 业务 §4.30-§4.31 类方法(EAVCGameGui) |
+
+#### 4.30.109 GUI 主视图与地图函数补遗（42 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E67440 | sub_141E67440 业务 §4.30-§4.31 GUI CButtonEventDispatcher GUI 按钮事件 |
+| 0x14146C7C0 | sub_14146C7C0 业务 §4.30-§4.31 vtable: CTooltipHandler;NFactions::NUi::CFactionTabSection |
+| 0x141F8B7D0 | sub_141F8B7D0 业务 §4.30-§4.31 GUI CButtonEventDispatcher GUI 按钮事件 |
+| 0x141F865B0 | sub_141F865B0 业务 §4.30-§4.31 GUI CButtonEventDispatcher GUI 按钮事件 |
+| 0x140B7ABA0 | sub_140B7ABA0 业务 §4.30-§4.31 vtable: CButtonEventDispatcher;CDefaultConfirmationPopUpWindow |
+| 0x141FB3D40 | sub_141FB3D40 业务 §4.30-§4.31 vtable: CClickableStandardGridBoxItem<NIndustrialOrganisation::CSavedQueueItem> |
+| 0x1419B4AD0 | sub_1419B4AD0 业务 §4.30-§4.31 vtable: CTextBufferObserverGlue<CSettingsScreen> |
+| 0x141EC6EE0 | sub_141EC6EE0 业务 §4.30-§4.31 vtable: CEmptyEntryListBase<CIntelLedgerNavyPanelController::CLedgerShipHeaderEntry> |
+| 0x14177A5E0 | sub_14177A5E0 业务 §4.30-§4.31 vtable: CEmptyEntryListBase<NEquipmentDesigner::CEquipmentSpriteListItem> |
+| 0x14175A0E0 | sub_14175A0E0 业务 §4.30-§4.31 vtable: CEmptyEntryListBase<NDivisionDesigner::CNicheSelectionItem> |
+| 0x14182A220 | sub_14182A220 业务 §4.30-§4.31 vtable: CEmptyEntryListBase<COperationOverviewOperativeEntry> |
+| 0x141C2EDF0 | sub_141C2EDF0 业务 §4.30-§4.31 vtable: CEmptyEntryListBase<CDesignFolderListItem> |
+| 0x1418F46D0 | sub_1418F46D0 业务 §4.30-§4.31 GUI CEmptyEntryListBase GUI 空列表 |
+| 0x141905010 | sub_141905010 业务 §4.30-§4.31 GUI CEmptyEntryListBase GUI 空列表 |
+| 0x1402DE790 | ??_G?$codecvt@_WDU_Mbstatet@@@std@@MEAAPEAXI@Z_0 业务 §4.30-§4.31 GUI 其他业务（跨域单一实例） |
+| 0x142027AD0 | sub_142027AD0 业务 HOI4 游戏源码（hoi4/source 路径锚）｜锚: C:\\mnt\\gsg\\hoi4\\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x140081F60 | §4.30-§4.31 GUI str GFX_leader_details_icon_available_trait |
+| 0x14052FEE0 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\localization\formatter\formatted_localization.h |
+| 0x140AAB860 | §4.30-§4.31 GUI vt TGameItemDatabase<CScriptableLocalizationDatabase> |
+| 0x14149B560 | §4.30-§4.31 GUI vt CClickableStandardGridBoxItem<CDesignerEquipmentCr |
+| 0x14155F7C0 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x1416EB620 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x1416F8E60 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x141706470 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x14175E140 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x14177A680 | §4.30-§4.31 GUI vt CEmptyEntryListBase<NEquipmentDesigner::CNicheIcon |
+| 0x14177F030 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h |
+| 0x14177F430 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h |
+| 0x1417A3A60 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h |
+| 0x1418325C0 | §4.30-§4.31 GUI vt CEmptyEntryListBase<COperativesBottomBarEmptySlotI |
+| 0x1418AB400 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x1418E0920 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x1419059B0 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h |
+| 0x141B4D100 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\nudger\buildingsnudger.cpp |
+| 0x141C54570 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h |
+| 0x141C61CE0 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h |
+| 0x141D3E970 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x141E57690 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h |
+| 0x141E68990 | §4.30-§4.31 GUI path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h |
+| 0x141EA5DB0 | §4.30-§4.31 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\emptylists.h |
+| 0x141EB1490 | §4.30-§4.31 GUI vt CEmptyEntryListBase<CIntelLedgerArmyPanelControlle |
+| 0x14202CB90 | 空条目表 GUI 对象引用断言（emptylists.h 游戏源码锚）；路径锚: C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\emptylists.h；串: ( pItem->GetWindow() == nullptr \ \ pItem->GetWindow()->GetO… |
+
+#### 4.30.110 GUI 主视图与地图函数补遗（23 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1412A6C80 | sub_1412A6C80 业务 §4.30-§4.31 GUI 经验顶栏本地化键 CURRENT_EXPERIENCE_TOPBAR |
+| 0x14007E860 | sub_14007E860 业务 §4.30-§4.31 GUI 界面按钮名 btn_months/btn_years |
+| 0x14007E090 | sub_14007E090 业务 §4.30-§4.31 GUI 界面贴图 GFX_group_add_operative_anim |
+| 0x140081980 | sub_140081980 业务 §4.30-§4.31 GUI 界面按钮名 btn_stored/btn_consumed |
+| 0x1400819F0 | sub_1400819F0 业务 §4.30-§4.31 GUI 界面按钮名 btn_months/btn_years |
+| 0x140082780 | sub_140082780 业务 §4.30-§4.31 GUI 界面缩进常量名 INDENT |
+| 0x140082540 | §4.30-§4.31 GUI GFX_leader_details_icon_available_trait |
+| 0x1400827B0 | §4.30-§4.31 GUI GFX_mastery_progress_bar_bg |
+| 0x1413D3010 | §4.30-§4.31 GUI vftable: CEmptyEntryListBase<CTechnologyTreeTechItem>; CGenericEmptyEntryList<CTechnologyTreeTechItem> |
+| 0x1413D42D0 | §4.30-§4.31 GUI vftable: CEmptyEntryListBase<CTechnologyTreeLineSegmentItem> |
+| 0x1417525A0 | §4.30-§4.31 GUI vftable: CDiplomacyPopupWindowBase; CButtonEventDispatcher |
+| 0x14177A540 | §4.30-§4.31 GUI vftable: CEmptyEntryListBase<CDesignerEquipmentVariantItem> |
+| 0x141832610 | §4.30-§4.31 GUI vftable: COperativeBottomBar; CButtonEventDispatcher |
+| 0x141BF9080 | §4.30-§4.31 GUI GFX_commander_filter_all ; GFX_commander_filter_admiral |
+| 0x141DAFDD0 | §4.30-§4.31 GUI vftable: CEmptyEntryListBase<CProductionNameListItem> |
+| 0x141E56D50 | §4.30-§4.31 GUI vftable: CEmptyEntryListBase<CBiddingsPopupItem> |
+| 0x141E5E010 | §4.30-§4.31 GUI vftable: CAirTheatreGroupRowItem; CButtonEventDispatcher |
+| 0x141E6DF10 | §4.30-§4.31 GUI new_theater_group_button ; NEW_THEATER_GROUP |
+| 0x141EA5770 | §4.30-§4.31 GUI vftable: CEmptyEntryListBase<CIntelLedgerIdeaEntry> |
+| 0x141FE9400 | func_names 类 CCareerProfilePages; 类名关键词 CCareerProfilePages::Cre → §4.30 |
+| 0x141FE9D30 | func_names 类 CCareerProfilePages; 类名关键词 CCareerProfilePages::Cre → §4.30 |
+| 0x141FEB7C0 | func_names 类 CCareerProfilePages; 类名关键词 CCareerProfilePages::Cre → §4.30 |
+| 0x141FEBC00 | func_names 类 CCareerProfilePages; 类名关键词 CCareerProfilePages::Cre → §4.30 |
+
+#### 4.30.111 GUI 主视图与地图函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141DEA3C0 | ?_DeleteExceptionPtr@@YAXQEAV__ExceptionPtr@@@Z_18 业务 邻域 64KB 段票 §4.30 占 0.57（段内 44 票） |
+| 0x141915370 | 对象虚方法分发；形态: vtable 分发调用 + 邻域 20 票倾向 §4.30 |

@@ -211,8 +211,19 @@ PE COL（Complete Object Locator）指针, 且首槽是可执行代码地址;
    **库 release 构建的叶子内联区**, 逐函数定性无增量信息;
    但仍有 3945 函带体级证据（含 100KB+ 巨函数）, 这批须单独查,
    不能与库叶子混同跳过。
+   尾区无证据子集（52462 函, 逐函数无串无 vtable 无 RTTI, 300 函抽样
+   0 个含串、0 个 vtable、95% 体长 <20 行）的调用边指向进一步坐实库
+   归属: 200 函抽样 253 条边中 78 条指向 `sub_14011EBD0`
+   （std::string 析构, MSVC SSO 布局: 长 >15 时 free 堆缓冲并重置
+   cap=15）, 41 条指向 `sub_1401516C0`（容器/智能指针 reset, 经
+   vtable+16 释放持有对象）; 即尾区主体是 **STL 容器成员的叶子内联**
+   （string/vector 析构链）, 逐函数语义=库设施, 按区间作基础设施
+   处置, 仅带证据子集逐函数查。
 4. 已确认静态链接清单（PE 串证据）: SDL2 2.0.20 / GLEW / zlib（128 处）/
-   libpng / PHYSFS / LZMA / UNDNAME。判定基础设施归属时先核此清单。
+   libpng 1.6.16 / PHYSFS / LZMA / UNDNAME / Lua 5.4+luabind /
+   boost_1_84_0 / tbb / **FreeImage**（0x14244-0x14245, 9 函,
+   `FreeImage_SaveToHandle` 直调 + FIF 格式描述串 + EXIF/TIFF 兜底串,
+   i2 批新发现, 不在既有清单上）。判定基础设施归属时先核此清单。
 5. **<1KB 函数的传播失效**: 尾区小函数批的调用边可全部指向批外
    （实测一批 2111 函 4457 条边零内部边）, 被调用者传播定域法不可用;
    且小函数体常被剥离 assert 路径/vtable 符号/RTTI, 只剩少量带串者。

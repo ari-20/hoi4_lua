@@ -8500,3 +8500,31 @@ CGridBox 逐条填充 0x142066F90: 双迭代器同步推进 → _pSource 判空 
 | 0x140B78FF0 | VT CDefaultInfoPopUpWindow；调 sub_140B7D140/140B75D70/140B7AD20 + UI 原语 |
 | 0x141FE41B0 | 串 CAREER_PROFILE_STAT_PLAIN_NUMBER / VALUE；调 sub_142245E60（loc 串构造糖）+ sub_142039680/98B0 |
 | 0x14201F540 | 串 GFX_profile_picture_bg_default、GFX_profile_picture_bg_default_locked；调 CChoice<CSmoothListboxItem>::[3] |
+
+#### 4.31.172 GUI 行件与条目族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1422B6D20 | sub_1422B6D20 业务 0x142 段 · 体级 vtable CButtonEventDispatcher 直证 |
+
+#### 4.31.173 GUI 行件与条目族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141B371F0 | ??_G_Condition_variable@details@Concurrency@@QEAAPEAXI@Z_19 业务 调用图传播定域 |
+| 0x141BC0260 | ?_DeleteExceptionPtr@@YAXQEAV__ExceptionPtr@@@Z_13 业务 调用图弱传播定域 |
+| 0x141DD3860 | ?_DeleteExceptionPtr@@YAXQEAV__ExceptionPtr@@@Z_17 业务 调用图弱传播定域 |
+
+#### 4.31.174 GUI 行件与条目族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141E21540 | sub_141E21540 业务 §4.30-§4.31 vtable: CButtonEventDispatcher;CClickableStandardGridBoxItem<NTaskForceCompositionEditor::CSubUnitDefinition |
+
+#### 4.31.175 GUI 行件与条目族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1418DFD30 | §4.30-§4.31 GUI vftable: CEmptyEntryListBase<CIntelLedgerMapIcon::CAirMissionEntry> |
+| 0x1418DFDD0 | §4.30-§4.31 GUI vftable: CIntelLedgerMapIcon; CEmptyEntryListBase<CIntelLedgerMapIcon::CAirMissionEntry> |
+| 0x1418B3F50 | 邻域: 1418AD410 §4.31 w0.5 CWarFactionItem::[2]; 1418B14B0 §4.00 w0.5 _Func_impl_no_alloc<…>::[0]; 1418B14E0 §4.00 w0.5 std::_Func_impl_no_alloc<…>::[0] |

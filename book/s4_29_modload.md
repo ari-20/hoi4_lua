@@ -1113,3 +1113,11 @@ sub_142514C60 (目录归档 open): 目录存在性/类型判定 sub_1425148B0 (�
 | VA | 语义/证据 |
 |---|---|
 | 0x141AF95A0 | 脚本令牌序列化器: 令牌 id switch (0x167/0xD/0xE/0xF 等) + 字面量 yes / has_dlc = |
+
+#### 4.29.32 mod 装载与虚拟文件系统函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140499D60 | hop2: hop2 0x14049C860 cpp:equipment_effects.cpp |
+| 0x140499FE0 | hop2: hop2 0x14049C860 cpp:equipment_effects.cpp |
+| 0x14212C100 | callee 链: 0x1420C0DD0 串:Out of memory Error reading fr |

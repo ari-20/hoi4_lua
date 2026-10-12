@@ -816,3 +816,9 @@ SetId 双门 = 未注册才可改 (:377) / 新 id 槽可顶替零省占位 (:383
 | 0x141B4D490 | 业务 邻域 buildingsnudger.cpp x2 + gameitemdatabase.h:142 x2 + sub_1422C96A0 x8 + sub_14022B420 x5 |
 | 0x1409DC780 | 业务 串 "Tag specified several times:"/"Expected start of list" + 邻域 state.cpp x12/CState::AddTriggerDynamicVariable/CState::Reader |
 | 0x14129CBE0 | VT CBuildingReference；调 sub_141466A00/141299D60/140E868C0/140E866F0 |
+
+#### 4.13.34 CState 域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409D80D0 | 全局槽 dword_143339B60 → 4.13（frac 1.00, 权 4.0） |

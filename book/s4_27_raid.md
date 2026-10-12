@@ -1245,3 +1245,17 @@ CU = `hoi4\source\raids\ui\raid_instance_view.cpp`。**NRaids::NUi::CRaidInstanc
 | 0x1409956D0 | defines 读取器 raid_defines.h 表 NRaids 键 TARGET_INTEL_PER_NETWORK_STRENGTH |
 | 0x140995AF0 | defines 读取器 raid_defines.h 表 NRaids 键 THERMONUCLEAR_BOMB_MIN_DAMAGE_PERCENT |
 | 0x140995D00 | defines 读取器 raid_defines.h 表 NRaids 键 THERMONUCLEAR_BOMB_PRODUCTION_SCALE |
+
+#### 4.27.24 突袭族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140FE9980 | sub_140FE9980 业务 vtable: CCommandPowerAllocator;CReferenceObject;NRaids::CRaidInstance;TReferenceObject<NRaids::CRaidInstance |
+| 0x1406CEE10 | sub_1406CEE10 业务 vtable: CCountryOperationManager |
+| 0x141B39D50 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\raids\\ui\\raid_items.cpp |
+
+#### 4.27.25 突袭族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1418EAE80 | §4.27 突袭 vftable: NRaids::NUi::CRaidMapIconVariant; NRaids::NUi::CRaidTargetMapIconData |

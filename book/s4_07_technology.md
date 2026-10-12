@@ -1311,3 +1311,9 @@ SProjectHistory 条目 (a2, 88B):
 | 0x1411A9C80 | 业务 串 "No lead scientist assigned to the program"/"Invalid specialization"/"A facility view needs to be open" + ingameinterfacehandler.cpp:2716 |
 | 0x1404A2EB0 | NProject::CIsProjectBeingResearchedTrigger::GetDesc 业务 NProject::CIsProjectBeingResearchedTrigger::GetDesc（func_names 名 + 串 TRIGGER_IS_SPECIAL_PROJECT_BEING_… |
 | 0x1414678A0 | CU 同类簇: 邻接 1414654F0（NProject::CComplexity::[4]）/ 14146CAD4（NProject::NUi::CFilterEntryItem<…>::[1]） |
+
+#### 4.7.45 科技域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140EEA5E0 | 对象虚方法分发；形态: vtable 分发调用 + 邻域 42 票倾向 §4.7 |

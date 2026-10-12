@@ -1979,3 +1979,21 @@ CU = `hoi4\source\equipment\equipment_module_requirements.cpp`; 宿主类 **CEqu
 | 0x141D68B30 | vtable+728 调用 + a2+1160 源；caller 141D68B30 |
 | 0x141DD6400 | 串 designer_stat_entry；调 sub_141DD7170/1414A4620（设计师面板）+ sub_140129CA0（串帮手） |
 | 0x141F75DF0 | §4.23（装备市场） 串 "equipment_icon_default"/"equipment_icon_naval"；a2 vtable+136 取类型；a1[0..2] 三槽输出 |
+
+#### 4.23.53 装备市场域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141773160 | caller 链: 0x141791F50 cpp:装备设计器视图 |
+
+#### 4.23.54 装备市场域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14206CA80 | sub_14206CA80 业务 国际市场（NInternationalMarket）UI｜锚: INTERNATIONAL_MARKET_PRICE_LEVEL_LABEL |
+
+#### 4.23.55 装备市场域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141D91120 | ?_DeleteExceptionPtr@@YAXQEAV__ExceptionPtr@@@Z_16 业务 调用图传播 0.6/0.6 票 §4.23 |

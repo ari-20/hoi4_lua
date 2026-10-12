@@ -1110,3 +1110,16 @@ def+33 区分动态/静态目标路)。未决: 键 10283 真名 (vanilla 表 = d
 | 0x141213E90 | 邻域传播改判（锚 0x141219CC0 §4.12，距离 0x5E30）；跳点串 "_ThreadForbidCount == 0 && \"Current thread is forbidden to access gamestate\"" |
 | 0x141539740 | 游戏 CU 簇内: CEquipmentUpgrade::CUpgradeCost::Reader / CEventOption::Reader |
 | 0x141F9F8A0 | 邻域传播改判（锚 0x141FA2E30 §4.12，距离 0x3590）；跳点串 "Non-invasion order passed to invasion support goal" + 调用者 NAiNavalGoals::CObjectiveTypeTracker<…>::[1]@141ED2200 →… |
+
+#### 4.12.35 事件决议域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406F9470 | caller 链: 0x1406D3F00 cpp:事件域; 0x140D1D080 cpp:TGameItemDatabase; 0x141103030 cpp:外交行动 |
+
+#### 4.12.36 事件决议域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409F0910 | sub_1409F0910 业务 §4.12 装备生产 TGameItemDatabase 游戏数据库族 |
+| 0x141A00B80 | §4.12 装备生产 path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\equipment\create_equipment_variant_scheduler.cpp |

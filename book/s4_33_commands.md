@@ -4517,3 +4517,141 @@ BECOME_SPYMASTER_PP_COST; 派系领袖 +2104 写 tag。
 | 0x141A92A10 | §4.33（effect/trigger 脚本层） doc 串 "Gets the current game date as a long string."；名 "Scope" |
 | 0x141A98230 | §4.33（effect/trigger 脚本层） 串 "![MD]\nGets the name of the capital victory point of the state."；"GetCapitalVictoryPointName" |
 | 0x141D0DE60 | VTNAME CConfirmUnassignUnits + 串 "default_confirmation_popup" + SRC clausewitzlib/ref.h |
+
+#### 4.33.49 命令子类补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14116A8F0 | CDispatchNavalCombatResultsCommand::PayloadReader 业务 CDispatchNavalCombatResultsCommand::PayloadReader |
+
+#### 4.33.50 命令子类补遗（47 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140002640 | sub_140002640 业务 注册 id → 工厂 0x14022e8e0 (§4.33) |
+| 0x140075180 | sub_140075180 业务 注册 id → 工厂 0x14114fbf0 (§4.33) |
+| 0x140075360 | sub_140075360 业务 注册 id → 工厂 0x141150230 (§4.33) |
+| 0x1400753A0 | sub_1400753A0 业务 注册 id → 工厂 0x141150310 (§4.33) |
+| 0x140078BC0 | sub_140078BC0 业务 注册 id → 工厂 0x14134e3f0 (§4.33) |
+| 0x14007F780 | sub_14007F780 业务 注册 id → 工厂 0x141a261f0 (§4.33) |
+| 0x14007F7C0 | sub_14007F7C0 业务 注册 id → 工厂 0x141a262a0 (§4.33) |
+| 0x140080940 | sub_140080940 业务 注册 id → 工厂 0x141b9ea20 (§4.33) |
+| 0x140073110 | sub_140073110 业务 注册 id → 工厂 0x140db6c80 (§4.33) |
+| 0x140073250 | sub_140073250 业务 注册 id → 工厂 0x140de71c0 (§4.33) |
+| 0x140073310 | sub_140073310 业务 注册 id → 工厂 0x140de7450 (§4.33) |
+| 0x140073330 | sub_140073330 业务 注册 id → 工厂 0x140de74b0 (§4.33) |
+| 0x140074C00 | sub_140074C00 业务 注册 id → 工厂 0x14114e860 (§4.33) |
+| 0x140074EE0 | sub_140074EE0 业务 注册 id → 工厂 0x14114f2f0 (§4.33) |
+| 0x140074FA0 | sub_140074FA0 业务 注册 id → 工厂 0x14114f550 (§4.33) |
+| 0x140075120 | sub_140075120 业务 注册 id → 工厂 0x14114fab0 (§4.33) |
+| 0x140075240 | sub_140075240 业务 注册 id → 工厂 0x14114fe60 (§4.33) |
+| 0x140075260 | sub_140075260 业务 注册 id → 工厂 0x14114fed0 (§4.33) |
+| 0x140075280 | sub_140075280 业务 注册 id → 工厂 0x14114ff40 (§4.33) |
+| 0x1400752C0 | sub_1400752C0 业务 注册 id → 工厂 0x141150020 (§4.33) |
+| 0x140075500 | sub_140075500 业务 注册 id → 工厂 0x1411507e0 (§4.33) |
+| 0x140078E60 | sub_140078E60 业务 注册 id → 工厂 0x14134ed20 (§4.33) |
+| 0x140078FA0 | sub_140078FA0 业务 注册 id → 工厂 0x14134f190 (§4.33) |
+| 0x140079000 | sub_140079000 业务 注册 id → 工厂 0x14134f2e0 (§4.33) |
+| 0x1400790C0 | sub_1400790C0 业务 注册 id → 工厂 0x14134f550 (§4.33) |
+| 0x140079140 | sub_140079140 业务 注册 id → 工厂 0x141364cc0 (§4.33) |
+| 0x1400791E0 | sub_1400791E0 业务 注册 id → 工厂 0x141364ed0 (§4.33) |
+| 0x140079380 | sub_140079380 业务 注册 id → 工厂 0x141365490 (§4.33) |
+| 0x14007E2F0 | sub_14007E2F0 业务 注册 id → 工厂 0x1418401b0 (§4.33) |
+| 0x14007E350 | sub_14007E350 业务 注册 id → 工厂 0x1418402e0 (§4.33) |
+| 0x14007E390 | sub_14007E390 业务 注册 id → 工厂 0x1418403b0 (§4.33) |
+| 0x14007E410 | sub_14007E410 业务 注册 id → 工厂 0x1418405c0 (§4.33) |
+| 0x14007E430 | sub_14007E430 业务 注册 id → 工厂 0x141840630 (§4.33) |
+| 0x14007E6D0 | sub_14007E6D0 业务 注册 id → 工厂 0x141840fa0 (§4.33) |
+| 0x14007E770 | sub_14007E770 业务 注册 id → 工厂 0x1418411a0 (§4.33) |
+| 0x14007EC80 | sub_14007EC80 业务 注册 id → 工厂 0x1419449b0 (§4.33) |
+| 0x14007ECE0 | sub_14007ECE0 业务 注册 id → 工厂 0x141944b20 (§4.33) |
+| 0x14007ED20 | sub_14007ED20 业务 注册 id → 工厂 0x141944c00 (§4.33) |
+| 0x14007F300 | sub_14007F300 业务 注册 id → 工厂 0x1419a2aa0 (§4.33) |
+| 0x14007F840 | sub_14007F840 业务 注册 id → 工厂 0x141a26400 (§4.33) |
+| 0x14007F8A0 | sub_14007F8A0 业务 注册 id → 工厂 0x141a26530 (§4.33) |
+| 0x14007FAE0 | sub_14007FAE0 业务 注册 id → 工厂 0x141a7e640 (§4.33) |
+| 0x140080CC0 | sub_140080CC0 业务 注册 id → 工厂 0x141ba8cb0 (§4.33) |
+| 0x140080D00 | sub_140080D00 业务 注册 id → 工厂 0x141ba8d70 (§4.33) |
+| 0x140080D60 | sub_140080D60 业务 注册 id → 工厂 0x141ba8eb0 (§4.33) |
+| 0x140081DD0 | sub_140081DD0 业务 注册 id → 工厂 0x141e53b20 (§4.33) |
+| 0x140082140 | sub_140082140 业务 注册 id → 工厂 0x141ef3bc0 (§4.33) |
+
+#### 4.33.51 命令子类补遗（57 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140073750 | sub_140073750 业务 命令注册器→CSetOperationAutoCommenceCommand |
+| 0x140074C60 | sub_140074C60 业务 命令注册器→CChangeRailwayConstructionLeveLCommand |
+| 0x140075140 | sub_140075140 业务 命令注册器→CSetArmyLeaderPreferredTacticCommand |
+| 0x1400752A0 | sub_1400752A0 业务 命令注册器→CSetPreferredTacticCommand |
+| 0x1400753E0 | sub_1400753E0 业务 命令注册器→CSetSupplyCapitalNodeCommand |
+| 0x140075400 | sub_140075400 业务 命令注册器→CSetSupplyReinforcementPriorityCommand |
+| 0x14007F2E0 | sub_14007F2E0 业务 命令注册器→CSetIndustrialOrganisationTaskCommand |
+| 0x14007F9E0 | sub_14007F9E0 业务 命令注册器→CAiOnFailedInvasionCommand |
+| 0x1400026C0 | sub_1400026C0 业务 命令注册器→CSetCountryUpgradePriorityCommand |
+| 0x140073010 | sub_140073010 业务 命令注册器→CAddIndustrialOrgTraitToQueueCommand |
+| 0x140073090 | sub_140073090 业务 命令注册器→CMoveIndustrialOrgTraitInQueueCommand |
+| 0x1400730D0 | sub_1400730D0 业务 命令注册器→CSetAutoUpdateDesignsForIndustrialOrgCommand |
+| 0x140073210 | sub_140073210 业务 命令注册器→CAutosave |
+| 0x140073230 | sub_140073230 业务 命令注册器→CCheckSyncCommand |
+| 0x140073270 | sub_140073270 业务 命令注册器→CClientOutOfSyncCommand |
+| 0x140074B00 | sub_140074B00 业务 命令注册器→CAddProductionLineName |
+| 0x140074DE0 | sub_140074DE0 业务 命令注册器→CIgnoreDecisionCommand |
+| 0x140074EA0 | sub_140074EA0 业务 命令注册器→CProductionLineInterfaceToggleExpandAllCommand |
+| 0x140074F40 | sub_140074F40 业务 命令注册器→CRemoveAllConstructionCommand |
+| 0x140075020 | sub_140075020 业务 命令注册器→CRemoveShipRefitProductionLineCommand |
+| 0x140075080 | sub_140075080 业务 命令注册器→CReplaceIdeaCommand |
+| 0x140075160 | sub_140075160 业务 命令注册器→CSetContinuousFocusCommand |
+| 0x1400751C0 | sub_1400751C0 业务 命令注册器→CSetFuelPriorityCommand |
+| 0x140075300 | sub_140075300 业务 命令注册器→CSetProductionLineConvertCommand |
+| 0x140078D60 | sub_140078D60 业务 命令注册器→CNavalMissionSetTypeCommand |
+| 0x140078EA0 | sub_140078EA0 业务 命令注册器→CNavyRepairNowCommand |
+| 0x140078F00 | sub_140078F00 业务 命令注册器→CReorderNavalRepairQueue |
+| 0x140078FC0 | sub_140078FC0 业务 命令注册器→CSetFleetHomeBaseCommand |
+| 0x140079020 | sub_140079020 业务 命令注册器→CSetMaxAllowedRepairDockyards |
+| 0x140079040 | sub_140079040 业务 命令注册器→CSetMaxAllowedRepairFactoriesCommand |
+| 0x1400790E0 | sub_1400790E0 业务 命令注册器→CSetTaskForceCompositionRequirementsCommand |
+| 0x140079280 | sub_140079280 业务 命令注册器→CPromoteUnitLeaderCommand |
+| 0x14007E1F0 | sub_14007E1F0 业务 命令注册器→CEditAreaDefenseStateCommand |
+| 0x14007E250 | sub_14007E250 业务 命令注册器→CMoveArmyGroupInTheaterCommand |
+| 0x14007E290 | sub_14007E290 业务 命令注册器→COrderAssignCommand |
+| 0x14007E310 | sub_14007E310 业务 命令注册器→COrderDeleteAllCommand |
+| 0x14007E330 | sub_14007E330 业务 命令注册器→COrderDeleteChildFront |
+| 0x14007E3B0 | sub_14007E3B0 业务 命令注册器→COrderGroupCommand |
+| 0x14007E5D0 | sub_14007E5D0 业务 命令注册器→COrderSetPathCommand |
+| 0x14007E670 | sub_14007E670 业务 命令注册器→CRemoveNavalInvasionTargetCommand |
+| 0x14007EB80 | sub_14007EB80 业务 命令注册器→CSetQuickDeployPreferenceCommand |
+| 0x14007EBE0 | sub_14007EBE0 业务 命令注册器→CSetWingReinforcementPriorityCommand |
+| 0x14007EC20 | sub_14007EC20 业务 命令注册器→CStratAirChangeAggressivnessCommand |
+| 0x14007ED40 | sub_14007ED40 业务 命令注册器→CToggleBombingPriorityCommand |
+| 0x14007F380 | sub_14007F380 业务 命令注册器→CSetEquipmentVariantNameListCommand |
+| 0x14007F420 | sub_14007F420 业务 命令注册器→CSetUseDynamicVersionPositioningVariantCommand |
+| 0x14007F460 | sub_14007F460 业务 命令注册器→CUpdateEquipmentVariantCommand |
+| 0x14007F7A0 | sub_14007F7A0 业务 命令注册器→CDismissOperativeCommand |
+| 0x140080B00 | sub_140080B00 业务 命令注册器→CSetConveyorNameCommand |
+| 0x140080BC0 | sub_140080BC0 业务 命令注册器→CAddFactionProgramCommand |
+| 0x140080C20 | sub_140080C20 业务 命令注册器→CEraseFactionRuleCommand |
+| 0x140080C60 | sub_140080C60 业务 命令注册器→CFactionSetCommanderCommand |
+| 0x140080DA0 | sub_140080DA0 业务 命令注册器→CUpdateIntelligenceAdvisorSlotCommand |
+| 0x140082120 | sub_140082120 业务 命令注册器→CStopProjectCommand |
+| 0x140082520 | sub_140082520 业务 命令注册器→CResetGameRules |
+| 0x140078AD0 | sub_140078AD0 业务 命令注册器→CChatNewChannelCommand |
+| 0x140078B70 | sub_140078B70 业务 命令注册器→CChatUserLeftChannelCommand |
+
+#### 4.33.52 命令子类补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141BA74E0 | sub_141BA74E0 业务 vtable: CCommand;NFactions::CModifyFactionTheater |
+| 0x141B31F30 | unknown_libname_37 业务 vtable: CCommand |
+
+#### 4.33.53 命令子类补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140235A10 | §4.33 命令 Realistic AI is DISABLED ; Realistic AI is ENABLED |
+| 0x14029B5A0 | §4.33 命令 ImGui already initialized. Use 'imgui show' to enable a UI. ; ImGui initialized |
+| 0x14135DB20 | 邻域: 141355E80 §4.33 w0.5 CSetFleetIconAndColorCommand::Execut; 141355ED0 §4.33 w0.5 CSetFleetNameCommand::Execute; 141355F10 §4.1 w0.5 CSetMaxAllowedRepairDo… |
+| 0x14193CA70 | 邻域: 1419352C0 §4.8 w0.5 ; 1419382B0 §4.1 w0.5 CNavalProductionLine::[32]; 141938DE0 §4.8 w0.5 |
+| 0x14193CC10 | 邻域: 1419352C0 §4.8 w0.5 ; 1419382B0 §4.1 w0.5 CNavalProductionLine::[32]; 141938DE0 §4.8 w0.5 |
+| 0x14199FD50 | 邻域: 1419981F0 §4.33 w0.5 CRemovePlayerCommand::Execute; 141998FB0 §4.33 w0.5 CAddHumanCommand::GetTypeId; 141998FC0 §4.33 w0.5 CAddPlayerCommand::GetTypeId |

@@ -4497,3 +4497,55 @@ country.cpp Load 巨 switch 的 case **13809 instant_effect**: sub_14053CFD0(&�
 | 0x14034AEA0 | §4.33（effect/trigger 脚本层） func_names 名 CAddNamedThreatEffect::Execute；断言 gamestate.h:1116/1117；pdx_string +296（>0xF 取指针） |
 | 0x140370C50 | §4.33（effect/trigger 脚本层） func_names CAddAceEffect::GetDesc；串 "NAME"/"SURNAME"/"CALLSIGN"/"EFFECT_ADD_ACE"；eh vector 0x68×3 |
 | 0x141399D80 | §4.33（effect/trigger 脚本层） func_names 名 CFireEventEffect::ResolveReferences；串链表遍历；v2..v10 指针槽逐一解引用 |
+
+#### 4.32.55 脚本 effect/trigger 补遗卡（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14022D340 | sub_14022D340 业务 调用链类名 CScriptedEffectTemplateDatabase -> §4.32 |
+| 0x1415943B0 | CScriptableValue::[0] 业务 CScriptableValue::[0] |
+| 0x1402E40C0 | CSoundEffect::[0] 业务 CSoundEffect::[0] |
+
+#### 4.32.56 脚本 effect/trigger 补遗卡（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140AB5BC0 | 全局槽 unk_1430B05A8 → 4.32（frac 1.00, 权 1.0） |
+
+#### 4.32.57 脚本 effect/trigger 补遗卡（24 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14047A170 | sub_14047A170 业务 vtable: CIsFightingInWeatherTrigger::CIsArticWater;CIsFightingInWeatherTrigger::CIsBlizzard;CIsFightingInWea |
+| 0x14014AEE0 | sub_14014AEE0 业务 vtable: CScopedVariable |
+| 0x14014B120 | sub_14014B120 业务 vtable: CAndTrigger;CModifier;CStaticModifier |
+| 0x140021180 | sub_140021180 业务 vtable: CTriggerEntry<CHasAttacheTrigger> |
+| 0x1400211E0 | §4.32 effect/trigger vt CTriggerEntry<CHasAttacheFromTrigger> |
+| 0x1403B9BA0 | §4.32 effect/trigger path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\effects\effectimplementation.cpp |
+| 0x1403B9D20 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\effects\\effectimplementation.cpp |
+| 0x1403B9DE0 | §4.32 effect/trigger path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\effects\effectimplementation.cpp |
+| 0x1403B9FF0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\effects\\effectimplementation.cpp |
+| 0x1403BA0B0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\effects\\effectimplementation.cpp |
+| 0x1403BA170 | §4.32 effect/trigger path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\effects\effectimplementation.cpp |
+| 0x1403BA230 | §4.32 effect/trigger path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\effects\effectimplementation.cpp |
+| 0x1403DFD60 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\eventscope.h |
+| 0x1404B9560 | §4.32 effect/trigger path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\eventscope.h |
+| 0x1404C8D50 | §4.32 effect/trigger path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\script\collection\script_collection_input_impl.h |
+| 0x1404FDF30 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\eventscope.h |
+| 0x1404FF230 | §4.32 effect/trigger path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\eventscope.h |
+| 0x140523CA0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\eventscope.h |
+| 0x140524920 | §4.32 effect/trigger path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\eventscope.h |
+| 0x14072AC30 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\eventscope.h |
+| 0x140BDA7F0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1410CD860 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\eventscope.h |
+| 0x141411350 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\eventscope.h |
+| 0x141A39C70 | 双路径锚 clausewitzlib/ref.h + hoi4/source/eventscope.h |
+
+#### 4.32.58 脚本 effect/trigger 补遗卡（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140328EB0 | 邻域: 140320F50 §4.32 w0.5 CAddTechBonusEffect::GetDesc; 140321B50 §4.12 w0.5 CAddToTechnologySharingGroupEffect::; 140321D60 §4.32 w0.5 CInheritTechnologyEffe… |
+| 0x1403B82F0 | 邻域: 1403B0F50 §4.32 w0.5 CBecomeExiledGovernmentEffect::Parse; 1403B1070 §4.32 w0.5 CBuildRailwayEffect::ParseToken; 1403B11E0 §4.1 w0.5 CCancelBorderWar::Pa… |
+| 0x140723F40 | §4.32 effect/trigger vftable: CDecisionCategory::SOnMapLocator; CScriptTargets |
+| 0x140AABB10 | §4.32 effect/trigger vftable: CScriptableLocalization |

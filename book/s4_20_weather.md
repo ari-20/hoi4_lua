@@ -480,3 +480,45 @@ chance_increase.mud 双值高低; OOS 槽 72 区侧 getter VA; RNG 守卫对内�
 | 0x141B8E410 | 模板桩: 模板参数类名 CWeatherPositionEntry（高置信） |
 | 0x141B8E3C0 | 模板桩: 模板参数类名 CWeatherNudger（高置信） |
 | 0x141B8E370 | 模板桩: 模板参数类名 CWeatherEntry（高置信） |
+
+#### 4.20.26 天气族函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A702F0 | sub_140A702F0 业务 调用链类名 CResistanceComplianceMapIcon -> §4.20 |
+| 0x141EE2970 | sub_141EE2970 业务 调用链类名 CAiFrontImportanceMapModeConfig -> §4.20 |
+| 0x1412196F0 | sub_1412196F0 业务 调用链类名 CCountrySupplySystem -> §4.20 |
+| 0x1401579E0 | 传播: 调用者链 2-3 跳内命名类 CCountryStateView(4), CStateModifierMapIcon(1), SetSelection(1) |
+| 0x140B541A0 | 传播: 调用者链 2-3 跳内命名类 CSupplyNudger(3), CFrontEndIdler(1), CInGameIdler(1) |
+| 0x140F09340 | 传播: 调用者链 2-3 跳内命名类 CCurrentGameState(1), CGameState(1) |
+| 0x1413C1310 | 传播: 调用者链 2-3 跳内命名类 Execute(6), CCountryStateView(4), UpdateSupply(2) |
+
+#### 4.20.27 天气族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409D5720 | ?_DeleteExceptionPtr@@YAXQEAV__ExceptionPtr@@@Z_0 业务 §4.20-§4.24 传播定域 |
+
+#### 4.20.28 天气族函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141FAE450 | sub_141FAE450 业务 §4.20-§4.24 vtable: CBuildingStatEntry |
+| 0x14014FAE0 | sub_14014FAE0 业务 §4.20-§4.24 vtable: CPersistentReloadableGameItemDatabase<CStrategicLocationDatabase,CStrategicLocationTemplate,NDatabas |
+| 0x140AC1D10 | sub_140AC1D10 业务 §4.20-§4.24 路径锚 hoi4/source/vtable: TGameItemDatabase<CStrategicResourceDatabase> |
+| 0x140681F90 | sub_140681F90 业务 §4.20-§4.24 vtable: TGameItemDatabase<CBuildingDatabase> |
+| 0x140ABBFB0 | sub_140ABBFB0 业务 §4.20-§4.24 vtable: TGameItemDatabase<CStateDatabase> |
+| 0x1412193B0 | §4.20-§4.24 双路径锚 clausewitzlib/ref.h + hoi4/source/supply/supply_node_data.h |
+| 0x14132C500 | §4.20-§4.24 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1413C41D0 | §4.20-§4.24 地图州省份 vt TGameItemDatabase<CStateCategoryDatabase> |
+| 0x14175D860 | §4.20-§4.24 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x141EA2810 | §4.20-§4.24 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x141EA3690 | §4.20-§4.24 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+
+#### 4.20.29 天气族函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F8FAF0 | §4.20-§4.24 地图州省份 vftable: CResistance::SAddedResistanceTarget |
+| 0x14156F2C0 | §4.20-§4.24 地图州省份 OCCUPATION_STATE_OCCUPATION_INFO_NO_RESISTANCE ; OCCUPATION_STATE_OCCUPATION_INFO |
+| 0x1415A3D00 | §4.20-§4.24 地图州省份 vftable: CStrategicRegionTemplate |

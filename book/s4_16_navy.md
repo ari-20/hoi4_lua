@@ -2239,3 +2239,38 @@ sub_14197D770 (a1 = 交火成员侧对象): a1+8 = 父交火对象 / a1+28 = 载
 |---|---|
 | 0x141147310 | 源文件锚 countrycommands.cpp / 类 CSetNavalDeploymentTargetCommand |
 | 0x141E72170 | 源文件锚 emptylists.h / 类 CEmptyEntryListBase<CNavyTheaterFleetRowItem> |
+
+#### 4.16.58 海军域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140D499A0 | hop2: hop2 0x140D530E0 cpp:舰队 |
+| 0x141356C60 | caller 链: 0x141355060 cpp:海军指令 |
+
+#### 4.16.59 海军域函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141001D50 | sub_141001D50 业务 调用链类名 CNavalRegionDominance -> §4.16 |
+| 0x141EC55E0 | sub_141EC55E0 业务 调用链类名 CIntelLedgerNavyPanelController -> §4.16 |
+| 0x141AB1100 | sub_141AB1100 业务 调用链类名 CShipCaptainWindow -> §4.16 |
+| 0x141D44F60 | sub_141D44F60 业务 调用链类名 CShipRefitEquipmentItem -> §4.16 |
+| 0x140150850 | 传播: 调用者链 2-3 跳内命名类 Execute(16), Reader(8), CCoastDefenseObjective(4) |
+| 0x140150870 | 传播: 调用者链 2-3 跳内命名类 Reader(5), CTaskForce(2), Func_impl_no_alloc(2) |
+| 0x140AF7D80 | 传播: 调用者链 2-3 跳内命名类 CAIInteriorMinister(2), CTaskForce(1), CUnitCounterItem(1) |
+| 0x141938100 | 传播: 调用者链 2-3 跳内命名类 CNavalProductionLine(5), CMilitaryProductionLine(3), CRailwayGunProductionLine(2) |
+
+#### 4.16.60 海军域函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14134AA10 | sub_14134AA10 业务 vtable: CColor;CTaskForceIdentity |
+| 0x141975280 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\naval\\naval_fire_exchange_member.cpp |
+
+#### 4.16.61 海军域函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14006CB60 | sub_14006CB60 业务 §4.16 海军 舰队名回退 FLEET_NAME |
+| 0x140FB2C60 | §4.16 海军 NAVAL_DETECTION_CHANCE_DETAILS_SUB_DET |
+| 0x14161A810 | §4.16 海军 vftable: CNavalCombatant |

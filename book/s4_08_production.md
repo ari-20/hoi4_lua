@@ -1791,3 +1791,9 @@ sub_141932000 (资源 → 生产成本惰性构造表): vec@a1+8 {data@+8, count
 | 0x141F244C0 | NIndustrialOrganisation::COpenRosterButtonForPoliticalScreen::[0] 业务 游戏类 vtable 槽（NIndustrialOrganisation::COpenRosterButtonForPoliticalScreen） |
 | 0x140A93160 | caller 140A94360/140A94E30 ← NProject::CProjectTemplate::[7]/::[4]（2/2 同类） |
 | 0x140F48AD0 | memcpy；调 CProductionLine::[14] + sub_140BC3180/14072B2D0/140C89230/140BF9660；0 调用者 |
+
+#### 4.8.54 生产建筑域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x142024100 | sub_142024100 业务 0x142 段 · 体级 vtable NIndustrialOrganisation::CUnlockTraitPopup 直证 |

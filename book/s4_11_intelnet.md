@@ -1940,3 +1940,48 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 | 0x141959DC0 | NOperativeMissions::CQuietIntelNetwork::[0] 业务 NOperativeMissions::CQuietIntelNetwork::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
 | 0x14195AB70 | NOperativeMissions::CRootOutResistance::[0] 业务 NOperativeMissions::CRootOutResistance::scalar deleting destructor（体级 vtable 赋值；与 std::_Ref_count_* 符号 ICF 碰撞） |
 | 0x140FC3D00 | VT NOperativeMissions::CNoMission；j_j__malloc_base；调 0x14195 段九函数（任务对象簇） |
+
+#### 4.11.59 情报间谍域函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14152B6B0 | sub_14152B6B0 业务 调用链类名 CEquipmentModule -> §4.11 |
+| 0x140641090 | sub_140641090 业务 调用链类名 COrganisationDatabase -> §4.11 |
+| 0x141F6EEF0 | AEAVCToolTip::_NAEBVCEquipmentRoleIconEntry::Z::_Func_impl_no_a…::[3] 业务 AEAVCToolTip::_NAEBVCEquipmentRoleIconEntry::Z::_Func_impl_no_a…::[3] |
+| 0x14152C200 | sub_14152C200 业务 调用链类名 CEquipmentModule -> §4.11 |
+| 0x1401AC6A0 | 传播: 调用者链 2-3 跳内命名类 Execute(10), CTechnologyStatus(1) |
+| 0x140643110 | 传播: 调用者链 2-3 跳内命名类 CEquipmentDesignerView(2), CDeploymentStatus(1) |
+| 0x140B7AF60 | 传播: 调用者链 2-3 跳内命名类 CResearchFinishedPopUpWindow(3), CResearchSlotItem(3), CEquipmentDesignerView(1) |
+| 0x141019E50 | 传播: 调用者链 2-3 跳内命名类 CEquipmentDesignerView(3), CSubUnitSimpleEntry(2), CTaskForce(2) |
+| 0x1411FB230 | 传播: 调用者链 2-3 跳内命名类 CControlTrade(9), CCountryTradeFlagItem(2), CTradeCountryItem(2) |
+| 0x141D12EA0 | 传播: 调用者链 2-3 跳内命名类 COrganisationTreeWindow(5), PreSetup(4), CUnitLeaderTraitWindow(2) |
+| 0x141EFBCF0 | 传播: 调用者链 2-3 跳内命名类 CTechnologyInfoWindow(1), CDetailedOutputItem(1) |
+
+#### 4.11.60 情报间谍域函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140A92D00 | sub_140A92D00 业务 §4.11-§4.15 vtable: NProject::CNarrative;NProject::CPrototypeReward |
+| 0x140BD3B80 | sub_140BD3B80 业务 §4.11-§4.15 vtable: NIndustrialOrganisation::CTraitBonus |
+| 0x140150000 | sub_140150000 业务 §4.11-§4.15 vtable: TGameItemDatabase<CEquipmentGroupDatabase>;TReloadableGameItemDatabase<CEquipmentGroupDatabase> |
+| 0x1419A2FD0 | sub_1419A2FD0 业务 §4.11-§4.15 vtable: CEquipmentUpgradesInstance;CUpdateEquipmentVariantCommand;NIndustrialOrganisation::CTraitBonus |
+| 0x140B99160 | §4.11-§4.15 经济生产 str DESIGNER_COMPOSITION_VALUE |
+| 0x140DB4AE0 | §4.11 经济生产 vt NIndustrialOrganisation::STraitId |
+| 0x1411720B0 | §4.11-§4.15 经济生产 str CONSTRUCTION_CHECK_IMPASSABLE |
+| 0x141172AD0 | §4.11-§4.15 经济生产 str CONSTRUCTION_CHECK_MAXLEVEL |
+| 0x141926840 | §4.11 经济生产 vt NIndustrialOrganisation::STraitId |
+| 0x141F8C2A0 | §4.11-§4.15 经济生产 str INTERNATIONAL_MARKET_CONTRACT_FILTER_ALL |
+
+#### 4.11.61 情报间谍域函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140BCB880 | sub_140BCB880 业务 §4.11-§4.15 经济生产 生产材料本地化键 PRODUCTION_MATERIALS_ |
+| 0x140A4A7F0 | sub_140A4A7F0 业务 §4.11-§4.15 经济生产 军工组织同源键 same_as_mio |
+| 0x140A40190 | §4.11-§4.15 经济生产 vftable: CTechnologyTemplate |
+| 0x140BCCE90 | §4.11-§4.15 经济生产 vftable: CEquipmentStats |
+| 0x140D88F90 | §4.11-§4.15 经济生产 vftable: CGregorianDate; CTechnologySharing |
+| 0x140F9E410 | §4.11-§4.15 经济生产 vftable: CScientist; CModifier |
+| 0x1413BF190 | §4.11-§4.15 经济生产 PURCHASE_CONTRACT_SUNK_PROGRESS |
+| 0x1413C7510 | §4.11-§4.15 经济生产 vftable: NDoctrines::STemporaryCostReduction |
+| 0x141C32550 | §4.11-§4.15 经济生产 vftable: NCountryStatTracking::CConstructedBuildingsTracker |

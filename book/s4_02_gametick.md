@@ -1048,3 +1048,16 @@ sub_1401A8B10 = E9 thunk → sub_140B711F0 (三步 = `(manager+48)->vt+128` 显�
 | 0x141B4E0D0 | §4.2（CGameState/CCountry） gamestate.h:1125/1126 断言门；a1+264/+256/+240/+248 四重门；qword_14332F698 vtable+128 |
 | 0x141D2B7F0 | §4.2（CGameState/CCountry） +4008 vtable+584 判定；+165 旗 &8；断言 gamestate.h:1125/1126；sub_141D285D0/sub_141D2CF10 |
 | 0x141E15C60 | §4.2（CGameState/CCountry） a1+2804 门；a3+1200 串对 sub_14221F310；sub_140D6EEB0(a3)+12 取值；*a5 += v11 |
+
+#### 4.2.36 游戏时序与控制台通道补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406DECD0 | §4.2-§4.9 核心 path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\geography\country.cpp |
+| 0x140CCEF50 | §4.2-§4.9 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+
+#### 4.2.37 游戏时序与控制台通道补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141387140 | sub_141387140 业务 §4.2-§4.9 核心 核心值类型(CColor) |

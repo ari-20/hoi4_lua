@@ -12218,3 +12218,93 @@ case 14 与 0x140F3A680 case 9 均经此槽取省容器; 与 vt[0]/[1] 的 id→
 | 0x1414966B0 | sub_1414966B0 业务 设施锚/production_bonus.cpp |
 | 0x141F57380 | sub_141F57380 业务 类/CFileIntegrityWatermark |
 | 0x141F2EDC0 | sub_141F2EDC0 业务 类/CNavalLicenseEntry |
+
+#### 4.1.54 CGameState 派发族与门控函数补遗（5 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1423E71D0 | sub_1423E71D0 业务 CCallbackImpl 回调 |
+| 0x1409E2650 | sub_1409E2650 业务 CGameState 单例访问 |
+| 0x1409E2450 | sub_1409E2450 业务 CGameState 单例访问 |
+| 0x1409E2270 | sub_1409E2270 业务 CGameState 单例访问 |
+| 0x141B68320 | sub_141B68320 业务 CColor 颜色对象/渲染 |
+
+#### 4.1.55 CGameState 派发族与门控函数补遗（11 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141698A60 | sub_141698A60 业务 调用链类名 CInGameIdler -> §4.1 |
+| 0x1409D4280 | sub_1409D4280 业务 调用链类名 CInGameIdler -> §4.1 |
+| 0x140B3BE50 | sub_140B3BE50 业务 调用链类名 CInGameIdler -> §4.1 |
+| 0x140221640 | sub_140221640 业务 调用链类名 CFrontEndIdler -> §4.1 |
+| 0x141299410 | sub_141299410 业务 调用链类名 CInGameIdler -> §4.1 |
+| 0x1401613B0 | CMapIdler::[16] 业务 CMapIdler::[16] |
+| 0x14014D0D0 | 传播: 调用者链 2-3 跳内命名类 GetDesc(12), CFrontEndIdler(11), CInGameIdler(11) |
+| 0x140643E80 | 传播: 调用者链 2-3 跳内命名类 InitFriendsHandler(1), CGameApplication(1) |
+| 0x140DFD160 | 传播: 调用者链 2-3 跳内命名类 CInGameIdler(1), Z(1), Func_impl_no_alloc(1) |
+| 0x141275D70 | 传播: 调用者链 2-3 跳内命名类 CFrontEndIdler(1), CInGameIdler(1), CNudgeIdler(1) |
+| 0x14188B150 | 传播: 调用者链 2-3 跳内命名类 CInGameIdler(6), Execute(2) |
+
+#### 4.1.56 CGameState 派发族与门控函数补遗（8 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141535A30 | sub_141535A30 业务 体级类名 CPdxArray → §4.1 |
+| 0x140078A70 | sub_140078A70 业务 注册 id → 工厂 0x14131aaf0 (§4.1) |
+| 0x140073130 | sub_140073130 业务 注册 id → 工厂 0x140db6cf0 (§4.1) |
+| 0x140073290 | sub_140073290 业务 注册 id → 工厂 0x140de72b0 (§4.1) |
+| 0x140073370 | sub_140073370 业务 注册 id → 工厂 0x140de75a0 (§4.1) |
+| 0x140079120 | sub_140079120 业务 注册 id → 工厂 0x14134f6c0 (§4.1) |
+| 0x14007E4B0 | sub_14007E4B0 业务 注册 id → 工厂 0x141840850 (§4.1) |
+| 0x140129B80 | sub_140129B80 业务 体级类名 CVirtualFile → §4.1 |
+
+#### 4.1.57 CGameState 派发族与门控函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140556940 | 全局槽 unk_143086E80 → 4.1（frac 1.00, 权 1.0） |
+
+#### 4.1.58 CGameState 派发族与门控函数补遗（26 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401EB400 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.cpp |
+| 0x1406666A0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1406F0590 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140BB3620 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140BB4270 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140BF9490 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140BFCE20 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140D3F730 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140E26170 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140E7EAC0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140EA8C00 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x140EE3210 | 双路径锚 clausewitzlib/ref.h + hoi4/source/gamestate.h |
+| 0x1410A8FF0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1410DACF0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1412C7F00 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x14147DCB0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x141515C70 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x141665E60 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x14166B160 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1416983C0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1416EEB20 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1416EF050 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1419B0A30 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x141A1F4F0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x141BFE330 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x141F27F80 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+
+#### 4.1.59 CGameState 派发族与门控函数补遗（9 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1401C15C0 | 邻域: 1401BC6F0 §4.1 w0.5 CGameState::DoCareerProfileHourlyUpd; 1401BE060 §4.23 w0.5 ; 1401C0C50 §4.1 w1.0 |
+| 0x1401C1EB0 | 邻域: 1401BC6F0 §4.1 w0.5 CGameState::DoCareerProfileHourlyUpd; 1401BE060 §4.23 w0.5 ; 1401C0C50 §4.1 w1.0 |
+| 0x1401C3C40 | 邻域: 1401BC6F0 §4.1 w0.5 CGameState::DoCareerProfileHourlyUpd; 1401BE060 §4.23 w0.5 ; 1401C0C50 §4.1 w0.5 |
+| 0x1406D0590 | 邻域: 1406C89E0 §4.1 w0.5 ; 1406CEA98 §4.1 w1.0 CCustomizableBuildingCollection::[1]; 1406CEAB0 §4.1 w1.0 CCapturedOperativeReference::[0] |
+| 0x140DCCF40 | 邻域: 140DC5140 §4.1 w0.5 CInGameIdler::[0]; 140DC514C §4.1 w0.5 CInGameIdler::[0]; 140DC5160 §4.1 w0.5 CPdxHybridInlineBufferAllocator<H::$ |
+| 0x140DDCF70 | 邻域: 140DD6920 §4.1 w0.5 CInGameIdler::[73]; 140DD8320 §4.1 w0.5 CInGameIdler::[98]; 140DD8330 §4.1 w0.5 CInGameIdler::[77] |
+| 0x140F72300 | 邻域: 140F6A510 §4.1 w0.5 CBuildingProductionLine::[27]; 140F6A6E0 §4.1 w0.5 CBuildingProductionLine::CreateNewId; 140F6C860 §4.1 w0.5 CBuildingProductionLine:… |
+| 0x140F74F80 | 邻域: 140F6E0D0 §4.1 w0.5 CBuildingProductionLine::[8]; 140F6E190 §4.1 w0.5 CBuildingProductionLine::[26]; 140F6E1C0 §4.29 w0.5 CBuildingProductionLine::Reader |
+| 0x140F76BD0 | 邻域: 140F6ECA0 §4.1 w0.5 CMilitaryProductionLine::[8]; 140F6ECF0 §4.1 w0.5 CMilitaryProductionLine::[23]; 140F6EEB8 §4.1 w0.5 CNavalProductionLine::[1] |

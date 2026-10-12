@@ -2052,3 +2052,55 @@ a4 > size 钳位 + begin > size 抛 out_of_range。遗留: qword_1435BA038 字�
 |---|---|
 | 0x141509920 | 源文件锚 gamestate.h / 类 CArmyUpgradesRequests |
 | 0x14155C1B0 | 源文件锚 emptylists.h / 类 CEmptyEntryListBase<COccupiedTerritoryStateEntryWithoutResistance> |
+
+#### 4.18.55 陆军师族函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409BB240 | caller 链: 0x1409C1B30 cpp:师名数据库 |
+
+#### 4.18.56 陆军师族函数补遗（17 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1414BEFE0 | sub_1414BEFE0 业务 调用链类名 COrdersGroup -> §4.18 |
+| 0x140A6C820 | sub_140A6C820 业务 调用链类名 CDesignerDivisionSlotItem -> §4.18 |
+| 0x14015E850 | TReloadableGameItemDatabase<COperationsDatabase>::[1] 业务 TReloadableGameItemDatabase<COperationsDatabase>::[1] |
+| 0x1402A75F0 | sub_1402A75F0 业务 调用链类名 CAIMilitaryMinister -> §4.18 |
+| 0x140AE8080 | sub_140AE8080 业务 调用链类名 CUnitLeaderTraitTreeItem -> §4.18 |
+| 0x141E905C0 | sub_141E905C0 业务 调用链类名 CPlaneTypeSelectionEntry -> §4.18 |
+| 0x1401A5250 | 传播: 调用者链 2-3 跳内命名类 CSubDoctrineTemplate(2), Func_impl_no_alloc(1) |
+| 0x14032DC00 | 传播: 调用者链 2-3 跳内命名类 CQuickWingDeployUIContro(2), CPolicy(1), CListController(1) |
+| 0x1406F7670 | 传播: 调用者链 2-3 跳内命名类 Execute(6), Reader(3), CDivisionNamesContainer(2) |
+| 0x140700280 | 传播: 调用者链 2-3 跳内命名类 CUnit(3), Execute(3), CInGameIdler(2) |
+| 0x140B7CC70 | 传播: 调用者链 2-3 跳内命名类 CPlaneTypeSelectionWindow(3), Update(3) |
+| 0x140C515B0 | 传播: 调用者链 2-3 跳内命名类 Execute(3), CAirBase(2), CLandBorderWarCombat(1) |
+| 0x140C69970 | 传播: 调用者链 2-3 跳内命名类 CCancelForeignManpowerAction(6), CRequestForeignManpowerAction(5), CFactionArmySection(3) |
+| 0x140E9D990 | 传播: 调用者链 2-3 跳内命名类 Reader(3), COrdersGroup(2) |
+| 0x141496490 | 传播: 调用者链 2-3 跳内命名类 CProductionLineMilitaryItem(2), CProductionResourceItem(2), CNavalProductionLine(2) |
+| 0x141AA9D00 | 传播: 调用者链 2-3 跳内命名类 CArmyLeaderWindow(1), CCapturedArmyLeaderWindow(1), CFactionCommanderWindow(1) |
+| 0x141E7FEB0 | 传播: 调用者链 2-3 跳内命名类 CUnitsStackMapIcon(6), CAirBaseMapIcon(5), CRocketSiteMapIcon(5) |
+
+#### 4.18.57 陆军师族函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141016F40 | sub_141016F40 业务 vtable: CModifier;CSubUnitDefinitionId |
+| 0x141962AE0 | sub_141962AE0 业务 vtable: SDamageEntry |
+| 0x140AE1A80 | sub_140AE1A80 业务 §4.18 陆军军事 TGameItemDatabase 游戏数据库族 |
+| 0x14014F460 | §4.18 陆军军事 vt CPersistentReloadableGameItemDatabase<NDoctrines:: |
+| 0x140F73360 | §4.18 陆军军事 vt CAirMission::SLogisticsStrikeTarget |
+| 0x141188CB0 | §4.18 陆军军事 str LEADER_WITHDRAW_CONFIRM_DESC_HEADER |
+| 0x1413C73E0 | §4.18 陆军军事 vt NDoctrines::SDoctrineEquipmentBonusHandle |
+| 0x1413CCC30 | §4.18 陆军军事 str SUBDOCTRINE_ALREADY_ASSIGNED |
+| 0x141763FA0 | §4.18 陆军军事 path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\interfaces\designer\divisiondesignerview.cpp |
+| 0x14196ECE0 | §4.18 陆军军事 vt CFEXMember::SReceivedDamageData |
+
+#### 4.18.58 陆军师族函数补遗（4 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x14006CB00 | sub_14006CB00 业务 §4.18 陆军军事 空军联队名回退 AIR_WING_NAME_FALLBACK |
+| 0x140CD8E10 | §4.18 陆军军事 vftable: NCombatLog::CStatsObserver::SCombatSideData::SModifierHours |
+| 0x14102B000 | §4.18 陆军军事 vftable: COrderInstance::SChildFrontData |
+| 0x1416F2920 | §4.18 陆军军事 COMBAT_LOG_BATTLE_PART_COUNTRIES |

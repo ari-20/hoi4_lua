@@ -1017,3 +1017,18 @@ SControlGroupData (32B):
 | 0x1410B92D0 | CU 同类簇: 邻接 1410B4C40（CAIMilitaryMinister::[0]）/ 1410BBB80（CAIMilitaryMinister::[14]） |
 | 0x141EE1DA0 | CU 同类簇: 邻接 141EE1B20（CAiFrontImportanceMapModeConfig::[0]）/ 141EE2240（CAiFrontImportanceMapModeConfig::[3]） |
 | 0x1420791D0 | CU 同类簇: 邻接 142075E70（CDLCDescriptor::[0]）/ 142079C00（CDLCDescriptor::[7]） |
+
+#### 4.25.35 世界层全局对象函数补遗（3 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1409E18D0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1409E1AB0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+| 0x1414F95B0 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\gamestate.h |
+
+#### 4.25.36 世界层全局对象函数补遗（2 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1406F1710 | sub_1406F1710 业务 §4.25 世界变量 得分计算本地化键 SCORE_CALC/NUM_PROV |
+| 0x14118A4A0 | §4.25 世界变量 AIR_POWER_PROJECTION ; NAVAL_POWER_PROJECTION |

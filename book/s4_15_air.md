@@ -1093,3 +1093,9 @@ CU = `hoi4\source\airutil.cpp`。八函身份表:
 | 0x140C50B80 | 业务 邻域 strategicair.cpp x27 + production.cpp:3760 + strategicair.cpp:3697 + gamestate.h:1116 |
 | 0x141CF1100 | CU 同类簇: 邻接 141CF0640（NAirSelectionUI::NQuickWingDeployment::C）/ 141CF33D0（NAirSelectionUI::CAirWingEntry::[1]） |
 | 0x140C42430 | CU 同类簇: 邻接 140C3F6E0（CStrategicAir::GatherIntermediateOperati）/ 140C43FC1（CStrategicAir::GatherIntermediateOperati） |
+
+#### 4.15.44 空军域函数补遗（1 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140F66BE0 | caller 链: 0x140F661E0 cpp:空军联队 |

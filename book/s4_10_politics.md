@@ -3486,3 +3486,41 @@ define 配对 (defines_map_1193 逐项核):
 | 0x141E467F0 | 源文件锚 emptylists.h / 类 CEmptyEntryListBase<CPeaceAvailableActionItem> |
 | 0x141AFAE90 | 自文档串 "idea_token = " (idea 令牌序列化输出) |
 | 0x141C4EE80 | 源文件锚 null_object.h / 类 CPoliticalIdeasWindow |
+
+#### 4.10.69 政治外交域函数补遗（6 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x1413244E0 | sub_1413244E0 业务 调用链类名 CCountryAI -> §4.10 |
+| 0x1401F4FF0 | 传播: 调用者链 2-3 跳内命名类 CreateDynamicVariables(9), Reader(4), CAIGeneral(3) |
+| 0x14071DB30 | 传播: 调用者链 2-3 跳内命名类 Reader(3), CIdea(3) |
+| 0x140C18E30 | 传播: 调用者链 2-3 跳内命名类 GetDetectionChance(2), CCountryBased(2) |
+| 0x140FC9E30 | 传播: 调用者链 2-3 跳内命名类 Execute(12), ExecuteActual(2), CAttacheRelation(2) |
+| 0x1415F0A80 | 传播: 调用者链 2-3 跳内命名类 Execute(4), CCreateFactionAction(1), CDismantleFactionAction(1) |
+
+#### 4.10.70 政治外交域函数补遗（10 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x140E54C10 | sub_140E54C10 业务 vtable: CModifier;CPowerBalance |
+| 0x140BA7650 | sub_140BA7650 业务 vtable: CTimedIdea |
+| 0x140A85B90 | sub_140A85B90 业务 vtable: CCountryPortraits;CPoliticalPortraitPool |
+| 0x140A40110 | sub_140A40110 业务 §4.10 政治外交 TGameItemDatabase 游戏数据库族 |
+| 0x140A806D0 | unknown_libname_22 业务 vtable: TGameItemDatabase<COpinionModifierDatabase> |
+| 0x14002FBF0 | sub_14002FBF0 业务 脚本令牌 autonomy_free |
+| 0x14014EDE0 | §4.10 政治外交 vt CPersistentReloadableGameItemDatabase<NFactions::C |
+| 0x141186130 | §4.10 政治外交 str FACTION_UPGRADE_NOT_ENOUGH_INITIATIVE |
+| 0x141983D80 | 路径锚 "C:\mnt\gsg\hoi4\hoi4_merged\\hoi4\\source\\diplomacy\\warscore_distribution.cpp |
+| 0x1419E7CF0 | §4.10 政治外交 path C:\mnt\gsg\hoi4\hoi4_merged\hoi4\source\interfaces\peaceconference\peaceuihelper.cpp |
+
+#### 4.10.71 政治外交域函数补遗（7 函）
+
+| VA | 语义/证据 |
+|---|---|
+| 0x141C3F6D0 | sub_141C3F6D0 业务 §4.10 政治外交 武官名单本地化键 ATTACHE_LIST |
+| 0x141C9B2B0 | sub_141C9B2B0 业务 §4.10 政治外交 外交回复本地化键 diplo_repl |
+| 0x140D1CF40 | sub_140D1CF40 业务 §4.10 政治外交 被背叛保证键 betrayed_guarantee |
+| 0x14002FBB0 | sub_14002FBB0 业务 §4.10 政治外交 附庸吞并键 autonomy_annex |
+| 0x141C9A7B0 | ?_DeleteExceptionPtr@@YAXQEAV__ExceptionPtr@@@Z_14 业务 游戏类 CDiplomacyDefaultScrip vtable 槽（无同类定域）（类名关键词→§4.10） |
+| 0x140BBE710 | §4.10 政治外交 vftable: CPeaceConferenceManager |
+| 0x140F9F180 | §4.10 政治外交 vftable: CCharacter; CVariables |
