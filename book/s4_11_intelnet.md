@@ -287,7 +287,51 @@ from_encryption_decryption 消费端。CEC260 型外层 24B 元 = **标准 pdx �
 
 **CStaticIntelSourcePool** (静态源池, 72B; vtable 0x14295F0E8; writer 0x1411AEFF0 / reader 0x1411AE930; 入档): +8 RH 名索引 {buckets@8, count@24, mask@28, extra@32, mlf 0.9@36}, 12B 桶 {dist@0, key@4 源 id, val@8} / +40 CIntelSource 值容器 {d@40, c@52} (元素内嵌 CIntelSource 本体) / **+64 u32 next id** (11; slot[8] = 0x1411AD8D0 id 溢出回滚 >0x3B9AC9FF→0)。挂链 = ci+160 static_intel_pools (**6 元**; 存档不写名, 按位置序对应 6 静态源定义)。
 
-**CDynamicIntelSourcePool** (动态源池, 56B; vtable 0x14295F048; writer 0x14197EC30 / reader 0x14197EBF0; 入档): +8 **accumulator** (19259) 40B 元 {国家 idx, 四象限} {d@8, c@20} / +32 **values** (19260) 同形 {d@32, c@44}; slot[8] = 0x14197E9B0 日总结算 = 两容器逐元四象限负值钳 0。语义 = 每池每国 intel 量日账 (accumulator = 当日累计, values = 已结算截面)。挂链 = ci+184 dynamic_intel_pools (**7 元**)。
+**CDynamicIntelSourcePool** (动态源池, 56B; vtable 0x14295F048; writer 0x14197EC30 / reader 0x14197EBF0; 入档): +8 **accumulator** (19259) 40B 元 {国家 idx, 四象限} {d@8, c@20} / +32 **values** (19260) 同形 {d@32, c@44}; slot[8] = 0x14197E9B0 = **两容器逐元四象限负值钳 0 助手** (⚠ **非**日结结算本体 —— 全库无显式调用, 仅经虚表派发; 结算本体见 §4.11.8a)。语义 = 每池每国 intel 量日账 (accumulator = 当日累计, values = 已结算截面)。挂链 = ci+184 dynamic_intel_pools (**7 元**; 池槽序见 §4.11.8a)。
+
+#### 4.11.8a 动态源池日结结算 (聚合 / 衰减 / 双上限; 6 函闭环)
+
+日结结算**由两个独立助手**组成, 被日结总管线 `sub_1401D3420` 在**不同阶段**分别逐池调用 —— **先聚合、后衰减** (控制流定案):
+
+| 阶段 | 函数 | 语义 |
+|---|---|---|
+| ① 聚合 | `sub_140D071A0` → 逐池 `sub_14197E590` (= `CDynamicIntelSourcePool::AggregateAccumulators`) | 对 accumulator 逐元套聚合算式 `sub_14197E370`, 再把 accumulator 并进 values (并 ABS_MAX 钳位), 最后清 accumulator (计数 @+20 = 0) |
+| ② 逐国计算核 | `sub_140D02C30` | 逐源累加助手 `sub_140D05A00` 做 `out += min(quad, MAXIMUMS[quad])` (软上限在此生效); 池快照 `sub_140D02FB0` (静) / `sub_140D04050` (动) |
+| ③ 昨日拷 + 分组刷新 | `sub_140D02970` (`ci+112 ← ci+88`) → `sub_140D06820` (`ci+64/ci+88 ← 池快照`) | 昨日账持**上一日**分组截面 |
+| ④ 衰减 | `sub_140D035C0` → 逐池 `sub_14197E8B0` | 对 values 逐元套衰减算式 (负值钳 0) |
+
+**先后序定案**: `sub_1401D3420` 体内 `sub_140D071A0` < `sub_140D02C30` < `sub_140D02970`/`sub_140D06820` < `sub_140D035C0`。即 **先「values += Aggregat(accumulator)」再「values = (values − FLAT)×MULT 钳 0」** ⇒ 当日增量在**次日**被读取前先经一次衰减。
+
+**算式** (全部 ×1e5 定点; 标量 define 经 `sub_142072500` 以 `(int)(v×100000.0 + (v≥0) − 0.5)` 四舍五入存储):
+
+| 式 | 形态 | 边界 |
+|---|---|---|
+| 聚合 `Aggregat` | `LOG_FACTOR·ln(1 + IntelOfTheDay) + IntelOfTheDay/DIVISOR` (`sub_14197E370`; ln 参数 = 1e5·(1+x), ln 实现 = `sub_1424EF9D0` 定点自然对数) | DIVISOR = 0 ⇒ 除项取 0 (只留 LOG 项); 结果**原地替换** accumulator 象限 |
+| 并进 values | 归并 (冲突解析 lambda `sub_14197EC90`) 后逐象限 `values = min(values + Aggregat, ABS_MAX)` | 绝对上限**在聚合后**钳; 四象限各自钳 |
+| 衰减 `NextIntel` | `(Intel − FLAT_DECAY) × MULT_DECAY` (`sub_14197E8B0`; 作用容器 = **values**) | 逐象限; 负值**钳 0**; **不**钳绝对上限 |
+| 软上限 `MAXIMUMS` | 贡献进最终 intel 矩阵时生效 = 逐国计算核 `sub_140D02C30`, 逐源 `out += min(quad, MAXIMUMS[quad])` | **不在**池自身结算里 |
+
+**IntelOfTheDay** = accumulator 容器中该**国**该**象限**的当日累计值 (逐 (国,象限) 施加, 非跨国求和)。池元素 = 40B/元 {+0 i32 国家 idx, +4 pad, +8/+16/+24/+32 四象限 i64}; accumulator 计数 @+20、values 计数 @+44。
+
+**上限/参数表打包**: 软上限 = 混合表 `sub_140D05260` (448B = 14 槽×32B; 槽 0 = `INTEL_COUNTRY_LEVEL_MAXIMUMS`, 槽 1-6 静态源, 槽 7-13 动态源软上限; 消费端下标 = 静 `32×(i+1)` / 动 `32×i + 224`); 绝对上限 = `sub_140D04D70` (336B = 7 槽×48B; 槽内 +0 LOG / +8 DIV / +16/+24/+32/+40 四象限 ABS_MAX; 槽 0 = None 池全零)。
+
+**池槽序定案** (`ci+184` 数组下标 0..6; 源名 switch `sub_140D038E0` case 直证): **0 = None (哨兵, 无 define) / 1 = EVENT / 2 = LAND_COMBAT / 3 = NAVAL_COMBAT / 4 = AIR_COMBAT / 5 = AIR_RECON / 6 = CAPTURED_OPERATIVE**。⚠ define 文本序与之同序但数组下标**整体 +1**。槽 0 哨兵参数 = FLAT 0 / MULT 1.0 / LOG 0 / DIV 0 / ABS_MAX 四象限 0 ⇒ 无源写入, 日结对其恒等空转。
+
+**逐池参数值** (vanilla `00_defines.lua` NIntel 段; 定点列 = lua 值 ×1e5):
+
+| 槽 | 源 | FLAT_DECAY | MULT_DECAY | LOG_FACTOR | DIVISOR | MAXIMUMS (四象限) | ABSOLUTE_MAXIMUMS |
+|---|---|---|---|---|---|---|---|
+| 0 | None (哨兵) | 0 | 100000 | 0 | 0 | (缺省填充) | 0,0,0,0 |
+| 1 | EVENT | 0 | 98500 | 0 | 100000 | 40,40,40,40 | 50,50,50,50 |
+| 2 | LAND_COMBAT | 0 | 98500 | 25000 | 1000000 | 0,30,5,10 | 0,40,10,15 |
+| 3 | NAVAL_COMBAT | 0 | 98500 | 2000 | 20000000 | 10,0,40,20 | 15,0,45,25 |
+| 4 | AIR_COMBAT | 0 | 98500 | 100000 | 200000 | 0,0,0,25 | 0,0,0,30 |
+| 5 | AIR_RECON | 0 | 99500 | 5000 | 20000000 | 25,20,30,20 | 30,25,35,25 |
+| 6 | CAPTURED_OPERATIVE | 0 | 95000 | 100000 | 200000 | 50,40,40,30 | 50,40,40,30 |
+
+四元数组序 = 池元素 +8/+16/+24/+32 (民用/陆军/海军/空军), 与 define 数组下标 0..3 一致。
+
+> 未决: `sub_1424EF9D0` 归约常数语义 (乘数 `0x3DB84FF3E2924E61`/2^64·1e5/65536 ≈ 1/e, Taylor 级数为 `ln((1+t)/(1−t))` 标准形) 推定; `sub_14197E8B0` 象限 4 的除 1e5 乘法逆元技巧与前三象限直除的逐位等价性未验算 (不影响公式形态)。
 
 #### 4.11.9 CCryptology / CCountryDecryptionState
 
@@ -1153,12 +1197,23 @@ qword_14332EFB0 = **phase def 库**。第二子对象 vtable = 0x1429BE628 (PE R
 | 0x1410A5140 | 333 | 海省情报按目的 tag 分配步 (:202/:218 断言) |
 | 0x1410A83F0 | 184 | CRadarsPool::Init (:680 "already initialized", pool+52 计数为门) |
 
-**双通道模型** (定案): 陆份 = 有主省按控制国聚合 — 每条目 factor =
-RADAR_LEVEL_INTEL_FACTOR × 等级合计, share = 因子/最大级, cap = 控制省占比 × share,
-每覆盖省 per-prov = 1e7×cap/(1e5×覆盖省数), 省内多站以 RADAR_INTEL_STACKING_FACTOR
-归并; 国家级 share2 = val2/受控省数, 四象限 = COUNTRY_COVERAGE_PERCENTAGE[i]×share2/1e5
-+ COVERED_LAND_PROVINCES[i]×(val1/100)/1e5。海份 = 无主海省 (desc+210 & 3 == 0 门)
-按战略区聚合 → CollectCoveredConvoyRoutes 拆到目的 tag: 区权重 = 区+36 × 区+160 (≤0 =
+**双通道模型** (定案; 陆份 PE 逐字复核 = `findings/e168_radar_land_pe.md`): 陆份 = 有 controller
+的省 (prov+392 tag > 0) 按**控制国**聚合。逐条雷达 (112B 条目) 先算省因子表 (`sub_1410A47F0`):
+`share = 1e5 × RADAR_LEVEL_INTEL_FACTOR × 等级合计 ÷ 最大级` (最大级 = `sub_1410A44A0` 雷达建筑
+最大级), `cap = 州控制占比 × share ÷ 1e5` (州控制占比 = 该州内被池 owner 控制的省占比 ×1e5,
+`sub_1409D4190`, = 0 则条目跳过), `perProv = 1e7 × cap ÷ (1e5 × 覆盖省数)`。覆盖省判定
+(`sub_1410A3F20`): 州中心 → 省中心**严格欧氏** `dx²+dy² < range²` (方框 `|dx| ≤ range ∧ |dy| ≤ range`
+仅预筛), 坐标经 `sub_14118F660` 按地图宽 x 环绕; **雷达所在州自身的省无条件覆盖** (own-state 捷径)。
+**省内多站归并** (`sub_1410A4FB0`): 逐省把各站 cap / perProv 收数组, 升序后 `acc = x_k + 0.5×acc/1e5`
+⇒ **几何级数** `max + 0.5·次大 + 0.25·第三 + …` (⚠ 非「max + Σ次站×0.5」一次归并)。国家级聚合:
+`v3 = Σcap ÷ 受控省数` (受控省数 = CCountry.controlled_provinces.count, 未覆盖省计 0),
+`v31 = ΣperProv ÷ 100`, 四象限 `out[i] = COUNTRY_COVERAGE_PERCENTAGE[i]×v3/1e5 +
+COVERED_LAND_PROVINCES[i]×v31/1e5` (两 define 均 1e5 定点 = {9,9,0,18} / {5,5,0,12});
+**Navy 维 (i=2) 恒 0** = 陆份不给海军情报。写池 = `sub_1411AEA40` (**键存在 = 覆写 32B 非累加**;
+键不存在且四值全 0 = 不插入); 累加只在陆/海归并 `sub_14109D110` 内发生; 归并后对本轮无贡献的旧键
+写 32B 全 0 (清旧键, 非清新值)。海份 = **无 controller** (prov+392 == 0) 且 `(desc+210 & 3) == 0`
+且 `prov+200 != 0` 的省 (⚠「无主」= 无 controller, 非 owner 为空) 按战略区聚合 →
+CollectCoveredConvoyRoutes 拆到目的 tag: 区权重 = 区+36 × 区+160 (≤0 =
 :325 断言「非海区却有护航路」), 组 share × 区覆盖占比 × COVERED_SEA_PROVINCES[i] 累进 +
 NAVY_PER_SHIP_TYPE[i] 加权舰船计数归一累进; 自 tag 组 = :218 断言整组跳过。掷骰无 —
 纯累进。
@@ -1191,12 +1246,12 @@ UI「敌军规模区间」显示的引擎侧同源。`sub_141432940(out i64×2, 
 
 | 步 | 机制 |
 |---|---|
-| 1 满情报捷径 | tag 相等 ∨ 同 idx ∨ 同源国深查 (sub_140700600/140700670), 或 **!byte_14332F63A → intel 比 = 1** (四估计器陆/空/海/库存同形直证 `if (!byte_14332F63A) v = 1` — 旗 == 0 时满情报; 原记方向相反已改; 旗写者未查, 常态值推定 1) |
-| 海军估计器 | **sub_14142FBD0 (第三成员补齐)**: intel = sub_140D045C0 返回 +16 navy 象限 / 上限 = qword_1433390B8 [2] / 抖动种子 = region_id + 1361 (陆 1140 / 空 1280); 区间核同 sub_14142EB50 — §4.31.106 消费 |
-| 库存数量估计器 | **sub_141430A30 (第四成员, 本批新定性 — §4.11.20a)**: intel = sub_140D045C0 返回 **+8 陆军象限** / 上限 = qword_1433390B8 [1] / 抖动种子 = +**1174** (陆 1140 / 空 1280 / 海 1361 之外第四值); 区间核同 sub_14142EB50; defines = ARMY_STOCKPILE_COUNT_INTEL_{MIN=qword_143332678, MAX=qword_143332738, RANGE_AT_LOWEST_INTEL=qword_1433327E0}; 出参 known = (比例 ≥ MIN), 低情报时 GUI 显示 "?" — 情报账本 Army 页装备库存行消费 |
+| 1 满情报捷径 | tag 相等 ∨ 同 idx ∨ 同源国深查 (sub_140700600/140700670), 或 **!byte_14332F63A → intel 比 = 1** (四估计器陆/空/海/库存同形直证 `if (!byte_14332F63A) v = 1` — 旗 == 0 时满情报; 原记方向相反已改; **旗 = 战争迷雾 (控制台 `fow` 命令体 sub_1402589F0 toggle, 回显 "Fog of War is now ON/OFF"); 常态值 1 (迷雾默认开)** — 定案) |
+| 海军估计器 | **两家同象限（勿混）**: ① **舰队计数家 = sub_141431020** (本四域模型的「海军舰队」档): intel = sub_140D045C0 返回 +16 navy 象限 / 上限 = qword_1433390B8 [2] / 抖动种子 = **1218** (陆 1140 / 空 1280); defines = NAVY_FLEET_COUNT_INTEL_{MIN=qword_143332EC0, MAX=qword_143332F70, RANGE=qword_143333010} (0.1/0.3/0.5); 区间核同 sub_14142EB50。② **sub_14142FBD0** = 同象限的 **mapicon 任务计数**家 (非舰队计数): 抖动种子 = a6 + **1361**, defines = NAVY_MAPICON_MISSION_COUNT_INTEL_{MIN=qword_143333ED0, MAX=qword_143333F68, RANGE=qword_143333F68} (0.5/0.8/0.8; RANGE == MAX) — 不属四域估计器模型 |
+| 库存数量估计器 | **sub_141430A30 (第四成员, 本批新定性 — §4.11.20a)**: intel = sub_140D045C0 返回 **+8 陆军象限** / 上限 = qword_1433390B8 [1] / 抖动种子 = +**1174** (陆 1140 / 空 1280 / 海舰队 1218 之外第四值); 区间核同 sub_14142EB50; defines = ARMY_STOCKPILE_COUNT_INTEL_{MIN=qword_143332678, MAX=qword_143332738, RANGE_AT_LOWEST_INTEL=qword_1433327E0}; 出参 known = (比例 ≥ MIN), 低情报时 GUI 显示 "?" — 情报账本 Army 页装备库存行消费 |
 | 2 intel 比 | `1e5 × intel 值 / 上限`; 陆军 intel = intel 管理器 (sub_140D045C0) 返回+8 / 空军 +24; 上限 = COUNTRY_LEVEL_INTEL_MAXIMUMS (qword_1433390B8) [1]/[3] |
 | 3 区间 | 折减 `t = clamp(1e5×(intel比−MIN)/(MAX−MIN), 0, 1e5)`; 噪声幅 = `base×(1e5−t)/1e5` (base = RANGE_AT_LOWEST_INTEL) |
-| 4 确定性抖动 | 种子 = {1140 (陆) / 1280 (空)} + 月计数器 (sub_140177650 读 gs+1120, 0-based) + 12×年 + 实际值 + gs 计数器 (sub_1401DB340); CRandom 常数族 %1e5 → dither ×幅; 出参 = (Q15+0x4000)>>15 取整两 int |
+| 4 确定性抖动 | 种子 = {1140 (陆) / 1280 (空) / 1218 (海舰队) / 1174 (库存)} + 月计数器 (sub_140177650 读 gs+1120, 0-based) + 12×年 + 实际值 + gs 计数器 (sub_1401DB340 读 gs+1824); CRandom 常数族 %1e5 (=100000) → 抖动因子; **抖动因子精确分布 = `0.2 + 0.8×√U`, `U ~ Uniform{0..99999}` ∈ [0.2, 1.0]** (PE 定案: 因子算式逐字 `isqrt(U) + 20000×(100000−isqrt(U))/100000`, isqrt = sub_1424EFDD0 100000 刻度牛顿迭代; lo/hi 各一次独立 draw 故两幅度不等); dither ×幅; 出参 = (Q15+0x4000)>>15 取整两 int (Q15 下界 0x8000 = 1 计数; 断言 MinValue ≤ Value ≤ MaxValue countryintelhelper.cpp:118/120/122) |
 
 | 域 | defines (MIN/MAX/RANGE_AT_LOWEST_INTEL) |
 |---|---|
@@ -1344,6 +1399,17 @@ subnet 修正槽读者侧全景。
 
 **钳位四象限累加原语 sub_140D05A00(idx, 入 4×i64, 上限 4×i64, 累加器矩阵)**: idx 越界 (<0 或 ≥ 累加器+12 count) → :20 断言 (闩 byte_14333CC50) 丢弃; 否则 32B/国槽 (累加器 data + 32×idx) 逐象限 += min(入, 上限)。唯一调用方 = **sub_140D02C30 逐国计算核** (§4.2 序 5 — 上限钳位就发生在逐源累加处)。
 
+**静态源上限值** (软上限混合表 `sub_140D05260` 槽 1-4; 值 = vanilla `00_defines.lua` NIntel 段直读; 空数组 define = 回落槽 0 `INTEL_COUNTRY_LEVEL_MAXIMUMS`):
+
+| 槽 | 源 | define | 四象限上限 (民用/陆军/海军/空军) |
+|---|---|---|---|
+| 1 | OP_TOKENS | `STATIC_INTEL_SOURCE_OPERATION_TOKENS_MAXIMUMS` | `{}` 空 ⇒ 回落国级 100.0×4 |
+| 2 | BROKEN_CYPHER | `STATIC_INTEL_SOURCE_BROKEN_CYPHER_MAXIMUMS` | 60, 60, 60, 60 |
+| 3 | RADAR | `STATIC_INTEL_SOURCE_RADAR_MAXIMUMS` | 10, 10, 20, 20 |
+| 4 | INTEL_NETWORK | `STATIC_INTEL_SOURCE_INTEL_NETWORK_MAXIMUMS` | 30, 30, 40, 30 |
+
+槽 5/6 = 默认槽 (无 define, 同回落); 等级上限钳位 (`COUNTRY_LEVEL_INTEL_MAXIMUMS`) 在**逐池上限之后**施加 (define 注释 "COUNTRY_LEVEL_INTEL_MAXIMUMS is applied after INTEL_SOURCE_XXX_MAXIMUMS" 直证)。
+
 **_IntelFromAlliesOverOthers 读取器 sub_140D042A0(矩阵宿主, 出 32B, tag)** (成员名断言直证): tag → idx (sub_140BB5490), idx 合法且 count (宿主+52) > 0 → 拷 *(宿主+40) + 32×idx 4×i64; 否则全零。越界且非空断言 :640。唯一消费方 = **情报 tooltip sub_141E9CAF0** (§4.11.31; §4.2 序 5 tooltip 双消费点之一)。宿主身份未定名 (推定 CCountryIntel 运行时扩展或伴生结构); 写入者不在本簇 (推定 intel daily 管线 sub_14109AEA0 族)。
 
 未决: _IntelFromAlliesOverOthers 宿主类与写入者 / sub_140D04D70 缺省哨兵 92233720200000 复核 / 静态段 2 默认槽填充值 (§4.11.31)。
@@ -1455,7 +1521,7 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 
 **阈值表节 (定案)**: 阈值比较值 = sub_14142F240 (§4.21:446 同款国家对句柄)。四类别表构建器 = 0x141E9AE50 (民用) / 0x141E9A4D0 (陆军) / 0x141E9B7F0 (海军) / 0x141E99670 (空军), 出 robin-hood 表 40B/条 {+0 hash u32, +4 距离+1 (0 = 空槽, pdx_robin_hood_table.h 断言直证), +8 阈值上限 qword, +16 串列表指针, +24 计数}; 收集为 32B/元 {+0 阈值上限, +8 解锁条件串列表 24B}, 1.5× 扩容 (分配器 off_143085170); std::stable_sort 按上限升序 (≤32 元原地 sub_141E96A90 / >32 元归并 sub_141E96EA0, 半量临时缓冲, 与 §4.11.29 sub_1416E3EE0 同族); 逐元 `阈值数 >= 上限` → INTEL_THRESHOLD_UNLOCKED_LIMIT 否则 INTEL_THRESHOLD_LOCKED_LIMIT, 逐解锁条件发 INTEL_THRESHOLD_ENTRY (UNLOCK 标签, 格式类型码 1)。
 
-陆军阈值表 define↔loc 全映射 15 对 (sub_141E9A4D0 体内, defines_map_1193.txt 逐项核对, 定案):
+陆军阈值表 define↔loc 全映射 **20 对** (sub_141E9A4D0 体内, defines_map_1193.txt 逐项核对, 定案):
 
 | define | loc 键后缀 |
 |---|---|
@@ -1470,6 +1536,15 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 | ARMY_TEMPLATE_UNIT_COUNT_INTEL_MIN / MAX | FUZZY_TEMPLATE_COUNT / TEMPLATE_COUNT |
 | ARMY_STOCKPILE_COUNT_INTEL_MIN / MAX | FUZZY_STOCKPILE_AMOUNTS / STOCKPILE_TYPES |
 | ARMY_MIN_INTEL_RATIO_NEEDED_FOR_DISPLAYING_FAKE_ENEMY_INTEL_IN_LEDGER | DISPLAY_ENEMY_FAKE_INTELS |
+| ARMY_MIN_INTEL_RATIO_NEEDED_FOR_REVEALING_FAKE_ENEMY_INTEL | REVEAL_ENEMY_FAKE_INTELS |
+| INTEL_TO_SHOW_TECH_COUNT[1] | TECH_COUNT |
+| INTEL_TO_SHOW_PREVIOUSLY_RESEARCHED[1] | RESEARCHED_TREE |
+| INTEL_TO_SHOW_CURRENTLY_RESEARCHED[1] | RESEARCHED_AND_CURRENT_TREE |
+| INTEL_TO_SHOW_IDEAS[1] | IDEAS |
+
+⚠ **前 15 行** = 上表前缀 `ARMY_*` 组；**后 5 行** = `INTEL_TO_SHOW_*` 四元数组 `[1]`（陆军下标）取项 + `REVEAL_ENEMY_FAKE_INTELS`——原表漏收此 5 条（`sub_141E9A4D0` 实发 20 次 `sub_141E99240`）。
+
+其余三类别阈值表同构（`sub_141E9AE50` 民用 22 条 / `sub_141E9B7F0` 海军 25 条（24 `NAVY_LEDGER_THRESHOLD_*` + `NAVY_MAPICON_SHOW_ALL_NAVAL_PORTS`）/ `sub_141E99670` 空军 18 条（17 `AIR_LEDGER_THRESHOLD_*` + `AIR_MAPICON_SHOW_ALL_AIR_PORTS`））+ 四类别尾部各追加 `sub_141E98CB0` 共享突袭探测 3 条（`RAID_MIN_INTEL_FOR_WARNING_{ON_LAUNCH,HALFWAY_TO_LAUNCH,EARLY_PREPARATION}` ↔ `INTEL_LEDGER_RAIDS_DETECT_{ON_LAUNCH,HALFWAY_PREPARATION,EARLY_PREPARATION}`，值 0.1/0.5/0.8）。`INTEL_TO_SHOW_*` 为 **4 元数组 {民用,陆军,海军,空军}**，各构建器按下标 `+0/+8/+16/+24` 取。逐条值见 `00_defines.lua` NIntel 段。
 
 本节首次定案的新函数契约 (书原无条目):
 
@@ -1484,7 +1559,9 @@ sub_141B1DDF0 (861 行; 锚 :23 断言 "The number of sources in the matrix does
 | sub_141E99240 | 阈值表加条目 |
 | sub_141E96A90 / sub_141E96EA0 | ≤32 元插入排序 / >32 元归并 (std::stable_sort 两臂) |
 
-未决: ① 消费端 sub_140D05260 memcpy 展开 464B (29 OWORD) vs 生产端 448B (28 OWORD) 的 16B 差 — IDA 展开失真 or 真 16B 尾, 待 PE 侧汇编复核; ② sub_140129C10 单参语义使各 loc 串拼接顺序为推定 (键与参数清单不受影响); ③ 静态段 2 默认槽填充值 (0 / 哨兵 / 继承缺省 100000, 未超门时消费端不区分); ④ 民用 / 海军 / 空军阈值 define↔loc 映射表 (同构未抄录); ⑤ 阈值表出参 {+8 表基址, +16 维度, +24 字节, +28 float 0.9} 中两维度语义与 0.9f 用途 (推定 = sub_141E99240 上限缩放比, tooltip 内未消费)。
+未决: ① 消费端 sub_140D05260 memcpy 展开 464B (29 OWORD) vs 生产端 448B (28 OWORD) 的 16B 差 — IDA 展开失真 or 真 16B 尾, 待 PE 侧汇编复核; ② sub_140129C10 单参语义使各 loc 串拼接顺序为推定 (键与参数清单不受影响); ③ 静态段 2 默认槽填充值 (0 / 哨兵 / 继承缺省 100000, 未超门时消费端不区分); ⑤ 阈值表出参 {+8 表基址, +16 维度, +24 字节, +28 float 0.9} 中两维度语义与 0.9f 用途 (推定 = sub_141E99240 上限缩放比, tooltip 内未消费)。
+
+> **已闭合（原未决④）**: 民用 / 海军 / 空军阈值 define↔loc 映射表逐条抄录见上（民用 22 / 海军 25 / 空军 18；`INTEL_TO_SHOW_*` 四元数组按象限下标取），四类别共享 `sub_141E98CB0` 突袭探测 3 条。
 
 #### 4.11.32 情报间谍域函数补遗（13 函）
 
