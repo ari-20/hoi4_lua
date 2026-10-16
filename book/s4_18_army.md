@@ -147,7 +147,7 @@ officer 子块布局 (raw; wrapper = **CHeldOfficer** 内嵌 @+1272, 主vtable 0
 | +1384 | vector {data@+1384, count@+1396} (wrapper+112) | 追加 officer 记录 = savefull `officer[2]/officer[3]…` |
 | +1408 | int64 fixed×1e-5 (wrapper+136) | held_officer.experience (>0 才写) |
 
-officer 记录 (88B; 主vtable 0x142765628, **无独立 RTTI 类 (负定案)**; 机制 = 师
+officer 记录 (88B; 主vtable 0x142765628, **RTTI 真名 = SUnitOfficerData** — 语料 `&SUnitOfficerData::vftable'` 符号 8 处直证 (含 CArmy ctor +1296 / CShip ctor +2144); ⚠ 未入 rtti_hierarchy.json 与 vt_rtti.json = 两参照表漏收而非无类, 待裁; 机制 = 师
 军官团历史链: 晋升/阵亡腾空为 seed=0 占位记录 (male/name 清空), 现任 = 链末
 真 seed 记录; 元素基址 E):
 
@@ -651,7 +651,7 @@ GUI 条目类:
 | +24 | fixed×1e-5 | combat_width | 主数组外独立字段 |
 | +72 | 匿名结构 (48B 形状) 向量 | battalion_mult (48B 条) | category/add/display/stats 逐叶门 |
 | +96..+719 | fixed×1e-5[78] | 主数组 | 78 槽 int64×1e-5 |
-| +720 | CEquipmentArcheTypePool | **need_equipment** (tok 15244) | 池 {vtable@+0, data@+8, cap@+16, count@+20, alloc@+24}; 元素 16B = {CEquipmentArchetype* @+0, 数量 i64 fixed×1e-5 @+8}; 键名 = token_name(原型+8) 装备原型名 (support_equipment / motorized_equipment); 写门 = count>0 ∧ 任一数量 ≠0 (sub_141010B70); ⚠ 池自身地址在 +720, 数据指针在 +728 (少一层解引用 = 读到池vtable) |
+| +720 | CEquipmentArcheTypePool | **need_equipment** (tok 15244) | 池 {vtable@+0, data@+8, cap@+16, count@+20, alloc@+24}; 元素 16B = {CEquipmentType* @+0, 数量 i64 fixed×1e-5 @+8}; 键名 = token_name(原型+8) 装备原型名 (support_equipment / motorized_equipment); 写门 = count>0 ∧ 任一数量 ≠0 (sub_141010B70); ⚠ 池自身地址在 +720, 数据指针在 +728 (少一层解引用 = 读到池vtable) |
 | +752..+912 | 地形静态块 ×5 | 地形修正 (attack/defence/movement) | 块门 = attack/defence/movement 任一非零 |
 | +952 | 匿名结构 (40B 形状) 向量 | 动态地形容器 (40B 条) | |
 
@@ -888,7 +888,7 @@ org (+1064) 写者全集 (五种形态穷举; 同帧序位 = 相位 7 恢复 →
 | 战斗扣减 | TakeDamage vtable[24] sub_140C8F510 | org/str 双扣 (§4.18.13 [24] 行); 百分比伤害变体 TakeDamageImmediate vtable[25] sub_140C8F770 (伤害按当前值百分比, 尾调 sub_140C8B710 伤亡上报) |
 | attrition 扣减 | ApplyAttrition sub_140C6F5C0 | `+1064 −= ATTRITION_DAMAGE_ORG × +1080 缓存 /100000`; 行军中 (path count +524>0) 系数换 ATTRITION_WHILE_MOVING_FACTOR; **breakdown kind 三档** = 2 战斗中 (sub_140C00000) / 3 在训 (sub_140C89400) / 1 默认 |
 | 每小时恢复 | sub_140C6F3B0 | `+1064 += sub_140C82C10 恢复量`, 钳 [0, [38]]; 恢复上限缩水: 基线 100000 → TRAINING_ORG (训练态) / STRATEGIC_REDEPLOY_ORG_RATIO (战略部署 +687 或模板+92) / 修正链取 min; 当前 org 超上限 → 压回 |
-| 恢复计算核 | sub_140C82C10 | INFRA_ORG_IMPACT × (省基建−50000)/100000; 惩罚面 = 补给惩罚比 × SUPPLY_ORG_MAX_CAP 帽; OUT_OF_SUPPLY_MORALE 消费在 sub_140C6F960 (逐 statId 后处理, §4.18.14 已收) |
+| 恢复计算核 | sub_140C82C10 | **基率 = 师 statId 0 default_morale (模板+160)**——`*a2 = stat0 × (100000 + Σ调制项)/100000`; 调制项加性 (1e5 尺度): INFRA_ORG_IMPACT × (省基建比−50000)/100000 (sub_1409D3BC0 回省基建比 1e5)、ORG_HIT_WHEN_ADVANCING (RELIABILITY_ORG_REGAIN 族)、OOS_MOD2 (补给惩罚面)、FROM_TEMPLATE_MOD2、LOW/HIGH_ORG_REGAIN (FASTER/SLOWER_ORG_REGAIN_LEVEL 门); 门 = sub_140C00000 (+436 战斗计数 >0) 或两栖入侵 → 恢复量 0; 断供帽 v33 = 100000 + 惩罚比×(100000−SUPPLY_ORG_MAX_CAP)/100000 (钳 [0,100000]), org ≤ 帽×stat0/100000 走限供重分支 (惩罚比符号待裁); OUT_OF_SUPPLY_MORALE 消费在 sub_140C6F960 (逐 statId 后处理, §4.18.14 已收) |
 | 低 org 加速 | sub_140C82A90 | vtable[39] org 比例 < FASTER_ORG_REGAIN_LEVEL → 加速恢复分支 |
 | 伞降完成 | sub_140C89F10 | `+1064 = PARACHUTE_COMPLETE_ORG × (1+mod370) × max_org/100000`; 并写 +1160 时间戳 (旧「战斗/到达事件时间戳」实为伞降) |
 | 夺省惩罚 | sub_140C8B080 | `+1064 −= ORG_LOSS_FACTOR_ON_CONQUER × max_org/100000` 钳非负 |
@@ -1075,7 +1075,7 @@ XP_GAIN_PER_OVERRUN_UNIT; §4.4.22 行已同步订正）。链增补: +1072 经�
 | +1256 | int64 fixed×1e-5 | critical_part_damage_chance_mult | 15428 | 定案 |
 | +1264 | 匿名结构 (NNB 形状) 向量 24B | reader 零覆盖, 不序列化 | — | 形态定案 |
 | +1288 | 匿名结构 (NNB 形状) 向量 24B | categories — CSubUnitCategory* 数组 (重名报 "Duplicate subunit category") | 11352 | 定案 |
-| +1312 | 匿名结构 (NNB 形状) 向量 24B | essential — CEquipmentArchetype* 数组 | 13723 | 定案 |
+| +1312 | 匿名结构 (NNB 形状) 向量 24B | essential — CEquipmentType* 数组 | 13723 | 定案 |
 | +1336 | 匿名结构 (24B 形状) 向量 24B | need_equipment_modules — 元素 24B 嵌套容器, 叶 = {模块/模块类别 id u32, 数量 u32}; 子键 any(11163) = 组内多选 | 15245 | 定案 |
 | +1360 | MSVC SSO 串 32B | abbreviation {buf@+1360, size@+1376, cap@+1384 (ctor 置 15)} | 10557 | 定案 |
 | +1392 | uint32 向量 24B | required_dlc — u32 token 数组 | 15200 | 定案 |
@@ -1119,14 +1119,14 @@ XP_GAIN_PER_OVERRUN_UNIT; §4.4.22 行已同步订正）。链增补: +1072 经�
 | +1624 | MSVC 串 向量 24B | enable_ability — 32B 串元素 | 14574 | 定案 |
 | +1648 | id 对 {i32, i32} | DLC 锁定对 (ctor {−1,−1}; Load wrapper 从 reader 上下文盖章) | — | 定案 |
 
-**SSubUnitStats 子表** (基址 = def+64; 相对偏移 s): s+8 transport — CEquipmentArchetype* (10118, 经 gameitem DB 查名, 未知名报 "Invalid equipment type") /
+**SSubUnitStats 子表** (基址 = def+64; 相对偏移 s): s+8 transport — CEquipmentType* (10118, 经 gameitem DB 查名, 未知名报 "Invalid equipment type") /
 s+16 own_equipment_fuel_consumption_mult (15429, int64 fixed×1e-5; ctor 预置 1.0, 文件键可覆盖) /
 s+24 combat_width (11471), 累加写点 `+= src×w/100000` / s+32 priority (141, u32; 聚合链取 max(dest,src), 命中连带拷 +40 串) / s+36 ai_priority (14252, u32; 聚合链独立取 max) / s+40 sprite 串 (61) {buf@+40, size@+56, cap@+64, SSO 阈 15} / s+72 battalion_mult 容器 (13688; 元素 = SSupportCategoryStatMultiplier 48B (§4.18.19a), 重复块 push_back 追加, 容量 1.5× 扩容 sub_141428620) /
 **s+96 = 主统计数组 int64 fixed ×78 (def+160 起 8B/项; 槽号 = (s−96)/8 = statId, 全表
 = §4.31.27; statId 16 = fuel_capacity (原「+288 max_fuel」散锚即 def+288 = 槽 16; 文件当值键名 = fuel_capacity/15138, 旧名 max_fuel/15128 已无解析通道)、
 statId 65 = reliability (def+680)、statId 69 = fuel_consumption (def+712))** /
 s+720 = need 与 need_equipment 两键共用 CEquipmentArcheTypePool 池 (12111/15244;
-16B 元 {CEquipmentArchetype*, 数量 fixed}; airwing 类槽[7] 强制恰 1 条; 加权合并写点 = sub_141011150(s+720, src+720, w, 92233720200000), 第四参 = 钳位界, 方向与单位待裁) /
+16B 元 {CEquipmentType*, 数量 fixed}; airwing 类槽[7] 强制恰 1 条; 加权合并写点 = sub_141011150(s+720, src+720, w, 92233720200000), 第四参 = 钳位界, 方向与单位待裁) /
 **五上下文修正器 CUnitAdjuster 40B (def+816 night / +856 fort / +896 river /
 +936 amphibious / +976 snow; 各 {vtable, 上下文 token@+8, attack/defence/movement 三
 fixed5}; 原「+816..+976 五统计组细节未决」收口)** / def+1016 (s+952) = 动态地形修正数组

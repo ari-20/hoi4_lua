@@ -126,7 +126,9 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 
 **CCombatant** (cb = 战斗方基座, 232B; writer 0X1413E41F0 + 0X1412BD820; ctor sub_1413E05F0; loader 0X1413E33A0): 基座定案 — **+24 = 宿主战斗回指** (RemoveUnit 经它取 attacker/defender/location/duration); **+216 = is_attacker 旗** (海军 pair-init 第一只=1 第二只=0)。
 
-**CLandCombatant** (陆军参战方, vtable 0x1429A82C0; writer vtable[2] = 0x1412BD820 = 上行基域 writer 同址 → 字段覆盖即基座 232B 全量, 无自有增量; reader 0x1412BA300) — 类名绑定补注: §4.18.5 vtable[22] 战斗修正消费 (kind=4 条目) 的 this 即本类; PERS 指纹实证进存档, 账面 = 基座表全量 (原「散提维持」结案)。
+**CLandCombatant** (陆军参战方, vtable 0x1429A82C0; writer vtable[2] = 0x1412BD820 = 上行基域 writer 同址 → 序列化键面即基座 232B 全量; reader 0x1412BA300) — 派生层 ctor sub_1412AA3D0 续写 +232.. 起的特有区 (见下表「派生层」); 类名绑定补注: §4.18.5 vtable[22] 战斗修正消费 (kind=4 条目) 的 this 即本类; PERS 指纹实证进存档。
+
+**基座/派生层边界定案** (双 ctor 体复核): 基座 ctor sub_1413E05F0 体止于 +224/+228 → **CCombatant 基座 = 232B**; **+232..+464 = CLandCombatant 特有区** (ctor sub_1412AA3D0 续写; CNavalCombatant 1008B 同源验证 = 232B 基座 + 特有区 16 字段; CLandBorderWarCombatant +1216 起另续)。
 
 编制对象 (编成组/编制组合对象; unit 经虚槽[8] 取得) 布局补行:
 
@@ -160,6 +162,12 @@ CWar (战争对象; 挂载 = 关系对象+744, §4.10.4) 布局补行 — +32/+7
 | +216 | uint8 | **is_attacker 旗** (ctor a3; RemoveUnit 以它选侧); **+218 = player_participates** | 不序列化 |
 | +219 | uint8 | has_flanked_opponent | ≠0 写 yes |
 | +224 | tag_id | last_hit → 引号串 | tid>0 |
+---
+
+CLandCombatant 派生层 (+232..+464; ctor sub_1412AA3D0):
+
+| 偏移 | 类型 | 名称/语义 | 写门 |
+|---|---|---|---|
 | +232 | idpair 向量 | front id 对列表 {d, c} 8B 指针 | 同 unit; **运行时元素消费 = CUnit\*** (vtable[21]/[46]/+312/+496 全按完整单位; writer 发射 refid 不变) |
 | +233..+243 | — | = front 容器尾 {cap@+240}  |  |
 | +244 | uint32 | front 容器计数 | 同 unit |

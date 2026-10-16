@@ -232,7 +232,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +4312 | fixed×1e-5 | war_support | §4.3.8 起 |
 | +4313..+4319 | — | = war_support@4312 (**i64×1e-5 8B**) 尾 — stability@4304 同型 (ctor 初值全局) | |
 | +4320 | uint32 | **refresh** | writer ADFE0 0x3495 (定案) |
-| +4324 | uint32 | **original_research_slots** | writer 键 0x361D, >0 才写 |
+| +4324 | uint32 | **original_research_slots** (国史 `set_research_slots` 值; 无则 = 全局 `BASE_RESEARCH_SLOTS`=2 define 槽 `dword_14333701C`; 与 live `research_slot` cc+4936 分立: 后者 = 基值 + 国策/理念加成) | writer 键 0x361D, >0 才写 |
 | +4325..+4343 | — | = original_research_slots@4324 尾 3B + **CPlayerAiPrefs 16B@4328 (vtable 0X27E72C0)**: {vtable@4328, 4B 偏好@4336 = 0x01000001, i32@4340 = −1}; 同类见 CSetPlayerAiPrefsCommand (命令对象 +48 同布局拷贝) — 「玩家手动接管 AI 偏好」 | |
 | +4344 | CRadarsPool 内嵌 (双 vtable @+4344/+4352) | radar 键 12237 走 +4352 facet; 成员: 容器群 @+16/+40/+96/+120/+144/+168, 子对象@+72 = **RADAR 静源引用 (池槽 3)**, +64 = owner tag, RH 桶×2 @+200/+232 (dtor 0X1410A31F0 双 vtable; 内嵌定案); 运行期消费点语义 = §4.11.19 | Reset 清理 |
 | +4345..+4351 | — | = CRadarsPool vtable@4344 尾 7B | |
@@ -306,7 +306,7 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +5197..+5207 | — | = 同容器尾: count@5196 高 3B + **alloc@5200 哨兵** (紧贴 +5208 旗 dword) | |
 | +5208 | uint8 | **和平会议挂起旗 (surrender 抑制)** — surrender sub_1406E16C0 首行 `if (!*(cc+5208))` 才进投降逻辑; **置 1 = 和会创建时对所有 winner+loser tag** (peaceconference.cpp), 清 0 = 和会侧 + 国家重置 | 高置信 (探针 GER=0) |
 | +5209 | uint8 | **is_major** (仅真写; 与 +5210 major 并存双键; writer 键 0x34BE; **两键分立实证: 全量国家分布 = (0,1) 5 国 + (0,0) 446 国, 无 (1,1)**, 本档 +5209 恒 0) | §4.3.8 起 |
-| +5210 | uint8 | major (仅真写; 与 +5209 is_major 分立; writer 键 0x2BE9; **本档 = 5 国置位/446 国零**) | §4.3.8 起; **GUI: 国列表门之一** (与 cc+1156 / capital cc+4120 并列四门) |
+| +5210 | uint8 | major (仅真写; 与 +5209 is_major 分立; writer 键 0x2BE9; **本档 = 5 国置位/446 国零**); **月度全量重算 `sub_14070C1C0`→置位器 `sub_1407122C0`**: 门 = (无宗主) ∧ (工厂计数 `sub_140E69340` ≥ `MAJOR_MIN_FACTORIES`=35) ∧ (is_top_ic cc+5211 ∨ 工厂 ≥ `ADDITIONAL_MAJOR_COUNTRIES_IC_RATIO`=0.7 × top-`MIN_MAJOR_COUNTRIES`=7 均值); 工厂计数 = 三固定列/1e5 求和 − 四占用列 | §4.3.8 起; **GUI: 国列表门之一** (与 cc+1156 / capital cc+4120 并列四门) |
 | +5211 | uint8 | is_top_ic_country (仅真写) | §4.3.8 起 |
 | +5212 | uint8 | **日更门** — slot[8] 桩 sub_1406FE1D0 首行 `if (!*(cc+5212)) return sub_1406FE1E0();` (非零才进日更大体: 读 +1120 异常表 / 刷 +3832 串 / 遍历 +5560 容器 count@+5572) | §4.00.1 槽表 |
 | +5213 | uint8 | reserved_dynamic_country | §4.3.8 起 |
@@ -350,8 +350,8 @@ CCountry 是最大的聚合根, 下挂数十个子系统指针。
 | +5608 | 指针 (allocator) | scorched_states allocator | 定案 |
 | +5609..+5615 | — | = scorched_states 容器尾: alloc@5608 高 7B 哨兵 | |
 | +5616 | uint8 | **underway_replenishment** (仅真写; +5618 removed_controlled_province / +5619 landlocked_start ctor 全零互证) | writer 键 0x402B |
-| +5618 | uint8 | removed_controlled_province | §4.3.8 起 |
-| +5619 | uint8 | landlocked_start (仅真写 yes) | §4.3.8 起 |
+| +5618 | uint8 | **removed_controlled_province = 控制州集脏旗** (SetController `sub_1409DDA40` 尾 / SetOwner 路径 / 载入占领重算路径置 1; 唯一读者 = 日更核调用者: 置位时遍历控制州表 `cc+1120/1132` 取 `state+2144` 位或累加写 `cc+5624` 地形位掩码后清零) — **非正典状态** (无跨刻语义) | 定案 (体读) |
+| +5619 | uint8 | landlocked_start (仅真写 yes); **派生 = 新局路逐国 pass `sub_140716520`**: `= (控制州计数 cc+1132 > 0) ∧ (控制州表 cc+1120 无任一 state+48→+349 沿海旗)` (州沿海旗 = CStateTemplate+349, §4.14 定案) | §4.3.8 起; 派生定案 |
 | +5620..+5631 | — | = **u32 国家修订号@+5620** (ctor 0; sub_1406FE1B0 ++; 触发 = 控制台 hidden focuses / 内战 releasing 大流程对母子两国各 ++; GUI 缓存到自身 +8476 做脏检查; 探针 GER=0; 不序列化) + +5624 = 地形位掩码 dword (has_terrain 直读位运算; 掩码语义见 §4.32 地形族) | sub_1406FE1B0; sub_14138A400 |
 | +5632 | fixed×1e-5 | coastal_protection_ratio | §4.3.8 起 |
 

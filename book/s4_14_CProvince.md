@@ -67,7 +67,7 @@ gs+1864 = **region 数组计数** (BHU 3,789), 非省数 (定案)。
 | 偏移 | 类型 | 名称/语义 | 备注 |
 |---|---|---|---|
 | +0 | vtable | 0X2999050 (CBuildingStatus::vftable, dtor 直读) | |
-| +8 | CBuildingListener 向量 | 32B 条数组 {data@+8, cap@+16, count@+20, alloc@+24} (**元素 = 建筑监听者登记条目, 类族 CBuildingListener** — RTTI 直证 vtable 0x142A206C0; 元素 ctor sub_141171A60, +16 挂 `CPdxHybridInlineBufferAllocator<CBuildingListener*,128,int>` (sub_141171D70); push sub_141179150; 销毁 sub_141171BA0) | 定案 |
+| +8 | CBuildingListener 向量 | 32B 条数组 {data@+8, cap@+16, count@+20, alloc@+24} (**元素 = 建筑监听者登记条目, 类族 CBuildingListener** — ⚠ 条目 ctor sub_141171A60 全域零写、无 vptr 赋值, **条目本身无 vtable** (定案: 语料优先); 原书「RTTI 直证 vtable 0x142A206C0」应属他处 (trait 族/分配器侧), 待裁; 元素 ctor sub_141171A60, +16 挂 `CPdxHybridInlineBufferAllocator<CBuildingListener*,128,int>` (sub_141171D70); push sub_141179150; 销毁 sub_141171BA0) | 定案 |
 | +32 | uint32 向量 24B | **def→槽 index 重映射** {data@+32, cap@+40, count@+44, alloc@+48} — u32 槽号或 −1, 按 building def+736 索引 | find-or-add sub_141172EB0 (函数体实证: def+32 有效旗门 → sub_1414BAFE0 类别旗比对 → 查 +32 重映射槽 → 缺则 malloc(0x1F0)+ctor sub_1410DAB40+追加 +56 数组 (1.5×) → 返 CBuilding*) |
 | +56 | 匿名结构 (NNB 形状) 向量 24B | **CBuilding\* 元素数组** {data@+56, cap@+64, count@+68, alloc@+72} | |
 | +80 | 匿名结构 (NNB 形状) 向量 24B | **建筑修正来源数组** {data@+80, cap@+88, count@+92, alloc@+96} — 8B CBuilding\* 元 (= prov+480/+492; 州修正重建 sub_1409D54A0 逐元取 CBuilding+88 CModifier 入州 +1544 块) | 定案; **GUI: 建筑修正图标来源** (sub_14174C6F0 省侧分支 → building_modifiers_ico) |
@@ -174,6 +174,26 @@ CState 0X1409E0E90 → 0X141179440; 块键 = 建筑 token@元素+8); repair_spee
 | +568 | u32 数组 | 省号→紧凑 id 重映射 (4B×省数, 初值 −1; 构建器 sub_140A5F1F0 = **地图初始化复合**: 聚合对象构造链 sub_140A5F1F0 → sub_141543C00 → sub_1415446A0 + 装载编排 + 紧凑映射) | |
 | +592 | u32 向量 | 非海省省号列表 {d@592, cap@600, c@604, alloc@608} (+564 = 其计数) | |
 | +616 | 匿名结构 (NNB 形状) 向量 24B | **省静态描述符 8B 指针数组** {data@+616, **cap@+624, count@+628**, alloc@+632} — ⚠ 元素是指针 (增长码 `8LL*count` memcpy 直证) | 定案 |
+| +640 | 对象 | **tree 调色板对象** (default.map 键 10466 → sub_1401F95D0) | 定案 |
+| +736 | 对象 | seasons.txt 消费对象 (Parse 入口) | 高置信 |
+
+**default.map 解析器 sub_140A63300** (键 token → CMap 槽; 键名经 ref/token_map_1193.txt 定名): 逐键取值串 (节点 +200 / 空则 Buf2) → sub_14011FEB0/sub_140129CA0 存槽 → sub_140A60B10 拼 `map/` 前缀 → sub_14011FC50 赋值; 未识别键回退基类 sub_1424BEC40。**vtable 槽分工**: 槽[3] = sub_1424BE690 (default.map 全文分词 + 键分派框架) / 槽[4] = sub_140A63300 (CMap::Reader, 单键落槽); 上层总控 = sub_140A5F140 (CMap::Init, 唯一调用者 sub_140181110), 经 sub_1424BB300 绑 default.map 串 (全局 qword_1430B0040 = "map/default.map", ctor sub_140A5AEC0 拼装)。
+
+| 键 token | 键名 | 落槽 |
+|---|---|---|
+| 10288 | provinces | +176 |
+| 10290 | definitions | +440 |
+| 10329 | terrain | +208 |
+| 10396 | heightmap | +240 |
+| 10466 | tree | +640 (子解析 sub_1401F95D0) |
+| 10467 | tree_definition | +504 |
+| 10471 | positions | +144 |
+| 10490 | rivers | +272 |
+| 10572 | continent | +472 |
+| 10745 | adjacencies | +80 |
+| 10924 | ambient_object | +304 |
+| 10932 | seasons | +336 |
+| 13935 | adjacency_rules | +112 |
 
 #### 4.14.5 CProvinceBuildingItem 定义对象侧字段 (def 相对)
 
@@ -361,6 +381,27 @@ sub_140185170。**五 pass 实录** (全串行内联): ① GenerateBoundingBoxes
 grain = count/16) ⑤ InitPerPixelWeights sub_140A61F80 (**CInitMapPerPixelWeightsThreaded**;
 :622 日志标签 "CProvinceTemplate" 与 pass 内容错位 = 引擎串粘贴痕迹)。
 
+**各 map 位图装载器归属** (公共原语 = CRomeBitmap ctor sub_141545FD0, 6 处调用点):
+
+| 文件 | 装载器 | 落槽 |
+|---|---|---|
+| provinces.bmp | sub_141543C00 → 终函数 sub_1415446A0 (32MB LUT `R<<16\|G<<8\|B` → u16 省 id, 精确匹配无近似) | CMap+2096 聚合对象 (+24 u16/像素行主序, +36 计数, +48 宽, +52 高); 宽高复制到 CMap+64/+68; 构建链 sub_140A5F1F0 → sub_141543C00 → sub_1415446A0 |
+| terrain.bmp | sub_140A64430 (**reload terrain = sub_140A644C0 别名**) | CMap+368 |
+| heightmap.bmp | sub_140A65800 (河流/高度复合) | CMap+376 (采样 sub_140A60F10, u8 双线性 ×0.1) |
+| rivers.bmp | sub_140A63B80 | CMap+384 (56B; +392 u16 洪泛数组 8-连通 河 id≥2 非河=1; +416 河对象表) |
+| trees.bmp | sub_141B24A10 (调用者 sub_14127C980, 标签 LOAD_GFX_PDXMAP_TREES) | 路径槽 CMap+504; tree 调色板 → CMap+640 |
+| cities.bmp | sub_141651A30 (CCitySettings, cities.cpp:293; 校验 8bpp + 尺寸==CMap+64/+68) | CCitySettings 对象内部 (非 CMap 槽) |
+| world_normal.bmp | sub_14125D530 (pdxmap 纹理束, 非 CRomeBitmap) | pdxmap 渲染对象纹理数组 (非 CMap 槽, 仅渲染) |
+
+> positions.txt 路径槽 = CMap+144, 游戏侧消费者**未定位** (全语料仅见 sub_140A63300 赋值路径;
+> 开文件调用扫描 + PE 串 RVA 引用扫描双零命中 → 负定案高置信: 装载链不读 positions.txt 内容,
+> vanilla 0 字节文件合法; desc+184/+188 省位置来自 bbox pass + provincetemplate 几何回填 pass,
+> 非 positions.txt);
+> ambient_object.txt 路径槽 = CMap+304 (消费 sub_140B55FF0); seasons.txt 路径槽 = CMap+336
+> (消费 sub_140A64340 → CMap+736 Parse); continent.txt 路径槽 = CMap+472 (消费点 =
+> sub_140A5F4C0 内 sub_140ABDE10(sub_140462050(), CMap+472), sub_140462050() 返回
+> CStateDatabase 单例 qword_14332F070 → 供 desc+211 大洲 id)。
+
 **reload 分发器** (sub_14027A670, 分支键 postfx/flags/arrows/terrain/straits):
 `reload straits` = bbox → adjacency_rules → straits → 陆块 BFS 四函序列 + 图形通知
 ("Straits reloaded") — **不含位图邻接重建**, desc+112 底表不重建, 重复 reload 靠
@@ -395,7 +436,9 @@ sub_140A631C0 **只补主对角 (NW-SE)** 强制双向补链 (同款 48B 模板)
 ∧ **双侧邻接表都无** through 才报错 (单侧有即不报)。
 
 **definition.csv 装载 sub_140A64720**: 空槽填 null 对象指针 qword_143339E30 (216B,
-null_object.h 断言族, 非零); 描述符 ctor sub_1414084F0 置 +196 = id; 行 40B: +5 旗 bit1 =
+null_object.h 断言族, 非零); 描述符 ctor sub_1414084F0(id) 置 +0 有效旗=1 / +168 初值地形
+sub_140AD6B30() / +196 = id (definition.csv 各列由 sub_140A64720 在 ctor 后回填); 行 40B
+(分词器 sub_141543070, mapgenerator.cpp:526): +5 旗 bit1 =
 land → desc+210 bit0 / bit3 = lake → desc+210 bit1 (**湖旗定案: 直接源 = definition.csv
 lake 列**) / +6 大洲 → desc+211 (陆省零大洲 :1373) / +7 → 沿海调和 sub_14140A6A0(desc,1)
 / +8 Terrain 串 → terrainDB 查 → desc+168 (唯一写点)。**行表布局定案** (40B/行, 三处消费互证):

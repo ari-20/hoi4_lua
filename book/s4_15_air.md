@@ -359,7 +359,7 @@ CSupplyConsumer 基类域 (cp+0..+160; 不序列化段):
 | +160 | fixed×1e-5 | disrupted_supply (基 writer) | >0 才写 |
 | +168 | idpair | 所属 air_base 引用 (+168/+172; postload vtable[8] 逐容器回写; GetSupplyLocation vtable[11] 解析: 陆基 → 省 id, 载具 → ship+1832 → taskforce vtable[11]; 断言 `Country air container without airbase when calculating supply location`) | |
 | +176 | tag_id | country (loader 串 10394 → tag 反查; 失败报 "Air base country container refers to invalid tag: ") | 恒写 |
-| +184 | CAirWingPool* 向量 | 该基地该国**翼池**指针数组 {data@+184, cap@+188, count@+196} — 元素 = CAirWingPool* 非裸翼 (§4.15.3) | |
+| +184 | CAirWingPool* 向量 | 该基地该国**翼池**指针数组 {data@+184, cap@+192, count@+196, alloc@+200} (CPdxArray 24B 形; 原 cap@+188 系笔误) — 元素 = CAirWingPool* 非裸翼 (§4.15.3) | |
 | +208 | fixed×1e-5 | operational_status = **可运转州占比 (战争控制面, 与燃料无关)**: 写者链 sub_140C65D40 (100000 × sub_140C4FB60 逐州 sub_140D45270 控制/交战判定 / 基地省列表省数) → sub_140C63FA0 (≤0 且旧值 >0 时逐翼取消任务/换序后落值); 载具/海上基地恒 100000; 读者 = 消耗结算门 / sub_140C4CA10 (>0 门) / sub_140C4C150 (daily, ≤0 断言并除名基地) | ≠100000 (≠1.0) 才写 |
 | +216 | fixed×1e-5 | capacity_penalty = clamp(1e5 − 超容比×CAPACITY_PENALTY, 0, 1e5) (sub_140C579F0 计算; 超容比 >0.9 直接 0; 载具基地再乘国家修正 268; 未超容恒 100000 — 输入纯基地超容, 与燃料无关); 基地不可运营 (cp+208 ≤0) 或州沦陷谓词真时整段清零 (sub_140C57B70) | ≠0 才写 |
 | +224 | fixed×1e-5 | fuel_consumption = 每小时清 0 后**逐池累加** sub_140F5BA20 (任务/训练消耗现算; executing 分支机数 = m+224 无门直过) — sub_140C57B70 (ProcessAirBasesHourly 并行段: sub_140C5EFC0 → tbb 分裂 sub_140C45D50/叶 sub_140C67630 → sub_140C579F0 capacity_penalty 后逐容器调用) | ≠0 才写 |
