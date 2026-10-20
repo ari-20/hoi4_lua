@@ -86,7 +86,7 @@ army/navy/operative 三派生共用; 偏移 = leader 绝对字节; 引擎落盘�
 | +3641..+3695 | 匿名结构 (55B 形状) | (**覆盖行**, 定案: 与 +3613..+3647 及 +3648/+3680/+3688 单列行逐字节重合, 无独立信息) |  |
 | +3648 | SSO 串 | link | 门 qword@+3664≠0; tok 14790 |
 | +3649..+3679 | SSO 串本体 (31B) | = link SSO 32B 本体 (+3648..+3679; ctor 清空 / dtor free) |  |
-| +3680 | CUnitLeaderSkill* | skill 对象指针 — 叶值 = u32@(*ptr+440) (军衔等级) | **恒写, 指针无判空门** (直接解引用); tok 10453 |
+| +3680 | CUnitLeaderSkill* | skill 对象指针 — 叶值 = u32@(*ptr+440) (军衔等级) | **恒写, 指针无判空门** (直接解引用); tok 10453; **reader case 10453 回读该 u32 → 按 +3708 leader_type 反查技能库 qword_14332F0D0 重建 +3680 指针 (sub_140AE9DA0)** ⇒ 该叶是可序列化真值 (非 write-only 运行时态), 实档落盘 `field_marshal.skill 2` / `navy_leader.skill 2` |
 | +3688 | fixed×1e-5 (int64) | experience 经验 | 门 ≠0; tok 11930 |
 | +3689..+3711 | 匿名结构 (23B 形状) | = experience 尾 + **max_traits 缓存①②** (+3696 i32 ctor=0 / +3700 i32 ctor=−1 未算哨兵) + **海战计数@+3704** + **leader_type@+3708** (ctor 参数2; 3 = operative (推定); **dtor 置 4** = destructed 哨兵勿入合法域; **GUI: 将领类型判别显示** — CNavyLeaderItem/TraitWindow 命中, 2=navy_leader) + female 哨兵对 (+3712/3713) |  |
 | +3696 | int32 | **max_traits 缓存①** (corps/FM define 基值 + 修正 0x15F) | sub_140C21D30 写, getter sub_140C18790 |
